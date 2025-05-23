@@ -1,3 +1,6 @@
+@php
+    use Illuminate\Support\Str;
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
@@ -32,10 +35,9 @@
             <!-- Desktop User Menu -->
             <flux:dropdown position="bottom" align="start">
                 <flux:profile
-                    :name="auth()->user()->name"
-                    :initials="auth()->user()->initials()"
-                    icon-trailing="chevrons-up-down"
-                />
+    :name="auth()->user()->name"
+    icon-trailing="chevrons-up-down"
+/>
 
                 <flux:menu class="w-[220px]">
                     <flux:menu.radio.group>
@@ -45,7 +47,7 @@
                                     <span
                                         class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black"
                                     >
-                                        {{ auth()->user()->initials() }}
+                                        {{ Str::substr(auth()->user()->name, 0, 2) }}
                                     </span>
                                 </span>
 
@@ -83,9 +85,10 @@
 
             <flux:dropdown position="top" align="end">
                 <flux:profile
-                    :initials="auth()->user()->initials()"
-                    icon-trailing="chevron-down"
+                    :name="auth()->user()->name"
+                    icon-trailing="chevrons-up-down"
                 />
+
 
                 <flux:menu>
                     <flux:menu.radio.group>
@@ -93,10 +96,11 @@
                             <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                                 <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
                                     <span
-                                        class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black"
-                                    >
-                                        {{ auth()->user()->initials() }}
-                                    </span>
+    class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black"
+>
+    {{ Str::substr(auth()->user()->name, 0, 2) }}
+</span>
+
                                 </span>
 
                                 <div class="grid flex-1 text-start text-sm leading-tight">
