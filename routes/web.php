@@ -33,6 +33,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('reservas/pdf', [ReservaController::class, 'generarPDF'])->name('reservas.pdf');
         Route::get('reservas/{reserva}/comprobante', [ReservaController::class, 'generarComprobante'])->name('reservas.comprobante');
         Route::resource('reservas', ReservaController::class);
+        Route::resource('users', UserRegisterController::class)->except(['show']);
     });
 
     // Perfil editable

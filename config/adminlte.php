@@ -346,14 +346,8 @@ return [
         'icon' => 'fas fa-fw fa-user',
         ],
         [
-        'text' => 'Registrar Usuario',
-        'url'  => 'register',
-        'icon' => 'fas fa-user-plus',
-        //'can'  => 'admin', // si tienes control de roles
-        ],
-        [
             'text' => 'USUARIOS',
-            'url' => '#',
+            'route'=> 'admin.users.index',
             'icon' => 'fas fa-fw fa-user-cog',
         ],
         ['header' => 'TABLAS'],
