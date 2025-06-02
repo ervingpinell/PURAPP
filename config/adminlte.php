@@ -367,6 +367,11 @@ return [
             'route'=> 'admin.reservas.index',
             'icon' => 'fas fa-fw fa-calendar-check',
         ],
+        [
+            'text' => 'ROLES',
+            'route'=> 'admin.roles.index',
+            'icon' => 'fas fa-fw fa-calendar-check',
+        ],
     ],
 
     /*

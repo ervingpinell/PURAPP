@@ -34,6 +34,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('reservas/{reserva}/comprobante', [ReservaController::class, 'generarComprobante'])->name('reservas.comprobante');
         Route::resource('reservas', ReservaController::class);
         Route::resource('users', UserRegisterController::class)->except(['show']);
+        Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class)->except(['show']);
     });
 
     // Perfil editable
