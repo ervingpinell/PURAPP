@@ -3,7 +3,7 @@
 @section('title', 'Editar Perfil')
 
 @section('content_header')
-    <h1 class="text-center"><i class="fas fa-user-edit"></i> Editar Perfil de: {{$user->name}}</h1>
+    <h1 class="text-center"><i class="fas fa-user-edit"></i> Editar Perfil de: {{$user->full_name}}</h1>
 @stop
 
 @section('content')
@@ -18,7 +18,7 @@
                     <div class="card-body">
                         <div class="form-group">
                             <label for="name"><i class="fas fa-user"></i> Nombre</label>
-                            <input type="text" name="name" class="form-control" value="{{ $user->name }}" required>
+                            <input type="text" name="name" class="form-control" value="{{ $user->full_name }}" required>
                             @error('name') 
                                 <span class="text-danger"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span> 
                             @enderror

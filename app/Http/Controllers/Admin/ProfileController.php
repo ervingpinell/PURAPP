@@ -20,11 +20,12 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'full_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id_user . ',id_user',
             'password' => 'nullable|min:6',
         ]);
-        $user->name = $request->name;
+
+        $user->full_name = $request->full_name;
         $user->email = $request->email;
 
         if ($request->filled('password')) {
@@ -36,4 +37,3 @@ class ProfileController extends Controller
         return redirect()->back()->with('success', 'Perfil actualizado correctamente.');
     }
 }
-

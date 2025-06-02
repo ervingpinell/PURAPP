@@ -356,16 +356,19 @@ return [
             'text' => 'TOURS',
             'route'=> 'admin.tours.index',
             'icon' => 'fas fa-fw fa-plane',
+            'can' => 'is-admin'
         ],
         [
             'text' => 'CLIENTES',
             'route'=> 'admin.clientes.index',
             'icon' => 'fas fa-fw fa-users',
+            'can' => 'is-admin'
         ],
         [
             'text' => 'RESERVAS',
             'route'=> 'admin.reservas.index',
             'icon' => 'fas fa-fw fa-calendar-check',
+            'can'  => 'is-collaborator',
         ],
         [
             'text' => 'ROLES',

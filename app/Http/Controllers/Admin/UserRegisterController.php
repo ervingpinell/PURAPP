@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 
 class UserRegisterController extends Controller
@@ -12,11 +13,13 @@ class UserRegisterController extends Controller
     // Mostrar lista de usuarios
     public function index()
     {
-        $users = User::all();
-        return view('admin.users.users', compact('users'));
+        $users = User::with('role')->get(); // Carga la relación con roles
+        $roles = Role::all(); // Para el <select> en el blade
+
+        return view('admin.users.users', compact('users', 'roles'));
     }
 
-    // Mostrar formulario creación (modal en blade, no se usa aquí)
+    // No se usa create (modal en el blade)
     public function create()
     {
         return redirect()->route('admin.users.index');
@@ -26,21 +29,24 @@ class UserRegisterController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|string|email|max:255|unique:users',
+            'full_name' => 'required|string|max:100',
+            'email' => 'required|string|email|max:200|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
+            'id_role' => 'required|exists:roles,id_role',
         ]);
 
         User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
+            'full_name' => $request->full_name,
+            'email' => $request->email,
             'password' => Hash::make($request->password),
+            'id_role' => $request->id_role,
+            'status' => true,
         ]);
 
         return redirect()->route('admin.users.index')->with('success', 'Usuario registrado correctamente.');
     }
 
-    // Mostrar formulario edición (modal en blade, no se usa aquí)
+    
     public function edit($id)
     {
         return redirect()->route('admin.users.index');
@@ -52,13 +58,15 @@ class UserRegisterController extends Controller
         $user = User::findOrFail($id);
 
         $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => "required|string|email|max:255|unique:users,email,$id",
+            'full_name' => 'required|string|max:100',
+            'email' => 'required|string|email|max:200|unique:users,email,' . $id . ',id_user',
             'password' => 'nullable|string|min:6|confirmed',
+            'id_role' => 'required|exists:roles,id_role',
         ]);
 
-        $user->name = $request->name;
+        $user->full_name = $request->full_name;
         $user->email = $request->email;
+        $user->id_role = $request->id_role;
 
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);

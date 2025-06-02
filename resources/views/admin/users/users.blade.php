@@ -18,23 +18,25 @@
                 <th>ID</th>
                 <th>Nombre</th>
                 <th>Correo</th>
+                <th>Rol</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($users as $user)
                 <tr>
-                    <td>{{ $user->id }}</td>
-                    <td>{{ $user->name }}</td>
+                    <td>{{ $user->id_user }}</td>
+                    <td>{{ $user->full_name }}</td>
                     <td>{{ $user->email }}</td>
+                    <td>{{ $user->role->role_name ?? 'Sin rol' }}</td>
                     <td>
                         <!-- Botón editar -->
-                        <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $user->id }}">
+                        <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $user->id_user }}">
                             <i class="fas fa-edit"></i>
                         </a>
 
                         <!-- Botón eliminar -->
-                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" style="display: inline-block;">
+                        <form action="{{ route('admin.users.destroy', $user->id_user) }}" method="POST" style="display: inline-block;">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Deseas eliminar este usuario?')">
@@ -44,10 +46,10 @@
                     </td>
                 </tr>
 
-                <!-- Modal Editar Usuario -->
-                <div class="modal fade" id="modalEditar{{ $user->id }}" tabindex="-1" aria-hidden="true">
+                <!-- Modal Editar -->
+                <div class="modal fade" id="modalEditar{{ $user->id_user }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog">
-                        <form action="{{ route('admin.users.update', $user->id) }}" method="POST">
+                        <form action="{{ route('admin.users.update', $user->id_user) }}" method="POST">
                             @csrf
                             @method('PUT')
                             <div class="modal-content">
@@ -57,19 +59,29 @@
                                 </div>
                                 <div class="modal-body">
                                     <div class="mb-3">
-                                        <label class="form-label">Nombre</label>
-                                        <input type="text" name="name" class="form-control" value="{{ $user->name }}" required>
+                                        <label>Nombre</label>
+                                        <input type="text" name="full_name" class="form-control" value="{{ $user->full_name }}" required>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Correo</label>
+                                        <label>Correo</label>
                                         <input type="email" name="email" class="form-control" value="{{ $user->email }}" required>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Nueva contraseña (opcional)</label>
+                                        <label>Rol</label>
+                                        <select name="id_role" class="form-control" required>
+                                            @foreach ($roles as $role)
+                                                <option value="{{ $role->id_role }}" {{ $user->id_role == $role->id_role ? 'selected' : '' }}>
+                                                    {{ $role->role_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label>Nueva contraseña (opcional)</label>
                                         <input type="password" name="password" class="form-control" autocomplete="new-password">
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Confirmar contraseña</label>
+                                        <label>Confirmar contraseña</label>
                                         <input type="password" name="password_confirmation" class="form-control" autocomplete="new-password">
                                     </div>
                                 </div>
@@ -81,13 +93,12 @@
                         </form>
                     </div>
                 </div>
-
             @endforeach
         </tbody>
     </table>
 </div>
 
-<!-- Modal Registrar Usuario -->
+<!-- Modal Registrar -->
 <div class="modal fade" id="modalRegistrar" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <form action="{{ route('admin.users.store') }}" method="POST">
@@ -99,19 +110,27 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input type="text" name="name" class="form-control" required>
+                        <label>Nombre</label>
+                        <input type="text" name="full_name" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Correo</label>
+                        <label>Correo</label>
                         <input type="email" name="email" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Contraseña</label>
+                        <label>Rol</label>
+                        <select name="id_role" class="form-control" required>
+                            @foreach ($roles as $role)
+                                <option value="{{ $role->id_role }}">{{ $role->role_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Contraseña</label>
                         <input type="password" name="password" class="form-control" required autocomplete="new-password">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Confirmar Contraseña</label>
+                        <label>Confirmar Contraseña</label>
                         <input type="password" name="password_confirmation" class="form-control" required autocomplete="new-password">
                     </div>
                 </div>
@@ -126,7 +145,7 @@
 @stop
 
 @section('css')
-{{-- Aquí puedes agregar estilos personalizados --}}
+{{-- Estilos adicionales aquí --}}
 @stop
 
 @section('js')
