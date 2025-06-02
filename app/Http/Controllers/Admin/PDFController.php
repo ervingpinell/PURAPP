@@ -12,7 +12,7 @@ class PDFController extends Controller
     public function generarComprobante($id)
     {
         // Obtener la reserva por ID
-        $reserva = Reserva::with(['cliente', 'tour'])->findOrFail($id);
+        $reserva = Reserva::with(['user', 'tour'])->findOrFail($id);
 
         // Generar el PDF
         $pdf = Pdf::loadView('admin.pdf.comprobante', compact('reserva'));

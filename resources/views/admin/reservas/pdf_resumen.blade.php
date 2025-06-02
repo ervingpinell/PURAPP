@@ -63,7 +63,7 @@
     @foreach($reservas as $reserva)
         <div class="reserva-section">
             <div class="section-title">📌 Código: GV-{{ $reserva->codigo_reserva ?? $reserva->id }}</div>
-            <div><strong>Cliente:</strong> {{ optional($reserva->cliente)->nombre ?? 'N/A' }} ({{ optional($reserva->cliente)->correo }})</div>
+            <div><strong>Cliente:</strong> {{ optional($reserva->user)->full_name ?? 'N/A' }} ({{ optional($reserva->user)->email ?? 'N/A' }})</div>
             <div><strong>Tour:</strong> {{ optional($reserva->tour)->nombre ?? 'N/A' }} - {{ optional($reserva->tour)->ubicacion ?? '' }}</div>
             <div><strong>Fecha Reserva:</strong> {{ \Carbon\Carbon::parse($reserva->fecha_reserva)->format('d/m/Y') }}</div>
             <div><strong>Fechas:</strong> {{ \Carbon\Carbon::parse($reserva->fecha_inicio)->format('d/m/Y h:i A') }} a {{ \Carbon\Carbon::parse($reserva->fecha_fin)->format('d/m/Y h:i A') }}</div>

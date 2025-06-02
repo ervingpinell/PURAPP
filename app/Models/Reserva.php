@@ -9,25 +9,25 @@ class Reserva extends Model
     protected $primaryKey = 'id_reserva';
 
     protected $fillable = [
-        'id_cliente',
+        'id_user',
         'id_tour',
-        'precio_adulto',
-        'precio_nino',
         'fecha_reserva',
         'fecha_inicio',
         'fecha_fin',
         'estado_reserva',
         'idioma_tour',
-        'notas',
-        'codigo_reserva',
+        'precio_adulto',
+        'precio_nino',
         'cantidad_adultos',
         'cantidad_ninos',
         'total_pago',
+        'codigo_reserva',
+        'notas',
     ];
 
-    public function cliente()
+    public function user()
     {
-        return $this->belongsTo(Cliente::class, 'id_cliente');
+        return $this->belongsTo(User::class, 'id_user');
     }
 
     public function tour()

@@ -17,7 +17,7 @@ class ReservaController extends Controller
      */
     public function index()
     {
-        $reservas = Reserva::with(['cliente', 'tour'])->get();
+        $reservas = Reserva::with(['user', 'tour'])->get();
         return view('admin.reservas', compact('reservas'));
     }
 
@@ -27,9 +27,8 @@ class ReservaController extends Controller
      */
     public function store(Request $request)
     {
-        // Validar solo los campos que vienen del formulario
         $validated = $request->validate([
-            'id_cliente' => 'required|integer|exists:clientes,id_cliente',
+            'id_user' => 'required|integer|exists:users,id_user',
             'id_tour' => 'required|integer|exists:tours,id_tour',
             'fecha_reserva' => 'required|date',
             'fecha_inicio' => 'required|date',
@@ -40,25 +39,21 @@ class ReservaController extends Controller
             'cantidad_ninos' => 'required|integer|min:0',
         ]);
 
-        // Obtener el tour desde la base de datos
         $tour = Tour::findOrFail($validated['id_tour']);
 
-        // Agregar los precios al array validado
         $validated['precio_adulto'] = $tour->precio_adulto;
         $validated['precio_nino'] = $tour->precio_nino;
-
-        // Calcular el total de la reserva
         $validated['total_pago'] = ($tour->precio_adulto * $validated['cantidad_adultos']) +
-                                ($tour->precio_nino * $validated['cantidad_ninos']);
-
-        // Generar código de reserva
+                                    ($tour->precio_nino * $validated['cantidad_ninos']);
         $validated['codigo_reserva'] = strtoupper(Str::random(10));
 
-        // Crear la reserva
+        $validated['id_user'] = $request->id_user;
+
         Reserva::create($validated);
 
         return redirect()->back()->with('success', 'Reserva agregada correctamente.');
     }
+
 
 
     /**
@@ -108,7 +103,7 @@ class ReservaController extends Controller
      */
     public function generarPDF()
     {
-        $reservas = Reserva::with(['cliente', 'tour'])->get();
+        $reservas = Reserva::with(['user', 'tour'])->get();
 
         $pdf = Pdf::loadView('admin.reservas.pdf_resumen', compact('reservas'));
         return $pdf->download('reporte_reservas.pdf');
@@ -119,7 +114,7 @@ class ReservaController extends Controller
     {
         try {
             $pdf = Pdf::loadView('admin.reservas.comprobante', compact('reserva'));
-            $nombreCliente = preg_replace('/[^A-Za-z0-9_]/', '_', $reserva->cliente->nombre ?? 'Cliente');
+            $nombreCliente = preg_replace('/[^A-Za-z0-9_]/', '_', $reserva->user->full_name ?? 'Cliente');
             $codigo = $reserva->codigo_reserva ?? $reserva->id;
             $nombreArchivo = "Comprobante_{$nombreCliente}_GV-{$codigo}.pdf";
 

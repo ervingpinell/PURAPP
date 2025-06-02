@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('reservas', function (Blueprint $table) {
             $table->bigIncrements('id_reserva');
-            $table->unsignedBigInteger('id_cliente');
+            $table->unsignedBigInteger('id_user');
             $table->unsignedBigInteger('id_tour');
             $table->decimal('precio_adulto', 10, 2);
             $table->decimal('precio_nino', 10, 2);
@@ -31,7 +31,7 @@ return new class extends Migration
 
 
             // Relaciones
-            $table->foreign('id_cliente')->references('id_cliente')->on('clientes')->onDelete('cascade');
+            $table->foreign('id_user')->references('id_user')->on('users')->onDelete('cascade');
             $table->foreign('id_tour')->references('id_tour')->on('tours')->onDelete('cascade');
         });
     }

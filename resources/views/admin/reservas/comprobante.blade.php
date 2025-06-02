@@ -47,7 +47,7 @@
         <h2>🎫 Comprobante de Reserva</h2>
 
         <div class="dato"><strong>Código:</strong> GV-{{ $reserva->codigo_reserva ?? $reserva->id }}</div>
-        <div class="dato"><strong>Cliente:</strong> {{ $reserva->cliente->nombre }} ({{ $reserva->cliente->correo }})</div>
+        <div class="dato"><strong>Cliente:</strong> {{ $reserva->user->full_name }} ({{ $reserva->user->email }})</div>
         <div class="dato"><strong>Tour:</strong> {{ $reserva->tour->nombre }} - {{ $reserva->tour->ubicacion }}</div>
         <div class="dato"><Strong>Categoria del Tour:</Strong> {{$reserva->tour->tipo_tour}}</div>
         <div class="dato"><strong>Fecha de Reserva:</strong> {{ \Carbon\Carbon::parse($reserva->fecha_reserva)->format('d/m/Y') }}</div>
