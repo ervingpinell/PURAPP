@@ -367,8 +367,7 @@ return [
         [
             'text' => 'RESERVAS',
             'route'=> 'admin.reservas.index',
-            'icon' => 'fas fa-fw fa-calendar-check',
-            'can'  => 'is-collaborator',
+            'icon' => 'fas fa-fw fa-calendar-check'
         ],
         [
             'text' => 'ROLES',

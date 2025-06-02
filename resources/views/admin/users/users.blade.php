@@ -7,10 +7,46 @@
 @stop
 
 @section('content')
-<div class="p-3 table-responsive">
-    <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-        <i class="fas fa-plus"></i> Añadir Usuario
-    </a>
+        <div class="p-3 table-responsive">
+            <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
+                <i class="fas fa-plus"></i> Añadir Usuario
+            </a>
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <form method="GET" action="{{ route('admin.users.index') }}">
+                        <div class="row justify-content-center mb-2">
+                            <div class="col-md-4 text-center">
+                                <label for="rol" class="form-label">Filtrar por rol:</label>
+                                <select name="rol" id="rol" class="form-select text-center">
+                                    <option value="">-- Todos --</option>
+                                    @foreach ($roles as $rol)
+                                        <option value="{{ $rol->id_role }}" {{ request('rol') == $rol->id_role ? 'selected' : '' }}>
+                                            {{ $rol->role_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row justify-content-center">
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search"></i> Buscar
+                                </button>
+                            </div>
+                            <div class="col-md-2">
+                                <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary w-100">
+                                    <i class="fas fa-times"></i> Limpiar
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
 
     <table class="table table-striped table-bordered table-hover">
         <thead class="bg-primary text-white">
@@ -19,6 +55,7 @@
                 <th>Nombre</th>
                 <th>Correo</th>
                 <th>Rol</th>
+                <th>Numero de Telefono</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -29,6 +66,7 @@
                     <td>{{ $user->full_name }}</td>
                     <td>{{ $user->email }}</td>
                     <td>{{ $user->role->role_name ?? 'Sin rol' }}</td>
+                    <td>{{$user->phone}}</td>
                     <td>
                         <!-- Botón editar -->
                         <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $user->id_user }}">
@@ -77,6 +115,10 @@
                                         </select>
                                     </div>
                                     <div class="mb-3">
+                                        <label>Numero de Telefono</label>
+                                        <input type="text" name="phone" class="form-control" value="{{ $user->phone }}" required>
+                                    </div>
+                                    <div class="mb-3">
                                         <label>Nueva contraseña (opcional)</label>
                                         <input type="password" name="password" class="form-control" autocomplete="new-password">
                                     </div>
@@ -111,11 +153,11 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label>Nombre</label>
-                        <input type="text" name="full_name" class="form-control" required>
+                        <input type="text" name="full_name" class="form-control" required value="{{ old('full_name') }}">
                     </div>
                     <div class="mb-3">
                         <label>Correo</label>
-                        <input type="email" name="email" class="form-control" required>
+                        <input type="email" name="email" class="form-control" required value="{{ old('email') }}">
                     </div>
                     <div class="mb-3">
                         <label>Rol</label>
@@ -124,6 +166,10 @@
                                 <option value="{{ $role->id_role }}">{{ $role->role_name }}</option>
                             @endforeach
                         </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Numero Telefono</label>
+                        <input type="text" name="phone" class="form-control" required value="{{ old('phone') }}">
                     </div>
                     <div class="mb-3">
                         <label>Contraseña</label>
@@ -162,4 +208,34 @@
         });
     </script>
 @endif
+@if (session('error_email'))
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Correo duplicado',
+            text: '{{ session('error_email') }}',
+            confirmButtonColor: '#d33'
+        });
+    </script>
+@endif
+
+@if (session('error_password'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Mostrar alerta para password
+            Swal.fire({
+                icon: 'error',
+                title: 'Contraseña inválida',
+                text: '{{ session('error_password') }}',
+                confirmButtonColor: '#d33'
+            });
+
+            // Reabrir el modal automáticamente
+            const modal = new bootstrap.Modal(document.getElementById('modalRegistrar'));
+            modal.show();
+        });
+    </script>
+@endif
+
+
 @stop

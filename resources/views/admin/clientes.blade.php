@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Reservas')
+@section('title', 'Clientes')
 
 @section('content_header')
-    <h1>Gestión de Clientes</h1>
+    <h1>Gestión de Clientes TABLA A ELIMINAR</h1>
 @stop
 
 @section('content')

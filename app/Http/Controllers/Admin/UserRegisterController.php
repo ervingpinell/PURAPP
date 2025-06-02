@@ -11,10 +11,16 @@ use Illuminate\Support\Facades\Hash;
 class UserRegisterController extends Controller
 {
     // Mostrar lista de usuarios
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('role')->get(); // Carga la relación con roles
-        $roles = Role::all(); // Para el <select> en el blade
+        $roles = Role::all();
+        $query = User::with('role');
+
+        if ($request->filled('rol')) {
+            $query->where('id_role', $request->rol);
+        }
+
+        $users = $query->get();
 
         return view('admin.users.users', compact('users', 'roles'));
     }
@@ -28,23 +34,43 @@ class UserRegisterController extends Controller
     // Guardar nuevo usuario
     public function store(Request $request)
     {
-        $request->validate([
-            'full_name' => 'required|string|max:100',
-            'email' => 'required|string|email|max:200|unique:users,email',
-            'password' => 'required|string|min:6|confirmed',
-            'id_role' => 'required|exists:roles,id_role',
-        ]);
+        try {
+            $request->validate([
+                'full_name' => 'required|string|max:100',
+                'email' => 'required|string|email|max:200|unique:users,email',
+                'password' => 'required|string|min:8|confirmed',
+                'id_role' => 'required|exists:roles,id_role',
+                'phone' => 'nullable|string|max:20',
+            ]);
 
-        User::create([
-            'full_name' => $request->full_name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'id_role' => $request->id_role,
-            'status' => true,
-        ]);
+            User::create([
+                'full_name' => $request->full_name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'id_role' => $request->id_role,
+                'status' => true,
+                'phone'=>$request->phone,
+            ]);
 
-        return redirect()->route('admin.users.index')->with('success', 'Usuario registrado correctamente.');
+            return redirect()->route('admin.users.index')->with('success', 'Usuario registrado correctamente.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Error solo de contraseña
+            if (
+                $e->validator->errors()->count() === 1 &&
+                $e->validator->errors()->has('password')
+            ) {
+                return redirect()->back()
+                    ->withErrors($e->validator)
+                    ->with('error_password', $e->validator->errors()->first('password'))
+                    ->withInput()
+                    ->with('show_register_modal', true); // para mantener el modal abierto
+            }
+
+            throw $e;
+        }
     }
+
+
 
     
     public function edit($id)
@@ -62,11 +88,13 @@ class UserRegisterController extends Controller
             'email' => 'required|string|email|max:200|unique:users,email,' . $id . ',id_user',
             'password' => 'nullable|string|min:6|confirmed',
             'id_role' => 'required|exists:roles,id_role',
+            'phone' => 'nullable|string|max:20',
         ]);
 
         $user->full_name = $request->full_name;
         $user->email = $request->email;
         $user->id_role = $request->id_role;
+        $user->phone = $request->phone;
 
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
