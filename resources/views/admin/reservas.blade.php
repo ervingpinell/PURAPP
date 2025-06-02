@@ -41,7 +41,7 @@
                 @foreach ($reservas as $reserva)
                     <tr>
                         <td>{{ $reserva->id_reserva }}</td>
-                        <td>{{ $reserva->cliente->nombre ?? 'Sin cliente' }}</td>
+                        <td>{{ $reserva->user->full_name ?? 'Sin cliente' }}</td>
                         <td>{{ $reserva->tour->nombre ?? 'Sin tour' }}</td>
                         <td>{{ $reserva->fecha_reserva }}</td>
                         <td>{{ $reserva->fecha_inicio }}</td>
