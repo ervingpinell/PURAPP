@@ -17,9 +17,9 @@
                     @csrf
                     <div class="card-body">
                         <div class="form-group">
-                            <label for="name"><i class="fas fa-user"></i> Nombre</label>
-                            <input type="text" name="name" class="form-control" value="{{ $user->full_name }}" required>
-                            @error('name') 
+                            <label for="full_name"><i class="fas fa-user"></i> Nombre</label>
+                            <input type="text" name="full_name" class="form-control" value="{{ old('full_name', $user->full_name) }}" required>
+                            @error('full_name') 
                                 <span class="text-danger"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span> 
                             @enderror
                         </div>
@@ -28,6 +28,14 @@
                             <label for="email"><i class="fas fa-envelope"></i> Correo electrónico</label>
                             <input type="email" name="email" class="form-control" value="{{ old('email', $user->email) }}" required>
                             @error('email') 
+                                <span class="text-danger"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span> 
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone"><i class="fas fa-phone"></i> Teléfono</label>
+                            <input type="text" name="phone" class="form-control" value="{{ old('phone', $user->phone) }}">
+                            @error('phone') 
                                 <span class="text-danger"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span> 
                             @enderror
                         </div>
@@ -53,7 +61,6 @@
 @stop
 
 @section('js')
-    {{-- SweetAlert2 CDN --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     @if(session('success'))
