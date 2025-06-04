@@ -15,6 +15,7 @@
             <div class="card mb-3">
                 <div class="card-body">
                     <form method="GET" action="{{ route('admin.users.index') }}">
+                        <!-- Filtro por rol -->
                         <div class="row justify-content-center mb-2">
                             <div class="col-md-4 text-center">
                                 <label for="rol" class="form-label">Filtrar por rol:</label>
@@ -29,6 +30,16 @@
                             </div>
                         </div>
 
+                        <!-- Filtro por correo -->
+                        <div class="row justify-content-center mb-2">
+                            <div class="col-md-4 text-center">
+                                <label for="correo" class="form-label">Filtrar por correo:</label>
+                                <input type="email" name="correo" id="correo" class="form-control text-center"
+                                    placeholder="ejemplo@correo.com" value="{{ request('correo') }}">
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
                         <div class="row justify-content-center">
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-primary w-100">
@@ -45,6 +56,7 @@
                 </div>
             </div>
         </div>
+
 
 
 

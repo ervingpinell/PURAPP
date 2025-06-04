@@ -19,6 +19,9 @@ class UserRegisterController extends Controller
         if ($request->filled('rol')) {
             $query->where('id_role', $request->rol);
         }
+        if ($request->filled('correo')) {
+            $query->where('email', 'like', '%' . $request->correo . '%');
+        }
 
         $users = $query->get();
 
