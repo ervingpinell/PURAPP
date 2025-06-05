@@ -32,8 +32,10 @@ class UserRegisterController extends Controller
     // No se usa create (modal en el blade)
     public function create()
     {
-        return redirect()->route('admin.users.index');
+        $roles = Role::all(); // opcional si querés que el usuario elija un rol, o si vas a asignarlo por defecto
+        return view('auth.register', compact('roles'));
     }
+
 
     // Guardar nuevo usuario
     public function store(Request $request)

@@ -3,11 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\HomeController;
 use App\Http\Controllers\Admin\ReservaController;
-use App\Http\Controllers\Admin\ClienteController;
 use App\Http\Controllers\Admin\TourController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\UserRegisterController;
+use App\Http\Controllers\Auth\ClienteRegisterController;
 
 // Ruta pública
 Route::get('/', function () {
@@ -28,7 +28,6 @@ Route::middleware(['auth'])->group(function () {
 
     // Rutas admin
     Route::prefix('admin')->name('admin.')->group(function () {
-        Route::resource('clientes', ClienteController::class);
         Route::resource('tours', TourController::class);
         Route::get('reservas/pdf', [ReservaController::class, 'generarPDF'])->name('reservas.pdf');
         Route::get('reservas/{reserva}/comprobante', [ReservaController::class, 'generarComprobante'])->name('reservas.comprobante');
@@ -41,7 +40,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    // Registro de usuarios colaboradores (admin)
-    Route::get('/register', [UserRegisterController::class, 'create'])->name('register.create');
-    Route::post('/register', [UserRegisterController::class, 'store'])->name('register.store');
 });
+
+// Registro de usuarios colaboradores (admin)
+// Opcional: alias adicional para que coincida con AdminLTE
+Route::get('/register', [ClienteRegisterController::class, 'create'])->name('register');
+Route::post('/register', [ClienteRegisterController::class, 'store'])->name('register.store');
+
