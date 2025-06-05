@@ -210,44 +210,58 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 @if(session('success'))
-    <script>
-        Swal.fire({
-            icon: 'success',
-            title: 'Éxito',
-            text: '{{ session('success') }}',
-            confirmButtonColor: '#3085d6',
-            confirmButtonText: 'OK'
-        });
-    </script>
-@endif
-@if (session('error_email'))
-    <script>
-        Swal.fire({
-            icon: 'error',
-            title: 'Correo duplicado',
-            text: '{{ session('error_email') }}',
-            confirmButtonColor: '#d33'
-        });
-    </script>
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Éxito',
+        text: '{{ session('success') }}',
+        confirmButtonColor: '#3085d6',
+        confirmButtonText: 'OK'
+    });
+</script>
 @endif
 
 @if (session('error_password'))
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Mostrar alerta para password
-            Swal.fire({
-                icon: 'error',
-                title: 'Contraseña inválida',
-                text: '{{ session('error_password') }}',
-                confirmButtonColor: '#d33'
-            });
-
-            // Reabrir el modal automáticamente
-            const modal = new bootstrap.Modal(document.getElementById('modalRegistrar'));
-            modal.show();
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        Swal.fire({
+            icon: 'error',
+            title: 'Contraseña inválida',
+            text: '{{ session('error_password') }}',
+            confirmButtonColor: '#d33'
         });
-    </script>
+
+        const modal = new bootstrap.Modal(document.getElementById('modalRegistrar'));
+        modal.show();
+    });
+</script>
 @endif
+
+@if ($errors->has('email'))
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        Swal.fire({
+            icon: 'error',
+            title: 'Correo duplicado',
+            text: '{{ $errors->first('email') }}',
+            confirmButtonColor: '#d33'
+        });
+
+        const modal = new bootstrap.Modal(document.getElementById('modalRegistrar'));
+        modal.show();
+    });
+</script>
+@endif
+
+@if (session('show_register_modal'))
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = new bootstrap.Modal(document.getElementById('modalRegistrar'));
+        modal.show();
+    });
+</script>
+@endif
+
 
 
 @stop
