@@ -14,7 +14,7 @@ return [
     'sign_in' => 'Acceder',
     'log_out' => 'Salir',
     'toggle_navigation' => 'Alternar barra de navegación',
-    'login_message' => 'Autenticarse para iniciar sesión',
+    'login_message' => 'Inicie sesión',
     'register_message' => 'Crear una nueva cuenta',
     'password_reset_message' => 'Restablecer la contraseña',
     'reset_password' => 'Restablecer la contraseña',
@@ -26,4 +26,9 @@ return [
     'verify_request_another' => 'haga clic aquí para solicitar otro',
     'confirm_password_message' => 'Por favor, confirme su contraseña para continuar.',
     'remember_me_hint' => 'Mantenerme autenticado indefinidamente o hasta cerrar la sesión manualmente',
+    'password_requirements' => [
+    'length' => '- Longitud 8 caracteres',
+    'special' => '- 1 caracter especial (!,@,#,$,%,^,&,*,(,)_+)',
+    'number' => '- 1 número',
+],
 ];

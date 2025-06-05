@@ -15,7 +15,7 @@ return [
     */
 
     'title' => '',
-    'title_prefix' => 'Green Vacation | ',
+    'title_prefix' => 'Green Vacations CR',
     'title_postfix' => '',
 
     /*
@@ -63,12 +63,12 @@ return [
     |
     */
 
-    'logo' => '<b>Green</b> Vacation',
+    'logo' => null,
     'logo_img' => 'vendor/adminlte/dist/img/logoCompany.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
-    'logo_img_alt' => 'Green Vacation',
+    'logo_img_alt' => 'Green Vacations',
 
     /*
     |--------------------------------------------------------------------------
@@ -89,8 +89,8 @@ return [
             'path' => 'vendor/adminlte/dist/img/logoCompany.png',
             'alt' => 'Auth Logo',
             'class' => '',
-            'width' => 50,
-            'height' => 50,
+            'width' => 180,
+            'height' => 90,
         ],
     ],
 
@@ -114,7 +114,7 @@ return [
         'mode' => 'fullscreen',
         'img' => [
             'path' => 'vendor/adminlte/dist/img/logoCompany.png',
-            'alt' => 'Green Vacation Loading',
+            'alt' => 'Green Vacations Loading',
             'effect' => 'animation__shake',
             'width' => 60,
             'height' => 60,
