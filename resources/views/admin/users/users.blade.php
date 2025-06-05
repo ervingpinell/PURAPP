@@ -33,9 +33,9 @@
                         <!-- Filtro por correo -->
                         <div class="row justify-content-center mb-2">
                             <div class="col-md-4 text-center">
-                                <label for="correo" class="form-label">Filtrar por correo:</label>
-                                <input type="email" name="correo" id="correo" class="form-control text-center"
-                                    placeholder="ejemplo@correo.com" value="{{ request('correo') }}">
+                                <label for="email" class="form-label">Filtrar por correo:</label>
+                                <input type="email" name="email" id="email" class="form-control text-center"
+                                placeholder="ejemplo@correo.com" value="{{ request('email') }}">
                             </div>
                         </div>
 
