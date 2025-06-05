@@ -70,7 +70,11 @@ class UserRegisterController extends Controller
                     ->with('show_register_modal', true); // para mantener el modal abierto
             }
 
-            throw $e;
+            return redirect()->back()
+            ->withErrors($e->validator)
+            ->withInput()
+            ->with('show_register_modal', true);
+
         }
     }
 
