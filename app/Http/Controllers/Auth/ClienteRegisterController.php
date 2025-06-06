@@ -11,7 +11,7 @@ class ClienteRegisterController extends Controller
 {
     public function create()
     {
-        return view('auth.register'); // usa la vista simple para clientes
+        return view('adminlte::auth.register'); // usa la vista simple para clientes
     }
 
     public function store(Request $request)

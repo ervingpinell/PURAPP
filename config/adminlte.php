@@ -15,7 +15,7 @@ return [
     */
 
     'title' => '',
-    'title_prefix' => 'Green Vacation | ',
+    'title_prefix' => 'Green Vacation',
     'title_postfix' => '',
 
     /*
@@ -350,6 +350,11 @@ return [
             'route'=> 'admin.users.index',
             'icon' => 'fas fa-fw fa-user-cog',
         ],
+        [
+            'text' => 'ROLES',
+            'route'=> 'admin.roles.index',
+            'icon' => 'fas fa-user-shield',
+        ],
         ['header' => 'TABLAS'],
         //colocar aqui las tablas de las bases de datos para el CRUD
         [
@@ -363,11 +368,7 @@ return [
             'route'=> 'admin.reservas.index',
             'icon' => 'fas fa-fw fa-calendar-check'
         ],
-        [
-            'text' => 'ROLES',
-            'route'=> 'admin.roles.index',
-            'icon' => 'fas fa-fw fa-calendar-check',
-        ],
+        
     ],
 
     /*

@@ -1,3 +1,4 @@
+
 <?php
 
 return [
@@ -5,17 +6,18 @@ return [
     'full_name' => 'Full name',
     'email' => 'Email',
     'password' => 'Password',
+    'phone' => 'Phone',
     'retype_password' => 'Retype password',
     'remember_me' => 'Remember Me',
     'register' => 'Register',
-    'register_a_new_membership' => 'Register a new membership',
+    'register_a_new_membership' => 'Sign up',
     'i_forgot_my_password' => 'I forgot my password',
-    'i_already_have_a_membership' => 'I already have a membership',
+    'i_already_have_a_membership' => 'I already have an account',
     'sign_in' => 'Sign In',
     'log_out' => 'Log Out',
     'toggle_navigation' => 'Toggle navigation',
-    'login_message' => 'Sign in to start your session',
-    'register_message' => 'Register a new membership',
+    'login_message' => 'Login',
+    'register_message' => 'Sign up',
     'password_reset_message' => 'Reset Password',
     'reset_password' => 'Reset Password',
     'send_password_reset_link' => 'Send Password Reset Link',
@@ -26,4 +28,9 @@ return [
     'verify_request_another' => 'click here to request another',
     'confirm_password_message' => 'Please, confirm your password to continue.',
     'remember_me_hint' => 'Keep me authenticated indefinitely or until I manually logout',
+    'password_requirements' => [
+    'length' => '- 8 characters',
+    'special' => '- 1 special character ( .¡!@#$%^&*()_+- )',
+    'number' => '- 1 number',
+    ],
 ];
