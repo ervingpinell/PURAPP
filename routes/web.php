@@ -14,6 +14,10 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+//route for index
+Route::view('/', 'index')->name('home');
+
+
 // Rutas de login personalizadas
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
