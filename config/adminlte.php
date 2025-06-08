@@ -333,6 +333,11 @@ return [
             'icon' => 'fas fa-fw fa-home',
         ],
         [
+            'text' => 'Home',
+            'route' => 'home',
+            'icon' => 'fas fa-fw fa-home'
+        ],
+        [
             //'text' => 'pages',
             //'url' => 'admin/pages',
             //'icon' => 'far fa-fw fa-file',
