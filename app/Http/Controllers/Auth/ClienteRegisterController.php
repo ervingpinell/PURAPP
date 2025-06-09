@@ -20,7 +20,14 @@ class ClienteRegisterController extends Controller
             'full_name' => 'required|string|max:100',
             'email' => 'required|email|unique:users,email',
             'phone' => 'nullable|string|max:20',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => [
+            'required',
+            'string',
+            'min:8',
+            'regex:/[0-9]/',
+            'regex:/[.:!@#$%^&*()_+\-]/',
+            'confirmed',
+        ],
         ]);
 
 
