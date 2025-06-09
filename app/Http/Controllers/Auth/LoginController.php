@@ -22,7 +22,7 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended('/admin'); // Redirige al panel admin
+            return $this->authenticated($request, Auth::user()); // 🔁 Redirección según rol
         }
 
         return back()->withErrors([
@@ -37,5 +37,15 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/login');
+    }
+
+    // 🔐 Método que redirige según el rol
+    public function authenticated(Request $request, $user)
+    {
+        if ($user->id_role == 1 || $user->id_role == 2) {
+            return redirect()->route('admin.home'); // Admin o Colaborador
+        }
+
+        return redirect()->route('home'); // Cliente
     }
 }
