@@ -85,7 +85,7 @@
         }
 
         .hero {
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ asset('Resource/hero-background.jpg') }}') center/cover no-repeat;
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ asset('images/volcano.png') }}') center/cover no-repeat;
             height: 100vh;
             display: flex;
             align-items: center;
@@ -266,6 +266,35 @@
             margin-top: 2rem;
             font-size: 0.9rem;
         }
+
+        .hero-title {
+        opacity: 0;
+        transform: translateY(30px);
+        animation: fadeInUp 1s ease-out forwards;
+        animation-delay: 0.5s;
+        }
+
+        .hero-subtext {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s ease-out forwards;
+            animation-delay: 1s;
+        }
+
+        .hero-buttons {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s ease-out forwards;
+            animation-delay: 1.5s;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -287,15 +316,18 @@
         </div>
         <div class="navbar-actions">
             <i class="fas fa-shopping-cart" title="Cart"></i>
-            <i class="fas fa-user" title="Login"></i>
+            <a href="{{ route('login') }}">
+                <i class="fas fa-user" title="Login"></i>
+            </a>
+            
             <i class="fas fa-language" title="Language"></i>
         </div>
     </nav>
 
     <section class="hero">
         <div class="hero-content">
-            <h1>Discover the Magic of Costa Rica</h1>
-            <p>Unforgettable eco-adventures in the heart of the rainforest</p>
+            <h1 class="hero-title">Discover the Magic of Costa Rica</h1>
+            <p class="hero-subtext">Unforgettable eco-adventures in the heart of the rainforest</p>
             <div class="hero-buttons">
                 <a href="#" class="btn-primary">Book Now</a>
             </div>
@@ -307,12 +339,13 @@
         <div class="tour-cards">
             <div class="card">
                 <h3>Half Day Tours</h3>
-                <img src="tour1.jpg" alt="Tour 1">
+                <img src="/images/logoCompanyWhite.png" alt="Tour 1">
                 <button>See Tour</button>
             </div>
             <div class="card">
                 <h3>Full Day Tours</h3>
-                <img src="tour2.jpg" alt="Tour 2">
+                <img src="/images/logoCompanyWhite.png" alt="Tour 2">
+
                 <button>See Tour</button>
             </div>
             <!--
@@ -348,7 +381,7 @@
     <footer class="footer-nature">
         <div class="footer-main-content">
             <div class="footer-brand">
-                <img src="logo.png" alt="Green Vacations">
+                <img src="{{ asset('images/logoCompanyWhite.png') }}" alt="Green Vacations">
                 <p>"Connecting you with the heart of Costa Rica's nature"</p>
             </div>
             <div class="footer-links">
@@ -362,9 +395,9 @@
             </div>
             <div class="contact-info">
                 <h4>Contact Us</h4>
-                <p>La Fortuna, San Carlos, Costa Rica</p>
-                <p>+506 2479-1471</p>
-                <p>info@greenvacationscr.com</p>
+                <p>📍La Fortuna, San Carlos, Costa Rica</p>
+                <p>📞+506 2479-1471</p>
+                <p>📩info@greenvacationscr.com</p>
             </div>
         </div>
         <div class="footer-bottom">
