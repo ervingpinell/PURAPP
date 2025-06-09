@@ -38,6 +38,18 @@
                                 placeholder="ejemplo@correo.com" value="{{ request('email') }}">
                             </div>
                         </div>
+                        <!-- Filtro por estado -->
+                        <div class="row justify-content-center mb-2">
+                            <div class="col-md-4 text-center">
+                                <label for="estado" class="form-label">Filtrar por estado:</label>
+                                <select name="estado" id="estado" class="form-select text-center">
+                                    <option value="">-- Todos --</option>
+                                    <option value="1" {{ request('estado') == '1' ? 'selected' : '' }}>Activos</option>
+                                    <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Inactivos</option>
+                                </select>
+                            </div>
+                        </div>
+
 
                         <!-- Botones -->
                         <div class="row justify-content-center">
@@ -68,6 +80,7 @@
                 <th>Correo</th>
                 <th>Rol</th>
                 <th>Numero de Telefono</th>
+                <th>Estado</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -80,19 +93,29 @@
                     <td>{{ $user->role->role_name ?? 'Sin rol' }}</td>
                     <td>{{$user->phone}}</td>
                     <td>
+                        @if ($user->status)
+                            <span class="badge bg-success">Activo</span>
+                        @else
+                            <span class="badge bg-secondary">Inactivo</span>
+                        @endif
+                    </td>
+                    <td>
                         <!-- Botón editar -->
                         <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $user->id_user }}">
                             <i class="fas fa-edit"></i>
                         </a>
 
-                        <!-- Botón eliminar -->
+                        <!-- Botón desactivar -->
                         <form action="{{ route('admin.users.destroy', $user->id_user) }}" method="POST" style="display: inline-block;">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Deseas eliminar este usuario?')">
-                                <i class="fas fa-trash-alt"></i>
+                            <button type="submit"
+                                class="btn btn-sm {{ $user->status ? 'btn-danger' : 'btn-success' }}"
+                                onclick="return confirm('{{ $user->status ? '¿Deseas desactivar este usuario?' : '¿Deseas reactivar este usuario?' }}')">
+                                <i class="fas {{ $user->status ? 'fa-user-slash' : 'fa-user-check' }}"></i>
                             </button>
                         </form>
+
                     </td>
                 </tr>
 
@@ -209,17 +232,41 @@
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-@if(session('success'))
+@if(session('success') && session('alert_type'))
 <script>
+    let icon = 'success';
+    let title = 'Éxito';
+    let color = '#3085d6';
+
+    switch ("{{ session('alert_type') }}") {
+        case 'activado':
+            icon = 'success';
+            title = 'Usuario Activado';
+            color = '#28a745';
+            break;
+        case 'desactivado':
+            icon = 'warning';
+            title = 'Usuario Desactivado';
+            color = '#ffc107';
+            break;
+        case 'actualizado':
+            icon = 'info';
+            title = 'Usuario Actualizado';
+            color = '#17a2b8';
+            break;
+    }
+
     Swal.fire({
-        icon: 'success',
-        title: 'Éxito',
+        icon: icon,
+        title: title,
         text: '{{ session('success') }}',
-        confirmButtonColor: '#3085d6',
+        confirmButtonColor: color,
         confirmButtonText: 'OK'
     });
 </script>
 @endif
+
+
 
 @if (session('error_password'))
 <script>

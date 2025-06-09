@@ -316,7 +316,7 @@
         </div>
         <div class="navbar-actions">
             <i class="fas fa-shopping-cart" title="Cart"></i>
-            <a href="{{ route('login') }}">
+            <a href="{{ route('admin.home') }}">
                 <i class="fas fa-user" title="Login"></i>
             </a>
             

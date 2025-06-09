@@ -22,6 +22,10 @@ class UserRegisterController extends Controller
         if ($request->filled('email')) {
             $query->where('email', 'like', '%' . $request->email . '%');
         }
+        if ($request->has('estado') && $request->estado !== '') {
+            $query->where('status', $request->estado);
+        }
+
 
 
         $users = $query->get();
@@ -109,15 +113,27 @@ class UserRegisterController extends Controller
 
         $user->save();
 
-        return redirect()->route('admin.users.index')->with('success', 'Usuario actualizado correctamente.');
-    }
+        return redirect()->route('admin.users.index')
+        ->with('success', 'Usuario actualizado correctamente.')
+        ->with('alert_type', 'actualizado');
 
-    // Eliminar usuario
+        }
+
+    // Desactivar usuario
     public function destroy($id)
     {
         $user = User::findOrFail($id);
-        $user->delete();
+        $user->status = !$user->status; // alterna estado
+        $user->save();
 
-        return redirect()->route('admin.users.index')->with('success', 'Usuario eliminado correctamente.');
-    }
+        $mensaje = $user->status
+            ? ['tipo' => 'activado', 'texto' => 'Usuario reactivado correctamente.']
+            : ['tipo' => 'desactivado', 'texto' => 'Usuario desactivado correctamente.'];
+
+        return redirect()->route('admin.users.index')
+            ->with('alert_type', $mensaje['tipo'])
+            ->with('success', $mensaje['texto']);
+
+            }
+
 }
