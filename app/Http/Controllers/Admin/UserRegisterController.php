@@ -22,9 +22,10 @@ class UserRegisterController extends Controller
         if ($request->filled('email')) {
             $query->where('email', 'like', '%' . $request->email . '%');
         }
-        if ($request->has('estado') && $request->estado !== '') {
+        if ($request->filled('estado')) {
             $query->where('status', $request->estado);
         }
+
 
 
 
