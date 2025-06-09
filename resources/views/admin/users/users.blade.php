@@ -214,7 +214,7 @@
                     <div class="mb-3">
                         <label>Contraseña</label>
                         <input type="password" name="password" class="form-control" required autocomplete="new-password">
-                        <ul id="password-requirements-{{ $user->id_user }}" class="mb-3 pl-3" style="list-style: none; padding-left: 1rem;">
+                        <ul id="password-requirements-register" class="mb-3 pl-3">
                         <li class="req-length text-muted">Mínimo 8 caracteres</li>
                         <li class="req-special text-muted">Al menos un carácter especial (!@#...)</li>
                         <li class="req-number text-muted">Al menos un número</li>
@@ -248,8 +248,12 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll("input[name='password']").forEach((input) => {
         const modal = input.closest('.modal');
         if (!modal) return;
-        
-        const reqs = modal.querySelectorAll('ul li');
+
+        const reqList = modal.querySelector('ul');
+        if (!reqList) return;
+
+        const reqs = reqList.querySelectorAll('li');
+        if (reqs.length !== 3) return;
 
         input.addEventListener('input', function () {
             const val = this.value;
@@ -268,6 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
 </script>
 
 
