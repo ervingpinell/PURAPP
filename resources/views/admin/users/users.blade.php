@@ -29,15 +29,6 @@
                                 </select>
                             </div>
                         </div>
-
-                        <!-- Filtro por correo -->
-                        <div class="row justify-content-center mb-2">
-                            <div class="col-md-4 text-center">
-                                <label for="email" class="form-label">Filtrar por correo:</label>
-                                <input type="email" name="email" id="email" class="form-control text-center"
-                                placeholder="ejemplo@correo.com" value="{{ request('email') }}">
-                            </div>
-                        </div>
                         <!-- Filtro por estado -->
                         <div class="row justify-content-center mb-2">
                             <div class="col-md-4 text-center">
@@ -50,6 +41,14 @@
                             </div>
                         </div>
 
+                        <!-- Filtro por correo -->
+                        <div class="row justify-content-center mb-2">
+                            <div class="col-md-4 text-center">
+                                <label for="email" class="form-label">Filtrar por correo:</label>
+                                <input type="email" name="email" id="email" class="form-control text-center"
+                                placeholder="ejemplo@correo.com" value="{{ request('email') }}">
+                            </div>
+                        </div>
 
                         <!-- Botones -->
                         <div class="row justify-content-center">
@@ -156,6 +155,12 @@
                                     <div class="mb-3">
                                         <label>Nueva contraseña (opcional)</label>
                                         <input type="password" name="password" class="form-control" autocomplete="new-password">
+                                        <ul id="password-requirements-{{ $user->id_user }}" class="mb-3 pl-3" style="list-style: none; padding-left: 1rem;">
+                                        <li class="req-length text-muted">Mínimo 8 caracteres</li>
+                                        <li class="req-special text-muted">Al menos un carácter especial (!@#...)</li>
+                                        <li class="req-number text-muted">Al menos un número</li>
+                                    </ul>
+
                                     </div>
                                     <div class="mb-3">
                                         <label>Confirmar contraseña</label>
@@ -209,6 +214,12 @@
                     <div class="mb-3">
                         <label>Contraseña</label>
                         <input type="password" name="password" class="form-control" required autocomplete="new-password">
+                        <ul id="password-requirements-{{ $user->id_user }}" class="mb-3 pl-3" style="list-style: none; padding-left: 1rem;">
+                        <li class="req-length text-muted">Mínimo 8 caracteres</li>
+                        <li class="req-special text-muted">Al menos un carácter especial (!@#...)</li>
+                        <li class="req-number text-muted">Al menos un número</li>
+                    </ul>
+
                     </div>
                     <div class="mb-3">
                         <label>Confirmar Contraseña</label>
@@ -232,6 +243,34 @@
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll("input[name='password']").forEach((input) => {
+        const modal = input.closest('.modal');
+        if (!modal) return;
+        
+        const reqs = modal.querySelectorAll('ul li');
+
+        input.addEventListener('input', function () {
+            const val = this.value;
+            const length = val.length >= 8;
+            const number = /\d/.test(val);
+            const special = /[!@#$%^&*(),.?":{}|<>_\-+=]/.test(val);
+
+            updateRequirement(reqs[0], length);
+            updateRequirement(reqs[1], special);
+            updateRequirement(reqs[2], number);
+        });
+
+        function updateRequirement(element, valid) {
+            element.classList.remove('text-success', 'text-muted');
+            element.classList.add(valid ? 'text-success' : 'text-muted');
+        }
+    });
+});
+</script>
+
+
 @if(session('success') && session('alert_type'))
 <script>
     let icon = 'success';
@@ -254,6 +293,11 @@
             title = 'Usuario Actualizado';
             color = '#17a2b8';
             break;
+        case 'creado':
+        icon = 'success';
+        title = 'Usuario Registrado';
+        color = '#007bff';
+        break;  
     }
 
     Swal.fire({
