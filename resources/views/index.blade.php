@@ -6,6 +6,7 @@
     <title>Green Vacations</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logoCompanyWhite.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
             --primary-color: #60A862;
@@ -297,6 +298,7 @@
 
     </style>
 </head>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <body>
     <nav class="navbar-custom">
         <div class="navbar-logo">
@@ -316,12 +318,37 @@
         </div>
         <div class="navbar-actions">
             <i class="fas fa-shopping-cart" title="Cart"></i>
-            <a href="{{ route('admin.home') }}">
-                <i class="fas fa-user" title="Login"></i>
-            </a>
-            
+
+            @auth
+                <div class="dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user-circle"></i> {{ Auth::user()->full_name }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        @if(Auth::user()->id_role === 3)
+                            <li><a class="dropdown-item" href="#">Mis reservas</a></li>
+                        @endif
+                        <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Mi perfil</a></li>
+                        <li>
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="dropdown-item">Cerrar sesión</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+
+            @else
+                <a href="{{ route('login') }}">
+                    <i class="fas fa-user" title="Login"></i>
+                </a>
+            @endauth
+
             <i class="fas fa-language" title="Language"></i>
         </div>
+
+
+
     </nav>
 
     <section class="hero">

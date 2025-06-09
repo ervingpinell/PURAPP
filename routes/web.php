@@ -9,10 +9,6 @@ use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\UserRegisterController;
 use App\Http\Controllers\Auth\ClienteRegisterController;
 
-// Ruta pública
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
 
 //route for index
 Route::view('/', 'index')->name('home');
@@ -50,4 +46,6 @@ Route::middleware(['auth'])->group(function () {
 // Opcional: alias adicional para que coincida con AdminLTE
 Route::get('/register', [ClienteRegisterController::class, 'create'])->name('register');
 Route::post('/register', [ClienteRegisterController::class, 'store'])->name('register.store');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
 
