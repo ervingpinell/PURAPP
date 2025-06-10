@@ -327,14 +327,9 @@ return [
             'can' => 'manage-blog',
         ],
         [
-            'text' => 'Dashboard',
-            'route' => 'home',
-            //para ver mas icons ir a https://fontawesome.com/icons?d=gallery
-            'icon' => 'fas fa-fw fa-home',
-        ],
-        [
             'text' => 'Home',
             'route' => 'home',
+            //para ver mas icons ir a https://fontawesome.com/icons?d=gallery
             'icon' => 'fas fa-fw fa-home'
         ],
         [

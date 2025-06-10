@@ -8,7 +8,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\UserRegisterController;
 use App\Http\Controllers\Auth\ClienteRegisterController;
-
+use App\Http\Controllers\User\UserProfileController;
 
 //route for index
 Route::view('/', 'index')->name('home');
@@ -17,11 +17,10 @@ Route::view('/', 'index')->name('home');
 // Rutas de login personalizadas
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
 
 // Rutas protegidas con middleware auth
 Route::middleware(['auth'])->group(function () {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
 
     // Vista principal del admin
     Route::get('/admin', [HomeController::class, 'index'])->name('admin.home');
@@ -48,4 +47,9 @@ Route::get('/register', [ClienteRegisterController::class, 'create'])->name('reg
 Route::post('/register', [ClienteRegisterController::class, 'store'])->name('register.store');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+//route for the users can edit they profiles 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile-user', [UserProfileController::class, 'edit'])->name('user.profile.edit');
+    Route::post('/profile-user', [UserProfileController::class, 'update'])->name('user.profile.update');
+});
 

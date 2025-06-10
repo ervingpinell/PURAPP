@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
-
+//this controller is for the admins
 class UserRegisterController extends Controller
 {
     // Mostrar lista de usuarios

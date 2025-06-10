@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-
+//this controller is for the customer can register from the website
 class ClienteRegisterController extends Controller
 {
     public function create()
