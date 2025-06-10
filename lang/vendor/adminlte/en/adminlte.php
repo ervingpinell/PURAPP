@@ -33,4 +33,5 @@ return [
     'special' => '- 1 special character ( .¡!@#$%^&*()_+- )',
     'number' => '- 1 number',
     ],
+    'back' => 'Go back',
 ];

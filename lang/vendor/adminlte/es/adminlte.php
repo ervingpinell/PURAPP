@@ -32,5 +32,6 @@ return [
     'special' => '- 1 caracter especial ( .¡!@#$%^&*()_+- )',
     'number' => '- 1 número',
     ],
+    'back' => '- Retroceder',
     
 ];

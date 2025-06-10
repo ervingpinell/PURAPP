@@ -33,4 +33,11 @@
 
 @section('auth_footer')
     <a href="{{ route('login') }}" class="text-center">¿Ya tienes una cuenta? Iniciar sesión</a>
+
+        {{-- Back button --}}
+    <div class="mt-3 text-center">
+        <a href="{{ url('/') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left mr-1"></i> {{ __('adminlte::adminlte.back') }}
+        </a>
+    </div>
 @endsection

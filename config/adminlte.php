@@ -15,7 +15,7 @@ return [
     */
 
     'title' => '',
-    'title_prefix' => 'Green Vacation',
+    'title_prefix' => 'Green Vacations',
     'title_postfix' => '',
 
     /*
@@ -63,12 +63,12 @@ return [
     |
     */
 
-    'logo' => '<b>Green</b> Vacation',
-    'logo_img' => 'vendor/adminlte/dist/img/logoCompany.png',
+    'logo' => 'Green Vacations',
+    'logo_img' => 'images\logoCompanyWhite.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
-    'logo_img_xl_class' => 'brand-image-xs',
-    'logo_img_alt' => 'Green Vacation',
+    'logo_img_xl_class' => 'brand-image-xl',
+    'logo_img_alt' => 'Green Vacations',
 
     /*
     |--------------------------------------------------------------------------
@@ -86,11 +86,11 @@ return [
     'auth_logo' => [
         'enabled' => true,
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/logoCompany.png',
+            'path' => 'images\logoCompanyWhite.png',
             'alt' => 'Auth Logo',
-            'class' => '',
-            'width' => 50,
-            'height' => 50,
+        'style' => 'padding: 10px;',
+        'width' => '50%', 
+        'height' => '50%', 
         ],
     ],
 
@@ -113,7 +113,7 @@ return [
         'enabled' => true,
         'mode' => 'fullscreen',
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/logoCompany.png',
+            'path' => '\images\logoCompanyWhite.png',
             'alt' => 'Green Vacation Loading',
             'effect' => 'animation__shake',
             'width' => 60,
@@ -267,6 +267,7 @@ return [
     'password_email_url' => 'password/email',
     'profile_url' => false,
     'disable_darkmode_routes' => false,
+    'home_url' => 'home',
 
     /*
     |--------------------------------------------------------------------------

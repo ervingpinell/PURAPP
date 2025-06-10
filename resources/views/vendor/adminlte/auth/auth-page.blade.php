@@ -49,8 +49,10 @@
                          alt="{{ config('adminlte.logo_img_alt') }}" height="50">
                 @endif
 
-                {{-- Logo Label --}}
-                {!! config('adminlte.logo', '<b>Admin</b>LTE') !!}
+               {{-- Logo Label --}}
+@if (!config('adminlte.auth_logo.enabled', false))
+    {!! config('adminlte.logo', '<b>Admin</b>LTE') !!}
+@endif
 
             </a>
         </div>

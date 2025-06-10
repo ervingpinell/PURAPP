@@ -304,7 +304,7 @@
         <div class="navbar-logo">
             <img src="{{ asset('images/logoCompanyWhite.png') }}"
             alt="Green Vacations"
-            style="height: 55px; margin-right: 10px;">
+            style="height: 70px; margin-right: 30px;">
             <strong>Green Vacations</strong>
         </div>
         <div class="navbar-links">

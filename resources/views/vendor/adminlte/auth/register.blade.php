@@ -117,6 +117,13 @@
             {{ __('adminlte::adminlte.i_already_have_a_membership') }}
         </a>
     </p>
+
+        {{-- Back button --}}
+    <div class="mt-3 text-center">
+        <a href="{{ url('/login') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left mr-1"></i> {{ __('adminlte::adminlte.back') }}
+        </a>
+    </div>
 @endsection
 
 @push('js')
