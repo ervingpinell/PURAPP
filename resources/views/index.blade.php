@@ -318,17 +318,17 @@
         </div>
         <div class="navbar-actions">
             <i class="fas fa-shopping-cart" title="Cart"></i>
-
             @auth
                 <div class="dropdown">
                     <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-user-circle"></i> {{ Auth::user()->full_name }}
                     </a>
+                    
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         @if(Auth::user()->id_role === 3)
                             <li><a class="dropdown-item" href="#">Mis reservas</a></li>
                         @endif
-                        <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Mi perfil</a></li>
+                        <li><a class="dropdown-item" href="{{ route('user.profile.edit') }}">Mi perfil</a></li>
                         <li>
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
                                 @csrf
@@ -337,13 +337,16 @@
                         </li>
                     </ul>
                 </div>
-
             @else
                 <a href="{{ route('login') }}">
                     <i class="fas fa-user" title="Login"></i>
                 </a>
             @endauth
-
+            @if(Auth::check() && in_array(Auth::user()->id_role, [1, 2]))
+                        <a href="{{ route('admin.home') }}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-2" style="border-radius: 25px;">
+                            <i class="fas fa-toolbox"></i> Admin
+                        </a>
+            @endif
             <i class="fas fa-language" title="Language"></i>
         </div>
 
