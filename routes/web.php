@@ -11,7 +11,9 @@ use App\Http\Controllers\Auth\ClienteRegisterController;
 use App\Http\Controllers\User\UserProfileController;
 
 //route for index
-Route::view('/', 'index')->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/idioma/{idioma}', [HomeController::class, 'cambiarIdioma'])->name('cambiar.idioma');
+
 
 
 // Rutas de login personalizadas
@@ -23,7 +25,7 @@ Route::post('/login', [LoginController::class, 'login']);
 Route::middleware(['auth'])->group(function () {
 
     // Vista principal del admin
-    Route::get('/admin', [HomeController::class, 'index'])->name('admin.home');
+    Route::get('/admin', [HomeController::class, 'dashboard'])->name('admin.home');
 
     // Rutas admin
     Route::prefix('admin')->name('admin.')->group(function () {
