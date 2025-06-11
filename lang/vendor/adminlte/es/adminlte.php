@@ -79,4 +79,12 @@ return [
 'contact_us' => 'Contáctanos',
 'location' => 'San José, Costa Rica',
 'rights_reserved' => 'Todos los derechos reservados',
+
+'whatsapp_title' => 'Green Vacations',
+'whatsapp_subtitle' => 'Responde al instante',
+'whatsapp_greeting' => '👋 ¡Hola! ¿En qué podemos ayudarte a planear tu aventura en Costa Rica?',
+'whatsapp_placeholder' => 'Hola, estoy interesado en los tours ecológicos. ¿Me pueden dar más información?',
+'whatsapp_button' => 'Enviar mensaje',
+'whatsapp_footer' => 'Conectado por WhatsApp Business',
+
 ];
