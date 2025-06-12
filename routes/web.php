@@ -8,23 +8,25 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\UserRegisterController;
 use App\Http\Controllers\Auth\ClienteRegisterController;
+use App\Http\Controllers\User\UserProfileController;
 
-// Ruta pública
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+//route for index
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/idioma/{idioma}', [HomeController::class, 'cambiarIdioma'])->name('cambiar.idioma');
+
+
+
 
 // Rutas de login personalizadas
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
 
 // Rutas protegidas con middleware auth
 Route::middleware(['auth'])->group(function () {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
 
     // Vista principal del admin
-    Route::get('/admin', [HomeController::class, 'index'])->name('admin.home');
+    Route::get('/admin', [HomeController::class, 'dashboard'])->name('admin.home');
 
     // Rutas admin
     Route::prefix('admin')->name('admin.')->group(function () {
@@ -46,4 +48,11 @@ Route::middleware(['auth'])->group(function () {
 // Opcional: alias adicional para que coincida con AdminLTE
 Route::get('/register', [ClienteRegisterController::class, 'create'])->name('register');
 Route::post('/register', [ClienteRegisterController::class, 'store'])->name('register.store');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+//route for the users can edit they profiles 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile-user', [UserProfileController::class, 'edit'])->name('user.profile.edit');
+    Route::post('/profile-user', [UserProfileController::class, 'update'])->name('user.profile.update');
+});
 

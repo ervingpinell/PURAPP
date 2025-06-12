@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-
+//this controller is for the admins and coworkers can edit they profiles
 class ProfileController extends Controller
 {
     public function edit()

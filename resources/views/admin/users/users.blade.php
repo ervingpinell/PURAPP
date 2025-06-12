@@ -29,6 +29,17 @@
                                 </select>
                             </div>
                         </div>
+                        <!-- Filtro por estado -->
+                        <div class="row justify-content-center mb-2">
+                            <div class="col-md-4 text-center">
+                                <label for="estado" class="form-label">Filtrar por estado:</label>
+                                <select name="estado" id="estado" class="form-select text-center">
+                                    <option value="">-- Todos --</option>
+                                    <option value="1" {{ request('estado') == '1' ? 'selected' : '' }}>Activos</option>
+                                    <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Inactivos</option>
+                                </select>
+                            </div>
+                        </div>
 
                         <!-- Filtro por correo -->
                         <div class="row justify-content-center mb-2">
@@ -68,6 +79,7 @@
                 <th>Correo</th>
                 <th>Rol</th>
                 <th>Numero de Telefono</th>
+                <th>Estado</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -80,19 +92,29 @@
                     <td>{{ $user->role->role_name ?? 'Sin rol' }}</td>
                     <td>{{$user->phone}}</td>
                     <td>
+                        @if ($user->status)
+                            <span class="badge bg-success">Activo</span>
+                        @else
+                            <span class="badge bg-secondary">Inactivo</span>
+                        @endif
+                    </td>
+                    <td>
                         <!-- Botón editar -->
                         <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $user->id_user }}">
                             <i class="fas fa-edit"></i>
                         </a>
 
-                        <!-- Botón eliminar -->
+                        <!-- Botón desactivar -->
                         <form action="{{ route('admin.users.destroy', $user->id_user) }}" method="POST" style="display: inline-block;">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Deseas eliminar este usuario?')">
-                                <i class="fas fa-trash-alt"></i>
+                            <button type="submit"
+                                class="btn btn-sm {{ $user->status ? 'btn-danger' : 'btn-success' }}"
+                                onclick="return confirm('{{ $user->status ? '¿Deseas desactivar este usuario?' : '¿Deseas reactivar este usuario?' }}')">
+                                <i class="fas {{ $user->status ? 'fa-user-slash' : 'fa-user-check' }}"></i>
                             </button>
                         </form>
+
                     </td>
                 </tr>
 
@@ -133,6 +155,12 @@
                                     <div class="mb-3">
                                         <label>Nueva contraseña (opcional)</label>
                                         <input type="password" name="password" class="form-control" autocomplete="new-password">
+                                        <ul id="password-requirements-{{ $user->id_user }}" class="mb-3 pl-3" style="list-style: none; padding-left: 1rem;">
+                                        <li class="req-length text-muted">Mínimo 8 caracteres</li>
+                                        <li class="req-special text-muted">Al menos un carácter especial (!@#...)</li>
+                                        <li class="req-number text-muted">Al menos un número</li>
+                                    </ul>
+
                                     </div>
                                     <div class="mb-3">
                                         <label>Confirmar contraseña</label>
@@ -186,6 +214,12 @@
                     <div class="mb-3">
                         <label>Contraseña</label>
                         <input type="password" name="password" class="form-control" required autocomplete="new-password">
+                        <ul id="password-requirements-register" class="mb-3 pl-3">
+                        <li class="req-length text-muted">Mínimo 8 caracteres</li>
+                        <li class="req-special text-muted">Al menos un carácter especial (!@#...)</li>
+                        <li class="req-number text-muted">Al menos un número</li>
+                    </ul>
+
                     </div>
                     <div class="mb-3">
                         <label>Confirmar Contraseña</label>
@@ -209,17 +243,79 @@
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-@if(session('success'))
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll("input[name='password']").forEach((input) => {
+        const modal = input.closest('.modal');
+        if (!modal) return;
+
+        const reqList = modal.querySelector('ul');
+        if (!reqList) return;
+
+        const reqs = reqList.querySelectorAll('li');
+        if (reqs.length !== 3) return;
+
+        input.addEventListener('input', function () {
+            const val = this.value;
+            const length = val.length >= 8;
+            const number = /\d/.test(val);
+            const special = /[!@#$%^&*(),.?":{}|<>_\-+=]/.test(val);
+
+            updateRequirement(reqs[0], length);
+            updateRequirement(reqs[1], special);
+            updateRequirement(reqs[2], number);
+        });
+
+        function updateRequirement(element, valid) {
+            element.classList.remove('text-success', 'text-muted');
+            element.classList.add(valid ? 'text-success' : 'text-muted');
+        }
+    });
+});
+
+</script>
+
+
+@if(session('success') && session('alert_type'))
+<script>
+    let icon = 'success';
+    let title = 'Éxito';
+    let color = '#3085d6';
+
+    switch ("{{ session('alert_type') }}") {
+        case 'activado':
+            icon = 'success';
+            title = 'Usuario Activado';
+            color = '#28a745';
+            break;
+        case 'desactivado':
+            icon = 'warning';
+            title = 'Usuario Desactivado';
+            color = '#ffc107';
+            break;
+        case 'actualizado':
+            icon = 'info';
+            title = 'Usuario Actualizado';
+            color = '#17a2b8';
+            break;
+        case 'creado':
+        icon = 'success';
+        title = 'Usuario Registrado';
+        color = '#007bff';
+        break;  
+    }
+
     Swal.fire({
-        icon: 'success',
-        title: 'Éxito',
+        icon: icon,
+        title: title,
         text: '{{ session('success') }}',
-        confirmButtonColor: '#3085d6',
+        confirmButtonColor: color,
         confirmButtonText: 'OK'
     });
 </script>
 @endif
+
+
 
 @if (session('error_password'))
 <script>

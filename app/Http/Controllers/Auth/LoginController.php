@@ -5,13 +5,19 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Session;
 
 class LoginController extends Controller
 {
-    public function showLoginForm()
-    {
-        return view('auth.login');
-    }
+public function showLoginForm(Request $request)
+{
+    // 🔁 Asegura que el idioma de la sesión se aplique correctamente en la vista
+    $locale = session('locale', config('app.locale'));
+    app()->setLocale($locale); // Forzar aplicación inmediata del idioma
+
+    return view('adminlte::auth.login');
+}
 
     public function login(Request $request)
     {
@@ -20,9 +26,17 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
+        // ✅ Captura el idioma actual antes de regenerar la sesión
+        $previousLocale = session('locale', config('app.locale'));
+
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended('/admin'); // Redirige al panel admin
+
+            // ✅ Restaura el idioma después de regenerar la sesión
+            session(['locale' => $previousLocale]);
+            App::setLocale($previousLocale);
+
+            return $this->authenticated($request, Auth::user());
         }
 
         return back()->withErrors([
@@ -37,5 +51,15 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/login');
+    }
+
+    // 🔐 Método que redirige según el rol
+    public function authenticated(Request $request, $user)
+    {
+        if ($user->id_role == 1 || $user->id_role == 2) {
+            return redirect()->route('admin.home'); // Admin o Colaborador
+        }
+
+        return redirect()->route('home'); // Cliente
     }
 }

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
-
+//this controller is for the admins
 class UserRegisterController extends Controller
 {
     // Mostrar lista de usuarios
@@ -22,6 +22,11 @@ class UserRegisterController extends Controller
         if ($request->filled('email')) {
             $query->where('email', 'like', '%' . $request->email . '%');
         }
+        if ($request->filled('estado')) {
+            $query->where('status', $request->estado);
+        }
+
+
 
 
         $users = $query->get();
@@ -58,7 +63,9 @@ class UserRegisterController extends Controller
                 'phone'=>$request->phone,
             ]);
 
-            return redirect()->route('admin.users.index')->with('success', 'Usuario registrado correctamente.');
+            return redirect()->route('admin.users.index')
+                ->with('success', 'Usuario registrado correctamente.')
+                ->with('alert_type', 'creado');
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Error solo de contraseña
             if (
@@ -75,11 +82,7 @@ class UserRegisterController extends Controller
             throw $e;
 
         }
-    }
-
-
-
-    
+    } 
     public function edit($id)
     {
         return redirect()->route('admin.users.index');
@@ -93,7 +96,15 @@ class UserRegisterController extends Controller
         $request->validate([
             'full_name' => 'required|string|max:100',
             'email' => 'required|string|email|max:200|unique:users,email,' . $id . ',id_user',
-            'password' => 'nullable|string|min:6|confirmed',
+            'password' => [
+                'nullable',
+                'string',
+                'min:8',
+                'regex:/[0-9]/',
+                'regex:/[!@#$%^&*(),.?":{}|<>_\-+=]/',
+                'confirmed',
+            ],
+
             'id_role' => 'required|exists:roles,id_role',
             'phone' => 'nullable|string|max:20',
         ]);
@@ -109,15 +120,27 @@ class UserRegisterController extends Controller
 
         $user->save();
 
-        return redirect()->route('admin.users.index')->with('success', 'Usuario actualizado correctamente.');
-    }
+        return redirect()->route('admin.users.index')
+        ->with('success', 'Usuario actualizado correctamente.')
+        ->with('alert_type', 'actualizado');
 
-    // Eliminar usuario
+        }
+
+    // Desactivar usuario
     public function destroy($id)
     {
         $user = User::findOrFail($id);
-        $user->delete();
+        $user->status = !$user->status; // alterna estado
+        $user->save();
 
-        return redirect()->route('admin.users.index')->with('success', 'Usuario eliminado correctamente.');
-    }
+        $mensaje = $user->status
+            ? ['tipo' => 'activado', 'texto' => 'Usuario reactivado correctamente.']
+            : ['tipo' => 'desactivado', 'texto' => 'Usuario desactivado correctamente.'];
+
+        return redirect()->route('admin.users.index')
+            ->with('alert_type', $mensaje['tipo'])
+            ->with('success', $mensaje['texto']);
+
+            }
+
 }

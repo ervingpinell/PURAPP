@@ -15,7 +15,7 @@ return [
     */
 
     'title' => '',
-    'title_prefix' => 'Green Vacations CR',
+    'title_prefix' => 'Green Vacations',
     'title_postfix' => '',
 
     /*
@@ -63,11 +63,11 @@ return [
     |
     */
 
-    'logo' => null,
-    'logo_img' => 'vendor/adminlte/dist/img/logoCompany.png',
+    'logo' => 'Green Vacations',
+    'logo_img' => 'images\logoCompanyWhite.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
-    'logo_img_xl_class' => 'brand-image-xs',
+    'logo_img_xl_class' => 'brand-image-xl',
     'logo_img_alt' => 'Green Vacations',
 
     /*
@@ -86,11 +86,11 @@ return [
     'auth_logo' => [
         'enabled' => true,
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/logoCompany.png',
+            'path' => 'images\logoCompanyWhite.png',
             'alt' => 'Auth Logo',
-            'class' => '',
-            'width' => 180,
-            'height' => 90,
+        'style' => 'padding: 10px;',
+        'width' => '50%', 
+        'height' => '50%', 
         ],
     ],
 
@@ -113,8 +113,8 @@ return [
         'enabled' => true,
         'mode' => 'fullscreen',
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/logoCompany.png',
-            'alt' => 'Green Vacations Loading',
+            'path' => '\images\logoCompanyWhite.png',
+            'alt' => 'Green Vacation Loading',
             'effect' => 'animation__shake',
             'width' => 60,
             'height' => 60,
@@ -267,6 +267,7 @@ return [
     'password_email_url' => 'password/email',
     'profile_url' => false,
     'disable_darkmode_routes' => false,
+    'home_url' => 'home',
 
     /*
     |--------------------------------------------------------------------------
@@ -327,10 +328,10 @@ return [
             'can' => 'manage-blog',
         ],
         [
-            'text' => 'Dashboard',
+            'text' => 'Home',
             'route' => 'home',
             //para ver mas icons ir a https://fontawesome.com/icons?d=gallery
-            'icon' => 'fas fa-fw fa-home',
+            'icon' => 'fas fa-fw fa-home'
         ],
         [
             //'text' => 'pages',
@@ -350,6 +351,11 @@ return [
             'route'=> 'admin.users.index',
             'icon' => 'fas fa-fw fa-user-cog',
         ],
+        [
+            'text' => 'ROLES',
+            'route'=> 'admin.roles.index',
+            'icon' => 'fas fa-user-shield',
+        ],
         ['header' => 'TABLAS'],
         //colocar aqui las tablas de las bases de datos para el CRUD
         [
@@ -363,11 +369,7 @@ return [
             'route'=> 'admin.reservas.index',
             'icon' => 'fas fa-fw fa-calendar-check'
         ],
-        [
-            'text' => 'ROLES',
-            'route'=> 'admin.roles.index',
-            'icon' => 'fas fa-fw fa-calendar-check',
-        ],
+        
     ],
 
     /*
