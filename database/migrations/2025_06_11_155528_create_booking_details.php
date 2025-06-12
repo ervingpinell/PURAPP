@@ -12,14 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('booking_details', function (Blueprint $table) {
-            $table->id('deails_id');
+            $table->id('details_id');
             $table->unsignedBigInteger('booking_id');
             $table->unsignedBigInteger('tour_id');
             $table->unsignedBigInteger('tour_schedule_id')->nullable();
             $table->date('tour_date');
-         $table->unsignedBigInteger('language_id');
+            $table->unsignedBigInteger('tour_language_id');
+
             $table->unsignedBigInteger('hotel_id')->nullable();
-            $table->string('other_hotel_name')->nullable();
+            $table->boolean('is_other_hotel')->default(false); // <--- indica si se usó otro hotel
+            $table->string('other_hotel_name')->nullable();    // <--- nombre del hotel personalizado
+
             $table->integer('adults_quantity');
             $table->integer('kids_quantity');
             $table->decimal('adult_price', 10, 2);
@@ -31,7 +34,7 @@ return new class extends Migration
             $table->foreign('tour_id')->references('tour_id')->on('tours')->onDelete('cascade');
             $table->foreign('tour_schedule_id')->references('tour_schedule_id')->on('tour_schedules')->onDelete('set null');
             $table->foreign('hotel_id')->references('hotel_id')->on('hotels_list')->onDelete('set null');
-            $table->foreign('language_id')->references('language_id')->on('languages')->onDelete('restrict');
+            $table->foreign('tour_language_id')->references('tour_language_id')->on('tour_languages')->onDelete('restrict');
 
             $table->index('booking_id');
             $table->index('tour_id');
