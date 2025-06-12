@@ -12,4 +12,18 @@
   transition: background-color 5000s ease-in-out 0s;
 }
 
- 
+ .login-box,
+.register-box {
+    max-width: 500px; /* más ancho que el default (360px aprox.) */
+    width: 100%;
+    padding: 20px;
+    margin: auto;
+}
+
+@media (max-width: 576px) {
+    .login-box,
+    .register-box {
+        max-width: 90%;
+        padding: 10px;
+    }
+}

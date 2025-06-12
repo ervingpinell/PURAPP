@@ -32,7 +32,7 @@ return [
     'special' => '- 1 caracter especial ( .¡!@#$%^&*()_+- )',
     'number' => '- 1 número',
     ],
-    'back' => '- Retroceder',
+    'back' => 'Retroceder',
     'home' => 'Inicio',
     'dashboard' => 'Panel de control',
     'profile' => 'Perfil',

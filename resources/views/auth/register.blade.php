@@ -1,42 +1,70 @@
+    {{-- No Se usa --}}
+    
 @extends('adminlte::auth.auth-page', ['auth_type' => 'register'])
 
-@section('title', 'Registro')
-@section('auth_header', 'Crear cuenta de cliente')
+@php
+    $loginUrl = View::getSection('login_url') ?? config('adminlte.login_url', 'login');
+
+    if (config('adminlte.use_route_url', false)) {
+        $loginUrl = $loginUrl ? route($loginUrl) : '';
+    } else {
+        $loginUrl = $loginUrl ? url($loginUrl) : '';
+    }
+@endphp
+
+@section('title', __('adminlte::adminlte.register'))
+@section('auth_header', __('adminlte::adminlte.register_message'))
 
 @section('auth_body')
     <form action="{{ route('register.store') }}" method="POST">
         @csrf
 
         <div class="mb-3">
-            <input type="text" name="full_name" class="form-control" placeholder="Nombre completo" value="{{ old('full_name') }}" required autofocus>
+            <input type="text" name="full_name" class="form-control" placeholder="{{ __('adminlte::adminlte.full_name') }}" value="{{ old('full_name') }}" required autofocus>
         </div>
 
         <div class="mb-3">
-            <input type="email" name="email" class="form-control" placeholder="Correo electrónico" value="{{ old('email') }}" required>
+            <input type="email" name="email" class="form-control" placeholder="{{ __('adminlte::adminlte.email') }}" value="{{ old('email') }}" required>
         </div>
 
         <div class="mb-3">
-            <input type="text" name="phone" class="form-control" placeholder="Teléfono" value="{{ old('phone') }}" required>
+            <input type="text" name="phone" class="form-control" placeholder="{{ __('adminlte::adminlte.phone') }}" value="{{ old('phone') }}" required>
         </div>
 
         <div class="mb-3">
-            <input type="password" name="password" class="form-control" placeholder="Contraseña" required>
+            <input type="password" name="password" class="form-control" placeholder="{{ __('adminlte::adminlte.password') }}" required>
         </div>
 
         <div class="mb-3">
-            <input type="password" name="password_confirmation" class="form-control" placeholder="Confirmar contraseña" required>
+            <input type="password" name="password_confirmation" class="form-control" placeholder="{{ __('adminlte::adminlte.retype_password') }}" required>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block">Registrarse</button>
+        <button type="submit" class="btn btn-primary w-100 text-nowrap">
+            <span class="fas fa-user-plus me-2"></span>
+            {{ __('adminlte::adminlte.register') }}
+        </button>
     </form>
 @endsection
 
 @section('auth_footer')
-    <a href="{{ route('login') }}" class="text-center">¿Ya tienes una cuenta? Iniciar sesión</a>
+    {{-- Enlaces a la izquierda + idioma a la derecha --}}
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <p class="mb-0">
+                <a href="{{ $loginUrl }}">
+                    {{ __('adminlte::adminlte.i_already_have_a_membership') }}
+                </a>
+            </p>
+        </div>
 
-        {{-- Back button --}}
+        <div>
+            @include('partials.language-selector')
+        </div>
+    </div>
+
+    {{-- Botón regresar --}}
     <div class="mt-3 text-center">
-        <a href="{{ url('/') }}" class="btn btn-outline-secondary">
+        <a href="{{ url('/login') }}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left mr-1"></i> {{ __('adminlte::adminlte.back') }}
         </a>
     </div>
