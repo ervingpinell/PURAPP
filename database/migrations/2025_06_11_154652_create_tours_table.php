@@ -24,7 +24,7 @@ return new class extends Migration
             $table->timestamps();
 
             
-            $table->foreign('tour_language_id')->references('tour_language_id')->on('languages')->onDelete('restrict');
+            $table->foreign('tour_language_id')->references('tour_language_id')->on('tour_languages')->onDelete('restrict');
             $table->foreign('category_id')->references('category_id')->on('categories')->onDelete('cascade');
         });
     }
