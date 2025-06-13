@@ -12,16 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id('id_user');
+            $table->id('user_id');
             $table->string('full_name', 100);
             $table->string('email', 200)->unique();
             $table->string('password', 255);
             $table->boolean('status')->default(true);
-            $table->unsignedBigInteger('id_role');
+            $table->unsignedBigInteger('role_id');
             $table->string('phone',20)->nullable();
+             $table->boolean('is_active')->default(true);
+             
             $table->timestamps();
 
-            $table->foreign('id_role')->references('id_role')->on('roles');
+            $table->foreign('role_id')->references('role_id')->on('roles');
         });
 
 

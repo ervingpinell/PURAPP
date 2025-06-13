@@ -5,15 +5,19 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Session;
 
 class LoginController extends Controller
 {
-    public function showLoginForm()
-    {
-        return view('adminlte::auth.login');
-    }
+public function showLoginForm(Request $request)
+{
+    // 🔁 Asegura que el idioma de la sesión se aplique correctamente en la vista
+    $locale = session('locale', config('app.locale'));
+    app()->setLocale($locale); // Forzar aplicación inmediata del idioma
+
+    return view('adminlte::auth.login');
+}
 
     
     public function login(Request $request)
@@ -23,13 +27,17 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        $user = User::where('email', $credentials['email'])->first();
+        // ✅ Captura el idioma actual antes de regenerar la sesión
+        $previousLocale = session('locale', config('app.locale'));
 
-        // Check if user exists and password matches
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
-            return back()->withErrors([
-                'email' => 'The provided credentials are incorrect.',
-            ])->onlyInput('email');
+        if (Auth::attempt($credentials, $request->filled('remember'))) {
+            $request->session()->regenerate();
+
+            // ✅ Restaura el idioma después de regenerar la sesión
+            session(['locale' => $previousLocale]);
+            App::setLocale($previousLocale);
+
+            return $this->authenticated($request, Auth::user());
         }
 
         // Check if user is inactive

@@ -28,17 +28,20 @@ class HomeController extends Controller
         return view('index'); // la vista principal
     }
 
-    public function cambiarIdioma($idioma)
-    {
-        $idiomasDisponibles = ['es', 'en', 'fr'];
-
-        if (in_array($idioma, $idiomasDisponibles)) {
-            session(['locale' => $idioma]);
-            App::setLocale($idioma); // lo aplica inmediatamente
-        }
-
-        return redirect()->back(); // redirige a la misma página
+public function cambiarIdioma($idioma)
+{
+    if (in_array($idioma, ['es', 'en', 'fr'])) {
+        session(['locale' => $idioma]);
     }
+
+    // 🔁 Redirige de forma más segura (sin cache)
+    $referer = url()->previous();
+    if (str_contains($referer, '/login')) {
+        return redirect()->route('login'); // fuerza recarga del login
+    }
+
+    return redirect($referer);
+}
 
     public function dashboard()
     {

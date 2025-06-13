@@ -11,18 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
-            $table->id('role_id');
-            $table->string('role_name', 50)->unique();
-            $table->text('description')->nullable();
+        Schema::create('hotels_list', function (Blueprint $table) {
+            $table->id('hotel_id');
+            $table->string('name');
             $table->boolean('is_active')->default(true);
+            $table->timestamps();
         });
     }
 
     /**
      * Reverse the migrations.
      */
-    public function down(): void {
-        Schema::dropIfExists('roles');
+    public function down(): void
+    {
+        Schema::dropIfExists('hotels_list');
     }
 };

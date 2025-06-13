@@ -16,6 +16,7 @@ Route::get('/idioma/{idioma}', [HomeController::class, 'cambiarIdioma'])->name('
 
 
 
+
 // Rutas de login personalizadas
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);

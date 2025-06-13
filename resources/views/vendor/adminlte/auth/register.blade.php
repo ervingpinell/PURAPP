@@ -1,5 +1,10 @@
 @extends('adminlte::auth.auth-page', ['authType' => 'register'])
 
+@section('adminlte_css_pre')
+    <link rel="stylesheet" href="{{ asset('vendor/icheck-bootstrap/icheck-bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/gv.css') }}"> {{-- Aquí aplicás el nuevo CSS --}}
+@stop
+
 @php
     $loginUrl = View::getSection('login_url') ?? config('adminlte.login_url', 'login');
     $registerUrl = View::getSection('register_url') ?? config('adminlte.register_url', 'register');
@@ -104,21 +109,30 @@
         </div>
 
         {{-- Submit --}}
-        <button type="submit" class="btn btn-block {{ config('adminlte.classes_auth_btn', 'btn-flat btn-primary') }}">
-            <span class="fas fa-user-plus"></span>
+        <button type="submit" class="btn w-100 text-nowrap {{ config('adminlte.classes_auth_btn', 'btn-flat btn-primary') }}">
+            <span class="fas fa-user-plus me-2"></span>
             {{ __('adminlte::adminlte.register') }}
         </button>
     </form>
 @endsection
 
 @section('auth_footer')
-    <p class="my-0">
-        <a href="{{ $loginUrl }}">
-            {{ __('adminlte::adminlte.i_already_have_a_membership') }}
-        </a>
-    </p>
+    {{-- Enlaces izquierda + selector de idioma derecha --}}
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <p class="mb-0">
+                <a href="{{ $loginUrl }}">
+                    {{ __('adminlte::adminlte.i_already_have_a_membership') }}
+                </a>
+            </p>
+        </div>
 
-        {{-- Back button --}}
+        <div>
+            @include('partials.language-selector')
+        </div>
+    </div>
+
+    {{-- Botón regresar --}}
     <div class="mt-3 text-center">
         <a href="{{ url('/login') }}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left mr-1"></i> {{ __('adminlte::adminlte.back') }}
@@ -137,13 +151,9 @@
         passwordInput.addEventListener('input', function () {
             const value = passwordInput.value;
 
-            const lengthValid = value.length >= 8;
-            const specialValid = /[.¡!@#$%^&*()_+-]/.test(value);
-            const numberValid = /\d/.test(value);
-
-            toggleClass(reqLength, lengthValid);
-            toggleClass(reqSpecial, specialValid);
-            toggleClass(reqNumber, numberValid);
+            toggleClass(reqLength, value.length >= 8);
+            toggleClass(reqSpecial, /[.¡!@#$%^&*()_+\-]/.test(value));
+            toggleClass(reqNumber, /\d/.test(value));
         });
 
         function toggleClass(element, isValid) {
@@ -151,7 +161,6 @@
             element.classList.add(isValid ? 'text-success' : 'text-muted');
         }
 
-        // Toggle password visibility
         document.querySelectorAll('.toggle-password').forEach(toggle => {
             toggle.addEventListener('click', function (e) {
                 e.preventDefault();

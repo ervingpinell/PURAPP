@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .hero {
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ asset('images/volcano.png') }}') center/cover no-repeat;
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("{{ asset('images/volcano.png') }}") center/cover no-repeat;
             height: 100vh;
             display: flex;
             align-items: center;
@@ -65,45 +66,15 @@
                 <i class="fas fa-user" title="Login"></i>
             </a>
         @endauth
+
         @if(Auth::check() && in_array(Auth::user()->id_role, [1, 2]))
             <a href="{{ route('admin.home') }}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-2" style="border-radius: 25px;">
                 <i class="fas fa-toolbox"></i> Admin
             </a>
         @endif
-        {{-- Dropdown de idiomas --}}
-        <div class="dropdown">
-            <button class="btn btn-sm btn-outline-light dropdown-toggle d-flex align-items-center gap-2" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                {{-- Mostrar bandera actual --}}
-                @php
-                    $flag = match(app()->getLocale()) {
-                        'es' => 'es.png',
-                        'en' => 'gb.png',
-                        'fr' => 'fr.png',
-                        default => 'es.png'
-                    };
-                @endphp
-                <img src="{{ asset('images/' . $flag) }}" alt="Idioma actual" width="20" height="15">
-                {{ strtoupper(app()->getLocale()) }}
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
-                <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('cambiar.idioma', 'es') }}">
-                        <img src="{{ asset('images/es.png') }}" width="20" height="15"> Español
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('cambiar.idioma', 'en') }}">
-                        <img src="{{ asset('images/gb.png') }}" width="20" height="15"> English
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('cambiar.idioma', 'fr') }}">
-                        <img src="{{ asset('images/fr.png') }}" width="20" height="15"> Français
-                    </a>
-                </li>
-            </ul>
-        </div>
 
+        {{-- Dropdown de idiomas: Partial --}}
+        @include('partials.language-selector')
     </div>
 </nav>
 

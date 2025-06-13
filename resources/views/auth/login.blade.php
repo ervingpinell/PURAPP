@@ -1,51 +1,122 @@
-<x-guest-layout>
-    <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
+@extends('adminlte::auth.auth-page', ['authType' => 'login'])
 
-        <x-validation-errors class="mb-4" />
+@section('adminlte_css_pre')
+    <link rel="stylesheet" href="{{ asset('vendor/icheck-bootstrap/icheck-bootstrap.min.css') }}">
+@stop
 
-        @session('status')
-            <div class="mb-4 font-medium text-sm text-green-600">
-                {{ $value }}
+@php
+    $loginUrl = View::getSection('login_url') ?? config('adminlte.login_url', 'login');
+    $registerUrl = View::getSection('register_url') ?? config('adminlte.register_url', 'register');
+    $passResetUrl = View::getSection('password_reset_url') ?? config('adminlte.password_reset_url', 'password/reset');
+
+    if (config('adminlte.use_route_url', false)) {
+        $loginUrl = $loginUrl ? route($loginUrl) : '';
+        $registerUrl = $registerUrl ? route($registerUrl) : '';
+        $passResetUrl = $passResetUrl ? route($passResetUrl) : '';
+    } else {
+        $loginUrl = $loginUrl ? url($loginUrl) : '';
+        $registerUrl = $registerUrl ? url($registerUrl) : '';
+        $passResetUrl = $passResetUrl ? url($passResetUrl) : '';
+    }
+@endphp
+
+@section('auth_header', __('adminlte::adminlte.login_message'))
+
+@section('auth_body')
+    <form action="{{ $loginUrl }}" method="post">
+        @csrf
+
+        {{-- Email field --}}
+        <div class="input-group mb-3">
+            <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
+                value="{{ old('email') }}" placeholder="{{ __('adminlte::adminlte.email') }}" autofocus>
+
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-envelope {{ config('adminlte.classes_auth_icon', '') }}"></span>
+                </div>
             </div>
-        @endsession
 
-        <form method="POST" action="{{ route('login') }}">
-            @csrf
+            @error('email')
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $message }}</strong>
+                </span>
+            @enderror
+        </div>
 
-            <div>
-                <x-label for="email" value="{{ __('Email') }}" />
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+        {{-- Password field --}}
+<div class="input-group mb-3">
+    <input type="password" name="password" id="password"
+        class="form-control @error('password') is-invalid @enderror"
+        placeholder="{{ __('adminlte::adminlte.password') }}">
+
+    <div class="input-group-append">
+        <div class="input-group-text">
+            <span id="toggle-password" class="fas fa-eye {{ config('adminlte.classes_auth_icon', '') }}" style="cursor: pointer;"></span>
+        </div>
+    </div>
+
+    @error('password')
+        <span class="invalid-feedback" role="alert">
+            <strong>{{ $message }}</strong>
+        </span>
+    @enderror
+</div>
+
+        {{-- Login field --}}
+        <div class="row">
+            <div class="col-7">
+                <div class="icheck-primary" title="{{ __('adminlte::adminlte.remember_me_hint') }}">
+                    <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
+
+                    <label for="remember">
+                        {{ __('adminlte::adminlte.remember_me') }}
+                    </label>
+                </div>
             </div>
 
-            <div class="mt-4">
-                <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
+            <div class="col-5">
+                <button type=submit class="btn btn-block {{ config('adminlte.classes_auth_btn', 'btn-flat btn-primary') }}">
+                    <span class="fas fa-sign-in-alt"></span>
+                    {{ __('adminlte::adminlte.sign_in') }}
+                </button>
             </div>
+        </div>
+    </form>
+@stop
 
-            <div class="block mt-4">
-                <label for="remember_me" class="flex items-center">
-                    <x-checkbox id="remember_me" name="remember" />
-                    <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-                </label>
-            </div>
+@push('js')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const passwordInput = document.getElementById('password');
+        const togglePassword = document.getElementById('toggle-password');
 
-            <div class="flex items-center justify-end mt-4">
-                @if (Route::has('password.request'))
-                    <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                        {{ __('Forgot your password?') }}
-                    </a>
-                @endif
-                <a class="underline text-sm text-gray-600 hover:text-gray-900" href="{{ route('register.create') }}">
-                    {{ __('Register a new user') }}
-                </a>
+        togglePassword.addEventListener('click', function () {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            togglePassword.classList.toggle('fa-eye');
+            togglePassword.classList.toggle('fa-eye-slash');
+        });
+    });
+</script>
+@endpush
 
-                <x-button class="ms-4">
-                    {{ __('Log in') }}
-                </x-button>
-            </div>
-        </form>
-    </x-authentication-card>
-</x-guest-layout>
+@section('auth_footer')
+    {{-- Password reset link --}}
+    @if($passResetUrl)
+        <p class="my-0">
+            <a href="{{ $passResetUrl }}">
+                {{ __('adminlte::adminlte.i_forgot_my_password') }}
+            </a>
+        </p>
+    @endif
+
+    {{-- Register link --}}
+    @if($registerUrl)
+        <p class="my-0">
+            <a href="{{ $registerUrl }}">
+                {{ __('adminlte::adminlte.register_a_new_membership') }}
+            </a>
+        </p>
+    @endif
+@stop

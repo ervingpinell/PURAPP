@@ -25,6 +25,8 @@
 @section('classes_body'){{ $bodyClasses }}@stop
 
 @section('body')
+
+
     <div class="{{ $authType }}-box">
 
         {{-- Logo --}}
@@ -59,9 +61,10 @@
 
         {{-- Card Box --}}
         <div class="card {{ config('adminlte.classes_auth_card', 'card-outline card-primary') }}">
-
+    
             {{-- Card Header --}}
             @hasSection('auth_header')
+            
                 <div class="card-header {{ config('adminlte.classes_auth_header', '') }}">
                     <h3 class="card-title float-none text-center">
                         @yield('auth_header')
@@ -71,6 +74,7 @@
 
             {{-- Card Body --}}
             <div class="card-body {{ $authType }}-card-body {{ config('adminlte.classes_auth_body', '') }}">
+                
                 @yield('auth_body')
             </div>
 
@@ -89,4 +93,7 @@
 @section('adminlte_js')
     @stack('js')
     @yield('js')
+
+    {{-- Bootstrap JS para dropdowns --}}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
 @stop
