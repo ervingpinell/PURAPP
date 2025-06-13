@@ -22,7 +22,7 @@ class UserProfileController extends Controller
 
         $request->validate([
             'full_name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users,email,' . $user->id_user . ',id_user',
+            'email' => 'required|email|unique:users,email,' . $user->user_id . ',user_id',
             'phone' => 'nullable|string|max:20',
             'password' => [
                 'nullable',

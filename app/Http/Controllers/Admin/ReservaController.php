@@ -28,7 +28,7 @@ class ReservaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'id_user' => 'required|integer|exists:users,id_user',
+            'user_id' => 'required|integer|exists:users,user_id',
             'id_tour' => 'required|integer|exists:tours,id_tour',
             'fecha_reserva' => 'required|date',
             'fecha_inicio' => 'required|date',
@@ -47,7 +47,7 @@ class ReservaController extends Controller
                                     ($tour->precio_nino * $validated['cantidad_ninos']);
         $validated['codigo_reserva'] = strtoupper(Str::random(10));
 
-        $validated['id_user'] = $request->id_user;
+        $validated['user_id'] = $request->user_id;
 
         Reserva::create($validated);
 

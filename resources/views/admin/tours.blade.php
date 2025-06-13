@@ -20,8 +20,7 @@
                     <th>Precio Adulto</th>
                     <th>Precio Niño</th>
                     <th>Duración (horas)</th>
-                    <th>Ubicación</th>
-                    <th>Categoria</th>
+                    <th>Categoría</th>
                     <th>Idioma</th>
                     <th>Acciones</th>
                 </tr>
@@ -29,20 +28,18 @@
             <tbody>
                 @foreach ($tours as $tour)
                     <tr>
-                        <td>{{ $tour->id_tour }}</td>
-                        <td>{{ $tour->nombre }}</td>
-                        <td>${{ number_format($tour->precio_adulto, 2) }}</td>
-                        <td>${{ number_format($tour->precio_nino, 2) }}</td>
-                        <td>{{ $tour->duracion_horas }}</td>
-                        <td>{{ $tour->ubicacion }}</td>
-                        <td>{{ $tour->tipo_tour }}</td>
-                        <td>{{ $tour->idioma_disponible }}</td>
+                        <td>{{ $tour->tour_id }}</td>
+                        <td>{{ $tour->name }}</td>
+                        <td>${{ number_format($tour->adult_price, 2) }}</td>
+                        <td>${{ number_format($tour->kid_price, 2) }}</td>
+                        <td>{{ $tour->length }}</td>
+                        <td>{{ $tour->category->name ?? 'Sin categoría' }}</td>
+                        <td>{{ $tour->language->name ?? 'Sin idioma' }}</td>
                         <td>
-                            <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $tour->id_tour }}">
+                            <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $tour->tour_id }}">
                                 <i class="fas fa-edit"></i>
                             </a>
-
-                            <form action="{{ route('admin.tours.destroy', $tour->id_tour) }}" method="POST" style="display: inline-block;">
+                            <form action="{{ route('admin.tours.destroy', $tour->tour_id) }}" method="POST" style="display: inline-block;">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Deseas eliminar este tour?')">
@@ -53,9 +50,9 @@
                     </tr>
 
                     <!-- Modal Editar Tour -->
-                    <div class="modal fade" id="modalEditar{{ $tour->id_tour }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal fade" id="modalEditar{{ $tour->tour_id }}" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog">
-                            <form action="{{ route('admin.tours.update', $tour->id_tour) }}" method="POST">
+                            <form action="{{ route('admin.tours.update', $tour->tour_id) }}" method="POST">
                                 @csrf
                                 @method('PUT')
                                 <div class="modal-content">
@@ -66,40 +63,42 @@
                                     <div class="modal-body">
                                         <div class="mb-3">
                                             <label class="form-label">Nombre</label>
-                                            <input type="text" name="nombre" class="form-control" value="{{ $tour->nombre }}" required>
+                                            <input type="text" name="name" class="form-control" value="{{ $tour->name }}" required>
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Descripción</label>
-                                            <textarea name="descripcion" class="form-control" rows="2">{{ $tour->descripcion }}</textarea>
+                                            <textarea name="description" class="form-control" rows="2">{{ $tour->description }}</textarea>
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Precio Adulto</label>
-                                            <input type="number" step="0.01" name="precio_adulto" class="form-control" value="{{ $tour->precio_adulto }}" required>
+                                            <input type="number" step="0.01" name="adult_price" class="form-control" value="{{ $tour->adult_price }}" required>
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Precio Niño</label>
-                                            <input type="number" step="0.01" name="precio_nino" class="form-control" value="{{ $tour->precio_nino }}">
+                                            <input type="number" step="0.01" name="kid_price" class="form-control" value="{{ $tour->kid_price }}">
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Duración (horas)</label>
-                                            <input type="number" name="duracion_horas" class="form-control" value="{{ $tour->duracion_horas }}" required>
+                                            <input type="number" name="length" class="form-control" value="{{ $tour->length }}" required>
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label">Ubicación</label>
-                                            <input type="text" name="ubicacion" class="form-control" value="{{ $tour->ubicacion }}" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Tipo de Tour</label>
-                                            <select name="tipo_tour" class="form-control" required>
-                                                <option value="Half Day" {{ $tour->tipo_tour == 'Half Day' ? 'selected' : '' }}>Half Day</option>
-                                                <option value="Full Day" {{ $tour->tipo_tour == 'Full Day' ? 'selected' : '' }}>Full Day</option>
+                                            <label class="form-label">Categoría</label>
+                                            <select name="category_id" class="form-control" required>
+                                                @foreach ($categories as $category)
+                                                    <option value="{{ $category->category_id }}" {{ $tour->category_id == $category->category_id ? 'selected' : '' }}>
+                                                        {{ $category->name }}
+                                                    </option>
+                                                @endforeach
                                             </select>
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label">Idioma Disponible</label>
-                                            <select name="idioma_disponible" class="form-control" required>
-                                                <option value="Español" {{ $tour->idioma_disponible == 'Español' ? 'selected' : '' }}>Español</option>
-                                                <option value="Inglés" {{ $tour->idioma_disponible == 'Inglés' ? 'selected' : '' }}>Inglés</option>
+                                            <label class="form-label">Idioma</label>
+                                            <select name="tour_language_id" class="form-control" required>
+                                                @foreach ($languages as $lang)
+                                                    <option value="{{ $lang->tour_language_id }}" {{ $tour->tour_language_id == $lang->tour_language_id ? 'selected' : '' }}>
+                                                        {{ $lang->name }}
+                                                    </option>
+                                                @endforeach
                                             </select>
                                         </div>
                                     </div>
@@ -129,40 +128,38 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Nombre</label>
-                            <input type="text" name="nombre" class="form-control" required>
+                            <input type="text" name="name" class="form-control" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Descripción</label>
-                            <textarea name="descripcion" class="form-control" rows="2"></textarea>
+                            <textarea name="description" class="form-control" rows="2"></textarea>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Precio Adulto</label>
-                            <input type="number" step="0.01" name="precio_adulto" class="form-control" required>
+                            <input type="number" step="0.01" name="adult_price" class="form-control" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Precio Niño</label>
-                            <input type="number" step="0.01" name="precio_nino" class="form-control">
+                            <input type="number" step="0.01" name="kid_price" class="form-control">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Duración (horas)</label>
-                            <input type="number" name="duracion_horas" class="form-control" required>
+                            <input type="number" name="length" class="form-control" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Ubicación</label>
-                            <input type="text" name="ubicacion" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Tipo de Tour</label>
-                            <select name="tipo_tour" class="form-control" required>
-                                <option value="Half Day">Half Day</option>
-                                <option value="Full Day">Full Day</option>
+                            <label class="form-label">Categoría</label>
+                            <select name="category_id" class="form-control" required>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->category_id }}">{{ $category->name }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Idioma Disponible</label>
-                            <select name="idioma_disponible" class="form-control" required>
-                                <option value="Español">Español</option>
-                                <option value="Inglés">Inglés</option>
+                            <label class="form-label">Idioma</label>
+                            <select name="tour_language_id" class="form-control" required>
+                                @foreach ($languages as $lang)
+                                    <option value="{{ $lang->tour_language_id }}">{{ $lang->name }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -177,7 +174,7 @@
 @stop
 
 @section('css')
-    {{-- Agrega aquí tus estilos si los necesitas --}}
+    {{-- Tus estilos personalizados aquí si lo necesitas --}}
 @stop
 
 @section('js')

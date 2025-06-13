@@ -369,6 +369,75 @@ return [
             'route'=> 'admin.reservas.index',
             'icon' => 'fas fa-fw fa-calendar-check'
         ],
+        ['header' => 'TOURS'],
+        [
+            'text' => 'TOURS',
+            'route' => 'admin.tours.index',
+            'icon'  => 'fas fa-map-marked-alt',
+            'can'   => 'is-admin'
+        ],
+        [
+            'text' => 'CATEGORIES',
+            'route' => 'admin.categories.index',
+            'icon'  => 'fas fa-tags',
+            'can'   => ''
+        ],
+        [
+            'text' => 'TOUR_LANGUAGES',
+            'route' => 'admin.languages.index',
+            'icon'  => 'fas fa-globe',
+            'can'   => ''
+        ],
+        [
+            'text' => 'TOUR_SCHEDULE',
+            'route' => '',
+            'icon'  => 'fas fa-calendar-alt',
+            'can'   => ''
+        ],
+        [
+            'text' => 'TOUR_AVAILABILITY',
+            'route' => '',
+            'icon'  => 'fas fa-check-circle',
+            'can'   => ''
+        ],
+
+        ['header' => 'HOTELS'],
+        [
+            'text' => 'HOTEL_LIST',
+            'route' => '',
+            'icon'  => 'fas fa-hotel',
+            'can'   => ''
+        ],
+
+        ['header' => 'BOOKINGS'],
+        [
+            'text' => 'BOOKINGS',
+            'route' => '',
+            'icon'  => 'fas fa-calendar-check',
+            'can'   => ''
+        ],
+        [
+            'text' => 'BOOKING_DETAILS',
+            'route' => '',
+            'icon'  => 'fas fa-info-circle',
+            'can'   => ''
+        ],
+
+        ['header' => 'CARTS'],
+        [
+            'text' => 'CARTS',
+            'route' => '',
+            'icon'  => 'fas fa-shopping-cart',
+            'can'   => ''
+        ],
+        [
+            'text' => 'CART_ITEMS',
+            'route' => '',
+            'icon'  => 'fas fa-list',
+            'can'   => ''
+        ]
+
+
         
     ],
 

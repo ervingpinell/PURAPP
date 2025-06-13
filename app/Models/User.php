@@ -12,14 +12,14 @@ class User extends Authenticatable
     use HasFactory;
 
     protected $table = 'users';
-    protected $primaryKey = 'id_user';
+    protected $primaryKey = 'user_id';
 
     protected $fillable = [
         'full_name',
         'email',
         'password',
         'status',
-        'id_role',
+        'role_id',
         'phone',
     ];
 
@@ -31,7 +31,7 @@ class User extends Authenticatable
     // A user belongs to a role.
     public function role()
     {
-        return $this->belongsTo(Role::class, 'id_role', 'id_role');
+        return $this->belongsTo(Role::class, 'role_id', 'role_id');
     }
 
     public function adminlte_desc()

@@ -56,7 +56,7 @@ public function showLoginForm(Request $request)
     // 🔐 Método que redirige según el rol
     public function authenticated(Request $request, $user)
     {
-        if ($user->id_role == 1 || $user->id_role == 2) {
+        if ($user->role_id == 1 || $user->role_id == 2) {
             return redirect()->route('admin.home'); // Admin o Colaborador
         }
 

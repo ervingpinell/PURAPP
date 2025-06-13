@@ -9,7 +9,7 @@ class Reserva extends Model
     protected $primaryKey = 'id_reserva';
 
     protected $fillable = [
-        'id_user',
+        'user_id',
         'id_tour',
         'fecha_reserva',
         'fecha_inicio',
@@ -27,7 +27,7 @@ class Reserva extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'id_user');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function tour()

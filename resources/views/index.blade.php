@@ -49,7 +49,7 @@
                     <i class="fas fa-user-circle"></i> {{ Auth::user()->full_name }}
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                    @if(Auth::user()->id_role === 3)
+                    @if(Auth::user()->role_id === 3)
                         <li><a class="dropdown-item" href="#">{{ __('adminlte::adminlte.my_reservations') }}</a></li>
                     @endif
                     <li><a class="dropdown-item" href="{{ route('user.profile.edit') }}">{{ __('adminlte::adminlte.profile') }}</a></li>
@@ -67,7 +67,7 @@
             </a>
         @endauth
 
-        @if(Auth::check() && in_array(Auth::user()->id_role, [1, 2]))
+        @if(Auth::check() && in_array(Auth::user()->role_id, [1, 2]))
             <a href="{{ route('admin.home') }}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-2" style="border-radius: 25px;">
                 <i class="fas fa-toolbox"></i> Admin
             </a>

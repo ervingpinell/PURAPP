@@ -17,7 +17,7 @@ class UserRegisterController extends Controller
         $query = User::with('role');
 
         if ($request->filled('rol')) {
-            $query->where('id_role', $request->rol);
+            $query->where('role_id', $request->rol);
         }
         if ($request->filled('email')) {
             $query->where('email', 'like', '%' . $request->email . '%');
@@ -50,7 +50,7 @@ class UserRegisterController extends Controller
                 'full_name' => 'required|string|max:100',
                 'email' => 'required|string|email|max:200|unique:users,email',
                 'password' => 'required|string|min:8|confirmed',
-                'id_role' => 'required|exists:roles,id_role',
+                'role_id' => 'required|exists:roles,role_id',
                 'phone' => 'nullable|string|max:20',
             ]);
 
@@ -58,7 +58,7 @@ class UserRegisterController extends Controller
                 'full_name' => $request->full_name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'id_role' => $request->id_role,
+                'role_id' => $request->role_id,
                 'status' => true,
                 'phone'=>$request->phone,
             ]);
@@ -95,7 +95,7 @@ class UserRegisterController extends Controller
 
         $request->validate([
             'full_name' => 'required|string|max:100',
-            'email' => 'required|string|email|max:200|unique:users,email,' . $id . ',id_user',
+            'email' => 'required|string|email|max:200|unique:users,email,' . $id . ',user_id',
             'password' => [
                 'nullable',
                 'string',
@@ -105,13 +105,13 @@ class UserRegisterController extends Controller
                 'confirmed',
             ],
 
-            'id_role' => 'required|exists:roles,id_role',
+            'role_id' => 'required|exists:roles,role_id',
             'phone' => 'nullable|string|max:20',
         ]);
 
         $user->full_name = $request->full_name;
         $user->email = $request->email;
-        $user->id_role = $request->id_role;
+        $user->role_id = $request->role_id;
         $user->phone = $request->phone;
 
         if ($request->filled('password')) {

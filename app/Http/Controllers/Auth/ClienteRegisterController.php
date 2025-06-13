@@ -40,7 +40,7 @@ public function create(Request $request)
             'email' => $request->email,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
-            'id_role' => 3, 
+            'role_id' => 3, 
             'status' => true,
         ]);
 

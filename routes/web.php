@@ -10,6 +10,10 @@ use App\Http\Controllers\Admin\UserRegisterController;
 use App\Http\Controllers\Auth\ClienteRegisterController;
 use App\Http\Controllers\User\UserProfileController;
 
+//new
+use App\Http\Controllers\Admin\CategoryController;
+use \App\Http\Controllers\Admin\TourLanguageController;
+
 //route for index
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/idioma/{idioma}', [HomeController::class, 'cambiarIdioma'])->name('cambiar.idioma');
@@ -36,6 +40,11 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('reservas', ReservaController::class);
         Route::resource('users', UserRegisterController::class)->except(['show']);
         Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class)->except(['show']);
+
+        //new
+        Route::resource('categories', CategoryController::class)->except(['show']);
+        Route::resource('languages', TourLanguageController::class)->except(['show']);
+
     });
 
     // Perfil editable

@@ -148,9 +148,9 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Cliente</label>
-                            <select name="id_user" class="form-control" required>
+                            <select name="user_id" class="form-control" required>
                                 @foreach(\App\Models\User::all() as $user)
-                                    <option value="{{ $user->id_user }}">{{ $user->full_name }}</option>
+                                    <option value="{{ $user->user_id }}">{{ $user->full_name }}</option>
                                 @endforeach
                             </select>
                         </div>

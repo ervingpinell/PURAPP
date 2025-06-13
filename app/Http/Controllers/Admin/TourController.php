@@ -2,70 +2,60 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Tour;
-use App\Http\Controllers\Controller;
-
+use App\Models\Category;
+use App\Models\TourLanguage;
 
 class TourController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $tours = Tour::all();
-        return view('admin.tours', compact('tours'));
+        $tours = Tour::with(['category', 'language'])->get();
+        $categories = Category::all();
+        $languages = TourLanguage::all();
+
+        return view('admin.tours', compact('tours', 'categories', 'languages'));
     }
-
-
 
     public function store(Request $request)
     {
-        // Validar datos
         $validated = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'precio_adulto' => 'required|numeric|min:0',
-            'precio_nino' => 'nullable|numeric|min:0',
-            'duracion_horas' => 'required|numeric|min:0',
-            'ubicacion' => 'required|string|max:255',
-            'tipo_tour' => 'required|in:Half Day,Full Day',
-            'idioma_disponible' => 'nullable|string|max:100',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'adult_price' => 'required|numeric|min:0',
+            'kid_price' => 'nullable|numeric|min:0',
+            'length' => 'required|numeric|min:0',
+            'category_id' => 'required|exists:categories,category_id',
+            'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
         ]);
 
-        // Crear cliente
+        $validated['is_active'] = true; // por defecto
         Tour::create($validated);
+
         return redirect()->back()->with('success', 'Tour agregado correctamente.');
     }
 
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
         $tour = Tour::findOrFail($id);
 
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'precio_adulto' => 'required|numeric|min:0',
-            'precio_nino' => 'nullable|numeric|min:0',
-            'duracion_horas' => 'required|numeric|min:0',
-            'ubicacion' => 'required|string|max:255',
-            'tipo_tour' => 'required|in:Half Day,Full Day',
-            'idioma_disponible' => 'nullable|string|max:100',
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'adult_price' => 'required|numeric|min:0',
+            'kid_price' => 'nullable|numeric|min:0',
+            'length' => 'required|numeric|min:0',
+            'category_id' => 'required|exists:categories,category_id',
+            'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
         ]);
 
-        $tour->update($request->only(['nombre', 'descripcion', 'precio_adulto', 'precio_nino','duracion_horas', 'ubicacion', 'tipo_tour', 'idioma_disponible']));
+        $tour->update($validated);
 
         return redirect()->back()->with('success', 'Tour actualizado correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Tour $tour)
     {
         $tour->delete();

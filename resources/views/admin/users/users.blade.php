@@ -22,7 +22,7 @@
                                 <select name="rol" id="rol" class="form-select text-center">
                                     <option value="">-- Todos --</option>
                                     @foreach ($roles as $rol)
-                                        <option value="{{ $rol->id_role }}" {{ request('rol') == $rol->id_role ? 'selected' : '' }}>
+                                        <option value="{{ $rol->role_id }}" {{ request('rol') == $rol->role_id ? 'selected' : '' }}>
                                             {{ $rol->role_name }}
                                         </option>
                                     @endforeach
@@ -86,7 +86,7 @@
         <tbody>
             @foreach ($users as $user)
                 <tr>
-                    <td>{{ $user->id_user }}</td>
+                    <td>{{ $user->user_id }}</td>
                     <td>{{ $user->full_name }}</td>
                     <td>{{ $user->email }}</td>
                     <td>{{ $user->role->role_name ?? 'Sin rol' }}</td>
@@ -100,12 +100,12 @@
                     </td>
                     <td>
                         <!-- Botón editar -->
-                        <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $user->id_user }}">
+                        <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $user->user_id }}">
                             <i class="fas fa-edit"></i>
                         </a>
 
                         <!-- Botón desactivar -->
-                        <form action="{{ route('admin.users.destroy', $user->id_user) }}" method="POST" style="display: inline-block;">
+                        <form action="{{ route('admin.users.destroy', $user->user_id) }}" method="POST" style="display: inline-block;">
                             @csrf
                             @method('DELETE')
                             <button type="submit"
@@ -119,9 +119,9 @@
                 </tr>
 
                 <!-- Modal Editar -->
-                <div class="modal fade" id="modalEditar{{ $user->id_user }}" tabindex="-1" aria-hidden="true">
+                <div class="modal fade" id="modalEditar{{ $user->user_id }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog">
-                        <form action="{{ route('admin.users.update', $user->id_user) }}" method="POST">
+                        <form action="{{ route('admin.users.update', $user->user_id) }}" method="POST">
                             @csrf
                             @method('PUT')
                             <div class="modal-content">
@@ -140,9 +140,9 @@
                                     </div>
                                     <div class="mb-3">
                                         <label>Rol</label>
-                                        <select name="id_role" class="form-control" required>
+                                        <select name="role_id" class="form-control" required>
                                             @foreach ($roles as $role)
-                                                <option value="{{ $role->id_role }}" {{ $user->id_role == $role->id_role ? 'selected' : '' }}>
+                                                <option value="{{ $role->role_id }}" {{ $user->role_id == $role->role_id ? 'selected' : '' }}>
                                                     {{ $role->role_name }}
                                                 </option>
                                             @endforeach
@@ -155,7 +155,7 @@
                                     <div class="mb-3">
                                         <label>Nueva contraseña (opcional)</label>
                                         <input type="password" name="password" class="form-control" autocomplete="new-password">
-                                        <ul id="password-requirements-{{ $user->id_user }}" class="mb-3 pl-3" style="list-style: none; padding-left: 1rem;">
+                                        <ul id="password-requirements-{{ $user->user_id }}" class="mb-3 pl-3" style="list-style: none; padding-left: 1rem;">
                                         <li class="req-length text-muted">Mínimo 8 caracteres</li>
                                         <li class="req-special text-muted">Al menos un carácter especial (!@#...)</li>
                                         <li class="req-number text-muted">Al menos un número</li>
@@ -201,9 +201,9 @@
                     </div>
                     <div class="mb-3">
                         <label>Rol</label>
-                        <select name="id_role" class="form-control" required>
+                        <select name="role_id" class="form-control" required>
                             @foreach ($roles as $role)
-                                <option value="{{ $role->id_role }}">{{ $role->role_name }}</option>
+                                <option value="{{ $role->role_id }}">{{ $role->role_name }}</option>
                             @endforeach
                         </select>
                     </div>
