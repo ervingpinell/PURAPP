@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Admin\Languages;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -11,7 +11,7 @@ class TourLanguageController extends Controller
     public function index()
     {
         $languages = TourLanguage::all();
-        return view('admin.languages', compact('languages'));
+        return view('admin.languages.index', compact('languages'));
     }
 
     public function store(Request $request)

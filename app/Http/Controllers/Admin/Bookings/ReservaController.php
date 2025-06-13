@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Admin\Bookings;
 
 use Illuminate\Http\Request;
 use App\Models\Reserva;
@@ -18,7 +18,7 @@ class ReservaController extends Controller
     public function index()
     {
         $reservas = Reserva::with(['user', 'tour'])->get();
-        return view('admin.reservas', compact('reservas'));
+        return view('admin.bookings.index', compact('reservas'));
     }
 
 

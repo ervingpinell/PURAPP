@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Admin\Users;
 
 use App\Models\Role;
 use Illuminate\Http\Request;
@@ -14,7 +14,7 @@ class RoleController extends Controller
     public function index()
     {
         $roles = Role::all();
-        return view('admin.roles', compact('roles'));
+        return view('admin.users.roles', compact('roles'));
     }
 
     /**

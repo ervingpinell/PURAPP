@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -15,7 +15,7 @@ use App\Models\TourLanguage;
 
 
 
-class HomeController extends Controller
+class DashBoardController extends Controller
 {
     public function __construct()
     {
@@ -57,7 +57,7 @@ public function cambiarIdioma($idioma)
         $totalCategorias = Category::count();
         $totalIdiomas = TourLanguage::count();
 
-        return view('admin.dashboardMain', compact(
+        return view('admin.dashboard', compact(
             'totalTours',
             'totalUsuarios',
             'roles',
