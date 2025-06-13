@@ -19,7 +19,6 @@ public function showLoginForm(Request $request)
     return view('adminlte::auth.login');
 }
 
-    
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -40,17 +39,9 @@ public function showLoginForm(Request $request)
             return $this->authenticated($request, Auth::user());
         }
 
-        // Check if user is inactive
-        if (!$user->status) {
-            return back()->withErrors([
-                'email' => 'Your account is inactive. Please contact the administrator.',
-            ])->onlyInput('email');
-        }
-
-        Auth::login($user, $request->filled('remember'));
-        $request->session()->regenerate();
-
-        return $this->authenticated($request, $user);
+        return back()->withErrors([
+            'email' => 'Las credenciales no son correctas.',
+        ])->onlyInput('email');
     }
 
     public function logout(Request $request)
