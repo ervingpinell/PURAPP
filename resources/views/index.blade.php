@@ -236,4 +236,16 @@
 <script src="https://kit.fontawesome.com/yourkit.js" crossorigin="anonymous"></script> {{-- reemplaza 'yourkit.js' si no lo tienes --}}
 
 </body>
+@if(session('error'))
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Acceso Denegado',
+            text: '{{ session('error') }}',
+            confirmButtonColor: '#d33'
+        });
+    </script>
+@endif
+
 </html>

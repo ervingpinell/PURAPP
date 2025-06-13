@@ -45,7 +45,7 @@ use App\Http\Controllers\User\UserProfileController;
         Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
         // Rutas protegidas con autenticación
-        Route::middleware(['auth'])->group(function () {
+        Route::middleware(['auth','nocliente'])->group(function () {
 
             // Vista principal del panel admin
             Route::get('/admin', [DashBoardController::class, 'dashboard'])->name('admin.home');
