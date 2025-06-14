@@ -17,29 +17,23 @@ use App\Models\TourLanguage;
 
 class DashBoardController extends Controller
 {
-    public function __construct()
-    {
-        // Esto aplica el idioma en cada request para este controlador
-        if (Session::has('locale')) {
-            App::setLocale(Session::get('locale'));
-        }
-    }
+
 
     public function index()
     {
-        return view('index'); // la vista principal
+        return view('index'); 
     }
 
-public function cambiarIdioma($idioma)
+public function switchLanguage($language)
 {
-    if (in_array($idioma, ['es', 'en', 'fr'])) {
-        session(['locale' => $idioma]);
+    if (in_array($language, ['es', 'en', 'fr'])) {
+        session(['locale' => $language]);
     }
 
     // 🔁 Redirige de forma más segura (sin cache)
     $referer = url()->previous();
     if (str_contains($referer, '/login')) {
-        return redirect()->route('login'); // fuerza recarga del login
+        return redirect()->route('login'); 
     }
 
     return redirect($referer);

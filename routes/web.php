@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\SetLocale;
 
 // Dashboard
 use App\Http\Controllers\DashBoardController;
@@ -31,42 +32,37 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\User\UserProfileController;
 
 
-        // Página pública principal
-        Route::get('/', [DashBoardController::class, 'index'])->name('home');
-        Route::get('/idioma/{idioma}', [DashBoardController::class, 'cambiarIdioma'])->name('cambiar.idioma');
+Route::middleware([SetLocale::class])->group(function () {
 
-        // Login personalizado
-        Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-        Route::post('/login', [LoginController::class, 'login']);
+    // Públicas
+    Route::get('/', [DashBoardController::class, 'index'])->name('home');
+    Route::get('/language/{language}', [DashBoardController::class, 'switchLanguage'])->name('switch.language');
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login']);
+    Route::get('/register', [ClienteRegisterController::class, 'create'])->name('register');
+    Route::post('/register', [ClienteRegisterController::class, 'store'])->name('register.store');
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-        // Registro de clientes
-        Route::get('/register', [ClienteRegisterController::class, 'create'])->name('register');
-        Route::post('/register', [ClienteRegisterController::class, 'store'])->name('register.store');
-        Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+    // Privadas (SetLocale incluido también)
+    Route::middleware(['auth', 'CheckRole', SetLocale::class])->group(function () {
+        Route::get('/admin', [DashBoardController::class, 'dashboard'])->name('admin.home');
 
-        // Rutas protegidas con autenticación
-        Route::middleware(['auth','nocliente'])->group(function () {
-
-            // Vista principal del panel admin
-            Route::get('/admin', [DashBoardController::class, 'dashboard'])->name('admin.home');
-
-            // Rutas del panel admin
-            Route::prefix('admin')->name('admin.')->group(function () {
-                Route::resource('tours', TourController::class);
-                Route::get('reservas/pdf', [ReservaController::class, 'generarPDF'])->name('reservas.pdf');
-                Route::get('reservas/{reserva}/comprobante', [ReservaController::class, 'generarComprobante'])->name('reservas.comprobante');
-                Route::resource('reservas', ReservaController::class);
-                Route::resource('users', UserRegisterController::class)->except(['show']);
-                Route::resource('roles', RoleController::class)->except(['show']);
-                Route::resource('categories', CategoryController::class)->except(['show']);
-                Route::resource('languages', TourLanguageController::class)->except(['show']);
-            });
-
-            // Perfil del admin
-            Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-            Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
-
-            // Perfil del cliente
-            Route::get('/profile-user', [UserProfileController::class, 'edit'])->name('user.profile.edit');
-            Route::post('/profile-user', [UserProfileController::class, 'update'])->name('user.profile.update');
+        Route::prefix('admin')->name('admin.')->group(function () {
+            Route::resource('tours', TourController::class);
+            Route::get('reservas/pdf', [ReservaController::class, 'generarPDF'])->name('reservas.pdf');
+            Route::get('reservas/{reserva}/comprobante', [ReservaController::class, 'generarComprobante'])->name('reservas.comprobante');
+            Route::resource('reservas', ReservaController::class);
+            Route::resource('users', UserRegisterController::class)->except(['show']);
+            Route::resource('roles', RoleController::class)->except(['show']);
+            Route::resource('categories', CategoryController::class)->except(['show']);
+            Route::resource('languages', TourLanguageController::class)->except(['show']);
         });
+
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::get('/profile-user', [UserProfileController::class, 'edit'])->name('user.profile.edit');
+        Route::post('/profile-user', [UserProfileController::class, 'update'])->name('user.profile.update');
+    });
+
+});
+

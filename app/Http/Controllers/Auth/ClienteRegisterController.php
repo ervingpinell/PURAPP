@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-//this controller is for the customer can register from the website
+
 class ClienteRegisterController extends Controller
 {
 public function create(Request $request)
 {
-    // ✅ Aplica el idioma guardado en la sesión
+
     $locale = session('locale', config('app.locale'));
     app()->setLocale($locale);
 
@@ -45,7 +45,7 @@ public function create(Request $request)
         ]);
 
 
-        return redirect()->route('login')->with('success', 'Cuenta creada correctamente. Inicia sesión.');
+   return redirect()->route('login')->with('success', __('adminlte::adminlte.account_created'));
     }
 }
 

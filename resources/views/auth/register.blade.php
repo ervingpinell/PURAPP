@@ -58,7 +58,7 @@
         </div>
 
         <div>
-            @include('partials.language-selector')
+            @include('partials.language-switcher')
         </div>
     </div>
 

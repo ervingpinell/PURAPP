@@ -88,5 +88,14 @@ return [
     'whatsapp_placeholder' => 'Hi, I\'m interested in your eco-tours. Can you provide more info?',
     'whatsapp_button' => 'Send Message',
     'whatsapp_footer' => 'Powered by WhatsApp Business',
+    'account_created' => 'Account created successfully. Please log in.',
+    'account_already_exists' => 'An account with this email already exists. Please log in or use a different email.',
+    'account_creation_failed' => 'Account creation failed. Please try again later.',
+    'password_reset' => 'Password reset successfully. Please log in.',
+    'password_reset_success' => 'Password reset successfully. Please log in.',
+    'password_reset_failed' => 'Password reset failed. Please try again later.',
+    'password_reset_link_sent' => 'Password reset link sent to your email. Please check your inbox.',
+    'password_reset_link_failed' => 'Failed to send password reset link. Please try again later.',
+        
 
 ];

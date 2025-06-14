@@ -86,5 +86,9 @@ return [
 'whatsapp_placeholder' => 'Hola, estoy interesado en los tours ecológicos. ¿Me pueden dar más información?',
 'whatsapp_button' => 'Enviar mensaje',
 'whatsapp_footer' => 'Conectado por WhatsApp Business',
+'account_created' => 'Cuenta creada correctamente. Inicia sesión.',
+   'account_created' => 'Cuenta creada correctamente. Por favor, inicia sesión.',
+    'password_reset' => 'Contraseña restablecida correctamente. Por favor, inicia sesión.',
+    'password_reset_success' => 'Contraseña restablecida correctamente. Por favor, inicia sesión.',
 
 ];

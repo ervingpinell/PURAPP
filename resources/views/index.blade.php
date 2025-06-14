@@ -74,7 +74,9 @@
         @endif
 
         {{-- Dropdown de idiomas: Partial --}}
-        @include('partials.language-selector')
+        @include('partials.language-switcher')
+
+        {{-- Botón de WhatsApp --}}
     </div>
 </nav>
 

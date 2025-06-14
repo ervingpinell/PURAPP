@@ -3,10 +3,15 @@
 @section('title', '| Dashboard')
 
 @section('content_header')
+
     <h1>Dashboard Green Vacations</h1>
+    
 @stop
 
+
+
 @section('content')
+
     <div class="row">
         <!-- Total Clientes -->
         <div class="col-md-4 mb-3">

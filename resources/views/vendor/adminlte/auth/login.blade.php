@@ -2,7 +2,7 @@
 
 @section('adminlte_css_pre')
     <link rel="stylesheet" href="{{ asset('vendor/icheck-bootstrap/icheck-bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/gv.css') }}"> {{-- Aquí aplicás el nuevo CSS --}}
+    <link rel="stylesheet" href="{{ asset('css/gv.css') }}"> 
 @stop
 
 @php
@@ -24,6 +24,19 @@
 @section('auth_header', __('adminlte::adminlte.login_message'))
 
 @section('auth_body')
+
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible">
+        {{ session('success') }}
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="alert alert-danger alert-dismissible">
+        {{ session('error') }}
+    </div>
+@endif
+
     <form action="{{ $loginUrl }}" method="post">
         @csrf
 
@@ -47,7 +60,9 @@
                 placeholder="{{ __('adminlte::adminlte.password') }}">
             <div class="input-group-append">
                 <div class="input-group-text">
-                    <span class="fas fa-lock {{ config('adminlte.classes_auth_icon', '') }}"></span>
+                    <a href="#" class="text-reset toggle-password" data-target="password">
+                        <i class="fas fa-eye"></i>
+                    </a>
                 </div>
             </div>
             @error('password')
@@ -68,7 +83,7 @@
 @stop
 
 @section('auth_footer')
-    {{-- Enlaces izquierda + idioma derecha --}}
+
     <div class="d-flex justify-content-between align-items-center">
         <div>
             @if($passResetUrl)
@@ -89,11 +104,10 @@
         </div>
 
         <div>
-            @include('partials.language-selector')
+            @include('partials.language-switcher')
         </div>
     </div>
 
-    {{-- Botón regresar --}}
     <div class="mt-3 text-center">
         <a href="{{ url('/') }}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left mr-1"></i> {{ __('adminlte::adminlte.back') }}

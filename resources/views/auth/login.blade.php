@@ -1,3 +1,6 @@
+
+        {{-- no se usa xd--}}
+
 @extends('adminlte::auth.auth-page', ['authType' => 'login'])
 
 @section('adminlte_css_pre')
