@@ -43,7 +43,7 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::post('/register', [ClienteRegisterController::class, 'store'])->name('register.store');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // 🌱 Cliente autenticado (sin CheckRole)
+    //Cliente autenticado (sin CheckRole)
     Route::middleware(['auth', SetLocale::class])->group(function () {
         Route::get('/profile-user', [UserProfileController::class, 'edit'])->name('user.profile.edit');
         Route::post('/profile-user', [UserProfileController::class, 'update'])->name('user.profile.update');
