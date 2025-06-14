@@ -43,6 +43,12 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::post('/register', [ClienteRegisterController::class, 'store'])->name('register.store');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+    // 🌱 Cliente autenticado (sin CheckRole)
+    Route::middleware(['auth', SetLocale::class])->group(function () {
+        Route::get('/profile-user', [UserProfileController::class, 'edit'])->name('user.profile.edit');
+        Route::post('/profile-user', [UserProfileController::class, 'update'])->name('user.profile.update');
+    });
+
     // Privadas (SetLocale incluido también)
     Route::middleware(['auth', 'CheckRole', SetLocale::class])->group(function () {
         Route::get('/admin', [DashBoardController::class, 'dashboard'])->name('admin.home');
@@ -60,8 +66,6 @@ Route::middleware([SetLocale::class])->group(function () {
 
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
-        Route::get('/profile-user', [UserProfileController::class, 'edit'])->name('user.profile.edit');
-        Route::post('/profile-user', [UserProfileController::class, 'update'])->name('user.profile.update');
     });
 
 });
