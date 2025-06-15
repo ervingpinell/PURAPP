@@ -6,9 +6,12 @@ use Illuminate\Http\Request;
 use App\Models\Tour;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\TourSchedule;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Category;
+use App\Models\Amenity;
 use App\Models\TourLanguage;
+use App\Models\ItineraryItem;
 
 class DashBoardController extends Controller
 {
@@ -41,18 +44,23 @@ class DashBoardController extends Controller
             return redirect()->route('login')->with('error', 'Acceso denegado.');
         }
 
-        $totalUsuarios = User::count();
-        $totalTours = Tour::count();
-        $roles = Role::count();
-        $totalCategorias = Category::count();
-        $totalIdiomas = TourLanguage::count();
-
-        return view('admin.dashboard', compact(
-            'totalTours',
-            'totalUsuarios',
-            'roles',
-            'totalCategorias',
-            'totalIdiomas'
-        ));
+ $totalUsuarios = User::count();
+    $totalTours = Tour::count();
+    $roles = Role::count();
+    $totalCategorias = Category::count();
+    $totalIdiomas = TourLanguage::count();
+    $totalHorarios = \App\Models\TourSchedule::count();
+    $totalAmenities = Amenity::count();
+    $totalItinerarios = ItineraryItem::count(); // ← Agrega esto
+    
+    return view('admin.dashboard', compact(
+        'totalUsuarios',
+        'totalTours',
+        'totalCategorias',
+        'totalIdiomas',
+        'totalHorarios',
+        'totalAmenities',
+        'totalItinerarios'
+    ));
     }
 }

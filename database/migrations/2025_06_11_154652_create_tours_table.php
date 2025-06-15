@@ -14,7 +14,6 @@ return new class extends Migration
     Schema::create('tours', function (Blueprint $table) {
             $table->id('tour_id');
             $table->unsignedBigInteger('category_id');
-            $table->unsignedBigInteger('tour_language_id');
             $table->text('overview')->nullable();
             $table->string('name');
             $table->text('description');
@@ -25,7 +24,6 @@ return new class extends Migration
             $table->timestamps();
 
             
-            $table->foreign('tour_language_id')->references('tour_language_id')->on('tour_languages')->onDelete('restrict');
             $table->foreign('category_id')->references('category_id')->on('categories')->onDelete('cascade');
         });
     }

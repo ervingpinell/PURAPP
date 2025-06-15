@@ -1,217 +1,175 @@
-<!-- Modal Registrar Tour -->
-<div class="modal fade" id="modalRegistrar" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg"> <!-- más ancho -->
+@extends('adminlte::page')
+
+@section('adminlte_css_pre')
+    <link rel="stylesheet" href="{{ asset('css/gv.css') }}"> 
+@stop
+
+@section('title', 'Registrar Tour')
+
+@section('content_header')
+    <h1>Registrar Tour</h1>
+@stop
+
+@section('content')
+    <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
+        <i class="fas fa-plus"></i> Añadir Tour
+    </a>
+
+    <!-- Modal Registrar Tour -->
+    <x-adminlte-modal id="modalRegistrar" title="Registrar Tour" size="lg" theme="primary" icon="fas fa-plus">
         <form action="{{ route('admin.tours.store') }}" method="POST" id="formCrearTour">
             @csrf
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Registrar Tour</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+            <!-- Nombre, Descripcion, Precios, Duracion -->
+            <x-adminlte-input name="name" label="Nombre del Tour" required />
+
+            <x-adminlte-textarea name="description" label="Descripción" />
+
+            <div class="row">
+                <div class="col-md-4">
+                    <x-adminlte-input name="adult_price" label="Precio Adulto" type="number" step="0.01" required />
                 </div>
-                <div class="modal-body">
-                    <!-- Campos existentes omitidos para no repetirlos -->
-
-                    {{-- ... campos nombre, descripcion, precios, duración, categoría, idioma ... --}}
-
-                    <!-- Amenidades -->
-                    <div class="mb-3">
-                        <label class="form-label">Amenidades</label>
-                        <div>
-                            @foreach ($amenities as $amenity)
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" name="amenities[]" id="amenity_{{ $amenity->amenity_id }}" value="{{ $amenity->amenity_id }}">
-                                    <label class="form-check-label" for="amenity_{{ $amenity->amenity_id }}">{{ $amenity->name }}</label>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <!-- Horarios -->
-                    <div class="mb-3">
-                        <label class="form-label">Horarios Disponibles</label>
-                        <div id="schedule-container-crear">
-                            <div class="row align-items-end mb-2 schedule-item">
-                                <div class="col-4">
-                                    <label>Día</label>
-                                    <input type="text" name="schedules[0][day]" class="form-control" placeholder="Lunes, Martes..." required>
-                                </div>
-                                <div class="col-3">
-                                    <label>Hora Inicio</label>
-                                    <input type="time" name="schedules[0][start_time]" class="form-control" required>
-                                </div>
-                                <div class="col-3">
-                                    <label>Hora Fin</label>
-                                    <input type="time" name="schedules[0][end_time]" class="form-control" required>
-                                </div>
-                                <div class="col-2">
-                                    <button type="button" class="btn btn-danger btn-sm btn-remove-schedule" title="Quitar horario">&times;</button>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-secondary btn-sm" id="btnAddScheduleCrear">+ Añadir Horario</button>
-                    </div>
-
+                <div class="col-md-4">
+                    <x-adminlte-input name="kid_price" label="Precio Niño" type="number" step="0.01" />
                 </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <div class="col-md-4">
+                    <x-adminlte-input name="length" label="Duración (horas)" type="number" step="1" required />
                 </div>
             </div>
-        </form>
-    </div>
-</div>
 
-<!-- Modal Editar Tour -->
-@foreach ($tours as $tour)
-<div class="modal fade" id="modalEditar{{ $tour->tour_id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <form action="{{ route('admin.tours.update', $tour->tour_id) }}" method="POST" class="formEditarTour">
-            @csrf
-            @method('PUT')
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Editar Tour</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Campos existentes omitidos -->
+            <!-- Categoría -->
+            <div class="mb-3">
+                <label>Categoría</label>
+                <select name="category_id" id="categorySelect" class="form-control" required>
+                    <option value="">Seleccione una categoría</option>
+                    @foreach ($categories as $category)
+                        <option value="{{ $category->category_id }}">{{ $category->name }}</option>
+                    @endforeach
+                </select>
+            </div>
 
-                    <!-- Amenidades -->
-                    <div class="mb-3">
-                        <label class="form-label">Amenidades</label>
-                        <div>
-                            @foreach ($amenities as $amenity)
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" name="amenities[]" id="amenity_edit_{{ $amenity->amenity_id }}_{{ $tour->tour_id }}" value="{{ $amenity->amenity_id }}" 
-                                    {{ $tour->amenities->contains($amenity->amenity_id) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="amenity_edit_{{ $amenity->amenity_id }}_{{ $tour->tour_id }}">{{ $amenity->name }}</label>
-                                </div>
-                            @endforeach
+            <!-- Idiomas (múltiples) -->
+            <div class="mb-3">
+                <label>Idiomas Disponibles</label>
+                <div>
+                    @foreach ($languages as $lang)
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="languages[]" id="lang_{{ $lang->tour_language_id }}" value="{{ $lang->tour_language_id }}">
+                            <label class="form-check-label" for="lang_{{ $lang->tour_language_id }}">{{ $lang->name }}</label>
                         </div>
-                    </div>
-
-                    <!-- Horarios -->
-                    <div class="mb-3">
-                        <label class="form-label">Horarios Disponibles</label>
-                        <div id="schedule-container-editar-{{ $tour->tour_id }}">
-                            @foreach ($tour->schedules as $index => $schedule)
-                            <div class="row align-items-end mb-2 schedule-item">
-                                <div class="col-4">
-                                    <label>Día</label>
-                                    <input type="text" name="schedules[{{ $index }}][day]" class="form-control" value="{{ $schedule->day }}" required>
-                                </div>
-                                <div class="col-3">
-                                    <label>Hora Inicio</label>
-                                    <input type="time" name="schedules[{{ $index }}][start_time]" class="form-control" value="{{ $schedule->start_time }}" required>
-                                </div>
-                                <div class="col-3">
-                                    <label>Hora Fin</label>
-                                    <input type="time" name="schedules[{{ $index }}][end_time]" class="form-control" value="{{ $schedule->end_time }}" required>
-                                </div>
-                                <div class="col-2">
-                                    <button type="button" class="btn btn-danger btn-sm btn-remove-schedule" title="Quitar horario">&times;</button>
-                                </div>
-                            </div>
-                            @endforeach
-                            @if ($tour->schedules->isEmpty())
-                            <div class="row align-items-end mb-2 schedule-item">
-                                <div class="col-4">
-                                    <label>Día</label>
-                                    <input type="text" name="schedules[0][day]" class="form-control" placeholder="Lunes, Martes..." required>
-                                </div>
-                                <div class="col-3">
-                                    <label>Hora Inicio</label>
-                                    <input type="time" name="schedules[0][start_time]" class="form-control" required>
-                                </div>
-                                <div class="col-3">
-                                    <label>Hora Fin</label>
-                                    <input type="time" name="schedules[0][end_time]" class="form-control" required>
-                                </div>
-                                <div class="col-2">
-                                    <button type="button" class="btn btn-danger btn-sm btn-remove-schedule" title="Quitar horario">&times;</button>
-                                </div>
-                            </div>
-                            @endif
-                        </div>
-                        <button type="button" class="btn btn-secondary btn-sm btnAddScheduleEditar" data-tour-id="{{ $tour->tour_id }}">+ Añadir Horario</button>
-                    </div>
-
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-warning">Actualizar</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    @endforeach
                 </div>
             </div>
+
+            <!-- Amenidades -->
+            <div class="mb-3">
+                <label>Amenidades</label>
+                <div>
+                    @foreach ($amenities as $amenity)
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="amenities[]" id="amenity_{{ $amenity->amenity_id }}" value="{{ $amenity->amenity_id }}">
+                            <label class="form-check-label" for="amenity_{{ $amenity->amenity_id }}">{{ $amenity->name }}</label>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Horarios (dos rangos fijos) -->
+            <div class="mb-3">
+                <label>Horario AM</label>
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="time" name="schedule_am_start" class="form-control" placeholder="Hora Inicio">
+                    </div>
+                    <div class="col-md-6">
+                        <input type="time" name="schedule_am_end" class="form-control" placeholder="Hora Fin">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3" id="pmScheduleContainer">
+                <label>Horario PM</label>
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="time" name="schedule_pm_start" class="form-control" placeholder="Hora Inicio">
+                    </div>
+                    <div class="col-md-6">
+                        <input type="time" name="schedule_pm_end" class="form-control" placeholder="Hora Fin">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Itinerario -->
+            <div class="mb-3">
+                <label>Itinerario</label>
+                <div id="itinerary-container">
+                    <div class="row mb-2 itinerary-item">
+                        <div class="col-md-4">
+                            <input type="text" name="itinerary[0][title]" class="form-control" placeholder="Título" required>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" name="itinerary[0][description]" class="form-control" placeholder="Descripción" required>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger btn-sm btn-remove-itinerary">&times;</button>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnAddItinerary">+ Añadir Itinerario</button>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="text-right mt-3">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
         </form>
-    </div>
-</div>
-@endforeach
+    </x-adminlte-modal>
+@endsection
 
 @section('js')
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-    // Función para crear un nuevo bloque horario
-    function createScheduleItem(index, prefix = '') {
-        return `
-        <div class="row align-items-end mb-2 schedule-item">
-            <div class="col-4">
-                <label>Día</label>
-                <input type="text" name="${prefix}schedules[${index}][day]" class="form-control" placeholder="Lunes, Martes..." required>
+let itineraryIndex = 1;
+
+// Añadir nuevos campos de itinerario
+const btnAddItinerary = document.getElementById('btnAddItinerary');
+btnAddItinerary?.addEventListener('click', function () {
+    const container = document.getElementById('itinerary-container');
+    const html = `
+        <div class="row mb-2 itinerary-item">
+            <div class="col-md-4">
+                <input type="text" name="itinerary[${itineraryIndex}][title]" class="form-control" placeholder="Título" required>
             </div>
-            <div class="col-3">
-                <label>Hora Inicio</label>
-                <input type="time" name="${prefix}schedules[${index}][start_time]" class="form-control" required>
+            <div class="col-md-6">
+                <input type="text" name="itinerary[${itineraryIndex}][description]" class="form-control" placeholder="Descripción" required>
             </div>
-            <div class="col-3">
-                <label>Hora Fin</label>
-                <input type="time" name="${prefix}schedules[${index}][end_time]" class="form-control" required>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger btn-sm btn-remove-itinerary">&times;</button>
             </div>
-            <div class="col-2">
-                <button type="button" class="btn btn-danger btn-sm btn-remove-schedule" title="Quitar horario">&times;</button>
-            </div>
-        </div>`;
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', html);
+    itineraryIndex++;
+});
+
+// Eliminar campos de itinerario
+document.addEventListener('click', function (e) {
+    if (e.target.classList.contains('btn-remove-itinerary')) {
+        e.target.closest('.itinerary-item').remove();
     }
+});
 
-    // Agregar horarios en formulario crear
-    let scheduleIndexCrear = 1;
-    document.getElementById('btnAddScheduleCrear').addEventListener('click', function() {
-        const container = document.getElementById('schedule-container-crear');
-        container.insertAdjacentHTML('beforeend', createScheduleItem(scheduleIndexCrear));
-        scheduleIndexCrear++;
-    });
-
-    // Agregar horarios en formularios editar
-    document.querySelectorAll('.btnAddScheduleEditar').forEach(button => {
-        button.addEventListener('click', function() {
-            const tourId = this.dataset.tourId;
-            const container = document.getElementById('schedule-container-editar-' + tourId);
-
-            // Contar elementos actuales para índice
-            const currentCount = container.querySelectorAll('.schedule-item').length;
-            container.insertAdjacentHTML('beforeend', createScheduleItem(currentCount));
-        });
-    });
-
-    // Eliminar horario
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('btn-remove-schedule')) {
-            const item = e.target.closest('.schedule-item');
-            if (item) item.remove();
-        }
-    });
-</script>
-
-@if(session('success'))
-<script>
-    Swal.fire({
-        icon: 'success',
-        title: 'Éxito',
-        text: "{{ session('success') }}",
-        confirmButtonColor: '#3085d6',
-        confirmButtonText: 'OK'
-    });
-</script>
-@endif
+// Mostrar u ocultar horario PM si es Full Day
+const categorySelect = document.getElementById('categorySelect');
+const pmScheduleContainer = document.getElementById('pmScheduleContainer');
+categorySelect?.addEventListener('change', function () {
+    const selectedText = categorySelect.options[categorySelect.selectedIndex]?.text?.toLowerCase();
+    if (selectedText.includes('full day')) {
+        pmScheduleContainer.style.display = 'none';
+        pmScheduleContainer.querySelectorAll('input').forEach(input => input.value = '');
+    } else {
+        pmScheduleContainer.style.display = 'block';
+    }
+});
 </script>
 @stop

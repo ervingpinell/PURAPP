@@ -358,47 +358,66 @@ return [
         ],
         ['header' => 'TABLAS'],
         //colocar aqui las tablas de las bases de datos para el CRUD
+
         [
             'text' => 'TOURS',
             'route'=> 'admin.tours.index',
             'icon' => 'fas fa-fw fa-plane',
-            'can' => 'is-admin'
+            'can' => ''
         ],
+
         [
             'text' => 'RESERVAS',
             'route'=> 'admin.reservas.index',
             'icon' => 'fas fa-fw fa-calendar-check'
         ],
         ['header' => 'TOURS'],
+
         [
             'text' => 'TOURS',
             'route' => 'admin.tours.index',
             'icon'  => 'fas fa-map-marked-alt',
-            'can'   => 'is-admin'
+            'can'   => ''
         ],
+
         [
             'text' => 'CATEGORIES',
             'route' => 'admin.categories.index',
             'icon'  => 'fas fa-tags',
             'can'   => ''
         ],
+        
         [
             'text' => 'TOUR_LANGUAGES',
             'route' => 'admin.languages.index',
             'icon'  => 'fas fa-globe',
             'can'   => ''
         ],
+
         [
             'text' => 'TOUR_SCHEDULE',
-            'route' => '',
+            'route' => 'admin.tours.schedule.index',
             'icon'  => 'fas fa-calendar-alt',
             'can'   => ''
         ],
+                [
+            'text' => 'TOUR_ITINERARY',
+            'route' => 'admin.tours.itinerary.index',
+            'icon'  => 'fas fa-calendar-alt',
+            'can'   => ''
+        ],
+
         [
             'text' => 'TOUR_AVAILABILITY',
-            'route' => '',
+            'route' => 'admin.tours.availability.index',
             'icon'  => 'fas fa-check-circle',
             'can'   => ''
+        ],
+
+        [
+            'text' => 'AMENITIES',
+            'route' => 'admin.tours.amenities.index',
+            'icon'  => 'fas fa-concierge-bell',
         ],
 
         ['header' => 'HOTELS'],

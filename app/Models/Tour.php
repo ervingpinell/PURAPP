@@ -16,13 +16,12 @@ class Tour extends Model
 
     protected $fillable = [
         'category_id',
-        'tour_language_id',
         'name',
         'description',
         'adult_price',
         'kid_price',
         'length',
-        'is_active'
+        'is_active',
     ];
 
     public function category()
@@ -30,9 +29,9 @@ class Tour extends Model
         return $this->belongsTo(Category::class, 'category_id', 'category_id');
     }
 
-    public function language()
+    public function languages()
     {
-        return $this->belongsTo(TourLanguage::class, 'tour_language_id', 'tour_language_id');
+        return $this->belongsToMany(TourLanguage::class, 'tour_language_tour', 'tour_id', 'tour_language_id');
     }
 
     public function amenities()
@@ -48,5 +47,10 @@ class Tour extends Model
     public function availabilities()
     {
         return $this->hasMany(TourAvailability::class, 'tour_id', 'tour_id');
+    }
+
+    public function itineraryItems()
+    {
+        return $this->hasMany(ItineraryItem::class, 'tour_id', 'tour_id');
     }
 }
