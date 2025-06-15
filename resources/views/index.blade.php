@@ -52,7 +52,7 @@
                     @if(Auth::user()->role_id === 3)
                         <li><a class="dropdown-item" href="#">{{ __('adminlte::adminlte.my_reservations') }}</a></li>
                     @endif
-                    <li><a class="dropdown-item" href="{{ route('user.profile.edit') }}">{{ __('adminlte::adminlte.profile') }}</a></li>
+                    <li><a class="dropdown-item" href="{{ route('profile.edit') }}">{{ __('adminlte::adminlte.profile') }}</a></li>
                     <li>
                         <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
                             @csrf

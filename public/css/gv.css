@@ -13,7 +13,8 @@
 }
 
  .login-box,
-.register-box {
+.register-box,
+.profile-box  {
     max-width: 500px; /* más ancho que el default (360px aprox.) */
     width: 100%;
     padding: 20px;
@@ -22,8 +23,18 @@
 
 @media (max-width: 576px) {
     .login-box,
-    .register-box {
+    .register-box,
+    .profile-box {
         max-width: 90%;
         padding: 10px;
     }
+}
+
+
+.logo-profile {
+    max-height: 50px;
+    max-width: 150px;
+    object-fit: contain;
+    width: auto;
+    height: auto;
 }

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id('tour_id');
             $table->unsignedBigInteger('category_id');
             $table->unsignedBigInteger('tour_language_id');
+            $table->text('overview')->nullable();
             $table->string('name');
             $table->text('description');
             $table->decimal('adult_price', 10, 2);

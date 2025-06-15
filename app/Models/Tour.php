@@ -25,7 +25,6 @@ class Tour extends Model
         'is_active'
     ];
 
-    // Relaciones
     public function category()
     {
         return $this->belongsTo(Category::class, 'category_id', 'category_id');
@@ -34,5 +33,20 @@ class Tour extends Model
     public function language()
     {
         return $this->belongsTo(TourLanguage::class, 'tour_language_id', 'tour_language_id');
+    }
+
+    public function amenities()
+    {
+        return $this->belongsToMany(Amenity::class, 'amenity_tour', 'tour_id', 'amenity_id');
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(TourSchedule::class, 'tour_id', 'tour_id');
+    }
+
+    public function availabilities()
+    {
+        return $this->hasMany(TourAvailability::class, 'tour_id', 'tour_id');
     }
 }

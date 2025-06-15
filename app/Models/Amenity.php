@@ -1,0 +1,27 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Amenity extends Model
+{
+    use HasFactory;
+
+    protected $table = 'amenities';
+    protected $primaryKey = 'amenity_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
+    public $timestamps = true;
+
+    protected $fillable = [
+        'name',
+        'is_active',
+    ];
+
+    public function tours()
+    {
+        return $this->belongsToMany(Tour::class, 'amenity_tour', 'amenity_id', 'tour_id');
+    }
+}
