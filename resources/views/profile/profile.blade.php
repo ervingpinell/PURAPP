@@ -1,6 +1,11 @@
 {{-- resources/views/profile/edit.blade.php --}}
 
-@extends('adminlte::auth.auth-page')
+@extends('adminlte::auth.auth-page', ['authType' => 'login'])
+
+@php
+    $updateUrl = route('profile.update');
+    $homeUrl = route('home');
+@endphp
 
 @section('title', __('adminlte::adminlte.edit_profile'))
 
@@ -15,113 +20,151 @@
         </div>
     @endif
 
-    <form action="{{ route('profile.update') }}" method="POST">
+    <form action="{{ $updateUrl }}" method="POST" novalidate>
         @csrf
 
-        <div class="mb-3">
-            <label for="full_name">{{ __('adminlte::adminlte.full_name') }}</label>
+        {{-- Nombre Completo --}}
+        <div class="input-group mb-3">
             <input type="text" name="full_name" id="full_name"
-                   class="form-control @error('full_name') is-invalid @enderror"
-                   value="{{ old('full_name', auth()->user()->full_name) }}" required
-                   placeholder="{{ __('adminlte::adminlte.full_name') }}">
-            @error('full_name') <span class="text-danger small">{{ $message }}</span> @enderror
+                class="form-control @error('full_name') is-invalid @enderror"
+                value="{{ old('full_name', auth()->user()->full_name) }}"
+                placeholder="{{ __('adminlte::adminlte.full_name') }}" required autofocus>
+
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-user {{ config('adminlte.classes_auth_icon', '') }}"></span>
+                </div>
+            </div>
+
+            @error('full_name')
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $message }}</strong>
+                </span>
+            @enderror
         </div>
 
-        <div class="mb-3">
-            <label for="email">{{ __('adminlte::adminlte.email') }}</label>
+        {{-- Email --}}
+        <div class="input-group mb-3">
             <input type="email" name="email" id="email"
-                   class="form-control @error('email') is-invalid @enderror"
-                   value="{{ old('email', auth()->user()->email) }}" required
-                   placeholder="{{ __('adminlte::adminlte.email') }}">
-            @error('email') <span class="text-danger small">{{ $message }}</span> @enderror
+                class="form-control @error('email') is-invalid @enderror"
+                value="{{ old('email', auth()->user()->email) }}"
+                placeholder="{{ __('adminlte::adminlte.email') }}" required>
+
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-envelope {{ config('adminlte.classes_auth_icon', '') }}"></span>
+                </div>
+            </div>
+
+            @error('email')
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $message }}</strong>
+                </span>
+            @enderror
         </div>
 
-        <div class="mb-3">
-            <label for="phone">{{ __('adminlte::adminlte.phone') }}</label>
+        {{-- Teléfono --}}
+        <div class="input-group mb-3">
             <input type="text" name="phone" id="phone"
-                   class="form-control @error('phone') is-invalid @enderror"
-                   value="{{ old('phone', auth()->user()->phone) }}"
-                   placeholder="{{ __('adminlte::adminlte.phone') }}">
-            @error('phone') <span class="text-danger small">{{ $message }}</span> @enderror
+                class="form-control @error('phone') is-invalid @enderror"
+                value="{{ old('phone', auth()->user()->phone) }}"
+                placeholder="{{ __('adminlte::adminlte.phone') }}">
+
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-phone {{ config('adminlte.classes_auth_icon', '') }}"></span>
+                </div>
+            </div>
+
+            @error('phone')
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $message }}</strong>
+                </span>
+            @enderror
         </div>
 
-        <div class="mb-3 position-relative">
-            <label for="password">
-                {{ __('adminlte::adminlte.password') }}
-                <small class="text-muted">({{ __('adminlte::adminlte.optional') ?? 'opcional' }})</small>
-            </label>
+        {{-- Nueva contraseña --}}
+        <div class="input-group mb-3">
             <input type="password" name="password" id="password"
-                   class="form-control @error('password') is-invalid @enderror"
-                   placeholder="{{ __('adminlte::adminlte.password') }}">
-            <a href="#" class="toggle-password position-absolute" 
-               style="top: 40px; right: 15px; cursor: pointer;" data-target="password" tabindex="-1">
-                <i class="fas fa-eye"></i>
-            </a>
-            @error('password') <span class="text-danger small">{{ $message }}</span> @enderror
+                class="form-control @error('password') is-invalid @enderror"
+                placeholder="{{ __('adminlte::adminlte.password') }} ({{ __('adminlte::adminlte.optional') }})">
+
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span id="toggle-password" class="fas fa-eye {{ config('adminlte.classes_auth_icon', '') }}" style="cursor: pointer;"></span>
+                </div>
+            </div>
+
+            @error('password')
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $message }}</strong>
+                </span>
+            @enderror
         </div>
 
-        {{-- Password requirements --}}
-        <ul class="mb-3 small text-muted" id="password-requirements">
-            <li id="req-length" class="text-muted">{{ __('adminlte::adminlte.password_min_length') ?? 'Mínimo 8 caracteres' }}</li>
-            <li id="req-special" class="text-muted">{{ __('adminlte::adminlte.password_special_char') ?? 'Al menos un carácter especial (!@#$%^&*)' }}</li>
-            <li id="req-number" class="text-muted">{{ __('adminlte::adminlte.password_number') ?? 'Al menos un número' }}</li>
-        </ul>
+        {{-- Confirmar contraseña --}}
+        <div class="input-group mb-3">
+            <input type="password" name="password_confirmation" id="password_confirmation"
+                class="form-control"
+                placeholder="{{ __('adminlte::adminlte.retype_password') }}">
 
-        <div class="mb-3 position-relative">
-            <label for="password_confirmation">{{ __('adminlte::adminlte.retype_password') }}</label>
-            <input type="password" name="password_confirmation" id="password_confirmation" class="form-control"
-                   placeholder="{{ __('adminlte::adminlte.retype_password') }}">
-            <a href="#" class="toggle-password position-absolute"
-               style="top: 40px; right: 15px; cursor: pointer;" data-target="password_confirmation" tabindex="-1">
-                <i class="fas fa-eye"></i>
-            </a>
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span id="toggle-password-confirmation" class="fas fa-eye {{ config('adminlte.classes_auth_icon', '') }}" style="cursor: pointer;"></span>
+                </div>
+            </div>
         </div>
 
-        <button type="submit" class="btn btn-info w-100">
+        <button type="submit" class="btn btn-block btn-info">
             <i class="fas fa-save"></i> {{ __('adminlte::adminlte.save') }}
         </button>
     </form>
 @stop
 
 @section('auth_footer')
-    <div class="text-center">
-        <a href="{{ route('home') }}" class="text-muted"><i class="fas fa-arrow-left"></i> {{ __('adminlte::adminlte.back') }}</a>
+    {{-- Enlaces a la izquierda + idioma a la derecha --}}
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            {{-- Aquí podrías poner enlaces o dejar vacío si no hay --}}
+        </div>
+        <div>
+            @include('partials.language-switcher')
+        </div>
+    </div>
+
+    <div class="mt-3 text-center">
+        <a href="{{ $homeUrl }}" class="text-muted"><i class="fas fa-arrow-left"></i> {{ __('adminlte::adminlte.back') }}</a>
     </div>
 @stop
 
-@section('adminlte_js')
+
+@push('js')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const passwordInput = document.getElementById('password');
-    const reqLength = document.getElementById('req-length');
-    const reqSpecial = document.getElementById('req-special');
-    const reqNumber = document.getElementById('req-number');
+    document.addEventListener('DOMContentLoaded', function () {
+        const passwordInput = document.getElementById('password');
+        const togglePassword = document.getElementById('toggle-password');
+        const passwordConfirmationInput = document.getElementById('password_confirmation');
+        const togglePasswordConfirmation = document.getElementById('toggle-password-confirmation');
 
-    if(passwordInput){
-        passwordInput.addEventListener('input', function () {
-            const value = passwordInput.value;
-            reqLength.className = value.length >= 8 ? 'text-success' : 'text-muted';
-            reqSpecial.className = /[!@#$%^&*(),.?":{}|<>]/.test(value) ? 'text-success' : 'text-muted';
-            reqNumber.className = /\d/.test(value) ? 'text-success' : 'text-muted';
-        });
-    }
-
-    document.querySelectorAll('.toggle-password').forEach(toggle => {
-        toggle.addEventListener('click', function(e){
-            e.preventDefault();
-            const targetId = this.dataset.target;
-            const input = document.getElementById(targetId);
-            if(input){
-                if(input.type === 'password'){
-                    input.type = 'text';
-                    this.querySelector('i').classList.replace('fa-eye', 'fa-eye-slash');
-                } else {
-                    input.type = 'password';
-                    this.querySelector('i').classList.replace('fa-eye-slash', 'fa-eye');
-                }
+        function toggleVisibility(input, toggleIcon) {
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
             }
+        }
+
+        togglePassword.addEventListener('click', function () {
+            toggleVisibility(passwordInput, togglePassword);
+        });
+
+        togglePasswordConfirmation.addEventListener('click', function () {
+            toggleVisibility(passwordConfirmationInput, togglePasswordConfirmation);
         });
     });
-});
 </script>
-@stop
+@endpush
