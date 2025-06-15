@@ -12,17 +12,13 @@ class CheckRole
     public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::check()) {
-            // Si no está autenticado, redirige al login
             return redirect()->route('login');
         }
 
-        $allowedRoles = ['admin', 'supervisor']; // Roles permitidos para acceder a admin
+        // Solo los usuarios con role_id 1 o 2 pueden acceder
+        $allowedRoleIds = [1, 2];
 
-        // Obtén el nombre del rol en minúsculas para comparar
-        $userRole = strtolower(Auth::user()->role->role_name);
-
-        if (!in_array($userRole, $allowedRoles)) {
-            // Si no es admin o supervisor, redirige fuera del admin
+        if (!in_array(Auth::user()->role_id, $allowedRoleIds)) {
             return redirect('/')
                 ->with('error', 'Acceso denegado. No tienes permisos para acceder al panel administrativo.');
         }
