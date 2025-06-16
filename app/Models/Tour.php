@@ -18,6 +18,7 @@ class Tour extends Model
         'category_id',
         'name',
         'description',
+        'overview',
         'adult_price',
         'kid_price',
         'length',
