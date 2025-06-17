@@ -9,15 +9,18 @@ class ItineraryItem extends Model
     protected $primaryKey = 'item_id';
 
     protected $fillable = [
-        'tour_id',
-        'title',
-        'description',
-        'order',
-        'is_active',
+    'itinerary_id',
+    'title',
+    'description',
+    'order',
+    'is_active',
     ];
 
-    public function tour()
-    {
-        return $this->belongsTo(Tour::class, 'tour_id', 'tour_id');
-    }
+public function itineraries()
+{
+    return $this->belongsToMany(Itinerary::class, 'itinerary_item_itinerary', 'itinerary_item_id', 'itinerary_id')
+        ->withPivot('is_active')
+        ->withTimestamps();
+}
+
 }

@@ -5,90 +5,72 @@ namespace App\Http\Controllers\Admin\Tours;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\ItineraryItem;
-use App\Models\Tour;
-use Exception;
 use Illuminate\Support\Facades\Log;
+use Exception;
 
 class ItineraryItemController extends Controller
 {
     public function index()
     {
-        $items = ItineraryItem::with('tour')->orderBy('order')->get();
-        $tours = Tour::all();
-        return view('admin.tours.itinerary.index', compact('items', 'tours'));
+        $items = ItineraryItem::orderBy('order')->get();
+        return view('admin.tours.itinerary.items.index', compact('items'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'tour_id' => 'required|exists:tours,tour_id',
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'order' => 'nullable|integer|min:0',
+       //   dd($request->all());
+  $request->validate([
+        'title'       => 'required|string|max:255',
+        'description' => 'nullable|string|max:500',
         ]);
 
-        try {
-            ItineraryItem::create([
-                'tour_id' => $request->tour_id,
-                'title' => $request->title,
-                'description' => $request->description,
-                'order' => $request->order ?? 0,
-                'is_active' => true,
+      try {
+        $maxOrder = ItineraryItem::max('order') ?? 0;
+
+        ItineraryItem::create([
+    'title'       => $request->title,
+    'description' => $request->description,
+    'order'       => $maxOrder + 1,
+    'is_active'   => true,
             ]);
 
-            return redirect()->route('admin.tours.itinerary.index')
-                ->with('success', 'Ítem agregado correctamente.')
-                ->with('alert_type', 'creado');
-        } catch (Exception $e) {
-            Log::error('Error al crear ítem del itinerario: ' . $e->getMessage());
-            return back()->with('error', 'Hubo un problema al registrar el ítem.');
-        }
+   return redirect()->back()->with('success', 'Ítem de itinerario creado exitosamente.');
+    } catch (Exception $e) {
+        Log::error('Error al crear ítem de itinerario: ' . $e->getMessage());
+        return redirect()->back()->with('error', 'No se pudo crear el ítem.');
     }
+}
 
-    public function update(Request $request, $id)
+    public function update(Request $request, ItineraryItem $item)
     {
         $request->validate([
-            'tour_id' => 'required|exists:tours,tour_id',
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'order' => 'nullable|integer|min:0',
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string|max:500',
+            'is_active'   => 'required|boolean',
         ]);
-
-        $item = ItineraryItem::findOrFail($id);
 
         try {
             $item->update([
-                'tour_id' => $request->tour_id,
-                'title' => $request->title,
+                'title'       => $request->title,
                 'description' => $request->description,
-                'order' => $request->order ?? 0,
+                'is_active'   => $request->is_active,
             ]);
 
-            return redirect()->route('admin.tours.itinerary.index')
-                ->with('success', 'Ítem actualizado correctamente.')
-                ->with('alert_type', 'actualizado');
+            return redirect()->back()->with('success', 'Ítem actualizado correctamente.');
         } catch (Exception $e) {
-            Log::error('Error al actualizar ítem: ' . $e->getMessage());
-            return back()->with('error', 'No se pudo actualizar el ítem.');
+            Log::error('Error al actualizar ítem de itinerario: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'No se pudo actualizar el ítem.');
         }
     }
 
-    public function destroy($id)
+    public function destroy(ItineraryItem $item)
     {
-        $item = ItineraryItem::findOrFail($id);
-
         try {
-            $item->is_active = !$item->is_active;
-            $item->save();
-
-            $accion = $item->is_active ? 'activado' : 'desactivado';
-
-            return redirect()->route('admin.tours.itinerary.index')
-                ->with('success', "Ítem {$accion} correctamente.")
-                ->with('alert_type', $accion);
+            $item->delete();
+            return redirect()->back()->with('success', 'Ítem eliminado exitosamente.');
         } catch (Exception $e) {
-            Log::error('Error al desactivar ítem: ' . $e->getMessage());
-            return back()->with('error', 'No se pudo cambiar el estado del ítem.');
+            Log::error('Error al eliminar ítem de itinerario: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'No se pudo eliminar el ítem.');
         }
     }
 }

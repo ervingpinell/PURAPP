@@ -29,8 +29,8 @@
 
         <!-- Total Categorías -->
         <div class="col-md-4 mb-3">
-            <x-adminlte-info-box title="Categories" text="{{ $totalCategorias }}" icon="fas fa-tags" theme="success"/>
-            <a href="{{ route('admin.categories.index') }}" class="btn btn-success btn-block mt-2">Ver Categorías</a>
+            <x-adminlte-info-box title="tourtypes" text="{{ $tourTypes }}" icon="fas fa-tags" theme="success"/>
+            <a href="{{ route('admin.tourtypes.index') }}" class="btn btn-success btn-block mt-2">Ver Tipos de Tours</a>
         </div>
 
         <!-- Total Idiomas -->
@@ -51,10 +51,38 @@
 </div>
 
         <!-- Total Itinerarios de Tours -->
-        <div class="col-md-4 mb-3">
-            <x-adminlte-info-box title="Itinerarios" text="{{ $totalItinerarios }}" icon="fas fa-list" theme="danger"/>
-            <a href="{{ route('admin.tours.itinerary.index') }}" class="btn btn-danger btn-block mt-2">Ver Itinerarios</a>
+        <!-- Itinerarios con detalles -->
+<div class="col-md-12 mb-3">
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0">Itinerarios disponibles</h4>
+        </div>
+        <div class="card-body">
+            @forelse ($itineraries as $itinerary)
+                <div class="mb-2">
+                    <button class="btn btn-outline-danger w-100 text-start" data-bs-toggle="collapse" data-bs-target="#collapse{{ $itinerary->itinerary_id }}">
+                        {{ $itinerary->name }} <i class="fas fa-chevron-down float-end"></i>
+                    </button>
+                    <div id="collapse{{ $itinerary->itinerary_id }}" class="collapse mt-2">
+                        @if ($itinerary->items->isEmpty())
+                            <p class="text-muted">Este itinerario no tiene ítems asignados.</p>
+                        @else
+                            <ul class="list-group">
+                                @foreach ($itinerary->items->sortBy('order') as $item)
+                                    <li class="list-group-item">
+                                        <strong>{{ $item->title }}</strong><br>
+                                        <span class="text-muted">{{ $item->description }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <p class="text-muted">No hay itinerarios registrados.</p>
+            @endforelse
         </div>
     </div>
+</div>
 
 @stop

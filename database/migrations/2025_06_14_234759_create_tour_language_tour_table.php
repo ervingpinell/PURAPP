@@ -15,7 +15,7 @@ return new class extends Migration
     $table->id();
     $table->unsignedBigInteger('tour_id');
     $table->unsignedBigInteger('tour_language_id');
-
+        $table->boolean('is_active')->default(true);
     $table->foreign('tour_id')->references('tour_id')->on('tours')->onDelete('cascade');
     $table->foreign('tour_language_id')->references('tour_language_id')->on('tour_languages')->onDelete('cascade');
 });

@@ -15,20 +15,21 @@ class Tour extends Model
     protected $keyType = 'int';
 
     protected $fillable = [
-        'category_id',
-        'name',
-        'description',
-        'overview',
-        'adult_price',
-        'kid_price',
-        'length',
-        'is_active',
+    'name',
+    'description',
+    'overview',
+    'adult_price',
+    'kid_price',
+    'length',
+    'is_active',
+    'tour_type_id',
+    'itinerary_id',
     ];
 
-    public function category()
-    {
-        return $this->belongsTo(Category::class, 'category_id', 'category_id');
-    }
+public function tourType()
+{
+    return $this->belongsTo(TourType::class, 'tour_type_id', 'tour_type_id');
+}
 
     public function languages()
     {
@@ -50,8 +51,9 @@ class Tour extends Model
         return $this->hasMany(TourAvailability::class, 'tour_id', 'tour_id');
     }
 
-    public function itineraryItems()
-    {
-        return $this->hasMany(ItineraryItem::class, 'tour_id', 'tour_id');
-    }
+    public function itinerary()
+{
+    return $this->belongsTo(Itinerary::class, 'itinerary_id', 'itinerary_id');
+}
+
 }

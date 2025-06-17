@@ -8,10 +8,12 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\TourSchedule;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Category;
+use App\Models\TourType;
 use App\Models\Amenity;
 use App\Models\TourLanguage;
 use App\Models\ItineraryItem;
+use App\Models\Itinerary;
+
 
 class DashBoardController extends Controller
 {
@@ -47,20 +49,22 @@ class DashBoardController extends Controller
  $totalUsuarios = User::count();
     $totalTours = Tour::count();
     $roles = Role::count();
-    $totalCategorias = Category::count();
+    $tourTypes = TourType::count();
     $totalIdiomas = TourLanguage::count();
-    $totalHorarios = \App\Models\TourSchedule::count();
+    $totalHorarios = TourSchedule::count();
     $totalAmenities = Amenity::count();
     $totalItinerarios = ItineraryItem::count(); // ← Agrega esto
+    $itineraries = Itinerary::with('items')->get();
     
     return view('admin.dashboard', compact(
         'totalUsuarios',
         'totalTours',
-        'totalCategorias',
+        'tourTypes',
         'totalIdiomas',
         'totalHorarios',
         'totalAmenities',
-        'totalItinerarios'
+        'totalItinerarios',
+        'itineraries',
     ));
     }
 }

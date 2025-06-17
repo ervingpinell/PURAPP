@@ -39,7 +39,7 @@
         <a href="#">{{ __('adminlte::adminlte.reviews') }}</a>
         <a href="#">{{ __('adminlte::adminlte.faq') }}</a>
         <a href="#">{{ __('adminlte::adminlte.contact') }}</a>
-        <a href="#">{{ __('adminlte::adminlte.about') }}</a>
+        <!--<a href="#">{{ __('adminlte::adminlte.about') }}</a>-->
     </div>
     <div class="navbar-actions">
         <i class="fas fa-shopping-cart" title="{{ __('adminlte::adminlte.cart') }}"></i>

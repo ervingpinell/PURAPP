@@ -9,10 +9,11 @@ class TourSchedule extends Model
     protected $table = 'tour_schedules';
     protected $primaryKey = 'tour_schedule_id';
      protected $fillable = [
-        'tour_id',
-        'start_time',
-        'label',
-        'is_active',
+    'tour_id',
+    'start_time',
+    'end_time',    // ← añadido
+    'label',
+    'is_active',
     ];
 
     public function tour()

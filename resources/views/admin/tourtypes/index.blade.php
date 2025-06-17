@@ -1,33 +1,35 @@
 @extends('adminlte::page')
 
-@section('title', 'Categorías de Tours')
+@section('title', 'Tipos de Tours')
 
 @section('content_header')
-    <h1>Gestión de Categorías</h1>
+    <h1>Tipos de Tours</h1>
 @stop
 
 @section('content')
 <div class="p-3 table-responsive">
     <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-        <i class="fas fa-plus"></i> Añadir Categoría
+        <i class="fas fa-plus"></i> Añadir Tipo de Tour
     </a>
 
     <table class="table table-bordered table-striped table-hover">
         <thead class="bg-primary text-white">
             <tr>
                 <th>ID</th>
-                <th>Name</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
                 <th>Estado</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
-            @foreach ($categories as $category)
+            @foreach ($tourTypes as $tourtype)
             <tr>
-                <td>{{ $category->category_id }}</td>
-                <td>{{ $category->name }}</td>
+                <td>{{ $tourtype->tour_type_id }}</td>
+                <td>{{ $tourtype->name }}</td>
+                <td>{{ $tourtype->description }}</td>
                 <td>
-                    @if ($category->is_active)
+                    @if ($tourtype->is_active)
                         <span class="badge bg-success">Activo</span>
                     @else
                         <span class="badge bg-secondary">Inactivo</span>
@@ -35,37 +37,41 @@
                 </td>
                 <td>
                     <!-- Editar -->
-                    <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $category->category_id }}">
+                    <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $tourtype->tour_type_id }}">
                         <i class="fas fa-edit"></i>
                     </a>
 
                     <!-- Activar/Desactivar -->
-                    <form action="{{ route('admin.categories.destroy', $category->category_id) }}" method="POST" style="display: inline-block;">
+                    <form action="{{ route('admin.tourtypes.destroy', $tourtype->tour_type_id) }}" method="POST" style="display: inline-block;">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-sm {{ $category->is_active ? 'btn-danger' : 'btn-success' }}"
-                            onclick="return confirm('{{ $category->is_active ? '¿Deseas desactivarla?' : '¿Deseas activarla?' }}')">
-                            <i class="fas {{ $category->is_active ? 'fa-user-slash' : 'fa-user-check' }}"></i>
+                        <button type="submit" class="btn btn-sm {{ $tourtype->is_active ? 'btn-danger' : 'btn-success' }}"
+                            onclick="return confirm('{{ $tourtype->is_active ? '¿Deseas desactivarlo?' : '¿Deseas activarlo?' }}')">
+                            <i class="fas {{ $tourtype->is_active ? 'fa-user-slash' : 'fa-user-check' }}"></i>
                         </button>
                     </form>
                 </td>
             </tr>
 
             <!-- Modal editar -->
-            <div class="modal fade" id="modalEditar{{ $category->category_id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal fade" id="modalEditar{{ $tourtype->tour_type_id }}" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog">
-                    <form action="{{ route('admin.categories.update', $category->category_id) }}" method="POST">
+                    <form action="{{ route('admin.tourtypes.update', $tourtype->tour_type_id) }}" method="POST">
                         @csrf
                         @method('PUT')
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">Editar Categoría</h5>
+                                <h5 class="modal-title">Editar Tipo de Tour</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
                                 <div class="mb-3">
-                                    <label>Name</label>
-                                    <input type="text" name="name" class="form-control" value="{{ $category->name }}" required>
+                                    <label>Nombre</label>
+                                    <input type="text" name="name" class="form-control" value="{{ $tourtype->name }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label>Descripción</label>
+                                    <textarea name="description" class="form-control">{{ $tourtype->description }}</textarea>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -84,17 +90,21 @@
 <!-- Modal registrar -->
 <div class="modal fade" id="modalRegistrar" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-        <form action="{{ route('admin.categories.store') }}" method="POST">
+        <form action="{{ route('admin.tourtypes.store') }}" method="POST">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Registrar Categoría</h5>
+                    <h5 class="modal-title">Registrar Tipo de Tour</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label>Name</label>
+                        <label>Nombre</label>
                         <input type="text" name="name" class="form-control" required value="{{ old('name') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label>Descripción</label>
+                        <textarea name="description" class="form-control">{{ old('description') }}</textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -110,7 +120,6 @@
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- SweetAlert feedback -->
 @if(session('success') && session('alert_type'))
 <script>
     let icon = 'success';
@@ -120,22 +129,22 @@
     switch ("{{ session('alert_type') }}") {
         case 'activado':
             icon = 'success';
-            title = 'Categoría Activada';
+            title = 'Tipo de Tour Activado';
             color = '#28a745';
             break;
         case 'desactivado':
             icon = 'warning';
-            title = 'Categoría Desactivada';
+            title = 'Tipo de Tour Desactivado';
             color = '#ffc107';
             break;
         case 'actualizado':
             icon = 'info';
-            title = 'Categoría Actualizada';
+            title = 'Tipo de Tour Actualizado';
             color = '#17a2b8';
             break;
         case 'creado':
             icon = 'success';
-            title = 'Categoría Creada';
+            title = 'Tipo de Tour Creado';
             color = '#007bff';
             break;
     }

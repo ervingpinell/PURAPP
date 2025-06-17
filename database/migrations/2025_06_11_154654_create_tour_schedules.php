@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id('tour_schedule_id');
             $table->unsignedBigInteger('tour_id');
             $table->time('start_time');
+            $table->time('end_time')->nullable()->after('start_time');
             $table->string('label')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();

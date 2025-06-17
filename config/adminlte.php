@@ -381,8 +381,8 @@ return [
         ],
 
         [
-            'text' => 'CATEGORIES',
-            'route' => 'admin.categories.index',
+            'text' => 'TOUR_TYPES',
+            'route' => 'admin.tourtypes.index',
             'icon'  => 'fas fa-tags',
             'can'   => ''
         ],

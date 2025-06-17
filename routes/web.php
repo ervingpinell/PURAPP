@@ -12,7 +12,6 @@ use App\Http\Controllers\ProfileController;
 // Controllers del panel admin
 use App\Http\Controllers\Admin\Users\UserRegisterController;
 use App\Http\Controllers\Admin\Users\RoleController;
-use App\Http\Controllers\Admin\Categories\CategoryController;
 use App\Http\Controllers\Admin\Languages\TourLanguageController;
 use App\Http\Controllers\Admin\Tours\TourController;
 use App\Http\Controllers\Admin\Tours\TourScheduleController;
@@ -20,8 +19,8 @@ use App\Http\Controllers\Admin\Tours\TourAvailabilityController;
 use App\Http\Controllers\Admin\Bookings\ReservaController;
 use App\Http\Controllers\Admin\Tours\AmenityController;
 use App\Http\Controllers\Admin\Tours\ItineraryItemController;
-
-
+use App\Http\Controllers\Admin\Tours\ItineraryController;
+use App\Http\Controllers\Admin\Tours\TourTypeController;
 
 Route::middleware([SetLocale::class])->group(function () {
 
@@ -59,34 +58,45 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::get('/profile/edit', [ProfileController::class, 'adminEdit'])->name('profile.edit');
         Route::post('/profile/edit', [ProfileController::class, 'adminUpdate'])->name('profile.update');
 
-        // Tours
-        Route::resource('tours', TourController::class)->except(['show']);
+        // Módulo Tours
+      Route::resource('tours', TourController::class)->except(['create', 'edit', 'show']);
 
-        // Horarios de tours
+        // Submódulos de tours agrupados
         Route::prefix('tours')->name('tours.')->group(function () {
+
+            // Horarios
             Route::get('schedule', [TourScheduleController::class, 'index'])->name('schedule.index');
             Route::post('schedule', [TourScheduleController::class, 'store'])->name('schedule.store');
             Route::put('schedule/{schedule}', [TourScheduleController::class, 'update'])->name('schedule.update');
             Route::delete('schedule/{schedule}', [TourScheduleController::class, 'destroy'])->name('schedule.destroy');
-            Route::resource('itinerary', ItineraryItemController::class)->except(['show']);
-            // Disponibilidad de tours
+
+            // Itinerarios
+            Route::resource('itinerary', ItineraryController::class)->except(['show']);
+            Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');
+
+            // Ítems de itinerario
+            Route::resource('itinerary_items', ItineraryItemController::class)->except(['show', 'create', 'edit']);
+
+            // Disponibilidad
             Route::resource('availability', TourAvailabilityController::class)->except(['show']);
+
+            // Amenidades
             Route::resource('amenities', AmenityController::class)->except(['show']);
         });
 
-        // Reservaciones y PDFs
+        // Reservaciones y comprobantes
         Route::get('reservas/pdf', [ReservaController::class, 'generarPDF'])->name('reservas.pdf');
         Route::get('reservas/{reserva}/comprobante', [ReservaController::class, 'generarComprobante'])->name('reservas.comprobante');
         Route::resource('reservas', ReservaController::class);
 
-        // Usuarios y roles
+        // Gestión de usuarios y roles
         Route::resource('users', UserRegisterController::class)->except(['show']);
         Route::resource('roles', RoleController::class)->except(['show']);
 
-        // Categorías, idiomas y amenidades
-        Route::resource('categories', CategoryController::class)->except(['show']);
+        // Categorías, idiomas y tipos de tour
+        Route::resource('tourtypes', TourTypeController::class)->except(['show']);
         Route::resource('languages', TourLanguageController::class)->except(['show']);
-        Route::resource('amenities', AmenityController::class);
+        Route::resource('amenities', AmenityController::class); // Doble, si se usa en otro contexto
     });
 
 });

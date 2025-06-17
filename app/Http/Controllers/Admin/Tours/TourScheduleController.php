@@ -30,15 +30,23 @@ class TourScheduleController extends Controller
         $validated = $request->validate([
             'tour_id' => 'required|exists:tours,tour_id',
             'start_time' => 'required|date_format:H:i',
+                'end_time'    => 'nullable|date_format:H:i|after:start_time',  // ← añadido
             'label' => 'nullable|string|max:255',
             'is_active' => 'sometimes|boolean',
         ]);
+
+               $tour = Tour::with('tourType')->findOrFail($validated['tour_id']);
+
+        if ($tour->tourType->name === 'Full Day' && ($validated['label'] ?? 'AM') !== 'AM') {
+            return back()->withErrors(['label' => 'Los tours Full Day solo pueden tener horario AM.']);
+        }
 
         try {
             $validated['is_active'] = $request->has('is_active') ? $validated['is_active'] : true;
             TourSchedule::create($validated);
 
-            return redirect()->route('admin.tours.schedules.index')->with('success', 'Horario agregado correctamente.');
+            return redirect()->route('admin.tours.schedules.index')
+                ->with('success', 'Horario agregado correctamente.');
         } catch (Exception $e) {
             Log::error('Error al crear horario: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Hubo un problema al agregar el horario.');
@@ -60,6 +68,7 @@ class TourScheduleController extends Controller
         $validated = $request->validate([
             'tour_id' => 'required|exists:tours,tour_id',
             'start_time' => 'required|date_format:H:i',
+            'end_time'  => $validated['end_time'] ?? null,   // ← aquí también
             'label' => 'nullable|string|max:255',
             'is_active' => 'sometimes|boolean',
         ]);
@@ -85,6 +94,7 @@ class TourScheduleController extends Controller
     return redirect()->route('admin.tours.edit', $tour->id)
         ->with('success', 'Amenidades actualizadas correctamente.');
 }
+
 
 public function destroy(TourSchedule $schedule)
 {

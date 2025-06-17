@@ -12,15 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('itinerary_items', function (Blueprint $table) {
-            $table->id('item_id');
-            $table->unsignedBigInteger('tour_id');
-            $table->string('title'); 
-            $table->text('description'); 
-            $table->integer('order')->default(0); 
-                $table->boolean('is_active')->default(true);
-            $table->timestamps();
+    $table->id('item_id');
+    $table->string('title');
+    $table->text('description');
+    $table->integer('order')->default(0);
+    $table->boolean('is_active')->default(true);
+    $table->timestamps();
 
-            $table->foreign('tour_id')->references('tour_id')->on('tours')->onDelete('cascade');
 });
     }
 

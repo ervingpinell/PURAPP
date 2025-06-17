@@ -13,7 +13,7 @@ return new class extends Migration
     {
     Schema::create('tours', function (Blueprint $table) {
             $table->id('tour_id');
-            $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('tour_type_id');
             $table->text('overview')->nullable();
             $table->string('name');
             $table->text('description');
@@ -21,10 +21,12 @@ return new class extends Migration
             $table->decimal('kid_price', 10, 2);
             $table->integer('length');
             $table->boolean('is_active')->default(true);
+            $table->unsignedBigInteger('itinerary_id')->nullable();
             $table->timestamps();
 
             
-            $table->foreign('category_id')->references('category_id')->on('categories')->onDelete('cascade');
+        $table->foreign('tour_type_id')->references('tour_type_id')->on('tour_types')->onDelete('restrict');
+        $table->foreign('itinerary_id')->references('itinerary_id')->on('itineraries')->onDelete('set null');
         });
     }
 
