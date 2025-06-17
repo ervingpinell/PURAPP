@@ -2,7 +2,7 @@
 
 @section('adminlte_css_pre')
     <link rel="stylesheet" href="{{ asset('vendor/icheck-bootstrap/icheck-bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/gv.css') }}"> 
+    <link rel="stylesheet" href="{{ asset('css/gv.css') }}">
 @stop
 
 @php
@@ -11,12 +11,12 @@
     $passResetUrl = View::getSection('password_reset_url') ?? config('adminlte.password_reset_url', 'password/reset');
 
     if (config('adminlte.use_route_url', false)) {
-        $loginUrl = $loginUrl ? route($loginUrl) : '';
-        $registerUrl = $registerUrl ? route($registerUrl) : '';
+        $loginUrl     = $loginUrl     ? route($loginUrl)     : '';
+        $registerUrl  = $registerUrl  ? route($registerUrl)  : '';
         $passResetUrl = $passResetUrl ? route($passResetUrl) : '';
     } else {
-        $loginUrl = $loginUrl ? url($loginUrl) : '';
-        $registerUrl = $registerUrl ? url($registerUrl) : '';
+        $loginUrl     = $loginUrl     ? url($loginUrl)     : '';
+        $registerUrl  = $registerUrl  ? url($registerUrl)  : '';
         $passResetUrl = $passResetUrl ? url($passResetUrl) : '';
     }
 @endphp
@@ -25,25 +25,32 @@
 
 @section('auth_body')
 
-@if(session('success'))
-    <div class="alert alert-success alert-dismissible">
-        {{ session('success') }}
-    </div>
-@endif
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible">
+            {{ session('success') }}
+        </div>
+    @endif
 
-@if(session('error'))
-    <div class="alert alert-danger alert-dismissible">
-        {{ session('error') }}
-    </div>
-@endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible">
+            {{ session('error') }}
+        </div>
+    @endif
 
     <form action="{{ $loginUrl }}" method="post">
         @csrf
 
         {{-- Email field --}}
         <div class="input-group mb-3">
-            <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                value="{{ old('email') }}" placeholder="{{ __('adminlte::adminlte.email') }}" autofocus>
+            <input
+                type="email"
+                name="email"
+                id="email"
+                class="form-control @error('email') is-invalid @enderror"
+                value="{{ old('email') }}"
+                placeholder="{{ __('adminlte::adminlte.email') }}"
+                autofocus
+            >
             <div class="input-group-append">
                 <div class="input-group-text">
                     <span class="fas fa-envelope {{ config('adminlte.classes_auth_icon', '') }}"></span>
@@ -56,8 +63,13 @@
 
         {{-- Password field --}}
         <div class="input-group mb-3">
-            <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
-                placeholder="{{ __('adminlte::adminlte.password') }}">
+            <input
+                type="password"
+                name="password"
+                id="password"
+                class="form-control @error('password') is-invalid @enderror"
+                placeholder="{{ __('adminlte::adminlte.password') }}"
+            >
             <div class="input-group-append">
                 <div class="input-group-text">
                     <a href="#" class="text-reset toggle-password" data-target="password">
@@ -73,7 +85,10 @@
         {{-- Login button --}}
         <div class="row">
             <div class="col-12">
-                <button type="submit" class="btn w-100 text-nowrap {{ config('adminlte.classes_auth_btn', 'btn-flat btn-primary') }}">
+                <button
+                    type="submit"
+                    class="btn w-100 text-nowrap {{ config('adminlte.classes_auth_btn', 'btn-flat btn-primary') }}"
+                >
                     <span class="fas fa-sign-in-alt me-2"></span>
                     {{ __('adminlte::adminlte.sign_in') }}
                 </button>
@@ -83,7 +98,6 @@
 @stop
 
 @section('auth_footer')
-
     <div class="d-flex justify-content-between align-items-center">
         <div>
             @if($passResetUrl)
@@ -113,4 +127,29 @@
             <i class="fas fa-arrow-left mr-1"></i> {{ __('adminlte::adminlte.back') }}
         </a>
     </div>
+@stop
+
+@section('adminlte_js')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.toggle-password').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.dataset.target;
+            const input    = document.getElementById(targetId);
+            if (!input) return;
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                this.querySelector('i')
+                    .classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                this.querySelector('i')
+                    .classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        });
+    });
+});
+</script>
 @stop
