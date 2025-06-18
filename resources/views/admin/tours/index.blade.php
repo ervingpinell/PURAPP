@@ -15,8 +15,7 @@
     <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
         <i class="fas fa-plus"></i> Añadir Tour
     </a>
-
-    {{-- Template para ítems de itinerario dinámico --}}
+{{-- Template para ítems de itinerario dinámico --}}
     @include('admin.tours.itinerary.template')
 
     {{-- Tabla principal con todos los tours --}}
@@ -27,7 +26,9 @@
 
     {{-- Modal para crear nuevo tour --}}
     @include('admin.tours.create')
+    
 </div>
+
 @endsection
 
 @section('plugins.Sweetalert2', true)
