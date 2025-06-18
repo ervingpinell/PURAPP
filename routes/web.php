@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ClienteRegisterController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\HomeController;
 
 // Controllers del panel admin
 use App\Http\Controllers\Admin\Users\UserRegisterController;
@@ -25,7 +26,7 @@ use App\Http\Controllers\Admin\Tours\TourTypeController;
 Route::middleware([SetLocale::class])->group(function () {
 
     // 🌐 Rutas públicas
-    Route::get('/', [DashBoardController::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/language/{language}', [DashBoardController::class, 'switchLanguage'])->name('switch.language');
 
     // 🔐 Autenticación (Clientes)
