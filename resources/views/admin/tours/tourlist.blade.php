@@ -32,12 +32,21 @@
                     @endforelse
                 </td>
                 <td>
-                    @forelse($tour->itinerary?->items ?? [] as $item)
+                    @if($tour->itinerary)
+                        {{-- Nombre del itinerario --}}
+                        <strong>{{ $tour->itinerary->name }}</strong><br>
+
+                        {{-- Ítems del itinerario --}}
+                        @forelse($tour->itinerary->items as $item)
                         <span class="badge bg-info">{{ $item->title }}</span>
-                    @empty
-                        <span class="text-muted">Sin itinerarios</span>
-                    @endforelse
-                </td>
+                        @empty
+                        <small class="text-muted">(Sin ítems en el itinerario)</small>
+                        @endforelse
+                    @else
+                        <span class="text-muted">Sin itinerario asignado</span>
+                    @endif
+                    </td>
+
                 <td>
                     @forelse($tour->languages as $lang)
                         <span class="badge bg-secondary">{{ $lang->name }}</span>
