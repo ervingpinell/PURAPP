@@ -1,33 +1,31 @@
+{{-- resources/views/admin/tours/scripts.blade.php --}}
+
 {{-- Bootstrap y SweetAlert2 --}}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // 1. Mostrar/ocultar bloque de nuevo itinerario en el CREATE
     const itinerarySelect = document.getElementById('select-itinerary');
     const newItineraryFields = document.getElementById('new-itinerary-fields');
-
-    function toggleItineraryFields() {
-        const isNew = itinerarySelect.value === 'new';
-        newItineraryFields.style.display = isNew ? 'block' : 'none';
-
-        // Desactivar campos si no se usa "nuevo"
-        const inputs = newItineraryFields.querySelectorAll('input, textarea, select');
-        inputs.forEach(input => input.disabled = !isNew);
-    }
-
     if (itinerarySelect && newItineraryFields) {
-        itinerarySelect.addEventListener('change', toggleItineraryFields);
-        toggleItineraryFields(); // Inicial
+        const toggleIt = () => {
+            const isNew = itinerarySelect.value === 'new';
+            newItineraryFields.style.display = isNew ? 'block' : 'none';
+            newItineraryFields.querySelectorAll('input, textarea, select')
+                .forEach(i => i.disabled = !isNew);
+        };
+        itinerarySelect.addEventListener('change', toggleIt);
+        toggleIt();
     }
 
-    // Añadir nuevos ítems al itinerario dinámico
+    // 2. Añadir/Quitar ítems dinámicos (tanto en CREATE como en EDIT)
     document.body.addEventListener('click', function (e) {
-        const addBtn = e.target.closest('.btn-add-itinerary');
-        if (addBtn) {
-            const container = document.querySelector(addBtn.dataset.target);
-            if (!container) return;
-
+        // añadir
+        const add = e.target.closest('.btn-add-itinerary');
+        if (add) {
+            const container = document.querySelector(add.dataset.target);
             const idx = container.querySelectorAll('.itinerary-item').length;
             const tpl = document.getElementById('itinerary-template').innerHTML;
             const html = tpl
@@ -35,46 +33,39 @@ document.addEventListener('DOMContentLoaded', function () {
                 .replace(/__DESC__/g, `itinerary[${idx}][description]`);
             container.insertAdjacentHTML('beforeend', html);
         }
-
-        const removeBtn = e.target.closest('.btn-remove-itinerary');
-        if (removeBtn) {
-            const container = removeBtn.closest('.itinerary-container');
-            const items = container.querySelectorAll('.itinerary-item');
-            if (items.length <= 1) {
-                return Swal.fire('Aviso', 'Debe haber al menos un ítem en el itinerario', 'warning');
+        // eliminar
+        const rem = e.target.closest('.btn-remove-itinerary');
+        if (rem) {
+            const cont = rem.closest('.itinerary-container');
+            if (cont.querySelectorAll('.itinerary-item').length > 1) {
+                rem.closest('.itinerary-item').remove();
+                // reindexar
+                cont.querySelectorAll('.itinerary-item').forEach((row,i) => {
+                    row.querySelector('input[placeholder="Título"]').name = `itinerary[${i}][title]`;
+                    row.querySelector('input[placeholder="Descripción"]').name = `itinerary[${i}][description]`;
+                });
+            } else {
+                Swal.fire('Aviso','Debe haber al menos un ítem en el itinerario','warning');
             }
-
-            removeBtn.closest('.itinerary-item').remove();
-
-            // Reordenar nombres después de borrar
-            container.querySelectorAll('.itinerary-item').forEach((row, i) => {
-                const title = row.querySelector('input[placeholder="Título"]');
-                const desc = row.querySelector('input[placeholder="Descripción"]');
-                if (title && desc) {
-                    title.name = `itinerary[${i}][title]`;
-                    desc.name = `itinerary[${i}][description]`;
-                }
-            });
         }
     });
 
-    // Mensajes de alerta con SweetAlert
+    // 3. SweetAlert para feedback
     @if(session('success'))
-        Swal.fire({
-            icon: 'success',
-            title: '{{ session("success") }}',
-            showConfirmButton: false,
-            timer: 2000
-        });
+        Swal.fire({ icon:'success', title:'{{ session("success") }}', timer:2000, showConfirmButton:false });
+    @endif
+    @if(session('error'))
+        Swal.fire({ icon:'error', title:'{{ session("error") }}', timer:2000, showConfirmButton:false });
     @endif
 
-    @if(session('error'))
-        Swal.fire({
-            icon: 'error',
-            title: '{{ session("error") }}',
-            showConfirmButton: false,
-            timer: 2000
-        });
+    // 4. Reabrir modal tras validación fallida
+    @if(session('showCreateModal'))
+        new bootstrap.Modal(document.getElementById('modalRegistrar')).show();
+    @endif
+    @if(session('showEditModal'))
+        new bootstrap.Modal(
+          document.getElementById('modalEditar' + '{{ session("showEditModal") }}')
+        ).show();
     @endif
 });
 </script>
