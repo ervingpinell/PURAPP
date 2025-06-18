@@ -19,9 +19,10 @@ class ItineraryItemController extends Controller
 
     public function store(Request $request)
     {
+       // dd  ($request->all());
         $validator = Validator::make($request->all(), [
             'title'       => 'required|string|max:255|unique:itinerary_items,title',
-            'description' => 'nullable|string|max:500',
+           'description' => 'nullable|string|max:2000'
         ]);
 
         if ($validator->fails()) {

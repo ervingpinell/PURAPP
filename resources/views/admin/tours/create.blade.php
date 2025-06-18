@@ -136,10 +136,10 @@
               @empty
                 <div class="row g-2 itinerary-item mb-2">
                   <div class="col-md-5">
-                    <input type="text" name="itinerary[0][title]" class="form-control" placeholder="Título">
+                    <input type="textarea" name="itinerary[0][title]" class="form-control" placeholder="Título">
                   </div>
                   <div class="col-md-5">
-                    <input type="text" name="itinerary[0][description]" class="form-control" placeholder="Descripción">
+                    <input type="textarea" name="itinerary[0][description]" class="form-control" placeholder="Descripción">
                   </div>
                   <div class="col-md-2 text-end">
                     <button type="button" class="btn btn-danger btn-sm btn-remove-itinerary">×</button>
