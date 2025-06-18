@@ -1,197 +1,263 @@
-{{-- Modal para registrar un nuevo tour --}}
-<x-adminlte-modal
-    id="modalRegistrar"
-    title="Registrar Tour"
-    size="lg"
-    theme="primary"
-    icon="fas fa-plus"
->
-    <form id="formCrearTour" action="{{ route('admin.tours.store') }}" method="POST">
+{{-- resources/views/admin/tours/create.blade.php --}}
+<div class="modal fade" id="modalRegistrar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Registrar Tour</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form id="formCrearTour" action="{{ route('admin.tours.store') }}" method="POST">
         @csrf
 
-+       {{-- Mostrar errores de validación --}}
-+       @if($errors->any())
-+         <div class="alert alert-danger">
-+           <ul class="mb-0">
-+             @foreach($errors->all() as $err)
-+               <li>{{ $err }}</li>
-+             @endforeach
-+           </ul>
-+         </div>
-+       @endif
-
-        {{-- Nombre, resumen y descripción --}}
-        <x-adminlte-input name="name" label="Nombre del Tour" value="{{ old('name') }}" required />
-        <x-adminlte-textarea name="overview" label="Resumen (Overview)">{{ old('overview') }}</x-adminlte-textarea>
-        <x-adminlte-textarea name="description" label="Descripción">{{ old('description') }}</x-adminlte-textarea>
-
-        {{-- Precios y duración --}}
-        <div class="row">
-            <div class="col-md-4">
-                <x-adminlte-input name="adult_price" label="Precio Adulto"
--                                 type="number" step="0.01" value="{{ old('adult_price') }}" required />
-+                                 type="number" step="0.01" value="{{ old('adult_price') }}" required />
-            </div>
-            <div class="col-md-4">
-                <x-adminlte-input name="kid_price" label="Precio Niño"
--                                 type="number" step="0.01" value="{{ old('kid_price') }}" />
-+                                 type="number" step="0.01" value="{{ old('kid_price') }}" />
-            </div>
-            <div class="col-md-4">
-                <x-adminlte-input name="length" label="Duración (horas)"
--                                 type="number" step="1" value="{{ old('length') }}" required />
-+                                 type="number" step="1" value="{{ old('length') }}" required />
-            </div>
-        </div>
-
-        {{-- Tipo de tour --}}
-        <div class="mb-3">
-            <label>Tipo de Tour</label>
-            <select name="tour_type_id" class="form-control" required>
-                <option value="">Seleccione un tipo de tour</option>
-                @foreach($tourtypes as $tourType)
-                    <option value="{{ $tourType->tour_type_id }}"
--                           {{ old('tour_type_id') == $tourType->tour_type_id ? 'selected' : '' }}>
-+                           {{ old('tour_type_id') == $tourType->tour_type_id ? 'selected' : '' }}>
-                        {{ $tourType->name }}
-                    </option>
+        <div class="modal-body">
+          {{-- Errores de validación --}}
+          @if($errors->any())
+            <div class="alert alert-danger">
+              <ul class="mb-0">
+                @foreach($errors->all() as $err)
+                  <li>{{ $err }}</li>
                 @endforeach
+              </ul>
+            </div>
+          @endif
+
+          {{-- Nombre, Overview y Descripción --}}
+          <div class="mb-3">
+            <label class="form-label">Nombre del Tour</label>
+            <input type="text"
+                   name="name"
+                   class="form-control"
+                   value="{{ old('name') }}"
+                   required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Resumen (Overview)</label>
+            <textarea name="overview" class="form-control" rows="2">{{ old('overview') }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descripción</label>
+            <textarea name="description" class="form-control" rows="3">{{ old('description') }}</textarea>
+          </div>
+
+          {{-- Precios y Duración --}}
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Precio Adulto</label>
+              <input type="number" step="0.01"
+                     name="adult_price"
+                     class="form-control"
+                     value="{{ old('adult_price') }}"
+                     required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Precio Niño</label>
+              <input type="number" step="0.01"
+                     name="kid_price"
+                     class="form-control"
+                     value="{{ old('kid_price') }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Duración (horas)</label>
+              <input type="number" step="1"
+                     name="length"
+                     class="form-control"
+                     value="{{ old('length') }}"
+                     required>
+            </div>
+          </div>
+
+          {{-- Tipo de Tour --}}
+          <div class="mb-3">
+            <label class="form-label">Tipo de Tour</label>
+            <select name="tour_type_id" class="form-select" required>
+              <option value="">-- Seleccione un tipo --</option>
+              @foreach($tourtypes as $t)
+                <option value="{{ $t->tour_type_id }}"
+                  {{ old('tour_type_id') == $t->tour_type_id ? 'selected' : '' }}>
+                  {{ $t->name }}
+                </option>
+              @endforeach
             </select>
-        </div>
+          </div>
 
-        {{-- Idiomas disponibles --}}
-        <div class="mb-3">
-            <label>Idiomas Disponibles</label>
+          {{-- Idiomas Disponibles --}}
+          <div class="mb-3">
+            <label class="form-label">Idiomas Disponibles</label>
             <div>
-                @foreach($languages as $lang)
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input"
--                              type="checkbox" name="languages[]" value="{{ $lang->tour_language_id }}"
--                              id="lang_{{ $lang->tour_language_id }}"
--                              {{ in_array($lang->tour_language_id, old('languages', [])) ? 'checked' : '' }}>
-+                              type="checkbox" name="languages[]" value="{{ $lang->tour_language_id }}"
-+                              id="lang_{{ $lang->tour_language_id }}"
-+                              {{ in_array($lang->tour_language_id, old('languages', [])) ? 'checked' : '' }}>
-                        <label class="form-check-label" for="lang_{{ $lang->tour_language_id }}">{{ $lang->name }}</label>
-                    </div>
-                @endforeach
+              @foreach($languages as $lang)
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input"
+                         type="checkbox"
+                         name="languages[]"
+                         value="{{ $lang->tour_language_id }}"
+                         id="lang_{{ $lang->tour_language_id }}"
+                         {{ in_array($lang->tour_language_id, old('languages', [])) ? 'checked' : '' }}>
+                  <label class="form-check-label" for="lang_{{ $lang->tour_language_id }}">
+                    {{ $lang->name }}
+                  </label>
+                </div>
+              @endforeach
             </div>
-        </div>
+          </div>
 
-        {{-- Amenidades --}}
-        <div class="mb-3">
-            <label>Amenidades</label>
+          {{-- Amenidades --}}
+          <div class="mb-3">
+            <label class="form-label">Amenidades</label>
             <div>
-                @foreach($amenities as $amenity)
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input"
--                              type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
--                              id="amenity_{{ $amenity->amenity_id }}"
--                              {{ in_array($amenity->amenity_id, old('amenities', [])) ? 'checked' : '' }}>
-+                              type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
-+                              id="amenity_{{ $amenity->amenity_id }}"
-+                              {{ in_array($amenity->amenity_id, old('amenities', [])) ? 'checked' : '' }}>
-                        <label class="form-check-label" for="amenity_{{ $amenity->amenity_id }}">{{ $amenity->name }}</label>
-                    </div>
-                @endforeach
+              @foreach($amenities as $am)
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input"
+                         type="checkbox"
+                         name="amenities[]"
+                         value="{{ $am->amenity_id }}"
+                         id="amen_{{ $am->amenity_id }}"
+                         {{ in_array($am->amenity_id, old('amenities', [])) ? 'checked' : '' }}>
+                  <label class="form-check-label" for="amen_{{ $am->amenity_id }}">
+                    {{ $am->name }}
+                  </label>
+                </div>
+              @endforeach
             </div>
-        </div>
+          </div>
 
-        {{-- Horarios AM y PM --}}
-        <div class="mb-3">
-            <label>Horario AM</label>
-            <div class="row">
-                <div class="col-md-6">
-                    <input type="time" name="schedule_am_start" class="form-control"
--                          value="{{ old('schedule_am_start') }}">
-+                          value="{{ old('schedule_am_start') }}">
-                </div>
-                <div class="col-md-6">
-                    <input type="time" name="schedule_am_end" class="form-control"
--                          value="{{ old('schedule_am_end') }}">
-+                          value="{{ old('schedule_am_end') }}">
-                </div>
+          {{-- Horarios AM / PM --}}
+          <div class="mb-3">
+            <label class="form-label">Horario AM</label>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <input type="time"
+                       name="schedule_am_start"
+                       class="form-control"
+                       value="{{ old('schedule_am_start') }}">
+              </div>
+              <div class="col-md-6">
+                <input type="time"
+                       name="schedule_am_end"
+                       class="form-control"
+                       value="{{ old('schedule_am_end') }}">
+              </div>
             </div>
-        </div>
-
-        <div class="mb-3">
-            <label>Horario PM</label>
-            <div class="row">
-                <div class="col-md-6">
-                    <input type="time" name="schedule_pm_start" class="form-control"
--                          value="{{ old('schedule_pm_start') }}">
-+                          value="{{ old('schedule_pm_start') }}">
-                </div>
-                <div class="col-md-6">
-                    <input type="time" name="schedule_pm_end" class="form-control"
--                          value="{{ old('schedule_pm_end') }}">
-+                          value="{{ old('schedule_pm_end') }}">
-                </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Horario PM</label>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <input type="time"
+                       name="schedule_pm_start"
+                       class="form-control"
+                       value="{{ old('schedule_pm_start') }}">
+              </div>
+              <div class="col-md-6">
+                <input type="time"
+                       name="schedule_pm_end"
+                       class="form-control"
+                       value="{{ old('schedule_pm_end') }}">
+              </div>
             </div>
-        </div>
+          </div>
 
-        {{-- Selección de itinerario existente o nuevo --}}
-        <div class="mb-3">
-            <label>Itinerario</label>
-            <select name="itinerary_id" id="select-itinerary" class="form-control" required>
-                <option value="">Seleccione un itinerario</option>
-                @foreach($itineraries as $it)
-                    <option value="{{ $it->itinerary_id }}" {{ old('itinerary_id') == $it->itinerary_id ? 'selected' : '' }}>
-                        {{ $it->name }}
-                    </option>
-                @endforeach
--               <option value="new" {{ old('itinerary_id') == 'new' ? 'selected' : '' }}>+ Crear nuevo itinerario</option>
-+               <option value="new" {{ old('itinerary_id') == 'new' ? 'selected' : '' }}>+ Crear nuevo itinerario</option>
+          {{-- Itinerario existente o nuevo --}}
+          <div class="mb-3">
+            <label class="form-label">Itinerario</label>
+            <select name="itinerary_id" id="select-itinerary" class="form-select" required>
+              <option value="">-- Seleccione un itinerario --</option>
+              @foreach($itineraries as $it)
+                <option value="{{ $it->itinerary_id }}"
+                  {{ old('itinerary_id') == $it->itinerary_id ? 'selected' : '' }}>
+                  {{ $it->name }}
+                </option>
+              @endforeach
+              <option value="new" {{ old('itinerary_id') == 'new' ? 'selected' : '' }}>
+                + Crear nuevo itinerario
+              </option>
             </select>
-        </div>
+          </div>
 
-        {{-- Campos condicionales para nuevo itinerario --}}
-        <div id="new-itinerary-fields" style="display: none;">
+          {{-- Campos para nuevo itinerario --}}
+          <div id="new-itinerary-fields" class="mb-3" style="display: none;">
             <div class="mb-3">
-                <label>Nombre del nuevo itinerario</label>
--               <input type="text" name="new_itinerary_name" class="form-control" value="{{ old('new_itinerary_name') }}">
-+               <input type="text" name="new_itinerary_name" class="form-control" value="{{ old('new_itinerary_name') }}">
+              <label class="form-label">Nombre del nuevo itinerario</label>
+              <input type="text"
+                     name="new_itinerary_name"
+                     class="form-control"
+                     value="{{ old('new_itinerary_name') }}">
             </div>
 
-            <div class="mb-3">
-                <label>Ítems del itinerario</label>
-                <div id="new-itinerary-items" class="itinerary-container">
--                   <div class="row mb-2 itinerary-item">
-+                   <div class="row mb-2 itinerary-item">
-                        <div class="col-md-4">
--                          <input type="text" name="itinerary[0][title]" disabled class="form-control" placeholder="Título" required>
-+                          <input type="text" name="itinerary[0][title]" class="form-control" placeholder="Título" required>
-                        </div>
-                        <div class="col-md-6">
--                           <input type="text" name="itinerary[0][description]" disabled  class="form-control" placeholder="Descripción" required>
-+                           <input type="text" name="itinerary[0][description]" class="form-control" placeholder="Descripción" required>
-                        </div>
-                        <div class="col-md-2">
-                            <button type="button" class="btn btn-danger btn-sm btn-remove-itinerary">&times;</button>
-                        </div>
-                    </div>
+            <label class="form-label">Ítems del itinerario</label>
+            <div id="new-itinerary-items" class="itinerary-container mb-2">
+              <div class="row g-2 itinerary-item">
+                <div class="col-md-5">
+                  <input type="text"
+                         name="itinerary[0][title]"
+                         class="form-control"
+                         placeholder="Título"
+                         required
+                         value="{{ old('itinerary.0.title') }}">
                 </div>
-                <button type="button" class="btn btn-outline-secondary btn-sm btn-add-itinerary" data-target="#new-itinerary-items">
-                    + Añadir Ítem
-                </button>
+                <div class="col-md-5">
+                  <input type="text"
+                         name="itinerary[0][description]"
+                         class="form-control"
+                         placeholder="Descripción"
+                         required
+                         value="{{ old('itinerary.0.description') }}">
+                </div>
+                <div class="col-md-2 text-end">
+                  <button type="button" class="btn btn-danger btn-sm btn-remove-itinerary">×</button>
+                </div>
+              </div>
             </div>
+            <button
+              type="button"
+              class="btn btn-outline-secondary btn-sm btn-add-itinerary"
+              data-target="#new-itinerary-items"
+            >+ Añadir Ítem</button>
+          </div>
         </div>
-    </form>
 
-    {{-- Footer del modal --}}
-    <x-slot name="footerSlot">
-        <button form="formCrearTour" type="submit" class="btn btn-primary">Guardar</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-    </x-slot>
-</x-adminlte-modal>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Tour</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
-{{-- Añade este pequeño script justo al final de scripts.blade.php --}}
 @push('js')
 <script>
-    // Mostrar/ocultar bloque de nuevo itinerario
-    document.getElementById('select-itinerary').addEventListener('change', function(){
-        document.getElementById('new-itinerary-fields')
-            .style.display = this.value === 'new' ? 'block' : 'none';
-    });
+document.addEventListener('DOMContentLoaded', () => {
+  // Mostrar/ocultar nuevo itinerario
+  document.getElementById('select-itinerary').addEventListener('change', function(){
+    document.getElementById('new-itinerary-fields')
+      .style.display = (this.value === 'new') ? 'block' : 'none';
+  });
+
+  // Añadir/Quitar ítems dinámicamente
+  let idx = 1;
+  const container = document.getElementById('new-itinerary-items');
+  document.querySelector('.btn-add-itinerary').addEventListener('click', () => {
+    const row = document.createElement('div');
+    row.className = 'row g-2 itinerary-item mb-2';
+    row.innerHTML = `
+      <div class="col-md-5">
+        <input type="text" name="itinerary[${idx}][title]" class="form-control" placeholder="Título" required>
+      </div>
+      <div class="col-md-5">
+        <input type="text" name="itinerary[${idx}][description]" class="form-control" placeholder="Descripción" required>
+      </div>
+      <div class="col-md-2 text-end">
+        <button type="button" class="btn btn-danger btn-sm btn-remove-itinerary">×</button>
+      </div>`;
+    container.append(row);
+    idx++;
+  });
+  container.addEventListener('click', e => {
+    if (e.target.classList.contains('btn-remove-itinerary')) {
+      e.target.closest('.itinerary-item').remove();
+    }
+  });
+});
 </script>
 @endpush
