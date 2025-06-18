@@ -1,71 +1,74 @@
-{{-- resources/views/admin/tours/scripts.blade.php --}}
-
 {{-- Bootstrap y SweetAlert2 --}}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Mostrar/ocultar bloque de nuevo itinerario en el CREATE
+
+    // Mostrar/ocultar sección de nuevo itinerario al seleccionar "new"
     const itinerarySelect = document.getElementById('select-itinerary');
-    const newItineraryFields = document.getElementById('new-itinerary-fields');
-    if (itinerarySelect && newItineraryFields) {
-        const toggleIt = () => {
-            const isNew = itinerarySelect.value === 'new';
-            newItineraryFields.style.display = isNew ? 'block' : 'none';
-            newItineraryFields.querySelectorAll('input, textarea, select')
-                .forEach(i => i.disabled = !isNew);
-        };
-        itinerarySelect.addEventListener('change', toggleIt);
-        toggleIt();
+    const newItinerarySection = document.getElementById('new-itinerary-section');
+
+    function toggleNewItinerary() {
+        if (!itinerarySelect || !newItinerarySection) return;
+        const isNew = itinerarySelect.value === 'new';
+        newItinerarySection.style.display = isNew ? 'block' : 'none';
     }
 
-    // 2. Añadir/Quitar ítems dinámicos (tanto en CREATE como en EDIT)
+    if (itinerarySelect && newItinerarySection) {
+        itinerarySelect.addEventListener('change', toggleNewItinerary);
+        toggleNewItinerary();
+    }
+
+    // Añadir y quitar ítems dinámicos
     document.body.addEventListener('click', function (e) {
-        // añadir
-        const add = e.target.closest('.btn-add-itinerary');
-        if (add) {
-            const container = document.querySelector(add.dataset.target);
+        // Añadir ítem
+        const addBtn = e.target.closest('.btn-add-itinerary');
+        if (addBtn) {
+            const container = document.querySelector(addBtn.dataset.target);
+            const template = document.getElementById('itinerary-template');
+            if (!container || !template) return;
+
             const idx = container.querySelectorAll('.itinerary-item').length;
-            const tpl = document.getElementById('itinerary-template').innerHTML;
-            const html = tpl
+            const html = template.innerHTML
                 .replace(/__NAME__/g, `itinerary[${idx}][title]`)
                 .replace(/__DESC__/g, `itinerary[${idx}][description]`);
             container.insertAdjacentHTML('beforeend', html);
         }
-        // eliminar
-        const rem = e.target.closest('.btn-remove-itinerary');
-        if (rem) {
-            const cont = rem.closest('.itinerary-container');
-            if (cont.querySelectorAll('.itinerary-item').length > 1) {
-                rem.closest('.itinerary-item').remove();
-                // reindexar
-                cont.querySelectorAll('.itinerary-item').forEach((row,i) => {
-                    row.querySelector('input[placeholder="Título"]').name = `itinerary[${i}][title]`;
-                    row.querySelector('input[placeholder="Descripción"]').name = `itinerary[${i}][description]`;
-                });
-            } else {
-                Swal.fire('Aviso','Debe haber al menos un ítem en el itinerario','warning');
-            }
+
+        // Quitar ítem
+        const removeBtn = e.target.closest('.btn-remove-itinerary');
+        if (removeBtn) {
+            const container = removeBtn.closest('.itinerary-container');
+            if (!container) return;
+
+            removeBtn.closest('.itinerary-item').remove();
+
+            // Reindexar inputs (aunque esté vacío)
+            container.querySelectorAll('.itinerary-item').forEach((row, i) => {
+                const title = row.querySelector('input[placeholder="Título"]');
+                const desc = row.querySelector('input[placeholder="Descripción"]');
+                if (title) title.name = `itinerary[${i}][title]`;
+                if (desc) desc.name = `itinerary[${i}][description]`;
+            });
         }
     });
 
-    // 3. SweetAlert para feedback
+    // Mostrar alertas de sesión
     @if(session('success'))
-        Swal.fire({ icon:'success', title:'{{ session("success") }}', timer:2000, showConfirmButton:false });
+        Swal.fire({ icon: 'success', title: '{{ session("success") }}', timer: 2000, showConfirmButton: false });
     @endif
     @if(session('error'))
-        Swal.fire({ icon:'error', title:'{{ session("error") }}', timer:2000, showConfirmButton:false });
+        Swal.fire({ icon: 'error', title: '{{ session("error") }}', timer: 2500, showConfirmButton: false });
     @endif
 
-    // 4. Reabrir modal tras validación fallida
+    // Reabrir modal tras validación fallida
     @if(session('showCreateModal'))
         new bootstrap.Modal(document.getElementById('modalRegistrar')).show();
     @endif
+
     @if(session('showEditModal'))
-        new bootstrap.Modal(
-          document.getElementById('modalEditar' + '{{ session("showEditModal") }}')
-        ).show();
+        new bootstrap.Modal(document.getElementById('modalEditar' + '{{ session("showEditModal") }}')).show();
     @endif
 });
 </script>

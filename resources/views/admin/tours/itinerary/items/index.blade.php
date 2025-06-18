@@ -12,13 +12,28 @@
             <i class="fas fa-plus"></i> Nuevo Ítem
         </a>
 
+        @if(session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach($errors->all() as $e)
+                        <li>{{ $e }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <table class="table table-bordered table-hover">
             <thead class="bg-primary text-white">
                 <tr>
                     <th>#</th>
                     <th>Título</th>
                     <th>Descripción</th>
-                    <th>Orden</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
@@ -29,7 +44,6 @@
                         <td>{{ $item->item_id }}</td>
                         <td>{{ $item->title }}</td>
                         <td>{{ Str::limit($item->description, 60) }}</td>
-                        <td>{{ $item->order }}</td>
                         <td>
                             @if($item->is_active)
                                 <span class="badge bg-success">Activo</span>

@@ -11,6 +11,7 @@ return new class extends Migration {
     $table->id();
     $table->unsignedBigInteger('itinerary_item_id');
     $table->unsignedBigInteger('itinerary_id');
+    $table->integer('item_order')->default(0);
     $table->boolean('is_active')->default(true);
     $table->timestamps();
 

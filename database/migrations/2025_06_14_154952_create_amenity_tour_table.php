@@ -19,7 +19,7 @@ Schema::create('amenity_tour', function (Blueprint $table) {
     $table->foreign('tour_id')->references('tour_id')->on('tours')->onDelete('cascade');
     $table->foreign('amenity_id')->references('amenity_id')->on('amenities')->onDelete('cascade');
 
-    $table->primary(['tour_id', 'amenity_id']); // evita duplicados
+    $table->primary(['tour_id', 'amenity_id']);
 });
     }
 
