@@ -11,6 +11,7 @@ use App\Models\Itinerary;
 use App\Models\TourLanguage;
 use App\Models\Amenity;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Exception;
 
 class TourController extends Controller
@@ -144,24 +145,24 @@ class TourController extends Controller
 
     public function update(Request $request, Tour $tour)
     {
-        // mismo patrón de validación
+        // 1. Validación
         $validator = Validator::make($request->all(), [
-            'name'               => 'required|string|max:255',
-            'overview'           => 'nullable|string',
-            'description'        => 'nullable|string',
-            'adult_price'        => 'required|numeric|min:0',
-            'kid_price'          => 'nullable|numeric|min:0',
-            'length'             => 'required|numeric|min:1',
-            'tour_type_id'       => 'required|exists:tour_types,tour_type_id',
-            'languages'          => 'required|array|min:1',
-            'languages.*'        => 'exists:tour_languages,tour_language_id',
-            'amenities'          => 'nullable|array',
-            'amenities.*'        => 'exists:amenities,amenity_id',
-            'schedule_am_start'  => 'nullable|date_format:H:i',
-            'schedule_am_end'    => 'nullable|date_format:H:i',
-            'schedule_pm_start'  => 'nullable|date_format:H:i',
-            'schedule_pm_end'    => 'nullable|date_format:H:i',
-            'itinerary_id'            => 'nullable|exists:itineraries,itinerary_id',
+            'name'                    => 'required|string|max:255',
+            'overview'                => 'nullable|string',
+            'description'             => 'nullable|string',
+            'adult_price'             => 'required|numeric|min:0',
+            'kid_price'               => 'nullable|numeric|min:0',
+            'length'                  => 'required|numeric|min:1',
+            'tour_type_id'            => 'required|exists:tour_types,tour_type_id',
+            'languages'               => 'required|array|min:1',
+            'languages.*'             => 'exists:tour_languages,tour_language_id',
+            'amenities'               => 'nullable|array',
+            'amenities.*'             => 'exists:amenities,amenity_id',
+            'schedule_am_start'       => 'nullable|date_format:H:i',
+            'schedule_am_end'         => 'nullable|date_format:H:i',
+            'schedule_pm_start'       => 'nullable|date_format:H:i',
+            'schedule_pm_end'         => 'nullable|date_format:H:i',
+            'itinerary_id'            => 'nullable',
             'itinerary'               => 'nullable|array',
             'itinerary.*.title'       => 'required_with:itinerary|string|max:255',
             'itinerary.*.description' => 'required_with:itinerary|string',
@@ -177,9 +178,9 @@ class TourController extends Controller
 
         $validated = $validator->validated();
 
-        // validación full day idéntica a store()
+        // validación extra para Full Day
         $tourType = TourType::find($validated['tour_type_id']);
-        if ($tourType->name === 'Full Day') {
+        if ($tourType && $tourType->name === 'Full Day') {
             if (!$validated['schedule_am_start'] || !$validated['schedule_am_end']) {
                 return back()
                     ->withErrors(['schedule_am_start' => 'Un tour Full Day requiere horario AM completo.'])
@@ -195,66 +196,85 @@ class TourController extends Controller
         }
 
         try {
-            // si envían nuevos ítems de itinerario
-            if (!empty($validated['itinerary'])) {
-                $nuevoItin = Itinerary::create([
-                    'name' => $validated['new_itinerary_name']
-                              ?? ($tour->name.' - Itinerario Actualizado'),
+            DB::transaction(function() use ($request, $validated, $tour) {
+                // 2. Actualizar datos básicos
+                $tour->update([
+                    'name'           => $validated['name'],
+                    'overview'       => $validated['overview'] ?? '',
+                    'description'    => $validated['description'] ?? '',
+                    'adult_price'    => $validated['adult_price'],
+                    'kid_price'      => $validated['kid_price'] ?? 0,
+                    'length'         => $validated['length'],
+                    'tour_type_id'   => $validated['tour_type_id'],
                 ]);
-                foreach ($validated['itinerary'] as $i => $item) {
-                    $nuevoItin->items()->create([
-                        'title'       => $item['title'],
-                        'description' => $item['description'],
-                        'order'       => $i,
-                        'is_active'   => true,
+
+                // 3. Gestionar Itinerario
+                $itineraryId = $request->input('itinerary_id');
+                if ($itineraryId === 'new') {
+                    // Creo uno nuevo
+                    $itinerary = Itinerary::create([
+                        'name' => $validated['new_itinerary_name']
+                                ?? ($tour->name . ' - Itinerario Actualizado'),
+                    ]);
+                } elseif ($itineraryId) {
+                    // Cargo el existente y borro sus ítems
+                    $itinerary = Itinerary::findOrFail($itineraryId);
+                    $itinerary->items()->delete();
+                } else {
+                    // Ningún itinerario seleccionado
+                    $itinerary = null;
+                }
+
+                // 4. (Re)crear ítems si corresponde
+                if ($itinerary && ! empty($validated['itinerary'])) {
+                    foreach ($validated['itinerary'] as $idx => $item) {
+                        $itinerary->items()->create([
+                            'title'       => $item['title'],
+                            'description' => $item['description'],
+                            'order'       => $idx,
+                            'is_active'   => true,
+                        ]);
+                    }
+                }
+
+                // 5. Asociar el tour al itinerario
+                if ($itinerary) {
+                    $tour->itinerary()->associate($itinerary);
+                    $tour->save();
+                }
+
+                // 6. Sincronizar relaciones
+                $tour->languages()->sync($validated['languages']);
+                $tour->amenities()->sync($validated['amenities'] ?? []);
+
+                // 7. Reemplazar horarios
+                $tour->schedules()->delete();
+                if (!empty($validated['schedule_am_start'])) {
+                    $tour->schedules()->create([
+                        'start_time' => $validated['schedule_am_start'],
+                        'end_time'   => $validated['schedule_am_end'],
                     ]);
                 }
-                $validated['itinerary_id'] = $nuevoItin->itinerary_id;
-            }
-
-            // actualizar tour
-            $tour->update([
-                'name'         => $validated['name'],
-                'overview'     => $validated['overview'] ?? '',
-                'description'  => $validated['description'] ?? '',
-                'adult_price'  => $validated['adult_price'],
-                'kid_price'    => $validated['kid_price'] ?? 0,
-                'length'       => $validated['length'],
-                'tour_type_id' => $validated['tour_type_id'],
-                'itinerary_id' => $validated['itinerary_id'] ?? $tour->itinerary_id,
-            ]);
-
-            // relaciones
-            $tour->languages()->sync($validated['languages']);
-            $tour->amenities()->sync($validated['amenities'] ?? []);
-
-            // horarios
-            $tour->schedules()->delete();
-            if ($validated['schedule_am_start'] && $validated['schedule_am_end']) {
-                $tour->schedules()->create([
-                    'start_time' => $validated['schedule_am_start'],
-                    'end_time'   => $validated['schedule_am_end'],
-                ]);
-            }
-            if ($validated['schedule_pm_start'] && $validated['schedule_pm_end']) {
-                $tour->schedules()->create([
-                    'start_time' => $validated['schedule_pm_start'],
-                    'end_time'   => $validated['schedule_pm_end'],
-                ]);
-            }
+                if (!empty($validated['schedule_pm_start'])) {
+                    $tour->schedules()->create([
+                        'start_time' => $validated['schedule_pm_start'],
+                        'end_time'   => $validated['schedule_pm_end'],
+                    ]);
+                }
+            });
 
             return redirect()
                 ->route('admin.tours.index')
                 ->with('success', 'Tour actualizado correctamente.');
-
         } catch (Exception $e) {
-            Log::error('Error al actualizar tour: '.$e->getMessage());
+            Log::error('Error al actualizar tour: ' . $e->getMessage());
             return back()
                 ->with('error', 'Hubo un problema al actualizar el tour.')
                 ->withInput()
                 ->with('showEditModal', $tour->tour_id);
         }
     }
+
 
     public function destroy(Tour $tour)
     {

@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ClienteRegisterController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\HomeController;
 
 // Controllers del panel admin
 use App\Http\Controllers\Admin\Users\UserRegisterController;

@@ -17,6 +17,6 @@ class HomeController extends Controller
         $tours = Tour::with('tourType')->where('is_active', true)->get();
 
         // Retornar la vista 'index' y pasarle los tours
-        return view('public.index', compact('tours'));
+        return view('public.home', compact('tours'));
     }
 }

@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="{{ asset('css/home.css')}}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        
         .hero {
             background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("{{ asset('images/volcano.png') }}") center/cover no-repeat;
             height: 100vh;
@@ -21,43 +20,48 @@
             color: white;
             padding: 2rem;
         }
-            .overview-text {
-        max-height: 4.5em; /* Altura para unas 3 líneas, ajusta según tu fuente */
-        overflow: hidden;
-        position: relative;
-        transition: max-height 0.3s ease;
-    }
-
-.overview-container {
-    display: -webkit-box;
-    -webkit-line-clamp: 3; /* muestra 3 líneas */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-height: none; /* quita max-height */
-    transition: max-height 0.3s ease;
-    position: relative;
-}
-
-    input.toggle-overview {
-        display: none;
-    }
-input.toggle-overview:checked ~ .overview-container {
-    display: block; /* mostrar todo el texto expandido */
-    max-height: none;
-    -webkit-line-clamp: unset;
-    overflow: visible;
-}
-
-    /* El label es un botón que se muestra debajo del texto */
-    .toggle-label {
-        display: block;
-        margin-top: 0.25em;
-        color:rgb(17, 0, 255);
-        cursor: pointer;
-        user-select: none;
-        text-align: center;
-    }
+        .overview-text {
+            max-height: 4.5em; /* Altura para unas 3 líneas, ajusta según tu fuente */
+            overflow: hidden;
+            position: relative;
+            transition: max-height 0.3s ease;
+        }
+        /* El botón para mostrar más / menos */
+        .toggle-label {
+            display: inline-block;
+            color: rgb(4, 0, 255);
+            cursor: pointer;
+            margin-top: 0.5em;
+        }
+        /* Checkbox oculto */
+        input.toggle-overview {
+            display: none;
+        }
+        .overview-container {
+            display: -webkit-box;
+            -webkit-line-clamp: 3; /* muestra 3 líneas */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-height: none; /* quita max-height */
+            transition: max-height 0.3s ease;
+            position: relative;
+        }
+        input.toggle-overview:checked ~ .overview-container {
+            display: block; /* mostrar todo el texto expandido */
+            max-height: none;
+            -webkit-line-clamp: unset;
+            overflow: visible;
+        }
+        /* El label es un botón que se muestra debajo del texto */
+        .toggle-label {
+            display: block;
+            margin-top: 0.25em;
+            color: rgb(17, 0, 255);
+            cursor: pointer;
+            user-select: none;
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -129,34 +133,34 @@ input.toggle-overview:checked ~ .overview-container {
 
 <section class="tours-section">
     <h2>{{ __('adminlte::adminlte.our_tours') }}</h2>
-    <div class="tour-cards d-flex flex-wrap justify-content-center gap-4">
-@foreach($tours as $tour)
-    <div class="card" style="width: 18rem;">
-        <img src="{{ $tour->image_path ? asset('storage/' . $tour->image_path) : asset('images/volcano.png') }}" class="card-img-top" alt="{{ $tour->name }}">
-        <div class="card-body">
-            <h5 class="card-title" style="background-color: #F92526; color: white; padding: 0.5em;">{{ $tour->name }}</h5>
+    <div class="tour-cards">
+        @foreach($tours as $tour)
+            <div class="card" style="width: 18rem;">
+                <img src="{{ $tour->image_path ? asset('storage/' . $tour->image_path) : asset('images/volcano.png') }}" class="card-img-top" alt="{{ $tour->name }}">
+                <div class="card-body">
+                    <h5 class="card-title" style="background-color: #F92526; color: white; padding: 0.5em;">{{ $tour->name }}</h5>
 
-            <input type="checkbox" id="toggle-overview-{{ $tour->id }}" class="toggle-overview" />
-            <div class="overview-container text-muted">
-             <p class="mb-0">{{ $tour->overview }}</p>
-            </div>
-            <label for="toggle-overview-{{ $tour->id }}" class="toggle-label">{{ __('adminlte::adminlte.read_more') }}</label>
-<br>
-            <div class="mb-3 small">
-                <div class="d-flex justify-content-between">
-                    <span >{{ __('adminlte::adminlte.adult_price') }}</span>
-                    <strong style="color: #006633;">${{ number_format($tour->adult_price, 2) }}</strong>
-                </div>
-                <div class="d-flex justify-content-between">
-                    <span >{{ __('adminlte::adminlte.kid_price') }}</span>
-                    <strong style="color: #006633;">${{ number_format($tour->kid_price, 2) }}</strong>
-                </div>
-            </div>
+                    <input type="checkbox" id="toggle-overview-{{ $tour->id }}" class="toggle-overview" />
+                    <div class="overview-container text-muted">
+                        <p class="mb-0">{{ $tour->overview }}</p>
+                    </div>
+                    <label for="toggle-overview-{{ $tour->id }}" class="toggle-label">{{ __('adminlte::adminlte.read_more') }}</label>
+                    <br>
+                    <div class="mb-3 small">
+                        <div class="d-flex justify-content-between">
+                            <span>{{ __('adminlte::adminlte.adult_price') }}</span>
+                            <strong style="color: #006633;">${{ number_format($tour->adult_price, 2) }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>{{ __('adminlte::adminlte.kid_price') }}</span>
+                            <strong style="color: #006633;">${{ number_format($tour->kid_price, 2) }}</strong>
+                        </div>
+                    </div>
 
-            <a href="#" class="btn btn-primary w-100">{{ __('adminlte::adminlte.see_tour') }}</a>
-        </div>
-    </div>
-@endforeach
+                    <a href="#" class="btn btn-success w-100">{{ __('adminlte::adminlte.see_tour') }}</a>
+                </div>
+            </div>
+        @endforeach
     </div>
 </section>
 
@@ -283,9 +287,6 @@ input.toggle-overview:checked ~ .overview-container {
         </template>
     </button>
 </div>
-
-
-
 
 <!-- Alpine.js y Font Awesome -->
 <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
