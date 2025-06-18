@@ -3,6 +3,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\SetLocale;
 
 // Controllers públicos y de autenticación
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashBoardController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ClienteRegisterController;
@@ -25,7 +26,7 @@ use App\Http\Controllers\Admin\Tours\TourTypeController;
 Route::middleware([SetLocale::class])->group(function () {
 
     // 🌐 Rutas públicas
-    Route::get('/', [DashBoardController::class, 'index'])->name('home');
+    Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/language/{language}', [DashBoardController::class, 'switchLanguage'])->name('switch.language');
 
     // 🔐 Autenticación (Clientes)

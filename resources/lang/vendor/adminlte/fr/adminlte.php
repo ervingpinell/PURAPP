@@ -108,4 +108,7 @@ return [
 'optional' => 'Optionnel',
 'save' => 'Enregistrer',
 'edit_profile' => 'Modifier le profil',
+    'adult_price'=> 'Adults (+10)',
+    'kid_price'=> 'Kids (0-9)',
+    'read_more'=> 'xd',
 ];
