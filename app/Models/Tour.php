@@ -16,7 +16,6 @@ class Tour extends Model
 
     protected $fillable = [
     'name',
-    'description',
     'overview',
     'adult_price',
     'kid_price',
@@ -40,12 +39,10 @@ public function tourType()
     {
         return $this->belongsToMany(Amenity::class, 'amenity_tour', 'tour_id', 'amenity_id');
     }
-
-    public function schedules()
-    {
-        return $this->hasMany(TourSchedule::class, 'tour_id', 'tour_id');
-    }
-
+public function schedules()
+{
+    return $this->hasMany(\App\Models\TourSchedule::class, 'tour_id', 'tour_id');
+}
     public function availabilities()
     {
         return $this->hasMany(TourAvailability::class, 'tour_id', 'tour_id');

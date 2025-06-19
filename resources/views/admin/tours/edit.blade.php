@@ -12,7 +12,8 @@
           @method('PUT')
 
           <div class="modal-body">
-            @if($errors->any())
+            {{-- Validaciones --}}
+            @if($errors->any() && session('showEditModal') == $tour->tour_id)
               <div class="alert alert-danger">
                 <ul class="mb-0">
                   @foreach($errors->all() as $error)
@@ -22,12 +23,9 @@
               </div>
             @endif
 
-            {{-- Nombre --}}
+            {{-- Nombre, resumen --}}
             <x-adminlte-input name="name" label="Nombre del Tour" value="{{ old('name', $tour->name) }}" required />
-
-            {{-- Overview y Descripción --}}
             <x-adminlte-textarea name="overview" label="Resumen (Overview)">{{ old('overview', $tour->overview) }}</x-adminlte-textarea>
-            <x-adminlte-textarea name="description" label="Descripción">{{ old('description', $tour->description) }}</x-adminlte-textarea>
 
             {{-- Precios y duración --}}
             <div class="row mb-3">
@@ -46,7 +44,9 @@
             <x-adminlte-select name="tour_type_id" label="Tipo de Tour" required>
               <option value="">-- Seleccione un tipo --</option>
               @foreach($tourtypes as $type)
-                <option value="{{ $type->tour_type_id }}" {{ old('tour_type_id', $tour->tour_type_id) == $type->tour_type_id ? 'selected' : '' }}>{{ $type->name }}</option>
+                <option value="{{ $type->tour_type_id }}" {{ old('tour_type_id', $tour->tour_type_id) == $type->tour_type_id ? 'selected' : '' }}>
+                  {{ $type->name }}
+                </option>
               @endforeach
             </x-adminlte-select>
 
@@ -110,56 +110,45 @@
               </select>
             </div>
 
-            {{-- Bloque nuevo itinerario --}}
-            <div id="new-itinerary-section-{{ $tour->tour_id }}" style="display: {{ old('itinerary_id', $tour->itinerary_id) === 'new' ? 'block' : 'none' }}">
+            {{-- Ítems del itinerario existente (solo lectura, dinámico) --}}
+<div id="view-itinerary-items-{{ $tour->tour_id }}" class="mb-3" style="display: {{ old('itinerary_id', $tour->itinerary_id) !== 'new' ? 'block' : 'none' }}">
+  <label class="form-label">Ítems del itinerario seleccionado:</label>
+  <ul class="list-group">
+    @php
+      $itinerarioActual = $itineraries->firstWhere('itinerary_id', old('itinerary_id', $tour->itinerary_id));
+    @endphp
+    @if($itinerarioActual && $itinerarioActual->items->count())
+      @foreach($itinerarioActual->items->sortBy('pivot.item_order') as $item)
+        <li class="list-group-item">
+          <strong>{{ $item->title }}</strong><br>
+          <small class="text-muted">{{ $item->description }}</small>
+        </li>
+      @endforeach
+    @else
+      <li class="list-group-item text-muted">Este itinerario no contiene ítems.</li>
+    @endif
+  </ul>
+</div>
+            {{-- Bloque nuevo itinerario (editable) --}}
+            <div id="new-itinerary-section-{{ $tour->tour_id }}" style="display: {{ old('itinerary_id') === 'new' ? 'block' : 'none' }}">
               <div class="mb-3">
-                <label class="form-label">Nombre del nuevo itinerario</label>
+                <label>Nombre del nuevo itinerario</label>
                 <input type="text" name="new_itinerary_name" class="form-control" value="{{ old('new_itinerary_name') }}">
               </div>
 
-              <div class="mb-3">
-                <label class="form-label">Asignar Ítems Existentes</label>
-                @foreach ($availableItems as $item)
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox"
-                      name="existing_item_ids[]"
-                      value="{{ $item->item_id }}"
-                      id="edit_item_{{ $tour->tour_id }}_{{ $item->item_id }}"
-                      {{ in_array($item->item_id, old('existing_item_ids', $tour->itinerary?->items->pluck('item_id')->toArray() ?? [])) ? 'checked' : '' }}>
-                    <label class="form-check-label" for="edit_item_{{ $tour->tour_id }}_{{ $item->item_id }}">
-                      <strong>{{ $item->title }}</strong>: {{ $item->description }}
-                    </label>
-                  </div>
-                @endforeach
-              </div>
+              <label class="form-label">Asignar Ítems Existentes</label>
+              @foreach ($availableItems as $item)
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="existing_item_ids[]" value="{{ $item->item_id }}"
+                    id="edit_item_{{ $tour->tour_id }}_{{ $item->item_id }}"
+                    {{ in_array($item->item_id, old('existing_item_ids', [])) ? 'checked' : '' }}>
+                  <label class="form-check-label" for="edit_item_{{ $tour->tour_id }}_{{ $item->item_id }}">
+                    <strong>{{ $item->title }}</strong>: {{ $item->description }}
+                  </label>
+                </div>
+              @endforeach
 
-              <label class="form-label">Agregar Ítems Nuevos</label>
-              <div id="itinerary-{{ $tour->tour_id }}" class="itinerary-container">
-                @php
-                  $items = old('itinerary', $tour->itinerary?->items->sortBy('order')->values()->map(fn($i) => [
-                    'title' => $i->title,
-                    'description' => $i->description
-                  ])->toArray() ?? []);
-                @endphp
-                @foreach($items as $i => $item)
-                  <div class="row g-2 mb-2 itinerary-item">
-                    <div class="col-md-4">
-                      <input type="text" name="itinerary[{{ $i }}][title]" class="form-control" placeholder="Título" value="{{ $item['title'] }}" required>
-                    </div>
-                    <div class="col-md-6">
-                      <input type="text" name="itinerary[{{ $i }}][description]" class="form-control" placeholder="Descripción" value="{{ $item['description'] }}" required>
-                    </div>
-                    <div class="col-md-2 text-end">
-                      <button type="button" class="btn btn-danger btn-sm btn-remove-itinerary">×</button>
-                    </div>
-                  </div>
-                @endforeach
-              </div>
-              <button type="button"
-                      class="btn btn-outline-secondary btn-sm btn-add-itinerary"
-                      data-target="#itinerary-{{ $tour->tour_id }}">
-                + Añadir Ítem
-              </button>
+              {{-- Aquí puedes incluir el template para nuevos ítems si lo usas --}}
             </div>
           </div>
 
@@ -171,4 +160,7 @@
       </div>
     </div>
   </div>
+
+  
 @endforeach
+

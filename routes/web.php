@@ -70,7 +70,8 @@ Route::middleware([SetLocale::class])->group(function () {
             Route::post('schedule', [TourScheduleController::class, 'store'])->name('schedule.store');
             Route::put('schedule/{schedule}', [TourScheduleController::class, 'update'])->name('schedule.update');
             Route::delete('schedule/{schedule}', [TourScheduleController::class, 'destroy'])->name('schedule.destroy');
-
+            Route::put('schedule/{schedule}/toggle', [TourScheduleController::class, 'toggle'])->name('schedule.toggle');
+            
             // Itinerarios
             Route::resource('itinerary', ItineraryController::class)->except(['show']);
             Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');

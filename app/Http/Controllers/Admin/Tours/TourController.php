@@ -19,7 +19,15 @@ class TourController extends Controller
 {
     public function index()
     {
-        $tours = Tour::with(['tourType', 'languages', 'amenities', 'schedules', 'itinerary.items'])->get();
+$tours = Tour::with([
+    'tourType',
+    'languages',
+    'amenities',
+    'itinerary.items',
+    'schedules' => function ($query) {
+        $query->where('is_active', true);
+    },
+])->orderBy('tour_id', 'asc')->get(); // 👈 Aquí agregas el orden
         $tourtypes = TourType::all();
         $itineraries = Itinerary::all();
         $languages = TourLanguage::all();
@@ -27,10 +35,25 @@ class TourController extends Controller
         $availableItems = (new ItineraryService)->getAvailableItems();
 
         return view('admin.tours.index', compact(
-            'tours', 'tourtypes', 'itineraries', 'languages', 'amenities', 'availableItems'
+            'tours', 'tourtypes', 'itineraries', 'languages', 'amenities', 'availableItems',
         ));
     }
 
+
+    public function edit(Tour $tour)
+    {
+        $tourtypes = TourType::all();
+        $itineraries = Itinerary::with('items')->get();
+        $languages = TourLanguage::all();
+        $amenities = Amenity::all();
+        $availableItems = (new ItineraryService)->getAvailableItems();
+
+        return view('admin.tours.edit', compact(
+            'tour', 'tourtypes', 'itineraries', 'languages', 'amenities', 'availableItems'
+        ));
+    }
+
+    
     public function store(Request $request)
     {
         $request->merge([
@@ -43,7 +66,6 @@ class TourController extends Controller
         $rules = [
             'name' => 'required|string|max:255',
             'overview' => 'nullable|string',
-            'description' => 'nullable|string',
             'adult_price' => 'required|numeric|min:0',
             'kid_price' => 'nullable|numeric|min:0',
             'length' => 'required|numeric|min:1',
@@ -80,7 +102,6 @@ class TourController extends Controller
                 $tour = Tour::create([
                     'name' => $validated['name'],
                     'overview' => $validated['overview'] ?? '',
-                    'description' => $validated['description'] ?? '',
                     'adult_price' => $validated['adult_price'],
                     'kid_price' => $validated['kid_price'] ?? 0,
                     'length' => $validated['length'],
@@ -128,7 +149,6 @@ class TourController extends Controller
         $rules = [
             'name' => 'required|string|max:255',
             'overview' => 'nullable|string',
-            'description' => 'nullable|string',
             'adult_price' => 'required|numeric|min:0',
             'kid_price' => 'nullable|numeric|min:0',
             'length' => 'required|numeric|min:1',
@@ -162,7 +182,6 @@ class TourController extends Controller
                 $tour->update([
                     'name' => $validated['name'],
                     'overview' => $validated['overview'] ?? '',
-                    'description' => $validated['description'] ?? '',
                     'adult_price' => $validated['adult_price'],
                     'kid_price' => $validated['kid_price'] ?? 0,
                     'length' => $validated['length'],

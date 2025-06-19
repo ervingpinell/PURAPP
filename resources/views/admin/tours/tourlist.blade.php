@@ -4,7 +4,6 @@
             <th>ID</th>
             <th>Nombre</th>
             <th>Resumen</th>
-            <th>Descripción</th>
             <th>Amenidades</th>
             <th>Itinerario</th>
             <th>Idiomas</th>
@@ -18,12 +17,31 @@
         </tr>
     </thead>
     <tbody>
+        @php
+            function esAM($hora) {
+                return $hora && intval(date('H', strtotime($hora))) < 12;
+            }
+
+            function horaBonita($hora) {
+                return $hora ? date('g:i a', strtotime($hora)) : null;
+            }
+
+            function bloqueHorario($etiqueta, $inicio, $fin) {
+                return '
+                    <div class="border rounded p-2 mb-2 text-center bg-light">
+                        <div class="fw-bold text-uppercase text" style="font-size: 0.8rem;">' . $etiqueta . '</div>
+                        <div class="text-dark">' . horaBonita($inicio) . ' - ' . horaBonita($fin) . '</div>
+                    </div>
+                ';
+            }
+        @endphp
+
         @foreach($tours as $tour)
             <tr>
                 <td>{{ $tour->tour_id }}</td>
                 <td>{{ $tour->name }}</td>
                 <td>{{ $tour->overview }}</td>
-                <td>{{ Str::limit($tour->description, 50) }}</td>
+
                 <td>
                     @forelse($tour->amenities as $am)
                         <span class="badge bg-info">{{ $am->name }}</span>
@@ -31,21 +49,19 @@
                         <span class="text-muted">Sin amenidades</span>
                     @endforelse
                 </td>
+
                 <td>
                     @if($tour->itinerary)
-                        {{-- Nombre del itinerario --}}
                         <strong>{{ $tour->itinerary->name }}</strong><br>
-
-                        {{-- Ítems del itinerario --}}
                         @forelse($tour->itinerary->items as $item)
-                        <span class="badge bg-info">{{ $item->title }}</span>
+                            <span class="badge bg-info">{{ $item->title }}</span>
                         @empty
-                        <small class="text-muted">(Sin ítems en el itinerario)</small>
+                            <small class="text-muted">(Sin ítems)</small>
                         @endforelse
                     @else
-                        <span class="text-muted">Sin itinerario asignado</span>
+                        <span class="text-muted">Sin itinerario</span>
                     @endif
-                    </td>
+                </td>
 
                 <td>
                     @forelse($tour->languages as $lang)
@@ -54,25 +70,36 @@
                         <span class="text-muted">Sin idiomas</span>
                     @endforelse
                 </td>
+
+                {{-- Horarios --}}
                 <td>
                     @php
-                        $am = optional($tour->schedules->first());
-                        $pm = optional($tour->schedules->skip(1)->first());
+                  $horarios = optional($tour->schedules)->sortBy('start_time')->values() ?? collect();
+                        $h1 = $horarios->get(0);
+                        $h2 = $horarios->get(1);
+                        $bloques = [];
+
+                        if ($h1 && $h1->start_time && $h1->end_time) {
+                            $bloques[] = bloqueHorario(esAM($h1->start_time) ? 'AM' : 'PM', $h1->start_time, $h1->end_time);
+                        }
+
+                        if ($h2 && $h2->start_time && $h2->end_time) {
+                            $bloques[] = bloqueHorario(esAM($h2->start_time) ? 'AM' : 'PM', $h2->start_time, $h2->end_time);
+                        }
                     @endphp
-                    @if($am->start_time && $am->end_time)
-                        <strong>AM:</strong> {{ $am->start_time }} - {{ $am->end_time }}<br>
-                    @endif
-                    @if($pm->start_time && $pm->end_time)
-                        <strong>PM:</strong> {{ $pm->start_time }} - {{ $pm->end_time }}
-                    @endif
-                    @if(!$am->start_time && !$pm->start_time)
+
+                    @if(count($bloques))
+                        {!! implode('', $bloques) !!}
+                    @else
                         <span class="text-muted">No configurado</span>
                     @endif
                 </td>
+
                 <td>{{ number_format($tour->adult_price, 2) }}</td>
                 <td>{{ number_format($tour->kid_price, 2) }}</td>
                 <td>{{ $tour->length }}</td>
                 <td>{{ $tour->tourType->name }}</td>
+
                 <td>
                     @if($tour->is_active)
                         <span class="badge bg-success">Activo</span>
@@ -80,13 +107,13 @@
                         <span class="badge bg-secondary">Inactivo</span>
                     @endif
                 </td>
+
                 <td>
                     <a href="#" class="btn btn-warning btn-sm"
                        data-bs-toggle="modal"
                        data-bs-target="#modalEditar{{ $tour->tour_id }}">
                         <i class="fas fa-edit"></i>
                     </a>
-
                     <form action="{{ route('admin.tours.destroy', $tour->tour_id) }}" method="POST" style="display:inline;">
                         @csrf @method('DELETE')
                         <button type="submit"

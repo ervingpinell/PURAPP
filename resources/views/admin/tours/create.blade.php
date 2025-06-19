@@ -11,49 +11,31 @@
         @csrf
         <div class="modal-body">
           {{-- Nombre --}}
-          <div class="mb-3">
-            <label class="form-label">Nombre del Tour</label>
-            <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
-          </div>
+          <x-adminlte-input name="name" label="Nombre del Tour" value="{{ old('name') }}" required />
 
           {{-- Overview --}}
-          <div class="mb-3">
-            <label class="form-label">Resumen (Overview)</label>
-            <textarea name="overview" class="form-control">{{ old('overview') }}</textarea>
-          </div>
-
-          {{-- Descripción --}}
-          <div class="mb-3">
-            <label class="form-label">Descripción</label>
-            <textarea name="description" class="form-control">{{ old('description') }}</textarea>
-          </div>
+          <x-adminlte-textarea name="overview" label="Resumen (Overview)">{{ old('overview') }}</x-adminlte-textarea>
 
           {{-- Precios y duración --}}
           <div class="row mb-3">
             <div class="col-md-4">
-              <label>Precio Adulto</label>
-              <input type="number" step="0.01" name="adult_price" class="form-control" value="{{ old('adult_price') }}">
+              <x-adminlte-input name="adult_price" label="Precio Adulto" type="number" step="0.01" value="{{ old('adult_price') }}" />
             </div>
             <div class="col-md-4">
-              <label>Precio Niño</label>
-              <input type="number" step="0.01" name="kid_price" class="form-control" value="{{ old('kid_price') }}">
+              <x-adminlte-input name="kid_price" label="Precio Niño" type="number" step="0.01" value="{{ old('kid_price') }}" />
             </div>
             <div class="col-md-4">
-              <label>Duración (horas)</label>
-              <input type="number" step="1" name="length" class="form-control" value="{{ old('length') }}">
+              <x-adminlte-input name="length" label="Duración (horas)" type="number" value="{{ old('length') }}" />
             </div>
           </div>
 
           {{-- Tipo de Tour --}}
-          <div class="mb-3">
-            <label>Tipo de Tour</label>
-            <select name="tour_type_id" class="form-select">
-              <option value="">Seleccione tipo</option>
-              @foreach($tourtypes as $type)
-                <option value="{{ $type->tour_type_id }}" {{ old('tour_type_id') == $type->tour_type_id ? 'selected' : '' }}>{{ $type->name }}</option>
-              @endforeach
-            </select>
-          </div>
+          <x-adminlte-select name="tour_type_id" label="Tipo de Tour">
+            <option value="">Seleccione tipo</option>
+            @foreach($tourtypes as $type)
+              <option value="{{ $type->tour_type_id }}" {{ old('tour_type_id') == $type->tour_type_id ? 'selected' : '' }}>{{ $type->name }}</option>
+            @endforeach
+          </x-adminlte-select>
 
           {{-- Idiomas --}}
           <div class="mb-3">
@@ -78,16 +60,10 @@
           </div>
 
           {{-- Horarios --}}
-          <div class="mb-3">
-            <label>Horario AM</label>
-            <input type="time" name="schedule_am_start" class="form-control mb-2" value="{{ old('schedule_am_start') }}">
-            <input type="time" name="schedule_am_end" class="form-control" value="{{ old('schedule_am_end') }}">
-          </div>
-          <div class="mb-3">
-            <label>Horario PM</label>
-            <input type="time" name="schedule_pm_start" class="form-control mb-2" value="{{ old('schedule_pm_start') }}">
-            <input type="time" name="schedule_pm_end" class="form-control" value="{{ old('schedule_pm_end') }}">
-          </div>
+          <x-adminlte-input name="schedule_am_start" label="Horario AM (Inicio)" type="time" value="{{ old('schedule_am_start') }}" />
+          <x-adminlte-input name="schedule_am_end" label="Horario AM (Fin)" type="time" value="{{ old('schedule_am_end') }}" />
+          <x-adminlte-input name="schedule_pm_start" label="Horario PM (Inicio)" type="time" value="{{ old('schedule_pm_start') }}" />
+          <x-adminlte-input name="schedule_pm_end" label="Horario PM (Fin)" type="time" value="{{ old('schedule_pm_end') }}" />
 
           {{-- Itinerario --}}
           <div class="mb-3">
@@ -101,25 +77,26 @@
             </select>
           </div>
 
+          {{-- Ítems del itinerario seleccionado (solo lectura) --}}
+          <div id="view-itinerary-items-create" class="mb-3" style="display: none;">
+            <label class="form-label">Ítems del itinerario seleccionado:</label>
+            <ul class="list-group"></ul>
+          </div>
+
+          {{-- Sección para nuevo itinerario --}}
           <div id="new-itinerary-section" style="display: none;">
-            <div class="mb-3">
-              <label>Nombre del nuevo itinerario</label>
-              <input type="text" name="new_itinerary_name" class="form-control" value="{{ old('new_itinerary_name') }}">
-            </div>
+            <x-adminlte-input name="new_itinerary_name" label="Nombre del nuevo itinerario" value="{{ old('new_itinerary_name') }}" />
 
-            <div class="mb-3">
-              <label>Asignar Ítems Existentes</label>
-              @foreach($availableItems as $item)
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" name="existing_item_ids[]" value="{{ $item->item_id }}" {{ in_array($item->item_id, old('existing_item_ids', [])) ? 'checked' : '' }}>
-                  <label class="form-check-label"><strong>{{ $item->title }}</strong>: {{ $item->description }}</label>
-                </div>
-              @endforeach
-            </div>
+            <label>Asignar Ítems Existentes</label>
+            @foreach($availableItems as $item)
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="existing_item_ids[]" value="{{ $item->item_id }}" {{ in_array($item->item_id, old('existing_item_ids', [])) ? 'checked' : '' }}>
+                <label class="form-check-label"><strong>{{ $item->title }}</strong>: {{ $item->description }}</label>
+              </div>
+            @endforeach
 
-            <label class="form-label">Agregar Ítems Nuevos</label>
+            <label class="form-label mt-3">Agregar Ítems Nuevos</label>
             <div id="new-itinerary-items" class="mb-2 itinerary-container">
-              {{-- Plantilla por defecto visible si hay error --}}
               @php $oldItems = old('itinerary', []) @endphp
               @forelse($oldItems as $i => $item)
                 <div class="row g-2 itinerary-item mb-2">
@@ -136,10 +113,10 @@
               @empty
                 <div class="row g-2 itinerary-item mb-2">
                   <div class="col-md-5">
-                    <input type="textarea" name="itinerary[0][title]" class="form-control" placeholder="Título">
+                    <input type="text" name="itinerary[0][title]" class="form-control" placeholder="Título">
                   </div>
                   <div class="col-md-5">
-                    <input type="textarea" name="itinerary[0][description]" class="form-control" placeholder="Descripción">
+                    <input type="text" name="itinerary[0][description]" class="form-control" placeholder="Descripción">
                   </div>
                   <div class="col-md-2 text-end">
                     <button type="button" class="btn btn-danger btn-sm btn-remove-itinerary">×</button>
@@ -160,18 +137,3 @@
     </div>
   </div>
 </div>
-
-{{-- Template oculto para nuevos ítems --}}
-<template id="itinerary-template">
-  <div class="row g-2 itinerary-item mb-2">
-    <div class="col-md-5">
-      <input type="text" name="__NAME__" class="form-control" placeholder="Título">
-    </div>
-    <div class="col-md-5">
-      <input type="text" name="__DESC__" class="form-control" placeholder="Descripción">
-    </div>
-    <div class="col-md-2 text-end">
-      <button type="button" class="btn btn-danger btn-sm btn-remove-itinerary">×</button>
-    </div>
-  </div>
-</template>

@@ -5,24 +5,87 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    // Mostrar/ocultar sección de nuevo itinerario al seleccionar "new"
+    // ========== 1. DATA JSON de itinerarios ==========
+    const itineraryData = @json($itineraries->keyBy('itinerary_id')->map(function ($itin) {
+        return [
+            'items' => $itin->items->map(fn($item) => [
+                'title' => $item->title,
+                'description' => $item->description,
+            ])->values()
+        ];
+    }));
+
+    // ========== 2. Cambiar itinerario en MODALES DE EDICIÓN ==========
+    document.querySelectorAll('select[name="itinerary_id"]').forEach(select => {
+        select.addEventListener('change', function () {
+            const tourId = this.id.replace('edit-itinerary-', '');
+            const selectedId = this.value;
+
+            const sectionView = document.getElementById(`view-itinerary-items-${tourId}`);
+            const sectionNew = document.getElementById(`new-itinerary-section-${tourId}`);
+            const listContainer = sectionView?.querySelector('ul');
+
+            if (selectedId === 'new') {
+                sectionNew.style.display = 'block';
+                sectionView.style.display = 'none';
+                return;
+            }
+
+            sectionNew.style.display = 'none';
+            sectionView.style.display = 'block';
+
+            if (!listContainer || !itineraryData[selectedId]) {
+                listContainer.innerHTML = '<li class="list-group-item text-muted">Este itinerario no contiene ítems.</li>';
+                return;
+            }
+
+            const items = itineraryData[selectedId].items;
+            listContainer.innerHTML = items.length
+                ? items.map(item =>
+                    `<li class="list-group-item"><strong>${item.title}</strong><br><small class="text-muted">${item.description}</small></li>`
+                  ).join('')
+                : '<li class="list-group-item text-muted">Este itinerario no contiene ítems.</li>';
+        });
+    });
+
+    // ========== 3. Mostrar ítems al seleccionar itinerario en CREAR ==========
     const itinerarySelect = document.getElementById('select-itinerary');
     const newItinerarySection = document.getElementById('new-itinerary-section');
+    const viewSectionCreate = document.getElementById('view-itinerary-items-create');
+    const viewListCreate = viewSectionCreate?.querySelector('ul');
 
-    function toggleNewItinerary() {
-        if (!itinerarySelect || !newItinerarySection) return;
-        const isNew = itinerarySelect.value === 'new';
-        newItinerarySection.style.display = isNew ? 'block' : 'none';
+    function updateItineraryViewCreate() {
+        const selectedId = itinerarySelect.value;
+
+        if (selectedId === 'new') {
+            newItinerarySection.style.display = 'block';
+            viewSectionCreate.style.display = 'none';
+            return;
+        }
+
+        if (selectedId && itineraryData[selectedId]) {
+            newItinerarySection.style.display = 'none';
+            viewSectionCreate.style.display = 'block';
+
+            const items = itineraryData[selectedId].items;
+            viewListCreate.innerHTML = items.length
+                ? items.map(item =>
+                    `<li class="list-group-item"><strong>${item.title}</strong><br><small class="text-muted">${item.description}</small></li>`
+                  ).join('')
+                : '<li class="list-group-item text-muted">Este itinerario no contiene ítems.</li>';
+        } else {
+            newItinerarySection.style.display = 'none';
+            viewSectionCreate.style.display = 'none';
+        }
     }
 
-    if (itinerarySelect && newItinerarySection) {
-        itinerarySelect.addEventListener('change', toggleNewItinerary);
-        toggleNewItinerary();
+    if (itinerarySelect && newItinerarySection && viewSectionCreate) {
+        itinerarySelect.addEventListener('change', updateItineraryViewCreate);
+        updateItineraryViewCreate(); // inicializar al cargar
     }
 
-    // Añadir y quitar ítems dinámicos
+    // ========== 4. Añadir y quitar ítems dinámicos ==========
     document.body.addEventListener('click', function (e) {
-        // Añadir ítem
         const addBtn = e.target.closest('.btn-add-itinerary');
         if (addBtn) {
             const container = document.querySelector(addBtn.dataset.target);
@@ -36,7 +99,6 @@ document.addEventListener('DOMContentLoaded', function () {
             container.insertAdjacentHTML('beforeend', html);
         }
 
-        // Quitar ítem
         const removeBtn = e.target.closest('.btn-remove-itinerary');
         if (removeBtn) {
             const container = removeBtn.closest('.itinerary-container');
@@ -44,7 +106,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             removeBtn.closest('.itinerary-item').remove();
 
-            // Reindexar inputs (aunque esté vacío)
             container.querySelectorAll('.itinerary-item').forEach((row, i) => {
                 const title = row.querySelector('input[placeholder="Título"]');
                 const desc = row.querySelector('input[placeholder="Descripción"]');
@@ -54,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Mostrar alertas de sesión
+    // ========== 5. Alertas de éxito o error ==========
     @if(session('success'))
         Swal.fire({ icon: 'success', title: '{{ session("success") }}', timer: 2000, showConfirmButton: false });
     @endif
@@ -62,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
         Swal.fire({ icon: 'error', title: '{{ session("error") }}', timer: 2500, showConfirmButton: false });
     @endif
 
-    // Reabrir modal tras validación fallida
+    // ========== 6. Reabrir modal en validación fallida ==========
     @if(session('showCreateModal'))
         new bootstrap.Modal(document.getElementById('modalRegistrar')).show();
     @endif

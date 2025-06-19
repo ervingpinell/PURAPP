@@ -16,7 +16,6 @@ return new class extends Migration
             $table->unsignedBigInteger('tour_type_id');
             $table->text('overview')->nullable();
             $table->string('name');
-            $table->text('description');
             $table->decimal('adult_price', 10, 2);
             $table->decimal('kid_price', 10, 2);
             $table->integer('length');

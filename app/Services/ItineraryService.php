@@ -20,7 +20,7 @@ class ItineraryService
                     $item = ItineraryItem::find($itemData);
                     if ($item) {
                         $itinerary->items()->attach($item->item_id, [
-                            'order' => $index,
+                            'item_order' => $index,
                             'is_active' => true
                         ]);
                     }
@@ -38,7 +38,7 @@ class ItineraryService
                     }
 
                     $itinerary->items()->attach($itemId, [
-                        'order' => $index,
+                        'item_order' => $index,
                         'is_active' => true
                     ]);
                 }
@@ -69,7 +69,7 @@ class ItineraryService
             $syncData = [];
             foreach ($itemIds as $index => $itemId) {
                 $syncData[$itemId] = [
-                    'order' => $index,
+                    'item_order' => $index,
                     'is_active' => true
                 ];
             }

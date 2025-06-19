@@ -5,98 +5,89 @@ namespace App\Http\Controllers\Admin\Tours;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Itinerary;
-use App\Models\ItineraryItem;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 use App\Services\ItineraryService;
+use Illuminate\Support\Facades\Log;
 use Exception;
 
 class ItineraryController extends Controller
 {
-    public function index()
+    public function index(ItineraryService $service)
     {
-        
-     $itineraries = Itinerary::with(['items' => function($q) {
-        $q->orderBy('item_order');
-    }])->get();
+        $itineraries = Itinerary::with('items')->get();
+        $items = $service->getAvailableItems();
 
-    $items = ItineraryItem::orderBy('title')->get();
-
-    return view('admin.tours.itinerary.index', compact('itineraries', 'items'));
+        return view('admin.tours.itinerary.index', compact('itineraries', 'items'));
     }
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:itineraries,name',
+        $request->validate([
+            'name' => 'required|string|max:255',
         ]);
 
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
-        }
-
         try {
-            Itinerary::create(['name' => $request->name]);
-            return redirect()->back()->with('success', 'Itinerario creado exitosamente.');
+            Itinerary::create([
+                'name' => $request->name
+            ]);
+
+            return redirect()->back()->with('success', 'Itinerario creado correctamente.');
         } catch (Exception $e) {
             Log::error('Error al crear itinerario: ' . $e->getMessage());
             return back()->with('error', 'No se pudo crear el itinerario.');
         }
     }
 
-    public function update(Request $request, Itinerary $itinerary)
+    public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:itineraries,name,' . $itinerary->itinerary_id . ',itinerary_id',
+        $request->validate([
+            'name' => 'required|string|max:255',
         ]);
 
-        if ($validator->fails()) {
-            return back()->withErrors($validator);
-        }
-
         try {
+            $itinerary = Itinerary::findOrFail($id);
             $itinerary->update(['name' => $request->name]);
-            return redirect()->back()->with('success', 'Itinerario actualizado.');
+
+            return redirect()->back()->with('success', 'Itinerario actualizado correctamente.');
         } catch (Exception $e) {
             Log::error('Error al actualizar itinerario: ' . $e->getMessage());
             return back()->with('error', 'No se pudo actualizar el itinerario.');
         }
     }
 
-    public function destroy(Itinerary $itinerary)
+    public function destroy($id)
     {
         try {
+            $itinerary = Itinerary::findOrFail($id);
+            $itinerary->items()->detach();
             $itinerary->delete();
-            return redirect()->back()->with('success', 'Itinerario eliminado.');
+
+            return redirect()->back()->with('success', 'Itinerario eliminado correctamente.');
         } catch (Exception $e) {
             Log::error('Error al eliminar itinerario: ' . $e->getMessage());
             return back()->with('error', 'No se pudo eliminar el itinerario.');
         }
     }
 
-    public function assignItems(Request $request, Itinerary $itinerary)
+    public function assignItems(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'item_ids' => 'required|array',
-            'item_ids.*' => 'exists:itinerary_items,item_id',
-        ]);
-
-        if ($validator->fails()) {
-            return back()->withErrors($validator);
-        }
-
         try {
-            (new ItineraryService())->replaceItemsWithOrder($itinerary, $request->item_ids);
-            return redirect()->route('admin.tours.itinerary.index')->with('success', 'Ítems asignados correctamente.');
-        } catch (Exception $e) {
-            Log::error('Error al asignar ítems: ' . $e->getMessage());
-            return back()->with('error', 'No se pudo asignar los ítems.');
-        }
-    }
+            $itinerary = Itinerary::findOrFail($id);
+            $itemIds = $request->input('item_ids', []);
 
-    public function fetchAvailableItems()
-    {
-        $items = ItineraryItem::orderBy('title')->where('is_active', true)->get();
-        return response()->json($items);
+            $syncData = [];
+            foreach ($itemIds as $index => $itemId) {
+                $syncData[$itemId] = [
+                    'item_order' => $index,
+                    'is_active' => true
+                ];
+            }
+
+            $itinerary->items()->sync($syncData);
+
+            return redirect()->back()->with('success', 'Ítems asignados correctamente.');
+        } catch (Exception $e) {
+            Log::error("Error al asignar ítems al itinerario: " . $e->getMessage());
+            return back()->with('error', 'No se pudieron asignar los ítems.');
+        }
     }
 }
