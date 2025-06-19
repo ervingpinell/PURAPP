@@ -1,3 +1,17 @@
+@php
+    $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {
+        return [
+            'description' => $it->description,
+            'items' => $it->items->map(function ($item) {
+                return [
+                    'title' => $item->title,
+                    'description' => $item->description,
+                ];
+            })->toArray()
+        ];
+    });
+@endphp
+
 {{-- Modal Registrar Tour --}}
 <div class="modal fade" id="modalRegistrar" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg">
@@ -77,7 +91,9 @@
             </select>
           </div>
 
-          {{-- Ítems del itinerario seleccionado (solo lectura) --}}
+          {{-- Descripción e ítems dinámicos --}}
+          <div id="selected-itinerary-description" class="mb-2 text-muted" style="white-space: pre-line; display: none;"></div>
+
           <div id="view-itinerary-items-create" class="mb-3" style="display: none;">
             <label class="form-label">Ítems del itinerario seleccionado:</label>
             <ul class="list-group"></ul>
@@ -86,6 +102,7 @@
           {{-- Sección para nuevo itinerario --}}
           <div id="new-itinerary-section" style="display: none;">
             <x-adminlte-input name="new_itinerary_name" label="Nombre del nuevo itinerario" value="{{ old('new_itinerary_name') }}" />
+            <x-adminlte-textarea name="new_itinerary_description" label="Descripción del nuevo itinerario">{{ old('new_itinerary_description') }}</x-adminlte-textarea>
 
             <label>Asignar Ítems Existentes</label>
             @foreach($availableItems as $item)

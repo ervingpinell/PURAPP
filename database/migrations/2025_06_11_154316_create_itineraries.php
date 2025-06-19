@@ -14,6 +14,7 @@ return new class extends Migration
     Schema::create('itineraries', function (Blueprint $table) {
     $table->id('itinerary_id');
     $table->string('name');
+    $table->text('description')->nullable();
     $table->timestamps();
 });
     }

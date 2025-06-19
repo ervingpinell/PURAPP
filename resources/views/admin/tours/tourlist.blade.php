@@ -1,3 +1,20 @@
+<style>
+    .overview-preview {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        max-height: 4.5em;
+        line-height: 1.5em;
+        transition: max-height 0.3s ease;
+    }
+
+    .overview-expanded {
+        -webkit-line-clamp: unset;
+        max-height: none;
+    }
+</style>
+
 <table class="table table-bordered table-striped table-hover">
     <thead class="bg-primary text-white">
         <tr>
@@ -40,7 +57,17 @@
             <tr>
                 <td>{{ $tour->tour_id }}</td>
                 <td>{{ $tour->name }}</td>
-                <td>{{ $tour->overview }}</td>
+               <td>
+    @php $overviewId = 'overview_' . $tour->tour_id; @endphp
+
+    <div id="{{ $overviewId }}" class="overview-preview">
+        {{ $tour->overview }}
+    </div>
+
+    <button type="button" class="btn btn-link btn-sm mt-1 p-0" onclick="toggleOverview('{{ $overviewId }}', this)">
+        Ver más
+    </button>
+</td>
 
                 <td>
                     @forelse($tour->amenities as $am)
@@ -127,3 +154,10 @@
         @endforeach
     </tbody>
 </table>
+<script>
+    function toggleOverview(id, btn) {
+        const div = document.getElementById(id);
+        div.classList.toggle('overview-expanded');
+        btn.textContent = div.classList.contains('overview-expanded') ? 'Ocultar' : 'Ver más';
+    }
+</script>

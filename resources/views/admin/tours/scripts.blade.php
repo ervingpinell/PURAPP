@@ -4,55 +4,54 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-
     // ========== 1. DATA JSON de itinerarios ==========
-    const itineraryData = @json($itineraries->keyBy('itinerary_id')->map(function ($itin) {
-        return [
-            'items' => $itin->items->map(fn($item) => [
-                'title' => $item->title,
-                'description' => $item->description,
-            ])->values()
-        ];
-    }));
+    const itineraryData = @json($itineraryJson);
 
     // ========== 2. Cambiar itinerario en MODALES DE EDICIÓN ==========
-    document.querySelectorAll('select[name="itinerary_id"]').forEach(select => {
+    document.querySelectorAll('select[id^="edit-itinerary-"]').forEach(select => {
         select.addEventListener('change', function () {
             const tourId = this.id.replace('edit-itinerary-', '');
             const selectedId = this.value;
 
             const sectionView = document.getElementById(`view-itinerary-items-${tourId}`);
             const sectionNew = document.getElementById(`new-itinerary-section-${tourId}`);
+            const descContainer = document.getElementById(`edit-itinerary-description-${tourId}`);
             const listContainer = sectionView?.querySelector('ul');
 
             if (selectedId === 'new') {
                 sectionNew.style.display = 'block';
                 sectionView.style.display = 'none';
+                if (descContainer) descContainer.style.display = 'none';
                 return;
             }
 
             sectionNew.style.display = 'none';
             sectionView.style.display = 'block';
 
-            if (!listContainer || !itineraryData[selectedId]) {
-                listContainer.innerHTML = '<li class="list-group-item text-muted">Este itinerario no contiene ítems.</li>';
-                return;
-            }
+            const data = itineraryData[selectedId];
+            if (data) {
+                descContainer.textContent = data.description || '';
+                descContainer.style.display = data.description ? 'block' : 'none';
 
-            const items = itineraryData[selectedId].items;
-            listContainer.innerHTML = items.length
-                ? items.map(item =>
-                    `<li class="list-group-item"><strong>${item.title}</strong><br><small class="text-muted">${item.description}</small></li>`
-                  ).join('')
-                : '<li class="list-group-item text-muted">Este itinerario no contiene ítems.</li>';
+                listContainer.innerHTML = data.items.length
+                    ? data.items.map(item =>
+                        `<li class="list-group-item"><strong>${item.title}</strong><br><small class="text-muted">${item.description}</small></li>`
+                    ).join('')
+                    : '<li class="list-group-item text-muted">Este itinerario no contiene ítems.</li>';
+            } else {
+                descContainer.textContent = '';
+                descContainer.style.display = 'none';
+                listContainer.innerHTML = '<li class="list-group-item text-muted">Este itinerario no contiene ítems.</li>';
+            }
         });
     });
 
-    // ========== 3. Mostrar ítems al seleccionar itinerario en CREAR ==========
+    // ========== 3. Mostrar descripción e ítems en CREAR ==========
     const itinerarySelect = document.getElementById('select-itinerary');
     const newItinerarySection = document.getElementById('new-itinerary-section');
     const viewSectionCreate = document.getElementById('view-itinerary-items-create');
     const viewListCreate = viewSectionCreate?.querySelector('ul');
+    const descContainerCreate = document.getElementById('selected-itinerary-description');
 
     function updateItineraryViewCreate() {
         const selectedId = itinerarySelect.value;
@@ -60,22 +59,27 @@ document.addEventListener('DOMContentLoaded', function () {
         if (selectedId === 'new') {
             newItinerarySection.style.display = 'block';
             viewSectionCreate.style.display = 'none';
+            descContainerCreate.style.display = 'none';
             return;
         }
 
         if (selectedId && itineraryData[selectedId]) {
+            const data = itineraryData[selectedId];
             newItinerarySection.style.display = 'none';
             viewSectionCreate.style.display = 'block';
 
-            const items = itineraryData[selectedId].items;
-            viewListCreate.innerHTML = items.length
-                ? items.map(item =>
+            viewListCreate.innerHTML = data.items.length
+                ? data.items.map(item =>
                     `<li class="list-group-item"><strong>${item.title}</strong><br><small class="text-muted">${item.description}</small></li>`
-                  ).join('')
+                ).join('')
                 : '<li class="list-group-item text-muted">Este itinerario no contiene ítems.</li>';
+
+            descContainerCreate.textContent = data.description || '';
+            descContainerCreate.style.display = data.description ? 'block' : 'none';
         } else {
             newItinerarySection.style.display = 'none';
             viewSectionCreate.style.display = 'none';
+            descContainerCreate.style.display = 'none';
         }
     }
 

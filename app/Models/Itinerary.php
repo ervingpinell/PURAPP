@@ -11,9 +11,7 @@ class Itinerary extends Model
 
     protected $primaryKey = 'itinerary_id';
 
-    protected $fillable = [
-        'name',
-    ];
+protected $fillable = ['name', 'description'];
 
     public function tours()
     {

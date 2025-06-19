@@ -1,7 +1,7 @@
 @extends('adminlte::page')
 
 @section('adminlte_css_pre')
-    <link rel="stylesheet" href="{{ asset('css/gv.css') }}">
+       <!-- <link rel="stylesheet" href="{{ asset('css/gv.css') }}"> -->
 @stop
 
 @section('title', 'Gestión de Tours')
@@ -31,6 +31,21 @@
   @include('admin.tours.edit')
 
 @endsection
+
+@php
+    $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {
+        return [
+            'description' => $it->description,
+            'items' => $it->items->map(function ($item) {
+                return [
+                    'title' => $item->title,
+                    'description' => $item->description,
+                ];
+            })->toArray()
+        ];
+    });
+@endphp
+
 
 @section('js')
   @include('admin.tours.scripts')

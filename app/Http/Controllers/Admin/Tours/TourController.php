@@ -80,6 +80,7 @@ $tours = Tour::with([
             'schedule_pm_start' => 'nullable|date_format:H:i',
             'schedule_pm_end' => 'nullable|date_format:H:i',
             'new_itinerary_name' => 'nullable|string|max:255',
+            'new_itinerary_description' => 'nullable|string|max:1000',
         ];
 
         if ($request->input('itinerary_id') === 'new') {
@@ -163,6 +164,7 @@ $tours = Tour::with([
             'schedule_pm_end' => 'nullable|date_format:H:i',
             'itinerary_id' => 'nullable',
             'new_itinerary_name' => 'nullable|string|max:255',
+            'new_itinerary_description' => 'nullable|string|max:1000',
         ];
 
         if ($request->input('itinerary_id') === 'new') {
