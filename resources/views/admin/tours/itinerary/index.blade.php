@@ -33,39 +33,25 @@
                     </form>
                 </div>
             </div>
-<div class="card-body">
-    @if ($itinerary->description)
-        <p class="mb-2 text-muted overflow-hidden text-truncate" style="white-space: nowrap; max-width: 100%;">
-            <strong>Descripción:</strong> <span data-bs-toggle="collapse" href="#desc-{{ $itinerary->itinerary_id }}" role="button" aria-expanded="false">{{ Str::limit($itinerary->description, 80, '...') }}</span>
-        </p>
-        <div class="collapse" id="desc-{{ $itinerary->itinerary_id }}">
-            <div class="text-muted" style="white-space: pre-line;">
-                {{ $itinerary->description }}
+            <div class="card-body">
+
+                @if ($itinerary->items->isEmpty())
+                    <p class="text-muted">No hay ítems asignados a este itinerario.</p>
+                @else
+                 <div>
+                  <h5 class="mb-0">{!! nl2br(e($itinerary->description)) !!}</h5>
+               </div>
+               <br>
+                    <ul class="list-group">
+                        @foreach ($itinerary->items->sortBy('order') as $item)
+                            <li class="list-group-item">
+                                <strong>{{ $item->title }}</strong><br>
+                                <span class="text-muted">{{ $item->description }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
             </div>
-        </div>
-    @endif
-
-    @if ($itinerary->items->isEmpty())
-        <p class="text-muted">No hay ítems asignados a este itinerario.</p>
-    @else
-        <ul class="list-group">
-            @foreach ($itinerary->items->sortBy('order') as $item)
-                <li class="list-group-item">
-                    <strong>{{ $item->title }}</strong><br>
-                    <span class="text-muted d-inline-block overflow-hidden text-truncate" style="max-width: 100%; white-space: nowrap;">
-                        <span data-bs-toggle="collapse" href="#item-desc-{{ $item->item_id }}" role="button" aria-expanded="false">{{ Str::limit($item->description, 80, '...') }}</span>
-                    </span>
-                    <div class="collapse" id="item-desc-{{ $item->item_id }}">
-                        <div class="text-muted" style="white-space: pre-line;">
-                            {{ $item->description }}
-                        </div>
-                    </div>
-                </li>
-            @endforeach
-        </ul>
-    @endif
-</div>
-
         </div>
 
         <!-- Modal asignar ítems -->
@@ -81,8 +67,8 @@
                         <div class="modal-body">
                             @foreach ($items as $item)
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="item_ids[]" value="{{ $item->item_id }}"
-                                        {{ $itinerary->items->contains('item_id', $item->item_id) ? 'checked' : '' }}>
+                              <input class="form-check-input" type="checkbox" name="item_ids[]" value="{{ $item->item_id }}"
+    {{ $itinerary->items->contains('item_id', $item->item_id) ? 'checked' : '' }}>
                                     <label class="form-check-label">
                                         <strong>{{ $item->title }}</strong> - {{ $item->description }}
                                     </label>
@@ -113,10 +99,6 @@
                             <div class="mb-3">
                                 <label>Nombre</label>
                                 <input type="text" name="name" class="form-control" value="{{ $itinerary->name }}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label>Descripción</label>
-                                <textarea name="description" class="form-control" rows="3">{{ $itinerary->description }}</textarea>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -234,6 +216,7 @@
                         <label>Descripción</label>
                         <textarea name="description" class="form-control" required></textarea>
                     </div>
+        
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Guardar</button>
@@ -258,10 +241,6 @@
                     <div class="mb-3">
                         <label>Nombre</label>
                         <input type="text" name="name" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>Descripción</label>
-                        <textarea name="description" class="form-control" rows="3"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">

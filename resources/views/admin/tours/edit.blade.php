@@ -25,7 +25,7 @@
 
             {{-- Nombre, resumen --}}
             <x-adminlte-input name="name" label="Nombre del Tour" value="{{ old('name', $tour->name) }}" required />
-            <x-adminlte-textarea name="overview" label="Resumen (Overview)">{{ old('overview', $tour->overview) }}</x-adminlte-textarea>
+            <x-adminlte-textarea name="overview" label="Resumen (Overview)" style="height:200px">{{ old('overview', $tour->overview) }}</x-adminlte-textarea>
 
             {{-- Precios y duración --}}
             <div class="row mb-3">

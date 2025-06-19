@@ -38,3 +38,18 @@
     width: auto;
     height: auto;
 }
+
+@media (max-width: 768px) {
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .table td, .table th {
+        white-space: nowrap;
+    }
+
+    .modal-lg {
+        max-width: 95%;
+    }
+}
+
