@@ -97,100 +97,49 @@
             </button>
         </form>
 
-        {{-- Modales de edición (fuera de la tabla) --}}
+        {{-- Modales --}}
         @foreach($cart->items as $item)
             <div class="modal fade" id="modalEditar{{ $item->item_id }}" tabindex="-1" aria-labelledby="modalLabel{{ $item->item_id }}" aria-hidden="true">
                 <div class="modal-dialog">
-                <form method="POST"
-                        action="{{ route('admin.cart.update', $item->item_id) }}"
-                        class="modal-content">
-                    @csrf
-                    @method('PATCH')
-                    <input type="hidden" name="is_active" value="0">
+                    <form method="POST" action="{{ route('admin.cart.update', $item->item_id) }}" class="modal-content">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="is_active" value="0">
 
-                    <div class="modal-header bg-warning text-white">
-                    <h5 class="modal-title" id="modalLabel{{ $item->item_id }}">Editar Ítem del Carrito</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
+                        <div class="modal-header bg-warning text-white">
+                            <h5 class="modal-title" id="modalLabel{{ $item->item_id }}">Editar Ítem del Carrito</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
 
-                    <div class="modal-body">
-                    {{-- Fecha --}}
-                    <div class="mb-3">
-                        <label for="date{{ $item->item_id }}">Fecha del Tour</label>
-                        <input id="date{{ $item->item_id }}"
-                            type="date"
-                            name="tour_date"
-                            class="form-control"
-                            value="{{ $item->tour_date }}"
-                            required>
-                    </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label>Fecha del Tour</label>
+                                <input type="date" name="tour_date" class="form-control" value="{{ $item->tour_date }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label>Cantidad de Adultos</label>
+                                <input type="number" name="adults_quantity" class="form-control" value="{{ $item->adults_quantity }}" min="1" required>
+                            </div>
+                            <div class="mb-3">
+                                <label>Cantidad de Niños</label>
+                                <input type="number" name="kids_quantity" class="form-control" value="{{ $item->kids_quantity }}" min="0" max="2">
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="is_active" value="1" id="check{{ $item->item_id }}" {{ $item->is_active ? 'checked' : '' }}>
+                                <label class="form-check-label" for="check{{ $item->item_id }}">
+                                    Reserva activa
+                                </label>
+                            </div>
+                        </div>
 
-                    {{-- Idioma --}}
-                    <div class="mb-3">
-                        <label for="language{{ $item->item_id }}">Idioma</label>
-                        <select id="language{{ $item->item_id }}"
-                                name="language_id"
-                                class="form-control">
-                        @foreach($languages as $lang)
-                            <option value="{{ $lang->id }}"
-                            {{ $item->language_id == $lang->id ? 'selected' : '' }}>
-                            {{ $lang->name }}
-                            </option>
-                        @endforeach
-                        </select>
-                    </div>
-
-                    {{-- Adultos --}}
-                    <div class="mb-3">
-                        <label for="adults{{ $item->item_id }}">Cantidad de Adultos</label>
-                        <input id="adults{{ $item->item_id }}"
-                            type="number"
-                            name="adults_quantity"
-                            class="form-control"
-                            value="{{ $item->adults_quantity }}"
-                            min="1"
-                            required>
-                    </div>
-
-                    {{-- Niños --}}
-                    <div class="mb-3">
-                        <label for="kids{{ $item->item_id }}">Cantidad de Niños</label>
-                        <input id="kids{{ $item->item_id }}"
-                            type="number"
-                            name="kids_quantity"
-                            class="form-control"
-                            value="{{ $item->kids_quantity }}"
-                            min="0">
-                    </div>
-
-                    {{-- Estado activo/inactivo --}}
-                    <div class="form-check mb-3">
-                        <input class="form-check-input"
-                            type="checkbox"
-                            name="is_active"
-                            value="1"
-                            id="check{{ $item->item_id }}"
-                            {{ $item->is_active ? 'checked' : '' }}>
-                        <label class="form-check-label" for="check{{ $item->item_id }}">
-                        Reserva activa
-                        </label>
-                    </div>
-                    </div>
-
-                    <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Guardar Cambios
-                    </button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Cancelar
-                    </button>
-                    </div>
-                </form>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cambios</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        </div>
+                    </form>
                 </div>
             </div>
-            @endforeach
-
-
+        @endforeach
     @else
         <div class="alert alert-info text-center">
             <i class="fas fa-info-circle"></i> Tu carrito está vacío.
@@ -199,14 +148,8 @@
 @stop
 
 @section('js')
-    <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
-    <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('vendor/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
-    <script src="{{ asset('vendor/adminlte/dist/js/adminlte.min.js') }}"></script>
-    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Confirmación de eliminación
         document.querySelectorAll('.delete-form').forEach(form => {
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
@@ -227,23 +170,13 @@
             });
         });
 
-        // Debug de modales
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('shown.bs.modal', () => {
-                console.log('Modal abierto:', modal.id);
-            });
-        });
-    </script>
-
-    @if(session('success'))
-    <script>
+        @if(session('success'))
         Swal.fire({
-        icon: 'success',
-        title: '{{ session("success") }}',
-        showConfirmButton: false,
-        timer: 2000
+            icon: 'success',
+            title: '{{ session("success") }}',
+            showConfirmButton: false,
+            timer: 2000
         });
+        @endif
     </script>
-    @endif
-
 @stop
