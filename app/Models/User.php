@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Models;
+use App\Models\Cart;
+use App\Models\CartItem;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -53,7 +55,9 @@ class User extends Authenticatable
         return Attribute::get(fn () => $this->full_name);
     }
 
-    
-    
+    public function cart()
+    {
+        return $this->hasOne(Cart::class, 'user_id')->where('is_active', true);
+    }    
 
 }
