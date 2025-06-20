@@ -9,33 +9,35 @@ use App\Models\CartItem;
 use Illuminate\Support\Facades\Auth;
 use App\Models\TourLanguage;
 
-
 class CartController extends Controller
 {
-    // Muestra el contenido del carrito
+    // Mostrar el carrito del usuario
     public function index(Request $request)
     {
         $user = Auth::user();
         $languages = TourLanguage::all();
 
-        $cart = $user->cart()->with('user')->first();
+        $cart = $user->cart()->where('is_active', true)->first();
 
-        $itemsQuery = CartItem::with(['tour', 'language'])
-            ->where('cart_id', $cart->cart_id);
+        if (!$cart) {
+            return view('admin.Cart.cart', [
+                'cart' => null,
+                'languages' => $languages,
+            ]);
+        }
 
-        // Si viene un filtro de estado
+        $itemsQuery = CartItem::with(['tour', 'language'])->where('cart_id', $cart->cart_id);
+
         if ($request->filled('estado')) {
             $itemsQuery->where('is_active', $request->estado);
         }
 
         $cart->items = $itemsQuery->get();
 
-        return view('admin.Cart.cart', compact('cart','languages'));
+        return view('admin.Cart.cart', compact('cart', 'languages'));
     }
 
-
-
-    // Agrega un tour al carrito
+    // Agregar un ítem al carrito
     public function store(Request $request)
     {
         $request->validate([
@@ -47,17 +49,20 @@ class CartController extends Controller
             'is_other_hotel' => 'boolean',
             'other_hotel_name' => 'nullable|string|max:255',
             'adults_quantity' => 'required|integer|min:1',
-            'kids_quantity' => 'nullable|integer|min:0',
+            'kids_quantity' => 'nullable|integer|min:0|max:2',
             'adult_price' => 'required|numeric|min:0',
             'kid_price' => 'required|numeric|min:0',
         ]);
 
         $user = Auth::user();
+        $cart = $user->cart()->where('is_active', true)->first();
 
-        $cart = $user->cart ?? Cart::create([
-            'user_id' => $user->user_id,
-            'is_active' => true
-        ]);
+        if (!$cart) {
+            $cart = Cart::create([
+                'user_id' => $user->user_id,
+                'is_active' => true,
+            ]);
+        }
 
         CartItem::create([
             'cart_id' => $cart->cart_id,
@@ -75,23 +80,18 @@ class CartController extends Controller
             'is_active' => true,
         ]);
 
-        // Si es petición AJAX, retorna JSON
-        if ($request->ajax()) {
-            return response()->json(['message' => 'Tour agregado al carrito.']);
-        }
-
-        return back()->with('success', 'Tour agregado al carrito.');
-
+        return $request->ajax()
+            ? response()->json(['message' => 'Tour agregado al carrito.'])
+            : back()->with('success', 'Tour agregado al carrito.');
     }
 
-
-    // Actualiza cantidad del item en carrito
+    // Actualizar un ítem desde modal PATCH
     public function update(Request $request, CartItem $item)
     {
         $validated = $request->validate([
             'tour_date' => 'required|date',
             'adults_quantity' => 'required|integer|min:1',
-            'kids_quantity' => 'nullable|integer|min:0',
+            'kids_quantity' => 'nullable|integer|min:0|max:2',
             'is_active' => 'nullable|boolean',
         ]);
 
@@ -105,48 +105,20 @@ class CartController extends Controller
         return back()->with('success', 'Ítem actualizado correctamente.');
     }
 
-
-    // Remueve item del carrito
-    public function destroy(CartItem $item)
-    {
-        $item->delete();
-
-        return redirect()->back()->with('success', 'Ítem eliminado del carrito.');
-    }
-
-    public function allCarts(Request $request)
-    {
-        $carritos = Cart::with(['user', 'items' => function ($query) use ($request) {
-            if ($request->filled('estado')) {
-                $query->where('is_active', $request->estado);
-            }
-        }, 'items.tour', 'items.language'])
-        ->whereHas('user', function ($query) use ($request) {
-            if ($request->filled('correo')) {
-                $query->where('email', 'ilike', '%' . $request->correo . '%');
-            }
-        })
-        ->whereHas('items') // solo carritos con ítems
-        ->get();
-
-        return view('admin.Cart.general', compact('carritos'));
-    }
-
+    // Actualizar desde formulario POST (botón Guardar del modal)
     public function updateFromPost(Request $request, CartItem $item)
     {
         $validated = $request->validate([
             'tour_date' => 'required|date',
             'adults_quantity' => 'required|integer|min:1',
-            'kids_quantity' => 'nullable|integer|min:0',
+            'kids_quantity' => 'nullable|integer|min:0|max:2',
         ]);
 
-        // Si no está activo (checkbox desmarcado), se elimina
         if (!$request->has('is_active')) {
             $item->delete();
             return back()->with('success', 'Ítem eliminado del carrito correctamente.');
         }
 
-        // Si está activo, se actualiza normalmente
         $item->update([
             'tour_date' => $validated['tour_date'],
             'adults_quantity' => $validated['adults_quantity'],
@@ -157,10 +129,34 @@ class CartController extends Controller
         return back()->with('success', 'Ítem actualizado correctamente.');
     }
 
+    // Eliminar un ítem
+    public function destroy(CartItem $item)
+    {
+        $item->delete();
+        return redirect()->back()->with('success', 'Ítem eliminado del carrito.');
+    }
 
+    // Vista de todos los carritos para el admin
+    public function allCarts(Request $request)
+    {
+        $carritos = Cart::with([
+            'user',
+            'items' => function ($q) use ($request) {
+                if ($request->filled('estado')) {
+                    $q->where('is_active', $request->estado);
+                }
+            },
+            'items.tour',
+            'items.language',
+        ])
+        ->whereHas('user', function ($q) use ($request) {
+            if ($request->filled('correo')) {
+                $q->where('email', 'ilike', '%' . $request->correo . '%');
+            }
+        })
+        ->whereHas('items')
+        ->get();
 
-
-    
-
-
+        return view('admin.Cart.general', compact('carritos'));
+    }
 }
