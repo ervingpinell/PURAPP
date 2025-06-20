@@ -24,4 +24,9 @@ class Amenity extends Model
     {
         return $this->belongsToMany(Tour::class, 'amenity_tour', 'amenity_id', 'tour_id');
     }
+
+public function excludedFromTours()
+{
+    return $this->belongsToMany(Tour::class, 'excluded_amenity_tour', 'amenity_id', 'tour_id');
+}
 }

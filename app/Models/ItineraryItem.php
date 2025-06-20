@@ -12,7 +12,6 @@ class ItineraryItem extends Model
     'itinerary_id',
     'title',
     'description',
-    'order',
     'is_active',
     ];
 

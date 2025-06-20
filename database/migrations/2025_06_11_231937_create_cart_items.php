@@ -20,8 +20,8 @@ return new class extends Migration
             $table->unsignedBigInteger('tour_language_id');
 
             $table->unsignedBigInteger('hotel_id')->nullable();
-            $table->boolean('is_other_hotel')->default(false); // <-- nuevo campo para indicar uso de hotel personalizado
-            $table->string('other_hotel_name')->nullable();    // <-- nombre ingresado por el usuario
+            $table->boolean('is_other_hotel')->default(false);
+            $table->string('other_hotel_name')->nullable();  
 
             $table->integer('adults_quantity');
             $table->integer('kids_quantity');

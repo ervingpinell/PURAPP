@@ -19,26 +19,54 @@
     <a href="{{ route('admin.cart.index') }}" class="btn btn-primary mb-3">
         <i class="fas fa-shopping-cart"></i> Ver carrito
     </a>
+    {{-- Botón para abrir modal --}}
+    <div class="p-3">
+        <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
+            <i class="fas fa-plus"></i> Añadir Tour
+        </a>
 
-    
-</div>
+        {{-- Tabla de tours (ahora sí envuelta correctamente para ser responsive) --}}
+        <div class="table-responsive">
+            @include('admin.tours.tourlist')
+        </div>
+    </div>
 
-{{-- Template para ítems de itinerario dinámico --}}
+    {{-- Template para ítems de itinerario --}}
     @include('admin.tours.itinerary.template')
 
-    {{-- Tabla principal con todos los tours --}}
-    @include('admin.tours.tourlist')
-
-    {{-- Modales de edición para cada tour --}}
-    @include('admin.tours.edit')
-
-    {{-- Modal para crear nuevo tour --}}
+    {{-- Modal crear --}}
     @include('admin.tours.create')
 
+    {{-- Modales de edición --}}
+    @include('admin.tours.edit')
 @endsection
 
-@section('plugins.Sweetalert2', true)
+@php
+    $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {
+        return [
+            'description' => $it->description,
+            'items' => $it->items->map(function ($item) {
+                return [
+                    'title' => $item->title,
+                    'description' => $item->description,
+                ];
+            })->toArray()
+        ];
+    });
+@endphp
 
 @section('js')
     @include('admin.tours.scripts')
+
+    <script>
+        // Reposicionar scroll cuando se abre un modal
+        document.addEventListener('shown.bs.modal', function (event) {
+            const modal = event.target;
+            const rect = modal.getBoundingClientRect();
+            window.scrollTo({
+                top: rect.top + window.scrollY - 50,
+                behavior: 'smooth'
+            });
+        }, true);
+    </script>
 @endsection

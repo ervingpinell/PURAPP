@@ -11,9 +11,7 @@ class Itinerary extends Model
 
     protected $primaryKey = 'itinerary_id';
 
-    protected $fillable = [
-        'name',
-    ];
+protected $fillable = ['name', 'description'];
 
     public function tours()
     {
@@ -22,7 +20,8 @@ class Itinerary extends Model
 public function items()
 {
     return $this->belongsToMany(ItineraryItem::class, 'itinerary_item_itinerary', 'itinerary_id', 'itinerary_item_id')
-        ->withPivot('is_active')
-        ->withTimestamps();
+                ->withPivot('item_order', 'is_active')
+                ->orderBy('pivot_item_order'); // ← aquí el cambio importante
 }
+
 }

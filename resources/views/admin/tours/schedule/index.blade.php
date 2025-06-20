@@ -7,102 +7,139 @@
 @stop
 
 @section('content')
-<div class="p-3 table-responsive">
-    <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-        <i class="fas fa-plus"></i> Añadir Horario
+<div class="p-3">
+    <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrarGeneral">
+        <i class="fas fa-plus"></i> Añadir Horario General
     </a>
 
-    <table class="table table-bordered table-striped table-hover">
-        <thead class="bg-primary text-white">
-            <tr>
-                <th>ID</th>
-                <th>Tour</th>
-                <th>Hora</th>
-                <th>Etiqueta</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($schedules as $schedule)
-            <tr>
-                <td>{{ $schedule->tour_schedule_id }}</td>
-                <td>{{ $schedule->tour->name ?? 'N/A' }}</td>
-                <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }}</td>
-                <td>{{ $schedule->label }}</td>
-                <td>
-                    @if ($schedule->is_active)
-                        <span class="badge bg-success">Activo</span>
-                    @else
-                        <span class="badge bg-secondary">Inactivo</span>
-                    @endif
-                </td>
-                <td>
-                    <!-- Editar -->
-                    <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $schedule->tour_schedule_id }}">
-                        <i class="fas fa-edit"></i>
-                    </a>
+    <div class="row">
+        @php
+            $allTours = \App\Models\Tour::with('schedules')->orderBy('tour_id')->get();
+        @endphp
 
-                    <!-- Desactivar -->
-                    <form action="{{ route('admin.tours.schedule.destroy', $schedule->tour_schedule_id) }}" method="POST" style="display: inline-block;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-danger"
-                            onclick="return confirm('¿Deseas desactivarlo?')">
-                            <i class="fas fa-times-circle"></i>
+        @foreach ($allTours as $tour)
+            @php
+                // Ordenar AM primero, luego PM
+                $horarios = $tour->schedules->sortBy(function ($s) {
+                    $h = (int) date('H', strtotime($s->start_time));
+                    return ($h < 12 ? 0 : 1) . date('H:i', strtotime($s->start_time));
+                });
+
+                $activos = $horarios->where('is_active', true);
+            @endphp
+
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ $tour->name }}</h5>
+                        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalAgregarHorario{{ $tour->tour_id }}">
+                            <i class="fas fa-plus"></i> Añadir horario
                         </button>
-                    </form>
-                </td>
-            </tr>
+                    </div>
+                    <div class="card-body">
+                        @forelse($horarios as $bloque)
+                            <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2">
+                                <div>
+                                    🕒 {{ date('g:i A', strtotime($bloque->start_time)) }}
+                                    –
+                                    {{ date('g:i A', strtotime($bloque->end_time)) }}<br>
+                                    <span class="badge {{ $bloque->is_active ? 'bg-success' : 'bg-secondary' }}">
+                                        {{ $bloque->is_active ? 'Activo' : 'Inactivo' }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <a href="#" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $bloque->tour_schedule_id }}">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
 
-            <!-- Modal editar -->
-            <div class="modal fade" id="modalEditar{{ $schedule->tour_schedule_id }}" tabindex="-1" aria-hidden="true">
+                                    <form action="{{ route('admin.tours.schedule.toggle', $bloque->tour_schedule_id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('PUT')
+                                        <button type="submit"
+                                            class="btn btn-sm {{ $bloque->is_active ? 'btn-danger' : 'btn-success' }}"
+                                            title="{{ $bloque->is_active ? 'Desactivar' : 'Activar' }}"
+                                            onclick="return confirm('¿Deseas {{ $bloque->is_active ? 'desactivar' : 'activar' }} este horario?')">
+                                            <i class="fas {{ $bloque->is_active ? 'fa-times' : 'fa-check' }}"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            {{-- Modal editar --}}
+                            <div class="modal fade" id="modalEditar{{ $bloque->tour_schedule_id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <form action="{{ route('admin.tours.schedule.update', $bloque->tour_schedule_id) }}" method="POST">
+                                        @csrf
+                                        @method('PUT')
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Editar Horario</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <input type="hidden" name="tour_id" value="{{ $bloque->tour_id }}">
+                                                <div class="mb-3">
+                                                    <label>Hora de Inicio</label>
+                                                    <input type="time" name="start_time" class="form-control" value="{{ $bloque->start_time }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label>Hora de Fin</label>
+                                                    <input type="time" name="end_time" class="form-control" value="{{ $bloque->end_time }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="submit" class="btn btn-warning">Actualizar</button>
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        @empty
+                            <span class="text-muted">No hay horarios configurados.</span>
+                        @endforelse
+                    </div>
+                    <div class="card-footer text-muted">
+                        {{ $activos->count() }} bloque{{ $activos->count() != 1 ? 's' : '' }} activo{{ $activos->count() != 1 ? 's' : '' }}
+                    </div>
+                </div>
+            </div>
+
+            {{-- Modal agregar horario --}}
+            <div class="modal fade" id="modalAgregarHorario{{ $tour->tour_id }}" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog">
-                    <form action="{{ route('admin.tours.schedule.update', $schedule->tour_schedule_id) }}" method="POST">
+                    <form action="{{ route('admin.tours.schedule.store') }}" method="POST">
                         @csrf
-                        @method('PUT')
+                        <input type="hidden" name="tour_id" value="{{ $tour->tour_id }}">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">Editar Horario</h5>
+                                <h5 class="modal-title">Añadir Horario a {{ $tour->name }}</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
                                 <div class="mb-3">
-                                    <label>Tour</label>
-                                    <select name="tour_id" class="form-control" required>
-                                        @foreach(App\Models\Tour::all() as $tour)
-                                            <option value="{{ $tour->tour_id }}" {{ $schedule->tour_id == $tour->tour_id ? 'selected' : '' }}>
-                                                {{ $tour->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                    <label>Hora de Inicio</label>
+                                    <input type="time" name="start_time" class="form-control" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label>Hora (HH:mm)</label>
-                                    <input type="time" name="start_time" class="form-control" value="{{ $schedule->start_time }}" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label>Etiqueta</label>
-                                    <input type="text" name="label" class="form-control" value="{{ $schedule->label }}">
+                                    <label>Hora de Fin</label>
+                                    <input type="time" name="end_time" class="form-control" required>
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="submit" class="btn btn-warning">Actualizar</button>
+                                <button type="submit" class="btn btn-success">Guardar</button>
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                             </div>
                         </div>
                     </form>
                 </div>
             </div>
-            @endforeach
-        </tbody>
-    </table>
-
-    {{ $schedules->links() }}
+        @endforeach
+    </div>
 </div>
 
-<!-- Modal registrar -->
-<div class="modal fade" id="modalRegistrar" tabindex="-1" aria-hidden="true">
+{{-- Modal para agregar general --}}
+<div class="modal fade" id="modalRegistrarGeneral" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <form action="{{ route('admin.tours.schedule.store') }}" method="POST">
             @csrf
@@ -116,18 +153,18 @@
                         <label>Tour</label>
                         <select name="tour_id" class="form-control" required>
                             <option value="">Seleccione un tour</option>
-                            @foreach(App\Models\Tour::all() as $tour)
+                            @foreach(\App\Models\Tour::orderBy('tour_id')->get() as $tour)
                                 <option value="{{ $tour->tour_id }}">{{ $tour->name }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label>Hora (HH:mm)</label>
-                        <input type="time" name="start_time" class="form-control" value="{{ old('start_time') }}" required>
+                        <label>Hora de Inicio</label>
+                        <input type="time" name="start_time" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label>Etiqueta</label>
-                        <input type="text" name="label" class="form-control" value="{{ old('label') }}">
+                        <label>Hora de Fin</label>
+                        <input type="time" name="end_time" class="form-control" required>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -148,21 +185,6 @@
         title: 'Éxito',
         text: '{{ session('success') }}',
         confirmButtonColor: '#28a745'
-    });
-</script>
-@endif
-
-@if ($errors->any())
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: '{{ $errors->first() }}',
-            confirmButtonColor: '#d33'
-        });
-        const modal = new bootstrap.Modal(document.getElementById('modalRegistrar'));
-        modal.show();
     });
 </script>
 @endif

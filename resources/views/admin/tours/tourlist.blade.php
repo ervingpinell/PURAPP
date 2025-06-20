@@ -5,20 +5,73 @@
     </div>
 @endif
 <table class="table table-bordered table-striped table-hover">
+<style>
+/* Estilos responsive y comprimidos */
+td.overview-cell,
+td.amenities-cell,
+td.not-included-amenities-cell,
+td.itinerary-cell {
+    max-width: 300px;
+    min-width: 150px;
+    white-space: normal;
+    word-break: break-word;
+}
+
+@media (max-width: 768px) {
+    td.overview-cell,
+    td.amenities-cell,
+    td.itinerary-cell {
+        max-width: 200px;
+    }
+}
+
+.overview-preview {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-height: 4.5em;
+    line-height: 1.5em;
+    transition: max-height 0.3s ease;
+    word-break: break-word;
+}
+
+.overview-expanded {
+    -webkit-line-clamp: unset;
+    max-height: none;
+}
+
+.badge-truncate {
+    display: inline-block;
+    max-width: 100px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    font-size: 0.75rem;
+}
+
+.table-sm td, .table-sm th {
+    padding: 0.3rem;
+    font-size: 0.85rem;
+}
+</style>
+
+<table class="table table-sm table-bordered table-striped table-hover w-100">
     <thead class="bg-primary text-white">
         <tr>
             <th>ID</th>
             <th>Nombre</th>
-            <th>Resumen</th>
-            <th>Descripción</th>
-            <th>Amenidades</th>
-            <th>Itinerario</th>
-            <th>Idiomas</th>
+            <th style="width: 200px;">Resumen</th>
+            <th style="width: 100px;">Amenidades</th>
+            <th style="width: 100px;">Exlusiones</th>
+            <th style="width: 180px;">Itinerario</th>
+            <th class="d-none d-md-table-cell">Idiomas</th>
             <th>Horarios</th>
             <th>Precio Adulto</th>
-            <th>Precio Niño</th>
-            <th>Duración (h)</th>
-            <th>Tipo de tour</th>
+            <th class="d-none d-md-table-cell">Precio Niño</th>
+            <th class="d-none d-md-table-cell">Duración (h)</th>
+            <th>Tipo</th>
             <th>Estado</th>
             <th>Acciones</th>
         </tr>
@@ -27,12 +80,23 @@
         @foreach($tours as $tour)
             <tr>
                 <td>{{ $tour->tour_id }}</td>
-                <td>{{ $tour->name }}</td>
-                <td>{{ $tour->overview }}</td>
-                <td>{{ Str::limit($tour->description, 50) }}</td>
-                <td>
+                <td class="text-truncate" style="max-width: 140px;" title="{{ $tour->name }}">{{ $tour->name }}</td>
+
+                {{-- Overview --}}
+                <td class="overview-cell">
+                    @php $overviewId = 'overview_' . $tour->tour_id; @endphp
+                    <div id="{{ $overviewId }}" class="overview-preview">{{ $tour->overview }}</div>
+                    <button type="button" class="btn btn-link btn-sm mt-1 p-0" onclick="toggleOverview('{{ $overviewId }}', this)">
+                        Ver más
+                    </button>
+                </td>
+
+                {{-- Amenidades --}}
+                <td class="amenities-cell">
                     @forelse($tour->amenities as $am)
-                        <span class="badge bg-info">{{ $am->name }}</span>
+                        <span class="badge bg-info mb-1 badge-truncate" title="{{ $am->name }}">
+                            {{ $am->name }}
+                        </span>
                     @empty
                         <span class="text-muted">Sin amenidades</span>
                     @endforelse
@@ -45,38 +109,71 @@
                     @endforelse
                 </td>
                 <td>
+
+                {{-- Amenidades --}}
+                <td class="not-included-amenities-cell">
+@forelse ($tour->excludedAmenities as $amenity)
+    <span class="badge bg-danger mb-1 badge-truncate" title="{{ $amenity->name }}">
+        {{ $amenity->name }}
+    </span>
+@empty
+    <span class="text-muted">Sin exclusiones</span>
+@endforelse
+
+                </td>
+
+                
+                {{-- Itinerario --}}
+                <td class="itinerary-cell">
+                    @if($tour->itinerary)
+                        <strong>{{ $tour->itinerary->name }}</strong><br>
+                        @forelse($tour->itinerary->items as $item)
+                            <span class="badge bg-info mb-1 badge-truncate" title="{{ $item->title }}">
+                                {{ $item->title }}
+                            </span>
+                        @empty
+                            <small class="text-muted">(Sin ítems)</small>
+                        @endforelse
+                    @else
+                        <span class="text-muted">Sin itinerario</span>
+                    @endif
+                </td>
+
+                {{-- Idiomas --}}
+                <td class="d-none d-md-table-cell">
                     @forelse($tour->languages as $lang)
                         <span class="badge bg-secondary">{{ $lang->name }}</span>
                     @empty
                         <span class="text-muted">Sin idiomas</span>
                     @endforelse
                 </td>
-                <td>
-                    @php
-                        $am = optional($tour->schedules->first());
-                        $pm = optional($tour->schedules->skip(1)->first());
-                    @endphp
-                    @if($am->start_time && $am->end_time)
-                        <strong>AM:</strong> {{ $am->start_time }} - {{ $am->end_time }}<br>
-                    @endif
-                    @if($pm->start_time && $pm->end_time)
-                        <strong>PM:</strong> {{ $pm->start_time }} - {{ $pm->end_time }}
-                    @endif
-                    @if(!$am->start_time && !$pm->start_time)
-                        <span class="text-muted">No configurado</span>
-                    @endif
-                </td>
+
+                {{-- Horarios --}}
+<td>
+    @forelse ($tour->schedules->sortBy('start_time') as $schedule)
+        <div>
+            <span class="badge bg-success">
+                {{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}
+            </span>
+        </div>
+    @empty
+        <span class="text-muted">Sin horarios</span>
+    @endforelse
+</td>
+
                 <td>{{ number_format($tour->adult_price, 2) }}</td>
-                <td>{{ number_format($tour->kid_price, 2) }}</td>
-                <td>{{ $tour->length }}</td>
+                <td class="d-none d-md-table-cell">{{ number_format($tour->kid_price, 2) }}</td>
+                <td class="d-none d-md-table-cell">{{ $tour->length }}</td>
                 <td>{{ $tour->tourType->name }}</td>
+
+                {{-- Estado --}}
                 <td>
-                    @if($tour->is_active)
-                        <span class="badge bg-success">Activo</span>
-                    @else
-                        <span class="badge bg-secondary">Inactivo</span>
-                    @endif
+                    <span class="badge {{ $tour->is_active ? 'bg-success' : 'bg-secondary' }}">
+                        {{ $tour->is_active ? 'Activo' : 'Inactivo' }}
+                    </span>
                 </td>
+
+                {{-- Acciones --}}
                 <td>
                     {{-- Botón carrito --}}
                     <button class="btn btn-success btn-sm"
@@ -159,3 +256,10 @@
 </div>
 @endforeach
 
+<script>
+    function toggleOverview(id, btn) {
+        const div = document.getElementById(id);
+        div.classList.toggle('overview-expanded');
+        btn.textContent = div.classList.contains('overview-expanded') ? 'Ocultar' : 'Ver más';
+    }
+</script>

@@ -13,9 +13,8 @@ return new class extends Migration
     {
         Schema::create('itinerary_items', function (Blueprint $table) {
     $table->id('item_id');
-    $table->string('title');
+    $table->string('title')->unique();
     $table->text('description');
-    $table->integer('order')->default(0);
     $table->boolean('is_active')->default(true);
     $table->timestamps();
 

@@ -93,4 +93,7 @@ return [
     'optional' => 'Opcional',
     'save'=> 'Guardar',
     'edit_profile'=> 'Editar Perfil',
+'read_more' => 'leer más',
+'adult_price' => 'Adultos (10+)',
+'kid_price' => 'Niños (0-9)',
 ];

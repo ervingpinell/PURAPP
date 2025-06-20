@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\SetLocale;
 
 // Controllers públicos y de autenticación
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashBoardController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ClienteRegisterController;
@@ -27,7 +28,7 @@ use App\Http\Controllers\Admin\Cart\CartController;
 Route::middleware([SetLocale::class])->group(function () {
 
     // 🌐 Rutas públicas
-    Route::get('/', [DashBoardController::class, 'index'])->name('home');
+    Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/language/{language}', [DashBoardController::class, 'switchLanguage'])->name('switch.language');
 
     // 🔐 Autenticación (Clientes)
@@ -71,7 +72,8 @@ Route::middleware([SetLocale::class])->group(function () {
             Route::post('schedule', [TourScheduleController::class, 'store'])->name('schedule.store');
             Route::put('schedule/{schedule}', [TourScheduleController::class, 'update'])->name('schedule.update');
             Route::delete('schedule/{schedule}', [TourScheduleController::class, 'destroy'])->name('schedule.destroy');
-
+            Route::put('schedule/{schedule}/toggle', [TourScheduleController::class, 'toggle'])->name('schedule.toggle');
+            
             // Itinerarios
             Route::resource('itinerary', ItineraryController::class)->except(['show']);
             Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');
