@@ -13,7 +13,7 @@ class ItineraryController extends Controller
 {
     public function index(ItineraryService $service)
     {
-        $itineraries = Itinerary::with('items')->get();
+        $itineraries = Itinerary::with('items')->orderBy('name')->get();
         $items = $service->getAvailableItems();
 
         return view('admin.tours.itinerary.index', compact('itineraries', 'items'));
@@ -23,11 +23,13 @@ class ItineraryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
         ]);
 
         try {
             Itinerary::create([
-                'name' => $request->name
+                'name' => $request->name,
+                'description' => $request->description ?? '',
             ]);
 
             return redirect()->back()->with('success', 'Itinerario creado correctamente.');
@@ -41,11 +43,15 @@ class ItineraryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
         ]);
 
         try {
             $itinerary = Itinerary::findOrFail($id);
-            $itinerary->update(['name' => $request->name]);
+            $itinerary->update([
+                'name' => $request->name,
+                'description' => $request->description ?? '',
+            ]);
 
             return redirect()->back()->with('success', 'Itinerario actualizado correctamente.');
         } catch (Exception $e) {
