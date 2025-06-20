@@ -2,6 +2,7 @@
 /* Estilos responsive y comprimidos */
 td.overview-cell,
 td.amenities-cell,
+td.not-included-amenities-cell,
 td.itinerary-cell {
     max-width: 300px;
     min-width: 150px;
@@ -55,7 +56,8 @@ td.itinerary-cell {
             <th>ID</th>
             <th>Nombre</th>
             <th style="width: 200px;">Resumen</th>
-            <th style="width: 180px;">Amenidades</th>
+            <th style="width: 100px;">Amenidades</th>
+            <th style="width: 100px;">Exlusiones</th>
             <th style="width: 180px;">Itinerario</th>
             <th class="d-none d-md-table-cell">Idiomas</th>
             <th>Horarios</th>
@@ -93,6 +95,19 @@ td.itinerary-cell {
                     @endforelse
                 </td>
 
+                {{-- Amenidades --}}
+                <td class="not-included-amenities-cell">
+@forelse ($tour->excludedAmenities as $amenity)
+    <span class="badge bg-danger mb-1 badge-truncate" title="{{ $amenity->name }}">
+        {{ $amenity->name }}
+    </span>
+@empty
+    <span class="text-muted">Sin exclusiones</span>
+@endforelse
+
+                </td>
+
+                
                 {{-- Itinerario --}}
                 <td class="itinerary-cell">
                     @if($tour->itinerary)
@@ -119,45 +134,17 @@ td.itinerary-cell {
                 </td>
 
                 {{-- Horarios --}}
-                <td>
-                    @php
-                        $horarios = optional($tour->schedules)->sortBy('start_time')->values() ?? collect();
-                        $h1 = $horarios->get(0);
-                        $h2 = $horarios->get(1);
-                        $bloques = [];
-
-                        function esAM($hora) {
-                            return $hora && intval(date('H', strtotime($hora))) < 12;
-                        }
-
-                        function horaBonita($hora) {
-                            return $hora ? date('g:i a', strtotime($hora)) : null;
-                        }
-
-                        function bloqueHorario($etiqueta, $inicio, $fin) {
-                            return '
-                                <div class="border rounded p-1 mb-1 text-center bg-light" style="font-size: 0.7rem;">
-                                    <div class="fw-bold text-uppercase">' . $etiqueta . '</div>
-                                    <div class="text-dark">' . horaBonita($inicio) . ' - ' . horaBonita($fin) . '</div>
-                                </div>
-                            ';
-                        }
-
-                        if ($h1 && $h1->start_time && $h1->end_time) {
-                            $bloques[] = bloqueHorario(esAM($h1->start_time) ? 'AM' : 'PM', $h1->start_time, $h1->end_time);
-                        }
-
-                        if ($h2 && $h2->start_time && $h2->end_time) {
-                            $bloques[] = bloqueHorario(esAM($h2->start_time) ? 'AM' : 'PM', $h2->start_time, $h2->end_time);
-                        }
-                    @endphp
-
-                    @if(count($bloques))
-                        {!! implode('', $bloques) !!}
-                    @else
-                        <span class="text-muted">No configurado</span>
-                    @endif
-                </td>
+<td>
+    @forelse ($tour->schedules->sortBy('start_time') as $schedule)
+        <div>
+            <span class="badge bg-success">
+                {{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}
+            </span>
+        </div>
+    @empty
+        <span class="text-muted">Sin horarios</span>
+    @endforelse
+</td>
 
                 <td>{{ number_format($tour->adult_price, 2) }}</td>
                 <td class="d-none d-md-table-cell">{{ number_format($tour->kid_price, 2) }}</td>

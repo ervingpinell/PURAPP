@@ -73,11 +73,22 @@
             @endforeach
           </div>
 
+          {{-- Amenidades NO incluidas --}}
+<div class="mb-3">
+    <label class="form-label text-danger">Amenidades NO incluidas</label><br>
+    @foreach($amenities as $am)
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" name="excluded_amenities[]" value="{{ $am->amenity_id }}"
+                {{ in_array($am->amenity_id, old('excluded_amenities', [])) ? 'checked' : '' }}>
+            <label class="form-check-label">{{ $am->name }}</label>
+        </div>
+    @endforeach
+</div>
           {{-- Horarios --}}
-          <x-adminlte-input name="schedule_am_start" label="Horario AM (Inicio)" type="time" value="{{ old('schedule_am_start') }}" />
-          <x-adminlte-input name="schedule_am_end" label="Horario AM (Fin)" type="time" value="{{ old('schedule_am_end') }}" />
-          <x-adminlte-input name="schedule_pm_start" label="Horario PM (Inicio)" type="time" value="{{ old('schedule_pm_start') }}" />
-          <x-adminlte-input name="schedule_pm_end" label="Horario PM (Fin)" type="time" value="{{ old('schedule_pm_end') }}" />
+<x-adminlte-input name="schedule_am_start" label="Horario AM (Inicio)" type="text" placeholder="Ej: 08:00 o 8:00 AM" value="{{ old('schedule_am_start') }}" />
+<x-adminlte-input name="schedule_am_end" label="Horario AM (Fin)" type="text" placeholder="Ej: 11:30 o 11:30 AM" value="{{ old('schedule_am_end') }}" />
+<x-adminlte-input name="schedule_pm_start" label="Horario PM (Inicio)" type="text" placeholder="Ej: 13:30 o 1:30 PM" value="{{ old('schedule_pm_start') }}" />
+<x-adminlte-input name="schedule_pm_end" label="Horario PM (Fin)" type="text" placeholder="Ej: 17:30 o 5:30 PM" value="{{ old('schedule_pm_end') }}" />
 
           {{-- Itinerario --}}
           <div class="mb-3">
@@ -102,7 +113,7 @@
           {{-- Sección para nuevo itinerario --}}
           <div id="new-itinerary-section" style="display: none;">
             <x-adminlte-input name="new_itinerary_name" label="Nombre del nuevo itinerario" value="{{ old('new_itinerary_name') }}" />
-            <x-adminlte-textarea name="new_itinerary_description" label="Descripción del nuevo itinerario">{{ old('new_itinerary_description') }}</x-adminlte-textarea>
+            <x-adminlte-textarea name="new_itinerary_description" label="Descripción del nuevo itinerario" style="height:200px;">{{ old('new_itinerary_description')}}</x-adminlte-textarea>
 
             <label>Asignar Ítems Existentes</label>
             @foreach($availableItems as $item)

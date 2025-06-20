@@ -12,6 +12,20 @@ class ItineraryService
 {
 public function createWithItems(string $name, array $items, string $description = null): Itinerary
 {
+    if (empty($items)) {
+        Log::error('❌ No se proporcionaron ítems válidos para el itinerario.', [
+            'name' => $name,
+            'description' => $description,
+        ]);
+        throw new \Exception('No se proporcionaron ítems válidos para el itinerario.');
+    }
+
+    Log::info('📌 Creando itinerario con ítems:', [
+        'name' => $name,
+        'description' => $description,
+        'items' => $items
+    ]);
+
     return DB::transaction(function () use ($name, $items, $description) {
         $itinerary = Itinerary::create([
             'name' => $name,
@@ -50,6 +64,7 @@ public function createWithItems(string $name, array $items, string $description 
         return $itinerary;
     });
 }
+
 
     public function handleCreationOrAssignment(array $requestData): ?Itinerary
     {

@@ -79,21 +79,38 @@
                 @endforeach
               </div>
             </div>
-
+            
+{{-- Amenidades NO incluidas --}}
+<div class="mb-3">
+    <label class="form-label text-danger">Amenidades NO incluidas</label>
+    <div>
+        @foreach($amenities as $am)
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="excluded_amenities[]" value="{{ $am->amenity_id }}"
+                    id="edit_excl_am_{{ $tour->tour_id }}_{{ $am->amenity_id }}"
+                    {{ in_array($am->amenity_id, old('excluded_amenities', $tour->excludedAmenities->pluck('amenity_id')->toArray())) ? 'checked' : '' }}>
+                <label class="form-check-label" for="edit_excl_am_{{ $tour->tour_id }}_{{ $am->amenity_id }}">{{ $am->name }}</label>
+            </div>
+        @endforeach
+    </div>
+</div>
             {{-- Horarios --}}
             <div class="row mb-3">
-              <div class="col-md-6">
-                <x-adminlte-input name="schedule_am_start" label="Horario AM (Inicio)" type="time" value="{{ old('schedule_am_start', optional($tour->schedules->first())->start_time) }}" />
-              </div>
-              <div class="col-md-6">
-                <x-adminlte-input name="schedule_am_end" label="Horario AM (Fin)" type="time" value="{{ old('schedule_am_end', optional($tour->schedules->first())->end_time) }}" />
-              </div>
-              <div class="col-md-6">
-                <x-adminlte-input name="schedule_pm_start" label="Horario PM (Inicio)" type="time" value="{{ old('schedule_pm_start', optional($tour->schedules->skip(1)->first())->start_time) }}" />
-              </div>
-              <div class="col-md-6">
-                <x-adminlte-input name="schedule_pm_end" label="Horario PM (Fin)" type="time" value="{{ old('schedule_pm_end', optional($tour->schedules->skip(1)->first())->end_time) }}" />
-              </div>
+<div class="row mb-3">
+  <div class="col-md-6">
+    <x-adminlte-input name="schedule_am_start" label="Horario AM (Inicio)" type="text" placeholder="Ej: 08:00 o 8:00 AM" value="{{ old('schedule_am_start', optional($tour->schedules->first())->start_time) }}" />
+  </div>
+  <div class="col-md-6">
+    <x-adminlte-input name="schedule_am_end" label="Horario AM (Fin)" type="text" placeholder="Ej: 11:30 o 11:30 AM" value="{{ old('schedule_am_end', optional($tour->schedules->first())->end_time) }}" />
+  </div>
+  <div class="col-md-6">
+    <x-adminlte-input name="schedule_pm_start" label="Horario PM (Inicio)" type="text" placeholder="Ej: 13:30 o 1:30 PM" value="{{ old('schedule_pm_start', optional($tour->schedules->skip(1)->first())->start_time) }}" />
+  </div>
+  <div class="col-md-6">
+    <x-adminlte-input name="schedule_pm_end" label="Horario PM (Fin)" type="text" placeholder="Ej: 17:30 o 5:30 PM" value="{{ old('schedule_pm_end', optional($tour->schedules->skip(1)->first())->end_time) }}" />
+  </div>
+</div>
+
             </div>
 
             {{-- Itinerario --}}

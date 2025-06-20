@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 class InitialSetupSeeder extends Seeder
 {
@@ -17,6 +18,21 @@ class InitialSetupSeeder extends Seeder
             ['role_id' => 1, 'role_name' => 'Admin',      'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
             ['role_id' => 2, 'role_name' => 'Supervisor', 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
             ['role_id' => 3, 'role_name' => 'Customer',   'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+        ]);
+
+        // Users
+        DB::table('users')->insertOrIgnore([
+            [
+                'full_name' => 'Erving Pinell',
+                'email' => 'ervingpinell@gmail.com',
+                'password' => Hash::make('-erving1234'),
+                'role_id' => 1,
+                'phone' => '24791471',
+                'status' => true,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now
+            ]
         ]);
 
         // Tour Languages

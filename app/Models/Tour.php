@@ -39,6 +39,12 @@ public function tourType()
     {
         return $this->belongsToMany(Amenity::class, 'amenity_tour', 'tour_id', 'amenity_id');
     }
+
+public function excludedAmenities()
+{
+    return $this->belongsToMany(Amenity::class, 'excluded_amenity_tour', 'tour_id', 'amenity_id');
+}
+
 public function schedules()
 {
     return $this->hasMany(\App\Models\TourSchedule::class, 'tour_id', 'tour_id');
