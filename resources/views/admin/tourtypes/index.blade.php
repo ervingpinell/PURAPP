@@ -42,9 +42,9 @@
                     </a>
 
                     <!-- Activar/Desactivar -->
-                    <form action="{{ route('admin.tourtypes.destroy', $tourtype->tour_type_id) }}" method="POST" style="display: inline-block;">
+                    <form action="{{ route('admin.tourtypes.toggle', $tourtype->tour_type_id) }}" method="POST" style="display: inline-block;">
                         @csrf
-                        @method('DELETE')
+                        @method('PUT')
                         <button type="submit" class="btn btn-sm {{ $tourtype->is_active ? 'btn-danger' : 'btn-success' }}"
                             onclick="return confirm('{{ $tourtype->is_active ? '¿Deseas desactivarlo?' : '¿Deseas activarlo?' }}')">
                             <i class="fas {{ $tourtype->is_active ? 'fa-user-slash' : 'fa-user-check' }}"></i>
@@ -56,7 +56,8 @@
             <!-- Modal editar -->
             <div class="modal fade" id="modalEditar{{ $tourtype->tour_type_id }}" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog">
-                    <form action="{{ route('admin.tourtypes.update', $tourtype->tour_type_id) }}" method="POST">
+                  <form action="{{ route('admin.tourtypes.update', $tourtype->tour_type_id) }}" method="POST">
+
                         @csrf
                         @method('PUT')
                         <div class="modal-content">
@@ -67,11 +68,12 @@
                             <div class="modal-body">
                                 <div class="mb-3">
                                     <label>Nombre</label>
-                                    <input type="text" name="name" class="form-control" value="{{ $tourtype->name }}" required>
+                                    <input type="text" name="name" class="form-control"
+                                        value="{{ session('edit_modal') == $tourtype->tour_type_id ? old('name', $tourtype->name) : $tourtype->name }}" required>
                                 </div>
                                 <div class="mb-3">
                                     <label>Descripción</label>
-                                    <textarea name="description" class="form-control">{{ $tourtype->description }}</textarea>
+                                    <textarea name="description" class="form-control">{{ session('edit_modal') == $tourtype->tour_type_id ? old('description', $tourtype->description) : $tourtype->description }}</textarea>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -169,7 +171,13 @@
             confirmButtonColor: '#d33'
         });
 
-        const modal = new bootstrap.Modal(document.getElementById('modalRegistrar'));
+        @if (session('edit_modal'))
+            const modalId = 'modalEditar{{ session('edit_modal') }}';
+        @else
+            const modalId = 'modalRegistrar';
+        @endif
+
+        const modal = new bootstrap.Modal(document.getElementById(modalId));
         modal.show();
     });
 </script>

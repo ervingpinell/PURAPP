@@ -11,8 +11,8 @@ class TourLanguage extends Model
 
     protected $primaryKey = 'tour_language_id';
 
-    // Si tu tabla no es 'tour_languages', especifica el nombre aquí:
-    // protected $table = 'tour_languages';
+    // Si la tabla se llama diferente a 'tour_languages'
+    protected $table = 'tour_languages';
 
     protected $fillable = [
         'name',
@@ -20,4 +20,12 @@ class TourLanguage extends Model
     ];
 
     public $timestamps = true;
+
+    /**
+     * Asegura que las rutas utilicen tour_language_id como key.
+     */
+    public function getRouteKeyName()
+    {
+        return 'tour_language_id';
+    }
 }

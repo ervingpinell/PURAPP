@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\ItineraryItem;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Exception;
 
 class ItineraryItemController extends Controller
@@ -14,7 +15,7 @@ class ItineraryItemController extends Controller
     public function index()
     {
         $items = ItineraryItem::orderBy('title')->get();
-        return view('admin.tours.itinerary.items.index', compact('items'));
+        return view('admin.tours.itinerary.items.crud', compact('items'));
     }
 
     public function store(Request $request)
@@ -42,10 +43,17 @@ class ItineraryItemController extends Controller
         }
     }
 
-    public function update(Request $request, ItineraryItem $item)
+    public function update(Request $request, ItineraryItem $itinerary_item)
     {
+        $item = $itinerary_item;
+
         $validator = Validator::make($request->all(), [
-            'title'       => 'required|string|max:255|unique:itinerary_items,title,' . $item->item_id . ',item_id',
+            'title'       => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('itinerary_items', 'title')->ignore($item->item_id, 'item_id'),
+            ],
             'description' => 'required|string|max:2000',
             'is_active'   => 'nullable|boolean',
         ]);
@@ -68,14 +76,23 @@ class ItineraryItemController extends Controller
         }
     }
 
-    public function destroy(ItineraryItem $item)
+    public function destroy(ItineraryItem $itinerary_item)
     {
         try {
-            $item->delete();
-            return redirect()->back()->with('success', 'Ítem eliminado exitosamente.');
+            $itinerary_item->update([
+                'is_active' => !$itinerary_item->is_active,
+            ]);
+
+            $itinerary_item->refresh(); // <- Importante para reflejar el nuevo estado
+
+            $mensaje = $itinerary_item->is_active
+                ? 'Ítem activado exitosamente.'
+                : 'Ítem desactivado exitosamente.';
+
+            return redirect()->back()->with('success', $mensaje);
         } catch (Exception $e) {
-            Log::error('Error al eliminar ítem de itinerario: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'No se pudo eliminar el ítem.');
+            Log::error('Error al cambiar estado del ítem de itinerario: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'No se pudo cambiar el estado del ítem.');
         }
     }
 }

@@ -90,10 +90,7 @@
                                     <label>Descripción</label>
                                     <textarea name="description" class="form-control" required>{{ $item->description }}</textarea>
                                 </div>
-                                <div class="mb-3">
-                                    <label>Orden</label>
-                                    <input type="number" name="order" class="form-control" value="{{ $item->order }}" min="0">
-                                </div>
+
                             </div>
                             <div class="modal-footer">
                                 <button type="submit" class="btn btn-warning">Actualizar</button>

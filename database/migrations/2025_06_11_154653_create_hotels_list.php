@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('hotels_list', function (Blueprint $table) {
             $table->id('hotel_id');
-            $table->string('name');
+            $table->string('name')->unique();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

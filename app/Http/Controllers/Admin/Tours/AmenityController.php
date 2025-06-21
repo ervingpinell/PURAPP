@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Tours;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Amenity;
+use Illuminate\Validation\Rule;
 
 class AmenityController extends Controller
 {
@@ -17,12 +18,12 @@ class AmenityController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255'
+            'name' => 'required|string|max:255|unique:amenities,name',
         ]);
 
         Amenity::create([
             'name' => $request->name,
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         return redirect()->route('admin.tours.amenities.index')
@@ -33,12 +34,17 @@ class AmenityController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => 'required|string|max:255'
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('amenities', 'name')->ignore($id),
+            ],
         ]);
 
         $amenity = Amenity::findOrFail($id);
         $amenity->update([
-            'name' => $request->name
+            'name' => $request->name,
         ]);
 
         return redirect()->route('admin.tours.amenities.index')

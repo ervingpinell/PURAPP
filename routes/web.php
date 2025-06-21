@@ -96,8 +96,16 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::resource('roles', RoleController::class)->except(['show']);
 
         // Categorías, idiomas y tipos de tour
-        Route::resource('tourtypes', TourTypeController::class)->except(['show']);
-        Route::resource('languages', TourLanguageController::class)->except(['show']);
+    Route::resource('tourtypes', TourTypeController::class, [
+        'parameters' => ['tourtypes' => 'tourType']
+    ])->except(['show']);
+    Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
+
+
+Route::resource('languages', TourLanguageController::class, [
+    'parameters' => ['languages' => 'language']
+])->except(['show']);
+
         Route::resource('amenities', AmenityController::class); // Doble, si se usa en otro contexto
     });
 

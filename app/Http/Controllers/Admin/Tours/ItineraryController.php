@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Itinerary;
 use App\Services\ItineraryService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Exception;
 
 class ItineraryController extends Controller
@@ -22,7 +23,7 @@ class ItineraryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:itineraries,name',
             'description' => 'nullable|string|max:1000',
         ]);
 
@@ -42,7 +43,12 @@ class ItineraryController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('itineraries', 'name')->ignore($id),
+            ],
             'description' => 'nullable|string|max:1000',
         ]);
 

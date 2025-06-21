@@ -96,10 +96,19 @@ public function createWithItems(string $name, array $items, string $description 
         });
     }
 
-    public function getAvailableItems()
-    {
-        return ItineraryItem::orderBy('title')->where('is_active', true)->get();
+public function getAvailableItems()
+{
+    $query = \App\Models\ItineraryItem::query()->orderBy('title');
+
+    // Filtro por estado si se especifica en la URL
+    if (request('estado') === 'activos') {
+        $query->where('is_active', true);
+    } elseif (request('estado') === 'inactivos') {
+        $query->where('is_active', false);
     }
+
+    return $query->get();
+}
 
     public function getAvailableItinerariesWithItems()
     {

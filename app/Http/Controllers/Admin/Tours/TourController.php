@@ -172,11 +172,11 @@ if (!$itinerary) {
    public function update(Request $request, Tour $tour)
 {
     $request->merge([
-    'schedule_am_start' => $this->parseTime($request->input('schedule_am_start')),
-    'schedule_am_end' => $this->parseTime($request->input('schedule_am_end')),
-    'schedule_pm_start' => $this->parseTime($request->input('schedule_pm_start')),
-    'schedule_pm_end' => $this->parseTime($request->input('schedule_pm_end')),
-]);
+        'schedule_am_start' => $this->parseTime($request->input('schedule_am_start')),
+        'schedule_am_end' => $this->parseTime($request->input('schedule_am_end')),
+        'schedule_pm_start' => $this->parseTime($request->input('schedule_pm_start')),
+        'schedule_pm_end' => $this->parseTime($request->input('schedule_pm_end')),
+    ]);
 
     $request->merge([
         'itinerary_combined' => array_merge(
@@ -242,21 +242,30 @@ if (!$itinerary) {
             $tour->amenities()->sync($validated['amenities'] ?? []);
             $tour->excludedAmenities()->sync($request->input('excluded_amenities', []));
 
-            $tour->schedules()->delete();
+            // NUEVA LÓGICA PARA HORARIOS
+            $nuevosHorarios = [];
 
             if (!empty($validated['schedule_am_start']) && !empty($validated['schedule_am_end'])) {
-                $tour->schedules()->create([
+                $nuevosHorarios[] = [
                     'start_time' => $validated['schedule_am_start'],
                     'end_time' => $validated['schedule_am_end'],
-                ]);
+                ];
             }
 
             if (!empty($validated['schedule_pm_start']) && !empty($validated['schedule_pm_end'])) {
-                $tour->schedules()->create([
+                $nuevosHorarios[] = [
                     'start_time' => $validated['schedule_pm_start'],
                     'end_time' => $validated['schedule_pm_end'],
-                ]);
+                ];
             }
+
+            if (!empty($nuevosHorarios)) {
+                $tour->schedules()->delete();
+                foreach ($nuevosHorarios as $horario) {
+                    $tour->schedules()->create($horario);
+                }
+            }
+            // si no se mandaron horarios, se mantienen los existentes
         });
 
         return redirect()->route('admin.tours.index')->with('success', 'Tour actualizado correctamente.');
@@ -265,7 +274,6 @@ if (!$itinerary) {
         return back()->with('error', 'Hubo un problema al actualizar el tour.')->withInput()->with('showEditModal', $tour->tour_id);
     }
 }
-
     public function destroy(Tour $tour)
     {
         try {

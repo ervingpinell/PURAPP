@@ -6,32 +6,29 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\TourType;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Exception;
 
 class TourTypeController extends Controller
 {
     public function index()
     {
-    $tourTypes = TourType::orderByDesc('created_at')->get();
-
-    return view('admin.tourtypes.index', compact('tourTypes'));
-
+        $tourTypes = TourType::orderByDesc('created_at')->get();
+        return view('admin.tourtypes.index', compact('tourTypes'));
     }
 
     public function store(Request $request)
     {
-
-
         $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string'
+            'name' => 'required|string|max:255|unique:tour_types,name',
+            'description' => 'nullable|string',
         ]);
 
         try {
             TourType::create([
-                 'name' => $request->name,
-             'description' => $request->description,
-            'is_active' => true,
+                'name' => $request->name,
+                'description' => $request->description,
+                'is_active' => true,
             ]);
 
             return redirect()->route('admin.tourtypes.index')
@@ -43,29 +40,38 @@ class TourTypeController extends Controller
         }
     }
 
-    public function update(Request $request, TourType $tourType)
-    {
+   public function update(Request $request, TourType $tourType)
+{
+    try {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string'
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('tour_types', 'name')->ignore($tourType->getKey(), 'tour_type_id'),
+            ],
+            'description' => 'nullable|string',
         ]);
 
-        try {
-            $tourType->update([
-                'name' => $request->name,
-                'description' => $request->description,
-            ]);
+        $tourType->update([
+            'name' => $request->name,
+            'description' => $request->description,
+        ]);
 
-            return redirect()->route('admin.tourtypes.index')
-                ->with('success', 'Tipo de tour actualizado correctamente.')
-                ->with('alert_type', 'actualizado');
-        } catch (Exception $e) {
-            Log::error('Error al actualizar tipo de tour: ' . $e->getMessage());
-            return back()->with('error', 'No se pudo actualizar el tipo de tour.');
-        }
+        return redirect()->route('admin.tourtypes.index')
+            ->with('success', 'Tipo de tour actualizado correctamente.')
+            ->with('alert_type', 'actualizado');
+
+    } catch (Exception $e) {
+        Log::error('Error al actualizar tipo de tour: ' . $e->getMessage());
+        return back()
+            ->withErrors(['name' => 'Error al actualizar tipo de tour.'])
+            ->withInput()
+            ->with('edit_modal', $tourType->tour_type_id);
     }
+}
 
-    public function destroy(TourType $tourType)
+    public function toggle(TourType $tourType)
     {
         try {
             $tourType->is_active = !$tourType->is_active;
