@@ -1,4 +1,6 @@
 <?php
+
+use App\Http\Controllers\Admin\Bookings\BookingController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\SetLocale;
 
@@ -17,11 +19,11 @@ use App\Http\Controllers\Admin\Languages\TourLanguageController;
 use App\Http\Controllers\Admin\Tours\TourController;
 use App\Http\Controllers\Admin\Tours\TourScheduleController;
 use App\Http\Controllers\Admin\Tours\TourAvailabilityController;
-use App\Http\Controllers\Admin\Bookings\ReservaController;
 use App\Http\Controllers\Admin\Tours\AmenityController;
 use App\Http\Controllers\Admin\Tours\ItineraryItemController;
 use App\Http\Controllers\Admin\Tours\ItineraryController;
 use App\Http\Controllers\Admin\Tours\TourTypeController;
+use App\Http\Controllers\Admin\Cart\CartController;
 
 Route::middleware([SetLocale::class])->group(function () {
 
@@ -87,9 +89,9 @@ Route::middleware([SetLocale::class])->group(function () {
         });
 
         // Reservaciones y comprobantes
-        Route::get('reservas/pdf', [ReservaController::class, 'generarPDF'])->name('reservas.pdf');
-        Route::get('reservas/{reserva}/comprobante', [ReservaController::class, 'generarComprobante'])->name('reservas.comprobante');
-        Route::resource('reservas', ReservaController::class);
+        Route::get('reservas/pdf', [BookingController::class, 'generarPDF'])->name('reservas.pdf');
+        Route::get('reservas/{reserva}/comprobante', [BookingController::class, 'generarComprobante'])->name('reservas.comprobante');
+        Route::resource('reservas', BookingController::class);
 
         // Gestión de usuarios y roles
         Route::resource('users', UserRegisterController::class)->except(['show']);
@@ -107,6 +109,24 @@ Route::resource('languages', TourLanguageController::class, [
 ])->except(['show']);
 
         Route::resource('amenities', AmenityController::class); // Doble, si se usa en otro contexto
+
+        
+        // ----------- Carrito (Clientes) -----------
+        Route::get('/carrito', [CartController::class, 'index'])->name('cart.index');
+        Route::post('/carrito', [CartController::class, 'store'])->name('cart.store');
+        Route::patch('/carrito/{item}', [CartController::class, 'update'])->name('cart.update');
+        Route::post('/carrito/item/{item}/update', [CartController::class, 'updateFromPost'])->name('cart.updateFromPost');
+        Route::delete('/carrito/item/{item}', [CartController::class, 'destroy'])->name('cart.item.destroy');
+
+        // ----------- Carrito (Administración) -----------
+        Route::get('/carritos-todos', [CartController::class, 'allCarts'])->name('cart.general');
+        Route::delete('/admin/carrito/item/{item}', [CartController::class, 'destroy'])->name('admin.cart.item.destroy');
+
+        // ----------- Confirmar reservas -----------
+        Route::post('/reservas/from-cart', [BookingController::class, 'storeFromCart'])->name('reservas.storeFromCart');
+
+
+
     });
 
 });

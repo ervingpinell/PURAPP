@@ -438,7 +438,13 @@ return [
         ['header' => 'CARTS'],
         [
             'text' => 'CARTS',
-            'route' => '',
+            'route' => 'admin.cart.index',
+            'icon'  => 'fas fa-shopping-cart',
+            'can'   => ''
+        ],
+        [
+            'text' => 'CARTS GENERAL',
+            'route' => 'admin.cart.general',
             'icon'  => 'fas fa-shopping-cart',
             'can'   => ''
         ],

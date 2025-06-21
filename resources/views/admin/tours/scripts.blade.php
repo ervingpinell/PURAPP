@@ -139,3 +139,121 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.modal').forEach(function(modal) {
+            const adultQty = modal.querySelector('.qty-adults');
+            const kidQty = modal.querySelector('.qty-kids');
+            const adultPrice = parseFloat(modal.querySelector('.adult-price').value);
+            const kidPrice = parseFloat(modal.querySelector('.kid-price').value);
+            const totalField = modal.querySelector('.total-field');
+
+            function updateTotal() {
+                const a = parseInt(adultQty.value) || 0;
+                const k = parseInt(kidQty.value) || 0;
+                const total = (a * adultPrice) + (k * kidPrice);
+                totalField.value = total.toFixed(2);
+            }
+
+            if (adultQty && kidQty && totalField) {
+                adultQty.addEventListener('input', updateTotal);
+                kidQty.addEventListener('input', updateTotal);
+                updateTotal();
+            }
+        });
+    });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.modal form[action*="cart.store"]').forEach(form => {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Error al agregar al carrito');
+                return response.json(); // importante si devuelves JSON
+            })
+            .then(data => {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Agregado!',
+                    text: 'El tour fue añadido al carrito correctamente.',
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+
+                const modal = bootstrap.Modal.getInstance(form.closest('.modal'));
+                modal.hide();
+            })
+            .catch(() => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Ups...',
+                    text: 'No se pudo agregar al carrito. Intenta de nuevo.',
+                });
+            });
+        });
+    });
+});
+</script><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.cart-form').forEach(form => {
+        const adults = form.querySelector('.qty-adults');
+        const kids = form.querySelector('.qty-kids');
+        const total = form.querySelector('.total-field');
+        const adultPrice = parseFloat(form.querySelector('[name="adult_price"]').value);
+        const kidPrice = parseFloat(form.querySelector('[name="kid_price"]').value);
+
+        const updateTotal = () => {
+            const a = parseInt(adults.value || 0);
+            const k = parseInt(kids.value || 0);
+            total.value = '₡' + ((a * adultPrice) + (k * kidPrice)).toFixed(2);
+        };
+
+        adults.addEventListener('input', updateTotal);
+        kids.addEventListener('input', updateTotal);
+        updateTotal();
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Agregado!',
+                    text: data.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                const modal = bootstrap.Modal.getInstance(form.closest('.modal'));
+                modal.hide();
+            })
+            .catch(() => {
+                Swal.fire('Error', 'No se pudo agregar al carrito.', 'error');
+            });
+        });
+    });
+});
+</script>
+

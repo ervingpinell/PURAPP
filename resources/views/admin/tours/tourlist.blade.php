@@ -1,3 +1,10 @@
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+@endif
+<table class="table table-bordered table-striped table-hover">
 <style>
 /* Estilos responsive y comprimidos */
 td.overview-cell,
@@ -94,6 +101,14 @@ td.itinerary-cell {
                         <span class="text-muted">Sin amenidades</span>
                     @endforelse
                 </td>
+                <td>
+                    @forelse($tour->itinerary?->items ?? [] as $item)
+                        <span class="badge bg-info">{{ $item->title }}</span>
+                    @empty
+                        <span class="text-muted">Sin itinerarios</span>
+                    @endforelse
+                </td>
+                <td>
 
                 {{-- Amenidades --}}
                 <td class="not-included-amenities-cell">
@@ -160,16 +175,27 @@ td.itinerary-cell {
 
                 {{-- Acciones --}}
                 <td>
+                    {{-- Botón carrito --}}
+                    <button class="btn btn-success btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalCart{{ $tour->tour_id }}">
+                        <i class="fas fa-cart-plus"></i>
+                    </button>
+
+                    {{-- Botón editar --}}
                     <a href="#" class="btn btn-warning btn-sm"
-                       data-bs-toggle="modal"
-                       data-bs-target="#modalEditar{{ $tour->tour_id }}">
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalEditar{{ $tour->tour_id }}">
                         <i class="fas fa-edit"></i>
                     </a>
+
+                    {{-- Activar / desactivar --}}
                     <form action="{{ route('admin.tours.destroy', $tour->tour_id) }}" method="POST" style="display:inline;">
-                        @csrf @method('DELETE')
+                        @csrf
+                        @method('DELETE')
                         <button type="submit"
-                                class="btn btn-sm {{ $tour->is_active ? 'btn-danger' : 'btn-success' }}"
-                                onclick="return confirm('{{ $tour->is_active ? '¿Deseas desactivar este tour?' : '¿Deseas activar este tour?' }}')">
+                            class="btn btn-sm {{ $tour->is_active ? 'btn-danger' : 'btn-success' }}"
+                            onclick="return confirm('{{ $tour->is_active ? '¿Deseas desactivar este tour?' : '¿Deseas activar este tour?' }}')">
                             <i class="fas {{ $tour->is_active ? 'fa-toggle-off' : 'fa-toggle-on' }}"></i>
                         </button>
                     </form>
@@ -178,6 +204,57 @@ td.itinerary-cell {
         @endforeach
     </tbody>
 </table>
+
+@foreach($tours as $tour)
+<div class="modal fade" id="modalCart{{ $tour->tour_id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ route('admin.cart.store') }}" class="modal-content">
+            @csrf
+            <input type="hidden" name="tour_id" value="{{ $tour->tour_id }}">
+            <input type="hidden" name="adult_price" value="{{ $tour->adult_price }}">
+            <input type="hidden" name="kid_price" value="{{ $tour->kid_price }}">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Agregar al carrito: {{ $tour->name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label>Fecha del tour</label>
+                    <input type="date" name="tour_date" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label>Idioma</label>
+                    <select name="tour_language_id" class="form-control" required>
+                        <option value="">Seleccione</option>
+                        @foreach($tour->languages as $lang)
+                            <option value="{{ $lang->tour_language_id }}">{{ $lang->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label>Cantidad de adultos</label>
+                    <input type="number" name="adults_quantity" class="form-control" min="1" value="1" required>
+                </div>
+
+                <div class="mb-3">
+                    <label>Cantidad de niños</label>
+                    <input type="number" name="kids_quantity" class="form-control" min="0" value="0">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="fas fa-cart-plus"></i> Agregar al carrito
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endforeach
 
 <script>
     function toggleOverview(id, btn) {

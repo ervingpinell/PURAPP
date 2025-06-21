@@ -1,0 +1,162 @@
+<?php
+
+namespace App\Http\Controllers\Admin\Cart;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Cart;
+use App\Models\CartItem;
+use Illuminate\Support\Facades\Auth;
+use App\Models\TourLanguage;
+
+class CartController extends Controller
+{
+    // Mostrar el carrito del usuario
+    public function index(Request $request)
+    {
+        $user = Auth::user();
+        $languages = TourLanguage::all();
+
+        $cart = $user->cart()->where('is_active', true)->first();
+
+        if (!$cart) {
+            return view('admin.Cart.cart', [
+                'cart' => null,
+                'languages' => $languages,
+            ]);
+        }
+
+        $itemsQuery = CartItem::with(['tour', 'language'])->where('cart_id', $cart->cart_id);
+
+        if ($request->filled('estado')) {
+            $itemsQuery->where('is_active', $request->estado);
+        }
+
+        $cart->items = $itemsQuery->get();
+
+        return view('admin.Cart.cart', compact('cart', 'languages'));
+    }
+
+    // Agregar un ítem al carrito
+    public function store(Request $request)
+    {
+        $request->validate([
+            'tour_id' => 'required|exists:tours,tour_id',
+            'tour_date' => 'required|date',
+            'tour_schedule_id' => 'nullable|exists:tour_schedules,tour_schedule_id',
+            'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
+            'hotel_id' => 'nullable|exists:hotels_list,hotel_id',
+            'is_other_hotel' => 'boolean',
+            'other_hotel_name' => 'nullable|string|max:255',
+            'adults_quantity' => 'required|integer|min:1',
+            'kids_quantity' => 'nullable|integer|min:0|max:2',
+            'adult_price' => 'required|numeric|min:0',
+            'kid_price' => 'required|numeric|min:0',
+        ]);
+
+        $user = Auth::user();
+        $cart = $user->cart()->where('is_active', true)->first();
+
+        if (!$cart) {
+            $cart = Cart::create([
+                'user_id' => $user->user_id,
+                'is_active' => true,
+            ]);
+        }
+
+        CartItem::create([
+            'cart_id' => $cart->cart_id,
+            'tour_id' => $request->tour_id,
+            'tour_date' => $request->tour_date,
+            'tour_schedule_id' => $request->tour_schedule_id,
+            'tour_language_id' => $request->tour_language_id,
+            'hotel_id' => $request->hotel_id,
+            'is_other_hotel' => $request->is_other_hotel ?? false,
+            'other_hotel_name' => $request->other_hotel_name,
+            'adults_quantity' => $request->adults_quantity,
+            'kids_quantity' => $request->kids_quantity ?? 0,
+            'adult_price' => $request->adult_price,
+            'kid_price' => $request->kid_price,
+            'is_active' => true,
+        ]);
+
+        return $request->ajax()
+            ? response()->json(['message' => 'Tour agregado al carrito.'])
+            : back()->with('success', 'Tour agregado al carrito.');
+    }
+
+    // Actualizar un ítem desde modal PATCH
+    public function update(Request $request, CartItem $item)
+    {
+        $validated = $request->validate([
+            'tour_date' => 'required|date',
+            'adults_quantity' => 'required|integer|min:1',
+            'kids_quantity' => 'nullable|integer|min:0|max:2',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $item->update([
+            'tour_date' => $validated['tour_date'],
+            'adults_quantity' => $validated['adults_quantity'],
+            'kids_quantity' => $validated['kids_quantity'] ?? 0,
+            'is_active' => $request->has('is_active'),
+        ]);
+
+        return back()->with('success', 'Ítem actualizado correctamente.');
+    }
+
+    // Actualizar desde formulario POST (botón Guardar del modal)
+    public function updateFromPost(Request $request, CartItem $item)
+    {
+        $validated = $request->validate([
+            'tour_date' => 'required|date',
+            'adults_quantity' => 'required|integer|min:1',
+            'kids_quantity' => 'nullable|integer|min:0|max:2',
+        ]);
+
+        if (!$request->has('is_active')) {
+            $item->delete();
+            return back()->with('success', 'Ítem eliminado del carrito correctamente.');
+        }
+
+        $item->update([
+            'tour_date' => $validated['tour_date'],
+            'adults_quantity' => $validated['adults_quantity'],
+            'kids_quantity' => $validated['kids_quantity'] ?? 0,
+            'is_active' => true,
+        ]);
+
+        return back()->with('success', 'Ítem actualizado correctamente.');
+    }
+
+    // Eliminar un ítem
+    public function destroy(CartItem $item)
+    {
+        $item->delete();
+        return redirect()->back()->with('success', 'Ítem eliminado del carrito.');
+    }
+
+    // Vista de todos los carritos para el admin
+    public function allCarts(Request $request)
+    {
+        $carritos = Cart::with([
+            'user',
+            'items' => function ($q) use ($request) {
+                if ($request->filled('estado')) {
+                    $q->where('is_active', $request->estado);
+                }
+            },
+            'items.tour',
+            'items.language',
+        ])
+        ->whereHas('user', function ($q) use ($request) {
+            if ($request->filled('correo')) {
+                $q->where('email', 'ilike', '%' . $request->correo . '%');
+            }
+        })
+        ->whereHas('items')
+        ->get();
+
+        return view('admin.Cart.general', compact('carritos'));
+    }
+}

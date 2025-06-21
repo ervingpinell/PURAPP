@@ -11,27 +11,32 @@
 @stop
 
 @section('content')
-    {{-- Botón para abrir modal --}}
-    <div class="p-3">
+    <div class="p-3 table-responsive">
+        {{-- Botón para registrar un nuevo tour --}}
         <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
             <i class="fas fa-plus"></i> Añadir Tour
         </a>
 
-        {{-- Tabla de tours (ahora sí envuelta correctamente para ser responsive) --}}
+        {{-- Botón para ver el carrito --}}
+        <a href="{{ route('admin.cart.index') }}" class="btn btn-primary mb-3">
+            <i class="fas fa-shopping-cart"></i> Ver carrito
+        </a>
+
+        {{-- Tabla de tours --}}
         <div class="table-responsive">
             @include('admin.tours.tourlist')
         </div>
     </div>
 
-    {{-- Template para ítems de itinerario --}}
+    {{-- Template de ítems de itinerario --}}
     @include('admin.tours.itinerary.template')
 
-    {{-- Modal crear --}}
+    {{-- Modal de creación --}}
     @include('admin.tours.create')
 
     {{-- Modales de edición --}}
     @include('admin.tours.edit')
-@endsection
+@stop
 
 @php
     $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {
@@ -51,7 +56,7 @@
     @include('admin.tours.scripts')
 
     <script>
-        // Reposicionar scroll cuando se abre un modal
+        // Reposiciona scroll al abrir modal
         document.addEventListener('shown.bs.modal', function (event) {
             const modal = event.target;
             const rect = modal.getBoundingClientRect();
@@ -61,4 +66,4 @@
             });
         }, true);
     </script>
-@endsection
+@stop
