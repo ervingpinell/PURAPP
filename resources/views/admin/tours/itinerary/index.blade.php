@@ -7,26 +7,36 @@
 @stop
 
 @section('content')
+@php
+    $itineraryToEdit = request('itinerary_id');
+@endphp
+
 <div class="p-3">
     <a href="#" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalCrearItinerario">
         <i class="fas fa-plus"></i> Nuevo Itinerario
     </a>
 
-    <!-- Lista de Itinerarios -->
     @foreach($itineraries as $index => $itinerary)
-        <div class="card mb-3">
+        @php
+    $openEditModal = $itineraryToEdit && $itineraryToEdit == $itinerary->itinerary_id;
+    $expandItinerary = $openEditModal;
+
+
+        @endphp
+
+        <div class="card mb-3" id="card-itinerary-{{ $itinerary->itinerary_id }}">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <button class="btn btn-link text-start text-decoration-none d-flex align-items-center gap-2"
                         data-bs-toggle="collapse"
                         data-bs-target="#collapseItinerary{{ $itinerary->itinerary_id }}"
-                        aria-expanded="{{ $index === 0 ? 'true' : 'false' }}"
+                        aria-expanded="{{ $expandItinerary ? 'true' : 'false' }}"
                         aria-controls="collapseItinerary{{ $itinerary->itinerary_id }}">
                         <span class="d-flex align-items-center">
-                        <i class="fas {{ $index === 0 ? 'fa-minus' : 'fa-plus' }} icon-toggle"
-                        style="color:#00bc8c; margin-right: 0.5rem;"
-                        id="iconToggle{{ $itinerary->itinerary_id }}"></i>
-                        <h5 class="mb-0" style="color:#dee2e6">{{ $itinerary->name }}</h5>
-                </span>
+                            <i class="fas {{ $expandItinerary ? 'fa-minus' : 'fa-plus' }} icon-toggle"
+                               style="color:#00bc8c; margin-right: 0.5rem;"
+                               id="iconToggle{{ $itinerary->itinerary_id }}"></i>
+                            <h5 class="mb-0" style="color:#dee2e6">{{ $itinerary->name }}</h5>
+                        </span>
                 </button>
 
                 <div>
@@ -47,7 +57,7 @@
             </div>
 
             <div id="collapseItinerary{{ $itinerary->itinerary_id }}"
-                 class="collapse {{ $index === 0 ? 'show' : '' }}">
+                 class="collapse {{ $expandItinerary ? 'show' : '' }}">
                 <div class="card-body">
                     @if ($itinerary->items->isEmpty())
                         <p class="text-muted">No hay ítems asignados a este itinerario.</p>
@@ -109,16 +119,16 @@
                             <h5 class="modal-title">Editar Itinerario</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
-<div class="modal-body">
-    <div class="mb-3">
-        <label>Nombre</label>
-        <input type="text" name="name" class="form-control" value="{{ $itinerary->name }}" required>
-    </div>
-    <div class="mb-3">
-        <label>Descripción</label>
-        <textarea name="description" class="form-control" rows="3">{{ $itinerary->description }}</textarea>
-    </div>
-</div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label>Nombre</label>
+                                <input type="text" name="name" class="form-control" value="{{ $itinerary->name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label>Descripción</label>
+                                <textarea name="description" class="form-control" rows="3">{{ $itinerary->description }}</textarea>
+                            </div>
+                        </div>
                         <div class="modal-footer">
                             <button type="submit" class="btn btn-warning">Actualizar</button>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -127,10 +137,31 @@
                 </form>
             </div>
         </div>
+
+        @if ($openEditModal)
+            <script>
+                window.addEventListener('DOMContentLoaded', function () {
+                    // Abrir modal
+                    const modal = new bootstrap.Modal(document.getElementById('modalEditar{{ $itinerary->itinerary_id }}'));
+                    modal.show();
+
+                    // Expandir el collapse (por si no lo hizo Laravel con 'show')
+                    const collapseTarget = document.getElementById('collapseItinerary{{ $itinerary->itinerary_id }}');
+                    if (collapseTarget && !collapseTarget.classList.contains('show')) {
+                        new bootstrap.Collapse(collapseTarget, { toggle: true });
+                    }
+
+                    // Scroll automático
+                    const card = document.getElementById('card-itinerary-{{ $itinerary->itinerary_id }}');
+                    if (card) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            </script>
+        @endif
     @endforeach
 
-    {{-- Importamos la vista de ítems --}}
-@include('admin.tours.itinerary.items.crud', ['items' => $items])
+    @include('admin.tours.itinerary.items.crud', ['items' => $items])
 </div>
 
 <!-- Modal crear itinerario -->
@@ -143,40 +174,69 @@
                     <h5 class="modal-title">Nuevo Itinerario</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-<div class="modal-body">
-    <div class="mb-3">
-        <label>Nombre</label>
-        <input type="text" name="name" class="form-control" required>
-    </div>
-    <div class="mb-3">
-        <label>Descripción</label>
-        <textarea name="description" class="form-control" rows="3"></textarea>
-    </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Crear</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Nombre</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Descripción</label>
+                        <textarea name="description" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Crear</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
                 </div>
             </div>
         </form>
     </div>
 </div>
 @stop
+
 @section('js')
 <script>
-    // Toggle icon "+" ↔ "−"
+document.addEventListener('DOMContentLoaded', function () {
+    const STORAGE_KEY = 'expanded_itinerary_id';
+
+    // Icon toggle
     document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(btn => {
         const targetId = btn.getAttribute('data-bs-target');
         const icon = btn.querySelector('.icon-toggle');
         const collapse = document.querySelector(targetId);
 
-        if (collapse) {
-            collapse.addEventListener('show.bs.collapse', () => {
-                if (icon) icon.classList.replace('fa-plus', 'fa-minus');
-            });
-            collapse.addEventListener('hide.bs.collapse', () => {
-                if (icon) icon.classList.replace('fa-minus', 'fa-plus');
-            });
-        }
+        if (!collapse) return;
+
+        collapse.addEventListener('show.bs.collapse', () => {
+            if (icon) icon.classList.replace('fa-plus', 'fa-minus');
+            const id = targetId.replace('#collapseItinerary', '');
+            sessionStorage.setItem(STORAGE_KEY, id);
+        });
+
+        collapse.addEventListener('hide.bs.collapse', () => {
+            if (icon) icon.classList.replace('fa-minus', 'fa-plus');
+            const id = targetId.replace('#collapseItinerary', '');
+            const expanded = sessionStorage.getItem(STORAGE_KEY);
+            if (expanded === id) {
+                sessionStorage.removeItem(STORAGE_KEY);
+            }
+        });
     });
+
+    // Si hay un itinerario recordado, expandirlo
+    const remembered = sessionStorage.getItem(STORAGE_KEY);
+    if (remembered) {
+        const collapse = document.getElementById(`collapseItinerary${remembered}`);
+        const card = document.getElementById(`card-itinerary-${remembered}`);
+        if (collapse && !collapse.classList.contains('show')) {
+            new bootstrap.Collapse(collapse, { toggle: true });
+        }
+        if (card) {
+            setTimeout(() => {
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300); // Espera a que se abra
+        }
+    }
+});
 </script>
 @endsection

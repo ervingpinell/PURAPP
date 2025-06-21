@@ -32,6 +32,17 @@ class InitialSetupSeeder extends Seeder
                 'is_active' => true,
                 'created_at' => $now,
                 'updated_at' => $now
+            ],
+            [
+                'full_name' => 'Axel Paniagua',
+                'email' => 'axelpaniaguab54@gmail.com',
+                'password' => Hash::make('-12345678.'),
+                'role_id' => 1,
+                'phone' => '72612748',
+                'status' => true,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now
             ]
         ]);
 
@@ -119,5 +130,50 @@ DB::table('itinerary_items')->insertOrIgnore([
                 ['is_active' => true, 'created_at' => $now, 'updated_at' => $now]
             );
         }
+        // Tours
+        $tour1 = DB::table('tours')->insertGetId([
+            'name' => 'Aventura en el Volcán Arenal',
+            'overview' => 'Una experiencia inolvidable...',
+            'adult_price' => 75.00,
+            'kid_price' => 55.00,
+            'length' => 6,
+            'tour_type_id' => 1,
+            'is_active' => true,
+            'created_at' => $now,
+            'updated_at' => $now
+        ], 'tour_id');
+
+        $tour2 = DB::table('tours')->insertGetId([
+            'name' => 'Safari en el Río Peñas Blancas',
+            'overview' => 'Observa la vida silvestre...',
+            'adult_price' => 60.00,
+            'kid_price' => 45.00,
+            'length' => 4,
+            'tour_type_id' => 2,
+            'is_active' => true,
+            'created_at' => $now,
+            'updated_at' => $now
+        ], 'tour_id');
+
+        $tour3 = DB::table('tours')->insertGetId([
+            'name' => 'Puentes Colgantes y Bosque Lluvioso',
+            'overview' => 'Explora el bosque tropical...',
+            'adult_price' => 80.00,
+            'kid_price' => 65.00,
+            'length' => 6,
+            'tour_type_id' => 1,
+            'is_active' => true,
+            'created_at' => $now,
+            'updated_at' => $now
+        ], 'tour_id');
+
+        // Idiomas en la tabla pivote
+        DB::table('tour_language_tour')->insert([
+            ['tour_id' => $tour1, 'tour_language_id' => 1], // Español
+            ['tour_id' => $tour2, 'tour_language_id' => 2], // English
+            ['tour_id' => $tour3, 'tour_language_id' => 1], // Español
+        ]);
+
+
     }
 }
