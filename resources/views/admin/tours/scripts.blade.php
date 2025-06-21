@@ -4,15 +4,14 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // ========== 1. DATA JSON de itinerarios ==========
+    // ========= 1. Itinerary JSON (backend to JS) =========
     const itineraryData = @json($itineraryJson);
 
-    // ========== 2. Cambiar itinerario en MODALES DE EDICIÓN ==========
+    // ========= 2. Mostrar ítems de itinerario (editar) =========
     document.querySelectorAll('select[id^="edit-itinerary-"]').forEach(select => {
         select.addEventListener('change', function () {
             const tourId = this.id.replace('edit-itinerary-', '');
             const selectedId = this.value;
-
             const sectionView = document.getElementById(`view-itinerary-items-${tourId}`);
             const sectionNew = document.getElementById(`new-itinerary-section-${tourId}`);
             const descContainer = document.getElementById(`edit-itinerary-description-${tourId}`);
@@ -32,11 +31,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data) {
                 descContainer.textContent = data.description || '';
                 descContainer.style.display = data.description ? 'block' : 'none';
-
                 listContainer.innerHTML = data.items.length
-                    ? data.items.map(item =>
-                        `<li class="list-group-item"><strong>${item.title}</strong><br><small class="text-muted">${item.description}</small></li>`
-                    ).join('')
+                    ? data.items.map(item => `<li class="list-group-item"><strong>${item.title}</strong><br><small class="text-muted">${item.description}</small></li>`).join('')
                     : '<li class="list-group-item text-muted">Este itinerario no contiene ítems.</li>';
             } else {
                 descContainer.textContent = '';
@@ -46,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // ========== 3. Mostrar descripción e ítems en CREAR ==========
+    // ========= 3. Mostrar ítems en crear =========
     const itinerarySelect = document.getElementById('select-itinerary');
     const newItinerarySection = document.getElementById('new-itinerary-section');
     const viewSectionCreate = document.getElementById('view-itinerary-items-create');
@@ -67,13 +63,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = itineraryData[selectedId];
             newItinerarySection.style.display = 'none';
             viewSectionCreate.style.display = 'block';
-
             viewListCreate.innerHTML = data.items.length
-                ? data.items.map(item =>
-                    `<li class="list-group-item"><strong>${item.title}</strong><br><small class="text-muted">${item.description}</small></li>`
-                ).join('')
+                ? data.items.map(item => `<li class="list-group-item"><strong>${item.title}</strong><br><small class="text-muted">${item.description}</small></li>`).join('')
                 : '<li class="list-group-item text-muted">Este itinerario no contiene ítems.</li>';
-
             descContainerCreate.textContent = data.description || '';
             descContainerCreate.style.display = data.description ? 'block' : 'none';
         } else {
@@ -85,17 +77,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (itinerarySelect && newItinerarySection && viewSectionCreate) {
         itinerarySelect.addEventListener('change', updateItineraryViewCreate);
-        updateItineraryViewCreate(); // inicializar al cargar
+        updateItineraryViewCreate();
     }
 
-    // ========== 4. Añadir y quitar ítems dinámicos ==========
+    // ========= 4. Añadir y quitar ítems dinámicos =========
     document.body.addEventListener('click', function (e) {
         const addBtn = e.target.closest('.btn-add-itinerary');
         if (addBtn) {
             const container = document.querySelector(addBtn.dataset.target);
             const template = document.getElementById('itinerary-template');
             if (!container || !template) return;
-
             const idx = container.querySelectorAll('.itinerary-item').length;
             const html = template.innerHTML
                 .replace(/__NAME__/g, `itinerary[${idx}][title]`)
@@ -107,9 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (removeBtn) {
             const container = removeBtn.closest('.itinerary-container');
             if (!container) return;
-
             removeBtn.closest('.itinerary-item').remove();
-
             container.querySelectorAll('.itinerary-item').forEach((row, i) => {
                 const title = row.querySelector('input[placeholder="Título"]');
                 const desc = row.querySelector('input[placeholder="Descripción"]');
@@ -119,113 +108,35 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ========== 5. Alertas de éxito o error ==========
-    @if(session('success'))
-        Swal.fire({ icon: 'success', title: '{{ session("success") }}', timer: 2000, showConfirmButton: false });
-    @endif
-    @if(session('error'))
-        Swal.fire({ icon: 'error', title: '{{ session("error") }}', timer: 2500, showConfirmButton: false });
-    @endif
+    // ========= 5. Actualizar totales en formularios =========
+    document.querySelectorAll('.modal, .cart-form').forEach(container => {
+        const adultQty = container.querySelector('.qty-adults');
+        const kidQty = container.querySelector('.qty-kids');
+        const totalField = container.querySelector('.total-field');
+        const adultPriceInput = container.querySelector('.adult-price, [name="adult_price"]');
+        const kidPriceInput = container.querySelector('.kid-price, [name="kid_price"]');
+        if (!adultQty || !kidQty || !totalField || !adultPriceInput || !kidPriceInput) return;
 
-    // ========== 6. Reabrir modal en validación fallida ==========
-    @if(session('showCreateModal'))
-        new bootstrap.Modal(document.getElementById('modalRegistrar')).show();
-    @endif
+        const adultPrice = parseFloat(adultPriceInput.value);
+        const kidPrice = parseFloat(kidPriceInput.value);
 
-    @if(session('showEditModal'))
-        new bootstrap.Modal(document.getElementById('modalEditar' + '{{ session("showEditModal") }}')).show();
-    @endif
-});
+        const updateTotal = () => {
+            const a = parseInt(adultQty.value || 0);
+            const k = parseInt(kidQty.value || 0);
+            const total = (a * adultPrice) + (k * kidPrice);
+            totalField.value = container.classList.contains('cart-form') ? '₡' + total.toFixed(2) : total.toFixed(2);
+        };
 
-
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.modal').forEach(function(modal) {
-            const adultQty = modal.querySelector('.qty-adults');
-            const kidQty = modal.querySelector('.qty-kids');
-            const adultPrice = parseFloat(modal.querySelector('.adult-price').value);
-            const kidPrice = parseFloat(modal.querySelector('.kid-price').value);
-            const totalField = modal.querySelector('.total-field');
-
-            function updateTotal() {
-                const a = parseInt(adultQty.value) || 0;
-                const k = parseInt(kidQty.value) || 0;
-                const total = (a * adultPrice) + (k * kidPrice);
-                totalField.value = total.toFixed(2);
-            }
-
-            if (adultQty && kidQty && totalField) {
-                adultQty.addEventListener('input', updateTotal);
-                kidQty.addEventListener('input', updateTotal);
-                updateTotal();
-            }
-        });
+        adultQty.addEventListener('input', updateTotal);
+        kidQty.addEventListener('input', updateTotal);
+        updateTotal();
     });
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.modal form[action*="cart.store"]').forEach(form => {
+
+    // ========= 6. Enviar formulario del carrito =========
+    document.querySelectorAll('form[action*="cart.store"], .cart-form').forEach(form => {
         form.addEventListener('submit', function (e) {
             e.preventDefault();
 
-            const formData = new FormData(form);
-
-            fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: formData
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Error al agregar al carrito');
-                return response.json(); // importante si devuelves JSON
-            })
-            .then(data => {
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Agregado!',
-                    text: 'El tour fue añadido al carrito correctamente.',
-                    timer: 1800,
-                    showConfirmButton: false
-                });
-
-                const modal = bootstrap.Modal.getInstance(form.closest('.modal'));
-                modal.hide();
-            })
-            .catch(() => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Ups...',
-                    text: 'No se pudo agregar al carrito. Intenta de nuevo.',
-                });
-            });
-        });
-    });
-});
-</script><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.cart-form').forEach(form => {
-        const adults = form.querySelector('.qty-adults');
-        const kids = form.querySelector('.qty-kids');
-        const total = form.querySelector('.total-field');
-        const adultPrice = parseFloat(form.querySelector('[name="adult_price"]').value);
-        const kidPrice = parseFloat(form.querySelector('[name="kid_price"]').value);
-
-        const updateTotal = () => {
-            const a = parseInt(adults.value || 0);
-            const k = parseInt(kids.value || 0);
-            total.value = '₡' + ((a * adultPrice) + (k * kidPrice)).toFixed(2);
-        };
-
-        adults.addEventListener('input', updateTotal);
-        kids.addEventListener('input', updateTotal);
-        updateTotal();
-
-        form.addEventListener('submit', e => {
-            e.preventDefault();
             const formData = new FormData(form);
 
             fetch(form.action, {
@@ -241,19 +152,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 Swal.fire({
                     icon: 'success',
                     title: '¡Agregado!',
-                    text: data.message,
+                    text: data.message || 'El tour fue añadido al carrito correctamente.',
                     timer: 1500,
                     showConfirmButton: false
                 });
-
                 const modal = bootstrap.Modal.getInstance(form.closest('.modal'));
-                modal.hide();
+                if (modal) modal.hide();
             })
             .catch(() => {
                 Swal.fire('Error', 'No se pudo agregar al carrito.', 'error');
             });
         });
     });
+
+    // ========= 7. Alertas con sesiones =========
+    @if(session('success'))
+        Swal.fire({ icon: 'success', title: '{{ session("success") }}', timer: 2000, showConfirmButton: false });
+    @endif
+    @if(session('error'))
+        Swal.fire({ icon: 'error', title: '{{ session("error") }}', timer: 2500, showConfirmButton: false });
+    @endif
+
+    // ========= 8. Reabrir modal si hay errores de validación =========
+    @if(session('showCreateModal'))
+        new bootstrap.Modal(document.getElementById('modalRegistrar')).show();
+    @endif
+    @if(session('showEditModal'))
+        new bootstrap.Modal(document.getElementById('modalEditar{{ session("showEditModal") }}')).show();
+    @endif
 });
 </script>
-

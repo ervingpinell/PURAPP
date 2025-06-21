@@ -12,6 +12,13 @@
 
 @section('content')
     <div class="p-3 table-responsive">
+
+        {{-- Botón para ver el carrito --}}
+        <a href="{{ route('admin.cart.index') }}" class="btn btn-primary mb-3">
+            <i class="fas fa-shopping-cart"></i> Ver carrito
+        </a>
+
+
         {{-- Botón para registrar un nuevo tour --}}
         <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
             <i class="fas fa-plus"></i> Añadir Tour
