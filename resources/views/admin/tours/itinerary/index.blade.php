@@ -212,6 +212,18 @@ document.addEventListener('DOMContentLoaded', function () {
             const id = targetId.replace('#collapseItinerary', '');
             sessionStorage.setItem(STORAGE_KEY, id);
         });
+            // Al enviar formularios de asignación o edición de itinerario,
+    // guardar el ID en sessionStorage para mantenerlo expandido al volver
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('form[action*="itinerary"]').forEach(form => {
+            form.addEventListener('submit', function () {
+                const itineraryId = this.action.match(/(\d+)/)?.[0];
+                if (itineraryId) {
+                    sessionStorage.setItem('expanded_itinerary_id', itineraryId);
+                }
+            });
+        });
+    });
 
         collapse.addEventListener('hide.bs.collapse', () => {
             if (icon) icon.classList.replace('fa-minus', 'fa-plus');

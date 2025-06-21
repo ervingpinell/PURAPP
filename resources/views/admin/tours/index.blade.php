@@ -13,10 +13,6 @@
 @section('content')
     <div class="p-3 table-responsive">
 
-        {{-- Botón para ver el carrito --}}
-        <a href="{{ route('admin.cart.index') }}" class="btn btn-primary mb-3">
-            <i class="fas fa-shopping-cart"></i> Ver carrito
-        </a>
 
 
         {{-- Botón para registrar un nuevo tour --}}
