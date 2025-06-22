@@ -2,141 +2,170 @@
 
 namespace App\Http\Controllers\Admin\Bookings;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Booking;
 use App\Models\Tour;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Str;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Auth;
+use App\Models\BookingDetail;
 
 class BookingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    /** Listado de reservas */
     public function index()
     {
-        $bookings = Booking::with('user')->get();
-        return view('admin.bookings.index', compact('bookings'));
+        $bookings = Booking::with(['user', 'tour','detail'])
+                      ->orderBy('booking_id')
+                      ->get();
+
+    return view('admin.bookings.index', compact('bookings'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    /** Crear reserva desde formulario */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'user_id' => 'required|integer|exists:users,user_id',
-            'tour_id' => 'required|integer|exists:tours,tour_id',
-            'booking_date' => 'required|date',
-            'status' => 'required|string',
-            'language' => 'required|string',
+        $v = $request->validate([
+            'user_id'         => 'required|exists:users,user_id',
+            'tour_id'         => 'required|exists:tours,tour_id',
+            'booking_date'    => 'required|date',
+            'status'          => 'required|string',
+            'language'        => 'required|string',
             'adults_quantity' => 'required|integer|min:1',
-            'kids_quantity' => 'required|integer|min:0',
+            'kids_quantity'   => 'required|integer|min:0',
         ]);
 
-        $tour = Tour::findOrFail($validated['tour_id']);
+        $tour = Tour::findOrFail($v['tour_id']);
 
-        $validated['total'] = ($tour->adult_price * $validated['adults_quantity']) +
-                              ($tour->kid_price * $validated['kids_quantity']);
+        $v['total']             = ($tour->adult_price * $v['adults_quantity'])
+                                + ($tour->kid_price   * $v['kids_quantity']);
+        $v['booking_reference'] = strtoupper(Str::random(10));
+        $v['is_active']         = true;
 
-        $validated['booking_reference'] = strtoupper(Str::random(10));
-        $validated['is_active'] = true;
+        // 1) Creamos la cabecera
+        $booking = Booking::create($v);
 
-        Booking::create($validated);
+        // 2) Creamos el detalle
+        BookingDetail::create([
+            'booking_id'       => $booking->booking_id,
+            'tour_id'          => $tour->tour_id,
+            'tour_schedule_id' => null,              // o la que toque
+            'tour_date'        => now(),              // o tu fecha
+            'tour_language_id' => 1,                  // o la que toque
+            'adults_quantity'  => $v['adults_quantity'],
+            'kids_quantity'    => $v['kids_quantity'],
+            'adult_price'      => $tour->adult_price,
+            'kid_price'        => $tour->kid_price,
+            'total'            => $v['total'],
+            'is_active'        => true,
+        ]);
 
-        return redirect()->back()->with('success', 'Booking successfully created.');
+        return redirect()
+        ->route('admin.reservas.index')
+        ->with('success', 'Reserva actualizada correctamente.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    /** Actualizar reserva existente */
     public function update(Request $request, $id)
     {
-        $validated = $request->validate([
+        $r = $request->validate([
             'adults_quantity' => 'required|integer|min:1',
-            'kids_quantity' => 'required|integer|min:0',
-            'status' => 'required|string',
-            'notes' => 'nullable|string',
+            'kids_quantity'   => 'required|integer|min:0',
+            'status'          => 'required|string',
+            'notes'           => 'nullable|string',
         ]);
 
+        // 1) Cabecera
         $booking = Booking::findOrFail($id);
-        $tour = $booking->tour;
+        $booking->update([
+            'status' => $r['status'],
+            'notes'  => $r['notes'] ?? null,
+        ]);
 
-        $validated['total'] = ($tour->adult_price * $validated['adults_quantity']) +
-                              ($tour->kid_price * $validated['kids_quantity']);
+        // 2) Detalle
+        $detail = $booking->details()->firstOrFail();
+        $newTotal = ($detail->adult_price * $r['adults_quantity'])
+                + ($detail->kid_price   * $r['kids_quantity']);
 
-        $booking->update($validated);
+        $detail->update([
+            'adults_quantity' => $r['adults_quantity'],
+            'kids_quantity'   => $r['kids_quantity'],
+            'total'           => $newTotal,
+        ]);
 
-        return redirect()->back()->with('success', 'Booking updated successfully.');
+        // 3) Si quieres mantener el total en la cabecera:
+        $booking->update(['total' => $newTotal]);
+
+        return redirect()
+        ->route('admin.reservas.index')
+        ->with('success', 'Reserva actualizada correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+
+
+    /** Eliminar reserva */
     public function destroy($id)
     {
         $booking = Booking::findOrFail($id);
         $booking->delete();
 
-        return redirect()->back()->with('success', 'Booking deleted successfully.');
+        return redirect()->back()->with('success', 'Reserva eliminada correctamente.');
     }
 
-    /**
-     * Generate PDF summary.
-     */
-    public function generatePDF()
+    /** Generar comprobante individual */
+    public function generarComprobante(Booking $reserva)
     {
-        $bookings = Booking::with('user')->get();
-        $pdf = Pdf::loadView('admin.bookings.summary_pdf', compact('bookings'));
+        // Cambia 'admin.bookings.receipt' por el path real:
+        $pdf = Pdf::loadView('admin.bookingDetails.comprobante', compact('reserva'));
+
+        $client = preg_replace('/[^A-Za-z0-9_]/', '_', $reserva->user->full_name ?? 'Client');
+        $code   = $reserva->booking_reference;
+
+        return $pdf->download("Receipt_{$client}_{$code}.pdf");
+    }
+
+    /** Generar PDF resumen de todas las reservas */
+    public function generarPDF()
+    {
+        $reservas = Booking::with(['user','tour','detail'])->orderBy('booking_id')->get();
+        $pdf = Pdf::loadView('admin.bookingDetails.pdf_resumen', compact('reservas'));
         return $pdf->download('booking_report.pdf');
     }
 
-    /**
-     * Generate PDF receipt.
-     */
-    public function generateReceipt(Booking $booking)
-    {
-        try {
-            $pdf = Pdf::loadView('admin.bookings.receipt', compact('booking'));
-            $clientName = preg_replace('/[^A-Za-z0-9_]/', '_', $booking->user->full_name ?? 'Client');
-            $code = $booking->booking_reference ?? $booking->booking_id;
-            $fileName = "Receipt_{$clientName}_GV-{$code}.pdf";
 
-            return $pdf->download($fileName);
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'PDF generation failed: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Store booking from cart.
-     */
+    /** Crear reservas a partir del carrito del usuario */
     public function storeFromCart()
     {
         $user = Auth::user();
         $cart = $user->cart()->with('items')->first();
 
         if (!$cart || $cart->items->isEmpty()) {
-            return redirect()->route('admin.cart.index')->with('error', 'Tu carrito está vacío.');
+            return redirect()->route('admin.cart.index')
+                             ->with('error', 'Tu carrito está vacío.');
         }
 
         foreach ($cart->items as $item) {
+            $tour = $item->tour; // asume relación en CartItem
+
             Booking::create([
-                'user_id' => $user->user_id,
-                'booking_reference' => strtoupper(Str::random(10)),
-                'booking_date' => now(),
-                'status' => 'Pending',
-                'total' => ($item->adults_quantity * $item->adult_price) + ($item->kids_quantity * $item->kid_price),
-                'is_active' => true,
+                'user_id'          => $user->user_id,
+                'tour_id'          => $tour->tour_id,
+                'booking_reference'=> strtoupper(Str::random(10)),
+                'booking_date'     => now(),
+                'status'           => 'pending',
+                'language'         => $item->language,
+                'adults_quantity'  => $item->adults_quantity,
+                'kids_quantity'    => $item->kids_quantity,
+                'total'            => ($tour->adult_price * $item->adults_quantity)
+                                    + ($tour->kid_price   * $item->kids_quantity),
+                'is_active'        => true,
             ]);
         }
 
-        // ✅ Elimina completamente los ítems del carrito
         $cart->items()->delete();
 
-        return redirect()->route('admin.cart.index')->with('success', 'Solicitud de reserva enviada correctamente.');
+        return redirect()->route('admin.cart.index')
+                         ->with('success', 'Reservas generadas desde el carrito.');
     }
-
 }

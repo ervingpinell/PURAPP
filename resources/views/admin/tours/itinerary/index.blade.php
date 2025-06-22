@@ -49,10 +49,19 @@
                     <form action="{{ route('admin.tours.itinerary.destroy', $itinerary->itinerary_id) }}" method="POST" style="display:inline-block">
                         @csrf
                         @method('DELETE')
-                        <button class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este itinerario?')">
-                            <i class="fas fa-trash"></i>
+                        @php
+                            $active = $itinerary->is_active;
+                            $btnClass = $active ? 'btn-danger' : 'btn-success';
+                            $icon    = $active ? 'fa-times-circle' : 'fa-check-circle';
+                            $text    = $active ? 'Desactivar este itinerario?' : 'Activar este itinerario?';
+                        @endphp
+                        <button class="btn btn-sm {{ $btnClass }}"
+                                onclick="return confirm('{{ $text }}')"
+                                title="{{ $active ? 'Desactivar' : 'Activar' }}">
+                            <i class="fas {{ $icon }}"></i>
                         </button>
                     </form>
+
                 </div>
             </div>
 
@@ -194,61 +203,62 @@
 </div>
 @stop
 
-@section('js')
+@push('js')
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const STORAGE_KEY = 'expanded_itinerary_id';
+document.addEventListener('DOMContentLoaded', () => {
+    // ===== REAPERTURA DE MODALES Y ALERTAS =====
 
-    // Icon toggle
-    document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(btn => {
-        const targetId = btn.getAttribute('data-bs-target');
-        const icon = btn.querySelector('.icon-toggle');
-        const collapse = document.querySelector(targetId);
-
-        if (!collapse) return;
-
-        collapse.addEventListener('show.bs.collapse', () => {
-            if (icon) icon.classList.replace('fa-plus', 'fa-minus');
-            const id = targetId.replace('#collapseItinerary', '');
-            sessionStorage.setItem(STORAGE_KEY, id);
+    // 1) Si hubo error al asignar ítems, reabrir modal y mostrar SweetAlert
+    @if(session('showAssignModal'))
+        const assignId = {{ session('showAssignModal') }};
+        new bootstrap.Modal(
+            document.getElementById(`modalAsignar${assignId}`)
+        ).show();
+        Swal.fire({
+            icon: 'error',
+            title: 'Error al asignar ítems',
+            text: '{{ $errors->first() }}'
         });
-            // Al enviar formularios de asignación o edición de itinerario,
-    // guardar el ID en sessionStorage para mantenerlo expandido al volver
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('form[action*="itinerary"]').forEach(form => {
-            form.addEventListener('submit', function () {
-                const itineraryId = this.action.match(/(\d+)/)?.[0];
-                if (itineraryId) {
-                    sessionStorage.setItem('expanded_itinerary_id', itineraryId);
-                }
-            });
-        });
-    });
+    @endif
 
-        collapse.addEventListener('hide.bs.collapse', () => {
-            if (icon) icon.classList.replace('fa-minus', 'fa-plus');
-            const id = targetId.replace('#collapseItinerary', '');
-            const expanded = sessionStorage.getItem(STORAGE_KEY);
-            if (expanded === id) {
-                sessionStorage.removeItem(STORAGE_KEY);
-            }
+    // 2) Si hubo éxito general, mostrar SweetAlert
+    @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: '{{ session("success") }}',
+            timer: 2000,
+            showConfirmButton: false
         });
-    });
+    @endif
 
-    // Si hay un itinerario recordado, expandirlo
-    const remembered = sessionStorage.getItem(STORAGE_KEY);
-    if (remembered) {
-        const collapse = document.getElementById(`collapseItinerary${remembered}`);
-        const card = document.getElementById(`card-itinerary-${remembered}`);
-        if (collapse && !collapse.classList.contains('show')) {
-            new bootstrap.Collapse(collapse, { toggle: true });
-        }
-        if (card) {
-            setTimeout(() => {
-                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 300); // Espera a que se abra
-        }
-    }
+    // 3) Si hubo error general, mostrar SweetAlert
+    @if(session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: '{{ session("error") }}',
+            timer: 2500,
+            showConfirmButton: false
+        });
+    @endif
+
+    // 4) Reabrir modal “Crear Itinerario” si corresponde
+    @if(session('showCreateModal'))
+        new bootstrap.Modal(
+            document.getElementById('modalCrearItinerario')
+        ).show();
+    @endif
+
+    // 5) Reabrir modal “Editar Itinerario” si corresponde
+    @if(session('showEditModal'))
+        new bootstrap.Modal(
+            document.getElementById(`modalEditar{{ session('showEditModal') }}`)
+        ).show();
+    @endif
+
+   
 });
 </script>
-@endsection
+@endpush

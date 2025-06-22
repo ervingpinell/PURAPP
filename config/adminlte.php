@@ -424,7 +424,7 @@ return [
         ['header' => 'BOOKINGS'],
         [
             'text' => 'BOOKINGS',
-            'route' => '',
+            'route' => 'admin.reservas.index',
             'icon'  => 'fas fa-calendar-check',
             'can'   => ''
         ],

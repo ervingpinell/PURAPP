@@ -88,10 +88,18 @@ Route::middleware([SetLocale::class])->group(function () {
             Route::resource('amenities', AmenityController::class)->except(['show']);
         });
 
-        // Reservaciones y comprobantes
-        Route::get('reservas/pdf', [BookingController::class, 'generarPDF'])->name('reservas.pdf');
-        Route::get('reservas/{reserva}/comprobante', [BookingController::class, 'generarComprobante'])->name('reservas.comprobante');
-        Route::resource('reservas', BookingController::class);
+            // Reservaciones y comprobantes
+            Route::get('reservas/pdf', [BookingController::class, 'generarPDF'])
+                ->name('reservas.pdf');
+
+            Route::get('reservas/{reserva}/comprobante', [BookingController::class, 'generarComprobante'])
+                ->name('reservas.comprobante');
+
+            // CRUD de reservas (sin el show)
+            Route::resource('reservas', BookingController::class)
+                ->except(['show']);
+
+
 
         // Gestión de usuarios y roles
         Route::resource('users', UserRegisterController::class)->except(['show']);

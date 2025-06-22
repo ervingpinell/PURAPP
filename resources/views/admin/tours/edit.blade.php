@@ -41,7 +41,7 @@
             </div>
 
             {{-- Tipo --}}
-            <x-adminlte-select name="tour_type_id" label="Tipo de Tour" required>
+            <x-adminlte-select name="tour_type_id" label="Tipo de Tour">
               <option value="">-- Seleccione un tipo --</option>
               @foreach($tourtypes as $type)
                 <option value="{{ $type->tour_type_id }}" {{ old('tour_type_id', $tour->tour_type_id) == $type->tour_type_id ? 'selected' : '' }}>

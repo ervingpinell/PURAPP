@@ -5,289 +5,346 @@ namespace App\Http\Controllers\Admin\Tours;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Exception;
 use App\Models\Tour;
 use App\Models\TourType;
 use App\Models\Itinerary;
 use App\Models\TourLanguage;
 use App\Models\Amenity;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-use Exception;
 use App\Services\ItineraryService;
-use Carbon\Carbon;
 
 class TourController extends Controller
 {
     public function index()
     {
-$tours = Tour::with([
-    'tourType',
-    'languages',
-    'amenities',
-    'itinerary.items',
-    'schedules' => function ($query) {
-        $query->where('is_active', true);
-    },
-])->orderBy('tour_id', 'asc')->get(); // 👈 Aquí agregas el orden
-        $tourtypes = TourType::all();
-        $itineraries = Itinerary::all();
-        $languages = TourLanguage::all();
-        $amenities = Amenity::all();
-        $availableItems = (new ItineraryService)->getAvailableItems();
+        $tours = Tour::with([
+            'tourType',
+            'languages' => function($q) {
+                $q->wherePivot('is_active', true)
+                ->where('tour_languages.is_active', true);
+            },
+            'amenities' => function($q) {
+                $q->wherePivot('is_active', true)
+                ->where('amenities.is_active', true);
+            },
+            'itinerary.items' => function($q) {
+                $q->wherePivot('is_active', true)
+                ->where('itinerary_items.is_active', true);
+            },
+            'schedules'  => fn($q) => $q->where('is_active', true),
+        ])->orderBy('tour_id')->get();
+
+
+        $tourtypes      = TourType::where('is_active', true)->orderBy('name')->get();
+        $itineraries    = Itinerary::where('is_active', true)->orderBy('name')->get();
+        $languages = TourLanguage::where('is_active', true)
+               ->orderBy('name')
+               ->get();
+        $amenities = Amenity::where('is_active', true)
+              ->orderBy('name')
+              ->get();
+        $availableItems = collect((new ItineraryService)->getAvailableItems())
+                    ->where('is_active', true)
+                    ->values();
 
         return view('admin.tours.index', compact(
-            'tours', 'tourtypes', 'itineraries', 'languages', 'amenities', 'availableItems',
+            'tours','tourtypes','itineraries',
+            'languages','amenities','availableItems'
         ));
     }
-
 
     public function edit(Tour $tour)
     {
-        $tourtypes = TourType::all();
-        $itineraries = Itinerary::with('items')->get();
-        $languages = TourLanguage::all();
-        $amenities = Amenity::all();
-        $availableItems = (new ItineraryService)->getAvailableItems();
+        $tourtypes      = TourType::where('is_active', true)->orderBy('name')->get();
+        $itineraries    = Itinerary::where('is_active', true)
+                            ->with(['items' => fn($q)=> $q->wherePivot('is_active',true)])
+                            ->orderBy('name')
+                            ->get();
+        $languages      = TourLanguage::where('is_active', true)->orderBy('name')->get();
+        $amenities      = Amenity::where('is_active', true)->orderBy('name')->get();
+        $availableItems = collect((new ItineraryService)->getAvailableItems())
+                        ->where('is_active', true)
+                        ->values();
 
         return view('admin.tours.edit', compact(
-            'tour', 'tourtypes', 'itineraries', 'languages', 'amenities', 'availableItems'
+            'tour','tourtypes','itineraries',
+            'languages','amenities','availableItems'
         ));
     }
 
-private function parseTime(?string $input): ?string
-{
-    if (!$input) return null;
+    private function parseTime(?string $input): ?string
+    {
+        if (! $input) return null;
+        $input   = trim(strtolower($input));
+        $formats = ['H:i','g:i a','g:iA','g:ia','g:i A','g:i'];
+        foreach ($formats as $fmt) {
+            if ($dt = \DateTime::createFromFormat($fmt, $input)) {
+                return $dt->format('H:i');
+            }
+        }
+        return null;
+    }
 
-    $input = trim(strtolower($input));
-    $formats = ['H:i', 'g:i a', 'g:iA', 'g:ia', 'g:i A', 'g:i'];
+    public function store(Request $request)
+    {
+        // Normalizar horarios
+        $request->merge([
+            'schedule_am_start' => $this->parseTime($request->input('schedule_am_start')),
+            'schedule_am_end'   => $this->parseTime($request->input('schedule_am_end')),
+            'schedule_pm_start' => $this->parseTime($request->input('schedule_pm_start')),
+            'schedule_pm_end'   => $this->parseTime($request->input('schedule_pm_end')),
+        ]);
 
-    foreach ($formats as $format) {
-        $parsed = \DateTime::createFromFormat($format, $input);
-        if ($parsed !== false) {
-            return $parsed->format('H:i');
+        // Combinar IDs de ítems existentes + nuevos
+        $request->merge([
+            'itinerary_combined' => array_merge(
+                $request->input('existing_item_ids', []),
+                array_values(array_filter(
+                    $request->input('itinerary', []),
+                    fn($i)=> is_array($i) && ! empty($i['title'])
+                ))
+            ),
+        ]);
+
+        // Reglas base
+        $rules = [
+            'name'                     => 'required|string|max:255',
+            'overview'                 => 'nullable|string',
+            'adult_price'              => 'required|numeric|min:0',
+            'kid_price'                => 'nullable|numeric|min:0',
+            'length'                   => 'required|numeric|min:1',
+            'tour_type_id'             => 'exists:tour_types,tour_type_id',
+            'languages'                => 'array|min:1',
+            'languages.*'              => 'exists:tour_languages,tour_language_id',
+            'amenities'                => 'nullable|array',
+            'amenities.*'              => 'exists:amenities,amenity_id',
+            'excluded_amenities'       => 'nullable|array',
+            'excluded_amenities.*'     => 'exists:amenities,amenity_id',
+            'schedule_am_start'        => 'nullable|date_format:H:i',
+            'schedule_am_end'          => 'nullable|date_format:H:i',
+            'schedule_pm_start'        => 'nullable|date_format:H:i',
+            'schedule_pm_end'          => 'nullable|date_format:H:i',
+            'itinerary_id'             => 'nullable',
+            'new_itinerary_name'       => 'nullable|string|max:255',
+            'new_itinerary_description'=> 'nullable|string|max:1000',
+        ];
+
+        // Si el usuario elige "nuevo itinerario"
+        if ($request->input('itinerary_id') === 'new') {
+            // Debe haber al menos un ítem (existente o nuevo)
+            $rules['itinerary_combined']   = 'required|array|min:1';
+            // Cada ID debe existir y estar activo
+            $rules['itinerary_combined.*'] = [
+                Rule::exists('itinerary_items','item_id')
+                    ->where('is_active', true),
+            ];
+            // Validar los campos del nuevo itinerario
+            $rules['new_itinerary_name']        = 'required|string|max:255';
+            $rules['new_itinerary_description'] = 'required|string|max:1000';
+            // Validar cualquier ítem nuevo en el form
+            $rules['itinerary.*.title']       = 'nullable|string|required_with:itinerary.*.description';
+            $rules['itinerary.*.description'] = 'nullable|string|required_with:itinerary.*.title';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('showCreateModal', true);
+        }
+        $v = $validator->validated();
+
+        try {
+            DB::transaction(function() use ($v) {
+                $itService = new ItineraryService;
+                $itinerary = $itService->handleCreationOrAssignment($v);
+                if (! $itinerary) {
+                    throw new Exception('No se pudo generar o asignar el itinerario.');
+                }
+
+                $tour = Tour::create([
+                    'name'         => $v['name'],
+                    'overview'     => $v['overview'] ?? '',
+                    'adult_price'  => $v['adult_price'],
+                    'kid_price'    => $v['kid_price'] ?? 0,
+                    'length'       => $v['length'],
+                    'tour_type_id' => $v['tour_type_id'],
+                    'itinerary_id' => $itinerary->itinerary_id,
+                    'is_active'    => true,
+                ]);
+
+                // Relaciones
+                $tour->languages()->sync($v['languages']);
+                $tour->amenities()->sync($v['amenities'] ?? []);
+                $tour->excludedAmenities()->sync($v['excluded_amenities'] ?? []);
+
+                // Horarios
+                $tour->schedules()->delete();
+                if (! empty($v['schedule_am_start'] && $v['schedule_am_end'])) {
+                    $tour->schedules()->create([
+                        'start_time' => $v['schedule_am_start'],
+                        'end_time'   => $v['schedule_am_end'],
+                    ]);
+                }
+                if (! empty($v['schedule_pm_start'] && $v['schedule_pm_end'])) {
+                    $tour->schedules()->create([
+                        'start_time' => $v['schedule_pm_start'],
+                        'end_time'   => $v['schedule_pm_end'],
+                    ]);
+                }
+            });
+
+            return redirect()
+                ->route('admin.tours.index')
+                ->with('success', 'Tour creado correctamente.');
+
+        } catch (Exception $e) {
+            Log::error('Error al crear tour: '.$e->getMessage());
+            return back()
+                ->with('error', 'Hubo un problema al crear el tour.')
+                ->withInput()
+                ->with('showCreateModal', true);
         }
     }
 
-    return null;
-}
+    public function update(Request $request, Tour $tour)
+    {
+        // Normalizar horarios
+        $request->merge([
+            'schedule_am_start' => $this->parseTime($request->input('schedule_am_start')),
+            'schedule_am_end'   => $this->parseTime($request->input('schedule_am_end')),
+            'schedule_pm_start' => $this->parseTime($request->input('schedule_pm_start')),
+            'schedule_pm_end'   => $this->parseTime($request->input('schedule_pm_end')),
+        ]);
+        // Combinar ítems
+        $request->merge([
+            'itinerary_combined' => array_merge(
+                $request->input('existing_item_ids', []),
+                array_values(array_filter(
+                    $request->input('itinerary', []),
+                    fn($i)=> is_array($i) && ! empty($i['title'])
+                ))
+            ),
+        ]);
 
- public function store(Request $request)
-{
-        //dd($request->all()); // 👈 Para depuración, eliminar en producción
-    $request->merge([
-    'schedule_am_start' => $this->parseTime($request->input('schedule_am_start')),
-    'schedule_am_end' => $this->parseTime($request->input('schedule_am_end')),
-    'schedule_pm_start' => $this->parseTime($request->input('schedule_pm_start')),
-    'schedule_pm_end' => $this->parseTime($request->input('schedule_pm_end')),
-]);
+        $rules = [
+            'name'                     => 'required|string|max:255',
+            'overview'                 => 'nullable|string',
+            'adult_price'              => 'required|numeric|min:0',
+            'kid_price'                => 'nullable|numeric|min:0',
+            'length'                   => 'required|numeric|min:1',
+            'tour_type_id'             => 'exists:tour_types,tour_type_id',
+            'languages'                => 'array|min:1',
+            'languages.*'              => 'exists:tour_languages,tour_language_id',
+            'amenities'                => 'nullable|array',
+            'amenities.*'              => 'exists:amenities,amenity_id',
+            'excluded_amenities'       => 'nullable|array',
+            'excluded_amenities.*'     => 'exists:amenities,amenity_id',
+            'schedule_am_start'        => 'nullable|date_format:H:i',
+            'schedule_am_end'          => 'nullable|date_format:H:i',
+            'schedule_pm_start'        => 'nullable|date_format:H:i',
+            'schedule_pm_end'          => 'nullable|date_format:H:i',
+            'itinerary_id'             => 'nullable',
+            'new_itinerary_name'       => 'nullable|string|max:255',
+            'new_itinerary_description'=> 'nullable|string|max:1000',
+        ];
 
-    $request->merge([
-        'itinerary_combined' => array_merge(
-            $request->input('existing_item_ids', []),
-            array_values(array_filter($request->input('itinerary', []), fn($i) => is_array($i) && !empty($i['title'])))
-        )
-    ]);
+        if ($request->input('itinerary_id') === 'new') {
+            $rules['itinerary_combined']   = 'required|array|min:1';
+            $rules['itinerary_combined.*'] = [
+                Rule::exists('itinerary_items','item_id')
+                    ->where('is_active', true),
+            ];
+            $rules['new_itinerary_name']        = 'required|string|max:255';
+            $rules['new_itinerary_description'] = 'required|string|max:1000';
+            $rules['itinerary.*.title']       = 'nullable|string|required_with:itinerary.*.description';
+            $rules['itinerary.*.description'] = 'nullable|string|required_with:itinerary.*.title';
+        }
 
-    $rules = [
-        'name' => 'required|string|max:255',
-        'overview' => 'nullable|string',
-        'adult_price' => 'required|numeric|min:0',
-        'kid_price' => 'nullable|numeric|min:0',
-        'length' => 'required|numeric|min:1',
-        'tour_type_id' => 'required|exists:tour_types,tour_type_id',
-        'itinerary_id' => 'nullable',
-        'languages' => 'required|array|min:1',
-        'languages.*' => 'exists:tour_languages,tour_language_id',
-        'amenities' => 'nullable|array',
-        'amenities.*' => 'exists:amenities,amenity_id',
-        'excluded_amenities' => 'nullable|array',
-        'excluded_amenities.*' => 'exists:amenities,amenity_id',
-        'schedule_am_start' => 'nullable|date_format:H:i',
-        'schedule_am_end' => 'nullable|date_format:H:i',
-        'schedule_pm_start' => 'nullable|date_format:H:i',
-        'schedule_pm_end' => 'nullable|date_format:H:i',
-        'new_itinerary_name' => 'nullable|string|max:255',
-        'new_itinerary_description' => 'nullable|string|max:1000',
-    ];
+        $validator = Validator::make($request->all(), $rules);
 
-    if ($request->input('itinerary_id') === 'new') {
-        $rules['itinerary_combined'] = 'required|array|min:1';
-    }
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('showEditModal', $tour->tour_id);
+        }
+        $v = $validator->validated();
 
-    $validator = Validator::make($request->all(), $rules);
-
-    if ($validator->fails()) {
-        return back()->withErrors($validator)->withInput()->with('showCreateModal', true);
-    }
-
-    $validated = $validator->validated();
-
-    try {
-        DB::transaction(function () use (&$validated, $request) {
-            $itineraryService = new ItineraryService();
-            $itinerary = $itineraryService->handleCreationOrAssignment($validated);
-if (!$itinerary) {
-    Log::error('❌ No se pudo generar o asignar el itinerario. Datos recibidos:', $validated);
-    throw new \Exception('Error: el itinerario no se pudo generar o asignar.');
-}
-            $tour = Tour::create([
-                'name' => $validated['name'],
-                'overview' => $validated['overview'] ?? '',
-                'adult_price' => $validated['adult_price'],
-                'kid_price' => $validated['kid_price'] ?? 0,
-                'length' => $validated['length'],
-                'tour_type_id' => $validated['tour_type_id'],
-                'itinerary_id' => $itinerary?->itinerary_id,
-                'is_active' => true,
-            ]);
-
-            $tour->languages()->sync($validated['languages']);
-            $tour->amenities()->sync($validated['amenities'] ?? []);
-            $tour->excludedAmenities()->sync($request->input('excluded_amenities', []));
-
-            $tour->schedules()->delete();
-
-            if (!empty($validated['schedule_am_start']) && !empty($validated['schedule_am_end'])) {
-                $tour->schedules()->create([
-                    'start_time' => $validated['schedule_am_start'],
-                    'end_time' => $validated['schedule_am_end'],
+        try {
+            DB::transaction(function() use ($tour, $v) {
+                // Actualiza Tour
+                $tour->update([
+                    'name'         => $v['name'],
+                    'overview'     => $v['overview'] ?? '',
+                    'adult_price'  => $v['adult_price'],
+                    'kid_price'    => $v['kid_price'] ?? 0,
+                    'length'       => $v['length'],
+                    'tour_type_id' => $v['tour_type_id'],
                 ]);
-            }
 
-            if (!empty($validated['schedule_pm_start']) && !empty($validated['schedule_pm_end'])) {
-                $tour->schedules()->create([
-                    'start_time' => $validated['schedule_pm_start'],
-                    'end_time' => $validated['schedule_pm_end'],
-                ]);
-            }
-        });
-
-        return redirect()->route('admin.tours.index')->with('success', 'Tour creado correctamente.');
-    } catch (Exception $e) {
-        Log::error('Error al crear tour: ' . $e->getMessage());
-        return back()->with('error', 'Hubo un problema al crear el tour.')->withInput()->with('showCreateModal', true);
-    }
-}
-
-   public function update(Request $request, Tour $tour)
-{
-    $request->merge([
-        'schedule_am_start' => $this->parseTime($request->input('schedule_am_start')),
-        'schedule_am_end' => $this->parseTime($request->input('schedule_am_end')),
-        'schedule_pm_start' => $this->parseTime($request->input('schedule_pm_start')),
-        'schedule_pm_end' => $this->parseTime($request->input('schedule_pm_end')),
-    ]);
-
-    $request->merge([
-        'itinerary_combined' => array_merge(
-            $request->input('existing_item_ids', []),
-            array_values(array_filter($request->input('itinerary', []), fn($i) => is_array($i) && !empty($i['title'])))
-        )
-    ]);
-
-    $rules = [
-        'name' => 'required|string|max:255',
-        'overview' => 'nullable|string',
-        'adult_price' => 'required|numeric|min:0',
-        'kid_price' => 'nullable|numeric|min:0',
-        'length' => 'required|numeric|min:1',
-        'tour_type_id' => 'required|exists:tour_types,tour_type_id',
-        'languages' => 'required|array|min:1',
-        'languages.*' => 'exists:tour_languages,tour_language_id',
-        'amenities' => 'nullable|array',
-        'amenities.*' => 'exists:amenities,amenity_id',
-        'excluded_amenities' => 'nullable|array',
-        'excluded_amenities.*' => 'exists:amenities,amenity_id',
-        'schedule_am_start' => 'nullable|date_format:H:i',
-        'schedule_am_end' => 'nullable|date_format:H:i',
-        'schedule_pm_start' => 'nullable|date_format:H:i',
-        'schedule_pm_end' => 'nullable|date_format:H:i',
-        'itinerary_id' => 'nullable',
-        'new_itinerary_name' => 'nullable|string|max:255',
-        'new_itinerary_description' => 'nullable|string|max:1000',
-    ];
-
-    if ($request->input('itinerary_id') === 'new') {
-        $rules['itinerary_combined'] = 'required|array|min:1';
-    }
-
-    $validator = Validator::make($request->all(), $rules);
-
-    if ($validator->fails()) {
-        return back()->withErrors($validator)->withInput()->with('showEditModal', $tour->tour_id);
-    }
-
-    $validated = $validator->validated();
-
-    try {
-        DB::transaction(function () use ($tour, &$validated, $request) {
-            $tour->update([
-                'name' => $validated['name'],
-                'overview' => $validated['overview'] ?? '',
-                'adult_price' => $validated['adult_price'],
-                'kid_price' => $validated['kid_price'] ?? 0,
-                'length' => $validated['length'],
-                'tour_type_id' => $validated['tour_type_id'],
-            ]);
-
-            $itineraryService = new ItineraryService();
-            $itinerary = $itineraryService->handleCreationOrAssignment($validated);
-
-            if ($itinerary) {
-                $tour->itinerary()->associate($itinerary);
-                $tour->save();
-            }
-
-            $tour->languages()->sync($validated['languages']);
-            $tour->amenities()->sync($validated['amenities'] ?? []);
-            $tour->excludedAmenities()->sync($request->input('excluded_amenities', []));
-
-            // NUEVA LÓGICA PARA HORARIOS
-            $nuevosHorarios = [];
-
-            if (!empty($validated['schedule_am_start']) && !empty($validated['schedule_am_end'])) {
-                $nuevosHorarios[] = [
-                    'start_time' => $validated['schedule_am_start'],
-                    'end_time' => $validated['schedule_am_end'],
-                ];
-            }
-
-            if (!empty($validated['schedule_pm_start']) && !empty($validated['schedule_pm_end'])) {
-                $nuevosHorarios[] = [
-                    'start_time' => $validated['schedule_pm_start'],
-                    'end_time' => $validated['schedule_pm_end'],
-                ];
-            }
-
-            if (!empty($nuevosHorarios)) {
-                $tour->schedules()->delete();
-                foreach ($nuevosHorarios as $horario) {
-                    $tour->schedules()->create($horario);
+                // Crea o asigna itinerario
+                $itService = new ItineraryService;
+                $itinerary = $itService->handleCreationOrAssignment($v);
+                if ($itinerary) {
+                    $tour->itinerary()->associate($itinerary);
+                    $tour->save();
                 }
-            }
-            // si no se mandaron horarios, se mantienen los existentes
-        });
 
-        return redirect()->route('admin.tours.index')->with('success', 'Tour actualizado correctamente.');
-    } catch (Exception $e) {
-        Log::error('Error al actualizar tour: ' . $e->getMessage());
-        return back()->with('error', 'Hubo un problema al actualizar el tour.')->withInput()->with('showEditModal', $tour->tour_id);
+                // Relaciones
+                $tour->languages()->sync($v['languages']);
+                $tour->amenities()->sync($v['amenities'] ?? []);
+                $tour->excludedAmenities()->sync($v['excluded_amenities'] ?? []);
+
+                // Horarios
+                $tour->schedules()->delete();
+                if (! empty($v['schedule_am_start'] && $v['schedule_am_end'])) {
+                    $tour->schedules()->create([
+                        'start_time' => $v['schedule_am_start'],
+                        'end_time'   => $v['schedule_am_end'],
+                    ]);
+                }
+                if (! empty($v['schedule_pm_start'] && $v['schedule_pm_end'])) {
+                    $tour->schedules()->create([
+                        'start_time' => $v['schedule_pm_start'],
+                        'end_time'   => $v['schedule_pm_end'],
+                    ]);
+                }
+            });
+
+            return redirect()
+                ->route('admin.tours.index')
+                ->with('success','Tour actualizado correctamente.');
+
+        } catch (Exception $e) {
+            Log::error('Error al actualizar tour: '.$e->getMessage());
+            return back()
+                ->with('error','Hubo un problema al actualizar el tour.')
+                ->withInput()
+                ->with('showEditModal', $tour->tour_id);
+        }
     }
-}
+
     public function destroy(Tour $tour)
     {
         try {
-            $tour->is_active = !$tour->is_active;
+            $tour->is_active = ! $tour->is_active;
             $tour->save();
-
             $msg = $tour->is_active
-                ? 'Tour activado correctamente.'
-                : 'Tour desactivado correctamente.';
+               ? 'Tour activado correctamente.'
+               : 'Tour desactivado correctamente.';
 
-            return redirect()->route('admin.tours.index')->with('success', $msg);
+            return redirect()
+                ->route('admin.tours.index')
+                ->with('success', $msg);
         } catch (Exception $e) {
-            Log::error('Error al cambiar estado del tour: ' . $e->getMessage());
-            return back()->with('error', 'Hubo un problema al cambiar el estado del tour.');
+            Log::error('Error al cambiar estado del tour: '.$e->getMessage());
+            return back()->with('error','Hubo un problema al cambiar el estado del tour.');
         }
     }
 }

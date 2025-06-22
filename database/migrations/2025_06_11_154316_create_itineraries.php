@@ -14,6 +14,7 @@ return new class extends Migration
     Schema::create('itineraries', function (Blueprint $table) {
     $table->id('itinerary_id')->unique();
     $table->string('name');
+    $table->boolean('is_active')->default(true);
     $table->text('description')->nullable();
     $table->timestamps();
 });

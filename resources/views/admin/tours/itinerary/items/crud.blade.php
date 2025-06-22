@@ -59,14 +59,24 @@
                     <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarItem{{ $item->item_id }}">
                         <i class="fas fa-edit"></i>
                     </a>
+                    @php
+                        $active    = $item->is_active;
+                        $btnClass  = $active ? 'btn-danger' : 'btn-success';
+                        $icon      = $active ? 'fa-times-circle' : 'fa-check-circle';
+                        $confirm   = $active ? '¿Desactivar este ítem?' : '¿Activar este ítem?';
+                    @endphp
+
                     <form action="{{ route('admin.tours.itinerary_items.destroy', $item->item_id) }}" method="POST" style="display:inline-block">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-sm {{ $item->is_active ? 'btn-danger' : 'btn-success' }}"
-                                onclick="return confirm('¿Cambiar estado del ítem?')">
-                            <i class="fas {{ $item->is_active ? 'fa-times-circle' : 'fa-check-circle' }}"></i>
+                        <button type="submit"
+                                class="btn btn-sm {{ $btnClass }}"
+                                onclick="return confirm('{{ $confirm }}')"
+                                title="{{ $active ? 'Desactivar ítem' : 'Activar ítem' }}">
+                            <i class="fas {{ $icon }}"></i>
                         </button>
                     </form>
+
                 </td>
             </tr>
 

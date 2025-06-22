@@ -14,7 +14,9 @@ class ItineraryItemController extends Controller
 {
     public function index()
     {
-        $items = ItineraryItem::orderBy('title')->get();
+        $items = ItineraryItem::where('is_active', true)
+        ->orderBy('title')
+        ->get();
         return view('admin.tours.itinerary.items.crud', compact('items'));
     }
 
@@ -79,11 +81,16 @@ class ItineraryItemController extends Controller
     public function destroy(ItineraryItem $itinerary_item)
     {
         try {
+            // 1. Cambiamos el estado
             $itinerary_item->update([
-                'is_active' => !$itinerary_item->is_active,
+                'is_active' => ! $itinerary_item->is_active,
             ]);
+            $itinerary_item->refresh();
 
-            $itinerary_item->refresh(); // <- Importante para reflejar el nuevo estado
+            // 2. Si quedó inactivo, lo desvinculamos de todos los itinerarios
+            if (! $itinerary_item->is_active) {
+                $itinerary_item->itineraries()->detach();
+            }
 
             $mensaje = $itinerary_item->is_active
                 ? 'Ítem activado exitosamente.'
@@ -92,7 +99,8 @@ class ItineraryItemController extends Controller
             return redirect()->back()->with('success', $mensaje);
         } catch (Exception $e) {
             Log::error('Error al cambiar estado del ítem de itinerario: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'No se pudo cambiar el estado del ítem.');
+            return back()->with('error', 'No se pudo cambiar el estado del ítem.');
         }
     }
+
 }
