@@ -43,10 +43,10 @@ class CartItem extends Model
         return $this->belongsTo(TourSchedule::class, 'tour_schedule_id');
     }
 
-    public function hotel()
-    {
-        //return $this->belongsTo(Hotel::class, 'hotel_id');
-    }
+public function hotel()
+{
+    return $this->belongsTo(HotelList::class, 'hotel_id');
+}
 
     public function language()
     {

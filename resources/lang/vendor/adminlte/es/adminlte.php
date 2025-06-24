@@ -96,4 +96,85 @@ return [
 'read_more' => 'leer más',
 'adult_price' => 'Adultos (10+)',
 'kid_price' => 'Niños (0-9)',
+
+    // CRUD y acciones generales
+    'create' => 'Crear',
+    'edit' => 'Editar',
+    'update' => 'Actualizar',
+    'delete' => 'Eliminar',
+    'activate' => 'Activar',
+    'deactivate' => 'Desactivar',
+    'confirm' => 'Confirmar',
+    'cancel' => 'Cancelar',
+    'save_changes' => 'Guardar cambios',
+    'are_you_sure' => '¿Estás seguro?',
+    'actions' => 'Acciones',
+
+    // Tours y reservas
+    'tour' => 'Tour',
+    'tour_name' => 'Nombre del tour',
+    'overview' => 'Resumen',
+    'duration' => 'Duración',
+    'price' => 'Precio',
+    'type' => 'Tipo de tour',
+    'languages_available' => 'Idiomas disponibles',
+    'amenities_included' => 'Amenidades incluidas',
+    'excluded_amenities' => 'Amenidades no incluidas',
+    'tour_details' => 'Detalles del tour',
+    'select_tour' => 'Seleccione un tour',
+
+    // Horarios
+    'schedule_am' => 'Horario AM',
+    'schedule_pm' => 'Horario PM',
+    'start_time' => 'Hora de inicio',
+    'end_time' => 'Hora de fin',
+
+    // Itinerarios
+    'itinerary' => 'Itinerario',
+    'itineraries' => 'Itinerarios',
+    'new_itinerary' => 'Nuevo itinerario',
+    'itinerary_items' => 'Ítems del itinerario',
+    'item_title' => 'Título del ítem',
+    'item_description' => 'Descripción del ítem',
+    'add_item' => 'Agregar ítem',
+    'edit_itinerary' => 'Editar itinerario',
+
+    // Hoteles
+    'hotels' => 'Hoteles',
+    'hotel' => 'Hotel',
+    'select_hotel' => 'Seleccione un hotel',
+    'other_hotel' => 'Otro hotel (especifique)',
+    'hotel_pickup' => 'Recogida en hotel',
+
+    // Carrito y reservas
+    'add_to_cart' => 'Agregar al carrito',
+    'remove_from_cart' => 'Eliminar del carrito',
+    'confirm_reservation' => 'Confirmar reserva',
+    'your_cart' => 'Tu carrito',
+    'cart_updated' => 'Carrito actualizado correctamente.',
+    'reservation_success' => '¡Reserva realizada con éxito!',
+    'reservation_failed' => 'Error al realizar la reserva.',
+    'no_items_in_cart' => 'Tu carrito está vacío.',
+    'booking_reference' => 'Referencia de reserva',
+    'booking_date' => 'Fecha de reserva',
+    'reservation_status' => 'Estado de la reserva',
+
+    // Estados
+    'active' => 'Activo',
+    'inactive' => 'Inactivo',
+    'pending' => 'Pendiente',
+    'confirmed' => 'Confirmado',
+
+    // Cantidades y fechas
+    'tour_date' => 'Fecha del tour',
+    'adults_quantity' => 'Cantidad de adultos',
+    'kids_quantity' => 'Cantidad de niños',
+    'total_price' => 'Precio total',
+
+    // Validación / formularios
+    'required_field' => 'Este campo es obligatorio.',
+    'invalid_email' => 'Correo electrónico inválido.',
+    'invalid_date' => 'Fecha no válida.',
+    'select_option' => 'Seleccione una opción',
+
 ];

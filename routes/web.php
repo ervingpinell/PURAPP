@@ -24,6 +24,8 @@ use App\Http\Controllers\Admin\Tours\ItineraryItemController;
 use App\Http\Controllers\Admin\Tours\ItineraryController;
 use App\Http\Controllers\Admin\Tours\TourTypeController;
 use App\Http\Controllers\Admin\Cart\CartController;
+use App\Http\Controllers\Admin\Bookings\HotelListController;
+
 
 Route::middleware([SetLocale::class])->group(function () {
 
@@ -126,6 +128,7 @@ Route::resource('languages', TourLanguageController::class, [
     'parameters' => ['languages' => 'language']
 ])->except(['show']);
 
+        Route::resource('hotels', HotelListController::class)->except(['show', 'create', 'edit']);
         Route::resource('amenities', AmenityController::class); // Doble, si se usa en otro contexto
 
         
@@ -142,6 +145,7 @@ Route::resource('languages', TourLanguageController::class, [
 
         // ----------- Confirmar reservas -----------
         Route::post('/reservas/from-cart', [BookingController::class, 'storeFromCart'])->name('reservas.storeFromCart');
+
 
 
 
