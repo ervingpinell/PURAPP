@@ -120,7 +120,7 @@
                             </div>
                             <div class="mb-3">
                                 <label>Cantidad de Niños</label>
-                                <input type="number" name="kids_quantity" class="form-control" value="{{ $item->kids_quantity }}" min="0">
+                                <input type="number" name="kids_quantity" class="form-control" value="{{ $item->kids_quantity }}" min="0" max="2">
                             </div>
                             <div class="form-check mb-3">
                                 <input class="form-check-input" type="checkbox" name="is_active" value="1" id="check{{ $item->item_id }}" {{ $item->is_active ? 'checked' : '' }}>

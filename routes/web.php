@@ -98,6 +98,16 @@ Route::middleware([SetLocale::class])->group(function () {
             // CRUD de reservas (sin el show)
             Route::resource('reservas', BookingController::class)
                 ->except(['show']);
+            
+            //Calendario
+            // JSON con los eventos
+            Route::get('reservas/calendar-data', [BookingController::class, 'calendarData'])
+                ->name('reservas.calendarData');
+
+            // La vista donde va el calendario
+            Route::get('reservas/calendar', [BookingController::class, 'calendar'])
+                ->name('reservas.calendar');
+
 
 
 

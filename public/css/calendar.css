@@ -1,0 +1,59 @@
+/* —— Leyenda —— */
+.legend-container {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-badge {
+  display: inline-block;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 0.25rem;
+}
+
+.legend-badge.pending   { background: #f0ad4e; }
+.legend-badge.confirmed { background: #5cb85c; }
+.legend-badge.cancelled { background: #d9534f; }
+
+.legend-text {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* —— Contenedor del calendario —— */
+#calendar {
+  max-width: 1000px;
+  margin: 0 auto 3rem;
+}
+
+/* —— Cabeceras y botones de FullCalendar —— */
+.fc .fc-toolbar-title {
+  font-size: 2rem !important;
+  margin-bottom: 0.5rem;
+}
+
+.fc .fc-button {
+  font-size: 1rem !important;
+  padding: 0.5em 1em !important;
+  margin: 0 0.25em !important;
+}
+
+/* —— Tamaño y espaciado de los eventos —— */
+.fc-daygrid-event {
+  font-size: 0.9rem !important;
+  padding: 0.3em 0.5em !important;
+}
+
+/* Cursor pointer sobre los eventos */
+.fc-daygrid-event, 
+.fc-timegrid-event {
+  cursor: pointer !important;
+}

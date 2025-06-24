@@ -434,7 +434,12 @@ return [
             'icon'  => 'fas fa-info-circle',
             'can'   => ''
         ],
-
+        [
+            'text' => 'CALENDAR',
+            'route' => 'admin.reservas.calendar',
+            'icon'  => 'fas fa-info-circle',
+            'can'   => ''
+        ],
         ['header' => 'CARTS'],
         [
             'text' => 'CARTS',

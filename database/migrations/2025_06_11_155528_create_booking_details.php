@@ -28,6 +28,7 @@ return new class extends Migration
             $table->decimal('adult_price', 10, 2);
             $table->decimal('kid_price', 10, 2);
             $table->boolean('is_active')->default(true);
+            $table->decimal('total', 10, 2)->after('kid_price')->default(0);
             $table->timestamps();
 
             $table->foreign('booking_id')->references('booking_id')->on('bookings')->onDelete('cascade');

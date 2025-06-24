@@ -1,3 +1,4 @@
+{{-- resources/views/admin/bookingDetails/comprobante.blade.php --}}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -18,9 +19,11 @@
         <h2>🎫 Comprobante de Reserva</h2>
 
         @php
-            $tour       = $reserva->tour;
-            $adultPrice = $tour->adult_price ?? 0;
-            $kidPrice   = $tour->kid_price   ?? 0;
+            $tour         = $reserva->tour;
+            $aQty         = $reserva->detail->adults_quantity;
+            $kQty         = $reserva->detail->kids_quantity;
+            $aPrice       = $tour->adult_price ?? 0;
+            $kPrice       = $tour->kid_price   ?? 0;
         @endphp
 
         <div class="dato"><strong>Código:</strong> {{ $reserva->booking_reference }}</div>
@@ -39,20 +42,21 @@
         <div class="line-separator"></div>
 
         <div class="dato">
-            <strong>Adultos (x{{ $reserva->adults_quantity }}):</strong>
-            ${{ number_format($adultPrice, 2) }}
-            = ${{ number_format($adultPrice * $reserva->adults_quantity, 2) }}
+            <strong>Adultos (x{{ $aQty }}):</strong>
+            ${{ number_format($aPrice,2) }} = ${{ number_format($aPrice * $aQty,2) }}
         </div>
         <div class="dato">
-            <strong>Niños (x{{ $reserva->kids_quantity }}):</strong>
-            ${{ number_format($kidPrice, 2) }}
-            = ${{ number_format($kidPrice * $reserva->kids_quantity, 2) }}
+            <strong>Niños (x{{ $kQty }}):</strong>
+            ${{ number_format($kPrice,2) }} = ${{ number_format($kPrice * $kQty,2) }}
+        </div>
+        <div class="dato">
+            <strong>Personas:</strong> {{ $aQty + $kQty }}
         </div>
 
         <div class="line-separator"></div>
 
         <div class="dato total">
-            TOTAL A PAGAR: ${{ number_format($reserva->total, 2) }}
+            TOTAL A PAGAR: ${{ number_format($reserva->total,2) }}
         </div>
     </div>
 </body>

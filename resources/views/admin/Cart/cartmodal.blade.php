@@ -35,7 +35,7 @@
 
                 <div class="mb-3">
                     <label>Cantidad de niños</label>
-                    <input type="number" name="kids_quantity" class="form-control" min="0" value="0">
+                    <input type="number" name="kids_quantity" class="form-control" min="0" max="2" value="0">
                 </div>
             </div>
 

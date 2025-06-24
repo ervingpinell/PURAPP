@@ -21,8 +21,11 @@
                 <th>ID Reserva</th>
                 <th>Cliente</th>
                 <th>Correo</th>
+                <th>Telefono</th>
                 <th>Tour</th>
                 <th>Fecha Reserva</th>
+                <th>Adultos</th>
+                <th>Niños</th>
                 <th>Estado</th>
                 <th>Referencia</th>
                 <th>Total</th>
@@ -35,8 +38,11 @@
                 <td>{{ $reserva->booking_id }}</td>
                 <td>{{ $reserva->user->full_name ?? '-' }}</td>
                 <td>{{ $reserva->user->email ?? '-' }}</td>
+                <td>{{ $reserva->user->phone }}</td>
                 <td>{{ $reserva->tour->name    ?? '-' }}</td>
                 <td>{{ $reserva->booking_date   }}</td>
+                <td>{{ $reserva->detail->adults_quantity }}</td>
+                <td>{{ $reserva->detail->kids_quantity }}</td>
                 <td>{{ ucfirst($reserva->status) }}</td>
                 <td>{{ $reserva->booking_reference }}</td>
                 <td>${{ number_format($reserva->total, 2) }}</td>
@@ -62,6 +68,10 @@
                        class="btn btn-success btn-sm">
                         <i class="fas fa-file-download"></i>
                     </a>
+                    {{-- Paginación --}}
+                    <div class="d-flex justify-content-center">
+                    {{ $bookings->links() }}
+                    </div>
                 </td>
             </tr>
 
@@ -78,6 +88,7 @@
                             </div>
                             <div class="modal-body">
                             {{-- Cantidad Adultos --}}
+                                <label class="form-label">Cantidad Adultos</label>
                             <input
                             type="number"
                             name="adults_quantity"
@@ -88,6 +99,7 @@
                             >
 
                             {{-- Cantidad Niños --}}
+                                <label class="form-label">Cantidad Niños</label>
                             <input
                             type="number"
                             name="kids_quantity"
@@ -98,6 +110,7 @@
                             >
 
                             {{-- Precio Adulto --}}
+                                <label class="form-label">Precio Adulto</label>
                             <input
                             type="text"
                             class="form-control precio-adulto"
@@ -106,6 +119,7 @@
                             >
 
                             {{-- Precio Niño --}}
+                                <label class="form-label">Precio Niño</label>
                             <input
                             type="text"
                             class="form-control precio-nino"
