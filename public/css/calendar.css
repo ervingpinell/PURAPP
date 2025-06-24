@@ -113,3 +113,12 @@
 .fc-day-sat, .fc-day-sun {
   background-color: rgba(255,255,255,0.05);
 }
+
+/* —— Dard mode —— */
+body.dark-mode .fc {
+  color: #eee;
+  background: #2f3740;
+}
+body.dark-mode .fc .fc-btn-primary {
+  background: #445;
+}

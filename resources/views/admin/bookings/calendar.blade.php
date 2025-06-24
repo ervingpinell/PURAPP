@@ -11,6 +11,8 @@
   />
   {{-- Tu CSS personalizado --}}
   <link href="{{ asset('css/calendar.css') }}" rel="stylesheet" />
+  {{-- Tippy.js styling (opcional) --}}
+  <link href="https://unpkg.com/tippy.js@6/dist/tippy.css" rel="stylesheet" />
 @stop
 
 @section('content_header')
@@ -35,19 +37,19 @@
   </div>
 
   {{-- Controles de filtro --}}
-  <div class="row mb-3 align-items-end">
-    <div class="col-sm-3">
-      <label for="filter-from" class="form-label">Desde</label>
+  <div class="row mb-3 align-items-end justify-content-center">
+    <div class="col-sm-2">
+      <label for="filter-from" class="form-label">From</label>
       <input type="date" id="filter-from" class="form-control">
     </div>
-    <div class="col-sm-3">
-      <label for="filter-to" class="form-label">Hasta</label>
+    <div class="col-sm-2">
+      <label for="filter-to" class="form-label">To</label>
       <input type="date" id="filter-to" class="form-control">
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-2">
       <button id="btn-apply" class="btn btn-primary w-100">Aplicar filtro</button>
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-2">
       <button id="btn-clear" class="btn btn-secondary w-100">Limpiar filtros</button>
     </div>
   </div>
@@ -75,14 +77,23 @@
 @stop
 
 @section('js')
+  {{-- Popper + Tippy --}}
+  <script src="https://unpkg.com/@popperjs/core@2"></script>
+  <script src="https://unpkg.com/tippy.js@6"></script>
+  {{-- FullCalendar --}}
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const calendarEl = document.getElementById('calendar');
-      let filterFrom = document.getElementById('filter-from');
-      let filterTo   = document.getElementById('filter-to');
+      const filterFrom = document.getElementById('filter-from');
+      const filterTo   = document.getElementById('filter-to');
+      const btnApply   = document.getElementById('btn-apply');
+      const btnClear   = document.getElementById('btn-clear');
+      const btnExport  = document.getElementById('btn-export');
+      const titleEl    = () => document.querySelector('.fc-toolbar-title');
 
-      // Creamos el calendario, con extraParams para enviar fecha desde/hasta
+      // Inicializamos FullCalendar
       const calendar = new FullCalendar.Calendar(calendarEl, {
         themeSystem: 'bootstrap',
         initialView: 'dayGridMonth',
@@ -91,10 +102,11 @@
           center: 'title',
           right: 'dayGridMonth,timeGridWeek'
         },
-        contentHeight: 750,
-        aspectRatio: 2,
+        contentHeight: 700,
+        aspectRatio: 1.5,
         dayMaxEventRows: 3,
 
+        // Colorea y tooltip con Tippy.js
         eventDidMount(info) {
           const colors = {
             pending:   '#f0ad4e',
@@ -105,8 +117,26 @@
           info.el.style.backgroundColor = c;
           info.el.style.borderColor     = c;
           info.el.style.cursor          = 'pointer';
+
+          // Tooltip
+          let { title, extendedProps } = info.event;
+          let adults = extendedProps.adults;
+          let kids   = extendedProps.kids;
+          let total  = extendedProps.total;
+          tippy(info.el, {
+            allowHTML: true,
+            theme: 'light-border',
+            delay: [100,50],
+            content: `
+              <strong>${title}</strong><br>
+              👤 Adultos: ${adults}<br>
+              🧒 Niños: ${kids}<br>
+              💰 Total: $${(parseFloat(total)||0).toFixed(2)}
+            `
+          });
         },
 
+        // Renderizado custom (título + badges)
         eventContent(arg) {
           let { title, extendedProps } = arg.event;
           let { adults, kids } = extendedProps;
@@ -125,26 +155,26 @@
             <span class="badge bg-light text-dark">🧒${kids}</span>
           `;
           container.appendChild(infoEl);
+
           return { domNodes: [container] };
         },
 
+        // Carga eventos pasando filtro
         events: {
           url: '{{ route("admin.reservas.calendarData") }}',
-          extraParams: function() {
-            return {
-              from: filterFrom.value || '',
-              to:   filterTo.value   || ''
-            };
-          }
+          extraParams: () => ({
+            from: filterFrom.value || '',
+            to:   filterTo.value   || ''
+          })
         },
 
+        // Click abre modal
         eventClick(info) {
           const id        = info.event.id;
           const form      = document.getElementById('editBookingForm');
           const container = document.getElementById('editFormContainer');
-
           fetch(`/admin/reservas/${id}/edit`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            headers: {'X-Requested-With':'XMLHttpRequest'}
           })
           .then(r => r.text())
           .then(html => {
@@ -160,17 +190,27 @@
 
       calendar.render();
 
-      // Al hacer click en “Aplicar filtro” → recarga eventos
-      document.getElementById('btn-apply').addEventListener('click', () => {
-        calendar.refetchEvents();
-      });
+      // Actualiza el título según filtros
+      function updateTitle() {
+        if (filterFrom.value && filterTo.value) {
+          titleEl().innerText = `${filterFrom.value} → ${filterTo.value}`;
+        } else {
+          // Restablece al mes actual que maneja FullCalendar
+          titleEl().innerText = calendar.view.title;
+        }
+      }
 
-      // “Limpiar filtros”
-      document.getElementById('btn-clear').addEventListener('click', () => {
+      // Aplicar + limpiar filtros
+      btnApply.onclick = () => {
+        calendar.refetchEvents();
+        updateTitle();
+      };
+      btnClear.onclick = () => {
         filterFrom.value = '';
         filterTo.value   = '';
         calendar.refetchEvents();
-      });
+        updateTitle();
+      };
     });
   </script>
 @stop
