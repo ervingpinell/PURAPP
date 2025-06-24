@@ -1,4 +1,3 @@
-{{-- resources/views/admin/bookingDetails/pdf_resumen.blade.php --}}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -26,49 +25,39 @@
             $kQty    = $d->kids_quantity;
             $aPrice  = $d->adult_price;
             $kPrice  = $d->kid_price;
+            $hotel   = $d->is_other_hotel
+                        ? $d->other_hotel_name
+                        : optional($d->hotel)->name ?? '—';
         @endphp
 
         <div class="reserva-section">
             <div class="section-title">📌 Código: {{ $reserva->booking_reference }}</div>
 
-            <div class="dato"><strong>Cliente:</strong>
-                {{ optional($reserva->user)->full_name ?? 'N/A' }}
-                ({{ optional($reserva->user)->email ?? 'N/A' }})
-            </div>
-            <div class="dato"><strong>Tour:</strong> {{ $tour->name ?? 'N/A' }}</div>
-            <div class="dato"><strong>Fecha Reserva:</strong>
-                {{ \Carbon\Carbon::parse($reserva->booking_date)->format('d/m/Y') }}
-            </div>
+            <div class="dato"><strong>Cliente:</strong> {{ optional($reserva->user)->full_name }} ({{ optional($reserva->user)->email }})</div>
+            <div class="dato"><strong>Tour:</strong> {{ $tour->name }}</div>
+            <div class="dato"><strong>Fecha Reserva:</strong> {{ \Carbon\Carbon::parse($reserva->booking_date)->format('d/m/Y') }}</div>
+            <div class="dato"><strong>Fecha Tour:</strong> {{ \Carbon\Carbon::parse($d->tour_date)->format('d/m/Y') }}</div>
+            <div class="dato"><strong>Hotel:</strong> {{ $hotel }}</div>
             <div class="dato"><strong>Estado:</strong> {{ ucfirst($reserva->status) }}</div>
 
             <div class="line-separator"></div>
 
-            <div class="dato">
-                <strong>Adultos (x{{ $aQty }}):</strong>
-                ${{ number_format($aPrice,2) }} = ${{ number_format($aPrice * $aQty,2) }}
-            </div>
-            <div class="dato">
-                <strong>Niños (x{{ $kQty }}):</strong>
-                ${{ number_format($kPrice,2) }} = ${{ number_format($kPrice * $kQty,2) }}
-            </div>
-            <div class="dato">
-                <strong>Personas:</strong> {{ $aQty + $kQty }}
-            </div>
+            <div class="dato"><strong>Adultos (x{{ $aQty }}):</strong> ${{ number_format($aPrice,2) }} = ${{ number_format($aPrice * $aQty,2) }}</div>
+            <div class="dato"><strong>Niños (x{{ $kQty }}):</strong> ${{ number_format($kPrice,2) }} = ${{ number_format($kPrice * $kQty,2) }}</div>
+            <div class="dato"><strong>Personas:</strong> {{ $aQty + $kQty }}</div>
 
             <div class="line-separator"></div>
 
-            <div class="dato total">
-                TOTAL: ${{ number_format($reserva->total,2) }}
-            </div>
+            <div class="dato total">TOTAL: ${{ number_format($reserva->total,2) }}</div>
         </div>
     @endforeach
 
     <div class="line-separator"></div>
 
     <div class="resumen-general">
-        <div class="dato"><strong>Total Adultos:</strong>   {{ $totalAdults  }}</div>
-        <div class="dato"><strong>Total Niños:</strong>     {{ $totalKids    }}</div>
-        <div class="dato"><strong>Total Personas:</strong>  {{ $totalPersons }}</div>
+        <div class="dato"><strong>Total Adultos:</strong> {{ $totalAdults }}</div>
+        <div class="dato"><strong>Total Niños:</strong> {{ $totalKids }}</div>
+        <div class="dato"><strong>Total Personas:</strong> {{ $totalPersons }}</div>
     </div>
 </body>
 </html>
