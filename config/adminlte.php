@@ -416,7 +416,7 @@ return [
         ['header' => 'HOTELS'],
         [
             'text' => 'HOTEL_LIST',
-            'route' => '',
+            'route' => 'admin.hotels.index',
             'icon'  => 'fas fa-hotel',
             'can'   => ''
         ],
