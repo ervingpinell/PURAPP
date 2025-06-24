@@ -15,6 +15,7 @@ use App\Models\Itinerary;
 use App\Models\TourLanguage;
 use App\Models\Amenity;
 use App\Services\ItineraryService;
+use App\Models\HotelList;
 
 class TourController extends Controller
 {
@@ -37,24 +38,29 @@ class TourController extends Controller
             'schedules'  => fn($q) => $q->where('is_active', true),
         ])->orderBy('tour_id')->get();
 
-
         $tourtypes      = TourType::where('is_active', true)->orderBy('name')->get();
         $itineraries    = Itinerary::where('is_active', true)->orderBy('name')->get();
-        $languages = TourLanguage::where('is_active', true)
-               ->orderBy('name')
-               ->get();
-        $amenities = Amenity::where('is_active', true)
-              ->orderBy('name')
-              ->get();
+        $languages      = TourLanguage::where('is_active', true)->orderBy('name')->get();
+        $amenities      = Amenity::where('is_active', true)->orderBy('name')->get();
         $availableItems = collect((new ItineraryService)->getAvailableItems())
-                    ->where('is_active', true)
-                    ->values();
+                            ->where('is_active', true)
+                            ->values();
 
+        // <-- Añade esta línea:
+        $hotels = HotelList::where('is_active', true)->orderBy('name')->get();
+
+        // Y pásala al compact:
         return view('admin.tours.index', compact(
-            'tours','tourtypes','itineraries',
-            'languages','amenities','availableItems'
+            'tours',
+            'tourtypes',
+            'itineraries',
+            'languages',
+            'amenities',
+            'availableItems',
+            'hotels'        // <-- aquí
         ));
     }
+
 
     public function edit(Tour $tour)
     {

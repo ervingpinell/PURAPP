@@ -8,6 +8,7 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use Illuminate\Support\Facades\Auth;
 use App\Models\TourLanguage;
+use App\Models\HotelList;
 
 class CartController extends Controller
 {
@@ -16,6 +17,7 @@ class CartController extends Controller
     {
         $user = Auth::user();
         $languages = TourLanguage::all();
+        $hotels    = HotelList::where('is_active', true)->orderBy('name')->get();
 
         $cart = $user->cart()->where('is_active', true)->first();
 
@@ -26,7 +28,12 @@ class CartController extends Controller
             ]);
         }
 
-        $itemsQuery = CartItem::with(['tour', 'language'])->where('cart_id', $cart->cart_id);
+        $itemsQuery = CartItem::with([
+            'tour',
+            'language',
+            'hotel'
+        ])->where('cart_id', $cart->cart_id);
+
 
         if ($request->filled('estado')) {
             $itemsQuery->where('is_active', $request->estado);
@@ -34,7 +41,7 @@ class CartController extends Controller
 
         $cart->items = $itemsQuery->get();
 
-        return view('admin.Cart.cart', compact('cart', 'languages'));
+         return view('admin.Cart.cart', compact('cart','languages','hotels'));
     }
 
     // Agregar un ítem al carrito
@@ -50,8 +57,6 @@ class CartController extends Controller
             'other_hotel_name' => 'nullable|string|max:255',
             'adults_quantity' => 'required|integer|min:1',
             'kids_quantity' => 'nullable|integer|min:0|max:2',
-            'adult_price' => 'required|numeric|min:0',
-            'kid_price' => 'required|numeric|min:0',
         ]);
 
         $user = Auth::user();
@@ -65,20 +70,24 @@ class CartController extends Controller
         }
 
         CartItem::create([
-            'cart_id' => $cart->cart_id,
-            'tour_id' => $request->tour_id,
-            'tour_date' => $request->tour_date,
+            'cart_id'          => $cart->cart_id,
+            'tour_id'          => $request->tour_id,
+            'tour_date'        => $request->tour_date,
             'tour_schedule_id' => $request->tour_schedule_id,
             'tour_language_id' => $request->tour_language_id,
-            'hotel_id' => $request->hotel_id,
-            'is_other_hotel' => $request->is_other_hotel ?? false,
-            'other_hotel_name' => $request->other_hotel_name,
-            'adults_quantity' => $request->adults_quantity,
-            'kids_quantity' => $request->kids_quantity ?? 0,
-            'adult_price' => $request->adult_price,
-            'kid_price' => $request->kid_price,
-            'is_active' => true,
+            
+            'hotel_id'         => $request->is_other_hotel
+                                ? null
+                                : $request->hotel_id,
+            'is_other_hotel'   => $request->is_other_hotel ?? false,
+            'other_hotel_name' => $request->is_other_hotel
+                                ? $request->other_hotel_name
+                                : null,
+
+            'adults_quantity'  => $request->adults_quantity,
+            'kids_quantity'    => $request->kids_quantity ?? 0,
         ]);
+
 
         return $request->ajax()
             ? response()->json(['message' => 'Tour agregado al carrito.'])
@@ -88,22 +97,35 @@ class CartController extends Controller
     // Actualizar un ítem desde modal PATCH
     public function update(Request $request, CartItem $item)
     {
-        $validated = $request->validate([
-            'tour_date' => 'required|date',
-            'adults_quantity' => 'required|integer|min:1',
-            'kids_quantity' => 'nullable|integer|min:0|max:2',
-            'is_active' => 'nullable|boolean',
+        $data = $request->validate([
+            'tour_date'        => 'required|date',
+            'adults_quantity'  => 'required|integer|min:1',
+            'kids_quantity'    => 'nullable|integer|min:0|max:2',
+            'is_active'        => 'nullable|boolean',
+            'hotel_id'         => 'nullable|exists:hotels_list,hotel_id',
+            'is_other_hotel'   => 'required|boolean',
+            'other_hotel_name' => 'nullable|string|max:255',
         ]);
 
         $item->update([
-            'tour_date' => $validated['tour_date'],
-            'adults_quantity' => $validated['adults_quantity'],
-            'kids_quantity' => $validated['kids_quantity'] ?? 0,
-            'is_active' => $request->has('is_active'),
+            'tour_date'        => $data['tour_date'],
+            'adults_quantity'  => $data['adults_quantity'],
+            'kids_quantity'    => $data['kids_quantity'] ?? 0,
+            'is_active'        => $data['is_active'] ?? false,
+            
+            'hotel_id'         => $data['is_other_hotel']
+                                ? null
+                                : $data['hotel_id'],
+            'is_other_hotel'   => $data['is_other_hotel'],
+            'other_hotel_name' => $data['is_other_hotel']
+                                ? $data['other_hotel_name']
+                                : null,
         ]);
 
-        return back()->with('success', 'Ítem actualizado correctamente.');
+
+        return back()->with('success','Ítem actualizado correctamente.');
     }
+
 
     // Actualizar desde formulario POST (botón Guardar del modal)
     public function updateFromPost(Request $request, CartItem $item)

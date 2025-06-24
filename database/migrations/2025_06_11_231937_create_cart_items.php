@@ -25,6 +25,7 @@ return new class extends Migration
         
         $table->integer('adults_quantity');
         $table->integer('kids_quantity');
+        $table->boolean('is_active')->default(true);
         $table->timestamps();
 
         // Foreign keys

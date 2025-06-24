@@ -27,6 +27,7 @@ class BookingDetail extends Model
         'adult_price',
         'kid_price',
         'total',
+        'hotel_id',
         'is_other_hotel',
         'other_hotel_name',
         // …
@@ -50,5 +51,9 @@ class BookingDetail extends Model
     public function tourSchedule()
     {
         return $this->belongsTo(TourSchedule::class, 'tour_schedule_id', 'tour_schedule_id');
+    }
+    public function hotel()
+    {
+        return $this->belongsTo(HotelList::class, 'hotel_id', 'hotel_id');
     }
 }

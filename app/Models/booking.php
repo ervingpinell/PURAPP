@@ -20,6 +20,7 @@ class Booking extends Model
         'booking_date',
         'status',
         'total',
+        'hotel_id',
         'is_active',
     ];
 
@@ -50,5 +51,10 @@ class Booking extends Model
     public function detail()
     {
         return $this->hasOne(BookingDetail::class, 'booking_id', 'booking_id');
+    }
+
+    public function hotel()
+    {
+        return $this->belongsTo(HotelList::class, 'hotel_id', 'hotel_id');
     }
 }

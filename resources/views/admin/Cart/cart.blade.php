@@ -41,6 +41,7 @@
                         <th>Tour</th>
                         <th>Fecha</th>
                         <th>Idioma</th>
+                        <th>Hotel</th>
                         <th>Adultos</th>
                         <th>Niños</th>
                         <th>Total</th>
@@ -54,9 +55,22 @@
                             <td>{{ $item->tour->name }}</td>
                             <td>{{ \Carbon\Carbon::parse($item->tour_date)->format('d/m/Y') }}</td>
                             <td>{{ $item->language->name }}</td>
+                            <td>
+                                @if($item->is_other_hotel)
+                                    {{ $item->other_hotel_name }}
+                                @else
+                                    {{ optional($item->hotel)->name ?? '—' }}
+                                @endif
+                            </td>
                             <td>{{ $item->adults_quantity }}</td>
                             <td>{{ $item->kids_quantity }}</td>
-                            <td>₡{{ number_format(($item->adult_price * $item->adults_quantity) + ($item->kid_price * $item->kids_quantity), 2) }}</td>
+                            <td>
+                              ${{ number_format(
+                                  $item->tour->adult_price * $item->adults_quantity +
+                                  $item->tour->kid_price   * $item->kids_quantity,
+                                  2
+                              ) }}
+                            </td>
                             <td>
                                 @if($item->is_active)
                                     <span class="badge bg-success"><i class="fas fa-check-circle"></i> Activo</span>
@@ -71,7 +85,6 @@
                                         data-bs-target="#modalEditar{{ $item->item_id }}">
                                     <i class="fas fa-edit"></i>
                                 </button>
-
                                 {{-- Eliminar --}}
                                 <form method="POST"
                                       action="{{ route('admin.cart.item.destroy', $item->item_id) }}"
@@ -89,7 +102,7 @@
             </table>
         </div>
 
-        {{-- Confirmar toda la reserva --}}
+        {{-- Boton de Enviar Reserva --}}
         <form method="POST" action="{{ route('admin.reservas.storeFromCart') }}">
             @csrf
             <button type="submit" class="btn btn-success btn-lg mt-3">
@@ -97,7 +110,7 @@
             </button>
         </form>
 
-        {{-- Modales --}}
+        {{-- Modales de edición --}}
         @foreach($cart->items as $item)
             <div class="modal fade" id="modalEditar{{ $item->item_id }}" tabindex="-1" aria-labelledby="modalLabel{{ $item->item_id }}" aria-hidden="true">
                 <div class="modal-dialog">
@@ -116,6 +129,36 @@
                                 <label>Fecha del Tour</label>
                                 <input type="date" name="tour_date" class="form-control" value="{{ $item->tour_date }}" required>
                             </div>
+                            <div class="mb-3">
+                                <label>Hotel</label>
+                                <select name="hotel_id"
+                                        id="edit_hotel_{{ $item->item_id }}"
+                                        class="form-control">
+                                    <option value="">Seleccione un hotel</option>
+                                    @foreach($hotels as $hotel)
+                                        <option value="{{ $hotel->hotel_id }}"
+                                            {{ !$item->is_other_hotel && $item->hotel_id == $hotel->hotel_id ? 'selected':'' }}>
+                                            {{ $hotel->name }}
+                                        </option>
+                                    @endforeach
+                                    <option value="other" {{ $item->is_other_hotel ? 'selected':'' }}>
+                                        Otro…
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="mb-3 {{ $item->is_other_hotel ? '' : 'd-none' }}"
+                                 id="edit_other_container_{{ $item->item_id }}">
+                                <label>Nombre de hotel</label>
+                                <input type="text"
+                                       name="other_hotel_name"
+                                       class="form-control"
+                                       value="{{ $item->other_hotel_name }}">
+                            </div>
+                            <input type="hidden"
+                                   name="is_other_hotel"
+                                   id="edit_is_other_{{ $item->item_id }}"
+                                   value="{{ $item->is_other_hotel ? 1 : 0 }}">
+
                             <div class="mb-3">
                                 <label>Cantidad de Adultos</label>
                                 <input type="number" name="adults_quantity" class="form-control" value="{{ $item->adults_quantity }}" min="1" required>
@@ -150,9 +193,9 @@
 @section('js')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // 1) Confirmación al eliminar un ítem del carrito
+        // Confirmación al eliminar ítem
         document.querySelectorAll('.delete-form').forEach(form => {
-            form.addEventListener('submit', function (e) {
+            form.addEventListener('submit', e => {
                 e.preventDefault();
                 Swal.fire({
                     title: '¿Eliminar este ítem?',
@@ -163,34 +206,58 @@
                     cancelButtonText: 'Cancelar',
                     confirmButtonColor: '#d33',
                     cancelButtonColor: '#6c757d'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
+                }).then(result => {
+                    if (result.isConfirmed) form.submit();
                 });
             });
         });
 
-        // 2) Alerta de éxito
+        // Toasts de sesión
         @if(session('success'))
-        Swal.fire({
-            icon: 'success',
-            title: '{{ session("success") }}',
-            showConfirmButton: false,
-            timer: 2000
-        });
+            Swal.fire({ icon: 'success', title: '{{ session("success") }}', timer:2000, showConfirmButton:false });
         @endif
-
-        // 3) Alerta de error (por ejemplo: cupo máximo 12)
         @if(session('error'))
-            Swal.fire({
-            icon: 'error',
-            title: '¡Ups!',
-            text: @js(session('error')),  
-            confirmButtonText: 'Entendido'
-        });
+            Swal.fire({ icon: 'error', title: '¡Ups!', text: @js(session('error')), confirmButtonText:'Entendido' });
         @endif
 
+        // Control Hotel “Otro…”
+        document.addEventListener('DOMContentLoaded', () => {
+            // En el formulario de confirmar carrito
+            const hotelSel = document.getElementById('hotel_id'),
+                  wrap     = document.getElementById('other_hotel_wrapper'),
+                  hidden   = document.getElementById('is_other_hotel'),
+                  input    = document.getElementById('other_hotel_name');
+
+            hotelSel.addEventListener('change', () => {
+                if (hotelSel.value === 'other') {
+                    wrap.classList.remove('d-none');
+                    hidden.value = 1;
+                } else {
+                    wrap.classList.add('d-none');
+                    hidden.value = 0;
+                    input.value  = '';
+                }
+            });
+
+            // En cada modal de edición
+            @foreach($cart->items as $item)
+                (function(){
+                    const sel    = document.getElementById('edit_hotel_{{ $item->item_id }}'),
+                          cont   = document.getElementById('edit_other_container_{{ $item->item_id }}'),
+                          hid    = document.getElementById('edit_is_other_{{ $item->item_id }}');
+
+                    sel.addEventListener('change', () => {
+                        if (sel.value === 'other') {
+                            cont.classList.remove('d-none');
+                            hid.value = 1;
+                        } else {
+                            cont.classList.add('d-none');
+                            cont.querySelector('input').value = '';
+                            hid.value = 0;
+                        }
+                    });
+                })();
+            @endforeach
+        });
     </script>
 @stop
-

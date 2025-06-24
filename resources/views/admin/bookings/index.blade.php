@@ -24,6 +24,7 @@
                 <th>Telefono</th>
                 <th>Tour</th>
                 <th>Fecha Reserva</th>
+                <th>Hotel</th>
                 <th>Adultos</th>
                 <th>Niños</th>
                 <th>Estado</th>
@@ -36,17 +37,24 @@
         @foreach($bookings as $reserva)
             <tr>
                 <td>{{ $reserva->booking_id }}</td>
-                <td>{{ $reserva->user->full_name ?? '-' }}</td>
-                <td>{{ $reserva->user->email ?? '-' }}</td>
-                <td>{{ $reserva->user->phone }}</td>
-                <td>{{ optional($reserva->detail->tour)->name  ?? '-' }}</td>
-                <td>{{ $reserva->booking_date   }}</td>
-                <td>{{ $reserva->detail->adults_quantity }}</td>
-                <td>{{ $reserva->detail->kids_quantity }}</td>
-                <td>{{ ucfirst($reserva->status) }}</td>
-                <td>{{ $reserva->booking_reference }}</td>
-                <td>${{ number_format($reserva->total, 2) }}</td>
-                <td>
+            <td>{{ $reserva->user->full_name ?? '-' }}</td>
+            <td>{{ $reserva->user->email ?? '-' }}</td>
+            <td>{{ $reserva->user->phone ?? '-' }}</td>
+            <td>{{ optional($reserva->detail->tour)->name ?? '-' }}</td>
+            <td>{{ $reserva->booking_date }}</td>
+            <td>
+                @if($reserva->detail->is_other_hotel)
+                    {{ $reserva->detail->other_hotel_name }}
+                @else
+                    {{ optional($reserva->detail->hotel)->name ?? '-' }}
+                @endif
+            </td>
+            <td>{{ $reserva->detail->adults_quantity }}</td>
+            <td>{{ $reserva->detail->kids_quantity }}</td>
+            <td>{{ ucfirst($reserva->status) }}</td>
+            <td>{{ $reserva->booking_reference }}</td>
+            <td>${{ number_format($reserva->total, 2) }}</td>
+            <td>
                     {{-- editar --}}
                     <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
                             data-bs-target="#modalEditar{{ $reserva->booking_id }}">
@@ -97,7 +105,40 @@
                             min="1"
                             required
                             >
+                            {{-- Hotel --}}
+                            <div class="mb-3">
+                            <label class="form-label">Hotel</label>
+                            <select name="hotel_id"
+                                    id="edit_hotel_{{ $reserva->booking_id }}"
+                                    class="form-control">
+                                <option value="">Seleccione un hotel</option>
+                                @foreach($hotels as $h)
+                                <option value="{{ $h->hotel_id }}"
+                                    {{ !$reserva->detail->is_other_hotel && $reserva->detail->hotel_id == $h->hotel_id ? 'selected' : '' }}>
+                                    {{ $h->name }}
+                                </option>
+                                @endforeach
+                                <option value="other" {{ $reserva->detail->is_other_hotel ? 'selected':'' }}>
+                                Otro…
+                                </option>
+                            </select>
+                            </div>
 
+                            {{-- Otro hotel (oculto inicialmente salvo que sea “other”) --}}
+                            <div class="mb-3 {{ $reserva->detail->is_other_hotel ? '' : 'd-none' }}"
+                                id="edit_other_hotel_container_{{ $reserva->booking_id }}">
+                            <label class="form-label">Nombre de hotel</label>
+                            <input type="text"
+                                    name="other_hotel_name"
+                                    class="form-control"
+                                    value="{{ $reserva->detail->other_hotel_name }}">
+                            </div>
+
+                            {{-- Hidden para indicar “otro hotel” --}}
+                            <input type="hidden"
+                                name="is_other_hotel"
+                                id="edit_is_other_hotel_{{ $reserva->booking_id }}"
+                                value="{{ $reserva->detail->is_other_hotel ? 1 : 0 }}">
                             {{-- Cantidad Niños --}}
                                 <label class="form-label">Cantidad Niños</label>
                             <input
@@ -194,6 +235,23 @@
                         <option value="pending">Pending</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
+                    <label class="mt-2">Hotel</label>
+                    <select name="hotel_id" class="form-control" required>
+                    <option value="">Seleccione un hotel</option>
+                    @foreach($hotels as $h)
+                        <option value="{{ $h->hotel_id }}">{{ $h->name }}</option>
+                    @endforeach
+                    <option value="other">Otro…</option>
+                    </select>
+                    <div class="mt-2 d-none" id="otherHotelRegistrarWrapper">
+                    <label>Nombre de otro hotel</label>
+                    <input type="text"
+                            name="other_hotel_name"
+                            class="form-control"
+                            placeholder="Escriba el nombre del hotel">
+                    </div>
+                    <input type="hidden" name="is_other_hotel" id="isOtherHotelRegistrar" value="0">
+
                     <label class="mt-2">Adultos</label>
                     <input type="number" name="adults_quantity" class="form-control" min="1" required>
                     <label class="mt-2">Niños</label>
@@ -286,4 +344,25 @@
       modal.addEventListener('input', () => recalcularTotal(modal));
     });
   });
+  
+  @foreach($bookings as $reserva)
+  (function(){
+    const sel    = document.getElementById('edit_hotel_{{ $reserva->booking_id }}');
+    const wrap   = document.getElementById('edit_other_hotel_container_{{ $reserva->booking_id }}');
+    const hidden = document.getElementById('edit_is_other_hotel_{{ $reserva->booking_id }}');
+
+    sel.addEventListener('change', () => {
+      if (sel.value === 'other') {
+        wrap.classList.remove('d-none');
+        hidden.value = 1;
+      } else {
+        wrap.classList.add('d-none');
+        wrap.querySelector('input').value = '';
+        hidden.value = 0;
+      }
+    });
+  })();
+@endforeach
+
 </script>
+
