@@ -150,6 +150,7 @@
 @section('js')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // 1) Confirmación al eliminar un ítem del carrito
         document.querySelectorAll('.delete-form').forEach(form => {
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
@@ -170,6 +171,7 @@
             });
         });
 
+        // 2) Alerta de éxito
         @if(session('success'))
         Swal.fire({
             icon: 'success',
@@ -178,5 +180,17 @@
             timer: 2000
         });
         @endif
+
+        // 3) Alerta de error (por ejemplo: cupo máximo 12)
+        @if(session('error'))
+            Swal.fire({
+            icon: 'error',
+            title: '¡Ups!',
+            text: @js(session('error')),  
+            confirmButtonText: 'Entendido'
+        });
+        @endif
+
     </script>
 @stop
+
