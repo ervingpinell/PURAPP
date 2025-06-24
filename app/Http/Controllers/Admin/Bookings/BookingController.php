@@ -26,7 +26,7 @@ class BookingController extends Controller
             $sort = 'booking_id';
         }
 
-        $query = Booking::with(['user','detail'])
+        $query = Booking::with(['user','detail','tour'])
             ->join('users','bookings.user_id','users.user_id')
             ->select('bookings.*');
 
@@ -201,9 +201,11 @@ class BookingController extends Controller
             ($item->tour->adult_price * $item->adults_quantity)
           + ($item->tour->kid_price   * $item->kids_quantity)
         );
+        $firstItem = $cart->items->first();
 
         $booking = Booking::create([
             'user_id'           => $user->user_id,
+            'tour_id'           => $firstItem->tour_id,
             'booking_reference' => strtoupper(Str::random(10)),
             'booking_date'      => now(),
             'status'            => 'pending',
@@ -245,7 +247,7 @@ class BookingController extends Controller
     /** Datos para FullCalendar */
     public function calendarData(Request $request)
     {
-        $query = BookingDetail::with(['booking.user','booking.tour']);
+        $query = BookingDetail::with(['booking.user','tour']);  // carga tour directo
 
         if ($request->filled('from')) {
             $query->where('tour_date','>=',$request->input('from'));
@@ -255,15 +257,16 @@ class BookingController extends Controller
         }
 
         $events = $query->get()->map(fn($d) => [
-            'id'      => $d->booking->booking_id,
-            'title'   => "{$d->booking->user->full_name} – {$d->booking->tour->name}",
-            'start'   => $d->tour_date->toDateString(),
-            'status'  => $d->booking->status,
-            'adults'  => $d->adults_quantity,
-            'kids'    => $d->kids_quantity,
-            'total'   => $d->total,
+            'id'     => $d->booking->booking_id,
+            'title'  => "{$d->booking->user->full_name} – {$d->tour->name}", // <— aquí
+            'start'  => $d->tour_date->toDateString(),
+            'status' => $d->booking->status,
+            'adults' => $d->adults_quantity,
+            'kids'   => $d->kids_quantity,
+            'total'  => $d->total,
         ]);
 
         return response()->json($events);
     }
+
 }

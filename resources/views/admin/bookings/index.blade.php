@@ -39,7 +39,7 @@
                 <td>{{ $reserva->user->full_name ?? '-' }}</td>
                 <td>{{ $reserva->user->email ?? '-' }}</td>
                 <td>{{ $reserva->user->phone }}</td>
-                <td>{{ $reserva->tour->name    ?? '-' }}</td>
+                <td>{{ optional($reserva->detail->tour)->name  ?? '-' }}</td>
                 <td>{{ $reserva->booking_date   }}</td>
                 <td>{{ $reserva->detail->adults_quantity }}</td>
                 <td>{{ $reserva->detail->kids_quantity }}</td>
