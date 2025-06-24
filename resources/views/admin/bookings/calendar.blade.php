@@ -5,7 +5,10 @@
 
 @section('css')
   {{-- FullCalendar CSS --}}
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet"/>
+  <link
+    href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css"
+    rel="stylesheet"
+  />
   {{-- Tu CSS personalizado --}}
   <link href="{{ asset('css/calendar.css') }}" rel="stylesheet" />
 @stop
@@ -15,14 +18,6 @@
 @stop
 
 @section('content')
-  {{-- Filtros manuales de fechas --}}
-  <div class="d-flex justify-content-center mb-3">
-    <input type="date" id="filterStart" class="form-control w-auto me-2" />
-    <input type="date" id="filterEnd"   class="form-control w-auto me-2" />
-    <button id="filterBtn" class="btn btn-primary me-2">Filtrar</button>
-    <button id="clearBtn"  class="btn btn-secondary">Limpiar</button>
-  </div>
-
   {{-- Leyenda de estados --}}
   <div class="legend-container mb-4">
     <div class="legend-item">
@@ -36,6 +31,24 @@
     <div class="legend-item">
       <span class="legend-badge cancelled"></span>
       <span class="legend-text">Cancelled</span>
+    </div>
+  </div>
+
+  {{-- Controles de filtro --}}
+  <div class="row mb-3 align-items-end">
+    <div class="col-sm-3">
+      <label for="filter-from" class="form-label">Desde</label>
+      <input type="date" id="filter-from" class="form-control">
+    </div>
+    <div class="col-sm-3">
+      <label for="filter-to" class="form-label">Hasta</label>
+      <input type="date" id="filter-to" class="form-control">
+    </div>
+    <div class="col-sm-3">
+      <button id="btn-apply" class="btn btn-primary w-100">Aplicar filtro</button>
+    </div>
+    <div class="col-sm-3">
+      <button id="btn-clear" class="btn btn-secondary w-100">Limpiar filtros</button>
     </div>
   </div>
 
@@ -65,12 +78,11 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const inputStart = document.getElementById('filterStart');
-      const inputEnd   = document.getElementById('filterEnd');
-      const filterBtn  = document.getElementById('filterBtn');
-      const clearBtn   = document.getElementById('clearBtn');
-
       const calendarEl = document.getElementById('calendar');
+      let filterFrom = document.getElementById('filter-from');
+      let filterTo   = document.getElementById('filter-to');
+
+      // Creamos el calendario, con extraParams para enviar fecha desde/hasta
       const calendar = new FullCalendar.Calendar(calendarEl, {
         themeSystem: 'bootstrap',
         initialView: 'dayGridMonth',
@@ -79,17 +91,10 @@
           center: 'title',
           right: 'dayGridMonth,timeGridWeek'
         },
-        height: 650,
-        aspectRatio: 1.5,
-        events: function(fetchInfo, successCallback, failureCallback) {
-          const start = inputStart.value || fetchInfo.startStr;
-          const end   = inputEnd.value   || fetchInfo.endStr;
-          const params = new URLSearchParams({ start, end });
-          fetch('{{ route("admin.reservas.calendarData") }}?' + params)
-            .then(res => res.json())
-            .then(data => successCallback(data))
-            .catch(err  => failureCallback(err));
-        },
+        contentHeight: 750,
+        aspectRatio: 2,
+        dayMaxEventRows: 3,
+
         eventDidMount(info) {
           const colors = {
             pending:   '#f0ad4e',
@@ -101,10 +106,43 @@
           info.el.style.borderColor     = c;
           info.el.style.cursor          = 'pointer';
         },
+
+        eventContent(arg) {
+          let { title, extendedProps } = arg.event;
+          let { adults, kids } = extendedProps;
+          let container = document.createElement('div');
+          container.classList.add('fc-event-custom');
+
+          let titleEl = document.createElement('div');
+          titleEl.classList.add('fc-event-title');
+          titleEl.innerText = title;
+          container.appendChild(titleEl);
+
+          let infoEl = document.createElement('div');
+          infoEl.classList.add('fc-event-info');
+          infoEl.innerHTML = `
+            <span class="badge bg-light text-dark me-1">👤${adults}</span>
+            <span class="badge bg-light text-dark">🧒${kids}</span>
+          `;
+          container.appendChild(infoEl);
+          return { domNodes: [container] };
+        },
+
+        events: {
+          url: '{{ route("admin.reservas.calendarData") }}',
+          extraParams: function() {
+            return {
+              from: filterFrom.value || '',
+              to:   filterTo.value   || ''
+            };
+          }
+        },
+
         eventClick(info) {
           const id        = info.event.id;
           const form      = document.getElementById('editBookingForm');
           const container = document.getElementById('editFormContainer');
+
           fetch(`/admin/reservas/${id}/edit`, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
           })
@@ -122,16 +160,15 @@
 
       calendar.render();
 
-      // Botón Filtrar
-      filterBtn.addEventListener('click', () => {
+      // Al hacer click en “Aplicar filtro” → recarga eventos
+      document.getElementById('btn-apply').addEventListener('click', () => {
         calendar.refetchEvents();
-        if (inputStart.value) calendar.gotoDate(inputStart.value);
       });
 
-      // Botón Limpiar
-      clearBtn.addEventListener('click', () => {
-        inputStart.value = '';
-        inputEnd.value   = '';
+      // “Limpiar filtros”
+      document.getElementById('btn-clear').addEventListener('click', () => {
+        filterFrom.value = '';
+        filterTo.value   = '';
         calendar.refetchEvents();
       });
     });

@@ -232,24 +232,32 @@ class BookingController extends Controller
         return view('admin.bookings.calendar');
     }
 
-    public function calendarData()
+    public function calendarData(Request $request)
     {
-        $events = BookingDetail::with(['booking.user','booking.tour'])
-            ->get()
-            ->map(fn(BookingDetail $d) => [
-                'id'            => $d->booking->booking_id,            // ← aquí
-                'title'         => "{$d->booking->user->full_name} – {$d->booking->tour->name}",
-                'start'         => $d->tour_date->toDateString(),
-                'status'        => $d->booking->status,
-                'extendedProps' => [
-                    'adults' => $d->adults_quantity,
-                    'kids'   => $d->kids_quantity,
-                    'total'  => $d->total,
-                ],
-            ]);
+        $query = BookingDetail::with(['booking.user','booking.tour']);
+
+        if ($request->filled('from')) {
+            $query->where('tour_date', '>=', $request->input('from'));
+        }
+        if ($request->filled('to')) {
+            $query->where('tour_date', '<=', $request->input('to'));
+        }
+
+        $events = $query->get()->map(fn(BookingDetail $d) => [
+            'id'     => $d->booking->booking_id,
+            'title'  => "{$d->booking->user->full_name} – {$d->booking->tour->name}",
+            'start'  => $d->tour_date->toDateString(),
+            'status' => $d->booking->status,
+            'extendedProps' => [
+                'adults' => $d->adults_quantity,
+                'kids'   => $d->kids_quantity,
+                'total'  => $d->total,
+            ],
+        ]);
 
         return response()->json($events);
     }
+
     /**
  * Mostrar formulario de edición de una reserva.
  */
