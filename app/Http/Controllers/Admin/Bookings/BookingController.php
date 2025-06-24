@@ -38,7 +38,20 @@ class BookingController extends Controller
         if (Auth::user()->role_id === 3) {
             $query->where('bookings.user_id', Auth::id());
         }
+        $reference = $request->get('reference');
+        if ($reference) {
+            // buscamos coincidencias parciales (ILIKE en Postgres)
+            $query->where('booking_reference', 'ILIKE', "%{$reference}%");
+        }
 
+        $bookings = $query
+            ->orderBy($sort === 'user' ? 'users.full_name' : $sort, $direction)
+            ->paginate(10)
+            ->appends([
+                'sort'      => $sort,
+                'direction' => $direction,
+                'reference' => $reference,
+            ]);
         $bookings = $query
             ->orderBy($sort === 'user' ? 'users.full_name' : $sort, $direction)
             ->paginate(10)
@@ -58,6 +71,7 @@ class BookingController extends Controller
             'user_id'          => 'required|exists:users,user_id',
             'tour_id'          => 'required|exists:tours,tour_id',
             'booking_date'     => 'required|date',
+            'tour_date'      => 'required|date',
             'status'           => 'required|in:pending,confirmed,cancelled',
             'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
             'adults_quantity'  => 'required|integer|min:1',
@@ -79,16 +93,13 @@ class BookingController extends Controller
             'status'            => $v['status'],
             'total'             => $total,
             'is_active'         => true,
-            'hotel_id'         => $v['is_other_hotel'] ? null : $v['hotel_id'],
-            'is_other_hotel'   => $v['is_other_hotel'],
-            'other_hotel_name' => $v['is_other_hotel'] ? $v['other_hotel_name'] : null,
         ]);
 
         BookingDetail::create([
             'booking_id'       => $booking->booking_id,
             'tour_id'          => $tour->tour_id,
             'tour_language_id' => $v['tour_language_id'],
-            'tour_date'        => $v['booking_date'],
+            'tour_date'        => $v['tour_date'],
             'adults_quantity'  => $v['adults_quantity'],
             'kids_quantity'    => $v['kids_quantity'],
             'adult_price'      => $tour->adult_price,
