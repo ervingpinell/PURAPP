@@ -100,6 +100,10 @@ Route::middleware([SetLocale::class])->group(function () {
             // CRUD de reservas (sin el show)
             Route::resource('reservas', BookingController::class)
                 ->except(['show']);
+
+            // RUTA PARA CONSULTAR PLAZAS RESERVADAS
+            Route::get('reservas/reserved', [BookingController::class, 'reservedCount'])
+            ->name('reservas.reserved');
             
             //Calendario
             // JSON con los eventos

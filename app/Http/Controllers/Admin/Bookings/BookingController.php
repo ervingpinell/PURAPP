@@ -374,5 +374,18 @@ class BookingController extends Controller
 
         return response()->json($events);
     }
+    public function reservedCount(Request $request)
+    {
+        $data = $request->validate([
+            'tour_id'   => 'required|exists:tours,tour_id',
+            'tour_date' => 'required|date',
+        ]);
+
+        $reserved = BookingDetail::where('tour_id', $data['tour_id'])
+            ->where('tour_date', $data['tour_date'])
+            ->sum(DB::raw('adults_quantity + kids_quantity'));
+
+        return response()->json(['reserved' => $reserved]);
+    }
 
 }
