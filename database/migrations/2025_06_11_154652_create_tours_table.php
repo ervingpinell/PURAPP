@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('adult_price', 10, 2);
             $table->decimal('kid_price', 10, 2);
             $table->integer('length');
+            $table->unsignedInteger('max_capacity')->default(12);
             $table->boolean('is_active')->default(true);
             $table->unsignedBigInteger('itinerary_id')->nullable();
             $table->timestamps();

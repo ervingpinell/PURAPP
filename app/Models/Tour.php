@@ -20,6 +20,7 @@ class Tour extends Model
     'adult_price',
     'kid_price',
     'length',
+    'max_capacity',
     'is_active',
     'tour_type_id',
     'itinerary_id',

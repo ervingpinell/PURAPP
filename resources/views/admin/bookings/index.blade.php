@@ -468,5 +468,28 @@
 @endforeach
 
 </script>
+@if($errors->has('capacity'))
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      Swal.fire({
+        icon: 'error',
+        title: 'Cupo Excedido',
+        text: @json($errors->first('capacity')),
+        confirmButtonColor: '#d33'
+      });
+    });
+  </script>
+@endif
+
+@if(session('showEditModal'))
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const id = '{{ session('showEditModal') }}';
+      const modal = new bootstrap.Modal(document.getElementById('modalEditar' + id));
+      modal.show();
+    });
+  </script>
+@endif
+
 
 @stop
