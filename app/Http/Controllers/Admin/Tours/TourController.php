@@ -23,17 +23,17 @@ class TourController extends Controller
     {
         $tours = Tour::with([
             'tourType',
-            'languages' => function($q) {
+            'languages' => function ($q) {
                 $q->wherePivot('is_active', true)
-                ->where('tour_languages.is_active', true);
+                    ->where('tour_languages.is_active', true);
             },
-            'amenities' => function($q) {
+            'amenities' => function ($q) {
                 $q->wherePivot('is_active', true)
-                ->where('amenities.is_active', true);
+                    ->where('amenities.is_active', true);
             },
-            'itinerary.items' => function($q) {
+            'itinerary.items' => function ($q) {
                 $q->wherePivot('is_active', true)
-                ->where('itinerary_items.is_active', true);
+                    ->where('itinerary_items.is_active', true);
             },
             'schedules'  => fn($q) => $q->where('is_active', true),
         ])->orderBy('tour_id')->get();
@@ -43,8 +43,8 @@ class TourController extends Controller
         $languages      = TourLanguage::where('is_active', true)->orderBy('name')->get();
         $amenities      = Amenity::where('is_active', true)->orderBy('name')->get();
         $availableItems = collect((new ItineraryService)->getAvailableItems())
-                            ->where('is_active', true)
-                            ->values();
+            ->where('is_active', true)
+            ->values();
 
         // <-- Añade esta línea:
         $hotels = HotelList::where('is_active', true)->orderBy('name')->get();
@@ -66,18 +66,22 @@ class TourController extends Controller
     {
         $tourtypes      = TourType::where('is_active', true)->orderBy('name')->get();
         $itineraries    = Itinerary::where('is_active', true)
-                            ->with(['items' => fn($q)=> $q->wherePivot('is_active',true)])
-                            ->orderBy('name')
-                            ->get();
+            ->with(['items' => fn($q) => $q->wherePivot('is_active', true)])
+            ->orderBy('name')
+            ->get();
         $languages      = TourLanguage::where('is_active', true)->orderBy('name')->get();
         $amenities      = Amenity::where('is_active', true)->orderBy('name')->get();
         $availableItems = collect((new ItineraryService)->getAvailableItems())
-                        ->where('is_active', true)
-                        ->values();
+            ->where('is_active', true)
+            ->values();
 
         return view('admin.tours.edit', compact(
-            'tour','tourtypes','itineraries',
-            'languages','amenities','availableItems'
+            'tour',
+            'tourtypes',
+            'itineraries',
+            'languages',
+            'amenities',
+            'availableItems'
         ));
     }
 
@@ -85,7 +89,7 @@ class TourController extends Controller
     {
         if (! $input) return null;
         $input   = trim(strtolower($input));
-        $formats = ['H:i','g:i a','g:iA','g:ia','g:i A','g:i'];
+        $formats = ['H:i', 'g:i a', 'g:iA', 'g:ia', 'g:i A', 'g:i'];
         foreach ($formats as $fmt) {
             if ($dt = \DateTime::createFromFormat($fmt, $input)) {
                 return $dt->format('H:i');
@@ -110,12 +114,12 @@ class TourController extends Controller
                 $request->input('existing_item_ids', []),
                 array_values(array_filter(
                     $request->input('itinerary', []),
-                    fn($i)=> is_array($i) && ! empty($i['title'])
+                    fn($i) => is_array($i) && ! empty($i['title'])
                 ))
             ),
         ]);
 
-        // Reglas base
+        // Reglas de validación
         $rules = [
             'name'                     => 'required|string|max:255',
             'overview'                 => 'nullable|string',
@@ -135,25 +139,22 @@ class TourController extends Controller
             'schedule_pm_end'          => 'nullable|date_format:H:i',
             'itinerary_id'             => 'nullable',
             'new_itinerary_name'       => 'nullable|string|max:255',
-            'new_itinerary_description'=> 'nullable|string|max:1000',
+            'new_itinerary_description' => 'nullable|string|max:1000',
         ];
 
-        // Si el usuario elige "nuevo itinerario"
+        // Si se elige crear nuevo itinerario
         if ($request->input('itinerary_id') === 'new') {
-            // Debe haber al menos un ítem (existente o nuevo)
             $rules['itinerary_combined']   = 'required|array|min:1';
-            // Cada ID debe existir y estar activo
             $rules['itinerary_combined.*'] = [
-                Rule::exists('itinerary_items','item_id')
+                Rule::exists('itinerary_items', 'item_id')
                     ->where('is_active', true),
             ];
-            // Validar los campos del nuevo itinerario
             $rules['new_itinerary_name']        = 'required|string|max:255';
             $rules['new_itinerary_description'] = 'required|string|max:1000';
-            // Validar cualquier ítem nuevo en el form
             $rules['itinerary.*.title']       = 'nullable|string|required_with:itinerary.*.description';
             $rules['itinerary.*.description'] = 'nullable|string|required_with:itinerary.*.title';
         }
+
 
         $validator = Validator::make($request->all(), $rules);
 
@@ -163,16 +164,86 @@ class TourController extends Controller
                 ->withInput()
                 ->with('showCreateModal', true);
         }
+
         $v = $validator->validated();
 
+        $errores = [];
+
+        // Reglas para AM
+        if (!empty($v['schedule_am_start']) && empty($v['schedule_am_end'])) {
+            $errores['schedule_am_end'] = 'Debe completar el campo Horario AM (Fin) si se ingresó el inicio.';
+        }
+        if (empty($v['schedule_am_start']) && !empty($v['schedule_am_end'])) {
+            $errores['schedule_am_start'] = 'Debe completar el campo Horario AM (Inicio) si se ingresó el fin.';
+        }
+
+        // Reglas para PM
+        if (!empty($v['schedule_pm_start']) && empty($v['schedule_pm_end'])) {
+            $errores['schedule_pm_end'] = 'Debe completar el campo Horario PM (Fin) si se ingresó el inicio.';
+        }
+        if (empty($v['schedule_pm_start']) && !empty($v['schedule_pm_end'])) {
+            $errores['schedule_pm_start'] = 'Debe completar el campo Horario PM (Inicio) si se ingresó el fin.';
+        }
+
+        // Validación cruzada (AM completo + PM incompleto)
+        $amCompleto = !empty($v['schedule_am_start']) && !empty($v['schedule_am_end']);
+        $pmIncompleto = (!empty($v['schedule_pm_start']) && empty($v['schedule_pm_end']))
+            || (empty($v['schedule_pm_start']) && !empty($v['schedule_pm_end']));
+
+        if ($amCompleto && $pmIncompleto) {
+            if (!empty($v['schedule_pm_start']) && empty($v['schedule_pm_end'])) {
+                $errores['schedule_pm_end'] = 'Ingresó el inicio del horario PM pero no el fin.';
+            }
+            if (empty($v['schedule_pm_start']) && !empty($v['schedule_pm_end'])) {
+                $errores['schedule_pm_start'] = 'Ingresó el fin del horario PM pero no el inicio.';
+            }
+        }
+        if (!empty($errores)) {
+            return back()
+                ->withErrors($errores)
+                ->withInput()
+                ->with('showEditModal', true);
+        }
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('showCreateModal', true);
+        }
+
+        $v = $validator->validated();
         try {
-            DB::transaction(function() use ($v) {
+            DB::transaction(function () use ($v) {
                 $itService = new ItineraryService;
                 $itinerary = $itService->handleCreationOrAssignment($v);
                 if (! $itinerary) {
                     throw new Exception('No se pudo generar o asignar el itinerario.');
                 }
 
+                // Construcción de horarios
+                $newSchedules = collect();
+
+                if (!empty($v['schedule_am_start']) && !empty($v['schedule_am_end'])) {
+                    $newSchedules->push([
+                        'start_time' => $v['schedule_am_start'],
+                        'end_time'   => $v['schedule_am_end'],
+                    ]);
+                }
+
+                if (!empty($v['schedule_pm_start']) && !empty($v['schedule_pm_end'])) {
+                    $newSchedules->push([
+                        'start_time' => $v['schedule_pm_start'],
+                        'end_time'   => $v['schedule_pm_end'],
+                    ]);
+                }
+
+                if ($newSchedules->isEmpty()) {
+                    throw new \Exception('Debe ingresar al menos un horario válido (AM o PM).');
+                }
+
+                // Crear el tour
                 $tour = Tour::create([
                     'name'         => $v['name'],
                     'overview'     => $v['overview'] ?? '',
@@ -189,28 +260,17 @@ class TourController extends Controller
                 $tour->amenities()->sync($v['amenities'] ?? []);
                 $tour->excludedAmenities()->sync($v['excluded_amenities'] ?? []);
 
-                // Horarios
-                $tour->schedules()->delete();
-                if (! empty($v['schedule_am_start'] && $v['schedule_am_end'])) {
-                    $tour->schedules()->create([
-                        'start_time' => $v['schedule_am_start'],
-                        'end_time'   => $v['schedule_am_end'],
-                    ]);
-                }
-                if (! empty($v['schedule_pm_start'] && $v['schedule_pm_end'])) {
-                    $tour->schedules()->create([
-                        'start_time' => $v['schedule_pm_start'],
-                        'end_time'   => $v['schedule_pm_end'],
-                    ]);
+                // Guardar horarios
+                foreach ($newSchedules as $sched) {
+                    $tour->schedules()->create($sched);
                 }
             });
 
             return redirect()
                 ->route('admin.tours.index')
                 ->with('success', 'Tour creado correctamente.');
-
         } catch (Exception $e) {
-            Log::error('Error al crear tour: '.$e->getMessage());
+            Log::error('Error al crear tour: ' . $e->getMessage());
             return back()
                 ->with('error', 'Hubo un problema al crear el tour.')
                 ->withInput()
@@ -233,7 +293,7 @@ class TourController extends Controller
                 $request->input('existing_item_ids', []),
                 array_values(array_filter(
                     $request->input('itinerary', []),
-                    fn($i)=> is_array($i) && ! empty($i['title'])
+                    fn($i) => is_array($i) && ! empty($i['title'])
                 ))
             ),
         ]);
@@ -257,13 +317,13 @@ class TourController extends Controller
             'schedule_pm_end'          => 'nullable|date_format:H:i',
             'itinerary_id'             => 'nullable',
             'new_itinerary_name'       => 'nullable|string|max:255',
-            'new_itinerary_description'=> 'nullable|string|max:1000',
+            'new_itinerary_description' => 'nullable|string|max:1000',
         ];
 
         if ($request->input('itinerary_id') === 'new') {
             $rules['itinerary_combined']   = 'required|array|min:1';
             $rules['itinerary_combined.*'] = [
-                Rule::exists('itinerary_items','item_id')
+                Rule::exists('itinerary_items', 'item_id')
                     ->where('is_active', true),
             ];
             $rules['new_itinerary_name']        = 'required|string|max:255';
@@ -281,9 +341,31 @@ class TourController extends Controller
                 ->with('showEditModal', $tour->tour_id);
         }
         $v = $validator->validated();
+        $errores = [];
 
+        if (!empty($v['schedule_am_start']) && empty($v['schedule_am_end'])) {
+            $errores['schedule_am_end'] = 'Debe completar el campo Horario AM (Fin) si se ingresó el inicio.';
+        }
+        if (empty($v['schedule_am_start']) && !empty($v['schedule_am_end'])) {
+            $errores['schedule_am_start'] = 'Debe completar el campo Horario AM (Inicio) si se ingresó el fin.';
+        }
+        if (!empty($v['schedule_pm_start']) && empty($v['schedule_pm_end'])) {
+            $errores['schedule_pm_end'] = 'Debe completar el campo Horario PM (Fin) si se ingresó el inicio.';
+        }
+        if (empty($v['schedule_pm_start']) && !empty($v['schedule_pm_end'])) {
+            $errores['schedule_pm_start'] = 'Debe completar el campo Horario PM (Inicio) si se ingresó el fin.';
+        }
+
+        if (!empty($errores)) {
+            return back()
+                ->withErrors($errores)
+                ->withInput()
+                ->with('showEditModal', $tour->tour_id);
+        }
         try {
-            DB::transaction(function() use ($tour, $v) {
+            $currentSchedules = $tour->schedules()->orderBy('start_time')->get();
+
+            DB::transaction(function () use ($tour, $v) {
                 // Actualiza Tour
                 $tour->update([
                     'name'         => $v['name'],
@@ -308,29 +390,59 @@ class TourController extends Controller
                 $tour->excludedAmenities()->sync($v['excluded_amenities'] ?? []);
 
                 // Horarios
-                $tour->schedules()->delete();
-                if (! empty($v['schedule_am_start'] && $v['schedule_am_end'])) {
-                    $tour->schedules()->create([
+                $currentSchedules = $tour->schedules()->orderBy('start_time')->get();
+
+                // Normalizamos los nuevos horarios
+                $newSchedules = collect();
+
+                if (!empty($v['schedule_am_start']) && !empty($v['schedule_am_end'])) {
+                    $newSchedules->push([
                         'start_time' => $v['schedule_am_start'],
                         'end_time'   => $v['schedule_am_end'],
                     ]);
                 }
-                if (! empty($v['schedule_pm_start'] && $v['schedule_pm_end'])) {
-                    $tour->schedules()->create([
+
+                if (!empty($v['schedule_pm_start']) && !empty($v['schedule_pm_end'])) {
+                    $newSchedules->push([
                         'start_time' => $v['schedule_pm_start'],
                         'end_time'   => $v['schedule_pm_end'],
                     ]);
+                }
+
+                // Solo actualiza si hay diferencias reales
+                $hasChanged = false;
+
+                if ($newSchedules->count() !== $currentSchedules->count()) {
+                    $hasChanged = true;
+                } else {
+                    foreach ($newSchedules as $i => $new) {
+                        $current = $currentSchedules[$i] ?? null;
+                        if (
+                            !$current ||
+                            $current->start_time !== $new['start_time'] ||
+                            $current->end_time !== $new['end_time']
+                        ) {
+                            $hasChanged = true;
+                            break;
+                        }
+                    }
+                }
+
+                if ($hasChanged) {
+                    $tour->schedules()->delete();
+                    foreach ($newSchedules as $sched) {
+                        $tour->schedules()->create($sched);
+                    }
                 }
             });
 
             return redirect()
                 ->route('admin.tours.index')
-                ->with('success','Tour actualizado correctamente.');
-
+                ->with('success', 'Tour actualizado correctamente.');
         } catch (Exception $e) {
-            Log::error('Error al actualizar tour: '.$e->getMessage());
+            Log::error('Error al actualizar tour: ' . $e->getMessage());
             return back()
-                ->with('error','Hubo un problema al actualizar el tour.')
+                ->with('error', 'Hubo un problema al actualizar el tour.')
                 ->withInput()
                 ->with('showEditModal', $tour->tour_id);
         }
@@ -342,15 +454,15 @@ class TourController extends Controller
             $tour->is_active = ! $tour->is_active;
             $tour->save();
             $msg = $tour->is_active
-               ? 'Tour activado correctamente.'
-               : 'Tour desactivado correctamente.';
+                ? 'Tour activado correctamente.'
+                : 'Tour desactivado correctamente.';
 
             return redirect()
                 ->route('admin.tours.index')
                 ->with('success', $msg);
         } catch (Exception $e) {
-            Log::error('Error al cambiar estado del tour: '.$e->getMessage());
-            return back()->with('error','Hubo un problema al cambiar el estado del tour.');
+            Log::error('Error al cambiar estado del tour: ' . $e->getMessage());
+            return back()->with('error', 'Hubo un problema al cambiar el estado del tour.');
         }
     }
 }
