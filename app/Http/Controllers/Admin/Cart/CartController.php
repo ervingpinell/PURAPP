@@ -19,30 +19,39 @@ class CartController extends Controller
         $languages = TourLanguage::all();
         $hotels    = HotelList::where('is_active', true)->orderBy('name')->get();
 
+        // Obtener el carrito activo del usuario
         $cart = $user->cart()->where('is_active', true)->first();
 
-        if (!$cart) {
+        // Si no hay carrito, devolvemos view con un objeto vacío que tenga items como colección
+        if (! $cart) {
+            $emptyCart = new \stdClass;
+            $emptyCart->items = collect();
+
             return view('admin.Cart.cart', [
-                'cart' => null,
+                'cart'      => $emptyCart,
                 'languages' => $languages,
+                'hotels'    => $hotels,
             ]);
         }
 
+        // Si existe carrito, cargamos sus ítems
         $itemsQuery = CartItem::with([
             'tour',
             'language',
-            'hotel'
+            'hotel',
         ])->where('cart_id', $cart->cart_id);
 
-
+        // Filtro opcional por estado
         if ($request->filled('estado')) {
             $itemsQuery->where('is_active', $request->estado);
         }
 
+        // Asignamos la colección de items al carrito
         $cart->items = $itemsQuery->get();
 
-         return view('admin.Cart.cart', compact('cart','languages','hotels'));
+        return view('admin.Cart.cart', compact('cart', 'languages', 'hotels'));
     }
+
 
     // Agregar un ítem al carrito
     public function store(Request $request)

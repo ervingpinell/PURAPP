@@ -71,7 +71,7 @@ class BookingController extends Controller
             'user_id'          => 'required|exists:users,user_id',
             'tour_id'          => 'required|exists:tours,tour_id',
             'booking_date'     => 'required|date',
-            'tour_date'      => 'required|date',
+            'tour_date'        => 'required|date',
             'status'           => 'required|in:pending,confirmed,cancelled',
             'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
             'adults_quantity'  => 'required|integer|min:1',
@@ -81,8 +81,31 @@ class BookingController extends Controller
             'other_hotel_name' => 'nullable|string|max:255',
         ]);
 
-        $tour = Tour::findOrFail($v['tour_id']);
-        $total = ($tour->adult_price * $v['adults_quantity']) + ($tour->kid_price * $v['kids_quantity']);
+        // 1. Validación de cupo
+        $tour      = Tour::findOrFail($v['tour_id']);
+        $tourDate  = $v['tour_date'];
+        $max       = $tour->max_capacity;
+
+        // suma de reservas existentes en esa fecha
+        $reserved  = BookingDetail::where('tour_id', $tour->tour_id)
+            ->where('tour_date', $tourDate)
+            ->sum(DB::raw('adults_quantity + kids_quantity'));
+
+        // plazas solicitadas ahora
+        $requested = $v['adults_quantity'] + $v['kids_quantity'];
+
+        if ($reserved + $requested > $max) {
+            $available = $max - $reserved;
+            return back()
+                ->withErrors([
+                    'capacity' => "Sólo quedan {$available} plazas disponibles para '{$tour->name}' el día {$tourDate}."
+                ])
+                ->withInput();
+        }
+
+        // 2. Si pasa, calculamos total y guardamos
+        $total = ($tour->adult_price * $v['adults_quantity'])
+            + ($tour->kid_price   * $v['kids_quantity']);
 
         $booking = Booking::create([
             'user_id'           => $v['user_id'],
@@ -99,7 +122,7 @@ class BookingController extends Controller
             'booking_id'       => $booking->booking_id,
             'tour_id'          => $tour->tour_id,
             'tour_language_id' => $v['tour_language_id'],
-            'tour_date'        => $v['tour_date'],
+            'tour_date'        => $tourDate,
             'adults_quantity'  => $v['adults_quantity'],
             'kids_quantity'    => $v['kids_quantity'],
             'adult_price'      => $tour->adult_price,
@@ -115,6 +138,7 @@ class BookingController extends Controller
             ->route('admin.reservas.index')
             ->with('success', 'Reserva creada correctamente.');
     }
+
 
     /** Mostrar formulario de edición de una reserva vía AJAX */
     public function edit($reservaId, Request $request)
@@ -136,6 +160,7 @@ class BookingController extends Controller
     /** Actualizar reserva existente */
     public function update(Request $request, $id)
     {
+        // 1. Validación básica de inputs…
         $r = $request->validate([
             'adults_quantity'  => 'required|integer|min:1',
             'kids_quantity'    => 'required|integer|min:0',
@@ -149,18 +174,36 @@ class BookingController extends Controller
         $booking = Booking::findOrFail($id);
         $detail  = $booking->details()->firstOrFail();
 
-        // Recalcular total si cambian cantidades
-        $newTotal = ($detail->adult_price * $r['adults_quantity'])
-                + ($detail->kid_price  * $r['kids_quantity']);
+        // 2. Cálculo de plazas solicitadas y cupo máximo
+        $requested = $r['adults_quantity'] + $r['kids_quantity'];
+        $max       = $booking->tour->max_capacity;  // de tu nuevo campo en tours
 
-        // Actualizar booking
+        // 3. Cuántas plazas ya están reservadas en esa fecha, excluyendo esta reserva
+        $reserved = BookingDetail::where('tour_id', $booking->tour_id)
+            ->where('tour_date', $detail->tour_date)
+            ->where('booking_id', '<>', $booking->booking_id)
+            ->sum(DB::raw('adults_quantity + kids_quantity'));
+
+        // 4. Validar antes de actualizar
+        if ($reserved + $requested > $max) {
+            return back()
+                ->withErrors([
+                    'capacity' => "Sólo quedan " . ($max - $reserved) . " plazas disponibles para este tour."
+                ])
+                ->withInput()
+                ->with('showEditModal', $booking->booking_id);
+        }
+
+        // … si pasa la validación, recalcula totales y guarda …
+        $newTotal = ($detail->adult_price * $r['adults_quantity'])
+                + ($detail->kid_price   * $r['kids_quantity']);
+
         $booking->update([
             'status' => $r['status'],
             'notes'  => $r['notes'] ?? null,
             'total'  => $newTotal,
         ]);
 
-        // Actualizar detail incluyendo hotel
         $detail->update([
             'adults_quantity'  => $r['adults_quantity'],
             'kids_quantity'    => $r['kids_quantity'],
@@ -223,32 +266,37 @@ class BookingController extends Controller
                 ->with('error', 'Tu carrito está vacío.');
         }
 
-        // Capturar datos de hotel desde el formulario
-        
+        // 1. Agrupar por tour y fecha
+        $groups = $cart->items
+            ->groupBy(fn($item) => $item->tour_id . '_' . $item->tour_date);
 
-        // Validación de cupo (máx. 12 personas por tour y fecha)
-        foreach ($cart->items as $item) {
-            $reservadas = BookingDetail::where('tour_id', $item->tour_id)
-                ->where('tour_date', $item->tour_date)
+        foreach ($groups as $key => $items) {
+            /** @var \App\Models\CartItem $first */
+            $first     = $items->first();
+            $tour      = $first->tour;
+            $tourDate  = $first->tour_date;
+            $max       = $tour->max_capacity;                              // cupo del tour
+            $reserved  = BookingDetail::where('tour_id', $tour->tour_id)   // ya reservadas
+                ->where('tour_date', $tourDate)
                 ->sum(DB::raw('adults_quantity + kids_quantity'));
+            $requested = $items->sum(fn($i) =>                             // solicitadas en carrito
+                $i->adults_quantity + $i->kids_quantity
+            );
 
-            $solicitadas = $item->adults_quantity + $item->kids_quantity;
-
-            if (($reservadas + $solicitadas) > 12) {
-                $disponibles = 12 - $reservadas;
+            if ($reserved + $requested > $max) {
+                $available = $max - $reserved;
                 return redirect()
                     ->route('admin.cart.index')
-                    ->with('error', "No hay suficientes espacios para '{$item->tour->name}' el día {$item->tour_date}. Disponibles: {$disponibles}.");
+                    ->with('error', "Para '{$tour->name}' el día {$tourDate} sólo quedan {$available} plazas.");
             }
         }
 
-        // Calcular total de la reserva
+        // 2. Si todo OK, creamos el Booking principal
         $totalBooking = $cart->items->sum(fn($item) =>
             ($item->tour->adult_price * $item->adults_quantity)
         + ($item->tour->kid_price   * $item->kids_quantity)
         );
 
-        // Crear el Booking principal (usamos el primer ítem para tour_id)
         $firstItem = $cart->items->first();
 
         $booking = Booking::create([
@@ -262,7 +310,7 @@ class BookingController extends Controller
             'is_active'         => true,
         ]);
 
-        // Crear cada BookingDetail incluyendo hotel
+        // 3. Creamos cada detalle
         foreach ($cart->items as $item) {
             BookingDetail::create([
                 'booking_id'       => $booking->booking_id,
@@ -270,32 +318,30 @@ class BookingController extends Controller
                 'tour_schedule_id' => $item->tour_schedule_id,
                 'tour_language_id' => $item->tour_language_id,
                 'tour_date'        => $item->tour_date,
-
-                // Aquí reutilizas lo que ya vino en el ítem
                 'hotel_id'         => $item->is_other_hotel
-                                    ? null
-                                    : $item->hotel_id,
+                                        ? null
+                                        : $item->hotel_id,
                 'is_other_hotel'   => $item->is_other_hotel,
                 'other_hotel_name' => $item->other_hotel_name,
-
                 'adults_quantity'  => $item->adults_quantity,
                 'kids_quantity'    => $item->kids_quantity,
                 'adult_price'      => $item->tour->adult_price,
                 'kid_price'        => $item->tour->kid_price,
                 'total'            => ($item->tour->adult_price * $item->adults_quantity)
-                                + ($item->tour->kid_price * $item->kids_quantity),
+                                + ($item->tour->kid_price   * $item->kids_quantity),
                 'is_active'        => true,
             ]);
         }
 
-
-        // Vaciar el carrito
+        // 4. Vaciar el carrito
         $cart->items()->delete();
 
         return redirect()
             ->route('admin.cart.index')
             ->with('success', 'Reservas generadas correctamente desde el carrito.');
     }
+
+
 
 
     /** Vista del calendario */
@@ -327,6 +373,19 @@ class BookingController extends Controller
         ]);
 
         return response()->json($events);
+    }
+    public function reservedCount(Request $request)
+    {
+        $data = $request->validate([
+            'tour_id'   => 'required|exists:tours,tour_id',
+            'tour_date' => 'required|date',
+        ]);
+
+        $reserved = BookingDetail::where('tour_id', $data['tour_id'])
+            ->where('tour_date', $data['tour_date'])
+            ->sum(DB::raw('adults_quantity + kids_quantity'));
+
+        return response()->json(['reserved' => $reserved]);
     }
 
 }

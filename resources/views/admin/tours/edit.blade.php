@@ -43,6 +43,17 @@
                 <x-adminlte-input name="length" label="Duración (horas)" type="number" value="{{ old('length', $tour->length) }}" required />
               </div>
             </div>
+            
+          {{-- Capacidad de Tour --}}
+            <div class="mb-3">
+            <label class="form-label">Cupo máximo</label>
+            <input type="number"
+                  name="max_capacity"
+                  class="form-control"
+                  value="{{ old('max_capacity', $tour->max_capacity) }}"
+                  min="1"
+                  required>
+          </div>
 
             {{-- Tipo --}}
             <x-adminlte-select name="tour_type_id" label="Tipo de Tour">
