@@ -91,7 +91,7 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                     @if(Auth::user()->role_id === 3)
-                        <li><a class="dropdown-item" href="#">{{ __('adminlte::adminlte.my_reservations') }}</a></li>
+                        <li><a class="dropdown-item" href="{{ route('my-reservations') }}">{{ __('adminlte::adminlte.my_reservations') }}</a></li>
                     @endif
                     <li><a class="dropdown-item" href="{{ route('profile.edit') }}">{{ __('adminlte::adminlte.profile') }}</a></li>
                     <li>

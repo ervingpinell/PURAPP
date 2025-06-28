@@ -50,6 +50,13 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
         Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::post('/profile/edit', [ProfileController::class, 'update'])->name('profile.update');
+
+        // RF-006: My Reservations
+        Route::get('/my-reservations', [BookingController::class, 'myReservations'])
+            ->name('my-reservations');
+
+        Route::get('/my-reservations/{booking}/receipt', [BookingController::class, 'showReceipt'])
+            ->name('my-reservations.receipt');
     });
 
     // 🛠 Panel administrativo (solo para roles permitidos)

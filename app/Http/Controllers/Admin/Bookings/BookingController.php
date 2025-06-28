@@ -388,4 +388,29 @@ class BookingController extends Controller
         return response()->json(['reserved' => $reserved]);
     }
 
+    /**
+     * Show the authenticated customer’s reservations.
+     */
+    public function myReservations()
+    {
+        $bookings = Booking::with(['user','tour','detail.hotel'])
+            ->where('user_id', Auth::id())
+            ->orderByDesc('booking_date')
+            ->get();
+
+        return view('customer.reservations.index', compact('bookings'));
+    }
+
+    /** Mostrar comprobante (PDF o vista) */
+    public function showReceipt(Booking $booking)
+    {
+        abort_unless($booking->user_id === Auth::id(), 403);
+
+        // Si ya tienes un método generarComprobante que devuelve PDF:
+        return $this->generarComprobante($booking);
+
+        // —o— si quieres mostrarlo en una vista Blade:
+        // return view('customer.reservations.receipt', compact('booking'));
+    }
+
 }
