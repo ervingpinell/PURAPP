@@ -95,12 +95,29 @@
         </div>
     @endforeach
 </div>
-          {{-- Horarios --}}
-<x-adminlte-input name="schedule_am_start" label="Horario AM (Inicio)" type="text" placeholder="Ej: 08:00 o 8:00 AM" value="{{ old('schedule_am_start') }}" />
-<x-adminlte-input name="schedule_am_end" label="Horario AM (Fin)" type="text" placeholder="Ej: 11:30 o 11:30 AM" value="{{ old('schedule_am_end') }}" />
-<x-adminlte-input name="schedule_pm_start" label="Horario PM (Inicio)" type="text" placeholder="Ej: 13:30 o 1:30 PM" value="{{ old('schedule_pm_start') }}" />
-<x-adminlte-input name="schedule_pm_end" label="Horario PM (Fin)" type="text" placeholder="Ej: 17:30 o 5:30 PM" value="{{ old('schedule_pm_end') }}" />
+@php
+    use Carbon\Carbon;
+    $fmt = fn($t) => $t ? Carbon::parse($t)->format('g:i A') : '';
+    $amStart = old('schedule_am_start') ? $fmt(old('schedule_am_start')) : '';
+    $amEnd   = old('schedule_am_end')   ? $fmt(old('schedule_am_end'))   : '';
+    $pmStart = old('schedule_pm_start') ? $fmt(old('schedule_pm_start')) : '';
+    $pmEnd   = old('schedule_pm_end')   ? $fmt(old('schedule_pm_end'))   : '';
+@endphp
 
+<div class="row mb-3">
+  <div class="col-md-6">
+    <x-adminlte-input name="schedule_am_start" label="Horario AM (Inicio)" type="text" value="{{ $amStart }}" placeholder="Ej: 8:00 AM" />
+  </div>
+  <div class="col-md-6">
+    <x-adminlte-input name="schedule_am_end" label="Horario AM (Fin)" type="text" value="{{ $amEnd }}" placeholder="Ej: 11:30 AM" />
+  </div>
+  <div class="col-md-6">
+    <x-adminlte-input name="schedule_pm_start" label="Horario PM (Inicio)" type="text" value="{{ $pmStart }}" placeholder="Ej: 1:30 PM" />
+  </div>
+  <div class="col-md-6">
+    <x-adminlte-input name="schedule_pm_end" label="Horario PM (Fin)" type="text" value="{{ $pmEnd }}" placeholder="Ej: 5:30 PM" />
+  </div>
+</div>
           {{-- Itinerario --}}
           <div class="mb-3">
             <label>Itinerario</label>
