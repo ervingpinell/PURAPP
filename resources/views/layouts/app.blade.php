@@ -21,49 +21,8 @@
             color: white;
             padding: 2rem;
         }
-        .overview-text {
-            max-height: 4.5em; /* Altura para unas 3 líneas, ajusta según tu fuente */
-            overflow: hidden;
-            position: relative;
-            transition: max-height 0.3s ease;
-        }
-        /* El botón para mostrar más / menos */
-        .toggle-label {
-            display: inline-block;
-            color: rgb(4, 0, 255);
-            cursor: pointer;
-            margin-top: 0.5em;
-        }
-        /* Checkbox oculto */
-        input.toggle-overview {
-            display: none;
-        }
-        .overview-container {
-            display: -webkit-box;
-            -webkit-line-clamp: 3; /* muestra 3 líneas */
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-height: none; /* quita max-height */
-            transition: max-height 0.3s ease;
-            position: relative;
-        }
-        input.toggle-overview:checked ~ .overview-container {
-            display: block; /* mostrar todo el texto expandido */
-            max-height: none;
-            -webkit-line-clamp: unset;
-            overflow: visible;
-        }
-        /* El label es un botón que se muestra debajo del texto */
-        .toggle-label {
-            display: block;
-            margin-top: 0.25em;
-            color: rgb(17, 0, 255);
-            cursor: pointer;
-            user-select: none;
-            text-align: center;
-        }
     </style>
+    @vite(['resources/css/home.css', 'resources/js/public.js'])
 </head>
 
 <body>

@@ -1,0 +1,454 @@
+:root {
+  --primary-color: #60a862;
+  --primary-dark: #256d1b;
+  --primary-light: #8bc34a;
+  --text-dark: #333;
+  --text-light: #e0e0e0;
+  --white: #fff;
+  --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+  --border-radius: 15px;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-dark);
+  background: #f4f4f4;
+  margin: 0;
+}
+
+/* NAVBAR DESKTOP */
+.navbar-custom {
+position: fixed;
+top: 0;
+  left: 0;
+  width: 100%;
+z-index: 999;
+  background-color: #0f2419;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--white);
+  padding: 1rem 2rem;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-logo img {
+  height: 100px;
+}
+
+.brand-name {
+  margin-left: 10px;
+}
+
+.navbar-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--white);
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-right: 1rem;
+}
+
+.navbar-links {
+  flex-basis: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+.navbar-links .mt-3 {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  box-sizing: border-box;
+}
+
+.navbar-links .dropdown-menu {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+    .navbar-links.show {
+    max-height: 500px;
+  }
+
+.navbar-links a {
+  color: var(--white);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.navbar-links a:hover {
+  color: var(--primary-light);
+}
+
+.navbar-actions {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+}
+
+.navbar-actions i {
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.navbar-actions i:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 5px rgba(96, 168, 98, 0.8));
+}
+
+body {
+  padding-top: 80px; /* Igual a tu navbar en mobile */
+}
+
+/* HERO DESKTOP */
+.hero h1 { font-size: 4rem; }
+.hero p { font-size: 1.75rem; }
+
+/* BOTÓN PRINCIPAL */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--white);
+  padding: 12px 30px;
+  border-radius: 30px;
+  font-weight: 600;
+  border: none;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.btn-primary:hover {
+  background-color: #4d8c4f;
+  transform: translateY(-3px);
+}
+
+/* SECCIÓN TOURS */
+.tours-section {
+  background: var(--white);
+  text-align: center;
+  padding: 3rem 1rem 0;
+}
+
+.tour-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  padding-bottom: 3rem;
+}
+
+.card {
+  background: var(--white);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  width: 100%;
+  max-width: 280px;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+}
+
+.card h3 {
+  margin: 0.5rem 0 1rem;
+  font-size: 1.25rem;
+  color: var(--primary-dark);
+}
+
+.card button {
+  background-color: var(--primary-dark);
+  color: var(--white);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: var(--transition);
+  width: 100%;
+}
+
+.card button:hover {
+  background-color: #1c5413;
+  transform: scale(1.05);
+}
+
+/* TESTIMONIALS & OVERVIEW */
+.compact-testimonials {
+  padding: 3rem 1rem;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-bottom: 3px solid #60a862;
+}
+
+.overview-container {
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+
+.overview-container.collapsed { max-height: 4.5em; }
+.overview-container.expanded { max-height: 999px; }
+
+.toggle-overview-link {
+  display: inline-block;
+  margin-top: 0.25em;
+  color: #007bff;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.big-title {
+  font-size: 2.5rem;
+  color: #256d1b;
+  margin-bottom: 2rem;
+  font-weight: 700;
+}
+
+.testimonial-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.testimonial-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  max-width: 350px;
+}
+
+.rating { color: #ffd700; font-size: 1.2rem; margin-bottom: 1rem; }
+.quote { font-style: italic; color: #555; margin-bottom: 1rem; }
+.guest-name { color: #60a862; font-weight: 600; }
+
+/* HERO ANIMATIONS */
+.hero-title, .hero-subtext, .hero-buttons {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.hero-title { animation: fadeInUp 1s ease-out forwards; animation-delay: 0.5s; }
+.hero-subtext { animation: fadeInUp 1s ease-out forwards; animation-delay: 1s; }
+.hero-buttons { animation: fadeInUp 1s ease-out forwards; animation-delay: 1.5s; }
+
+@keyframes fadeInUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* WHATSAPP FLOAT */
+.whatsapp-widget { position: relative; z-index: 9999; }
+/* ...resto igual... */
+@media (max-width: 768px) {
+  /* ✅ NAVBAR MOBILE BASE */
+  .navbar-custom {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 60px;  /* Compacto */
+    background-color: #0f2419;
+    z-index: 999;
+  }
+
+  .navbar-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 60px;  /* Igual altura base */
+    padding: 0 1rem;   /* Compacto */
+  }
+
+  .navbar-left,
+  .navbar-right {
+    flex: 0 0 auto;
+  }
+
+  .navbar-logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+
+  .navbar-logo img {
+    height: auto;
+    max-height: 60px;  /* Logo más pequeño */
+    display: block;
+  }
+
+  .navbar-toggle {
+    display: block;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    z-index: 2;
+  }
+
+  .navbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;  /* 🔑 que todo se alinee a la derecha */
+  gap: 0.5rem;                /* 🔑 espacio entre ítems */
+}
+
+.navbar-actions > * {
+  flex-shrink: 0;             /* 🔑 evita que se achiquen raro */
+}
+
+.navbar-actions .language-switcher {
+  min-width: auto;
+  flex: 0 0 auto;             /* 🔑 que no crezca */
+  order: -1;                  /* 🔑 opcional: ponerlo primero o antes del carrito */
+}
+
+.navbar-actions i {
+  font-size: 1.25rem;
+}
+
+  /* ✅ LINKS desplegables compactos */
+  .navbar-links {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background-color: #0f2419;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease-out;
+  }
+
+  .navbar-links.show {
+    max-height: 500px; /* Ajusta para cubrir idioma y Admin */
+  }
+
+  .navbar-links a {
+    font-size: 0.9rem;
+    font-weight: 400;
+    padding: 0.5rem 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--white);
+    text-decoration: none;
+  }
+
+  .navbar-links a:first-child {
+    border-top: none;
+  }
+
+  /* ✅ LANGUAGE SWITCHER alineado y visible */
+  .navbar-links .mt-3,
+  .navbar-links .language-switcher {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    box-sizing: border-box;
+  }
+
+  .navbar-links .dropdown-menu {
+    width: auto;             /* ✅ No forzar 100% para evitar corte */
+    min-width: 140px;        /* ✅ Espacio mínimo para banderas + texto */
+    left: 0 !important;
+    right: auto !important;
+    box-sizing: border-box;
+  }
+
+  .navbar-links .dropdown-menu li a {
+    display: flex;
+    align-items: center;
+    gap: 8px;                /* ✅ Espacio bandera + texto */
+    white-space: nowrap;     /* ✅ No cortar nombre idioma */
+    color: #333;             /* ✅ Color texto claro si quieres cambiarlo */
+    font-size: 0.9rem;
+    padding: 0.25rem 0.75rem;
+  }
+
+  .navbar-links .dropdown-menu li a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* ✅ BOTÓN ADMIN ancho completo */
+  .navbar-links .btn {
+    margin: 0.5rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(100% - 2rem);
+    border-radius: 25px;
+  }
+
+  body {
+    padding-top: 60px;  /* Igual altura navbar compacto */
+  }
+
+  /* ✅ FOOTER MOBILE (si aplica) */
+  .footer-nature .footer-main-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-nature .footer-brand,
+  .footer-nature .footer-links,
+  .footer-tours,
+  .footer-nature .contact-info {
+    width: 100%;
+    max-width: 320px;
+    margin-bottom: 2rem;
+  }
+
+  .footer-nature .footer-links ul,
+  .footer-tours ul {
+    padding-left: 0;
+  }
+
+  .footer-tours li,
+  .footer-nature .footer-links li {
+    justify-content: center;
+  }
+
+  .footer-tours li i {
+    margin-right: 8px;
+  }
+
+  .footer-nature .footer-bottom {
+    padding-bottom: 1rem;
+  }
+
+  .footer-platforms {
+    text-align: center;
+  }
+}
