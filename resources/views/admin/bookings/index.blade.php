@@ -41,70 +41,91 @@
 
     <table class="table table-striped table-bordered table-hover">
         <thead class="bg-primary text-white">
+            <thead class="bg-primary text-white">
             <tr>
-                <th>ID Reserva</th>
-                <th>Cliente</th>
-                <th>Correo</th>
-                <th>Teléfono</th>
-                <th>Tour</th>
-                <th>Fecha Reserva</th>
-                <th>Fecha Tour</th>
-                <th>Hotel</th>
-                <th>Adultos</th>
-                <th>Niños</th>
-                <th>Estado</th>
-                <th>Referencia</th>
-                <th>Total</th>
-                <th>Acciones</th>
+              <th>ID Reserva</th>
+              <th>Cliente</th>
+              <th>Correo</th>
+              <th>Teléfono</th>
+              <th>Tour</th>
+              <th>Fecha Reserva</th>
+              <th>Fecha Tour</th>
+              <th>Hotel</th>
+              <th>Horarios</th>
+              <th>Tipo</th>
+              <th>Adultos</th>
+              <th>Niños</th>
+              <th>Estado</th>
+              <th>Referencia</th>
+              <th>Total</th>
+              <th>Acciones</th>
             </tr>
-        </thead>
-        <tbody>
-        @foreach($bookings as $reserva)
+          </thead>
+          <tbody>
+          @foreach($bookings as $reserva)
+            @php
+              $detail = $reserva->detail;
+              $tour   = $detail->tour;
+            @endphp
             <tr>
-                <td>{{ $reserva->booking_id }}</td>
-                <td>{{ $reserva->user->full_name ?? '-' }}</td>
-                <td>{{ $reserva->user->email ?? '-' }}</td>
-                <td>{{ $reserva->user->phone ?? '-' }}</td>
-                <td>{{ optional($reserva->detail->tour)->name ?? '-' }}</td>
-                <td>{{ \Carbon\Carbon::parse($reserva->booking_date)->format('d/m/Y') }}</td>
-                <td>{{ \Carbon\Carbon::parse($reserva->detail->tour_date)->format('d/m/Y') }}</td>
-                <td>
-                    @if($reserva->detail->is_other_hotel)
-                        {{ $reserva->detail->other_hotel_name }}
-                    @else
-                        {{ optional($reserva->detail->hotel)->name ?? '-' }}
-                    @endif
-                </td>
-                <td>{{ $reserva->detail->adults_quantity }}</td>
-                <td>{{ $reserva->detail->kids_quantity }}</td>
-                <td>{{ ucfirst($reserva->status) }}</td>
-                <td>{{ $reserva->booking_reference }}</td>
-                <td>${{ number_format($reserva->total, 2) }}</td>
-                <td>
-                    {{-- editar --}}
-                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
-                            data-bs-target="#modalEditar{{ $reserva->booking_id }}">
-                        <i class="fas fa-edit"></i>
-                    </button>
-
-                    {{-- eliminar --}}
-                    <form action="{{ route('admin.reservas.destroy', $reserva->booking_id) }}"
-                          method="POST" style="display:inline">
-                        @csrf @method('DELETE')
-                        <button class="btn btn-danger btn-sm"
-                                onclick="return confirm('¿Eliminar esta reserva?')">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </form>
-
-                    {{-- comprobante --}}
-                    <a href="{{ route('admin.reservas.comprobante', $reserva->booking_id) }}"
-                       class="btn btn-success btn-sm">
-                        <i class="fas fa-file-download"></i>
-                    </a>
-                </td>
+              <td>{{ $reserva->booking_id }}</td>
+              <td>{{ $reserva->user->full_name ?? '-' }}</td>
+              <td>{{ $reserva->user->email     ?? '-' }}</td>
+              <td>{{ $reserva->user->phone     ?? '-' }}</td>
+              <td>{{ $tour->name              ?? '-' }}</td>
+              <td>{{ \Carbon\Carbon::parse($reserva->booking_date)->format('d/m/Y') }}</td>
+              <td>{{ \Carbon\Carbon::parse($detail->tour_date)->format('d/m/Y') }}</td>
+              <td>
+                @if($detail->is_other_hotel)
+                  {{ $detail->other_hotel_name }}
+                @else
+                  {{ optional($detail->hotel)->name ?? '-' }}
+                @endif
+              </td>
+              {{-- Horarios --}}
+              <td>
+                @forelse($tour->schedules as $sched)
+                  <div>
+                    <span class="badge bg-success">
+                      {{ \Carbon\Carbon::parse($sched->start_time)->format('g:i A') }}
+                      &ndash;
+                      {{ \Carbon\Carbon::parse($sched->end_time  )->format('g:i A') }}
+                    </span>
+                  </div>
+                @empty
+                  <span class="text-muted">Sin horarios</span>
+                @endforelse
+              </td>
+              {{-- Tipo --}}
+              <td>{{ optional($tour->tourType)->name ?? '—' }}</td>
+              <td>{{ $detail->adults_quantity }}</td>
+              <td>{{ $detail->kids_quantity   }}</td>
+              <td>{{ ucfirst($reserva->status) }}</td>
+              <td>{{ $reserva->booking_reference }}</td>
+              <td>${{ number_format($reserva->total, 2) }}</td>
+              <td class="text-nowrap">
+                {{-- Editar --}}
+                <button class="btn btn-warning btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalEditar{{ $reserva->booking_id }}">
+                  <i class="fas fa-edit"></i>
+                </button>
+                {{-- Eliminar --}}
+                <form action="{{ route('admin.reservas.destroy', $reserva->booking_id) }}"
+                      method="POST" style="display:inline">
+                  @csrf @method('DELETE')
+                  <button class="btn btn-danger btn-sm"
+                          onclick="return confirm('¿Eliminar esta reserva?')">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </form>
+                {{-- Comprobante --}}
+                <a href="{{ route('admin.reservas.comprobante', $reserva->booking_id) }}"
+                  class="btn btn-success btn-sm">
+                  <i class="fas fa-file-download"></i>
+                </a>
+              </td>
             </tr>
-
             {{-- Modal Editar --}}
             <div class="modal fade" id="modalEditar{{ $reserva->booking_id }}" tabindex="-1">
                 <div class="modal-dialog">
@@ -126,7 +147,15 @@
                                     min="1"
                                     required
                                 >
-
+                                <label label class="form-label">Cantidad Niños</label>
+                                <input
+                                    type="number"
+                                    name="kids_quantity"
+                                    class="form-control cantidad-ninos"
+                                    value="{{ optional($reserva->detail)->kids_quantity ?? 0 }}"
+                                    min="0" max="2"
+                                    required
+                                >
                                 <div class="mb-3">
                                     <label class="form-label">Hotel</label>
                                     <select name="hotel_id"
@@ -158,16 +187,6 @@
                                        name="is_other_hotel"
                                        id="edit_is_other_hotel_{{ $reserva->booking_id }}"
                                        value="{{ $reserva->detail->is_other_hotel ? 1 : 0 }}">
-
-                                <label class="form-label">Cantidad Niños</label>
-                                <input
-                                    type="number"
-                                    name="kids_quantity"
-                                    class="form-control cantidad-ninos"
-                                    value="{{ optional($reserva->detail)->kids_quantity ?? 0 }}"
-                                    min="0" max="2"
-                                    required
-                                >
 
                                 <label class="form-label">Precio Adulto</label>
                                 <input
@@ -490,6 +509,4 @@
     });
   </script>
 @endif
-
-
 @stop
