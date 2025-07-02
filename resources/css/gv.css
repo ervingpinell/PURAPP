@@ -1,0 +1,117 @@
+.dark-mode input:-webkit-autofill,
+.dark-mode input:-webkit-autofill:hover,
+.dark-mode input:-webkit-autofill:focus,
+.dark-mode textarea:-webkit-autofill,
+.dark-mode textarea:-webkit-autofill:hover,
+.dark-mode textarea:-webkit-autofill:focus,
+.dark-mode select:-webkit-autofill,
+.dark-mode select:-webkit-autofill:hover,
+.dark-mode select:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  -webkit-box-shadow: 0 0 0 1000px #343a40 inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+ .login-box,
+.register-box,
+.profile-box  {
+    max-width: 360px; /* más ancho que el default (360px aprox.) */
+    width: 100%;
+    padding: 20px;
+    margin: auto;
+}
+
+.register-logo{
+  display: block;
+  margin: 20px auto 10px; /* 20px arriba, auto centrado, 10px abajo */
+  max-width: auto;       /* ajusta el ancho si quieres */
+}
+
+/* Estilo base del switcher */
+.language-switcher {
+    position: relative;
+}
+
+.language-switcher-toggle {
+  background: transparent;
+  border: 1px solid #fff;
+  color: #fff;
+  padding: 0.3rem 0.5rem; /* Reducido pero equilibrado */
+  border-radius: 4px;
+  display: inline-flex; /* Para no forzar ancho extra */
+  align-items: center;
+  gap: 0.3rem; /* Gap más pequeño */
+  cursor: pointer;
+  font-size: 0.85rem; /* Tamaño legible */
+  line-height: 1; /* Evita espacio vertical extra */
+}
+
+.language-switcher-toggle img {
+  width: 18px; /* Bandera un poco más pequeña pero clara */
+  height: auto;
+  border-radius: 2px;
+  display: inline-block;
+  
+}
+
+.language-switcher .dropdown-menu {
+  background: #fff;
+  border: 1px solid #ccc;
+  min-width: 140px; /* Un poco más estrecho */
+}
+
+.language-switcher-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #333;
+  padding: 0.4rem 0.8rem; /* Más compacto */
+  text-decoration: none;
+  font-size: 0.9rem; /* Consistencia */
+}
+
+.language-switcher-item:hover {
+  background: #f0f0f0;
+  color: #000;
+}
+
+.language-switcher-item img {
+  width: 18px;
+  height: auto;
+  border-radius: 2px;
+}
+
+@media (max-width: 576px) {
+    .login-box,
+    .register-box,
+    .profile-box {
+        max-width: 90%;
+        padding: 10px;
+    }
+}
+
+
+.logo-profile {
+    max-height: 50px;
+    max-width: 150px;
+    object-fit: contain;
+    width: auto;
+    height: auto;
+}
+
+
+
+@media (max-width: 768px) {
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .table td, .table th {
+        white-space: nowrap;
+    }
+
+    .modal-lg {
+        max-width: 95%;
+    }
+}
+
