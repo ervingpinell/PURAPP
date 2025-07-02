@@ -75,7 +75,6 @@
     </div>
   </div>
 @stop
-
 @section('js')
   {{-- Popper + Tippy --}}
   <script src="https://unpkg.com/@popperjs/core@2"></script>
@@ -85,94 +84,98 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const calendarEl = document.getElementById('calendar');
-      const filterFrom = document.getElementById('filter-from');
-      const filterTo   = document.getElementById('filter-to');
-      const btnApply   = document.getElementById('btn-apply');
-      const btnClear   = document.getElementById('btn-clear');
-      const btnExport  = document.getElementById('btn-export');
-      const titleEl    = () => document.querySelector('.fc-toolbar-title');
+    const calendarEl = document.getElementById('calendar');
+    const filterFrom = document.getElementById('filter-from');
+    const filterTo   = document.getElementById('filter-to');
+    const btnApply   = document.getElementById('btn-apply');
+    const btnClear   = document.getElementById('btn-clear');
 
-      // Inicializamos FullCalendar
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        themeSystem: 'bootstrap',
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek'
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      themeSystem: 'bootstrap',
+      initialView: 'timeGridWeek',
+      slotMinTime: '06:00:00',
+      slotMaxTime: '18:00:00',
+      nowIndicator: true,
+      slotEventOverlap: false,
+      expandRows: true,
+      height: 'auto',
+      contentHeight: 'auto',
+      aspectRatio: 1.5,
+
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+      },
+
+      views: {
+        timeGridWeek: {
+          dayHeaderFormat: { weekday: 'short', day: 'numeric' },
+          slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false }
         },
-        contentHeight: 700,
-        aspectRatio: 1.5,
-        dayMaxEventRows: 3,
+        dayGridMonth: {
+          dayMaxEventRows: 2, // ✅ Mostrar todos los eventos sin límite
+          dayMaxEvents: false     // ✅ Desactiva agrupación
+        }
+      },
 
-        // Colorea y tooltip con Tippy.js
-        eventDidMount(info) {
-          const colors = {
-            pending:   '#f0ad4e',
-            confirmed: '#5cb85c',
-            cancelled: '#d9534f'
-          };
-          let c = colors[info.event.extendedProps.status] || '#3788d8';
-          info.el.style.backgroundColor = c;
-          info.el.style.borderColor     = c;
-          info.el.style.cursor          = 'pointer';
+      events: {
+        url: '{{ route("admin.reservas.calendarData") }}',
+        extraParams: () => ({
+          from: filterFrom.value || '',
+          to:   filterTo.value   || ''
+        })
+      },
 
-          // Tooltip
-          let { title, extendedProps } = info.event;
-          let adults = extendedProps.adults;
-          let kids   = extendedProps.kids;
-          let total  = extendedProps.total;
-          tippy(info.el, {
-            allowHTML: true,
-            theme: 'light-border',
-            delay: [100,50],
-            content: `
-              <strong>${title}</strong><br>
-              👤 Adultos: ${adults}<br>
-              🧒 Niños: ${kids}<br>
-              💰 Total: $${(parseFloat(total)||0).toFixed(2)}
-            `
-          });
-        },
+        // 👉 Correcto: CLICK EN EL DÍA
+        dateClick: function(info) {
+          if (calendar.view.type === 'dayGridMonth') {
+            const clickedDate = info.dateStr;
+            const allEvents = calendar.getEvents();
+            const eventsThatDay = allEvents.filter(ev =>
+              ev.startStr.slice(0, 10) === clickedDate
+            );
 
-        // Renderizado custom (título + badges)
-        eventContent(arg) {
-          let { title, extendedProps } = arg.event;
-          let { adults, kids } = extendedProps;
-          let container = document.createElement('div');
-          container.classList.add('fc-event-custom');
+            const modal = document.getElementById('editBookingModal');
+            const modalTitle = modal.querySelector('.modal-title');
+            const container = document.getElementById('editFormContainer');
 
-          let titleEl = document.createElement('div');
-          titleEl.classList.add('fc-event-title');
-          titleEl.innerText = title;
-          container.appendChild(titleEl);
+            // LIMPIA
+            modalTitle.innerText = `Reservas del ${clickedDate}`;
+            container.innerHTML = '';
 
-          let infoEl = document.createElement('div');
-          infoEl.classList.add('fc-event-info');
-          infoEl.innerHTML = `
-            <span class="badge bg-light text-dark me-1">👤${adults}</span>
-            <span class="badge bg-light text-dark">🧒${kids}</span>
-          `;
-          container.appendChild(infoEl);
+            if (eventsThatDay.length === 0) {
+              container.innerHTML = '<p class="text-center">No hay reservas para este día.</p>';
+            } else {
+              eventsThatDay.forEach(ev => {
+                container.innerHTML += `
+                  <div class="p-2 border-bottom">
+                    <strong>${ev.title}</strong><br>
+                    Hotel: ${ev.extendedProps.hotel || ''}<br>
+                    Adultos: ${ev.extendedProps.adults} – Niños: ${ev.extendedProps.kids}<br>
+                    Total: $${parseFloat(ev.extendedProps.total).toFixed(2)}<br>
+                    Estado: ${ev.extendedProps.status}
+                  </div>
+                `;
+              });
+            }
 
-          return { domNodes: [container] };
-        },
-
-        // Carga eventos pasando filtro
-        events: {
-          url: '{{ route("admin.reservas.calendarData") }}',
-          extraParams: () => ({
-            from: filterFrom.value || '',
-            to:   filterTo.value   || ''
-          })
+            bootstrap.Modal.getOrCreateInstance(modal).show();
+          }
         },
 
-        // Click abre modal
-        eventClick(info) {
-          const id        = info.event.id;
-          const form      = document.getElementById('editBookingForm');
+        // 👉 Correcto: CLICK EN EVENTO INDIVIDUAL
+        eventClick: function(info) {
+          const id = info.event.id;
+          const modal = document.getElementById('editBookingModal');
+          const modalTitle = modal.querySelector('.modal-title');
           const container = document.getElementById('editFormContainer');
+          const form = document.getElementById('editBookingForm');
+
+          // LIMPIA
+          modalTitle.innerText = '';
+          container.innerHTML = '';
+
           fetch(`/admin/reservas/${id}/edit`, {
             headers: {'X-Requested-With':'XMLHttpRequest'}
           })
@@ -180,27 +183,75 @@
           .then(html => {
             container.innerHTML = html;
             form.action = `/admin/reservas/${id}`;
-            new bootstrap.Modal(
-              document.getElementById('editBookingModal')
-            ).show();
+            modalTitle.innerText = info.event.title;
+
+            bootstrap.Modal.getOrCreateInstance(modal).show();
           })
           .catch(console.error);
+        },
+
+        eventDidMount(info) {
+          const colors = {
+            pending: '#f0ad4e',
+            confirmed: '#5cb85c',
+            cancelled: '#d9534f'
+          };
+          const c = colors[info.event.extendedProps.status] || '#3788d8';
+          info.el.style.backgroundColor = c;
+          info.el.style.borderColor     = c;
+          info.el.style.padding         = '5px';
+          info.el.style.fontSize        = '0.9rem';
+          info.el.style.borderRadius    = '6px';
+
+          tippy(info.el, {
+            allowHTML: true,
+            theme: 'light-border',
+            delay: [100, 50],
+            content: `
+              <strong>${info.event.title}</strong><br>
+              🏨 Hotel: ${info.event.extendedProps.hotel || ''}<br>
+              👤 Adultos: ${info.event.extendedProps.adults}<br>
+              🧒 Niños: ${info.event.extendedProps.kids}<br>
+              💰 Total: $${parseFloat(info.event.extendedProps.total).toFixed(2)}
+            `
+          });
+        },
+
+        eventContent(arg) {
+          const { title, extendedProps } = arg.event;
+          const container = document.createElement('div');
+          container.classList.add('fc-event-custom');
+          container.style.whiteSpace = 'normal';
+
+          const line1 = document.createElement('div');
+          line1.innerHTML = `<strong>${title}</strong>`;
+
+          const line2 = document.createElement('div');
+          line2.innerText = `🏨 ${extendedProps.hotel || ''}`;
+
+          const info = document.createElement('div');
+          info.innerHTML = `
+            <span class="badge bg-light text-dark me-1">👤${extendedProps.adults}</span>
+            <span class="badge bg-light text-dark me-1">🧒${extendedProps.kids}</span>
+            <span class="badge bg-light text-dark">💵$${parseFloat(extendedProps.total).toFixed(2)}</span>
+          `;
+
+          container.append(line1, line2, info);
+          return { domNodes: [container] };
         }
       });
 
       calendar.render();
 
-      // Actualiza el título según filtros
       function updateTitle() {
+        const titleEl = document.querySelector('.fc-toolbar-title');
         if (filterFrom.value && filterTo.value) {
-          titleEl().innerText = `${filterFrom.value} → ${filterTo.value}`;
+          titleEl.innerText = `${filterFrom.value} → ${filterTo.value}`;
         } else {
-          // Restablece al mes actual que maneja FullCalendar
-          titleEl().innerText = calendar.view.title;
+          titleEl.innerText = calendar.view.title;
         }
       }
 
-      // Aplicar + limpiar filtros
       btnApply.onclick = () => {
         calendar.refetchEvents();
         updateTitle();

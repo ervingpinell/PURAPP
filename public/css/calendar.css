@@ -26,7 +26,7 @@
 
 /* —— Contenedor del calendario: ocupa 100% ancho —— */
 #calendar {
-  width: 65%;
+  width: 100%;
   margin: 0 auto 3rem;
 }
 
@@ -121,4 +121,9 @@ body.dark-mode .fc {
 }
 body.dark-mode .fc .fc-btn-primary {
   background: #445;
+}
+
+/* Oculta el enlace +n more para que no aparezca nada */
+.fc .fc-daygrid-more-link {
+  display: none !important;
 }
