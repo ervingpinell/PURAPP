@@ -125,5 +125,5 @@ body.dark-mode .fc .fc-btn-primary {
 
 /* Oculta el enlace +n more para que no aparezca nada */
 .fc .fc-daygrid-more-link {
-  display: none !important;
+  display: inline !important;
 }

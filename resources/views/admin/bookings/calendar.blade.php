@@ -109,15 +109,16 @@
       },
 
       views: {
+        dayGridMonth: {
+          dayMaxEventRows: true,  // Habilita las filas máximas
+          dayMaxEvents: 2         // Muestra solo 2 eventos y el resto en +n more
+        },
         timeGridWeek: {
           dayHeaderFormat: { weekday: 'short', day: 'numeric' },
           slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false }
-        },
-        dayGridMonth: {
-          dayMaxEventRows: 2, // ✅ Mostrar todos los eventos sin límite
-          dayMaxEvents: false     // ✅ Desactiva agrupación
         }
       },
+
 
       events: {
         url: '{{ route("admin.reservas.calendarData") }}',
