@@ -29,21 +29,22 @@
             <i class="fas fa-user-circle"></i>
           </a>
           <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownMobile">
-            @if(Auth::user()->role_id === 3)
-              <a class="dropdown-item" href="#">{{ __('adminlte::adminlte.my_reservations') }}</a>
+            @if(Auth::user())
+              <a class="dropdown-item d-flex align-items-center" href="{{ route('my-reservations') }}">
+                <i class="fas fa-calendar-check me-2 text-success"></i> {{ __('My Reservations') }}
+              </a>
             @endif
-            <a class="dropdown-item" href="{{ route('profile.edit') }}">{{ __('adminlte::adminlte.profile') }}</a>
-            <form id="logout-form-mobile" action="{{ route('logout') }}" method="POST">
+            <a class="dropdown-item d-flex align-items-center" href="{{ route('profile.edit') }}">
+              <i class="fas fa-id-card-alt me-2 text-primary"></i> {{ __('Profile') }}
+            </a>
+            <form id="logout-form-mobile" action="{{ route('logout') }}" method="POST" class="d-inline w-100">
               @csrf
-              <button type="submit" class="dropdown-item">{{ __('adminlte::adminlte.logout') }}</button>
+              <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
+                <i class="fas fa-sign-out-alt me-2"></i> {{ __('Logout') }}
+              </button>
             </form>
           </div>
         </div>
-        @if(in_array(Auth::user()->role_id, [1, 2]))
-          <a href="{{ route('admin.home') }}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-2">
-            <i class="fas fa-toolbox"></i> Admin
-          </a>
-        @endif
       @else
         <a href="{{ route('login') }}" class="text-white">
           <i class="fas fa-user"></i>
@@ -77,14 +78,25 @@
             <span>{{ Auth::user()->full_name }}</span>
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownDesktop">
-            @if(Auth::user()->role_id === 3)
-              <li><a class="dropdown-item" href="#">{{ __('adminlte::adminlte.my_reservations') }}</a></li>
+            @if(Auth::user())
+              <li>
+                <a class="dropdown-item d-flex align-items-center" href="{{ route('my-reservations') }}">
+                  <i class="fas fa-calendar-check me-2 text-success"></i> {{ __('My Reservations') }}
+                </a>
+              </li>
             @endif
-            <li><a class="dropdown-item" href="{{ route('profile.edit') }}">{{ __('adminlte::adminlte.profile') }}</a></li>
             <li>
-              <form id="logout-form-desktop" action="{{ route('logout') }}" method="POST">
+              <a class="dropdown-item d-flex align-items-center" href="{{ route('profile.edit') }}">
+                <i class="fas fa-id-card-alt me-2 text-primary"></i> {{ __('Profile') }}
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form id="logout-form-desktop" action="{{ route('logout') }}" method="POST" class="d-inline w-100">
                 @csrf
-                <button type="submit" class="dropdown-item">{{ __('adminlte::adminlte.logout') }}</button>
+                <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i> {{ __('Logout') }}
+                </button>
               </form>
             </li>
           </ul>
@@ -100,7 +112,6 @@
         </a>
       @endauth
     </div>
-
   </div>
 
   <!-- MOBILE MENU desplegable -->
@@ -110,7 +121,18 @@
     <a href="#">Reseñas</a>
     <a href="#">Preguntas frecuentes</a>
     <a href="#">Contacto</a>
+  <div class="language-switcher-wrapper">
     @include('partials.language-switcher')
+  </div>
+   @auth
+  @if(in_array(Auth::user()->role_id, [1, 2]))
+    <div class="admin-link-wrapper">
+      <a href="{{ route('admin.home') }}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-2">
+        <i class="fas fa-toolbox"></i> Admin
+      </a>
+    </div>
+  @endif
+@endauth
   </div>
 
 </nav>

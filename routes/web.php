@@ -39,6 +39,7 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::get('/register', [ClienteRegisterController::class, 'create'])->name('register');
     Route::post('/register', [ClienteRegisterController::class, 'store'])->name('register.store');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::get('/tours/{id}', [HomeController::class, 'showTour'])->name('tours.show');
 
     // 📧 Verificación de correo (opcional)
     Route::get('/email/verify', [VerifyEmailController::class, 'notice'])->middleware('auth')->name('verification.notice');

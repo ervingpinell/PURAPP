@@ -111,10 +111,11 @@ main {
 
 
 body {
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    color: var(--text-dark);
-    background: #f4f4f4;
-    margin: 0;
+  background: #fff; /* FONDO BLANCO UNIFICADO */
+  padding-top: 10px; /* navbar fijo */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-dark);
+  margin: 0;
 }
 
 /* HERO DESKTOP */
@@ -569,6 +570,8 @@ body {
     min-width: 220px;
 }
 
+/*Version mobile */
+
 @media (max-width: 768px){
 
 .navbar-custom {
@@ -599,7 +602,7 @@ body {
   }
 
 .navbar-logo img {
-  height: 50px;
+  height: 55px;
   display: block; /* evita inline spacing */
   margin: 0 auto; /* asegura centrado */
 }
@@ -645,4 +648,114 @@ body {
   padding: 0.5rem 0;
   border-bottom: 1px solid rgba(255,255,255,0.2);
 }
+
+.language-switcher {
+  display: inline-block;
+  position: relative;
 }
+
+  .navbar-links .language-switcher-menu {
+    transform: translateX(12px);
+  }
+
+.navbar-links .language-switcher-toggle img {
+  min-width: 28px;
+  height: auto;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.navbar-links .language-switcher-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #333;
+  padding: 0.4rem 1rem;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.navbar-links .language-switcher-item:hover {
+  color: #999999 !important;
+}
+
+.navbar-links .language-switcher-item img {
+  width: 25px;
+  height: auto;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+  .navbar-links .admin-link-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start; /* ⬅️ Alinea a la izquierda */
+    padding: 0.5rem 0;
+  }
+
+  .navbar-links .admin-link-wrapper a {
+    width: auto; /* No estires el botón */
+    display: inline-flex;
+  }
+
+
+
+.footer-nature {
+    padding: 2rem 1rem; /* Reduce espacio general */
+    font-size: 14px; /* Texto más pequeño */
+  }
+
+    .footer-nature .footer-brand {
+    text-align: center;
+    width: 100%;
+  }
+
+  .footer-nature .footer-main-content {
+    flex-direction: column; /* Apila secciones */
+    align-items: center;
+    gap: 1.5rem; /* Menor separación */
+  }
+
+  .footer-nature .footer-brand img {
+    width: 150px; /* Logo más pequeño */
+    margin-bottom: 0.5rem;
+  }
+
+  .footer-nature .footer-links,
+  .footer-nature .contact-info,
+  .footer-tours,
+  .footer-platforms {
+    min-width: unset; /* Quita ancho mínimo */
+    width: 100%; /* Ocupa ancho completo */
+    text-align: center; /* Centra contenido */
+  }
+
+    .footer-tours ul {
+    padding-left: 0; /* Quita indentación */
+  }
+  
+  .footer-tours li {
+    justify-content: center; /* Centra contenido horizontal */
+    display: flex;
+    align-items: center;
+  }
+  .footer-nature .footer-links h4,
+  .footer-nature .contact-info h4,
+  .footer-tours h4,
+  .footer-platforms h4 {
+    font-size: 16px;
+    margin-bottom: 0.5rem;
+  }
+
+  .footer-nature .footer-links a,
+  .footer-tours a,
+  .footer-platforms a,
+  .footer-nature .contact-info p {
+    font-size: 14px;
+  }
+
+  .footer-nature .footer-bottom {
+    margin-top: 1.5rem;
+    font-size: 13px;
+  }
+}
+

@@ -1,0 +1,242 @@
+/* === GENERAL === */
+section {
+  padding: 3rem 0;
+  background: #fff;
+}
+
+h1, h2, h4, h5, h6 {
+  color: #222;
+}
+
+p {
+  color: #555;
+  line-height: 1.5;
+}
+
+/* === CARRUSEL === */
+#tourCarousel {
+  overflow: hidden;
+}
+
+.carousel-inner img {
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.carousel-item img {
+  max-height: 350px;
+  width: 100%;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  filter: invert(1);
+}
+
+/* === TITLES === */
+.tour-section h1 {
+  font-size: 2rem;
+  margin: 1rem 0 0.5rem;
+  font-weight: 700;
+}
+
+.tour-section h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #222;
+  margin: 1.2rem 0 0.5rem 0;
+}
+
+.tour-section p.text-muted {
+  font-size: 0.9rem;
+  color: #777;
+}
+
+.tour-section h4 {
+  font-size: 1.25rem;
+  margin-top: 1rem;
+  font-weight: 600;
+}
+
+/* === RESERVATION BOX === */
+.reservation-box {
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+}
+
+.accordion-header .accordion-button {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #222;
+}
+.accordion-body h5 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #222;
+  margin-top: 1rem;
+}
+
+.reservation-box h6 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.reservation-box label {
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.reservation-box input[type="date"],
+.reservation-box select {
+  font-size: 0.9rem;
+}
+
+.btn-success {
+  background-color: #2c6e49;
+  border: none;
+}
+
+.btn-success:hover {
+  background-color: #256d1b;
+}
+
+/* === TRAVELERS BUTTON (Minimalista estilo Viator) === */
+.reservation-box .traveler-button {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centrado horizontal */
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  width: auto; /* Evita ancho completo */
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reservation-box .traveler-button span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.reservation-box .traveler-button:hover {
+  background: #f8f8f8;
+}
+
+.reservation-box .traveler-button i {
+  font-size: 0.85rem;
+  color: #333;
+}
+.reservation-box .traveler-button .fa-chevron-down {
+  margin-left: 0.3rem;
+}
+#traveler-summary {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* === Prices Highlight === */
+.reservation-box h6 span {
+  color: #F92526;
+  font-weight: 600;
+}
+
+/* === LANGUAGES & SCHEDULES BOX === */
+.languages-schedules-box {
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+}
+
+.languages-schedules-box h6 {
+  font-size: 1rem; /* ligeramente mayor */
+  font-weight: 700; /* más fuerte */
+  color: #222;
+  margin-top: 0.75rem;
+}
+
+.languages-schedules-box .badge {
+  font-size: 0.75rem;
+}
+
+.tour-section p,
+.languages-schedules-box p {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.languages-schedules-box .badge.bg-success {
+  background: #2c6e49 !important;
+}
+
+/* === ACCORDION === */
+.accordion-button {
+  background: #fff !important;
+  box-shadow: none !important;
+  padding-left: 0;
+  font-weight: 600;
+}
+
+.accordion-button:focus {
+  box-shadow: none;
+}
+
+.accordion-item {
+  border: none !important;
+}
+
+.accordion-item + .accordion-item {
+  border-top: 1px solid #ddd !important;
+}
+
+.accordion-body {
+  background: #fff;
+}
+
+.accordion-button .toggle-icon {
+  transition: transform 0.2s;
+}
+
+.accordion-button:not(.collapsed) .toggle-icon {
+  transform: rotate(45deg);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .carousel-item img {
+    max-height: 220px;
+  }
+
+  .tour-section h1 {
+    font-size: 1.5rem;
+  }
+
+  .reservation-box {
+    margin-top: 1.5rem;
+  }
+
+  .languages-schedules-box {
+    margin-top: 1rem;
+  }
+
+  .reservation-box .traveler-button {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .reservation-box .traveler-button i {
+    font-size: 0.8rem;
+  }
+
+    .tour-section h1 { font-size: 1.75rem; }
+  .tour-section h2 { font-size: 1.25rem; }
+  .accordion-header .accordion-button { font-size: 1rem; }
+  .accordion-body h5 { font-size: 1rem; }
+  .languages-schedules-box h6 { font-size: 0.95rem; }
+
+}

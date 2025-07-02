@@ -29,7 +29,9 @@
                         </div>
                     </div>
 
-                    <a href="#" class="btn btn-success w-100">{{ __('adminlte::adminlte.see_tour') }}</a>
+               <a href="{{ route('tours.show', $tour->tour_id) }}" class="btn btn-success w-100">
+    {{ __('adminlte::adminlte.see_tour') }}
+</a>
                 </div>
             </div>
         @endforeach
