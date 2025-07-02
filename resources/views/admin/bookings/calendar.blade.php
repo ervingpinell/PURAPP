@@ -110,7 +110,6 @@
 
       views: {
         dayGridMonth: {
-          dayMaxEventRows: true,  // Habilita las filas máximas
           dayMaxEvents: 2         // Muestra solo 2 eventos y el resto en +n more
         },
         timeGridWeek: {

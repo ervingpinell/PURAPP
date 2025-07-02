@@ -352,36 +352,44 @@ class BookingController extends Controller
 
     /** Datos para FullCalendar */
     public function calendarData(Request $request)
-{
-    $query = BookingDetail::with(['booking.user', 'tour', 'tourSchedule']);
+    {
+        $query = BookingDetail::with(['booking.user', 'tour', 'tourSchedule']);
 
-    if ($request->filled('from')) {
-        $query->where('tour_date', '>=', $request->input('from'));
+        if ($request->filled('from')) {
+            $query->where('tour_date', '>=', $request->input('from'));
+        }
+        if ($request->filled('to')) {
+            $query->where('tour_date', '<=', $request->input('to'));
+        }
+
+        $events = $query->get()->map(function ($d) {
+            $schedule = $d->tourSchedule;
+
+            // 👇 Usa horario real del schedule o valores por defecto
+            $startTime = $schedule && $schedule->start_time
+                ? \Carbon\Carbon::parse($schedule->start_time)->format('H:i:s')
+                : '08:00:00';
+
+            $endTime = $schedule && $schedule->end_time
+                ? \Carbon\Carbon::parse($schedule->end_time)->format('H:i:s')
+                : '10:00:00';
+
+            return [
+                'id'     => $d->booking->booking_id,
+                'title'  => "{$d->booking->user->full_name} – {$d->tour->name}",
+                'start'  => "{$d->tour_date->toDateString()}T{$startTime}",
+                'end'    => "{$d->tour_date->toDateString()}T{$endTime}",
+                'status' => $d->booking->status,
+                'hotel'  => optional($d->hotel)->name ?? null,
+                'adults' => $d->adults_quantity,
+                'kids'   => $d->kids_quantity,
+                'total'  => $d->total,
+            ];
+        });
+
+        return response()->json($events);
     }
-    if ($request->filled('to')) {
-        $query->where('tour_date', '<=', $request->input('to'));
-    }
 
-    $events = $query->get()->map(function ($d) {
-        // Usa horario del detalle o del tourSchedule
-        $schedule = $d->tourSchedule;
-        $startTime = $schedule ? $schedule->start_time : '08:00:00';
-        $endTime   = $schedule ? $schedule->end_time   : '10:00:00';
-
-        return [
-            'id'     => $d->booking->booking_id,
-            'title'  => "{$d->booking->user->full_name} – {$d->tour->name}",
-            'start'  => "{$d->tour_date->toDateString()}T{$startTime}",
-            'end'    => "{$d->tour_date->toDateString()}T{$endTime}",
-            'status' => $d->booking->status,
-            'adults' => $d->adults_quantity,
-            'kids'   => $d->kids_quantity,
-            'total'  => $d->total,
-        ];
-    });
-
-    return response()->json($events);
-}
 
     public function reservedCount(Request $request)
     {
