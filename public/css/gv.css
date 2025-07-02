@@ -21,6 +21,8 @@
     margin: auto;
 }
 
+
+
 @media (max-width: 576px) {
     .login-box,
     .register-box,
@@ -38,6 +40,8 @@
     width: auto;
     height: auto;
 }
+
+
 
 @media (max-width: 768px) {
     .table-responsive {
