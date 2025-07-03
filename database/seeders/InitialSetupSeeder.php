@@ -88,7 +88,8 @@ class InitialSetupSeeder extends Seeder
             ],
             [
                 'title' => 'Soda Fortuna',
-                'description' => "This is the restaurant where we will enjoy our lunch. Soda Fortuna offers exquisite food based on traditional Costa Rican cooking.",
+                'description' => "This is the restaurant where we will enjoy our lunch.The lunch will be a Costa Rican Meal Call “Casado” Which is Rice, Beans, Green Salad, mashed potatoes or yuca puree and the protein that you can choose between fish, chicken, pork, beef or vegetarian, and a natural drink. Our guide will ask you for your protein choice on the road the day of the tour.
+                Let us know in advance any allergies, and health issues.",
                 'is_active' => true,
                 'created_at' => $now,
                 'updated_at' => $now
@@ -142,6 +143,46 @@ class InitialSetupSeeder extends Seeder
                 ['is_active' => true, 'created_at' => $now, 'updated_at' => $now]
             );
         }
+
+        $hotels = [
+            'The Springs Resort and Spa',
+            'Arenal Kioro',
+            'Volcano Lodge',
+            'Arenal Manoa',
+            'Arenal Springs',
+            'San Bosco Inn',
+            'Lomas del Volcán',
+            'Lost Iguana',
+            'Socialtel La Fortuna',
+            'Montaña de Fuego',
+            'Paradise Hot Springs',
+            'Los Lagos',
+            'The Royal Corin',
+            'Lavas Tacotal',
+            'Arenal Roca Lodge Suites',
+            'Arenal Roca Lodge Bungalows',
+            'Casa del Rio',
+            'Nayara Gardens',
+            'Nayara Tented Camp',
+            'Nayara Springs',
+            'Hotel El Secreto',
+            'La Fortuna Downtown',
+            'Arenal Backpackers',
+            'Arenal Rabfer',
+            'Arenal Rooms',
+            'Miradas Arenal',
+            'Volcano Inn',
+            'La Choza Inn',
+            'Arenal Xilopalo',
+        ];
+
+       foreach ($hotels as $name) {
+    DB::table('hotels_list')->updateOrInsert(
+        ['name' => $name],
+        ['is_active' => true, 'created_at' => $now, 'updated_at' => $now]
+    );
+        }
+
         // Tours
         $tour1 = DB::table('tours')->insertGetId([
             'name' => 'Aventura en el Volcán Arenal',
@@ -168,11 +209,16 @@ class InitialSetupSeeder extends Seeder
         ], 'tour_id');
 
         $tour3 = DB::table('tours')->insertGetId([
-            'name' => 'Puentes Colgantes y Bosque Lluvioso',
-            'overview' => 'Enjoy a thrilling close encounter with Costa Rica’s wildlife on this 4-hour tour to the Mistico Hanging Bridges Park from La Fortuna, in the shadows of the Arenal Volcano. Journey to the heart of the rainforest on a 2-mile (3.2km) circuit of 15 hanging bridges and have chance to spot up to 350 species of bird, including hummingbirds, bell birds, toucans and the majestic Tucancito Esmeralda.4-hour Mistico Arenal Hanging Bridges tour from La Fortuna Enjoy a guided hike along a circuit of 15 specially designed bridges Spot hummingbirds, bellbirds and toucans in their natural environment Great choice for families!',
-            'adult_price' => 80.00,
-            'kid_price' => 65.00,
-            'length' => 4,
+            'name' => 'Nature Lover Combo 1',
+            'overview' => "Combine three adventurous activities in a single tour: a hike to Arenal Volcano, visit to the Hanging Bridges, and exploration of La Fortuna Waterfall. This full-day tour from La Fortuna, perfect for nature lovers, includes hiking and swimming amidst Costa Rica's beautiful natural scenery. Hotel pickup and drop-off included.\n
+        • Full-day Costa Rica adventure tour\n
+        • Hike around Arenal Volcano and swim beneath La Fortuna Waterfall\n
+        • Cross 16 hanging bridges in the rainforest\n
+        • Hotel pickup and drop-off included\n
+        • Personalized experience: small group tour limited to 12",
+            'adult_price' => 154.00,
+            'kid_price' => 115.00,
+            'length' => 9,
             'tour_type_id' => 1,
             'is_active' => true,
             'created_at' => $now,
@@ -202,6 +248,7 @@ class InitialSetupSeeder extends Seeder
             ['tour_id' => $tour3, 'amenity_id' => 2, 'is_active' => true],
             ['tour_id' => $tour3, 'amenity_id' => 3, 'is_active' => true],
             ['tour_id' => $tour3, 'amenity_id' => 4, 'is_active' => true],
+            ['tour_id' => $tour3, 'amenity_id' => 5, 'is_active' => true],
 
         ]);
 
@@ -216,11 +263,61 @@ class InitialSetupSeeder extends Seeder
             ['tour_id' => $tour2, 'amenity_id' => 8, 'is_active' => true],
             ['tour_id' => $tour2, 'amenity_id' => 9, 'is_active' => true],
 
-            ['tour_id' => $tour3, 'amenity_id' => 5, 'is_active' => true],
             ['tour_id' => $tour3, 'amenity_id' => 6, 'is_active' => true],
             ['tour_id' => $tour3, 'amenity_id' => 7, 'is_active' => true],
             ['tour_id' => $tour3, 'amenity_id' => 8, 'is_active' => true],
 
+        ]);
+
+// Itinerary Nature Lover Combo 1
+        $itinerary = DB::table('itineraries')->insertGetId([
+            'name' => 'Nature Lover Combo 1',
+            'description' => "Begin your full-day Costa Rican adventure with pickup from your accommodation in Fortuna Town. Then head to Arenal Volcano Park for a 2.5-hour hike traversing flat grounds and rocky terrain to witness the remnants of the 1968 eruption and learn about the volcano's history.",
+            'is_active' => true,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], 'itinerary_id');
+
+        // Obtener los item_id reales
+        $item1 = DB::table('itinerary_items')->where('title', 'Arenal 1968 Volcano View and Lava Trails')->value('item_id');
+        $item2 = DB::table('itinerary_items')->where('title', 'La Fortuna Waterfall')->value('item_id');
+        $item3 = DB::table('itinerary_items')->where('title', 'Soda Fortuna')->value('item_id');
+        $item4 = DB::table('itinerary_items')->where('title', 'Mistico Park')->value('item_id');
+
+        // Insertar relaciones pivote
+        DB::table('itinerary_item_itinerary')->insert([
+            [
+                'itinerary_id' => $itinerary,
+                'itinerary_item_id' => $item1,
+                'item_order' => 1,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now
+            ],
+            [
+                'itinerary_id' => $itinerary,
+                'itinerary_item_id' => $item2,
+                'item_order' => 2,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now
+            ],
+            [
+                'itinerary_id' => $itinerary,
+                'itinerary_item_id' => $item3,
+                'item_order' => 3,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now
+            ],
+            [
+                'itinerary_id' => $itinerary,
+                'itinerary_item_id' => $item4,
+                'item_order' => 4,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now
+            ],
         ]);
     }
 }

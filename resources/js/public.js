@@ -149,4 +149,93 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('kid-count').textContent = 0;
   updateModalTotal();
   updateReservationTotal();
+
+ // --------------------------------------------
+// ✅ Pickup & Meeting Points live search + toggle fake select
+// --------------------------------------------
+const pickupSearch = document.getElementById('pickupSearch');
+const pickupListWrapper = document.getElementById('pickupListWrapper');
+const pickupListItems = document.querySelectorAll('#pickupList li');
+const pickupNotFound = document.getElementById('pickupNotFound');
+const selectedPickupPoint = document.getElementById('selectedPickupPoint');
+const selectedPickupDisplay = document.getElementById('selectedPickupDisplay');
+
+if (pickupSearch && pickupListItems) {
+  pickupSearch.addEventListener('input', function () {
+    const term = pickupSearch.value.trim().toLowerCase();
+    let found = false;
+
+    pickupListItems.forEach(item => {
+      const match = item.textContent.toLowerCase().includes(term);
+      item.style.display = match ? '' : 'none';
+      if (match) found = true;
+    });
+
+    pickupListWrapper.classList.remove('d-none');
+    pickupNotFound.classList.toggle('d-none', found || term === '');
+  });
+
+  // ✅ Guarda selección y muestra en la caja
+  pickupListWrapper.addEventListener('change', function (e) {
+    if (e.target.name === 'pickupOption') {
+      selectedPickupPoint.value = e.target.value;
+      selectedPickupDisplay.querySelector('span').textContent = e.target.value;
+      pickupListWrapper.classList.add('d-none');
+    }
+  });
+
+  // ✅ Toggle open fake select
+  selectedPickupDisplay.addEventListener('click', function () {
+    pickupListWrapper.classList.toggle('d-none');
+    pickupSearch.focus();
+  });
+
+  // ✅ Cierra si clic fuera
+  document.addEventListener('click', function (e) {
+    if (!pickupSearch.contains(e.target) && 
+        !pickupListWrapper.contains(e.target) && 
+        !selectedPickupDisplay.contains(e.target)) {
+      pickupListWrapper.classList.add('d-none');
+    }
+  });
+}
+
+// --------------------------------------------
+// ✅ Meeting Points: igual sin fake select
+// --------------------------------------------
+const meetingSearch = document.getElementById('meetingSearch');
+const meetingListWrapper = document.getElementById('meetingListWrapper');
+const meetingListItems = document.querySelectorAll('#meetingList li');
+const meetingNotFound = document.getElementById('meetingNotFound');
+const selectedMeetingPoint = document.getElementById('selectedMeetingPoint');
+
+if (meetingSearch && meetingListItems) {
+  meetingSearch.addEventListener('input', function () {
+    const term = meetingSearch.value.trim().toLowerCase();
+    let found = false;
+
+    meetingListItems.forEach(item => {
+      const match = item.textContent.toLowerCase().includes(term);
+      item.style.display = match ? '' : 'none';
+      if (match) found = true;
+    });
+
+    meetingListWrapper.classList.remove('d-none');
+    meetingNotFound.classList.toggle('d-none', found || term === '');
+  });
+
+  meetingListWrapper.addEventListener('change', function (e) {
+    if (e.target.name === 'meetingOption') {
+      selectedMeetingPoint.value = e.target.value;
+      meetingListWrapper.classList.add('d-none');
+    }
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!meetingSearch.contains(e.target) && !meetingListWrapper.contains(e.target)) {
+      meetingListWrapper.classList.add('d-none');
+    }
+  });
+}
+
 });

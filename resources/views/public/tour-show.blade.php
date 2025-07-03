@@ -32,8 +32,8 @@
         <h1 class="fw-bold">{{ $tour->name }}</h1>
         <p class="text-muted">{{ $tour->tourType->name ?? '' }}</p>
 
-        <h2>Overview</h2>
-<p>{!! nl2br(e($tour->overview)) !!}</p>
+        <h3>Overview</h3>
+        <p>{{ $tour->overview }}</p>
       </div>
 
       {{-- 📅 RESERVATION BOX --}}
@@ -85,40 +85,27 @@
         </div>
 
         {{-- 🌐 INFORMATION BOX --}}
-<div class="languages-schedules-box p-3 shadow rounded bg-white border">
-  <h4>Information</h4>
+        <div class="languages-schedules-box p-3 shadow rounded bg-white border">
+          <h4>Information</h6>
+          <H6>Hours:</h6> {{ $tour->length }}</p>
+          <h6>Group Size:</h6> {{ $tour->max_capacity }}</p>
 
-  <div class="info-item">
-    <h5>Hours:</h5>
-    <p>{{ $tour->length }}</p>
-  </div>
+          <h6>Languages Available</h6>
+          <p>
+            @foreach($tour->languages as $lang)
+              <span class="badge bg-secondary mb-1">{{ $lang->name }}</span>
+            @endforeach
+          </p>
 
-  <div class="info-item">
-    <h5>Group Size:</h5>
-    <p>{{ $tour->max_capacity }}</p>
-  </div>
-
-  <div class="info-item">
-    <h5>Languages Available</h5>
-    <p>
-      @foreach($tour->languages as $lang)
-        <span class="badge bg-secondary mb-1">{{ $lang->name }}</span>
-      @endforeach
-    </p>
-  </div>
-
-  <div class="info-item">
-    <h5>Schedules</h5>
-    <p>
-      @foreach($tour->schedules->sortBy('start_time') as $schedule)
-        <span class="badge bg-success mb-1">
-          {{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}
-        </span>
-      @endforeach
-    </p>
-  </div>
-</div>
-
+          <h6>Schedules</h6>
+          <p>
+            @foreach($tour->schedules->sortBy('start_time') as $schedule)
+              <span class="badge bg-success mb-1">
+                {{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}
+              </span>
+            @endforeach
+          </p>
+        </div>
       </div>
     </div>
 
@@ -127,7 +114,7 @@
       <div class="col-md-12">
         <div class="accordion" id="tourDetailsAccordion">
 
-{{-- ✅ Itinerary --}}
+        {{-- ✅ Itinerary --}}
 <div class="accordion-item border-0 border-bottom">
   <h2 class="accordion-header" id="headingItinerary">
     <button class="accordion-button bg-white px-0 shadow-none collapsed" type="button"
@@ -142,17 +129,16 @@
         <h5>{{ $tour->itinerary->name }}</h5>
         <p>{{ $tour->itinerary->description }}</p>
 
+        {{-- ✅ Timeline Version --}}
         <div class="itinerary-timeline">
           @foreach($tour->itinerary->items as $index => $item)
             <div class="timeline-item">
-              <div class="timeline-marker">
-                <span>{{ $index + 1 }}</span>
-              </div>
+              <div class="timeline-marker">{{ $index + 1 }}</div>
               <div class="timeline-content">
                 <h6>{{ $item->title }}</h6>
                 <p>{{ $item->description }}</p>
                 @if($item->duration)
-                  <small class="text-muted">{{ $item->duration }}</small>
+                  <small>{{ $item->duration }}</small>
                 @endif
               </div>
             </div>
@@ -192,6 +178,120 @@
               </div>
             </div>
           </div>
+{{-- ✅ Hotels & Meeting Points --}}
+<div class="accordion-item border-0 border-bottom">
+  <h2 class="accordion-header" id="headingHotels">
+    <button class="accordion-button bg-white px-0 shadow-none collapsed" type="button"
+            data-bs-toggle="collapse" data-bs-target="#collapseHotels">
+      <i class="fas fa-plus me-2 toggle-icon"></i> Hotels & Meeting Points
+    </button>
+  </h2>
+  <div id="collapseHotels" class="accordion-collapse collapse"
+       data-bs-parent="#tourDetailsAccordion">
+    <div class="accordion-body px-0">
+
+      <div class="row g-4">
+
+            <div class="mt-3">
+            <strong>Pickup details</strong>
+            <p class="small mb-0">
+              Free pick-ups are only for hotels in the Fortuna area. If your hotel does not appear on the list, you can go to the different meeting points. Our staff will tell you which one is the most convenient for you and also the pick-up time.
+              There is no pickup in the San Jose area, or in the Guanacaste area for small groups. We pick up early to avoid as many people on the trails and maximize the opportunity to find wildlife.
+            </p>
+          </div>
+        {{-- 📍 Pickup Points --}}
+        <div class="col-md-6">
+          <h6><i class="fas fa-person-walking-luggage me-1"></i> Pickup points</h6>
+          <p class="text-muted small mb-2">Select a pickup point</p>
+
+          {{-- Fake select input --}}
+          <div class="selected-option border rounded px-3 py-2 d-flex justify-content-between align-items-center"
+               id="selectedPickupDisplay" style="cursor: pointer;">
+            <span class="text-muted">Type to search...</span>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+
+          {{-- Dropdown search list --}}
+          <div class="pickup-list border rounded p-2 d-none mt-2" id="pickupListWrapper" style="max-height: 250px; overflow-y: auto;">
+            <input type="text" id="pickupSearch" class="form-control mb-2" placeholder="Type to search...">
+
+            <ul class="list-unstyled mb-0" id="pickupList">
+              @forelse ($hotels as $hotel)
+                <li class="mb-2">
+                  <label class="d-flex align-items-start gap-2">
+                    <input type="radio" name="pickupOption" value="{{ $hotel->name }}">
+                    <div>
+                      <i class="fas fa-hotel me-1"></i>
+                      <strong>{{ $hotel->name }}</strong><br>
+                      <small class="text-muted">Example address for {{ $hotel->name }}</small>
+                    </div>
+                  </label>
+                </li>
+              @empty
+                <li>No pickup points available.</li>
+              @endforelse
+            </ul>
+            <div id="pickupNotFound" class="text-danger small mt-2 d-none">
+              Hotel not found. Please contact our team to verify transportation.
+            </div>
+          </div>
+
+          <input type="hidden" name="selected_pickup_point" id="selectedPickupPoint">
+
+          
+        </div>
+
+        {{-- 📍 Meeting Points --}}
+        <div class="col-md-6">
+          <h6><i class="fas fa-map-marker-alt me-1"></i> Meeting points</h6>
+          <p class="text-muted small mb-2">Select a meeting point</p>
+
+          <input type="text" id="meetingSearch" class="form-control mb-2" placeholder="Type to search...">
+
+          <div class="meeting-list border rounded p-2" id="meetingListWrapper" style="max-height: 250px; overflow-y: auto;">
+            <ul class="list-unstyled mb-0" id="meetingList">
+              <li class="mb-2">
+                <label class="d-flex align-items-start gap-2">
+                  <input type="radio" name="meetingOption" value="Main Street Entrance">
+                  <div>
+                    <i class="fas fa-map-marker-alt me-1"></i>
+                    <strong>Main Street Entrance</strong><br>
+                    <small class="text-muted">Example Address 123</small>
+                  </div>
+                </label>
+              </li>
+              <li class="mb-2">
+                <label class="d-flex align-items-start gap-2">
+                  <input type="radio" name="meetingOption" value="Central Park">
+                  <div>
+                    <i class="fas fa-map-marker-alt me-1"></i>
+                    <strong>Central Park</strong><br>
+                    <small class="text-muted">Example Address 456</small>
+                  </div>
+                </label>
+              </li>
+              <li class="mb-2">
+                <label class="d-flex align-items-start gap-2">
+                  <input type="radio" name="meetingOption" value="Bus Station">
+                  <div>
+                    <i class="fas fa-map-marker-alt me-1"></i>
+                    <strong>Bus Station</strong><br>
+                    <small class="text-muted">Example Address 789</small>
+                  </div>
+                </label>
+              </li>
+            </ul>
+            <div id="meetingNotFound" class="text-danger small mt-2 d-none">
+              Meeting point not found.
+            </div>
+          </div>
+
+          <input type="hidden" name="selected_meeting_point" id="selectedMeetingPoint">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
         </div>
       </div>
