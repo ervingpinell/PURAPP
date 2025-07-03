@@ -319,5 +319,59 @@ class InitialSetupSeeder extends Seeder
                 'updated_at' => $now
             ],
         ]);
+
+        // --------------------------
+        // Crear 4 horarios para $tour1
+        // --------------------------
+        $schedule1 = DB::table('schedules')->insertGetId([
+            'start_time' => '08:00',
+            'end_time'   => '12:00',
+            'label'      => 'AM',
+            'is_active'  => true,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], 'schedule_id'); 
+
+        $schedule2 = DB::table('schedules')->insertGetId([
+            'start_time' => '13:00',
+            'end_time'   => '17:00',
+            'label'      => 'PM',
+            'is_active'  => true,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], 'schedule_id');
+
+        $schedule3 = DB::table('schedules')->insertGetId([
+            'start_time' => '05:00',
+            'end_time'   => '09:00',
+            'label'      => 'AM Early',
+            'is_active'  => true,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], 'schedule_id');
+
+        $schedule4 = DB::table('schedules')->insertGetId([
+            'start_time' => '17:00',
+            'end_time'   => '21:00',
+            'label'      => 'PM Late',
+            'is_active'  => true,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], 'schedule_id');
+
+        // --------------------------
+        // Relacionar los horarios con el tour en la tabla pivot
+        // --------------------------
+        DB::table('schedule_tour')->insert([
+            ['tour_id' => $tour1, 'schedule_id' => $schedule1],
+            ['tour_id' => $tour1, 'schedule_id' => $schedule2],
+            ['tour_id' => $tour1, 'schedule_id' => $schedule3],
+            ['tour_id' => $tour1, 'schedule_id' => $schedule4],
+        ]);
+
+
+
+
+
     }
 }

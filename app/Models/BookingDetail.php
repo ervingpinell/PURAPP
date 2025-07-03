@@ -19,7 +19,7 @@ class BookingDetail extends Model
     protected $fillable = [
         'booking_id',
         'tour_id',                  
-        'tour_schedule_id',
+        'schedule_id',
         'tour_date',
         'tour_language_id',
         'adults_quantity',
@@ -48,9 +48,9 @@ class BookingDetail extends Model
         return $this->belongsTo(TourLanguage::class, 'tour_language_id', 'tour_language_id');
     }
 
-    public function tourSchedule()
+    public function schedule()
     {
-        return $this->belongsTo(TourSchedule::class, 'tour_schedule_id', 'tour_schedule_id');
+        return $this->belongsTo(Schedule::class, 'schedule_id', 'schedule_id');
     }
     public function hotel()
     {

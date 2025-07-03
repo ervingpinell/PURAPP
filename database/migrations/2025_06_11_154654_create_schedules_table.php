@@ -11,17 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tour_schedules', function (Blueprint $table) {
-            $table->id('tour_schedule_id');
-            $table->unsignedBigInteger('tour_id');
+        Schema::create('schedules', function (Blueprint $table) {
+            $table->id('schedule_id');
             $table->time('start_time');
-            $table->time('end_time')->nullable()->after('start_time');
+            $table->time('end_time')->nullable();
             $table->string('label')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-
-            $table->foreign('tour_id')->references('tour_id')->on('tours')->onDelete('cascade');
         });
+
     }
 
     /**

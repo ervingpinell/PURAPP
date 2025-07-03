@@ -16,6 +16,7 @@ use App\Models\TourLanguage;
 use App\Models\Amenity;
 use App\Services\ItineraryService;
 use App\Models\HotelList;
+use App\Models\Schedule;
 
 class TourController extends Controller
 {
@@ -205,7 +206,6 @@ class TourController extends Controller
                 ->withInput()
                 ->with('showEditModal', true);
         }
-        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return back()
@@ -262,10 +262,20 @@ class TourController extends Controller
                 $tour->amenities()->sync($v['amenities'] ?? []);
                 $tour->excludedAmenities()->sync($v['excluded_amenities'] ?? []);
 
-                // Guardar horarios
+                // Guardar horarios: crear y asociar
+                $scheduleIds = [];
                 foreach ($newSchedules as $sched) {
-                    $tour->schedules()->create($sched);
+                    $schedule = Schedule::create([
+                        'start_time' => $sched['start_time'],
+                        'end_time'   => $sched['end_time'],
+                        'label'      => null, // O lo que uses
+                        'is_active'  => true,
+                    ]);
+                    $scheduleIds[] = $schedule->schedule_id;
                 }
+
+                $tour->schedules()->sync($scheduleIds);
+
             });
 
             return redirect()
@@ -282,6 +292,8 @@ class TourController extends Controller
 
     public function update(Request $request, Tour $tour)
     {
+        
+
         // Normalizar horarios
         $request->merge([
             'schedule_am_start' => $this->parseTime($request->input('schedule_am_start')),
@@ -289,6 +301,7 @@ class TourController extends Controller
             'schedule_pm_start' => $this->parseTime($request->input('schedule_pm_start')),
             'schedule_pm_end'   => $this->parseTime($request->input('schedule_pm_end')),
         ]);
+
         // Combinar ítems
         $request->merge([
             'itinerary_combined' => array_merge(
@@ -320,19 +333,18 @@ class TourController extends Controller
             'schedule_pm_end'          => 'nullable|date_format:H:i',
             'itinerary_id'             => 'nullable',
             'new_itinerary_name'       => 'nullable|string|max:255',
-            'new_itinerary_description' => 'nullable|string|max:1000',
+            'new_itinerary_description'=> 'nullable|string|max:1000',
         ];
 
         if ($request->input('itinerary_id') === 'new') {
             $rules['itinerary_combined']   = 'required|array|min:1';
             $rules['itinerary_combined.*'] = [
-                Rule::exists('itinerary_items', 'item_id')
-                    ->where('is_active', true),
+                Rule::exists('itinerary_items', 'item_id')->where('is_active', true),
             ];
             $rules['new_itinerary_name']        = 'required|string|max:255';
             $rules['new_itinerary_description'] = 'required|string|max:1000';
-            $rules['itinerary.*.title']       = 'nullable|string|required_with:itinerary.*.description';
-            $rules['itinerary.*.description'] = 'nullable|string|required_with:itinerary.*.title';
+            $rules['itinerary.*.title']         = 'nullable|string|required_with:itinerary.*.description';
+            $rules['itinerary.*.description']   = 'nullable|string|required_with:itinerary.*.title';
         }
 
         $validator = Validator::make($request->all(), $rules);
@@ -343,7 +355,10 @@ class TourController extends Controller
                 ->withInput()
                 ->with('showEditModal', $tour->tour_id);
         }
+
         $v = $validator->validated();
+
+        // Validaciones cruzadas
         $errores = [];
 
         if (!empty($v['schedule_am_start']) && empty($v['schedule_am_end'])) {
@@ -365,9 +380,8 @@ class TourController extends Controller
                 ->withInput()
                 ->with('showEditModal', $tour->tour_id);
         }
-        try {
-            $currentSchedules = $tour->schedules()->orderBy('start_time')->get();
 
+        try {
             DB::transaction(function () use ($tour, $v) {
                 // Actualiza Tour
                 $tour->update([
@@ -375,12 +389,12 @@ class TourController extends Controller
                     'overview'     => $v['overview'] ?? '',
                     'adult_price'  => $v['adult_price'],
                     'kid_price'    => $v['kid_price'] ?? 0,
-                    'max_capacity'   => $v['max_capacity'],
+                    'max_capacity' => $v['max_capacity'],
                     'length'       => $v['length'],
                     'tour_type_id' => $v['tour_type_id'],
                 ]);
 
-                // Crea o asigna itinerario
+                // Itinerario
                 $itService = new ItineraryService;
                 $itinerary = $itService->handleCreationOrAssignment($v);
                 if ($itinerary) {
@@ -388,56 +402,33 @@ class TourController extends Controller
                     $tour->save();
                 }
 
-                // Relaciones
+                // Relaciones pivot
                 $tour->languages()->sync($v['languages']);
                 $tour->amenities()->sync($v['amenities'] ?? []);
                 $tour->excludedAmenities()->sync($v['excluded_amenities'] ?? []);
 
-                // Horarios
-                $currentSchedules = $tour->schedules()->orderBy('start_time')->get();
-
-                // Normalizamos los nuevos horarios
-                $newSchedules = collect();
+                // Horarios: limpia pivot, crea nuevos y sync
+                $scheduleIds = [];
 
                 if (!empty($v['schedule_am_start']) && !empty($v['schedule_am_end'])) {
-                    $newSchedules->push([
+                    $schedule = Schedule::create([
                         'start_time' => $v['schedule_am_start'],
                         'end_time'   => $v['schedule_am_end'],
+                        'is_active'  => true,
                     ]);
+                    $scheduleIds[] = $schedule->schedule_id;
                 }
 
                 if (!empty($v['schedule_pm_start']) && !empty($v['schedule_pm_end'])) {
-                    $newSchedules->push([
+                    $schedule = Schedule::create([
                         'start_time' => $v['schedule_pm_start'],
                         'end_time'   => $v['schedule_pm_end'],
+                        'is_active'  => true,
                     ]);
+                    $scheduleIds[] = $schedule->schedule_id;
                 }
 
-                // Solo actualiza si hay diferencias reales
-                $hasChanged = false;
-
-                if ($newSchedules->count() !== $currentSchedules->count()) {
-                    $hasChanged = true;
-                } else {
-                    foreach ($newSchedules as $i => $new) {
-                        $current = $currentSchedules[$i] ?? null;
-                        if (
-                            !$current ||
-                            $current->start_time !== $new['start_time'] ||
-                            $current->end_time !== $new['end_time']
-                        ) {
-                            $hasChanged = true;
-                            break;
-                        }
-                    }
-                }
-
-                if ($hasChanged) {
-                    $tour->schedules()->delete();
-                    foreach ($newSchedules as $sched) {
-                        $tour->schedules()->create($sched);
-                    }
-                }
+                $tour->schedules()->sync($scheduleIds);
             });
 
             return redirect()
@@ -451,6 +442,7 @@ class TourController extends Controller
                 ->with('showEditModal', $tour->tour_id);
         }
     }
+
 
     public function destroy(Tour $tour)
     {

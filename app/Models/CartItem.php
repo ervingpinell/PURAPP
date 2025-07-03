@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Schedule;
 
 class CartItem extends Model
 {
@@ -15,7 +16,7 @@ class CartItem extends Model
     protected $fillable = [
         'cart_id',
         'tour_id',
-        'tour_schedule_id',
+        'schedule_id',
         'tour_date',
         'tour_language_id',
         'hotel_id',
@@ -38,9 +39,9 @@ class CartItem extends Model
         return $this->belongsTo(Tour::class, 'tour_id');
     }
 
-    public function tourSchedule()
+    public function schedule()
     {
-        return $this->belongsTo(TourSchedule::class, 'tour_schedule_id');
+        return $this->belongsTo(Schedule::class, 'schedule_id', 'schedule_id');
     }
 
 public function hotel()
