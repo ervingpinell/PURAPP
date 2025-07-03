@@ -21,6 +21,7 @@
 
     {{-- Custom stylesheets (pre AdminLTE) --}}
     @yield('adminlte_css_pre')
+
     {{-- Base Stylesheets (depends on Laravel asset bundling tool) --}}
     @if(config('adminlte.enabled_laravel_mix', false))
         <link rel="stylesheet" href="{{ mix(config('adminlte.laravel_mix_css_path', 'css/app.css')) }}">
@@ -88,7 +89,7 @@
     @endif
 
 </head>
-    @vite(['resources/css/gv.css', 'resources/js/public.js'])
+
 <body class="@yield('classes_body')" @yield('body_data')>
 
     {{-- Body Content --}}
@@ -108,8 +109,10 @@
             @break
 
             @default
+                @vite(['resources/css/gv.css', 'resources/js/public.js'])
                 <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
-                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
                 <script src="{{ asset('vendor/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
                 <script src="{{ asset('vendor/adminlte/dist/js/adminlte.min.js') }}"></script>
         @endswitch
