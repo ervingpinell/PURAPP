@@ -3,9 +3,9 @@
 
 @section('content')
 
-    <section class="hero">
+    <!-- <section class="hero">
        @include('partials.hero')
-    </section>
+    </section> -->
 
     <section class="tours-section">
          @include('partials.tours')

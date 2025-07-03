@@ -19,4 +19,11 @@ class HomeController extends Controller
         // Retornar la vista 'index' y pasarle los tours
         return view('public.home', compact('tours'));
     }
+
+public function showTour($id)
+{
+    $tour = Tour::findOrFail($id);
+
+    return view('public.tour-show', compact('tour'));
+}
 }
