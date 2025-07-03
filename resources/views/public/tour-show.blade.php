@@ -32,8 +32,8 @@
         <h1 class="fw-bold">{{ $tour->name }}</h1>
         <p class="text-muted">{{ $tour->tourType->name ?? '' }}</p>
 
-        <h3>Overview</h3>
-        <p>{{ $tour->overview }}</p>
+        <h2>Overview</h2>
+<p>{!! nl2br(e($tour->overview)) !!}</p>
       </div>
 
       {{-- 📅 RESERVATION BOX --}}
@@ -85,27 +85,40 @@
         </div>
 
         {{-- 🌐 INFORMATION BOX --}}
-        <div class="languages-schedules-box p-3 shadow rounded bg-white border">
-          <h4>Information</h6>
-          <H6>Hours:</h6> {{ $tour->length }}</p>
-          <h6>Group Size:</h6> {{ $tour->max_capacity }}</p>
+<div class="languages-schedules-box p-3 shadow rounded bg-white border">
+  <h4>Information</h4>
 
-          <h6>Languages Available</h6>
-          <p>
-            @foreach($tour->languages as $lang)
-              <span class="badge bg-secondary mb-1">{{ $lang->name }}</span>
-            @endforeach
-          </p>
+  <div class="info-item">
+    <h5>Hours:</h5>
+    <p>{{ $tour->length }}</p>
+  </div>
 
-          <h6>Schedules</h6>
-          <p>
-            @foreach($tour->schedules->sortBy('start_time') as $schedule)
-              <span class="badge bg-success mb-1">
-                {{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}
-              </span>
-            @endforeach
-          </p>
-        </div>
+  <div class="info-item">
+    <h5>Group Size:</h5>
+    <p>{{ $tour->max_capacity }}</p>
+  </div>
+
+  <div class="info-item">
+    <h5>Languages Available</h5>
+    <p>
+      @foreach($tour->languages as $lang)
+        <span class="badge bg-secondary mb-1">{{ $lang->name }}</span>
+      @endforeach
+    </p>
+  </div>
+
+  <div class="info-item">
+    <h5>Schedules</h5>
+    <p>
+      @foreach($tour->schedules->sortBy('start_time') as $schedule)
+        <span class="badge bg-success mb-1">
+          {{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}
+        </span>
+      @endforeach
+    </p>
+  </div>
+</div>
+
       </div>
     </div>
 
@@ -114,32 +127,44 @@
       <div class="col-md-12">
         <div class="accordion" id="tourDetailsAccordion">
 
-          {{-- ✅ Itinerary --}}
-          <div class="accordion-item border-0 border-bottom">
-            <h2 class="accordion-header" id="headingItinerary">
-              <button class="accordion-button bg-white px-0 shadow-none collapsed" type="button"
-                      data-bs-toggle="collapse" data-bs-target="#collapseItinerary">
-                <i class="fas fa-plus me-2 toggle-icon"></i> Itinerary
-              </button>
-            </h2>
-            <div id="collapseItinerary" class="accordion-collapse collapse"
-                 data-bs-parent="#tourDetailsAccordion">
-              <div class="accordion-body px-0">
-                @if($tour->itinerary)
-                  <h5>{{ $tour->itinerary->name }}</h5>
-                  <p>{{ $tour->itinerary->description }}</p>
-                  <ul>
-                    @foreach($tour->itinerary->items as $item)
-                      <li>{{ $item->title }}</li>
-                      <p>{{ $item->description }}</p>
-                    @endforeach
-                  </ul>
-                @else
-                  <p>No itinerary info.</p>
+{{-- ✅ Itinerary --}}
+<div class="accordion-item border-0 border-bottom">
+  <h2 class="accordion-header" id="headingItinerary">
+    <button class="accordion-button bg-white px-0 shadow-none collapsed" type="button"
+            data-bs-toggle="collapse" data-bs-target="#collapseItinerary">
+      <i class="fas fa-plus me-2 toggle-icon"></i> Itinerary
+    </button>
+  </h2>
+  <div id="collapseItinerary" class="accordion-collapse collapse"
+       data-bs-parent="#tourDetailsAccordion">
+    <div class="accordion-body px-0">
+      @if($tour->itinerary)
+        <h5>{{ $tour->itinerary->name }}</h5>
+        <p>{{ $tour->itinerary->description }}</p>
+
+        <div class="itinerary-timeline">
+          @foreach($tour->itinerary->items as $index => $item)
+            <div class="timeline-item">
+              <div class="timeline-marker">
+                <span>{{ $index + 1 }}</span>
+              </div>
+              <div class="timeline-content">
+                <h6>{{ $item->title }}</h6>
+                <p>{{ $item->description }}</p>
+                @if($item->duration)
+                  <small class="text-muted">{{ $item->duration }}</small>
                 @endif
               </div>
             </div>
-          </div>
+          @endforeach
+        </div>
+      @else
+        <p>No itinerary info.</p>
+      @endif
+    </div>
+  </div>
+</div>
+
 
           {{-- ✅ What's Included --}}
           <div class="accordion-item border-0 border-bottom">

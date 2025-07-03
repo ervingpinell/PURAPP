@@ -7,6 +7,9 @@ section {
 h1, h2, h4, h5, h6 {
   color: #222;
 }
+.languages-schedules-box h5 {
+  font-size: 1rem;
+}
 
 p {
   color: #555;
@@ -48,8 +51,10 @@ p {
 }
 
 .tour-section p.text-muted {
-  font-size: 0.9rem;
-  color: #777;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #555;
+    white-space: pre-line;
 }
 
 .tour-section h4 {
@@ -168,6 +173,102 @@ p {
   font-size: 0.95rem;
   color: #555;
   line-height: 1.6;
+    white-space: pre-line;
+}
+
+.languages-schedules-box .badge.bg-success {
+  background: #2c6e49 !important;
+}
+
+.itinerary-timeline {
+  position: relative;
+  padding-left: 40px;
+  border-left: 2px solid #ddd;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -11px;
+  top: 0;
+  background: #2c6e49; /* Verde base */
+  color: #fff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  text-align: center;
+  font-size: 0.8rem;
+  line-height: 24px;
+  font-weight: bold;
+  z-index: 1;
+}
+
+.timeline-content {
+  padding-left: 30px;
+}
+
+.timeline-content h6 {
+  margin-top: 0;
+  margin-bottom: 0.3rem;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.timeline-content p {
+  margin-bottom: 0.2rem;
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.timeline-content small {
+  color: #777;
+}
+
+.languages-schedules-box {
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+}
+
+.languages-schedules-box h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #2c6e49;
+  display: inline-block;
+  padding-bottom: 0.2rem;
+}
+
+.languages-schedules-box .info-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.languages-schedules-box .info-item:last-child {
+  border-bottom: none;
+}
+
+.languages-schedules-box h5 {
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 600;
+  color: #333;
+}
+
+.languages-schedules-box p {
+  margin: 0.3rem 0 0;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.languages-schedules-box .badge {
+  font-size: 0.75rem;
+  background: #666;
 }
 
 .languages-schedules-box .badge.bg-success {
