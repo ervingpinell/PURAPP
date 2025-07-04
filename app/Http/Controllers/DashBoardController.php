@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Tour;
 use App\Models\Role;
 use App\Models\User;
-use App\Models\TourSchedule;
+use App\Models\Schedule;
 use Illuminate\Support\Facades\Auth;
 use App\Models\TourType;
 use App\Models\Amenity;
@@ -48,7 +48,7 @@ class DashBoardController extends Controller
         $roles           = Role::count();
         $tourTypes       = TourType::count();
         $totalIdiomas    = TourLanguage::count();
-        $totalHorarios   = TourSchedule::count();
+        $totalHorarios   = Schedule::count();
         $totalAmenities  = Amenity::count();
         $totalItinerarios = ItineraryItem::count();
         $totalReservas   = Booking::count();

@@ -85,39 +85,44 @@
           </div>
 
           {{-- Amenidades NO incluidas --}}
-<div class="mb-3">
-    <label class="form-label text-danger">Amenidades NO incluidas</label><br>
-    @foreach($amenities as $am)
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" name="excluded_amenities[]" value="{{ $am->amenity_id }}"
-                {{ in_array($am->amenity_id, old('excluded_amenities', [])) ? 'checked' : '' }}>
-            <label class="form-check-label">{{ $am->name }}</label>
-        </div>
-    @endforeach
-</div>
-@php
-    use Carbon\Carbon;
-    $fmt = fn($t) => $t ? Carbon::parse($t)->format('g:i A') : '';
-    $amStart = old('schedule_am_start') ? $fmt(old('schedule_am_start')) : '';
-    $amEnd   = old('schedule_am_end')   ? $fmt(old('schedule_am_end'))   : '';
-    $pmStart = old('schedule_pm_start') ? $fmt(old('schedule_pm_start')) : '';
-    $pmEnd   = old('schedule_pm_end')   ? $fmt(old('schedule_pm_end'))   : '';
-@endphp
+          <div class="mb-3">
+              <label class="form-label text-danger">Amenidades NO incluidas</label><br>
+              @foreach($amenities as $am)
+                  <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="checkbox" name="excluded_amenities[]" value="{{ $am->amenity_id }}"
+                          {{ in_array($am->amenity_id, old('excluded_amenities', [])) ? 'checked' : '' }}>
+                      <label class="form-check-label">{{ $am->name }}</label>
+                  </div>
+              @endforeach
+          </div>
+          @php
+              use Carbon\Carbon;
+              $fmt = fn($t) => $t ? Carbon::parse($t)->format('g:i A') : '';
+              $amStart = old('schedule_am_start') ? $fmt(old('schedule_am_start')) : '';
+              $amEnd   = old('schedule_am_end')   ? $fmt(old('schedule_am_end'))   : '';
+              $pmStart = old('schedule_pm_start') ? $fmt(old('schedule_pm_start')) : '';
+              $pmEnd   = old('schedule_pm_end')   ? $fmt(old('schedule_pm_end'))   : '';
+          @endphp
 
-<div class="row mb-3">
-  <div class="col-md-6">
-    <x-adminlte-input name="schedule_am_start" label="Horario AM (Inicio)" type="text" value="{{ $amStart }}" placeholder="Ej: 8:00 AM" />
-  </div>
-  <div class="col-md-6">
-    <x-adminlte-input name="schedule_am_end" label="Horario AM (Fin)" type="text" value="{{ $amEnd }}" placeholder="Ej: 11:30 AM" />
-  </div>
-  <div class="col-md-6">
-    <x-adminlte-input name="schedule_pm_start" label="Horario PM (Inicio)" type="text" value="{{ $pmStart }}" placeholder="Ej: 1:30 PM" />
-  </div>
-  <div class="col-md-6">
-    <x-adminlte-input name="schedule_pm_end" label="Horario PM (Fin)" type="text" value="{{ $pmEnd }}" placeholder="Ej: 5:30 PM" />
-  </div>
-</div>
+          {{-- Agregar horarios --}}
+          <div id="schedules-container">
+          <div class="row g-2 schedule-item mb-2">
+            <div class="col-md-4">
+              <input type="text" name="schedules[0][start_time]" class="form-control" placeholder="Inicio (Ej: 8:00 AM)">
+            </div>
+            <div class="col-md-4">
+              <input type="text" name="schedules[0][end_time]" class="form-control" placeholder="Fin (Ej: 12:00 PM)">
+            </div>
+            <div class="col-md-3">
+              <input type="text" name="schedules[0][label]" class="form-control" placeholder="Etiqueta (Ej: AM)">
+            </div>
+            <div class="col-md-1 text-end">
+              <button type="button" class="btn btn-danger btn-sm btn-remove-schedule">×</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="add-schedule-btn">+ Añadir Horario</button>
           {{-- Itinerario --}}
           <div class="mb-3">
             <label>Itinerario</label>
@@ -193,3 +198,30 @@
     </div>
   </div>
 </div>
+@section('js')
+<script>
+  document.getElementById('add-schedule-btn').addEventListener('click', function() {
+  const container = document.getElementById('schedules-container');
+  const items = container.querySelectorAll('.schedule-item');
+  const newIndex = items.length;
+
+  const clone = items[0].cloneNode(true);
+  clone.querySelectorAll('input').forEach(input => {
+    input.value = '';
+    if (input.name.includes('schedules')) {
+      input.name = input.name.replace(/\[\d+\]/, `[${newIndex}]`);
+    }
+  });
+  container.appendChild(clone);
+});
+
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('btn-remove-schedule')) {
+    const container = document.getElementById('schedules-container');
+    if (container.querySelectorAll('.schedule-item').length > 1) {
+      e.target.closest('.schedule-item').remove();
+    }
+  }
+});
+</script>
+@endsection
