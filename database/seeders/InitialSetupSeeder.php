@@ -176,100 +176,14 @@ class InitialSetupSeeder extends Seeder
             'Arenal Xilopalo',
         ];
 
-       foreach ($hotels as $name) {
-    DB::table('hotels_list')->updateOrInsert(
-        ['name' => $name],
-        ['is_active' => true, 'created_at' => $now, 'updated_at' => $now]
-    );
+        foreach ($hotels as $name) {
+            DB::table('hotels_list')->updateOrInsert(
+                ['name' => $name],
+                ['is_active' => true, 'created_at' => $now, 'updated_at' => $now]
+            );
         }
 
-        // Tours
-        $tour1 = DB::table('tours')->insertGetId([
-            'name' => 'Aventura en el Volcán Arenal',
-            'overview' => 'Discover Arenal Volcano National Park on a full-day hiking and hot springs tour from La Fortuna, and explore the remarkable landscape of an active volcanic range. Follow your guide along a 2-mile (3.2-km) trail that passes through primary and secondary forest, and cross the jagged rocks of a dry lava field. Spot the distinctive plants and formations that climb the sides of Costa Rica’s most iconic volcano.Explore an active volcanic range on a hiking tour Discover the various species that live in the forests and lava fields A small group ensures a personalized experience',
-            'adult_price' => 75.00,
-            'kid_price' => 55.00,
-            'length' => 4,
-            'tour_type_id' => 1,
-            'is_active' => true,
-            'created_at' => $now,
-            'updated_at' => $now
-        ], 'tour_id');
-
-        $tour2 = DB::table('tours')->insertGetId([
-            'name' => 'Safari en el Río Peñas Blancas',
-            'overview' => "Float down the Peñas Blancas River in a rowboat on this 3.5-hour journey from La Fortuna. Listen to your naturalist guide's commentary while keeping a lookout for monkeys, iguanas, and a variety of bird life. Finish up with a stop at a local farm to sample their homemade snacks and coffee. Round-trip transport from selected hotels included. Family friendly Small group ensures personal service Free hotel pickup and drop-off included Informative, friendly and professional guide",
-            'adult_price' => 60.00,
-            'kid_price' => 45.00,
-            'length' => 4,
-            'tour_type_id' => 2,
-            'is_active' => true,
-            'created_at' => $now,
-            'updated_at' => $now
-        ], 'tour_id');
-
-        $tour3 = DB::table('tours')->insertGetId([
-            'name' => 'Nature Lover Combo 1',
-            'overview' => "Combine three adventurous activities in a single tour: a hike to Arenal Volcano, visit to the Hanging Bridges, and exploration of La Fortuna Waterfall. This full-day tour from La Fortuna, perfect for nature lovers, includes hiking and swimming amidst Costa Rica's beautiful natural scenery. Hotel pickup and drop-off included.\n
-        • Full-day Costa Rica adventure tour\n
-        • Hike around Arenal Volcano and swim beneath La Fortuna Waterfall\n
-        • Cross 16 hanging bridges in the rainforest\n
-        • Hotel pickup and drop-off included\n
-        • Personalized experience: small group tour limited to 12",
-            'adult_price' => 154.00,
-            'kid_price' => 115.00,
-            'length' => 9,
-            'tour_type_id' => 1,
-            'is_active' => true,
-            'created_at' => $now,
-            'updated_at' => $now
-        ], 'tour_id');
-
-        // Idiomas en la tabla pivote
-        DB::table('tour_language_tour')->insert([
-            ['tour_id' => $tour1, 'tour_language_id' => 1], // Español
-            ['tour_id' => $tour2, 'tour_language_id' => 2], // English
-            ['tour_id' => $tour3, 'tour_language_id' => 1], // Español
-        ]);
-
-        DB::table('amenity_tour')->insert([
-            ['tour_id' => $tour1, 'amenity_id' => 1, 'is_active' => true],
-            ['tour_id' => $tour1, 'amenity_id' => 2, 'is_active' => true],
-            ['tour_id' => $tour1, 'amenity_id' => 3, 'is_active' => true],
-            ['tour_id' => $tour1, 'amenity_id' => 4, 'is_active' => true],
-
-            ['tour_id' => $tour2, 'amenity_id' => 1, 'is_active' => true],
-            ['tour_id' => $tour2, 'amenity_id' => 2, 'is_active' => true],
-            ['tour_id' => $tour2, 'amenity_id' => 3, 'is_active' => true],
-            ['tour_id' => $tour2, 'amenity_id' => 4, 'is_active' => true],
-            ['tour_id' => $tour2, 'amenity_id' => 6, 'is_active' => true],
-
-            ['tour_id' => $tour3, 'amenity_id' => 1, 'is_active' => true],
-            ['tour_id' => $tour3, 'amenity_id' => 2, 'is_active' => true],
-            ['tour_id' => $tour3, 'amenity_id' => 3, 'is_active' => true],
-            ['tour_id' => $tour3, 'amenity_id' => 4, 'is_active' => true],
-            ['tour_id' => $tour3, 'amenity_id' => 5, 'is_active' => true],
-
-        ]);
-
-        DB::table('excluded_amenity_tour')->insert([
-            ['tour_id' => $tour1, 'amenity_id' => 5, 'is_active' => true],
-            ['tour_id' => $tour1, 'amenity_id' => 6, 'is_active' => true],
-            ['tour_id' => $tour1, 'amenity_id' => 7, 'is_active' => true],
-            ['tour_id' => $tour1, 'amenity_id' => 8, 'is_active' => true],
-
-            ['tour_id' => $tour2, 'amenity_id' => 5, 'is_active' => true],
-            ['tour_id' => $tour2, 'amenity_id' => 7, 'is_active' => true],
-            ['tour_id' => $tour2, 'amenity_id' => 8, 'is_active' => true],
-            ['tour_id' => $tour2, 'amenity_id' => 9, 'is_active' => true],
-
-            ['tour_id' => $tour3, 'amenity_id' => 6, 'is_active' => true],
-            ['tour_id' => $tour3, 'amenity_id' => 7, 'is_active' => true],
-            ['tour_id' => $tour3, 'amenity_id' => 8, 'is_active' => true],
-
-        ]);
-
-// Itinerary Nature Lover Combo 1
+        // Itinerary Nature Lover Combo 1
         $itinerary = DB::table('itineraries')->insertGetId([
             'name' => 'Nature Lover Combo 1',
             'description' => "Begin your full-day Costa Rican adventure with pickup from your accommodation in Fortuna Town. Then head to Arenal Volcano Park for a 2.5-hour hike traversing flat grounds and rocky terrain to witness the remnants of the 1968 eruption and learn about the volcano's history.",
@@ -318,6 +232,139 @@ class InitialSetupSeeder extends Seeder
                 'created_at' => $now,
                 'updated_at' => $now
             ],
+        ]);
+
+        // Tours
+        $tour1 = DB::table('tours')->insertGetId([
+            'name' => 'Aventura en el Volcán Arenal',
+            'overview' => 'Discover Arenal Volcano National Park on a full-day hiking and hot springs tour from La Fortuna, and explore the remarkable landscape of an active volcanic range. Follow your guide along a 2-mile (3.2-km) trail that passes through primary and secondary forest, and cross the jagged rocks of a dry lava field. Spot the distinctive plants and formations that climb the sides of Costa Rica’s most iconic volcano.Explore an active volcanic range on a hiking tour Discover the various species that live in the forests and lava fields A small group ensures a personalized experience',
+            'adult_price' => 75.00,
+            'kid_price' => 55.00,
+            'length' => 4,
+            'tour_type_id' => 1,
+            'is_active' => true,
+            'created_at' => $now,
+            'updated_at' => $now
+        ], 'tour_id');
+
+        $tour2 = DB::table('tours')->insertGetId([
+            'name' => 'Safari en el Río Peñas Blancas',
+            'overview' => "Float down the Peñas Blancas River in a rowboat on this 3.5-hour journey from La Fortuna. Listen to your naturalist guide's commentary while keeping a lookout for monkeys, iguanas, and a variety of bird life. Finish up with a stop at a local farm to sample their homemade snacks and coffee. Round-trip transport from selected hotels included. Family friendly Small group ensures personal service Free hotel pickup and drop-off included Informative, friendly and professional guide",
+            'adult_price' => 60.00,
+            'kid_price' => 45.00,
+            'length' => 4,
+            'tour_type_id' => 2,
+            'is_active' => true,
+            'created_at' => $now,
+            'updated_at' => $now
+        ], 'tour_id');
+
+        $tour3 = DB::table('tours')->insertGetId([
+            'name' => 'Nature Lover Combo 1',
+            'overview' => "Combine three adventurous activities in a single tour: a hike to Arenal Volcano, visit to the Hanging Bridges, and exploration of La Fortuna Waterfall. This full-day tour from La Fortuna, perfect for nature lovers, includes hiking and swimming amidst Costa Rica's beautiful natural scenery. Hotel pickup and drop-off included.\n
+        • Full-day Costa Rica adventure tour\n
+        • Hike around Arenal Volcano and swim beneath La Fortuna Waterfall\n
+        • Cross 16 hanging bridges in the rainforest\n
+        • Hotel pickup and drop-off included\n
+        • Personalized experience: small group tour limited to 12",
+            'adult_price' => 154.00,
+            'kid_price' => 115.00,
+            'length' => 9,
+            'tour_type_id' => 1,
+            'is_active' => true,
+            'created_at' => $now,
+            'itinerary_id' => 1,
+            'updated_at' => $now
+        ], 'tour_id');
+
+        // Idiomas en la tabla pivote
+        DB::table('tour_language_tour')->insert([
+            ['tour_id' => $tour1, 'tour_language_id' => 1], // Español
+            ['tour_id' => $tour2, 'tour_language_id' => 2], // English
+            ['tour_id' => $tour3, 'tour_language_id' => 1], // Español
+        ]);
+
+        DB::table('amenity_tour')->insert([
+            ['tour_id' => $tour1, 'amenity_id' => 1, 'is_active' => true],
+            ['tour_id' => $tour1, 'amenity_id' => 2, 'is_active' => true],
+            ['tour_id' => $tour1, 'amenity_id' => 3, 'is_active' => true],
+            ['tour_id' => $tour1, 'amenity_id' => 4, 'is_active' => true],
+
+            ['tour_id' => $tour2, 'amenity_id' => 1, 'is_active' => true],
+            ['tour_id' => $tour2, 'amenity_id' => 2, 'is_active' => true],
+            ['tour_id' => $tour2, 'amenity_id' => 3, 'is_active' => true],
+            ['tour_id' => $tour2, 'amenity_id' => 4, 'is_active' => true],
+            ['tour_id' => $tour2, 'amenity_id' => 6, 'is_active' => true],
+
+            ['tour_id' => $tour3, 'amenity_id' => 1, 'is_active' => true],
+            ['tour_id' => $tour3, 'amenity_id' => 2, 'is_active' => true],
+            ['tour_id' => $tour3, 'amenity_id' => 3, 'is_active' => true],
+            ['tour_id' => $tour3, 'amenity_id' => 4, 'is_active' => true],
+            ['tour_id' => $tour3, 'amenity_id' => 5, 'is_active' => true],
+
+        ]);
+
+        DB::table('excluded_amenity_tour')->insert([
+            ['tour_id' => $tour1, 'amenity_id' => 5, 'is_active' => true],
+            ['tour_id' => $tour1, 'amenity_id' => 6, 'is_active' => true],
+            ['tour_id' => $tour1, 'amenity_id' => 7, 'is_active' => true],
+            ['tour_id' => $tour1, 'amenity_id' => 8, 'is_active' => true],
+
+            ['tour_id' => $tour2, 'amenity_id' => 5, 'is_active' => true],
+            ['tour_id' => $tour2, 'amenity_id' => 7, 'is_active' => true],
+            ['tour_id' => $tour2, 'amenity_id' => 8, 'is_active' => true],
+            ['tour_id' => $tour2, 'amenity_id' => 9, 'is_active' => true],
+
+            ['tour_id' => $tour3, 'amenity_id' => 6, 'is_active' => true],
+            ['tour_id' => $tour3, 'amenity_id' => 7, 'is_active' => true],
+            ['tour_id' => $tour3, 'amenity_id' => 8, 'is_active' => true],
+
+        ]);
+
+
+        DB::table('tour_schedules')->insert([
+            [
+                'tour_id' => $tour1,
+                'start_time' => '07:30:00',
+                'end_time' => '11:30:00',
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now
+            ],
+            [
+                'tour_id' => $tour1,
+                'start_time' => '13:30:00',
+                'end_time' => '16:30:00',
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now
+            ],
+
+            [
+                'tour_id' => $tour2,
+                'start_time' => '7:30:00',
+                'end_time' => '11:30:00',
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now
+            ],
+            [
+                'tour_id' => $tour2,
+                'start_time' => '13:30:00',
+                'end_time' => '16:30:00',
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now
+            ],
+
+            [
+                'tour_id' => $tour3,
+                'start_time' => '7:30:00',
+                'end_time' => '16:30:00',
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now
+            ]
         ]);
     }
 }
