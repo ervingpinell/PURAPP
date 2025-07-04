@@ -61,6 +61,20 @@
 <input type="hidden" name="is_other_hotel" id="edit_is_other_hotel" value="{{ $booking->detail->is_other_hotel ? 1 : 0 }}">
 
 <div class="mb-3">
+  <label class="form-label">Horario</label>
+  <select name="schedule_id" class="form-control">
+    <option value="">Sin horario</option>
+    @foreach($booking->tour->schedules as $s)
+      <option value="{{ $s->schedule_id }}"
+        {{ $booking->detail->schedule_id == $s->schedule_id ? 'selected' : '' }}>
+        {{ \Carbon\Carbon::parse($s->start_time)->format('g:i A') }} –
+        {{ \Carbon\Carbon::parse($s->end_time)->format('g:i A') }}
+      </option>
+    @endforeach
+  </select>
+</div>
+
+<div class="mb-3">
   <label class="form-label">Notas</label>
   <textarea name="notes" class="form-control" rows="2">{{ old('notes', $booking->notes) }}</textarea>
 </div>

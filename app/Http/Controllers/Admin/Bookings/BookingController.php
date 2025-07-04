@@ -76,6 +76,7 @@ class BookingController extends Controller
             'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
             'adults_quantity'  => 'required|integer|min:1',
             'kids_quantity'    => 'required|integer|min:0|max:2',
+            'schedule_id'      => 'nullable|exists:schedules,schedule_id',
             'hotel_id'         => 'nullable|exists:hotels_list,hotel_id',
             'is_other_hotel'   => 'required|boolean',
             'other_hotel_name' => 'nullable|string|max:255',
@@ -110,6 +111,7 @@ class BookingController extends Controller
         $booking = Booking::create([
             'user_id'           => $v['user_id'],
             'tour_id'           => $tour->tour_id,
+            'schedule_id'      => $v['schedule_id'],
             'tour_language_id'  => $v['tour_language_id'],
             'booking_reference' => strtoupper(Str::random(10)),
             'booking_date'      => $v['booking_date'],
@@ -166,6 +168,7 @@ class BookingController extends Controller
             'kids_quantity'    => 'required|integer|min:0',
             'status'           => 'required|string|in:pending,confirmed,cancelled',
             'notes'            => 'nullable|string',
+            'schedule_id'      => 'nullable|exists:schedules,schedule_id',
             'hotel_id'         => 'nullable|exists:hotels_list,hotel_id',
             'is_other_hotel'   => 'required|boolean',
             'other_hotel_name' => 'nullable|string|max:255',
@@ -206,6 +209,7 @@ class BookingController extends Controller
 
         $detail->update([
             'adults_quantity'  => $r['adults_quantity'],
+            'schedule_id'      => $r['schedule_id'],
             'kids_quantity'    => $r['kids_quantity'],
             'total'            => $newTotal,
             'hotel_id'         => $r['is_other_hotel'] ? null : $r['hotel_id'],
@@ -266,20 +270,26 @@ class BookingController extends Controller
                 ->with('error', 'Tu carrito está vacío.');
         }
 
-        // 1. Agrupar por tour y fecha
+        // ✅ 1) Agrupar por tour, fecha y horario
         $groups = $cart->items
-            ->groupBy(fn($item) => $item->tour_id . '_' . $item->tour_date);
+            ->groupBy(fn($item) => $item->tour_id . '_' . $item->tour_date . '_' . $item->schedule_id);
 
         foreach ($groups as $key => $items) {
             /** @var \App\Models\CartItem $first */
             $first     = $items->first();
             $tour      = $first->tour;
             $tourDate  = $first->tour_date;
-            $max       = $tour->max_capacity;                              // cupo del tour
-            $reserved  = BookingDetail::where('tour_id', $tour->tour_id)   // ya reservadas
+            $scheduleId = $first->schedule_id; // ✅
+
+            $max       = $tour->max_capacity;
+
+            // ✅ Validar cupo para ese horario específico
+            $reserved  = BookingDetail::where('tour_id', $tour->tour_id)
                 ->where('tour_date', $tourDate)
+                ->where('schedule_id', $scheduleId) // ✅
                 ->sum(DB::raw('adults_quantity + kids_quantity'));
-            $requested = $items->sum(fn($i) =>                             // solicitadas en carrito
+
+            $requested = $items->sum(fn($i) =>
                 $i->adults_quantity + $i->kids_quantity
             );
 
@@ -287,11 +297,11 @@ class BookingController extends Controller
                 $available = $max - $reserved;
                 return redirect()
                     ->route('admin.cart.index')
-                    ->with('error', "Para '{$tour->name}' el día {$tourDate} sólo quedan {$available} plazas.");
+                    ->with('error', "Para '{$tour->name}' el día {$tourDate} sólo quedan {$available} plazas para ese horario.");
             }
         }
 
-        // 2. Si todo OK, creamos el Booking principal
+        // ✅ 2) Crear Booking principal
         $totalBooking = $cart->items->sum(fn($item) =>
             ($item->tour->adult_price * $item->adults_quantity)
         + ($item->tour->kid_price   * $item->kids_quantity)
@@ -310,17 +320,15 @@ class BookingController extends Controller
             'is_active'         => true,
         ]);
 
-        // 3. Creamos cada detalle
+        // ✅ 3) Crear cada detalle con schedule_id correcto
         foreach ($cart->items as $item) {
             BookingDetail::create([
                 'booking_id'       => $booking->booking_id,
                 'tour_id'          => $item->tour_id,
-                'tour_schedule_id' => $item->tour_schedule_id,
+                'schedule_id'      => $item->schedule_id,  // ✅ nombre correcto
                 'tour_language_id' => $item->tour_language_id,
                 'tour_date'        => $item->tour_date,
-                'hotel_id'         => $item->is_other_hotel
-                                        ? null
-                                        : $item->hotel_id,
+                'hotel_id'         => $item->is_other_hotel ? null : $item->hotel_id,
                 'is_other_hotel'   => $item->is_other_hotel,
                 'other_hotel_name' => $item->other_hotel_name,
                 'adults_quantity'  => $item->adults_quantity,
@@ -333,13 +341,14 @@ class BookingController extends Controller
             ]);
         }
 
-        // 4. Vaciar el carrito
+        // ✅ 4) Vaciar carrito
         $cart->items()->delete();
 
         return redirect()
             ->route('admin.cart.index')
             ->with('success', 'Reservas generadas correctamente desde el carrito.');
     }
+
 
 
 
@@ -353,7 +362,7 @@ class BookingController extends Controller
     /** Datos para FullCalendar */
     public function calendarData(Request $request)
     {
-        $query = BookingDetail::with(['booking.user', 'tour', 'tourSchedule']);
+        $query = BookingDetail::with(['booking.user', 'tour', 'schedule']);
 
         if ($request->filled('from')) {
             $query->where('tour_date', '>=', $request->input('from'));
@@ -363,7 +372,7 @@ class BookingController extends Controller
         }
 
         $events = $query->get()->map(function ($d) {
-            $schedule = $d->tourSchedule;
+            $schedule = $d->schedule;
 
             // 👇 Usa horario real del schedule o valores por defecto
             $startTime = $schedule && $schedule->start_time

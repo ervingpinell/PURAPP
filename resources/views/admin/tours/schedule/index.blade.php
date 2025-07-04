@@ -19,12 +19,10 @@
 
         @foreach ($allTours as $tour)
             @php
-                // Ordenar AM primero, luego PM
                 $horarios = $tour->schedules->sortBy(function ($s) {
                     $h = (int) date('H', strtotime($s->start_time));
                     return ($h < 12 ? 0 : 1) . date('H:i', strtotime($s->start_time));
                 });
-
                 $activos = $horarios->where('is_active', true);
             @endphp
 
@@ -48,11 +46,11 @@
                                     </span>
                                 </div>
                                 <div>
-                                    <a href="#" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $bloque->tour_schedule_id }}">
+                                    <a href="#" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $bloque->schedule_id }}">
                                         <i class="fas fa-edit"></i>
                                     </a>
 
-                                    <form action="{{ route('admin.tours.schedule.toggle', $bloque->tour_schedule_id) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('admin.tours.schedule.toggle', $bloque->schedule_id) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('PUT')
                                         <button type="submit"
@@ -66,9 +64,9 @@
                             </div>
 
                             {{-- Modal editar --}}
-                            <div class="modal fade" id="modalEditar{{ $bloque->tour_schedule_id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal fade" id="modalEditar{{ $bloque->schedule_id }}" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog">
-                                    <form action="{{ route('admin.tours.schedule.update', $bloque->tour_schedule_id) }}" method="POST">
+                                    <form action="{{ route('admin.tours.schedule.update', $bloque->schedule_id) }}" method="POST">
                                         @csrf
                                         @method('PUT')
                                         <div class="modal-content">

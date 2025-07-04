@@ -4,25 +4,24 @@ namespace App\Http\Controllers\Admin\Cart;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Cart;
 use App\Models\CartItem;
-use Illuminate\Support\Facades\Auth;
 use App\Models\TourLanguage;
 use App\Models\HotelList;
 
 class CartController extends Controller
 {
-    // Mostrar el carrito del usuario
+    // ✅ Mostrar el carrito del usuario
     public function index(Request $request)
     {
         $user = Auth::user();
         $languages = TourLanguage::all();
         $hotels    = HotelList::where('is_active', true)->orderBy('name')->get();
 
-        // Obtener el carrito activo del usuario
         $cart = $user->cart()->where('is_active', true)->first();
 
-        // Si no hay carrito, devolvemos view con un objeto vacío que tenga items como colección
         if (! $cart) {
             $emptyCart = new \stdClass;
             $emptyCart->items = collect();
@@ -34,82 +33,96 @@ class CartController extends Controller
             ]);
         }
 
-        // Si existe carrito, cargamos sus ítems
-        $itemsQuery = CartItem::with([
-            'tour',
-            'language',
-            'hotel',
-        ])->where('cart_id', $cart->cart_id);
+        $itemsQuery = CartItem::with(['tour','schedule', 'language', 'hotel'])
+            ->where('cart_id', $cart->cart_id);
 
-        // Filtro opcional por estado
         if ($request->filled('estado')) {
             $itemsQuery->where('is_active', $request->estado);
         }
 
-        // Asignamos la colección de items al carrito
         $cart->items = $itemsQuery->get();
 
         return view('admin.Cart.cart', compact('cart', 'languages', 'hotels'));
     }
 
-
-    // Agregar un ítem al carrito
+    // ✅ Agregar ítem al carrito con validación de cupo
     public function store(Request $request)
     {
         $request->validate([
-            'tour_id' => 'required|exists:tours,tour_id',
-            'tour_date' => 'required|date',
-            'tour_schedule_id' => 'nullable|exists:tour_schedules,tour_schedule_id',
+            'tour_id'          => 'required|exists:tours,tour_id',
+            'tour_date'        => 'required|date',
+            'schedule_id'      => 'required|exists:schedules,schedule_id',
             'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
-            'hotel_id' => 'nullable|exists:hotels_list,hotel_id',
-            'is_other_hotel' => 'boolean',
+            'hotel_id'         => 'nullable|exists:hotels_list,hotel_id',
+            'is_other_hotel'   => 'boolean',
             'other_hotel_name' => 'nullable|string|max:255',
-            'adults_quantity' => 'required|integer|min:1',
-            'kids_quantity' => 'nullable|integer|min:0|max:2',
+            'adults_quantity'  => 'required|integer|min:1',
+            'kids_quantity'    => 'nullable|integer|min:0|max:2',
         ]);
 
         $user = Auth::user();
         $cart = $user->cart()->where('is_active', true)->first();
 
-        if (!$cart) {
+        if (! $cart) {
             $cart = Cart::create([
-                'user_id' => $user->user_id,
+                'user_id'   => $user->user_id,
                 'is_active' => true,
             ]);
         }
 
+        // ✅ Validar cupo antes de guardar
+        $reserved = DB::table('booking_details')
+            ->where('tour_id', $request->tour_id)
+            ->where('schedule_id', $request->schedule_id)
+            ->where('tour_date', $request->tour_date)
+            ->sum(DB::raw('adults_quantity + kids_quantity'));
+
+        $requested = $request->adults_quantity + ($request->kids_quantity ?? 0);
+
+        $tour = \App\Models\Tour::findOrFail($request->tour_id);
+        if ($reserved + $requested > $tour->max_capacity) {
+            return back()->with('error', 'El cupo disponible para este horario está lleno.');
+        }
+
+        // ✅ Crear ítem en carrito
         CartItem::create([
             'cart_id'          => $cart->cart_id,
             'tour_id'          => $request->tour_id,
             'tour_date'        => $request->tour_date,
-            'tour_schedule_id' => $request->tour_schedule_id,
+            'schedule_id' => $request->schedule_id,
             'tour_language_id' => $request->tour_language_id,
-            
-            'hotel_id'         => $request->is_other_hotel
-                                ? null
-                                : $request->hotel_id,
+            'hotel_id'         => $request->is_other_hotel ? null : $request->hotel_id,
             'is_other_hotel'   => $request->is_other_hotel ?? false,
-            'other_hotel_name' => $request->is_other_hotel
-                                ? $request->other_hotel_name
-                                : null,
-
+            'other_hotel_name' => $request->is_other_hotel ? $request->other_hotel_name : null,
             'adults_quantity'  => $request->adults_quantity,
             'kids_quantity'    => $request->kids_quantity ?? 0,
         ]);
-
 
         return $request->ajax()
             ? response()->json(['message' => 'Tour agregado al carrito.'])
             : back()->with('success', 'Tour agregado al carrito.');
     }
 
-    // Actualizar un ítem desde modal PATCH
+    // ✅ Validar cupo por AJAX (llamada desde JS)
+    public function getReserved(Request $request)
+    {
+        $reserved = DB::table('booking_details')
+            ->where('tour_id', $request->tour_id)
+            ->where('schedule_id', $request->schedule_id)
+            ->where('tour_date', $request->tour_date)
+            ->sum(DB::raw('adults_quantity + kids_quantity'));
+
+        return response()->json(['reserved' => $reserved]);
+    }
+
+    // ✅ Actualizar ítem desde modal
     public function update(Request $request, CartItem $item)
     {
         $data = $request->validate([
             'tour_date'        => 'required|date',
             'adults_quantity'  => 'required|integer|min:1',
             'kids_quantity'    => 'nullable|integer|min:0|max:2',
+            'schedule_id' => 'nullable|exists:schedules,schedule_id',
             'is_active'        => 'nullable|boolean',
             'hotel_id'         => 'nullable|exists:hotels_list,hotel_id',
             'is_other_hotel'   => 'required|boolean',
@@ -120,29 +133,24 @@ class CartController extends Controller
             'tour_date'        => $data['tour_date'],
             'adults_quantity'  => $data['adults_quantity'],
             'kids_quantity'    => $data['kids_quantity'] ?? 0,
+            'schedule_id' => $data['schedule_id'],
             'is_active'        => $data['is_active'] ?? false,
-            
-            'hotel_id'         => $data['is_other_hotel']
-                                ? null
-                                : $data['hotel_id'],
+            'hotel_id'         => $data['is_other_hotel'] ? null : $data['hotel_id'],
             'is_other_hotel'   => $data['is_other_hotel'],
-            'other_hotel_name' => $data['is_other_hotel']
-                                ? $data['other_hotel_name']
-                                : null,
+            'other_hotel_name' => $data['is_other_hotel'] ? $data['other_hotel_name'] : null,
         ]);
 
-
-        return back()->with('success','Ítem actualizado correctamente.');
+        return back()->with('success', 'Ítem actualizado correctamente.');
     }
 
-
-    // Actualizar desde formulario POST (botón Guardar del modal)
+    // ✅ Actualizar desde POST (botón Guardar)
     public function updateFromPost(Request $request, CartItem $item)
     {
         $validated = $request->validate([
-            'tour_date' => 'required|date',
-            'adults_quantity' => 'required|integer|min:1',
-            'kids_quantity' => 'nullable|integer|min:0|max:2',
+            'tour_date'        => 'required|date',
+            'adults_quantity'  => 'required|integer|min:1',
+            'kids_quantity'    => 'nullable|integer|min:0|max:2',
+            'schedule_id'      => 'nullable|exists:schedules,schedule_id',
         ]);
 
         if (!$request->has('is_active')) {
@@ -151,23 +159,24 @@ class CartController extends Controller
         }
 
         $item->update([
-            'tour_date' => $validated['tour_date'],
+            'tour_date'       => $validated['tour_date'],
             'adults_quantity' => $validated['adults_quantity'],
-            'kids_quantity' => $validated['kids_quantity'] ?? 0,
-            'is_active' => true,
+            'kids_quantity'   => $validated['kids_quantity'] ?? 0,
+            'schedule_id'      => $validated['schedule_id'],
+            'is_active'       => true,
         ]);
 
         return back()->with('success', 'Ítem actualizado correctamente.');
     }
 
-    // Eliminar un ítem
+    // ✅ Eliminar ítem
     public function destroy(CartItem $item)
     {
         $item->delete();
-        return redirect()->back()->with('success', 'Ítem eliminado del carrito.');
+        return back()->with('success', 'Ítem eliminado del carrito.');
     }
 
-    // Vista de todos los carritos para el admin
+    // ✅ Vista de todos los carritos
     public function allCarts(Request $request)
     {
         $carritos = Cart::with([
@@ -179,6 +188,7 @@ class CartController extends Controller
             },
             'items.tour',
             'items.language',
+            'items.schedule',
         ])
         ->whereHas('user', function ($q) use ($request) {
             if ($request->filled('correo')) {

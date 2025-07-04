@@ -42,6 +42,7 @@
                         <th>Fecha</th>
                         <th>Idioma</th>
                         <th>Hotel</th>
+                        <th>Horario</th>
                         <th>Adultos</th>
                         <th>Niños</th>
                         <th>Total</th>
@@ -60,6 +61,17 @@
                                     {{ $item->other_hotel_name }}
                                 @else
                                     {{ optional($item->hotel)->name ?? '—' }}
+                                @endif
+                            </td>
+                            <td>
+                                @if($item->schedule)
+                                    <span class="badge bg-success">
+                                    {{ \Carbon\Carbon::parse($item->schedule->start_time)->format('g:i A') }}
+                                    –
+                                    {{ \Carbon\Carbon::parse($item->schedule->end_time)->format('g:i A') }}
+                                    </span>
+                                @else
+                                    <span class="text-muted">Sin horario</span>
                                 @endif
                             </td>
                             <td>{{ $item->adults_quantity }}</td>
@@ -158,6 +170,19 @@
                                    name="is_other_hotel"
                                    id="edit_is_other_{{ $item->item_id }}"
                                    value="{{ $item->is_other_hotel ? 1 : 0 }}">
+                            <div class="mb-3">
+                            <label>Horario</label>
+                            <select name="schedule_id" class="form-control">
+                                <option value="">Seleccione un horario</option>
+                                @foreach($item->tour->schedules as $sched)
+                                <option value="{{ $sched->schedule_id }}"
+                                    {{ $item->schedule && $item->schedule->schedule_id == $sched->schedule_id ? 'selected' : '' }}>
+                                    {{ \Carbon\Carbon::parse($sched->start_time)->format('g:i A') }} –
+                                    {{ \Carbon\Carbon::parse($sched->end_time)->format('g:i A') }}
+                                </option>
+                                @endforeach
+                            </select>
+                            </div>
 
                             <div class="mb-3">
                                 <label>Cantidad de Adultos</label>

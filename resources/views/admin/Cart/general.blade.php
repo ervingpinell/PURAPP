@@ -49,6 +49,7 @@
                     <th>Teléfono</th>
                     <th>Tour</th>
                     <th>Fecha</th>
+                    <th>Horario</th>
                     <th>Idioma</th>
                     <th>Adultos</th>
                     <th>Niños</th>
@@ -65,7 +66,17 @@
                             <td>{{ $cart->user->email }}</td>
                             <td>{{ $cart->user->phone }}</td>
                             <td>{{ $item->tour->name }}</td>
-                            <td>{{ \Carbon\Carbon::parse($item->tour_date)->format('d/m/Y') }}</td>
+                            <td>
+                            @if($item->schedule)
+                                <span class="badge bg-success">
+                                {{ \Carbon\Carbon::parse($item->schedule->start_time)->format('g:i A') }}
+                                –
+                                {{ \Carbon\Carbon::parse($item->schedule->end_time)->format('g:i A') }}
+                                </span>
+                            @else
+                                <span class="text-muted">Sin horario</span>
+                            @endif
+                            </td>
                             <td>{{ $item->language->name }}</td>
                             <td>{{ $item->adults_quantity }}</td>
                             <td>{{ $item->kids_quantity }}</td>

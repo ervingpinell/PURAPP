@@ -40,6 +40,21 @@
             @endforeach
           </select>
         </div>
+        {{-- Horario --}}
+        <div class="mb-3">
+          <label>Horario</label>
+          <select name="schedule_id" class="form-control" required>
+            <option value="">Seleccione un horario</option>
+            @foreach ($tour->schedules as $schedule)
+              <option value="{{ $schedule->schedule_id }}">
+                {{ \Carbon\Carbon::parse($schedule->start_time)->format('g:i A') }}
+                – 
+                {{ \Carbon\Carbon::parse($schedule->end_time)->format('g:i A') }}
+              </option>
+            @endforeach
+          </select>
+        </div>
+
 
         {{-- Hotel --}}
         <div class="mb-3">

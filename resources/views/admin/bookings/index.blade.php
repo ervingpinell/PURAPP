@@ -84,17 +84,15 @@
               </td>
               {{-- Horarios --}}
               <td>
-                @forelse($tour->schedules as $sched)
-                  <div>
-                    <span class="badge bg-success">
-                      {{ \Carbon\Carbon::parse($sched->start_time)->format('g:i A') }}
-                      &ndash;
-                      {{ \Carbon\Carbon::parse($sched->end_time  )->format('g:i A') }}
-                    </span>
-                  </div>
-                @empty
-                  <span class="text-muted">Sin horarios</span>
-                @endforelse
+                @if($detail->schedule)
+                  <span class="badge bg-success">
+                    {{ \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') }}
+                    –
+                    {{ \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A') }}
+                  </span>
+                @else
+                  <span class="text-muted">Sin horario</span>
+                @endif
               </td>
               {{-- Tipo --}}
               <td>{{ optional($tour->tourType)->name ?? '—' }}</td>
