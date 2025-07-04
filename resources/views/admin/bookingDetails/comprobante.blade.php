@@ -157,6 +157,10 @@
       $hotel  = $detail->is_other_hotel
                   ? $detail->other_hotel_name
                   : optional($detail->hotel)->name ?? '—';
+      $horario = $detail->schedule
+        ? \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') . ' – ' .
+          \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A')
+        : 'Sin horario';
     @endphp
 
     <div class="datos-grid">
@@ -177,6 +181,9 @@
         <strong>Fecha de reserva</strong>
         <span>{{ \Carbon\Carbon::parse($reserva->booking_date)->format('d/m/Y') }}</span>
       </div>
+      <div class="dato">
+        <strong>Horario:</strong> <span>{{ $horario }}</span>
+    </div>
       <div class="dato">
         <strong>Hotel</strong>
         <span>{{ $hotel }}</span>

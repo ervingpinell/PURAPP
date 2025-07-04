@@ -201,15 +201,19 @@
 
         @foreach($reservas as $reserva)
             @php
-                $d       = $reserva->detail;
-                $tour    = $reserva->tour;
-                $aQty    = $d->adults_quantity;
-                $kQty    = $d->kids_quantity;
-                $aPrice  = $d->adult_price;
-                $kPrice  = $d->kid_price;
-                $hotel   = $d->is_other_hotel
-                                ? $d->other_hotel_name
-                                : optional($d->hotel)->name ?? '—';
+                $tour   = $reserva->tour;
+                $detail = $reserva->detail;
+                $aQty   = $detail->adults_quantity;
+                $kQty   = $detail->kids_quantity;
+                $aPrice = $tour->adult_price   ?? 0;
+                $kPrice = $tour->kid_price     ?? 0;
+                $hotel  = $detail->is_other_hotel
+                            ? $detail->other_hotel_name
+                            : optional($detail->hotel)->name ?? '—';
+                 $horario = $detail->schedule
+                ? \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') . ' – ' .
+                    \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A')
+                : 'Sin horario';
             @endphp
 
             <div class="reserva-section">
@@ -218,7 +222,8 @@
                 <div class="dato"><strong>Cliente:</strong> <span>{{ optional($reserva->user)->full_name }}</span> <small>({{ optional($reserva->user)->email }})</small></div>
                 <div class="dato"><strong>Tour:</strong> <span>{{ $tour->name }}</span></div>
                 <div class="dato"><strong>Fecha Reserva:</strong> <span>{{ \Carbon\Carbon::parse($reserva->booking_date)->format('d/m/Y') }}</span></div>
-                <div class="dato"><strong>Fecha Tour:</strong> <span>{{ \Carbon\Carbon::parse($d->tour_date)->format('d/m/Y') }}</span></div>
+                <div class="dato"><strong>Fecha Tour:</strong><span>{{ \Carbon\Carbon::parse($detail->tour_date)->format('d/m/Y') }}</span></div>
+                <div class="dato"><strong>Horario:</strong> <span>{{ $horario }}</span></div>
                 <div class="dato"><strong>Hotel:</strong> <span>{{ $hotel }}</span></div>
                 <div class="dato"><strong>Estado:</strong> <span>{{ ucfirst($reserva->status) }}</span></div>
 

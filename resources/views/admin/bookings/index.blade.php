@@ -279,25 +279,41 @@
             </select>
           </div>
 
-          {{-- Tour --}}
+          {{-- TOUR --}}
           <div class="mb-3">
             <label class="form-label">Tour</label>
-            <select name="tour_id"
-                    id="selectTour"
-                    class="form-control"
-                    required>
+            <select name="tour_id" id="selectTour" class="form-control" required>
               <option value="">Seleccione un tour</option>
-              @foreach(\App\Models\Tour::all() as $t)
-                <option value="{{ $t->tour_id }}"
-                        data-precio-adulto="{{ $t->adult_price }}"
-                        data-precio-nino="{{ $t->kid_price }}">
-                  {{ $t->name }}
+              @foreach(\App\Models\Tour::with('schedules')->get() as $tour)
+                <option 
+                  value="{{ $tour->tour_id }}"
+                  data-precio-adulto="{{ $tour->adult_price }}"
+                  data-precio-nino="{{ $tour->kid_price }}"
+                  data-schedules='@json($tour->schedules->map(function($s) {
+                    return [
+                      "schedule_id" => $s->schedule_id,
+                      "start_time"  => \Carbon\Carbon::parse($s->start_time)->format("g:i A"),
+                      "end_time"    => \Carbon\Carbon::parse($s->end_time)->format("g:i A")
+                    ];
+                  }))'
+                >
+                  {{ $tour->name }}
                 </option>
               @endforeach
             </select>
           </div>
 
-          {{-- Idioma --}}
+          {{-- HORARIO --}}
+          <div class="mb-3">
+            <label class="form-label">Horario</label>
+            <select name="schedule_id" id="selectSchedule" class="form-control" required>
+              <option value="">Seleccione un horario</option>
+              {{-- Opciones se llenan dinámicamente --}}
+            </select>
+          </div>
+
+
+        {{-- Idioma --}}
           <div class="mb-3">
             <label class="form-label">Idioma</label>
             <select name="tour_language_id" class="form-control" required>
@@ -392,119 +408,116 @@
 @section('css')
 <link rel="stylesheet" href="{{ asset('css/calendar.css') }}">
 @stop
-
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-
-<!-- Script para calcular el total -->
 <script>
-    function calcularTotal(modal) {
-        const adultos = parseInt(modal.querySelector('.cantidad-adultos')?.value || 0);
-        const ninos = parseInt(modal.querySelector('.cantidad-ninos')?.value || 0);
-        const precioAdulto = parseFloat(modal.querySelector('.precio-adulto')?.value || 0);
-        const precioNino = parseFloat(modal.querySelector('.precio-nino')?.value || 0);
-
-        const total = (adultos * precioAdulto) + (ninos * precioNino);
-        const totalInput = modal.querySelector('.total-pago');
-        if (totalInput) totalInput.value = total.toFixed(2);
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('input', () => calcularTotal(modal));
-        });
-
-        // Cargar precios automáticamente al seleccionar un tour
-        const selectTour = document.getElementById('selectTour');
-        if (selectTour) {
-            selectTour.addEventListener('change', function () {
-                const selected = this.options[this.selectedIndex];
-                const precioAdulto = selected.getAttribute('data-precio-adulto');
-                const precioNino = selected.getAttribute('data-precio-nino');
-
-                const modal = this.closest('.modal');
-                if (modal) {
-                    modal.querySelector('.precio-adulto').value = precioAdulto;
-                    modal.querySelector('.precio-nino').value = precioNino;
-                    calcularTotal(modal);
-                }
-            });
-        }
-    });
-</script>
-
-
-
-@if(session('success'))
-<script>
-    Swal.fire({
-        icon: 'success',
-        title: 'Éxito',
-        text: '{{ session('success') }}',
-        confirmButtonColor: '#3085d6',
-        confirmButtonText: 'OK'
-    });
-</script>
-@endif
-
-
-<script>
-  function recalcularTotal(modal) {
-    const adultos    = +modal.querySelector('.cantidad-adultos').value || 0;
-    const ninos      = +modal.querySelector('.cantidad-ninos').value   || 0;
-    const precioA    = parseFloat(modal.querySelector('.precio-adulto').value) || 0;
-    const precioN    = parseFloat(modal.querySelector('.precio-nino').value)   || 0;
-    const total      = (adultos * precioA) + (ninos * precioN);
-    modal.querySelector('.total-pago').value = total.toFixed(2);
+  // Función para recalcular total
+  function calcularTotal(modal) {
+    const adultos = parseInt(modal.querySelector('.cantidad-adultos')?.value || 0);
+    const ninos   = parseInt(modal.querySelector('.cantidad-ninos')?.value || 0);
+    const precioA = parseFloat(modal.querySelector('.precio-adulto')?.value || 0);
+    const precioN = parseFloat(modal.querySelector('.precio-nino')?.value || 0);
+    const total   = (adultos * precioA) + (ninos * precioN);
+    const totalInput = modal.querySelector('.total-pago');
+    if (totalInput) totalInput.value = total.toFixed(2);
   }
 
+  // Al cargar, configurar eventos
   document.addEventListener('DOMContentLoaded', () => {
+    // Escuchar cambios de cantidad para recalcular
     document.querySelectorAll('.modal').forEach(modal => {
-      modal.addEventListener('input', () => recalcularTotal(modal));
+      modal.addEventListener('input', () => calcularTotal(modal));
     });
-  });
-  
-  @foreach($bookings as $reserva)
-  (function(){
-    const sel    = document.getElementById('edit_hotel_{{ $reserva->booking_id }}');
-    const wrap   = document.getElementById('edit_other_hotel_container_{{ $reserva->booking_id }}');
-    const hidden = document.getElementById('edit_is_other_hotel_{{ $reserva->booking_id }}');
 
-    sel.addEventListener('change', () => {
-      if (sel.value === 'other') {
-        wrap.classList.remove('d-none');
-        hidden.value = 1;
-      } else {
-        wrap.classList.add('d-none');
-        wrap.querySelector('input').value = '';
-        hidden.value = 0;
-      }
-    });
-  })();
-@endforeach
+    // Hotel dinámico en edición
+    @foreach($bookings as $reserva)
+      (function(){
+        const sel    = document.getElementById('edit_hotel_{{ $reserva->booking_id }}');
+        const wrap   = document.getElementById('edit_other_hotel_container_{{ $reserva->booking_id }}');
+        const hidden = document.getElementById('edit_is_other_hotel_{{ $reserva->booking_id }}');
+        sel?.addEventListener('change', () => {
+          if (sel.value === 'other') {
+            wrap.classList.remove('d-none');
+            hidden.value = 1;
+          } else {
+            wrap.classList.add('d-none');
+            wrap.querySelector('input').value = '';
+            hidden.value = 0;
+          }
+        });
+      })();
+    @endforeach
 
-</script>
-@if($errors->has('capacity'))
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      Swal.fire({
-        icon: 'error',
-        title: 'Cupo Excedido',
-        text: @json($errors->first('capacity')),
-        confirmButtonColor: '#d33'
+    // 🟢 HORARIOS + PRECIOS dinámicos al seleccionar tour
+    const selectTour = document.getElementById('selectTour');
+    const selectSchedule = document.getElementById('selectSchedule');
+    if (selectTour && selectSchedule) {
+      selectTour.addEventListener('change', function () {
+        const selectedOption = this.options[this.selectedIndex];
+        
+        // ✅ Leer precios del dataset
+        const precioAdulto = parseFloat(selectedOption.dataset.precioAdulto) || 0;
+        const precioNino   = parseFloat(selectedOption.dataset.precioNino) || 0;
+
+        const modal = this.closest('.modal') || document;
+
+        modal.querySelector('.precio-adulto').value = precioAdulto.toFixed(2);
+        modal.querySelector('.precio-nino').value   = precioNino.toFixed(2);
+
+        calcularTotal(modal);
+
+        // ✅ Cargar horarios dinámicos
+        const schedules = JSON.parse(selectedOption.dataset.schedules || '[]');
+        selectSchedule.innerHTML = '<option value="">Seleccione un horario</option>';
+        if (schedules.length > 0) {
+          schedules.forEach(s => {
+            const option = document.createElement('option');
+            option.value = s.schedule_id;
+            option.text  = `${s.start_time} – ${s.end_time}`;
+            selectSchedule.appendChild(option);
+          });
+        }
       });
-    });
-  </script>
+    }
+  });
+</script>
+
+{{-- SweetAlert éxito --}}
+@if(session('success'))
+<script>
+  Swal.fire({
+    icon: 'success',
+    title: 'Éxito',
+    text: '{{ session('success') }}',
+    confirmButtonColor: '#3085d6',
+    confirmButtonText: 'OK'
+  });
+</script>
 @endif
 
-@if(session('showEditModal'))
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const id = '{{ session('showEditModal') }}';
-      const modal = new bootstrap.Modal(document.getElementById('modalEditar' + id));
-      modal.show();
+{{-- SweetAlert errores --}}
+@if($errors->has('capacity'))
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    Swal.fire({
+      icon: 'error',
+      title: 'Cupo Excedido',
+      text: @json($errors->first('capacity')),
+      confirmButtonColor: '#d33'
     });
-  </script>
+  });
+</script>
+@endif
+
+{{-- Mostrar modal editar si vuelve con error --}}
+@if(session('showEditModal'))
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const id = '{{ session('showEditModal') }}';
+    const modal = new bootstrap.Modal(document.getElementById('modalEditar' + id));
+    modal.show();
+  });
+</script>
 @endif
 @stop
