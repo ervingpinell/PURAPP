@@ -124,11 +124,6 @@
                     placeholder="Fin (Ej: 12:00 PM)"
                     value="{{ is_array($schedule) ? $fmt($schedule['end_time']) : $fmt($schedule->end_time) }}">
                 </div>
-                <div class="col-md-3">
-                  <input type="text" name="schedules[{{ $i }}][label]" class="form-control"
-                    placeholder="Etiqueta (Ej: AM)"
-                    value="{{ is_array($schedule) ? $schedule['label'] : $schedule->label }}">
-                </div>
                 <div class="col-md-1 text-end">
                   <button type="button" class="btn btn-danger btn-sm btn-remove-schedule">×</button>
                 </div>
@@ -143,9 +138,6 @@
               </div>
               <div class="col-md-4">
                 <input type="text" name="__END__" class="form-control" placeholder="Fin (Ej: 12:00 PM)">
-              </div>
-              <div class="col-md-3">
-                <input type="text" name="__LABEL__" class="form-control" placeholder="Etiqueta (Ej: AM)">
               </div>
               <div class="col-md-1 text-end">
                 <button type="button" class="btn btn-danger btn-sm btn-remove-schedule">×</button>
@@ -281,8 +273,7 @@
 
         let html = template.innerHTML;
         html = html.replace(/__START__/g, `schedules[${index}][start_time]`)
-                    .replace(/__END__/g, `schedules[${index}][end_time]`)
-                    .replace(/__LABEL__/g, `schedules[${index}][label]`);
+                    .replace(/__END__/g, `schedules[${index}][end_time]`);
 
         container.insertAdjacentHTML('beforeend', html);
       });

@@ -113,9 +113,6 @@
             <div class="col-md-4">
               <input type="text" name="schedules[0][end_time]" class="form-control" placeholder="Fin (Ej: 12:00 PM)">
             </div>
-            <div class="col-md-3">
-              <input type="text" name="schedules[0][label]" class="form-control" placeholder="Etiqueta (Ej: AM)">
-            </div>
             <div class="col-md-1 text-end">
               <button type="button" class="btn btn-danger btn-sm btn-remove-schedule">×</button>
             </div>
