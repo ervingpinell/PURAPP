@@ -4,133 +4,115 @@ namespace App\Http\Controllers\Admin\Tours;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\TourSchedule;
 use App\Models\Tour;
+use App\Models\Schedule;
 use App\Models\Amenity;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
 class TourScheduleController extends Controller
 {
+    /** 📅 Mostrar todos los tours con sus horarios */
     public function index()
     {
-        // Cargamos todos los tours con sus horarios ordenados por tour_id
-        $schedules = Tour::with('schedules')->orderBy('tour_id')->get();
+        $schedules = Tour::with(['schedules' => function ($q) {
+            $q->orderBy('start_time');
+        }])->orderBy('tour_id')->get();
 
         return view('admin.tours.schedule.index', compact('schedules'));
     }
 
-    public function create()
+    /** 📌 Normaliza formatos flexibles */
+    private function parseTime(?string $input): ?string
     {
-        $tours = Tour::orderBy('tour_id')->get();
-        return view('admin.tours.schedules.create', compact('tours'));
-    }
-private function parseTime(?string $input): ?string
-{
-    if (!$input) return null;
+        if (!$input) return null;
 
-    $input = trim(strtolower($input));
-    $formats = ['H:i', 'g:i a', 'g:iA', 'g:ia', 'g:i A', 'g:i'];
+        $input = trim(strtolower($input));
+        $formats = ['H:i', 'g:i a', 'g:iA', 'g:ia', 'g:i A', 'g:i'];
 
-    foreach ($formats as $format) {
-        $parsed = \DateTime::createFromFormat($format, $input);
-        if ($parsed !== false) {
-            return $parsed->format('H:i');
+        foreach ($formats as $format) {
+            $parsed = \DateTime::createFromFormat($format, $input);
+            if ($parsed !== false) {
+                return $parsed->format('H:i');
+            }
         }
+
+        return null;
     }
 
-    return null;
-}
-
-   public function store(Request $request)
-{
-    // Normalizar formatos flexibles de hora
-    $request->merge([
-        'start_time' => $this->parseTime($request->input('start_time')),
-        'end_time' => $this->parseTime($request->input('end_time')),
-    ]);
-
-    $validated = $request->validate([
-        'tour_id' => 'required|exists:tours,tour_id',
-        'start_time' => 'required|date_format:H:i',
-        'end_time' => 'required|date_format:H:i|after:start_time',
-        'label' => 'nullable|string|max:255',
-        'is_active' => 'sometimes|boolean',
-    ]);
-
-    $tour = Tour::with('schedules')->findOrFail($validated['tour_id']);
-
-    $startHour = intval(date('H', strtotime($validated['start_time'])));
-    $isAM = $startHour < 12;
-
-    $conflicting = $tour->schedules->filter(function ($s) use ($isAM) {
-        $h = intval(date('H', strtotime($s->start_time)));
-        return $isAM ? $h < 12 : $h >= 12;
-    });
-
-    if ($conflicting->count()) {
-        return back()->withErrors(['start_time' => 'Ya existe un horario ' . ($isAM ? 'AM' : 'PM') . ' para este tour.']);
-    }
-
-    try {
-        $validated['is_active'] = $request->has('is_active') ? $validated['is_active'] : true;
-        TourSchedule::create($validated);
-
-        return redirect()->route('admin.tours.schedule.index')->with('success', 'Horario agregado correctamente.');
-    } catch (Exception $e) {
-        Log::error('Error al crear horario: ' . $e->getMessage());
-        return back()->with('error', 'Hubo un problema al agregar el horario.');
-    }
-}
-
-    public function edit(TourSchedule $schedule)
-    {
-        $tour = $schedule->tour;
-        $amenities = Amenity::all();
-        $tourAmenities = $tour->amenities->pluck('id')->toArray();
-
-        return view('admin.tours.edit', compact('tour', 'amenities', 'tourAmenities'));
-    }
-
-    public function update(Request $request, TourSchedule $schedule)
+    /** ➕ Registrar horario */
+    public function store(Request $request)
     {
         $request->merge([
-    'start_time' => $this->parseTime($request->input('start_time')),
-    'end_time' => $this->parseTime($request->input('end_time')),
-]);
-        $validated = $request->validate([
-            'tour_id' => 'required|exists:tours,tour_id',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'label' => 'nullable|string|max:255',
-            'is_active' => 'sometimes|boolean',
+            'start_time' => $this->parseTime($request->input('start_time')),
+            'end_time'   => $this->parseTime($request->input('end_time')),
         ]);
 
-        $tour = Tour::with('schedules')->findOrFail($validated['tour_id']);
+        $validated = $request->validate([
+            'tour_id'     => 'required|exists:tours,tour_id',
+            'start_time'  => 'required|date_format:H:i',
+            'end_time'    => 'required|date_format:H:i|after:start_time',
+            'label'       => 'nullable|string|max:255',
+            'is_active'   => 'sometimes|boolean',
+        ]);
 
-        $startHour = intval(date('H', strtotime($validated['start_time'])));
-        $isAM = $startHour < 12;
+        $validated['is_active'] = $request->has('is_active') ? $validated['is_active'] : true;
 
-        // Evita conflictos con el mismo bloque horario
-        $conflicting = $tour->schedules->filter(function ($s) use ($isAM, $schedule) {
-            $h = intval(date('H', strtotime($s->start_time)));
-            return $s->tour_schedule_id !== $schedule->tour_schedule_id && ($isAM ? $h < 12 : $h >= 12);
-        });
+        try {
+            $schedule = Schedule::create($validated);
 
-        if ($conflicting->count()) {
-            return back()->withErrors(['start_time' => 'Ya existe un horario ' . ($isAM ? 'AM' : 'PM') . ' para este tour.']);
+            // 👉 Relaciona el tour a través de la pivote
+            $schedule->tours()->attach($request->tour_id);
+
+            return redirect()->route('admin.tours.schedule.index')
+                ->with('success', 'Horario agregado correctamente.');
+        } catch (Exception $e) {
+            Log::error('Error al crear horario: ' . $e->getMessage());
+            return back()->with('error', 'Hubo un problema al agregar el horario.');
         }
+    }
+
+
+    /** ✏️ Editar horario */
+    public function edit(Schedule $schedule)
+    {
+        $tour = $schedule->tour;
+        return view('admin.tours.schedule.edit', compact('schedule', 'tour'));
+    }
+
+    /** 🔄 Actualizar horario */
+    public function update(Request $request, Schedule $schedule)
+    {
+        $request->merge([
+            'start_time' => $this->parseTime($request->input('start_time')),
+            'end_time'   => $this->parseTime($request->input('end_time')),
+        ]);
+
+        $validated = $request->validate([
+            'tour_id'     => 'required|exists:tours,tour_id',
+            'start_time'  => 'required|date_format:H:i',
+            'end_time'    => 'required|date_format:H:i|after:start_time',
+            'label'       => 'nullable|string|max:255',
+            'is_active'   => 'sometimes|boolean',
+        ]);
 
         try {
             $schedule->update($validated);
-            return redirect()->route('admin.tours.schedule.index')->with('success', 'Horario actualizado correctamente.');
+
+            // 👉 Actualiza la relación en la tabla pivote
+            $schedule->tours()->sync([$request->tour_id]);
+
+            return redirect()->route('admin.tours.schedule.index')
+                ->with('success', 'Horario actualizado correctamente.');
         } catch (Exception $e) {
             Log::error('Error al actualizar horario: ' . $e->getMessage());
             return back()->with('error', 'Hubo un problema al actualizar el horario.');
         }
     }
 
-    public function toggle(TourSchedule $schedule)
+
+    /** ✅ Cambiar estado activo/inactivo */
+    public function toggle(Schedule $schedule)
     {
         try {
             $schedule->is_active = !$schedule->is_active;
@@ -144,7 +126,8 @@ private function parseTime(?string $input): ?string
         }
     }
 
-    public function destroy(TourSchedule $schedule)
+    /** ❌ Desactivar horario */
+    public function destroy(Schedule $schedule)
     {
         try {
             $schedule->update(['is_active' => false]);
@@ -155,10 +138,11 @@ private function parseTime(?string $input): ?string
         }
     }
 
+    /** 🔗 Sincronizar amenidades del tour */
     public function syncAmenities(Request $request, Tour $tour)
     {
         $request->validate([
-            'amenities' => 'array',
+            'amenities'   => 'array',
             'amenities.*' => 'exists:amenities,id',
         ]);
 
@@ -167,7 +151,4 @@ private function parseTime(?string $input): ?string
         return redirect()->route('admin.tours.edit', $tour->id)
             ->with('success', 'Amenidades actualizadas correctamente.');
     }
-
-
-
 }
