@@ -122,62 +122,87 @@ class BookingController extends Controller
 
     /** Actualizar reserva existente */
     public function update(Request $request, $id)
-    {
-        $r = $request->validate([
-            'adults_quantity'  => 'required|integer|min:1',
-            'kids_quantity'    => 'required|integer|min:0|max:2',
-            'status'           => 'required|in:pending,confirmed,cancelled',
-            'notes'            => 'nullable|string',
-            'schedule_id'      => 'required|exists:schedules,schedule_id',
-            'hotel_id'         => 'nullable|exists:hotels_list,hotel_id',
-            'is_other_hotel'   => 'required|boolean',
-            'other_hotel_name' => 'nullable|string|max:255',
-        ]);
+{
+    $r = $request->validate([
+        'adults_quantity'  => 'required|integer|min:1',
+        'kids_quantity'    => 'required|integer|min:0|max:2',
+        'status'           => 'required|in:pending,confirmed,cancelled',
+        'notes'            => 'nullable|string',
+        'schedule_id'      => 'required|exists:schedules,schedule_id',
+        'hotel_id'         => 'nullable|exists:hotels_list,hotel_id',
+        'is_other_hotel'   => 'required|boolean',
+        'other_hotel_name' => 'nullable|string|max:255',
+    ]);
 
-        $booking = Booking::with('tour')->findOrFail($id);
-        $detail  = $booking->details()->firstOrFail();
+    $booking = Booking::with('tour')->findOrFail($id);
+    $detail  = $booking->details()->firstOrFail();
 
-        // Valida que el horario pertenezca al tour
-        if (! $booking->tour->schedules()->where('schedule_id', $r['schedule_id'])->exists()) {
-            return back()->withErrors(['schedule_id' => 'El horario seleccionado no pertenece a este tour.']);
-        }
-
-        // Cupo para ese horario
-        $reserved = BookingDetail::where('tour_id', $booking->tour_id)
-            ->where('tour_date', $detail->tour_date)
-            ->where('schedule_id', $r['schedule_id'])
-            ->where('booking_id', '<>', $booking->booking_id)
-            ->sum(DB::raw('adults_quantity + kids_quantity'));
-
-        $requested = $r['adults_quantity'] + $r['kids_quantity'];
-
-        if ($reserved + $requested > $booking->tour->max_capacity) {
-            return back()->withErrors(['capacity' => "Sólo quedan " . ($booking->tour->max_capacity - $reserved) . " plazas para ese horario."])
-                         ->withInput()
-                         ->with('showEditModal', $booking->booking_id);
-        }
-
-        $newTotal = ($detail->adult_price * $r['adults_quantity']) + ($detail->kid_price * $r['kids_quantity']);
-
-        $booking->update([
-            'status'      => $r['status'],
-            'notes'       => $r['notes'] ?? null,
-            'total'       => $newTotal,
-            'schedule_id' => $r['schedule_id'],
-        ]);
-
-        $detail->update([
-            'adults_quantity'  => $r['adults_quantity'],
-            'kids_quantity'    => $r['kids_quantity'],
-            'schedule_id'      => $r['schedule_id'],
-            'total'            => $newTotal,
-            'hotel_id'         => $r['is_other_hotel'] ? null : $r['hotel_id'],
-            'is_other_hotel'   => $r['is_other_hotel'],
-            'other_hotel_name' => $r['is_other_hotel'] ? $r['other_hotel_name'] : null,
-        ]);
-
-        return redirect()->route('admin.reservas.index')->with('success', 'Reserva actualizada correctamente.');
+    // ✅ Validar que el horario pertenece al tour
+    if (! $booking->tour->schedules()->where('schedules.schedule_id', $r['schedule_id'])->exists()) {
+        return back()->withErrors(['schedule_id' => 'El horario no pertenece a este tour.']);
     }
+
+    // ✅ Validar capacidad
+    $reserved = BookingDetail::where('tour_id', $booking->tour_id)
+        ->where('tour_date', $detail->tour_date)
+        ->where('schedule_id', $r['schedule_id'])
+        ->where('booking_id', '<>', $booking->booking_id)
+        ->sum(DB::raw('adults_quantity + kids_quantity'));
+
+    $requested = $r['adults_quantity'] + $r['kids_quantity'];
+
+    if ($reserved + $requested > $booking->tour->max_capacity) {
+        $available = $booking->tour->max_capacity - $reserved;
+        return back()->withErrors(['capacity' => "Solo quedan {$available} plazas."])
+                     ->withInput()
+                     ->with('showEditModal', $booking->booking_id);
+    }
+
+    // ✅ Actualizar total
+    $newTotal = ($detail->adult_price * $r['adults_quantity']) + ($detail->kid_price * $r['kids_quantity']);
+
+    $booking->update([
+        'status'      => $r['status'],
+        'notes'       => $r['notes'] ?? null,
+        'total'       => $newTotal,
+        'schedule_id' => $r['schedule_id'],
+    ]);
+
+    $detail->update([
+        'adults_quantity'  => $r['adults_quantity'],
+        'kids_quantity'    => $r['kids_quantity'],
+        'schedule_id'      => $r['schedule_id'],
+        'total'            => $newTotal,
+        'hotel_id'         => $r['is_other_hotel'] ? null : $r['hotel_id'],
+        'is_other_hotel'   => $r['is_other_hotel'],
+        'other_hotel_name' => $r['is_other_hotel'] ? $r['other_hotel_name'] : null,
+    ]);
+
+    // ✅ Si es AJAX → responde JSON
+    if ($request->ajax()) {
+        return response()->json(['success' => true]);
+    }
+
+    // ✅ Si es formulario normal → redirect
+    return redirect()->route('admin.reservas.index')->with('success', 'Reserva actualizada correctamente.');
+}
+
+
+    public function edit($id)
+    {
+        $booking = Booking::with(['detail.tour.schedules', 'detail.hotel'])
+                    ->findOrFail($id);
+
+        $statuses = [
+            'pending'   => 'Pending',
+            'confirmed' => 'Confirmed',
+            'cancelled' => 'Cancelled',
+        ];
+
+        return view('admin.bookings.partials.edit-form', compact('booking', 'statuses'))->render();
+    }
+
+
 
     /** Eliminar reserva */
     public function destroy($id)

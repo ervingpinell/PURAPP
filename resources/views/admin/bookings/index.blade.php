@@ -132,9 +132,11 @@
                         @csrf @method('PUT')
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">Editar Reserva</h5>
-                                <button class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
+                            <h5 class="modal-title">
+                              Reserva #{{ $reserva->booking_id }} – {{ $reserva->user->full_name ?? 'Cliente' }}
+                            </h5>
+                            <button class="btn-close" data-bs-dismiss="modal"></button>
+                          </div>
                             <div class="modal-body">
                                 <label class="form-label">Cantidad Adultos</label>
                                 <input
@@ -171,6 +173,20 @@
                                         </option>
                                     </select>
                                 </div>
+
+                                <div class="mb-3">
+                                <label class="form-label">Horario</label>
+                                <select name="schedule_id" class="form-control" required>
+                                  <option value="">Sin horario</option>
+                                  @foreach($reserva->detail->tour->schedules as $s)
+                                    <option value="{{ $s->schedule_id }}"
+                                      {{ $reserva->detail->schedule_id == $s->schedule_id ? 'selected' : '' }}>
+                                      {{ \Carbon\Carbon::parse($s->start_time)->format('g:i A') }} –
+                                      {{ \Carbon\Carbon::parse($s->end_time)->format('g:i A') }}
+                                    </option>
+                                  @endforeach
+                                </select>
+                              </div>
 
                                 <div class="mb-3 {{ $reserva->detail->is_other_hotel ? '' : 'd-none' }}"
                                      id="edit_other_hotel_container_{{ $reserva->booking_id }}">
