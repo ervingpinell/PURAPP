@@ -182,6 +182,10 @@
         <span>{{ \Carbon\Carbon::parse($reserva->booking_date)->format('d/m/Y') }}</span>
       </div>
       <div class="dato">
+        <strong>Fecha de Tour</strong>
+        <span>{{ \Carbon\Carbon::parse($detail->tour_date)->format('d/m/Y') }}</span>
+      </div>
+      <div class="dato">
         <strong>Horario:</strong> <span>{{ $horario }}</span>
     </div>
       <div class="dato">
