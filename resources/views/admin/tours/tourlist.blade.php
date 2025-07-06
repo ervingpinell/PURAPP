@@ -197,3 +197,44 @@ td.itinerary-cell {
         btn.textContent = div.classList.contains('overview-expanded') ? 'Ocultar' : 'Ver más';
     }
 </script>
+{{-- ✅ Bootstrap Bundle y SweetAlert2 --}}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function toggleOverview(id, btn) {
+        const div = document.getElementById(id);
+        div.classList.toggle('overview-expanded');
+        btn.textContent = div.classList.contains('overview-expanded') ? 'Ocultar' : 'Ver más';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // ✅ SweetAlert de éxito
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: '{{ session("success") }}',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        @endif
+
+        // ✅ SweetAlert de error
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: '{{ session("error") }}',
+                timer: 2500,
+                showConfirmButton: false
+            });
+        @endif
+
+        @if(session('showCreateModal'))
+            new bootstrap.Modal(document.getElementById('modalRegistrar')).show();
+        @endif
+
+        @if(session('showEditModal'))
+            new bootstrap.Modal(document.getElementById('modalEditar{{ session("showEditModal") }}')).show();
+        @endif
+    });
+</script>
