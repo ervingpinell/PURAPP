@@ -62,4 +62,8 @@ class Tour extends Model
     {
         return $this->belongsTo(Itinerary::class, 'itinerary_id', 'itinerary_id');
     }
+    public function excludedDates()
+    {
+        return $this->hasMany(TourExcludedDate::class);
+    }
 }

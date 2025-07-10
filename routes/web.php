@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\Tours\ItineraryController;
 use App\Http\Controllers\Admin\Tours\TourTypeController;
 use App\Http\Controllers\Admin\Cart\CartController;
 use App\Http\Controllers\Admin\Bookings\HotelListController;
+use App\Http\Controllers\Admin\Tours\TourExcludedDateController;
 
 
 Route::middleware([SetLocale::class])->group(function () {
@@ -96,6 +97,10 @@ Route::get('/tours/{id}', [HomeController::class, 'showTour'])->name('tours.show
 
             // Amenidades
             Route::resource('amenities', AmenityController::class)->except(['show']);
+            
+            // 📌 Submódulo Fechas Excluidas para Tours
+            Route::resource('excluded_dates', TourExcludedDateController::class)
+                ->except(['show']);
         });
 
             // Reservaciones y comprobantes

@@ -68,12 +68,24 @@ class BookingController extends Controller
 
         $tour = Tour::with('schedules')->findOrFail($v['tour_id']);
 
-        // Verifica que el horario pertenezca a este tour
+        // ✅ Valida horario
         if (! $tour->schedules()->where('schedules.schedule_id', $v['schedule_id'])->exists()) {
-            return back()->withErrors(['schedule_id' => 'El horario seleccionado no pertenece a este tour.']);
+            return back()->withErrors(['schedule_id' => 'El horario no pertenece a este tour.']);
         }
 
-        // Validar cupo
+        // ✅ Valida fecha bloqueada
+        $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
+            ->where('start_date', '<=', $v['tour_date'])
+            ->where(function ($q) use ($v) {
+                $q->where('end_date', '>=', $v['tour_date'])->orWhereNull('end_date');
+            })
+            ->exists();
+
+        if ($isBlocked) {
+            return back()->withErrors(['tour_date' => 'La fecha seleccionada está bloqueada para este tour.'])->withInput();
+        }
+
+        // ✅ Valida cupo
         $reserved = BookingDetail::where('tour_id', $tour->tour_id)
             ->where('tour_date', $v['tour_date'])
             ->where('schedule_id', $v['schedule_id'])
@@ -83,7 +95,7 @@ class BookingController extends Controller
 
         if ($reserved + $requested > $tour->max_capacity) {
             $available = $tour->max_capacity - $reserved;
-            return back()->withErrors(['capacity' => "Sólo quedan {$available} plazas disponibles para ese horario."])->withInput();
+            return back()->withErrors(['capacity' => "Solo quedan {$available} plazas disponibles para este horario."])->withInput();
         }
 
         $total = ($tour->adult_price * $v['adults_quantity']) + ($tour->kid_price * $v['kids_quantity']);
@@ -119,6 +131,7 @@ class BookingController extends Controller
 
         return redirect()->route('admin.reservas.index')->with('success', 'Reserva creada correctamente.');
     }
+
 
     /** Actualizar reserva existente */
     public function update(Request $request, $id)
@@ -261,46 +274,50 @@ class BookingController extends Controller
         $cart = Cart::with('items.tour')->where('user_id', $user->user_id)->first();
 
         if (! $cart || $cart->items->isEmpty()) {
-            return redirect()
-                ->route('admin.cart.index')
-                ->with('error', 'Tu carrito está vacío.');
+            return redirect()->route('admin.cart.index')->with('error', 'Tu carrito está vacío.');
         }
 
-        // ✅ 1) Agrupar por tour, fecha y horario
-        $groups = $cart->items
-            ->groupBy(fn($item) => $item->tour_id . '_' . $item->tour_date . '_' . $item->schedule_id);
+        // ✅ Agrupar por tour, fecha y horario
+        $groups = $cart->items->groupBy(fn($item) => $item->tour_id . '_' . $item->tour_date . '_' . $item->schedule_id);
 
         foreach ($groups as $key => $items) {
-            /** @var \App\Models\CartItem $first */
-            $first     = $items->first();
-            $tour      = $first->tour;
-            $tourDate  = $first->tour_date;
-            $scheduleId = $first->schedule_id; // ✅
+            $first = $items->first();
+            $tour = $first->tour;
+            $tourDate = $first->tour_date;
+            $scheduleId = $first->schedule_id;
 
-            $max       = $tour->max_capacity;
+            // ✅ Valida fecha bloqueada
+            $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
+                ->where('start_date', '<=', $tourDate)
+                ->where(function ($q) use ($tourDate) {
+                    $q->where('end_date', '>=', $tourDate)->orWhereNull('end_date');
+                })
+                ->exists();
 
-            // ✅ Validar cupo para ese horario específico
-            $reserved  = BookingDetail::where('tour_id', $tour->tour_id)
+            if ($isBlocked) {
+                return redirect()->route('admin.cart.index')
+                    ->with('error', "La fecha {$tourDate} está bloqueada para '{$tour->name}'.");
+            }
+
+            // ✅ Valida cupo
+            $reserved = BookingDetail::where('tour_id', $tour->tour_id)
                 ->where('tour_date', $tourDate)
-                ->where('schedule_id', $scheduleId) // ✅
+                ->where('schedule_id', $scheduleId)
                 ->sum(DB::raw('adults_quantity + kids_quantity'));
 
-            $requested = $items->sum(fn($i) =>
-                $i->adults_quantity + $i->kids_quantity
-            );
+            $requested = $items->sum(fn($i) => $i->adults_quantity + $i->kids_quantity);
 
-            if ($reserved + $requested > $max) {
-                $available = $max - $reserved;
-                return redirect()
-                    ->route('admin.cart.index')
-                    ->with('error', "Para '{$tour->name}' el día {$tourDate} sólo quedan {$available} plazas para ese horario.");
+            if ($reserved + $requested > $tour->max_capacity) {
+                $available = $tour->max_capacity - $reserved;
+                return redirect()->route('admin.cart.index')
+                    ->with('error', "Para '{$tour->name}' el día {$tourDate} solo quedan {$available} plazas para ese horario.");
             }
         }
 
-        // ✅ 2) Crear Booking principal
+        // ✅ Crear booking
         $totalBooking = $cart->items->sum(fn($item) =>
             ($item->tour->adult_price * $item->adults_quantity)
-        + ($item->tour->kid_price   * $item->kids_quantity)
+            + ($item->tour->kid_price * $item->kids_quantity)
         );
 
         $firstItem = $cart->items->first();
@@ -316,12 +333,11 @@ class BookingController extends Controller
             'is_active'         => true,
         ]);
 
-        // ✅ 3) Crear cada detalle con schedule_id correcto
         foreach ($cart->items as $item) {
             BookingDetail::create([
                 'booking_id'       => $booking->booking_id,
                 'tour_id'          => $item->tour_id,
-                'schedule_id'      => $item->schedule_id,  // ✅ nombre correcto
+                'schedule_id'      => $item->schedule_id,
                 'tour_language_id' => $item->tour_language_id,
                 'tour_date'        => $item->tour_date,
                 'hotel_id'         => $item->is_other_hotel ? null : $item->hotel_id,
@@ -331,19 +347,17 @@ class BookingController extends Controller
                 'kids_quantity'    => $item->kids_quantity,
                 'adult_price'      => $item->tour->adult_price,
                 'kid_price'        => $item->tour->kid_price,
-                'total'            => ($item->tour->adult_price * $item->adults_quantity)
-                                + ($item->tour->kid_price   * $item->kids_quantity),
+                'total'            => ($item->tour->adult_price * $item->adults_quantity) +
+                                    ($item->tour->kid_price * $item->kids_quantity),
                 'is_active'        => true,
             ]);
         }
 
-        // ✅ 4) Vaciar carrito
         $cart->items()->delete();
 
-        return redirect()
-            ->route('admin.cart.index')
-            ->with('success', 'Reservas generadas correctamente desde el carrito.');
+        return redirect()->route('admin.cart.index')->with('success', 'Reservas generadas correctamente desde el carrito.');
     }
+
 
 
 

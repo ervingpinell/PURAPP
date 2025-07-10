@@ -70,7 +70,21 @@ class CartController extends Controller
             ]);
         }
 
-        // ✅ Validar cupo antes de guardar
+        $tour = \App\Models\Tour::findOrFail($request->tour_id);
+
+        // ✅ 1) Validar que NO esté en fechas bloqueadas
+        $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
+            ->where('start_date', '<=', $request->tour_date)
+            ->where(function ($q) use ($request) {
+                $q->where('end_date', '>=', $request->tour_date)->orWhereNull('end_date');
+            })
+            ->exists();
+
+        if ($isBlocked) {
+            return back()->with('error', "La fecha {$request->tour_date} está bloqueada para '{$tour->name}'.");
+        }
+
+        // ✅ 2) Validar cupo antes de guardar
         $reserved = DB::table('booking_details')
             ->where('tour_id', $request->tour_id)
             ->where('schedule_id', $request->schedule_id)
@@ -79,17 +93,16 @@ class CartController extends Controller
 
         $requested = $request->adults_quantity + ($request->kids_quantity ?? 0);
 
-        $tour = \App\Models\Tour::findOrFail($request->tour_id);
         if ($reserved + $requested > $tour->max_capacity) {
             return back()->with('error', 'El cupo disponible para este horario está lleno.');
         }
 
-        // ✅ Crear ítem en carrito
+        // ✅ 3) Crear ítem en carrito
         CartItem::create([
             'cart_id'          => $cart->cart_id,
             'tour_id'          => $request->tour_id,
             'tour_date'        => $request->tour_date,
-            'schedule_id' => $request->schedule_id,
+            'schedule_id'      => $request->schedule_id,
             'tour_language_id' => $request->tour_language_id,
             'hotel_id'         => $request->is_other_hotel ? null : $request->hotel_id,
             'is_other_hotel'   => $request->is_other_hotel ?? false,
@@ -102,6 +115,7 @@ class CartController extends Controller
             ? response()->json(['message' => 'Tour agregado al carrito.'])
             : back()->with('success', 'Tour agregado al carrito.');
     }
+
 
     // ✅ Validar cupo por AJAX (llamada desde JS)
     public function getReserved(Request $request)

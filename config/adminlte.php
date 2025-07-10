@@ -409,6 +409,11 @@ return [
             'route' => 'admin.tours.amenities.index',
             'icon'  => 'fas fa-concierge-bell',
         ],
+        [
+            'text' => 'Fechas Excluidas',
+            'route' => 'admin.tours.excluded_dates.index',
+            'icon' => 'fas fa-calendar-times', 
+        ],
     ],
 ],
 
@@ -418,7 +423,6 @@ return [
             'text' => 'HOTEL_LIST',
             'route' => 'admin.hotels.index',
             'icon'  => 'fas fa-hotel',
-            'can'   => ''
         ],
 
         ['header' => 'BOOKINGS'],
