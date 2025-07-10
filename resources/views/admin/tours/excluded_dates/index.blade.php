@@ -8,7 +8,7 @@
 
 @section('content')
 
-    <!-- Mensaje de error (opcional) -->
+    <!-- Mensajes de error -->
     @if($errors->any())
         <div class="alert alert-danger">
             <ul class="mb-0">
@@ -74,6 +74,14 @@
                     <td>{{ $date->end_date ?? '-' }}</td>
                     <td>{{ $date->reason ?? '-' }}</td>
                     <td>
+                        <!-- Botón Editar -->
+                        <button class="btn btn-primary btn-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#editModal{{ $date->tour_excluded_date_id }}">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+
+                        <!-- Botón Eliminar -->
                         <form action="{{ route('admin.tours.excluded_dates.destroy', $date->tour_excluded_date_id) }}"
                             method="POST"
                             class="d-inline form-delete">
@@ -85,6 +93,55 @@
                         </form>
                     </td>
                 </tr>
+
+                <!-- Modal Editar -->
+                <div class="modal fade" id="editModal{{ $date->tour_excluded_date_id }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <form method="POST" action="{{ route('admin.tours.excluded_dates.update', $date->tour_excluded_date_id) }}">
+                      @csrf
+                      @method('PUT')
+
+                      <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                          <h5 class="modal-title">Editar Fecha Bloqueada</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+                          <div class="mb-3">
+                            <label for="tour_id">Tour</label>
+                            <select name="tour_id" class="form-control" required>
+                              @foreach($tours as $tour)
+                                <option value="{{ $tour->tour_id }}" {{ $tour->tour_id == $date->tour_id ? 'selected' : '' }}>
+                                  {{ $tour->name }}
+                                </option>
+                              @endforeach
+                            </select>
+                          </div>
+
+                          <div class="mb-3">
+                            <label>Fecha inicio</label>
+                            <input type="date" name="start_date" class="form-control" value="{{ $date->start_date }}" required>
+                          </div>
+
+                          <div class="mb-3">
+                            <label>Fecha fin</label>
+                            <input type="date" name="end_date" class="form-control" value="{{ $date->end_date }}">
+                          </div>
+
+                          <div class="mb-3">
+                            <label>Motivo</label>
+                            <input type="text" name="reason" class="form-control" value="{{ $date->reason }}">
+                          </div>
+                        </div>
+
+                        <div class="modal-footer">
+                          <button type="submit" class="btn btn-success">Guardar cambios</button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
             @empty
                 <tr>
                     <td colspan="5" class="text-center">No hay fechas bloqueadas registradas.</td>

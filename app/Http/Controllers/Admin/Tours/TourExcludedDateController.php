@@ -37,4 +37,27 @@ class TourExcludedDateController extends Controller
 
         return redirect()->back()->with('success', 'Fecha bloqueada eliminada.');
     }
+    
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'tour_id'    => 'required|exists:tours,tour_id',
+            'start_date' => 'required|date',
+            'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'reason'     => 'nullable|string|max:255',
+        ]);
+
+        $excludedDate = \App\Models\TourExcludedDate::findOrFail($id);
+
+        $excludedDate->update([
+            'tour_id'    => $request->tour_id,
+            'start_date' => $request->start_date,
+            'end_date'   => $request->end_date,
+            'reason'     => $request->reason,
+        ]);
+
+        return redirect()->route('admin.tours.excluded_dates.index')
+            ->with('success', 'Fecha bloqueada actualizada correctamente.');
+    }
+
 }
