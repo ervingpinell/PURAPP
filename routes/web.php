@@ -38,11 +38,7 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/language/{language}', [DashBoardController::class, 'switchLanguage'])->name('switch.language');
 
-    //Prueba para los emails
-    //Route::get('/send-test-email', function () {
-      //  Mail::to('ceciliabarilla@gmail.com')->send(new TestEmail());
-        //return 'Correo de prueba enviado!';
-    //});
+    //Rutas para los emails
     Route::get('/send-test-email', function () {
     $booking = App\Models\Booking::latest()->with(['user','detail','tour'])->first();
     Mail::to($booking->user->email)->send(new App\Mail\BookingCreatedMail($booking));
