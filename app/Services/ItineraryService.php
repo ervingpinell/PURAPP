@@ -10,43 +10,61 @@ use Exception;
 
 class ItineraryService
 {
-    public function createWithItems(string $name, array $items): Itinerary
-    {
-        return DB::transaction(function () use ($name, $items) {
-            $itinerary = Itinerary::create(['name' => $name]);
+public function createWithItems(string $name, array $items, string $description = null): Itinerary
+{
+    if (empty($items)) {
+        Log::error('❌ No se proporcionaron ítems válidos para el itinerario.', [
+            'name' => $name,
+            'description' => $description,
+        ]);
+        throw new \Exception('No se proporcionaron ítems válidos para el itinerario.');
+    }
 
-            foreach ($items as $index => $itemData) {
-                if (is_numeric($itemData)) {
-                    $item = ItineraryItem::find($itemData);
-                    if ($item) {
-                        $itinerary->items()->attach($item->item_id, [
-                            'item_order' => $index,
-                            'is_active' => true
-                        ]);
-                    }
-                } elseif (is_array($itemData) && !empty($itemData['title'])) {
-                    $existing = ItineraryItem::where('title', $itemData['title'])->first();
-                    if ($existing) {
-                        $itemId = $existing->item_id;
-                    } else {
-                        $newItem = ItineraryItem::create([
-                            'title' => $itemData['title'],
-                            'description' => $itemData['description'] ?? '',
-                            'is_active' => true
-                        ]);
-                        $itemId = $newItem->item_id;
-                    }
+    Log::info('📌 Creando itinerario con ítems:', [
+        'name' => $name,
+        'description' => $description,
+        'items' => $items
+    ]);
 
-                    $itinerary->items()->attach($itemId, [
+    return DB::transaction(function () use ($name, $items, $description) {
+        $itinerary = Itinerary::create([
+            'name' => $name,
+            'description' => $description ?? '',
+        ]);
+
+        foreach ($items as $index => $itemData) {
+            if (is_numeric($itemData)) {
+                $item = ItineraryItem::find($itemData);
+                if ($item) {
+                    $itinerary->items()->attach($item->item_id, [
                         'item_order' => $index,
                         'is_active' => true
                     ]);
                 }
-            }
+            } elseif (is_array($itemData) && !empty($itemData['title'])) {
+                $existing = ItineraryItem::where('title', $itemData['title'])->first();
+                if ($existing) {
+                    $itemId = $existing->item_id;
+                } else {
+                    $newItem = ItineraryItem::create([
+                        'title' => $itemData['title'],
+                        'description' => $itemData['description'] ?? '',
+                        'is_active' => true
+                    ]);
+                    $itemId = $newItem->item_id;
+                }
 
-            return $itinerary;
-        });
-    }
+                $itinerary->items()->attach($itemId, [
+                    'item_order' => $index,
+                    'is_active' => true
+                ]);
+            }
+        }
+
+        return $itinerary;
+    });
+}
+
 
     public function handleCreationOrAssignment(array $requestData): ?Itinerary
     {
@@ -54,7 +72,8 @@ class ItineraryService
             $items = $requestData['itinerary_combined'] ?? [];
             return $this->createWithItems(
                 $requestData['new_itinerary_name'] ?? 'Itinerario generado',
-                $items
+                $items,
+                $requestData['new_itinerary_description'] ?? ''
             );
         } elseif (!empty($requestData['itinerary_id']) && is_numeric($requestData['itinerary_id'])) {
             return Itinerary::with('items')->find($requestData['itinerary_id']);
@@ -77,10 +96,19 @@ class ItineraryService
         });
     }
 
-    public function getAvailableItems()
-    {
-        return ItineraryItem::orderBy('title')->where('is_active', true)->get();
+public function getAvailableItems()
+{
+    $query = \App\Models\ItineraryItem::query()->orderBy('title');
+
+    // Filtro por estado si se especifica en la URL
+    if (request('estado') === 'activos') {
+        $query->where('is_active', true);
+    } elseif (request('estado') === 'inactivos') {
+        $query->where('is_active', false);
     }
+
+    return $query->get();
+}
 
     public function getAvailableItinerariesWithItems()
     {

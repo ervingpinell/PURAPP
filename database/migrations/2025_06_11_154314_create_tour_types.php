@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tour_types', function (Blueprint $table) {
         $table->id('tour_type_id');
-        $table->string('name');
+        $table->string('name')->unique();;
         $table->string('description')->nullable(); 
         $table->boolean('is_active')->default(true);
         $table->timestamps();

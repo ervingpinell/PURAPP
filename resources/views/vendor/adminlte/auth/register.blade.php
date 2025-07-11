@@ -2,7 +2,7 @@
 
 @section('adminlte_css_pre')
     <link rel="stylesheet" href="{{ asset('vendor/icheck-bootstrap/icheck-bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/gv.css') }}"> {{-- Aquí aplicás el nuevo CSS --}}
+   <!-- <link rel="stylesheet" href="{{ asset('css/gv.css') }}"> -->
 @stop
 
 @php

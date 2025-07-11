@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('itinerary_items', function (Blueprint $table) {
+    Schema::create('itinerary_items', function (Blueprint $table) {
     $table->id('item_id');
     $table->string('title')->unique();
     $table->text('description');

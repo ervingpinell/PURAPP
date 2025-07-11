@@ -356,82 +356,79 @@ return [
             'route'=> 'admin.roles.index',
             'icon' => 'fas fa-user-shield',
         ],
-        ['header' => 'TABLAS'],
+        ['header' => 'RESERVAS'],
         //colocar aqui las tablas de las bases de datos para el CRUD
 
-        [
-            'text' => 'TOURS',
-            'route'=> 'admin.tours.index',
-            'icon' => 'fas fa-fw fa-plane',
-            'can' => ''
-        ],
 
         [
             'text' => 'RESERVAS',
             'route'=> 'admin.reservas.index',
             'icon' => 'fas fa-fw fa-calendar-check'
         ],
+
+        [
+            'text'  => 'DISPONIBILIDAD',
+            'route' => 'admin.tours.availability.index',
+            'icon'  => 'fas fa-check-circle',
+        ],
+        
         ['header' => 'TOURS'],
 
+      [
+    'text'    => 'TOURS',
+    'icon'    => 'fas fa-map-marked-alt',
+    'submenu' => [
         [
-            'text' => 'TOURS',
+            'text'  => 'Todos los Tours',
             'route' => 'admin.tours.index',
             'icon'  => 'fas fa-map-marked-alt',
-            'can'   => ''
         ],
-
         [
-            'text' => 'TOUR_TYPES',
+            'text'  => 'Tipos de Tour',
             'route' => 'admin.tourtypes.index',
             'icon'  => 'fas fa-tags',
-            'can'   => ''
+        ],
+        [
+            'text'  => 'Idiomas',
+            'route' => 'admin.languages.index',
+            'icon'  => 'fas fa-globe',
+        ],
+        [
+            'text'  => 'Horarios',
+            'route' => 'admin.tours.schedule.index',
+            'icon'  => 'fas fa-calendar-alt',
+        ],
+        [
+            'text'  => 'Itinerarios',
+            'route' => 'admin.tours.itinerary.index',
+            'icon'  => 'fas fa-route',
         ],
         
         [
-            'text' => 'TOUR_LANGUAGES',
-            'route' => 'admin.languages.index',
-            'icon'  => 'fas fa-globe',
-            'can'   => ''
-        ],
-
-        [
-            'text' => 'TOUR_SCHEDULE',
-            'route' => 'admin.tours.schedule.index',
-            'icon'  => 'fas fa-calendar-alt',
-            'can'   => ''
-        ],
-                [
-            'text' => 'TOUR_ITINERARY',
-            'route' => 'admin.tours.itinerary.index',
-            'icon'  => 'fas fa-calendar-alt',
-            'can'   => ''
-        ],
-
-        [
-            'text' => 'TOUR_AVAILABILITY',
-            'route' => 'admin.tours.availability.index',
-            'icon'  => 'fas fa-check-circle',
-            'can'   => ''
-        ],
-
-        [
-            'text' => 'AMENITIES',
+            'text'  => 'Amenidades',
             'route' => 'admin.tours.amenities.index',
             'icon'  => 'fas fa-concierge-bell',
         ],
+        [
+            'text' => 'Fechas Excluidas',
+            'route' => 'admin.tours.excluded_dates.index',
+            'icon' => 'fas fa-calendar-times', 
+        ],
+    ],
+],
+
 
         ['header' => 'HOTELS'],
         [
             'text' => 'HOTEL_LIST',
-            'route' => '',
+            'route' => 'admin.hotels.index',
             'icon'  => 'fas fa-hotel',
-            'can'   => ''
         ],
 
         ['header' => 'BOOKINGS'],
         [
             'text' => 'BOOKINGS',
-            'route' => '',
+            'route' => 'admin.reservas.index',
             'icon'  => 'fas fa-calendar-check',
             'can'   => ''
         ],
@@ -441,11 +438,22 @@ return [
             'icon'  => 'fas fa-info-circle',
             'can'   => ''
         ],
-
+        [
+            'text' => 'CALENDAR',
+            'route' => 'admin.reservas.calendar',
+            'icon'  => 'fas fa-info-circle',
+            'can'   => ''
+        ],
         ['header' => 'CARTS'],
         [
             'text' => 'CARTS',
-            'route' => '',
+            'route' => 'admin.cart.index',
+            'icon'  => 'fas fa-shopping-cart',
+            'can'   => ''
+        ],
+        [
+            'text' => 'CARTS GENERAL',
+            'route' => 'admin.cart.general',
             'icon'  => 'fas fa-shopping-cart',
             'can'   => ''
         ],

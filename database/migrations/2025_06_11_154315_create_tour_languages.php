@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tour_languages', function (Blueprint $table) {
             $table->id('tour_language_id');
-            $table->string('name');
+            $table->string('name')->unique();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

@@ -22,4 +22,9 @@ class TourType extends Model
     {
         return $this->hasMany(Tour::class, 'tour_type_id');
     }
+
+    public function getRouteKeyName()
+{
+    return 'tour_type_id';
+}
 }

@@ -3,290 +3,538 @@
 @section('title', 'Reservas')
 
 @section('content_header')
+
     <h1>Gestión de Reservas</h1>
 @stop
 
 @section('content')
-    <div class="p-3 table-responsive">
-        <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-            <i class="fas fa-plus"></i> Añadir Reserva
-        </a>
-        <a href="{{ route('admin.reservas.pdf') }}" class="btn btn-danger mb-3" target="_blank">
-            <i class="fas fa-file-pdf"></i> Descargar PDF
-        </a>
 
-        
-
-        <table class="table table-striped table-bordered table-hover">
-            <thead class="bg-primary text-white">
-                <tr>
-                    <th>ID RESERVA</th>
-                    <th>Cliente</th>
-                    <th>Tour</th>
-                    <th>Fecha Reserva</th>
-                    <th>Fecha Inicio</th>
-                    <th>Fecha Fin</th>
-                    <th>Idioma</th>
-                    <th>Precio Adulto</th>
-                    <th>Precio Niño</th>
-                    <th>Estado</th>
-                    <th>Codigo de Reserva</th>
-                    <th>Cantidad de Adultos</th>
-                    <th>Cantidad de Niños</th>
-                    <th>Total a Pagar</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($reservas as $reserva)
-                    <tr>
-                        <td>{{ $reserva->id_reserva }}</td>
-                        <td>{{ $reserva->user->full_name ?? 'Sin cliente' }}</td>
-                        <td>{{ $reserva->tour->nombre ?? 'Sin tour' }}</td>
-                        <td>{{ $reserva->fecha_reserva }}</td>
-                        <td>{{ $reserva->fecha_inicio }}</td>
-                        <td>{{ $reserva->fecha_fin }}</td>
-                        <td>{{ $reserva->idioma_tour }}</td>
-                        <td>${{ $reserva->precio_adulto }}</td>
-                        <td>${{ $reserva->precio_nino }}</td>
-                        <td>{{ $reserva->estado_reserva }}</td>
-                        <td>{{ $reserva->codigo_reserva }}</td>
-                        <td>{{ $reserva->cantidad_adultos }}</td>
-                        <td>{{ $reserva->cantidad_ninos }}</td>
-                        <td>${{ $reserva->total_pago }}</td>
-                        <td>
-                            <!-- Editar -->
-                            <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $reserva->id_reserva }}">
-                                <i class="fas fa-edit"></i>
-                            </a>
-
-                            <!-- Eliminar -->
-                            <form action="{{ route('admin.reservas.destroy', $reserva->id_reserva) }}" method="POST" style="display: inline-block;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Deseas eliminar esta reserva?')">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </form>
-
-                            <!-- Descargar Comprobante -->
-                            <a href="{{ route('admin.reservas.comprobante', $reserva->id_reserva) }}" 
-                                class="btn btn-success btn-sm" 
-                                title="Descargar comprobante">
-                                <i class="fas fa-file-download"></i>
-                            </a>
-                        </td>
-                    </tr>
-
-                    <!-- Modal Editar Reserva -->
-                    <div class="modal fade" id="modalEditar{{ $reserva->id_reserva }}" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <form action="{{ route('admin.reservas.update', $reserva->id_reserva) }}" method="POST">
-                                @csrf
-                                @method('PUT')
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Editar Reserva</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="mb-3">
-                                            <label class="form-label">Cantidad de Adultos</label>
-                                            <input type="number" name="cantidad_adultos" class="form-control cantidad-adultos" min="1" required value="{{ $reserva->cantidad_adultos }}">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Cantidad de Niños</label>
-                                            <input type="number" name="cantidad_ninos" class="form-control cantidad-ninos" min="0" required value="{{ $reserva->cantidad_ninos }}">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Precio Adulto</label>
-                                            <input type="number" name="precio_adulto" class="form-control precio-adulto" step="0.01" required value="{{ $reserva->precio_adulto }}" readonly>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Precio Niño</label>
-                                            <input type="number" name="precio_nino" class="form-control precio-nino" step="0.01" required value="{{ $reserva->precio_nino }}" readonly>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Total a Pagar</label>
-                                            <input type="number" name="total_pago" class="form-control total-pago" readonly value="{{ $reserva->total_pago }}">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Estado de la Reserva</label>
-                                            <select name="estado_reserva" class="form-control" required>
-                                                <option value="Pago Pendiente" {{ $reserva->estado_reserva == 'Pago Pendiente' ? 'selected' : '' }}>Pago Pendiente</option>
-                                                <option value="Pago Cancelado" {{ $reserva->estado_reserva == 'Pago Cancelado' ? 'selected' : '' }}>Pago Cancelado</option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Notas</label>
-                                            <textarea name="notas" class="form-control">{{ $reserva->notas }}</textarea>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="submit" class="btn btn-warning">Actualizar</button>
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Modal Registrar Reserva -->
-    <div class="modal fade" id="modalRegistrar" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <form action="{{ route('admin.reservas.store') }}" method="POST">
-                @csrf
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Registrar Reserva</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Cliente</label>
-                            <select name="user_id" class="form-control" required>
-                                @foreach(\App\Models\User::all() as $user)
-                                    <option value="{{ $user->user_id }}">{{ $user->full_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Tour</label>
-                            <select name="id_tour" id="selectTour" class="form-control select-tour" required>
-                                @foreach(\App\Models\Tour::all() as $tour)
-                                    <option 
-                                        value="{{ $tour->id_tour }}"
-                                        data-precio-adulto="{{ $tour->precio_adulto }}"
-                                        data-precio-nino="{{ $tour->precio_nino }}"
-                                    >
-                                        {{ $tour->nombre }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Fecha de Reserva</label>
-                            <input type="date" name="fecha_reserva" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Fecha de Inicio</label>
-                            <input type="date" name="fecha_inicio" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Fecha de Fin</label>
-                            <input type="date" name="fecha_fin" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Idioma del Tour</label>
-                            <select name="idioma_tour" class="form-control" required>
-                                <option value="Español">Español</option>
-                                <option value="Inglés">Inglés</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Cantidad de Adultos</label>
-                            <input type="number" name="cantidad_adultos" class="form-control" min="1" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Cantidad de Niños</label>
-                            <input type="number" name="cantidad_ninos" class="form-control" min="0" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Precio Adulto</label>
-                            <input type="number" name="precio_adulto" class="form-control precio-adulto" readonly>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Precio Niño</label>
-                            <input type="number" name="precio_nino" class="form-control precio-nino" readonly>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Total a Pagar</label>
-                            <input type="number" name="total_pago" class="form-control total-pago" readonly>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Estado de la Reserva</label>
-                            <select name="estado_reserva" class="form-control" required>
-                                <option value="Pago Pendiente">Pago Pendiente</option>
-                                <option value="Pago Cancelado">Pago Cancelado</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Guardar</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    </div>
+<div class="p-3 table-responsive" >
+    <div class="container-fluid mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <a href="#" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
+                    <i class="fas fa-plus"></i> Añadir Reserva
+                </a>
+                <a href="{{ route('admin.reservas.pdf') }}" class="btn btn-danger">
+                    <i class="fas fa-file-pdf"></i> Descargar PDF
+                </a>
+            </div>
+            <form method="GET" class="d-flex align-items-end gx-2">
+                <div class="form-group mb-0">
+                    <label for="reference" class="form-label visually-hidden">Referencia</label>
+                    <input
+                        type="text"
+                        id="reference"
+                        name="reference"
+                        value="{{ request('reference') }}"
+                        class="form-control"
+                        placeholder="Ej: ABC123XYZ"
+                    >
                 </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
             </form>
-            
         </div>
     </div>
 
+    <table class="table table-striped table-bordered table-hover">
+        <thead class="bg-primary text-white">
+            <thead class="bg-primary text-white">
+            <tr>
+              <th>ID Reserva</th>
+              <th>Cliente</th>
+              <th>Correo</th>
+              <th>Teléfono</th>
+              <th>Tour</th>
+              <th>Fecha Reserva</th>
+              <th>Fecha Tour</th>
+              <th>Hotel</th>
+              <th>Horarios</th>
+              <th>Tipo</th>
+              <th>Adultos</th>
+              <th>Niños</th>
+              <th>Estado</th>
+              <th>Referencia</th>
+              <th>Total</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+          @foreach($bookings as $reserva)
+            @php
+              $detail = $reserva->detail;
+              $tour   = $detail->tour;
+            @endphp
+            <tr>
+              <td>{{ $reserva->booking_id }}</td>
+              <td>{{ $reserva->user->full_name ?? '-' }}</td>
+              <td>{{ $reserva->user->email     ?? '-' }}</td>
+              <td>{{ $reserva->user->phone     ?? '-' }}</td>
+              <td>{{ $tour->name              ?? '-' }}</td>
+              <td>{{ \Carbon\Carbon::parse($reserva->booking_date)->format('d/m/Y') }}</td>
+              <td>{{ \Carbon\Carbon::parse($detail->tour_date)->format('d/m/Y') }}</td>
+              <td>
+                @if($detail->is_other_hotel)
+                  {{ $detail->other_hotel_name }}
+                @else
+                  {{ optional($detail->hotel)->name ?? '-' }}
+                @endif
+              </td>
+              {{-- Horarios --}}
+              <td>
+                @if($detail->schedule)
+                  <span class="badge bg-success">
+                    {{ \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') }}
+                    –
+                    {{ \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A') }}
+                  </span>
+                @else
+                  <span class="text-muted">Sin horario</span>
+                @endif
+              </td>
+              {{-- Tipo --}}
+              <td>{{ optional($tour->tourType)->name ?? '—' }}</td>
+              <td>{{ $detail->adults_quantity }}</td>
+              <td>{{ $detail->kids_quantity   }}</td>
+              <td>{{ ucfirst($reserva->status) }}</td>
+              <td>{{ $reserva->booking_reference }}</td>
+              <td>${{ number_format($reserva->total, 2) }}</td>
+              <td class="text-nowrap">
+                {{-- Editar --}}
+                <button class="btn btn-warning btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalEditar{{ $reserva->booking_id }}">
+                  <i class="fas fa-edit"></i>
+                </button>
+                {{-- Eliminar --}}
+                <form action="{{ route('admin.reservas.destroy', $reserva->booking_id) }}"
+                      method="POST" style="display:inline">
+                  @csrf @method('DELETE')
+                  <button class="btn btn-danger btn-sm"
+                          onclick="return confirm('¿Eliminar esta reserva?')">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </form>
+                {{-- Comprobante --}}
+                <a href="{{ route('admin.reservas.comprobante', $reserva->booking_id) }}"
+                  class="btn btn-success btn-sm">
+                  <i class="fas fa-file-download"></i>
+                </a>
+              </td>
+            </tr>
+            {{-- Modal Editar --}}
+            <div class="modal fade" id="modalEditar{{ $reserva->booking_id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <form action="{{ route('admin.reservas.update', $reserva->booking_id) }}"
+                          method="POST">
+                        @csrf @method('PUT')
+                        <div class="modal-content">
+                            <div class="modal-header">
+                            <h5 class="modal-title">
+                              Reserva #{{ $reserva->booking_id }} – {{ $reserva->user->full_name ?? 'Cliente' }}
+                            </h5>
+                            <button class="btn-close" data-bs-dismiss="modal"></button>
+                          </div>
+                            <div class="modal-body">
+                                <label class="form-label">Cantidad Adultos</label>
+                                <input
+                                    type="number"
+                                    name="adults_quantity"
+                                    class="form-control cantidad-adultos"
+                                    value="{{ optional($reserva->detail)->adults_quantity ?? 0 }}"
+                                    min="1"
+                                    required
+                                >
+                                <label label class="form-label">Cantidad Niños</label>
+                                <input
+                                    type="number"
+                                    name="kids_quantity"
+                                    class="form-control cantidad-ninos"
+                                    value="{{ optional($reserva->detail)->kids_quantity ?? 0 }}"
+                                    min="0" max="2"
+                                    required
+                                >
+                                <div class="mb-3">
+                                    <label class="form-label">Hotel</label>
+                                    <select name="hotel_id"
+                                            id="edit_hotel_{{ $reserva->booking_id }}"
+                                            class="form-control">
+                                        <option value="">Seleccione un hotel</option>
+                                        @foreach($hotels as $h)
+                                            <option value="{{ $h->hotel_id }}"
+                                                {{ !$reserva->detail->is_other_hotel && $reserva->detail->hotel_id == $h->hotel_id ? 'selected' : '' }}>
+                                                {{ $h->name }}
+                                            </option>
+                                        @endforeach
+                                        <option value="other" {{ $reserva->detail->is_other_hotel ? 'selected':'' }}>
+                                            Otro…
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                <label class="form-label">Horario</label>
+                                <select name="schedule_id" class="form-control" required>
+                                  <option value="">Sin horario</option>
+                                  @foreach($reserva->detail->tour->schedules as $s)
+                                    <option value="{{ $s->schedule_id }}"
+                                      {{ $reserva->detail->schedule_id == $s->schedule_id ? 'selected' : '' }}>
+                                      {{ \Carbon\Carbon::parse($s->start_time)->format('g:i A') }} –
+                                      {{ \Carbon\Carbon::parse($s->end_time)->format('g:i A') }}
+                                    </option>
+                                  @endforeach
+                                </select>
+                              </div>
+
+                                <div class="mb-3 {{ $reserva->detail->is_other_hotel ? '' : 'd-none' }}"
+                                     id="edit_other_hotel_container_{{ $reserva->booking_id }}">
+                                    <label class="form-label">Nombre de hotel</label>
+                                    <input type="text"
+                                           name="other_hotel_name"
+                                           class="form-control"
+                                           value="{{ $reserva->detail->other_hotel_name }}">
+                                </div>
+
+                                <input type="hidden"
+                                       name="is_other_hotel"
+                                       id="edit_is_other_hotel_{{ $reserva->booking_id }}"
+                                       value="{{ $reserva->detail->is_other_hotel ? 1 : 0 }}">
+
+                                <label class="form-label">Precio Adulto</label>
+                                <input
+                                    type="text"
+                                    class="form-control precio-adulto"
+                                    value="{{ number_format(optional($reserva->detail)->adult_price ?? 0, 2) }}"
+                                    readonly
+                                >
+
+                                <label class="form-label">Precio Niño</label>
+                                <input
+                                    type="text"
+                                    class="form-control precio-nino"
+                                    value="{{ number_format(optional($reserva->detail)->kid_price ?? 0, 2) }}"
+                                    readonly
+                                >
+
+                                <div class="mb-3">
+                                    <label class="form-label">Total a Pagar</label>
+                                    <input
+                                        type="text"
+                                        name="total"
+                                        class="form-control total-pago"
+                                        value="{{ number_format($reserva->total, 2) }}"
+                                        readonly
+                                    >
+                                </div>
+
+                                <div class="mb-3">
+                                  <label class="form-label">Estado</label>
+                                  <select name="status" class="form-control" required>
+                                    <option value="pending"   {{ $reserva->status==='pending'   ? 'selected':'' }}>Pending</option>
+                                    <option value="confirmed" {{ $reserva->status==='confirmed'? 'selected':'' }}>Confirmed</option>
+                                    <option value="cancelled" {{ $reserva->status==='cancelled'? 'selected':'' }}>Cancelled</option>
+                                  </select>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button class="btn btn-warning">Actualizar</button>
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endforeach
+        </tbody>
+    </table>
+
+    {{-- Paginación general debajo de la tabla --}}
+    @if($bookings->hasPages())
+      <nav class="d-flex justify-content-center mt-3">
+        <ul class="pagination pagination-sm">
+          {{-- Previous --}}
+          <li class="page-item {{ $bookings->onFirstPage() ? 'disabled' : '' }}">
+            <a class="page-link" href="{{ $bookings->previousPageUrl() }}" tabindex="-1">Anterior</a>
+          </li>
+
+          {{-- Current / Total --}}
+          <li class="page-item disabled">
+            <span class="page-link">{{ $bookings->currentPage() }} / {{ $bookings->lastPage() }}</span>
+          </li>
+
+          {{-- Next --}}
+          <li class="page-item {{ $bookings->hasMorePages() ? '' : 'disabled' }}">
+            <a class="page-link" href="{{ $bookings->nextPageUrl() }}">Siguiente</a>
+          </li>
+        </ul>
+      </nav>
+    @endif
+
+</div>
+
+{{-- Modal Registrar --}}
+<div class="modal fade" id="modalRegistrar" tabindex="-1">
+  <div class="modal-dialog">
+    <form action="{{ route('admin.reservas.store') }}" method="POST">
+      @csrf
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Registrar Reserva</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          {{-- Cliente --}}
+          <div class="mb-3">
+            <label class="form-label">Cliente</label>
+            <select name="user_id" class="form-control" required>
+              @foreach(\App\Models\User::all() as $u)
+                <option value="{{ $u->user_id }}">{{ $u->full_name }}</option>
+              @endforeach
+            </select>
+          </div>
+
+          {{-- TOUR --}}
+          <div class="mb-3">
+            <label class="form-label">Tour</label>
+            <select name="tour_id" id="selectTour" class="form-control" required>
+              <option value="">Seleccione un tour</option>
+              @foreach(\App\Models\Tour::with('schedules')->get() as $tour)
+                <option 
+                  value="{{ $tour->tour_id }}"
+                  data-precio-adulto="{{ $tour->adult_price }}"
+                  data-precio-nino="{{ $tour->kid_price }}"
+                  data-schedules='@json($tour->schedules->map(function($s) {
+                    return [
+                      "schedule_id" => $s->schedule_id,
+                      "start_time"  => \Carbon\Carbon::parse($s->start_time)->format("g:i A"),
+                      "end_time"    => \Carbon\Carbon::parse($s->end_time)->format("g:i A")
+                    ];
+                  }))'
+                >
+                  {{ $tour->name }}
+                </option>
+              @endforeach
+            </select>
+          </div>
+
+          {{-- HORARIO --}}
+          <div class="mb-3">
+            <label class="form-label">Horario</label>
+            <select name="schedule_id" id="selectSchedule" class="form-control" required>
+              <option value="">Seleccione un horario</option>
+              {{-- Opciones se llenan dinámicamente --}}
+            </select>
+          </div>
+
+
+        {{-- Idioma --}}
+          <div class="mb-3">
+            <label class="form-label">Idioma</label>
+            <select name="tour_language_id" class="form-control" required>
+              @foreach(\App\Models\TourLanguage::all() as $lang)
+                <option value="{{ $lang->tour_language_id }}">{{ $lang->name }}</option>
+              @endforeach
+            </select>
+          </div>
+
+          {{-- Fecha Reserva --}}
+          <div class="mb-3">
+            <label class="form-label">Fecha Reserva</label>
+            <input type="date" name="booking_date" class="form-control" required>
+          </div>
+
+          {{-- Fecha del Tour --}}
+          <div class="mb-3">
+            <label class="form-label">Fecha del Tour</label>
+            <input type="date" name="tour_date" class="form-control" required>
+          </div>
+
+          {{-- Hotel --}}
+          <div class="mb-3">
+            <label class="form-label">Hotel</label>
+            <select name="hotel_id" class="form-control" required>
+              <option value="">Seleccione un hotel</option>
+              @foreach($hotels as $h)
+                <option value="{{ $h->hotel_id }}">{{ $h->name }}</option>
+              @endforeach
+              <option value="other">Otro…</option>
+            </select>
+          </div>
+
+          <div class="mb-3 d-none" id="otherHotelRegistrarWrapper">
+            <label class="form-label">Nombre de otro hotel</label>
+            <input type="text" name="other_hotel_name" class="form-control" placeholder="Escriba el nombre del hotel">
+          </div>
+          <input type="hidden" name="is_other_hotel" id="isOtherHotelRegistrar" value="0">
+
+          {{-- Cantidad Adultos --}}
+          <div class="mb-3">
+            <label class="form-label">Adultos</label>
+            <input type="number" name="adults_quantity" class="form-control cantidad-adultos" min="1" required>
+          </div>
+
+          {{-- Cantidad Niños --}}
+          <div class="mb-3">
+            <label class="form-label">Niños</label>
+            <input type="number" name="kids_quantity" class="form-control cantidad-ninos" min="0" max="2" required>
+          </div>
+
+          {{-- Precio Adulto --}}
+          <div class="mb-3">
+            <label class="form-label">Precio Adulto</label>
+            <input type="text" class="form-control precio-adulto" readonly>
+          </div>
+
+          {{-- Precio Niño --}}
+          <div class="mb-3">
+            <label class="form-label">Precio Niño</label>
+            <input type="text" class="form-control precio-nino" readonly>
+          </div>
+
+          {{-- Total --}}
+          <div class="mb-3">
+            <label class="form-label">Total a Pagar</label>
+            <input type="text" name="total" class="form-control total-pago" readonly>
+          </div>
+
+          {{-- Estado --}}
+          <div class="mb-3">
+            <label class="form-label">Estado</label>
+            <select name="status" class="form-control" required>
+              <option value="pending">Pending</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-primary">Guardar</button>
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
 @stop
 
 
 
 @section('css')
-
+<link rel="stylesheet" href="{{ asset('css/calendar.css') }}">
 @stop
-
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-
-<!-- Script para calcular el total -->
 <script>
-    function calcularTotal(modal) {
-        const adultos = parseInt(modal.querySelector('.cantidad-adultos')?.value || 0);
-        const ninos = parseInt(modal.querySelector('.cantidad-ninos')?.value || 0);
-        const precioAdulto = parseFloat(modal.querySelector('.precio-adulto')?.value || 0);
-        const precioNino = parseFloat(modal.querySelector('.precio-nino')?.value || 0);
+  // Función para recalcular total
+  function calcularTotal(modal) {
+    const adultos = parseInt(modal.querySelector('.cantidad-adultos')?.value || 0);
+    const ninos   = parseInt(modal.querySelector('.cantidad-ninos')?.value || 0);
+    const precioA = parseFloat(modal.querySelector('.precio-adulto')?.value || 0);
+    const precioN = parseFloat(modal.querySelector('.precio-nino')?.value || 0);
+    const total   = (adultos * precioA) + (ninos * precioN);
+    const totalInput = modal.querySelector('.total-pago');
+    if (totalInput) totalInput.value = total.toFixed(2);
+  }
 
-        const total = (adultos * precioAdulto) + (ninos * precioNino);
-        const totalInput = modal.querySelector('.total-pago');
-        if (totalInput) totalInput.value = total.toFixed(2);
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('input', () => calcularTotal(modal));
-        });
-
-        // Cargar precios automáticamente al seleccionar un tour
-        const selectTour = document.getElementById('selectTour');
-        if (selectTour) {
-            selectTour.addEventListener('change', function () {
-                const selected = this.options[this.selectedIndex];
-                const precioAdulto = selected.getAttribute('data-precio-adulto');
-                const precioNino = selected.getAttribute('data-precio-nino');
-
-                const modal = this.closest('.modal');
-                if (modal) {
-                    modal.querySelector('.precio-adulto').value = precioAdulto;
-                    modal.querySelector('.precio-nino').value = precioNino;
-                    calcularTotal(modal);
-                }
-            });
-        }
+  // Al cargar, configurar eventos
+  document.addEventListener('DOMContentLoaded', () => {
+    // Escuchar cambios de cantidad para recalcular
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('input', () => calcularTotal(modal));
     });
+
+    // Hotel dinámico en edición
+    @foreach($bookings as $reserva)
+      (function(){
+        const sel    = document.getElementById('edit_hotel_{{ $reserva->booking_id }}');
+        const wrap   = document.getElementById('edit_other_hotel_container_{{ $reserva->booking_id }}');
+        const hidden = document.getElementById('edit_is_other_hotel_{{ $reserva->booking_id }}');
+        sel?.addEventListener('change', () => {
+          if (sel.value === 'other') {
+            wrap.classList.remove('d-none');
+            hidden.value = 1;
+          } else {
+            wrap.classList.add('d-none');
+            wrap.querySelector('input').value = '';
+            hidden.value = 0;
+          }
+        });
+      })();
+    @endforeach
+
+    // 🟢 HORARIOS + PRECIOS dinámicos al seleccionar tour
+    const selectTour = document.getElementById('selectTour');
+    const selectSchedule = document.getElementById('selectSchedule');
+    if (selectTour && selectSchedule) {
+      selectTour.addEventListener('change', function () {
+        const selectedOption = this.options[this.selectedIndex];
+        
+        // ✅ Leer precios del dataset
+        const precioAdulto = parseFloat(selectedOption.dataset.precioAdulto) || 0;
+        const precioNino   = parseFloat(selectedOption.dataset.precioNino) || 0;
+
+        const modal = this.closest('.modal') || document;
+
+        modal.querySelector('.precio-adulto').value = precioAdulto.toFixed(2);
+        modal.querySelector('.precio-nino').value   = precioNino.toFixed(2);
+
+        calcularTotal(modal);
+
+        // ✅ Cargar horarios dinámicos
+        const schedules = JSON.parse(selectedOption.dataset.schedules || '[]');
+        selectSchedule.innerHTML = '<option value="">Seleccione un horario</option>';
+        if (schedules.length > 0) {
+          schedules.forEach(s => {
+            const option = document.createElement('option');
+            option.value = s.schedule_id;
+            option.text  = `${s.start_time} – ${s.end_time}`;
+            selectSchedule.appendChild(option);
+          });
+        }
+      });
+    }
+  });
 </script>
 
-
-
+{{-- SweetAlert éxito --}}
 @if(session('success'))
 <script>
+  Swal.fire({
+    icon: 'success',
+    title: 'Éxito',
+    text: '{{ session('success') }}',
+    confirmButtonColor: '#3085d6',
+    confirmButtonText: 'OK'
+  });
+</script>
+@endif
+
+{{-- SweetAlert errores --}}
+@if($errors->has('capacity'))
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
     Swal.fire({
-        icon: 'success',
-        title: 'Éxito',
-        text: '{{ session('success') }}',
-        confirmButtonColor: '#3085d6',
-        confirmButtonText: 'OK'
+      icon: 'error',
+      title: 'Cupo Excedido',
+      text: @json($errors->first('capacity')),
+      confirmButtonColor: '#d33'
     });
+  });
+</script>
+@endif
+
+{{-- Mostrar modal editar si vuelve con error --}}
+@if(session('showEditModal'))
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const id = '{{ session('showEditModal') }}';
+    const modal = new bootstrap.Modal(document.getElementById('modalEditar' + id));
+    modal.show();
+  });
 </script>
 @endif
 @stop
-

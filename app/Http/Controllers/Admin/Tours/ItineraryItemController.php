@@ -7,22 +7,24 @@ use Illuminate\Http\Request;
 use App\Models\ItineraryItem;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Exception;
 
 class ItineraryItemController extends Controller
 {
     public function index()
     {
-        $items = ItineraryItem::orderBy('title')->get();
-        return view('admin.tours.itinerary.items.index', compact('items'));
+        $items = ItineraryItem::where('is_active', true)
+        ->orderBy('title')
+        ->get();
+        return view('admin.tours.itinerary.items.crud', compact('items'));
     }
 
     public function store(Request $request)
     {
-       // dd  ($request->all());
         $validator = Validator::make($request->all(), [
             'title'       => 'required|string|max:255|unique:itinerary_items,title',
-           'description' => 'nullable|string|max:2000'
+            'description' => 'required|string|max:2000',
         ]);
 
         if ($validator->fails()) {
@@ -43,12 +45,19 @@ class ItineraryItemController extends Controller
         }
     }
 
-    public function update(Request $request, ItineraryItem $item)
+    public function update(Request $request, ItineraryItem $itinerary_item)
     {
+        $item = $itinerary_item;
+
         $validator = Validator::make($request->all(), [
-            'title'       => 'required|string|max:255|unique:itinerary_items,title,' . $item->item_id . ',item_id',
-            'description' => 'nullable|string|max:500',
-            'is_active'   => 'required|boolean',
+            'title'       => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('itinerary_items', 'title')->ignore($item->item_id, 'item_id'),
+            ],
+            'description' => 'required|string|max:2000',
+            'is_active'   => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -56,7 +65,12 @@ class ItineraryItemController extends Controller
         }
 
         try {
-            $item->update($validator->validated());
+            $item->update([
+                'title'       => $request->title,
+                'description' => $request->description,
+                'is_active'   => $request->has('is_active') ? (bool) $request->is_active : $item->is_active,
+            ]);
+
             return redirect()->back()->with('success', 'Ítem actualizado correctamente.');
         } catch (Exception $e) {
             Log::error('Error al actualizar ítem de itinerario: ' . $e->getMessage());
@@ -64,14 +78,29 @@ class ItineraryItemController extends Controller
         }
     }
 
-    public function destroy(ItineraryItem $item)
+    public function destroy(ItineraryItem $itinerary_item)
     {
         try {
-            $item->delete();
-            return redirect()->back()->with('success', 'Ítem eliminado exitosamente.');
+            // 1. Cambiamos el estado
+            $itinerary_item->update([
+                'is_active' => ! $itinerary_item->is_active,
+            ]);
+            $itinerary_item->refresh();
+
+            // 2. Si quedó inactivo, lo desvinculamos de todos los itinerarios
+            if (! $itinerary_item->is_active) {
+                $itinerary_item->itineraries()->detach();
+            }
+
+            $mensaje = $itinerary_item->is_active
+                ? 'Ítem activado exitosamente.'
+                : 'Ítem desactivado exitosamente.';
+
+            return redirect()->back()->with('success', $mensaje);
         } catch (Exception $e) {
-            Log::error('Error al eliminar ítem de itinerario: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'No se pudo eliminar el ítem.');
+            Log::error('Error al cambiar estado del ítem de itinerario: ' . $e->getMessage());
+            return back()->with('error', 'No se pudo cambiar el estado del ítem.');
         }
     }
+
 }

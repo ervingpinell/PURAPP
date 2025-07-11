@@ -1,3 +1,17 @@
+@php
+    $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {
+        return [
+            'description' => $it->description,
+            'items' => $it->items->map(function ($item) {
+                return [
+                    'title' => $item->title,
+                    'description' => $item->description,
+                ];
+            })->toArray()
+        ];
+    });
+@endphp
+
 {{-- Modal Registrar Tour --}}
 <div class="modal fade" id="modalRegistrar" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg">
@@ -14,7 +28,7 @@
           <x-adminlte-input name="name" label="Nombre del Tour" value="{{ old('name') }}" required />
 
           {{-- Overview --}}
-          <x-adminlte-textarea name="overview" label="Resumen (Overview)">{{ old('overview') }}</x-adminlte-textarea>
+          <x-adminlte-textarea name="overview" label="Resumen (Overview)"  style="height:200px">{{ old('overview') }}</x-adminlte-textarea>
 
           {{-- Precios y duración --}}
           <div class="row mb-3">
@@ -27,6 +41,17 @@
             <div class="col-md-4">
               <x-adminlte-input name="length" label="Duración (horas)" type="number" value="{{ old('length') }}" />
             </div>
+          </div>
+
+          {{-- Capacidad de Tour --}}
+          <div class="mb-3">
+            <label class="form-label">Cupo máximo</label>
+            <input type="number"
+                  name="max_capacity"
+                  class="form-control"
+                  value="{{ old('max_capacity', 12) }}"
+                  min="1"
+                  required>
           </div>
 
           {{-- Tipo de Tour --}}
@@ -59,12 +84,42 @@
             @endforeach
           </div>
 
-          {{-- Horarios --}}
-          <x-adminlte-input name="schedule_am_start" label="Horario AM (Inicio)" type="time" value="{{ old('schedule_am_start') }}" />
-          <x-adminlte-input name="schedule_am_end" label="Horario AM (Fin)" type="time" value="{{ old('schedule_am_end') }}" />
-          <x-adminlte-input name="schedule_pm_start" label="Horario PM (Inicio)" type="time" value="{{ old('schedule_pm_start') }}" />
-          <x-adminlte-input name="schedule_pm_end" label="Horario PM (Fin)" type="time" value="{{ old('schedule_pm_end') }}" />
+          {{-- Amenidades NO incluidas --}}
+          <div class="mb-3">
+              <label class="form-label text-danger">Amenidades NO incluidas</label><br>
+              @foreach($amenities as $am)
+                  <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="checkbox" name="excluded_amenities[]" value="{{ $am->amenity_id }}"
+                          {{ in_array($am->amenity_id, old('excluded_amenities', [])) ? 'checked' : '' }}>
+                      <label class="form-check-label">{{ $am->name }}</label>
+                  </div>
+              @endforeach
+          </div>
+          @php
+              use Carbon\Carbon;
+              $fmt = fn($t) => $t ? Carbon::parse($t)->format('g:i A') : '';
+              $amStart = old('schedule_am_start') ? $fmt(old('schedule_am_start')) : '';
+              $amEnd   = old('schedule_am_end')   ? $fmt(old('schedule_am_end'))   : '';
+              $pmStart = old('schedule_pm_start') ? $fmt(old('schedule_pm_start')) : '';
+              $pmEnd   = old('schedule_pm_end')   ? $fmt(old('schedule_pm_end'))   : '';
+          @endphp
 
+          {{-- Agregar horarios --}}
+          <div id="schedules-container">
+          <div class="row g-2 schedule-item mb-2">
+            <div class="col-md-4">
+              <input type="text" name="schedules[0][start_time]" class="form-control" placeholder="Inicio (Ej: 8:00 AM)">
+            </div>
+            <div class="col-md-4">
+              <input type="text" name="schedules[0][end_time]" class="form-control" placeholder="Fin (Ej: 12:00 PM)">
+            </div>
+            <div class="col-md-1 text-end">
+              <button type="button" class="btn btn-danger btn-sm btn-remove-schedule">×</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="add-schedule-btn">+ Añadir Horario</button>
           {{-- Itinerario --}}
           <div class="mb-3">
             <label>Itinerario</label>
@@ -77,7 +132,9 @@
             </select>
           </div>
 
-          {{-- Ítems del itinerario seleccionado (solo lectura) --}}
+          {{-- Descripción e ítems dinámicos --}}
+          <div id="selected-itinerary-description" class="mb-2 text-muted" style="white-space: pre-line; display: none;"></div>
+
           <div id="view-itinerary-items-create" class="mb-3" style="display: none;">
             <label class="form-label">Ítems del itinerario seleccionado:</label>
             <ul class="list-group"></ul>
@@ -86,6 +143,7 @@
           {{-- Sección para nuevo itinerario --}}
           <div id="new-itinerary-section" style="display: none;">
             <x-adminlte-input name="new_itinerary_name" label="Nombre del nuevo itinerario" value="{{ old('new_itinerary_name') }}" />
+            <x-adminlte-textarea name="new_itinerary_description" label="Descripción del nuevo itinerario" style="height:200px;">{{ old('new_itinerary_description')}}</x-adminlte-textarea>
 
             <label>Asignar Ítems Existentes</label>
             @foreach($availableItems as $item)
@@ -137,3 +195,30 @@
     </div>
   </div>
 </div>
+@section('js')
+<script>
+  document.getElementById('add-schedule-btn').addEventListener('click', function() {
+  const container = document.getElementById('schedules-container');
+  const items = container.querySelectorAll('.schedule-item');
+  const newIndex = items.length;
+
+  const clone = items[0].cloneNode(true);
+  clone.querySelectorAll('input').forEach(input => {
+    input.value = '';
+    if (input.name.includes('schedules')) {
+      input.name = input.name.replace(/\[\d+\]/, `[${newIndex}]`);
+    }
+  });
+  container.appendChild(clone);
+});
+
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('btn-remove-schedule')) {
+    const container = document.getElementById('schedules-container');
+    if (container.querySelectorAll('.schedule-item').length > 1) {
+      e.target.closest('.schedule-item').remove();
+    }
+  }
+});
+</script>
+@endsection

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Languages;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\TourLanguage;
+use Illuminate\Validation\Rule;
 
 class TourLanguageController extends Controller
 {
@@ -17,12 +18,12 @@ class TourLanguageController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255'
+            'name' => 'required|string|max:255|unique:tour_languages,name',
         ]);
 
         TourLanguage::create([
             'name' => $request->name,
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         return redirect()->route('admin.languages.index')
@@ -30,17 +31,25 @@ class TourLanguageController extends Controller
             ->with('alert_type', 'creado');
     }
 
-    public function update(Request $request, $id)
-    {
-        $language = TourLanguage::findOrFail($id);
-        $language->update([
-            'name' => $request->name
-        ]);
+   public function update(Request $request, TourLanguage $language)
+{
+    $request->validate([
+        'name' => [
+            'required',
+            'string',
+            'max:255',
+            Rule::unique('tour_languages', 'name')->ignore($language->getKey(), 'tour_language_id'),
+        ],
+    ]);
 
-        return redirect()->route('admin.languages.index')
-            ->with('success', 'Idioma actualizado correctamente.')
-            ->with('alert_type', 'actualizado');
-    }
+    $language->update([
+        'name' => $request->name,
+    ]);
+
+    return redirect()->route('admin.languages.index')
+        ->with('success', 'Idioma actualizado correctamente.')
+        ->with('alert_type', 'actualizado');
+}
 
     public function destroy($id)
     {

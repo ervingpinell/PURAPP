@@ -1,4 +1,6 @@
 <?php
+
+use App\Http\Controllers\Admin\Bookings\BookingController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\SetLocale;
 
@@ -17,11 +19,18 @@ use App\Http\Controllers\Admin\Languages\TourLanguageController;
 use App\Http\Controllers\Admin\Tours\TourController;
 use App\Http\Controllers\Admin\Tours\TourScheduleController;
 use App\Http\Controllers\Admin\Tours\TourAvailabilityController;
-use App\Http\Controllers\Admin\Bookings\ReservaController;
 use App\Http\Controllers\Admin\Tours\AmenityController;
 use App\Http\Controllers\Admin\Tours\ItineraryItemController;
 use App\Http\Controllers\Admin\Tours\ItineraryController;
 use App\Http\Controllers\Admin\Tours\TourTypeController;
+use App\Http\Controllers\Admin\Cart\CartController;
+use App\Http\Controllers\Admin\Bookings\HotelListController;
+use App\Http\Controllers\Admin\Tours\TourExcludedDateController;
+
+//Controlador para los emails
+use App\Mail\TestEmail;
+use Illuminate\Support\Facades\Mail;
+
 
 Route::middleware([SetLocale::class])->group(function () {
 
@@ -29,12 +38,21 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/language/{language}', [DashBoardController::class, 'switchLanguage'])->name('switch.language');
 
+    //Rutas para los emails
+    Route::get('/send-test-email', function () {
+    $booking = App\Models\Booking::latest()->with(['user','detail','tour'])->first();
+    Mail::to($booking->user->email)->send(new App\Mail\BookingCreatedMail($booking));
+    return 'Correo enviado!';
+});
+
+
     // 🔐 Autenticación (Clientes)
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
     Route::get('/register', [ClienteRegisterController::class, 'create'])->name('register');
     Route::post('/register', [ClienteRegisterController::class, 'store'])->name('register.store');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::get('/tours/{id}', [HomeController::class, 'showTour'])->name('tours.show');
 
     // 📧 Verificación de correo (opcional)
     Route::get('/email/verify', [VerifyEmailController::class, 'notice'])->middleware('auth')->name('verification.notice');
@@ -46,6 +64,13 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
         Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::post('/profile/edit', [ProfileController::class, 'update'])->name('profile.update');
+
+        // RF-006: My Reservations
+        Route::get('/my-reservations', [BookingController::class, 'myReservations'])
+            ->name('my-reservations');
+
+        Route::get('/my-reservations/{booking}/receipt', [BookingController::class, 'showReceipt'])
+            ->name('my-reservations.receipt');
     });
 
     // 🛠 Panel administrativo (solo para roles permitidos)
@@ -84,21 +109,75 @@ Route::middleware([SetLocale::class])->group(function () {
 
             // Amenidades
             Route::resource('amenities', AmenityController::class)->except(['show']);
+            
+            // 📌 Submódulo Fechas Excluidas para Tours
+            Route::resource('excluded_dates', TourExcludedDateController::class)
+                ->except(['show']);
         });
 
-        // Reservaciones y comprobantes
-        Route::get('reservas/pdf', [ReservaController::class, 'generarPDF'])->name('reservas.pdf');
-        Route::get('reservas/{reserva}/comprobante', [ReservaController::class, 'generarComprobante'])->name('reservas.comprobante');
-        Route::resource('reservas', ReservaController::class);
+            // Reservaciones y comprobantes
+            Route::get('reservas/pdf', [BookingController::class, 'generarPDF'])
+                ->name('reservas.pdf');
+
+            Route::get('reservas/{reserva}/comprobante', [BookingController::class, 'generarComprobante'])
+                ->name('reservas.comprobante');
+
+            // CRUD de reservas (sin el show)
+            Route::resource('reservas', BookingController::class)
+                ->except(['show']);
+
+            // RUTA PARA CONSULTAR PLAZAS RESERVADAS
+            Route::get('reservas/reserved', [BookingController::class, 'reservedCount'])
+            ->name('reservas.reserved');
+            
+            //Calendario
+            // JSON con los eventos
+            Route::get('reservas/calendar-data', [BookingController::class, 'calendarData'])
+                ->name('reservas.calendarData');
+
+            // La vista donde va el calendario
+            Route::get('reservas/calendar', [BookingController::class, 'calendar'])
+                ->name('reservas.calendar');
+
+
+
 
         // Gestión de usuarios y roles
         Route::resource('users', UserRegisterController::class)->except(['show']);
         Route::resource('roles', RoleController::class)->except(['show']);
 
         // Categorías, idiomas y tipos de tour
-        Route::resource('tourtypes', TourTypeController::class)->except(['show']);
-        Route::resource('languages', TourLanguageController::class)->except(['show']);
+    Route::resource('tourtypes', TourTypeController::class, [
+        'parameters' => ['tourtypes' => 'tourType']
+    ])->except(['show']);
+    Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
+
+
+Route::resource('languages', TourLanguageController::class, [
+    'parameters' => ['languages' => 'language']
+])->except(['show']);
+
+        Route::resource('hotels', HotelListController::class)->except(['show', 'create', 'edit']);
         Route::resource('amenities', AmenityController::class); // Doble, si se usa en otro contexto
+
+        
+        // ----------- Carrito (Clientes) -----------
+        Route::get('/carrito', [CartController::class, 'index'])->name('cart.index');
+        Route::post('/carrito', [CartController::class, 'store'])->name('cart.store');
+        Route::patch('/carrito/{item}', [CartController::class, 'update'])->name('cart.update');
+        Route::post('/carrito/item/{item}/update', [CartController::class, 'updateFromPost'])->name('cart.updateFromPost');
+        Route::delete('/carrito/item/{item}', [CartController::class, 'destroy'])->name('cart.item.destroy');
+
+        // ----------- Carrito (Administración) -----------
+        Route::get('/carritos-todos', [CartController::class, 'allCarts'])->name('cart.general');
+        Route::delete('/admin/carrito/item/{item}', [CartController::class, 'destroy'])->name('admin.cart.item.destroy');
+
+        // ----------- Confirmar reservas -----------
+        Route::post('/reservas/from-cart', [BookingController::class, 'storeFromCart'])->name('reservas.storeFromCart');
+
+
+
+
     });
 
 });

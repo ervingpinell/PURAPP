@@ -18,6 +18,7 @@
 @endphp
 
 @section('adminlte_css')
+
     @stack('css')
     @yield('css')
 @stop
@@ -95,5 +96,5 @@
     @yield('js')
 
     {{-- Bootstrap JS para dropdowns --}}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 @stop

@@ -1,6 +1,6 @@
 {{-- resources/views/partials/language-switcher.blade.php --}}
-<div class="dropdown">
-    <button class="btn btn-sm btn-outline-light dropdown-toggle d-flex align-items-center gap-2" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+<div class="dropdown language-switcher">
+    <button class="language-switcher-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
         @php
             $flag = match(app()->getLocale()) {
                 'es' => 'es.png',
@@ -9,23 +9,23 @@
                 default => 'es.png'
             };
         @endphp
-        <img src="{{ asset('images/' . $flag) }}" alt="Current language" width="20" height="15">
+        <img src="{{ asset('images/' . $flag) }}" alt="Current language">
         {{ strtoupper(app()->getLocale()) }}
     </button>
-    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+    <ul class="dropdown-menu language-switcher-menu dropdown-menu-end" aria-labelledby="languageDropdown">
         <li>
-            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('switch.language', 'es') }}">
-                <img src="{{ asset('images/es.png') }}" width="20" height="15"> Español
+            <a class="language-switcher-item" href="{{ route('switch.language', 'es') }}">
+                <img src="{{ asset('images/es.png') }}"> Español
             </a>
         </li>
         <li>
-            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('switch.language', 'en') }}">
-                <img src="{{ asset('images/gb.png') }}" width="20" height="15"> English
+            <a class="language-switcher-item" href="{{ route('switch.language', 'en') }}">
+                <img src="{{ asset('images/gb.png') }}"> English
             </a>
         </li>
         <li>
-            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('switch.language', 'fr') }}">
-                <img src="{{ asset('images/fr.png') }}" width="20" height="15"> Français
+            <a class="language-switcher-item" href="{{ route('switch.language', 'fr') }}">
+                <img src="{{ asset('images/fr.png') }}"> Français
             </a>
         </li>
     </ul>
