@@ -27,12 +27,28 @@ use App\Http\Controllers\Admin\Cart\CartController;
 use App\Http\Controllers\Admin\Bookings\HotelListController;
 use App\Http\Controllers\Admin\Tours\TourExcludedDateController;
 
+//Controlador para los emails
+use App\Mail\TestEmail;
+use Illuminate\Support\Facades\Mail;
+
 
 Route::middleware([SetLocale::class])->group(function () {
 
     // 🌐 Rutas públicas
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/language/{language}', [DashBoardController::class, 'switchLanguage'])->name('switch.language');
+
+    //Prueba para los emails
+    //Route::get('/send-test-email', function () {
+      //  Mail::to('ceciliabarilla@gmail.com')->send(new TestEmail());
+        //return 'Correo de prueba enviado!';
+    //});
+    Route::get('/send-test-email', function () {
+    $booking = App\Models\Booking::latest()->with(['user','detail','tour'])->first();
+    Mail::to($booking->user->email)->send(new App\Mail\BookingCreatedMail($booking));
+    return 'Correo enviado!';
+});
+
 
     // 🔐 Autenticación (Clientes)
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');

@@ -230,11 +230,12 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label">Estado</label>
-                                    <select name="status" class="form-control" required>
-                                        <option value="pending"   {{ $reserva->status==='pending'   ? 'selected':'' }}>Pending</option>
-                                        <option value="cancelled" {{ $reserva->status==='cancelled'? 'selected':'' }}>Cancelled</option>
-                                    </select>
+                                  <label class="form-label">Estado</label>
+                                  <select name="status" class="form-control" required>
+                                    <option value="pending"   {{ $reserva->status==='pending'   ? 'selected':'' }}>Pending</option>
+                                    <option value="confirmed" {{ $reserva->status==='confirmed'? 'selected':'' }}>Confirmed</option>
+                                    <option value="cancelled" {{ $reserva->status==='cancelled'? 'selected':'' }}>Cancelled</option>
+                                  </select>
                                 </div>
                             </div>
 
