@@ -424,15 +424,18 @@ class BookingController extends Controller
                 : '10:00:00';
 
             return [
-                'id'     => $d->booking->booking_id,
-                'title'  => "{$d->booking->user->full_name} – {$d->tour->name}",
-                'start'  => "{$d->tour_date->toDateString()}T{$startTime}",
-                'end'    => "{$d->tour_date->toDateString()}T{$endTime}",
-                'status' => $d->booking->status,
-                'hotel'  => optional($d->hotel)->name ?? null,
-                'adults' => $d->adults_quantity,
-                'kids'   => $d->kids_quantity,
-                'total'  => $d->total,
+     'id'     => $d->booking->booking_id,
+    'title'  => "{$d->booking->user->full_name} – {$d->tour->name}",
+    'start'  => "{$d->tour_date->toDateString()}T{$startTime}",
+    'end'    => "{$d->tour_date->toDateString()}T{$endTime}",
+    'backgroundColor' => $d->tour->color ?? '#5cb85c',
+    'borderColor'     => $d->tour->color ?? '#5cb85c',
+    'textColor'       => '#fff', // blanco para que resalte
+    'status' => $d->booking->status,
+    'hotel'  => optional($d->hotel)->name ?? null,
+    'adults' => $d->adults_quantity,
+    'kids'   => $d->kids_quantity,
+    'total'  => $d->total,
             ];
         });
 

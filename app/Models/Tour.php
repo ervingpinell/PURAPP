@@ -25,6 +25,7 @@ class Tour extends Model
         'is_active',
         'tour_type_id',
         'itinerary_id',
+          'color',
     ];
 
     public function tourType()

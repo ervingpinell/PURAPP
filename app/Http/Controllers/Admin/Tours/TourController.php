@@ -183,6 +183,7 @@ class TourController extends Controller
                     'tour_type_id' => $v['tour_type_id'],
                     'itinerary_id' => $itinerary->itinerary_id,
                     'is_active'    => true,
+                     'color'        => $request->input('color', '#5cb85c'),
                 ]);
 
                 $tour->languages()->sync($v['languages']);
@@ -215,7 +216,7 @@ class TourController extends Controller
     }
 
 
-    public function update(Request $request, Tour $tour)
+public function update(Request $request, Tour $tour)
 {
     try {
         // Normalizar horarios
@@ -228,7 +229,7 @@ class TourController extends Controller
                 ];
             })->filter(fn($s) => !empty($s['start_time']) && !empty($s['end_time']));
 
-        // Combinar ítems
+        // Combinar ítems de itinerario si aplica
         $request->merge([
             'itinerary_combined' => array_merge(
                 $request->input('existing_item_ids', []),
@@ -239,7 +240,7 @@ class TourController extends Controller
             ),
         ]);
 
-        // Reglas de validación
+        // Validación
         $rules = [
             'name'             => 'required|string|max:255',
             'overview'         => 'nullable|string',
@@ -285,15 +286,15 @@ class TourController extends Controller
 
         $v = $validator->validated();
 
-        DB::transaction(function () use ($tour, $v, $schedulesInput) {
-            // Itinerario
-            $itService = new ItineraryService;
+        DB::transaction(function () use ($tour, $v, $schedulesInput, $request) {
+            // Manejar itinerario
+            $itService = new \App\Services\ItineraryService;
             $itinerary = $itService->handleCreationOrAssignment($v);
             if ($itinerary) {
                 $tour->itinerary()->associate($itinerary);
             }
 
-            // Actualizar Tour
+            // ✅ Actualizar Tour con color incluido
             $tour->update([
                 'name'         => $v['name'],
                 'overview'     => $v['overview'] ?? '',
@@ -302,18 +303,22 @@ class TourController extends Controller
                 'max_capacity' => $v['max_capacity'],
                 'length'       => $v['length'],
                 'tour_type_id' => $v['tour_type_id'],
+                'color'        => $request->input('color', '#5cb85c'),
             ]);
+
+            // ✅ Refresca modelo para confirmar
+            $tour->refresh();
 
             // Sync idiomas y amenidades
             $tour->languages()->sync($v['languages']);
             $tour->amenities()->sync($v['amenities'] ?? []);
             $tour->excludedAmenities()->sync($v['excluded_amenities'] ?? []);
 
-            // Horarios: borra todos los anteriores y crea nuevos
+            // Horarios: borra todos y crea nuevos
             $tour->schedules()->detach();
             $scheduleIds = [];
             foreach ($schedulesInput as $sched) {
-                $schedule = Schedule::create([
+                $schedule = \App\Models\Schedule::create([
                     'start_time' => $sched['start_time'],
                     'end_time'   => $sched['end_time'],
                     'label'      => $sched['label'],
@@ -327,14 +332,16 @@ class TourController extends Controller
         return redirect()
             ->route('admin.tours.index')
             ->with('success', 'Tour actualizado correctamente.');
+
     } catch (\Exception $e) {
-        Log::error('Error al actualizar tour: ' . $e->getMessage());
+        \Log::error('Error al actualizar tour: ' . $e->getMessage());
         return back()
             ->with('error', 'Hubo un problema al actualizar el tour.')
             ->withInput()
             ->with('showEditModal', $tour->tour_id);
     }
 }
+
 
 
 

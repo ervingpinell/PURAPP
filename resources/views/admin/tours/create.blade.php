@@ -27,6 +27,13 @@
           {{-- Nombre --}}
           <x-adminlte-input name="name" label="Nombre del Tour" value="{{ old('name') }}" required />
 
+
+          <div class="mb-3">
+  <label for="color" class="form-label">Color del Tour</label>
+  <input type="color" id="color" name="color" class="form-control form-control-color"
+         value="{{ old('color', $tour->color ?? '#5cb85c') }}">
+</div>
+
           {{-- Overview --}}
           <x-adminlte-textarea name="overview" label="Resumen (Overview)"  style="height:200px">{{ old('overview') }}</x-adminlte-textarea>
 

@@ -24,10 +24,11 @@
   font-weight: 500;
 }
 
-/* —— Contenedor del calendario: ocupa 100% ancho —— */
+/* —— Contenedor del calendario —— */
 #calendar {
   width: 100%;
   margin: 0 auto 3rem;
+  font-size: 1rem;
 }
 
 /* —— Cabecera y botones —— */
@@ -47,23 +48,30 @@
 
 /* —— Celdas: hover & hoy —— */
 .fc-daygrid-day:hover {
-  background-color: rgba(255,255,255,0.05);
+  background-color: rgba(255, 255, 255, 0.05);
   transition: background-color .2s;
 }
 .fc-day-today {
-  background-color: rgba(255,255,255,0.1) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-/* —— Eventos: redondeado, sombra, espaciado —— */
+/* —— Eventos —— */
+.fc-timegrid-event,
 .fc-daygrid-event {
   border-radius: 0.25rem;
   margin: 0.15rem 0;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-  font-size: 0.9rem;
-  padding: 0.3em 0.5em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  font-size: 1.2rem;
+  line-height: 1.4;
+  padding: 0.6em 0.8em;
+  cursor: pointer;
+  color: #000; /* ✅ Texto negro */
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* —— Contenedor custom dentro del evento —— */
+/* —— Contenido custom —— */
 .fc-event-custom {
   display: flex;
   flex-direction: column;
@@ -73,22 +81,22 @@
   overflow: hidden;
 }
 
-/* —— Título con máximo 2 líneas y elipsis —— */
+/* —— Título máximo 2 líneas —— */
 .fc-event-custom .fc-event-title {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-align: center;
-  font-size: 0.85rem;
-  line-height: 1.1;
-  margin-bottom: 0.2em;
+  line-height: 1.3;
+  margin-bottom: 0.3em;
+  font-weight: 600;
 }
 
 /* —— Badges info —— */
 .fc-event-info {
   display: flex;
-  gap: 0.3em;
+  gap: 0.4em;
 }
 
 /* —— Padding de celdas —— */
@@ -96,25 +104,24 @@
   padding: 0.5rem;
 }
 
-/* —— Cursor pointer —— */
-.fc-daygrid-event,
-.fc-timegrid-event {
-  cursor: pointer;
-}
-
-/* —— Animación hover para eventos —— */
+/* —— Hover animación —— */
 .fc-event-custom:hover {
-  transform: scale(1.03);
+  transform: scale(1.04);
   z-index: 10;
   transition: transform .15s ease;
 }
 
-/* —— Fines de semana con fondo tenue —— */
+/* —— Fines de semana —— */
 .fc-day-sat, .fc-day-sun {
-  background-color: rgba(255,255,255,0.05);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* —— Dard mode —— */
+/* —— Tooltip Tippy.js —— */
+.tippy-box[data-theme~='light-border'] {
+  font-size: 1rem;
+}
+
+/* —— Modo oscuro —— */
 body.dark-mode .fc {
   color: #eee;
   background: #2f3740;
@@ -123,7 +130,24 @@ body.dark-mode .fc .fc-btn-primary {
   background: #445;
 }
 
-/* Oculta el enlace +n more para que no aparezca nada */
+/* —— Ocultar "+n more" —— */
 .fc .fc-daygrid-more-link {
-  display: inline !important;
+  display: none !important;
+}
+
+/* —— OCULTAR eventos en vista Mes —— */
+.fc-dayGridMonth-view .fc-daygrid-event {
+  display: none !important;
+}
+
+/* —— Color de números de día —— */
+.fc .fc-daygrid-day-number {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* —— Contraste extra para colores muy claros —— */
+.fc-timegrid-event.light-text {
+  color: #000;                  /* Negro forzado */
+  text-shadow: 0 0 2px #fff;    /* Ligero borde claro si lo necesitas */
 }

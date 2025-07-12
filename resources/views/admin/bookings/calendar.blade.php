@@ -1,10 +1,9 @@
-{{-- resources/views/admin/bookings/calendar.blade.php --}}
 @extends('adminlte::page')
 
 @section('title', 'Calendario de Reservas')
 
 @section('css')
-  {{-- FullCalendar CSS --}}
+  {{-- FullCalendar & Tippy --}}
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet"/>
   <link href="{{ asset('css/calendar.css') }}" rel="stylesheet"/>
   <link href="https://unpkg.com/tippy.js@6/dist/tippy.css" rel="stylesheet"/>
@@ -40,25 +39,30 @@
     </div>
   </div>
 
+  {{-- Calendario --}}
   <div id="calendar"></div>
 
-  {{-- Modal editar --}}
-  <div class="modal fade" id="editBookingModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-      <form id="editBookingForm" method="POST">
+{{-- ✅ Dentro de tu Blade --}}
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form id="bookingModalForm" method="POST">
         @csrf @method('PUT')
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Editar Reserva</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div id="editFormContainer"></div>
+        <div class="modal-header">
+          <h5 class="modal-title" id="bookingModalLabel">Editar Reserva</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="bookingModalContent">
+          {{-- Se carga tu partial aquí --}}
+          <div class="text-center p-3">
+            <div class="spinner-border" role="status"></div>
+            <p class="mt-2">Cargando...</p>
           </div>
         </div>
       </form>
     </div>
   </div>
+</div>
 @stop
 
 @section('js')
@@ -76,22 +80,19 @@
 
       const calendar = new FullCalendar.Calendar(calendarEl, {
         themeSystem: 'bootstrap',
-        initialView: 'timeGridWeek',
-        slotMinTime: '06:00:00',
-        slotMaxTime: '18:00:00',
-        nowIndicator: true,
+        initialView: 'dayGridMonth',
         slotEventOverlap: false,
-        expandRows: true,
+        eventMaxStack: 4,
+        nowIndicator: true,
         height: 'auto',
         headerToolbar: {
           left: 'prev,next today',
           center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          right: 'dayGridMonth,timeGridDay'
         },
         views: {
           dayGridMonth: { dayMaxEvents: 2 },
-          timeGridWeek: {
-            dayHeaderFormat: { weekday: 'short', day: 'numeric' },
+          timeGridDay: {
             slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false }
           }
         },
@@ -105,91 +106,86 @@
 
         dateClick(info) {
           if (calendar.view.type === 'dayGridMonth') {
-            const clickedDate = info.dateStr;
-            const allEvents = calendar.getEvents();
-            const eventsThatDay = allEvents.filter(ev => ev.startStr.slice(0, 10) === clickedDate);
-
-            const modal = document.getElementById('editBookingModal');
-            const modalTitle = modal.querySelector('.modal-title');
-            const container = document.getElementById('editFormContainer');
-
-            modalTitle.innerText = `Reservas del ${clickedDate}`;
-            container.innerHTML = '';
-
-            if (eventsThatDay.length === 0) {
-              container.innerHTML = '<p class="text-center">No hay reservas para este día.</p>';
-            } else {
-              eventsThatDay.forEach(ev => {
-                container.innerHTML += `
-                  <div class="p-2 border-bottom">
-                    <strong>${ev.title}</strong><br>
-                    Hotel: ${ev.extendedProps.hotel || ''}<br>
-                    Adultos: ${ev.extendedProps.adults} – Niños: ${ev.extendedProps.kids}<br>
-                    Total: $${parseFloat(ev.extendedProps.total).toFixed(2)}<br>
-                    Estado: ${ev.extendedProps.status}
-                  </div>`;
-              });
-            }
-            bootstrap.Modal.getOrCreateInstance(modal).show();
+            calendar.changeView('timeGridDay', info.dateStr);
           }
         },
 
-        eventClick(info) {
-          const id = info.event.id;
-          const modal = document.getElementById('editBookingModal');
-          const modalTitle = modal.querySelector('.modal-title');
-          const container = document.getElementById('editFormContainer');
-          const form = document.getElementById('editBookingForm');
+        eventClick: function(info) {
+          const bookingId = info.event.id;
+          if (bookingId) {
+            // Limpia y muestra spinner
+            document.getElementById('bookingModalContent').innerHTML = `
+              <div class="text-center p-3">
+                <div class="spinner-border" role="status"></div>
+                <p class="mt-2">Cargando...</p>
+              </div>
+            `;
+            const modal = new bootstrap.Modal(document.getElementById('bookingModal'));
+            modal.show();
 
-          modalTitle.innerText = '';
-          container.innerHTML = '';
+            // Cargar HTML parcial de edición
+  fetch(`/admin/reservas/${bookingId}/edit`, { headers: {'X-Requested-With':'XMLHttpRequest'} })
+              .then(response => response.text())
+              .then(html => {
+                document.getElementById('bookingModalContent').innerHTML = html;
+              })
+              .catch(err => {
+                console.error(err);
+                document.getElementById('bookingModalContent').innerHTML = `<p class="text-danger">Error al cargar el formulario.</p>`;
+              });
+          }
+        },
 
-          fetch(`/admin/reservas/${id}/edit`, {
-            headers: {'X-Requested-With':'XMLHttpRequest'}
-          })
-          .then(r => r.text())
-          .then(html => {
-            container.innerHTML = html;
-            form.action = `/admin/reservas/${id}`;
-            modalTitle.innerText = info.event.title;
-            bootstrap.Modal.getOrCreateInstance(modal).show();
-          })
-          .catch(console.error);
+        eventContent(arg) {
+          const adults = arg.event.extendedProps.adults || 0;
+          const kids   = arg.event.extendedProps.kids || 0;
+          const totalPax = `${adults}+${kids} pax`;
+
+          const tourName = arg.event.title.split('–')[1]?.trim() || arg.event.title;
+          const hotel = arg.event.extendedProps.hotel || '';
+
+          const container = document.createElement('div');
+          container.style.fontSize = '1rem';
+          container.style.color = '#000';
+          container.innerHTML = `
+            <div><strong>${totalPax}</strong> ${tourName}</div>
+            <div style="font-size:0.9rem">${hotel}</div>
+          `;
+          return { domNodes: [container] };
         },
 
         eventDidMount(info) {
-          const colors = {
-            pending: '#f0ad4e',
-            confirmed: '#5cb85c',
-            cancelled: '#d9534f'
+          if (info.event.backgroundColor) {
+            info.el.style.backgroundColor = info.event.backgroundColor;
+            info.el.style.borderColor = info.event.backgroundColor;
+          }
+
+          info.el.style.color = '#000';
+          info.el.style.border = '1px solid #ddd';
+
+          const bgColor = info.event.backgroundColor || '';
+          const isLight = (hex) => {
+            if (!hex) return false;
+            const c = hex.replace('#','');
+            const r = parseInt(c.substr(0,2),16);
+            const g = parseInt(c.substr(2,2),16);
+            const b = parseInt(c.substr(4,2),16);
+            return (r*0.299 + g*0.587 + b*0.114) > 186;
           };
-          const c = colors[info.event.extendedProps.status] || '#3788d8';
-          info.el.style.backgroundColor = c;
-          info.el.style.borderColor     = c;
+          if (isLight(bgColor)) {
+            info.el.style.textShadow = '0 0 2px #000';
+          }
 
           tippy(info.el, {
             allowHTML: true,
             theme: 'light-border',
             content: `
               <strong>${info.event.title}</strong><br>
-              🏨 Hotel: ${info.event.extendedProps.hotel || ''}<br>
               👤 Adultos: ${info.event.extendedProps.adults}<br>
               🧒 Niños: ${info.event.extendedProps.kids}<br>
-              💰 Total: $${parseFloat(info.event.extendedProps.total).toFixed(2)}
+              🏨 Hotel: ${info.event.extendedProps.hotel || ''}
             `
           });
-        },
-
-        eventContent(arg) {
-          const { title, extendedProps } = arg.event;
-          const container = document.createElement('div');
-          container.style.whiteSpace = 'normal';
-          container.innerHTML = `
-            <strong>${title}</strong><br>
-            🏨 ${extendedProps.hotel || ''}<br>
-            👤 ${extendedProps.adults} 🧒 ${extendedProps.kids} 💰 $${parseFloat(extendedProps.total).toFixed(2)}
-          `;
-          return { domNodes: [container] };
         }
       });
 
