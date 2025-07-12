@@ -17,19 +17,31 @@ class CartController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+
+        // 🟢 Si es cliente (ruta pública)
+        if ($request->routeIs('public.cart.index')) {
+            $cart = $user->cart()->where('is_active', true)->with('items.tour', 'items.schedule', 'items.language', 'items.hotel')->first();
+
+            return view('public.cart', [
+                'cart' => $cart,
+                'client' => $user
+            ]);
+        }
+
+        // 🟠 Si es panel admin
         $languages = TourLanguage::all();
-        $hotels    = HotelList::where('is_active', true)->orderBy('name')->get();
+        $hotels = HotelList::where('is_active', true)->orderBy('name')->get();
 
         $cart = $user->cart()->where('is_active', true)->first();
 
-        if (! $cart) {
+        if (!$cart) {
             $emptyCart = new \stdClass;
             $emptyCart->items = collect();
 
             return view('admin.Cart.cart', [
-                'cart'      => $emptyCart,
+                'cart' => $emptyCart,
                 'languages' => $languages,
-                'hotels'    => $hotels,
+                'hotels' => $hotels,
             ]);
         }
 
@@ -44,6 +56,7 @@ class CartController extends Controller
 
         return view('admin.Cart.cart', compact('cart', 'languages', 'hotels'));
     }
+
 
     // ✅ Agregar ítem al carrito con validación de cupo
     public function store(Request $request)

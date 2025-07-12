@@ -1,20 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // --------------------------------------------
-  // ✅ Hamburguesa y Overview toggle
-  // --------------------------------------------
+  // ============================================
+  // ✅ NAVBAR HAMBURGER TOGGLE
+  // ============================================
   const toggle = document.getElementById('navbar-toggle');
   const links = document.getElementById('navbar-links');
+
   if (toggle && links) {
     toggle.addEventListener('click', () => {
       links.classList.toggle('show');
     });
-  }
-  document.querySelectorAll('.navbar-links a').forEach(link => {
-    link.addEventListener('click', () => {
-      links.classList.remove('show');
-    });
-  });
 
+    document.querySelectorAll('.navbar-links a').forEach(link => {
+      link.addEventListener('click', () => {
+        links.classList.remove('show');
+      });
+    });
+  }
+
+  // ============================================
+  // ✅ OVERVIEW TOGGLE "Leer más / Leer menos"
+  // ============================================
   const toggleLinks = document.querySelectorAll('.toggle-overview-link');
   toggleLinks.forEach(link => {
     link.addEventListener('click', function () {
@@ -34,9 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // --------------------------------------------
-  // ✅ Accordion +/- icons
-  // --------------------------------------------
+  // ============================================
+  // ✅ ACCORDION ICON TOGGLE +/-
+  // ============================================
   document.querySelectorAll('.accordion-button').forEach(btn => {
     btn.addEventListener('click', () => {
       const icon = btn.querySelector('.toggle-icon');
@@ -47,9 +52,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // --------------------------------------------
-  // ✅ Travelers modal logic
-  // --------------------------------------------
+  // ============================================
+  // ✅ TRAVELERS MODAL: Quantity & Price Logic
+  // ============================================
   const plusBtns = document.querySelectorAll('.traveler-btn[data-action="increase"]');
   const minusBtns = document.querySelectorAll('.traveler-btn[data-action="decrease"]');
 
@@ -64,21 +69,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const minTotal = 2;
   const maxKids = 2;
 
-  // Solo para mostrar en el modal
   function updateModalTotal() {
     const adultCount = parseInt(document.getElementById('adult-count').textContent) || 0;
     const kidCount = parseInt(document.getElementById('kid-count').textContent) || 0;
     const total = (adultCount * adultPrice) + (kidCount * kidPrice);
     modalTotalPrice.textContent = `Total: $${total.toFixed(2)}`;
-
-    document.getElementById('adult_count').value = adultCount;
-    document.getElementById('kid_count').value = kidCount;
   }
 
-  // Se ejecuta solo cuando haces Apply
   function updateReservationTotal() {
     const adultCount = parseInt(document.getElementById('adult-count').textContent) || 0;
     const kidCount = parseInt(document.getElementById('kid-count').textContent) || 0;
+
+    // ✅ Sincroniza inputs ocultos
+    document.getElementById('adults_quantity').value = adultCount;
+    document.getElementById('kids_quantity').value = kidCount;
+
     const total = (adultCount * adultPrice) + (kidCount * kidPrice);
     reservationTotalPrice.textContent = `$${total.toFixed(2)}`;
   }
@@ -98,10 +103,12 @@ document.addEventListener('DOMContentLoaded', () => {
         kidCount++;
         document.getElementById('kid-count').textContent = kidCount;
       }
+
       if (adultCount + kidCount < minTotal) {
         adultCount = minTotal - kidCount;
         document.getElementById('adult-count').textContent = adultCount;
       }
+
       updateModalTotal();
     });
   });
@@ -129,11 +136,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         document.getElementById('kid-count').textContent = kidCount;
       }
+
       updateModalTotal();
     });
   });
 
-  // ✅ Apply → sincroniza todo
   const applyBtn = document.querySelector('#travelerModal .btn-success');
   applyBtn.addEventListener('click', () => {
     const adultCount = parseInt(document.getElementById('adult-count').textContent) || 0;
@@ -141,7 +148,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalPeople = adultCount + kidCount;
 
     summarySpan.textContent = totalPeople;
-    updateReservationTotal(); // ✅ SOLO aquí
+
+    updateReservationTotal(); // ✅ Sincroniza los hidden inputs
   });
 
   // Defaults
@@ -150,92 +158,95 @@ document.addEventListener('DOMContentLoaded', () => {
   updateModalTotal();
   updateReservationTotal();
 
- // --------------------------------------------
-// ✅ Pickup & Meeting Points live search + toggle fake select
-// --------------------------------------------
-const pickupSearch = document.getElementById('pickupSearch');
-const pickupListWrapper = document.getElementById('pickupListWrapper');
-const pickupListItems = document.querySelectorAll('#pickupList li');
-const pickupNotFound = document.getElementById('pickupNotFound');
-const selectedPickupPoint = document.getElementById('selectedPickupPoint');
-const selectedPickupDisplay = document.getElementById('selectedPickupDisplay');
+  // ============================================
+  // ✅ PICKUP POINTS LOGIC (Fake Select + Search)
+  // ============================================
+  const pickupSearch = document.getElementById('pickupSearch');
+  const pickupListWrapper = document.getElementById('pickupListWrapper');
+  const pickupListItems = document.querySelectorAll('#pickupList li');
+  const pickupNotFound = document.getElementById('pickupNotFound');
+  const selectedPickupPoint = document.getElementById('selectedPickupPoint');
+  const selectedPickupDisplay = document.getElementById('selectedPickupDisplay');
 
-if (pickupSearch && pickupListItems) {
-  pickupSearch.addEventListener('input', function () {
-    const term = pickupSearch.value.trim().toLowerCase();
-    let found = false;
+  const hotelInput = document.getElementById('selectedPickupPoint');
+  const isOtherHotelInput = document.getElementById('isOtherHotel');
+  const otherHotelNameInput = document.getElementById('otherHotelName');
 
-    pickupListItems.forEach(item => {
-      const match = item.textContent.toLowerCase().includes(term);
-      item.style.display = match ? '' : 'none';
-      if (match) found = true;
+  if (pickupSearch && pickupListItems) {
+    pickupSearch.addEventListener('input', function () {
+      const term = pickupSearch.value.trim().toLowerCase();
+      let found = false;
+
+      pickupListItems.forEach(item => {
+        const match = item.textContent.toLowerCase().includes(term);
+        item.style.display = match ? '' : 'none';
+        if (match) found = true;
+      });
+
+      pickupListWrapper.classList.remove('d-none');
+      pickupNotFound.classList.toggle('d-none', found || term === '');
     });
 
-    pickupListWrapper.classList.remove('d-none');
-    pickupNotFound.classList.toggle('d-none', found || term === '');
-  });
-
-  // ✅ Guarda selección y muestra en la caja
-  pickupListWrapper.addEventListener('change', function (e) {
-    if (e.target.name === 'pickupOption') {
-      selectedPickupPoint.value = e.target.value;
-      selectedPickupDisplay.querySelector('span').textContent = e.target.value;
-      pickupListWrapper.classList.add('d-none');
-    }
-  });
-
-  // ✅ Toggle open fake select
-  selectedPickupDisplay.addEventListener('click', function () {
-    pickupListWrapper.classList.toggle('d-none');
-    pickupSearch.focus();
-  });
-
-  // ✅ Cierra si clic fuera
-  document.addEventListener('click', function (e) {
-    if (!pickupSearch.contains(e.target) && 
-        !pickupListWrapper.contains(e.target) && 
-        !selectedPickupDisplay.contains(e.target)) {
-      pickupListWrapper.classList.add('d-none');
-    }
-  });
-}
-
-// --------------------------------------------
-// ✅ Meeting Points: igual sin fake select
-// --------------------------------------------
-const meetingSearch = document.getElementById('meetingSearch');
-const meetingListWrapper = document.getElementById('meetingListWrapper');
-const meetingListItems = document.querySelectorAll('#meetingList li');
-const meetingNotFound = document.getElementById('meetingNotFound');
-const selectedMeetingPoint = document.getElementById('selectedMeetingPoint');
-
-if (meetingSearch && meetingListItems) {
-  meetingSearch.addEventListener('input', function () {
-    const term = meetingSearch.value.trim().toLowerCase();
-    let found = false;
-
-    meetingListItems.forEach(item => {
-      const match = item.textContent.toLowerCase().includes(term);
-      item.style.display = match ? '' : 'none';
-      if (match) found = true;
+    pickupListWrapper.addEventListener('change', function (e) {
+      if (e.target.name === 'pickupOption') {
+        hotelInput.value = e.target.value;  // ✅ Esto se manda como hotel_id
+        isOtherHotelInput.value = 0;        // ✅ Si selecciona de lista, NO es otro hotel
+        otherHotelNameInput.value = '';     // ✅ Limpia otro hotel
+        selectedPickupDisplay.querySelector('span').textContent = e.target.value;
+        pickupListWrapper.classList.add('d-none');
+      }
     });
 
-    meetingListWrapper.classList.remove('d-none');
-    meetingNotFound.classList.toggle('d-none', found || term === '');
-  });
+    selectedPickupDisplay.addEventListener('click', function () {
+      pickupListWrapper.classList.toggle('d-none');
+      pickupSearch.focus();
+    });
 
-  meetingListWrapper.addEventListener('change', function (e) {
-    if (e.target.name === 'meetingOption') {
-      selectedMeetingPoint.value = e.target.value;
-      meetingListWrapper.classList.add('d-none');
-    }
-  });
+    document.addEventListener('click', function (e) {
+      if (!pickupSearch.contains(e.target) && 
+          !pickupListWrapper.contains(e.target) && 
+          !selectedPickupDisplay.contains(e.target)) {
+        pickupListWrapper.classList.add('d-none');
+      }
+    });
+  }
 
-  document.addEventListener('click', function (e) {
-    if (!meetingSearch.contains(e.target) && !meetingListWrapper.contains(e.target)) {
-      meetingListWrapper.classList.add('d-none');
-    }
-  });
-}
+  // ============================================
+  // ✅ MEETING POINTS LOGIC (Basic)
+  // ============================================
+  const meetingSearch = document.getElementById('meetingSearch');
+  const meetingListWrapper = document.getElementById('meetingListWrapper');
+  const meetingListItems = document.querySelectorAll('#meetingList li');
+  const meetingNotFound = document.getElementById('meetingNotFound');
+  const selectedMeetingPoint = document.getElementById('selectedMeetingPoint');
+
+  if (meetingSearch && meetingListItems) {
+    meetingSearch.addEventListener('input', function () {
+      const term = meetingSearch.value.trim().toLowerCase();
+      let found = false;
+
+      meetingListItems.forEach(item => {
+        const match = item.textContent.toLowerCase().includes(term);
+        item.style.display = match ? '' : 'none';
+        if (match) found = true;
+      });
+
+      meetingListWrapper.classList.remove('d-none');
+      meetingNotFound.classList.toggle('d-none', found || term === '');
+    });
+
+    meetingListWrapper.addEventListener('change', function (e) {
+      if (e.target.name === 'meetingOption') {
+        selectedMeetingPoint.value = e.target.value;
+        meetingListWrapper.classList.add('d-none');
+      }
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!meetingSearch.contains(e.target) && !meetingListWrapper.contains(e.target)) {
+        meetingListWrapper.classList.add('d-none');
+      }
+    });
+  }
 
 });

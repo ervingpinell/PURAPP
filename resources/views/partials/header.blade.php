@@ -63,9 +63,11 @@
       @include('partials.language-switcher')
 
       <!-- Carrito -->
-      <a href="{{ route('home') }}">
-        <i class="fas fa-shopping-cart"></i>
-      </a>
+      <li class="nav-item">
+          <a class="nav-link" href="{{ route('public.cart.index') }}">
+              <i class="fas fa-shopping-cart"></i> Mi Carrito
+          </a>
+      </li>
 
       <!-- Usuario Desktop -->
       @auth
