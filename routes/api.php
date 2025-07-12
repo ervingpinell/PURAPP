@@ -2,6 +2,10 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\Cart\CartController;
+
+Route::get('/get-reserved', [CartController::class, 'getReserved']);
+
 
 Route::get('/user', function (Request $request) {
     return $request->user();

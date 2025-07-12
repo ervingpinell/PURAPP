@@ -248,5 +248,51 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+  // ============================================
+  // ✅ VALIDACIÓN CUPOS DISPONIBLES (MAX CAPACITY)
+  // ============================================
+  const addToCartForm = document.querySelector('.reservation-box');
+  const tourId = window.tourId;            // ✅ Global desde Blade
+  const maxCapacity = window.maxCapacity;  // ✅ Global desde Blade
+  const tourDateInput = addToCartForm.querySelector('[name="tour_date"]');
+  const scheduleSelect = addToCartForm.querySelector('[name="schedule_id"]');
+
+  addToCartForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const adults = parseInt(document.getElementById('adults_quantity').value) || 0;
+    const kids = parseInt(document.getElementById('kids_quantity').value) || 0;
+    const requested = adults + kids;
+
+    const tourDate = tourDateInput.value;
+    const scheduleId = scheduleSelect.value;
+
+    if (!tourDate || !scheduleId) {
+      Swal.fire('Error', 'Selecciona una fecha y un horario válido.', 'error');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/get-reserved?tour_id=${tourId}&schedule_id=${scheduleId}&tour_date=${tourDate}`);
+      const data = await res.json();
+      const reserved = parseInt(data.reserved) || 0;
+
+      if (reserved + requested > maxCapacity) {
+        const spotsLeft = Math.max(maxCapacity - reserved, 0);
+        Swal.fire(
+          'Cupo no disponible',
+          `Lo sentimos, solo quedan ${spotsLeft} espacio(s) disponible(s) para este horario.`,
+          'error'
+        );
+        return;
+      }
+
+      addToCartForm.submit();
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error', 'No se pudo validar el cupo disponible. Intenta de nuevo.', 'error');
+    }
+  });
+
 
 });

@@ -323,6 +323,11 @@
       </div>
     </div>
   </div>
+  <script>
+  window.tourId = {{ $tour->tour_id }};
+  window.maxCapacity = {{ $tour->max_capacity }};
+</script>
+
 </section>
 
 {{-- ✅ Travelers Modal --}}
