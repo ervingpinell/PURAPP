@@ -14,14 +14,14 @@
 @stop
 
 @section('content')
-  {{-- Leyenda --}}
+  {{-- ✅ Leyenda de colores --}}
   <div class="legend-container mb-4">
     <div class="legend-item"><span class="legend-badge pending"></span>Pending</div>
     <div class="legend-item"><span class="legend-badge confirmed"></span>Confirmed</div>
     <div class="legend-item"><span class="legend-badge cancelled"></span>Cancelled</div>
   </div>
 
-  {{-- Filtros --}}
+  {{-- ✅ Filtros --}}
   <div class="row mb-3 align-items-end justify-content-center">
     <div class="col-sm-2">
       <label for="filter-from" class="form-label">From</label>
@@ -39,30 +39,29 @@
     </div>
   </div>
 
-  {{-- Calendario --}}
+  {{-- ✅ Calendario --}}
   <div id="calendar"></div>
 
-{{-- ✅ Dentro de tu Blade --}}
-<div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
+  {{-- ✅ Modal reutilizable --}}
+  <div class="modal fade" id="bookingModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
       <form id="bookingModalForm" method="POST">
         @csrf @method('PUT')
-        <div class="modal-header">
-          <h5 class="modal-title" id="bookingModalLabel">Editar Reserva</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body" id="bookingModalContent">
-          {{-- Se carga tu partial aquí --}}
-          <div class="text-center p-3">
-            <div class="spinner-border" role="status"></div>
-            <p class="mt-2">Cargando...</p>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Editar Reserva</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="bookingModalContent">
+            <div class="text-center p-3">
+              <div class="spinner-border"></div>
+              <p class="mt-2">Cargando...</p>
+            </div>
           </div>
         </div>
       </form>
     </div>
   </div>
-</div>
 @stop
 
 @section('js')
@@ -81,10 +80,10 @@
       const calendar = new FullCalendar.Calendar(calendarEl, {
         themeSystem: 'bootstrap',
         initialView: 'dayGridMonth',
+        height: 'auto',
+        nowIndicator: true,
         slotEventOverlap: false,
         eventMaxStack: 4,
-        nowIndicator: true,
-        height: 'auto',
         headerToolbar: {
           left: 'prev,next today',
           center: 'title',
@@ -113,26 +112,28 @@
         eventClick: function(info) {
           const bookingId = info.event.id;
           if (bookingId) {
-            // Limpia y muestra spinner
-            document.getElementById('bookingModalContent').innerHTML = `
-              <div class="text-center p-3">
-                <div class="spinner-border" role="status"></div>
-                <p class="mt-2">Cargando...</p>
-              </div>
-            `;
             const modal = new bootstrap.Modal(document.getElementById('bookingModal'));
             modal.show();
 
-            // Cargar HTML parcial de edición
-  fetch(`/admin/reservas/${bookingId}/edit`, { headers: {'X-Requested-With':'XMLHttpRequest'} })
-              .then(response => response.text())
-              .then(html => {
-                document.getElementById('bookingModalContent').innerHTML = html;
-              })
-              .catch(err => {
-                console.error(err);
-                document.getElementById('bookingModalContent').innerHTML = `<p class="text-danger">Error al cargar el formulario.</p>`;
-              });
+            document.getElementById('bookingModalContent').innerHTML = `
+              <div class="text-center p-3">
+                <div class="spinner-border"></div>
+                <p class="mt-2">Cargando...</p>
+              </div>
+            `;
+
+            fetch(`/admin/reservas/${bookingId}/edit`, {
+              headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.text())
+            .then(html => {
+              document.getElementById('bookingModalContent').innerHTML = html;
+              document.getElementById('bookingModalForm').action = `/admin/reservas/${bookingId}`;
+            })
+            .catch(err => {
+              console.error(err);
+              document.getElementById('bookingModalContent').innerHTML = `<p class="text-danger">Error al cargar el formulario.</p>`;
+            });
           }
         },
 
@@ -140,7 +141,6 @@
           const adults = arg.event.extendedProps.adults || 0;
           const kids   = arg.event.extendedProps.kids || 0;
           const totalPax = `${adults}+${kids} pax`;
-
           const tourName = arg.event.title.split('–')[1]?.trim() || arg.event.title;
           const hotel = arg.event.extendedProps.hotel || '';
 
@@ -159,22 +159,8 @@
             info.el.style.backgroundColor = info.event.backgroundColor;
             info.el.style.borderColor = info.event.backgroundColor;
           }
-
           info.el.style.color = '#000';
           info.el.style.border = '1px solid #ddd';
-
-          const bgColor = info.event.backgroundColor || '';
-          const isLight = (hex) => {
-            if (!hex) return false;
-            const c = hex.replace('#','');
-            const r = parseInt(c.substr(0,2),16);
-            const g = parseInt(c.substr(2,2),16);
-            const b = parseInt(c.substr(4,2),16);
-            return (r*0.299 + g*0.587 + b*0.114) > 186;
-          };
-          if (isLight(bgColor)) {
-            info.el.style.textShadow = '0 0 2px #000';
-          }
 
           tippy(info.el, {
             allowHTML: true,

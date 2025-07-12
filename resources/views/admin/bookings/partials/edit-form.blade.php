@@ -1,6 +1,4 @@
-{{-- resources/views/admin/bookings/partials/edit-form.blade.php --}}
-@csrf
-@method('PUT')
+{{-- ✅ Partial limpio: SIN <form>, SIN @csrf, SIN @method --}}
 
 <div class="mb-3">
   <label class="form-label">Estado</label>
@@ -58,11 +56,14 @@
          value="{{ $booking->detail->other_hotel_name }}">
 </div>
 
-<input type="hidden" name="is_other_hotel" id="edit_is_other_hotel" value="{{ $booking->detail->is_other_hotel ? 1 : 0 }}">
+<input type="hidden"
+       name="is_other_hotel"
+       id="edit_is_other_hotel"
+       value="{{ $booking->detail->is_other_hotel ? 1 : 0 }}">
 
 <div class="mb-3">
   <label class="form-label">Horario</label>
-  <select name="schedule_id" class="form-control">
+  <select name="schedule_id" class="form-control" required>
     <option value="">Sin horario</option>
     @foreach($booking->tour->schedules as $s)
       <option value="{{ $s->schedule_id }}"
@@ -88,7 +89,7 @@
     const wrap   = document.getElementById('edit_other_hotel_wrapper');
     const hidden = document.getElementById('edit_is_other_hotel');
 
-    sel.addEventListener('change', () => {
+    sel?.addEventListener('change', () => {
       if (sel.value === 'other') {
         wrap.classList.remove('d-none');
         hidden.value = 1;
