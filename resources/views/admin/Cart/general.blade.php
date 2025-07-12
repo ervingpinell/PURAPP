@@ -7,7 +7,7 @@
 @stop
 
 @section('content')
-{{-- Filtros --}}
+{{-- ✅ Filtros --}}
 <div class="card shadow mb-4">
     <div class="card-header bg-primary text-white">
         <strong><i class="fas fa-filter"></i> Filtros</strong>
@@ -38,7 +38,7 @@
     </div>
 </div>
 
-{{-- Tabla --}}
+{{-- ✅ Tabla de carritos --}}
 @if($carritos->count())
     <div class="table-responsive">
         <table class="table table-bordered table-hover shadow-sm">
@@ -66,27 +66,27 @@
                             <td>{{ $cart->user->email }}</td>
                             <td>{{ $cart->user->phone }}</td>
                             <td>{{ $item->tour->name }}</td>
+                            <td>{{ $item->tour_date }}</td>
                             <td>
-                            @if($item->schedule)
-                                <span class="badge bg-success">
-                                {{ \Carbon\Carbon::parse($item->schedule->start_time)->format('g:i A') }}
-                                –
-                                {{ \Carbon\Carbon::parse($item->schedule->end_time)->format('g:i A') }}
-                                </span>
-                            @else
-                                <span class="text-muted">Sin horario</span>
-                            @endif
+                                @if($item->schedule)
+                                    <span class="badge bg-success">
+                                        {{ \Carbon\Carbon::parse($item->schedule->start_time)->format('g:i A') }}
+                                        –
+                                        {{ \Carbon\Carbon::parse($item->schedule->end_time)->format('g:i A') }}
+                                    </span>
+                                @else
+                                    <span class="text-muted">Sin horario</span>
+                                @endif
                             </td>
                             <td>{{ $item->language->name }}</td>
                             <td>{{ $item->adults_quantity }}</td>
                             <td>{{ $item->kids_quantity }}</td>
                             <td><strong>₡{{ number_format(($item->adult_price * $item->adults_quantity) + ($item->kid_price * $item->kids_quantity), 2) }}</strong></td>
                             <td>
-                                @if($item->is_active)
-                                    <span class="badge bg-success"><i class="fas fa-check-circle"></i> Activo</span>
-                                @else
-                                    <span class="badge bg-secondary"><i class="fas fa-times-circle"></i> Inactivo</span>
-                                @endif
+                                <span class="badge {{ $item->is_active ? 'bg-success' : 'bg-danger' }}">
+                                    <i class="fas {{ $item->is_active ? 'fa-check-circle' : 'fa-times-circle' }}"></i>
+                                    {{ $item->is_active ? 'Activo' : 'Inactivo' }}
+                                </span>
                             </td>
                             <td class="d-flex justify-content-center gap-1">
                                 {{-- Editar --}}
@@ -109,7 +109,7 @@
         </table>
     </div>
 
-    {{-- Modales --}}
+    {{-- ✅ Modales de edición --}}
     @foreach($carritos as $cart)
         @foreach($cart->items as $item)
             <div class="modal fade" id="modalEditar{{ $item->item_id }}" tabindex="-1" aria-labelledby="modalLabel{{ $item->item_id }}" aria-hidden="true">

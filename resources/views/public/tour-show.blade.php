@@ -6,7 +6,24 @@
 <section class="tour-section py-5">
   <div class="container">
     <div class="row">
+  {{-- Mensajes de feedback --}}
+    @if(session('success'))
+      <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
 
+    @if(session('error'))
+      <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+
+    @if ($errors->any())
+      <div class="alert alert-danger">
+        <ul>
+          @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+      </div>
+    @endif
       {{-- 📸 CARRUSEL --}}
       <div class="col-md-7">
         <div id="tourCarousel" class="carousel slide shadow-sm rounded mb-3" data-bs-ride="carousel">
@@ -38,10 +55,13 @@
 
       {{-- 📅 RESERVATION BOX --}}
       <div class="col-md-5">
-        <div class="reservation-box p-4 shadow rounded bg-white mb-4 border"
-             data-adult-price="{{ $tour->adult_price }}"
-             data-kid-price="{{ $tour->kid_price }}">
-
+        <form action="{{ route('carrito.agregar', $tour->tour_id) }}" method="POST" class="reservation-box p-4 shadow rounded bg-white mb-4 border"
+          data-adult-price="{{ $tour->adult_price }}"
+          data-kid-price="{{ $tour->kid_price }}">
+          @csrf
+        {{-- ✅ Campo oculto obligatorio --}}
+          <input type="hidden" name="tour_id" value="{{ $tour->tour_id }}">
+          
           <h6 class="mb-3">
             <strong>Price:</strong>
             <span class="fw-bold">Adult:</span> <span style="color:#F92526">${{ number_format($tour->adult_price, 2) }}</span> |
@@ -66,47 +86,46 @@
             Total: <span id="reservation-total-price" style="color:#F92526;">$0.00</span>
           </p>
 
-          {{-- Fecha --}}
+          {{-- ✅ Fecha --}}
           <label class="form-label">Select date</label>
-          <input type="date" class="form-control mb-3">
+          <input type="date" name="tour_date" class="form-control mb-3" required>
 
-          {{-- Horario --}}
+          {{-- ✅ Horario --}}
           <label class="form-label">Select time</label>
-          <select class="form-select mb-3">
+          <select name="schedule_id" class="form-select mb-3" required>
+            <option value="">-- Select --</option>
             @foreach($tour->schedules->sortBy('start_time') as $schedule)
-              <option>
+              <option value="{{ $schedule->schedule_id }}">
                 {{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}
               </option>
             @endforeach
           </select>
 
-          {{-- Botón reservar --}}
-          <button class="btn btn-success w-100">Check Availability</button>
-        </div>
-
-        {{-- 🌐 INFORMATION BOX --}}
-        <div class="languages-schedules-box p-3 shadow rounded bg-white border">
-          <h4>Information</h6>
-          <H6>Hours:</h6> {{ $tour->length }}</p>
-          <h6>Group Size:</h6> {{ $tour->max_capacity }}</p>
-
-          <h6>Languages Available</h6>
-          <p>
+          {{-- ✅ Language --}}
+          <label class="form-label">Select language</label>
+          <select name="tour_language_id" class="form-select mb-3" required>
+            <option value="">-- Select --</option>
             @foreach($tour->languages as $lang)
-              <span class="badge bg-secondary mb-1">{{ $lang->name }}</span>
+              <option value="{{ $lang->tour_language_id }}">{{ $lang->name }}</option>
             @endforeach
-          </p>
+          </select>
 
-          <h6>Schedules</h6>
-          <p>
-            @foreach($tour->schedules->sortBy('start_time') as $schedule)
-              <span class="badge bg-success mb-1">
-                {{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}
-              </span>
-            @endforeach
-          </p>
-        </div>
+          {{-- ✅ Adultos y niños ocultos (se actualizarán con JS del modal) --}}
+          <input type="hidden" name="adults_quantity" id="adults_quantity" value="2" required>
+          <input type="hidden" name="kids_quantity" id="kids_quantity" value="0">
+
+          {{-- ✅ Hotel o punto de encuentro --}}
+          <input type="hidden" name="hotel_id" id="selectedPickupPoint">
+          <input type="hidden" name="is_other_hotel" id="isOtherHotel" value="0">
+          <input type="hidden" name="other_hotel_name" id="otherHotelName">
+
+          {{-- Botón agregar al carrito --}}
+          <button type="submit" class="btn btn-success w-100">
+            Add to Cart
+          </button>
+        </form>
       </div>
+
     </div>
 
     {{-- 🔽 ACCORDIONS --}}
