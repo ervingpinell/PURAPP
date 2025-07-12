@@ -126,126 +126,168 @@
             </tr>
             {{-- Modal Editar --}}
             <div class="modal fade" id="modalEditar{{ $reserva->booking_id }}" tabindex="-1">
-                <div class="modal-dialog">
-                    <form action="{{ route('admin.reservas.update', $reserva->booking_id) }}"
-                          method="POST">
-                        @csrf @method('PUT')
-                        <div class="modal-content">
-                            <div class="modal-header">
-                            <h5 class="modal-title">
-                              Reserva #{{ $reserva->booking_id }} – {{ $reserva->user->full_name ?? 'Cliente' }}
-                            </h5>
-                            <button class="btn-close" data-bs-dismiss="modal"></button>
-                          </div>
-                            <div class="modal-body">
-                                <label class="form-label">Cantidad Adultos</label>
-                                <input
-                                    type="number"
-                                    name="adults_quantity"
-                                    class="form-control cantidad-adultos"
-                                    value="{{ optional($reserva->detail)->adults_quantity ?? 0 }}"
-                                    min="1"
-                                    required
-                                >
-                                <label label class="form-label">Cantidad Niños</label>
-                                <input
-                                    type="number"
-                                    name="kids_quantity"
-                                    class="form-control cantidad-ninos"
-                                    value="{{ optional($reserva->detail)->kids_quantity ?? 0 }}"
-                                    min="0" max="2"
-                                    required
-                                >
-                                <div class="mb-3">
-                                    <label class="form-label">Hotel</label>
-                                    <select name="hotel_id"
-                                            id="edit_hotel_{{ $reserva->booking_id }}"
-                                            class="form-control">
-                                        <option value="">Seleccione un hotel</option>
-                                        @foreach($hotels as $h)
-                                            <option value="{{ $h->hotel_id }}"
-                                                {{ !$reserva->detail->is_other_hotel && $reserva->detail->hotel_id == $h->hotel_id ? 'selected' : '' }}>
-                                                {{ $h->name }}
-                                            </option>
-                                        @endforeach
-                                        <option value="other" {{ $reserva->detail->is_other_hotel ? 'selected':'' }}>
-                                            Otro…
-                                        </option>
-                                    </select>
-                                </div>
+              <div class="modal-dialog">
+                <form action="{{ route('admin.reservas.update', $reserva->booking_id) }}" method="POST">
+                  @csrf @method('PUT')
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">
+                        Reserva #{{ $reserva->booking_id }} – {{ $reserva->user->full_name ?? 'Cliente' }}
+                      </h5>
+                      <button class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
 
-                                <div class="mb-3">
-                                <label class="form-label">Horario</label>
-                                <select name="schedule_id" class="form-control" required>
-                                  <option value="">Sin horario</option>
-                                  @foreach($reserva->detail->tour->schedules as $s)
-                                    <option value="{{ $s->schedule_id }}"
-                                      {{ $reserva->detail->schedule_id == $s->schedule_id ? 'selected' : '' }}>
-                                      {{ \Carbon\Carbon::parse($s->start_time)->format('g:i A') }} –
-                                      {{ \Carbon\Carbon::parse($s->end_time)->format('g:i A') }}
-                                    </option>
-                                  @endforeach
-                                </select>
-                              </div>
+                      {{-- Cliente --}}
+                      <div class="mb-3">
+                        <label class="form-label">Cliente</label>
+                        <select name="user_id" class="form-control" required>
+                          @foreach(\App\Models\User::all() as $u)
+                            <option value="{{ $u->user_id }}" {{ $reserva->user_id == $u->user_id ? 'selected' : '' }}>
+                              {{ $u->full_name }}
+                            </option>
+                          @endforeach
+                        </select>
+                      </div>
 
-                                <div class="mb-3 {{ $reserva->detail->is_other_hotel ? '' : 'd-none' }}"
-                                     id="edit_other_hotel_container_{{ $reserva->booking_id }}">
-                                    <label class="form-label">Nombre de hotel</label>
-                                    <input type="text"
-                                           name="other_hotel_name"
-                                           class="form-control"
-                                           value="{{ $reserva->detail->other_hotel_name }}">
-                                </div>
+                      {{-- Correo --}}
+                      <div class="mb-3">
+                        <label class="form-label">Correo</label>
+                        <input type="email" name="email" class="form-control" value="{{ $reserva->user->email ?? '' }}" readonly>
+                      </div>
 
-                                <input type="hidden"
-                                       name="is_other_hotel"
-                                       id="edit_is_other_hotel_{{ $reserva->booking_id }}"
-                                       value="{{ $reserva->detail->is_other_hotel ? 1 : 0 }}">
+                      {{-- Teléfono --}}
+                      <div class="mb-3">
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" name="phone" class="form-control" value="{{ $reserva->user->phone ?? '' }}" readonly>
+                      </div>
 
-                                <label class="form-label">Precio Adulto</label>
-                                <input
-                                    type="text"
-                                    class="form-control precio-adulto"
-                                    value="{{ number_format(optional($reserva->detail)->adult_price ?? 0, 2) }}"
-                                    readonly
-                                >
+                      {{-- Tour --}}
+                      <div class="mb-3">
+                        <label class="form-label">Tour</label>
+                        <select name="tour_id" id="edit_tour_{{ $reserva->booking_id }}" class="form-control" required>
+                          @foreach(\App\Models\Tour::with('schedules')->get() as $tour)
+                            <option value="{{ $tour->tour_id }}"
+                              data-schedules='@json($tour->schedules->map(fn($s)=>[
+                                "schedule_id"=>$s->schedule_id,
+                                "start_time"=>\Carbon\Carbon::parse($s->start_time)->format("g:i A"),
+                                "end_time"=>\Carbon\Carbon::parse($s->end_time)->format("g:i A")
+                              ]))'
+                              {{ $reserva->tour_id == $tour->tour_id ? 'selected' : '' }}>
+                              {{ $tour->name }}
+                            </option>
+                          @endforeach
+                        </select>
+                      </div>
 
-                                <label class="form-label">Precio Niño</label>
-                                <input
-                                    type="text"
-                                    class="form-control precio-nino"
-                                    value="{{ number_format(optional($reserva->detail)->kid_price ?? 0, 2) }}"
-                                    readonly
-                                >
+                      {{-- Horario dinámico --}}
+                      <div class="mb-3">
+                        <label class="form-label">Horario</label>
+                        <select name="schedule_id" id="edit_schedule_{{ $reserva->booking_id }}" class="form-control" required>
+                          <option value="">Seleccione horario</option>
+                          @foreach($reserva->detail->tour->schedules as $s)
+                            <option value="{{ $s->schedule_id }}"
+                              {{ $reserva->detail->schedule_id == $s->schedule_id ? 'selected' : '' }}>
+                              {{ \Carbon\Carbon::parse($s->start_time)->format('g:i A') }} – {{ \Carbon\Carbon::parse($s->end_time)->format('g:i A') }}
+                            </option>
+                          @endforeach
+                        </select>
+                      </div>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Total a Pagar</label>
-                                    <input
-                                        type="text"
-                                        name="total"
-                                        class="form-control total-pago"
-                                        value="{{ number_format($reserva->total, 2) }}"
-                                        readonly
-                                    >
-                                </div>
+                      {{-- Idioma --}}
+                      <div class="mb-3">
+                        <label class="form-label">Idioma</label>
+                        <select name="tour_language_id" class="form-control" required>
+                          @foreach(\App\Models\TourLanguage::all() as $lang)
+                            <option value="{{ $lang->tour_language_id }}"
+                              {{ $reserva->tour_language_id == $lang->tour_language_id ? 'selected' : '' }}>
+                              {{ $lang->name }}
+                            </option>
+                          @endforeach
+                        </select>
+                      </div>
 
-                                <div class="mb-3">
-                                  <label class="form-label">Estado</label>
-                                  <select name="status" class="form-control" required>
-                                    <option value="pending"   {{ $reserva->status==='pending'   ? 'selected':'' }}>Pending</option>
-                                    <option value="confirmed" {{ $reserva->status==='confirmed'? 'selected':'' }}>Confirmed</option>
-                                    <option value="cancelled" {{ $reserva->status==='cancelled'? 'selected':'' }}>Cancelled</option>
-                                  </select>
-                                </div>
-                            </div>
+                      {{-- Fecha reserva --}}
+                      <div class="mb-3">
+                        <label class="form-label">Fecha Reserva</label>
+                        <input type="date" name="booking_date" class="form-control"
+                          value="{{ \Carbon\Carbon::parse($reserva->booking_date)->format('Y-m-d') }}" required>
+                      </div>
 
-                            <div class="modal-footer">
-                                <button class="btn btn-warning">Actualizar</button>
-                                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                      {{-- Fecha tour --}}
+                      <div class="mb-3">
+                        <label class="form-label">Fecha del Tour</label>
+                        <input type="date" name="tour_date" class="form-control"
+                          value="{{ \Carbon\Carbon::parse($reserva->detail->tour_date)->format('Y-m-d') }}" required>
+                      </div>
+
+                      {{-- Hotel --}}
+                      <div class="mb-3">
+                        <label class="form-label">Hotel</label>
+                        <select name="hotel_id"
+                          id="edit_hotel_{{ $reserva->booking_id }}"
+                          class="form-control">
+                          <option value="">Seleccione hotel</option>
+                          @foreach($hotels as $h)
+                            <option value="{{ $h->hotel_id }}"
+                              {{ !$reserva->detail->is_other_hotel && $reserva->detail->hotel_id == $h->hotel_id ? 'selected':'' }}>
+                              {{ $h->name }}
+                            </option>
+                          @endforeach
+                          <option value="other" {{ $reserva->detail->is_other_hotel ? 'selected':'' }}>Otro…</option>
+                        </select>
+                      </div>
+
+                      {{-- Otro hotel --}}
+                      <div class="mb-3 {{ $reserva->detail->is_other_hotel ? '' : 'd-none' }}"
+                        id="edit_other_hotel_container_{{ $reserva->booking_id }}">
+                        <label class="form-label">Nombre de otro hotel</label>
+                        <input type="text" name="other_hotel_name" class="form-control"
+                          value="{{ $reserva->detail->other_hotel_name }}">
+                      </div>
+                      <input type="hidden"
+                        name="is_other_hotel"
+                        id="edit_is_other_hotel_{{ $reserva->booking_id }}"
+                        value="{{ $reserva->detail->is_other_hotel ? 1 : 0 }}">
+
+                      {{-- Adultos --}}
+                      <div class="mb-3">
+                        <label class="form-label">Cantidad Adultos</label>
+                        <input type="number" name="adults_quantity" class="form-control"
+                          value="{{ $reserva->detail->adults_quantity }}" min="1" required>
+                      </div>
+
+                      {{-- Niños --}}
+                      <div class="mb-3">
+                        <label class="form-label">Cantidad Niños</label>
+                        <input type="number" name="kids_quantity" class="form-control"
+                          value="{{ $reserva->detail->kids_quantity }}" min="0" max="2" required>
+                      </div>
+
+                      {{-- Notas --}}
+                      <div class="mb-3">
+                        <label class="form-label">Notas</label>
+                        <textarea name="notes" class="form-control" rows="2">{{ $reserva->notes }}</textarea>
+                      </div>
+
+                      {{-- Estado --}}
+                      <div class="mb-3">
+                        <label class="form-label">Estado</label>
+                        <select name="status" class="form-control" required>
+                          <option value="pending"   {{ $reserva->status==='pending' ? 'selected':'' }}>Pending</option>
+                          <option value="confirmed" {{ $reserva->status==='confirmed'? 'selected':'' }}>Confirmed</option>
+                          <option value="cancelled" {{ $reserva->status==='cancelled'? 'selected':'' }}>Cancelled</option>
+                        </select>
+                      </div>
+
+                    </div>
+                    <div class="modal-footer">
+                      <button class="btn btn-warning">Actualizar</button>
+                      <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+                  </div>
+                </form>
+              </div>
             </div>
         @endforeach
         </tbody>
@@ -537,4 +579,40 @@
   });
 </script>
 @endif
+{{-- 🟢 Scripts dinámicos --}}
+@push('scripts')
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // HOTEL dinámico
+    const sel = document.getElementById('edit_hotel_{{ $reserva->booking_id }}');
+    const wrap = document.getElementById('edit_other_hotel_container_{{ $reserva->booking_id }}');
+    const hidden = document.getElementById('edit_is_other_hotel_{{ $reserva->booking_id }}');
+    sel?.addEventListener('change', () => {
+      if (sel.value === 'other') {
+        wrap.classList.remove('d-none');
+        hidden.value = 1;
+      } else {
+        wrap.classList.add('d-none');
+        wrap.querySelector('input').value = '';
+        hidden.value = 0;
+      }
+    });
+
+    // HORARIOS dinámicos según TOUR
+    const tourSel = document.getElementById('edit_tour_{{ $reserva->booking_id }}');
+    const schSel = document.getElementById('edit_schedule_{{ $reserva->booking_id }}');
+    tourSel?.addEventListener('change', () => {
+      const opt = tourSel.options[tourSel.selectedIndex];
+      const schedules = JSON.parse(opt.dataset.schedules || '[]');
+      schSel.innerHTML = '<option value="">Seleccione horario</option>';
+      schedules.forEach(s => {
+        const o = document.createElement('option');
+        o.value = s.schedule_id;
+        o.text = `${s.start_time} – ${s.end_time}`;
+        schSel.appendChild(o);
+      });
+    });
+  });
+</script>
+@endpush
 @stop

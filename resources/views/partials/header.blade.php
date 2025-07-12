@@ -17,7 +17,7 @@
     <!-- DERECHA: Acciones Mobile -->
     <div class="navbar-actions d-md-none">
       <!-- Carrito -->
-      <a href="{{ route('home') }}">
+      <a href="{{ route('public.cart.index') }}">
         <i class="fas fa-shopping-cart"></i>
       </a>
 
