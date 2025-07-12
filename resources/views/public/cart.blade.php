@@ -26,6 +26,7 @@
             <th>Adultos</th>
             <th>Niños</th>
             <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -49,6 +50,16 @@
                   {{ $item->is_active ? 'Activo' : 'Inactivo' }}
                 </span>
               </td>
+              <td>
+                <form action="{{ route('public.cart.destroy', $item->item_id) }}"
+                      method="POST"
+                      onsubmit="return confirm('¿Eliminar este tour del carrito?');">
+                  @csrf @method('DELETE')
+                  <button type="submit" class="btn btn-danger btn-sm">
+                    <i class="fas fa-trash"></i> Eliminar
+                  </button>
+                </form>
+              </td>
             </tr>
           @endforeach
         </tbody>
@@ -66,13 +77,14 @@
       <strong>Total Estimado:</strong> ${{ number_format($total, 2) }}
     </h4>
 
-    <form action="{{ route('public.reservas.storeFromCart') }}" method="POST" onsubmit="return confirm('¿Estás seguro de confirmar la reserva?');">
+    <form action="{{ route('public.reservas.storeFromCart') }}"
+          method="POST"
+          onsubmit="return confirm('¿Estás seguro de confirmar la reserva?');">
       @csrf
       <button type="submit" class="btn btn-success btn-lg">
         <i class="fas fa-check"></i> Confirmar Reserva
       </button>
     </form>
-
   @else
     <div class="alert alert-info">
       <i class="fas fa-info-circle"></i> No tienes tours en tu carrito.

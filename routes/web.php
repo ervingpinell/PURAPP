@@ -53,6 +53,10 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::post('/carrito/agregar/{tour}', [CartController::class, 'store'])
         ->middleware('auth')
         ->name('carrito.agregar');
+
+    Route::delete('/cart/{item}', [CartController::class, 'destroy'])
+    ->name('public.cart.destroy');
+
         
     Route::post('/reservas/from-cart', [BookingController::class, 'storeFromCart'])
     ->middleware('auth')
