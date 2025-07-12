@@ -94,8 +94,8 @@ class CartController extends Controller
             ->exists();
 
         if ($isBlocked) {
-            return back()->with('error', "La fecha {$request->tour_date} está bloqueada para '{$tour->name}'.");
-        }
+        return back()->with('error', "La fecha {$request->tour_date} está bloqueada para {$tour->name}.");
+    }
 
         // ✅ 2) Validar cupo antes de guardar
         $reserved = DB::table('booking_details')

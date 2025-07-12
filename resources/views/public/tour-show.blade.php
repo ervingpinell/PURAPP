@@ -12,7 +12,14 @@
     @endif
 
     @if(session('error'))
-      <div class="alert alert-danger">{{ session('error') }}</div>
+      <script>
+        Swal.fire({
+          icon: 'error',
+          title: 'Acceso Denegado',
+          html: `{!! session('error') !!}`,
+          confirmButtonText: 'OK'
+        });
+      </script>
     @endif
 
     @if ($errors->any())
