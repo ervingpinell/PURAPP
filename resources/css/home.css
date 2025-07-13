@@ -150,10 +150,11 @@ body {
 
 /* SECCIÓN TOURS */
 .tours-section {
-    background: var(--white);
-    text-align: center;
-    padding: 3rem 1rem 0;
+  background: var(--white);
+  text-align: center;
+  padding: 3rem 1rem 0;
 }
+
 
 .tour-cards {
     display: flex;
@@ -633,6 +634,24 @@ body {
         justify-content: center;
         gap: 2rem;
     }
+  .navbar-logo {
+    flex: 1;
+    max-width:100px;          /* Logo más estrecho */
+    text-align: center;       /* Centrado */
+    margin: 0 auto;           /* Centrado horizontal */
+  }
+
+  .navbar-logo img {
+    max-height: 65px;         /* Logo más bajo para XS */
+    width: auto;
+  }
+
+  .navbar-actions {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 1rem;
+  }
 
     .navbar-links a {
         color: #fff;
@@ -666,6 +685,17 @@ body {
         display: inline-block;
         position: relative;
     }
+.navbar-links.d-md-none.show {
+  display: flex;
+  gap: 0.7rem;
+  padding: 0.7rem;
+}
+
+.navbar-links.d-md-none a {
+  font-size: 0.90rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
 
     .navbar-links .language-switcher-menu {
         transform: translateX(12px);

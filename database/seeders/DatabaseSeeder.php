@@ -16,7 +16,10 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
     $this->call([
+        RolesAndUsersSeeder::class,
         InitialSetupSeeder::class,
+        ToursSeeder::class,
+        ItinerariesSeeder::class,
     ]);
     }
 }

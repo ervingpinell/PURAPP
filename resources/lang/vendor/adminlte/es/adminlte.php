@@ -2,10 +2,11 @@
 
 return [
 
+    // Autenticación y registro
     'full_name' => 'Nombre completo',
     'email' => 'Email',
     'password' => 'Contraseña',
-    'phone' => 'Telefono',
+    'phone' => 'Teléfono',
     'retype_password' => 'Confirmar la contraseña',
     'remember_me' => 'Recordarme',
     'register' => 'Registrarse',
@@ -13,7 +14,7 @@ return [
     'i_forgot_my_password' => 'Olvidé mi contraseña',
     'i_already_have_a_membership' => 'Ya tengo una cuenta',
     'sign_in' => 'Acceder',
-    'log_out' => 'Cerrrar Sesión',
+    'log_out' => 'Cerrar Sesión',
     'toggle_navigation' => 'Alternar barra de navegación',
     'login_message' => 'Inicie sesión',
     'register_message' => 'Crear una nueva cuenta',
@@ -28,10 +29,12 @@ return [
     'confirm_password_message' => 'Por favor, confirme su contraseña para continuar.',
     'remember_me_hint' => 'Mantenerme autenticado indefinidamente o hasta cerrar la sesión manualmente',
     'password_requirements' => [
-    'length' => '- Longitud 8 caracteres',
-    'special' => '- 1 caracter especial ( .¡!@#$%^&*()_+- )',
-    'number' => '- 1 número',
+        'length' => '- Longitud 8 caracteres',
+        'special' => '- 1 caracter especial ( .¡!@#$%^&*()_+- )',
+        'number' => '- 1 número',
     ],
+
+    // Navegación general
     'back' => 'Retroceder',
     'home' => 'Inicio',
     'dashboard' => 'Panel de control',
@@ -39,78 +42,24 @@ return [
     'settings' => 'Configuración',
     'users' => 'Usuarios',
     'roles' => 'Roles',
-    'tours' => 'Tours',
-    'reviews' => 'Reseñas',
-    'bookings' => 'Reservas',
+    'notifications' => 'Notificaciones',
+    'messages' => 'Mensajes',
+    'help' => 'Ayuda',
+    'language' => 'Idioma',
+    'support' => 'Soporte',
+    'admin_panel' => 'Panel de administración',
+
+    // Contenido y páginas informativas
     'faq' => 'Preguntas frecuentes',
     'contact' => 'Contacto',
     'about' => 'Acerca de',
     'privacy_policy' => 'Política de privacidad',
     'terms_of_service' => 'Términos de servicio',
-    'support' => 'Soporte',
-    'admin_panel' => 'Panel de administración',
-    'reservations' => 'Reservas',
     'reports' => 'Informes',
-    'notifications' => 'Notificaciones',
-    'messages' => 'Mensajes',
-    'help' => 'Ayuda',
-    'language' => 'Idioma',
-    'cart' => 'Carrito',
-'my_reservations' => 'Mis reservaciones',
-'logout' => 'Cerrar sesión',
 
-'hero_title' => 'Descubre la magia de Costa Rica',
-'hero_subtext' => 'Explora nuestros tours únicos y vive la aventura.',
-'book_now' => 'Reservar ahora',
-
-'our_tours' => 'Nuestros Tours',
-'half_day' => 'Medio día',
-'full_day' => 'Día completo',
-'see_tour' => 'Ver tour',
-
-'what_visitors_say' => 'Lo que dicen nuestros visitantes',
-'quote_1' => '¡Una experiencia inolvidable!',
-'guest_1' => 'Carlos M.',
-'quote_2' => 'Volveré sin duda alguna.',
-'guest_2' => 'Ana G.',
-
-'footer_text' => 'Ofrecemos experiencias eco-turísticas únicas en Costa Rica.',
-'quick_links' => 'Enlaces rápidos',
-'contact_us' => 'Contáctanos',
-'location' => 'San José, Costa Rica',
-'rights_reserved' => 'Todos los derechos reservados',
-
-'whatsapp_title' => 'Green Vacations',
-'whatsapp_subtitle' => 'Responde al instante',
-'whatsapp_greeting' => '👋 ¡Hola! ¿En qué podemos ayudarte a planear tu aventura en Costa Rica?',
-'whatsapp_placeholder' => 'Hola, estoy interesado en los tours ecológicos. ¿Me pueden dar más información?',
-'whatsapp_button' => 'Enviar mensaje',
-'whatsapp_footer' => 'Conectado por WhatsApp Business',
-'account_created' => 'Cuenta creada correctamente. Inicia sesión.',
-   'account_created' => 'Cuenta creada correctamente. Por favor, inicia sesión.',
-    'password_reset' => 'Contraseña restablecida correctamente. Por favor, inicia sesión.',
-    'password_reset_success' => 'Contraseña restablecida correctamente. Por favor, inicia sesión.',
-    'optional' => 'Opcional',
-    'save'=> 'Guardar',
-    'edit_profile'=> 'Editar Perfil',
-'read_more' => 'leer más',
-'adult_price' => 'Adultos (10+)',
-'kid_price' => 'Niños (0-9)',
-
-    // CRUD y acciones generales
-    'create' => 'Crear',
-    'edit' => 'Editar',
-    'update' => 'Actualizar',
-    'delete' => 'Eliminar',
-    'activate' => 'Activar',
-    'deactivate' => 'Desactivar',
-    'confirm' => 'Confirmar',
-    'cancel' => 'Cancelar',
-    'save_changes' => 'Guardar cambios',
-    'are_you_sure' => '¿Estás seguro?',
-    'actions' => 'Acciones',
-
-    // Tours y reservas
+    // Tours y reseñas
+    'tours' => 'Tours',
+    'reviews' => 'Reseñas',
     'tour' => 'Tour',
     'tour_name' => 'Nombre del tour',
     'overview' => 'Resumen',
@@ -124,6 +73,7 @@ return [
     'select_tour' => 'Seleccione un tour',
 
     // Horarios
+    'schedule' => 'Horario',
     'schedule_am' => 'Horario AM',
     'schedule_pm' => 'Horario PM',
     'start_time' => 'Hora de inicio',
@@ -147,6 +97,9 @@ return [
     'hotel_pickup' => 'Recogida en hotel',
 
     // Carrito y reservas
+    'cart' => 'Carrito',
+    'myCart' => 'Mi Carrito',
+    'my_reservations' => 'Mis reservaciones',
     'add_to_cart' => 'Agregar al carrito',
     'remove_from_cart' => 'Eliminar del carrito',
     'confirm_reservation' => 'Confirmar reserva',
@@ -158,8 +111,12 @@ return [
     'booking_reference' => 'Referencia de reserva',
     'booking_date' => 'Fecha de reserva',
     'reservation_status' => 'Estado de la reserva',
+    'totalEstimated' => 'Total Estimado',
+    'confirmBooking' => 'Confirmar Reserva',
+    'emptyCart' => 'Tu carrito está vacío.',
 
     // Estados
+    'status' => 'Estado',
     'active' => 'Activo',
     'inactive' => 'Inactivo',
     'pending' => 'Pendiente',
@@ -167,7 +124,10 @@ return [
 
     // Cantidades y fechas
     'tour_date' => 'Fecha del tour',
+    'date' => 'Fecha',
+    'adults' => 'Adultos',
     'adults_quantity' => 'Cantidad de adultos',
+    'kids' => 'Niños',
     'kids_quantity' => 'Cantidad de niños',
     'total_price' => 'Precio total',
 
@@ -177,4 +137,67 @@ return [
     'invalid_date' => 'Fecha no válida.',
     'select_option' => 'Seleccione una opción',
 
+    // Hero y página principal
+    'hero_title' => 'Descubre la magia de Costa Rica',
+    'hero_subtext' => 'Explora nuestros tours únicos y vive la aventura.',
+    'book_now' => 'Reservar ahora',
+    'our_tours' => 'Nuestros Tours',
+    'half_day' => 'Medio día',
+    'full_day' => 'Día completo',
+    'see_tour' => 'Ver tour',
+    'what_visitors_say' => 'Lo que dicen nuestros visitantes',
+    'quote_1' => '¡Una experiencia inolvidable!',
+    'guest_1' => 'Carlos M.',
+    'quote_2' => 'Volveré sin duda alguna.',
+    'guest_2' => 'Ana G.',
+
+    // Footer
+    'footer_text' => 'Ofrecemos experiencias eco-turísticas únicas en Costa Rica.',
+    'quick_links' => 'Enlaces rápidos',
+    'contact_us' => 'Contáctanos',
+    'location' => 'San José, Costa Rica',
+    'rights_reserved' => 'Todos los derechos reservados',
+
+    // WhatsApp
+    'whatsapp_title' => 'Green Vacations',
+    'whatsapp_subtitle' => 'Responde al instante',
+    'whatsapp_greeting' => '👋 ¡Hola! ¿En qué podemos ayudarte a planear tu aventura en Costa Rica?',
+    'whatsapp_placeholder' => 'Hola, estoy interesado en los tours ecológicos. ¿Me pueden dar más información?',
+    'whatsapp_button' => 'Enviar mensaje',
+    'whatsapp_footer' => 'Conectado por WhatsApp Business',
+
+    // Estados de cuenta
+    'account_created' => 'Cuenta creada correctamente. Por favor, inicia sesión.',
+    'account_already_exists' => 'Ya existe una cuenta con este correo electrónico. Por favor, inicia sesión o utiliza un correo diferente.',
+    'account_creation_failed' => 'Error al crear la cuenta. Por favor, inténtalo de nuevo más tarde.',
+    'password_reset' => 'Contraseña restablecida correctamente. Por favor, inicia sesión.',
+    'password_reset_success' => 'Contraseña restablecida correctamente. Por favor, inicia sesión.',
+    'password_reset_failed' => 'Error al restablecer la contraseña. Por favor, inténtalo de nuevo más tarde.',
+    'password_reset_link_sent' => 'Enlace para restablecer la contraseña enviado a tu correo electrónico. Por favor, revisa tu bandeja de entrada.',
+    'password_reset_link_failed' => 'Error al enviar el enlace para restablecer la contraseña. Por favor, inténtalo de nuevo más tarde.',
+
+    // Botones generales y CRUD
+    'create' => 'Crear',
+    'edit' => 'Editar',
+    'update' => 'Actualizar',
+    'delete' => 'Eliminar',
+    'activate' => 'Activar',
+    'deactivate' => 'Desactivar',
+    'confirm' => 'Confirmar',
+    'cancel' => 'Cancelar',
+    'save' => 'Guardar',
+    'save_changes' => 'Guardar cambios',
+    'are_you_sure' => '¿Estás seguro?',
+    'actions' => 'Acciones',
+    'optional' => 'Opcional',
+    'edit_profile' => 'Editar Perfil',
+    'read_more' => 'leer más',
+    'adult_price' => 'Adultos (10+)',
+    'kid_price' => 'Niños (0-9)',
+
+    'blocked_date_for_tour' => 'La fecha :date está bloqueada para ":tour".',
+'tourCapacityFull' => 'La capacidad máxima para este tour ya está completa.',
+'cartItemAdded' => 'Tour agregado al carrito correctamente.',
+'itemUpdated' => 'Carrito actualizado correctamente.',
+'cartItemDeleted' => 'Tour eliminado del carrito correctamente.',
 ];

@@ -73,6 +73,7 @@ Route::middleware([SetLocale::class])->group(function () {
 
     // ✅ Tour público
     Route::get('/tours/{id}', [HomeController::class, 'showTour'])->name('tours.show');
+    Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
 
     // ✅ Verificación de correo
     Route::get('/email/verify', [VerifyEmailController::class, 'notice'])->middleware('auth')->name('verification.notice');

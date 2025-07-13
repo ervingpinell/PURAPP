@@ -20,7 +20,9 @@ class CartController extends Controller
 
         // 🟢 Si es cliente (ruta pública)
         if ($request->routeIs('public.cart.index')) {
-            $cart = $user->cart()->where('is_active', true)->with('items.tour', 'items.schedule', 'items.language', 'items.hotel')->first();
+            $cart = $user->cart()->where('is_active', true)
+                ->with('items.tour', 'items.schedule', 'items.language', 'items.hotel')
+                ->first();
 
             return view('public.cart', [
                 'cart' => $cart,
@@ -56,7 +58,6 @@ class CartController extends Controller
 
         return view('admin.Cart.cart', compact('cart', 'languages', 'hotels'));
     }
-
 
     // ✅ Agregar ítem al carrito con validación de cupo
     public function store(Request $request)
@@ -97,8 +98,11 @@ class CartController extends Controller
             ->exists();
 
         if ($isBlocked) {
-        return back()->with('error', "La fecha {$request->tour_date} está bloqueada para {$tour->name}.");
-    }
+            return back()->with('error', __('adminlte::adminlte.blocked_date_for_tour', [
+                'date' => $request->tour_date,
+                'tour' => $tour->name,
+            ]));
+        }
 
         // ✅ 2) Validar cupo antes de guardar
         $reserved = DB::table('booking_details')
@@ -110,7 +114,7 @@ class CartController extends Controller
         $requested = $request->adults_quantity + ($request->kids_quantity ?? 0);
 
         if ($reserved + $requested > $schedule->max_capacity) {
-            return back()->with('error', 'El cupo disponible para este horario está lleno.');
+            return back()->with('error', __('adminlte::adminlte.tourCapacityFull'));
         }
 
         // ✅ 3) Crear ítem en carrito
@@ -128,8 +132,8 @@ class CartController extends Controller
         ]);
 
         return $request->ajax()
-            ? response()->json(['message' => 'Tour agregado al carrito.'])
-            : back()->with('success', 'Tour agregado al carrito.');
+            ? response()->json(['message' => __('adminlte::adminlte.cartItemAdded')])
+            : back()->with('success', __('adminlte::adminlte.cartItemAdded'));
     }
 
 
@@ -170,7 +174,7 @@ class CartController extends Controller
             'other_hotel_name' => $data['is_other_hotel'] ? $data['other_hotel_name'] : null,
         ]);
 
-        return back()->with('success', 'Ítem actualizado correctamente.');
+        return back()->with('success', __('adminlte::adminlte.itemUpdated'));
     }
 
     // ✅ Actualizar desde POST (botón Guardar)
@@ -185,7 +189,7 @@ class CartController extends Controller
 
         if (!$request->has('is_active')) {
             $item->delete();
-            return back()->with('success', 'Ítem eliminado del carrito correctamente.');
+            return back()->with('success', __('adminlte::adminlte.cartItemDeleted'));
         }
 
         $item->update([
@@ -196,14 +200,14 @@ class CartController extends Controller
             'is_active'       => true,
         ]);
 
-        return back()->with('success', 'Ítem actualizado correctamente.');
+        return back()->with('success', __('adminlte::adminlte.itemUpdated'));
     }
 
     // ✅ Eliminar ítem
     public function destroy(CartItem $item)
     {
         $item->delete();
-        return back()->with('success', 'Ítem eliminado del carrito.');
+        return back()->with('success', __('adminlte::adminlte.cartItemDeleted'));
     }
 
     // ✅ Vista de todos los carritos
