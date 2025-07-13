@@ -57,7 +57,7 @@
         <h1 class="fw-bold">{{ $tour->name }}</h1>
         <p class="text-muted">{{ $tour->tourType->name ?? '' }}</p>
 
-        <h3>Overview</h3>
+        <h2>Overview</h2>
         <p>{{ $tour->overview }}</p>
       </div>
 
@@ -70,13 +70,16 @@
           @csrf
           <input type="hidden" name="tour_id" value="{{ $tour->tour_id }}">
 
-          <h6 class="mb-3">
-            <strong>Price:</strong>
-            <span class="fw-bold">Adult:</span> <span style="color:#F92526">${{ number_format($tour->adult_price, 2) }}</span> |
-            <span class="fw-bold">Kid:</span> <span style="color:#F92526">${{ number_format($tour->kid_price, 2) }}</span>
-          </h6>
+          {{-- ✅ Price Section --}}
+          <h3 class="fw-bold mb-2">Price</h3>
+          <div class="price-breakdown mb-3">
+            <span class="fw-bold">Adult:</span>
+            <span class="price-adult fw-bold">${{ number_format($tour->adult_price, 2) }}</span> |
+            <span class="fw-bold">Kid:</span>
+            <span class="price-kid fw-bold">${{ number_format($tour->kid_price, 2) }}</span>
+          </div>
 
-          {{-- ✅ Traveler button minimal --}}
+          {{-- ✅ Traveler button --}}
           <div class="mb-2">
             <button type="button"
               class="btn traveler-button d-flex align-items-center justify-content-between"
@@ -89,7 +92,7 @@
             </button>
           </div>
 
-          {{-- ✅ Total dinámico fuera del modal --}}
+          {{-- ✅ Total dinámico --}}
           <p class="fw-bold mb-3">
             Total: <span id="reservation-total-price" style="color:#F92526;">$0.00</span>
           </p>
@@ -118,7 +121,7 @@
             @endforeach
           </select>
 
-          {{-- ✅ Adultos y niños ocultos (se actualizarán con JS del modal) --}}
+          {{-- ✅ Adultos y niños ocultos --}}
           <input type="hidden" name="adults_quantity" id="adults_quantity" value="2" required>
           <input type="hidden" name="kids_quantity" id="kids_quantity" value="0">
 
@@ -132,6 +135,33 @@
             Add to Cart
           </button>
         </form>
+
+        {{-- 🌐 INFORMATION BOX --}}
+        <div class="languages-schedules-box p-3 shadow rounded bg-white border">
+          <h3 class="mb-3 fw-bold">Tour Information</h3>
+
+          <h4>Duration</h4>
+          <p>{{ $tour->length }} hours</p>
+
+          <h4>Group Size</h4>
+          <p>{{ $tour->max_capacity }}</p>
+
+          <h4>Languages Available</h4>
+          <p class="badges-group">
+            @foreach($tour->languages as $lang)
+              <span class="badge bg-secondary mb-1">{{ $lang->name }}</span>
+            @endforeach
+          </p>
+
+          <h4>Schedules</h4>
+          <p class="badges-group">
+            @foreach($tour->schedules->sortBy('start_time') as $schedule)
+              <span class="badge bg-success mb-1">
+                {{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}
+              </span>
+            @endforeach
+          </p>
+        </div>
       </div>
     </div>
 
@@ -203,7 +233,7 @@
             </div>
           </div>
 
-          {{-- ✅ Hotels & Meeting Points --}}
+              {{-- ✅ Hotels & Meeting Points --}}
           <div class="accordion-item border-0 border-bottom">
             <h2 class="accordion-header" id="headingHotels">
               <button class="accordion-button bg-white px-0 shadow-none collapsed" type="button"
@@ -217,7 +247,7 @@
                 <div class="row g-4">
                   <div class="mt-3">
                     <strong>Pickup details</strong>
-                    <p class="small mb-0">
+                    <p class="mb-0">
                       Free pick-ups are only for hotels in the Fortuna area...
                     </p>
                   </div>

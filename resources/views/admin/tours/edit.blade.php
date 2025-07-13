@@ -52,6 +52,12 @@
             </div>
           </div>
 
+                    {{-- Capacidad --}}
+          <div class="mb-3">
+            <label class="form-label">Cupo máximo</label>
+            <input type="number" name="max_capacity" class="form-control" value="{{ old('max_capacity', $tour->max_capacity) }}" min="1" required>
+          </div>
+
           {{-- Tipo --}}
           <x-adminlte-select name="tour_type_id" label="Tipo de Tour">
             <option value="">-- Seleccione un tipo --</option>
