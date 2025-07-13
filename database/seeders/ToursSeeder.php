@@ -12,12 +12,30 @@ class ToursSeeder extends Seeder
     {
         $now = Carbon::now();
 
-        // Horario compartido
-        $sharedId = DB::table('schedules')->updateOrInsert(
+        // === HORARIOS COMPARTIDOS ===
+        DB::table('schedules')->updateOrInsert(
+            ['start_time' => '07:30', 'end_time' => '11:30'],
+            ['label' => 'AM', 'is_active' => true, 'created_at' => $now, 'updated_at' => $now]
+        );
+        $sharedAmId = DB::table('schedules')->where('start_time', '07:30')->where('end_time', '11:30')->value('schedule_id');
+
+        DB::table('schedules')->updateOrInsert(
+            ['start_time' => '13:00', 'end_time' => '16:30'],
+            ['label' => 'PM', 'is_active' => true, 'created_at' => $now, 'updated_at' => $now]
+        );
+        $sharedPmId = DB::table('schedules')->where('start_time', '13:00')->where('end_time', '16:30')->value('schedule_id');
+
+        DB::table('schedules')->updateOrInsert(
             ['start_time' => '07:30', 'end_time' => '13:30'],
             ['label' => 'AM', 'is_active' => true, 'created_at' => $now, 'updated_at' => $now]
         );
-        $sharedId = DB::table('schedules')->where('start_time', '07:30')->where('end_time', '13:30')->value('schedule_id');
+        $sharedMidId = DB::table('schedules')->where('start_time', '07:30')->where('end_time', '13:30')->value('schedule_id');
+
+        DB::table('schedules')->updateOrInsert(
+            ['start_time' => '07:30', 'end_time' => '16:30'],
+            ['label' => 'AM', 'is_active' => true, 'created_at' => $now, 'updated_at' => $now]
+        );
+        $nlc = DB::table('schedules')->where('start_time', '07:30')->where('end_time', '16:30')->value('schedule_id');
 
         // === Volcano Hike ===
         $volcanoOverview = 'Discover Arenal Volcano National Park on a full-day hiking and hot springs tour from La Fortuna, and explore the remarkable landscape of an active volcanic range. Follow your guide along a 2-mile (3.2-km) trail that passes through primary and secondary forest, and cross the jagged rocks of a dry lava field. Spot the distinctive plants and formations that climb the sides of Costa Rica\'s most iconic volcano. Explore an active volcanic range on a hiking tour. Discover the various species that live in the forests and lava fields. A small group ensures a personalized experience.';
@@ -35,13 +53,11 @@ class ToursSeeder extends Seeder
             'updated_at' => $now
         ], 'tour_id');
 
-        $s1 = DB::table('schedules')->insertGetId(['start_time' => '08:00', 'end_time' => '12:00', 'label' => 'AM', 'is_active' => true, 'created_at' => $now, 'updated_at' => $now], 'schedule_id');
-        $s2 = DB::table('schedules')->insertGetId(['start_time' => '13:00', 'end_time' => '17:00', 'label' => 'PM', 'is_active' => true, 'created_at' => $now, 'updated_at' => $now], 'schedule_id');
-
         DB::table('schedule_tour')->insert([
-            ['tour_id' => $volcano, 'schedule_id' => $s1],
-            ['tour_id' => $volcano, 'schedule_id' => $s2]
+            ['tour_id' => $volcano, 'schedule_id' => $sharedAmId],
+            ['tour_id' => $volcano, 'schedule_id' => $sharedPmId],
         ]);
+
         DB::table('tour_language_tour')->insert([
             ['tour_id' => $volcano, 'tour_language_id' => 1],
             ['tour_id' => $volcano, 'tour_language_id' => 2]
@@ -64,40 +80,51 @@ class ToursSeeder extends Seeder
             'created_at' => $now,
             'updated_at' => $now
         ], 'tour_id');
-        DB::table('schedule_tour')->insert([['tour_id' => $safari, 'schedule_id' => $sharedId]]);
-        DB::table('tour_language_tour')->insert([['tour_id' => $safari, 'tour_language_id' => 1], ['tour_id' => $safari, 'tour_language_id' => 2]]);
+
+        DB::table('schedule_tour')->insert([
+            ['tour_id' => $safari, 'schedule_id' => $sharedAmId],
+            ['tour_id' => $safari, 'schedule_id' => $sharedPmId],
+        ]);
+
+        DB::table('tour_language_tour')->insert([
+            ['tour_id' => $safari, 'tour_language_id' => 1],
+            ['tour_id' => $safari, 'tour_language_id' => 2]
+        ]);
         foreach ([1, 2, 3, 4, 6] as $a) DB::table('amenity_tour')->insert(['tour_id' => $safari, 'amenity_id' => $a, 'is_active' => true]);
         foreach ([5, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tour_id' => $safari, 'amenity_id' => $a, 'is_active' => true]);
 
         // === Hanging Bridges ===
-$hangingOverview = 'Enjoy a thrilling close encounter with Costa Rica’s wildlife on this 4-hour tour to the Mistico Hanging Bridges Park from La Fortuna, in the shadows of the Arenal Volcano. Journey to the heart of the rainforest on a 2-mile (3.2km) circuit of 15 hanging bridges and have chance to spot up to 350 species of bird, including hummingbirds, bell birds, toucans and the majestic Tucancito Esmeralda.
+        $hangingOverview = 'Enjoy a thrilling close encounter with Costa Rica’s wildlife on this 4-hour tour to the Mistico Hanging Bridges Park from La Fortuna, in the shadows of the Arenal Volcano. Journey to the heart of the rainforest on a 2-mile (3.2km) circuit of 15 hanging bridges and have chance to spot up to 350 species of bird, including hummingbirds, bell birds, toucans and the majestic Tucancito Esmeralda.
 • Enjoy a guided hike along a circuit of 15 specially designed bridges
 • Spot hummingbirds and toucans in their natural environment
 • Great choice for families!';
 
-$hanging = DB::table('tours')->insertGetId([
-    'name' => 'Hanging Bridges',
-    'overview' => $hangingOverview,
-    'adult_price' => 82,
-    'kid_price' => 61,
-    'length' => 4,
-    'tour_type_id' => 2,
-    'color' => '#56D454',
-    'is_active' => true,
-    'created_at' => $now,
-    'updated_at' => $now
-], 'tour_id');
+        $hanging = DB::table('tours')->insertGetId([
+            'name' => 'Hanging Bridges',
+            'overview' => $hangingOverview,
+            'adult_price' => 82,
+            'kid_price' => 61,
+            'length' => 4,
+            'tour_type_id' => 2,
+            'color' => '#56D454',
+            'is_active' => true,
+            'created_at' => $now,
+            'updated_at' => $now
+        ], 'tour_id');
 
-$h1 = DB::table('schedules')->insertGetId(['start_time' => '07:30', 'end_time' => '11:30', 'label' => 'AM', 'is_active' => true, 'created_at' => $now, 'updated_at' => $now], 'schedule_id');
-$h2 = DB::table('schedules')->insertGetId(['start_time' => '13:00', 'end_time' => '16:00', 'label' => 'PM', 'is_active' => true, 'created_at' => $now, 'updated_at' => $now], 'schedule_id');
+        DB::table('schedule_tour')->insert([
+            ['tour_id' => $hanging, 'schedule_id' => $sharedAmId],
+            ['tour_id' => $hanging, 'schedule_id' => $sharedPmId],
+        ]);
 
-DB::table('schedule_tour')->insert([['tour_id' => $hanging, 'schedule_id' => $h1], ['tour_id' => $hanging, 'schedule_id' => $h2]]);
-DB::table('tour_language_tour')->insert([['tour_id' => $hanging, 'tour_language_id' => 1], ['tour_id' => $hanging, 'tour_language_id' => 2]]);
-foreach ([1, 2, 3, 4] as $a) DB::table('amenity_tour')->insert(['tour_id' => $hanging, 'amenity_id' => $a, 'is_active' => true]);
-foreach ([5, 6, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tour_id' => $hanging, 'amenity_id' => $a, 'is_active' => true]);
+        DB::table('tour_language_tour')->insert([
+            ['tour_id' => $hanging, 'tour_language_id' => 1],
+            ['tour_id' => $hanging, 'tour_language_id' => 2]
+        ]);
+        foreach ([1, 2, 3, 4] as $a) DB::table('amenity_tour')->insert(['tour_id' => $hanging, 'amenity_id' => $a, 'is_active' => true]);
+        foreach ([5, 6, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tour_id' => $hanging, 'amenity_id' => $a, 'is_active' => true]);
 
-
-        // === Nature Lover Combo 1 ===
+        // === Nature Lover Combo ===
         $natureOverview = 'Combine three adventurous activities in a single tour: a hike to Arenal Volcano, visit to the Hanging Bridges, and exploration of La Fortuna Waterfall. This full-day tour from La Fortuna, perfect for nature lovers, includes hiking and swimming amidst Costa Rica\'s beautiful natural scenery. Hotel pickup and drop-off included.
 • Full-day Costa Rica adventure tour.
 • Hike around Arenal Volcano and swim beneath La Fortuna Waterfall.
@@ -106,7 +133,7 @@ foreach ([5, 6, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tou
 • Personalized experience: small group tour limited to 12.';
 
         $nature = DB::table('tours')->insertGetId([
-            'name' => 'Nature Lover Combo 1',
+            'name' => 'Nature Lover Combo 1 (Hanging Bridges + La Fortuna Waterfall + Lunch + Volcano Hike)',
             'overview' => $natureOverview,
             'adult_price' => 154,
             'kid_price' => 115,
@@ -117,8 +144,12 @@ foreach ([5, 6, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tou
             'created_at' => $now,
             'updated_at' => $now
         ], 'tour_id');
-        DB::table('schedule_tour')->insert([['tour_id' => $nature, 'schedule_id' => $sharedId]]);
-        DB::table('tour_language_tour')->insert([['tour_id' => $nature, 'tour_language_id' => 1], ['tour_id' => $nature, 'tour_language_id' => 2]]);
+
+        DB::table('schedule_tour')->insert([['tour_id' => $nature, 'schedule_id' => $nlc]]);
+        DB::table('tour_language_tour')->insert([
+            ['tour_id' => $nature, 'tour_language_id' => 1],
+            ['tour_id' => $nature, 'tour_language_id' => 2]
+        ]);
         foreach ([1, 2, 3, 4, 5] as $a) DB::table('amenity_tour')->insert(['tour_id' => $nature, 'amenity_id' => $a, 'is_active' => true]);
         foreach ([6, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tour_id' => $nature, 'amenity_id' => $a, 'is_active' => true]);
 
@@ -141,8 +172,12 @@ foreach ([5, 6, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tou
             'created_at' => $now,
             'updated_at' => $now
         ], 'tour_id');
-        DB::table('schedule_tour')->insert([['tour_id' => $minicombo1, 'schedule_id' => $sharedId]]);
-        DB::table('tour_language_tour')->insert([['tour_id' => $minicombo1, 'tour_language_id' => 1], ['tour_id' => $minicombo1, 'tour_language_id' => 2]]);
+
+        DB::table('schedule_tour')->insert([['tour_id' => $minicombo1, 'schedule_id' => $sharedMidId]]);
+        DB::table('tour_language_tour')->insert([
+            ['tour_id' => $minicombo1, 'tour_language_id' => 1],
+            ['tour_id' => $minicombo1, 'tour_language_id' => 2]
+        ]);
         foreach ([1, 2, 3, 4, 5] as $a) DB::table('amenity_tour')->insert(['tour_id' => $minicombo1, 'amenity_id' => $a, 'is_active' => true]);
         foreach ([6, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tour_id' => $minicombo1, 'amenity_id' => $a, 'is_active' => true]);
 
@@ -165,8 +200,12 @@ foreach ([5, 6, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tou
             'created_at' => $now,
             'updated_at' => $now
         ], 'tour_id');
-        DB::table('schedule_tour')->insert([['tour_id' => $minicombo2, 'schedule_id' => $sharedId]]);
-        DB::table('tour_language_tour')->insert([['tour_id' => $minicombo2, 'tour_language_id' => 1], ['tour_id' => $minicombo2, 'tour_language_id' => 2]]);
+
+        DB::table('schedule_tour')->insert([['tour_id' => $minicombo2, 'schedule_id' => $sharedMidId]]);
+        DB::table('tour_language_tour')->insert([
+            ['tour_id' => $minicombo2, 'tour_language_id' => 1],
+            ['tour_id' => $minicombo2, 'tour_language_id' => 2]
+        ]);
         foreach ([1, 2, 3, 4, 5] as $a) DB::table('amenity_tour')->insert(['tour_id' => $minicombo2, 'amenity_id' => $a, 'is_active' => true]);
         foreach ([6, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tour_id' => $minicombo2, 'amenity_id' => $a, 'is_active' => true]);
 
@@ -189,8 +228,12 @@ foreach ([5, 6, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tou
             'created_at' => $now,
             'updated_at' => $now
         ], 'tour_id');
-        DB::table('schedule_tour')->insert([['tour_id' => $minicombo3, 'schedule_id' => $sharedId]]);
-        DB::table('tour_language_tour')->insert([['tour_id' => $minicombo3, 'tour_language_id' => 1], ['tour_id' => $minicombo3, 'tour_language_id' => 2]]);
+
+        DB::table('schedule_tour')->insert([['tour_id' => $minicombo3, 'schedule_id' => $sharedMidId]]);
+        DB::table('tour_language_tour')->insert([
+            ['tour_id' => $minicombo3, 'tour_language_id' => 1],
+            ['tour_id' => $minicombo3, 'tour_language_id' => 2]
+        ]);
         foreach ([1, 2, 3, 4, 5, 6] as $a) DB::table('amenity_tour')->insert(['tour_id' => $minicombo3, 'amenity_id' => $a, 'is_active' => true]);
         foreach ([7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tour_id' => $minicombo3, 'amenity_id' => $a, 'is_active' => true]);
     }

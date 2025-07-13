@@ -21,18 +21,22 @@ class ItinerariesSeeder extends Seeder
             'updated_at' => $now,
         ], 'itinerary_id');
 
-        foreach (['Arenal 1968 Volcano View and Lava Trails','La Fortuna Waterfall','Soda Fortuna','Mistico Park'] as $index => $title) {
+        foreach (['Arenal 1968 Volcano View and Lava Trails', 'La Fortuna Waterfall', 'Soda Fortuna', 'Mistico Park'] as $index => $title) {
             $itemId = DB::table('itinerary_items')->where('title', $title)->value('item_id');
-            DB::table('itinerary_item_itinerary')->insert([
-                'itinerary_id' => $natureId,
-                'itinerary_item_id' => $itemId,
-                'item_order' => $index + 1,
-                'is_active' => true,
-                'created_at' => $now,
-                'updated_at' => $now
-            ]);
+            if ($itemId) {
+                DB::table('itinerary_item_itinerary')->insert([
+                    'itinerary_id' => $natureId,
+                    'itinerary_item_id' => $itemId,
+                    'item_order' => $index + 1,
+                    'is_active' => true,
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ]);
+            }
         }
-        DB::table('tours')->where('name', 'Nature Lover Combo 1')->update(['itinerary_id' => $natureId]);
+        DB::table('tours')
+            ->where('name', 'Nature Lover Combo 1 (Hanging Bridges + La Fortuna Waterfall + Lunch + Volcano Hike)')
+            ->update(['itinerary_id' => $natureId]);
 
         // === Minicombo 1 ===
         $mini1 = DB::table('itineraries')->insertGetId([
