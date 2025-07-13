@@ -53,6 +53,7 @@ class TourScheduleController extends Controller
             'start_time'  => 'required|date_format:H:i',
             'end_time'    => 'required|date_format:H:i|after:start_time',
             'label'       => 'nullable|string|max:255',
+            'max_capacity' => 'required|integer|min:1',
             'is_active'   => 'sometimes|boolean',
         ]);
 
@@ -93,6 +94,7 @@ class TourScheduleController extends Controller
             'start_time'  => 'required|date_format:H:i',
             'end_time'    => 'required|date_format:H:i|after:start_time',
             'label'       => 'nullable|string|max:255',
+            'max_capacity' => 'required|integer|min:1',
             'is_active'   => 'sometimes|boolean',
         ]);
 

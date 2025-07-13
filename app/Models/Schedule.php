@@ -14,6 +14,7 @@ class Schedule extends Model
         'end_time',
         'label',
         'is_active',
+        'max_capacity',
     ];
 
     public function tours()

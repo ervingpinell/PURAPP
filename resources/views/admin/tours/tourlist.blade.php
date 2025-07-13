@@ -66,7 +66,6 @@ td.itinerary-cell {
             <th>Precio Adulto</th>
             <th class="d-none d-md-table-cell">Precio Niño</th>
             <th class="d-none d-md-table-cell">Duración (h)</th>
-            <th class="d-none d-md-table-cell">Cupo Máx.</th>
             <th>Tipo</th>
             <th>Estado</th>
             <th>Acciones</th>
@@ -152,7 +151,6 @@ td.itinerary-cell {
                 <td>{{ number_format($tour->adult_price, 2) }}</td>
                 <td class="d-none d-md-table-cell">{{ number_format($tour->kid_price, 2) }}</td>
                 <td class="d-none d-md-table-cell">{{ $tour->length }}</td>
-                <td class="d-none d-md-table-cell">{{ $tour->max_capacity }}</td>
                 <td>{{ $tour->tourType->name }}</td>
 
                 {{-- Estado --}}

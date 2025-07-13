@@ -85,6 +85,9 @@ class CartController extends Controller
 
         $tour = \App\Models\Tour::findOrFail($request->tour_id);
 
+        // Obtén el horario con su cupo máximo
+        $schedule = \App\Models\Schedule::findOrFail($request->schedule_id);
+
         // ✅ 1) Validar que NO esté en fechas bloqueadas
         $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
             ->where('start_date', '<=', $request->tour_date)
@@ -106,7 +109,7 @@ class CartController extends Controller
 
         $requested = $request->adults_quantity + ($request->kids_quantity ?? 0);
 
-        if ($reserved + $requested > $tour->max_capacity) {
+        if ($reserved + $requested > $schedule->max_capacity) {
             return back()->with('error', 'El cupo disponible para este horario está lleno.');
         }
 

@@ -36,6 +36,7 @@
                 <div>
                   🕒 {{ \Carbon\Carbon::parse($bloque->start_time)->format('g:i A') }} –
                   {{ \Carbon\Carbon::parse($bloque->end_time)->format('g:i A') }}<br>
+                  👥 <strong>{{ $bloque->max_capacity }}</strong> personas<br>
                   <span class="badge {{ $bloque->is_active ? 'bg-success' : 'bg-secondary' }}">
                     {{ $bloque->is_active ? 'Activo' : 'Inactivo' }}
                   </span>
@@ -80,6 +81,11 @@
                           <input type="time" name="end_time" class="form-control"
                                  value="{{ $bloque->end_time }}" required>
                         </div>
+                        <div class="mb-3">
+                          <label>Cupo Máximo</label>
+                          <input type="number" name="max_capacity" class="form-control"
+                                value="{{ $bloque->max_capacity }}" min="1" required>
+                        </div>
                       </div>
                       <div class="modal-footer">
                         <button class="btn btn-warning">Actualizar</button>
@@ -118,6 +124,10 @@
                 <div class="mb-3">
                   <label>Fin</label>
                   <input type="time" name="end_time" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                  <label>Cupo Máximo</label>
+                  <input type="number" name="max_capacity" class="form-control" min="1" required>
                 </div>
               </div>
               <div class="modal-footer">
@@ -159,6 +169,10 @@
           <div class="mb-3">
             <label>Fin</label>
             <input type="time" name="end_time" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>Cupo Máximo</label>
+            <input type="number" name="max_capacity" class="form-control" min="1" required>
           </div>
         </div>
         <div class="modal-footer">

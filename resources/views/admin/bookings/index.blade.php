@@ -580,39 +580,41 @@
 </script>
 @endif
 {{-- 🟢 Scripts dinámicos --}}
-@push('scripts')
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // HOTEL dinámico
-    const sel = document.getElementById('edit_hotel_{{ $reserva->booking_id }}');
-    const wrap = document.getElementById('edit_other_hotel_container_{{ $reserva->booking_id }}');
-    const hidden = document.getElementById('edit_is_other_hotel_{{ $reserva->booking_id }}');
-    sel?.addEventListener('change', () => {
-      if (sel.value === 'other') {
-        wrap.classList.remove('d-none');
-        hidden.value = 1;
-      } else {
-        wrap.classList.add('d-none');
-        wrap.querySelector('input').value = '';
-        hidden.value = 0;
-      }
-    });
+@foreach ($bookings as $reserva)
+  @push('scripts')
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        // HOTEL dinámico
+        const sel = document.getElementById('edit_hotel_{{ $reserva->booking_id }}');
+        const wrap = document.getElementById('edit_other_hotel_container_{{ $reserva->booking_id }}');
+        const hidden = document.getElementById('edit_is_other_hotel_{{ $reserva->booking_id }}');
+        sel?.addEventListener('change', () => {
+          if (sel.value === 'other') {
+            wrap.classList.remove('d-none');
+            hidden.value = 1;
+          } else {
+            wrap.classList.add('d-none');
+            wrap.querySelector('input').value = '';
+            hidden.value = 0;
+          }
+        });
 
-    // HORARIOS dinámicos según TOUR
-    const tourSel = document.getElementById('edit_tour_{{ $reserva->booking_id }}');
-    const schSel = document.getElementById('edit_schedule_{{ $reserva->booking_id }}');
-    tourSel?.addEventListener('change', () => {
-      const opt = tourSel.options[tourSel.selectedIndex];
-      const schedules = JSON.parse(opt.dataset.schedules || '[]');
-      schSel.innerHTML = '<option value="">Seleccione horario</option>';
-      schedules.forEach(s => {
-        const o = document.createElement('option');
-        o.value = s.schedule_id;
-        o.text = `${s.start_time} – ${s.end_time}`;
-        schSel.appendChild(o);
+        // HORARIOS dinámicos según TOUR
+        const tourSel = document.getElementById('edit_tour_{{ $reserva->booking_id }}');
+        const schSel = document.getElementById('edit_schedule_{{ $reserva->booking_id }}');
+        tourSel?.addEventListener('change', () => {
+          const opt = tourSel.options[tourSel.selectedIndex];
+          const schedules = JSON.parse(opt.dataset.schedules || '[]');
+          schSel.innerHTML = '<option value="">Seleccione horario</option>';
+          schedules.forEach(s => {
+            const o = document.createElement('option');
+            o.value = s.schedule_id;
+            o.text = `${s.start_time} – ${s.end_time}`;
+            schSel.appendChild(o);
+          });
+        });
+
       });
-    });
-  });
-</script>
-@endpush
-@stop
+    </script>
+  @endpush
+@endforeach

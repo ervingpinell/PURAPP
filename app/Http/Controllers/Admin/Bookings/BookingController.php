@@ -73,6 +73,7 @@ class BookingController extends Controller
         ]);
 
         $tour = Tour::with('schedules')->findOrFail($v['tour_id']);
+        $schedule = $tour->schedules()->where('schedules.schedule_id', $v['schedule_id'])->firstOrFail();
 
         // ✅ Valida horario
         if (! $tour->schedules()->where('schedules.schedule_id', $v['schedule_id'])->exists()) {
@@ -99,8 +100,8 @@ class BookingController extends Controller
 
         $requested = $v['adults_quantity'] + $v['kids_quantity'];
 
-        if ($reserved + $requested > $tour->max_capacity) {
-            $available = $tour->max_capacity - $reserved;
+        if ($reserved + $requested > $schedule->max_capacity) {
+            $available = $schedule->max_capacity - $reserved;
             return back()->withErrors(['capacity' => "Solo quedan {$available} plazas disponibles para este horario."])->withInput();
         }
 
@@ -172,16 +173,18 @@ class BookingController extends Controller
 
         $requested = $r['adults_quantity'] + $r['kids_quantity'];
 
-        if ($reserved + $requested > $booking->tour->max_capacity) {
-            $available = $booking->tour->max_capacity - $reserved;
+        $schedule = $booking->tour->schedules()->where('schedules.schedule_id', $r['schedule_id'])->firstOrFail();
+
+        if ($reserved + $requested > $schedule->max_capacity) {
+            $available = $schedule->max_capacity - $reserved;
             return back()->withErrors(['capacity' => "Solo quedan {$available} plazas."])
-                        ->withInput()
-                        ->with('showEditModal', $booking->booking_id);
+                ->withInput()
+                ->with('showEditModal', $booking->booking_id);
         }
 
         // ✅ Actualizar total
         $newTotal = ($detail->adult_price * $r['adults_quantity']) + ($detail->kid_price * $r['kids_quantity']);
-
+        
         $booking->update([
             'status'      => $r['status'],
             'notes'       => $r['notes'] ?? null,
@@ -305,6 +308,7 @@ class BookingController extends Controller
             $tour       = $first->tour;
             $tourDate   = $first->tour_date;
             $scheduleId = $first->schedule_id;
+            $schedule = $tour->schedules()->where('schedules.schedule_id', $scheduleId)->firstOrFail();
 
             // ✅ Validar fecha bloqueada
             $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
@@ -329,8 +333,8 @@ class BookingController extends Controller
                 $i->adults_quantity + $i->kids_quantity
             );
 
-            if ($reserved + $requested > $tour->max_capacity) {
-                $available = $tour->max_capacity - $reserved;
+            if ($reserved + $requested > $schedule->max_capacity) {
+                $available = $schedule->max_capacity - $reserved;
                 return redirect()->route('admin.cart.index')
                     ->with('error', "Para '{$tour->name}' el día {$tourDate} solo quedan {$available} plazas para ese horario.");
             }
@@ -452,8 +456,8 @@ class BookingController extends Controller
 
         $reserved = BookingDetail::where('tour_id', $data['tour_id'])
             ->where('tour_date', $data['tour_date'])
+            ->where('schedule_id', $data['schedule_id'])
             ->sum(DB::raw('adults_quantity + kids_quantity'));
-
         return response()->json(['reserved' => $reserved]);
     }
 

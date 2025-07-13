@@ -16,10 +16,10 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('end_time')->nullable();
             $table->string('label')->nullable();
+            $table->unsignedInteger('max_capacity')->default(12);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
-
     }
 
     /**
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tour_schedules');
+        Schema::dropIfExists('schedules');
     }
 };
