@@ -19,16 +19,6 @@
       <table class="table table-bordered table-striped table-hover">
         <thead>
           <tr class="text-center">
-<<<<<<< HEAD
-            <th>Tour</th>
-            <th>Fecha</th>
-            <th>Horario</th>
-            <th>Idioma</th>
-            <th>Adultos</th>
-            <th>Niños</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-=======
             <th>{{ __('adminlte::adminlte.tour') }}</th>
             <th>{{ __('adminlte::adminlte.date') }}</th>
             <th>{{ __('adminlte::adminlte.schedule') }}</th>
@@ -36,7 +26,7 @@
             <th>{{ __('adminlte::adminlte.adults') }}</th>
             <th>{{ __('adminlte::adminlte.kids') }}</th>
             <th>{{ __('adminlte::adminlte.status') }}</th>
->>>>>>> main
+            <th>{{ __('adminlte::adminlte.actions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -48,7 +38,7 @@
                 @if($item->schedule)
                   {{ \Carbon\Carbon::parse($item->schedule->start_time)->format('g:i A') }} -
                   {{ \Carbon\Carbon::parse($item->schedule->end_time)->format('g:i A') }}
-                @elsen
+                @else
                   Sin horario
                 @endif
               </td>
@@ -56,9 +46,8 @@
               <td>{{ $item->adults_quantity }}</td>
               <td>{{ $item->kids_quantity }}</td>
               <td>
-<span class="badge {{ $item->is_active ? 'bg-success' : 'bg-secondary' }}">
-  {{ $item->is_active ? __('adminlte::adminlte.active') : __('adminlte::adminlte.inactive') }}
-</span>
+                <span class="badge {{ $item->is_active ? 'bg-success' : 'bg-secondary' }}">
+                  {{ $item->is_active ? __('adminlte::adminlte.active') : __('adminlte::adminlte.inactive') }}
                 </span>
               </td>
               <td>
@@ -67,7 +56,7 @@
                       onsubmit="return confirm('¿Eliminar este tour del carrito?');">
                   @csrf @method('DELETE')
                   <button type="submit" class="btn btn-danger btn-sm">
-                    <i class="fas fa-trash"></i> Eliminar
+                    <i class="fas fa-trash"></i> {{ __('adminlte::adminlte.delete') }}
                   </button>
                 </form>
               </td>
@@ -85,7 +74,7 @@
     @endphp
 
     <h4 class="mb-4">
-      <strong>{{ __('adminlte::adminlte.totalEstimated') }}</strong> ${{ number_format($total, 2) }}
+      <strong>{{ __('adminlte::adminlte.totalEstimated') }}:</strong> ${{ number_format($total, 2) }}
     </h4>
 
     <form action="{{ route('public.reservas.storeFromCart') }}"
@@ -94,6 +83,7 @@
       @csrf
       <button type="submit" class="btn btn-success btn-lg">
         <i class="fas fa-check"></i> {{ __('adminlte::adminlte.confirmBooking') }}
+      </button>
     </form>
   @else
     <div class="alert alert-info">
@@ -102,4 +92,3 @@
   @endif
 </div>
 @endsection
-A
