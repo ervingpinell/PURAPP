@@ -17,10 +17,9 @@
     <!-- DERECHA: Acciones Mobile -->
     <div class="navbar-actions d-md-none">
       <!-- Carrito -->
-      <a href="{{ route('home') }}">
-        <i class="fas fa-shopping-cart"></i>
-      </a>
-
+    <a href="{{ route('public.cart.index') }}">
+        <i class="fas fa-shopping-cart" title="{{ __('adminlte::adminlte.cart') }}"></i>
+    </a>
       <!-- Usuario Mobile -->
       @auth
         <div class="dropdown">
@@ -63,11 +62,10 @@
       @include('partials.language-switcher')
 
       <!-- Carrito -->
-      <li class="nav-item">
-          <a class="nav-link" href="{{ route('public.cart.index') }}">
-              <i class="fas fa-shopping-cart"></i> Mi Carrito
-          </a>
-      </li>
+    <a class="nav-link" href="{{ route('public.cart.index') }}">
+        <i class="fas fa-shopping-cart" title="{{ __('adminlte::adminlte.cart') }}"></i>
+        {{ __('adminlte::adminlte.cart') }}
+    </a>
 
       <!-- Usuario Desktop -->
       @auth
@@ -113,11 +111,11 @@
 
   <!-- MOBILE MENU desplegable -->
   <div class="navbar-links d-md-none" id="navbar-links">
-    <a href="{{ route('home') }}">Inicio</a>
-    <a href="#">Tours</a>
-    <a href="#">Reseñas</a>
-    <a href="#">Preguntas frecuentes</a>
-    <a href="#">Contacto</a>
+      <a href="{{ route('home') }}">{{ __('adminlte::adminlte.home') }}</a>
+      <a href="#">{{ __('adminlte::adminlte.tours') }}</a>
+      <a href="#">{{ __('adminlte::adminlte.reviews') }}</a>
+      <a href="#">{{ __('adminlte::adminlte.faq') }}</a>
+      <a href="#">{{ __('adminlte::adminlte.contact_us') }}</a>
     <div class="language-switcher-wrapper">
       @include('partials.language-switcher')
     </div>
