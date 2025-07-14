@@ -189,14 +189,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     pickupListWrapper.addEventListener('change', function (e) {
-      if (e.target.name === 'pickupOption') {
-        hotelInput.value = e.target.value;  // ✅ Esto se manda como hotel_id
-        isOtherHotelInput.value = 0;        // ✅ Si selecciona de lista, NO es otro hotel
-        otherHotelNameInput.value = '';     // ✅ Limpia otro hotel
-        selectedPickupDisplay.querySelector('span').textContent = e.target.value;
-        pickupListWrapper.classList.add('d-none');
-      }
-    });
+    if (e.target.name === 'pickupOption') {
+      hotelInput.value = e.target.value;  // ✅ Esto se manda como hotel_id
+      isOtherHotelInput.value = 0;// ✅ Si selecciona de lista, NO es otro hotel
+      otherHotelNameInput.value = '';// ✅ Limpia otro hotel
+
+      // ✅ Obtiene el nombre visible del hotel desde el label
+      const label = e.target.closest('label');
+      const hotelName = label.querySelector('strong').textContent;
+
+      selectedPickupDisplay.querySelector('span').textContent = hotelName; // ✅ Muestra nombre
+      pickupListWrapper.classList.add('d-none');
+    }
+  });
+
 
     selectedPickupDisplay.addEventListener('click', function () {
       pickupListWrapper.classList.toggle('d-none');

@@ -63,15 +63,15 @@ class CartController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'tour_id'          => 'required|exists:tours,tour_id',
-            'tour_date'        => 'required|date',
-            'schedule_id'      => 'required|exists:schedules,schedule_id',
-            'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
-            'hotel_id'         => 'nullable|exists:hotels_list,hotel_id',
-            'is_other_hotel'   => 'boolean',
-            'other_hotel_name' => 'nullable|string|max:255',
-            'adults_quantity'  => 'required|integer|min:1',
-            'kids_quantity'    => 'nullable|integer|min:0|max:2',
+        'tour_id'          => 'required|exists:tours,tour_id',
+        'tour_date'        => 'required|date',
+        'schedule_id'      => 'required|exists:schedules,schedule_id',
+        'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
+        'hotel_id'         => 'nullable|integer|exists:hotels_list,hotel_id',
+        'is_other_hotel'   => 'boolean',
+        'other_hotel_name' => 'nullable|string|max:255',
+        'adults_quantity'  => 'required|integer|min:1',
+        'kids_quantity'    => 'nullable|integer|min:0|max:2',
         ]);
 
         $user = Auth::user();

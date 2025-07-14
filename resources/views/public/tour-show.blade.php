@@ -269,7 +269,7 @@
                         @forelse ($hotels as $hotel)
                           <li class="mb-2">
                             <label class="d-flex align-items-start gap-2">
-                              <input type="radio" name="pickupOption" value="{{ $hotel->name }}">
+                              <input type="radio" name="pickupOption" value="{{ $hotel->hotel_id }}">
                               <div>
                                 <i class="fas fa-hotel me-1"></i>
                                 <strong>{{ $hotel->name }}</strong><br>
