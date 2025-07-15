@@ -468,140 +468,113 @@
 <link rel="stylesheet" href="{{ asset('css/calendar.css') }}">
 @stop
 @section('js')
+<!-- ✅ Scripts base -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  // Función para recalcular total
-  function calcularTotal(modal) {
-    const adultos = parseInt(modal.querySelector('.cantidad-adultos')?.value || 0);
-    const ninos   = parseInt(modal.querySelector('.cantidad-ninos')?.value || 0);
-    const precioA = parseFloat(modal.querySelector('.precio-adulto')?.value || 0);
-    const precioN = parseFloat(modal.querySelector('.precio-nino')?.value || 0);
-    const total   = (adultos * precioA) + (ninos * precioN);
-    const totalInput = modal.querySelector('.total-pago');
-    if (totalInput) totalInput.value = total.toFixed(2);
-  }
+// === Función para recalcular total ===
+function calcularTotal(modal) {
+  const adultos = parseInt(modal.querySelector('.cantidad-adultos')?.value || 0);
+  const ninos   = parseInt(modal.querySelector('.cantidad-ninos')?.value || 0);
+  const precioA = parseFloat(modal.querySelector('.precio-adulto')?.value || 0);
+  const precioN = parseFloat(modal.querySelector('.precio-nino')?.value || 0);
+  const total   = (adultos * precioA) + (ninos * precioN);
+  const totalInput = modal.querySelector('.total-pago');
+  if (totalInput) totalInput.value = total.toFixed(2);
+}
 
-  // Al cargar, configurar eventos
-  document.addEventListener('DOMContentLoaded', () => {
-    // Escuchar cambios de cantidad para recalcular
-    document.querySelectorAll('.modal').forEach(modal => {
-      modal.addEventListener('input', () => calcularTotal(modal));
-    });
+document.addEventListener('DOMContentLoaded', () => {
 
-    // Hotel dinámico en edición
-    @foreach($bookings as $reserva)
-      (function(){
-        const sel    = document.getElementById('edit_hotel_{{ $reserva->booking_id }}');
-        const wrap   = document.getElementById('edit_other_hotel_container_{{ $reserva->booking_id }}');
-        const hidden = document.getElementById('edit_is_other_hotel_{{ $reserva->booking_id }}');
-        sel?.addEventListener('change', () => {
-          if (sel.value === 'other') {
-            wrap.classList.remove('d-none');
-            hidden.value = 1;
-          } else {
-            wrap.classList.add('d-none');
-            wrap.querySelector('input').value = '';
-            hidden.value = 0;
-          }
-        });
-      })();
-    @endforeach
+  // === Recalcular total al escribir ===
+  document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('input', () => calcularTotal(modal));
+  });
 
-    // 🟢 HORARIOS + PRECIOS dinámicos al seleccionar tour
-    const selectTour = document.getElementById('selectTour');
-    const selectSchedule = document.getElementById('selectSchedule');
-    if (selectTour && selectSchedule) {
-      selectTour.addEventListener('change', function () {
-        const selectedOption = this.options[this.selectedIndex];
-        
-        // ✅ Leer precios del dataset
-        const precioAdulto = parseFloat(selectedOption.dataset.precioAdulto) || 0;
-        const precioNino   = parseFloat(selectedOption.dataset.precioNino) || 0;
-
-        const modal = this.closest('.modal') || document;
-
-        modal.querySelector('.precio-adulto').value = precioAdulto.toFixed(2);
-        modal.querySelector('.precio-nino').value   = precioNino.toFixed(2);
-
-        calcularTotal(modal);
-
-        // ✅ Cargar horarios dinámicos
-        const schedules = JSON.parse(selectedOption.dataset.schedules || '[]');
-        selectSchedule.innerHTML = '<option value="">Seleccione un horario</option>';
-        if (schedules.length > 0) {
-          schedules.forEach(s => {
-            const option = document.createElement('option');
-            option.value = s.schedule_id;
-            option.text  = `${s.start_time} – ${s.end_time}`;
-            selectSchedule.appendChild(option);
-          });
+  // === Hotel dinámico en edición ===
+  @foreach($bookings as $reserva)
+    (function(){
+      const sel    = document.getElementById('edit_hotel_{{ $reserva->booking_id }}');
+      const wrap   = document.getElementById('edit_other_hotel_container_{{ $reserva->booking_id }}');
+      const hidden = document.getElementById('edit_is_other_hotel_{{ $reserva->booking_id }}');
+      sel?.addEventListener('change', () => {
+        if (sel.value === 'other') {
+          wrap.classList.remove('d-none');
+          hidden.value = 1;
+        } else {
+          wrap.classList.add('d-none');
+          wrap.querySelector('input').value = '';
+          hidden.value = 0;
         }
       });
-    }
-  });
-</script>
+    })();
+  @endforeach
 
-{{-- SweetAlert éxito --}}
-@if(session('success'))
-<script>
-  Swal.fire({
-    icon: 'success',
-    title: 'Éxito',
-    text: '{{ session('success') }}',
-    confirmButtonColor: '#3085d6',
-    confirmButtonText: 'OK'
-  });
-</script>
-@endif
+  // === TOUR dinámico Registrar ===
+  const selectTour = document.getElementById('selectTour');
+  const selectSchedule = document.getElementById('selectSchedule');
+  if (selectTour && selectSchedule) {
+    selectTour.addEventListener('change', function () {
+      const selectedOption = this.options[this.selectedIndex];
 
-{{-- SweetAlert errores --}}
-@if($errors->has('capacity'))
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
+      const precioAdulto = parseFloat(selectedOption.dataset.precioAdulto) || 0;
+      const precioNino   = parseFloat(selectedOption.dataset.precioNino) || 0;
+
+      const modal = this.closest('.modal') || document;
+      modal.querySelector('.precio-adulto').value = precioAdulto.toFixed(2);
+      modal.querySelector('.precio-nino').value   = precioNino.toFixed(2);
+
+      calcularTotal(modal);
+
+      const schedules = JSON.parse(selectedOption.dataset.schedules || '[]');
+      selectSchedule.innerHTML = '<option value="">Seleccione un horario</option>';
+      schedules.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s.schedule_id;
+        option.text  = `${s.start_time} – ${s.end_time}`;
+        selectSchedule.appendChild(option);
+      });
+    });
+  }
+
+  // === SweetAlert Éxito ===
+  @if(session('success'))
+    Swal.fire({
+      icon: 'success',
+      title: 'Éxito',
+      text: '{{ session('success') }}',
+      confirmButtonColor: '#3085d6',
+      confirmButtonText: 'OK'
+    });
+  @endif
+
+  // === SweetAlert Error ===
+  @if($errors->has('capacity'))
     Swal.fire({
       icon: 'error',
       title: 'Cupo Excedido',
       text: @json($errors->first('capacity')),
       confirmButtonColor: '#d33'
     });
-  });
-</script>
-@endif
+  @endif
 
-{{-- Mostrar modal editar si vuelve con error --}}
-@if(session('showEditModal'))
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
+  // === Mostrar modal edición si vuelve con error ===
+  @if(session('showEditModal'))
     const id = '{{ session('showEditModal') }}';
     const modal = new bootstrap.Modal(document.getElementById('modalEditar' + id));
     modal.show();
-  });
+  @endif
+
+});
 </script>
-@endif
-{{-- 🟢 Scripts dinámicos --}}
-@foreach ($bookings as $reserva)
+
+{{-- Scripts dinámicos específicos por cada reserva --}}
+@foreach($bookings as $reserva)
   @push('scripts')
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        // HOTEL dinámico
-        const sel = document.getElementById('edit_hotel_{{ $reserva->booking_id }}');
-        const wrap = document.getElementById('edit_other_hotel_container_{{ $reserva->booking_id }}');
-        const hidden = document.getElementById('edit_is_other_hotel_{{ $reserva->booking_id }}');
-        sel?.addEventListener('change', () => {
-          if (sel.value === 'other') {
-            wrap.classList.remove('d-none');
-            hidden.value = 1;
-          } else {
-            wrap.classList.add('d-none');
-            wrap.querySelector('input').value = '';
-            hidden.value = 0;
-          }
-        });
-
-        // HORARIOS dinámicos según TOUR
         const tourSel = document.getElementById('edit_tour_{{ $reserva->booking_id }}');
-        const schSel = document.getElementById('edit_schedule_{{ $reserva->booking_id }}');
+        const schSel  = document.getElementById('edit_schedule_{{ $reserva->booking_id }}');
         tourSel?.addEventListener('change', () => {
           const opt = tourSel.options[tourSel.selectedIndex];
           const schedules = JSON.parse(opt.dataset.schedules || '[]');
@@ -609,12 +582,13 @@
           schedules.forEach(s => {
             const o = document.createElement('option');
             o.value = s.schedule_id;
-            o.text = `${s.start_time} – ${s.end_time}`;
+            o.text  = `${s.start_time} – ${s.end_time}`;
             schSel.appendChild(o);
           });
         });
-
       });
     </script>
   @endpush
 @endforeach
+@endsection
+

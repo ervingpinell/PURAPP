@@ -92,7 +92,7 @@
               <form id="logout-form-desktop" action="{{ route('logout') }}" method="POST" class="d-inline w-100">
                 @csrf
                 <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
-                  <i class="fas fa-sign-out-alt me-2"></i> {{ __('adminlte::adminlte.logout') }}
+                  <i class="fas fa-sign-out-alt me-2"></i> {{ __('adminlte::adminlte.log_out') }}
                 </button>
               </form>
             </li>
