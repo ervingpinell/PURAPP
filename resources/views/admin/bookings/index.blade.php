@@ -21,20 +21,23 @@
                 </a>
             </div>
             <form method="GET" class="d-flex align-items-end gx-2">
-                <div class="form-group mb-0">
-                    <label for="reference" class="form-label visually-hidden">Referencia</label>
-                    <input
-                        type="text"
-                        id="reference"
-                        name="reference"
-                        value="{{ request('reference') }}"
-                        class="form-control"
-                        placeholder="Ej: ABC123XYZ"
-                    >
-                </div>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-search"></i> Filtrar
-                </button>
+              <div class="form-group mb-0">
+                <label for="reference" class="form-label visually-hidden">Referencia</label>
+                <input
+                  type="text"
+                  id="reference"
+                  name="reference"
+                  value="{{ request('reference') }}"
+                  class="form-control"
+                  placeholder="Ej: ABC123XYZ"
+                >
+              </div>
+              <button type="submit" class="btn btn-primary ms-2">
+                <i class="fas fa-search"></i> Filtrar
+              </button>
+              <a href="{{ route('admin.reservas.index') }}" class="btn btn-secondary ms-2">
+                <i class="fas fa-broom"></i> Limpiar
+              </a>
             </form>
         </div>
     </div>
