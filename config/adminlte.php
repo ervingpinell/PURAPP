@@ -89,8 +89,8 @@ return [
             'path' => 'images\logoCompanyWhite.png',
             'alt' => 'Auth Logo',
         'style' => 'padding: 10px;',
-        'width' => '50%', 
-        'height' => '50%', 
+        'width' => '50%',
+        'height' => '50%',
         ],
     ],
 
@@ -308,7 +308,7 @@ return [
             'text' => 'search',
             'topnav_right' => true,
         ],
-        
+
         [
             'type' => 'fullscreen-widget',
             'topnav_right' => true,
@@ -368,10 +368,10 @@ return [
 
         [
             'text'  => 'DISPONIBILIDAD',
-            'route' => 'admin.tours.availability.index',
+            'route' => 'admin.tours.excluded_dates.index',
             'icon'  => 'fas fa-check-circle',
         ],
-        
+
         ['header' => 'TOURS'],
 
       [
@@ -403,17 +403,17 @@ return [
             'route' => 'admin.tours.itinerary.index',
             'icon'  => 'fas fa-route',
         ],
-        
+
         [
             'text'  => 'Amenidades',
             'route' => 'admin.tours.amenities.index',
             'icon'  => 'fas fa-concierge-bell',
         ],
-        [
-            'text' => 'Fechas Excluidas',
-            'route' => 'admin.tours.excluded_dates.index',
-            'icon' => 'fas fa-calendar-times', 
-        ],
+        // [
+        //     'text' => 'Fechas Excluidas',
+        //     'route' => 'admin.tours.excluded_dates.index',
+        //     'icon' => 'fas fa-calendar-times',
+        // ],
     ],
 ],
 
@@ -465,7 +465,7 @@ return [
         ]
 
 
-        
+
     ],
 
     /*

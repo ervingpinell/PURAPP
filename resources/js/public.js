@@ -210,8 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('click', function (e) {
-      if (!pickupSearch.contains(e.target) && 
-          !pickupListWrapper.contains(e.target) && 
+      if (!pickupSearch.contains(e.target) &&
+          !pickupListWrapper.contains(e.target) &&
           !selectedPickupDisplay.contains(e.target)) {
         pickupListWrapper.classList.add('d-none');
       }

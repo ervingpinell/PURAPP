@@ -192,9 +192,11 @@ return [
     'optional' => 'Opcional',
     'edit_profile' => 'Editar Perfil',
     'read_more' => 'leer más',
+    'read_less' => 'Leer menos',
     'adult_price' => 'Adultos (10+)',
     'kid_price' => 'Niños (0-9)',
-
+    'horas'=> 'horas',
+'close'=> 'Cerrar',
     'blocked_date_for_tour' => 'La fecha :date está bloqueada para ":tour".',
 'tourCapacityFull' => 'La capacidad máxima para este tour ya está completa.',
 'cartItemAdded' => 'Tour agregado al carrito correctamente.',

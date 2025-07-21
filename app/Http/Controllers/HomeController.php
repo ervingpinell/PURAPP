@@ -11,14 +11,19 @@ class HomeController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function index()
-    {
-        // Obtener tours activos con su tipo
-        $tours = Tour::with('tourType')->where('is_active', true)->get();
+public function index()
+{
+    $tours = Tour::with('tourType')
+        ->where('is_active', true)
+        ->get()
+        ->groupBy(function ($tour) {
+            return $tour->tourType->name ?? 'Sin categoría';
+        });
 
-        // Retornar la vista 'index' y pasarle los tours
-        return view('public.home', compact('tours'));
-    }
+    return view('public.home', compact('tours'));
+}
+
+
 
 public function showTour($id)
 {

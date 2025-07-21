@@ -219,7 +219,6 @@ body {
 .compact-testimonials {
     padding: 3rem 1rem;
     text-align: center;
-    background-color: #f8f9fa;
     border-bottom: 3px solid #60a862;
 }
 
@@ -444,7 +443,7 @@ body {
 }
 
 .footer-nature {
-    background: linear-gradient(to right, #0d4740, #083d3a);
+    background: #0f2419;
     color: white;
     padding: 3.5rem 2rem;
     font-size: 16px;
@@ -580,10 +579,116 @@ body {
     flex: 1;
     min-width: 220px;
 }
-
+    .card-title {
+        background-color: #F92526;
+        color: white;
+        padding: 0.5em;
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        text-align: center;
+    }
 /*Version mobile */
 
-@media (max-width: 768px) {
+    @media (max-width: 768px) {
+.tour-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0 0.3rem;
+  }
+
+  .card {
+    flex: 1 0 48%;              /* Ocupa casi la mitad */
+    max-width: 340px;           /* Tamaño máximo adaptable */
+    height: auto;
+    padding: 0.7rem;
+    margin: 0.4rem 0.1rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #fff;
+    text-align: center;
+  }
+
+  .card img {
+    height: 160px;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .card .card-title {
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+    padding: 0.25rem 0.5rem;
+    background-color: #F92526;
+    color: white;
+    border-radius: 0.4rem;
+    display: inline-block;
+  }
+
+  .card p,
+  .card span,
+  .card strong {
+    font-size: 0.8rem;
+    margin-bottom: 0.2rem;
+    line-height: 1.2;
+  }
+
+  .card .btn {
+    margin-top: 0.3rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    border-radius: 0.3rem;
+    white-space: nowrap;
+    color: white;
+  }
+
+    .modal .card {
+        padding: 0.5rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+        background: #fff;
+        text-align: center;
+        max-width: 160px !important; /* 🔐 Fuerza tamaño compacto */
+        flex: 1 0 48%;
+    }
+
+    .modal .card img {
+        height: 90px;
+        object-fit: cover;
+        border-radius: 0.5rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .modal .card-title {
+        font-size: 0.7rem;
+        margin-bottom: 0.4rem;
+        padding: 0.25rem 0.4rem;
+    }
+
+    .modal .card p,
+    .modal .card span,
+    .modal .card strong {
+        font-size: 0.7rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .modal .card .btn {
+        margin-top: 0.3rem;
+        padding: 0.3rem 0.6rem;
+        font-size: 0.7rem;
+        border-radius: 0.3rem;
+        white-space: nowrap;
+    }
     .navbar-custom {
         position: fixed;
         top: 0;
@@ -800,48 +905,103 @@ body {
     }
 }
 
-/* === Versión XS: iPhone SE (<= 400px) === */
 @media (max-width: 424px) {
-    @media (max-width: 424px) {
-        .navbar-container {
-            max-width: 100%; /* Asegura ancho fluido */
-            padding: 0.3rem 0.5rem; /* Márgenes laterales reducidos */
-            box-sizing: border-box;
-        }
+  .tour-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0 0.3rem;
+  }
 
-        .navbar-left {
-            flex: 0 0 auto;
-            margin-left: 0; /* Evita empujar demasiado */
-        }
+  .modal .card {
+    flex: 1 0 48%;                /* Dos columnas */
+    max-width: 180px !important; /* Aumenta un poco el ancho */
+    height: auto;
+    padding: 0.6rem;
+    margin: 0.4rem 0.1rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #fff;
+    text-align: center;
+  }
 
-        .navbar-toggle {
-            min-width: 30px;
-            font-size: 1.2rem; /* Hamburguesa proporcional */
-        }
+  .modal .card img {
+    height: 100px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin-bottom: 0.4rem;
+    width: 100%;
+  }
 
-        .navbar-logo {
-            flex: 1;
-            max-width: 90px; /* Logo más estrecho */
-            text-align: center; /* Centrado */
-            margin: 0 auto; /* Centrado horizontal */
-        }
+  .modal .card-title {
+    font-size: 0.75rem;
+    margin-bottom: 0.4rem;
+    padding: 0.25rem 0.5rem;
+    background-color: #F92526;
+    color: white;
+    border-radius: 0.4rem;
+    display: inline-block;
+  }
 
-        .navbar-logo img {
-            max-height: 50px; /* Logo más bajo para XS */
-            width: auto;
-        }
+  .modal .card p,
+  .modal .card span,
+  .modal .card strong {
+    font-size: 0.7rem;
+    margin-bottom: 0.2rem;
+    line-height: 1.2;
+  }
 
-        .navbar-actions {
-            flex: 0 0 auto;
-            display: flex;
-            align-items: center;
-            gap: 0.2rem; /* Íconos juntos */
-            margin-right: 0; /* Pegados al borde derecho */
-        }
+  .modal .card .btn {
+    margin-top: 0.3rem;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.7rem;
+    border-radius: 0.3rem;
+    white-space: nowrap;
+    background-color: #60A862;
+    color: white;
+  }
 
-        /* Ajuste extra para evitar overflow en XS */
-        .navbar-actions i {
-            font-size: 1.1rem;
-        }
-    }
+  .navbar-container {
+    max-width: 100%;
+    padding: 0.3rem 0.5rem;
+    box-sizing: border-box;
+  }
+
+  .navbar-left {
+    flex: 0 0 auto;
+    margin-left: 0;
+  }
+
+  .navbar-toggle {
+    min-width: 30px;
+    font-size: 1.2rem;
+  }
+
+  .navbar-logo {
+    flex: 1;
+    max-width: 90px;
+    text-align: center;
+    margin: 0 auto;
+  }
+
+  .navbar-logo img {
+    max-height: 50px;
+    width: auto;
+  }
+
+  .navbar-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    margin-right: 0;
+  }
+
+  .navbar-actions i {
+    font-size: 1.1rem;
+  }
 }
