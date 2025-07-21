@@ -145,6 +145,7 @@ return [
     'half_day' => 'Medio día',
     'full_day' => 'Día completo',
     'see_tour' => 'Ver tour',
+    'see_tours' => 'Ver tours',
     'what_visitors_say' => 'Lo que dicen nuestros visitantes',
     'quote_1' => '¡Una experiencia inolvidable!',
     'guest_1' => 'Carlos M.',
@@ -197,6 +198,11 @@ return [
     'kid_price' => 'Niños (0-9)',
     'horas'=> 'horas',
 'close'=> 'Cerrar',
+'full_day_description' => "Perfecto para quienes disfrutan caminar y explorar tanto como puedan en un solo día.\n\nSi tienes tiempo limitado en la zona de La Fortuna, ¡esta es tu mejor opción!\n\nVisita los principales puntos turísticos de La Fortuna en solo un día.",
+
+'half_day_description' => "Ideal si deseas explorar a un ritmo más tranquilo o disfrutar de una mañana o tarde relajada.\n\nTómate tu tiempo para disfrutar de cada destino.\n\nPerfecto para familias, adultos mayores o quienes prefieren un día de actividades más ligeras.",
+'switch_view' => 'Cambiar vista',
+
     'blocked_date_for_tour' => 'La fecha :date está bloqueada para ":tour".',
 'tourCapacityFull' => 'La capacidad máxima para este tour ya está completa.',
 'cartItemAdded' => 'Tour agregado al carrito correctamente.',

@@ -13,7 +13,7 @@ class HomeController extends Controller
      */
 public function index()
 {
-    $tours = Tour::with('tourType')
+    $tours = Tour::with(['tourType', 'itinerary.items']) // 👈 Incluye la relación aquí
         ->where('is_active', true)
         ->get()
         ->groupBy(function ($tour) {

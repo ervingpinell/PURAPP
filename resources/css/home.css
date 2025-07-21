@@ -155,7 +155,6 @@ body {
   padding: 3rem 1rem 0;
 }
 
-
 .tour-cards {
     display: flex;
     flex-wrap: wrap;
@@ -163,57 +162,146 @@ body {
     gap: 1.5rem;
     padding-bottom: 3rem;
 }
-.accordion-item li {
-    list-style: none;
-    padding-left: 0;
-    margin-left: 0;
+.tour-card {
+    flex: 1 0 48%;
+    max-width: 340px;
+    padding: 0.7rem;
+    margin: 0.4rem 0.1rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    text-align: center;
+}
+.tour-card .card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: space-between;
+    min-height: 220px; /* 🧱 Forzamos igual altura útil interna */
+}
+.tour-card .card-text {
+    font-size: 0.9rem;
+    line-height: 1.3;
+    overflow: hidden;
+margin-top: 0.8rem;
+}
+.tour-card .card-text.small {
+    font-size: 0.9rem;
+    line-height: 1.4em;
+    margin-bottom: 0.8rem;
+    overflow: visible;
+    display: block;
 }
 
-.card {
-    background: var(--white);
-    padding: 1.5rem;
-    border-radius: var(--border-radius);
-    width: 100%;
-    max-width: 280px;
-    box-shadow: var(--shadow);
-    transition: var(--transition);
-}
-
-.card:hover {
+.tour-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.card img {
+.tour-card img {
     width: 100%;
-    height: 180px;
+    height: 160px;
     object-fit: cover;
     border-radius: var(--border-radius);
     margin-bottom: 1rem;
 }
 
-.card h3 {
-    margin: 0.5rem 0 1rem;
-    font-size: 1.25rem;
+.tour-card h3 {
+    margin: 0.5rem 0 0.8rem;
+    font-size: 1.1rem;
+    font-weight: bold;
     color: var(--primary-dark);
+    line-height: 1.3em;
+    max-height: 2.6em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
-.card button {
-    background-color: var(--primary-dark);
+.btn-ver-tour {
+
     color: var(--white);
     border: none;
-    padding: 0.75rem 1.5rem;
+    padding: 0.7rem 1.2rem;
     border-radius: 25px;
     cursor: pointer;
     font-weight: 500;
     transition: var(--transition);
     width: 100%;
+    margin-top: auto;
 }
 
-.card button:hover {
+.btn-ver-tour:hover {
     background-color: #1c5413;
     transform: scale(1.05);
 }
+
+/* Tarjetas dentro del modal */
+.tour-modal-card {
+    background: #fff;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem;
+    height: 100%;
+    transition: transform 0.2s ease;
+    text-align: center;
+}
+
+.tour-modal-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.tour-modal-card img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.tour-modal-card .card-title {
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 0.4rem;
+    color: white;
+    line-height: 1.3;
+    min-height: 2.6em; /* Alinea títulos aunque unos tengan salto de línea */
+}
+
+.tour-modal-card .card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.tour-modal-card p,
+.tour-modal-card span,
+.tour-modal-card strong {
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+    line-height: 1.4;
+}
+
+.tour-modal-card .prices {
+    margin-top: auto;
+    margin-bottom: 0.5rem;
+}
+
+.tour-modal-card .btn {
+    margin-top: auto;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.4rem;
+    white-space: nowrap;
+}
+
 
 /* TESTIMONIALS & OVERVIEW */
 .compact-testimonials {
@@ -222,16 +310,17 @@ body {
     border-bottom: 3px solid #60a862;
 }
 
-.overview-container {
-    overflow: hidden;
-    transition: max-height 0.5s ease;
+.overview {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  max-height: 4.5em; /* corresponde a ~3 líneas */
 }
-
-.overview-container.collapsed {
-    max-height: 4.5em;
-}
-.overview-container.expanded {
-    max-height: 999px;
+.overview.expanded {
+  -webkit-line-clamp: unset;
+  max-height: 1000px;
 }
 
 .toggle-overview-link {
@@ -587,10 +676,12 @@ body {
         font-size: 1rem;
         text-align: center;
     }
+
 /*Version mobile */
 
     @media (max-width: 768px) {
-.tour-cards {
+
+  .tour-cards {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -598,14 +689,13 @@ body {
     padding: 0 0.3rem;
   }
 
-  .card {
-    flex: 1 0 48%;              /* Ocupa casi la mitad */
-    max-width: 340px;           /* Tamaño máximo adaptable */
-    height: auto;
+  .tour-card {
+    flex: 1 0 48%;
+    max-width: 340px;
     padding: 0.7rem;
     margin: 0.4rem 0.1rem;
     border-radius: 0.75rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -613,7 +703,7 @@ body {
     text-align: center;
   }
 
-  .card img {
+  .tour-card img {
     height: 160px;
     width: 100%;
     object-fit: cover;
@@ -621,7 +711,7 @@ body {
     margin-bottom: 0.4rem;
   }
 
-  .card .card-title {
+  .tour-card .card-title {
     font-size: 0.85rem;
     margin-bottom: 0.4rem;
     padding: 0.25rem 0.5rem;
@@ -631,15 +721,17 @@ body {
     display: inline-block;
   }
 
-  .card p,
-  .card span,
-  .card strong {
+
+  .tour-card p,
+  .tour-card span,
+  .tour-card strong {
     font-size: 0.8rem;
     margin-bottom: 0.2rem;
     line-height: 1.2;
   }
 
-  .card .btn {
+
+  .tour-card .btn {
     margin-top: 0.3rem;
     padding: 0.4rem 0.8rem;
     font-size: 0.75rem;
@@ -648,47 +740,58 @@ body {
     color: white;
   }
 
-    .modal .card {
-        padding: 0.5rem;
-        border-radius: 0.75rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        height: 100%;
-        background: #fff;
-        text-align: center;
-        max-width: 160px !important; /* 🔐 Fuerza tamaño compacto */
-        flex: 1 0 48%;
-    }
 
-    .modal .card img {
-        height: 90px;
-        object-fit: cover;
-        border-radius: 0.5rem;
-        margin-bottom: 0.4rem;
-    }
+  .tour-modal-card {
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100% !important;
+    background: #fff;
+    text-align: center;
+    max-width: 160px !important;
+    flex: 1 0 48%;
+  }
 
-    .modal .card-title {
-        font-size: 0.7rem;
-        margin-bottom: 0.4rem;
-        padding: 0.25rem 0.4rem;
-    }
 
-    .modal .card p,
-    .modal .card span,
-    .modal .card strong {
-        font-size: 0.7rem;
-        margin-bottom: 0.2rem;
-    }
+  .tour-modal-card img {
+    height: 100px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin-bottom: 0.4rem;
+  }
 
-    .modal .card .btn {
-        margin-top: 0.3rem;
-        padding: 0.3rem 0.6rem;
-        font-size: 0.7rem;
-        border-radius: 0.3rem;
-        white-space: nowrap;
-    }
+.tour-modal-card .card-title {
+    background-color: #F92526;
+    color: white;
+    font-size: 0.74rem;
+    padding: 0.25rem 0.25rem;
+    margin-bottom: 0.3rem;
+    border-radius: 0.4rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.18;
+    word-break: break-word;
+    white-space: normal;
+}
+.tour-modal-card p,
+  .tour-modal-card span,
+  .tour-modal-card strong {
+    font-size: 0.7rem;
+    margin-bottom: 0.2rem;
+  }
+
+
+  .tour-modal-card .btn {
+    margin-top: 0.3rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.7rem;
+    border-radius: 0.3rem;
+    white-space: nowrap;
+  }
+
     .navbar-custom {
         position: fixed;
         top: 0;
@@ -904,19 +1007,78 @@ body {
         font-size: 13px;
     }
 }
-
 @media (max-width: 424px) {
-  .tour-cards {
+ .tour-cards {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 0.4rem;
-    padding: 0 0.3rem;
+    gap: 0.4rem; /* 🔽 más compacto */
+    padding: 0 0.2rem;
   }
 
-  .modal .card {
-    flex: 1 0 48%;                /* Dos columnas */
-    max-width: 180px !important; /* Aumenta un poco el ancho */
+  .tour-card {
+    flex: 1 0 100%;
+    max-width: 320px;
+    padding: 0.6rem;
+    margin: 0.4rem 0.1rem;
+    border-radius: 0.7rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #fff;
+    text-align: center;
+  }
+
+  .tour-card img {
+    height: 140px; /* 🔽 ligeramente menor */
+    width: 100%;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .tour-card .card-title {
+    font-size: 0.75rem; /* 🔽 menor */
+    margin-bottom: 0.3rem;
+    padding: 0.2rem 0.4rem;
+    background-color: #F92526;
+    color: white;
+    border-radius: 0.35rem;
+    display: inline-block;
+  }
+   .tour-card .card-text {
+    font-size: 0.8rem;
+    margin-bottom: 0.2rem;
+    line-height: 1.1;
+  }
+
+   .tour-card .card-text.small {
+    font-size: 0.8rem;
+    margin-bottom: 0.2rem;
+    line-height: 1.1;
+  }
+  .tour-card p,
+  .tour-card span,
+  .tour-card strong {
+    font-size: 0.7rem; /* 🔽 más pequeño */
+    margin-bottom: 0.15rem;
+    line-height: 1.1;
+  }
+
+  .tour-card .btn {
+    margin-top: 0.3rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.7rem;
+    border-radius: 0.25rem;
+    white-space: nowrap;
+    color: white;
+  }
+
+
+  .tour-modal-card {
+    flex: 1 0 48%;
+    max-width: 180px !important;
     height: auto;
     padding: 0.6rem;
     margin: 0.4rem 0.1rem;
@@ -929,7 +1091,7 @@ body {
     text-align: center;
   }
 
-  .modal .card img {
+  .tour-modal-card img {
     height: 100px;
     object-fit: cover;
     border-radius: 0.5rem;
@@ -937,31 +1099,33 @@ body {
     width: 100%;
   }
 
-  .modal .card-title {
-    font-size: 0.75rem;
-    margin-bottom: 0.4rem;
-    padding: 0.25rem 0.5rem;
+  .tour-modal-card .card-title {
+    font-size: 0.67rem; /* 🔽 reducido para móviles más pequeños */
     background-color: #F92526;
     color: white;
+    padding: 0.2rem 0.25rem;
     border-radius: 0.4rem;
-    display: inline-block;
+    margin-bottom: 0.3rem;
+    line-height: 1.15;
+    word-break: break-word;
+    white-space: normal;
+    width: 100%;
   }
 
-  .modal .card p,
-  .modal .card span,
-  .modal .card strong {
-    font-size: 0.7rem;
+  .tour-modal-card p,
+  .tour-modal-card span,
+  .tour-modal-card strong {
+    font-size: 0.65rem;  /* 🔽 más pequeño */
     margin-bottom: 0.2rem;
-    line-height: 1.2;
+    line-height: 1.1;
   }
 
-  .modal .card .btn {
+  .tour-modal-card .btn {
     margin-top: 0.3rem;
-    padding: 0.35rem 0.7rem;
-    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.65rem;  /* 🔽 más pequeño */
     border-radius: 0.3rem;
     white-space: nowrap;
-    background-color: #60A862;
     color: white;
   }
 

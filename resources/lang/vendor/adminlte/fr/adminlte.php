@@ -145,6 +145,7 @@ return [
     'half_day' => 'Demi-journée',
     'full_day' => 'Journée complète',
     'see_tour' => 'Voir le tour',
+'see_tours' => 'Voir les tours',
     'what_visitors_say' => 'Ce que disent nos visiteurs',
     'quote_1' => 'Une expérience inoubliable !',
     'guest_1' => 'Carlos M.',
@@ -200,6 +201,12 @@ return [
     'kid_price' => 'Enfants (0-9)',
     'horas' => 'heures',
     'close' => 'Fermer',
+      'full_day_description' => "Parfait pour ceux qui aiment marcher et explorer autant que possible en une seule journée.\n\nSi vous disposez de peu de temps dans la région de La Fortuna, c'est votre meilleure option !\n\nVisitez les principaux sites touristiques de La Fortuna en une seule journée.",
+
+'half_day_description' => "Idéal si vous souhaitez explorer à un rythme plus détendu ou profiter d'une matinée ou d'un après-midi relaxant.\n\nPrenez votre temps pour profiter de chaque destination.\n\nParfait pour les familles, les personnes âgées ou ceux qui préfèrent une journée d'activités plus légères.",
+'switch_view' => 'Changer de vue',
+
+
 'blocked_date_for_tour' => 'La date :date est bloquée pour ":tour".',
 'tourCapacityFull' => 'La capacité maximale pour ce tour est déjà atteinte.',
 'cartItemAdded' => 'Tour ajouté au panier avec succès.',
