@@ -82,11 +82,17 @@ class BookingController extends Controller
 
         // ✅ Valida fecha bloqueada
         $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
+            ->where(function ($query) use ($v) {
+                $query->whereNull('schedule_id') 
+                    ->orWhere('schedule_id', $v['schedule_id']); 
+            })
             ->where('start_date', '<=', $v['tour_date'])
             ->where(function ($q) use ($v) {
-                $q->where('end_date', '>=', $v['tour_date'])->orWhereNull('end_date');
+                $q->where('end_date', '>=', $v['tour_date'])
+                ->orWhereNull('end_date');
             })
             ->exists();
+
 
         if ($isBlocked) {
             return back()->withErrors(['tour_date' => 'La fecha seleccionada está bloqueada para este tour.'])->withInput();
@@ -156,12 +162,31 @@ class BookingController extends Controller
             'other_hotel_name' => 'nullable|string|max:255',
         ]);
 
-        $booking = Booking::with(['tour', 'user'])->findOrFail($id); // Incluye user
+        $booking = Booking::with(['tour', 'user'])->findOrFail($id);
         $detail  = $booking->details()->firstOrFail();
 
         // ✅ Validar que el horario pertenece al tour
         if (! $booking->tour->schedules()->where('schedules.schedule_id', $r['schedule_id'])->exists()) {
             return back()->withErrors(['schedule_id' => 'El horario no pertenece a este tour.']);
+        }
+
+        // ✅ Validar si la fecha está bloqueada
+        $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $booking->tour_id)
+            ->where(function ($query) use ($r) {
+                $query->whereNull('schedule_id')
+                    ->orWhere('schedule_id', $r['schedule_id']);
+            })
+            ->where('start_date', '<=', $detail->tour_date)
+            ->where(function ($q) use ($detail) {
+                $q->where('end_date', '>=', $detail->tour_date)
+                ->orWhereNull('end_date');
+            })
+            ->exists();
+
+        if ($isBlocked) {
+            return back()->withErrors(['tour_date' => 'La fecha está bloqueada para este tour y horario.'])
+                ->withInput()
+                ->with('showEditModal', $booking->booking_id);
         }
 
         // ✅ Validar capacidad
@@ -184,7 +209,7 @@ class BookingController extends Controller
 
         // ✅ Actualizar total
         $newTotal = ($detail->adult_price * $r['adults_quantity']) + ($detail->kid_price * $r['kids_quantity']);
-        
+
         $booking->update([
             'status'      => $r['status'],
             'notes'       => $r['notes'] ?? null,
@@ -202,7 +227,7 @@ class BookingController extends Controller
             'other_hotel_name' => $r['is_other_hotel'] ? $r['other_hotel_name'] : null,
         ]);
 
-        // ✅ ENVÍA CORREO SEGÚN STATUS
+        // ✅ Enviar correo según status
         if ($r['status'] === 'cancelled') {
             Mail::to($booking->user->email)->send(new \App\Mail\BookingCancelledMail($booking));
         } elseif ($r['status'] === 'confirmed') {
@@ -211,14 +236,14 @@ class BookingController extends Controller
             Mail::to($booking->user->email)->send(new \App\Mail\BookingUpdatedMail($booking));
         }
 
-        // ✅ Si es AJAX → responde JSON
+        // ✅ Si es AJAX
         if ($request->ajax()) {
             return response()->json(['success' => true]);
         }
 
-        // ✅ Si es formulario normal → redirect
         return redirect()->route('admin.reservas.index')->with('success', 'Reserva actualizada correctamente.');
     }
+
 
 
 
@@ -312,9 +337,14 @@ class BookingController extends Controller
 
             // ✅ Validar fecha bloqueada
             $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
+                ->where(function ($query) use ($scheduleId) {
+                    $query->whereNull('schedule_id') 
+                        ->orWhere('schedule_id', $scheduleId); 
+                })
                 ->where('start_date', '<=', $tourDate)
                 ->where(function ($q) use ($tourDate) {
-                    $q->where('end_date', '>=', $tourDate)->orWhereNull('end_date');
+                    $q->where('end_date', '>=', $tourDate)
+                    ->orWhereNull('end_date');
                 })
                 ->exists();
 

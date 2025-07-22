@@ -62,6 +62,13 @@ Route::middleware([SetLocale::class])->group(function () {
     ->middleware('auth')
     ->name('public.reservas.storeFromCart');
 
+    Route::post('/tour-excluded/block-all', [TourExcludedDateController::class, 'storeMultiple'])
+    ->name('admin.tour-excluded.store-multiple');
+    Route::post('/tour-excluded/block-all-all', [TourExcludedDateController::class, 'blockAll'])
+    ->name('admin.tour-excluded.block-all');
+
+
+
 
 
     // ✅ Autenticación

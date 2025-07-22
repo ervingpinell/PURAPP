@@ -10,6 +10,7 @@ class TourExcludedDate extends Model
 
     protected $fillable = [
         'tour_id',
+        'schedule_id', 
         'start_date',
         'end_date',
         'reason',
@@ -18,5 +19,10 @@ class TourExcludedDate extends Model
     public function tour()
     {
         return $this->belongsTo(Tour::class, 'tour_id', 'tour_id');
+    }
+
+    public function schedule()
+    {
+        return $this->belongsTo(\App\Models\Schedule::class, 'schedule_id', 'schedule_id');
     }
 }
