@@ -32,6 +32,12 @@
         <label>Motivo</label>
         <input type="text" id="global_reason" class="form-control" placeholder="Opcional">
     </div>
+    <div class="col-md-2 d-flex align-items-end">
+    <button id="blockAllBtn" class="btn btn-danger w-100">
+        <i class="fas fa-ban"></i> Bloquear TODOS los tours
+    </button>
+</div>
+
 </div>
 
 
@@ -194,6 +200,39 @@
                 });
             });
         });
+        document.getElementById('blockAllBtn').addEventListener('click', function () {
+            const { start, end, reason } = getGlobalDates();
+
+            if (!start) {
+                return Swal.fire({
+                    icon: 'warning',
+                    title: 'Falta la fecha de inicio',
+                    text: 'Debes seleccionar una fecha de inicio'
+                });
+            }
+
+            fetch("{{ route('admin.tours.excluded_dates.blockAll') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    start_date: start,
+                    end_date: end || null,
+                    reason: reason || 'Bloqueo total'
+                })
+            }).then(res => {
+                if (res.ok) {
+                    Swal.fire('Éxito', 'Todos los tours han sido bloqueados.', 'success')
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire('Error', 'No se pudo completar el bloqueo.', 'error');
+                }
+            });
+        });
+
     </script>
+    
     
 @stop
