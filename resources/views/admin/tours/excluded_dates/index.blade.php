@@ -173,8 +173,12 @@
             })
         }).then(res => {
             if (res.ok) {
-                Swal.fire('Bloqueado', 'Se ha bloqueado el tour correctamente.', 'success')
-                    .then(() => location.reload());
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Tour bloqueado correctamente',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             } else {
                 Swal.fire('Error', 'No se pudo registrar el bloqueo.', 'error');
             }
@@ -267,11 +271,15 @@
 
         Promise.all(promesas)
             .then(() => {
-                Swal.fire('Bloqueados', 'Los tours seleccionados fueron bloqueados correctamente.', 'success')
-                    .then(() => location.reload());
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Selected tours blocked successfully',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             })
             .catch(() => {
-                Swal.fire('Error', 'No se pudieron bloquear algunos tours.', 'error');
+                Swal.fire('Error', 'Some tours could not be blocked.', 'error');
             });
     });
 
