@@ -1,19 +1,18 @@
-<!-- resources/views/partials/bookmodal.blade.php -->
 <div class="modal fade" id="travelerModal" tabindex="-1" aria-labelledby="travelerModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content p-3">
       <div class="modal-header">
-        <h5 class="modal-title">Select Travelers</h5>
+        <h5 class="modal-title">{{ __('adminlte::adminlte.select_travelers') }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
       <div class="modal-body">
-        <p class="small text-muted mb-3">You can select up to 12 travelers in total.</p>
+        <p class="small text-muted mb-3">{{ __('adminlte::adminlte.max_travelers_info') }}</p>
 
         <!-- Adult row -->
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
-            <strong>Adult</strong> <small>(Age 10+)</small>
+            <strong>{{ __('adminlte::adminlte.adult') }}</strong> <small>({{ __('adminlte::adminlte.age_10_plus') }})</small>
           </div>
           <div class="d-flex align-items-center gap-2">
             <button class="btn btn-outline-secondary traveler-btn" data-type="adult" data-action="decrease">-</button>
@@ -25,7 +24,7 @@
         <!-- Kid row -->
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
-            <strong>Child</strong> <small>(Age 4-9)</small>
+            <strong>{{ __('adminlte::adminlte.child') }}</strong> <small>({{ __('adminlte::adminlte.age_4_to_9') }})</small>
           </div>
           <div class="d-flex align-items-center gap-2">
             <button class="btn btn-outline-secondary traveler-btn" data-type="kid" data-action="decrease">-</button>
@@ -39,13 +38,15 @@
         <input type="hidden" name="kid_count" id="kid_count" value="0">
 
         <!-- Total SOLO del modal -->
-        <p class="fw-bold mt-3" id="modal-total-price">Total: $0.00</p>
+        <p class="fw-bold mt-3" id="modal-total-price">{{ __('adminlte::adminlte.total') }}: $0.00</p>
 
-        <p class="small text-muted mb-0">Max 12 travelers, Max 2 kids.</p>
+        <p class="small text-muted mb-0">{{ __('adminlte::adminlte.max_limits_info') }}</p>
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-success w-100" data-bs-dismiss="modal">Apply</button>
+        <button type="button" class="btn btn-success w-100" data-bs-dismiss="modal">
+          {{ __('adminlte::adminlte.apply') }}
+        </button>
       </div>
     </div>
   </div>

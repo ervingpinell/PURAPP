@@ -1,5 +1,5 @@
-
 document.addEventListener('DOMContentLoaded', () => {
+
   // ============================================
   // ✅ NAVBAR HAMBURGER TOGGLE
   // ============================================
@@ -26,16 +26,16 @@ document.addEventListener('DOMContentLoaded', () => {
     link.addEventListener('click', function () {
       const targetId = this.dataset.target;
       const overview = document.getElementById(targetId);
+
+      const textMore = this.dataset.textMore || 'Leer más';
+      const textLess = this.dataset.textLess || 'Leer menos';
+
       if (overview.classList.contains('expanded')) {
-        overview.style.maxHeight = '4.5em';
         overview.classList.remove('expanded');
-        overview.classList.add('collapsed');
-        this.textContent = 'Leer más';
+        this.textContent = textMore;
       } else {
-        overview.style.maxHeight = overview.scrollHeight + 'px';
-        overview.classList.remove('collapsed');
         overview.classList.add('expanded');
-        this.textContent = 'Leer menos';
+        this.textContent = textLess;
       }
     });
   });
@@ -81,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const adultCount = parseInt(document.getElementById('adult-count').textContent) || 0;
     const kidCount = parseInt(document.getElementById('kid-count').textContent) || 0;
 
-    // ✅ Sincroniza inputs ocultos
     document.getElementById('adults_quantity').value = adultCount;
     document.getElementById('kids_quantity').value = kidCount;
 
@@ -127,6 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         document.getElementById('adult-count').textContent = adultCount;
       }
+
       if (type === 'kid' && kidCount > 0) {
         kidCount--;
         if (adultCount + kidCount < minTotal) {
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     summarySpan.textContent = totalPeople;
 
-    updateReservationTotal(); // ✅ Sincroniza los hidden inputs
+    updateReservationTotal();
   });
 
   // Defaults
@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateReservationTotal();
 
   // ============================================
-  // ✅ PICKUP POINTS LOGIC (Fake Select + Search)
+  // ✅ PICKUP POINTS LOGIC
   // ============================================
   const pickupSearch = document.getElementById('pickupSearch');
   const pickupListWrapper = document.getElementById('pickupListWrapper');
@@ -189,20 +189,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     pickupListWrapper.addEventListener('change', function (e) {
-    if (e.target.name === 'pickupOption') {
-      hotelInput.value = e.target.value;  // ✅ Esto se manda como hotel_id
-      isOtherHotelInput.value = 0;// ✅ Si selecciona de lista, NO es otro hotel
-      otherHotelNameInput.value = '';// ✅ Limpia otro hotel
+      if (e.target.name === 'pickupOption') {
+        hotelInput.value = e.target.value;
+        isOtherHotelInput.value = 0;
+        otherHotelNameInput.value = '';
 
-      // ✅ Obtiene el nombre visible del hotel desde el label
-      const label = e.target.closest('label');
-      const hotelName = label.querySelector('strong').textContent;
+        const label = e.target.closest('label');
+        const hotelName = label.querySelector('strong').textContent;
 
-      selectedPickupDisplay.querySelector('span').textContent = hotelName; // ✅ Muestra nombre
-      pickupListWrapper.classList.add('d-none');
-    }
-  });
-
+        selectedPickupDisplay.querySelector('span').textContent = hotelName;
+        pickupListWrapper.classList.add('d-none');
+      }
+    });
 
     selectedPickupDisplay.addEventListener('click', function () {
       pickupListWrapper.classList.toggle('d-none');
@@ -211,15 +209,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('click', function (e) {
       if (!pickupSearch.contains(e.target) &&
-          !pickupListWrapper.contains(e.target) &&
-          !selectedPickupDisplay.contains(e.target)) {
+        !pickupListWrapper.contains(e.target) &&
+        !selectedPickupDisplay.contains(e.target)) {
         pickupListWrapper.classList.add('d-none');
       }
     });
   }
 
   // ============================================
-  // ✅ MEETING POINTS LOGIC (Basic)
+  // ✅ MEETING POINTS LOGIC
   // ============================================
   const meetingSearch = document.getElementById('meetingSearch');
   const meetingListWrapper = document.getElementById('meetingListWrapper');
@@ -255,52 +253,80 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
   // ============================================
-  // ✅ VALIDACIÓN CUPOS DISPONIBLES (MAX CAPACITY)
-  // ============================================
-  const addToCartForm = document.querySelector('.reservation-box');
+// ✅ VALIDACIÓN CUPOS DISPONIBLES
+// ============================================
+const addToCartForm = document.querySelector('.reservation-box');
 
-  if (addToCartForm) {
-    const tourId = window.tourId;            // ✅ Global desde Blade
-    const maxCapacity = window.maxCapacity;  // ✅ Global desde Blade
-    const tourDateInput = addToCartForm.querySelector('[name="tour_date"]');
-    const scheduleSelect = addToCartForm.querySelector('[name="schedule_id"]');
+if (addToCartForm) {
+  const tourId = window.tourId;            // ✅ Global desde Blade
+  const maxCapacity = window.maxCapacity;  // ✅ Global desde Blade
+  const tourDateInput = addToCartForm.querySelector('[name="tour_date"]');
+  const scheduleSelect = addToCartForm.querySelector('[name="schedule_id"]');
 
-    addToCartForm.addEventListener('submit', async function (e) {
-      e.preventDefault();
+  addToCartForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
 
-      const adults = parseInt(document.getElementById('adults_quantity').value) || 0;
-      const kids = parseInt(document.getElementById('kids_quantity').value) || 0;
-      const requested = adults + kids;
+    const adults = parseInt(document.getElementById('adults_quantity').value) || 0;
+    const kids = parseInt(document.getElementById('kids_quantity').value) || 0;
+    const requested = adults + kids;
 
-      const tourDate = tourDateInput.value;
-      const scheduleId = scheduleSelect.value;
+    const tourDate = tourDateInput.value;
+    const scheduleId = scheduleSelect.value;
 
-      if (!tourDate || !scheduleId) {
-        Swal.fire('Error', 'Selecciona una fecha y un horario válido.', 'error');
+    if (!tourDate || !scheduleId) {
+      Swal.fire('Error', 'Selecciona una fecha y un horario válido.', 'error');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/get-reserved?tour_id=${tourId}&schedule_id=${scheduleId}&tour_date=${tourDate}`);
+      const data = await res.json();
+      const reserved = parseInt(data.reserved) || 0;
+
+      if (reserved + requested > maxCapacity) {
+        const spotsLeft = Math.max(maxCapacity - reserved, 0);
+        Swal.fire(
+          'Cupo no disponible',
+          `Lo sentimos, solo quedan ${spotsLeft} espacio(s) disponible(s) para este horario.`,
+          'error'
+        );
         return;
       }
 
-      try {
-        const res = await fetch(`/api/get-reserved?tour_id=${tourId}&schedule_id=${scheduleId}&tour_date=${tourDate}`);
-        const data = await res.json();
-        const reserved = parseInt(data.reserved) || 0;
+      addToCartForm.submit();
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error', 'No se pudo validar el cupo disponible. Intenta de nuevo.', 'error');
+    }
+  });
 
-        if (reserved + requested > maxCapacity) {
-          const spotsLeft = Math.max(maxCapacity - reserved, 0);
-          Swal.fire(
-            'Cupo no disponible',
-            `Lo sentimos, solo quedan ${spotsLeft} espacio(s) disponible(s) para este horario.`,
-            'error'
-          );
-          return;
-        }
+  // ============================================
+  // ✅ HOTEL SELECT + OTRO HOTEL PERSONALIZADO
+  // ============================================
+  const hotelSelect = document.getElementById('hotelSelect');
+  const otherWrapper = document.getElementById('otherHotelWrapper');
+  const otherInput = document.getElementById('otherHotelInput');
+  const isOtherHotelInput = document.getElementById('isOtherHotel');
+  const warningMessage = document.getElementById('outsideAreaMessage');
 
-        addToCartForm.submit();
-      } catch (err) {
-        console.error(err);
-        Swal.fire('Error', 'No se pudo validar el cupo disponible. Intenta de nuevo.', 'error');
+  if (hotelSelect && otherWrapper && otherInput && isOtherHotelInput && warningMessage) {
+    hotelSelect.addEventListener('change', function () {
+      if (this.value === 'other') {
+        otherWrapper.classList.remove('d-none');
+        isOtherHotelInput.value = '1';
+        otherInput.required = true;
+        warningMessage.style.display = 'block';
+      } else {
+        otherWrapper.classList.add('d-none');
+        isOtherHotelInput.value = '0';
+        otherInput.required = false;
+        otherInput.value = '';
+        warningMessage.style.display = 'none';
       }
     });
   }
+}
+
 });

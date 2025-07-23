@@ -2,13 +2,14 @@
 
 return [
 
-    // Autenticación y registro
+    // ─── AUTENTICACIÓN Y REGISTRO ─────────────────────
     'full_name' => 'Nombre completo',
     'email' => 'Email',
     'password' => 'Contraseña',
     'phone' => 'Teléfono',
     'retype_password' => 'Confirmar la contraseña',
     'remember_me' => 'Recordarme',
+    'remember_me_hint' => 'Mantenerme autenticado indefinidamente o hasta cerrar la sesión manualmente',
     'register' => 'Registrarse',
     'register_a_new_membership' => 'Crear una nueva cuenta',
     'i_forgot_my_password' => 'Olvidé mi contraseña',
@@ -27,14 +28,21 @@ return [
     'verify_if_not_recieved' => 'Si no has recibido el correo electrónico',
     'verify_request_another' => 'haga clic aquí para solicitar otro',
     'confirm_password_message' => 'Por favor, confirme su contraseña para continuar.',
-    'remember_me_hint' => 'Mantenerme autenticado indefinidamente o hasta cerrar la sesión manualmente',
+    'account_created' => 'Cuenta creada correctamente. Por favor, inicia sesión.',
+    'account_already_exists' => 'Ya existe una cuenta con este correo electrónico. Por favor, inicia sesión o utiliza un correo diferente.',
+    'account_creation_failed' => 'Error al crear la cuenta. Por favor, inténtalo de nuevo más tarde.',
+    'password_reset' => 'Contraseña restablecida correctamente. Por favor, inicia sesión.',
+    'password_reset_success' => 'Contraseña restablecida correctamente. Por favor, inicia sesión.',
+    'password_reset_failed' => 'Error al restablecer la contraseña. Por favor, inténtalo de nuevo más tarde.',
+    'password_reset_link_sent' => 'Enlace para restablecer la contraseña enviado a tu correo electrónico. Por favor, revisa tu bandeja de entrada.',
+    'password_reset_link_failed' => 'Error al enviar el enlace para restablecer la contraseña. Por favor, inténtalo de nuevo más tarde.',
     'password_requirements' => [
         'length' => '- Longitud 8 caracteres',
         'special' => '- 1 caracter especial ( .¡!@#$%^&*()_+- )',
         'number' => '- 1 número',
     ],
 
-    // Navegación general
+    // ─── NAVEGACIÓN GENERAL ───────────────────────────
     'back' => 'Retroceder',
     'home' => 'Inicio',
     'dashboard' => 'Panel de control',
@@ -49,7 +57,7 @@ return [
     'support' => 'Soporte',
     'admin_panel' => 'Panel de administración',
 
-    // Contenido y páginas informativas
+    // ─── CONTENIDO Y PÁGINAS ──────────────────────────
     'faq' => 'Preguntas frecuentes',
     'contact' => 'Contacto',
     'about' => 'Acerca de',
@@ -57,9 +65,8 @@ return [
     'terms_of_service' => 'Términos de servicio',
     'reports' => 'Informes',
 
-    // Tours y reseñas
+    // ─── TOURS Y RESEÑAS ──────────────────────────────
     'tours' => 'Tours',
-    'reviews' => 'Reseñas',
     'tour' => 'Tour',
     'tour_name' => 'Nombre del tour',
     'overview' => 'Resumen',
@@ -71,15 +78,35 @@ return [
     'excluded_amenities' => 'Amenidades no incluidas',
     'tour_details' => 'Detalles del tour',
     'select_tour' => 'Seleccione un tour',
+    'reviews' => 'Reseñas',
+    'hero_title' => 'Descubre la magia de Costa Rica',
+    'hero_subtext' => 'Explora nuestros tours únicos y vive la aventura.',
+    'book_now' => 'Reservar ahora',
+    'our_tours' => 'Nuestros Tours',
+    'half_day' => 'Medio día',
+    'full_day' => 'Día completo',
+    'full_day_description' => "Perfecto para quienes disfrutan caminar y explorar tanto como puedan en un solo día.\n\nSi tienes tiempo limitado en la zona de La Fortuna, ¡esta es tu mejor opción!\n\nVisita los principales puntos turísticos de La Fortuna en solo un día.",
+    'half_day_description' => "Ideal si deseas explorar a un ritmo más tranquilo o disfrutar de una mañana o tarde relajada.\n\nTómate tu tiempo para disfrutar de cada destino.\n\nPerfecto para familias, adultos mayores o quienes prefieren un día de actividades más ligeras.",
+    'see_tour' => 'Ver tour',
+    'see_tours' => 'Ver tours',
+    'what_visitors_say' => 'Lo que dicen nuestros visitantes',
+    'quote_1' => '¡Una experiencia inolvidable!',
+    'guest_1' => 'Carlos M.',
+    'quote_2' => 'Volveré sin duda alguna.',
+    'guest_2' => 'Ana G.',
 
-    // Horarios
+    // ─── HORARIOS ─────────────────────────────────────
     'schedule' => 'Horario',
     'schedule_am' => 'Horario AM',
     'schedule_pm' => 'Horario PM',
     'start_time' => 'Hora de inicio',
     'end_time' => 'Hora de fin',
+    'select_date' => 'Seleccionar fecha',
+    'select_time' => 'Seleccionar hora',
+    'select_language' => 'Seleccionar idioma',
+    'horas' => 'horas',
 
-    // Itinerarios
+    // ─── ITINERARIOS ───────────────────────────────────
     'itinerary' => 'Itinerario',
     'itineraries' => 'Itinerarios',
     'new_itinerary' => 'Nuevo itinerario',
@@ -89,14 +116,17 @@ return [
     'add_item' => 'Agregar ítem',
     'edit_itinerary' => 'Editar itinerario',
 
-    // Hoteles
+    // ─── HOTELES ───────────────────────────────────────
     'hotels' => 'Hoteles',
     'hotel' => 'Hotel',
-    'select_hotel' => 'Seleccione un hotel',
+    'select_hotel' => 'Hotel o punto de recogida',
+    'hotel_other' => 'Otro (especificar manualmente)',
+    'hotel_name' => 'Nombre del hotel',
     'other_hotel' => 'Otro hotel (especifique)',
     'hotel_pickup' => 'Recogida en hotel',
+    'outside_area' => 'Este hotel está fuera del área de cobertura. Por favor contáctenos para coordinar la recogida.',
 
-    // Carrito y reservas
+    // ─── CARRITO Y RESERVAS ───────────────────────────
     'cart' => 'Carrito',
     'myCart' => 'Mi Carrito',
     'my_reservations' => 'Mis reservaciones',
@@ -114,15 +144,20 @@ return [
     'totalEstimated' => 'Total Estimado',
     'confirmBooking' => 'Confirmar Reserva',
     'emptyCart' => 'Tu carrito está vacío.',
+    'blocked_date_for_tour' => 'La fecha :date está bloqueada para ":tour".',
+    'tourCapacityFull' => 'La capacidad máxima para este tour ya está completa.',
+    'cartItemAdded' => 'Tour agregado al carrito correctamente.',
+    'itemUpdated' => 'Carrito actualizado correctamente.',
+    'cartItemDeleted' => 'Tour eliminado del carrito correctamente.',
 
-    // Estados
+    // ─── ESTADOS ──────────────────────────────────────
     'status' => 'Estado',
     'active' => 'Activo',
     'inactive' => 'Inactivo',
     'pending' => 'Pendiente',
     'confirmed' => 'Confirmado',
 
-    // Cantidades y fechas
+    // ─── CANTIDADES Y FECHAS ──────────────────────────
     'tour_date' => 'Fecha del tour',
     'date' => 'Fecha',
     'adults' => 'Adultos',
@@ -130,53 +165,17 @@ return [
     'kids' => 'Niños',
     'kids_quantity' => 'Cantidad de niños',
     'total_price' => 'Precio total',
+    'adult' => 'Adulto',
+    'kid' => 'Niño',
+    'total' => 'Total',
 
-    // Validación / formularios
+    // ─── VALIDACIÓN ───────────────────────────────────
     'required_field' => 'Este campo es obligatorio.',
     'invalid_email' => 'Correo electrónico inválido.',
     'invalid_date' => 'Fecha no válida.',
     'select_option' => 'Seleccione una opción',
 
-    // Hero y página principal
-    'hero_title' => 'Descubre la magia de Costa Rica',
-    'hero_subtext' => 'Explora nuestros tours únicos y vive la aventura.',
-    'book_now' => 'Reservar ahora',
-    'our_tours' => 'Nuestros Tours',
-    'half_day' => 'Medio día',
-    'full_day' => 'Día completo',
-    'see_tour' => 'Ver tour',
-    'what_visitors_say' => 'Lo que dicen nuestros visitantes',
-    'quote_1' => '¡Una experiencia inolvidable!',
-    'guest_1' => 'Carlos M.',
-    'quote_2' => 'Volveré sin duda alguna.',
-    'guest_2' => 'Ana G.',
-
-    // Footer
-    'footer_text' => 'Ofrecemos experiencias eco-turísticas únicas en Costa Rica.',
-    'quick_links' => 'Enlaces rápidos',
-    'contact_us' => 'Contáctanos',
-    'location' => 'San José, Costa Rica',
-    'rights_reserved' => 'Todos los derechos reservados',
-
-    // WhatsApp
-    'whatsapp_title' => 'Green Vacations',
-    'whatsapp_subtitle' => 'Responde al instante',
-    'whatsapp_greeting' => '👋 ¡Hola! ¿En qué podemos ayudarte a planear tu aventura en Costa Rica?',
-    'whatsapp_placeholder' => 'Hola, estoy interesado en los tours ecológicos. ¿Me pueden dar más información?',
-    'whatsapp_button' => 'Enviar mensaje',
-    'whatsapp_footer' => 'Conectado por WhatsApp Business',
-
-    // Estados de cuenta
-    'account_created' => 'Cuenta creada correctamente. Por favor, inicia sesión.',
-    'account_already_exists' => 'Ya existe una cuenta con este correo electrónico. Por favor, inicia sesión o utiliza un correo diferente.',
-    'account_creation_failed' => 'Error al crear la cuenta. Por favor, inténtalo de nuevo más tarde.',
-    'password_reset' => 'Contraseña restablecida correctamente. Por favor, inicia sesión.',
-    'password_reset_success' => 'Contraseña restablecida correctamente. Por favor, inicia sesión.',
-    'password_reset_failed' => 'Error al restablecer la contraseña. Por favor, inténtalo de nuevo más tarde.',
-    'password_reset_link_sent' => 'Enlace para restablecer la contraseña enviado a tu correo electrónico. Por favor, revisa tu bandeja de entrada.',
-    'password_reset_link_failed' => 'Error al enviar el enlace para restablecer la contraseña. Por favor, inténtalo de nuevo más tarde.',
-
-    // Botones generales y CRUD
+    // ─── BOTONES Y CRUD ───────────────────────────────
     'create' => 'Crear',
     'edit' => 'Editar',
     'update' => 'Actualizar',
@@ -193,13 +192,59 @@ return [
     'edit_profile' => 'Editar Perfil',
     'read_more' => 'leer más',
     'read_less' => 'Leer menos',
-    'adult_price' => 'Adultos (10+)',
-    'kid_price' => 'Niños (0-9)',
-    'horas'=> 'horas',
-'close'=> 'Cerrar',
-    'blocked_date_for_tour' => 'La fecha :date está bloqueada para ":tour".',
-'tourCapacityFull' => 'La capacidad máxima para este tour ya está completa.',
-'cartItemAdded' => 'Tour agregado al carrito correctamente.',
-'itemUpdated' => 'Carrito actualizado correctamente.',
-'cartItemDeleted' => 'Tour eliminado del carrito correctamente.',
+    'switch_view' => 'Cambiar vista',
+    'close' => 'Cerrar',
+
+    // ─── FOOTER ───────────────────────────────────────
+    'footer_text' => 'Ofrecemos experiencias eco-turísticas únicas en Costa Rica.',
+    'quick_links' => 'Enlaces rápidos',
+    'contact_us' => 'Contáctanos',
+    'location' => 'San José, Costa Rica',
+    'rights_reserved' => 'Todos los derechos reservados',
+
+    // ─── WHATSAPP ─────────────────────────────────────
+    'whatsapp_title' => 'Green Vacations',
+    'whatsapp_subtitle' => 'Responde al instante',
+    'whatsapp_greeting' => '👋 ¡Hola! ¿En qué podemos ayudarte a planear tu aventura en Costa Rica?',
+    'whatsapp_placeholder' => 'Hola, estoy interesado en los tours ecológicos. ¿Me pueden dar más información?',
+    'whatsapp_button' => 'Enviar mensaje',
+    'whatsapp_footer' => 'Conectado por WhatsApp Business',
+
+    // Página de Tour
+    'tour_information' => 'Información del Tour',
+    'overview' => 'Resumen',
+    'duration' => 'Duración',
+    'group_size' => 'Tamaño del grupo',
+    'languages_available' => 'Idiomas disponibles',
+    'schedules' => 'Horarios',
+    'itinerary' => 'Itinerario',
+    'no_itinerary_info' => 'Sin información del itinerario.',
+    'whats_included' => 'Qué está incluido',
+    'hotels_meeting_points' => 'Hoteles y puntos de encuentro',
+    'pickup_details' => 'Detalles del transporte',
+    'pickup_note' => 'Los transportes gratuitos solo están disponibles para hoteles en la zona de La Fortuna...',
+    'pickup_points' => 'Puntos de recogida',
+    'select_pickup' => 'Seleccionar un punto de recogida',
+    'type_to_search' => 'Escriba para buscar...',
+    'no_pickup_available' => 'No hay puntos de recogida disponibles.',
+    'pickup_not_found' => 'Hotel no encontrado.',
+    'meeting_points' => 'Puntos de encuentro',
+    'select_meeting' => 'Seleccionar un punto de encuentro',
+    'meeting_not_found' => 'Punto de encuentro no encontrado.',
+    'main_street_entrance' => 'Entrada Calle Principal',
+    'example_address' => 'Dirección de ejemplo 123',
+    'access_denied' => 'Acceso Denegado',
+    'select_option' => 'Seleccione una opción',
+    'hours' => 'horas',
+
+    'select_travelers'     => 'Seleccionar viajeros',
+'max_travelers_info'   => 'Puede seleccionar hasta 12 viajeros en total.',
+'adult'                => 'Adulto',
+'age_10_plus'          => 'Edad 10+',
+'child'                => 'Niño',
+'age_4_to_9'           => 'Edad 4-9',
+'max_limits_info'      => 'Máx. 12 viajeros, máx. 2 niños.',
+'apply'                => 'Aplicar',
+
+
 ];
