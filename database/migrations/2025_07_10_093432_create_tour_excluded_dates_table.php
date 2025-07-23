@@ -14,12 +14,19 @@ return new class extends Migration {
             // PK 
             $table->id('tour_excluded_date_id');
 
-            // FK 
+            // FK hacia tours
             $table->unsignedBigInteger('tour_id');
             $table->foreign('tour_id')
                   ->references('tour_id')
                   ->on('tours')
                   ->onDelete('cascade');
+
+            // FK hacia horarios (opcional)
+            $table->unsignedBigInteger('schedule_id')->nullable();
+            $table->foreign('schedule_id')
+                  ->references('schedule_id')
+                  ->on('schedules')
+                  ->onDelete('set null');
 
             // Rango de fechas
             $table->date('start_date');

@@ -62,6 +62,14 @@ Route::middleware([SetLocale::class])->group(function () {
     ->middleware('auth')
     ->name('public.reservas.storeFromCart');
 
+    Route::post('/tour-excluded/block-all', [TourExcludedDateController::class, 'storeMultiple'])
+    ->name('admin.tour-excluded.store-multiple');
+    Route::post('/tour-excluded/block-all-all', [TourExcludedDateController::class, 'blockAll'])
+    ->name('admin.tour-excluded.block-all');
+    
+
+
+
 
 
     // ✅ Autenticación
@@ -129,6 +137,10 @@ Route::middleware([SetLocale::class])->group(function () {
 
             // Fechas excluidas
             Route::resource('excluded_dates', TourExcludedDateController::class)->except(['show']);
+            
+            //Bloquear Tours
+            Route::post('excluded_dates/block-all', [TourExcludedDateController::class, 'blockAll'])->name('excluded_dates.blockAll');
+
         });
 
         // Reservaciones

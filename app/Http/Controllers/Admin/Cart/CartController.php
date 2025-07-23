@@ -91,9 +91,11 @@ class CartController extends Controller
 
         // ✅ 1) Validar que NO esté en fechas bloqueadas
         $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
+            ->where('schedule_id', $request->schedule_id) 
             ->where('start_date', '<=', $request->tour_date)
             ->where(function ($q) use ($request) {
-                $q->where('end_date', '>=', $request->tour_date)->orWhereNull('end_date');
+                $q->where('end_date', '>=', $request->tour_date)
+                ->orWhereNull('end_date');
             })
             ->exists();
 
