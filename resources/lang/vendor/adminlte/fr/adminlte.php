@@ -2,13 +2,14 @@
 
 return [
 
-    // Authentification et Inscription
+    // ─── AUTHENTIFICATION ET INSCRIPTION ──────────────
     'full_name' => 'Nom complet',
     'email' => 'Email',
     'password' => 'Mot de passe',
     'phone' => 'Téléphone',
     'retype_password' => 'Confirmer le mot de passe',
     'remember_me' => 'Se souvenir de moi',
+    'remember_me_hint' => 'Rester connecté indéfiniment ou jusqu\'à déconnexion manuelle',
     'register' => 'S\'inscrire',
     'register_a_new_membership' => 'Créer un nouveau compte',
     'i_forgot_my_password' => 'J\'ai oublié mon mot de passe',
@@ -27,14 +28,21 @@ return [
     'verify_if_not_recieved' => 'Si vous n\'avez pas reçu l\'email',
     'verify_request_another' => 'cliquez ici pour en demander un autre',
     'confirm_password_message' => 'Veuillez confirmer votre mot de passe avant de continuer.',
-    'remember_me_hint' => 'Rester connecté indéfiniment ou jusqu\'à déconnexion manuelle',
+    'account_created' => 'Compte créé avec succès. Veuillez vous connecter.',
+    'account_already_exists' => 'Un compte avec cet email existe déjà. Veuillez vous connecter ou utiliser un autre email.',
+    'account_creation_failed' => 'La création du compte a échoué. Veuillez réessayer plus tard.',
+    'password_reset' => 'Mot de passe réinitialisé avec succès. Veuillez vous connecter.',
+    'password_reset_success' => 'Mot de passe réinitialisé avec succès. Veuillez vous connecter.',
+    'password_reset_failed' => 'La réinitialisation du mot de passe a échoué. Veuillez réessayer plus tard.',
+    'password_reset_link_sent' => 'Lien de réinitialisation envoyé à votre email. Veuillez vérifier votre boîte de réception.',
+    'password_reset_link_failed' => 'Échec de l\'envoi du lien de réinitialisation. Veuillez réessayer plus tard.',
     'password_requirements' => [
         'length' => '- Au moins 8 caractères',
         'special' => '- 1 caractère spécial ( .¡!@#$%^&*()_+- )',
         'number' => '- 1 chiffre',
     ],
 
-    // Navigation
+    // ─── NAVIGATION GÉNÉRALE ─────────────────────────
     'back' => 'Retour',
     'home' => 'Accueil',
     'dashboard' => 'Tableau de bord',
@@ -49,7 +57,7 @@ return [
     'support' => 'Support',
     'admin_panel' => 'Panneau d\'administration',
 
-    // Pages & Contenu
+    // ─── CONTENU ET PAGES ─────────────────────────────
     'faq' => 'FAQ',
     'contact' => 'Contact',
     'about' => 'À propos',
@@ -57,9 +65,8 @@ return [
     'terms_of_service' => 'Conditions d\'utilisation',
     'reports' => 'Rapports',
 
-    // Tours & Avis
+    // ─── TOURS ET AVIS ────────────────────────────────
     'tours' => 'Tours',
-    'reviews' => 'Avis',
     'tour' => 'Tour',
     'tour_name' => 'Nom du tour',
     'overview' => 'Aperçu',
@@ -71,15 +78,35 @@ return [
     'excluded_amenities' => 'Commodités exclues',
     'tour_details' => 'Détails du tour',
     'select_tour' => 'Sélectionner un tour',
+    'reviews' => 'Avis',
+    'hero_title' => 'Découvrez la magie du Costa Rica',
+    'hero_subtext' => 'Explorez nos tours uniques et vivez l\'aventure.',
+    'book_now' => 'Réserver maintenant',
+    'our_tours' => 'Nos Tours',
+    'half_day' => 'Demi-journée',
+    'full_day' => 'Journée complète',
+    'see_tour' => 'Voir le tour',
+    'see_tours' => 'Voir les tours',
+    'what_visitors_say' => 'Ce que disent nos visiteurs',
+    'quote_1' => 'Une expérience inoubliable !',
+    'guest_1' => 'Carlos M.',
+    'quote_2' => 'Je reviendrai sans hésiter.',
+    'guest_2' => 'Ana G.',
+    'full_day_description' => "Parfait pour ceux qui aiment marcher et explorer autant que possible en une seule journée.\n\nSi vous disposez de peu de temps dans la région de La Fortuna, c'est votre meilleure option !\n\nVisitez les principaux sites touristiques de La Fortuna en une seule journée.",
+    'half_day_description' => "Idéal si vous souhaitez explorer à un rythme plus détendu ou profiter d'une matinée ou d'un après-midi relaxant.\n\nPrenez votre temps pour profiter de chaque destination.\n\nParfait pour les familles, les personnes âgées ou ceux qui préfèrent une journée d'activités plus légères.",
 
-    // Horaires
+    // ─── HORAIRES ─────────────────────────────────────
     'schedule' => 'Horaire',
     'schedule_am' => 'Horaire Matin',
     'schedule_pm' => 'Horaire Après-midi',
     'start_time' => 'Heure de début',
     'end_time' => 'Heure de fin',
+    'select_date' => 'Sélectionnez une date',
+    'select_time' => 'Sélectionnez une heure',
+    'select_language' => 'Sélectionnez une langue',
+    'horas' => 'heures',
 
-    // Itinéraires
+    // ─── ITINÉRAIRES ──────────────────────────────────
     'itinerary' => 'Itinéraire',
     'itineraries' => 'Itinéraires',
     'new_itinerary' => 'Nouvel itinéraire',
@@ -89,14 +116,17 @@ return [
     'add_item' => 'Ajouter un élément',
     'edit_itinerary' => 'Modifier l\'itinéraire',
 
-    // Hôtels
+    // ─── HÔTELS ───────────────────────────────────────
     'hotels' => 'Hôtels',
     'hotel' => 'Hôtel',
-    'select_hotel' => 'Sélectionner un hôtel',
+    'select_hotel' => 'Hôtel ou point de ramassage',
+    'hotel_other' => 'Autre (spécifiez manuellement)',
+    'hotel_name' => 'Nom de l\'hôtel',
     'other_hotel' => 'Autre hôtel (précisez)',
     'hotel_pickup' => 'Prise en charge à l\'hôtel',
+    'outside_area' => 'Cet hôtel est en dehors de la zone de couverture. Veuillez nous contacter pour organiser votre prise en charge.',
 
-    // Panier & Réservations
+    // ─── PANIER & RÉSERVATIONS ────────────────────────
     'cart' => 'Panier',
     'myCart' => 'Mon Panier',
     'my_reservations' => 'Mes réservations',
@@ -114,15 +144,20 @@ return [
     'totalEstimated' => 'Total estimé',
     'confirmBooking' => 'Confirmer la réservation',
     'emptyCart' => 'Votre panier est vide.',
+    'blocked_date_for_tour' => 'La date :date est bloquée pour ":tour".',
+    'tourCapacityFull' => 'La capacité maximale pour ce tour est déjà atteinte.',
+    'cartItemAdded' => 'Tour ajouté au panier avec succès.',
+    'itemUpdated' => 'Élément du panier mis à jour avec succès.',
+    'cartItemDeleted' => 'Tour supprimé du panier avec succès.',
 
-    // Statuts
+    // ─── STATUTS ──────────────────────────────────────
     'status' => 'Statut',
     'active' => 'Actif',
     'inactive' => 'Inactif',
     'pending' => 'En attente',
     'confirmed' => 'Confirmé',
 
-    // Quantités & Dates
+    // ─── QUANTITÉS & DATES ────────────────────────────
     'tour_date' => 'Date du tour',
     'date' => 'Date',
     'adults' => 'Adultes',
@@ -130,54 +165,17 @@ return [
     'kids' => 'Enfants',
     'kids_quantity' => 'Nombre d\'enfants',
     'total_price' => 'Prix total',
+    'adult' => 'Adulte',
+    'kid' => 'Enfant',
+    'total' => 'Total',
 
-    // Validation / Formulaires
+    // ─── VALIDATION / FORMULAIRES ─────────────────────
     'required_field' => 'Ce champ est obligatoire.',
     'invalid_email' => 'Email invalide.',
     'invalid_date' => 'Date invalide.',
     'select_option' => 'Sélectionner une option',
 
-    // Hero & Accueil
-    'hero_title' => 'Découvrez la magie du Costa Rica',
-    'hero_subtext' => 'Explorez nos tours uniques et vivez l\'aventure.',
-    'book_now' => 'Réserver maintenant',
-    'our_tours' => 'Nos Tours',
-    'half_day' => 'Demi-journée',
-    'full_day' => 'Journée complète',
-    'see_tour' => 'Voir le tour',
-'see_tours' => 'Voir les tours',
-    'what_visitors_say' => 'Ce que disent nos visiteurs',
-    'quote_1' => 'Une expérience inoubliable !',
-    'guest_1' => 'Carlos M.',
-    'quote_2' => 'Je reviendrai sans hésiter.',
-    'guest_2' => 'Ana G.',
-
-    // Footer
-    'footer_text' => 'Nous offrons des expériences écotouristiques uniques au Costa Rica.',
-    'quick_links' => 'Liens rapides',
-    'contact_us' => 'Nous contacter',
-    'location' => 'San José, Costa Rica',
-    'rights_reserved' => 'Tous droits réservés',
-
-    // WhatsApp
-    'whatsapp_title' => 'Green Vacations',
-    'whatsapp_subtitle' => 'Répond généralement instantanément',
-    'whatsapp_greeting' => '👋 Bonjour ! Comment pouvons-nous vous aider à planifier votre aventure au Costa Rica ?',
-    'whatsapp_placeholder' => 'Bonjour, je suis intéressé par vos tours écologiques. Pouvez-vous me donner plus d\'informations ?',
-    'whatsapp_button' => 'Envoyer le message',
-    'whatsapp_footer' => 'Propulsé par WhatsApp Business',
-
-    // États du compte
-    'account_created' => 'Compte créé avec succès. Veuillez vous connecter.',
-    'account_already_exists' => 'Un compte avec cet email existe déjà. Veuillez vous connecter ou utiliser un autre email.',
-    'account_creation_failed' => 'La création du compte a échoué. Veuillez réessayer plus tard.',
-    'password_reset' => 'Mot de passe réinitialisé avec succès. Veuillez vous connecter.',
-    'password_reset_success' => 'Mot de passe réinitialisé avec succès. Veuillez vous connecter.',
-    'password_reset_failed' => 'La réinitialisation du mot de passe a échoué. Veuillez réessayer plus tard.',
-    'password_reset_link_sent' => 'Lien de réinitialisation envoyé à votre email. Veuillez vérifier votre boîte de réception.',
-    'password_reset_link_failed' => 'Échec de l\'envoi du lien de réinitialisation. Veuillez réessayer plus tard.',
-
-    // Boutons & CRUD
+    // ─── BOUTONS & CRUD ───────────────────────────────
     'create' => 'Créer',
     'edit' => 'Modifier',
     'update' => 'Mettre à jour',
@@ -192,24 +190,62 @@ return [
     'actions' => 'Actions',
     'optional' => 'Optionnel',
     'edit_profile' => 'Modifier le profil',
-    'read_more' => 'lire plus',
-    'adult_price' => 'Adultes (10+)',
-    'kid_price' => 'Enfants (0-9)',
-        'read_more' => 'Lire plus',
+    'read_more' => 'Lire plus',
     'read_less' => 'Lire moins',
     'adult_price' => 'Adultes (10+)',
     'kid_price' => 'Enfants (0-9)',
-    'horas' => 'heures',
+    'switch_view' => 'Changer de vue',
     'close' => 'Fermer',
-      'full_day_description' => "Parfait pour ceux qui aiment marcher et explorer autant que possible en une seule journée.\n\nSi vous disposez de peu de temps dans la région de La Fortuna, c'est votre meilleure option !\n\nVisitez les principaux sites touristiques de La Fortuna en une seule journée.",
 
-'half_day_description' => "Idéal si vous souhaitez explorer à un rythme plus détendu ou profiter d'une matinée ou d'un après-midi relaxant.\n\nPrenez votre temps pour profiter de chaque destination.\n\nParfait pour les familles, les personnes âgées ou ceux qui préfèrent une journée d'activités plus légères.",
-'switch_view' => 'Changer de vue',
+    // ─── FOOTER ───────────────────────────────────────
+    'footer_text' => 'Nous offrons des expériences écotouristiques uniques au Costa Rica.',
+    'quick_links' => 'Liens rapides',
+    'contact_us' => 'Nous contacter',
+    'location' => 'San José, Costa Rica',
+    'rights_reserved' => 'Tous droits réservés',
 
+    // ─── WHATSAPP ─────────────────────────────────────
+    'whatsapp_title' => 'Green Vacations',
+    'whatsapp_subtitle' => 'Répond généralement instantanément',
+    'whatsapp_greeting' => '👋 Bonjour ! Comment pouvons-nous vous aider à planifier votre aventure au Costa Rica ?',
+    'whatsapp_placeholder' => 'Bonjour, je suis intéressé par vos tours écologiques. Pouvez-vous me donner plus d\'informations ?',
+    'whatsapp_button' => 'Envoyer le message',
+    'whatsapp_footer' => 'Propulsé par WhatsApp Business',
 
-'blocked_date_for_tour' => 'La date :date est bloquée pour ":tour".',
-'tourCapacityFull' => 'La capacité maximale pour ce tour est déjà atteinte.',
-'cartItemAdded' => 'Tour ajouté au panier avec succès.',
-'itemUpdated' => 'Élément du panier mis à jour avec succès.',
-'cartItemDeleted' => 'Tour supprimé du panier avec succès.',
+     // Tour Page
+    'tour_information' => 'Informations sur le circuit',
+    'overview' => 'Aperçu',
+    'duration' => 'Durée',
+    'group_size' => 'Taille du groupe',
+    'languages_available' => 'Langues disponibles',
+    'schedules' => 'Horaires',
+    'itinerary' => 'Itinéraire',
+    'no_itinerary_info' => 'Aucune information sur l’itinéraire.',
+    'whats_included' => 'Ce qui est inclus',
+    'hotels_meeting_points' => 'Hôtels et points de rendez-vous',
+    'pickup_details' => 'Détails de la prise en charge',
+    'pickup_note' => 'Les prises en charge gratuites sont uniquement disponibles pour les hôtels situés dans la zone de La Fortuna...',
+    'pickup_points' => 'Points de prise en charge',
+    'select_pickup' => 'Sélectionner un point de prise en charge',
+    'type_to_search' => 'Tapez pour rechercher...',
+    'no_pickup_available' => 'Aucun point de prise en charge disponible.',
+    'pickup_not_found' => 'Hôtel non trouvé.',
+    'meeting_points' => 'Points de rendez-vous',
+    'select_meeting' => 'Sélectionner un point de rendez-vous',
+    'meeting_not_found' => 'Point de rendez-vous introuvable.',
+    'main_street_entrance' => 'Entrée de la rue principale',
+    'example_address' => 'Adresse exemple 123',
+    'access_denied' => 'Accès refusé',
+    'select_option' => 'Sélectionnez une option',
+    'hours' => 'heures',
+
+    'select_travelers'     => 'Sélectionner les voyageurs',
+'max_travelers_info'   => 'Vous pouvez sélectionner jusqu’à 12 voyageurs au total.',
+'adult'                => 'Adulte',
+'age_10_plus'          => 'Âge 10+',
+'child'                => 'Enfant',
+'age_4_to_9'           => 'Âge 4-9',
+'max_limits_info'      => 'Max 12 voyageurs, max 2 enfants.',
+'apply'                => 'Appliquer',
+
 ];
