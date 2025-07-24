@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ClienteRegisterController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\FaqController;
 
 // Controllers del panel admin
 use App\Http\Controllers\Admin\Users\UserRegisterController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\Admin\Tours\TourTypeController;
 use App\Http\Controllers\Admin\Cart\CartController;
 use App\Http\Controllers\Admin\Bookings\HotelListController;
 use App\Http\Controllers\Admin\Tours\TourExcludedDateController;
+use App\Http\Controllers\Admin\FaqController as AdminFaqController;
 
 // Controlador para los emails
 use App\Mail\TestEmail;
@@ -37,6 +39,9 @@ Route::middleware([SetLocale::class])->group(function () {
     // 🌐 Rutas públicas
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/language/{language}', [DashBoardController::class, 'switchLanguage'])->name('switch.language');
+
+
+Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
 
     // ✅ Test Email
     Route::get('/send-test-email', function () {
@@ -57,7 +62,7 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::delete('/cart/{item}', [CartController::class, 'destroy'])
     ->name('public.cart.destroy');
 
-        
+
     Route::post('/reservas/from-cart', [BookingController::class, 'storeFromCart'])
     ->middleware('auth')
     ->name('public.reservas.storeFromCart');
@@ -66,7 +71,7 @@ Route::middleware([SetLocale::class])->group(function () {
     ->name('admin.tour-excluded.store-multiple');
     Route::post('/tour-excluded/block-all-all', [TourExcludedDateController::class, 'blockAll'])
     ->name('admin.tour-excluded.block-all');
-    
+
 
 
 
@@ -109,7 +114,12 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::get('/profile/edit', [ProfileController::class, 'adminEdit'])->name('profile.edit');
         Route::post('/profile/edit', [ProfileController::class, 'adminUpdate'])->name('profile.update');
 
-        // Módulo Tours
+        // FAQ admin
+Route::resource('faqs', AdminFaqController::class)->except(['show']);
+Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
+
+
+// Módulo Tours
         Route::resource('tours', TourController::class)->except(['create', 'edit', 'show']);
 
         // Submódulos de tours agrupados
@@ -137,7 +147,7 @@ Route::middleware([SetLocale::class])->group(function () {
 
             // Fechas excluidas
             Route::resource('excluded_dates', TourExcludedDateController::class)->except(['show']);
-            
+
             //Bloquear Tours
             Route::post('excluded_dates/block-all', [TourExcludedDateController::class, 'blockAll'])->name('excluded_dates.blockAll');
 

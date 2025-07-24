@@ -351,6 +351,11 @@ return [
             'route'=> 'admin.users.index',
             'icon' => 'fas fa-fw fa-user-cog',
         ],
+[
+    'text' => 'Preguntas Frecuentes',
+'route' => 'admin.faqs.index',
+    'icon' => 'fas fa-question-circle',
+],
         [
             'text' => 'ROLES',
             'route'=> 'admin.roles.index',

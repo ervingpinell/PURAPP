@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
         InitialSetupSeeder::class,
         ToursSeeder::class,
         ItinerariesSeeder::class,
+        FaqSeeder::class,
+
     ]);
     }
 }
