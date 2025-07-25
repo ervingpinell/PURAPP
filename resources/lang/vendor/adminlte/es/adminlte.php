@@ -236,6 +236,7 @@ return [
     'access_denied' => 'Acceso Denegado',
     'select_option' => 'Seleccione una opción',
     'hours' => 'horas',
+    'faqpage'=> 'Preguntas Frecuentes',
 
     'select_travelers'     => 'Seleccionar viajeros',
 'max_travelers_info'   => 'Puede seleccionar hasta 12 viajeros en total.',

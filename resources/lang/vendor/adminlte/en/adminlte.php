@@ -229,6 +229,7 @@ return [
     'access_denied' => 'Access Denied',
     'select_option' => 'Select an option',
     'hours' => 'hours',
+    'faqpage'=> 'Frequently asked questions ',
 
     'select_travelers'     => 'Select Travelers',
 'max_travelers_info'   => 'You can select up to 12 travelers in total.',

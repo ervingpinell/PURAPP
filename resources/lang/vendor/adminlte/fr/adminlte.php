@@ -238,6 +238,7 @@ return [
     'access_denied' => 'Accès refusé',
     'select_option' => 'Sélectionnez une option',
     'hours' => 'heures',
+        'faqpage'=> 'Questions Fréquemment Posées',
 
     'select_travelers'     => 'Sélectionner les voyageurs',
 'max_travelers_info'   => 'Vous pouvez sélectionner jusqu’à 12 voyageurs au total.',
