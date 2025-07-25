@@ -20,7 +20,7 @@ class TranslationSeeder extends Seeder
     /**
      * Idiomas de destino (incluye 'es' para guardar versión original si no está en español).
      */
-    protected $locales = ['en', 'pt', 'fr', 'de', 'es'];
+    protected $locales = ['en', 'pt', 'fr', 'de'];
 
     public function run(): void
     {

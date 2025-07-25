@@ -19,7 +19,7 @@
                                 aria-expanded="false"
                                 aria-controls="collapse{{ $faq->id }}">
                             <i class="fas fa-question-circle text-primary me-2"></i>
-                            {{ $faq->translated_question ?? $faq->question }}
+                            {{ $faq->translate()?->question ?? $faq->question }}
                         </button>
                     </h2>
                     <div id="collapse{{ $faq->id }}"
@@ -28,7 +28,7 @@
                          data-bs-parent="#faqAccordion">
                         <div class="accordion-body">
                             <span class="text-success me-2">✓</span>
-                            <span>{!! nl2br(e($faq->translated_answer ?? $faq->answer)) !!}</span>
+                            <span>{!! nl2br(e($faq->translate()?->answer ?? $faq->answer)) !!}</span>
                         </div>
                     </div>
                 </div>

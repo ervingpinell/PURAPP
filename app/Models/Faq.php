@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -13,14 +14,16 @@ class Faq extends Model
         'is_active',
     ];
 
-public function translations()
-{
-    return $this->hasMany(FaqTranslation::class, 'faq_id');
-}
+    public function translations()
+    {
+        return $this->hasMany(FaqTranslation::class, 'faq_id');
+    }
 
-public function getTranslation(string $locale)
-{
-    return $this->translations->where('locale', $locale)->first();
-}
+    public function translate($locale = null)
+    {
+        $locale = $locale ?? app()->getLocale();
 
+        return $this->translations->firstWhere('locale', $locale)
+            ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
+    }
 }

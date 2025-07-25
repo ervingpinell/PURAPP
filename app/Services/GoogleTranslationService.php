@@ -31,20 +31,20 @@ class GoogleTranslationService
         }
     }
 
-    public static function detectLanguage($text): string
-    {
-        $spanishWords = ['el', 'la', 'de', 'que', 'y', 'en', 'un', 'una', 'es', 'por'];
-        $lower = mb_strtolower($text);
-        $score = 0;
+public static function detectLanguage($text): string
+{
+    try {
+        $tr = new GoogleTranslate();
+        $tr->setTarget('en'); // idioma cualquiera válido
+        $tr->translate($text); // fuerza la detección
 
-        foreach ($spanishWords as $word) {
-            if (str_contains($lower, " $word ") || str_starts_with($lower, "$word ") || str_ends_with($lower, " $word")) {
-                $score++;
-            }
-        }
-
-        return $score >= 2 ? 'es' : 'en';
+        return $tr->getLastDetectedSource();
+    } catch (\Exception $e) {
+        return 'es'; // Fallback en caso de error
     }
+}
+
+
 
     public static function matchCase(string $original, string $translated): string
     {
@@ -57,9 +57,10 @@ class GoogleTranslationService
 
 public static function preserveStructure(string $original, string $targetLang, string $sourceLang = null): string
 {
+    // Detectar y traducir solo lo que está entre paréntesis
     if (preg_match('/^(.*?)\((.*?)\)$/', $original, $matches)) {
-        $before = trim($matches[1]);   // ❗ Esto se mantiene igual, no se traduce
-        $inside = trim($matches[2]);   // ✅ Solo esto se traduce
+        $before = trim($matches[1]); // ❗ Nunca se traduce
+        $inside = trim($matches[2]); // ✅ Solo esto se traduce
 
         $translatedInside = self::translate($inside, $targetLang, $sourceLang);
         $translatedInside = self::matchCase($inside, $translatedInside);
@@ -67,11 +68,10 @@ public static function preserveStructure(string $original, string $targetLang, s
         return "{$before} ({$translatedInside})";
     }
 
-    // En caso de que no tenga paréntesis, se traduce todo normal
+    // Si no hay paréntesis, se traduce todo
     $translated = self::translate($original, $targetLang, $sourceLang);
     return self::matchCase($original, $translated);
 }
-
 
 
     public static function translateAndSaveForLocales($model, $fields, $translationModel, $foreignKey, $locales = ['en', 'pt', 'fr', 'de', 'es'])
@@ -87,10 +87,8 @@ public static function preserveStructure(string $original, string $targetLang, s
 
         if (!$originalLocale) return;
 
-        // Guardar versión original
-        self::translateAndSave($model, $fields, $originalLocale, $translationModel, $foreignKey, $isOriginal = true);
+        self::translateAndSave($model, $fields, $originalLocale, $translationModel, $foreignKey, true);
 
-        // Traducir a los otros idiomas
         foreach ($locales as $locale) {
             if ($locale === $originalLocale) continue;
 
@@ -114,17 +112,23 @@ public static function preserveStructure(string $original, string $targetLang, s
         foreach ($fields as $field) {
             $original = $model->$field;
 
+            if (empty($original)) continue;
+
             if ($isOriginal) {
                 $data[$field] = $original;
             } else {
-                $data[$field] = self::preserveStructure($original, $locale, $sourceLang);
+                if (get_class($model) === Itinerary::class && $field === 'name') {
+                    $data[$field] = $original;
+                } else {
+                    $data[$field] = self::preserveStructure($original, $locale, $sourceLang);
+                }
             }
         }
 
         return $translationModel::create($data);
     }
 
-    // Específicos
+    // Métodos específicos por modelo (opcional)
     public static function translateAndSaveTour(Tour $tour, string $locale)
     {
         return self::translateAndSave($tour, ['name', 'overview'], $locale, TourTranslation::class, 'tour_id');

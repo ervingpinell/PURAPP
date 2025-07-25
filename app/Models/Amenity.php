@@ -30,16 +30,17 @@ class Amenity extends Model
     }
 
     // 🔁 Traducciones
-public function translations()
-{
-    return $this->hasMany(\App\Models\AmenityTranslation::class, 'amenity_id');
-}
+    public function translations()
+    {
+        return $this->hasMany(AmenityTranslation::class, 'amenity_id');
+    }
 
-public function translate($locale = null)
-{
-    $locale = $locale ?? app()->getLocale();
-    return $this->translations->firstWhere('locale', $locale)
-        ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
-}
+    public function translate($locale = null)
+    {
+        $locale = $locale ?? app()->getLocale();
+
+        return $this->translations->firstWhere('locale', $locale)
+            ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
+    }
 
 }
