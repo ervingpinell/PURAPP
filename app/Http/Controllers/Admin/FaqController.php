@@ -3,7 +3,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Faq;
+use App\Models\FaqTranslation;
 use Illuminate\Http\Request;
+use App\Services\TranslationService;
 
 class FaqController extends Controller
 {
@@ -13,14 +15,28 @@ class FaqController extends Controller
         return view('admin.faqs.index', compact('faqs'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, TranslationService $translator)
     {
         $request->validate([
             'question' => 'required|string|max:255',
-            'answer' => 'required|string',
+            'answer'   => 'required|string',
         ]);
 
-        Faq::create($request->only('question', 'answer') + ['is_active' => true]);
+        $faq = Faq::create([
+            'question'  => $request->question,
+            'answer'    => $request->answer,
+            'is_active' => true,
+        ]);
+
+        // ✅ Traducir a los 4 idiomas
+        foreach (['en', 'pt', 'fr', 'de'] as $lang) {
+            FaqTranslation::create([
+                'faq_id'  => $faq->faq_id,
+                'locale'  => $lang,
+                'question'=> $translator->translate($request->question, $lang),
+                'answer'  => $translator->translate($request->answer, $lang),
+            ]);
+        }
 
         return redirect()->route('admin.faqs.index')->with('success', 'Pregunta registrada correctamente.');
     }
@@ -29,10 +45,15 @@ class FaqController extends Controller
     {
         $request->validate([
             'question' => 'required|string|max:255',
-            'answer' => 'required|string',
+            'answer'   => 'required|string',
         ]);
 
-        $faq->update($request->only('question', 'answer'));
+        $faq->update([
+            'question' => $request->question,
+            'answer'   => $request->answer,
+        ]);
+
+        // 🔁 No traducimos aquí, porque la edición de traducciones se hace desde el módulo de traducciones
 
         return redirect()->route('admin.faqs.index')->with('success', 'Pregunta actualizada correctamente.');
     }

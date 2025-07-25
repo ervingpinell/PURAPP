@@ -94,6 +94,12 @@ return [
     'guest_2' => 'Ana G.',
     'full_day_description' => "Parfait pour ceux qui aiment marcher et explorer autant que possible en une seule journée.\n\nSi vous disposez de peu de temps dans la région de La Fortuna, c'est votre meilleure option !\n\nVisitez les principaux sites touristiques de La Fortuna en une seule journée.",
     'half_day_description' => "Idéal si vous souhaitez explorer à un rythme plus détendu ou profiter d'une matinée ou d'un après-midi relaxant.\n\nPrenez votre temps pour profiter de chaque destination.\n\nParfait pour les familles, les personnes âgées ou ceux qui préfèrent une journée d'activités plus légères.",
+'full_day' => 'Journée complète',
+'half_day' => 'Demi-journée',
+'full_day_tours' => 'Excursions d\'une journée complète',
+'half_day_tours' => 'Excursions d\'une demi-journée',
+'full_day_description' => 'Tours de 6 à 9 heures pour une immersion totale dans la nature.',
+'half_day_description' => 'Tours de 2 à 4 heures parfaits pour un moment rapide d\'aventure.',
 
     // ─── HORAIRES ─────────────────────────────────────
     'schedule' => 'Horaire',

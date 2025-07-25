@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Preguntas Frecuentes')
+@section('title', __('adminlte::adminlte.faqpage'))
 
 @section('content')
 <div class="container py-5">
     <h1 class="mb-4 text-center">{{ __('adminlte::adminlte.faqpage') }}</h1>
 
     @if($faqs->isEmpty())
-        <p class="text-muted">No hay preguntas frecuentes disponibles por el momento.</p>
+        <p class="text-muted">{{ __('adminlte::adminlte.no_faqs_available') }}</p>
     @else
         <div class="accordion" id="faqAccordion">
             @foreach ($faqs as $faq)
@@ -18,8 +18,8 @@
                                 data-bs-target="#collapse{{ $faq->id }}"
                                 aria-expanded="false"
                                 aria-controls="collapse{{ $faq->id }}">
-                           <i class="fas fa-question-circle text-primary me-2"></i> {{ $faq->question }}
-
+                            <i class="fas fa-question-circle text-primary me-2"></i>
+                            {{ $faq->translated_question ?? $faq->question }}
                         </button>
                     </h2>
                     <div id="collapse{{ $faq->id }}"
@@ -28,7 +28,7 @@
                          data-bs-parent="#faqAccordion">
                         <div class="accordion-body">
                             <span class="text-success me-2">✓</span>
-                            <span>{!! nl2br(e($faq->answer)) !!}</span>
+                            <span>{!! nl2br(e($faq->translated_answer ?? $faq->answer)) !!}</span>
                         </div>
                     </div>
                 </div>

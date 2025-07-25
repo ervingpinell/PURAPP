@@ -41,7 +41,7 @@ title: '{{ __('adminlte::adminlte.access_denied') }}',
                 <img src="{{ asset('images/volcano.png') }}"
                      class="d-block w-100"
                      style="max-height: 350px; object-fit: cover;"
-                     alt="{{ $tour->name }}">
+                  alt="{{ $tour->translated_name ?? $tour->name }}">
               </div>
             @endfor
           </div>
@@ -54,10 +54,10 @@ title: '{{ __('adminlte::adminlte.access_denied') }}',
         </div>
 
         {{-- 📝 TÍTULO PRINCIPAL + Overview --}}
-        <h1 class="fw-bold">{{ $tour->name }}</h1>
-        <p class="text-muted">{{ $tour->tourType->name ?? '' }}</p>
+<h1 class="fw-bold">{{ $tour->translated_name }}</h1>
+<p class="text-muted">{{ $tour->tourType->name ?? '' }}</p>
 <h2>{{ __('adminlte::adminlte.overview') }}</h2>
-        <p>{{ $tour->overview }}</p>
+<p>{{ $tour->translated_overview }}</p>
       </div>
 
       {{-- 📅 RESERVATION BOX --}}
@@ -204,27 +204,28 @@ title: '{{ __('adminlte::adminlte.access_denied') }}',
             <div id="collapseItinerary" class="accordion-collapse collapse"
                  data-bs-parent="#tourDetailsAccordion">
               <div class="accordion-body px-0">
-                @if($tour->itinerary)
-                  <h5>{{ $tour->itinerary->name }}</h5>
-                  <p>{{ $tour->itinerary->description }}</p>
+@if($tour->itinerary)
+  <h5>{{ $tour->itinerary->translated_name ?? '' }}</h5>
+  <p>{{ $tour->itinerary->translated_description ?? '' }}</p>
 
-                  <div class="itinerary-timeline">
-                    @foreach($tour->itinerary->items as $index => $item)
-                      <div class="timeline-item">
-                        <div class="timeline-marker">{{ $index + 1 }}</div>
-                        <div class="timeline-content">
-                          <h6>{{ $item->title }}</h6>
-                          <p>{{ $item->description }}</p>
-                          @if($item->duration)
-                            <small>{{ $item->duration }}</small>
-                          @endif
-                        </div>
-                      </div>
-                    @endforeach
-                  </div>
-                @else
- <p>{{ __('adminlte::adminlte.no_itinerary_info') }}</p>
-                @endif
+  <div class="itinerary-timeline">
+    @foreach($tour->itinerary->items as $index => $item)
+      <div class="timeline-item">
+        <div class="timeline-marker">{{ $index + 1 }}</div>
+        <div class="timeline-content">
+          <h6>{{ $item->translated_title ?? $item->title }}</h6>
+          <p>{{ $item->translated_description ?? $item->description }}</p>
+          @if($item->duration)
+            <small>{{ $item->duration }}</small>
+          @endif
+        </div>
+      </div>
+    @endforeach
+  </div>
+@else
+  <p>{{ __('adminlte::adminlte.no_itinerary_info') }}</p>
+@endif
+
               </div>
             </div>
           </div>
@@ -241,16 +242,17 @@ title: '{{ __('adminlte::adminlte.access_denied') }}',
                  data-bs-parent="#tourDetailsAccordion">
               <div class="accordion-body px-0">
                 <div class="row">
-                  <div class="col-md-6">
-                    @foreach($tour->amenities as $am)
-                      <li>✔️ {{ $am->name }}</li>
-                    @endforeach
-                  </div>
-                  <div class="col-md-6">
-                    @foreach($tour->excludedAmenities as $ex)
-                      <li>❌ {{ $ex->name }}</li>
-                    @endforeach
-                  </div>
+<div class="col-md-6">
+  @foreach($tour->amenities as $am)
+    <li>✔️ {{ $am->translated_name ?? $am->name }}</li>
+  @endforeach
+</div>
+<div class="col-md-6">
+  @foreach($tour->excludedAmenities as $ex)
+    <li>❌ {{ $ex->translated_name ?? $ex->name }}</li>
+  @endforeach
+</div>
+
                 </div>
               </div>
             </div>

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Exception;
 use Illuminate\Support\Facades\Validator;
+use App\Services\TranslationService;
 
 class ItineraryController extends Controller
 {
@@ -24,25 +25,35 @@ class ItineraryController extends Controller
         return view('admin.tours.itinerary.index', compact('itineraries', 'items'));
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:itineraries,name',
-            'description' => 'nullable|string|max:1000',
+public function store(Request $request, TranslationService $translator)
+{
+    $request->validate([
+        'name' => 'required|string|max:255|unique:itineraries,name',
+        'description' => 'nullable|string|max:1000',
+    ]);
+
+    try {
+        $itinerary = Itinerary::create([
+            'name' => $request->name,
+            'description' => $request->description ?? '',
         ]);
 
-        try {
-            Itinerary::create([
-                'name' => $request->name,
-                'description' => $request->description ?? '',
+        // ✅ Traducción automática al crear
+        foreach (['en', 'pt', 'fr', 'de'] as $lang) {
+            \App\Models\ItineraryTranslation::create([
+                'itinerary_id' => $itinerary->itinerary_id,
+                'locale'       => $lang,
+                'name'         => $translator->translate($itinerary->name, $lang),
+                'description'  => $translator->translate($itinerary->description, $lang),
             ]);
-
-            return redirect()->back()->with('success', 'Itinerario creado correctamente.');
-        } catch (Exception $e) {
-            Log::error('Error al crear itinerario: ' . $e->getMessage());
-            return back()->with('error', 'No se pudo crear el itinerario.');
         }
+
+        return redirect()->back()->with('success', 'Itinerario creado correctamente.');
+    } catch (Exception $e) {
+        Log::error('Error al crear itinerario: ' . $e->getMessage());
+        return back()->with('error', 'No se pudo crear el itinerario.');
     }
+}
 
 public function update(Request $request, $id)
 {

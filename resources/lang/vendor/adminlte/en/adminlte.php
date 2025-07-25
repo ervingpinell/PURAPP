@@ -148,6 +148,7 @@ return [
     'adults_quantity' => 'Adults Quantity',
     'date' => 'Date',
     'horas' => 'hours',
+    'kid' => 'Kid',
     'kids' => 'Kids',
     'kids_quantity' => 'Kids Quantity',
     'select_date' => 'Select date',
@@ -239,4 +240,12 @@ return [
 'age_4_to_9'           => 'Age 4-9',
 'max_limits_info'      => 'Max 12 travelers, Max 2 kids.',
 'apply'                => 'Apply',
+
+'full_day' => 'Full Day',
+'half_day' => 'Half Day',
+'full_day_tours' => 'Full Day Tours',
+'half_day_tours' => 'Half Day Tours',
+'full_day_description' => '6 to 9 hour tours for a full nature experience.',
+'half_day_description' => '2 to 4 hour tours ideal for a quick adventure.',
+
 ];

@@ -352,9 +352,14 @@ return [
             'icon' => 'fas fa-fw fa-user-cog',
         ],
 [
-    'text' => 'Preguntas Frecuentes',
+    'text' => 'PREGUNTAS FRECUENTES',
 'route' => 'admin.faqs.index',
     'icon' => 'fas fa-question-circle',
+],
+[
+    'text' => 'TRADUCCIONES',
+    'route' => 'admin.translations.index', // o 'url' => 'admin/traducciones' si no usás rutas nombradas
+    'icon' => 'fas fa-language', // ícono FontAwesome
 ],
         [
             'text' => 'ROLES',

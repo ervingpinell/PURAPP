@@ -22,20 +22,21 @@ class DashBoardController extends Controller
         return view('index');
     }
 
-    public function switchLanguage($language)
-    {
-        if (in_array($language, ['es', 'en', 'fr'])) {
-            session(['locale' => $language]);
-        }
-
-        $referer = url()->previous();
-
-        if (str_contains($referer, '/login')) {
-            return redirect()->route('login');
-        }
-
-        return redirect($referer);
+public function switchLanguage($language)
+{
+    if (in_array($language, ['es', 'en', 'fr', 'pt', 'de'])) {
+        session(['locale' => $language]);
     }
+
+    $referer = url()->previous();
+
+    if (str_contains($referer, '/login')) {
+        return redirect()->route('login');
+    }
+
+    return redirect($referer);
+}
+
 
     public function dashboard()
     {

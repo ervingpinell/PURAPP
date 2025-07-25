@@ -1,11 +1,8 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\Tour;
-use App\Models\ItineraryItem;
 
 class Itinerary extends Model
 {
@@ -13,33 +10,21 @@ class Itinerary extends Model
 
     protected $primaryKey = 'itinerary_id';
 
-    /**
-     * Campos que pueden asignarse masivamente.
-     */
     protected $fillable = [
         'name',
         'description',
         'is_active',
     ];
 
-    /**
-     * Casts para que is_active se maneje como booleano.
-     */
     protected $casts = [
         'is_active' => 'boolean',
     ];
 
-    /**
-     * Tours que usan este itinerario.
-     */
     public function tours()
     {
         return $this->hasMany(Tour::class, 'itinerary_id', 'itinerary_id');
     }
 
-    /**
-     * Ítems activos de este itinerario, ordenados por pivot.item_order.
-     */
     public function items()
     {
         return $this->belongsToMany(
@@ -53,4 +38,18 @@ class Itinerary extends Model
             ->where('itinerary_items.is_active', true)
             ->orderBy('pivot_item_order');
     }
+
+    // 🔁 Traducciones
+public function translations()
+{
+    return $this->hasMany(\App\Models\ItineraryTranslation::class, 'itinerary_id');
+}
+
+public function translate($locale = null)
+{
+    $locale = $locale ?? app()->getLocale();
+    return $this->translations->firstWhere('locale', $locale)
+        ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
+}
+
 }

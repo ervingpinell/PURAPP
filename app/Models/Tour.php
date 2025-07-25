@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\Schedule;
 
 class Tour extends Model
 {
@@ -25,9 +24,10 @@ class Tour extends Model
         'is_active',
         'tour_type_id',
         'itinerary_id',
-          'color',
+        'color',
     ];
 
+    // ✅ Relaciones
     public function tourType()
     {
         return $this->belongsTo(TourType::class, 'tour_type_id', 'tour_type_id');
@@ -48,12 +48,11 @@ class Tour extends Model
         return $this->belongsToMany(Amenity::class, 'excluded_amenity_tour', 'tour_id', 'amenity_id');
     }
 
-    
     public function schedules()
     {
-        return $this->belongsToMany(Schedule::class,'schedule_tour', 'tour_id','schedule_id'
-        );
+        return $this->belongsToMany(Schedule::class, 'schedule_tour', 'tour_id', 'schedule_id');
     }
+
     public function availabilities()
     {
         return $this->hasMany(TourAvailability::class, 'tour_id', 'tour_id');
@@ -63,8 +62,22 @@ class Tour extends Model
     {
         return $this->belongsTo(Itinerary::class, 'itinerary_id', 'itinerary_id');
     }
+
     public function excludedDates()
     {
-        return $this->hasMany(TourExcludedDate::class);
+        return $this->hasMany(TourExcludedDate::class, 'tour_id', 'tour_id');
+    }
+
+    // ✅ Traducciones
+    public function translations()
+    {
+        return $this->hasMany(TourTranslation::class, 'tour_id', 'tour_id');
+    }
+
+    public function translate($locale = null)
+    {
+        $locale = $locale ?? app()->getLocale();
+        return $this->translations->firstWhere('locale', $locale)
+            ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
     }
 }

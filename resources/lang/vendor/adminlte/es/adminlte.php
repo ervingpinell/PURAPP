@@ -247,5 +247,11 @@ return [
 'max_limits_info'      => 'Máx. 12 viajeros, máx. 2 niños.',
 'apply'                => 'Aplicar',
 
+'full_day' => 'Día completo',
+'half_day' => 'Medio día',
+'full_day_tours' => 'Tours de Día Completo',
+'half_day_tours' => 'Tours de Medio Día',
+'full_day_description' => 'Tours de 6 a 9 horas para una experiencia completa en la naturaleza.',
+'half_day_description' => 'Tours de 2 a 4 horas ideales para una aventura rápida.',
 
 ];

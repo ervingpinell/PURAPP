@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Exception;
+use App\Services\TranslationService;
 
 class ItineraryItemController extends Controller
 {
@@ -20,30 +21,40 @@ class ItineraryItemController extends Controller
         return view('admin.tours.itinerary.items.crud', compact('items'));
     }
 
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'title'       => 'required|string|max:255|unique:itinerary_items,title',
-            'description' => 'required|string|max:2000',
+public function store(Request $request, TranslationService $translator)
+{
+    $validator = Validator::make($request->all(), [
+        'title'       => 'required|string|max:255|unique:itinerary_items,title',
+        'description' => 'required|string|max:2000',
+    ]);
+
+    if ($validator->fails()) {
+        return back()->withErrors($validator)->withInput();
+    }
+
+    try {
+        $item = ItineraryItem::create([
+            'title'       => $request->title,
+            'description' => $request->description,
+            'is_active'   => true,
         ]);
 
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
-        }
-
-        try {
-            ItineraryItem::create([
-                'title'       => $request->title,
-                'description' => $request->description,
-                'is_active'   => true,
+        // ✅ Traducción automática al crear
+        foreach (['en', 'pt', 'fr', 'de'] as $lang) {
+            \App\Models\ItineraryItemTranslation::create([
+                'item_id'     => $item->item_id,
+                'locale'      => $lang,
+                'title'       => $translator->translate($item->title, $lang),
+                'description' => $translator->translate($item->description, $lang),
             ]);
-
-            return redirect()->back()->with('success', 'Ítem de itinerario creado exitosamente.');
-        } catch (Exception $e) {
-            Log::error('Error al crear ítem de itinerario: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'No se pudo crear el ítem.');
         }
+
+        return redirect()->back()->with('success', 'Ítem de itinerario creado exitosamente.');
+    } catch (Exception $e) {
+        Log::error('Error al crear ítem de itinerario: ' . $e->getMessage());
+        return redirect()->back()->with('error', 'No se pudo crear el ítem.');
     }
+}
 
     public function update(Request $request, ItineraryItem $itinerary_item)
     {
