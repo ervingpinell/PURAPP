@@ -22,6 +22,39 @@ main {
     color: #fff;
     z-index: 999;
 }
+/* Badge del contador */
+.cart-count-badge {
+  position: absolute;
+  top: -6px;
+  background-color: #dc3545; /* rojo Bootstrap */
+  color: white;
+  font-size: 0.90Crem;
+  padding: 2px 6px;
+  border-radius: 50%;
+  font-weight: bold;
+  line-height: 1;
+  z-index: 10;
+  display: none; /* se muestra solo si count > 0 */
+  transition: all 0.3s ease;
+}
+
+/* Animación al actualizar */
+.cart-count-badge.flash {
+  animation: flashBadge 0.6s ease;
+}
+
+@keyframes flashBadge {
+  0% { transform: scale(1); background-color: #dc3545; }
+  50% { transform: scale(1.3); background-color: #ff6b6b; }
+  100% { transform: scale(1); background-color: #dc3545; }
+}
+
+/* Hover sobre ícono del carrito */
+.cart-icon-wrapper:hover i {
+  color: #ffc107; /* amarillo Bootstrap */
+  transform: scale(1.1);
+  transition: all 0.2s ease;
+}
 
 .navbar-container {
     max-width: 1440px; /* 🚩 Límite adaptable */

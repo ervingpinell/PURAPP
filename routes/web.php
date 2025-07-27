@@ -51,6 +51,7 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
     Route::get('/tour/{id}', [HomeController::class, 'showTour'])->name('tours.show');
     Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
+Route::get('/cart/count', [CartController::class, 'count'])->name('public.cart.count');
 
     // 📧 Test de correo
     Route::get('/send-test-email', function () {

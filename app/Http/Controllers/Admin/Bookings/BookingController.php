@@ -83,8 +83,8 @@ class BookingController extends Controller
         // ✅ Valida fecha bloqueada
         $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
             ->where(function ($query) use ($v) {
-                $query->whereNull('schedule_id') 
-                    ->orWhere('schedule_id', $v['schedule_id']); 
+                $query->whereNull('schedule_id')
+                    ->orWhere('schedule_id', $v['schedule_id']);
             })
             ->where('start_date', '<=', $v['tour_date'])
             ->where(function ($q) use ($v) {
@@ -338,8 +338,8 @@ class BookingController extends Controller
             // ✅ Validar fecha bloqueada
             $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
                 ->where(function ($query) use ($scheduleId) {
-                    $query->whereNull('schedule_id') 
-                        ->orWhere('schedule_id', $scheduleId); 
+                    $query->whereNull('schedule_id')
+                        ->orWhere('schedule_id', $scheduleId);
                 })
                 ->where('start_date', '<=', $tourDate)
                 ->where(function ($q) use ($tourDate) {
@@ -428,53 +428,70 @@ class BookingController extends Controller
 
 
     /** Vista del calendario */
-    public function calendar()
-    {
-        return view('admin.bookings.calendar');
-    }
+public function calendar()
+{
+    $tours = Tour::select('tour_id', 'name')->orderBy('name')->get();
+    return view('admin.bookings.calendar', compact('tours'));
+}
 
     /** Datos para FullCalendar */
-    public function calendarData(Request $request)
-    {
-        $query = BookingDetail::with(['booking.user', 'tour', 'schedule']);
+public function calendarData(Request $request)
+{
+    $query = BookingDetail::with(['booking.user', 'tour', 'schedule', 'hotel']);
 
-        if ($request->filled('from')) {
-            $query->where('tour_date', '>=', $request->input('from'));
-        }
-        if ($request->filled('to')) {
-            $query->where('tour_date', '<=', $request->input('to'));
-        }
-
-        $events = $query->get()->map(function ($d) {
-            $schedule = $d->schedule;
-
-            // 👇 Usa horario real del schedule o valores por defecto
-            $startTime = $schedule && $schedule->start_time
-                ? \Carbon\Carbon::parse($schedule->start_time)->format('H:i:s')
-                : '08:00:00';
-
-            $endTime = $schedule && $schedule->end_time
-                ? \Carbon\Carbon::parse($schedule->end_time)->format('H:i:s')
-                : '10:00:00';
-
-            return [
-     'id'     => $d->booking->booking_id,
-    'title'  => "{$d->booking->user->full_name} – {$d->tour->name}",
-    'start'  => "{$d->tour_date->toDateString()}T{$startTime}",
-    'end'    => "{$d->tour_date->toDateString()}T{$endTime}",
-    'backgroundColor' => $d->tour->color ?? '#5cb85c',
-    'borderColor'     => $d->tour->color ?? '#5cb85c',
-    'textColor'       => '#fff', // blanco para que resalte
-    'status' => $d->booking->status,
-    'hotel'  => optional($d->hotel)->name ?? null,
-    'adults' => $d->adults_quantity,
-    'kids'   => $d->kids_quantity,
-    'total'  => $d->total,
-            ];
-        });
-
-        return response()->json($events);
+    if ($request->filled('from')) {
+        $query->where('tour_date', '>=', $request->input('from'));
     }
+    if ($request->filled('to')) {
+        $query->where('tour_date', '<=', $request->input('to'));
+    }
+    if ($request->filled('tour_id')) {
+        $query->where('tour_id', $request->input('tour_id'));
+    }
+
+    $events = $query->get()->map(function ($d) {
+        $schedule = $d->schedule;
+
+        $startTime = $schedule && $schedule->start_time
+            ? \Carbon\Carbon::parse($schedule->start_time)->format('H:i:s')
+            : '08:00:00';
+
+        $endTime = $schedule && $schedule->end_time
+            ? \Carbon\Carbon::parse($schedule->end_time)->format('H:i:s')
+            : '10:00:00';
+
+        $adults = $d->adults_quantity;
+        $kids   = $d->kids_quantity;
+        $paxText = $adults . ($kids > 0 ? "+{$kids}" : '');
+
+        $name = $d->tour->name;
+        $short = preg_replace('/\((.*?)\)/', '', $name);
+        $short = preg_replace('/\b(Tour|Combo|Experience|Adventure|Full Day|Half Day)\b/i', '', $short);
+        $short = trim(Str::limit(trim($short), 25));
+
+        return [
+            'id'               => $d->booking->booking_id,
+            'title'            => '', // evitar duplicado
+            'start'            => "{$d->tour_date->toDateString()}T{$startTime}",
+            'end'              => "{$d->tour_date->toDateString()}T{$endTime}",
+            'backgroundColor'  => $d->tour->color ?? '#5cb85c',
+            'borderColor'      => $d->tour->color ?? '#5cb85c',
+            'textColor'        => '#000',
+            'status'           => $d->booking->status,
+            'hotel_name'       => optional($d->hotel)->name ?? '—',
+'pax' => $paxText . ' pax',
+            'short_tour_name'  => $short,
+            'booking_ref'      => '#' . $d->booking->booking_reference,
+            'adults'           => $adults,
+            'kids'             => $kids,
+            'total'            => $d->total,
+        ];
+    });
+
+    return response()->json($events);
+}
+
+
 
 
     public function reservedCount(Request $request)

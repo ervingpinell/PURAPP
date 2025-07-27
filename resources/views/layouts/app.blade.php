@@ -15,23 +15,23 @@
 ])
 
       @stack('styles') <!-- 👈 Esto habilita tus CSS adicionales -->
-    
+
 </head>
 
 <body>
-    @include('partials.header') 
-    
+    @include('partials.header')
+
     <main>
-        @yield('content') 
+        @yield('content')
     </main>
-    
-    @include('partials.footer') 
-    
+
+    @include('partials.footer')
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://kit.fontawesome.com/yourkit.js" crossorigin="anonymous"></script>
-    @stack('scripts') 
+    @stack('scripts')
 
     @if(session('error'))
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -42,6 +42,27 @@
             text: "{{ session('error') }}",
             confirmButtonColor: '#d33'
         });
+
+document.addEventListener('DOMContentLoaded', () => {
+  const badgeEls = document.querySelectorAll('.cart-count-badge');
+
+  function updateCartCount() {
+    fetch('{{ route('public.cart.count') }}')
+      .then(res => res.json())
+      .then(data => {
+        badgeEls.forEach(el => {
+          el.textContent = data.count;
+          el.style.display = data.count > 0 ? 'inline-block' : 'none';
+        });
+      })
+      .catch(err => console.error('Error al obtener la cantidad del carrito', err));
+  }
+
+  // Llamada inicial
+  updateCartCount();
+
+  // Puedes llamar a `updateCartCount()` manualmente cuando se agregue un ítem vía JS/AJAX.
+});
     </script>
 @endif
 </body>

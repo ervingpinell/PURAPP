@@ -148,6 +148,26 @@ body.dark-mode .fc .fc-btn-primary {
 
 /* —— Contraste extra para colores muy claros —— */
 .fc-timegrid-event.light-text {
-  color: #000;                  /* Negro forzado */
+  color: #3c8dbc;                  /* Negro forzado */
   text-shadow: 0 0 2px #fff;    /* Ligero borde claro si lo necesitas */
+}
+
+.fc .fc-popover-header {
+    align-items: center;
+    display: flex
+;
+    color: rgb(0, 0, 0);
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 3px 4px;
+}
+.fc-timegrid-more-link{
+
+    background-color: #5cb85c;
+}
+@media (max-width: 768px) {
+  #calendar .row > div {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
 }

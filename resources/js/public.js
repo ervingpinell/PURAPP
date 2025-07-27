@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-
   // ============================================
   // ✅ NAVBAR HAMBURGER TOGGLE
   // ============================================
@@ -26,17 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
     link.addEventListener('click', function () {
       const targetId = this.dataset.target;
       const overview = document.getElementById(targetId);
-
       const textMore = this.dataset.textMore || 'Leer más';
       const textLess = this.dataset.textLess || 'Leer menos';
 
-      if (overview.classList.contains('expanded')) {
-        overview.classList.remove('expanded');
-        this.textContent = textMore;
-      } else {
-        overview.classList.add('expanded');
-        this.textContent = textLess;
-      }
+      overview.classList.toggle('expanded');
+      this.textContent = overview.classList.contains('expanded') ? textLess : textMore;
     });
   });
 
@@ -46,12 +39,32 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.accordion-button').forEach(btn => {
     btn.addEventListener('click', () => {
       const icon = btn.querySelector('.toggle-icon');
-      if (icon) {
-        icon.classList.toggle('fa-plus');
-        icon.classList.toggle('fa-minus');
-      }
+      if (icon) icon.classList.toggle('fa-plus', !icon.classList.contains('fa-minus'));
+      if (icon) icon.classList.toggle('fa-minus');
     });
   });
+
+  // ============================================
+  // ✅ FUNCIONALIDAD DEL CONTADOR DEL CARRITO
+  // ============================================
+function updateCartCount() {
+  fetch('/cart/count')
+    .then(res => res.json())
+    .then(data => {
+      const badgeEls = document.querySelectorAll('.cart-count-badge');
+      badgeEls.forEach(el => {
+        el.textContent = data.count;
+        el.style.display = data.count > 0 ? 'inline-block' : 'none';
+
+        // 🔁 Animación flash cuando cambia el número
+        el.classList.remove('flash'); // Reiniciar si ya tiene clase
+        void el.offsetWidth; // Forzar reflow
+        el.classList.add('flash');
+      });
+    })
+    .catch(err => console.error('Error al obtener la cantidad del carrito:', err));
+}
+  updateCartCount(); // Llamada inicial
 
   // ============================================
   // ✅ TRAVELERS MODAL: Quantity & Price Logic
@@ -63,8 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const reservationTotalPrice = document.getElementById('reservation-total-price');
   const summarySpan = document.getElementById('traveler-summary');
 
-  const adultPrice = parseFloat(document.querySelector('.reservation-box').dataset.adultPrice || 0);
-  const kidPrice = parseFloat(document.querySelector('.reservation-box').dataset.kidPrice || 0);
+  const adultPrice = parseFloat(document.querySelector('.reservation-box')?.dataset.adultPrice || 0);
+  const kidPrice = parseFloat(document.querySelector('.reservation-box')?.dataset.kidPrice || 0);
 
   const maxTotal = 12;
   const minTotal = 2;
@@ -95,19 +108,13 @@ document.addEventListener('DOMContentLoaded', () => {
       let kidCount = parseInt(document.getElementById('kid-count').textContent) || 0;
       const totalPeople = adultCount + kidCount;
 
-      if (type === 'adult' && totalPeople < maxTotal) {
-        adultCount++;
-        document.getElementById('adult-count').textContent = adultCount;
-      }
-      if (type === 'kid' && kidCount < maxKids && totalPeople < maxTotal) {
-        kidCount++;
-        document.getElementById('kid-count').textContent = kidCount;
-      }
+      if (type === 'adult' && totalPeople < maxTotal) adultCount++;
+      if (type === 'kid' && kidCount < maxKids && totalPeople < maxTotal) kidCount++;
 
-      if (adultCount + kidCount < minTotal) {
-        adultCount = minTotal - kidCount;
-        document.getElementById('adult-count').textContent = adultCount;
-      }
+      if (adultCount + kidCount < minTotal) adultCount = minTotal - kidCount;
+
+      document.getElementById('adult-count').textContent = adultCount;
+      document.getElementById('kid-count').textContent = kidCount;
 
       updateModalTotal();
     });
@@ -119,37 +126,25 @@ document.addEventListener('DOMContentLoaded', () => {
       let adultCount = parseInt(document.getElementById('adult-count').textContent) || 0;
       let kidCount = parseInt(document.getElementById('kid-count').textContent) || 0;
 
-      if (type === 'adult' && adultCount > 0) {
-        adultCount--;
-        if (adultCount + kidCount < minTotal) {
-          adultCount = minTotal - kidCount;
-        }
-        document.getElementById('adult-count').textContent = adultCount;
+      if (type === 'adult' && adultCount > 0) adultCount--;
+      if (type === 'kid' && kidCount > 0) kidCount--;
+
+      if (adultCount + kidCount < minTotal) {
+        kidCount = 0;
+        adultCount = minTotal;
       }
 
-      if (type === 'kid' && kidCount > 0) {
-        kidCount--;
-        if (adultCount + kidCount < minTotal) {
-          kidCount = 0;
-          if (adultCount < minTotal) {
-            adultCount = minTotal;
-          }
-        }
-        document.getElementById('kid-count').textContent = kidCount;
-      }
+      document.getElementById('adult-count').textContent = adultCount;
+      document.getElementById('kid-count').textContent = kidCount;
 
       updateModalTotal();
     });
   });
 
-  const applyBtn = document.querySelector('#travelerModal .btn-success');
-  applyBtn.addEventListener('click', () => {
+  document.querySelector('#travelerModal .btn-success')?.addEventListener('click', () => {
     const adultCount = parseInt(document.getElementById('adult-count').textContent) || 0;
     const kidCount = parseInt(document.getElementById('kid-count').textContent) || 0;
-    const totalPeople = adultCount + kidCount;
-
-    summarySpan.textContent = totalPeople;
-
+    summarySpan.textContent = adultCount + kidCount;
     updateReservationTotal();
   });
 
@@ -160,147 +155,52 @@ document.addEventListener('DOMContentLoaded', () => {
   updateReservationTotal();
 
   // ============================================
-  // ✅ PICKUP POINTS LOGIC
+  // ✅ VALIDACIÓN CUPOS DISPONIBLES + CARRITO
   // ============================================
-  const pickupSearch = document.getElementById('pickupSearch');
-  const pickupListWrapper = document.getElementById('pickupListWrapper');
-  const pickupListItems = document.querySelectorAll('#pickupList li');
-  const pickupNotFound = document.getElementById('pickupNotFound');
-  const selectedPickupPoint = document.getElementById('selectedPickupPoint');
-  const selectedPickupDisplay = document.getElementById('selectedPickupDisplay');
+  const addToCartForm = document.querySelector('.reservation-box');
 
-  const hotelInput = document.getElementById('selectedPickupPoint');
-  const isOtherHotelInput = document.getElementById('isOtherHotel');
-  const otherHotelNameInput = document.getElementById('otherHotelName');
+  if (addToCartForm) {
+    const tourId = window.tourId;
+    const maxCapacity = window.maxCapacity;
+    const tourDateInput = addToCartForm.querySelector('[name="tour_date"]');
+    const scheduleSelect = addToCartForm.querySelector('[name="schedule_id"]');
 
-  if (pickupSearch && pickupListItems) {
-    pickupSearch.addEventListener('input', function () {
-      const term = pickupSearch.value.trim().toLowerCase();
-      let found = false;
+    addToCartForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
 
-      pickupListItems.forEach(item => {
-        const match = item.textContent.toLowerCase().includes(term);
-        item.style.display = match ? '' : 'none';
-        if (match) found = true;
-      });
+      const adults = parseInt(document.getElementById('adults_quantity').value) || 0;
+      const kids = parseInt(document.getElementById('kids_quantity').value) || 0;
+      const requested = adults + kids;
 
-      pickupListWrapper.classList.remove('d-none');
-      pickupNotFound.classList.toggle('d-none', found || term === '');
-    });
+      const tourDate = tourDateInput.value;
+      const scheduleId = scheduleSelect.value;
 
-    pickupListWrapper.addEventListener('change', function (e) {
-      if (e.target.name === 'pickupOption') {
-        hotelInput.value = e.target.value;
-        isOtherHotelInput.value = 0;
-        otherHotelNameInput.value = '';
-
-        const label = e.target.closest('label');
-        const hotelName = label.querySelector('strong').textContent;
-
-        selectedPickupDisplay.querySelector('span').textContent = hotelName;
-        pickupListWrapper.classList.add('d-none');
-      }
-    });
-
-    selectedPickupDisplay.addEventListener('click', function () {
-      pickupListWrapper.classList.toggle('d-none');
-      pickupSearch.focus();
-    });
-
-    document.addEventListener('click', function (e) {
-      if (!pickupSearch.contains(e.target) &&
-        !pickupListWrapper.contains(e.target) &&
-        !selectedPickupDisplay.contains(e.target)) {
-        pickupListWrapper.classList.add('d-none');
-      }
-    });
-  }
-
-  // ============================================
-  // ✅ MEETING POINTS LOGIC
-  // ============================================
-  const meetingSearch = document.getElementById('meetingSearch');
-  const meetingListWrapper = document.getElementById('meetingListWrapper');
-  const meetingListItems = document.querySelectorAll('#meetingList li');
-  const meetingNotFound = document.getElementById('meetingNotFound');
-  const selectedMeetingPoint = document.getElementById('selectedMeetingPoint');
-
-  if (meetingSearch && meetingListItems) {
-    meetingSearch.addEventListener('input', function () {
-      const term = meetingSearch.value.trim().toLowerCase();
-      let found = false;
-
-      meetingListItems.forEach(item => {
-        const match = item.textContent.toLowerCase().includes(term);
-        item.style.display = match ? '' : 'none';
-        if (match) found = true;
-      });
-
-      meetingListWrapper.classList.remove('d-none');
-      meetingNotFound.classList.toggle('d-none', found || term === '');
-    });
-
-    meetingListWrapper.addEventListener('change', function (e) {
-      if (e.target.name === 'meetingOption') {
-        selectedMeetingPoint.value = e.target.value;
-        meetingListWrapper.classList.add('d-none');
-      }
-    });
-
-    document.addEventListener('click', function (e) {
-      if (!meetingSearch.contains(e.target) && !meetingListWrapper.contains(e.target)) {
-        meetingListWrapper.classList.add('d-none');
-      }
-    });
-  }
-
-  // ============================================
-// ✅ VALIDACIÓN CUPOS DISPONIBLES
-// ============================================
-const addToCartForm = document.querySelector('.reservation-box');
-
-if (addToCartForm) {
-  const tourId = window.tourId;            // ✅ Global desde Blade
-  const maxCapacity = window.maxCapacity;  // ✅ Global desde Blade
-  const tourDateInput = addToCartForm.querySelector('[name="tour_date"]');
-  const scheduleSelect = addToCartForm.querySelector('[name="schedule_id"]');
-
-  addToCartForm.addEventListener('submit', async function (e) {
-    e.preventDefault();
-
-    const adults = parseInt(document.getElementById('adults_quantity').value) || 0;
-    const kids = parseInt(document.getElementById('kids_quantity').value) || 0;
-    const requested = adults + kids;
-
-    const tourDate = tourDateInput.value;
-    const scheduleId = scheduleSelect.value;
-
-    if (!tourDate || !scheduleId) {
-      Swal.fire('Error', 'Selecciona una fecha y un horario válido.', 'error');
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/get-reserved?tour_id=${tourId}&schedule_id=${scheduleId}&tour_date=${tourDate}`);
-      const data = await res.json();
-      const reserved = parseInt(data.reserved) || 0;
-
-      if (reserved + requested > maxCapacity) {
-        const spotsLeft = Math.max(maxCapacity - reserved, 0);
-        Swal.fire(
-          'Cupo no disponible',
-          `Lo sentimos, solo quedan ${spotsLeft} espacio(s) disponible(s) para este horario.`,
-          'error'
-        );
+      if (!tourDate || !scheduleId) {
+        Swal.fire('Error', 'Selecciona una fecha y un horario válido.', 'error');
         return;
       }
 
-      addToCartForm.submit();
-    } catch (err) {
-      console.error(err);
-      Swal.fire('Error', 'No se pudo validar el cupo disponible. Intenta de nuevo.', 'error');
-    }
-  });
+      try {
+        const res = await fetch(`/api/get-reserved?tour_id=${tourId}&schedule_id=${scheduleId}&tour_date=${tourDate}`);
+        const data = await res.json();
+        const reserved = parseInt(data.reserved) || 0;
+
+        if (reserved + requested > maxCapacity) {
+          const spotsLeft = Math.max(maxCapacity - reserved, 0);
+          Swal.fire('Cupo no disponible', `Solo quedan ${spotsLeft} espacios para este horario.`, 'error');
+          return;
+        }
+
+        // ✅ Si todo está bien, enviar el formulario y actualizar contador
+        addToCartForm.submit();
+        updateCartCount();
+
+      } catch (err) {
+        console.error(err);
+        Swal.fire('Error', 'No se pudo validar el cupo disponible.', 'error');
+      }
+    });
+  }
 
   // ============================================
   // ✅ HOTEL SELECT + OTRO HOTEL PERSONALIZADO
@@ -311,7 +211,7 @@ if (addToCartForm) {
   const isOtherHotelInput = document.getElementById('isOtherHotel');
   const warningMessage = document.getElementById('outsideAreaMessage');
 
-  if (hotelSelect && otherWrapper && otherInput && isOtherHotelInput && warningMessage) {
+  if (hotelSelect) {
     hotelSelect.addEventListener('change', function () {
       if (this.value === 'other') {
         otherWrapper.classList.remove('d-none');
@@ -327,6 +227,4 @@ if (addToCartForm) {
       }
     });
   }
-}
-
 });

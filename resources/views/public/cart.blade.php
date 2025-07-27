@@ -25,6 +25,7 @@
             <th>{{ __('adminlte::adminlte.language') }}</th>
             <th>{{ __('adminlte::adminlte.adults') }}</th>
             <th>{{ __('adminlte::adminlte.kids') }}</th>
+            <th>{{ __('adminlte::adminlte.hotel') }}</th>
             <th>{{ __('adminlte::adminlte.status') }}</th>
             <th>{{ __('adminlte::adminlte.actions') }}</th>
           </tr>
@@ -45,6 +46,15 @@
               <td>{{ $item->language->name }}</td>
               <td>{{ $item->adults_quantity }}</td>
               <td>{{ $item->kids_quantity }}</td>
+              <td>
+                @if($item->hotel)
+                  {{ $item->hotel->name }}
+                @elseif($item->custom_hotel_name)
+                  {{ $item->custom_hotel_name }} <small class="text-muted">(personalizado)</small>
+                @else
+                  <span class="text-muted">No indicado</span>
+                @endif
+              </td>
               <td>
                 <span class="badge {{ $item->is_active ? 'bg-success' : 'bg-secondary' }}">
                   {{ $item->is_active ? __('adminlte::adminlte.active') : __('adminlte::adminlte.inactive') }}

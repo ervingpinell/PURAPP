@@ -43,7 +43,7 @@ class User extends Authenticatable
 
     public function adminlte_profile_url()
     {
-        return route('profile.edit'); 
+        return route('profile.edit');
     }
     //adminlte_image can be used only by enabling the function in config/adminlte.php → set the option 'usermenu_image' => true instead of false.
     public function adminlte_image()
@@ -58,6 +58,6 @@ class User extends Authenticatable
     public function cart()
     {
         return $this->hasOne(Cart::class, 'user_id')->where('is_active', true);
-    }    
+    }
 
 }
