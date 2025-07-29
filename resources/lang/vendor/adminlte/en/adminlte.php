@@ -248,4 +248,14 @@ return [
 'full_day_description' => '6 to 9 hour tours for a full nature experience.',
 'half_day_description' => '2 to 4 hour tours ideal for a quick adventure.',
 
+'contact_us'     => 'Contact us',
+'name'           => 'Name',
+'email'          => 'Email',
+'subject'        => 'Subject',
+'message'        => 'Message',
+'send_message'   => 'Send message',
+'message_sent'   => 'Message sent',
+'business_hours'    => 'Business hours',
+'business_schedule' => 'Monday to Sunday, from 7:30 a.m. to 7:00 p.m.',
+
 ];

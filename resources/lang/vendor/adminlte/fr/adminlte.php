@@ -255,4 +255,14 @@ return [
 'max_limits_info'      => 'Max 12 voyageurs, max 2 enfants.',
 'apply'                => 'Appliquer',
 
+'contact_us'     => 'Contactez-nous',
+'name'           => 'Nom',
+'email'          => 'E-mail',
+'subject'        => 'Sujet',
+'message'        => 'Message',
+'send_message'   => 'Envoyer le message',
+'message_sent'   => 'Message envoyé',
+'business_hours'    => 'Heures d\'ouverture',
+'business_schedule' => 'Lundi au dimanche, de 7h30 à 19h00.',
+
 ];

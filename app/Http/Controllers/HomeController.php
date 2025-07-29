@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tour;
+use App\Models\HotelList;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class HomeController extends Controller
 {
@@ -72,5 +75,25 @@ class HomeController extends Controller
         $hotels = \App\Models\HotelList::orderBy('name')->get();
 
         return view('public.tour-show', compact('tour', 'hotels'));
+    }
+
+    // ✅ Mostrar formulario de contacto
+    public function contact()
+    {
+        return view('public.contact');
+    }
+
+    // ✅ Enviar mensaje de contacto
+    public function sendContact(Request $request)
+    {
+        $validated = $request->validate([
+            'name'    => 'required|string|max:100',
+            'email'   => 'required|email',
+            'subject' => 'required|string|max:150',
+            'message' => 'required|string|max:1000',
+        ]);
+
+        // Aquí podrías guardar en DB o enviar email. Por ahora solo feedback:
+        return back()->with('success', 'Tu mensaje ha sido enviado con éxito. Pronto te contactaremos.');
     }
 }

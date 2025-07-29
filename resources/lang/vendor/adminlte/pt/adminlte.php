@@ -250,4 +250,15 @@ return [
 'full_day_description' => 'Passeios de 6 a 9 horas para uma experiência completa na natureza.',
 'half_day_description' => 'Passeios de 2 a 4 horas ideais para uma aventura rápida.',
 
+'contact_us'     => 'Fale conosco',
+'name'           => 'Nome',
+'email'          => 'E-mail',
+'subject'        => 'Assunto',
+'message'        => 'Mensagem',
+'send_message'   => 'Enviar mensagem',
+'message_sent'   => 'Mensagem enviada',
+'business_hours'    => 'Horário de atendimento',
+'business_schedule' => 'Segunda a domingo, das 7h30 às 19h00.',
+
+
 ];

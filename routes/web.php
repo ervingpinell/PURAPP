@@ -52,6 +52,9 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::get('/tour/{id}', [HomeController::class, 'showTour'])->name('tours.show');
     Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
 Route::get('/cart/count', [CartController::class, 'count'])->name('public.cart.count');
+Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+Route::post('/contact/send', [HomeController::class, 'sendContact'])->name('contact.send');
+
 
     // 📧 Test de correo
     Route::get('/send-test-email', function () {

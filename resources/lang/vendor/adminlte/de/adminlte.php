@@ -250,4 +250,14 @@ return [
 'full_day_description' => '6- bis 9-stündige Touren für ein vollständiges Naturerlebnis.',
 'half_day_description' => '2- bis 4-stündige Touren, ideal für ein kurzes Abenteuer.',
 
+'contact_us'     => 'Kontaktieren Sie uns',
+'name'           => 'Name',
+'email'          => 'E-Mail',
+'subject'        => 'Betreff',
+'message'        => 'Nachricht',
+'send_message'   => 'Nachricht senden',
+'message_sent'   => 'Nachricht gesendet',
+'business_hours'    => 'Öffnungszeiten',
+'business_schedule' => 'Montag bis Sonntag, von 7:30 bis 19:00 Uhr.',
+
 ];

@@ -36,4 +36,6 @@
         </div>
     @endif
 </div>
+{{-- ✅ Modal de WhatsApp --}}
+@include('partials.ws-widget')
 @endsection

@@ -12,6 +12,10 @@
 main {
     padding-top: 80px; /* ajusta según la altura real de tu navbar */
 }
+.bg-green-dark {
+  background-color: #0f2419;
+}
+
 
 .navbar-custom {
     position: fixed;
@@ -509,6 +513,15 @@ margin-top: 0.8rem;
 .whatsapp-float-btn:hover {
     transform: scale(1.05);
     background: linear-gradient(to right, #14665e, #052a28);
+}
+@keyframes pulse-grow {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.animate-pulse-grow {
+  animation: pulse-grow 1.2s ease-in-out infinite;
 }
 
 /* Estilo base del switcher */

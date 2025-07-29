@@ -57,7 +57,7 @@
       <a href="{{ route('home') }}#tours">{{ __('adminlte::adminlte.tours') }}</a>
       <a href="#">{{ __('adminlte::adminlte.reviews') }}</a>
       <a href="{{ route('faq.index') }}">{{ __('adminlte::adminlte.faq') }}</a>
-      <a href="#">{{ __('adminlte::adminlte.contact_us') }}</a>
+      <a href="{{ route('contact') }}">{{ __('adminlte::adminlte.contact_us') }}</a>
     </div>
 
     <!-- ACCIONES Desktop -->
