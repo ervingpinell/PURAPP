@@ -55,7 +55,7 @@
     <div class="navbar-links d-none d-md-flex">
       <a href="{{ route('home') }}">{{ __('adminlte::adminlte.home') }}</a>
       <a href="{{ route('home') }}#tours">{{ __('adminlte::adminlte.tours') }}</a>
-      <a href="#">{{ __('adminlte::adminlte.reviews') }}</a>
+      <a href="{{ route('reviews') }}">{{ __('adminlte::adminlte.reviews') }}</a>
       <a href="{{ route('faq.index') }}">{{ __('adminlte::adminlte.faq') }}</a>
       <a href="{{ route('contact') }}">{{ __('adminlte::adminlte.contact_us') }}</a>
     </div>

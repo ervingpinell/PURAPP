@@ -1,5 +1,4 @@
 @extends('layouts.app')
-@vite(['resources/css/tour.css', 'resources/js/public.js'])
 
 @section('title', __('adminlte::adminlte.contact_us'))
 

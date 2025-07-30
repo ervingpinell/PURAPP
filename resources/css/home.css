@@ -340,12 +340,7 @@ margin-top: 0.8rem;
 }
 
 
-/* TESTIMONIALS & OVERVIEW */
-.compact-testimonials {
-    padding: 3rem 1rem;
-    text-align: center;
-    border-bottom: 3px solid #60a862;
-}
+/* OVERVIEW */
 
 .overview {
   display: -webkit-box;
@@ -375,22 +370,6 @@ margin-top: 0.8rem;
     font-weight: 700;
 }
 
-.testimonial-cards {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1.5rem;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.testimonial-card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-    max-width: 350px;
-}
 
 .rating {
     color: #ffd700;

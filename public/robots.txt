@@ -1,2 +1,16 @@
+# Bloquear acceso a los archivos relacionados con reseñas de Viator
 User-agent: *
-Disallow:
+
+# JS Viator
+Disallow: /resources/js/viator/all-reviews.js
+Disallow: /resources/js/viator/carousel-reviews.js
+Disallow: /resources/js/viator/product-reviews.js
+Disallow: /resources/js/viator/render-reviews.js
+
+# CSS específico de reseñas (si aplica)
+Disallow: /resources/css/review.css
+
+# API personalizada (si sirve reseñas)
+Disallow: /api/reviews
+
+

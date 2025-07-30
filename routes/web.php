@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\ClienteRegisterController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FaqController;
+use App\Http\Controllers\ReviewController;
 
 // Controladores del panel admin
 use App\Http\Controllers\Admin\Users\UserRegisterController;
@@ -31,13 +32,27 @@ use App\Http\Controllers\Admin\FaqController as AdminFaqController;
 use App\Http\Controllers\Admin\TranslationController;
 
 // Otros
-use App\Mail\TestEmail;
-use App\Models\Tour;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Tour;
+
 
 Route::middleware([SetLocale::class])->group(function () {
+// Página pública de reviews
+Route::get('/reviews', function () {
+    $productCodes = [
+        '12732P5'
+    ];
+    return view('public.reviews', compact('productCodes'));
+})->name('reviews');
 
-    // 🔧 Test de traducciones
+// API reviews (JS externo)
+Route::post('/api/reviews', [ReviewController::class, 'fetchReviews'])->name('api.reviews');
+Route::post('/api/reviews', [ReviewController::class, 'fetchReviews']);
+
+// Contador del carrito (JS público)
+Route::get('/cart/count', [CartController::class, 'count'])
+    ->name('cart.count.public');
+    // Test de traducciones
     Route::get('/test-translations/{tour}', function (Tour $tour) {
         return $tour->translations->mapWithKeys(fn($t) => [$t->locale => [
             'name' => $t->name,
@@ -51,29 +66,15 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
     Route::get('/tour/{id}', [HomeController::class, 'showTour'])->name('tours.show');
     Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
-Route::get('/cart/count', [CartController::class, 'count'])->name('public.cart.count');
-Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
-Route::post('/contact/send', [HomeController::class, 'sendContact'])->name('contact.send');
+    Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+    Route::post('/contact/send', [HomeController::class, 'sendContact'])->name('contact.send');
 
-
-    // 📧 Test de correo
+    // Test de correo
     Route::get('/send-test-email', function () {
-        $booking = App\Models\Booking::latest()->with(['user','detail','tour'])->first();
+        $booking = App\Models\Booking::latest()->with(['user', 'detail', 'tour'])->first();
         Mail::to($booking->user->email)->send(new App\Mail\BookingCreatedMail($booking));
         return 'Correo enviado!';
     });
-
-    // 🛒 Carrito de compras
-    Route::middleware(['auth'])->group(function () {
-        Route::get('/mi-carrito', [CartController::class, 'index'])->name('public.cart.index');
-    });
-    Route::post('/carrito/agregar/{tour}', [CartController::class, 'store'])->middleware('auth')->name('carrito.agregar');
-    Route::delete('/cart/{item}', [CartController::class, 'destroy'])->name('public.cart.destroy');
-    Route::post('/reservas/from-cart', [BookingController::class, 'storeFromCart'])->middleware('auth')->name('public.reservas.storeFromCart');
-
-    // 🛑 Fechas excluidas
-    Route::post('/tour-excluded/block-all', [TourExcludedDateController::class, 'storeMultiple'])->name('admin.tour-excluded.store-multiple');
-    Route::post('/tour-excluded/block-all-all', [TourExcludedDateController::class, 'blockAll'])->name('admin.tour-excluded.block-all');
 
     // 🔐 Autenticación
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -82,43 +83,57 @@ Route::post('/contact/send', [HomeController::class, 'sendContact'])->name('cont
     Route::post('/register', [ClienteRegisterController::class, 'store'])->name('register.store');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // 📧 Verificación de correo
+    // Verificación de correo
     Route::get('/email/verify', [VerifyEmailController::class, 'notice'])->middleware('auth')->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', [VerifyEmailController::class, 'verify'])->middleware(['auth', 'signed'])->name('verification.verify');
     Route::post('/email/resend', [VerifyEmailController::class, 'resend'])->middleware('auth')->name('verification.resend');
 
-    // 👤 Perfil del cliente autenticado
+    /**
+     * =====================
+     * 🧑‍💼 Perfil del cliente
+     * =====================
+     */
     Route::middleware(['auth'])->group(function () {
         Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
         Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::post('/profile/edit', [ProfileController::class, 'update'])->name('profile.update');
         Route::get('/my-reservations', [BookingController::class, 'myReservations'])->name('my-reservations');
         Route::get('/my-reservations/{booking}/receipt', [BookingController::class, 'showReceipt'])->name('my-reservations.receipt');
+
+        // Carrito
+        Route::get('/mi-carrito', [CartController::class, 'index'])->name('public.cart.index');
+        Route::post('/carrito/agregar/{tour}', [CartController::class, 'store'])->name('carrito.agregar');
+        Route::post('/reservas/from-cart', [BookingController::class, 'storeFromCart'])->name('public.reservas.storeFromCart');
     });
 
-    // 🛠 Panel administrativo
+    Route::delete('/cart/{item}', [CartController::class, 'destroy'])->name('public.cart.destroy');
+
+    /**
+     * =====================
+     * ⚙️ Panel de administración
+     * =====================
+     */
     Route::middleware(['auth', 'CheckRole'])->prefix('admin')->name('admin.')->group(function () {
 
-        // 📊 Dashboard
         Route::get('/', [DashBoardController::class, 'dashboard'])->name('home');
 
-        // 👤 Perfil del administrador
+        // Perfil admin
         Route::get('/profile', [ProfileController::class, 'adminShow'])->name('profile.show');
         Route::get('/profile/edit', [ProfileController::class, 'adminEdit'])->name('profile.edit');
         Route::post('/profile/edit', [ProfileController::class, 'adminUpdate'])->name('profile.update');
 
-        // 🌍 Traducciones
-Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
-    Route::get('translations/{type}/select', [TranslationController::class, 'select'])->name('translations.select');
-    Route::get('translations/{type}/{id}/locale', [TranslationController::class, 'selectLocale'])->name('translations.locale');
-    Route::get('translations/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('translations.edit');
-    Route::post('translations/{type}/{id}/update', [TranslationController::class, 'update'])->name('translations.update');
+        // Traducciones
+        Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
+        Route::get('translations/{type}/select', [TranslationController::class, 'select'])->name('translations.select');
+        Route::get('translations/{type}/{id}/locale', [TranslationController::class, 'selectLocale'])->name('translations.locale');
+        Route::get('translations/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('translations.edit');
+        Route::post('translations/{type}/{id}/update', [TranslationController::class, 'update'])->name('translations.update');
 
-        // ❓ FAQ
+        // FAQs
         Route::resource('faqs', AdminFaqController::class)->except(['show']);
         Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
 
-        // 🎒 Módulo Tours
+        // Tours
         Route::resource('tours', TourController::class)->except(['create', 'edit', 'show']);
         Route::prefix('tours')->name('tours.')->group(function () {
             Route::resource('schedule', TourScheduleController::class)->except(['create', 'edit', 'show']);
@@ -132,34 +147,38 @@ Route::get('translations', [TranslationController::class, 'index'])->name('trans
             Route::resource('amenities', AmenityController::class)->except(['show']);
         });
 
-        // 📆 Reservaciones
+        // Fechas excluidas públicas
+        Route::post('/tour-excluded/block-all', [TourExcludedDateController::class, 'storeMultiple'])->name('tour-excluded.store-multiple');
+        Route::post('/tour-excluded/block-all-all', [TourExcludedDateController::class, 'blockAll'])->name('tour-excluded.block-all');
+
+        // Reservaciones
         Route::get('reservas/pdf', [BookingController::class, 'generarPDF'])->name('reservas.pdf');
         Route::get('reservas/{reserva}/comprobante', [BookingController::class, 'generarComprobante'])->name('reservas.comprobante');
         Route::resource('reservas', BookingController::class)->except(['show']);
         Route::get('reservas/reserved', [BookingController::class, 'reservedCount'])->name('reservas.reserved');
         Route::get('reservas/calendar-data', [BookingController::class, 'calendarData'])->name('reservas.calendarData');
         Route::get('reservas/calendar', [BookingController::class, 'calendar'])->name('reservas.calendar');
+        Route::post('/reservas/from-cart', [BookingController::class, 'storeFromCart'])->name('reservas.storeFromCart');
 
-        // 👥 Usuarios y roles
+        // Usuarios y roles
         Route::resource('users', UserRegisterController::class)->except(['show']);
         Route::resource('roles', RoleController::class)->except(['show']);
 
-        // 📚 Categorías, idiomas y tipos de tour
+        // Categorías, idiomas, tipos de tour
         Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);
         Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
         Route::resource('languages', TourLanguageController::class, ['parameters' => ['languages' => 'language']])->except(['show']);
 
-        // 🏨 Hoteles
+        // Hoteles
         Route::resource('hotels', HotelListController::class)->except(['show', 'create', 'edit']);
 
-        // 🛒 Carrito de administración
+        // Carrito Admin
         Route::get('/carrito', [CartController::class, 'index'])->name('cart.index');
         Route::post('/carrito', [CartController::class, 'store'])->name('cart.store');
         Route::patch('/carrito/{item}', [CartController::class, 'update'])->name('cart.update');
         Route::post('/carrito/item/{item}/update', [CartController::class, 'updateFromPost'])->name('cart.updateFromPost');
         Route::delete('/carrito/item/{item}', [CartController::class, 'destroy'])->name('cart.item.destroy');
-        Route::get('/carritos-todos', [CartController::class, 'allCarts'])->name('cart.general');
         Route::delete('/admin/carrito/item/{item}', [CartController::class, 'destroy'])->name('admin.cart.item.destroy');
-        Route::post('/reservas/from-cart', [BookingController::class, 'storeFromCart'])->name('reservas.storeFromCart');
+        Route::get('/carritos-todos', [CartController::class, 'allCarts'])->name('cart.general');
     });
 });

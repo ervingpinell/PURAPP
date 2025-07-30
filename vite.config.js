@@ -4,16 +4,23 @@ import laravel from 'laravel-vite-plugin';
 export default defineConfig({
     plugins: [
         laravel({
-           input: [
-  'resources/css/app.css',
-  'resources/css/home.css',
-  'resources/css/gv.css',
-  'resources/css/tour.css',
-  'resources/js/app.js',
-  'resources/js/public.js',
-],
+            input: [
+                'resources/css/app.css',
+                'resources/css/home.css',
+                'resources/css/gv.css',
+                'resources/css/tour.css',
+                'resources/css/review.css',
+                 'resources/css/homereview.css',
+                'resources/js/app.js',
+                'resources/js/public.js',
 
-           refresh: true,
+                // ✅ Scripts Viator
+                'resources/js/viator/all-reviews.js',
+                'resources/js/viator/product-reviews.js',
+                'resources/js/viator/carousel-reviews.js',
+                'resources/js/viator/render-reviews.js',
+            ],
+            refresh: true,
         }),
     ],
 });

@@ -1,77 +1,65 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // ============================================
-  // ✅ NAVBAR HAMBURGER TOGGLE
-  // ============================================
+  // ✅ NAVBAR TOGGLE
   const toggle = document.getElementById('navbar-toggle');
   const links = document.getElementById('navbar-links');
 
   if (toggle && links) {
-    toggle.addEventListener('click', () => {
-      links.classList.toggle('show');
-    });
-
-    document.querySelectorAll('.navbar-links a').forEach(link => {
-      link.addEventListener('click', () => {
-        links.classList.remove('show');
-      });
-    });
+    toggle.addEventListener('click', () => links.classList.toggle('show'));
+    document.querySelectorAll('.navbar-links a').forEach(link =>
+      link.addEventListener('click', () => links.classList.remove('show'))
+    );
   }
 
-  // ============================================
-  // ✅ OVERVIEW TOGGLE "Leer más / Leer menos"
-  // ============================================
-  const toggleLinks = document.querySelectorAll('.toggle-overview-link');
-  toggleLinks.forEach(link => {
+  // ✅ LEER MÁS / LEER MENOS
+  document.querySelectorAll('.toggle-overview-link').forEach(link => {
     link.addEventListener('click', function () {
-      const targetId = this.dataset.target;
-      const overview = document.getElementById(targetId);
+      const overview = document.getElementById(this.dataset.target);
+      if (!overview) return;
       const textMore = this.dataset.textMore || 'Leer más';
       const textLess = this.dataset.textLess || 'Leer menos';
-
       overview.classList.toggle('expanded');
       this.textContent = overview.classList.contains('expanded') ? textLess : textMore;
     });
   });
 
-  // ============================================
-  // ✅ ACCORDION ICON TOGGLE +/-
-  // ============================================
+  // ✅ TOGGLE ICONOS DEL ACORDEÓN
   document.querySelectorAll('.accordion-button').forEach(btn => {
     btn.addEventListener('click', () => {
       const icon = btn.querySelector('.toggle-icon');
-      if (icon) icon.classList.toggle('fa-plus', !icon.classList.contains('fa-minus'));
-      if (icon) icon.classList.toggle('fa-minus');
+      if (icon) {
+        icon.classList.toggle('fa-plus', !icon.classList.contains('fa-minus'));
+        icon.classList.toggle('fa-minus');
+      }
     });
   });
 
-  // ============================================
-  // ✅ FUNCIONALIDAD DEL CONTADOR DEL CARRITO
-  // ============================================
-function updateCartCount() {
-  fetch('/cart/count')
-    .then(res => res.json())
-    .then(data => {
-      const badgeEls = document.querySelectorAll('.cart-count-badge');
-      badgeEls.forEach(el => {
-        el.textContent = data.count;
-        el.style.display = data.count > 0 ? 'inline-block' : 'none';
+  // ✅ CONTADOR DEL CARRITO
+  function updateCartCount() {
+    fetch('/cart/count')
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        const badgeEls = document.querySelectorAll('.cart-count-badge');
+        if (!badgeEls || badgeEls.length === 0) return;
 
-        // 🔁 Animación flash cuando cambia el número
-        el.classList.remove('flash'); // Reiniciar si ya tiene clase
-        void el.offsetWidth; // Forzar reflow
-        el.classList.add('flash');
+        badgeEls.forEach(el => {
+          el.textContent = data.count;
+          el.style.display = data.count > 0 ? 'inline-block' : 'none';
+          el.classList.remove('flash');
+          void el.offsetWidth;
+          el.classList.add('flash');
+        });
+      })
+      .catch(err => {
+        console.error('❌ Error al obtener la cantidad del carrito:', err);
       });
-    })
-    .catch(err => console.error('Error al obtener la cantidad del carrito:', err));
-}
-  updateCartCount(); // Llamada inicial
+  }
 
-  // ============================================
-  // ✅ TRAVELERS MODAL: Quantity & Price Logic
-  // ============================================
-  const plusBtns = document.querySelectorAll('.traveler-btn[data-action="increase"]');
-  const minusBtns = document.querySelectorAll('.traveler-btn[data-action="decrease"]');
+  updateCartCount();
 
+  // ✅ LÓGICA DE PRECIOS EN EL MODAL DE TRAVELERS
   const modalTotalPrice = document.getElementById('modal-total-price');
   const reservationTotalPrice = document.getElementById('reservation-total-price');
   const summarySpan = document.getElementById('traveler-summary');
@@ -84,28 +72,34 @@ function updateCartCount() {
   const maxKids = 2;
 
   function updateModalTotal() {
-    const adultCount = parseInt(document.getElementById('adult-count').textContent) || 0;
-    const kidCount = parseInt(document.getElementById('kid-count').textContent) || 0;
+    const adultCount = parseInt(document.getElementById('adult-count')?.textContent || 0);
+    const kidCount = parseInt(document.getElementById('kid-count')?.textContent || 0);
     const total = (adultCount * adultPrice) + (kidCount * kidPrice);
-    modalTotalPrice.textContent = `Total: $${total.toFixed(2)}`;
+    if (modalTotalPrice) modalTotalPrice.textContent = `Total: $${total.toFixed(2)}`;
   }
 
   function updateReservationTotal() {
-    const adultCount = parseInt(document.getElementById('adult-count').textContent) || 0;
-    const kidCount = parseInt(document.getElementById('kid-count').textContent) || 0;
+    const adultCount = parseInt(document.getElementById('adult-count')?.textContent || 0);
+    const kidCount = parseInt(document.getElementById('kid-count')?.textContent || 0);
 
-    document.getElementById('adults_quantity').value = adultCount;
-    document.getElementById('kids_quantity').value = kidCount;
+    const adultsInput = document.getElementById('adults_quantity');
+    const kidsInput = document.getElementById('kids_quantity');
+
+    if (adultsInput) adultsInput.value = adultCount;
+    if (kidsInput) kidsInput.value = kidCount;
 
     const total = (adultCount * adultPrice) + (kidCount * kidPrice);
-    reservationTotalPrice.textContent = `$${total.toFixed(2)}`;
+    if (reservationTotalPrice) reservationTotalPrice.textContent = `$${total.toFixed(2)}`;
   }
+
+  const plusBtns = document.querySelectorAll('.traveler-btn[data-action="increase"]');
+  const minusBtns = document.querySelectorAll('.traveler-btn[data-action="decrease"]');
 
   plusBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const type = btn.dataset.type;
-      let adultCount = parseInt(document.getElementById('adult-count').textContent) || 0;
-      let kidCount = parseInt(document.getElementById('kid-count').textContent) || 0;
+      let adultCount = parseInt(document.getElementById('adult-count')?.textContent || 0);
+      let kidCount = parseInt(document.getElementById('kid-count')?.textContent || 0);
       const totalPeople = adultCount + kidCount;
 
       if (type === 'adult' && totalPeople < maxTotal) adultCount++;
@@ -113,8 +107,10 @@ function updateCartCount() {
 
       if (adultCount + kidCount < minTotal) adultCount = minTotal - kidCount;
 
-      document.getElementById('adult-count').textContent = adultCount;
-      document.getElementById('kid-count').textContent = kidCount;
+      const adultEl = document.getElementById('adult-count');
+      const kidEl = document.getElementById('kid-count');
+      if (adultEl) adultEl.textContent = adultCount;
+      if (kidEl) kidEl.textContent = kidCount;
 
       updateModalTotal();
     });
@@ -123,8 +119,8 @@ function updateCartCount() {
   minusBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const type = btn.dataset.type;
-      let adultCount = parseInt(document.getElementById('adult-count').textContent) || 0;
-      let kidCount = parseInt(document.getElementById('kid-count').textContent) || 0;
+      let adultCount = parseInt(document.getElementById('adult-count')?.textContent || 0);
+      let kidCount = parseInt(document.getElementById('kid-count')?.textContent || 0);
 
       if (type === 'adult' && adultCount > 0) adultCount--;
       if (type === 'kid' && kidCount > 0) kidCount--;
@@ -134,29 +130,28 @@ function updateCartCount() {
         adultCount = minTotal;
       }
 
-      document.getElementById('adult-count').textContent = adultCount;
-      document.getElementById('kid-count').textContent = kidCount;
+      const adultEl = document.getElementById('adult-count');
+      const kidEl = document.getElementById('kid-count');
+      if (adultEl) adultEl.textContent = adultCount;
+      if (kidEl) kidEl.textContent = kidCount;
 
       updateModalTotal();
     });
   });
 
   document.querySelector('#travelerModal .btn-success')?.addEventListener('click', () => {
-    const adultCount = parseInt(document.getElementById('adult-count').textContent) || 0;
-    const kidCount = parseInt(document.getElementById('kid-count').textContent) || 0;
-    summarySpan.textContent = adultCount + kidCount;
+    const adultCount = parseInt(document.getElementById('adult-count')?.textContent || 0);
+    const kidCount = parseInt(document.getElementById('kid-count')?.textContent || 0);
+    if (summarySpan) summarySpan.textContent = adultCount + kidCount;
     updateReservationTotal();
   });
 
-  // Defaults
-  document.getElementById('adult-count').textContent = 2;
-  document.getElementById('kid-count').textContent = 0;
+  if (document.getElementById('adult-count')) document.getElementById('adult-count').textContent = 2;
+  if (document.getElementById('kid-count')) document.getElementById('kid-count').textContent = 0;
   updateModalTotal();
   updateReservationTotal();
 
-  // ============================================
-  // ✅ VALIDACIÓN CUPOS DISPONIBLES + CARRITO
-  // ============================================
+  // ✅ VALIDACIÓN DE CUPO DISPONIBLE
   const addToCartForm = document.querySelector('.reservation-box');
 
   if (addToCartForm) {
@@ -168,12 +163,12 @@ function updateCartCount() {
     addToCartForm.addEventListener('submit', async function (e) {
       e.preventDefault();
 
-      const adults = parseInt(document.getElementById('adults_quantity').value) || 0;
-      const kids = parseInt(document.getElementById('kids_quantity').value) || 0;
+      const adults = parseInt(document.getElementById('adults_quantity')?.value || 0);
+      const kids = parseInt(document.getElementById('kids_quantity')?.value || 0);
       const requested = adults + kids;
 
-      const tourDate = tourDateInput.value;
-      const scheduleId = scheduleSelect.value;
+      const tourDate = tourDateInput?.value;
+      const scheduleId = scheduleSelect?.value;
 
       if (!tourDate || !scheduleId) {
         Swal.fire('Error', 'Selecciona una fecha y un horario válido.', 'error');
@@ -191,10 +186,9 @@ function updateCartCount() {
           return;
         }
 
-        // ✅ Si todo está bien, enviar el formulario y actualizar contador
+        // 🟢 Si hay cupo, enviar formulario y actualizar contador
         addToCartForm.submit();
         updateCartCount();
-
       } catch (err) {
         console.error(err);
         Swal.fire('Error', 'No se pudo validar el cupo disponible.', 'error');
@@ -202,9 +196,7 @@ function updateCartCount() {
     });
   }
 
-  // ============================================
-  // ✅ HOTEL SELECT + OTRO HOTEL PERSONALIZADO
-  // ============================================
+  // ✅ SELECCIÓN DE HOTEL PERSONALIZADO
   const hotelSelect = document.getElementById('hotelSelect');
   const otherWrapper = document.getElementById('otherHotelWrapper');
   const otherInput = document.getElementById('otherHotelInput');
@@ -214,16 +206,18 @@ function updateCartCount() {
   if (hotelSelect) {
     hotelSelect.addEventListener('change', function () {
       if (this.value === 'other') {
-        otherWrapper.classList.remove('d-none');
-        isOtherHotelInput.value = '1';
-        otherInput.required = true;
-        warningMessage.style.display = 'block';
+        otherWrapper?.classList.remove('d-none');
+        if (isOtherHotelInput) isOtherHotelInput.value = '1';
+        if (otherInput) otherInput.required = true;
+        if (warningMessage) warningMessage.style.display = 'block';
       } else {
-        otherWrapper.classList.add('d-none');
-        isOtherHotelInput.value = '0';
-        otherInput.required = false;
-        otherInput.value = '';
-        warningMessage.style.display = 'none';
+        otherWrapper?.classList.add('d-none');
+        if (isOtherHotelInput) isOtherHotelInput.value = '0';
+        if (otherInput) {
+          otherInput.required = false;
+          otherInput.value = '';
+        }
+        if (warningMessage) warningMessage.style.display = 'none';
       }
     });
   }

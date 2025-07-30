@@ -8,26 +8,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
 class HomeController extends Controller
+{public function index()
 {
-    public function index()
-    {
-        $locale = app()->getLocale();
+    $locale = app()->getLocale();
 
-        $tours = Tour::with(['tourType', 'itinerary.items', 'translations'])
-            ->where('is_active', true)
-            ->get()
-            ->map(function ($tour) use ($locale) {
-                $translation = $tour->translations->firstWhere('locale', $locale);
+    $tours = Tour::with(['tourType', 'itinerary.items', 'translations'])
+        ->where('is_active', true)
+        ->get()
+        ->map(function ($tour) use ($locale) {
+            $translation = $tour->translations->firstWhere('locale', $locale);
+            $tour->translated_name = $translation->name ?? $tour->name;
+            $tour->translated_overview = $translation->overview ?? $tour->overview;
+            return $tour;
+        })
+        ->groupBy(fn($tour) => $tour->tourType->name ?? 'Sin categoría');
 
-                $tour->translated_name = $translation->name ?? $tour->name;
-                $tour->translated_overview = $translation->overview ?? $tour->overview;
+    $carouselProductCode = '12732P5'; // ✅ Código de producto temporal
 
-                return $tour;
-            })
-            ->groupBy(fn($tour) => $tour->tourType->name ?? 'Sin categoría');
+    return view('public.home', compact('tours', 'carouselProductCode'));
+}
 
-        return view('public.home', compact('tours'));
-    }
 
     public function showTour($id)
     {

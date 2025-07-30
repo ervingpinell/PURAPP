@@ -237,7 +237,7 @@ class CartController extends Controller
 
         return view('admin.Cart.general', compact('carritos'));
     }
-    public function count()
+public function count()
 {
     if (!auth()->check()) {
         return response()->json(['count' => 0]);
@@ -248,4 +248,5 @@ class CartController extends Controller
 
     return response()->json(['count' => $count]);
 }
+
 }

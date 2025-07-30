@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@vite(['resources/css/tour.css', 'resources/js/public.js'])
+@vite(['resources/css/tour.css', 'resources/css/review.css','resources/js/product-reviews.js', 'resources/js/render-reviews.js'])
 
 @section('content')
 

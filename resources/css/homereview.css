@@ -1,0 +1,145 @@
+/* Estilo general del contenedor de reseña */
+.review-item.card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 0.5rem;
+    transition: transform 0.3s ease;
+    max-width: 600px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.review-item.card:hover {
+    transform: scale(1.01);
+}
+
+.review-item .card-body {
+    min-height: 400px; /* Ajusta según contenido promedio */
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 1rem;
+    width: 100%;
+}
+.review-stars {
+    color: #ffc107; /* amarillo tipo Bootstrap */
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.review-stars .rating-number {
+    font-size: 0.9rem;
+    color: #555;
+    margin-left: 0.4rem;
+}
+
+/* Iconos */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: #256D1B;
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    background-size: 1.5rem 1.5rem;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.carousel-control-prev:hover .carousel-control-prev-icon,
+.carousel-control-next:hover .carousel-control-next-icon {
+    background-color: #60A862;
+}
+.viator-credit a:hover {
+    color: #256D1B;
+}
+/* Carrusel container */
+#viator-carousel {
+    position: relative;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+
+/* Controles del carrusel posicionados al centro vertical */
+.carousel-control-prev,
+.carousel-control-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Alineación lateral pegada a la tarjeta */
+.carousel-control-prev {
+    left: calc(50% - 320px - 0.75rem); /* 600px/2 + margen extra */
+}
+
+.carousel-control-next {
+    right: calc(50% - 320px - 0.75rem);
+}
+
+/* ======== RESPONSIVE PARA MÓVILES ======== */
+@media (max-width: 768px) {
+        .carousel-inner {
+        padding: 0 0.5rem;
+    }
+
+    .review-item.card {
+        max-width: 95% !important;  /* Antes 85% */
+        width: 95% !important;
+    }
+
+    .review-item .card-body {
+        padding: 0.75rem;
+    }
+
+    .review-item .card-title {
+        font-size: 1rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .review-item .card-text {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .review-item .text-warning {
+        font-size: 0.85rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .review-item img {
+        width: 32px;
+        height: 32px;
+        margin-right: 0.5rem;
+    }
+
+    .review-item h6 {
+        font-size: 0.9rem;
+    }
+
+    .review-item small {
+        font-size: 0.75rem;
+    }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        width: 2rem     ;
+        height: 2rem;
+    }
+
+        .carousel-control-prev {
+        left: 0.5rem;
+    }
+
+    .carousel-control-next {
+        right: 0.5rem;
+    }
+}

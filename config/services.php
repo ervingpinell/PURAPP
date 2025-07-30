@@ -34,5 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'viator' => [
+    'api_key' => env('VIATOR_API_KEY'),
+],
+
 
 ];
