@@ -123,7 +123,9 @@ return [
     'hotel_name' => 'Hotelname',
     'other_hotel' => 'Anderes Hotel (bitte angeben)',
     'hotel_pickup' => 'Hotelabholung',
-    'outside_area' => 'Dieses Hotel liegt außerhalb unseres Abholgebiets. Bitte kontaktieren Sie uns zur Koordination.',
+'outside_area' => 'Dieses Hotel liegt außerhalb unseres Abholgebiets. Bitte kontaktieren Sie uns, um die Abholung zu koordinieren.',
+'pickup_valid' => 'Das ausgewählte Hotel ist gültig! Sobald Sie die Reservierung bestätigen, werden wir Sie kontaktieren, um die Abholzeit zu koordinieren!',
+
 
     // ─── WARENKORB UND BUCHUNGEN ──────────────────────
     'cart' => 'Warenkorb',

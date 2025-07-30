@@ -20,7 +20,7 @@
 
     @foreach ($options as $key => $label)
         <div class="col-md-4 mb-3">
-            <a href="{{ route('admin.translations.select', ['type' => $key]) }}" class="btn btn-outline-primary w-100 py-3">
+            <a href="{{ route('admin.translations.select', ['type' => $key]) }}" class="btn btn-primary w-100 py-3">
                 <i class="fas fa-globe me-2"></i> {{ $label }}
             </a>
         </div>

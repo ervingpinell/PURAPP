@@ -150,12 +150,13 @@ return [
     Illuminate\Translation\TranslationServiceProvider::class,
     Illuminate\Validation\ValidationServiceProvider::class,
     Illuminate\View\ViewServiceProvider::class,
+    Maatwebsite\Excel\ExcelServiceProvider::class,
 
     /*
     * Application Service Providers...
     */
     App\Providers\AppServiceProvider::class,
-    App\Providers\AuthServiceProvider::class, 
+    App\Providers\AuthServiceProvider::class,
     App\Providers\FortifyServiceProvider::class,
     App\Providers\VoltServiceProvider::class,
 

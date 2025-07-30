@@ -123,8 +123,10 @@ return [
     'hotel_other' => 'Other (specify manually)',
     'hotel_pickup' => 'Hotel Pickup',
     'hotels' => 'Hotels',
-    'outside_area' => 'This hotel is outside the coverage area. Please contact us to coordinate pickup.',
     'select_hotel' => 'Hotel or pickup point',
+    'outside_area' => 'This hotel is outside the pickup coverage area. Please contact us to review your options.',
+'pickup_valid' => 'The selected hotel is valid! Once you confirm the reservation, we will contact you to coordinate the pickup time!',
+
 
     // Itineraries
     'edit_itinerary' => 'Edit Itinerary',

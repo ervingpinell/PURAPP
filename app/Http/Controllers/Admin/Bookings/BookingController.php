@@ -12,47 +12,99 @@ use App\Models\Booking;
 use App\Models\Tour;
 use App\Models\BookingDetail;
 use App\Models\Cart;
+use App\Models\HotelList;
+use App\Models\Schedule;
 use Illuminate\Support\Facades\Mail;
+use App\Exports\BookingsExport;
 use App\Mail\BookingCreatedMail;
 use App\Mail\BookingUpdatedMail;
 use App\Mail\BookingConfirmedMail;
 use App\Mail\BookingCancelledMail;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class BookingController extends Controller
 {
     /** Listado de reservas */
-    /** Listado de reservas */
-    public function index(Request $request)
-    {
-        $sort      = $request->get('sort', 'booking_id');
-        $direction = $request->get('direction', 'asc');
+    /** Listado de reservas */public function index(Request $request)
+{
+    $sort      = $request->get('sort', 'booking_id');
+    $direction = $request->get('direction', 'asc');
 
-        $allowedSorts = ['booking_id','booking_date','total','status','user'];
-        if (! in_array($sort, $allowedSorts)) {
-            $sort = 'booking_id';
-        }
-
-        $query = Booking::with(['user','detail.tour','detail.hotel'])
-            ->join('users','bookings.user_id','users.user_id')
-            ->select('bookings.*');
-
-        if (Auth::user()->role_id === 3) {
-            $query->where('bookings.user_id', Auth::id());
-        }
-
-        if ($request->filled('reference')) {
-            $query->where('booking_reference', 'ILIKE', "%{$request->reference}%");
-        }
-
-        $bookings = $query->orderBy($sort === 'user' ? 'users.full_name' : $sort, $direction)
-            ->paginate(10)
-            ->appends(['sort' => $sort, 'direction' => $direction]);
-
-        $hotels = \App\Models\HotelList::where('is_active', true)->orderBy('name')->get();
-
-        return view('admin.bookings.index', compact('bookings','sort','direction','hotels'));
+    $allowedSorts = ['booking_id', 'booking_date', 'total', 'status', 'user'];
+    if (!in_array($sort, $allowedSorts)) {
+        $sort = 'booking_id';
     }
+
+    $query = Booking::with([
+        'user',
+        'detail.tour.tourType',
+        'detail.hotel',
+        'detail.schedule'
+    ])
+    ->join('users', 'bookings.user_id', '=', 'users.user_id')
+    ->select('bookings.*');
+
+    // Solo clientes ven sus reservas
+    if (Auth::user()->role_id === 3) {
+        $query->where('bookings.user_id', Auth::id());
+    }
+
+    // Filtro: referencia
+    if ($request->filled('reference')) {
+        $query->where('bookings.booking_reference', 'ILIKE', "%{$request->reference}%");
+    }
+
+    // Filtro: estado
+    if ($request->filled('status')) {
+        $query->where('bookings.status', $request->status);
+    }
+
+    // Filtro: fecha de reserva
+    if ($request->filled('booking_date_from')) {
+        $query->whereDate('bookings.booking_date', '>=', $request->booking_date_from);
+    }
+    if ($request->filled('booking_date_to')) {
+        $query->whereDate('bookings.booking_date', '<=', $request->booking_date_to);
+    }
+
+    // Filtros de detalles (fecha viaje, tour, horario)
+    if (
+        $request->filled('tour_date_from') || $request->filled('tour_date_to') ||
+        $request->filled('tour_id') || $request->filled('schedule_id')
+    ) {
+        $query->whereHas('detail', function ($q) use ($request) {
+            if ($request->filled('tour_date_from')) {
+                $q->whereDate('tour_date', '>=', $request->tour_date_from);
+            }
+            if ($request->filled('tour_date_to')) {
+                $q->whereDate('tour_date', '<=', $request->tour_date_to);
+            }
+            if ($request->filled('tour_id')) {
+                $q->where('tour_id', $request->tour_id);
+            }
+            if ($request->filled('schedule_id')) {
+                $q->where('schedule_id', $request->schedule_id);
+            }
+        });
+    }
+
+    // Ordenamiento
+    $bookings = $query
+        ->orderBy($sort === 'user' ? 'users.full_name' : 'bookings.' . $sort, $direction)
+        ->paginate(10)
+        ->appends($request->all());
+
+    // Datos para filtros
+    $hotels    = HotelList::where('is_active', true)->orderBy('name')->get();
+    $schedules = Schedule::orderBy('start_time')->get();
+    $tours     = Tour::orderBy('name')->get();
+
+    return view('admin.bookings.index', compact(
+        'bookings', 'sort', 'direction', 'hotels', 'schedules', 'tours'
+    ));
+}
+
 
     /** Crear reserva desde formulario manual */
     public function store(Request $request)
@@ -425,8 +477,6 @@ class BookingController extends Controller
 
 
 
-
-
     /** Vista del calendario */
 public function calendar()
 {
@@ -442,15 +492,17 @@ public function calendarData(Request $request)
     if ($request->filled('from')) {
         $query->where('tour_date', '>=', $request->input('from'));
     }
+
     if ($request->filled('to')) {
         $query->where('tour_date', '<=', $request->input('to'));
     }
+
     if ($request->filled('tour_id')) {
         $query->where('tour_id', $request->input('tour_id'));
     }
 
-    $events = $query->get()->map(function ($d) {
-        $schedule = $d->schedule;
+    $events = $query->get()->map(function ($detail) {
+        $schedule = $detail->schedule;
 
         $startTime = $schedule && $schedule->start_time
             ? \Carbon\Carbon::parse($schedule->start_time)->format('H:i:s')
@@ -460,31 +512,31 @@ public function calendarData(Request $request)
             ? \Carbon\Carbon::parse($schedule->end_time)->format('H:i:s')
             : '10:00:00';
 
-        $adults = $d->adults_quantity;
-        $kids   = $d->kids_quantity;
+        $adults = $detail->adults_quantity;
+        $kids = $detail->kids_quantity;
         $paxText = $adults . ($kids > 0 ? "+{$kids}" : '');
 
-        $name = $d->tour->name;
-        $short = preg_replace('/\((.*?)\)/', '', $name);
-        $short = preg_replace('/\b(Tour|Combo|Experience|Adventure|Full Day|Half Day)\b/i', '', $short);
-        $short = trim(Str::limit(trim($short), 25));
+        $tourName = $detail->tour->name ?? '';
+        $shortName = preg_replace('/\((.*?)\)/', '', $tourName);
+        $shortName = preg_replace('/\b(Tour|Combo|Experience|Adventure|Full Day|Half Day)\b/i', '', $shortName);
+        $shortName = trim(\Illuminate\Support\Str::limit(trim($shortName), 25));
 
         return [
-            'id'               => $d->booking->booking_id,
-            'title'            => '', // evitar duplicado
-            'start'            => "{$d->tour_date->toDateString()}T{$startTime}",
-            'end'              => "{$d->tour_date->toDateString()}T{$endTime}",
-            'backgroundColor'  => $d->tour->color ?? '#5cb85c',
-            'borderColor'      => $d->tour->color ?? '#5cb85c',
-            'textColor'        => '#000',
-            'status'           => $d->booking->status,
-            'hotel_name'       => optional($d->hotel)->name ?? '—',
-'pax' => $paxText . ' pax',
-            'short_tour_name'  => $short,
-            'booking_ref'      => '#' . $d->booking->booking_reference,
-            'adults'           => $adults,
-            'kids'             => $kids,
-            'total'            => $d->total,
+            'id' => $detail->booking->booking_id,
+            'title' => '',
+            'start' => "{$detail->tour_date->toDateString()}T{$startTime}",
+            'end' => "{$detail->tour_date->toDateString()}T{$endTime}",
+            'backgroundColor' => $detail->tour->color ?? '#5cb85c',
+            'borderColor' => $detail->tour->color ?? '#5cb85c',
+            'textColor' => '#000',
+            'status' => $detail->booking->status,
+            'hotel_name' => $detail->hotel->name ?? '—',
+            'pax' => $paxText . ' pax',
+            'short_tour_name' => $shortName,
+            'booking_ref' => '#' . $detail->booking->booking_reference,
+            'adults' => $adults,
+            'kids' => $kids,
+            'total' => $detail->total,
         ];
     });
 
@@ -532,5 +584,91 @@ public function calendarData(Request $request)
         // —o— si quieres mostrarlo en una vista Blade:
         // return view('customer.reservations.receipt', compact('booking'));
     }
+
+
+public function generarExcel(Request $request)
+{
+    // Asegurar que todos los filtros estén definidos, aunque vengan vacíos
+    $filters = $request->only([
+        'reference',
+        'tour_id',
+        'status',
+        'tour_date_from',
+        'tour_date_to',
+        'booking_date_from',
+        'booking_date_to',
+        'schedule_id',
+    ]);
+
+    // Esto garantiza que las claves existen aunque estén vacías
+    $filters = array_merge([
+        'reference' => null,
+        'tour_id' => null,
+        'status' => null,
+        'tour_date_from' => null,
+        'tour_date_to' => null,
+        'booking_date_from' => null,
+        'booking_date_to' => null,
+        'schedule_id' => null,
+    ], $filters);
+
+    // Obtener las reservas filtradas
+    $bookings = $this->filtrarReservas($filters)->get();
+
+    // Generar nombre dinámico del archivo
+    $nombre = BookingsExport::generarNombre($filters);
+
+    // Pasar tanto filtros como bookings al exportador
+    return Excel::download(
+        new BookingsExport($filters, $bookings),
+        BookingsExport::generarNombre($filters)
+
+    );
+}
+
+public function filtrarReservas(array $filters)
+{
+    return \App\Models\Booking::with([
+            'user',
+            'detail.tour.tourType',
+            'detail.hotel',
+            'detail.schedule'
+        ])
+        ->when($filters['reference'] ?? false, function ($q) use ($filters) {
+            $q->where('booking_reference', 'ILIKE', '%' . $filters['reference'] . '%');
+        })
+        ->when($filters['status'] ?? false, function ($q) use ($filters) {
+            $q->where('status', $filters['status']);
+        })
+        ->when($filters['booking_date_from'] ?? false, function ($q) use ($filters) {
+            $q->whereDate('booking_date', '>=', $filters['booking_date_from']);
+        })
+        ->when($filters['booking_date_to'] ?? false, function ($q) use ($filters) {
+            $q->whereDate('booking_date', '<=', $filters['booking_date_to']);
+        })
+        ->when(
+            ($filters['tour_id'] ?? false) ||
+            ($filters['schedule_id'] ?? false) ||
+            ($filters['tour_date_from'] ?? false) ||
+            ($filters['tour_date_to'] ?? false),
+            function ($q) use ($filters) {
+                $q->whereHas('detail', function ($q) use ($filters) {
+                    if ($filters['tour_id'] ?? false) {
+                        $q->where('tour_id', $filters['tour_id']);
+                    }
+                    if ($filters['schedule_id'] ?? false) {
+                        $q->where('schedule_id', $filters['schedule_id']);
+                    }
+                    if ($filters['tour_date_from'] ?? false) {
+                        $q->whereDate('tour_date', '>=', $filters['tour_date_from']);
+                    }
+                    if ($filters['tour_date_to'] ?? false) {
+                        $q->whereDate('tour_date', '<=', $filters['tour_date_to']);
+                    }
+                });
+            }
+        );
+}
+
 
 }

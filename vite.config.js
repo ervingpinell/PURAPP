@@ -2,6 +2,16 @@ import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 
 export default defineConfig({
+    server: {
+        host: true,
+        cors: true,
+        hmr: {
+            host: '192.168.100.124', // tu IP local
+            protocol: 'http',
+            port: 5173,
+            origin: 'http://192.168.100.124:5173',
+        },
+    },
     plugins: [
         laravel({
             input: [
@@ -10,7 +20,7 @@ export default defineConfig({
                 'resources/css/gv.css',
                 'resources/css/tour.css',
                 'resources/css/review.css',
-                 'resources/css/homereview.css',
+                'resources/css/homereview.css',
                 'resources/js/app.js',
                 'resources/js/public.js',
 

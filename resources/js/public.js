@@ -27,8 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
       const icon = btn.querySelector('.toggle-icon');
       if (icon) {
-        icon.classList.toggle('fa-plus', !icon.classList.contains('fa-minus'));
         icon.classList.toggle('fa-minus');
+        icon.classList.toggle('fa-plus');
       }
     });
   });
@@ -36,14 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // ✅ CONTADOR DEL CARRITO
   function updateCartCount() {
     fetch('/cart/count')
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
+      .then(res => res.ok ? res.json() : Promise.reject(`HTTP ${res.status}`))
       .then(data => {
         const badgeEls = document.querySelectorAll('.cart-count-badge');
-        if (!badgeEls || badgeEls.length === 0) return;
-
         badgeEls.forEach(el => {
           el.textContent = data.count;
           el.style.display = data.count > 0 ? 'inline-block' : 'none';
@@ -52,21 +47,18 @@ document.addEventListener('DOMContentLoaded', () => {
           el.classList.add('flash');
         });
       })
-      .catch(err => {
-        console.error('❌ Error al obtener la cantidad del carrito:', err);
-      });
+      .catch(err => console.error('❌ Error al obtener la cantidad del carrito:', err));
   }
 
   updateCartCount();
 
-  // ✅ LÓGICA DE PRECIOS EN EL MODAL DE TRAVELERS
+  // ✅ PRECIOS DEL MODAL Y RESERVA
   const modalTotalPrice = document.getElementById('modal-total-price');
   const reservationTotalPrice = document.getElementById('reservation-total-price');
   const summarySpan = document.getElementById('traveler-summary');
 
   const adultPrice = parseFloat(document.querySelector('.reservation-box')?.dataset.adultPrice || 0);
   const kidPrice = parseFloat(document.querySelector('.reservation-box')?.dataset.kidPrice || 0);
-
   const maxTotal = 12;
   const minTotal = 2;
   const maxKids = 2;
@@ -82,11 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const adultCount = parseInt(document.getElementById('adult-count')?.textContent || 0);
     const kidCount = parseInt(document.getElementById('kid-count')?.textContent || 0);
 
-    const adultsInput = document.getElementById('adults_quantity');
-    const kidsInput = document.getElementById('kids_quantity');
+    const adultsQtyInput = document.getElementById('adults_quantity');
+    const kidsQtyInput = document.getElementById('kids_quantity');
 
-    if (adultsInput) adultsInput.value = adultCount;
-    if (kidsInput) kidsInput.value = kidCount;
+    if (adultsQtyInput) adultsQtyInput.value = adultCount;
+    if (kidsQtyInput) kidsQtyInput.value = kidCount;
 
     const total = (adultCount * adultPrice) + (kidCount * kidPrice);
     if (reservationTotalPrice) reservationTotalPrice.textContent = `$${total.toFixed(2)}`;
@@ -98,19 +90,16 @@ document.addEventListener('DOMContentLoaded', () => {
   plusBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const type = btn.dataset.type;
-      let adultCount = parseInt(document.getElementById('adult-count')?.textContent || 0);
-      let kidCount = parseInt(document.getElementById('kid-count')?.textContent || 0);
-      const totalPeople = adultCount + kidCount;
+      let adults = parseInt(document.getElementById('adult-count')?.textContent || 0);
+      let kids = parseInt(document.getElementById('kid-count')?.textContent || 0);
+      const total = adults + kids;
 
-      if (type === 'adult' && totalPeople < maxTotal) adultCount++;
-      if (type === 'kid' && kidCount < maxKids && totalPeople < maxTotal) kidCount++;
+      if (type === 'adult' && total < maxTotal) adults++;
+      if (type === 'kid' && kids < maxKids && total < maxTotal) kids++;
+      if (adults + kids < minTotal) adults = minTotal - kids;
 
-      if (adultCount + kidCount < minTotal) adultCount = minTotal - kidCount;
-
-      const adultEl = document.getElementById('adult-count');
-      const kidEl = document.getElementById('kid-count');
-      if (adultEl) adultEl.textContent = adultCount;
-      if (kidEl) kidEl.textContent = kidCount;
+      document.getElementById('adult-count').textContent = adults;
+      document.getElementById('kid-count').textContent = kids;
 
       updateModalTotal();
     });
@@ -119,21 +108,19 @@ document.addEventListener('DOMContentLoaded', () => {
   minusBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const type = btn.dataset.type;
-      let adultCount = parseInt(document.getElementById('adult-count')?.textContent || 0);
-      let kidCount = parseInt(document.getElementById('kid-count')?.textContent || 0);
+      let adults = parseInt(document.getElementById('adult-count')?.textContent || 0);
+      let kids = parseInt(document.getElementById('kid-count')?.textContent || 0);
 
-      if (type === 'adult' && adultCount > 0) adultCount--;
-      if (type === 'kid' && kidCount > 0) kidCount--;
+      if (type === 'adult' && adults > 0) adults--;
+      if (type === 'kid' && kids > 0) kids--;
 
-      if (adultCount + kidCount < minTotal) {
-        kidCount = 0;
-        adultCount = minTotal;
+      if (adults + kids < minTotal) {
+        kids = 0;
+        adults = minTotal;
       }
 
-      const adultEl = document.getElementById('adult-count');
-      const kidEl = document.getElementById('kid-count');
-      if (adultEl) adultEl.textContent = adultCount;
-      if (kidEl) kidEl.textContent = kidCount;
+      document.getElementById('adult-count').textContent = adults;
+      document.getElementById('kid-count').textContent = kids;
 
       updateModalTotal();
     });
@@ -146,14 +133,14 @@ document.addEventListener('DOMContentLoaded', () => {
     updateReservationTotal();
   });
 
-  if (document.getElementById('adult-count')) document.getElementById('adult-count').textContent = 2;
-  if (document.getElementById('kid-count')) document.getElementById('kid-count').textContent = 0;
+  // Inicialización
+  document.getElementById('adult-count').textContent = 2;
+  document.getElementById('kid-count').textContent = 0;
   updateModalTotal();
   updateReservationTotal();
 
-  // ✅ VALIDACIÓN DE CUPO DISPONIBLE
+  // ✅ VALIDACIÓN DE CUPO
   const addToCartForm = document.querySelector('.reservation-box');
-
   if (addToCartForm) {
     const tourId = window.tourId;
     const maxCapacity = window.maxCapacity;
@@ -186,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        // 🟢 Si hay cupo, enviar formulario y actualizar contador
         addToCartForm.submit();
         updateCartCount();
       } catch (err) {
@@ -196,29 +182,62 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ✅ SELECCIÓN DE HOTEL PERSONALIZADO
-  const hotelSelect = document.getElementById('hotelSelect');
-  const otherWrapper = document.getElementById('otherHotelWrapper');
-  const otherInput = document.getElementById('otherHotelInput');
-  const isOtherHotelInput = document.getElementById('isOtherHotel');
-  const warningMessage = document.getElementById('outsideAreaMessage');
+ const pickupInput = document.getElementById('pickupInput');
+const pickupList = document.getElementById('pickupList');
+const pickupValidMsg = document.getElementById('pickupValidMsg');
+const pickupInvalidMsg = document.getElementById('pickupInvalidMsg');
+const selectedPickupPoint = document.getElementById('selectedPickupPoint');
 
-  if (hotelSelect) {
-    hotelSelect.addEventListener('change', function () {
-      if (this.value === 'other') {
-        otherWrapper?.classList.remove('d-none');
-        if (isOtherHotelInput) isOtherHotelInput.value = '1';
-        if (otherInput) otherInput.required = true;
-        if (warningMessage) warningMessage.style.display = 'block';
-      } else {
-        otherWrapper?.classList.add('d-none');
-        if (isOtherHotelInput) isOtherHotelInput.value = '0';
-        if (otherInput) {
-          otherInput.required = false;
-          otherInput.value = '';
-        }
-        if (warningMessage) warningMessage.style.display = 'none';
-      }
+if (pickupInput && pickupList && selectedPickupPoint) {
+  pickupInput.addEventListener('input', () => {
+    const filter = pickupInput.value.toLowerCase().trim();
+    let found = false;
+
+    pickupList.querySelectorAll('li').forEach(li => {
+      const name = li.textContent.toLowerCase();
+      const match = name.includes(filter);
+      li.classList.toggle('d-none', !match);
+      if (match) found = true;
     });
-  }
+
+    pickupList.classList.remove('d-none');
+
+    // Mensajes
+    pickupValidMsg.classList.add('d-none');
+    pickupInvalidMsg.classList.toggle('d-none', found || filter === '');
+
+    // Guardar como "otro"
+    selectedPickupPoint.value = found ? '' : 'other:' + pickupInput.value;
+  });
+
+  // Mostrar lista al hacer focus
+  pickupInput.addEventListener('focus', () => {
+    pickupList.classList.remove('d-none');
+  });
+
+  // Seleccionar hotel desde lista
+  pickupList.addEventListener('click', (e) => {
+    const li = e.target.closest('.pickup-option');
+    if (li) {
+      const hotelName = li.textContent.trim();
+      const hotelId = li.dataset.id;
+
+      pickupInput.value = hotelName;
+      selectedPickupPoint.value = hotelId;
+
+      pickupValidMsg.classList.remove('d-none');
+      pickupInvalidMsg.classList.add('d-none');
+      pickupList.classList.add('d-none');
+    }
+  });
+
+  // Ocultar lista si se hace clic fuera
+  document.addEventListener('click', (e) => {
+    if (!pickupList.contains(e.target) && e.target !== pickupInput) {
+      pickupList.classList.add('d-none');
+    }
+  });
+}
+
+
 });

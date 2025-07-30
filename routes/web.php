@@ -152,6 +152,7 @@ Route::get('/cart/count', [CartController::class, 'count'])
         Route::post('/tour-excluded/block-all-all', [TourExcludedDateController::class, 'blockAll'])->name('tour-excluded.block-all');
 
         // Reservaciones
+        Route::get('/reservas/excel', [BookingController::class, 'generarExcel'])->name('reservas.excel');
         Route::get('reservas/pdf', [BookingController::class, 'generarPDF'])->name('reservas.pdf');
         Route::get('reservas/{reserva}/comprobante', [BookingController::class, 'generarComprobante'])->name('reservas.comprobante');
         Route::resource('reservas', BookingController::class)->except(['show']);

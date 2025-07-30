@@ -16,8 +16,8 @@
         <i class="fas fa-plus"></i> Nueva Pregunta
     </button>
 
-    <table class="table table-bordered table-hover">
-        <thead class="table-light">
+    <table class="table table-bordered">
+        <thead class="table-dark">
             <tr>
                 <th>Pregunta</th>
                 <th>Respuesta</th>
@@ -29,20 +29,24 @@
             @foreach ($faqs as $faq)
                 <tr>
                     <td>{{ $faq->question }}</td>
-                    <td>{{ Str::limit(strip_tags($faq->answer), 80) }}</td>
+                    <td>
+                        <div class="faq-answer position-relative" style="max-height: 3.5em; overflow: hidden;" data-expanded="false">
+                            <div class="answer-content">{{ strip_tags($faq->answer) }}</div>
+                            <div class="fade-overlay position-absolute bottom-0 start-0 w-100" style="height: 1.5em; background: linear-gradient(to bottom, transparent, white);"></div>
+                        </div>
+                        <button class="btn btn-link p-0 mt-1 toggle-answer d-none" style="font-size: 0.85em;">Leer más</button>
+                    </td>
                     <td>
                         <span class="badge bg-{{ $faq->is_active ? 'success' : 'secondary' }}">
                             {{ $faq->is_active ? 'Activa' : 'Inactiva' }}
                         </span>
                     </td>
                     <td>
-                        <!-- Botón Editar -->
                         <button class="btn btn-sm btn-info" data-bs-toggle="modal"
                             data-bs-target="#editFaqModal{{ $faq->id }}">
                             <i class="fas fa-edit"></i>
                         </button>
 
-                        <!-- Botón Activar/Desactivar -->
                         <form action="{{ route('admin.faqs.toggleStatus', $faq) }}" method="POST" class="d-inline">
                             @csrf
                             <button type="submit" class="btn btn-sm btn-warning">
@@ -50,7 +54,6 @@
                             </button>
                         </form>
 
-                        <!-- Botón Eliminar -->
                         <form action="{{ route('admin.faqs.destroy', $faq) }}" method="POST" class="d-inline"
                             onsubmit="return confirm('¿Eliminar esta pregunta?')">
                             @csrf @method('DELETE')
@@ -114,3 +117,31 @@
         </div>
     </div>
 @stop
+
+@push('js')
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.faq-answer').forEach(container => {
+      const content = container.querySelector('.answer-content');
+      const toggleBtn = container.parentElement.querySelector('.toggle-answer');
+      const fadeOverlay = container.querySelector('.fade-overlay');
+
+      // Verifica si el contenido sobrepasa el contenedor
+      const contentHeight = content.scrollHeight;
+      const maxHeight = parseFloat(getComputedStyle(container).maxHeight);
+
+      if (contentHeight > maxHeight + 5) {
+        toggleBtn.classList.remove('d-none');
+      }
+
+      toggleBtn.addEventListener('click', function () {
+        const isExpanded = container.getAttribute('data-expanded') === 'true';
+        container.style.maxHeight = isExpanded ? '3.5em' : 'none';
+        fadeOverlay.style.display = isExpanded ? '' : 'none';
+        container.setAttribute('data-expanded', !isExpanded);
+        this.textContent = isExpanded ? 'Leer más' : 'Leer menos';
+      });
+    });
+  });
+</script>
+@endpush

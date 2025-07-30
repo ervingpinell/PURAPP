@@ -123,7 +123,8 @@ return [
     'hotel_name' => 'Nome do hotel',
     'other_hotel' => 'Outro hotel (especifique)',
     'hotel_pickup' => 'Coleta no hotel',
-    'outside_area' => 'Este hotel está fora da área de cobertura. Por favor, entre em contato para coordenar a coleta.',
+'outside_area' => 'Este hotel está fora da área de cobertura. Por favor, entre em contato conosco para coordenar a coleta.',
+'pickup_valid' => 'O hotel selecionado é válido! Assim que confirmar a reserva, entraremos em contato para combinar o horário de coleta!',
 
     // ─── CARRINHO E RESERVAS ─────────────────────────
     'cart' => 'Carrinho',

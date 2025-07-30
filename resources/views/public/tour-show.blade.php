@@ -57,7 +57,7 @@ title: '{{ __('adminlte::adminlte.access_denied') }}',
 <h1 class="fw-bold">{{ $tour->translated_name }}</h1>
 <p class="text-muted">{{ $tour->tourType->name ?? '' }}</p>
 <h2>{{ __('adminlte::adminlte.overview') }}</h2>
-<p>{{ $tour->translated_overview }}</p>
+<p>{!! nl2br(e($tour->translated_overview)) !!}</p>
       </div>
 
       {{-- 📅 RESERVATION BOX --}}
@@ -230,86 +230,92 @@ title: '{{ __('adminlte::adminlte.access_denied') }}',
             </div>
           </div>
 
-          {{-- ✅ What's Included --}}
-          <div class="accordion-item border-0 border-bottom">
-            <h2 class="accordion-header" id="headingIncluded">
-              <button class="accordion-button bg-white px-0 shadow-none collapsed" type="button"
-                      data-bs-toggle="collapse" data-bs-target="#collapseIncluded">
-<i class="fas fa-plus me-2 toggle-icon"></i> {{ __('adminlte::adminlte.whats_included') }}
-              </button>
-            </h2>
-            <div id="collapseIncluded" class="accordion-collapse collapse"
-                 data-bs-parent="#tourDetailsAccordion">
-              <div class="accordion-body px-0">
-                <div class="row">
-<div class="col-md-6">
-  @foreach($tour->amenities as $am)
-    <li>✔️ {{ $am->translated_name ?? $am->name }}</li>
-  @endforeach
+        {{-- ✅ What's Included --}}
+<div class="accordion-item border-0 border-bottom">
+  <h2 class="accordion-header" id="headingIncluded">
+    <button class="accordion-button bg-white px-0 shadow-none collapsed" type="button"
+            data-bs-toggle="collapse" data-bs-target="#collapseIncluded">
+      <i class="fas fa-plus me-2 toggle-icon"></i> {{ __('adminlte::adminlte.whats_included') }}
+    </button>
+  </h2>
+  <div id="collapseIncluded" class="accordion-collapse collapse"
+       data-bs-parent="#tourDetailsAccordion">
+    <div class="accordion-body px-0">
+      <div class="row">
+        <div class="col-md-6">
+          <ul class="list-unstyled">
+            @foreach($tour->amenities as $am)
+              <li>✔️ {{ $am->translated_name ?? $am->name }}</li>
+            @endforeach
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <ul class="list-unstyled">
+            @foreach($tour->excludedAmenities as $ex)
+              <li>❌ {{ $ex->translated_name ?? $ex->name }}</li>
+            @endforeach
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+
+{{-- ✅ Hotels & Meeting Points --}}
+<div class="accordion-item border-0 border-bottom">
+  <h2 class="accordion-header" id="headingHotels">
+    <button class="accordion-button bg-white px-0 shadow-none collapsed" type="button"
+            data-bs-toggle="collapse" data-bs-target="#collapseHotels">
+      <i class="fas fa-plus me-2 toggle-icon"></i> {{ __('adminlte::adminlte.hotels_meeting_points') }}
+    </button>
+  </h2>
+  <div id="collapseHotels" class="accordion-collapse collapse"
+       data-bs-parent="#tourDetailsAccordion">
+    <div class="accordion-body px-0">
+      <div class="row g-4">
+
+        {{-- 📝 Nota --}}
+        <div class="mt-3">
+          <strong>{{ __('adminlte::adminlte.pickup_details') }}</strong>
+          <p>{{ __('adminlte::adminlte.pickup_note') }}</p>
+        </div>
+
+{{-- 📍 Pickup Points --}}
 <div class="col-md-6">
-  @foreach($tour->excludedAmenities as $ex)
-    <li>❌ {{ $ex->translated_name ?? $ex->name }}</li>
-  @endforeach
+  <h6><i class="fas fa-person-walking-luggage me-1"></i> {{ __('adminlte::adminlte.pickup_points') }}</h6>
+  <p class="text-muted small mb-2">{{ __('adminlte::adminlte.select_pickup') }}</p>
+
+  {{-- 🖊️ Campo que reemplaza visualmente al div con ícono --}}
+  <div class="position-relative">
+    <input type="text" class="form-control border rounded px-3 py-2 ps-4"
+           id="pickupInput" name="pickup_name"
+           placeholder="{{ __('adminlte::adminlte.type_to_search') }}"
+           autocomplete="off" style="padding-left: 2rem;">
+    <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted"></i>
+  </div>
+
+  {{-- 🔽 Lista manual (sin usar datalist porque se quiere sobre el mismo input) --}}
+  <ul class="list-group mt-2 d-none" id="pickupList" style="max-height: 200px; overflow-y: auto;">
+    @foreach($hotels as $hotel)
+      <li class="list-group-item list-group-item-action pickup-option"
+          data-id="{{ $hotel->hotel_id }}">
+        <i class="fas fa-hotel me-2 text-success"></i> {{ $hotel->name }}
+      </li>
+    @endforeach
+  </ul>
+
+  {{-- Mensajes dinámicos --}}
+  <div id="pickupValidMsg" class="text-success small mt-2 d-none">
+    ✔️ {{ __('adminlte::adminlte.pickup_valid') }}
+  </div>
+  <div id="pickupInvalidMsg" class="text-danger small mt-2 d-none">
+    ❌ {{ __('adminlte::adminlte.outside_area') }}
+  </div>
+
+  <input type="hidden" name="selected_pickup_point" id="selectedPickupPoint">
 </div>
 
-                </div>
-              </div>
-            </div>
-          </div>
-
-              {{-- ✅ Hotels & Meeting Points --}}
-          <div class="accordion-item border-0 border-bottom">
-            <h2 class="accordion-header" id="headingHotels">
-              <button class="accordion-button bg-white px-0 shadow-none collapsed" type="button"
-                      data-bs-toggle="collapse" data-bs-target="#collapseHotels">
-<i class="fas fa-plus me-2 toggle-icon"></i> {{ __('adminlte::adminlte.hotels_meeting_points') }}
-              </button>
-            </h2>
-            <div id="collapseHotels" class="accordion-collapse collapse"
-                 data-bs-parent="#tourDetailsAccordion">
-              <div class="accordion-body px-0">
-                <div class="row g-4">
-                  <div class="mt-3">
-   <strong>{{ __('adminlte::adminlte.pickup_details') }}</strong>
-<p>{{ __('adminlte::adminlte.pickup_note') }}</p>
-                  </div>
-
-                  {{-- 📍 Pickup Points --}}
-                  <div class="col-md-6">
-<h6><i class="fas fa-person-walking-luggage me-1"></i> {{ __('adminlte::adminlte.pickup_points') }}</h6>
-<p class="text-muted small mb-2">{{ __('adminlte::adminlte.select_pickup') }}</p>
-
-                    <div class="selected-option border rounded px-3 py-2 d-flex justify-content-between align-items-center"
-                         id="selectedPickupDisplay" style="cursor: pointer;">
-<span class="text-muted">{{ __('adminlte::adminlte.type_to_search') }}</span>
-                      <i class="fas fa-chevron-down"></i>
-                    </div>
-
-                    <div class="pickup-list border rounded p-2 d-none mt-2" id="pickupListWrapper" style="max-height: 250px; overflow-y: auto;">
-                      <input type="text" id="pickupSearch" class="form-control mb-2" placeholder="Type to search...">
-                      <ul class="list-unstyled mb-0" id="pickupList">
-                        @forelse ($hotels as $hotel)
-                          <li class="mb-2">
-                            <label class="d-flex align-items-start gap-2">
-                              <input type="radio" name="pickupOption" value="{{ $hotel->hotel_id }}">
-                              <div>
-                                <i class="fas fa-hotel me-1"></i>
-                                <strong>{{ $hotel->name }}</strong><br>
-                                <small class="text-muted">Example address for {{ $hotel->name }}</small>
-                              </div>
-                            </label>
-                          </li>
-                        @empty
-<li>{{ __('adminlte::adminlte.no_pickup_available') }}</li>
-                        @endforelse
-                      </ul>
-                      <div id="pickupNotFound" class="text-danger small mt-2 d-none">
-  {{ __('adminlte::adminlte.pickup_not_found') }}
-                      </div>
-                    </div>
-                    <input type="hidden" name="selected_pickup_point" id="selectedPickupPoint">
-                  </div>
 
                   {{-- 📍 Meeting Points --}}
                   <div class="col-md-6">

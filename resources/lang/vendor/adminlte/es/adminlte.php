@@ -125,6 +125,7 @@ return [
     'other_hotel' => 'Otro hotel (especifique)',
     'hotel_pickup' => 'Recogida en hotel',
     'outside_area' => 'Este hotel está fuera del área de cobertura. Por favor contáctenos para coordinar la recogida.',
+    'pickup_valid' => 'El hotel seleccionado es válido! Cuando confirmes la reservación te contactaremos para coordinar la hora de recogida!',
 
     // ─── CARRITO Y RESERVAS ───────────────────────────
     'cart' => 'Carrito',

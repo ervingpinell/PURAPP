@@ -130,7 +130,8 @@ return [
     'hotel_name' => 'Nom de l\'hôtel',
     'other_hotel' => 'Autre hôtel (précisez)',
     'hotel_pickup' => 'Prise en charge à l\'hôtel',
-    'outside_area' => 'Cet hôtel est en dehors de la zone de couverture. Veuillez nous contacter pour organiser votre prise en charge.',
+'outside_area' => 'Cet hôtel se trouve en dehors de notre zone de prise en charge. Veuillez nous contacter pour organiser la prise en charge.',
+'pickup_valid' => "L'hôtel sélectionné est valide ! Une fois la réservation confirmée, nous vous contacterons pour convenir de l'heure de prise en charge.",
 
     // ─── PANIER & RÉSERVATIONS ────────────────────────
     'cart' => 'Panier',

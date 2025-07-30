@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Tour;
 
 class Booking extends Model
 {
@@ -34,7 +35,7 @@ class Booking extends Model
     /** Relación con el tour */
     public function tour()
     {
-        return $this->belongsTo(\App\Models\Tour::class, 'tour_id');
+        return $this->belongsTo(Tour::class, 'tour_id');
     }
 
     /** Al asignar status, lo guardamos en minúsculas */
@@ -48,10 +49,11 @@ class Booking extends Model
         return $this->hasMany(BookingDetail::class, 'booking_id', 'booking_id');
     }
 
-    public function detail()
-    {
-        return $this->hasOne(BookingDetail::class, 'booking_id', 'booking_id');
-    }
+   public function detail()
+{
+    return $this->hasOne(BookingDetail::class, 'booking_id', 'booking_id');
+}
+
 
     public function hotel()
     {

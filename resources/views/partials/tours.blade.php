@@ -35,7 +35,7 @@
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header text-white" style="background:#0f2419">
-                        <h5 class="modal-title text-center w-100" id="modalLabel-{{ Str::slug($type) }}">
+                        <h5 class="modal-title text-center w-100 text-white" id="modalLabel-{{ Str::slug($type) }}">
                             {{ $translatedTitle }}
                         </h5>
                         <button type="button" class="btn-close bg-light" data-bs-dismiss="modal" aria-label="Close"></button>
