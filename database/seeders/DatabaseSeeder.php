@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             ToursSeeder::class,
             ItinerariesSeeder::class,
             FaqSeeder::class,
+            AssignViatorCodesSeeder::class,
             TranslationSeeder::class,
         ]);
     }
