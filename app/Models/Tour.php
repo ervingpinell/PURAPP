@@ -14,18 +14,19 @@ class Tour extends Model
     public $incrementing = true;
     protected $keyType = 'int';
 
-    protected $fillable = [
-        'name',
-        'overview',
-        'adult_price',
-        'kid_price',
-        'length',
-        'max_capacity',
-        'is_active',
-        'tour_type_id',
-        'itinerary_id',
-        'color',
-    ];
+protected $fillable = [
+    'name',
+    'overview',
+    'adult_price',
+    'kid_price',
+    'length',
+    'max_capacity',
+    'is_active',
+    'tour_type_id',
+    'itinerary_id',
+    'color',
+    'viator_code', // 👈 Añadido aquí
+];
 
     // ✅ Relaciones
     public function tourType()

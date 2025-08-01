@@ -1,7 +1,9 @@
 @extends('layouts.app')
 
 @section('title', 'Inicio')
-
+@push('meta')
+    <meta name="robots" content="noindex, nofollow">
+@endpush
 {{-- ✅ Estilos específicos del home --}}
 @push('styles')
     @vite([

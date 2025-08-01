@@ -24,6 +24,7 @@ export default defineConfig({
                 'resources/js/viator/product-reviews.js',
                 'resources/js/viator/carousel-reviews.js',
                 'resources/js/viator/render-reviews.js',
+                'resources/js/viator/review-carousel-grid.js',
             ],
             refresh: true,
         }),

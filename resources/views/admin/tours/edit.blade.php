@@ -31,11 +31,15 @@
           {{-- Nombre y resumen --}}
           <x-adminlte-input name="name" label="Nombre del Tour" value="{{ old('name', $tour->name) }}" required />
 
+            {{-- Color --}}
           <div class="mb-3">
   <label for="color" class="form-label">Color del Tour</label>
   <input type="color" id="color" name="color" class="form-control form-control-color"
          value="{{ old('color', $tour->color ?? '#5cb85c') }}">
 </div>
+<x-adminlte-input name="viator_code" label="Código Viator (opcional)"
+    value="{{ old('viator_code', $tour->viator_code) }}" placeholder="Ej: ABC1234" />
+
 
           <x-adminlte-textarea name="overview" label="Resumen (Overview)" style="height:200px">{{ old('overview', $tour->overview) }}</x-adminlte-textarea>
 

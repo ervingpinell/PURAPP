@@ -37,17 +37,20 @@ use App\Models\Tour;
 
 
 Route::middleware([SetLocale::class])->group(function () {
+
 // Página pública de reviews
 Route::get('/reviews', function () {
-    $productCodes = [
-        '12732P5'
-    ];
-    return view('public.reviews', compact('productCodes'));
+    $tours = Tour::whereNotNull('viator_code')
+                ->where('is_active', true)
+                ->select('tour_id', 'name', 'viator_code')
+                ->get();
+
+    return view('public.reviews', compact('tours'));
 })->name('reviews');
 
 // API reviews (JS externo)
 Route::post('/api/reviews', [ReviewController::class, 'fetchReviews'])->name('api.reviews');
-Route::post('/api/reviews', [ReviewController::class, 'fetchReviews']);
+
 
 // Contador del carrito (JS público)
 Route::get('/cart/count', [CartController::class, 'count'])

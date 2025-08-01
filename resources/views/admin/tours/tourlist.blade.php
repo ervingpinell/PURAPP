@@ -1,53 +1,55 @@
 <style>
-/* Estilos responsive y comprimidos */
-td.overview-cell,
-td.amenities-cell,
-td.not-included-amenities-cell,
-td.itinerary-cell {
-    max-width: 300px;
-    min-width: 150px;
-    white-space: normal;
-    word-break: break-word;
-}
-
-@media (max-width: 768px) {
+    /* Estilos responsive y comprimidos */
     td.overview-cell,
     td.amenities-cell,
+    td.not-included-amenities-cell,
     td.itinerary-cell {
-        max-width: 200px;
+        max-width: 300px;
+        min-width: 150px;
+        white-space: normal;
+        word-break: break-word;
     }
-}
 
-.overview-preview {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    max-height: 4.5em;
-    line-height: 1.5em;
-    transition: max-height 0.3s ease;
-    word-break: break-word;
-}
+    @media (max-width: 768px) {
 
-.overview-expanded {
-    -webkit-line-clamp: unset;
-    max-height: none;
-}
+        td.overview-cell,
+        td.amenities-cell,
+        td.itinerary-cell {
+            max-width: 200px;
+        }
+    }
 
-.badge-truncate {
-    display: inline-block;
-    max-width: 100px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    vertical-align: middle;
-    font-size: 0.75rem;
-}
+    .overview-preview {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        max-height: 4.5em;
+        line-height: 1.5em;
+        transition: max-height 0.3s ease;
+        word-break: break-word;
+    }
 
-.table-sm td, .table-sm th {
-    padding: 0.3rem;
-    font-size: 0.85rem;
-}
+    .overview-expanded {
+        -webkit-line-clamp: unset;
+        max-height: none;
+    }
+
+    .badge-truncate {
+        display: inline-block;
+        max-width: 100px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+        font-size: 0.75rem;
+    }
+
+    .table-sm td,
+    .table-sm th {
+        padding: 0.3rem;
+        font-size: 0.85rem;
+    }
 </style>
 
 @include('admin.Cart.cartmodal')
@@ -68,6 +70,7 @@ td.itinerary-cell {
             <th class="d-none d-md-table-cell">Duración (h)</th>
             <th class="d-none d-md-table-cell">Cupo Máx.</th>
             <th>Tipo</th>
+            <th class="d-none d-md-table-cell">Viator Code</th>
             <th>Estado</th>
             <th>Acciones</th>
         </tr>
@@ -82,7 +85,8 @@ td.itinerary-cell {
                 <td class="overview-cell">
                     @php $overviewId = 'overview_' . $tour->tour_id; @endphp
                     <div id="{{ $overviewId }}" class="overview-preview">{{ $tour->overview }}</div>
-                    <button type="button" class="btn btn-link btn-sm mt-1 p-0" onclick="toggleOverview('{{ $overviewId }}', this)">
+                    <button type="button" class="btn btn-link btn-sm mt-1 p-0"
+                        onclick="toggleOverview('{{ $overviewId }}', this)">
                         Ver más
                     </button>
                 </td>
@@ -100,17 +104,17 @@ td.itinerary-cell {
 
                 {{-- Amenidades --}}
                 <td class="not-included-amenities-cell">
-@forelse ($tour->excludedAmenities as $amenity)
-    <span class="badge bg-danger mb-1 badge-truncate" title="{{ $amenity->name }}">
-        {{ $amenity->name }}
-    </span>
-@empty
-    <span class="text-muted">Sin exclusiones</span>
-@endforelse
+                    @forelse ($tour->excludedAmenities as $amenity)
+                        <span class="badge bg-danger mb-1 badge-truncate" title="{{ $amenity->name }}">
+                            {{ $amenity->name }}
+                        </span>
+                    @empty
+                        <span class="text-muted">Sin exclusiones</span>
+                    @endforelse
 
                 </td>
 
-                
+
                 {{-- Itinerario --}}
                 <td class="itinerary-cell">
                     @if($tour->itinerary)
@@ -137,23 +141,25 @@ td.itinerary-cell {
                 </td>
 
                 {{-- Horarios --}}
-<td>
-    @forelse ($tour->schedules->sortBy('start_time') as $schedule)
-        <div>
-            <span class="badge bg-success">
-                {{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}
-            </span>
-        </div>
-    @empty
-        <span class="text-muted">Sin horarios</span>
-    @endforelse
-</td>
+                <td>
+                    @forelse ($tour->schedules->sortBy('start_time') as $schedule)
+                        <div>
+                            <span class="badge bg-success">
+                                {{ date('g:i A', strtotime($schedule->start_time)) }} -
+                                {{ date('g:i A', strtotime($schedule->end_time)) }}
+                            </span>
+                        </div>
+                    @empty
+                        <span class="text-muted">Sin horarios</span>
+                    @endforelse
+                </td>
 
                 <td>{{ number_format($tour->adult_price, 2) }}</td>
                 <td class="d-none d-md-table-cell">{{ number_format($tour->kid_price, 2) }}</td>
                 <td class="d-none d-md-table-cell">{{ $tour->length }}</td>
                 <td class="d-none d-md-table-cell">{{ $tour->max_capacity }}</td>
                 <td>{{ $tour->tourType->name }}</td>
+                <td class="d-none d-md-table-cell">{{ $tour->viator_code ?? '—' }}</td>
 
                 {{-- Estado --}}
                 <td>
@@ -164,23 +170,20 @@ td.itinerary-cell {
 
                 {{-- Acciones --}}
                 <td>
-                      {{-- Botón carrito --}}
-                    <button class="btn btn-success btn-sm"
-                        data-bs-toggle="modal"
+                    {{-- Botón carrito --}}
+                    <button class="btn btn-success btn-sm" data-bs-toggle="modal"
                         data-bs-target="#modalCart{{ $tour->tour_id }}">
                         <i class="fas fa-cart-plus"></i>
                     </button>
 
-                    <a href="#" class="btn btn-warning btn-sm"
-                       data-bs-toggle="modal"
-                       data-bs-target="#modalEditar{{ $tour->tour_id }}">
+                    <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#modalEditar{{ $tour->tour_id }}">
                         <i class="fas fa-edit"></i>
                     </a>
                     <form action="{{ route('admin.tours.destroy', $tour->tour_id) }}" method="POST" style="display:inline;">
                         @csrf @method('DELETE')
-                        <button type="submit"
-                                class="btn btn-sm {{ $tour->is_active ? 'btn-danger' : 'btn-success' }}"
-                                onclick="return confirm('{{ $tour->is_active ? '¿Deseas desactivar este tour?' : '¿Deseas activar este tour?' }}')">
+                        <button type="submit" class="btn btn-sm {{ $tour->is_active ? 'btn-danger' : 'btn-success' }}"
+                            onclick="return confirm('{{ $tour->is_active ? '¿Deseas desactivar este tour?' : '¿Deseas activar este tour?' }}')">
                             <i class="fas {{ $tour->is_active ? 'fa-toggle-off' : 'fa-toggle-on' }}"></i>
                         </button>
                     </form>

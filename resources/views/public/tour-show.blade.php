@@ -1,4 +1,9 @@
 @extends('layouts.app')
+
+@push('meta')
+    <meta name="robots" content="noindex, nofollow">
+@endpush
+
 @vite(['resources/css/tour.css', 'resources/css/review.css','resources/js/product-reviews.js', 'resources/js/render-reviews.js'])
 
 @section('content')

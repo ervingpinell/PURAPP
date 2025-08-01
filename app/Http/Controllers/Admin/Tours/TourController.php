@@ -146,6 +146,7 @@ public function store(Request $request, GoogleTranslationService $translator)
         'itinerary_id'             => 'nullable',
         'new_itinerary_name'       => 'nullable|string|max:255',
         'new_itinerary_description'=> 'nullable|string|max:1000',
+        'viator_code' => 'nullable|string|max:255',
     ];
 
     if ($request->input('itinerary_id') === 'new') {
@@ -188,6 +189,8 @@ public function store(Request $request, GoogleTranslationService $translator)
                 'itinerary_id' => $itinerary->itinerary_id,
                 'is_active'    => true,
                 'color'        => $request->input('color', '#5cb85c'),
+                'viator_code' => $request->input('viator_code'),
+
             ]);
 
             $tour->languages()->sync($v['languages']);
@@ -281,6 +284,8 @@ public function update(Request $request, Tour $tour)
             'itinerary_id'           => 'nullable',
             'new_itinerary_name'     => 'nullable|string|max:255',
             'new_itinerary_description' => 'nullable|string|max:1000',
+            'viator_code' => 'nullable|string|max:255',
+
         ];
 
         if ($request->input('itinerary_id') === 'new') {
@@ -320,6 +325,8 @@ public function update(Request $request, Tour $tour)
                 'length'       => $v['length'],
                 'tour_type_id' => $v['tour_type_id'],
                 'color'        => $request->input('color', '#5cb85c'),
+                'viator_code' => $request->input('viator_code'),
+
             ]);
 
             $tour->refresh();

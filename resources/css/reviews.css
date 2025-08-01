@@ -1,0 +1,142 @@
+/* ✅ Box model universal */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ✅ Grid para las tarjetas */
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 2rem;
+}
+
+/* ✅ Título del tour */
+.review-title {
+  background-color: #1A5229;
+  color: white;
+  padding: 6px 12px;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 6px 6px 0 0;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* ✅ Card contenedor */
+.review-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+  padding: 1rem;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  min-height: 420px;
+  height: 100%;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+/* ✅ Contenedor del contenido del review */
+.review-card .review-body-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.review-card .review-body-wrapper.centered {
+  justify-content: center;
+}
+
+/* ✅ Área del texto */
+.review-content {
+  overflow-y: auto;
+  max-height: 200px;
+  transition: max-height 0.3s ease;
+}
+
+.review-content.expanded {
+  max-height: none;
+  overflow-y: visible;
+}
+
+/* ✅ Scroll visible si necesario */
+.review-content::-webkit-scrollbar {
+  width: 4px;
+}
+.review-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+}
+
+/* ✅ Etiqueta del título del review */
+.review-label {
+  background: #d33;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  margin: 0.5rem 0;
+  display: inline-block;
+  font-weight: bold;
+  font-size: 0.85rem;
+  border-radius: 3px;
+  white-space: normal;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+/* ✅ Estilo de las estrellas */
+.review-stars {
+  color: #f1c40f;
+  font-size: 1.1rem;
+  margin-bottom: 0.3rem;
+}
+
+/* ✅ Botón ver más / ver menos */
+.review-toggle {
+  background: none;
+  border: none;
+  color: #007b5e;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  cursor: pointer;
+}
+.review-toggle:hover {
+  text-decoration: underline;
+}
+
+/* ✅ Contenedor horizontal de flechas */
+.carousel-buttons-row {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+/* ✅ Flechas de navegación */
+.carousel-prev,
+.carousel-next {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: #1A5229;
+  cursor: pointer;
+  padding: 0 0.5rem;
+}
+
+.carousel-prev:hover,
+.carousel-next:hover {
+  color: #146a3b;
+}
+
+/* ✅ Texto de powered by Viator */
+.powered-by {
+  font-size: 0.75rem;
+  color: #555;
+  text-align: center;
+  margin-top: 1rem;
+}
