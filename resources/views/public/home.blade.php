@@ -7,7 +7,7 @@
 {{-- ✅ Estilos específicos del home --}}
 @push('styles')
     @vite([
-        'resources/css/review.css',
+        'resources/css/reviews.css',
         'resources/css/homereview.css',
         'resources/css/tour.css'
     ])
@@ -30,10 +30,9 @@
 
 @push('scripts')
     <script>
-        window.VIATOR_CAROUSEL_PRODUCT_CODE = @json($carouselProductCode);
+        window.VIATOR_CAROUSEL_PRODUCTS = @json($carouselProductCodes ?? []);
     </script>
-
-    @once
-        @vite('resources/js/viator/carousel-reviews.js')
-    @endonce
+    @vite('resources/js/viator/carousel-reviews.js')
 @endpush
+
+

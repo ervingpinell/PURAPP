@@ -1,78 +1,112 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('viator-carousel');
     const inner = container?.querySelector('.carousel-inner');
-    const productCode = window.VIATOR_CAROUSEL_PRODUCT_CODE || null;
+    const products = window.VIATOR_CAROUSEL_PRODUCTS || [];
 
-    if (!container || !inner || !productCode) return;
+    if (!container || !inner || products.length === 0) return;
 
-    fetch('/api/reviews', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-        },
-        body: JSON.stringify({
-            productCode,
-            count: 5,
-            start: 1,
-            provider: 'VIATOR',
-            sortBy: 'MOST_RECENT',
-        })
-    })
-    .then(res => res.ok ? res.json() : res.json().then(err => { throw new Error(err?.error || `HTTP ${res.status}`); }))
-    .then(data => {
-        if (!data.reviews || data.reviews.length === 0) {
-            container.outerHTML = '<p class="text-muted">No hay reseñas para mostrar.</p>';
-            return;
-        }
+    let slides = [];
 
-        inner.innerHTML = ''; // Evita duplicación
+    for (const { code, name } of products) {
+        try {
+            const res = await fetch('/api/reviews', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify({
+                    productCode: code,
+                    count: 5,
+                    start: 1,
+                    provider: 'VIATOR',
+                    sortBy: 'MOST_RECENT',
+                })
+            });
 
-        data.reviews.forEach((r, index) => {
-            const slide = document.createElement('div');
-            slide.classList.add('carousel-item');
-            if (index === 0) slide.classList.add('active');
+            if (!res.ok) throw new Error('Error HTTP: ' + res.status);
+            const data = await res.json();
 
-            const avatar = r.avatarUrl || '/images/avatar-default.png';
-            const date = r.publishedDate ? new Date(r.publishedDate).toLocaleDateString() : 'Fecha no disponible';
+            const reviews = (data.reviews || []).sort(() => 0.5 - Math.random()).slice(0, 2); // 🎯 mínimo 2, aleatorios
 
-            const stars = renderStars(r.rating);
+            reviews.forEach((r, index) => {
+                const avatar = r.avatarUrl || '/images/avatar-default.png';
+                const date = r.publishedDate ? new Date(r.publishedDate).toLocaleDateString() : 'Fecha no disponible';
+                const stars = renderStars(r.rating);
+                const userName = r.userName || 'Anónimo';
+                const reviewTitle = r.title || '';
+                const text = r.text || '';
+                const collapsedText = text.split(' ').slice(0, 45).join(' ');
+                const needsCollapse = text.split(' ').length > 45;
 
-            const content = document.createElement('div');
-            content.classList.add('review-item', 'card', 'shadow-sm', 'border-0', 'mx-auto', 'w-100');
-            content.style.maxWidth = '600px';
+                const slide = document.createElement('div');
+                slide.classList.add('carousel-item');
+                if (slides.length === 0) slide.classList.add('active'); // solo la primera es activa
 
-            content.innerHTML = `
-                <div class="card-body d-flex flex-column justify-content-between" style="min-height: 270px;">
-                    <div>
-                        <div class="d-flex align-items-center mb-3">
-                            <img src="${avatar}" alt="Avatar" class="rounded-circle me-3" width="50" height="50">
+                slide.innerHTML = `
+                    <div class="review-item card shadow-sm border-0 mx-auto w-100" style="max-width: 600px;">
+                        <div class="card-body d-flex flex-column justify-content-between position-relative" style="min-height: 380px;">
+                            <span class="tour-name">${name}</span>
+
                             <div>
-                                <h6 class="mb-0">${r.userName || 'Anónimo'}</h6>
-                                <small class="text-muted">${date}</small>
+                                <div class="d-flex align-items-center mb-3">
+                                    <img src="${avatar}" alt="Foto de ${userName}" class="rounded-circle me-3" width="50" height="50">
+                                    <div>
+                                        <h6 class="mb-0">${userName}</h6>
+                                        <small class="text-muted">${date}</small>
+                                    </div>
+                                </div>
+                                ${stars}
+                                ${reviewTitle ? `<h5 class="card-title">${reviewTitle}</h5>` : ''}
+                                <p class="card-text" id="review-text-${slides.length}">${needsCollapse ? collapsedText + '…' : text}</p>
+                                ${needsCollapse
+                                    ? `<a href="#" class="text-decoration-none small toggle-review" data-index="${slides.length}" data-full="${encodeURIComponent(text)}" data-short="${encodeURIComponent(collapsedText)}">Ver más</a>`
+                                    : ''
+                                }
+                            </div>
+                            <div class="text-end mt-3">
+                                <a href="https://www.viator.com/searchResults/all?q=${encodeURIComponent(name)}"
+                                   target="_blank"
+                                   class="text-muted small text-decoration-none viator-credit"
+                                   title="Ver ${name} en Viator">
+                                    Powered by Viator
+                                </a>
                             </div>
                         </div>
-                        ${stars}
-                        <h5 class="card-title">${r.title}</h5>
-                        <p class="card-text">${r.text}</p>
                     </div>
-                    <div class="text-end mt-3">
-                        <a href="https://www.viator.com/tours/La-Fortuna/Nature-Lover-Combo-Tour-Hanging-Bridges-La-Fortuna-Waterfall-and-Arenal-Volcano-Hike/d821-12732P5"
-                           target="_blank"
-                           class="text-muted small text-decoration-none">
-                            Powered by Viator
-                        </a>
-                    </div>
-                </div>
-            `;
+                `;
+                slides.push(slide);
+            });
 
-            slide.appendChild(content);
-            inner.appendChild(slide);
+        } catch (err) {
+            console.error(`❌ Error cargando reviews de ${code}:`, err);
+        }
+    }
+
+    if (slides.length === 0) {
+        container.outerHTML = '<p class="text-muted">No hay reseñas para mostrar.</p>';
+        return;
+    }
+
+    inner.innerHTML = '';
+    slides.forEach(slide => inner.appendChild(slide));
+
+    // Activar toggle "Ver más / Ver menos"
+    document.querySelectorAll('.toggle-review').forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const index = this.dataset.index;
+            const textEl = document.getElementById(`review-text-${index}`);
+            const shortText = decodeURIComponent(this.dataset.short) + '…';
+            const fullText = decodeURIComponent(this.dataset.full);
+            const isCollapsed = this.textContent.includes('más');
+
+            textEl.textContent = isCollapsed ? fullText : shortText;
+            this.textContent = isCollapsed ? 'Ver menos' : 'Ver más';
+
+            const cardBody = textEl.closest('.card-body');
+            cardBody.style.maxHeight = isCollapsed ? 'none' : '400px';
         });
-    })
-    .catch(err => {
-        console.error(`❌ Error en carrusel Viator (${productCode}):`, err);
-        container.outerHTML = '<p class="text-danger">Error al cargar comentarios.</p>';
     });
 });
 
@@ -83,8 +117,10 @@ function renderStars(rating) {
 
     let stars = '';
     for (let i = 0; i < fullStars; i++) stars += '★';
-    if (halfStar) stars += '⯨'; // o '½' o '☆' si prefieres no mostrar media estrella
+    if (halfStar) stars += '⯨';
     for (let i = 0; i < emptyStars; i++) stars += '☆';
 
-    return `<div class="mb-2 text-warning" style="font-size: 1.2rem;">${stars} <span class="text-muted" style="font-size: 0.85rem;">(${rating}/5)</span></div>`;
+    const formattedRating = Number.isInteger(rating) ? rating : rating.toFixed(1);
+
+    return `<div class="mb-2 text-warning review-stars">${stars}<span class="rating-number"> (${formattedRating}/5)</span></div>`;
 }

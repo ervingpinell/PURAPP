@@ -261,5 +261,8 @@ return [
 'business_hours'    => 'Horário de atendimento',
 'business_schedule' => 'Segunda a domingo, das 7h30 às 19h00.',
 
+// reviews
+'what_customers_thinks_about' => 'O que os clientes acham sobre',
+'loading_reviews' => 'Carregando avaliações',
 
 ];

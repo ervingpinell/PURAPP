@@ -1,0 +1,64 @@
+.tour-review-carousel-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1rem;
+  min-height: 250px;
+}
+
+.tour-review-carousel {
+  max-width: 650px;
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: #fff;
+  text-align: center;
+}
+
+.review-body-wrapper.centered {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.review-stars {
+  color: #f1c40f;
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+.review-content {
+  margin-top: 0.5rem;
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.review-label {
+  background-color: #d33;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.9rem;
+  display: inline-block;
+  margin-top: 0.5rem;
+  white-space: normal;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.carousel-nav {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #1A5229;
+  cursor: pointer;
+  z-index: 10;
+  padding: 0 1rem;
+}
+
+.carousel-nav:hover {
+  color: #146a3b;
+}

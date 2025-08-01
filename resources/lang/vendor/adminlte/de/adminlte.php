@@ -262,4 +262,8 @@ return [
 'business_hours'    => 'Öffnungszeiten',
 'business_schedule' => 'Montag bis Sonntag, von 7:30 bis 19:00 Uhr.',
 
+// Reviews
+'what_customers_thinks_about' => 'Was unsere Kunden über uns denken',
+'loading_reviews' => 'Bewertungen werden geladen',
+
 ];

@@ -8,7 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
 class HomeController extends Controller
-{public function index()
+{
+public function index()
 {
     $locale = app()->getLocale();
 
@@ -23,10 +24,20 @@ class HomeController extends Controller
         })
         ->groupBy(fn($tour) => $tour->tourType->name ?? 'Sin categoría');
 
-    $carouselProductCode = '12732P5'; // ✅ Código de producto temporal
+    // Obtener mínimo 2 comentarios por cada tour (en frontend)
+    $viatorTours = Tour::whereNotNull('viator_code')
+        ->inRandomOrder()
+        ->limit(6) // Puedes ajustar esto
+        ->get(['viator_code', 'name']);
 
-    return view('public.home', compact('tours', 'carouselProductCode'));
+    $carouselProductCodes = $viatorTours->map(fn($t) => [
+        'code' => $t->viator_code,
+        'name' => $t->name,
+    ])->values();
+
+    return view('public.home', compact('tours', 'carouselProductCodes'));
 }
+
 
 
     public function showTour($id)

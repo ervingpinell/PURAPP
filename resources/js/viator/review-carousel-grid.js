@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             body: JSON.stringify({
                 productCode: code,
-                count: 3,
+                count: 20,
                 start: 1,
                 provider: 'VIATOR',
                 sortBy: 'MOST_RECENT'

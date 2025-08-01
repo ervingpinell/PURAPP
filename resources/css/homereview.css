@@ -1,3 +1,7 @@
+/* =========================
+   🎯 ESTILOS DEL CARRUSEL DE VIATOR EN HOME
+   ========================= */
+
 /* Estilo general del contenedor de reseña */
 .review-item.card {
     background-color: #ffffff;
@@ -14,14 +18,34 @@
 }
 
 .review-item .card-body {
-    min-height: 400px; /* Ajusta según contenido promedio */
-    max-height: 600px;
-    overflow-y: auto;
+    min-height: 400px;
+    max-height: 460px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
     padding: 1rem;
     width: 100%;
+    position: relative;
 }
+
+/* Tour name en la esquina */
+.card-body .tour-name {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    max-width: 60%;
+    font-size: 0.875rem;
+    color: #6c757d;
+    line-height: 1.2;
+    text-align: right;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* 👈 hasta 3 líneas */
+    -webkit-box-orient: vertical;
+}
+
+/* Estrellas */
 .review-stars {
-    color: #ffc107; /* amarillo tipo Bootstrap */
+    color: #ffc107;
     font-size: 1.1rem;
     margin-bottom: 0.5rem;
 }
@@ -32,7 +56,27 @@
     margin-left: 0.4rem;
 }
 
-/* Iconos */
+/* Powered by Viator link */
+.viator-credit a,
+a.viator-credit {
+    color: #777;
+    font-size: 0.8rem;
+    transition: color 0.2s;
+}
+
+.viator-credit a:hover,
+a.viator-credit:hover {
+    color: #256D1B;
+}
+
+/* Collapse link */
+a.toggle-review {
+    display: inline-block;
+    margin-top: 0.4rem;
+    color: #256D1B;
+}
+
+/* Controles */
 .carousel-control-prev-icon,
 .carousel-control-next-icon {
     background-color: #256D1B;
@@ -49,10 +93,8 @@
 .carousel-control-next:hover .carousel-control-next-icon {
     background-color: #60A862;
 }
-.viator-credit a:hover {
-    color: #256D1B;
-}
-/* Carrusel container */
+
+/* Carrusel wrapper */
 #viator-carousel {
     position: relative;
     max-width: 100%;
@@ -60,8 +102,7 @@
     padding: 2rem 1rem;
 }
 
-
-/* Controles del carrusel posicionados al centro vertical */
+/* Posición lateral de los botones */
 .carousel-control-prev,
 .carousel-control-next {
     position: absolute;
@@ -76,23 +117,18 @@
     justify-content: center;
 }
 
-/* Alineación lateral pegada a la tarjeta */
 .carousel-control-prev {
-    left: calc(50% - 320px - 0.75rem); /* 600px/2 + margen extra */
+    left: calc(50% - 320px - 0.75rem);
 }
 
 .carousel-control-next {
     right: calc(50% - 320px - 0.75rem);
 }
 
-/* ======== RESPONSIVE PARA MÓVILES ======== */
+/* ======== RESPONSIVE ======== */
 @media (max-width: 768px) {
-        .carousel-inner {
-        padding: 0 0.5rem;
-    }
-
     .review-item.card {
-        max-width: 95% !important;  /* Antes 85% */
+        max-width: 95% !important;
         width: 95% !important;
     }
 
@@ -102,44 +138,23 @@
 
     .review-item .card-title {
         font-size: 1rem;
-        margin-bottom: 0.4rem;
     }
 
     .review-item .card-text {
         font-size: 0.9rem;
-        margin-bottom: 0.5rem;
     }
 
-    .review-item .text-warning {
-        font-size: 0.85rem;
-        margin-bottom: 0.3rem;
-    }
-
-    .review-item img {
-        width: 32px;
-        height: 32px;
-        margin-right: 0.5rem;
-    }
-
-    .review-item h6 {
-        font-size: 0.9rem;
-    }
-
-    .review-item small {
-        font-size: 0.75rem;
-    }
-
-    .carousel-control-prev-icon,
-    .carousel-control-next-icon {
-        width: 2rem     ;
-        height: 2rem;
-    }
-
-        .carousel-control-prev {
+    .carousel-control-prev {
         left: 0.5rem;
     }
 
     .carousel-control-next {
         right: 0.5rem;
+    }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        width: 2rem;
+        height: 2rem;
     }
 }
