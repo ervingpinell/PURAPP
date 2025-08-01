@@ -83,14 +83,29 @@
       );
     @endphp
 
-    <h4 class="mb-4">
-      <strong>{{ __('adminlte::adminlte.totalEstimated') }}:</strong> ${{ number_format($total, 2) }}
+    <h4 class="mb-3">
+      <strong>{{ __('adminlte::adminlte.totalEstimated') }}:</strong>
+      $<span id="cart-total">{{ number_format($total, 2) }}</span>
     </h4>
+
+    {{-- Código Promocional --}}
+    <div class="mb-4 d-flex align-items-center flex-wrap" id="promo-section">
+      <input type="text" id="promo-code" name="promo_code" class="form-control w-auto me-2"
+            placeholder="Código promocional">
+      <button type="button" id="apply-promo" class="btn btn-outline-primary">
+        Aplicar
+      </button>
+      <div id="promo-message" class="ms-3 mt-2 text-success small"></div>
+    </div>
+
+
 
     <form action="{{ route('public.reservas.storeFromCart') }}"
           method="POST"
           onsubmit="return confirm('¿Estás seguro de confirmar la reserva?');">
       @csrf
+    <input type="hidden" name="promo_code" id="promo_code_hidden" value="">
+
       <button type="submit" class="btn btn-success btn-lg">
         <i class="fas fa-check"></i> {{ __('adminlte::adminlte.confirmBooking') }}
       </button>
@@ -102,3 +117,7 @@
   @endif
 </div>
 @endsection
+
+@push('scripts')
+    @vite('resources/js/cart/promo-code.js')
+@endpush

@@ -21,6 +21,8 @@ use App\Mail\BookingUpdatedMail;
 use App\Mail\BookingConfirmedMail;
 use App\Mail\BookingCancelledMail;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Models\PromoCode;
+
 
 
 class BookingController extends Controller
@@ -348,7 +350,7 @@ class BookingController extends Controller
     public function generarPDF()
     {
         // Asegúrate de cargar schedules dentro de detail
-        $reservas = Booking::with(['user', 'tour', 'detail.schedule'])
+        $reservas = Booking::with(['user', 'tour', 'detail.schedule', 'promoCode'])
             ->orderBy('booking_id')
             ->get();
 
@@ -423,10 +425,33 @@ class BookingController extends Controller
         }
 
         // ✅ Crear booking principal
+        // ✅ Total sin descuento
         $totalBooking = $cart->items->sum(fn($item) =>
             ($item->tour->adult_price * $item->adults_quantity)
             + ($item->tour->kid_price * $item->kids_quantity)
         );
+
+        // ✅ Aplicar código promocional si corresponde
+        $promoCodeValue = $request->input('promo_code');
+        $promoCode = null;
+        $discountAmount = 0;
+
+        if ($promoCodeValue) {
+            $promoCode = PromoCode::where('code', strtoupper(trim($promoCodeValue)))
+                                ->where('is_used', false)
+                                ->first();
+
+            if ($promoCode) {
+                if ($promoCode->discount_amount) {
+                    $discountAmount = $promoCode->discount_amount;
+                } elseif ($promoCode->discount_percent) {
+                    $discountAmount = $totalBooking * ($promoCode->discount_percent / 100);
+                }
+
+                $totalBooking = max($totalBooking - $discountAmount, 0);
+            }
+        }
+
 
         $firstItem = $cart->items->first();
 
@@ -460,6 +485,11 @@ class BookingController extends Controller
                                     + ($item->tour->kid_price * $item->kids_quantity),
                 'is_active'        => true,
             ]);
+        }
+
+        // ✅ Marcar código como usado
+        if ($promoCode) {
+            $promoCode->markAsUsed($booking->booking_id);
         }
 
         // ✅ Vaciar carrito
