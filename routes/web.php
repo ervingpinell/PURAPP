@@ -35,6 +35,9 @@ use App\Http\Controllers\Admin\TranslationController;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Tour;
 
+//Codigos promocionales
+use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
+
 
 Route::middleware([SetLocale::class])->group(function () {
 
@@ -50,6 +53,8 @@ Route::get('/reviews', function () {
 
 // API reviews (JS externo)
 Route::post('/api/reviews', [ReviewController::class, 'fetchReviews'])->name('api.reviews');
+// API Promo Codes
+Route::post('/api/apply-promo', [PromoCodeController::class, 'apply'])->name('api.promo.apply');
 
 
 // Contador del carrito (JS público)
@@ -135,6 +140,11 @@ Route::get('/cart/count', [CartController::class, 'count'])
         // FAQs
         Route::resource('faqs', AdminFaqController::class)->except(['show']);
         Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
+
+        // Códigos promocionales
+        Route::get('/promoCode', [PromoCodeController::class, 'index'])->name('promoCode.index');
+        Route::post('/promoCode', [PromoCodeController::class, 'store'])->name('promoCode.store');
+        Route::delete('/promoCode/{promo}', [PromoCodeController::class, 'destroy'])->name('promoCode.destroy');
 
         // Tours
         Route::resource('tours', TourController::class)->except(['create', 'edit', 'show']);
