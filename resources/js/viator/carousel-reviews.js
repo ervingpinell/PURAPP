@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let slides = [];
 
-    for (const { code, name } of products) {
+    for (const { code, name, id } of products) {
         try {
             const res = await fetch('/api/reviews', {
                 method: 'POST',
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!res.ok) throw new Error('Error HTTP: ' + res.status);
             const data = await res.json();
 
-            const reviews = (data.reviews || []).sort(() => 0.5 - Math.random()).slice(0, 2); // 🎯 mínimo 2, aleatorios
+            const reviews = (data.reviews || []).sort(() => 0.5 - Math.random()).slice(0, 2);
 
             reviews.forEach((r, index) => {
                 const avatar = r.avatarUrl || '/images/avatar-default.png';
@@ -41,12 +41,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 const slide = document.createElement('div');
                 slide.classList.add('carousel-item');
-                if (slides.length === 0) slide.classList.add('active'); // solo la primera es activa
+                if (slides.length === 0) slide.classList.add('active');
 
                 slide.innerHTML = `
                     <div class="review-item card shadow-sm border-0 mx-auto w-100" style="max-width: 600px;">
-                        <div class="card-body d-flex flex-column justify-content-between position-relative" style="min-height: 380px;">
-                            <span class="tour-name">${name}</span>
+                        <div class="card-body d-flex flex-column justify-content-between position-relative" style="min-height: 400px;">
+                            <span class="tour-name fw-semibold">
+                                <a href="#" class="tour-link text-success fw-semibold d-inline-block"
+                                   data-id="${id}" data-name="${name}"
+                                   style="text-decoration: underline;">
+                                    ${name}
+                                </a>
+                            </span>
 
                             <div>
                                 <div class="d-flex align-items-center mb-3">
@@ -91,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     inner.innerHTML = '';
     slides.forEach(slide => inner.appendChild(slide));
 
-    // Activar toggle "Ver más / Ver menos"
+    // 🔁 Toggle "Ver más / Ver menos"
     document.querySelectorAll('.toggle-review').forEach(link => {
         link.addEventListener('click', function (e) {
             e.preventDefault();
@@ -108,6 +114,32 @@ document.addEventListener('DOMContentLoaded', async () => {
             cardBody.style.maxHeight = isCollapsed ? 'none' : '400px';
         });
     });
+
+    // ✅ Confirmación con modal
+    document.querySelectorAll('.tour-link').forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const tourId = this.dataset.id;
+            const tourName = this.dataset.name;
+
+            const modalText = document.getElementById('confirmTourModalText');
+            const modalGoBtn = document.getElementById('confirmTourModalGo');
+            const modalConfirmBtn = document.getElementById('tourModalConfirm');
+
+            // Actualizar contenido y enlaces del modal
+            if (modalText) {
+                modalText.innerHTML = `¿Deseas ir al tour "<strong>${tourName}</strong>"?`;
+            }
+            if (modalGoBtn) modalGoBtn.href = `/tour/${tourId}`;
+            if (modalConfirmBtn) modalConfirmBtn.href = `/tour/${tourId}`;
+
+            const modalEl = document.getElementById('confirmTourModal');
+            if (modalEl) {
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        });
+    });
 });
 
 function renderStars(rating) {
@@ -121,6 +153,5 @@ function renderStars(rating) {
     for (let i = 0; i < emptyStars; i++) stars += '☆';
 
     const formattedRating = Number.isInteger(rating) ? rating : rating.toFixed(1);
-
     return `<div class="mb-2 text-warning review-stars">${stars}<span class="rating-number"> (${formattedRating}/5)</span></div>`;
 }

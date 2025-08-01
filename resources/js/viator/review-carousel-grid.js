@@ -3,7 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tours.forEach(({ id, code }) => {
         const container = document.getElementById(`carousel-${id}`);
-        if (!container) return;
+        const card = document.getElementById(`card-${id}`);
+        if (!container || !card) return;
 
         fetch('/api/reviews', {
             method: 'POST',
@@ -49,35 +50,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
 
-                matchHeights();
+                // Expandir visualmente la tarjeta
+                if (expanded) {
+                    card.classList.add('expanded');
+                } else {
+                    card.classList.remove('expanded');
+                }
             };
 
             render();
 
-            // Eventos de flechas
             const prevBtn = document.querySelector(`.carousel-prev[data-tour="${id}"]`);
             const nextBtn = document.querySelector(`.carousel-next[data-tour="${id}"]`);
 
             if (prevBtn) prevBtn.onclick = () => {
+                expanded = false;
                 index = (index - 1 + data.reviews.length) % data.reviews.length;
                 render();
             };
             if (nextBtn) nextBtn.onclick = () => {
+                expanded = false;
                 index = (index + 1) % data.reviews.length;
                 render();
             };
 
-            // Toggle ver más / menos
             container.addEventListener('click', e => {
                 if (e.target.classList.contains('review-toggle')) {
                     expanded = !expanded;
                     render();
-                    document.querySelectorAll('.review-content').forEach(el =>
-                        el.classList.toggle('expanded', expanded)
-                    );
-                    document.querySelectorAll('.review-toggle').forEach(btn =>
-                        btn.textContent = expanded ? 'Ver menos' : 'Ver más'
-                    );
                 }
             });
         })
@@ -87,29 +87,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Ajusta altura por fila
-    function matchHeights() {
-        const cards = document.querySelectorAll('.review-card');
-        const rows = {};
+    // ✅ Activar modal al hacer clic en el nombre del tour
+    document.querySelectorAll('.tour-link').forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault();
 
-        cards.forEach(card => {
-            const top = card.getBoundingClientRect().top;
-            if (!rows[top]) rows[top] = [];
-            rows[top].push(card);
+            const id = link.dataset.id;
+            const name = link.dataset.name;
+
+            const modalName = document.getElementById('tourModalName');
+            const modalLink = document.getElementById('tourModalConfirm');
+
+            if (modalName) modalName.textContent = name;
+            if (modalLink) modalLink.href = `/tour/${id}`;
+
+            const modalElement = document.getElementById('confirmTourModal');
+            if (modalElement) {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            }
         });
-
-        Object.values(rows).forEach(row => {
-            let max = 0;
-            row.forEach(card => {
-                card.style.height = 'auto';
-                max = Math.max(max, card.offsetHeight);
-            });
-            row.forEach(card => {
-                card.style.height = max + 'px';
-            });
-        });
-    }
-
-    window.addEventListener('resize', matchHeights);
-    setTimeout(matchHeights, 100);
+    });
 });

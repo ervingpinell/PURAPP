@@ -9,12 +9,12 @@
     @vite([
         'resources/css/reviews.css',
         'resources/css/homereview.css',
-        'resources/css/tour.css'
+        'resources/css/tour.css',
     ])
 @endpush
 
 @section('content')
-    <section class="tours-section">
+<section class="tours-section" id="tours">
         @include('partials.tours', ['tours' => $tours])
     </section>
 
@@ -36,3 +36,5 @@
 @endpush
 
 
+
+@include('partials.show-tour-modal')

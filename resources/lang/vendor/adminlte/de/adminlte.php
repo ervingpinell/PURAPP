@@ -265,5 +265,16 @@ return [
 // Reviews
 'what_customers_thinks_about' => 'Was unsere Kunden über uns denken',
 'loading_reviews' => 'Bewertungen werden geladen',
-
+'redirect_to_tour' => 'Zum Tour weiterleiten',
+'would_you_like_to_visit' => 'Möchten Sie die Tour ',
+'this_tour' => 'diese Tour',
+    'no_reviews_found' => 'Keine Bewertungen für diese Tour gefunden.',
+    'no_reviews_available' => 'Keine Bewertungen verfügbar.',
+    'error_loading_reviews' => 'Fehler beim Laden der Bewertungen.',
+    'anonymous_user' => 'Anonym',
+    'see_more' => 'Mehr anzeigen',
+    'see_less' => 'Weniger anzeigen',
+    'powered_by_viator' => 'Bereitgestellt von Viator',
+    'go_to_tour' => 'Möchten Sie zur Tour ":name" gehen?',
+    'view_in_viator' => ':name auf Viator ansehen',
 ];

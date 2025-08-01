@@ -264,5 +264,16 @@ return [
 // reviews
 'what_customers_thinks_about' => 'O que os clientes acham sobre',
 'loading_reviews' => 'Carregando avaliações',
-
+'redirect_to_tour' => 'Redirecionar para o passeio',
+'would_you_like_to_visit' => 'Gostaria de visitar ',
+'this_tour' => 'este passeio',
+   'no_reviews_found' => 'Nenhuma avaliação encontrada para este tour.',
+    'no_reviews_available' => 'Nenhuma avaliação disponível.',
+    'error_loading_reviews' => 'Erro ao carregar as avaliações.',
+    'anonymous_user' => 'Anônimo',
+    'see_more' => 'Ver mais',
+    'see_less' => 'Ver menos',
+    'powered_by_viator' => 'Fornecido por Viator',
+    'go_to_tour' => 'Deseja ir para o tour ":name"?',
+    'view_in_viator' => 'Ver :name no Viator',
 ];

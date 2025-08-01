@@ -127,6 +127,27 @@ a.toggle-review {
 
 /* ======== RESPONSIVE ======== */
 @media (max-width: 768px) {
+      .card-body .tour-name {
+    position: static !important;
+    max-width: 100%;
+    text-align: left;
+    margin-top: 0.5rem;
+    font-weight: 600;
+    color: #1A5229;
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+
+
+  .card-body .tour-name a {
+    color: #1A5229;
+    text-decoration: none;
+    font-weight: bold;
+  }
+    .card-body .tour-name a:hover {
+    text-decoration: underline;
+  }
     .review-item.card {
         max-width: 95% !important;
         width: 95% !important;

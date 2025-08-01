@@ -10,6 +10,45 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   }
 
+  // ✅ SCROLL CON OFFSET PARA #tours
+  const offset = 100;
+
+  function scrollToHash(hash) {
+    const el = document.querySelector(hash);
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top: top - offset, behavior: 'smooth' });
+  }
+
+  // ✅ BOTÓN "TOURS" redirecciona o hace scroll según el contexto
+  document.querySelectorAll('.scroll-to-tours').forEach(link => {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+
+      const isHome = window.location.pathname === '/';
+
+      if (isHome) {
+        scrollToHash('#tours');
+        const navbarLinks = document.getElementById('navbar-links');
+        if (navbarLinks?.classList.contains('show')) {
+          navbarLinks.classList.remove('show');
+        }
+      } else {
+        window.location.href = '/';
+      }
+    });
+  });
+
+  // Ajustar scroll si ya cargó con hash
+if (window.location.hash === '#tours') {
+  const referrer = document.referrer;
+  const cameFromOtherPage = referrer && !referrer.includes(window.location.origin + '/');
+  if (!cameFromOtherPage) {
+    setTimeout(() => scrollToHash('#tours'), 200);
+  }
+}
+
+
   // ✅ LEER MÁS / LEER MENOS
   document.querySelectorAll('.toggle-overview-link').forEach(link => {
     link.addEventListener('click', function () {
@@ -182,62 +221,56 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
- const pickupInput = document.getElementById('pickupInput');
-const pickupList = document.getElementById('pickupList');
-const pickupValidMsg = document.getElementById('pickupValidMsg');
-const pickupInvalidMsg = document.getElementById('pickupInvalidMsg');
-const selectedPickupPoint = document.getElementById('selectedPickupPoint');
+  // ✅ VALIDACIÓN Y AUTOCOMPLETADO DE PICKUP
+  const pickupInput = document.getElementById('pickupInput');
+  const pickupList = document.getElementById('pickupList');
+  const pickupValidMsg = document.getElementById('pickupValidMsg');
+  const pickupInvalidMsg = document.getElementById('pickupInvalidMsg');
+  const selectedPickupPoint = document.getElementById('selectedPickupPoint');
 
-if (pickupInput && pickupList && selectedPickupPoint) {
-  pickupInput.addEventListener('input', () => {
-    const filter = pickupInput.value.toLowerCase().trim();
-    let found = false;
+  if (pickupInput && pickupList && selectedPickupPoint) {
+    pickupInput.addEventListener('input', () => {
+      const filter = pickupInput.value.toLowerCase().trim();
+      let found = false;
 
-    pickupList.querySelectorAll('li').forEach(li => {
-      const name = li.textContent.toLowerCase();
-      const match = name.includes(filter);
-      li.classList.toggle('d-none', !match);
-      if (match) found = true;
+      pickupList.querySelectorAll('li').forEach(li => {
+        const name = li.textContent.toLowerCase();
+        const match = name.includes(filter);
+        li.classList.toggle('d-none', !match);
+        if (match) found = true;
+      });
+
+      pickupList.classList.remove('d-none');
+
+      pickupValidMsg.classList.add('d-none');
+      pickupInvalidMsg.classList.toggle('d-none', found || filter === '');
+
+      selectedPickupPoint.value = found ? '' : 'other:' + pickupInput.value;
     });
 
-    pickupList.classList.remove('d-none');
+    pickupInput.addEventListener('focus', () => {
+      pickupList.classList.remove('d-none');
+    });
 
-    // Mensajes
-    pickupValidMsg.classList.add('d-none');
-    pickupInvalidMsg.classList.toggle('d-none', found || filter === '');
+    pickupList.addEventListener('click', (e) => {
+      const li = e.target.closest('.pickup-option');
+      if (li) {
+        const hotelName = li.textContent.trim();
+        const hotelId = li.dataset.id;
 
-    // Guardar como "otro"
-    selectedPickupPoint.value = found ? '' : 'other:' + pickupInput.value;
-  });
+        pickupInput.value = hotelName;
+        selectedPickupPoint.value = hotelId;
 
-  // Mostrar lista al hacer focus
-  pickupInput.addEventListener('focus', () => {
-    pickupList.classList.remove('d-none');
-  });
+        pickupValidMsg.classList.remove('d-none');
+        pickupInvalidMsg.classList.add('d-none');
+        pickupList.classList.add('d-none');
+      }
+    });
 
-  // Seleccionar hotel desde lista
-  pickupList.addEventListener('click', (e) => {
-    const li = e.target.closest('.pickup-option');
-    if (li) {
-      const hotelName = li.textContent.trim();
-      const hotelId = li.dataset.id;
-
-      pickupInput.value = hotelName;
-      selectedPickupPoint.value = hotelId;
-
-      pickupValidMsg.classList.remove('d-none');
-      pickupInvalidMsg.classList.add('d-none');
-      pickupList.classList.add('d-none');
-    }
-  });
-
-  // Ocultar lista si se hace clic fuera
-  document.addEventListener('click', (e) => {
-    if (!pickupList.contains(e.target) && e.target !== pickupInput) {
-      pickupList.classList.add('d-none');
-    }
-  });
-}
-
-
+    document.addEventListener('click', (e) => {
+      if (!pickupList.contains(e.target) && e.target !== pickupInput) {
+        pickupList.classList.add('d-none');
+      }
+    });
+  }
 });

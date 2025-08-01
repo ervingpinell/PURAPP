@@ -3,8 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById(`review-carousel-tour-${tourId}`);
   const prev = document.querySelector(`.carousel-prev[data-tour="${tourId}"]`);
   const next = document.querySelector(`.carousel-next[data-tour="${tourId}"]`);
+  const wrapper = container?.closest('.tour-review-carousel');
 
-  if (!container || !window.productCode) return;
+  if (!container || !window.productCode) {
+  container.innerHTML = '<p class="text-muted text-center">No se encontraron reseñas relacionadas a este tour.</p>';
+  return;
+}
 
   fetch(`/api/reviews`, {
     method: 'POST',
@@ -14,16 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     body: JSON.stringify({
       productCode: window.productCode,
-      count: 5,
+      count: 20,
       start: 1,
       provider: 'VIATOR',
       sortBy: 'MOST_RECENT'
     })
   })
-  .then(res => {
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
-  })
+  .then(res => res.ok ? res.json() : Promise.reject(res))
   .then(data => {
     if (!data.reviews || data.reviews.length === 0) {
       container.innerHTML = '<p class="text-muted text-center">No hay reseñas disponibles.</p>';
@@ -32,35 +33,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const reviews = data.reviews;
     let index = 0;
+    let expanded = false;
 
     const renderReview = (i) => {
       const r = reviews[i];
       const stars = '★'.repeat(Math.round(r.rating)) + '☆'.repeat(5 - Math.round(r.rating));
       const date = r.publishedDate ? new Date(r.publishedDate).toLocaleDateString() : '';
       const label = r.title ? `<div class="review-label">${r.title}</div>` : '';
-      const truncated = r.text.length > 250;
-      const content = truncated ? r.text.slice(0, 250) + '...' : r.text;
+
+      const fullText = r.text.trim();
+      const truncated = fullText.length > 250;
+      const shortText = truncated ? fullText.slice(0, 250).trim() + '...' : fullText;
 
       container.innerHTML = `
-        <div class="review-body-wrapper ${r.text.length < 120 ? 'centered' : ''}">
-          <strong>${r.userName || 'Anónimo'}</strong><br>
-          <small>${date}</small>
-          <div class="review-stars">${stars} (${r.rating}/5)</div>
-          ${label}
-          <div class="review-content">${content}</div>
+        <div class="review-body-wrapper">
+          <div class="review-header">
+            <strong>${r.userName || 'Anónimo'}</strong>
+            <small>${date}</small>
+            <div class="review-stars">${stars} <span class="rating-number">(${r.rating}/5)</span></div>
+            ${label}
+          </div>
+          <div class="review-content ${expanded ? 'expanded' : ''}" id="review-text-${i}">${expanded ? fullText : shortText}</div>
+          <div class="review-footer">
+            ${truncated ? `<button class="toggle-review">${expanded ? 'Ver menos' : 'Ver más'}</button>` : ''}
+          </div>
         </div>
       `;
+
+      if (wrapper) {
+        wrapper.classList.toggle('expanded', expanded);
+      }
+
+      const toggleBtn = container.querySelector('.toggle-review');
+      const reviewText = container.querySelector(`#review-text-${i}`);
+
+      if (toggleBtn && reviewText) {
+        toggleBtn.addEventListener('click', () => {
+          expanded = !expanded;
+          reviewText.classList.toggle('expanded', expanded);
+          reviewText.textContent = expanded ? fullText : shortText;
+          toggleBtn.textContent = expanded ? 'Ver menos' : 'Ver más';
+
+          if (wrapper) {
+            wrapper.classList.toggle('expanded', expanded);
+          }
+        });
+      }
     };
 
     renderReview(index);
 
     prev?.addEventListener('click', () => {
       index = (index - 1 + reviews.length) % reviews.length;
+      expanded = false;
       renderReview(index);
     });
 
     next?.addEventListener('click', () => {
       index = (index + 1) % reviews.length;
+      expanded = false;
       renderReview(index);
     });
   })

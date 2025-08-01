@@ -263,5 +263,17 @@ return [
 // Reviews
 'what_customers_thinks_about' => 'What customers think about ',
 'loading_reviews' => 'Loading reviews',
+'redirect_to_tour' => 'Redirect to tour',
+'would_you_like_to_visit' => 'Would you like to visit ',
+'this_tour' => 'this tour',
+    'no_reviews_found' => 'No reviews found for this tour.',
+    'no_reviews_available' => 'No reviews available.',
+    'error_loading_reviews' => 'Error loading reviews.',
+    'anonymous_user' => 'Anonymous',
+    'see_more' => 'See more',
+    'see_less' => 'See less',
+    'powered_by_viator' => 'Powered by Viator',
+    'go_to_tour' => 'Would you like to go to the tour ":name"?',
+    'view_in_viator' => 'View :name on Viator',
 
 ];

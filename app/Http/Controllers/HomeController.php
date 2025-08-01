@@ -28,15 +28,17 @@ public function index()
     $viatorTours = Tour::whereNotNull('viator_code')
         ->inRandomOrder()
         ->limit(6) // Puedes ajustar esto
-        ->get(['viator_code', 'name']);
+        ->get(['tour_id', 'viator_code', 'name']); // 👈 incluye tour_id aquí
 
     $carouselProductCodes = $viatorTours->map(fn($t) => [
         'code' => $t->viator_code,
         'name' => $t->name,
+        'id'   => $t->tour_id,
     ])->values();
 
     return view('public.home', compact('tours', 'carouselProductCodes'));
 }
+
 
 
 

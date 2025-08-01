@@ -1,12 +1,12 @@
 .tour-review-carousel-wrapper {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   margin-top: 1rem;
-  min-height: 250px;
 }
 
+/* 🟢 Tarjeta con altura fija */
 .tour-review-carousel {
   max-width: 650px;
   width: 100%;
@@ -15,12 +15,37 @@
   border-radius: 10px;
   background: #fff;
   text-align: center;
+  transition: all 0.4s ease;
+  height: 280px; /* Altura fija por defecto */
+  overflow: hidden;
 }
 
-.review-body-wrapper.centered {
+/* 🔽 Expandida */
+.tour-review-carousel.expanded {
+  height: auto;
+}
+
+/* 👤 Encabezado */
+.review-body-wrapper {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  align-items: center;
+  text-align: center;
+  height: 100%;
+}
+
+.review-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+.review-header strong {
+  font-weight: bold;
+}
+.review-header small {
+  font-size: 0.85rem;
+  color: #666;
 }
 
 .review-stars {
@@ -28,37 +53,91 @@
   font-size: 1.1rem;
   margin-top: 0.5rem;
 }
-
-.review-content {
-  margin-top: 0.5rem;
-  max-height: 180px;
-  overflow-y: auto;
-  padding: 0.5rem;
+.review-stars .rating-number {
+  font-size: 0.9rem;
+  color: #555;
+  margin-left: 0.4rem;
 }
 
 .review-label {
   background-color: #d33;
   color: white;
   padding: 0.25rem 0.5rem;
-  border-radius: 3px;
+  border-radius: 5px;
   font-size: 0.9rem;
   display: inline-block;
-  margin-top: 0.5rem;
-  white-space: normal;
+  margin: 0.5rem auto;
   max-width: 100%;
   word-break: break-word;
 }
 
+/* 💬 Texto */
+.review-content {
+  font-size: 0.95rem;
+  color: #333;
+  padding: 0.5rem 0;
+  text-align: center;
+  overflow: hidden;
+  max-height: 5.2rem; /* ~3 líneas */
+  line-height: 1.3rem;
+  transition: max-height 0.4s ease;
+  position: relative;
+}
+
+.review-content.expanded {
+  max-height: 1000px;
+  overflow: visible;
+}
+
+/* ⬇️ Botón */
+.review-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+  margin-top: 0.5rem;
+}
+.toggle-review {
+  color: #1a5229;
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0;
+  font-weight: 500;
+}
+.toggle-review:hover {
+  text-decoration: underline;
+}
+
+/* ◀️▶️ Flechas estáticas */
 .carousel-nav {
   background: none;
   border: none;
   font-size: 2rem;
   color: #1A5229;
   cursor: pointer;
-  z-index: 10;
   padding: 0 1rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
 }
-
 .carousel-nav:hover {
   color: #146a3b;
+}
+
+/* 📱 Responsive */
+@media (max-width: 768px) {
+  .tour-review-carousel {
+    max-width: 95%;
+    height: 340px;
+  }
+.review-content {
+  max-height: 4.5rem; /* antes: 5.2rem */
+  line-height: 1.4rem;
+}
+  .carousel-nav {
+    font-size: 1.5rem;
+    padding: 0 0.75rem;
+  }
 }
