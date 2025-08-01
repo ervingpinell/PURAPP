@@ -105,18 +105,6 @@
         .resumen-general .dato strong {
             min-width: 150px;
         }
-        @media (max-width: 768px) {
-            body { padding: 20px; }
-            .report-container { padding: 20px; }
-            h2 { font-size: 26px; margin-bottom: 20px; }
-            .reserva-section { padding: 15px; }
-            .section-title { font-size: 16px; margin-bottom: 10px; }
-            .dato strong { min-width: 90px; font-size: 12px; }
-            .dato span, .dato small { font-size: 13px; }
-            .total { font-size: 16px; }
-            .resumen-general { padding: 20px; margin-top: 30px; }
-            .resumen-general .dato { font-size: 14px; }
-        }
         @media print {
             body { background: none; padding: 0; margin: 0; }
             .report-container { box-shadow: none; border: none; border-radius: 0; margin: 0; max-width: initial; padding: 0; }
@@ -148,6 +136,16 @@
                 ? \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') . ' – ' .
                   \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A')
                 : 'Sin horario';
+
+            $promoCode = $reserva->promoCode;
+            $subtotal = ($aPrice * $aQty) + ($kPrice * $kQty);
+            $descuento = 0;
+
+            if ($promoCode) {
+                $descuento = $promoCode->discount_percent
+                    ? $subtotal * ($promoCode->discount_percent / 100)
+                    : ($promoCode->discount_amount ?? 0);
+            }
         @endphp
 
         <div class="reserva-section">
@@ -168,6 +166,25 @@
             <div class="dato"><strong>Personas:</strong> <span>{{ $aQty + $kQty }}</span></div>
 
             <div class="line-separator"></div>
+
+            <div class="dato"><strong>Subtotal:</strong> <span>${{ number_format($subtotal, 2) }}</span></div>
+
+            @if ($promoCode)
+                <div class="dato">
+                    <strong>Código Promocional:</strong>
+                    <span>{{ $promoCode->code }}</span>
+                </div>
+                <div class="dato">
+                    <strong>Descuento aplicado:</strong>
+                    <span style="color: green;">–${{ number_format($descuento, 2) }}</span>
+                </div>
+                <div class="dato">
+                    <strong>Precio original:</strong>
+                    <span style="text-decoration: line-through; color: #999;">
+                        ${{ number_format($subtotal, 2) }}
+                    </span>
+                </div>
+            @endif
 
             <div class="total">TOTAL: ${{ number_format($reserva->total, 2) }}</div>
         </div>

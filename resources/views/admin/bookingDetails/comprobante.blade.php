@@ -206,8 +206,36 @@
     </div>
 
     <div class="total-section">
-      <span class="total">TOTAL: ${{ number_format($reserva->total, 2) }}</span>
+    <div style="text-align: right;">
+      @php
+        $subtotal = ($aPrice * $aQty) + ($kPrice * $kQty);
+        $descuento = 0;
+
+        if ($reserva->promoCode) {
+            if ($reserva->promoCode->discount_percent) {
+                $descuento = $subtotal * ($reserva->promoCode->discount_percent / 100);
+            } elseif ($reserva->promoCode->discount_amount) {
+                $descuento = $reserva->promoCode->discount_amount;
+            }
+        }
+      @endphp
+
+      <div>
+        <strong>Subtotal:</strong> ${{ number_format($subtotal, 2) }}
+      </div>
+
+      @if($descuento > 0)
+        <div style="color: green;">
+          <strong>Descuento ({{ $reserva->promoCode->code }}):</strong>
+          -${{ number_format($descuento, 2) }}
+        </div>
+      @endif
+
+      <div class="total mt-2">
+        TOTAL: ${{ number_format($reserva->total, 2) }}
+      </div>
     </div>
+  </div>
 
     <div class="qr-container">
       @php

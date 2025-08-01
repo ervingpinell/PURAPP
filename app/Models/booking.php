@@ -50,13 +50,17 @@ class Booking extends Model
     }
 
    public function detail()
-{
-    return $this->hasOne(BookingDetail::class, 'booking_id', 'booking_id');
-}
-
+    {
+        return $this->hasOne(BookingDetail::class, 'booking_id', 'booking_id');
+    }
 
     public function hotel()
     {
         return $this->belongsTo(HotelList::class, 'hotel_id', 'hotel_id');
+    }
+
+    public function promoCode()
+    {
+        return $this->hasOne(\App\Models\PromoCode::class, 'used_by_booking_id', 'booking_id');
     }
 }
