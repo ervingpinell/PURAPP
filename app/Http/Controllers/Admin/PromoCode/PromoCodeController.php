@@ -49,14 +49,13 @@ class PromoCodeController extends Controller
         $code = strtoupper(trim($request->input('code')));
         $total = floatval($request->input('total'));
 
-        $promo = PromoCode::where('code', $code)
-            ->where('is_used', false) 
-            ->first();
+        // Verifica si el código existe
+        $promo = PromoCode::where('code', $code)->first();
 
-        if (! $promo) {
+        if (!$promo) {
             return response()->json([
                 'success' => false,
-                'message' => 'Código inválido o ya utilizado.',
+                'message' => 'Código inválido.',
             ], 404);
         }
 
@@ -69,6 +68,7 @@ class PromoCodeController extends Controller
             $discount = $promo->discount_amount;
         }
 
+        // Asegúrate de que el descuento no supere el total
         $discount = min($discount, $total); 
         $newTotal = $total - $discount;
 
@@ -79,6 +79,7 @@ class PromoCodeController extends Controller
             'message' => 'Código válido.',
         ]);
     }
+
 
 
 }

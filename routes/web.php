@@ -39,6 +39,7 @@ use App\Models\Tour;
 use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
 
 
+
 Route::middleware([SetLocale::class])->group(function () {
 
 // Página pública de reviews
@@ -55,6 +56,8 @@ Route::get('/reviews', function () {
 Route::post('/api/reviews', [ReviewController::class, 'fetchReviews'])->name('api.reviews');
 // API Promo Codes
 Route::post('/api/apply-promo', [PromoCodeController::class, 'apply'])->name('api.promo.apply');
+Route::post('/apply-promo', [PromoCodeController::class, 'apply'])->name('api.promo.apply');
+
 
 
 // Contador del carrito (JS público)
