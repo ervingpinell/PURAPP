@@ -340,32 +340,39 @@ return [
             //'label' => 4,
             //'label_color' => 'success',
         ],
+
         ['header' => 'CONFIGURACION'],
         [
-        'text' => 'Perfil',
-        'route'=> 'profile.edit',
-        'icon' => 'fas fa-fw fa-user',
+            'text' => 'Perfil',
+            'route'=> 'profile.edit',
+            'icon' => 'fas fa-fw fa-user',
         ],
         [
             'text' => 'Usuarios',
             'route'=> 'admin.users.index',
             'icon' => 'fas fa-fw fa-user-cog',
         ],
-[
-    'text' => 'FAQ',
-'route' => 'admin.faqs.index',
-    'icon' => 'fas fa-question-circle',
-],
-[
-    'text' => 'Traducciones',
-    'route' => 'admin.translations.index', // o 'url' => 'admin/traducciones' si no usás rutas nombradas
-    'icon' => 'fas fa-language', // ícono FontAwesome
-],
+        [
+            'text' => 'FAQ',
+            'route' => 'admin.faqs.index',
+            'icon' => 'fas fa-question-circle',
+        ],
+        [
+            'text' => 'Traducciones',
+            'route' => 'admin.translations.index', // o 'url' => 'admin/traducciones' si no usás rutas nombradas
+            'icon' => 'fas fa-language', // ícono FontAwesome
+        ],
         [
             'text' => 'Roles',
             'route'=> 'admin.roles.index',
             'icon' => 'fas fa-user-shield',
         ],
+        [
+            'text' => 'Generar Códigos Promocionales',
+            'route' => 'admin.promoCode.index',  // Asegúrate de tener esta ruta definida
+            'icon' => 'fas fa-tags',           // Ícono de etiqueta
+        ],
+
         ['header' => 'RESERVAS'],
         //colocar aqui las tablas de las bases de datos para el CRUD
 

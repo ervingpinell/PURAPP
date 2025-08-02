@@ -73,6 +73,15 @@
   </tbody>
 </table>
 
-<div class="mt-3">
-  {{ $bookings->links() }}
-</div>
+@if ($bookings->lastPage() > 1)
+  <nav class="mt-4 d-flex justify-content-center">
+    <ul class="pagination">
+      @for ($i = 1; $i <= $bookings->lastPage(); $i++)
+        <li class="page-item {{ $i == $bookings->currentPage() ? 'active' : '' }}">
+          <a class="page-link" href="{{ $bookings->url($i) }}">{{ $i }}</a>
+        </li>
+      @endfor
+    </ul>
+  </nav>
+@endif
+

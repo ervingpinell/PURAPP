@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Cart\CartController;
 
 // Rutas de la API para códigos promocionales
-use App\Http\Controllers\Api\PromoCodeController;
+use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
 
 Route::get('/get-reserved', [CartController::class, 'getReserved']);
 

@@ -115,12 +115,41 @@
         </div>
 
         {{-- Boton de Enviar Reserva --}}
+        {{-- Código Promocional --}}
+        <div class="card mt-4 shadow">
+        <div class="card-header bg-secondary text-white">
+            <i class="fas fa-tags"></i> Código Promocional
+        </div>
+        <div class="card-body d-flex flex-wrap align-items-center gap-2">
+            <input type="text" id="promo-code" class="form-control w-auto" placeholder="Ingresa código" />
+            <button type="button" id="apply-promo" class="btn btn-primary">Aplicar</button>
+
+            {{-- Total dinámico --}}
+            <div class="ms-3">
+            <strong>Total estimado: $<span id="cart-total">
+                {{ number_format($cart->items->sum(fn($item) =>
+                    $item->tour->adult_price * $item->adults_quantity +
+                    $item->tour->kid_price   * $item->kids_quantity
+                ), 2) }}
+            </span></strong>
+            </div>
+
+            {{-- Campo oculto para guardar el código aplicado --}}
+            <input type="hidden" name="promo_code" id="promo_code_hidden" value="">
+        </div>
+
+        {{-- Mensaje de error / éxito --}}
+        <div id="promo-message" class="text-danger small mt-2 ms-3"></div>
+        </div>
+
+        {{-- Botón Confirmar y Enviar --}}
         <form method="POST" action="{{ route('admin.reservas.storeFromCart') }}">
             @csrf
             <button type="submit" class="btn btn-success btn-lg mt-3">
                 <i class="fas fa-paper-plane"></i> Confirmar y Enviar Solicitud de Reserva
             </button>
         </form>
+
 
         {{-- Modales de edición --}}
         @foreach($cart->items as $item)
@@ -285,4 +314,5 @@
             @endforeach
         });
     </script>
+    
 @stop

@@ -166,6 +166,15 @@ class BookingController extends Controller
         }
 
         $total = ($tour->adult_price * $v['adults_quantity']) + ($tour->kid_price * $v['kids_quantity']);
+        $promoCodeValue = $request->input('promo_code');
+        $promoCode = null;
+
+        if ($promoCodeValue) {
+            $cleanCode = strtoupper(trim(preg_replace('/\s+/', '', $promoCodeValue)));
+            $promoCode = PromoCode::whereRaw('UPPER(TRIM(REPLACE(code, \' \', \'\'))) = ?', [$cleanCode])
+                                ->where('is_used', false)
+                                ->first();
+        }
 
         $booking = Booking::create([
             'user_id'           => $v['user_id'],
@@ -176,6 +185,7 @@ class BookingController extends Controller
             'booking_date'      => $v['booking_date'],
             'status'            => $v['status'],
             'total'             => $total,
+            'promo_code_id'     => $promoCode?->promo_code_id,
             'is_active'         => true,
         ]);
 
@@ -195,6 +205,11 @@ class BookingController extends Controller
             'other_hotel_name' => $v['is_other_hotel'] ? $v['other_hotel_name'] : null,
             'is_active'        => true,
         ]);
+
+        if ($promoCode) {
+            $promoCode->markAsUsed($booking->booking_id);
+        }
+
         // ✅ Envía el correo de confirmación
         Mail::to($booking->user->email)->send(new BookingCreatedMail($booking));
 
@@ -437,9 +452,11 @@ class BookingController extends Controller
         $discountAmount = 0;
 
         if ($promoCodeValue) {
-            $promoCode = PromoCode::where('code', strtoupper(trim($promoCodeValue)))
+            $cleanCode = strtoupper(trim(preg_replace('/\s+/', '', $promoCodeValue)));
+            $promoCode = PromoCode::whereRaw('UPPER(TRIM(REPLACE(code, \' \', \'\'))) = ?', [$cleanCode])
                                 ->where('is_used', false)
                                 ->first();
+
 
             if ($promoCode) {
                 if ($promoCode->discount_amount) {
