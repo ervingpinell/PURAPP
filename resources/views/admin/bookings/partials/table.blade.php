@@ -15,6 +15,7 @@
       <th>Adultos</th>
       <th>Niños</th>
       <th>Referencia</th>
+      <th>Promo Code</th>
       <th>Total</th>
       <th>Acciones</th>
     </tr>
@@ -44,6 +45,7 @@
     <td>{{ $detail->adults_quantity }}</td>
     <td>{{ $detail->kids_quantity }}</td>
     <td>{{ $booking->booking_reference }}</td>
+    <td>{{ $booking->promoCode->code ?? '—' }}</td>
     <td>${{ number_format($booking->total, 2) }}</td>
     <td class="text-nowrap">
 
