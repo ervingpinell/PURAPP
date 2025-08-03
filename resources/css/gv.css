@@ -115,3 +115,12 @@
     }
 }
 
+#promo-section {
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1rem;
+  background-color: #f8f9fa;
+}
+#promo-message.text-danger {
+  color: #dc3545 !important;
+}
