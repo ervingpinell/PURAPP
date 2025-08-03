@@ -34,9 +34,13 @@
                 placeholder="{{ __('adminlte::adminlte.whatsapp_placeholder') }}"
             ></textarea>
 
+            @php
+            $defaultMsg = __('adminlte::adminlte.whatsapp_placeholder');
+            @endphp
+
             <button
                 @click="
-                    const defaultMsg = @json(__('adminlte::adminlte.whatsapp_placeholder'));
+                    const defaultMsg = '{{ addslashes($defaultMsg) }}';
                     window.open(`https://wa.me/50624791471?text=${encodeURIComponent(message || defaultMsg)}`, '_blank');
                     isOpen = false;
                     message = '';
@@ -45,6 +49,7 @@
             >
                 <i class="fas fa-paper-plane me-2"></i>{{ __('adminlte::adminlte.whatsapp_button') }}
             </button>
+
 
             <p class="text-center text-muted mt-2 mb-0 whatsapp-footer-note small">
                 {{ __('adminlte::adminlte.whatsapp_footer') }}
