@@ -124,3 +124,39 @@
 #promo-message.text-danger {
   color: #dc3545 !important;
 }
+
+:root {
+  --tour-carousel-h: 350px;
+}
+
+/* Miniaturas comunes */
+.thumb-img {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color .2s, transform .2s;
+}
+.thumb-img.active {
+  border-color: var(--bs-primary);
+}
+.thumb-img:hover {
+  transform: scale(1.03);
+}
+
+/* Desktop: columna vertical */
+.thumbs-desktop {
+  width: 80px;
+}
+
+/* Móvil: fila horizontal */
+.thumbs-mobile {
+  white-space: nowrap;
+  padding-left: .25rem;
+}
+.thumbs-mobile .thumb-img {
+  margin-right: .5rem;
+}

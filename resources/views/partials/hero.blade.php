@@ -7,3 +7,6 @@
         </div>
     </div>
 
+    <div class="hero-image">
+        <img src="{{ asset('images/hero.jpg') }}" alt="{{ __('adminlte::adminlte.hero_image_alt') }}" class="img-fluid">
+    </div>

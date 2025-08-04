@@ -1,0 +1,51 @@
+:root {
+  --tour-h: 360px;
+  --thumb-size: 110px;
+  --brand: #198754;
+}
+
+/* Imagen principal */
+#tourCarousel .carousel-item img {
+  object-fit: cover;
+}
+
+/*—— MINIATURAS desktop ——*/
+.thumb-box img {
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  object-fit: cover;
+  border-radius: .45rem;
+  border: 2px solid transparent;
+  transition: border-color .25s;
+  box-shadow: 0 0 4px rgba(0,0,0,.12);
+}
+.thumb-box img:hover,
+.thumb-box img.active {
+  border-color: var(--brand);
+}
+
+/*—— CONTROLES ——*/
+#tourCarousel .carousel-control-prev,
+#tourCarousel .carousel-control-next {
+  opacity: 0;
+  transition: opacity .2s;
+}
+#tourCarousel:hover .carousel-control-prev,
+#tourCarousel:hover .carousel-control-next {
+  opacity: 1;
+}
+
+/*—— INDICADORES móvil (usando Bootstrap nativo) ——*/
+.carousel-indicators.d-md-none button {
+  width: 10px;
+  height: 10px;
+  margin: 0 4px;
+  background: #adb5bd;
+  border-radius: 50%;
+  opacity: .6;
+  border: none;
+}
+.carousel-indicators.d-md-none .active {
+  background: var(--brand);
+  opacity: 1;
+}
