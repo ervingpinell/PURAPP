@@ -1,4 +1,4 @@
-<h2>{{ __('adminlte::adminlte.our_tours') }}</h2>
+<h2 class="big-title text-center" style="color: var(--primary-dark);">{{ __('adminlte::adminlte.our_tours') }}</h2>
 
 <div class="tour-cards">
     @foreach (['Full Day' => '6 - 9 Horas', 'Half Day' => '2 - 4 Horas'] as $type => $duration)

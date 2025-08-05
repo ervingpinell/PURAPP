@@ -1,4 +1,4 @@
-<h2 class="big-title text-center">
+<h2 class="big-title text-center" style="color: var(--primary-dark);">
     {{ __('adminlte::adminlte.what_visitors_say') }}
 </h2>
 
