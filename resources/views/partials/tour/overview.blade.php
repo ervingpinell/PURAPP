@@ -1,4 +1,7 @@
-<h1 class="fw-bold">{{ $tour->translated_name }}</h1>
-<p class="text-muted">{{ $tour->tourType->name ?? '' }}</p>
-<h2>{{ __('adminlte::adminlte.overview') }}</h2>
-<p>{!! nl2br(e($tour->translated_overview)) !!}</p>
+<h2 class="fw-bold mb-1">{{ $tour->translated_name }}</h2>
+<p class="text-muted mb-2" style="font-size: 0.95rem;">{{ $tour->tourType->name ?? '' }}</p>
+
+<h4 class="fw-semibold mb-2">Resumen</h4>
+<div style="font-size: 0.92rem; color: #333; line-height: 1.6;">
+  {!! nl2br(e($tour->translated_overview)) !!}
+</div>

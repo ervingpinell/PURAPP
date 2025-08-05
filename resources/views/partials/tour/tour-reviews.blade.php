@@ -2,7 +2,7 @@
 <div class="col-md-12 my-5">
   {{-- 🧾 Título --}}
   <div class="text-center mb-4">
-    <h2 class="fw-bold text-success">
+    <h2 class="fw-bold" style="color: #256d1b">
       {{ __(key: 'adminlte::adminlte.what_customers_thinks_about') }}
     </h2>
     <h3 class="text-secondary">

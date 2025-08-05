@@ -1,12 +1,12 @@
 <form action="{{ route('carrito.agregar', $tour->tour_id) }}" method="POST"
-  class="reservation-box p-4 shadow rounded bg-white mb-4 border"
+  class="reservation-box p-3 shadow-sm rounded bg-white mb-4 border"
   data-adult-price="{{ $tour->adult_price }}"
   data-kid-price="{{ $tour->kid_price }}">
   @csrf
   <input type="hidden" name="tour_id" value="{{ $tour->tour_id }}">
 
   {{-- ✅ Price Section --}}
-  <h3 class="fw-bold mb-2">{{ __('adminlte::adminlte.price') }}</h3>
+  <h3 class="fw-bold fs-5 mb-2">{{ __('adminlte::adminlte.price') }}</h3>
   <div class="price-breakdown mb-3">
     <span class="fw-bold">{{ __('adminlte::adminlte.adult') }}:</span>
     <span class="price-adult fw-bold">${{ number_format($tour->adult_price, 2) }}</span> |
@@ -28,8 +28,8 @@
   </div>
 
   {{-- ✅ Total dinámico --}}
-  <p class="fw-bold mb-3">
-    {{ __('adminlte::adminlte.total') }}: <span id="reservation-total-price" style="color:#F92526;">$0.00</span>
+<p class="fw-bold mb-3" style="font-size: 1rem;">
+    {{ __('adminlte::adminlte.total') }}: <span id="reservation-total-price" style="color:#F92526; font-weight: bold;">$0.00</span>
   </p>
 
   {{-- ✅ Fecha --}}

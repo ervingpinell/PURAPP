@@ -13,7 +13,7 @@
     }
 
     // Aseguramos al menos 3 slides
-    while (count($images) < 3) {
+    while (count($images) < 4) {
         $images[] = $images[0];
     }
 @endphp
@@ -21,8 +21,9 @@
 <div id="tourCarousel"
      class="carousel slide shadow rounded mb-4"
      data-bs-ride="carousel"
-     style="height: var(--tour-h);"
->
+     style="height: 462px; max-height: 462px; min-height: 462px;">
+
+
   <div class="row gx-2 h-100 flex-column-reverse flex-md-row">
 
     {{-- ■■■ MINIATURAS DESKTOP ■■■ --}}

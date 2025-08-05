@@ -1,3 +1,9 @@
+:root {
+  --carousel-height: 470px;
+  --thumb-size: 110px;
+  --primary-color: #2c6e49;
+}
+
 /* === GENERAL === */
 section {
   padding: 3rem 0;
@@ -6,21 +12,21 @@ section {
 
 h1 {
   color: #222;
-  font-size: 1.7rem !important;
+  font-size: 1.7rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
 }
 
 h2 {
   color: #222;
-  font-size: 1.4rem !important;
+  font-size: 1.4rem;
   font-weight: 600;
   margin: 1rem 0 0.5rem 0;
 }
 
 h3 {
   color: #222;
-  font-size: 1.25rem !important;
+  font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
 }
@@ -43,20 +49,14 @@ p {
 
 /* === CARRUSEL === */
 #tourCarousel {
-  height: 350px;
+  height: var(--carousel-height);
+  min-height: var(--carousel-height);
+  max-height: var(--carousel-height);
 }
 
-#tourCarousel .carousel-inner {
-  height: 100%;
-  overflow: hidden;
-}
-
-#tourCarousel .carousel-item {
-  height: 100%;
-}
-
+#tourCarousel .carousel-inner,
+#tourCarousel .carousel-item,
 .main-carousel-img {
-  width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: 10px;
@@ -69,20 +69,29 @@ p {
   gap: 8px;
 }
 
-.carousel-thumbnails .thumb-img {
-  flex: 1;
+.carousel-thumbnails .thumb-img,
+.thumb-box img {
+  width: var(--thumb-size);
+  height: var(--thumb-size);
   object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  transition: border-color .2s;
   cursor: pointer;
-  border-radius: 6px;
 }
 
-.carousel-thumbnails .thumb-img:hover {
-  border: 2px solid var(--primary-color);
+.thumb-box img:hover,
+.thumb-box img.active {
+  border-color: var(--primary-color);
 }
 
 @media (max-width: 768px) {
-  .carousel-thumbnails { display: none; }
-  #tourCarousel { height: 400px; }
+  .carousel-thumbnails {
+    display: none;
+  }
+  #tourCarousel {
+    height: 400px;
+  }
 }
 
 /* === RESERVATION BOX === */
@@ -90,6 +99,7 @@ p {
   border: 1px solid #ddd;
   border-radius: 8px;
   background: #fff;
+  padding: 1rem;
 }
 
 .reservation-box h3 {
@@ -133,7 +143,7 @@ p {
 }
 
 .btn-success {
-  background: #2c6e49;
+  background: var(--primary-color);
   border: none;
 }
 
@@ -147,13 +157,15 @@ p {
   border-radius: 8px;
   background: #fff;
   padding: 1rem;
+  min-height: 100%; /* Se adapta al contenedor para alineación */
 }
 
 .languages-schedules-box h3 {
   font-size: 1.25rem;
-  border-bottom: 2px solid #2c6e49;
+  border-bottom: 2px solid var(--primary-dark) !important;
   display: inline-block;
   padding-bottom: 0.2rem;
+  color: var(--primary-dark) !important;
 }
 
 .languages-schedules-box h4 {
@@ -169,7 +181,7 @@ p {
 
 .languages-schedules-box .badge {
   font-size: 0.75rem;
-  background: #2c6e49 !important;
+  background: var(--primary-dark) !important;
   margin-right: 0.25rem;
 }
 
@@ -192,7 +204,7 @@ p {
 .timeline-marker {
   position: absolute;
   left: -12px;
-  background: #2c6e49;
+  background: var(--primary-dark);
   color: #fff;
   border-radius: 50%;
   width: 22px;
@@ -246,8 +258,16 @@ p {
 
 /* === RESPONSIVE === */
 @media (max-width: 768px) {
-  .tour-section h1 { font-size: 1.75rem; }
-  .tour-section h2 { font-size: 1.25rem; }
-  .reservation-box { margin-top: 1.5rem; }
-  .languages-schedules-box { margin-top: 1rem; }
+  .tour-section h1 {
+    font-size: 1.75rem;
+  }
+  .tour-section h2 {
+    font-size: 1.25rem;
+  }
+  .reservation-box {
+    margin-top: 1.5rem;
+  }
+  .languages-schedules-box {
+    margin-top: 1rem;
+  }
 }
