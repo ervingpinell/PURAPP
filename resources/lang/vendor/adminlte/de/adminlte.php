@@ -234,6 +234,7 @@ return [
     'select_option' => 'Option auswählen',
     'hours' => 'Stunden',
     'faqpage' => 'Häufige Fragen',
+    'no_faqs_available'=> 'Keine häufigen Fragen verfügbar.',
 
     // ─── REISEGRUPPE ───────────────────────────────────
     'select_travelers' => 'Reisende auswählen',

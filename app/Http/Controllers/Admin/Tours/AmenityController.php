@@ -1,7 +1,7 @@
 <?php
 
     namespace App\Http\Controllers\Admin\Tours;
-use App\Services\TranslationService;
+    use App\Services\GoogleTranslationService;
     use App\Http\Controllers\Controller;
     use Illuminate\Http\Request;
     use App\Models\Amenity;
@@ -15,7 +15,7 @@ use App\Services\TranslationService;
             return view('admin.tours.amenities.index', compact('amenities'));
         }
 
-public function store(Request $request, TranslationService $translator)
+public function store(Request $request, GoogleTranslationService $translator)
 {
     $request->validate([
         'name' => 'required|string|max:255|unique:amenities,name',

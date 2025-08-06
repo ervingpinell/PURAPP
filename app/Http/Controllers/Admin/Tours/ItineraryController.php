@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Exception;
 use Illuminate\Support\Facades\Validator;
-use App\Services\TranslationService;
+use App\Services\GoogleTranslationService;
 
 class ItineraryController extends Controller
 {
@@ -25,7 +25,7 @@ class ItineraryController extends Controller
         return view('admin.tours.itinerary.index', compact('itineraries', 'items'));
     }
 
-public function store(Request $request, TranslationService $translator)
+public function store(Request $request, GoogleTranslationService $translator)
 {
     $request->validate([
         'name' => 'required|string|max:255|unique:itineraries,name',

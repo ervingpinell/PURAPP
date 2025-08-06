@@ -706,6 +706,12 @@ margin-top: 0.8rem;
 
     @media (max-width: 768px) {
 
+        .big-title {
+    font-size: 1.8rem;
+    color: #256d1b;
+    margin-bottom: 2rem;
+    font-weight: 700;
+}
   .tour-cards {
     display: flex;
     flex-wrap: wrap;
