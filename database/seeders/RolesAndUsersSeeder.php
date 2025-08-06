@@ -33,6 +33,13 @@ class RolesAndUsersSeeder extends Seeder
                 'password'=>Hash::make('-12345678.'),
                 'role_id'=>1, 'phone'=>'72612748',
                 'status'=>true, 'is_active'=>true, 'created_at'=>$now, 'updated_at'=>$now
+            ],
+                        [
+                'full_name'=>'Admin',
+                'email'=>'info@greenvacationscr.com',
+                'password'=>Hash::make('Green1974*'),
+                'role_id'=>1, 'phone'=>'24791471',
+                'status'=>true, 'is_active'=>true, 'created_at'=>$now, 'updated_at'=>$now
             ]
         ]);
     }

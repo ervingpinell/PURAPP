@@ -246,6 +246,7 @@ return [
     'select_option' => 'Sélectionnez une option',
     'hours' => 'heures',
         'faqpage'=> 'Questions Fréquemment Posées',
+                'no_faqs_available'=> 'Aucune question fréquente disponible.',
 
     'select_travelers'     => 'Sélectionner les voyageurs',
 'max_travelers_info'   => 'Vous pouvez sélectionner jusqu’à 12 voyageurs au total.',
