@@ -13,7 +13,18 @@ class TourExcludedDateController extends Controller
 {
    public function index(Request $request)
     {
-        $excludedDates = TourExcludedDate::with(['tour', 'schedule'])->get();
+        // Filtros desde formulario
+        $filterStart = $request->input('filter_start_date');
+        $filterEnd = $request->input('filter_end_date');
+
+        // Consulta con filtros aplicados solo si existen
+        $excludedDates = TourExcludedDate::with(['tour', 'schedule'])
+            ->when($filterStart, fn($q) => $q->where('start_date', '>=', $filterStart))
+            ->when($filterEnd, fn($q) => $q->where('end_date', '<=', $filterEnd))
+            ->orderBy('start_date', 'desc')
+            ->get();
+
+        // Obtener todos los tours con horarios
         $tours = Tour::with('schedules')->get();
 
         // Agrupar tours por hora
@@ -38,6 +49,7 @@ class TourExcludedDateController extends Controller
             'groupedTours'
         ));
     }
+
 
 
     public function store(Request $request)

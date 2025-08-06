@@ -88,6 +88,30 @@
     @endforeach
 @endif
 
+<form method="GET" class="row g-3 mb-4">
+    <div class="col-md-3">
+        <label for="filter_start_date">Filtrar desde</label>
+        <input type="date" name="filter_start_date" id="filter_start_date" class="form-control"
+               value="{{ request('filter_start_date') }}">
+    </div>
+    <div class="col-md-3">
+        <label for="filter_end_date">Filtrar hasta</label>
+        <input type="date" name="filter_end_date" id="filter_end_date" class="form-control"
+               value="{{ request('filter_end_date') }}">
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary w-100" type="submit">
+            <i class="fas fa-filter"></i> Filtrar
+        </button>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <a href="{{ route('admin.tours.excluded_dates.index') }}" class="btn btn-secondary w-100">
+            <i class="fas fa-undo"></i> Reset
+        </a>
+    </div>
+</form>
+
+
 <!-- Tabla de fechas bloqueadas -->
 <table class="table table-bordered table-hover mt-4">
     <thead class="table-dark">
