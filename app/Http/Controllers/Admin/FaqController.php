@@ -5,7 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Faq;
 use App\Models\FaqTranslation;
 use Illuminate\Http\Request;
-use App\Services\TranslationService;
+use App\Services\GoogleTranslationService;
 
 class FaqController extends Controller
 {
@@ -15,7 +15,7 @@ class FaqController extends Controller
         return view('admin.faqs.index', compact('faqs'));
     }
 
-    public function store(Request $request, TranslationService $translator)
+    public function store(Request $request, GoogleTranslationService $translator)
     {
         $request->validate([
             'question' => 'required|string|max:255',
