@@ -6,8 +6,9 @@ export default defineConfig({
         host: '0.0.0.0', // Use '127.0.0.1' or 0.0.0.0 for external access'
         port: 5173,
         strictPort: true,
+          cors: true, //eliminar el CORS para producción
          hmr: { //Eliminar el HMR para producción
-            host: '192.168.100.129', // ✅ Tu IP local AQUÍ #BORRAR PARA PRODUÇÃO
+            host: '192.168.100.131', // ✅ Borrar para producción
         },//Eliminar el HMR para producción
     },
     plugins: [

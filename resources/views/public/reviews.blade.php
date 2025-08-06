@@ -12,7 +12,7 @@
 
 @section('content')
 <div class="container py-5">
-    <h2 class="text-center mb-5">Customers Reviews</h2>
+    <h2 class="big-title text-center mb-5">{{ __('adminlte::adminlte.reviews') }}</h2>
 
     <div class="review-grid">
         @foreach ($tours as $tour)
