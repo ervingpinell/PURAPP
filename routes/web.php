@@ -166,6 +166,8 @@ Route::get('/cart/count', [CartController::class, 'count'])
         // Fechas excluidas públicas
         Route::post('/tour-excluded/block-all', [TourExcludedDateController::class, 'storeMultiple'])->name('tour-excluded.store-multiple');
         Route::post('/tour-excluded/block-all-all', [TourExcludedDateController::class, 'blockAll'])->name('tour-excluded.block-all');
+        Route::delete('tours/excluded-dates/delete-all', [TourExcludedDateController::class, 'destroyAll'])->name('tours.excluded_dates.destroyAll');
+        Route::delete('tours/excluded-dates/delete-selected', [TourExcludedDateController::class, 'destroySelected'])->name('tours.excluded_dates.destroySelected');
 
         // Reservaciones
         Route::get('/reservas/excel', [BookingController::class, 'generarExcel'])->name('reservas.excel');
