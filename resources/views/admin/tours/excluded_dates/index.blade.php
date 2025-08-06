@@ -22,11 +22,11 @@
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         <label>Fecha inicio</label>
-        <input type="date" id="global_start_date" class="form-control">
+        <input type="date" id="start_date" class="form-control">
     </div>
     <div class="col-md-3">
         <label>Fecha fin</label>
-        <input type="date" id="global_end_date" class="form-control">
+        <input type="date" id="end_date" class="form-control">
     </div>
     <div class="col-md-4">
         <label>Motivo</label>
@@ -40,6 +40,11 @@
     <div class="col-md-1 d-flex align-items-end">
         <button id="blockSelectedBtn" class="btn btn-warning w-100">
             <i class="fas fa-check-double"> Block Selected</i>
+        </button>
+    </div>
+    <div class="col-md-1 d-flex align-items-end">
+        <button id="selectAllToursBtn" class="btn btn-info w-100">
+            <i class="fas fa-check-square"></i> Select All
         </button>
     </div>
 </div>
@@ -83,10 +88,37 @@
     @endforeach
 @endif
 
+<form method="GET" class="row g-3 mb-4">
+    <div class="col-md-3">
+        <label for="filter_start_date">Filtrar desde</label>
+        <input type="date" name="filter_start_date" id="filter_start_date" class="form-control"
+               value="{{ request('filter_start_date') }}">
+    </div>
+    <div class="col-md-3">
+        <label for="filter_end_date">Filtrar hasta</label>
+        <input type="date" name="filter_end_date" id="filter_end_date" class="form-control"
+               value="{{ request('filter_end_date') }}">
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary w-100" type="submit">
+            <i class="fas fa-filter"></i> Filtrar
+        </button>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <a href="{{ route('admin.tours.excluded_dates.index') }}" class="btn btn-secondary w-100">
+            <i class="fas fa-undo"></i> Reset
+        </a>
+    </div>
+</form>
+
+
 <!-- Tabla de fechas bloqueadas -->
 <table class="table table-bordered table-hover mt-4">
     <thead class="table-dark">
         <tr>
+            <th>
+                <input type="checkbox" id="selectAll"> Select All
+            </th>
             <th>Tour</th>
             <th>Horario</th>
             <th>Desde</th>
@@ -98,6 +130,9 @@
     <tbody>
         @forelse($excludedDates as $date)
             <tr>
+                <td>
+                    <input type="checkbox" class="date-checkbox" value="{{ $date->tour_excluded_date_id }}">
+                </td>
                 <td>{{ optional($date->tour)->name ?? '-' }}</td>
                 <td>{{ optional($date->schedule)->start_time ?? '-' }}</td>
                 <td>{{ $date->start_date }}</td>
@@ -105,7 +140,7 @@
                 <td>{{ $date->reason ?? '-' }}</td>
                 <td>
                     <form action="{{ route('admin.tours.excluded_dates.destroy', $date->tour_excluded_date_id) }}"
-                          method="POST" class="d-inline form-delete">
+                        method="POST" class="d-inline form-delete">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-sm">
@@ -116,11 +151,32 @@
             </tr>
         @empty
             <tr>
-                <td colspan="6" class="text-center">No hay fechas bloqueadas registradas.</td>
+                <td colspan="7" class="text-center">No hay fechas bloqueadas registradas.</td>
             </tr>
         @endforelse
     </tbody>
+
 </table>
+
+<!-- Botón para seleccionar/deseleccionar todas las fechas -->
+ <form id="form-delete-selected" method="POST">
+    @csrf
+    <button type="button" id="deleteSelectedBtn" class="btn btn-warning shadow"
+        style="position: fixed; bottom: 90px; right: 30px; z-index: 999;">
+        <i class="fas fa-check"></i> Eliminar seleccionadas
+    </button>
+</form>
+
+<!-- Boton de eliminar flotante -->
+<form id="form-delete-all" action="{{ route('admin.tours.excluded_dates.destroyAll') }}" method="POST">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="btn btn-danger shadow"
+        style="position: fixed; bottom: 30px; right: 30px; z-index: 999;">
+        <i class="fas fa-trash-alt"></i> Eliminar todas
+    </button>
+</form>
+
 
 @stop
 
@@ -141,8 +197,8 @@
 <script>
     function getGlobalDates() {
         return {
-            start: document.getElementById('global_start_date').value,
-            end: document.getElementById('global_end_date').value,
+            start: document.getElementById('start_date').value,
+            end: document.getElementById('end_date').value,
             reason: document.getElementById('global_reason').value
         };
     }
@@ -303,5 +359,96 @@
             });
         });
     });
+
+    // Confirmación al eliminar todas las fechas bloqueadas
+    document.getElementById('form-delete-all')?.addEventListener('submit', function (e) {
+        e.preventDefault();
+        Swal.fire({
+            title: '¿Eliminar TODAS las fechas bloqueadas?',
+            text: 'Esta acción eliminará todos los bloqueos registrados.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar todo',
+            cancelButtonText: 'Cancelar'
+        }).then(result => {
+            if (result.isConfirmed) {
+                this.submit();
+            }
+        });
+    });
+
+    // Seleccionar/Deseleccionar todas las fechas
+    // Seleccionar todos
+    document.getElementById('selectAll')?.addEventListener('change', function () {
+        const checkboxes = document.querySelectorAll('.date-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+
+    // Eliminar seleccionadas
+    document.getElementById('deleteSelectedBtn')?.addEventListener('click', function () {
+        const selected = Array.from(document.querySelectorAll('.date-checkbox:checked'))
+            .map(cb => cb.value);
+
+        if (selected.length === 0) {
+            return Swal.fire('Nada seleccionado', 'Selecciona al menos una fecha para eliminar.', 'info');
+        }
+
+        Swal.fire({
+            title: `¿Eliminar ${selected.length} fechas seleccionadas?`,
+            text: 'Esta acción no se puede deshacer.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then(result => {
+            if (result.isConfirmed) {
+                fetch("{{ route('admin.tours.excluded_dates.destroySelected') }}", {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    },
+                    body: JSON.stringify({ ids: selected })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire('Eliminado', data.success, 'success')
+                            .then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', data.error || 'No se pudo eliminar.', 'error');
+                    }
+                })
+                .catch(() => Swal.fire('Error', 'Error inesperado al eliminar.', 'error'));
+            }
+        });
+    });
+    // ✅ Seleccionar todos los tours
+    document.getElementById('selectAllToursBtn')?.addEventListener('click', function () {
+        const checkboxes = document.querySelectorAll('.tour-checkbox');
+        let allSelected = true;
+
+        // Detecta si ya están todos seleccionados
+        checkboxes.forEach(cb => {
+            if (!cb.checked) allSelected = false;
+        });
+
+        checkboxes.forEach(cb => {
+            cb.checked = !allSelected; // Toggle: selecciona si hay alguno sin marcar
+        });
+
+        Swal.fire({
+            icon: 'info',
+            title: allSelected ? 'Tours deseleccionados' : 'Todos los tours seleccionados',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    });
+
+
 </script>
 @stop

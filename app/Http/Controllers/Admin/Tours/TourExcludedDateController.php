@@ -13,7 +13,18 @@ class TourExcludedDateController extends Controller
 {
    public function index(Request $request)
     {
-        $excludedDates = TourExcludedDate::with(['tour', 'schedule'])->get();
+        // Filtros desde formulario
+        $filterStart = $request->input('filter_start_date');
+        $filterEnd = $request->input('filter_end_date');
+
+        // Consulta con filtros aplicados solo si existen
+        $excludedDates = TourExcludedDate::with(['tour', 'schedule'])
+            ->when($filterStart, fn($q) => $q->where('start_date', '>=', $filterStart))
+            ->when($filterEnd, fn($q) => $q->where('end_date', '<=', $filterEnd))
+            ->orderBy('start_date', 'desc')
+            ->get();
+
+        // Obtener todos los tours con horarios
         $tours = Tour::with('schedules')->get();
 
         // Agrupar tours por hora
@@ -38,6 +49,7 @@ class TourExcludedDateController extends Controller
             'groupedTours'
         ));
     }
+
 
 
     public function store(Request $request)
@@ -85,7 +97,8 @@ class TourExcludedDateController extends Controller
             ->with('success', 'Fecha bloqueada actualizada correctamente.');
     }
     public function blockAll(Request $request)
-    {
+{
+    try {
         $request->validate([
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
@@ -93,49 +106,65 @@ class TourExcludedDateController extends Controller
         ]);
 
         $start = $request->start_date;
-        $end = $request->end_date;
+        $end = $request->end_date ?? $start;
         $reason = $request->reason ?? 'Bloqueo total';
 
         $tours = Tour::with('schedules')->get();
+        $period = \Carbon\CarbonPeriod::create($start, $end);
 
         foreach ($tours as $tour) {
             foreach ($tour->schedules as $schedule) {
-                // ✅ Registrar TourAvailability
-                TourAvailability::create([
-                    'tour_id' => $tour->tour_id,
-                    'schedule_id' => $schedule->schedule_id,
-                    'date' => $start,
-                    'is_available' => false,
-                    'reason' => $reason,
-                ]);
+                foreach ($period as $date) {
+                    TourAvailability::updateOrCreate([
+                        'tour_id' => $tour->tour_id,
+                        'schedule_id' => $schedule->schedule_id,
+                        'date' => $date->format('Y-m-d'),
+                    ], [
+                        'is_available' => false,
+                        'reason' => $reason,
+                    ]);
 
-                // ✅ Registrar en TourExcludedDate también
-                \App\Models\TourExcludedDate::create([
-                    'tour_id' => $tour->tour_id,
-                    'schedule_id' => $schedule->schedule_id,
-                    'start_date' => $start,
-                    'end_date' => $end,
-                    'reason' => $reason,
-                ]);
-
-                // Si hay rango
-                if ($end && $end !== $start) {
-                    $period = CarbonPeriod::create($start, $end);
-                    foreach ($period as $date) {
-                        TourAvailability::updateOrCreate([
-                            'tour_id' => $tour->tour_id,
-                            'schedule_id' => $schedule->schedule_id,
-                            'date' => $date->format('Y-m-d'),
-                        ], [
-                            'is_available' => false,
-                            'reason' => $reason,
-                        ]);
-                    }
+                    TourExcludedDate::create([
+                        'tour_id' => $tour->tour_id,
+                        'schedule_id' => $schedule->schedule_id,
+                        'start_date' => $date->format('Y-m-d'),
+                        'end_date' => $date->format('Y-m-d'),
+                        'reason' => $reason,
+                    ]);
                 }
             }
         }
 
         return response()->json(['success' => true]);
+    } catch (\Throwable $e) {
+        // 🔴 Esto enviará el error real al frontend
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(), // opcional para debugging avanzado
+        ], 500);
     }
+}
+
+
+    public function destroyAll()
+    {
+        \App\Models\TourExcludedDate::truncate(); // Elimina todos los registros
+        return redirect()->back()->with('success', 'Todas las fechas bloqueadas han sido eliminadas.');
+    }
+    public function destroySelected(Request $request)
+    {
+        $ids = $request->input('ids');
+
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json(['error' => 'No se proporcionaron fechas a eliminar.'], 400);
+        }
+
+        \App\Models\TourExcludedDate::whereIn('tour_excluded_date_id', $ids)->delete();
+
+        return response()->json(['success' => 'Fechas eliminadas correctamente.']);
+    }
+
+
 
 }
