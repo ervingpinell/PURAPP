@@ -88,28 +88,43 @@
     @endforeach
 @endif
 
-<form method="GET" class="row g-3 mb-4">
-    <div class="col-md-3">
-        <label for="filter_start_date">Filtrar desde</label>
+<form method="GET" class="d-flex flex-column align-items-center mb-5">
+    <div class="mb-3 text-center">
+        <label for="filter_start_date" class="form-label fw-bold">Filtrar desde:</label>
         <input type="date" name="filter_start_date" id="filter_start_date" class="form-control"
-               value="{{ request('filter_start_date') }}">
+               style="min-width: 280px;" value="{{ request('filter_start_date') }}">
     </div>
-    <div class="col-md-3">
-        <label for="filter_end_date">Filtrar hasta</label>
+
+    <div class="mb-3 text-center">
+        <label for="filter_end_date" class="form-label fw-bold">Filtrar hasta:</label>
         <input type="date" name="filter_end_date" id="filter_end_date" class="form-control"
-               value="{{ request('filter_end_date') }}">
+               style="min-width: 280px;" value="{{ request('filter_end_date') }}">
     </div>
-    <div class="col-md-2 d-flex align-items-end">
-        <button class="btn btn-primary w-100" type="submit">
-            <i class="fas fa-filter"></i> Filtrar
+
+    <div class="mb-3 text-center">
+        <label for="filter_tour_id" class="form-label fw-bold">Filtrar por tour:</label>
+        <select name="filter_tour_id" id="filter_tour_id" class="form-select"
+                style="min-width: 280px;">
+            <option value="">-- Todos los tours --</option>
+            @foreach($tours as $tour)
+                <option value="{{ $tour->tour_id }}" {{ request('filter_tour_id') == $tour->tour_id ? 'selected' : '' }}>
+                    {{ $tour->name }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+
+    <div class="d-flex justify-content-center gap-3">
+        <button class="btn btn-primary" type="submit">
+            <i class="fas fa-search"></i> Buscar
         </button>
-    </div>
-    <div class="col-md-2 d-flex align-items-end">
-        <a href="{{ route('admin.tours.excluded_dates.index') }}" class="btn btn-secondary w-100">
-            <i class="fas fa-undo"></i> Reset
+        <a href="{{ route('admin.tours.excluded_dates.index') }}" class="btn btn-secondary">
+            <i class="fas fa-undo"></i> Limpiar
         </a>
     </div>
 </form>
+
+
 
 
 <!-- Tabla de fechas bloqueadas -->
@@ -157,6 +172,17 @@
     </tbody>
 
 </table>
+@if ($excludedDates->lastPage() > 1)
+    <nav class="mt-4 d-flex justify-content-center">
+        <ul class="pagination">
+            @for ($i = 1; $i <= $excludedDates->lastPage(); $i++)
+                <li class="page-item {{ $i == $excludedDates->currentPage() ? 'active' : '' }}">
+                    <a class="page-link" href="{{ $excludedDates->url($i) }}">{{ $i }}</a>
+                </li>
+            @endfor
+        </ul>
+    </nav>
+@endif
 
 <!-- Botón para seleccionar/deseleccionar todas las fechas -->
  <form id="form-delete-selected" method="POST">
