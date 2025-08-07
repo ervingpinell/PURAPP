@@ -6,79 +6,155 @@
     <h1>Itinerarios y Gestión de Ítems</h1>
 @stop
 
+@push('css')
+<style>
+    .sortable-items .handle {
+        cursor: move;
+    }
+
+    .itinerary-collapse {
+        overflow: hidden;
+        transition: max-height 0.4s ease, opacity 0.4s ease;
+        opacity: 1;
+        max-height: 1000px;
+    }
+
+    .itinerary-collapse.collapsed {
+        opacity: 0;
+        max-height: 0;
+    }
+
+    .card-header {
+        padding: 1rem;
+    }
+
+    .card.mb-3 {
+        margin-bottom: 1.5rem !important;
+    }
+
+    .card-header .btn {
+        min-width: 100px;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .itinerary-title {
+        max-width: 60vw;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+/* Espaciado entre botones */
+.btn-action-group > .btn {
+    margin-left: 0.5rem;
+}
+.btn-action-group > *:not(:first-child) {
+    margin-left: 0.5rem;
+}
+
+
+    .icon-toggle {
+        color: #00bc8c;
+        margin-right: 0.75rem;
+    }
+</style>
+@endpush
+
 @section('content')
 @php
     $itineraryToEdit = request('itinerary_id');
 @endphp
+@if(session('success'))
+    <div class="alert alert-success">{{ session('success') }}</div>
+@endif
 
+@if(session('error'))
+    <div class="alert alert-danger">{{ session('error') }}</div>
+@endif
+
+@if($errors->any())
+    <div class="alert alert-danger">
+        <ul class="mb-0">
+            @foreach($errors->all() as $e)
+                <li>{{ $e }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 <div class="p-3">
     <a href="#" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalCrearItinerario">
         <i class="fas fa-plus"></i> Nuevo Itinerario
     </a>
 
-    @foreach($itineraries as $index => $itinerary)
+    @foreach($itineraries as $itinerary)
         @php
-    $openEditModal = $itineraryToEdit && $itineraryToEdit == $itinerary->itinerary_id;
-    $expandItinerary = $openEditModal;
-
-
+            $openEditModal = $itineraryToEdit && $itineraryToEdit == $itinerary->itinerary_id;
+            $expandItinerary = $openEditModal;
         @endphp
 
         <div class="card mb-3" id="card-itinerary-{{ $itinerary->itinerary_id }}">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <button class="btn btn-link text-start text-decoration-none d-flex align-items-center gap-2"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseItinerary{{ $itinerary->itinerary_id }}"
-                        aria-expanded="{{ $expandItinerary ? 'true' : 'false' }}"
-                        aria-controls="collapseItinerary{{ $itinerary->itinerary_id }}">
-                        <span class="d-flex align-items-center">
-                            <i class="fas {{ $expandItinerary ? 'fa-minus' : 'fa-plus' }} icon-toggle"
-                               style="color:#00bc8c; margin-right: 0.5rem;"
-                               id="iconToggle{{ $itinerary->itinerary_id }}"></i>
-                            <h5 class="mb-0" style="color:#dee2e6">{{ $itinerary->name }}</h5>
-                        </span>
-                </button>
-
-                <div>
-                    <a href="#" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalAsignar{{ $itinerary->itinerary_id }}">
-                        <i class="fas fa-link"></i> Asignar Ítems
-                    </a>
-                    <a href="#" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $itinerary->itinerary_id }}">
-                        <i class="fas fa-edit"></i>
-                    </a>
-                    <form action="{{ route('admin.tours.itinerary.destroy', $itinerary->itinerary_id) }}" method="POST" style="display:inline-block">
-                        @csrf
-                        @method('DELETE')
-                        @php
-                            $active = $itinerary->is_active;
-                            $btnClass = $active ? 'btn-danger' : 'btn-success';
-                            $icon    = $active ? 'fa-times-circle' : 'fa-check-circle';
-                            $text    = $active ? 'Desactivar este itinerario?' : 'Activar este itinerario?';
-                        @endphp
-                        <button class="btn btn-sm {{ $btnClass }}"
-                                onclick="return confirm('{{ $text }}')"
-                                title="{{ $active ? 'Desactivar' : 'Activar' }}">
-                            <i class="fas {{ $icon }}"></i>
-                        </button>
-                    </form>
-
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                <div class="d-flex align-items-center flex-grow-1">
+                    <button type="button"
+                            class="btn btn-link toggle-itinerary-btn text-start text-decoration-none d-flex align-items-center"
+                            data-target="collapseItinerary{{ $itinerary->itinerary_id }}">
+                        <i class="fas icon-toggle {{ $expandItinerary ? 'fa-minus' : 'fa-plus' }}"></i>
+                        <h5 class="mb-0 text-light itinerary-title">{{ $itinerary->name }}</h5>
+                    </button>
                 </div>
+
+<div class="d-flex align-items-center btn-action-group ms-auto mt-2 mt-md-0">
+
+    {{-- Asignar Ítems --}}
+    <a href="#" class="btn btn-sm btn-success"
+       data-bs-toggle="modal"
+       data-bs-target="#modalAsignar{{ $itinerary->itinerary_id }}">
+        Asignar
+    </a>
+
+    {{-- Editar --}}
+    <a href="#" class="btn btn-sm btn-warning"
+       data-bs-toggle="modal"
+       data-bs-target="#modalEditar{{ $itinerary->itinerary_id }}">
+        Editar
+    </a>
+
+    {{-- Activar / Desactivar --}}
+    <form action="{{ route('admin.tours.itinerary.destroy', $itinerary->itinerary_id) }}"
+          method="POST" style="display:inline;">
+        @csrf
+        @method('DELETE')
+        @php
+            $active = $itinerary->is_active;
+            $btnClass = $active ? 'btn-danger' : 'btn-success';
+            $text    = $active ? '¿Desactivar este itinerario?' : '¿Activar este itinerario?';
+            $label   = $active ? 'Desactivar' : 'Activar';
+        @endphp
+        <button class="btn btn-sm {{ $btnClass }}" onclick="return confirm('{{ $text }}')">
+            {{ $label }}
+        </button>
+    </form>
+
+</div>
+
             </div>
 
             <div id="collapseItinerary{{ $itinerary->itinerary_id }}"
-                 class="collapse {{ $expandItinerary ? 'show' : '' }}">
+                 class="itinerary-collapse {{ $expandItinerary ? '' : 'collapsed' }}">
                 <div class="card-body">
-                    @if ($itinerary->items->isEmpty())
-                        <p class="text-muted">No hay ítems asignados a este itinerario.</p>
-                    @else
+                    @if (!empty($itinerary->description))
                         <div class="mb-2">
                             <h6 class="text-muted">{!! nl2br(e($itinerary->description)) !!}</h6>
                         </div>
+                    @endif
+
+                    @if ($itinerary->items->isEmpty())
+                        <p class="text-muted">No hay ítems asignados a este itinerario.</p>
+                    @else
                         <ul class="list-group">
                             @foreach ($itinerary->items->sortBy('order') as $item)
                                 <li class="list-group-item">
                                     <strong>{{ $item->title }}</strong><br>
-                                    <span class="text-muted">{{ $item->description }}</span>
                                 </li>
                             @endforeach
                         </ul>
@@ -86,179 +162,82 @@
                 </div>
             </div>
         </div>
+@include('admin.tours.itinerary.partials.create-modal')
 
-        <!-- Modal asignar ítems -->
-        <div class="modal fade" id="modalAsignar{{ $itinerary->itinerary_id }}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <form action="{{ route('admin.tours.itinerary.assignItems', $itinerary->itinerary_id) }}" method="POST">
-                    @csrf
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Asignar Ítems a {{ $itinerary->name }}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            @foreach ($items as $item)
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="item_ids[]" value="{{ $item->item_id }}"
-                                        {{ $itinerary->items->contains('item_id', $item->item_id) ? 'checked' : '' }}>
-                                    <label class="form-check-label">
-                                        <strong>{{ $item->title }}</strong> - {{ $item->description }}
-                                    </label>
-                                </div>
-                            @endforeach
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary">Guardar</button>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Modal editar itinerario -->
-        <div class="modal fade" id="modalEditar{{ $itinerary->itinerary_id }}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <form action="{{ route('admin.tours.itinerary.update', $itinerary->itinerary_id) }}" method="POST">
-                    @csrf
-                    @method('PUT')
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Editar Itinerario</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label>Nombre</label>
-                                <input type="text" name="name" class="form-control" value="{{ $itinerary->name }}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label>Descripción</label>
-                                <textarea name="description" class="form-control" rows="3">{{ $itinerary->description }}</textarea>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-warning">Actualizar</button>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        @if ($openEditModal)
-            <script>
-                window.addEventListener('DOMContentLoaded', function () {
-                    // Abrir modal
-                    const modal = new bootstrap.Modal(document.getElementById('modalEditar{{ $itinerary->itinerary_id }}'));
-                    modal.show();
-
-                    // Expandir el collapse (por si no lo hizo Laravel con 'show')
-                    const collapseTarget = document.getElementById('collapseItinerary{{ $itinerary->itinerary_id }}');
-                    if (collapseTarget && !collapseTarget.classList.contains('show')) {
-                        new bootstrap.Collapse(collapseTarget, { toggle: true });
-                    }
-
-                    // Scroll automático
-                    const card = document.getElementById('card-itinerary-{{ $itinerary->itinerary_id }}');
-                    if (card) {
-                        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                });
-            </script>
-        @endif
+        @include('admin.tours.itinerary.partials.assign-modal', ['items' => $items, 'itineraries' => $itineraries])
+        @include('admin.tours.itinerary.partials.edit-modal', ['itineraries' => $itineraries])
     @endforeach
 
     @include('admin.tours.itinerary.items.crud', ['items' => $items])
 </div>
-
-<!-- Modal crear itinerario -->
-<div class="modal fade" id="modalCrearItinerario" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <form action="{{ route('admin.tours.itinerary.store') }}" method="POST">
-            @csrf
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Nuevo Itinerario</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label>Nombre</label>
-                        <input type="text" name="name" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>Descripción</label>
-                        <textarea name="description" class="form-control" rows="3"></textarea>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Crear</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-@stop
+@endsection
 
 @push('js')
-<!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // ===== REAPERTURA DE MODALES Y ALERTAS =====
-
-    // 1) Si hubo error al asignar ítems, reabrir modal y mostrar SweetAlert
-    @if(session('showAssignModal'))
-        const assignId = {{ session('showAssignModal') }};
-        new bootstrap.Modal(
-            document.getElementById(`modalAsignar${assignId}`)
-        ).show();
-        Swal.fire({
-            icon: 'error',
-            title: 'Error al asignar ítems',
-            text: '{{ $errors->first() }}'
+    // Sortable
+    document.querySelectorAll('.sortable-items').forEach(list => {
+        new Sortable(list, {
+            animation: 150,
+            handle: '.handle',
         });
-    @endif
+    });
 
-    // 2) Si hubo éxito general, mostrar SweetAlert
-    @if(session('success'))
-        Swal.fire({
-            icon: 'success',
-            title: '{{ session("success") }}',
-            timer: 2000,
-            showConfirmButton: false
+    // Validar selección de ítems
+    document.querySelectorAll('form[data-itinerary-id]').forEach(form => {
+        form.addEventListener('submit', e => {
+            const itineraryId = form.dataset.itineraryId;
+            const ul = document.getElementById(`sortable-${itineraryId}`);
+            const hiddenContainer = document.getElementById(`ordered-inputs-${itineraryId}`);
+            hiddenContainer.innerHTML = '';
+
+            let index = 0;
+            let anySelected = false;
+
+            ul.querySelectorAll('li').forEach(li => {
+                const id = li.dataset.id;
+                const checkbox = li.querySelector('.checkbox-assign');
+                if (checkbox && checkbox.checked) {
+                    anySelected = true;
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = `item_ids[${id}]`;
+                    input.value = index++;
+                    hiddenContainer.appendChild(input);
+                }
+            });
+
+            const dummy = form.querySelector('input[name="item_ids[dummy]"]');
+            if (dummy && anySelected) dummy.remove();
+
+            if (!anySelected) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Debes seleccionar al menos un ítem',
+                    text: 'Por favor, selecciona al menos un ítem para continuar.'
+                });
+            }
         });
-    @endif
+    });
 
-    // 3) Si hubo error general, mostrar SweetAlert
-    @if(session('error'))
-        Swal.fire({
-            icon: 'error',
-            title: '{{ session("error") }}',
-            timer: 2500,
-            showConfirmButton: false
+    // Toggle itinerarios
+    document.querySelectorAll('.toggle-itinerary-btn').forEach(button => {
+        button.addEventListener('click', e => {
+            e.preventDefault();
+
+            const targetId = button.dataset.target;
+            const content = document.getElementById(targetId);
+            const icon = button.querySelector('.icon-toggle');
+
+            if (!content || !icon) return;
+
+            content.classList.toggle('collapsed');
+            icon.classList.toggle('fa-plus');
+            icon.classList.toggle('fa-minus');
         });
-    @endif
-
-    // 4) Reabrir modal “Crear Itinerario” si corresponde
-    @if(session('showCreateModal'))
-        new bootstrap.Modal(
-            document.getElementById('modalCrearItinerario')
-        ).show();
-    @endif
-
-    // 5) Reabrir modal “Editar Itinerario” si corresponde
-    @if(session('showEditModal'))
-        new bootstrap.Modal(
-            document.getElementById(`modalEditar{{ session('showEditModal') }}`)
-        ).show();
-    @endif
-
-   
+    });
 });
 </script>
 @endpush

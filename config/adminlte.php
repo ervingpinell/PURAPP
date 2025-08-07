@@ -113,7 +113,7 @@ return [
         'enabled' => true,
         'mode' => 'fullscreen',
         'img' => [
-            'path' => '\images\logoCompanyWhite.png',
+            'path' => 'images\logoCompanyWhite.png',
             'alt' => 'Green Vacation Loading',
             'effect' => 'animation__shake',
             'width' => 60,
