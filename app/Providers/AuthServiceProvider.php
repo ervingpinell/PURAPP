@@ -14,17 +14,17 @@ class AuthServiceProvider extends ServiceProvider
     {
         // Permiso para administradores
         Gate::define('is-admin', function ($user) {
-            return $user->role->role_name === 'Administrador';
+            return $user->role->role_name === 'Admin';
         });
 
         // Permiso para colaboradores
         Gate::define('is-collaborator', function ($user) {
-            return $user->role->role_name === 'Colaborador';
+            return $user->role->role_name === 'Supervisor';
         });
 
         // Permiso para ambos
         Gate::define('any-user', function ($user) {
-            return in_array($user->role->role_name, ['Administrador', 'Colaborador']);
+            return in_array($user->role->role_name, ['Admin', 'Supervisor']);
         });
     }
 }
