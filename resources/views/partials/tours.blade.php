@@ -71,7 +71,7 @@
                                                     </div>
                                                     <div class="d-flex justify-content-between">
                                                         <div>
-                                                            <strong>{{ __('adminlte::adminlte.child') }}</strong>
+                                                            <strong>{{ __('adminlte::adminlte.kid') }}</strong>
                                                             <small>({{ __('adminlte::adminlte.age_4_to_9') }})</small>
                                                         </div>
                                                         <strong style="color: #006633;">${{ number_format($tour->kid_price, 2) }}</strong>

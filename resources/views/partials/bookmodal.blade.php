@@ -24,7 +24,7 @@
         <!-- Kid row -->
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
-            <strong>{{ __('adminlte::adminlte.child') }}</strong> <small>({{ __('adminlte::adminlte.age_4_to_9') }})</small>
+            <strong>{{ __('adminlte::adminlte.kid') }}</strong> <small>({{ __('adminlte::adminlte.age_4_to_9') }})</small>
           </div>
           <div class="d-flex align-items-center gap-2">
             <button class="btn btn-outline-secondary traveler-btn" data-type="kid" data-action="decrease">-</button>
