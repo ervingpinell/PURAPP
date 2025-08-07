@@ -185,7 +185,6 @@ return [
     'invalid_date' => 'Invalid date.',
     'select_option' => 'Select an option',
 
-<<<<<<< HEAD
     'select_travelers'     => 'Select Travelers',
     'max_travelers_info'   => 'You can select up to 12 travelers in total.',
     'adult'                => 'Adult',
@@ -214,62 +213,10 @@ return [
 
     // Reviews
     'what_customers_thinks_about' => 'What customers think about ',
-=======
-    // ─── BUTTONS AND CRUD ─────────────────────────────
-    'create' => 'Create',
-    'edit' => 'Edit',
-    'update' => 'Update',
-    'delete' => 'Delete',
-    'activate' => 'Activate',
-    'deactivate' => 'Deactivate',
-    'confirm' => 'Confirm',
-    'cancel' => 'Cancel',
-    'save' => 'Save',
-    'save_changes' => 'Save Changes',
-    'are_you_sure' => 'Are you sure?',
-    'actions' => 'Actions',
-    'optional' => 'Optional',
-    'edit_profile' => 'Edit Profile',
-    'read_more' => 'Read More',
-    'read_less' => 'Read Less',
-    'switch_view' => 'Switch View',
-    'close' => 'Close',
-
-    // ─── FOOTER ───────────────────────────────────────
-    'footer_text' => 'We offer unique eco-tourism experiences in Costa Rica.',
-    'quick_links' => 'Quick Links',
-    'contact_us' => 'Contact Us',
-    'location' => 'San José, Costa Rica',
-    'rights_reserved' => 'All rights reserved',
-
-    // ─── WHATSAPP ─────────────────────────────────────
-    'whatsapp_title' => 'Green Vacations',
-    'whatsapp_subtitle' => 'Typically replies instantly',
-    'whatsapp_greeting' => '👋 Hello! How can we help you plan your perfect Costa Rica adventure?',
-    'whatsapp_placeholder' => 'Hi, I\'m interested in your eco-tours. Can you provide more info?',
-    'whatsapp_button' => 'Send Message',
-    'whatsapp_footer' => 'Powered by WhatsApp Business',
-
-    // ─── REVIEWS ──────────────────────────────────────
-    'what_customers_thinks_about' => 'What customers think about',
->>>>>>> erving
     'loading_reviews' => 'Loading reviews',
     'redirect_to_tour' => 'Redirect to tour',
     'would_you_like_to_visit' => 'Would you like to visit ',
     'this_tour' => 'this tour',
-<<<<<<< HEAD
-        'no_reviews_found' => 'No reviews found for this tour.',
-        'no_reviews_available' => 'No reviews available.',
-        'error_loading_reviews' => 'Error loading reviews.',
-        'anonymous_user' => 'Anonymous',
-        'see_more' => 'See more',
-        'see_less' => 'See less',
-        'powered_by_viator' => 'Powered by Viator',
-        'go_to_tour' => 'Would you like to go to the tour ":name"?',
-        'view_in_viator' => 'View :name on Viator',
-
-    ];
-=======
     'no_reviews_found' => 'No reviews found for this tour.',
     'no_reviews_available' => 'No reviews available.',
     'error_loading_reviews' => 'Error loading reviews.',
@@ -306,4 +253,3 @@ return [
     'access_denied' => 'Access Denied',
 
 ];
->>>>>>> erving
