@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="container py-5">
-    <h1 class="mb-4 text-center">{{ __('adminlte::adminlte.faqpage') }}</h1>
+    <h1 class="big-title mb-4 text-center">{{ __('adminlte::adminlte.faqpage') }}</h1>
 
     @if($faqs->isEmpty())
         <p class="text-muted">{{ __('adminlte::adminlte.no_faqs_available') }}</p>

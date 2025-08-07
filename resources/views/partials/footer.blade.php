@@ -39,6 +39,6 @@
         </div>
     </div>
     <div class="footer-bottom">
-        &copy; 2023 Green Vacations Costa Rica. {{ __('adminlte::adminlte.rights_reserved') }}
+        &copy; 2025 Green Vacations Costa Rica. {{ __('adminlte::adminlte.rights_reserved') }}
     </div>
 </footer>

@@ -449,12 +449,12 @@ return [
             'icon'  => 'fas fa-calendar-check',
             'can'   => ''
         ],
-        [
-            'text' => 'Detalles de Reserva',
-            'route' => '',
-            'icon'  => 'fas fa-info-circle',
-            'can'   => ''
-        ],
+        // [
+        //     'text' => 'Detalles de Reserva',
+        //     'route' => '',
+        //     'icon'  => 'fas fa-info-circle',
+        //     'can'   => ''
+        // ],
         [
             'text' => 'Calendario',
             'route' => 'admin.reservas.calendar',
@@ -474,12 +474,12 @@ return [
             'icon'  => 'fas fa-shopping-cart',
             'can'   => ''
         ],
-        [
-            'text' => 'Items de Carritos',
-            'route' => '',
-            'icon'  => 'fas fa-list',
-            'can'   => ''
-        ]
+        // [
+        //     'text' => 'Items de Carritos',
+        //     'route' => '',
+        //     'icon'  => 'fas fa-list',
+        //     'can'   => ''
+        // ]
 
 
 

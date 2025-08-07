@@ -28,12 +28,10 @@
     @stack('styles')
 </head>
 
-<body>
-    {{-- Header --}}
+<body class="d-flex flex-column min-vh-100">
     @include('partials.header')
-
     {{-- Contenido principal --}}
-    <main>
+ <main class="flex-grow-1">
         @yield('content')
     </main>
 
