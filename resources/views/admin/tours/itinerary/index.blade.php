@@ -149,7 +149,7 @@
                     @endif
 
                     @if ($itinerary->items->isEmpty())
-                        <p class="text-muted">No hay ítems asignados a este itinerario.</p>
+                        <p class="text-warning">No hay ítems asignados a este itinerario.</p>
                     @else
                         <ul class="list-group">
                             @foreach ($itinerary->items->sortBy('order') as $item)

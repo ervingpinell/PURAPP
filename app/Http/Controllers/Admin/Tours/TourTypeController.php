@@ -22,12 +22,14 @@ class TourTypeController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:tour_types,name',
             'description' => 'nullable|string',
+            'duration' => 'nullable|string|max:255',
         ]);
 
         try {
             TourType::create([
                 'name' => $request->name,
                 'description' => $request->description,
+                'duration' => $request->duration,
                 'is_active' => true,
             ]);
 
@@ -40,36 +42,39 @@ class TourTypeController extends Controller
         }
     }
 
-   public function update(Request $request, TourType $tourType)
-{
-    try {
-        $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('tour_types', 'name')->ignore($tourType->getKey(), 'tour_type_id'),
-            ],
-            'description' => 'nullable|string',
-        ]);
+    public function update(Request $request, TourType $tourType)
+    {
+        try {
+            $request->validate([
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('tour_types', 'name')->ignore($tourType->tour_type_id, 'tour_type_id'),
+                ],
+                'description' => 'nullable|string',
+                'duration' => 'nullable|string|max:255',
+            ]);
 
-        $tourType->update([
-            'name' => $request->name,
-            'description' => $request->description,
-        ]);
+            $tourType->update([
+                'name' => $request->name,
+                'description' => $request->description,
+                'duration' => $request->duration,
+            ]);
 
-        return redirect()->route('admin.tourtypes.index')
-            ->with('success', 'Tipo de tour actualizado correctamente.')
-            ->with('alert_type', 'actualizado');
+            return redirect()->route('admin.tourtypes.index')
+                ->with('success', 'Tipo de tour actualizado correctamente.')
+                ->with('alert_type', 'actualizado');
 
-    } catch (Exception $e) {
-        Log::error('Error al actualizar tipo de tour: ' . $e->getMessage());
-        return back()
-            ->withErrors(['name' => 'Error al actualizar tipo de tour.'])
-            ->withInput()
-            ->with('edit_modal', $tourType->tour_type_id);
+        } catch (Exception $e) {
+            Log::error('Error al actualizar tipo de tour: ' . $e->getMessage());
+
+            return back()
+                ->with('error', 'Ocurrió un error inesperado al actualizar el tipo de tour.')
+                ->withInput()
+                ->with('edit_modal', $tourType->tour_type_id);
+        }
     }
-}
 
     public function toggle(TourType $tourType)
     {

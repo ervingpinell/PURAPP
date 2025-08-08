@@ -301,189 +301,164 @@ return [
     |
     */
 
-    'menu' => [
-        // Navbar items:
-        [
-            'type' => 'navbar-search',
-            'text' => 'search',
-            'topnav_right' => true,
-        ],
+   'menu' => [
 
-        [
-            'type' => 'fullscreen-widget',
-            'topnav_right' => true,
-        ],
+    // Widgets de la barra superior
+    ['type' => 'navbar-search', 'text' => 'search', 'topnav_right' => true],
+    ['type' => 'fullscreen-widget', 'topnav_right' => true],
 
-        // Sidebar items:
-        [
-            'type' => 'sidebar-menu-search',
-            'text' => 'search',
-        ],
-        [
-            'text' => 'blog',
-            //se puede poner en vez de url el route con el nombre de la ruta
-            'url' => 'admin/blog',
-            //la variable 'can' se usa para mostrar el menu solo si el usuario tiene el permiso
-            //por ejemplo con roles
-            'can' => 'manage-blog',
-        ],
-        [
-            'text' => 'INICIO',
-            'route' => 'home',
-            //para ver mas icons ir a https://fontawesome.com/icons?d=gallery
-            'icon' => 'fas fa-fw fa-home'
-        ],
-        [
-            //'text' => 'pages',
-            //'url' => 'admin/pages',
-            //'icon' => 'far fa-fw fa-file',
-            //'label' => 4,
-            //'label_color' => 'success',
-        ],
+    // Buscador del sidebar
+    ['type' => 'sidebar-menu-search', 'text' => 'Buscar...'],
 
-        ['header' => 'CONFIGURACION'],
-        [
-            'text' => 'Perfil',
-            'route'=> 'profile.edit',
-            'icon' => 'fas fa-fw fa-user',
-        ],
-        [
-            'text' => 'Usuarios',
-            'route'=> 'admin.users.index',
-            'icon' => 'fas fa-fw fa-user-cog',
-        ],
-        [
-            'text' => 'FAQ',
-            'route' => 'admin.faqs.index',
-            'icon' => 'fas fa-question-circle',
-        ],
-        [
-            'text' => 'Traducciones',
-            'route' => 'admin.translations.index', // o 'url' => 'admin/traducciones' si no usás rutas nombradas
-            'icon' => 'fas fa-language', // ícono FontAwesome
-        ],
-        [
-            'text' => 'Roles',
-            'route'=> 'admin.roles.index',
-            'icon' => 'fas fa-user-shield',
-        ],
-        [
-            'text' => 'Generar Códigos Promocionales',
-            'route' => 'admin.promoCode.index',  // Asegúrate de tener esta ruta definida
-            'icon' => 'fas fa-tags',           // Ícono de etiqueta
-        ],
-
-        ['header' => 'RESERVAS'],
-        //colocar aqui las tablas de las bases de datos para el CRUD
-
-
-        [
-            'text' => 'Reservas',
-            'route'=> 'admin.reservas.index',
-            'icon' => 'fas fa-fw fa-calendar-check'
-        ],
-
-        [
-            'text'  => 'Disponibilidades',
-            'route' => 'admin.tours.excluded_dates.index',
-            'icon'  => 'fas fa-check-circle',
-        ],
-
-        ['header' => 'TOURS'],
-
-      [
-    'text'    => 'TOURS',
-    'icon'    => 'fas fa-map-marked-alt',
-    'submenu' => [
-        [
-            'text'  => 'Todos Los Tours',
-            'route' => 'admin.tours.index',
-            'icon'  => 'fas fa-map-marked-alt',
-        ],
-        [
-            'text'  => 'Tipos de Tour',
-            'route' => 'admin.tourtypes.index',
-            'icon'  => 'fas fa-tags',
-        ],
-        [
-            'text'  => 'Idiomas',
-            'route' => 'admin.languages.index',
-            'icon'  => 'fas fa-globe',
-        ],
-        [
-            'text'  => 'Horarios',
-            'route' => 'admin.tours.schedule.index',
-            'icon'  => 'fas fa-calendar-alt',
-        ],
-        [
-            'text'  => 'Itinerarios',
-            'route' => 'admin.tours.itinerary.index',
-            'icon'  => 'fas fa-route',
-        ],
-
-        [
-            'text'  => 'Amenidades',
-            'route' => 'admin.tours.amenities.index',
-            'icon'  => 'fas fa-concierge-bell',
-        ],
-        // [
-        //     'text' => 'Fechas Excluidas',
-        //     'route' => 'admin.tours.excluded_dates.index',
-        //     'icon' => 'fas fa-calendar-times',
-        // ],
+    // Acceso rápido
+    [
+        'text' => 'Inicio',
+        'route' => 'home',
+        'icon' => 'fas fa-fw fa-home'
     ],
+    [
+        'text' => 'Mi Perfil',
+        'route'=> 'profile.edit',
+        'icon' => 'fas fa-fw fa-user',
+    ],
+
+    // ✅ CARRITOS
+    [
+        'text'    => 'Carritos',
+        'icon'    => 'fas fa-shopping-cart',
+        'submenu' => [
+            [
+                'text' => 'Carritos Activos',
+                'route' => 'admin.cart.index',
+                'icon'  => 'fas fa-shopping-cart',
+            ],
+            [
+                'text' => 'Lista General',
+                'route' => 'admin.cart.general',
+                'icon'  => 'fas fa-list',
+            ],
+        ],
+    ],
+
+    // ✅ CONFIGURACIÓN
+    [
+        'text'    => 'Configuración',
+        'icon'    => 'fas fa-cogs',
+        'submenu' => [
+            [
+                'text' => 'FAQ',
+                'route' => 'admin.faqs.index',
+                'icon' => 'fas fa-question-circle',
+            ],
+            [
+                'text' => 'Generar Códigos Promocionales',
+                'route' => 'admin.promoCode.index',
+                'icon' => 'fas fa-tags',
+            ],
+            [
+                'text' => 'Traducciones',
+                'route' => 'admin.translations.index',
+                'icon' => 'fas fa-language',
+            ],
+            [
+                'text' => 'Tipos de Tour',
+                'route' => 'admin.tourtypes.index',
+                'icon' => 'fas fa-tags',
+            ],
+        ],
+    ],
+
+    // ✅ HOTELES
+    [
+        'text'    => 'Hoteles',
+        'icon'    => 'fas fa-hotel',
+        'submenu' => [
+            [
+                'text' => 'Lista de Hoteles',
+                'route' => 'admin.hotels.index',
+                'icon'  => 'fas fa-list',
+            ],
+        ],
+    ],
+
+    // ✅ RESERVAS
+    [
+        'text'    => 'Reservas',
+        'icon'    => 'fas fa-calendar-check',
+        'submenu' => [
+            [
+                'text' => 'Ver Reservas',
+                'route' => 'admin.reservas.index',
+                'icon'  => 'fas fa-calendar-check',
+            ],
+            [
+                'text' => 'Calendario',
+                'route' => 'admin.reservas.calendar',
+                'icon'  => 'fas fa-calendar-alt',
+            ],
+            [
+                'text'  => 'Disponibilidades',
+                'route' => 'admin.tours.excluded_dates.index',
+                'icon'  => 'fas fa-check-circle',
+            ],
+        ],
+    ],
+
+    // ✅ TOURS
+    [
+        'text'    => 'Tours',
+        'icon'    => 'fas fa-map-marked-alt',
+        'submenu' => [
+            [
+                'text'  => 'Amenidades',
+                'route' => 'admin.tours.amenities.index',
+                'icon'  => 'fas fa-concierge-bell',
+            ],
+            [
+                'text'  => 'Horarios',
+                'route' => 'admin.tours.schedule.index',
+                'icon'  => 'fas fa-calendar-alt',
+            ],
+            [
+                'text'  => 'Idiomas',
+                'route' => 'admin.languages.index',
+                'icon'  => 'fas fa-globe',
+            ],
+            [
+                'text'  => 'Itinerarios',
+                'route' => 'admin.tours.itinerary.index',
+                'icon'  => 'fas fa-route',
+            ],
+            [
+                'text'  => 'Todos los Tours',
+                'route' => 'admin.tours.index',
+                'icon'  => 'fas fa-map-marked-alt',
+            ],
+        ],
+    ],
+
+    // ✅ USUARIOS
+    [
+        'text'    => 'Usuarios',
+        'icon'    => 'fas fa-users-cog',
+        'submenu' => [
+            [
+                'text' => 'Usuarios',
+                'route'=> 'admin.users.index',
+                'icon' => 'fas fa-user-cog',
+                'can'  => 'is-admin',
+            ],
+            [
+                'text' => 'Roles',
+                'route'=> 'admin.roles.index',
+                'icon' => 'fas fa-user-shield',
+                'can'  => 'is-admin',
+            ],
+        ],
+    ],
+
 ],
 
-
-        ['header' => 'HOTELS'],
-        [
-            'text' => 'Lista de Hoteles',
-            'route' => 'admin.hotels.index',
-            'icon'  => 'fas fa-hotel',
-        ],
-
-        ['header' => 'RESERVAS'],
-        [
-            'text' => 'Reservas',
-            'route' => 'admin.reservas.index',
-            'icon'  => 'fas fa-calendar-check',
-            'can'   => ''
-        ],
-        // [
-        //     'text' => 'Detalles de Reserva',
-        //     'route' => '',
-        //     'icon'  => 'fas fa-info-circle',
-        //     'can'   => ''
-        // ],
-        [
-            'text' => 'Calendario',
-            'route' => 'admin.reservas.calendar',
-            'icon'  => 'fas fa-info-circle',
-            'can'   => ''
-        ],
-        ['header' => 'CARRITOS'],
-        [
-            'text' => 'Carritos',
-            'route' => 'admin.cart.index',
-            'icon'  => 'fas fa-shopping-cart',
-            'can'   => ''
-        ],
-        [
-            'text' => 'Lista de Carritos',
-            'route' => 'admin.cart.general',
-            'icon'  => 'fas fa-shopping-cart',
-            'can'   => ''
-        ],
-        // [
-        //     'text' => 'Items de Carritos',
-        //     'route' => '',
-        //     'icon'  => 'fas fa-list',
-        //     'can'   => ''
-        // ]
-
-
-
-    ],
 
     /*
     |--------------------------------------------------------------------------

@@ -9,52 +9,69 @@ use App\Http\Controllers\Controller;
 class RoleController extends Controller
 {
     /**
-     * Display a listing of the roles.
+     * Mostrar todos los roles.
      */
     public function index()
     {
         $roles = Role::all();
-        return view('admin.users.roles', compact('roles'));
+        return view('admin.roles.index', compact('roles'));
     }
 
     /**
-     * Store a newly created role.
+     * Mostrar el formulario de edición de un rol.
+     */
+    public function edit($id)
+    {
+        $role = Role::findOrFail($id);
+        return view('admin.roles.edit', compact('role'));
+    }
+
+    /**
+     * Guardar un nuevo rol.
      */
     public function store(Request $request)
     {
-        $validate = $request->validate([
+        $validated = $request->validate([
             'role_name' => 'required|string|max:50|unique:roles,role_name',
             'description' => 'nullable|string',
         ]);
 
-        Role::create($validate);
+        Role::create($validated);
 
-        return redirect()->back()->with('success', 'Role created successfully.');
+        return redirect()->back()->with('success', 'Rol creado correctamente.');
     }
 
     /**
-     * Update the specified role.
+     * Actualizar un rol existente.
      */
     public function update(Request $request, $id)
     {
         $role = Role::findOrFail($id);
 
-        $validate = $request->validate([
+        $validated = $request->validate([
             'role_name' => 'required|string|max:50|unique:roles,role_name,' . $role->role_id . ',role_id',
             'description' => 'nullable|string',
         ]);
 
-        $role->update($validate);
+        $role->update($validated);
 
-        return redirect()->back()->with('success', 'Role updated successfully.');
+        return redirect()->route('admin.roles.index')->with('success', 'Rol actualizado correctamente.');
     }
 
     /**
-     * Remove the specified role.
+     * Activar o desactivar un rol (toggle).
      */
-    public function destroy(Role $role)
+    public function destroy($id)
     {
-        $role->delete();
-        return redirect()->back()->with('success', 'Role deleted successfully.');
+        $role = Role::findOrFail($id);
+
+        $role->is_active = !$role->is_active;
+        $role->save();
+
+        $message = $role->is_active
+            ? 'Rol activado correctamente.'
+            : 'Rol desactivado correctamente.';
+
+        return redirect()->back()->with('success', $message);
     }
 }

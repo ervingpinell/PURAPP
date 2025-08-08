@@ -181,7 +181,7 @@ Route::get('/cart/count', [CartController::class, 'count'])
 
         // Usuarios y roles
         Route::resource('users', UserRegisterController::class)->except(['show']);
-        Route::resource('roles', RoleController::class)->except(['show']);
+Route::resource('roles', RoleController::class)->except(['show']);
 
         // Categorías, idiomas, tipos de tour
         Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);

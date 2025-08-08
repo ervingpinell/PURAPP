@@ -15,7 +15,7 @@ class ItinerariesSeeder extends Seeder
         // === Nature Lover Combo 1 ===
         $natureId = DB::table('itineraries')->insertGetId([
             'name' => 'Nature Lover Combo 1',
-            'description' => 'Begin your full-day Costa Rican adventure with pickup from your accommodation in Fortuna Town. Then head to Arenal Volcano Park for a 2.5-hour hike traversing flat grounds and rocky terrain to witness the remnants of the 1968 eruption and learn about the volcano\'s history.',
+            'description' => 'Comienza tu aventura costarricense de día completo con la recogida en tu alojamiento en el centro de La Fortuna. Luego, dirígete al Parque Volcán Arenal para una caminata de 2,5 horas que atraviesa terrenos planos y rocosos, donde podrás observar los vestigios de la erupción de 1968 y aprender sobre la historia del volcán.',
             'is_active' => true,
             'created_at' => $now,
             'updated_at' => $now,
@@ -35,13 +35,13 @@ class ItinerariesSeeder extends Seeder
             }
         }
         DB::table('tours')
-            ->where('name', 'Nature Lover Combo 1 (Hanging Bridges + La Fortuna Waterfall + Lunch + Volcano Hike)')
+            ->where('name', 'Nature Lover Combo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo + Caminata al Volcán Arenal)')
             ->update(['itinerary_id' => $natureId]);
 
         // === Minicombo 1 ===
         $mini1 = DB::table('itineraries')->insertGetId([
             'name' => 'Minicombo 1',
-            'description' => 'Begin your semi full-day Costa Rican adventure with pickup from your accommodation in Fortuna Town. Then head to Mistico Park for a 2-hour walk around the rainforest treetops.',
+            'description' => 'Comienza tu aventura costarricense de medio día con la recogida en tu alojamiento en el centro de La Fortuna. Luego, dirígete al Parque Mistico para una caminata de 2 horas entre las copas de los árboles de la selva tropical.',
             'is_active' => true,
             'created_at' => $now,
             'updated_at' => $now,
@@ -58,12 +58,12 @@ class ItinerariesSeeder extends Seeder
                 'updated_at' => $now
             ]);
         }
-        DB::table('tours')->where('name', 'Minicombo 1 (Hanging Bridges + La Fortuna Waterfall + Lunch)')->update(['itinerary_id' => $mini1]);
+        DB::table('tours')->where('name', 'Minicombo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo)')->update(['itinerary_id' => $mini1]);
 
         // === Minicombo 2 ===
         $mini2 = DB::table('itineraries')->insertGetId([
             'name' => 'Minicombo 2',
-            'description' => 'Begin your semi full-day Costa Rican adventure with pickup from your accommodation in Fortuna Town. Then head to Arenal 1968 Volcano View and Lava Trails for a 2-hour walk.',
+            'description' => 'Comienza tu aventura costarricense de medio día con la recogida en tu alojamiento en el centro de La Fortuna. Luego, dirígete al Parque Arenal 1968 para una caminata de 2 horas.',
             'is_active' => true,
             'created_at' => $now,
             'updated_at' => $now,
@@ -80,12 +80,12 @@ class ItinerariesSeeder extends Seeder
                 'updated_at' => $now
             ]);
         }
-        DB::table('tours')->where('name', 'Minicombo 2 (Volcano Hike + La Fortuna Waterfall + Lunch)')->update(['itinerary_id' => $mini2]);
+        DB::table('tours')->where('name', 'Minicombo 2 (Caminata al Volcán Arenal + Catarata de La Fortuna + Almuerzo)')->update(['itinerary_id' => $mini2]);
 
         // === Minicombo 3 ===
         $mini3 = DB::table('itineraries')->insertGetId([
             'name' => 'Minicombo 3',
-            'description' => 'Begin your semi full-day Costa Rican adventure with pickup from your accommodation in Fortuna Town. Then head to Safari Put In for your wildlife experience.',
+            'description' => 'Comienza tu aventura costarricense de medio día con la recogida en tu alojamiento en el centro de La Fortuna. Luego, dirígete a Safari Put In para tu experiencia de vida silvestre.',
             'is_active' => true,
             'created_at' => $now,
             'updated_at' => $now,
@@ -102,13 +102,13 @@ class ItinerariesSeeder extends Seeder
                 'updated_at' => $now
             ]);
         }
-        DB::table('tours')->where('name', 'Minicombo 3 (Safari Float + La Fortuna Waterfall + Lunch)')->update(['itinerary_id' => $mini3]);
+        DB::table('tours')->where('name', 'Minicombo 3 (Safari Flotante + Catarata de La Fortuna + Almuerzo)')->update(['itinerary_id' => $mini3]);
 
-        // === Safari Float ===
+        // === Safari Flotante ===
         $safari = DB::table('itineraries')->insertGetId([
-            'name' => 'Safari Float',
-            'description' => 'The trip begins with a 20-minute drive from Fortuna to the river. Float down the river for approximately two hours, during which you will have an opportunity to see much of Costa Rica’s famous wildlife and have an interactive conversation with the guide.
-The boat trip down the Peñas Blancas River offers a relaxing way to enjoy the abundant wildlife surrounding the banks of this lush paradise. Take pictures of the rainforest canopy teeming with monkeys or take a closer look at a tropical bird with your binoculars while you float in the oar boat. The naturalist will paddle and you can just relax like the iguanas nearby sunning themselves on the branches.',
+            'name' => 'Safari Flotante',
+            'description' => 'El recorrido comienza con un viaje de 20 minutos desde Fortuna hasta el río. Flota por el río durante aproximadamente dos horas, durante las cuales tendrás la oportunidad de ver gran parte de la famosa vida silvestre de Costa Rica y tener una conversación interactiva con el guía.
+El viaje en bote por el río Peñas Blancas ofrece una forma relajante de disfrutar de la abundante vida silvestre que rodea las orillas de este exuberante paraíso. Toma fotos del dosel del bosque lluvioso lleno de monos o observa más de cerca a un ave tropical con tus binoculares mientras flotas en el bote de remos. El naturalista remará y tú podrás relajarte como las iguanas cercanas que se asolean en las ramas.',
             'is_active' => true,
             'created_at' => $now,
             'updated_at' => $now,
@@ -125,12 +125,12 @@ The boat trip down the Peñas Blancas River offers a relaxing way to enjoy the a
                 'updated_at' => $now
             ]);
         }
-        DB::table('tours')->where('name', 'Safari en el Río Peñas Blancas')->update(['itinerary_id' => $safari]);
+        DB::table('tours')->where('name', 'Safari Flotante')->update(['itinerary_id' => $safari]);
 
-        // === Arenal Volcano Hike ===
+        // === Caminata al Volcán Arenal ===
         $volcano = DB::table('itineraries')->insertGetId([
-            'name' => 'Arenal Volcano Hike',
-            'description' => 'The walk lasts around 2.5 hours of hiking at the base of the Arenal Volcano. To get to the viewpoint, we have to walk in the middle of the dry lava field of the eruption of 1968. At the viewpoint, you can see the Arenal Volcano and the Arenal Lake on the other side.',
+            'name' => 'Caminata al Volcán Arenal',
+            'description' => 'La caminata dura alrededor de 2.5 horas de senderismo en la base del Volcán Arenal. Para llegar al mirador, tenemos que caminar en medio del campo de lava seca de la erupción de 1968. Desde el mirador, se puede ver el Volcán Arenal y el Lago Arenal al otro lado.',
             'is_active' => true,
             'created_at' => $now,
             'updated_at' => $now,
@@ -145,12 +145,12 @@ The boat trip down the Peñas Blancas River offers a relaxing way to enjoy the a
             'created_at' => $now,
             'updated_at' => $now
         ]);
-        DB::table('tours')->where('name', 'Arenal Volcano Hike')->update(['itinerary_id' => $volcano]);
+        DB::table('tours')->where('name', 'Caminata al Volcán Arenal')->update(['itinerary_id' => $volcano]);
 
-        // === Hanging Bridges ===
+        // === Puentes Colgantes ===
         $hanging = DB::table('itineraries')->insertGetId([
-            'name' => 'Hanging Bridges',
-            'description' => 'A journey of 3.2 km that will allow the visitor to comfortably enjoy the attractive forest along a path that has a total of 15 bridges, built with German technology. Our bridges have an ideal to provide an ideally forest contemplative experience to our visitors. The height and strategic position of each of the bridges can observe in a favorable light to light the different attractions and the thousands of species that inhabit our reservation, trees, flowers, plants, insects, mammals, reptiles, frogs and many other living in an ecosystem in perfect balance.',
+            'name' => 'Puentes Colgantes',
+            'description' => 'Un recorrido de 3.2 km que permitirá al visitante disfrutar cómodamente del atractivo bosque a lo largo de un sendero que cuenta con un total de 15 puentes, construidos con tecnología alemana. Nuestros puentes tienen un diseño ideal para proporcionar a nuestros visitantes una experiencia contemplativa en el bosque. La altura y la posición estratégica de cada uno de los puentes permiten observar en una luz favorable las diferentes atracciones y las miles de especies que habitan nuestra reserva, árboles, flores, plantas, insectos, mamíferos, reptiles, ranas y muchos otros que viven en un ecosistema en perfecto equilibrio.',
             'is_active' => true,
             'created_at' => $now,
             'updated_at' => $now,
@@ -165,6 +165,6 @@ The boat trip down the Peñas Blancas River offers a relaxing way to enjoy the a
             'created_at' => $now,
             'updated_at' => $now
         ]);
-        DB::table('tours')->where('name', 'Hanging Bridges')->update(['itinerary_id' => $hanging]);
+        DB::table('tours')->where('name', 'Puentes Colgantes')->update(['itinerary_id' => $hanging]);
     }
 }
