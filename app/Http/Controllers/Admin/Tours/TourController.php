@@ -106,13 +106,22 @@ class TourController extends Controller
 public function store(Request $request, GoogleTranslationService $translator)
 {
     // Normalizar horarios
-    $schedules = collect($request->input('schedules', []))->map(function ($sched) {
+    $schedules = collect($request->input('schedules', []))
+    ->map(function ($sched) {
         return [
             'start_time' => $this->parseTime($sched['start_time'] ?? null),
             'end_time'   => $this->parseTime($sched['end_time'] ?? null),
             'label'      => $sched['label'] ?? null,
         ];
-    })->filter(fn($s) => $s['start_time'] && $s['end_time']);
+    })
+    ->filter(fn ($s) => $s['start_time'] && $s['end_time'])
+    ->values()
+    ->toArray();   // 👈 clave
+
+$request->merge([
+    'schedules_normalized' => $schedules,  // ya es array
+]);
+
 
     $request->merge([
         'schedules_normalized' => $schedules,

@@ -11,6 +11,16 @@
         ];
     });
 @endphp
+@if ($errors->any())
+  <div class="alert alert-danger">
+    <ul class="mb-0">
+      @foreach ($errors->all() as $err)
+        <li>{{ $err }}</li>
+      @endforeach
+    </ul>
+  </div>
+@endif
+
 
 {{-- Modal Registrar Tour --}}
 <div class="modal fade" id="modalRegistrar" tabindex="-1" aria-hidden="true">
