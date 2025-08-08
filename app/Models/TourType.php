@@ -9,13 +9,15 @@ class TourType extends Model
  protected $table = 'tour_types';
     protected $primaryKey = 'tour_type_id';
     public $incrementing = true;
-    protected $keyType = 'int'; 
+    protected $keyType = 'int';
 
-    protected $fillable = [
-        'name',
-        'description',
-        'is_active'
-    ];
+protected $fillable = [
+    'name',
+    'description',
+    'duration',
+    'is_active'
+];
+
     public $timestamps = true;
 
     public function tours()

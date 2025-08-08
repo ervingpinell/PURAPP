@@ -18,6 +18,7 @@
                 <th>ID</th>
                 <th>Nombre</th>
                 <th>Descripción</th>
+                <th>Duración</th>
                 <th>Estado</th>
                 <th>Acciones</th>
             </tr>
@@ -28,6 +29,7 @@
                 <td>{{ $tourtype->tour_type_id }}</td>
                 <td>{{ $tourtype->name }}</td>
                 <td>{{ $tourtype->description }}</td>
+                         <td>{{ $tourtype->duration }}</td>
                 <td>
                     @if ($tourtype->is_active)
                         <span class="badge bg-success">Activo</span>
@@ -35,6 +37,7 @@
                         <span class="badge bg-secondary">Inactivo</span>
                     @endif
                 </td>
+
                 <td>
                     <!-- Editar -->
                     <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $tourtype->tour_type_id }}">
@@ -75,6 +78,12 @@
                                     <label>Descripción</label>
                                     <textarea name="description" class="form-control">{{ session('edit_modal') == $tourtype->tour_type_id ? old('description', $tourtype->description) : $tourtype->description }}</textarea>
                                 </div>
+                                <div class="mb-3">
+    <label>Duración</label>
+    <input type="text" name="duration" class="form-control"
+        value="{{ session('edit_modal') == $tourtype->tour_type_id ? old('duration', $tourtype->duration) : $tourtype->duration }}">
+</div>
+
                             </div>
                             <div class="modal-footer">
                                 <button type="submit" class="btn btn-warning">Actualizar</button>
@@ -108,6 +117,11 @@
                         <label>Descripción</label>
                         <textarea name="description" class="form-control">{{ old('description') }}</textarea>
                     </div>
+                    <div class="mb-3">
+    <label>Duración</label>
+    <input type="text" name="duration" class="form-control" value="{{ old('duration') }}">
+</div>
+
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Guardar</button>

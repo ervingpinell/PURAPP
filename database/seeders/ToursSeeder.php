@@ -37,11 +37,16 @@ class ToursSeeder extends Seeder
         );
         $nlc = DB::table('schedules')->where('start_time', '07:30')->where('end_time', '16:30')->value('schedule_id');
 
-        // === Volcano Hike ===
-        $volcanoOverview = 'Discover Arenal Volcano National Park on a full-day hiking and hot springs tour from La Fortuna, and explore the remarkable landscape of an active volcanic range. Follow your guide along a 2-mile (3.2-km) trail that passes through primary and secondary forest, and cross the jagged rocks of a dry lava field. Spot the distinctive plants and formations that climb the sides of Costa Rica\'s most iconic volcano. Explore an active volcanic range on a hiking tour. Discover the various species that live in the forests and lava fields. A small group ensures a personalized experience.';
+        // === Caminata al Volcán Arenal ===
+        $volcanoOverview = 'Descubre el Parque Nacional Volcán Arenal en un tour de día completo que combina caminata y aguas termales desde La Fortuna, y explora el impresionante paisaje de una cordillera volcánica activa.
+Sigue a tu guía por un sendero de 3,2 km (2 millas) que atraviesa bosques primarios y secundarios, y cruza las afiladas rocas de un campo de lava seca.
+Observa las plantas y formaciones distintivas que cubren las laderas del volcán más icónico de Costa Rica.
+• Explora una cordillera volcánica activa en un tour de caminata.
+• Descubre las diversas especies que habitan en los bosques y campos de lava.
+• Grupo pequeño para garantizar una experiencia personalizada.';
 
         $volcano = DB::table('tours')->insertGetId([
-            'name' => 'Arenal Volcano Hike',
+            'name' => 'Caminata al Volcán Arenal',
             'overview' => $volcanoOverview,
             'adult_price' => 75,
             'kid_price' => 55,
@@ -65,11 +70,16 @@ class ToursSeeder extends Seeder
         foreach ([1, 2, 3, 4] as $a) DB::table('amenity_tour')->insert(['tour_id' => $volcano, 'amenity_id' => $a, 'is_active' => true]);
         foreach ([5, 6, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tour_id' => $volcano, 'amenity_id' => $a, 'is_active' => true]);
 
-        // === Safari Float ===
-        $safariOverview = 'Float down the Peñas Blancas River in a rowboat on this 3.5-hour journey from La Fortuna. Listen to your naturalist guide\'s commentary while keeping a lookout for monkeys, iguanas, and a variety of bird life. Finish up with a stop at a local farm to sample their homemade snacks and coffee. Round-trip transport from selected hotels included. Family friendly. Small group ensures personal service. Free hotel pickup and drop-off included. Informative, friendly and professional guide.';
+        // === Safari Flotante ===
+        $safariOverview = 'Navega por el río Peñas Blancas en un bote de remo durante este recorrido de 3,5 horas desde La Fortuna.
+Escucha los comentarios de tu guía naturalista mientras mantienes la vista atenta para observar monos, iguanas y una gran variedad de aves.
+Finaliza con una parada en una finca local para degustar sus bocadillos caseros y café.
+Incluye transporte de ida y vuelta desde hoteles seleccionados. Ideal para toda la familia.
+Grupo pequeño para garantizar un servicio personalizado.
+Recogida y regreso al hotel gratuitos. Guía informativo, amable y profesional.';
 
         $safari = DB::table('tours')->insertGetId([
-            'name' => 'Safari en el Río Peñas Blancas',
+            'name' => 'Safari Flotante',
             'overview' => $safariOverview,
             'adult_price' => 60,
             'kid_price' => 45,
@@ -93,14 +103,15 @@ class ToursSeeder extends Seeder
         foreach ([1, 2, 3, 4, 6] as $a) DB::table('amenity_tour')->insert(['tour_id' => $safari, 'amenity_id' => $a, 'is_active' => true]);
         foreach ([5, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tour_id' => $safari, 'amenity_id' => $a, 'is_active' => true]);
 
-        // === Hanging Bridges ===
-        $hangingOverview = 'Enjoy a thrilling close encounter with Costa Rica’s wildlife on this 4-hour tour to the Mistico Hanging Bridges Park from La Fortuna, in the shadows of the Arenal Volcano. Journey to the heart of the rainforest on a 2-mile (3.2km) circuit of 15 hanging bridges and have chance to spot up to 350 species of bird, including hummingbirds, bell birds, toucans and the majestic Tucancito Esmeralda.
-• Enjoy a guided hike along a circuit of 15 specially designed bridges
-• Spot hummingbirds and toucans in their natural environment
-• Great choice for families!';
+        // === Puentes Colgantes ===
+        $hangingOverview = 'Disfruta de un emocionante encuentro cercano con la vida silvestre de Costa Rica en este tour de 4 horas al Parque Mistico de Puentes Colgantes desde La Fortuna, a la sombra del Volcán Arenal.
+Adéntrate en el corazón de la selva tropical en un circuito de 3,2 km (2 millas) que incluye 15 puentes colgantes, y ten la oportunidad de avistar hasta 350 especies de aves, incluyendo colibríes, campaneros, tucanes y el majestuoso Tucancito Esmeralda.
+• Disfruta de una caminata guiada por un circuito de 15 puentes especialmente diseñados.
+• Observa colibríes y tucanes en su hábitat natural.
+• ¡Una excelente opción para familias!';
 
         $hanging = DB::table('tours')->insertGetId([
-            'name' => 'Hanging Bridges',
+            'name' => 'Puentes Colgantes',
             'overview' => $hangingOverview,
             'adult_price' => 82,
             'kid_price' => 61,
@@ -124,16 +135,17 @@ class ToursSeeder extends Seeder
         foreach ([1, 2, 3, 4] as $a) DB::table('amenity_tour')->insert(['tour_id' => $hanging, 'amenity_id' => $a, 'is_active' => true]);
         foreach ([5, 6, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tour_id' => $hanging, 'amenity_id' => $a, 'is_active' => true]);
 
-        // === Nature Lover Combo ===
-        $natureOverview = 'Combine three adventurous activities in a single tour: a hike to Arenal Volcano, visit to the Hanging Bridges, and exploration of La Fortuna Waterfall. This full-day tour from La Fortuna, perfect for nature lovers, includes hiking and swimming amidst Costa Rica\'s beautiful natural scenery. Hotel pickup and drop-off included.
-• Full-day Costa Rica adventure tour.
-• Hike around Arenal Volcano and swim beneath La Fortuna Waterfall.
-• Cross 16 hanging bridges in the rainforest.
-• Hotel pickup and drop-off included.
-• Personalized experience: small group tour limited to 12.';
+        // === Nature Lover Combo 1 ===
+        $natureOverview = 'Combina tres actividades llenas de aventura en un solo tour: una caminata al Volcán Arenal, visita a los Puentes Colgantes y exploración de la Catarata La Fortuna.
+Este tour de día completo desde La Fortuna, perfecto para los amantes de la naturaleza, incluye caminatas y la oportunidad de nadar en medio del hermoso paisaje natural de Costa Rica.
+Incluye recogida y regreso al hotel.
+• Tour de aventura de día completo en Costa Rica.
+• Caminata alrededor del Volcán Arenal y baño bajo la Catarata La Fortuna.
+• Cruza 16 puentes colgantes en la selva tropical.
+• Experiencia personalizada: tour en grupo pequeño limitado a 12 personas.';
 
         $nature = DB::table('tours')->insertGetId([
-            'name' => 'Nature Lover Combo 1 (Hanging Bridges + La Fortuna Waterfall + Lunch + Volcano Hike)',
+            'name' => 'Nature Lover Combo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo + Caminata al Volcán Arenal)',
             'overview' => $natureOverview,
             'adult_price' => 154,
             'kid_price' => 115,
@@ -154,14 +166,15 @@ class ToursSeeder extends Seeder
         foreach ([6, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tour_id' => $nature, 'amenity_id' => $a, 'is_active' => true]);
 
         // === Minicombo 1 ===
-        $minicombo1Overview = 'Discover the natural attractions of La Fortuna on this all-day guided tour. Perfect for the whole family and those who are short on time, the tour includes a stop at La Fortuna Waterfall as well as a traditional Costa Rican lunch.
-• Travel across suspension bridges hanging over the rainforest to take in unique views.
-• See the top attractions of La Fortuna in one day. Spot bird species, monkeys, and other local wildlife.
-• Get the chance to swim in the crystal-clear waters of the waterfall.
-• The tour ends with a typical lunch featuring Costa Rican cuisine.';
+        $minicombo1Overview = 'Descubre las atracciones naturales de La Fortuna en este tour guiado de día completo.
+Perfecto para toda la familia y para quienes cuentan con poco tiempo, el recorrido incluye una parada en la Catarata La Fortuna, así como un almuerzo tradicional costarricense.
+• Cruza puentes colgantes sobre la selva tropical para disfrutar de vistas únicas.
+• Conoce las principales atracciones de La Fortuna en un solo día. Observa aves, monos y otra fauna local.
+• Disfruta la oportunidad de nadar en las aguas cristalinas de la catarata.
+• El tour finaliza con un almuerzo típico de la cocina costarricense.';
 
         $minicombo1 = DB::table('tours')->insertGetId([
-            'name' => 'Minicombo 1 (Hanging Bridges + La Fortuna Waterfall + Lunch)',
+            'name' => 'Minicombo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo)',
             'overview' => $minicombo1Overview,
             'adult_price' => 136,
             'kid_price' => 102,
@@ -182,14 +195,16 @@ class ToursSeeder extends Seeder
         foreach ([6, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tour_id' => $minicombo1, 'amenity_id' => $a, 'is_active' => true]);
 
         // === Minicombo 2 ===
-        $minicombo2Overview = 'If you\'ve come to Costa Rica for its incredible volcanoes and biodiversity, this day trip delivers. You\'ll be taken to one of the best viewpoints overlooking Volcán Arenal. Whatever the weather you can appreciate its symmetrical beauty. Next, visit the La Fortuna Waterfall, where you can cool off in the sparkling plunge pool.
-• Lunch with local coffee is included.
-• An easy way to visit two of Costa Rica’s highlights.
-• Avoid sweaty buses and travel in air-conditioned comfort. Wear comfy shoes and be prepared to hike to the lookout and waterfall.
-• Pickups from Fortuna town area are included.';
+        $minicombo2Overview = 'Si has venido a Costa Rica por sus increíbles volcanes y su biodiversidad, esta excursión de un día es ideal para ti.
+Te llevaremos a uno de los mejores miradores con vista al Volcán Arenal, donde, sin importar el clima, podrás apreciar su belleza simétrica.
+Luego, visitarás la Catarata La Fortuna, donde podrás refrescarte en su reluciente poza natural.
+• Almuerzo con café local incluido.
+• Una forma sencilla de visitar dos de las principales atracciones de Costa Rica.
+• Evita los buses calurosos y viaja con la comodidad del aire acondicionado. Usa zapatos cómodos y prepárate para caminar hasta el mirador y la catarata.
+• Incluye recogida en la zona del centro de La Fortuna.';
 
         $minicombo2 = DB::table('tours')->insertGetId([
-            'name' => 'Minicombo 2 (Volcano Hike + La Fortuna Waterfall + Lunch)',
+            'name' => 'Minicombo 2 (Caminata al Volcán Arenal + Catarata de La Fortuna + Almuerzo)',
             'overview' => $minicombo2Overview,
             'adult_price' => 136,
             'kid_price' => 102,
@@ -210,14 +225,16 @@ class ToursSeeder extends Seeder
         foreach ([6, 7, 8, 9] as $a) DB::table('excluded_amenity_tour')->insert(['tour_id' => $minicombo2, 'amenity_id' => $a, 'is_active' => true]);
 
         // === Minicombo 3 ===
-        $minicombo3Overview = 'The 230-foot (70-meter) high La Fortuna Waterfall, surrounded by verdant wet forest, is one of the region\'s most photographed attractions. On this half-day tour, take the scenic route as you float down the river on a raft, then cool off with a swim beneath the falls. Along the way, look out for exotic birds, howler monkeys, and sloths; visit a traditional Costa Rican family home; and tuck into a delicious lunch at a local restaurant.
-• Magnificent views and chance to swim at Fortuna Waterfall.
-• Express tour: combine wildlife and culture with this semi full-day itinerary.
-• Hassle-free pickup and drop-off at your La Fortuna hotel.
-• Intimate small-group tour with a maximum of 12 people (6 per raft).';
+        $minicombo3Overview = 'La Catarata La Fortuna, con sus 70 metros (230 pies) de altura y rodeada de un exuberante bosque lluvioso, es una de las atracciones más fotografiadas de la región.
+En este tour de medio día, disfruta de la ruta escénica mientras navegas por el río en una balsa y luego refréscate nadando bajo la cascada.
+En el camino, mantente atento para avistar aves exóticas, monos aulladores y perezosos; visita el hogar de una familia tradicional costarricense y saborea un delicioso almuerzo en un restaurante local.
+• Vistas magníficas y oportunidad de nadar en la Catarata La Fortuna.
+• Tour exprés: combina vida silvestre y cultura en este itinerario de medio día.
+• Recogida y regreso sin complicaciones en tu hotel en La Fortuna.
+• Tour íntimo en grupo pequeño, con un máximo de 12 personas (6 por balsa).';
 
         $minicombo3 = DB::table('tours')->insertGetId([
-            'name' => 'Minicombo 3 (Safari Float + La Fortuna Waterfall + Lunch)',
+            'name' => 'Minicombo 3 (Safari Flotante + Catarata de La Fortuna + Almuerzo)',
             'overview' => $minicombo3Overview,
             'adult_price' => 136,
             'kid_price' => 102,
