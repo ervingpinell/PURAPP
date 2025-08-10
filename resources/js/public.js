@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // ✅ NAVBAR TOGGLE
+  // ===============================
+  // NAVBAR TOGGLE
+  // ===============================
   const toggle = document.getElementById('navbar-toggle');
   const links = document.getElementById('navbar-links');
 
@@ -10,7 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   }
 
-  // ✅ SCROLL CON OFFSET PARA #tours
+  // ===============================
+  // SCROLL CON OFFSET PARA #tours
+  // ===============================
   const offset = 100;
 
   function scrollToHash(hash) {
@@ -20,11 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.scrollTo({ top: top - offset, behavior: 'smooth' });
   }
 
-  // ✅ BOTÓN "TOURS" redirecciona o hace scroll según el contexto
+  // Botones que apuntan a #tours
   document.querySelectorAll('.scroll-to-tours').forEach(link => {
     link.addEventListener('click', function (e) {
       e.preventDefault();
-
       const isHome = window.location.pathname === '/';
 
       if (isHome) {
@@ -39,17 +42,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Ajustar scroll si ya cargó con hash
-if (window.location.hash === '#tours') {
-  const referrer = document.referrer;
-  const cameFromOtherPage = referrer && !referrer.includes(window.location.origin + '/');
-  if (!cameFromOtherPage) {
-    setTimeout(() => scrollToHash('#tours'), 200);
+  // Si la página ya cargó con #tours, ajustar
+  if (window.location.hash === '#tours') {
+    const referrer = document.referrer;
+    const cameFromOtherPage = referrer && !referrer.includes(window.location.origin + '/');
+    if (!cameFromOtherPage) {
+      setTimeout(() => scrollToHash('#tours'), 200);
+    }
   }
-}
 
-
-  // ✅ LEER MÁS / LEER MENOS
+  // ===============================
+  // LEER MÁS / LEER MENOS
+  // ===============================
   document.querySelectorAll('.toggle-overview-link').forEach(link => {
     link.addEventListener('click', function () {
       const overview = document.getElementById(this.dataset.target);
@@ -61,7 +65,9 @@ if (window.location.hash === '#tours') {
     });
   });
 
-  // ✅ TOGGLE ICONOS DEL ACORDEÓN
+  // ===============================
+  // TOGGLE ICONOS DEL ACORDEÓN
+  // ===============================
   document.querySelectorAll('.accordion-button').forEach(btn => {
     btn.addEventListener('click', () => {
       const icon = btn.querySelector('.toggle-icon');
@@ -72,7 +78,9 @@ if (window.location.hash === '#tours') {
     });
   });
 
-  // ✅ CONTADOR DEL CARRITO
+  // ===============================
+  // CONTADOR DEL CARRITO
+  // ===============================
   function updateCartCount() {
     fetch('/cart/count')
       .then(res => res.ok ? res.json() : Promise.reject(`HTTP ${res.status}`))
@@ -82,63 +90,80 @@ if (window.location.hash === '#tours') {
           el.textContent = data.count;
           el.style.display = data.count > 0 ? 'inline-block' : 'none';
           el.classList.remove('flash');
-          void el.offsetWidth;
+          void el.offsetWidth; // reflow
           el.classList.add('flash');
         });
       })
       .catch(err => console.error('❌ Error al obtener la cantidad del carrito:', err));
   }
-
   updateCartCount();
 
-  // ✅ PRECIOS DEL MODAL Y RESERVA
+  // ===============================
+  // PRECIOS DEL MODAL Y RESERVA
+  // ===============================
   const modalTotalPrice = document.getElementById('modal-total-price');
   const reservationTotalPrice = document.getElementById('reservation-total-price');
   const summarySpan = document.getElementById('traveler-summary');
 
   const adultPrice = parseFloat(document.querySelector('.reservation-box')?.dataset.adultPrice || 0);
-  const kidPrice = parseFloat(document.querySelector('.reservation-box')?.dataset.kidPrice || 0);
+  const kidPrice   = parseFloat(document.querySelector('.reservation-box')?.dataset.kidPrice   || 0);
   const maxTotal = 12;
   const minTotal = 2;
-  const maxKids = 2;
+  const maxKids  = 2;
 
   function updateModalTotal() {
     const adultCount = parseInt(document.getElementById('adult-count')?.textContent || 0);
-    const kidCount = parseInt(document.getElementById('kid-count')?.textContent || 0);
+    const kidCount   = parseInt(document.getElementById('kid-count')?.textContent   || 0);
     const total = (adultCount * adultPrice) + (kidCount * kidPrice);
     if (modalTotalPrice) modalTotalPrice.textContent = `Total: $${total.toFixed(2)}`;
   }
 
   function updateReservationTotal() {
     const adultCount = parseInt(document.getElementById('adult-count')?.textContent || 0);
-    const kidCount = parseInt(document.getElementById('kid-count')?.textContent || 0);
+    const kidCount   = parseInt(document.getElementById('kid-count')?.textContent   || 0);
 
     const adultsQtyInput = document.getElementById('adults_quantity');
-    const kidsQtyInput = document.getElementById('kids_quantity');
+    const kidsQtyInput   = document.getElementById('kids_quantity');
 
     if (adultsQtyInput) adultsQtyInput.value = adultCount;
-    if (kidsQtyInput) kidsQtyInput.value = kidCount;
+    if (kidsQtyInput)   kidsQtyInput.value   = kidCount;
 
     const total = (adultCount * adultPrice) + (kidCount * kidPrice);
     if (reservationTotalPrice) reservationTotalPrice.textContent = `$${total.toFixed(2)}`;
   }
 
-  const plusBtns = document.querySelectorAll('.traveler-btn[data-action="increase"]');
+  // ===============================
+  // CONTADORES (via + / -)
+  // ===============================
+  const plusBtns  = document.querySelectorAll('.traveler-btn[data-action="increase"]');
   const minusBtns = document.querySelectorAll('.traveler-btn[data-action="decrease"]');
 
+  // Referencias seguras
+  const adultCountEl = document.getElementById('adult-count');
+  const kidCountEl   = document.getElementById('kid-count');
+
+  // Inicialización segura
+  if (adultCountEl && kidCountEl) {
+    if (!adultCountEl.textContent) adultCountEl.textContent = '2';
+    if (!kidCountEl.textContent)   kidCountEl.textContent   = '0';
+    updateModalTotal();
+    updateReservationTotal();
+  }
+
+  // Handlers con refs seguras
   plusBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const type = btn.dataset.type;
-      let adults = parseInt(document.getElementById('adult-count')?.textContent || 0);
-      let kids = parseInt(document.getElementById('kid-count')?.textContent || 0);
+      let adults = parseInt(adultCountEl?.textContent || 0);
+      let kids   = parseInt(kidCountEl?.textContent   || 0);
       const total = adults + kids;
 
       if (type === 'adult' && total < maxTotal) adults++;
-      if (type === 'kid' && kids < maxKids && total < maxTotal) kids++;
+      if (type === 'kid'   && kids  < maxKids && total < maxTotal) kids++;
       if (adults + kids < minTotal) adults = minTotal - kids;
 
-      document.getElementById('adult-count').textContent = adults;
-      document.getElementById('kid-count').textContent = kids;
+      if (adultCountEl) adultCountEl.textContent = adults;
+      if (kidCountEl)   kidCountEl.textContent   = kids;
 
       updateModalTotal();
     });
@@ -147,54 +172,51 @@ if (window.location.hash === '#tours') {
   minusBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const type = btn.dataset.type;
-      let adults = parseInt(document.getElementById('adult-count')?.textContent || 0);
-      let kids = parseInt(document.getElementById('kid-count')?.textContent || 0);
+      let adults = parseInt(adultCountEl?.textContent || 0);
+      let kids   = parseInt(kidCountEl?.textContent   || 0);
 
       if (type === 'adult' && adults > 0) adults--;
-      if (type === 'kid' && kids > 0) kids--;
+      if (type === 'kid'   && kids > 0)   kids--;
 
       if (adults + kids < minTotal) {
         kids = 0;
         adults = minTotal;
       }
 
-      document.getElementById('adult-count').textContent = adults;
-      document.getElementById('kid-count').textContent = kids;
+      if (adultCountEl) adultCountEl.textContent = adults;
+      if (kidCountEl)   kidCountEl.textContent   = kids;
 
       updateModalTotal();
     });
   });
 
+  // Aplicar del modal
   document.querySelector('#travelerModal .btn-success')?.addEventListener('click', () => {
-    const adultCount = parseInt(document.getElementById('adult-count')?.textContent || 0);
-    const kidCount = parseInt(document.getElementById('kid-count')?.textContent || 0);
+    const adultCount = parseInt(adultCountEl?.textContent || 0);
+    const kidCount   = parseInt(kidCountEl?.textContent   || 0);
     if (summarySpan) summarySpan.textContent = adultCount + kidCount;
     updateReservationTotal();
   });
 
-  // Inicialización
-  document.getElementById('adult-count').textContent = 2;
-  document.getElementById('kid-count').textContent = 0;
-  updateModalTotal();
-  updateReservationTotal();
-
-  // ✅ VALIDACIÓN DE CUPO
+  // ===============================
+  // VALIDACIÓN DE CUPO AL AGREGAR
+  // ===============================
   const addToCartForm = document.querySelector('.reservation-box');
   if (addToCartForm) {
-    const tourId = window.tourId;
-    const maxCapacity = window.maxCapacity;
+    const tourId        = window.tourId;
+    const maxCapacity   = window.maxCapacity;
     const tourDateInput = addToCartForm.querySelector('[name="tour_date"]');
-    const scheduleSelect = addToCartForm.querySelector('[name="schedule_id"]');
+    const scheduleSelect= addToCartForm.querySelector('[name="schedule_id"]');
 
     addToCartForm.addEventListener('submit', async function (e) {
       e.preventDefault();
 
-      const adults = parseInt(document.getElementById('adults_quantity')?.value || 0);
-      const kids = parseInt(document.getElementById('kids_quantity')?.value || 0);
+      const adults    = parseInt(document.getElementById('adults_quantity')?.value || 0);
+      const kids      = parseInt(document.getElementById('kids_quantity')?.value   || 0);
       const requested = adults + kids;
 
-      const tourDate = tourDateInput?.value;
-      const scheduleId = scheduleSelect?.value;
+      const tourDate  = tourDateInput?.value;
+      const scheduleId= scheduleSelect?.value;
 
       if (!tourDate || !scheduleId) {
         Swal.fire('Error', 'Selecciona una fecha y un horario válido.', 'error');
@@ -221,11 +243,13 @@ if (window.location.hash === '#tours') {
     });
   }
 
-  // ✅ VALIDACIÓN Y AUTOCOMPLETADO DE PICKUP
-  const pickupInput = document.getElementById('pickupInput');
-  const pickupList = document.getElementById('pickupList');
-  const pickupValidMsg = document.getElementById('pickupValidMsg');
-  const pickupInvalidMsg = document.getElementById('pickupInvalidMsg');
+  // ===============================
+  // PICKUP AUTOCOMPLETADO
+  // ===============================
+  const pickupInput         = document.getElementById('pickupInput');
+  const pickupList          = document.getElementById('pickupList');
+  const pickupValidMsg      = document.getElementById('pickupValidMsg');
+  const pickupInvalidMsg    = document.getElementById('pickupInvalidMsg');
   const selectedPickupPoint = document.getElementById('selectedPickupPoint');
 
   if (pickupInput && pickupList && selectedPickupPoint) {
@@ -242,8 +266,8 @@ if (window.location.hash === '#tours') {
 
       pickupList.classList.remove('d-none');
 
-      pickupValidMsg.classList.add('d-none');
-      pickupInvalidMsg.classList.toggle('d-none', found || filter === '');
+      if (pickupValidMsg)   pickupValidMsg.classList.add('d-none');
+      if (pickupInvalidMsg) pickupInvalidMsg.classList.toggle('d-none', found || filter === '');
 
       selectedPickupPoint.value = found ? '' : 'other:' + pickupInput.value;
     });
@@ -256,13 +280,13 @@ if (window.location.hash === '#tours') {
       const li = e.target.closest('.pickup-option');
       if (li) {
         const hotelName = li.textContent.trim();
-        const hotelId = li.dataset.id;
+        const hotelId   = li.dataset.id;
 
         pickupInput.value = hotelName;
         selectedPickupPoint.value = hotelId;
 
-        pickupValidMsg.classList.remove('d-none');
-        pickupInvalidMsg.classList.add('d-none');
+        if (pickupValidMsg)   pickupValidMsg.classList.remove('d-none');
+        if (pickupInvalidMsg) pickupInvalidMsg.classList.add('d-none');
         pickupList.classList.add('d-none');
       }
     });
