@@ -69,6 +69,9 @@ return [
     'privacy_policy' => 'Privacy Policy',
     'terms_of_service' => 'Terms of Service',
     'reports' => 'Reports',
+    'footer_text'=> 'Green Vacations',
+    'quick_links'=> 'Quick Links',
+    'rights_reserved' => 'All rights reserved',
 
     // ─── TOURS AND REVIEWS ────────────────────────────
     'tours' => 'Tours',
@@ -178,6 +181,12 @@ return [
     'totalEstimated' => 'Estimated Total',
     'total_price' => 'Total Price',
     'total' => 'Total',
+    'date'=> 'Date',
+    'status' => 'Status',
+    'actions' => 'Actions',
+    'active'=> 'Active',
+    'delete'=> 'Delete',
+    
 
     // ─── VALIDATION ───────────────────────────────────
     'required_field' => 'This field is required.',
