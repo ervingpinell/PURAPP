@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ItineraryTranslation extends Model
 {
     protected $table = 'itinerary_translations';
+    public $timestamps = true;
 
     protected $fillable = [
         'itinerary_id',
@@ -17,6 +18,6 @@ class ItineraryTranslation extends Model
 
     public function itinerary()
     {
-        return $this->belongsTo(Itinerary::class, 'itinerary_id');
+        return $this->belongsTo(Itinerary::class, 'itinerary_id', 'itinerary_id');
     }
 }

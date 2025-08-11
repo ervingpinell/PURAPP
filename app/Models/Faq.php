@@ -3,27 +3,67 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Faq extends Model
 {
+    use HasFactory;
+
+    protected $table = 'faqs';
+    protected $primaryKey = 'faq_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
+    public $timestamps = true;
+
     protected $fillable = [
         'question',
         'answer',
+        // Estos dos parecen legacy si ya usas faq_translations:
         'translated_question',
         'translated_answer',
         'is_active',
     ];
 
-    public function translations()
+    protected $casts = [
+        'is_active' => 'bool',
+    ];
+
+    public function scopeActive($query)
     {
-        return $this->hasMany(FaqTranslation::class, 'faq_id');
+        return $query->where('is_active', true);
     }
 
-    public function translate($locale = null)
+    public function translations()
+    {
+        // especifica local key por tener PK no estándar
+        return $this->hasMany(FaqTranslation::class, 'faq_id', 'faq_id');
+    }
+
+    public function translate(?string $locale = null)
     {
         $locale = $locale ?? app()->getLocale();
 
-        return $this->translations->firstWhere('locale', $locale)
-            ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
+        if ($this->relationLoaded('translations')) {
+            return $this->translations->firstWhere('locale', $locale)
+                ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
+        }
+
+        return $this->translations()
+            ->where('locale', $locale)
+            ->first()
+            ?? $this->translations()
+                ->where('locale', config('app.fallback_locale'))
+                ->first();
+    }
+
+    // (Opcional) accessors directos
+    public function getQuestionTranslatedAttribute(): ?string
+    {
+        return optional($this->translate())?->question;
+    }
+
+    public function getAnswerTranslatedAttribute(): ?string
+    {
+        return optional($this->translate())?->answer;
     }
 }

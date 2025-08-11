@@ -34,9 +34,19 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-    'viator' => [
-    'api_key' => env('VIATOR_API_KEY'),
+
+'viator' => [
+    'key'          => env('VIATOR_API_KEY'),
+    'reviews_base' => env('VIATOR_REVIEWS_BASE', 'https://api.sandbox.viator.com/partner/reviews/product'),
 ],
+
+'deepl' => [
+    'auth_key'  => env('DEEPL_AUTH_KEY'),
+    'formality'  => env('DEEPL_FORMALITY', 'default'),
+    'en_variant' => env('DEEPL_EN_VARIANT', 'en-US'),
+    'pt_variant' => env('DEEPL_PT_VARIANT', 'pt-BR'),
+],
+
 
 
 ];

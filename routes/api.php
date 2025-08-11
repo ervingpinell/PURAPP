@@ -3,6 +3,10 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Cart\CartController;
+use App\Http\Controllers\ReviewController;
+
+Route::post('/reviews', [ReviewController::class, 'fetchReviews'])
+    ->name('api.reviews');
 
 // Rutas de la API para códigos promocionales
 use App\Http\Controllers\Admin\PromoCode\PromoCodeController;

@@ -52,8 +52,7 @@ Route::get('/reviews', function () {
     return view('public.reviews', compact('tours'));
 })->name('reviews');
 
-// API reviews (JS externo)
-Route::post('/api/reviews', [ReviewController::class, 'fetchReviews'])->name('api.reviews');
+
 // API Promo Codes
 Route::post('/api/apply-promo', [PromoCodeController::class, 'apply'])->name('api.promo.apply');
 Route::post('/apply-promo', [PromoCodeController::class, 'apply'])->name('api.promo.apply');

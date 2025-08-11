@@ -6,41 +6,83 @@ use App\Models\Tour;
 use App\Models\HotelList;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use App\Models\TourType;
+use Illuminate\Support\Str;
+
 
 class HomeController extends Controller
 {
 public function index()
-{
-    $locale = app()->getLocale();
+    {
+        $locale   = app()->getLocale();
+        $fallback = config('app.fallback_locale', 'es');
 
-    $tours = Tour::with(['tourType', 'itinerary.items', 'translations'])
-        ->where('is_active', true)
-        ->get()
-        ->map(function ($tour) use ($locale) {
-            $translation = $tour->translations->firstWhere('locale', $locale);
-            $tour->translated_name = $translation->name ?? $tour->name;
-            $tour->translated_overview = $translation->overview ?? $tour->overview;
-            return $tour;
-        })
-        ->groupBy(fn($tour) => $tour->tourType->name ?? 'Sin categoría');
+        // 1) Tipos de tour con traducciones -> meta para UI
+        $typeMeta = TourType::active()
+            ->with('translations')
+            ->orderBy('name')
+            ->get()
+            ->mapWithKeys(function ($type) use ($locale, $fallback) {
+                $tr = $type->translations->firstWhere('locale', $locale)
+                    ?? $type->translations->firstWhere('locale', $fallback);
 
-    // Obtener mínimo 2 comentarios por cada tour (en frontend)
-    $viatorTours = Tour::whereNotNull('viator_code')
-        ->inRandomOrder()
-        ->limit(6) // Puedes ajustar esto
-        ->get(['tour_id', 'viator_code', 'name']); // 👈 incluye tour_id aquí
+                $title    = $tr->name ?? $type->name;
+                $duration = $tr->duration ?? $type->duration ?? '';
+                $slug     = Str::slug($title, '_'); // p.ej. "full_day", "half_day"
 
-    $carouselProductCodes = $viatorTours->map(fn($t) => [
-        'code' => $t->viator_code,
-        'name' => $t->name,
-        'id'   => $t->tour_id,
-    ])->values();
+                return [
+                    $slug => [
+                        'id'          => $type->tour_type_id,
+                        'slug'        => $slug,
+                        'title'       => $title,
+                        'duration'    => $duration,
+                        'description' => $tr->description ?? $type->description ?? '',
+                    ],
+                ];
+            });
 
-    return view('public.home', compact('tours', 'carouselProductCodes'));
-}
+        // 2) Tours con traducciones y tipo
+        $tours = Tour::with(['tourType.translations', 'itinerary.items', 'translations'])
+            ->where('is_active', true)
+            ->get()
+            ->map(function ($tour) use ($locale, $fallback) {
+                $tTr = $tour->translations->firstWhere('locale', $locale)
+                    ?? $tour->translations->firstWhere('locale', $fallback);
 
+                $tour->translated_name     = $tTr->name ?? $tour->name;
+                $tour->translated_overview = $tTr->overview ?? $tour->overview;
 
+                if ($tour->tourType) {
+                    $ttTr  = $tour->tourType->translations->firstWhere('locale', $locale)
+                           ?? $tour->tourType->translations->firstWhere('locale', $fallback);
+                    $ttName = $ttTr->name ?? $tour->tourType->name;
+                    $tour->tour_type_slug = Str::slug($ttName, '_');
+                } else {
+                    $tour->tour_type_slug = 'sin_categoria';
+                }
 
+                return $tour;
+            });
+
+        // 3) Agrupar por slug de tipo
+        $toursByType = $tours
+            ->sortBy('tour_type_slug', SORT_NATURAL | SORT_FLAG_CASE)
+            ->groupBy(fn ($t) => $t->tour_type_slug);
+
+        // 4) Carrusel Viator
+        $viatorTours = Tour::whereNotNull('viator_code')
+            ->inRandomOrder()
+            ->limit(6)
+            ->get(['tour_id', 'viator_code', 'name']);
+
+        $carouselProductCodes = $viatorTours->map(fn ($t) => [
+            'code' => $t->viator_code,
+            'name' => $t->name,
+            'id'   => $t->tour_id,
+        ])->values();
+
+        return view('public.home', compact('toursByType', 'typeMeta', 'carouselProductCodes'));
+    }
 
     public function showTour($id)
     {

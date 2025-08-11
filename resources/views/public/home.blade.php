@@ -15,8 +15,8 @@
 
 @section('content')
 <section class="tours-section" id="tours">
-        @include('partials.tours', ['tours' => $tours])
-    </section>
+    @include('partials.tours', ['toursByType' => $toursByType, 'typeMeta' => $typeMeta])
+</section>
 
     <section class="home-testimonials">
         {{-- 🔁 Testimonios (Viator y otros) --}}
