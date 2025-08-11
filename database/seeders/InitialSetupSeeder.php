@@ -53,7 +53,7 @@ class InitialSetupSeeder extends Seeder
             );
         }
 
-     
+
 
         DB::table('tour_languages')->insertOrIgnore([
             ['name'=>'Español','is_active'=>true,'created_at'=>$now,'updated_at'=>$now],
@@ -61,8 +61,22 @@ class InitialSetupSeeder extends Seeder
         ]);
 
         DB::table('tour_types')->insertOrIgnore([
-            ['name'=>'Full Day','description'=>'6 a 9 horas','is_active'=>true,'created_at'=>$now,'updated_at'=>$now],
-            ['name'=>'Half Day','description'=>'2 a 4 horas','is_active'=>true,'created_at'=>$now,'updated_at'=>$now],
+            [
+                'name'        => 'Día completo',
+                'description' => 'La opción perfecta para personas que buscan una experiencia completa en un solo día',
+                'duration'    => '6 a 9 horas',
+                'is_active'   => true,
+                'created_at'  => $now,
+                'updated_at'  => $now,
+            ],
+            [
+                'name'        => 'Medio día',
+                'description' => 'Tours ideales para una aventura rápida para quienes tienen poco tiempo o quieren realizar otras actividades en la tarde.',
+                'duration'    => '2 a 4 horas',
+                'is_active'   => true,
+                'created_at'  => $now,
+                'updated_at'  => $now,
+            ],
         ]);
 
         foreach ([

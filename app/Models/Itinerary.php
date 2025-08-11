@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -8,7 +9,11 @@ class Itinerary extends Model
 {
     use HasFactory;
 
+    protected $table = 'itineraries';
     protected $primaryKey = 'itinerary_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
+    public $timestamps = true;
 
     protected $fillable = [
         'name',
@@ -17,8 +22,13 @@ class Itinerary extends Model
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'is_active' => 'bool',
     ];
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
 
     public function tours()
     {
@@ -34,22 +44,32 @@ class Itinerary extends Model
                 'itinerary_item_id'
             )
             ->withPivot('item_order', 'is_active')
+            ->withTimestamps()
             ->wherePivot('is_active', true)
             ->where('itinerary_items.is_active', true)
-            ->orderBy('pivot_item_order');
+            ->orderBy('itinerary_item_itinerary.item_order');
     }
 
-    // 🔁 Traducciones
-public function translations()
-{
-    return $this->hasMany(\App\Models\ItineraryTranslation::class, 'itinerary_id');
-}
+    // Translations
+    public function translations()
+    {
+        return $this->hasMany(ItineraryTranslation::class, 'itinerary_id', 'itinerary_id');
+    }
 
-public function translate($locale = null)
-{
-    $locale = $locale ?? app()->getLocale();
-    return $this->translations->firstWhere('locale', $locale)
-        ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
-}
+    public function translate(?string $locale = null)
+    {
+        $locale = $locale ?? app()->getLocale();
 
+        if ($this->relationLoaded('translations')) {
+            return $this->translations->firstWhere('locale', $locale)
+                ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
+        }
+
+        return $this->translations()
+            ->where('locale', $locale)
+            ->first()
+            ?? $this->translations()
+                ->where('locale', config('app.fallback_locale'))
+                ->first();
+    }
 }

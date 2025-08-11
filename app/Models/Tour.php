@@ -13,22 +13,34 @@ class Tour extends Model
     protected $primaryKey = 'tour_id';
     public $incrementing = true;
     protected $keyType = 'int';
+    public $timestamps = true;
 
-protected $fillable = [
-    'name',
-    'overview',
-    'adult_price',
-    'kid_price',
-    'length',
-    'max_capacity',
-    'is_active',
-    'tour_type_id',
-    'itinerary_id',
-    'color',
-    'viator_code', // 👈 Añadido aquí
-];
+    protected $fillable = [
+        'name',
+        'overview',
+        'adult_price',
+        'kid_price',
+        'length',
+        'max_capacity',
+        'is_active',
+        'tour_type_id',
+        'itinerary_id',
+        'color',
+        'viator_code',
+    ];
 
-    // ✅ Relaciones
+    protected $casts = [
+        'adult_price'  => 'float',
+        'kid_price'    => 'float',
+        'length'       => 'float',
+        'max_capacity' => 'int',
+        'is_active'    => 'bool',
+    ];
+
+    // Scopes
+    public function scopeActive($q) { return $q->where('is_active', true); }
+
+    // Relations
     public function tourType()
     {
         return $this->belongsTo(TourType::class, 'tour_type_id', 'tour_type_id');
@@ -36,22 +48,42 @@ protected $fillable = [
 
     public function languages()
     {
-        return $this->belongsToMany(TourLanguage::class, 'tour_language_tour', 'tour_id', 'tour_language_id');
+        return $this->belongsToMany(
+            TourLanguage::class,
+            'tour_language_tour',
+            'tour_id',
+            'tour_language_id'
+        )->withTimestamps();
     }
 
     public function amenities()
     {
-        return $this->belongsToMany(Amenity::class, 'amenity_tour', 'tour_id', 'amenity_id');
+        return $this->belongsToMany(
+            Amenity::class,
+            'amenity_tour',
+            'tour_id',
+            'amenity_id'
+        )->withTimestamps();
     }
 
     public function excludedAmenities()
     {
-        return $this->belongsToMany(Amenity::class, 'excluded_amenity_tour', 'tour_id', 'amenity_id');
+        return $this->belongsToMany(
+            Amenity::class,
+            'excluded_amenity_tour',
+            'tour_id',
+            'amenity_id'
+        )->withTimestamps();
     }
 
     public function schedules()
     {
-        return $this->belongsToMany(Schedule::class, 'schedule_tour', 'tour_id', 'schedule_id');
+        return $this->belongsToMany(
+            Schedule::class,
+            'schedule_tour',
+            'tour_id',
+            'schedule_id'
+        )->withTimestamps();
     }
 
     public function availabilities()
@@ -69,16 +101,33 @@ protected $fillable = [
         return $this->hasMany(TourExcludedDate::class, 'tour_id', 'tour_id');
     }
 
-    // ✅ Traducciones
+    // Translations
     public function translations()
     {
         return $this->hasMany(TourTranslation::class, 'tour_id', 'tour_id');
     }
 
-    public function translate($locale = null)
+    public function translate(?string $locale = null)
     {
         $locale = $locale ?? app()->getLocale();
-        return $this->translations->firstWhere('locale', $locale)
-            ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
+
+        if ($this->relationLoaded('translations')) {
+            return $this->translations->firstWhere('locale', $locale)
+                ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
+        }
+
+        return $this->translations()->where('locale', $locale)->first()
+            ?? $this->translations()->where('locale', config('app.fallback_locale'))->first();
+    }
+
+    // Accessors (opcionales)
+    public function getNameTranslatedAttribute(): ?string
+    {
+        return optional($this->translate())?->name;
+    }
+
+    public function getOverviewTranslatedAttribute(): ?string
+    {
+        return optional($this->translate())?->overview;
     }
 }

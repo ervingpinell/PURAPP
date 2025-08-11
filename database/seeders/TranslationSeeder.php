@@ -8,116 +8,175 @@ use App\Models\Itinerary;
 use App\Models\ItineraryItem;
 use App\Models\Amenity;
 use App\Models\Faq;
+use App\Models\TourType;                     // 👈
 use App\Models\TourTranslation;
 use App\Models\ItineraryTranslation;
 use App\Models\ItineraryItemTranslation;
 use App\Models\AmenityTranslation;
 use App\Models\FaqTranslation;
-use App\Services\GoogleTranslationService;
+use App\Models\TourTypeTranslation;          // 👈
+use App\Services\Contracts\TranslatorInterface;
 
 class TranslationSeeder extends Seeder
 {
-    /**
-     * Idiomas de destino (incluye 'es' para guardar versión original si no está en español).
-     */
-    protected $locales = ['en', 'pt', 'fr', 'de'];
+    protected array $locales = ['es', 'en', 'fr', 'pt', 'de'];
 
     public function run(): void
     {
         $this->clearTranslations();
 
-        $this->translateTours();
-        $this->translateItineraries();
-        $this->translateItineraryItems();
-        $this->translateAmenities();
-        $this->translateFaqs();
+        /** @var TranslatorInterface $translator */
+        $translator = app(TranslatorInterface::class);
 
-        $this->command->info('✅ Todas las traducciones se han regenerado correctamente.');
+        // 👇 Nuevo
+        $this->translateTourTypes($translator);
+
+        $this->translateTours($translator);
+        $this->translateItineraries($translator);
+        $this->translateItineraryItems($translator);
+        $this->translateAmenities($translator);
+        $this->translateFaqs($translator);
+
+        $this->command?->info('✅ All translations regenerated successfully.');
     }
 
     protected function clearTranslations(): void
     {
+        // Si tus tablas tienen FK con cascade está OK truncar
+        TourTypeTranslation::truncate();      // 👈 Nuevo
         TourTranslation::truncate();
         ItineraryTranslation::truncate();
         ItineraryItemTranslation::truncate();
         AmenityTranslation::truncate();
         FaqTranslation::truncate();
 
-        $this->command->warn('🧹 Traducciones anteriores eliminadas.');
+        $this->command?->warn('🧹 Previous translations removed.');
     }
 
-    protected function translateTours(): void
+    // 👇 Nuevo: TourType (name, description, duration)
+    protected function translateTourTypes(TranslatorInterface $translator): void
     {
-        Tour::where('is_active', true)->each(function ($tour) {
-            GoogleTranslationService::translateAndSaveForLocales(
-                $tour,
-                ['name', 'overview'],
-                TourTranslation::class,
-                'tour_id',
-                $this->locales
-            );
-        });
+        $this->translateCollection(
+            TourType::where('is_active', true)->cursor(),
+            ['name', 'description', 'duration'],
+            TourTypeTranslation::class,
+            'tour_type_id',
+            $translator
+        );
 
-        $this->command->info('🎯 Tours traducidos');
+        $this->command?->info('🏷️ Tour types translated.');
     }
 
-    protected function translateItineraries(): void
-    {
-        Itinerary::where('is_active', true)->each(function ($itinerary) {
-            GoogleTranslationService::translateAndSaveForLocales(
-                $itinerary,
-                ['name', 'description'],
-                ItineraryTranslation::class,
-                'itinerary_id',
-                $this->locales
-            );
-        });
 
-        $this->command->info('📘 Itinerarios traducidos');
+protected function translateTours(TranslatorInterface $translator): void
+{
+    $collection = Tour::where('is_active', true)->cursor();
+
+    foreach ($collection as $tour) {
+        $origName = (string) ($tour->name ?? '');
+        $origOverview = (string) ($tour->overview ?? '');
+
+        foreach ($this->locales as $locale) {
+            // 👇 Name: preserva lo de fuera de los paréntesis
+            $name = $translator->translatePreserveOutsideParentheses($origName, $locale);
+            // 👇 Overview: traducción normal
+            $overview = $translator->translate($origOverview, $locale);
+
+            \App\Models\TourTranslation::updateOrCreate(
+                ['tour_id' => $tour->getKey(), 'locale' => $locale],
+                [
+                    'tour_id'  => $tour->getKey(),
+                    'locale'   => $locale,
+                    'name'     => $name,
+                    'overview' => $overview,
+                ]
+            );
+        }
     }
 
-    protected function translateItineraryItems(): void
-    {
-        ItineraryItem::where('is_active', true)->each(function ($item) {
-            GoogleTranslationService::translateAndSaveForLocales(
-                $item,
-                ['title', 'description'],
-                ItineraryItemTranslation::class,
-                'item_id',
-                $this->locales
-            );
-        });
+    $this->command?->info('🎯 Tours translated (name preserves text outside parentheses).');
+}
 
-        $this->command->info('🧩 Ítems de itinerario traducidos');
+
+    protected function translateItineraries(TranslatorInterface $translator): void
+    {
+        $this->translateCollection(
+            Itinerary::where('is_active', true)->cursor(),
+            ['name', 'description'],
+            ItineraryTranslation::class,
+            'itinerary_id',
+            $translator
+        );
+
+        $this->command?->info('📘 Itineraries translated.');
     }
 
-    protected function translateAmenities(): void
+    protected function translateItineraryItems(TranslatorInterface $translator): void
     {
-        Amenity::where('is_active', true)->each(function ($amenity) {
-            GoogleTranslationService::translateAndSaveForLocales(
-                $amenity,
-                ['name'],
-                AmenityTranslation::class,
-                'amenity_id',
-                $this->locales
-            );
-        });
+        $this->translateCollection(
+            ItineraryItem::where('is_active', true)->cursor(),
+            ['title', 'description'],
+            ItineraryItemTranslation::class,
+            'item_id',
+            $translator
+        );
 
-        $this->command->info('💠 Amenidades traducidas');
+        $this->command?->info('🧩 Itinerary items translated.');
     }
 
-    protected function translateFaqs(): void
+    protected function translateAmenities(TranslatorInterface $translator): void
     {
-        Faq::where('is_active', true)->each(function ($faq) {
-            GoogleTranslationService::translateAndSaveForLocales(
-                $faq,
-                ['question', 'answer'],
-                FaqTranslation::class,
-                'faq_id',
-                $this->locales
-            );
-        });
+        $this->translateCollection(
+            Amenity::where('is_active', true)->cursor(),
+            ['name'],
+            AmenityTranslation::class,
+            'amenity_id',
+            $translator
+        );
 
-        $this->command->info('❓ FAQs traducidas');
+        $this->command?->info('💠 Amenities translated.');
+    }
+
+    protected function translateFaqs(TranslatorInterface $translator): void
+    {
+        $this->translateCollection(
+            Faq::where('is_active', true)->cursor(),
+            ['question', 'answer'],
+            FaqTranslation::class,
+            'faq_id',
+            $translator
+        );
+
+        $this->command?->info('❓ FAQs translated.');
+    }
+
+    /**
+     * Generic translator/persister for any model + translation model.
+     */
+    protected function translateCollection($collection, array $fields, string $translationModel, string $foreignKey, TranslatorInterface $translator): void
+    {
+        foreach ($collection as $model) {
+            $fieldTranslations = [];
+            foreach ($fields as $field) {
+                $original = (string) ($model->{$field} ?? '');
+                $fieldTranslations[$field] = $translator->translateAll($original);
+            }
+
+            foreach ($this->locales as $locale) {
+                $payload = [
+                    $foreignKey => $model->getKey(),
+                    'locale'    => $locale,
+                ];
+                foreach ($fields as $field) {
+                    $original = (string) ($model->{$field} ?? '');
+                    $payload[$field] = $fieldTranslations[$field][$locale] ?? $original;
+                }
+
+                $translationModel::updateOrCreate(
+                    [$foreignKey => $model->getKey(), 'locale' => $locale],
+                    $payload
+                );
+            }
+        }
     }
 }

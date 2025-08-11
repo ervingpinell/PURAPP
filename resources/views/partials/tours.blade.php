@@ -1,41 +1,49 @@
-<h2 class="big-title text-center" style="color: var(--primary-dark);">{{ __('adminlte::adminlte.our_tours') }}</h2>
+@php use Illuminate\Support\Str; @endphp
+
+<h2 class="big-title text-center" style="color: var(--primary-dark);">
+    {{ __('adminlte::adminlte.our_tours') }}
+</h2>
 
 <div class="tour-cards">
-    @foreach (['Full Day' => '6 - 9 Horas', 'Half Day' => '2 - 4 Horas'] as $type => $duration)
+    @foreach ($typeMeta as $slug => $meta)
         @php
-            $group = $tours[$type] ?? collect();
+            /** @var \Illuminate\Support\Collection $group */
+            $group = $toursByType[$slug] ?? collect();
             if ($group->isEmpty()) continue;
 
             $first = $group->first();
-            $translatedDuration = str_replace('Horas', __('adminlte::adminlte.horas'), $duration);
-            $descriptionKey = strtolower(str_replace(' ', '_', $type)) . '_description';
-            $translatedDescription = __('adminlte::adminlte.' . $descriptionKey);
-            $translatedTitle = __('adminlte::adminlte.' . Str::slug($type, '_') . '_tours');
+            $translatedTitle       = $meta['title'];       // p.ej. "Full Day" traducido
+            $translatedDuration    = $meta['duration'];    // p.ej. "6 – 9 horas" traducido
+            $translatedDescription = $meta['description']; // texto traducido del tipo
         @endphp
 
         {{-- Card fuera del modal --}}
         <div class="tour-card" style="cursor: pointer;" data-bs-toggle="modal"
-             data-bs-target="#modal-{{ Str::slug($type) }}">
+             data-bs-target="#modal-{{ Str::slug($slug) }}">
             <img src="{{ $first->image_path ? asset('storage/' . $first->image_path) : asset('images/volcano.png') }}"
                  class="card-img-top" alt="{{ $first->translated_name }}">
             <div class="card-body d-flex flex-column h-100">
                 <h5 class="card-title">{{ $translatedTitle }}</h5>
-                <p class="card-text text-muted">{{ $translatedDuration }}</p>
-                <p class="card-text small card-text">{!! nl2br(e($translatedDescription)) !!}</p>
+                @if(!empty($translatedDuration))
+                    <p class="card-text text-muted">{{ $translatedDuration }}</p>
+                @endif
+                @if(!empty($translatedDescription))
+                    <p class="card-text small card-text">{!! nl2br(e($translatedDescription)) !!}</p>
+                @endif
                 <a href="javascript:void(0)" class="btn btn-success w-100 btn-ver-tour"
-                   data-bs-toggle="modal" data-bs-target="#modal-{{ Str::slug($type) }}">
+                   data-bs-toggle="modal" data-bs-target="#modal-{{ Str::slug($slug) }}">
                     {{ __('adminlte::adminlte.see_tours') }}
                 </a>
             </div>
         </div>
 
         {{-- Modal --}}
-        <div class="modal fade" id="modal-{{ Str::slug($type) }}" tabindex="-1"
-             aria-labelledby="modalLabel-{{ Str::slug($type) }}" aria-hidden="true">
+        <div class="modal fade" id="modal-{{ Str::slug($slug) }}" tabindex="-1"
+             aria-labelledby="modalLabel-{{ Str::slug($slug) }}" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header text-white" style="background:#0f2419">
-                        <h5 class="modal-title text-center w-100 text-white" id="modalLabel-{{ Str::slug($type) }}">
+                        <h5 class="modal-title text-center w-100 text-white" id="modalLabel-{{ Str::slug($slug) }}">
                             {{ $translatedTitle }}
                         </h5>
                         <button type="button" class="btn-close bg-light" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -54,12 +62,14 @@
 
                                                 @php
                                                     $rawLength = $tour->length;
-                                                    $unit = __('adminlte::adminlte.horas');
+                                                    $unit  = __('adminlte::adminlte.horas');
                                                     $label = __('adminlte::adminlte.duration');
                                                 @endphp
-                                                <p class="text-muted small mb-2">
-                                                    <strong>{{ $label }}:</strong> {{ $rawLength }} {{ $unit }}
-                                                </p>
+                                                @if(!empty($rawLength))
+                                                    <p class="text-muted small mb-2">
+                                                        <strong>{{ $label }}:</strong> {{ $rawLength }} {{ $unit }}
+                                                    </p>
+                                                @endif
 
                                                 <div class="mb-3 small mt-auto">
                                                     <div class="d-flex justify-content-between">

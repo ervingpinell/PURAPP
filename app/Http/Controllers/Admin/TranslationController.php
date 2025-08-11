@@ -25,21 +25,21 @@ class TranslationController extends Controller
     public function select(string $type)
     {
         $labelSingular = match ($type) {
-            'tours' => 'tour',
-            'itineraries' => 'itinerario',
-            'itinerary_items' => 'ítem de itinerario',
-            'amenities' => 'amenidad',
-            'faqs' => 'pregunta frecuente',
-            default => abort(404)
+            'tours'            => 'tour',
+            'itineraries'      => 'itinerario',
+            'itinerary_items'  => 'ítem de itinerario',
+            'amenities'        => 'amenidad',
+            'faqs'             => 'pregunta frecuente',
+            default            => abort(404),
         };
 
         $items = match ($type) {
-            'tours' => Tour::all(),
-            'itineraries' => Itinerary::all(),
-            'itinerary_items' => ItineraryItem::all(),
-            'amenities' => Amenity::all(),
-            'faqs' => Faq::all(),
-            default => collect()
+            'tours'            => Tour::orderBy('tour_id')->get(),
+            'itineraries'      => Itinerary::orderBy('itinerary_id')->get(),
+            'itinerary_items'  => ItineraryItem::orderBy('id')->get(), // ajusta si tu PK es distinta
+            'amenities'        => Amenity::orderBy('amenity_id')->get(),
+            'faqs'             => Faq::orderBy('faq_id')->get(),
+            default            => collect(),
         };
 
         $title = "Seleccionar {$labelSingular} para traducir";
@@ -50,12 +50,12 @@ class TranslationController extends Controller
     public function selectLocale(string $type, int $id)
     {
         $item = match ($type) {
-            'tours' => Tour::findOrFail($id),
-            'itineraries' => Itinerary::findOrFail($id),
-            'itinerary_items' => ItineraryItem::findOrFail($id),
-            'amenities' => Amenity::findOrFail($id),
-            'faqs' => Faq::findOrFail($id),
-            default => abort(404)
+            'tours'            => Tour::findOrFail($id),
+            'itineraries'      => Itinerary::findOrFail($id),
+            'itinerary_items'  => ItineraryItem::findOrFail($id),
+            'amenities'        => Amenity::findOrFail($id),
+            'faqs'             => Faq::findOrFail($id),
+            default            => abort(404),
         };
 
         return view('admin.translations.choose-locale', compact('type', 'item'));
@@ -63,8 +63,10 @@ class TranslationController extends Controller
 
     public function edit(string $type, int $id)
     {
-        $availableLocales = ['en', 'pt', 'fr', 'de'];
+        // Incluyo 'es' para poder editar también la versión en español si se requiere
+        $availableLocales = ['es', 'en', 'fr', 'pt', 'de'];
         $locale = request('locale', 'en');
+
         $item = null;
         $translationModel = null;
         $fields = [];
@@ -89,7 +91,7 @@ class TranslationController extends Controller
             case 'itinerary_items':
                 $item = ItineraryItem::findOrFail($id);
                 $translationModel = ItineraryItemTranslation::class;
-                $foreignKey = 'item_id';
+                $foreignKey = 'item_id'; // ajusta si tu FK real es 'itinerary_item_id'
                 $fields = ['title', 'description'];
                 break;
 
@@ -112,25 +114,28 @@ class TranslationController extends Controller
         }
 
         foreach ($availableLocales as $lang) {
-            $record = $translationModel::where($foreignKey, $item->getKey())->where('locale', $lang)->first();
+            $record = $translationModel::where($foreignKey, $item->getKey())
+                ->where('locale', $lang)
+                ->first();
+
             foreach ($fields as $field) {
-                $translations[$lang][$field] = $record->{$field} ?? '';
+                $translations[$lang][$field] = $record ? ($record->{$field} ?? '') : '';
             }
         }
 
         return view('admin.translations.edit', [
-            'type' => $type,
-            'item' => $item,
-            'locale' => $locale,
-            'fields' => $fields,
-            'translations' => $translations[$locale] ?? []
+            'type'         => $type,
+            'item'         => $item,
+            'locale'       => $locale,
+            'fields'       => $fields,
+            'translations' => $translations[$locale] ?? [],
         ]);
     }
 
     public function update(Request $request, string $type, int $id)
     {
         $locale = $request->input('locale');
-        $data = $request->input('translations', []);
+        $data   = $request->input('translations', []);
 
         $model = null;
         $translationModel = null;
@@ -144,71 +149,80 @@ class TranslationController extends Controller
                 $foreignKey = 'tour_id';
                 $fields = ['name', 'overview'];
                 break;
+
             case 'itineraries':
                 $model = Itinerary::findOrFail($id);
                 $translationModel = ItineraryTranslation::class;
                 $foreignKey = 'itinerary_id';
                 $fields = ['name', 'description'];
                 break;
+
             case 'itinerary_items':
                 $model = ItineraryItem::findOrFail($id);
                 $translationModel = ItineraryItemTranslation::class;
-                $foreignKey = 'item_id';
+                $foreignKey = 'item_id'; // ajusta si tu FK real es 'itinerary_item_id'
                 $fields = ['title', 'description'];
                 break;
+
             case 'amenities':
                 $model = Amenity::findOrFail($id);
                 $translationModel = AmenityTranslation::class;
                 $foreignKey = 'amenity_id';
                 $fields = ['name'];
                 break;
+
             case 'faqs':
                 $model = Faq::findOrFail($id);
                 $translationModel = FaqTranslation::class;
                 $foreignKey = 'faq_id';
                 $fields = ['question', 'answer'];
                 break;
+
             default:
                 abort(404, 'Tipo de traducción no válido');
         }
 
-        // ✅ Guardar traducción principal (Tour, Itinerario, etc.)
+        // Guardar/actualizar traducción del objeto principal
         $translation = $translationModel::firstOrNew([
             $foreignKey => $model->getKey(),
-            'locale' => $locale,
+            'locale'    => $locale,
         ]);
 
         foreach ($fields as $field) {
             $translation->{$field} = $data[$field] ?? null;
         }
-
         $translation->save();
 
-        // ✅ Guardar traducción del itinerario (si existe y es un tour)
+        // Si es tour, opcionalmente actualizar su itinerario y los ítems (si se mandaron en la request)
         if ($type === 'tours' && $model->itinerary) {
             $itineraryData = $request->input('itinerary_translations', []);
-            $itineraryTranslation = ItineraryTranslation::firstOrNew([
-                'itinerary_id' => $model->itinerary->itinerary_id,
-                'locale' => $locale,
-            ]);
-
-            $itineraryTranslation->name = $itineraryData['name'] ?? null;
-            $itineraryTranslation->description = $itineraryData['description'] ?? null;
-            $itineraryTranslation->save();
-
-            // ✅ Guardar traducciones de ítems del itinerario
-            $itemData = $request->input('item_translations', []);
-            foreach ($model->itinerary->items as $item) {
-                if (!isset($itemData[$item->id])) continue;
-
-                $itemTranslation = ItineraryItemTranslation::firstOrNew([
-                    'item_id' => $item->id,
-                    'locale' => $locale,
+            if (!empty($itineraryData)) {
+                $itineraryTranslation = ItineraryTranslation::firstOrNew([
+                    'itinerary_id' => $model->itinerary->itinerary_id,
+                    'locale'       => $locale,
                 ]);
+                $itineraryTranslation->name = $itineraryData['name'] ?? null;
+                $itineraryTranslation->description = $itineraryData['description'] ?? null;
+                $itineraryTranslation->save();
+            }
 
-                $itemTranslation->title = $itemData[$item->id]['title'] ?? null;
-                $itemTranslation->description = $itemData[$item->id]['description'] ?? null;
-                $itemTranslation->save();
+            $itemData = $request->input('item_translations', []);
+            if (!empty($itemData)) {
+                foreach ($model->itinerary->items as $item) {
+                    $itemKey = $item->id; // ajusta si tu PK es distinta
+                    if (!isset($itemData[$itemKey])) {
+                        continue;
+                    }
+
+                    $itemTranslation = ItineraryItemTranslation::firstOrNew([
+                        'item_id' => $itemKey,       // ajusta si tu FK real es 'itinerary_item_id'
+                        'locale'  => $locale,
+                    ]);
+
+                    $itemTranslation->title       = $itemData[$itemKey]['title'] ?? null;
+                    $itemTranslation->description = $itemData[$itemKey]['description'] ?? null;
+                    $itemTranslation->save();
+                }
             }
         }
 
