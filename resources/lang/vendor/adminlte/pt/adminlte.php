@@ -221,10 +221,12 @@ return [
     'rights_reserved' => 'Todos os direitos reservados',
 
     // ─── WHATSAPP ─────────────────────────────────────
-    'whatsapp_title' => 'Green Vacations',
+    'whatsapp_title' => 'Green Vacations CR',
     'whatsapp_subtitle' => 'Geralmente responde na hora',
+'whatsapp_attention_schedule' => ' De segunda a domingo, das 7h30 às 19h00 (GMT-6)',
+'whatsapp_attention_language' => ' Support only in Spanish and English',
     'whatsapp_greeting' => '👋 Olá! Como podemos te ajudar a planejar sua aventura na Costa Rica?',
-    'whatsapp_placeholder' => 'Oi, estou interessado nos passeios ecológicos. Pode me enviar mais informações?',
+'whatsapp_placeholder' => 'Hi, I’m interested in one of your tours. Could you give me more information?',
     'whatsapp_button' => 'Enviar mensagem',
     'whatsapp_footer' => 'Conectado via WhatsApp Business',
 

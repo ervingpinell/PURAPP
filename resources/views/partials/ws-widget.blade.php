@@ -14,6 +14,7 @@
                 </div>
                 <div>
                     <strong>{{ __('adminlte::adminlte.whatsapp_title') }}</strong><br>
+
                     <small>{{ __('adminlte::adminlte.whatsapp_subtitle') }}</small>
                 </div>
             </div>
@@ -23,7 +24,10 @@
         </div>
 
         <div class="p-3">
+
+
             <div class="whatsapp-greeting mb-2">
+
                 <small>{{ __('adminlte::adminlte.whatsapp_greeting') }}</small>
             </div>
 
@@ -50,10 +54,21 @@
                 <i class="fas fa-paper-plane me-2"></i>{{ __('adminlte::adminlte.whatsapp_button') }}
             </button>
 
+<div class="whatsapp-attention-schedule mb-2 text-center">
+    <small>
+        <i class="fas fa-clock"></i>{{ __('adminlte::adminlte.whatsapp_attention_schedule') }}
+    </small>
+</div>
 
-            <p class="text-center text-muted mt-2 mb-0 whatsapp-footer-note small">
-                {{ __('adminlte::adminlte.whatsapp_footer') }}
-            </p>
+<div class="whatsapp-attention-language text-success mb-2 text-center">
+    <small>{{ __('adminlte::adminlte.whatsapp_attention_language') }}</small>
+</div>
+
+<div class="whatsapp-footer-note text-muted mb-2 text-center">
+    <small>{{ __('adminlte::adminlte.whatsapp_footer') }}</small>
+</div>
+
+
         </div>
     </div>
 

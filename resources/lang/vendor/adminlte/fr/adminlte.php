@@ -224,10 +224,12 @@ return [
     'rights_reserved' => 'Tous droits réservés',
 
     // ─── WHATSAPP ─────────────────────────────────────
-    'whatsapp_title' => 'Green Vacations',
+    'whatsapp_title' => 'Green Vacations CR',
     'whatsapp_subtitle' => 'Répond généralement immédiatement',
+'whatsapp_attention_schedule' => ' Du lundi au dimanche, de 7h30 à 19h00 (GMT-6)',
+'whatsapp_attention_language' => ' Support only in Spanish and English',
     'whatsapp_greeting' => '👋 Bonjour ! Comment pouvons-nous vous aider à planifier votre aventure au Costa Rica ?',
-    'whatsapp_placeholder' => 'Bonjour, je suis intéressé par vos tours écologiques. Pouvez-vous m’en dire plus ?',
+'whatsapp_placeholder' => 'Hi, I’m interested in one of your tours. Could you give me more information?',
     'whatsapp_button' => 'Envoyer un message',
     'whatsapp_footer' => 'Connecté via WhatsApp Business',
 
