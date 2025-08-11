@@ -41,9 +41,7 @@ return [
         'special' => '- 1 Sonderzeichen ( .¡!@#$%^&*()_+- )',
         'number' => '- 1 Zahl',
     ],
-    'length' => '- Mindestens 8 Zeichen',
-    'special' => '- 1 Sonderzeichen ( .¡!@#$%^&*()_+- )',
-    'number' => '- 1 Zahl',
+    'invalid_credentials'=> 'Ungültige Anmeldeinformationen. Bitte versuchen Sie es erneut.',
 
     // ─── ALLGEMEINE NAVIGATION ────────────────────────
     'back' => 'Zurück',

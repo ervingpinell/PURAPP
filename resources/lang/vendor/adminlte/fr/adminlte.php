@@ -41,9 +41,7 @@ return [
         'special' => '- 1 caractère spécial ( .¡!@#$%^&*()_+- )',
         'number' => '- 1 chiffre',
     ],
-    'length' => '- Minimum 8 caractères',
-    'special' => '- 1 caractère spécial ( .¡!@#$%^&*()_+- )',
-    'number' => '- 1 chiffre',
+    'invalid_credentials'=> 'Identifiants invalides. Veuillez réessayer.',
 
     // ─── NAVIGATION GÉNÉRALE ──────────────────────────
     'back' => 'Retour',

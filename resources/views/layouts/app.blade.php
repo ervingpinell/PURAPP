@@ -8,7 +8,10 @@
     <title>Green Vacations</title>
 
     {{-- Favicon --}}
-    <link rel="icon" type="image/png" href="{{ asset('images/logoCompanyWhite.png') }}">
+<link rel="icon" href="{{ asset('favicons/favicon.ico') }}" sizes="any">
+<link rel="icon" type="image/png" href="{{ asset('favicons/favicon-32x32.png') }}">
+<link rel="apple-touch-icon" href="{{ asset('favicons/apple-touch-icon.png') }}">
+
 
     {{-- Estilos externos --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">

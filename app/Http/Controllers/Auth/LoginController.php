@@ -40,7 +40,7 @@ public function showLoginForm(Request $request)
         }
 
         return back()->withErrors([
-            'email' => 'Las credenciales no son correctas.',
+            'email' => __('adminlte::adminlte.invalid_credentials'),
         ])->onlyInput('email');
     }
 

@@ -456,6 +456,18 @@ return [
             ],
         ],
     ],
+[
+    'text'         => '🌐',
+    'icon'         => false,
+    'topnav_right' => true,
+    'submenu'      => [
+        [ 'text' => 'Español',   'route' => ['switch.language', ['language' => 'es']] ],
+        [ 'text' => 'English',   'route' => ['switch.language', ['language' => 'en']] ],
+        [ 'text' => 'Français',  'route' => ['switch.language', ['language' => 'fr']] ],
+        [ 'text' => 'Português', 'route' => ['switch.language', ['language' => 'pt']] ],
+        [ 'text' => 'Deutsch',   'route' => ['switch.language', ['language' => 'de']] ],
+    ],
+],
 
 ],
 

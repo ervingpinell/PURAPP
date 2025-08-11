@@ -41,7 +41,7 @@ public function switchLanguage($language)
     public function dashboard()
     {
         if (!in_array(Auth::user()->role_id, [1, 2])) {
-            return redirect()->route('login')->with('error', 'Acceso denegado.');
+            return redirect()->route('login')->with('error', __('adminlte::adminlte.access_denied'));
         }
 
         $totalUsuarios   = User::count();
