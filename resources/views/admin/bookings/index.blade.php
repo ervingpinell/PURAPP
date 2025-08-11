@@ -88,3 +88,58 @@
 </script>
 @include('admin.bookings.partials.scripts')
 @endpush
+<script>
+document.addEventListener('shown.bs.modal', (ev) => {
+  const modalEl = ev.target;
+  if (!modalEl.id || !modalEl.id.startsWith('modalEditar')) return;
+
+  // --- Tour / Schedule (scoped al modal) ---
+  const tourSel = modalEl.querySelector('select[name="tour_id"]');
+  const schSel  = modalEl.querySelector('select[name="schedule_id"]');
+
+  if (tourSel && schSel && tourSel.dataset.bound !== '1') {
+    tourSel.dataset.bound = '1';
+
+    tourSel.addEventListener('change', () => {
+      const opt = tourSel.options[tourSel.selectedIndex];
+      const schedules = JSON.parse(opt?.dataset?.schedules || '[]');
+
+      schSel.innerHTML = '<option value="">Seleccione horario</option>';
+      schedules.forEach(s => {
+        const o = document.createElement('option');
+        o.value = s.schedule_id;
+        o.textContent = `${s.start_time} – ${s.end_time}`;
+        schSel.appendChild(o);
+      });
+
+      // obligar a elegir un horario válido del tour nuevo
+      schSel.value = '';
+    });
+  }
+
+  // --- Hotel "Otro…" (scoped al modal) ---
+  const hotelSel       = modalEl.querySelector('select[name="hotel_id"]');
+  const otherWrap      = modalEl.querySelector('[data-role="other-hotel-wrapper"]');
+  const otherInput     = modalEl.querySelector('input[name="other_hotel_name"]');
+  const isOtherHidden  = modalEl.querySelector('input[name="is_other_hotel"]');
+
+  const toggleOther = () => {
+    if (!hotelSel) return;
+    if (hotelSel.value === 'other') {
+      otherWrap?.classList.remove('d-none');
+      if (isOtherHidden) isOtherHidden.value = 1;
+    } else {
+      otherWrap?.classList.add('d-none');
+      if (otherInput) otherInput.value = '';
+      if (isOtherHidden) isOtherHidden.value = 0;
+    }
+  };
+
+  if (hotelSel && hotelSel.dataset.bound !== '1') {
+    hotelSel.dataset.bound = '1';
+    hotelSel.addEventListener('change', toggleOther);
+    // Por si el modal abre con "other" seleccionado:
+    toggleOther();
+  }
+});
+</script>
