@@ -121,12 +121,12 @@ class Tour extends Model
     }
 
     // Accessors (opcionales)
-    public function getNameTranslatedAttribute(): ?string
+    public function getTranslatedName(): ?string
     {
         return optional($this->translate())?->name;
     }
 
-    public function getOverviewTranslatedAttribute(): ?string
+    public function getTranslatedOverview(): ?string
     {
         return optional($this->translate())?->overview;
     }

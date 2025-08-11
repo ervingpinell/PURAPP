@@ -69,6 +69,9 @@ return [
     'privacy_policy' => 'Politique de confidentialité',
     'terms_of_service' => 'Conditions d’utilisation',
     'reports' => 'Rapports',
+'footer_text'=> 'Green Vacations',
+'quick_links'=> 'Liens rapides',
+'rights_reserved' => 'Tous droits réservés',
 
     // ─── TOURS ET AVIS ────────────────────────────────
     'tours' => 'Excursions',
@@ -179,6 +182,16 @@ return [
     'totalEstimated' => 'Total estimé',
     'total_price' => 'Prix total',
     'total' => 'Total',
+    'date'=> 'Date',
+'status' => 'Statut',
+'actions' => 'Actions',
+'active'=> 'Actif',
+'delete'=> 'Supprimer',
+'promoCode' => 'Vous avez un code promotionnel ?',
+'promoCodePlaceholder' => 'Entrez votre code promotionnel',
+'apply' => 'Appliquer',
+
+
     // ─── VALIDATION ───────────────────────────────────
     'required_field' => 'Ce champ est requis.',
     'invalid_email' => 'Adresse email invalide.',

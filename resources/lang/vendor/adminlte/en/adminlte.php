@@ -186,7 +186,10 @@ return [
     'actions' => 'Actions',
     'active'=> 'Active',
     'delete'=> 'Delete',
-    
+'promoCode' => 'Do you have a promo code?',
+'promoCodePlaceholder' => 'Enter your promo code',
+'apply' => 'Apply',
+
 
     // ─── VALIDATION ───────────────────────────────────
     'required_field' => 'This field is required.',

@@ -16,7 +16,7 @@
   @endif
 
   @if($cart && $cart->items->count())
-    
+
     {{-- Versión de tabla para pantallas medianas o grandes --}}
     <div class="table-responsive d-none d-md-block mb-4">
       <table class="table table-bordered table-striped table-hover">
@@ -36,7 +36,8 @@
         <tbody>
           @foreach($cart->items as $item)
             <tr class="text-center">
-              <td>{{ $item->tour->name }}</td>
+             <td>{{ $item->tour->getTranslatedName() }}</td>
+
               <td>{{ \Carbon\Carbon::parse($item->tour_date)->format('d/m/Y') }}</td>
               <td>
                 @if($item->schedule)
@@ -137,11 +138,11 @@
           $<span id="cart-total">{{ number_format($total, 2) }}</span>
         </h4>
 
-        <label for="promo-code" class="form-label fw-semibold">¿Tienes un código promocional?</label>
+        <label for="promo-code" class="form-label fw-semibold">{{ __('adminlte::adminlte.promoCode') }}</label>
         <div class="d-flex flex-column flex-sm-row gap-2">
           <input type="text" id="promo-code" name="promo_code" class="form-control"
-                placeholder="Código promocional">
-          <button type="button" id="apply-promo" class="btn btn-outline-primary">Aplicar</button>
+                placeholder="{{ __('adminlte::adminlte.promoCodePlaceholder') }}">
+          <button type="button" id="apply-promo" class="btn btn-outline-primary">{{ __('adminlte::adminlte.apply') }}</button>
         </div>
         <div id="promo-message" class="mt-2 small text-success"></div>
       </div>
