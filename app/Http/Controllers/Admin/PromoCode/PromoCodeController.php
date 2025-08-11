@@ -46,39 +46,52 @@ class PromoCodeController extends Controller
 
     public function apply(Request $request)
     {
-        $code = strtoupper(trim($request->input('code')));
-        $total = floatval($request->input('total'));
+        $code = strtoupper(trim($request->input('code', '')));
+        $preview = $request->boolean('preview', true); // por defecto solo validar
+        $total = (float) $request->input('total', 0);
 
-        // Verifica si el código existe
-        $promo = PromoCode::where('code', $code)->first();
+        $promo = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$code])
+            ->where('is_used', false)
+            ->first();
 
         if (!$promo) {
             return response()->json([
+                'valid'   => false,
                 'success' => false,
-                'message' => 'Código inválido.',
+                'message' => 'Código inválido o ya usado.',
             ], 404);
         }
 
-        // Calcular descuento
-        $discount = 0;
+        $resp = [
+            'valid'   => true,
+            'success' => true,
+            'message' => 'Código válido.',
+        ];
 
+        // si quieres mostrar el tipo de descuento al usuario
         if ($promo->discount_percent !== null) {
-            $discount = $total * ($promo->discount_percent / 100);
-        } elseif ($promo->discount_amount !== null) {
-            $discount = $promo->discount_amount;
+            $resp['discount_percent'] = (float) $promo->discount_percent;
+        }
+        if ($promo->discount_amount !== null) {
+            $resp['discount_amount'] = (float) $promo->discount_amount;
         }
 
-        // Asegúrate de que el descuento no supere el total
-        $discount = min($discount, $total); 
-        $newTotal = $total - $discount;
+        // sólo si te mandan total y no es preview, calcula montos
+        if (!$preview && $total > 0) {
+            $discount = 0;
+            if ($promo->discount_percent !== null) {
+                $discount = $total * ($promo->discount_percent / 100);
+            } elseif ($promo->discount_amount !== null) {
+                $discount = $promo->discount_amount;
+            }
+            $discount = min($discount, $total);
+            $resp['discount_applied'] = $discount;
+            $resp['new_total'] = $total - $discount;
+        }
 
-        return response()->json([
-            'success' => true,
-            'discount_applied' => $discount,
-            'new_total' => $newTotal,
-            'message' => 'Código válido.',
-        ]);
+        return response()->json($resp);
     }
+
 
 
 
