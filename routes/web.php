@@ -43,14 +43,17 @@ use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
 Route::middleware([SetLocale::class])->group(function () {
 
 // Página pública de reviews
+// routes/web.php
 Route::get('/reviews', function () {
-    $tours = Tour::whereNotNull('viator_code')
-                ->where('is_active', true)
-                ->select('tour_id', 'name', 'viator_code')
-                ->get();
+    $tours = \App\Models\Tour::whereNotNull('viator_code')
+        ->active()
+        ->select('tour_id', 'name', 'viator_code')
+        ->with('translations:tour_id,locale,name') // eager load
+        ->get();
 
     return view('public.reviews', compact('tours'));
 })->name('reviews');
+
 
 
 // API Promo Codes

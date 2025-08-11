@@ -55,13 +55,22 @@
     </div>
   </div>
 
-  {{-- 🧠 Variables globales JS --}}
-  <script>
+{{-- 🧠 Variables globales JS --}}
+@php
+    $tourJsData = [
+        'id'   => $tour->tour_id,
+        'code' => $tour->viator_code,
+        'name' => $tour->getTranslatedName(),
+    ];
+@endphp
+
+<script>
+    window.tourData = @json($tourJsData);
     window.tourId = {{ $tour->tour_id }};
     window.maxCapacity = {{ $tour->max_capacity }};
     window.productCode = @json($tour->viator_code);
-  </script>
-</section>
+</script>
+
 
 {{-- ✅ Travelers Modal --}}
 @include('partials.bookmodal')

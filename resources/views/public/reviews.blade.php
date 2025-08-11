@@ -17,14 +17,15 @@
     <div class="review-grid">
         @foreach ($tours as $tour)
             <div class="review-card expandable" id="card-{{ $tour->tour_id }}">
-                <h3 class="review-title">
-                    <a href="#" class="text-light d-inline-block tour-link"
-                       data-id="{{ $tour->tour_id }}"
-                       data-name="{{ $tour->name }}"
-                       style="text-decoration: underline;">
-                        {{ $tour->name }}
-                    </a>
-                </h3>
+{{-- Título y link del tour con nombre TRADUCIDO --}}
+<h3 class="review-title">
+  <a href="#" class="text-light d-inline-block tour-link"
+     data-id="{{ $tour->tour_id }}"
+     data-name="{{ $tour->getTranslatedName() }}"
+     style="text-decoration: underline;">
+     {{ $tour->getTranslatedName() }}
+  </a>
+</h3>
 
                 <div class="carousel" id="carousel-{{ $tour->tour_id }}">
                     <p class="text-center text-muted">Loading reviews...</p>
@@ -51,13 +52,21 @@
 @endsection
 
 @push('scripts')
-    <script>
-        window.VIATOR_TOURS = @json($tours->map(fn($t) => [
-            'id' => $t->tour_id,
-            'code' => $t->viator_code
-        ]));
-    </script>
-    @vite('resources/js/viator/review-carousel-grid.js')
+@php
+    $viatorTours = $tours->map(function ($t) {
+        return [
+            'id'   => $t->tour_id,
+            'code' => $t->viator_code,
+            'name' => $t->getTranslatedName(), // ya traducido
+        ];
+    })->values();
+@endphp
+
+<script>
+  window.VIATOR_TOURS = @json($viatorTours);
+</script>
+@vite('resources/js/viator/review-carousel-grid.js')
 @endpush
+
 
 @include('partials.show-tour-modal')

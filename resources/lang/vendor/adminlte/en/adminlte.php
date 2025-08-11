@@ -221,6 +221,14 @@ return [
     'business_hours'    => 'Business hours',
     'business_schedule' => 'Monday to Sunday, from 7:30 a.m. to 7:00 p.m.',
 
+    // ─── WHATSAPP ────────────────────────────────────
+'whatsapp_title' => 'Green Vacations',
+'whatsapp_subtitle' => 'Usually replies instantly',
+'whatsapp_greeting' => '👋 Hi! How can we help you plan your adventure in Costa Rica?',
+'whatsapp_placeholder' => 'Hi, I’m interested in eco-tours. Could you give me more information?',
+'whatsapp_button' => 'Send message',
+'whatsapp_footer' => 'Connected via WhatsApp Business',
+
     // Reviews
     'what_customers_thinks_about' => 'What customers think about ',
     'loading_reviews' => 'Loading reviews',

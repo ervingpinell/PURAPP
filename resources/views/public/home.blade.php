@@ -29,9 +29,22 @@
 @endsection
 
 @push('scripts')
+    @php
+        $carouselProductCodes = collect($carouselProductCodes ?? [])->map(function ($p) {
+            return [
+                'id'   => $p['id'] ?? null,
+                'code' => $p['code'] ?? null,
+                'name' => isset($p['id'])
+                    ? \App\Models\Tour::find($p['id'])?->getTranslatedName()
+                    : null,
+            ];
+        })->filter();
+    @endphp
+
     <script>
-        window.VIATOR_CAROUSEL_PRODUCTS = @json($carouselProductCodes ?? []);
+        window.VIATOR_CAROUSEL_PRODUCTS = @json($carouselProductCodes);
     </script>
+
     @vite('resources/js/viator/carousel-reviews.js')
 @endpush
 
