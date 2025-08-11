@@ -1,11 +1,10 @@
-{{-- ✅ resources/views/admin/bookings/partials/edit-form.blade.php --}}
-{{-- ✅ Partial LIMPIO, sin <form>, sin @csrf, sin @method --}}
+{{-- ✅ Partial de edición (sin <form>, sin @csrf, sin @method) --}}
 
 {{-- Cliente --}}
 <div class="mb-3">
   <label class="form-label">Cliente</label>
   <select name="user_id" class="form-control" required>
-    @foreach(\App\Models\User::all() as $u)
+    @foreach(\App\Models\User::select('user_id','full_name')->get() as $u)
       <option value="{{ $u->user_id }}" {{ $booking->user_id == $u->user_id ? 'selected' : '' }}>
         {{ $u->full_name }}
       </option>
@@ -16,28 +15,33 @@
 {{-- Correo --}}
 <div class="mb-3">
   <label class="form-label">Correo</label>
-  <input type="email" name="email" class="form-control"
-    value="{{ $booking->user->email ?? '' }}" readonly>
+  <input type="email" class="form-control" value="{{ $booking->user->email ?? '' }}" readonly>
 </div>
 
 {{-- Teléfono --}}
 <div class="mb-3">
   <label class="form-label">Teléfono</label>
-  <input type="text" name="phone" class="form-control"
-    value="{{ $booking->user->phone ?? '' }}" readonly>
+  <input type="text" class="form-control" value="{{ $booking->user->phone ?? '' }}" readonly>
 </div>
 
 {{-- Tour --}}
 <div class="mb-3">
   <label class="form-label">Tour</label>
-  <select name="tour_id" id="edit_tour" class="form-control" required>
-    @foreach(\App\Models\Tour::with('schedules')->get() as $tour)
+  <select name="tour_id" class="form-control" required>
+    @foreach(\App\Models\Tour::with('schedules')->orderBy('name')->get() as $tour)
+      @php
+        $sched = $tour->schedules->map(function ($s) {
+          return [
+            'schedule_id'  => $s->schedule_id,
+            'start_time'   => \Carbon\Carbon::parse($s->start_time)->format('g:i A'),
+            'end_time'     => \Carbon\Carbon::parse($s->end_time)->format('g:i A'),
+            'max_capacity' => $s->max_capacity,
+          ];
+        })->values();
+      @endphp
+
       <option value="{{ $tour->tour_id }}"
-        data-schedules='@json($tour->schedules->map(fn($s)=>[
-          "schedule_id"=>$s->schedule_id,
-          "start_time"=>\Carbon\Carbon::parse($s->start_time)->format("g:i A"),
-          "end_time"=>\Carbon\Carbon::parse($s->end_time)->format("g:i A")
-        ]))'
+        data-schedules='{{ json_encode($sched, JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_AMP|JSON_HEX_QUOT) }}'
         {{ $booking->tour_id == $tour->tour_id ? 'selected' : '' }}>
         {{ $tour->name }}
       </option>
@@ -45,16 +49,16 @@
   </select>
 </div>
 
-{{-- Horario dinámico --}}
+
+{{-- Horario --}}
 <div class="mb-3">
   <label class="form-label">Horario</label>
-  <select name="schedule_id" id="edit_schedule" class="form-control" required>
+  <select name="schedule_id" class="form-control" required>
     <option value="">Seleccione horario</option>
     @foreach($booking->tour->schedules as $s)
       <option value="{{ $s->schedule_id }}"
         {{ $booking->detail->schedule_id == $s->schedule_id ? 'selected' : '' }}>
-        {{ \Carbon\Carbon::parse($s->start_time)->format('g:i A') }} –
-        {{ \Carbon\Carbon::parse($s->end_time)->format('g:i A') }}
+        {{ \Carbon\Carbon::parse($s->start_time)->format('g:i A') }} – {{ \Carbon\Carbon::parse($s->end_time)->format('g:i A') }}
       </option>
     @endforeach
   </select>
@@ -90,9 +94,7 @@
 {{-- Hotel --}}
 <div class="mb-3">
   <label class="form-label">Hotel</label>
-  <select name="hotel_id"
-          id="edit_hotel_select"
-          class="form-control">
+  <select name="hotel_id" class="form-control">
     <option value="">Seleccione hotel</option>
     @foreach(\App\Models\HotelList::where('is_active', true)->orderBy('name')->get() as $h)
       <option value="{{ $h->hotel_id }}"
@@ -105,15 +107,12 @@
 </div>
 
 {{-- Otro hotel --}}
-<div class="mb-3 {{ $booking->detail->is_other_hotel ? '' : 'd-none' }}"
-     id="edit_other_hotel_wrapper">
+<div class="mb-3 {{ $booking->detail->is_other_hotel ? '' : 'd-none' }}" data-role="other-hotel-wrapper">
   <label class="form-label">Nombre de otro hotel</label>
   <input type="text" name="other_hotel_name" class="form-control"
     value="{{ $booking->detail->other_hotel_name }}">
 </div>
-<input type="hidden" name="is_other_hotel"
-       id="edit_is_other_hotel"
-       value="{{ $booking->detail->is_other_hotel ? 1 : 0 }}">
+<input type="hidden" name="is_other_hotel" value="{{ $booking->detail->is_other_hotel ? 1 : 0 }}">
 
 {{-- Adultos --}}
 <div class="mb-3">
@@ -147,41 +146,24 @@
   </select>
 </div>
 
-<button type="submit" class="btn btn-primary">Guardar cambios</button>
+{{-- Promo Code (editable y opción de quitar) --}}
+<div class="mb-3">
+  <label class="form-label d-flex justify-content-between align-items-center">
+    <span>Promo code</span>
+  </label>
 
-@push('scripts')
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const sel    = document.getElementById('edit_hotel_select');
-    const wrap   = document.getElementById('edit_other_hotel_wrapper');
-    const hidden = document.getElementById('edit_is_other_hotel');
+  <input
+    type="text"
+    name="promo_code"
+    class="form-control"
+    value="{{ old('promo_code', optional($booking->promoCode)->code) }}"
+    placeholder="PROMO2025">
 
-    sel?.addEventListener('change', () => {
-      if (sel.value === 'other') {
-        wrap.classList.remove('d-none');
-        hidden.value = 1;
-      } else {
-        wrap.classList.add('d-none');
-        wrap.querySelector('input').value = '';
-        hidden.value = 0;
-      }
-    });
+  <div class="form-check mt-2">
+    <input class="form-check-input" type="checkbox" name="remove_promo" value="1" id="removePromo{{ $booking->booking_id }}">
+    <label class="form-check-label" for="removePromo{{ $booking->booking_id }}">
+      Quitar promo code de esta reserva
+    </label>
+  </div>
+</div>
 
-    // Tour y horarios dinámicos
-    const tourSel = document.getElementById('edit_tour');
-    const schSel  = document.getElementById('edit_schedule');
-
-    tourSel?.addEventListener('change', () => {
-      const opt = tourSel.options[tourSel.selectedIndex];
-      const schedules = JSON.parse(opt.dataset.schedules || '[]');
-      schSel.innerHTML = '<option value="">Seleccione horario</option>';
-      schedules.forEach(s => {
-        const o = document.createElement('option');
-        o.value = s.schedule_id;
-        o.text = `${s.start_time} – ${s.end_time}`;
-        schSel.appendChild(o);
-      });
-    });
-  });
-</script>
-@endpush
