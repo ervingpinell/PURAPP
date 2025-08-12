@@ -85,8 +85,45 @@
   <input type="hidden" name="selected_pickup_point" id="selectedPickupPoint">
   <input type="hidden" name="selected_meeting_point" id="selectedMeetingPoint">
 
-  {{-- Botón submit --}}
-  <button type="submit" class="btn btn-success w-100">
-    <i class="fas fa-cart-plus me-1"></i> {{ __('adminlte::adminlte.add_to_cart') }}
-  </button>
+  {{-- Botón submit / login según estado --}}
+  @auth
+    <button type="submit" class="btn btn-success w-100">
+      <i class="fas fa-cart-plus me-1"></i> {{ __('adminlte::adminlte.add_to_cart') }}
+    </button>
+  @else
+    <a href="{{ route('login') }}" class="btn btn-success w-100"
+      onclick="return askLoginWithSwal(event, this.href);">
+      <i class="fas fa-cart-plus me-1"></i> {{ __('adminlte::adminlte.add_to_cart') }}
+    </a>
+
+    @once
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+      <script>
+        function askLoginWithSwal(e, loginUrl) {
+          e.preventDefault();
+          if (window.Swal) {
+            Swal.fire({
+              title: @json(__('adminlte::adminlte.login_required_title')),
+              text:  @json(__('adminlte::adminlte.login_required_text')),
+              icon: 'info',
+              showCancelButton: true,
+              confirmButtonText: @json(__('adminlte::adminlte.login')),
+              cancelButtonText:  @json(__('adminlte::adminlte.cancel')),
+              confirmButtonColor: '#198754',
+              allowOutsideClick: false
+            }).then(res => {
+              if (res.isConfirmed) window.location.href = loginUrl;
+            });
+          } else {
+            if (confirm(@json(__('adminlte::adminlte.login_required_text_confirm')))) {
+              window.location.href = loginUrl;
+            }
+          }
+          return false;
+        }
+      </script>
+    @endonce
+  @endauth
+
+
 </form>

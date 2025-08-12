@@ -17,11 +17,21 @@
     <!-- DERECHA: Acciones Mobile -->
     <div class="navbar-actions d-md-none">
       <!-- Carrito Mobile con contador -->
-      <a href="{{ route('public.cart.index') }}" class="cart-icon-wrapper position-relative">
-        <i class="fas fa-shopping-cart text-white" title="{{ __('adminlte::adminlte.cart') }}"></i>
-        <span class="cart-count-badge badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
-              style="font-size: 0.7rem; display: none;">0</span>
-      </a>
+      @auth
+        <a href="{{ route('public.cart.index') }}" class="cart-icon-wrapper position-relative">
+          <i class="fas fa-shopping-cart text-white" title="{{ __('adminlte::adminlte.cart') }}"></i>
+          <span class="cart-count-badge badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
+                style="font-size: 0.7rem; display: none;">0</span>
+        </a>
+      @else
+        <a href="{{ route('login') }}" class="cart-icon-wrapper position-relative"
+          onclick="return askLoginWithSwal(event, this.href);">
+          <i class="fas fa-shopping-cart text-white" title="{{ __('adminlte::adminlte.cart') }}"></i>
+          <span class="cart-count-badge badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
+                style="font-size: 0.7rem; display: none;">0</span>
+        </a>
+      @endauth
+
 
       <!-- Usuario Mobile -->
       @auth
@@ -65,12 +75,23 @@
       @include('partials.language-switcher')
 
       <!-- Carrito Desktop con contador -->
-      <a class="nav-link cart-icon-wrapper position-relative" href="{{ route('public.cart.index') }}">
-        <i class="fas fa-shopping-cart" title="{{ __('adminlte::adminlte.cart') }}"></i>
-        <span class="cart-count-badge badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
-              style="font-size: 0.7rem; display: none;">0</span>
-        {{ __('adminlte::adminlte.cart') }}
-      </a>
+      @auth
+        <a class="nav-link cart-icon-wrapper position-relative" href="{{ route('public.cart.index') }}">
+          <i class="fas fa-shopping-cart" title="{{ __('adminlte::adminlte.cart') }}"></i>
+          <span class="cart-count-badge badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
+                style="font-size: 0.7rem; display: none;">0</span>
+          {{ __('adminlte::adminlte.cart') }}
+        </a>
+      @else
+        <a class="nav-link cart-icon-wrapper position-relative" href="{{ route('login') }}"
+          onclick="return askLoginWithSwal(event, this.href);">
+          <i class="fas fa-shopping-cart" title="{{ __('adminlte::adminlte.cart') }}"></i>
+          <span class="cart-count-badge badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
+                style="font-size: 0.7rem; display: none;">0</span>
+          {{ __('adminlte::adminlte.cart') }}
+        </a>
+      @endauth
+
 
       <!-- Usuario Desktop -->
       @auth
@@ -135,3 +156,31 @@
     @endauth
   </div>
 </nav>
+@once
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    function askLoginWithSwal(e, loginUrl) {
+      e.preventDefault();
+      if (window.Swal) {
+        Swal.fire({
+          title: @json(__('adminlte::adminlte.login_required_title')),
+          text:  @json(__('adminlte::adminlte.login_required_text')),
+          icon: 'info',
+          showCancelButton: true,
+          confirmButtonText: @json(__('adminlte::adminlte.login')),
+          cancelButtonText:  @json(__('adminlte::adminlte.cancel')),
+          confirmButtonColor: '#198754',
+          allowOutsideClick: false
+        }).then(res => {
+          if (res.isConfirmed) window.location.href = loginUrl;
+        });
+      } else {
+        if (confirm(@json(__('adminlte::adminlte.login_required_text_confirm')))) {
+          window.location.href = loginUrl;
+        }
+      }
+      return false;
+    }
+  </script>
+@endonce
+

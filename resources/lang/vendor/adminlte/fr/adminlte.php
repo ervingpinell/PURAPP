@@ -274,4 +274,13 @@ return [
     // ─── ERREURS ──────────────────────────────────────
     'access_denied' => 'Accès refusé',
 
+    // ─── CART MODAL LOGIN ──────────────────────────────────────
+    'add_to_cart' => 'Ajouter au panier',
+    'login' => 'Se connecter',
+    'cancel' => 'Annuler',
+
+    'login_required_title' => 'Connexion requise',
+    'login_required_text' => 'Vous devez vous connecter pour ajouter des articles au panier.',
+    'login_required_text_confirm' => 'Vous devez vous connecter pour ajouter des articles au panier. Aller se connecter ?',
+
 ];

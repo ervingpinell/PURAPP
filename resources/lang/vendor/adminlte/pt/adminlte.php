@@ -271,4 +271,13 @@ return [
     // ─── ERROS ────────────────────────────────────────
     'access_denied' => 'Acesso negado',
 
+    // ─── CART MODAL LOGIN ──────────────────────────────────────
+    'add_to_cart' => 'Adicionar ao carrinho',
+    'login' => 'Entrar',
+    'cancel' => 'Cancelar',
+
+    'login_required_title' => 'É necessário entrar',
+    'login_required_text' => 'Você precisa entrar para adicionar itens ao carrinho.',
+    'login_required_text_confirm' => 'Você precisa entrar para adicionar itens ao carrinho. Ir para entrar?',
+
 ];

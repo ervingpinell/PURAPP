@@ -274,4 +274,13 @@ return [
     // ─── FEHLER ──────────────────────────────────────
     'access_denied' => 'Zugriff verweigert',
 
+    // ─── CART MODAL LOGIN ──────────────────────────────────────
+    'add_to_cart' => 'In den Warenkorb',
+    'login' => 'Anmelden',
+    'cancel' => 'Abbrechen',
+
+    'login_required_title' => 'Anmeldung erforderlich',
+    'login_required_text' => 'Sie müssen sich anmelden, um Artikel zum Warenkorb hinzuzufügen.',
+    'login_required_text_confirm' => 'Sie müssen sich anmelden, um Artikel zum Warenkorb hinzuzufügen. Zur Anmeldung gehen?',
+
 ];
