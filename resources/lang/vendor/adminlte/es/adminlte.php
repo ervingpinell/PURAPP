@@ -285,4 +285,9 @@ return [
     'remove_from_cart' => 'Quitar del carrito',
     'remove_item_title' => 'Eliminar del carrito',
     'remove_item_text' => '¿Deseas eliminar este tour del carrito?',
+    'success' => 'Éxito',
+    'error' => 'Error',
+    'validation_error' => 'Datos incompletos',
+    'remove_from_cart' => 'Quitar del carrito',
+    'remove_item_title' => 'Eliminar del carrito',
 ];

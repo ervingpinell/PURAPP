@@ -7,13 +7,35 @@
 <div class="container py-5 mb-5">
   <h1 class="mb-4"><i class="fas fa-shopping-cart"></i> {{ __('adminlte::adminlte.myCart') }}</h1>
 
-  @if(session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
-  @endif
+ @if (session('success') || session('error'))
+  @once
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  @endonce
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      @if (session('success'))
+        Swal.fire({
+          icon: 'success',
+          title: @json(__('adminlte::adminlte.success') ?? 'Éxito'),
+          text:  @json(session('success')),
+          confirmButtonColor: '#198754',
+          allowOutsideClick: false
+        });
+      @endif
+      @if (session('error'))
+        Swal.fire({
+          icon: 'error',
+          title: @json(__('adminlte::adminlte.error') ?? 'Error'),
+          text:  @json(session('error')),
+          confirmButtonColor: '#dc3545',
+          allowOutsideClick: false
+        });
+      @endif
+    });
+  </script>
+@endif
 
-  @if(session('error'))
-    <div class="alert alert-danger">{{ session('error') }}</div>
-  @endif
+
 
   @if($cart && $cart->items->count())
 

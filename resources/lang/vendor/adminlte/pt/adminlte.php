@@ -283,5 +283,9 @@ return [
     'remove_item_title' => 'Remover do carrinho',
     'remove_item_text' => 'Deseja remover este passeio do carrinho?',
     'pax' => 'pax',
+    'success'            => 'Sucesso',
+    'error'              => 'Erro',
+    'validation_error'   => 'Dados incompletos',
+
     
 ];

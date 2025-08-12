@@ -286,4 +286,7 @@ return [
     'remove_item_title' => 'Aus dem Warenkorb entfernen',
     'remove_item_text' => 'Möchten Sie diese Tour aus dem Warenkorb entfernen?',
     'pax' => 'Pax',
+    'success' => 'Erfolg',
+    'error' => 'Fehler',
+    'validation_error' => 'Unvollständige Daten',
 ];

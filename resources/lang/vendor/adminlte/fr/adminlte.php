@@ -286,4 +286,8 @@ return [
     'remove_item_title' => 'Retirer du panier',
     'remove_item_text' => 'Voulez-vous retirer cette excursion du panier ?',
     'pax' => 'pax',
+    'success'            => 'Succès',
+    'error'              => 'Erreur',
+    'validation_error'   => 'Données incomplètes',
+
 ];

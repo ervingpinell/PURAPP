@@ -1,24 +1,39 @@
-@if(session('success'))
-  <div class="alert alert-success">{{ session('success') }}</div>
-@endif
+@if (session('success') || session('error') || $errors->any())
+  @once
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  @endonce
 
-@if(session('error'))
   <script>
-    Swal.fire({
-      icon: 'error',
-      title: '{{ __('adminlte::adminlte.access_denied') }}',
-      html: `{!! session('error') !!}`,
-      confirmButtonText: 'OK'
+    document.addEventListener('DOMContentLoaded', () => {
+      @if (session('success'))
+        Swal.fire({
+          icon: 'success',
+          title: @json(__('adminlte::adminlte.success') ?? 'Éxito'),
+          text:  @json(session('success')),
+          confirmButtonColor: '#198754',
+          allowOutsideClick: false
+        });
+      @endif
+
+      @if (session('error'))
+        Swal.fire({
+          icon: 'error',
+          title: @json(__('adminlte::adminlte.error') ?? 'Error'),
+          text:  @json(session('error')),
+          confirmButtonColor: '#dc3545',
+          allowOutsideClick: false
+        });
+      @endif
+
+      @if ($errors->any())
+        Swal.fire({
+          icon: 'error',
+          title: @json(__('adminlte::adminlte.validation_error') ?? 'Datos incompletos'),
+          html: `{!! '<ul style="text-align:left;margin:0;padding-left:1rem;">'.collect($errors->all())->map(fn($e)=>'<li>'.e($e).'</li>')->implode('').'</ul>' !!}`,
+          confirmButtonColor: '#dc3545',
+          allowOutsideClick: false
+        });
+      @endif
     });
   </script>
-@endif
-
-@if ($errors->any())
-  <div class="alert alert-danger">
-    <ul>
-      @foreach ($errors->all() as $error)
-        <li>{{ $error }}</li>
-      @endforeach
-    </ul>
-  </div>
 @endif

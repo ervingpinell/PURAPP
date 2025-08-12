@@ -285,4 +285,8 @@ return [
     'remove_item_title' => 'Remove from cart',
     'remove_item_text' => 'Do you want to remove this tour from the cart?',
     'pax' => 'pax',
+    'success'            => 'Success',
+    'error'              => 'Error',
+    'validation_error'   => 'Validation Error',
+
 ];
