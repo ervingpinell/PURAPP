@@ -66,58 +66,69 @@ class PromoCodeController extends Controller
 
     public function apply(Request $request)
     {
-        // Validación de entrada
-        $request->validate([
-            'code'    => 'required|string',
-            'total'   => 'nullable|numeric|min:0',
-            'preview' => 'nullable|boolean',
-        ]);
+        try {
+            $request->validate([
+                'code'    => 'required|string',
+                'total'   => 'nullable|numeric|min:0',
+                'preview' => 'nullable|boolean',
+            ]);
 
-        // Normaliza el código igual que en store()
-        $code    = strtoupper(trim(preg_replace('/\s+/', '', $request->input('code', ''))));
-        $total   = (float) $request->input('total', 0);
-        $preview = $request->boolean('preview', true);
+            $code    = strtoupper(trim(preg_replace('/\s+/', '', $request->input('code', ''))));
+            $total   = (float) $request->input('total', 0);
+            $preview = $request->boolean('preview', true);
 
-        // Busca un código NO usado (case/space-insensitive)
-        $promo = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$code])
-            ->where('is_used', false)
-            ->first();
+            $promo = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$code])
+                ->where('is_used', false)
+                ->first();
 
-        if (!$promo) {
-            return response()->json([
-                'valid'   => false,
-                'success' => false,
-                'message' => 'Código inválido o ya usado.',
-            ], 404);
-        }
-
-        // Respuesta base
-        $resp = [
-            'valid'            => true,
-            'success'          => true,
-            'message'          => 'Código válido.',
-            'code'             => $promo->code,
-            'type'             => $promo->discount_percent !== null ? 'percent' : 'amount',
-            'discount_percent' => $promo->discount_percent !== null ? (float) $promo->discount_percent : null,
-            'discount_amount'  => $promo->discount_amount  !== null ? (float) $promo->discount_amount  : null,
-            'preview'          => $preview,
-        ];
-
-        // Si mandas total > 0, calcula el descuento y el nuevo total
-        if ($total > 0) {
-            $discount = 0.0;
-
-            if ($promo->discount_percent !== null) {
-                $discount = round($total * ($promo->discount_percent / 100), 2);
-            } elseif ($promo->discount_amount !== null) {
-                $discount = (float) $promo->discount_amount;
+            if (!$promo) {
+                return response()->json([
+                    'success' => false,
+                    'valid'   => false,
+                    'message' => 'Código inválido o ya usado.',
+                ], 200); // <- SIEMPRE 200
             }
 
-            $discount = min($discount, $total); // jamás mayor al total
-            $resp['discount_applied'] = $discount;
-            $resp['new_total']        = round($total - $discount, 2);
-        }
+            $resp = [
+                'success'          => true,
+                'valid'            => true,
+                'message'          => 'Código válido.',
+                'code'             => $promo->code,
+                'type'             => $promo->discount_percent !== null ? 'percent' : 'amount',
+                'discount_percent' => $promo->discount_percent !== null ? (float) $promo->discount_percent : null,
+                'discount_amount'  => $promo->discount_amount  !== null ? (float) $promo->discount_amount  : null,
+                'preview'          => $preview,
+            ];
 
-        return response()->json($resp);
+            if ($total > 0) {
+                $discount = 0.0;
+                if ($promo->discount_percent !== null) {
+                    $discount = round($total * ($promo->discount_percent / 100), 2);
+                } elseif ($promo->discount_amount !== null) {
+                    $discount = (float) $promo->discount_amount;
+                }
+                $discount = min($discount, $total);
+                $resp['discount_applied'] = $discount;
+                $resp['new_total']        = round($total - $discount, 2);
+            }
+
+            return response()->json($resp, 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Evita redirecciones 422 que el front interpreta como “error del sistema”
+            return response()->json([
+                'success' => false,
+                'valid'   => false,
+                'message' => $e->getMessage(),
+                'errors'  => $e->errors(),
+            ], 200);
+        } catch (\Throwable $e) {
+            // Falla controlada
+            return response()->json([
+                'success' => false,
+                'valid'   => false,
+                'message' => 'Error del servidor, inténtalo de nuevo.',
+            ], 200);
+        }
     }
+
 }
