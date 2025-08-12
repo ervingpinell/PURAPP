@@ -277,8 +277,12 @@ return [
     'add_to_cart' => 'Add to cart',
     'login' => 'Log in',
     'cancel' => 'Cancel',
-
+    'view_cart' => 'View cart',
     'login_required_title' => 'Login required',
     'login_required_text' => 'You must log in to add items to the cart.',
     'login_required_text_confirm' => 'You must log in to add items to the cart. Go to log in?',
+    'remove_from_cart' => 'Remove from cart',
+    'remove_item_title' => 'Remove from cart',
+    'remove_item_text' => 'Do you want to remove this tour from the cart?',
+    'pax' => 'pax',
 ];

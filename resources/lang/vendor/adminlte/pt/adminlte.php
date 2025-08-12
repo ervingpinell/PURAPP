@@ -275,9 +275,13 @@ return [
     'add_to_cart' => 'Adicionar ao carrinho',
     'login' => 'Entrar',
     'cancel' => 'Cancelar',
-
+    'view_cart' => 'Ver carrinho',
     'login_required_title' => 'É necessário entrar',
     'login_required_text' => 'Você precisa entrar para adicionar itens ao carrinho.',
     'login_required_text_confirm' => 'Você precisa entrar para adicionar itens ao carrinho. Ir para entrar?',
-
+    'remove_from_cart' => 'Remover do carrinho',
+    'remove_item_title' => 'Remover do carrinho',
+    'remove_item_text' => 'Deseja remover este passeio do carrinho?',
+    'pax' => 'pax',
+    
 ];

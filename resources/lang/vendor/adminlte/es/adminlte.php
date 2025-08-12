@@ -277,8 +277,12 @@ return [
     'add_to_cart' => 'Agregar al carrito',
     'login' => 'Iniciar sesión',
     'cancel' => 'Cancelar',
-
+    'view_cart' => 'Ver carrito',
     'login_required_title' => 'Necesitas iniciar sesión',
     'login_required_text' => 'Para agregar al carrito debes iniciar sesión.',
     'login_required_text_confirm' => 'Para agregar al carrito debes iniciar sesión. ¿Ir a iniciar sesión?',
+    'pax' => 'pax',
+    'remove_from_cart' => 'Quitar del carrito',
+    'remove_item_title' => 'Eliminar del carrito',
+    'remove_item_text' => '¿Deseas eliminar este tour del carrito?',
 ];

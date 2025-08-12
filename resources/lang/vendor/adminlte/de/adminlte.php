@@ -278,9 +278,12 @@ return [
     'add_to_cart' => 'In den Warenkorb',
     'login' => 'Anmelden',
     'cancel' => 'Abbrechen',
-
+    'view_cart' => 'Warenkorb ansehen',
     'login_required_title' => 'Anmeldung erforderlich',
     'login_required_text' => 'Sie müssen sich anmelden, um Artikel zum Warenkorb hinzuzufügen.',
     'login_required_text_confirm' => 'Sie müssen sich anmelden, um Artikel zum Warenkorb hinzuzufügen. Zur Anmeldung gehen?',
-
+    'remove_from_cart' => 'Aus dem Warenkorb entfernen',
+    'remove_item_title' => 'Aus dem Warenkorb entfernen',
+    'remove_item_text' => 'Möchten Sie diese Tour aus dem Warenkorb entfernen?',
+    'pax' => 'Pax',
 ];
