@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             ItinerariesSeeder::class,
             FaqSeeder::class,
             AssignViatorCodesSeeder::class,
+            PoliciesSeeder::class,
             TranslationSeeder::class,
         ]);
     }

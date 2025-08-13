@@ -287,4 +287,6 @@ return [
     'new_password_optional' => 'Nouveau mot de passe (optionnel)',
     'leave_blank_if_no_change' => 'Laissez vide si vous ne souhaitez pas le changer',
     'confirm_new_password_placeholder' => 'Confirmer le nouveau mot de passe',
+
+    'policies' => 'Politiques'
 ];

@@ -350,6 +350,11 @@ return [
                 'route' => 'admin.faqs.index',
                 'icon' => 'fas fa-question-circle',
             ],
+                        [
+                'text' => 'Politicas',
+                'route' => 'admin.policies.index',
+                'icon' => 'fas fa-info-circle',
+            ],
             [
                 'text' => 'Generar Códigos Promocionales',
                 'route' => 'admin.promoCode.index',

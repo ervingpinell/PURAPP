@@ -26,6 +26,7 @@
                             'itinerary_items' => $item->title ?? 'Sin título',
                             'amenities' => $item->name ?? 'Sin nombre',
                             'faqs' => Str::limit($item->question ?? 'Sin pregunta', 60),
+                            'policies' => $item->name ?? 'Sin título',
                             default => 'Elemento'
                         };
                     @endphp

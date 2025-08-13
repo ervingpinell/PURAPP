@@ -8,13 +8,17 @@ use App\Models\Itinerary;
 use App\Models\ItineraryItem;
 use App\Models\Amenity;
 use App\Models\Faq;
-use App\Models\TourType;                     // 👈
+use App\Models\TourType;
 use App\Models\TourTranslation;
 use App\Models\ItineraryTranslation;
 use App\Models\ItineraryItemTranslation;
 use App\Models\AmenityTranslation;
 use App\Models\FaqTranslation;
-use App\Models\TourTypeTranslation;          // 👈
+use App\Models\TourTypeTranslation;
+
+use App\Models\Policy;                 // 👈
+use App\Models\PolicyTranslation;      // 👈
+
 use App\Services\Contracts\TranslatorInterface;
 
 class TranslationSeeder extends Seeder
@@ -28,8 +32,8 @@ class TranslationSeeder extends Seeder
         /** @var TranslatorInterface $translator */
         $translator = app(TranslatorInterface::class);
 
-        // 👇 Nuevo
         $this->translateTourTypes($translator);
+        $this->translatePolicies($translator);   // 👈 genera EN/FR/PT/DE tomando ES como fuente
 
         $this->translateTours($translator);
         $this->translateItineraries($translator);
@@ -42,18 +46,63 @@ class TranslationSeeder extends Seeder
 
     protected function clearTranslations(): void
     {
-        // Si tus tablas tienen FK con cascade está OK truncar
-        TourTypeTranslation::truncate();      // 👈 Nuevo
+        // Estas pueden truncarse sin problema
+        TourTypeTranslation::truncate();
         TourTranslation::truncate();
         ItineraryTranslation::truncate();
         ItineraryItemTranslation::truncate();
         AmenityTranslation::truncate();
         FaqTranslation::truncate();
 
-        $this->command?->warn('🧹 Previous translations removed.');
+        // ❌ NO truncar policy_translations completo porque ES es la fuente.
+        // ✅ Elimina solo los locales distintos de 'es'
+        PolicyTranslation::where('locale', '!=', 'es')->delete();
+
+        $this->command?->warn('🧹 Previous translations removed (policies ES preserved).');
     }
 
-    // 👇 Nuevo: TourType (name, description, duration)
+    protected function translatePolicies(TranslatorInterface $translator): void
+    {
+        $policies = Policy::where('is_active', true)->cursor();
+
+        foreach ($policies as $policy) {
+            // Fuente ES (debe existir porque la crea tu PoliciesSeeder)
+            $src = PolicyTranslation::where('policy_id', $policy->getKey())
+                ->where('locale', 'es')
+                ->first();
+
+            if (!$src) {
+                $this->command?->warn("⚠️ Policy {$policy->policy_id} has no ES source. Skipping.");
+                continue;
+            }
+
+            $titleSrc   = (string) ($src->title ?? '');
+            $contentSrc = (string) ($src->content ?? '');
+
+            // Solo traducimos a locales ≠ ES para no tocar la fuente
+            $targets = array_diff($this->locales, ['es']);
+
+            foreach ($targets as $locale) {
+                $titleTr   = $translator->translate($titleSrc, $locale);
+                $contentTr = $translator->translate($contentSrc, $locale);
+
+                PolicyTranslation::updateOrCreate(
+                    ['policy_id' => $policy->getKey(), 'locale' => $locale],
+                    [
+                        'title'   => $titleTr,
+                        'content' => $contentTr,
+                    ]
+                );
+                // (Opcional) Usar un pequeño throttle:
+                // usleep(150000);
+            }
+        }
+
+        $this->command?->info('📑 Policies translated (kept ES as source).');
+    }
+
+    /* ------ lo demás igual que ya tenías ------ */
+
     protected function translateTourTypes(TranslatorInterface $translator): void
     {
         $this->translateCollection(
@@ -63,40 +112,30 @@ class TranslationSeeder extends Seeder
             'tour_type_id',
             $translator
         );
-
         $this->command?->info('🏷️ Tour types translated.');
     }
 
+    protected function translateTours(TranslatorInterface $translator): void
+    {
+        $collection = Tour::where('is_active', true)->cursor();
 
-protected function translateTours(TranslatorInterface $translator): void
-{
-    $collection = Tour::where('is_active', true)->cursor();
+        foreach ($collection as $tour) {
+            $origName = (string) ($tour->name ?? '');
+            $origOverview = (string) ($tour->overview ?? '');
 
-    foreach ($collection as $tour) {
-        $origName = (string) ($tour->name ?? '');
-        $origOverview = (string) ($tour->overview ?? '');
+            foreach ($this->locales as $locale) {
+                $name     = $translator->translatePreserveOutsideParentheses($origName, $locale);
+                $overview = $translator->translate($origOverview, $locale);
 
-        foreach ($this->locales as $locale) {
-            // 👇 Name: preserva lo de fuera de los paréntesis
-            $name = $translator->translatePreserveOutsideParentheses($origName, $locale);
-            // 👇 Overview: traducción normal
-            $overview = $translator->translate($origOverview, $locale);
-
-            \App\Models\TourTranslation::updateOrCreate(
-                ['tour_id' => $tour->getKey(), 'locale' => $locale],
-                [
-                    'tour_id'  => $tour->getKey(),
-                    'locale'   => $locale,
-                    'name'     => $name,
-                    'overview' => $overview,
-                ]
-            );
+                TourTranslation::updateOrCreate(
+                    ['tour_id' => $tour->getKey(), 'locale' => $locale],
+                    ['name' => $name, 'overview' => $overview]
+                );
+            }
         }
+
+        $this->command?->info('🎯 Tours translated (name preserves parentheses).');
     }
-
-    $this->command?->info('🎯 Tours translated (name preserves text outside parentheses).');
-}
-
 
     protected function translateItineraries(TranslatorInterface $translator): void
     {
@@ -107,7 +146,6 @@ protected function translateTours(TranslatorInterface $translator): void
             'itinerary_id',
             $translator
         );
-
         $this->command?->info('📘 Itineraries translated.');
     }
 
@@ -120,7 +158,6 @@ protected function translateTours(TranslatorInterface $translator): void
             'item_id',
             $translator
         );
-
         $this->command?->info('🧩 Itinerary items translated.');
     }
 
@@ -133,7 +170,6 @@ protected function translateTours(TranslatorInterface $translator): void
             'amenity_id',
             $translator
         );
-
         $this->command?->info('💠 Amenities translated.');
     }
 
@@ -146,13 +182,9 @@ protected function translateTours(TranslatorInterface $translator): void
             'faq_id',
             $translator
         );
-
         $this->command?->info('❓ FAQs translated.');
     }
 
-    /**
-     * Generic translator/persister for any model + translation model.
-     */
     protected function translateCollection($collection, array $fields, string $translationModel, string $foreignKey, TranslatorInterface $translator): void
     {
         foreach ($collection as $model) {

@@ -30,6 +30,8 @@ use App\Http\Controllers\Admin\Bookings\HotelListController;
 use App\Http\Controllers\Admin\Cart\CartController;
 use App\Http\Controllers\Admin\FaqController as AdminFaqController;
 use App\Http\Controllers\Admin\TranslationController;
+use App\Http\Controllers\Admin\PolicyController;
+
 
 // Otros
 use Illuminate\Support\Facades\Mail;
@@ -45,7 +47,7 @@ Route::middleware([SetLocale::class])->group(function () {
 // Página pública de reviews
 // routes/web.php
 Route::get('/reviews', function () {
-    $tours = \App\Models\Tour::whereNotNull('viator_code')
+    $tours = Tour::whereNotNull('viator_code')
         ->active()
         ->select('tour_id', 'name', 'viator_code')
         ->with('translations:tour_id,locale,name') // eager load
@@ -54,6 +56,8 @@ Route::get('/reviews', function () {
     return view('public.reviews', compact('tours'));
 })->name('reviews');
 
+Route::get('/policies/{policy}', [\App\Http\Controllers\Admin\PolicyController::class, 'showPublic'])
+  ->whereNumber('policy')->name('policies.show');
 
 
 // API Promo Codes
@@ -145,6 +149,13 @@ Route::get('/cart/count', [CartController::class, 'count'])
         // FAQs
         Route::resource('faqs', AdminFaqController::class)->except(['show']);
         Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
+
+ Route::get('/policies', [\App\Http\Controllers\Admin\PolicyController::class, 'index'])->name('policies.index');
+  Route::post('/policies', [\App\Http\Controllers\Admin\PolicyController::class, 'store'])->name('policies.store');
+  Route::put('/policies/{policy}', [\App\Http\Controllers\Admin\PolicyController::class, 'update'])->name('policies.update');
+  Route::post('/policies/{policy}/toggle', [\App\Http\Controllers\Admin\PolicyController::class, 'toggleStatus'])->name('policies.toggleStatus');
+  Route::delete('/policies/{policy}', [\App\Http\Controllers\Admin\PolicyController::class, 'destroy'])->name('policies.destroy');
+
 
         // Códigos promocionales
         Route::get('/promoCode', [PromoCodeController::class, 'index'])->name('promoCode.index');

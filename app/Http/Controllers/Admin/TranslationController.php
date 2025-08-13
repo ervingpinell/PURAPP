@@ -4,16 +4,24 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+
+// Modelos existentes
 use App\Models\Tour;
 use App\Models\Itinerary;
 use App\Models\ItineraryItem;
 use App\Models\Amenity;
 use App\Models\Faq;
+
+// Traducciones existentes
 use App\Models\TourTranslation;
 use App\Models\ItineraryTranslation;
 use App\Models\ItineraryItemTranslation;
 use App\Models\AmenityTranslation;
 use App\Models\FaqTranslation;
+
+// NUEVOS: Policies
+use App\Models\Policy;
+use App\Models\PolicyTranslation;
 
 class TranslationController extends Controller
 {
@@ -30,6 +38,7 @@ class TranslationController extends Controller
             'itinerary_items'  => 'ítem de itinerario',
             'amenities'        => 'amenidad',
             'faqs'             => 'pregunta frecuente',
+            'policies'         => 'política',
             default            => abort(404),
         };
 
@@ -39,6 +48,7 @@ class TranslationController extends Controller
             'itinerary_items'  => ItineraryItem::orderBy('id')->get(), // ajusta si tu PK es distinta
             'amenities'        => Amenity::orderBy('amenity_id')->get(),
             'faqs'             => Faq::orderBy('faq_id')->get(),
+            'policies'         => Policy::orderBy('policy_id')->get(), // ✅ funciona
             default            => collect(),
         };
 
@@ -55,6 +65,7 @@ class TranslationController extends Controller
             'itinerary_items'  => ItineraryItem::findOrFail($id),
             'amenities'        => Amenity::findOrFail($id),
             'faqs'             => Faq::findOrFail($id),
+            'policies'         => Policy::findOrFail($id),
             default            => abort(404),
         };
 
@@ -107,6 +118,13 @@ class TranslationController extends Controller
                 $translationModel = FaqTranslation::class;
                 $foreignKey = 'faq_id';
                 $fields = ['question', 'answer'];
+                break;
+
+            case 'policies':
+                $item = Policy::findOrFail($id);
+                $translationModel = PolicyTranslation::class;
+                $foreignKey = 'policy_id';
+                $fields = ['title', 'content']; // <- Campos a traducir en Policies
                 break;
 
             default:
@@ -178,6 +196,13 @@ class TranslationController extends Controller
                 $fields = ['question', 'answer'];
                 break;
 
+            case 'policies':
+                $model = Policy::findOrFail($id);
+                $translationModel = PolicyTranslation::class;
+                $foreignKey = 'policy_id';
+                $fields = ['title', 'content'];
+                break;
+
             default:
                 abort(404, 'Tipo de traducción no válido');
         }
@@ -193,7 +218,7 @@ class TranslationController extends Controller
         }
         $translation->save();
 
-        // Si es tour, opcionalmente actualizar su itinerario y los ítems (si se mandaron en la request)
+        // Extra: tours -> opcional traducir itinerario/ítems si vienen en request (como ya lo tenías)
         if ($type === 'tours' && $model->itinerary) {
             $itineraryData = $request->input('itinerary_translations', []);
             if (!empty($itineraryData)) {
@@ -210,12 +235,10 @@ class TranslationController extends Controller
             if (!empty($itemData)) {
                 foreach ($model->itinerary->items as $item) {
                     $itemKey = $item->id; // ajusta si tu PK es distinta
-                    if (!isset($itemData[$itemKey])) {
-                        continue;
-                    }
+                    if (!isset($itemData[$itemKey])) continue;
 
                     $itemTranslation = ItineraryItemTranslation::firstOrNew([
-                        'item_id' => $itemKey,       // ajusta si tu FK real es 'itinerary_item_id'
+                        'item_id' => $itemKey, // ajusta si tu FK real es 'itinerary_item_id'
                         'locale'  => $locale,
                     ]);
 

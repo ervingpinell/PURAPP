@@ -15,6 +15,7 @@
             'itinerary_items' => 'Ítems del Itinerario',
             'amenities' => 'Amenidades',
             'faqs' => 'Preguntas Frecuentes',
+            'policies'         => 'Políticas',
         ];
     @endphp
 

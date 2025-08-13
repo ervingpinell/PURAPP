@@ -284,4 +284,6 @@ return [
     'new_password_optional' => 'Nova senha (opcional)',
     'leave_blank_if_no_change' => 'Deixe em branco se não deseja alterá-la',
     'confirm_new_password_placeholder' => 'Confirmar nova senha',
+
+    'policies' => 'Políticas'
 ];

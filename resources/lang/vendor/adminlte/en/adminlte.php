@@ -271,4 +271,6 @@ return [
     'leave_blank_if_no_change' => 'Leave blank if you do not want to change it',
     'confirm_new_password_placeholder' => 'Confirm new password',
     'save_changes' => 'Save Changes',
+
+    'policies' => 'Policies'
 ];
