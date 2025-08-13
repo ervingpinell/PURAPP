@@ -199,7 +199,6 @@ return [
     'create' => 'Crear',
     'edit' => 'Editar',
     'update' => 'Actualizar',
-    'delete' => 'Eliminar',
     'activate' => 'Activar',
     'deactivate' => 'Desactivar',
     'confirm' => 'Confirmar',
@@ -207,7 +206,6 @@ return [
     'save' => 'Guardar',
     'save_changes' => 'Guardar cambios',
     'are_you_sure' => '¿Estás seguro?',
-    'actions' => 'Acciones',
     'optional' => 'Opcional',
     'edit_profile' => 'Editar perfil',
     'read_more' => 'Ver más',
@@ -215,11 +213,8 @@ return [
     'switch_view' => 'Cambiar vista',
     'close' => 'Cerrar',
     // ─── FOOTER ───────────────────────────────────────
-    'footer_text' => 'Ofrecemos experiencias de ecoturismo únicas en Costa Rica.',
-    'quick_links' => 'Enlaces rápidos',
     'contact_us' => 'Contactanos',
     'location' => 'San José, Costa Rica',
-    'rights_reserved' => 'Todos los derechos reservados',
 
     // ─── WHATSAPP ─────────────────────────────────────
     'whatsapp_title' => 'Green Vacations CR',
@@ -274,20 +269,22 @@ return [
 
 
     // ─── CART MODAL LOGIN ──────────────────────────────────────
-    'add_to_cart' => 'Agregar al carrito',
     'login' => 'Iniciar sesión',
-    'cancel' => 'Cancelar',
     'view_cart' => 'Ver carrito',
     'login_required_title' => 'Necesitas iniciar sesión',
     'login_required_text' => 'Para agregar al carrito debes iniciar sesión.',
     'login_required_text_confirm' => 'Para agregar al carrito debes iniciar sesión. ¿Ir a iniciar sesión?',
     'pax' => 'pax',
-    'remove_from_cart' => 'Quitar del carrito',
     'remove_item_title' => 'Eliminar del carrito',
     'remove_item_text' => '¿Deseas eliminar este tour del carrito?',
     'success' => 'Éxito',
     'error' => 'Error',
     'validation_error' => 'Datos incompletos',
-    'remove_from_cart' => 'Quitar del carrito',
-    'remove_item_title' => 'Eliminar del carrito',
+
+
+    'edit_profile_of' => 'Editar Perfil',
+    'profile_information' => 'Información del Perfil',
+    'new_password_optional' => 'Nueva contraseña (opcional)',
+    'leave_blank_if_no_change' => 'Dejar en blanco si no desea cambiarla',
+    'confirm_new_password_placeholder' => 'Confirmar nueva contraseña',
 ];

@@ -200,7 +200,6 @@ return [
     'create' => 'Créer',
     'edit' => 'Modifier',
     'update' => 'Mettre à jour',
-    'delete' => 'Supprimer',
     'activate' => 'Activer',
     'deactivate' => 'Désactiver',
     'confirm' => 'Confirmer',
@@ -208,7 +207,6 @@ return [
     'save' => 'Enregistrer',
     'save_changes' => 'Enregistrer les modifications',
     'are_you_sure' => 'Êtes-vous sûr ?',
-    'actions' => 'Actions',
     'optional' => 'Optionnel',
     'edit_profile' => 'Modifier le profil',
     'read_more' => 'Lire plus',
@@ -217,11 +215,8 @@ return [
     'close' => 'Fermer',
 
     // ─── PIED DE PAGE ─────────────────────────────────
-    'footer_text' => 'Nous offrons des expériences d’écotourisme uniques au Costa Rica.',
-    'quick_links' => 'Liens rapides',
     'contact_us' => 'Contactez-nous',
     'location' => 'San José, Costa Rica',
-    'rights_reserved' => 'Tous droits réservés',
 
     // ─── WHATSAPP ─────────────────────────────────────
     'whatsapp_title' => 'Green Vacations CR',
@@ -275,14 +270,11 @@ return [
     'access_denied' => 'Accès refusé',
 
     // ─── CART MODAL LOGIN ──────────────────────────────────────
-    'add_to_cart' => 'Ajouter au panier',
     'login' => 'Se connecter',
-    'cancel' => 'Annuler',
     'view_cart' => 'Voir le panier',
     'login_required_title' => 'Connexion requise',
     'login_required_text' => 'Vous devez vous connecter pour ajouter des articles au panier.',
     'login_required_text_confirm' => 'Vous devez vous connecter pour ajouter des articles au panier. Aller se connecter ?',
-    'remove_from_cart' => 'Retirer du panier',
     'remove_item_title' => 'Retirer du panier',
     'remove_item_text' => 'Voulez-vous retirer cette excursion du panier ?',
     'pax' => 'pax',
@@ -290,4 +282,9 @@ return [
     'error'              => 'Erreur',
     'validation_error'   => 'Données incomplètes',
 
+    'edit_profile_of' => 'Modifier le profil',
+    'profile_information' => 'Informations du profil',
+    'new_password_optional' => 'Nouveau mot de passe (optionnel)',
+    'leave_blank_if_no_change' => 'Laissez vide si vous ne souhaitez pas le changer',
+    'confirm_new_password_placeholder' => 'Confirmer le nouveau mot de passe',
 ];

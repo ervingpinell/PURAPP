@@ -196,25 +196,13 @@ return [
     'invalid_date' => 'Invalid date.',
     'select_option' => 'Select an option',
 
-    'select_travelers'     => 'Select Travelers',
-    'max_travelers_info'   => 'You can select up to 12 travelers in total.',
-    'adult'                => 'Adult',
-    'age_10_plus'          => 'Age 10+',
-    'child'                => 'Child',
-    'age_4_to_9'           => 'Age 4-9',
-    'max_limits_info'      => 'Max 12 travelers, Max 2 kids.',
-    'apply'                => 'Apply',
 
-    'full_day' => 'Full Day',
-    'half_day' => 'Half Day',
-    'full_day_tours' => 'Full Day Tours',
-    'half_day_tours' => 'Half Day Tours',
-    'full_day_description' => '6 to 9 hour tours for a full nature experience.',
-    'half_day_description' => '2 to 4 hour tours ideal for a quick adventure.',
+    'child'                => 'Child',
+    'max_limits_info'      => 'Max 12 travelers, Max 2 kids.',
+
 
     'contact_us'     => 'Contact us',
     'name'           => 'Name',
-    'email'          => 'Email',
     'subject'        => 'Subject',
     'message'        => 'Message',
     'send_message'   => 'Send message',
@@ -259,29 +247,16 @@ return [
     'kids_quantity' => 'Kids Quantity',
     'age_10_plus' => 'Age 10+',
     'age_4_to_9' => 'Age 0-9',
-    'max_limits_info' => 'Max 12 travelers, Max 2 kids.',
-
-    // ─── CONTACT ──────────────────────────────────────
-    'name' => 'Name',
-    'subject' => 'Subject',
-    'message' => 'Message',
-    'send_message' => 'Send Message',
-    'message_sent' => 'Message sent',
-    'business_hours' => 'Business Hours',
-    'business_schedule' => 'Monday to Sunday, from 7:30 a.m. to 7:00 p.m.',
-
     // ─── ERRORS ───────────────────────────────────────
     'access_denied' => 'Access Denied',
 
-    // ─── CART MODAL LOGIN ──────────────────────────────────────  
-    'add_to_cart' => 'Add to cart',
+    // ─── CART MODAL LOGIN ──────────────────────────────────────
     'login' => 'Log in',
     'cancel' => 'Cancel',
     'view_cart' => 'View cart',
     'login_required_title' => 'Login required',
     'login_required_text' => 'You must log in to add items to the cart.',
     'login_required_text_confirm' => 'You must log in to add items to the cart. Go to log in?',
-    'remove_from_cart' => 'Remove from cart',
     'remove_item_title' => 'Remove from cart',
     'remove_item_text' => 'Do you want to remove this tour from the cart?',
     'pax' => 'pax',
@@ -289,4 +264,11 @@ return [
     'error'              => 'Error',
     'validation_error'   => 'Validation Error',
 
+        'edit_profile' => 'Edit Profile',
+    'edit_profile_of' => 'Edit Profile of: :name',
+    'profile_information' => 'Profile Information',
+    'new_password_optional' => 'New password (optional)',
+    'leave_blank_if_no_change' => 'Leave blank if you do not want to change it',
+    'confirm_new_password_placeholder' => 'Confirm new password',
+    'save_changes' => 'Save Changes',
 ];

@@ -197,7 +197,6 @@ return [
     'create' => 'Criar',
     'edit' => 'Editar',
     'update' => 'Atualizar',
-    'delete' => 'Excluir',
     'activate' => 'Ativar',
     'deactivate' => 'Desativar',
     'confirm' => 'Confirmar',
@@ -205,7 +204,6 @@ return [
     'save' => 'Salvar',
     'save_changes' => 'Salvar alterações',
     'are_you_sure' => 'Você tem certeza?',
-    'actions' => 'Ações',
     'optional' => 'Opcional',
     'edit_profile' => 'Editar perfil',
     'read_more' => 'Ver mais',
@@ -214,11 +212,8 @@ return [
     'close' => 'Fechar',
 
     // ─── RODAPÉ ──────────────────────────────────────
-    'footer_text' => 'Oferecemos experiências únicas de ecoturismo na Costa Rica.',
-    'quick_links' => 'Links rápidos',
     'contact_us' => 'Fale conosco',
     'location' => 'San José, Costa Rica',
-    'rights_reserved' => 'Todos os direitos reservados',
 
     // ─── WHATSAPP ─────────────────────────────────────
     'whatsapp_title' => 'Green Vacations CR',
@@ -272,14 +267,11 @@ return [
     'access_denied' => 'Acesso negado',
 
     // ─── CART MODAL LOGIN ──────────────────────────────────────
-    'add_to_cart' => 'Adicionar ao carrinho',
     'login' => 'Entrar',
-    'cancel' => 'Cancelar',
     'view_cart' => 'Ver carrinho',
     'login_required_title' => 'É necessário entrar',
     'login_required_text' => 'Você precisa entrar para adicionar itens ao carrinho.',
     'login_required_text_confirm' => 'Você precisa entrar para adicionar itens ao carrinho. Ir para entrar?',
-    'remove_from_cart' => 'Remover do carrinho',
     'remove_item_title' => 'Remover do carrinho',
     'remove_item_text' => 'Deseja remover este passeio do carrinho?',
     'pax' => 'pax',
@@ -287,5 +279,9 @@ return [
     'error'              => 'Erro',
     'validation_error'   => 'Dados incompletos',
 
-    
+    'edit_profile_of' => 'Editar perfil',
+    'profile_information' => 'Informações do Perfil',
+    'new_password_optional' => 'Nova senha (opcional)',
+    'leave_blank_if_no_change' => 'Deixe em branco se não deseja alterá-la',
+    'confirm_new_password_placeholder' => 'Confirmar nova senha',
 ];

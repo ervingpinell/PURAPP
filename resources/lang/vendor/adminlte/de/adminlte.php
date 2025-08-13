@@ -41,7 +41,7 @@ return [
         'special' => '- 1 Sonderzeichen ( .¡!@#$%^&*()_+- )',
         'number' => '- 1 Zahl',
     ],
-    'invalid_credentials'=> 'Ungültige Anmeldeinformationen. Bitte versuchen Sie es erneut.',
+    'invalid_credentials' => 'Ungültige Anmeldeinformationen. Bitte versuchen Sie es erneut.',
 
     // ─── ALLGEMEINE NAVIGATION ────────────────────────
     'back' => 'Zurück',
@@ -67,9 +67,8 @@ return [
     'privacy_policy' => 'Datenschutzerklärung',
     'terms_of_service' => 'Nutzungsbedingungen',
     'reports' => 'Berichte',
-'footer_text'=> 'Green Vacations',
-'quick_links'=> 'Schnellzugriffe',
-'rights_reserved' => 'Alle Rechte vorbehalten',
+    'footer_text' => 'Green Vacations',
+    'quick_links' => 'Schnellzugriffe',
 
     // ─── TOUREN UND BEWERTUNGEN ───────────────────────
     'tours' => 'Touren',
@@ -91,8 +90,8 @@ return [
     'our_tours' => 'Unsere Touren',
     'half_day' => 'Halbtägig',
     'full_day' => 'Ganztägig',
-'full_day_description' => 'Perfekt für alle, die an einem einzigen Tag ein vollständiges Erlebnis suchen',
-'half_day_description' => 'Ideale Touren für ein kurzes Abenteuer für alle mit wenig Zeit.',
+    'full_day_description' => 'Perfekt für alle, die an einem einzigen Tag ein vollständiges Erlebnis suchen',
+    'half_day_description' => 'Ideale Touren für ein kurzes Abenteuer für alle mit wenig Zeit.',
 
     'full_day_tours' => 'Ganztagestouren',
     'half_day_tours' => 'Halbtagestouren',
@@ -103,8 +102,8 @@ return [
     'guest_1' => 'Carlos M.',
     'quote_2' => 'Ich komme auf jeden Fall wieder.',
     'guest_2' => 'Ana G.',
-    'tour_information'=> 'Tourinformationen',
-   'group_size'=> 'Gruppengröße',
+    'tour_information' => 'Tourinformationen',
+    'group_size' => 'Gruppengröße',
     // ─── ZEITEN ───────────────────────────────────────
     'schedule' => 'Zeitplan',
     'schedule_am' => 'Vormittagszeit',
@@ -153,7 +152,7 @@ return [
     'meeting_not_found' => 'Treffpunkt nicht gefunden.',
     'main_street_entrance' => 'Haupteingang der Straße',
     'example_address' => 'Beispieladresse 123',
-  'hotels_meeting_points' => 'Hotels und Treffpunkte',
+    'hotels_meeting_points' => 'Hotels und Treffpunkte',
 
     // ─── WARENKORB UND BUCHUNGEN ─────────────────────
     'cart' => 'Warenkorb',
@@ -180,14 +179,14 @@ return [
     'totalEstimated' => 'Gesamtschätzung',
     'total_price' => 'Gesamtpreis',
     'total' => 'Gesamt',
-'date'=> 'Datum',
-'status' => 'Status',
-'actions' => 'Aktionen',
-'active'=> 'Aktiv',
-'delete'=> 'Löschen',
-'promoCode' => 'Haben Sie einen Aktionscode?',
-'promoCodePlaceholder' => 'Geben Sie Ihren Aktionscode ein',
-'apply' => 'Anwenden',
+    'date' => 'Datum',
+    'status' => 'Status',
+    'actions' => 'Aktionen',
+    'active' => 'Aktiv',
+    'delete' => 'Löschen',
+    'promoCode' => 'Haben Sie einen Aktionscode?',
+    'promoCodePlaceholder' => 'Geben Sie Ihren Aktionscode ein',
+    'apply' => 'Anwenden',
 
 
     // ─── VALIDIERUNG ─────────────────────────────────
@@ -200,7 +199,6 @@ return [
     'create' => 'Erstellen',
     'edit' => 'Bearbeiten',
     'update' => 'Aktualisieren',
-    'delete' => 'Löschen',
     'activate' => 'Aktivieren',
     'deactivate' => 'Deaktivieren',
     'confirm' => 'Bestätigen',
@@ -208,7 +206,6 @@ return [
     'save' => 'Speichern',
     'save_changes' => 'Änderungen speichern',
     'are_you_sure' => 'Bist du sicher?',
-    'actions' => 'Aktionen',
     'optional' => 'Optional',
     'edit_profile' => 'Profil bearbeiten',
     'read_more' => 'Mehr lesen',
@@ -217,8 +214,6 @@ return [
     'close' => 'Schließen',
 
     // ─── FOOTER ──────────────────────────────────────
-    'footer_text' => 'Wir bieten einzigartige Ökotourismus-Erlebnisse in Costa Rica.',
-    'quick_links' => 'Schnellzugriff',
     'contact_us' => 'Kontaktiere uns',
     'location' => 'San José, Costa Rica',
     'rights_reserved' => 'Alle Rechte vorbehalten',
@@ -226,10 +221,10 @@ return [
     // ─── WHATSAPP ────────────────────────────────────
     'whatsapp_title' => 'Green Vacations CR',
     'whatsapp_subtitle' => 'Antwortet in der Regel sofort',
-'whatsapp_attention_schedule' => ' Montag bis Sonntag, von 7:30 Uhr bis 19:00 Uhr (GMT-6)',
-'whatsapp_attention_language' => ' Support only in Spanish and English',
+    'whatsapp_attention_schedule' => ' Montag bis Sonntag, von 7:30 Uhr bis 19:00 Uhr (GMT-6)',
+    'whatsapp_attention_language' => ' Support only in Spanish and English',
     'whatsapp_greeting' => '👋 Hallo! Wie können wir dir helfen, dein Abenteuer in Costa Rica zu planen?',
-'whatsapp_placeholder' => 'Hi, I’m interested in one of your tours. Could you give me more information?',
+    'whatsapp_placeholder' => 'Hi, I’m interested in one of your tours. Could you give me more information?',
     'whatsapp_button' => 'Nachricht senden',
     'whatsapp_footer' => 'Verbunden über WhatsApp Business',
 
@@ -275,18 +270,21 @@ return [
     'access_denied' => 'Zugriff verweigert',
 
     // ─── CART MODAL LOGIN ──────────────────────────────────────
-    'add_to_cart' => 'In den Warenkorb',
     'login' => 'Anmelden',
-    'cancel' => 'Abbrechen',
     'view_cart' => 'Warenkorb ansehen',
     'login_required_title' => 'Anmeldung erforderlich',
     'login_required_text' => 'Sie müssen sich anmelden, um Artikel zum Warenkorb hinzuzufügen.',
     'login_required_text_confirm' => 'Sie müssen sich anmelden, um Artikel zum Warenkorb hinzuzufügen. Zur Anmeldung gehen?',
-    'remove_from_cart' => 'Aus dem Warenkorb entfernen',
     'remove_item_title' => 'Aus dem Warenkorb entfernen',
     'remove_item_text' => 'Möchten Sie diese Tour aus dem Warenkorb entfernen?',
     'pax' => 'Pax',
     'success' => 'Erfolg',
     'error' => 'Fehler',
     'validation_error' => 'Unvollständige Daten',
+
+    'edit_profile_of' => 'Profil bearbeiten',
+    'profile_information' => 'Profilinformationen',
+    'new_password_optional' => 'Neues Passwort (optional)',
+    'leave_blank_if_no_change' => 'Leer lassen, wenn Sie es nicht ändern möchten',
+    'confirm_new_password_placeholder' => 'Neues Passwort bestätigen',
 ];

@@ -22,20 +22,36 @@ class DashBoardController extends Controller
         return view('index');
     }
 
-public function switchLanguage($language)
+public function switchLanguage(string $language)
 {
-    if (in_array($language, ['es', 'en', 'fr', 'pt', 'de'])) {
-        session(['locale' => $language]);
+    // Mapeo a tus carpetas reales
+    $map = [
+        'es' => 'es_CR',
+        'es_CR' => 'es_CR',
+        'pt' => 'pt_BR',
+        'pt_BR' => 'pt_BR',
+        'en' => 'en',
+        'fr' => 'fr',
+        'de' => 'de',
+    ];
+
+    if (isset($map[$language])) {
+        $locale = $map[$language];
+        session(['locale' => $locale]);
+        app()->setLocale($locale); // aplica en esta request
     }
 
-    $referer = url()->previous();
+    $referer = url()->previous() ?: route('home');
 
-    if (str_contains($referer, '/login')) {
+    // Evita bucles si vienes del login
+    $path = parse_url($referer, PHP_URL_PATH) ?? '';
+    if (str_starts_with($path, '/login')) {
         return redirect()->route('login');
     }
 
-    return redirect($referer);
+    return redirect()->to($referer);
 }
+
 
 
     public function dashboard()
