@@ -65,7 +65,7 @@ return [
     'contact' => 'Contacto',
     'about' => 'Acerca de nosotros',
     'privacy_policy' => 'Política de privacidad',
-    'terms_of_service' => 'Términos del servicio',
+    'terms_and_conditions' => 'Términos y condiciones',
     'reports' => 'Reportes',
     'footer_text'=> 'Green Vacations',
 'quick_links'=> 'Enlaces rápidos',

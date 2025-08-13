@@ -26,10 +26,10 @@ public function switchLanguage(string $language)
 {
     // Mapeo a tus carpetas reales
     $map = [
-        'es' => 'es_CR',
-        'es_CR' => 'es_CR',
-        'pt' => 'pt_BR',
-        'pt_BR' => 'pt_BR',
+        'es' => 'es',
+        'es_CR' => 'es',
+        'pt' => 'pt',
+        'pt_BR' => 'pt',
         'en' => 'en',
         'fr' => 'fr',
         'de' => 'de',

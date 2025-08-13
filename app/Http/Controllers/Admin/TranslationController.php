@@ -4,24 +4,27 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
-// Modelos existentes
+// Modelos base
 use App\Models\Tour;
 use App\Models\Itinerary;
 use App\Models\ItineraryItem;
 use App\Models\Amenity;
 use App\Models\Faq;
+use App\Models\Policy;
 
-// Traducciones existentes
+// Traducciones base
 use App\Models\TourTranslation;
 use App\Models\ItineraryTranslation;
 use App\Models\ItineraryItemTranslation;
 use App\Models\AmenityTranslation;
 use App\Models\FaqTranslation;
-
-// NUEVOS: Policies
-use App\Models\Policy;
 use App\Models\PolicyTranslation;
+
+// NUEVOS: Secciones de Policy
+use App\Models\PolicySection;
+use App\Models\PolicySectionTranslation;
 
 class TranslationController extends Controller
 {
@@ -48,7 +51,7 @@ class TranslationController extends Controller
             'itinerary_items'  => ItineraryItem::orderBy('id')->get(), // ajusta si tu PK es distinta
             'amenities'        => Amenity::orderBy('amenity_id')->get(),
             'faqs'             => Faq::orderBy('faq_id')->get(),
-            'policies'         => Policy::orderBy('policy_id')->get(), // ✅ funciona
+            'policies'         => Policy::orderBy('policy_id')->get(),
             default            => collect(),
         };
 
@@ -74,7 +77,6 @@ class TranslationController extends Controller
 
     public function edit(string $type, int $id)
     {
-        // Incluyo 'es' para poder editar también la versión en español si se requiere
         $availableLocales = ['es', 'en', 'fr', 'pt', 'de'];
         $locale = request('locale', 'en');
 
@@ -121,10 +123,14 @@ class TranslationController extends Controller
                 break;
 
             case 'policies':
-                $item = Policy::findOrFail($id);
+                // Eager-load secciones y sus traducciones para el partial
+                $item = Policy::with([
+                    'sections' => fn($q) => $q->orderBy('sort_order')->orderBy('section_id'),
+                    'sections.translations'
+                ])->findOrFail($id);
                 $translationModel = PolicyTranslation::class;
                 $foreignKey = 'policy_id';
-                $fields = ['title', 'content']; // <- Campos a traducir en Policies
+                $fields = ['title', 'content'];   // Campos de la política (categoría)
                 break;
 
             default:
@@ -155,6 +161,7 @@ class TranslationController extends Controller
         $locale = $request->input('locale');
         $data   = $request->input('translations', []);
 
+        // Cargamos modelo + configuramos clase de traducción/keys
         $model = null;
         $translationModel = null;
         $foreignKey = '';
@@ -178,7 +185,7 @@ class TranslationController extends Controller
             case 'itinerary_items':
                 $model = ItineraryItem::findOrFail($id);
                 $translationModel = ItineraryItemTranslation::class;
-                $foreignKey = 'item_id'; // ajusta si tu FK real es 'itinerary_item_id'
+                $foreignKey = 'item_id';
                 $fields = ['title', 'description'];
                 break;
 
@@ -197,7 +204,7 @@ class TranslationController extends Controller
                 break;
 
             case 'policies':
-                $model = Policy::findOrFail($id);
+                $model = Policy::with(['sections'])->findOrFail($id);
                 $translationModel = PolicyTranslation::class;
                 $foreignKey = 'policy_id';
                 $fields = ['title', 'content'];
@@ -207,47 +214,103 @@ class TranslationController extends Controller
                 abort(404, 'Tipo de traducción no válido');
         }
 
-        // Guardar/actualizar traducción del objeto principal
-        $translation = $translationModel::firstOrNew([
-            $foreignKey => $model->getKey(),
-            'locale'    => $locale,
-        ]);
+        DB::transaction(function () use ($type, $model, $translationModel, $foreignKey, $fields, $data, $locale, $request) {
+            // Guardar/actualizar traducción del objeto principal
+            $translation = $translationModel::firstOrNew([
+                $foreignKey => $model->getKey(),
+                'locale'    => $locale,
+            ]);
 
-        foreach ($fields as $field) {
-            $translation->{$field} = $data[$field] ?? null;
-        }
-        $translation->save();
-
-        // Extra: tours -> opcional traducir itinerario/ítems si vienen en request (como ya lo tenías)
-        if ($type === 'tours' && $model->itinerary) {
-            $itineraryData = $request->input('itinerary_translations', []);
-            if (!empty($itineraryData)) {
-                $itineraryTranslation = ItineraryTranslation::firstOrNew([
-                    'itinerary_id' => $model->itinerary->itinerary_id,
-                    'locale'       => $locale,
-                ]);
-                $itineraryTranslation->name = $itineraryData['name'] ?? null;
-                $itineraryTranslation->description = $itineraryData['description'] ?? null;
-                $itineraryTranslation->save();
+            foreach ($fields as $field) {
+                $translation->{$field} = $data[$field] ?? null;
             }
+            $translation->save();
 
-            $itemData = $request->input('item_translations', []);
-            if (!empty($itemData)) {
-                foreach ($model->itinerary->items as $item) {
-                    $itemKey = $item->id; // ajusta si tu PK es distinta
-                    if (!isset($itemData[$itemKey])) continue;
-
-                    $itemTranslation = ItineraryItemTranslation::firstOrNew([
-                        'item_id' => $itemKey, // ajusta si tu FK real es 'itinerary_item_id'
-                        'locale'  => $locale,
+            // Extra: tours -> opcional traducir itinerario/ítems si vienen en request
+            if ($type === 'tours' && $model->itinerary) {
+                $itineraryData = $request->input('itinerary_translations', []);
+                if (!empty($itineraryData)) {
+                    $itineraryTranslation = ItineraryTranslation::firstOrNew([
+                        'itinerary_id' => $model->itinerary->itinerary_id,
+                        'locale'       => $locale,
                     ]);
+                    $itineraryTranslation->name = $itineraryData['name'] ?? null;
+                    $itineraryTranslation->description = $itineraryData['description'] ?? null;
+                    $itineraryTranslation->save();
+                }
 
-                    $itemTranslation->title       = $itemData[$itemKey]['title'] ?? null;
-                    $itemTranslation->description = $itemData[$itemKey]['description'] ?? null;
-                    $itemTranslation->save();
+                $itemData = $request->input('item_translations', []);
+                if (!empty($itemData)) {
+                    foreach ($model->itinerary->items as $item) {
+                        $itemKey = $item->id; // ajusta si tu PK es distinta
+                        if (!isset($itemData[$itemKey])) continue;
+
+                        $itemTranslation = ItineraryItemTranslation::firstOrNew([
+                            'item_id' => $itemKey, // ajusta si tu FK real es 'itinerary_item_id'
+                            'locale'  => $locale,
+                        ]);
+
+                        $itemTranslation->title       = $itemData[$itemKey]['title'] ?? null;
+                        $itemTranslation->description = $itemData[$itemKey]['description'] ?? null;
+                        $itemTranslation->save();
+                    }
                 }
             }
-        }
+
+            // NUEVO: policies -> editar/crear secciones y sus traducciones
+            if ($type === 'policies') {
+                // 1) Metadatos de secciones existentes
+                $meta = $request->input('section_meta', []); // [section_id => [sort_order, is_active]]
+                foreach ($meta as $sectionId => $m) {
+                    $section = PolicySection::where('policy_id', $model->policy_id)
+                        ->where('section_id', $sectionId)
+                        ->first();
+                    if (!$section) continue;
+
+                    $section->sort_order = isset($m['sort_order']) ? (int) $m['sort_order'] : $section->sort_order;
+                    $section->is_active  = isset($m['is_active']) ? (bool) $m['is_active'] : false;
+                    $section->save();
+                }
+
+                // 2) Traducciones de secciones existentes en el locale actual
+                $sectionTr = $request->input('section_translations', []); // [section_id => [title, content]]
+                foreach ($sectionTr as $sectionId => $stData) {
+                    $exists = PolicySection::where('policy_id', $model->policy_id)
+                        ->where('section_id', $sectionId)
+                        ->exists();
+                    if (!$exists) continue;
+
+                    PolicySectionTranslation::updateOrCreate(
+                        ['section_id' => (int) $sectionId, 'locale' => $locale],
+                        [
+                            'title'   => $stData['title']   ?? '',
+                            'content' => $stData['content'] ?? '',
+                        ]
+                    );
+                }
+
+                // 3) Nuevas secciones (meta + traducción)
+                $new = $request->input('new_sections', []); // [[sort_order, is_active, title, content], ...]
+                foreach ($new as $row) {
+                    $title   = trim($row['title']   ?? '');
+                    $content = trim($row['content'] ?? '');
+                    $hasAny  = $title !== '' || $content !== '' || !empty($row['sort_order']) || !empty($row['is_active']);
+
+                    if (!$hasAny) continue; // evitar crear registros vacíos
+
+                    $section = PolicySection::create([
+                        'policy_id'  => $model->policy_id,
+                        'sort_order' => (int)($row['sort_order'] ?? 0),
+                        'is_active'  => !empty($row['is_active']),
+                    ]);
+
+                    PolicySectionTranslation::updateOrCreate(
+                        ['section_id' => $section->section_id, 'locale' => $locale],
+                        ['title' => $title, 'content' => $content]
+                    );
+                }
+            }
+        });
 
         return redirect()
             ->route('admin.translations.select', ['type' => $type])

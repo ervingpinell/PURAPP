@@ -6,17 +6,29 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Policy;
 use App\Models\PolicyTranslation;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 
 class PolicyController extends Controller
 {
+    /**
+     * Admin: listado y gestión de políticas.
+     */
     public function index()
     {
-        $policies = Policy::with('translations')->latest()->get();
+        $policies = Policy::orderBy('policy_id')
+            ->with([
+                'translations',
+                'sections' => fn($q) => $q->orderBy('sort_order')->orderBy('section_id'),
+                'sections.translations',
+            ])
+            ->get();
+
         return view('admin.policies.index', compact('policies'));
     }
 
+    /**
+     * Admin: crear política.
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -26,7 +38,8 @@ class PolicyController extends Controller
             'effective_to'   => ['nullable','date','after_or_equal:effective_from'],
             'is_default'     => ['nullable','boolean'],
 
-            // Texto fuente para ES si decides crear desde admin (opcional)
+            // Traducción inicial (opcional; normalmente ES o locale activo)
+            'locale'         => ['nullable','string','max:10'],
             'title'          => ['nullable','string','max:255'],
             'content'        => ['nullable','string'],
         ]);
@@ -41,21 +54,23 @@ class PolicyController extends Controller
                 'is_active'      => true,
             ]);
 
-            // Única default (global; si prefieres por tipo, agrega ->where('type',$policy->type))
+            // ✅ Dejar una sola default por TIPO
             if ($policy->is_default) {
                 Policy::where('policy_id', '!=', $policy->policy_id)
+                    ->where('type', $policy->type)
                     ->where('is_default', true)
                     ->update(['is_default' => false]);
             }
 
-            // Si se envía contenido ES al crear desde admin, lo guardamos
-            if ($request->filled('title') || $request->filled('content')) {
+            // Upsert de traducción inicial si se envía
+            $locale  = $request->input('locale', app()->getLocale());
+            $title   = $request->input('title');
+            $content = $request->input('content');
+
+            if (filled($title) || filled($content)) {
                 PolicyTranslation::updateOrCreate(
-                    ['policy_id' => $policy->policy_id, 'locale' => 'es'],
-                    [
-                        'title'   => $request->input('title', ''),
-                        'content' => $request->input('content', ''),
-                    ]
+                    ['policy_id' => $policy->policy_id, 'locale' => $locale],
+                    ['title' => $title ?? '', 'content' => $content ?? '']
                 );
             }
 
@@ -64,6 +79,9 @@ class PolicyController extends Controller
         });
     }
 
+    /**
+     * Admin: actualizar política.
+     */
     public function update(Request $request, Policy $policy)
     {
         $request->validate([
@@ -72,6 +90,11 @@ class PolicyController extends Controller
             'effective_from' => ['nullable','date'],
             'effective_to'   => ['nullable','date','after_or_equal:effective_from'],
             'is_default'     => ['nullable','boolean'],
+
+            // Traducción editable (opcional)
+            'locale'         => ['nullable','string','max:10'],
+            'title'          => ['nullable','string','max:255'],
+            'content'        => ['nullable','string'],
         ]);
 
         return DB::transaction(function () use ($request, $policy) {
@@ -83,10 +106,29 @@ class PolicyController extends Controller
                 'is_default'     => $request->boolean('is_default'),
             ]);
 
+            // ✅ Dejar una sola default por TIPO
             if ($policy->is_default) {
                 Policy::where('policy_id', '!=', $policy->policy_id)
+                    ->where('type', $policy->type)
                     ->where('is_default', true)
                     ->update(['is_default' => false]);
+            }
+
+            // Upsert de traducción en el locale indicado
+            $locale  = $request->input('locale', app()->getLocale());
+            $title   = $request->input('title', null);
+            $content = $request->input('content', null);
+
+            if (!is_null($title) || !is_null($content)) {
+                $tr = PolicyTranslation::firstOrNew([
+                    'policy_id' => $policy->policy_id,
+                    'locale'    => $locale,
+                ]);
+
+                if (!is_null($title))   $tr->title   = $title;
+                if (!is_null($content)) $tr->content = $content;
+
+                $tr->save();
             }
 
             return redirect()->route('admin.policies.index')
@@ -94,6 +136,9 @@ class PolicyController extends Controller
         });
     }
 
+    /**
+     * Admin: activar/desactivar política.
+     */
     public function toggleStatus(Policy $policy)
     {
         $policy->is_active = !$policy->is_active;
@@ -103,6 +148,9 @@ class PolicyController extends Controller
             ->with('success', 'Estado de la política actualizado.');
     }
 
+    /**
+     * Admin: eliminar política.
+     */
     public function destroy(Policy $policy)
     {
         $policy->delete();
@@ -112,12 +160,38 @@ class PolicyController extends Controller
     }
 
     /**
-     * (Opcional) Público — ahora sin slug.
-     * Puedes mostrar por ID o por (type + default). Aquí muestro por ID.
+     * Público: listado de todas las políticas con secciones.
+     */
+    public function publicIndex()
+    {
+        $policies = Policy::with([
+                'translations',
+                'sections' => function ($q) {
+                    $q->where('is_active', true)
+                      ->orderBy('sort_order')
+                      ->orderBy('section_id');
+                },
+                'sections.translations',
+            ])
+            ->where('is_active', true)
+            ->orderBy('type')           // agrupa visualmente por categoría
+            ->orderByDesc('is_default') // muestra primero la default de ese tipo
+            ->orderBy('policy_id')
+            ->get();
+
+        return view('policies.index', compact('policies'));
+    }
+
+    /**
+     * Público: ver una política por ID, con secciones.
      */
     public function showPublic(int $policyId)
     {
-        $policy = Policy::with('translations')
+        $policy = Policy::with([
+                'translations',
+                'sections' => fn($q) => $q->where('is_active', true)->orderBy('sort_order'),
+                'sections.translations',
+            ])
             ->where('policy_id', $policyId)
             ->where('is_active', true)
             ->firstOrFail();

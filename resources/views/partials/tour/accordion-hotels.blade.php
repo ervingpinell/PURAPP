@@ -1,10 +1,21 @@
 <div class="accordion-item border-0 border-bottom">
   <h2 class="accordion-header" id="headingHotels">
-    <button class="accordion-button bg-white px-0 shadow-none collapsed" type="button"
-            data-bs-toggle="collapse" data-bs-target="#collapseHotels">
-      <i class="fas fa-plus me-2 toggle-icon"></i> {{ __('adminlte::adminlte.hotels_meeting_points') }}
+    <button
+      class="accordion-button bg-white px-0 shadow-none collapsed"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#collapseHotels"
+      aria-expanded="false"
+      aria-controls="collapseHotels"
+    >
+      <span class="me-2 d-inline-flex align-items-center" aria-hidden="true">
+        <i class="fas fa-plus icon-plus"></i>
+        <i class="fas fa-minus icon-minus"></i>
+      </span>
+      {{ __('adminlte::adminlte.hotels_meeting_points') }}
     </button>
   </h2>
+
   <div id="collapseHotels" class="accordion-collapse collapse"
        data-bs-parent="#tourDetailsAccordion">
     <div class="accordion-body px-0">
@@ -22,10 +33,15 @@
           <p class="text-muted small mb-2">{{ __('adminlte::adminlte.select_pickup') }}</p>
 
           <div class="position-relative">
-            <input type="text" class="form-control border rounded px-3 py-2 ps-4"
-                   id="pickupInput" name="pickup_name"
-                   placeholder="{{ __('adminlte::adminlte.type_to_search') }}"
-                   autocomplete="off" style="padding-left: 2rem;">
+            <input
+              type="text"
+              class="form-control border rounded px-3 py-2 ps-4"
+              id="pickupInput"
+              name="pickup_name"
+              placeholder="{{ __('adminlte::adminlte.type_to_search') }}"
+              autocomplete="off"
+              style="padding-left: 2rem;"
+            >
             <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted"></i>
           </div>
 
@@ -52,8 +68,12 @@
         <div class="col-md-6">
           <h6><i class="fas fa-map-marker-alt me-1"></i> {{ __('adminlte::adminlte.meeting_points') }}</h6>
           <p class="text-muted small mb-2">{{ __('adminlte::adminlte.select_meeting') }}</p>
-          <input type="text" id="meetingSearch" class="form-control mb-2"
-                 placeholder="{{ __('adminlte::adminlte.type_to_search') }}">
+          <input
+            type="text"
+            id="meetingSearch"
+            class="form-control mb-2"
+            placeholder="{{ __('adminlte::adminlte.type_to_search') }}"
+          >
 
           <div class="meeting-list border rounded p-2" id="meetingListWrapper" style="max-height: 250px; overflow-y: auto;">
             <ul class="list-unstyled mb-0" id="meetingList">
@@ -67,12 +87,14 @@
                   </div>
                 </label>
               </li>
-              <!-- Otros puntos -->
+              {{-- Agrega más puntos si lo necesitas --}}
             </ul>
+
             <div id="meetingNotFound" class="text-danger small mt-2 d-none">
               {{ __('adminlte::adminlte.meeting_not_found') }}
             </div>
           </div>
+
           <input type="hidden" name="selected_meeting_point" id="selectedMeetingPoint">
         </div>
 

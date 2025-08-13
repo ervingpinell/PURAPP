@@ -1,8 +1,18 @@
 <div class="accordion-item border-0 border-bottom">
   <h2 class="accordion-header" id="headingItinerary">
-    <button class="accordion-button bg-white px-0 shadow-none collapsed" type="button"
-            data-bs-toggle="collapse" data-bs-target="#collapseItinerary">
-      <i class="fas fa-plus me-2 toggle-icon"></i> {{ __('adminlte::adminlte.itinerary') }}
+    <button
+      class="accordion-button bg-white px-0 shadow-none collapsed"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#collapseItinerary"
+      aria-expanded="false"
+      aria-controls="collapseItinerary"
+    >
+      <span class="me-2 d-inline-flex align-items-center" aria-hidden="true">
+        <i class="fas fa-plus icon-plus"></i>
+        <i class="fas fa-minus icon-minus"></i>
+      </span>
+      {{ __('adminlte::adminlte.itinerary') }}
     </button>
   </h2>
   <div id="collapseItinerary" class="accordion-collapse collapse"

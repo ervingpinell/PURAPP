@@ -19,24 +19,55 @@
             <ul>
                 <li class="d-flex align-items-center mb-2">
                     <i class="fas fa-sun text-warning me-2"></i>
-                    <a href="#">{{ __('adminlte::adminlte.half_day') }}</a>
+   <a href="#" class="nav-link scroll-to-tours">{{ __('adminlte::adminlte.half_day') }}</a>
                 </li>
                 <li class="d-flex align-items-center mb-2">
                     <i class="fas fa-mountain text-info me-2"></i>
-                    <a href="#">{{ __('adminlte::adminlte.full_day') }}</a>
+   <a href="#" class="nav-link scroll-to-tours">{{ __('adminlte::adminlte.full_day') }}</a>
                 </li>
             </ul>
+
+            @php
+    $terms   = \App\Models\Policy::byType('terminos');
+    $privacy = \App\Models\Policy::byType('privacidad');
+@endphp
+
+<h4><i class="fas fa-file-contract me-2"></i>{{ __('adminlte::adminlte.policies') }}</h4>
+<ul>
+    <li class="d-flex align-items-center mb-2">
+        <i class="fas fa-balance-scale text-warning me-2"></i>
+        <a href="{{ route('policies.show', $terms) }}">
+            {{ __('adminlte::adminlte.terms_and_conditions') }}
+        </a>
+    </li>
+    <li class="d-flex align-items-center mb-2">
+        <i class="fas fa-shield-alt text-success me-2"></i>
+        <a href="{{ route('policies.show', $privacy) }}">
+            {{ __('adminlte::adminlte.privacy_policy') }}
+        </a>
+    </li>
+</ul>
+
         </div>
-        <div class="contact-info">
-            <h4>{{ __('adminlte::adminlte.contact_us') }}</h4>
-            <p><i class="fas fa-map-marker-alt me-2"></i> La Fortuna, San Carlos, Costa Rica</p>
-            <p><i class="fas fa-phone me-2"></i>
-                <a href="tel:+50624791471" class="text-white text-decoration-none">(+506) 2479 1471</a>
-            </p>
-            <p><i class="fas fa-envelope me-2"></i>
-                <a href="mailto:info@greenvacationscr.com" class="text-white text-decoration-none">info@greenvacationscr.com</a>
-            </p>
-        </div>
+<div class="contact-info">
+    <h4>{{ __('adminlte::adminlte.contact_us') }}</h4>
+    <p><i class="fas fa-map-marker-alt me-2"></i> La Fortuna, San Carlos, Costa Rica</p>
+    <p><i class="fas fa-phone me-2"></i>
+        <a href="tel:+50624791471" class="text-white text-decoration-none">(+506) 2479 1471</a>
+    </p>
+    <p><i class="fas fa-envelope me-2"></i>
+        <a href="mailto:info@greenvacationscr.com" class="text-white text-decoration-none">info@greenvacationscr.com</a>
+    </p>
+
+    {{-- 🔗 Enlace a todas las políticas (con secciones) --}}
+    <p><i class="fas fa-file-contract me-2"></i>
+        <a href="{{ route('policies.index') }}" class="text-white text-decoration-none">
+            {{ __('adminlte::adminlte.policies') }}
+        </a>
+        {{-- Si aún no tienes la ruta nombrada, usa: href="{{ url('/policies') }}" --}}
+    </p>
+</div>
+
     </div>
     <div class="footer-bottom">
         &copy; 2025 Green Vacations Costa Rica. {{ __('adminlte::adminlte.rights_reserved') }}

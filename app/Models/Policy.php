@@ -100,4 +100,12 @@ class Policy extends Model
     {
         return optional($this->translation())?->content;
     }
+
+    public function sections()
+{
+    return $this->hasMany(PolicySection::class, 'policy_id', 'policy_id')
+        ->where('is_active', true)
+        ->orderBy('sort_order')
+        ->orderBy('section_id');
+}
 }

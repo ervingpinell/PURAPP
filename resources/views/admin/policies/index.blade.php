@@ -32,12 +32,12 @@
     <table class="table table-bordered align-middle" id="policiesTable">
       <thead class="table-dark">
         <tr>
-          <th style="min-width: 280px;">Título</th>
+          <th style="min-width: 300px;">Título</th>
           <th>Tipo</th>
           <th>Vigencia</th>
           <th>Default</th>
           <th>Estado</th>
-          <th style="width: 180px;">Acciones</th>
+          <th style="width: 220px;">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -122,16 +122,62 @@
             </td>
           </tr>
 
-          {{-- Fila colapsable con el contenido --}}
+          {{-- Fila colapsable con descripción + SECCIONES --}}
           <tr id="{{ $cid }}" class="collapse">
             <td colspan="6">
               <div class="p-3 border rounded content-box">
-                {!! nl2br(e($t?->content)) !!}
+                {{-- Descripción de la política (categoría) --}}
+                @if(filled($t?->content))
+                  <h6 class="mb-2"><i class="far fa-file-alt mr-1"></i> Descripción</h6>
+                  <div class="mb-3">{!! nl2br(e($t->content)) !!}</div>
+                @endif
+
+                {{-- Secciones (solo vista resumida) --}}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="mb-0"><i class="fas fa-list-ul mr-1"></i> Secciones</h6>
+                  <a href="{{ route('admin.policies.sections.index', $policy) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-sliders-h"></i> Gestionar secciones
+                  </a>
+                </div>
+
+                @if($policy->sections->isNotEmpty())
+                  <ul class="list-group">
+                    @foreach($policy->sections as $section)
+                      @php
+                        $st = $section->translation(app()->getLocale()) ?? $section->translation('es');
+                        $sid = 'secPreview'.$section->section_id;
+                      @endphp
+                      <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                          <div>
+                            <strong>{{ $st?->title ?? '—' }}</strong>
+                            <span class="ml-2 badge badge-{{ $section->is_active ? 'success' : 'secondary' }}">
+                              {{ $section->is_active ? 'Activa' : 'Inactiva' }}
+                            </span>
+                          </div>
+                          <button class="btn btn-link btn-xs p-0 collapsed" type="button"
+                                  data-toggle="collapse" data-target="#{{ $sid }}">
+                            <span class="when-closed"><i class="fas fa-eye"></i> Ver</span>
+                            <span class="when-open"><i class="fas fa-eye-slash"></i> Ocultar</span>
+                          </button>
+                        </div>
+
+                        <div id="{{ $sid }}" class="collapse mt-2">
+                          <div class="small text-muted" style="white-space:pre-line;">
+                            {{ \Illuminate\Support\Str::limit(strip_tags($st?->content ?? ''), 600) }}
+                          </div>
+                        </div>
+                      </li>
+                    @endforeach
+                  </ul>
+                @else
+                  <div class="text-muted"><em>No hay secciones registradas.</em></div>
+                @endif
               </div>
             </td>
           </tr>
 
-          {{-- Modal Editar (partial) --}}
+          {{-- Modal Editar (policy) --}}
           @include('admin.policies.edit-modal', ['policy' => $policy, 't' => $t])
         @empty
           <tr>
@@ -142,7 +188,7 @@
     </table>
   </div>
 
-  {{-- Modal Crear (partial) --}}
+  {{-- Modal Crear (policy) --}}
   @include('admin.policies.create-modal')
 @stop
 
@@ -155,27 +201,7 @@
   .btn[data-toggle="collapse"]:not(.collapsed) .when-closed { display: none; }
   .btn[data-toggle="collapse"]:not(.collapsed) .when-open { display: inline; }
 
-  /* Caja del contenido (ajusta para dark mode si usas AdminLTE dark) */
-  .content-box {
-    background: rgba(0,0,0,.03);
-  }
-  .dark-mode .content-box {
-    background: rgba(255,255,255,.03);
-  }
+  .content-box { background: rgba(0,0,0,.03); }
+  .dark-mode .content-box { background: rgba(255,255,255,.03); }
 </style>
-@endpush
-
-@push('js')
-<script>
-/* Si quieres comportamiento "acordeón" (solo uno abierto a la vez),
-   descomenta el bloque y añade data-parent="#policiesTable" en la fila collapse:
-
-   <tr id="{{ $cid }}" class="collapse" data-parent="#policiesTable">
-*/
-// $(function() {
-//   $('#policiesTable .collapse').on('show.bs.collapse', function() {
-//     $('#policiesTable .collapse.show').collapse('hide');
-//   });
-// });
-</script>
 @endpush

@@ -9,6 +9,7 @@ use App\Models\ItineraryItem;
 use App\Models\Amenity;
 use App\Models\Faq;
 use App\Models\TourType;
+
 use App\Models\TourTranslation;
 use App\Models\ItineraryTranslation;
 use App\Models\ItineraryItemTranslation;
@@ -16,8 +17,10 @@ use App\Models\AmenityTranslation;
 use App\Models\FaqTranslation;
 use App\Models\TourTypeTranslation;
 
-use App\Models\Policy;                 // 👈
-use App\Models\PolicyTranslation;      // 👈
+use App\Models\Policy;
+use App\Models\PolicyTranslation;
+use App\Models\PolicySection;
+use App\Models\PolicySectionTranslation;
 
 use App\Services\Contracts\TranslatorInterface;
 
@@ -33,7 +36,8 @@ class TranslationSeeder extends Seeder
         $translator = app(TranslatorInterface::class);
 
         $this->translateTourTypes($translator);
-        $this->translatePolicies($translator);   // 👈 genera EN/FR/PT/DE tomando ES como fuente
+        $this->translatePolicies($translator);
+        $this->translatePolicySections($translator); // 👈 NUEVO
 
         $this->translateTours($translator);
         $this->translateItineraries($translator);
@@ -46,7 +50,6 @@ class TranslationSeeder extends Seeder
 
     protected function clearTranslations(): void
     {
-        // Estas pueden truncarse sin problema
         TourTypeTranslation::truncate();
         TourTranslation::truncate();
         ItineraryTranslation::truncate();
@@ -54,9 +57,9 @@ class TranslationSeeder extends Seeder
         AmenityTranslation::truncate();
         FaqTranslation::truncate();
 
-        // ❌ NO truncar policy_translations completo porque ES es la fuente.
-        // ✅ Elimina solo los locales distintos de 'es'
+        // Preservar ES como fuente
         PolicyTranslation::where('locale', '!=', 'es')->delete();
+        PolicySectionTranslation::where('locale', '!=', 'es')->delete();
 
         $this->command?->warn('🧹 Previous translations removed (policies ES preserved).');
     }
@@ -66,7 +69,6 @@ class TranslationSeeder extends Seeder
         $policies = Policy::where('is_active', true)->cursor();
 
         foreach ($policies as $policy) {
-            // Fuente ES (debe existir porque la crea tu PoliciesSeeder)
             $src = PolicyTranslation::where('policy_id', $policy->getKey())
                 ->where('locale', 'es')
                 ->first();
@@ -79,29 +81,48 @@ class TranslationSeeder extends Seeder
             $titleSrc   = (string) ($src->title ?? '');
             $contentSrc = (string) ($src->content ?? '');
 
-            // Solo traducimos a locales ≠ ES para no tocar la fuente
-            $targets = array_diff($this->locales, ['es']);
-
-            foreach ($targets as $locale) {
+            foreach (array_diff($this->locales, ['es']) as $locale) {
                 $titleTr   = $translator->translate($titleSrc, $locale);
                 $contentTr = $translator->translate($contentSrc, $locale);
 
                 PolicyTranslation::updateOrCreate(
                     ['policy_id' => $policy->getKey(), 'locale' => $locale],
-                    [
-                        'title'   => $titleTr,
-                        'content' => $contentTr,
-                    ]
+                    ['title' => $titleTr, 'content' => $contentTr]
                 );
-                // (Opcional) Usar un pequeño throttle:
-                // usleep(150000);
+                // usleep(150000); // opcional throttle
             }
         }
 
         $this->command?->info('📑 Policies translated (kept ES as source).');
     }
 
-    /* ------ lo demás igual que ya tenías ------ */
+    protected function translatePolicySections(TranslatorInterface $translator): void
+    {
+        $sections = PolicySection::with('translations')->get();
+
+        foreach ($sections as $section) {
+            $src = $section->translations->firstWhere('locale', 'es');
+            if (!$src) {
+                $this->command?->warn("⚠️ Section {$section->section_id} has no ES source. Skipping.");
+                continue;
+            }
+
+            foreach (array_diff($this->locales, ['es']) as $locale) {
+                $titleTr   = $translator->translate($src->title, $locale);
+                $contentTr = $translator->translate($src->content, $locale);
+
+                PolicySectionTranslation::updateOrCreate(
+                    ['section_id' => $section->section_id, 'locale' => $locale],
+                    ['title' => $titleTr, 'content' => $contentTr]
+                );
+                // usleep(150000); // opcional throttle
+            }
+        }
+
+        $this->command?->info('🧾 Policy sections translated.');
+    }
+
+    /* ====== Resto sin cambios sustanciales ====== */
 
     protected function translateTourTypes(TranslatorInterface $translator): void
     {

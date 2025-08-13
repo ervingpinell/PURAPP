@@ -31,6 +31,7 @@ use App\Http\Controllers\Admin\Cart\CartController;
 use App\Http\Controllers\Admin\FaqController as AdminFaqController;
 use App\Http\Controllers\Admin\TranslationController;
 use App\Http\Controllers\Admin\PolicyController;
+use App\Http\Controllers\Admin\PolicySectionController;
 
 
 // Otros
@@ -56,8 +57,7 @@ Route::get('/reviews', function () {
     return view('public.reviews', compact('tours'));
 })->name('reviews');
 
-Route::get('/policies/{policy}', [\App\Http\Controllers\Admin\PolicyController::class, 'showPublic'])
-  ->whereNumber('policy')->name('policies.show');
+
 
 
 // API Promo Codes
@@ -85,8 +85,10 @@ Route::get('/cart/count', [CartController::class, 'count'])
     Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
     Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
     Route::post('/contact/send', [HomeController::class, 'sendContact'])->name('contact.send');
+    Route::get('/policies', [PolicyController::class, 'publicIndex'])->name('policies.index');
+    Route::get('/policies/{policyId}', [PolicyController::class, 'showPublic'])->name('policies.show');
 
-    // Test de correo
+// Test de correo
     Route::get('/send-test-email', function () {
         $booking = App\Models\Booking::latest()->with(['user', 'detail', 'tour'])->first();
         Mail::to($booking->user->email)->send(new App\Mail\BookingCreatedMail($booking));
@@ -150,14 +152,20 @@ Route::get('/cart/count', [CartController::class, 'count'])
         Route::resource('faqs', AdminFaqController::class)->except(['show']);
         Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
 
- Route::get('/policies', [\App\Http\Controllers\Admin\PolicyController::class, 'index'])->name('policies.index');
-  Route::post('/policies', [\App\Http\Controllers\Admin\PolicyController::class, 'store'])->name('policies.store');
-  Route::put('/policies/{policy}', [\App\Http\Controllers\Admin\PolicyController::class, 'update'])->name('policies.update');
-  Route::post('/policies/{policy}/toggle', [\App\Http\Controllers\Admin\PolicyController::class, 'toggleStatus'])->name('policies.toggleStatus');
-  Route::delete('/policies/{policy}', [\App\Http\Controllers\Admin\PolicyController::class, 'destroy'])->name('policies.destroy');
+Route::get('/policies',               [PolicyController::class, 'index'])->name('policies.index');
+Route::post('/policies',              [PolicyController::class, 'store'])->name('policies.store');
+Route::put('/policies/{policy}',      [PolicyController::class, 'update'])->name('policies.update')->whereNumber('policy');
+Route::post('/policies/{policy}/toggle', [PolicyController::class, 'toggleStatus'])->name('policies.toggleStatus')->whereNumber('policy');
+Route::delete('/policies/{policy}',   [PolicyController::class, 'destroy'])->name('policies.destroy')->whereNumber('policy');
 
+// Policy Sections (nested)
+Route::get('/policies/{policy}/sections',                   [PolicySectionController::class, 'index'])->name('policies.sections.index')->whereNumber('policy');
+Route::post('/policies/{policy}/sections',                  [PolicySectionController::class, 'store'])->name('policies.sections.store')->whereNumber('policy');
+Route::put('/policies/{policy}/sections/{section}',         [PolicySectionController::class, 'update'])->name('policies.sections.update')->whereNumber('policy')->whereNumber('section');
+Route::post('/policies/{policy}/sections/{section}/toggle', [PolicySectionController::class, 'toggle'])->name('policies.sections.toggle')->whereNumber('policy')->whereNumber('section');
+Route::delete('/policies/{policy}/sections/{section}',      [PolicySectionController::class, 'destroy'])->name('policies.sections.destroy')->whereNumber('policy')->whereNumber('section');
 
-        // Códigos promocionales
+// Códigos promocionales
         Route::get('/promoCode', [PromoCodeController::class, 'index'])->name('promoCode.index');
         Route::post('/promoCode', [PromoCodeController::class, 'store'])->name('promoCode.store');
         Route::delete('/promoCode/{promo}', [PromoCodeController::class, 'destroy'])->name('promoCode.destroy');
