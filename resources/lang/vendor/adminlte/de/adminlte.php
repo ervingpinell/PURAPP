@@ -289,5 +289,25 @@ return [
     'leave_blank_if_no_change' => 'Leer lassen, wenn Sie es nicht ändern möchten',
     'confirm_new_password_placeholder' => 'Neues Passwort bestätigen',
 
-    'policies' => 'Richtlinien'
+    'policies' => 'Richtlinien',
+
+    'no_reservations_yet' => 'Noch keine Reservierungen!',
+    'no_reservations_message' => 'Es scheint, dass Sie noch kein Abenteuer bei uns gebucht haben. Warum nicht unsere tollen Touren entdecken?',
+    'view_available_tours' => 'Verfügbare Touren anzeigen',
+    'pending_reservations' => 'Ausstehende Reservierungen',
+    'confirmed_reservations' => 'Bestätigte Reservierungen',
+    'cancelled_reservations' => 'Stornierte Reservierungen',
+    'reservations_generic' => 'Reservierungen',
+    'generic_tour' => 'Allgemeine Tour',
+    'unknown_tour' => 'Unbekannte Tour',
+    'tour_date' => 'Tourdatum',
+    'participants' => 'Teilnehmer',
+    'children' => 'Kinder',
+    'not_specified' => 'Nicht angegeben',
+    'status_pending' => 'Ausstehend',
+    'status_confirmed' => 'Bestätigt',
+    'status_cancelled' => 'Storniert',
+    'status_unknown' => 'Unbekannt',
+
+    'view_receipt' => 'Beleg anzeigen',
 ];

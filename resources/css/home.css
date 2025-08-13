@@ -15,6 +15,22 @@ main {
 .bg-green-dark {
   background-color: #0f2419;
 }
+/* Evita que el ancho del bloque de acciones cambie cuando aparece el nombre */
+@media (min-width: 768px) {
+  .navbar-actions-fixed {
+    min-width: 280px;         /* Ajusta según lo que ocupe idioma + carrito + usuario */
+    justify-content: flex-end;
+    gap: 12px;                /* Separación interna agradable */
+  }
+}
+
+/* Si decides mostrar el nombre: que no crezca y se recorte */
+.user-name {
+  max-width: 140px;           /* Ajusta a tu gusto */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 
 .navbar-custom {
@@ -59,6 +75,20 @@ main {
   transform: scale(1.1);
   transition: all 0.2s ease;
 }
+.navbar-actions-fixed .nav-link:hover .fa-user-circle,
+.navbar-actions-fixed .nav-link:hover .user-name {
+    color: #ffc107; /* Amarillo dorado */
+      transform: scale(1.1);
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover .fa-user-circle,
+.nav-link:hover .user-name {
+    color: #ffc107; /* Amarillo dorado */
+      transform: scale(1.1);
+  transition: all 0.2s ease;
+}
+
 
 .navbar-container {
     max-width: 1440px; /* 🚩 Límite adaptable */

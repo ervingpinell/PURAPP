@@ -56,54 +56,54 @@
       <a href="{{ route('contact') }}">{{ __('adminlte::adminlte.contact_us') }}</a>
     </div>
 
-    <!-- ACCIONES Desktop -->
-    <div class="navbar-actions d-none d-md-flex">
-      @include('partials.language-switcher')
+<!-- ACCIONES Desktop -->
+<div class="navbar-actions d-none d-md-flex navbar-actions-fixed">
+    @include('partials.language-switcher')
 
-      {{-- Carrito Desktop --}}
-<x-cart.dropdown variant="desktop" />
+    {{-- Carrito Desktop --}}
+    <x-cart.dropdown variant="desktop" />
 
-      {{-- Usuario Desktop --}}
-      @auth
+    {{-- Usuario Desktop --}}
+    @auth
         <div class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdownDesktop" role="button" data-bs-toggle="dropdown">
-            <i class="fas fa-user-circle"></i>
-            <span>{{ Auth::user()->full_name }}</span>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownDesktop">
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="{{ route('my-reservations') }}">
-                <i class="fas fa-calendar-check me-2 text-success"></i> {{ __('adminlte::adminlte.my_reservations') }}
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="{{ route('profile.edit') }}">
-                <i class="fas fa-id-card-alt me-2 text-primary"></i> {{ __('adminlte::adminlte.profile') }}
-              </a>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-              <form id="logout-form-desktop" action="{{ route('logout') }}" method="POST" class="d-inline w-100">
-                @csrf
-                <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
-                  <i class="fas fa-sign-out-alt me-2"></i> {{ __('adminlte::adminlte.log_out') }}
-                </button>
-              </form>
-            </li>
-          </ul>
+            <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdownDesktop" role="button" data-bs-toggle="dropdown">
+                <i class="fas fa-user-circle"></i>
+                <span class="user-name d-none d-xl-inline ms-1">{{ Auth::user()->full_name }}</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownDesktop">
+                <li>
+                    <a class="dropdown-item d-flex align-items-center" href="{{ route('my-reservations') }}">
+                        <i class="fas fa-calendar-check me-2 text-success"></i> {{ __('adminlte::adminlte.my_reservations') }}
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center" href="{{ route('profile.edit') }}">
+                        <i class="fas fa-id-card-alt me-2 text-primary"></i> {{ __('adminlte::adminlte.profile') }}
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form id="logout-form-desktop" action="{{ route('logout') }}" method="POST" class="d-inline w-100">
+                        @csrf
+                        <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
+                            <i class="fas fa-sign-out-alt me-2"></i> {{ __('adminlte::adminlte.log_out') }}
+                        </button>
+                    </form>
+                </li>
+            </ul>
         </div>
         @if(in_array(Auth::user()->role_id, [1, 2]))
-          <a href="{{ route('admin.home') }}" class="btn btn-outline-light btn-sm d-flex align-items-center">
-            <i class="fas fa-toolbox"></i> Admin
-          </a>
+            <a href="{{ route('admin.home') }}" class="btn btn-outline-light btn-sm d-flex align-items-center">
+                <i class="fas fa-toolbox"></i> Admin
+            </a>
         @endif
-      @else
+    @else
         <a href="{{ route('login') }}" class="text-white">
-          <i class="fas fa-user"></i>
+            <i class="fas fa-user"></i>
         </a>
-      @endauth
-    </div>
-  </div>
+    @endauth
+</div>
+
 
   <!-- MOBILE MENU desplegable -->
   <div class="navbar-links d-md-none" id="navbar-links">

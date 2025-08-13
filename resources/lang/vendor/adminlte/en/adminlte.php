@@ -273,5 +273,28 @@ return [
     'confirm_new_password_placeholder' => 'Confirm new password',
     'save_changes' => 'Save Changes',
 
-    'policies' => 'Policies'
+    'policies' => 'Policies',
+
+
+    'no_reservations_yet' => 'No reservations yet!',
+    'no_reservations_message' => 'It seems you haven\'t booked any adventure with us. Why not explore our amazing tours?',
+    'view_available_tours' => 'View Available Tours',
+
+    'pending_reservations' => 'Pending Reservations',
+    'confirmed_reservations' => 'Confirmed Reservations',
+    'cancelled_reservations' => 'Cancelled Reservations',
+    'reservations_generic' => 'Reservations',
+
+    'generic_tour' => 'Generic Tour',
+    'unknown_tour' => 'Unknown Tour',
+    'tour_date' => 'Tour Date',
+    'participants' => 'Participants',
+    'children' => 'Children',
+    'not_specified' => 'Not specified',
+    'status_pending' => 'Pending',
+    'status_confirmed' => 'Confirmed',
+    'status_cancelled' => 'Cancelled',
+    'status_unknown' => 'Unknown',
+
+    'view_receipt' => 'View Receipt',
 ];

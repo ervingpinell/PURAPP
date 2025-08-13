@@ -22,9 +22,6 @@
       <span class="cart-count-badge badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
             style="font-size:.7rem; {{ $headerCount ? '' : 'display:none;' }}">{{ $headerCount }}</span>
 
-      @if($isDesktop)
-        {{ __('adminlte::adminlte.cart') }}
-      @endif
     </a>
 
     <div class="dropdown-menu dropdown-menu-end p-0 mini-cart-menu" aria-labelledby="{{ $triggerId }}">

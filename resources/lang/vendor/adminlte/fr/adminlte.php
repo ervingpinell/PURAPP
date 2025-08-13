@@ -289,5 +289,30 @@ return [
     'leave_blank_if_no_change' => 'Laissez vide si vous ne souhaitez pas le changer',
     'confirm_new_password_placeholder' => 'Confirmer le nouveau mot de passe',
 
-    'policies' => 'Politiques'
+    'policies' => 'Politiques',
+
+    'no_reservations_yet' => 'Aucune réservation pour le moment !',
+    'no_reservations_message' => 'Il semble que vous n\'ayez réservé aucune aventure avec nous. Pourquoi ne pas explorer nos circuits incroyables ?',
+    'view_available_tours' => 'Voir les circuits disponibles',
+
+    'pending_reservations' => 'Réservations en attente',
+    'confirmed_reservations' => 'Réservations confirmées',
+    'cancelled_reservations' => 'Réservations annulées',
+    'reservations_generic' => 'Réservations',
+
+    'generic_tour' => 'Circuit générique',
+    'unknown_tour' => 'Circuit inconnu',
+
+'tour_date' => 'Date du circuit',
+    'participants' => 'Participants',
+    'children' => 'Enfants',
+    'not_specified' => 'Non spécifié',
+
+    'status_pending' => 'En attente',
+    'status_confirmed' => 'Confirmée',
+    'status_cancelled' => 'Annulée',
+    'status_unknown' => 'Inconnu',
+
+    'view_receipt' => 'Voir le reçu',
 ];
+
