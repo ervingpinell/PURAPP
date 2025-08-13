@@ -8,16 +8,18 @@
 
 @section('content')
 <div class="row">
-    @php
-        $options = [
-            'tours' => 'Tours',
-            'itineraries' => 'Itinerarios',
-            'itinerary_items' => 'Ítems del Itinerario',
-            'amenities' => 'Amenidades',
-            'faqs' => 'Preguntas Frecuentes',
-            'policies'         => 'Políticas',
-        ];
-    @endphp
+@php
+    $options = [
+        'tours'            => 'Tours',
+        'itineraries'      => 'Itinerarios',
+        'itinerary_items'  => 'Ítems del Itinerario',
+        'amenities'        => 'Amenidades',
+        'faqs'             => 'Preguntas Frecuentes',
+        'policies'         => 'Políticas',
+        'tour_types'       => 'Tipos de Tour', // 👈 NEW
+    ];
+@endphp
+
 
     @foreach ($options as $key => $label)
         <div class="col-md-4 mb-3">

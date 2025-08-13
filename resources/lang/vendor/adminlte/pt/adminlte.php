@@ -66,6 +66,7 @@ return [
     'about' => 'Sobre nós',
     'privacy_policy' => 'Política de Privacidade',
     'terms_and_conditions' => 'Termos e Condições',
+    'cancellation_and_refunds_policies' => 'Políticas de cancelamento e reembolso',
     'reports' => 'Relatórios',
 'footer_text'=> 'Green Vacations',
 'quick_links'=> 'Links rápidos',

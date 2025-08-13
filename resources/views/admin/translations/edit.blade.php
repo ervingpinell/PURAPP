@@ -16,6 +16,7 @@
         'amenities'       => 'Amenidad',
         'faqs'            => 'Pregunta Frecuente',
         'policies'        => 'Política',
+        'tour_types'      => 'Tipo de Tour',
         default           => 'Elemento',
     };
 @endphp

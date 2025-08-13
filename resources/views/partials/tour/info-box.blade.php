@@ -1,11 +1,10 @@
 <div class="languages-schedules-box p-3 shadow-sm rounded bg-white border" style="min-height: 280px;">
 
-<h3 class="mb-3 fw-bold border-bottom pb-1 d-inline-block" style="color:#f92526; font-size: 1.2rem;">
-  {{ __('adminlte::adminlte.tour_information') }}
-</h3>
+  <h3 class="mb-3 fw-bold border-bottom pb-1 d-inline-block" style="color:#f92526; font-size: 1.2rem;">
+    {{ __('adminlte::adminlte.tour_information') }}
+  </h3>
 
-<h4 class="mt-3">{{ __('adminlte::adminlte.duration') }}</h4>
-
+  <h4 class="mt-3">{{ __('adminlte::adminlte.duration') }}</h4>
   <p>{{ $tour->length }} {{ __('adminlte::adminlte.hours') }}</p>
 
   <h4 class="mt-3">{{ __('adminlte::adminlte.group_size') }}</h4>
@@ -26,4 +25,25 @@
       </span>
     @endforeach
   </p>
+
+  {{-- 🔗 Enlace que abre el modal de políticas --}}
+<h4 class="mt-3">{{ __('adminlte::adminlte.policies') }}</h4>
+<p class="badges-group">
+  <span
+    role="button" tabindex="0"
+    class="fw-semibold policy-link"
+    data-bs-toggle="modal"
+    data-bs-target="#policiesModal-{{ $tour->tour_id }}"
+    style="cursor:pointer; text-decoration: underline; color: var(--primary-dark) !important;"
+  >
+    {{ __('adminlte::adminlte.cancellation_and_refunds_policies') }}
+  </span>
+</p>
+
+{{-- Modal (partial) --}}
+@include('partials.tour.modal-policies', ['tour' => $tour])
+
 </div>
+
+{{-- Modal de políticas (partial) --}}
+@include('partials.tour.modal-policies', ['tour' => $tour])

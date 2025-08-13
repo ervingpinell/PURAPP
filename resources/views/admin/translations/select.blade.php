@@ -27,6 +27,7 @@
                             'amenities' => $item->name ?? 'Sin nombre',
                             'faqs' => Str::limit($item->question ?? 'Sin pregunta', 60),
                             'policies' => $item->name ?? 'Sin título',
+                            'tour_types' => $item->name ?? 'Sin nombre',
                             default => 'Elemento'
                         };
                     @endphp

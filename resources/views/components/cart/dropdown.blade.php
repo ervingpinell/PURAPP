@@ -52,28 +52,28 @@
               </form>
 
               <img src="{{ $img }}" class="rounded" alt="" style="width:56px;height:56px;object-fit:cover;">
-<div class="flex-grow-1 pe-4">
-  <div class="fw-semibold small">{{ $it->tour->getTranslatedName() }}</div>
+              <div class="flex-grow-1 pe-4">
+                <div class="fw-semibold small">{{ $it->tour->getTranslatedName() }}</div>
 
-  {{-- Fecha --}}
-  <div class="text-muted" style="font-size:.82rem;">
-    {{ \Carbon\Carbon::parse($it->tour_date)->translatedFormat('d M, Y') }}
-  </div>
+                {{-- Fecha --}}
+                <div class="text-muted" style="font-size:.82rem;">
+                  {{ \Carbon\Carbon::parse($it->tour_date)->translatedFormat('d M, Y') }}
+                </div>
 
-  {{-- Horario --}}
-  @if($it->schedule)
-    <div class="text-muted" style="font-size:.82rem;">
-      {{ \Carbon\Carbon::parse($it->schedule->start_time)->format('g:i A') }}
-      – {{ \Carbon\Carbon::parse($it->schedule->end_time)->format('g:i A') }}
-    </div>
-  @endif
+                {{-- Horario --}}
+                @if($it->schedule)
+                  <div class="text-muted" style="font-size:.82rem;">
+                    {{ \Carbon\Carbon::parse($it->schedule->start_time)->format('g:i A') }}
+                    – {{ \Carbon\Carbon::parse($it->schedule->end_time)->format('g:i A') }}
+                  </div>
+                @endif
 
-  {{-- Cantidades --}}
-  <div class="text-muted" style="font-size:.82rem;">
-    {{ $it->adults_quantity ?? 0 }} {{ __('adminlte::adminlte.adult') }},
-    {{ $it->kids_quantity ?? 0 }} {{ __('adminlte::adminlte.kid') }}
-  </div>
-</div>
+                {{-- Cantidades --}}
+                <div class="text-muted" style="font-size:.82rem;">
+                  {{ $it->adults_quantity ?? 0 }} {{ __('adminlte::adminlte.adult') }},
+                  {{ $it->kids_quantity ?? 0 }} {{ __('adminlte::adminlte.kid') }}
+                </div>
+              </div>
 
               <div class="fw-bold small text-success mini-cart-price">
                 ${{ number_format($sum, 2) }}
@@ -114,7 +114,6 @@
     @endphp
     <a href="{{ route('login') }}"
        class="{{ $guestLinkClasses }}"
-       @if(!$isDesktop) style="color:#fff" @endif
        onclick="return askLoginWithSwal(event, this.href);">
       <i class="{{ $iconClasses }}" title="{{ __('adminlte::adminlte.cart') }}"></i>
       <span class="cart-count-badge badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
@@ -172,6 +171,30 @@
   </script>
 
   <style>
+    /* === FIX: sin subrayado y caret del color actual === */
+    .cart-icon-wrapper {
+      text-decoration: none !important;
+      -webkit-tap-highlight-color: transparent; /* quita highlight azul en Android */
+    }
+    .cart-icon-wrapper:hover,
+    .cart-icon-wrapper:focus,
+    .cart-icon-wrapper:active {
+      text-decoration: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    /* El caret de Bootstrap usa currentColor → heredará blanco si el header es oscuro */
+    .cart-icon-wrapper.dropdown-toggle::after {
+      border-top-color: currentColor !important;
+    }
+
+    /* Si tu header es oscuro, fuerza blanco en mobile para el <a> */
+    .navbar-dark .cart-icon-wrapper,
+    .bg-dark .cart-icon-wrapper {
+      color: #fff !important;
+    }
+
+    /* ===== Mini-cart estilos existentes ===== */
     .mini-cart-menu{ width:360px; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.15); }
     .mini-cart-list .d-flex:hover{ background:#f8f9fa; }
     .mini-cart-item{ padding-right: 3rem; }
