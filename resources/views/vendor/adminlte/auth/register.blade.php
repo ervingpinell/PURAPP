@@ -1,6 +1,6 @@
 {{-- resources/views/vendor/adminlte/auth/register.blade.php --}}
 @extends('adminlte::auth.auth-page', ['authType' => 'register'])
-
+@section('dashboard_url', '/')
 @section('adminlte_css_pre')
     <link rel="stylesheet" href="{{ asset('vendor/icheck-bootstrap/icheck-bootstrap.min.css') }}">
 @stop
