@@ -48,15 +48,17 @@ Route::middleware([SetLocale::class])->group(function () {
 // Página pública de reviews
 // routes/web.php
 Route::get('/reviews', function () {
-    $tours = Tour::whereNotNull('viator_code')
+    $tours = \App\Models\Tour::whereNotNull('viator_code')
         ->active()
         ->select('tour_id', 'name', 'viator_code')
-        ->with('translations:tour_id,locale,name') // eager load
+        ->with(['translations' => function ($q) {
+            // Incluye las columnas que realmente existen en tour_translations
+            $q->select('id', 'tour_id', 'locale', 'name', 'overview');
+        }])
         ->get();
 
     return view('public.reviews', compact('tours'));
 })->name('reviews');
-
 
 
 

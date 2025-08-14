@@ -102,32 +102,92 @@ class Tour extends Model
     }
 
     // Translations
-    public function translations()
-    {
-        return $this->hasMany(TourTranslation::class, 'tour_id', 'tour_id');
-    }
+public function translations()
+{
+    return $this->hasMany(TourTranslation::class, 'tour_id', 'tour_id');
+}
 
-    public function translate(?string $locale = null)
-    {
-        $locale = $locale ?? app()->getLocale();
 
-        if ($this->relationLoaded('translations')) {
-            return $this->translations->firstWhere('locale', $locale)
-                ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
+public function translate(?string $locale = null)
+{
+    $locale = $locale ?: app()->getLocale() ?: 'es';
+
+    // Normaliza a guiones y arma candidatos
+    $locale = str_replace('_', '-', $locale);
+    $candidates = [$locale];
+
+    // sin región (es-CR -> es)
+    if (str_contains($locale, '-')) {
+        $base = explode('-', $locale)[0];
+        if (!in_array($base, $candidates, true)) {
+            $candidates[] = $base;
         }
-
-        return $this->translations()->where('locale', $locale)->first()
-            ?? $this->translations()->where('locale', config('app.fallback_locale'))->first();
     }
+
+    // fallback de la app (ej. en o en-US)
+    $appFallback = str_replace('_', '-', (string) config('app.fallback_locale', 'en'));
+    if (!in_array($appFallback, $candidates, true)) {
+        $candidates[] = $appFallback;
+    }
+    if (str_contains($appFallback, '-')) {
+        $base = explode('-', $appFallback)[0];
+        if (!in_array($base, $candidates, true)) {
+            $candidates[] = $base;
+        }
+    }
+
+    // español como último recurso
+    if (!in_array('es', $candidates, true)) {
+        $candidates[] = 'es';
+    }
+
+    // Obtiene translations (si ya está eager-loaded no dispara query)
+    $translations = $this->relationLoaded('translations')
+        ? $this->getRelation('translations')
+        : $this->translations()->get();
+
+    if ($translations->isEmpty()) {
+        return null;
+    }
+
+    // Indexa por exacto y por idioma base
+    $byExact = [];
+    $byLang  = [];
+    foreach ($translations as $tr) {
+        $loc = str_replace('_', '-', (string) $tr->locale);
+        $byExact[$loc] = $tr;
+
+        $lang = explode('-', $loc)[0];
+        // conserva el primero encontrado por idioma
+        if (!isset($byLang[$lang])) {
+            $byLang[$lang] = $tr;
+        }
+    }
+
+    // Busca por candidatos: exacto -> idioma
+    foreach ($candidates as $cand) {
+        if (isset($byExact[$cand])) {
+            return $byExact[$cand];
+        }
+        $lang = explode('-', $cand)[0];
+        if (isset($byLang[$lang])) {
+            return $byLang[$lang];
+        }
+    }
+
+    return null;
+}
 
     // Accessors (opcionales)
-    public function getTranslatedName(): ?string
-    {
-        return optional($this->translate())?->name;
-    }
+public function getTranslatedName(?string $preferredLocale = null): string
+{
+    $tr = $this->translate($preferredLocale);
+    return ($tr?->name) ?? ($this->name ?? '');
+}
 
-    public function getTranslatedOverview(): ?string
-    {
-        return optional($this->translate())?->overview;
-    }
+public function getTranslatedOverview(?string $preferredLocale = null): string
+{
+    $tr = $this->translate($preferredLocale);
+    return ($tr?->overview) ?? ($this->overview ?? '');
+}
 }

@@ -1,112 +1,110 @@
+// resources/js/viator/review-carousel-grid.js
+import { fetchReviewsBatch } from '../reviews-fetcher';
+
 document.addEventListener('DOMContentLoaded', () => {
-    const tours = window.VIATOR_TOURS || [];
+  const tours = Array.isArray(window.VIATOR_TOURS) ? window.VIATOR_TOURS : [];
+  if (!tours.length) return;
 
-    const resolveProductName = (tour, firstReview) =>
-        (tour?.name) ||
-        (firstReview?.productTitle) ||
-        (tour?.code) ||
-        '';
+  const REFRESH_MS = Number(window.REVIEWS_REFRESH_MS) || (10 * 60 * 1000); // 10 min por defecto
+  const codes = tours.map(t => t.code).filter(Boolean);
 
-    tours.forEach(({ id, code, name }) => {
-        const container = document.getElementById(`carousel-${id}`);
-        const card = document.getElementById(`card-${id}`);
-        if (!container || !card) return;
+  // Mensaje de carga manteniendo tu UI
+  for (const { id } of tours) {
+    const container = document.getElementById(`carousel-${id}`);
+    if (container) {
+      container.innerHTML = `
+        <p class="text-center text-muted">
+          ${(window.I18N && window.I18N.loading_reviews) || 'Loading reviews...'}
+        </p>`;
+    }
+  }
 
-        fetch('/api/reviews', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            },
-            body: JSON.stringify({
-                productCode: code,
-                count: 20,
-                start: 1,
-                provider: 'VIATOR',
-                sortBy: 'MOST_RECENT'
-            })
-        })
-        .then(res => res.ok ? res.json() : Promise.reject(res))
-        .then(data => {
-            if (!data.reviews || data.reviews.length === 0) {
-                container.innerHTML = '<p class="text-muted text-center">No reviews available.</p>';
-                return;
-            }
+  const renderMap = new Map(); // para comparar y evitar re-render innecesario
 
-            let index = 0;
-            let expanded = false;
+  const renderTour = (tour, reviews) => {
+    const container = document.getElementById(`carousel-${tour.id}`);
+    const card = document.getElementById(`card-${tour.id}`);
+    if (!container || !card) return;
 
-            const render = () => {
-                const r = data.reviews[index];
-                const stars = '★'.repeat(Math.round(r.rating)) + '☆'.repeat(5 - Math.round(r.rating));
-                const date = r.publishedDate ? new Date(r.publishedDate).toLocaleDateString() : '';
-                const isShort = (r.text || '').length < 120;
-                const truncated = (r.text || '').length > 250;
-                const shortText = truncated ? r.text.slice(0, 250) + '...' : r.text;
+    // snapshot simple para evitar rerender cuando no cambia
+    const snap = JSON.stringify((reviews[0] ? [reviews.length, reviews[0].publishedDate, Math.round(reviews[0].rating || 0)] : [0]));
+    if (renderMap.get(tour.id) === snap) return;
+    renderMap.set(tour.id, snap);
 
-                container.innerHTML = `
-                    <div class="review-body-wrapper ${isShort ? 'centered' : ''}">
-                        <div><strong>${r.userName || 'Anonymous'}</strong><br>${date}</div>
-                        <div class="review-stars">${stars} (${r.rating}/5)</div>
-                        ${r.title ? `<div class="review-label">${r.title}</div>` : ''}
-                        <div class="review-content ${expanded ? 'expanded' : ''}">
-                            <p>${expanded || !truncated ? r.text : shortText}</p>
-                        </div>
-                        ${truncated ? `<button class="review-toggle">${expanded ? 'Ver menos' : 'Ver más'}</button>` : ''}
-                    </div>
-                `;
+    let index = 0;
+    let expanded = false;
 
-                // Expandir visualmente la tarjeta
-                card.classList.toggle('expanded', expanded);
-            };
+    const escapeHtml = (s) =>
+      String(s ?? '')
+        .replaceAll('&', '&amp;').replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;').replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
 
-            render();
+    const render = () => {
+      const r = reviews[index] || {};
+      const rating = Math.round(Number(r.rating) || 0);
+      const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+      const date = r.publishedDate ? new Date(r.publishedDate).toLocaleDateString() : '';
+      const text = (r.text || '').toString();
+      const isShort = text.length < 120;
+      const truncated = text.length > 250;
+      const shortText = truncated ? text.slice(0, 250) + '...' : text;
 
-            const prevBtn = document.querySelector(`.carousel-prev[data-tour="${id}"]`);
-            const nextBtn = document.querySelector(`.carousel-next[data-tour="${id}"]`);
+      container.innerHTML = `
+        <div class="review-body-wrapper ${isShort ? 'centered' : ''}">
+          <div><strong>${escapeHtml(r.userName || 'Anonymous')}</strong><br>${date}</div>
+          <div class="review-stars">${stars} (${rating}/5)</div>
+          ${r.title ? `<div class="review-label">${escapeHtml(r.title)}</div>` : ''}
+          <div class="review-content ${expanded ? 'expanded' : ''}">
+            <p>${escapeHtml(expanded || !truncated ? text : shortText)}</p>
+          </div>
+          ${truncated ? `<button class="review-toggle">${expanded ? 'Ver menos' : 'Ver más'}</button>` : ''}
+        </div>
+      `;
 
-            if (prevBtn) prevBtn.onclick = () => {
-                expanded = false;
-                index = (index - 1 + data.reviews.length) % data.reviews.length;
-                render();
-            };
-            if (nextBtn) nextBtn.onclick = () => {
-                expanded = false;
-                index = (index + 1) % data.reviews.length;
-                render();
-            };
+      card.classList.toggle('expanded', expanded);
+    };
 
-            container.addEventListener('click', e => {
-                if (e.target.classList.contains('review-toggle')) {
-                    expanded = !expanded;
-                    render();
-                }
-            });
+    if (!Array.isArray(reviews) || !reviews.length) {
+      container.innerHTML = '<p class="text-muted text-center">No reviews available.</p>';
+    } else {
+      render();
 
-            // ✅ Activar modal al hacer clic en el nombre del tour con fallback
-            const links = document.querySelectorAll(`.tour-link[data-id="${id}"]`);
-            links.forEach(link => {
-                link.addEventListener('click', e => {
-                    e.preventDefault();
+      const prevBtn = document.querySelector(`.carousel-prev[data-tour="${tour.id}"]`);
+      const nextBtn = document.querySelector(`.carousel-next[data-tour="${tour.id}"]`);
 
-                    const tourName = resolveProductName({ id, code, name }, data.reviews[0]);
+      if (prevBtn) prevBtn.onclick = () => { expanded = false; index = (index - 1 + reviews.length) % reviews.length; render(); };
+      if (nextBtn) nextBtn.onclick = () => { expanded = false; index = (index + 1) % reviews.length; render(); };
 
-                    const modalName = document.getElementById('tourModalName');
-                    const modalLink = document.getElementById('tourModalConfirm');
+      container.addEventListener('click', e => {
+        if (e.target.classList.contains('review-toggle')) {
+          expanded = !expanded; render();
+        }
+      });
+    }
+  };
 
-                    if (modalName) modalName.textContent = tourName;
-                    if (modalLink) modalLink.href = `/tour/${id}`;
+  const loadAndRender = (opts = {}) => {
+    return fetchReviewsBatch(codes, { count: 20, start: 1, provider: 'ALL', sortBy: 'MOST_RECENT', ttlMs: 5 * 60 * 1000, ...opts })
+      .then(({ results }) => {
+        for (const tour of tours) {
+          const payload = results[tour.code] || window.__REVIEWS_CACHE__[tour.code] || { reviews: [] };
+          renderTour(tour, payload.reviews || []);
+        }
+      })
+      .catch(() => {
+        for (const { id } of tours) {
+          const container = document.getElementById(`carousel-${id}`);
+          if (container) container.innerHTML = `<p class="text-danger text-center">Error loading reviews.</p>`;
+        }
+      });
+  };
 
-                    const modalElement = document.getElementById('confirmTourModal');
-                    if (modalElement) {
-                        new bootstrap.Modal(modalElement).show();
-                    }
-                });
-            });
-        })
-        .catch(err => {
-            console.error('❌ Error cargando reseñas:', err);
-            container.innerHTML = `<p class="text-danger text-center">Error loading reviews.</p>`;
-        });
-    });
+  // primera carga (usa caché si fresco, si no va a red)
+  loadAndRender();
+
+  // auto-refresh cada X minutos (fuerza revalidar memoria; backend sigue cacheado)
+  if (REFRESH_MS > 0) {
+    setInterval(() => { loadAndRender({ force: true }); }, REFRESH_MS);
+  }
 });

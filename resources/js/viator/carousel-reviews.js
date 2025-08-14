@@ -1,21 +1,24 @@
+// resources/js/viator/testimonials-carousel.js
+import { fetchReviewsBatch } from '../reviews-fetcher';
+
 document.addEventListener('DOMContentLoaded', async () => {
   const container = document.getElementById('viator-carousel');
   const inner = container?.querySelector('.carousel-inner');
-  const products = window.VIATOR_CAROUSEL_PRODUCTS || [];
-
+  const products = Array.isArray(window.VIATOR_CAROUSEL_PRODUCTS) ? window.VIATOR_CAROUSEL_PRODUCTS : [];
   if (!container || !inner || products.length === 0) return;
 
+  const REFRESH_MS = Number(window.REVIEWS_REFRESH_MS) || (10 * 60 * 1000);
+
   const T = {
-    loading: window.I18N?.loading_reviews ?? 'Cargando reseñas...',
-    none: window.I18N?.no_reviews ?? 'No hay reseñas para mostrar.',
-    seeMore: window.I18N?.see_more ?? 'Ver más',
-    seeLess: window.I18N?.see_less ?? 'Ver menos',
+    loading:   window.I18N?.loading_reviews ?? 'Cargando reseñas...',
+    none:      window.I18N?.no_reviews ?? 'No hay reseñas para mostrar.',
+    seeMore:   window.I18N?.see_more ?? 'Ver más',
+    seeLess:   window.I18N?.see_less ?? 'Ver menos',
     anonymous: window.I18N?.anonymous ?? 'Anónimo',
-    noDate: window.I18N?.no_date ?? 'Fecha no disponible',
+    noDate:    window.I18N?.no_date ?? 'Fecha no disponible',
     poweredBy: window.I18N?.powered_by ?? 'Powered by',
   };
 
-  // helpers
   const escapeHtml = (str = '') =>
     String(str)
       .replaceAll('&', '&amp;')
@@ -25,182 +28,170 @@ document.addEventListener('DOMContentLoaded', async () => {
       .replaceAll("'", '&#039;');
 
   const renderStars = (rating) => {
-    const full = Math.floor(rating);
-    const half = rating % 1 >= 0.5 ? 1 : 0;
+    const n = Math.max(0, Math.min(5, Number(rating) || 0));
+    const full = Math.floor(n);
+    const half = n % 1 >= 0.5 ? 1 : 0;
     const empty = 5 - full - half;
-
     let stars = '';
     for (let i = 0; i < full; i++) stars += '★';
     if (half) stars += '⯨';
     for (let i = 0; i < empty; i++) stars += '☆';
-
-    const formatted = Number.isInteger(rating) ? rating : Number(rating).toFixed(1);
+    const formatted = Number.isInteger(n) ? n : n.toFixed(1);
     return `<div class="mb-2 review-stars text-warning">${stars}<span class="rating-number"> (${formatted}/5)</span></div>`;
   };
 
-  // Nombre a mostrar: backend (product.name) -> título de Viator en review -> code -> ''
   const resolveProductName = (product, firstReview) =>
-    (product?.name) ||
-    (firstReview?.productTitle) ||
-    (product?.code) ||
-    '';
+    (product?.name) || (firstReview?.productTitle) || (product?.code) || '';
 
-  // Peticiones en paralelo por producto
-  const requests = products.map(({ code }) =>
-    fetch('/api/reviews', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      },
-      body: JSON.stringify({
-        productCode: code,
-        count: 5,
-        start: 1,
-        provider: 'VIATOR',
-        sortBy: 'MOST_RECENT',
-      })
-    }).then(res => (res.ok ? res.json() : Promise.reject(new Error('HTTP ' + res.status))))
-      .catch(err => ({ error: err?.message || 'request_error' }))
-  );
+  const codes = products.map(p => p.code).filter(Boolean);
 
-  const results = await Promise.all(requests);
-  const frag = document.createDocumentFragment();
-  let slideIndex = 0;
+  const buildSlides = () => {
+    const frag = document.createDocumentFragment();
+    let slideIndex = 0;
 
-  products.forEach((product, i) => {
-    const data = results[i];
+    products.forEach((product) => {
+      const payload = window.__REVIEWS_CACHE__?.[product.code];
+      const dataReviews = Array.isArray(payload?.reviews) ? payload.reviews : [];
+      if (!dataReviews.length) return;
 
-    if (data?.error || !Array.isArray(data?.reviews) || data.reviews.length === 0) {
-      return;
-    }
+      const shuffled = [...dataReviews].sort(() => 0.5 - Math.random()).slice(0, 2);
+      const nameForHeader = resolveProductName(product, shuffled[0]);
 
-    // 2 reviews aleatorias por producto
-    const shuffled = [...data.reviews].sort(() => 0.5 - Math.random()).slice(0, 2);
-    const nameForHeader = resolveProductName(product, shuffled[0]);
+      shuffled.forEach((r) => {
+        const avatar = r.avatarUrl || '/images/avatar-default.png';
+        const date = r.publishedDate ? new Date(r.publishedDate).toLocaleDateString() : T.noDate;
+        const stars = renderStars(r.rating || 0);
+        const userName = r.userName || T.anonymous;
+        const reviewTitle = r.title || '';
+        const text = (r.text || '').trim();
+        const words = text.split(/\s+/);
+        const needsCollapse = words.length > 45;
+        const collapsedText = needsCollapse ? words.slice(0, 45).join(' ') : text;
 
-    shuffled.forEach((r) => {
-      const avatar = r.avatarUrl || '/images/avatar-default.png';
-      const date = r.publishedDate ? new Date(r.publishedDate).toLocaleDateString() : T.noDate;
-      const stars = renderStars(r.rating || 0);
-      const userName = r.userName || T.anonymous;
-      const reviewTitle = r.title || '';
-      const text = (r.text || '').trim();
+        const slide = document.createElement('div');
+        slide.className = 'carousel-item' + (slideIndex === 0 ? ' active' : '');
+        slide.dataset.slideIndex = String(slideIndex);
 
-      // truncado por palabras
-      const words = text.split(/\s+/);
-      const needsCollapse = words.length > 45;
-      const collapsedText = needsCollapse ? words.slice(0, 45).join(' ') : text;
+        slide.innerHTML = `
+          <div class="review-item card shadow-sm border-0 mx-auto w-100" style="max-width: 600px;">
+            <div class="card-body d-flex flex-column justify-content-between position-relative" style="min-height: 400px;">
+              <span class="tour-name fw-semibold">
+                <a href="#" class="tour-link text-success fw-semibold d-inline-block"
+                   data-id="${product.id}"
+                   data-name="${escapeHtml(nameForHeader)}"
+                   style="text-decoration: underline;">
+                   ${escapeHtml(nameForHeader)}
+                </a>
+              </span>
 
-      const slide = document.createElement('div');
-      slide.className = 'carousel-item' + (slideIndex === 0 ? ' active' : '');
-      slide.dataset.slideIndex = String(slideIndex);
-
-      slide.innerHTML = `
-        <div class="review-item card shadow-sm border-0 mx-auto w-100" style="max-width: 600px;">
-          <div class="card-body d-flex flex-column justify-content-between position-relative" style="min-height: 400px;">
-            <span class="tour-name fw-semibold">
-              <a href="#" class="tour-link text-success fw-semibold d-inline-block"
-                 data-id="${product.id}"
-                 data-name="${escapeHtml(nameForHeader)}"
-                 style="text-decoration: underline;">
-                 ${escapeHtml(nameForHeader)}
-              </a>
-            </span>
-
-            <div>
-              <div class="d-flex align-items-center mb-3">
-                <img src="${avatar}" alt="Foto de ${escapeHtml(userName)}" class="rounded-circle me-3" width="50" height="50">
-                <div>
-                  <h6 class="mb-0">${escapeHtml(userName)}</h6>
-                  <small class="text-muted">${escapeHtml(date)}</small>
+              <div>
+                <div class="d-flex align-items-center mb-3">
+                  <img src="${avatar}" alt="Foto de ${escapeHtml(userName)}" class="rounded-circle me-3" width="50" height="50">
+                  <div>
+                    <h6 class="mb-0">${escapeHtml(userName)}</h6>
+                    <small class="text-muted">${escapeHtml(date)}</small>
+                  </div>
                 </div>
+                ${stars}
+                ${reviewTitle ? `<h5 class="card-title">${escapeHtml(reviewTitle)}</h5>` : ''}
+
+                <p class="card-text review-text"
+                   data-full="${encodeURIComponent(text)}"
+                   data-short="${encodeURIComponent(collapsedText)}"
+                   data-collapsed="${needsCollapse ? '1' : '0'}">
+                   ${needsCollapse ? escapeHtml(collapsedText) + '…' : escapeHtml(text)}
+                </p>
+
+                ${needsCollapse
+                  ? `<a href="#" class="text-decoration-none small toggle-review">${T.seeMore}</a>`
+                  : ''
+                }
               </div>
-              ${stars}
-              ${reviewTitle ? `<h5 class="card-title">${escapeHtml(reviewTitle)}</h5>` : ''}
 
-              <p class="card-text review-text"
-                 data-full="${encodeURIComponent(text)}"
-                 data-short="${encodeURIComponent(collapsedText)}"
-                 data-collapsed="${needsCollapse ? '1' : '0'}">
-                 ${needsCollapse ? escapeHtml(collapsedText) + '…' : escapeHtml(text)}
-              </p>
-
-              ${needsCollapse
-                ? `<a href="#" class="text-decoration-none small toggle-review">${T.seeMore}</a>`
-                : ''
-              }
-            </div>
-
-            <div class="text-end mt-3">
-              <a href="https://www.viator.com/searchResults/all?search=${encodeURIComponent(product.code)}"
-                 target="_blank"
-                 class="text-muted small text-decoration-none viator-credit"
-                 title="Ver ${escapeHtml(nameForHeader)} en Viator">
-                 ${T.poweredBy} Viator
-              </a>
+              <div class="text-end mt-3">
+                <a href="https://www.viator.com/searchResults/all?search=${encodeURIComponent(product.code)}"
+                   target="_blank"
+                   class="text-muted small text-decoration-none viator-credit"
+                   title="Ver ${escapeHtml(nameForHeader)} en Viator">
+                   ${T.poweredBy} Viator
+                </a>
+              </div>
             </div>
           </div>
-        </div>
-      `;
+        `;
 
-      frag.appendChild(slide);
-      slideIndex++;
+        frag.appendChild(slide);
+        slideIndex++;
+      });
     });
-  });
 
-  if (slideIndex === 0) {
-    container.outerHTML = `<p class="text-muted">${T.none}</p>`;
-    return;
-  }
-
-  inner.innerHTML = '';
-  inner.appendChild(frag);
-
-  // Delegación: toggle "Ver más / Ver menos"
-  inner.addEventListener('click', (e) => {
-    const link = e.target.closest('.toggle-review');
-    if (!link) return;
-    e.preventDefault();
-
-    const textEl = link.closest('.card-body')?.querySelector('.review-text');
-    if (!textEl) return;
-
-    const collapsed = textEl.dataset.collapsed === '1';
-    const shortText = decodeURIComponent(textEl.dataset.short || '');
-    const fullText = decodeURIComponent(textEl.dataset.full || '');
-
-    if (collapsed) {
-      textEl.textContent = fullText;
-      textEl.dataset.collapsed = '0';
-      link.textContent = T.seeLess;
-      textEl.closest('.card-body').style.maxHeight = 'none';
-    } else {
-      textEl.textContent = shortText + '…';
-      textEl.dataset.collapsed = '1';
-      link.textContent = T.seeMore;
-      textEl.closest('.card-body').style.maxHeight = '400px';
+    if (slideIndex === 0) {
+      container.outerHTML = `<p class="text-muted">${T.none}</p>`;
+      return false;
     }
-  });
 
-  // Delegación: abrir modal de confirmación
-  inner.addEventListener('click', (e) => {
-    const a = e.target.closest('.tour-link');
-    if (!a) return;
-    e.preventDefault();
+    inner.innerHTML = '';
+    inner.appendChild(frag);
+    return true;
+  };
 
-    const tourId = a.dataset.id;
-    const tourName = a.dataset.name || '';
+  const bindDelegates = () => {
+    inner.addEventListener('click', (e) => {
+      const link = e.target.closest('.toggle-review');
+      if (!link) return;
+      e.preventDefault();
 
-    const modalText = document.getElementById('confirmTourModalText');
-    const modalGoBtn = document.getElementById('confirmTourModalGo');
-    const modalConfirmBtn = document.getElementById('tourModalConfirm');
+      const textEl = link.closest('.card-body')?.querySelector('.review-text');
+      if (!textEl) return;
 
-    if (modalText) modalText.innerHTML = `¿Deseas ir al tour "<strong>${escapeHtml(tourName)}</strong>"?`;
-    if (modalGoBtn) modalGoBtn.href = `/tour/${encodeURIComponent(tourId)}`;
-    if (modalConfirmBtn) modalConfirmBtn.href = `/tour/${encodeURIComponent(tourId)}`;
+      const collapsed = textEl.dataset.collapsed === '1';
+      const shortText = decodeURIComponent(textEl.dataset.short || '');
+      const fullText = decodeURIComponent(textEl.dataset.full || '');
 
-    const modalEl = document.getElementById('confirmTourModal');
-    if (modalEl && window.bootstrap?.Modal) new bootstrap.Modal(modalEl).show();
-  });
+      if (collapsed) {
+        textEl.textContent = fullText;
+        textEl.dataset.collapsed = '0';
+        link.textContent = T.seeLess;
+        textEl.closest('.card-body').style.maxHeight = 'none';
+      } else {
+        textEl.textContent = shortText + '…';
+        textEl.dataset.collapsed = '1';
+        link.textContent = T.seeMore;
+        textEl.closest('.card-body').style.maxHeight = '400px';
+      }
+    });
+
+    inner.addEventListener('click', (e) => {
+      const a = e.target.closest('.tour-link');
+      if (!a) return;
+      e.preventDefault();
+
+      const tourId = a.dataset.id;
+      const tourName = a.dataset.name || '';
+
+      const modalText = document.getElementById('confirmTourModalText');
+      const modalGoBtn = document.getElementById('confirmTourModalGo');
+      const modalConfirmBtn = document.getElementById('tourModalConfirm');
+
+      if (modalText) modalText.innerHTML = `¿Deseas ir al tour "<strong>${escapeHtml(tourName)}</strong>"?`;
+      if (modalGoBtn) modalGoBtn.href = `/tour/${encodeURIComponent(tourId)}`;
+      if (modalConfirmBtn) modalConfirmBtn.href = `/tour/${encodeURIComponent(tourId)}`;
+
+      const modalEl = document.getElementById('confirmTourModal');
+      if (modalEl && window.bootstrap?.Modal) new bootstrap.Modal(modalEl).show();
+    });
+  };
+
+  const load = (opts = {}) =>
+    fetchReviewsBatch(codes, { count: 5, start: 1, provider: 'ALL', sortBy: 'MOST_RECENT', ttlMs: 5 * 60 * 1000, ...opts })
+      .then(() => { buildSlides() && bindDelegates(); })
+      .catch(() => { container.outerHTML = `<p class="text-muted">${T.none}</p>`; });
+
+  // primera carga
+  await load();
+
+  // auto-refresh
+  if (REFRESH_MS > 0) {
+    setInterval(() => { load({ force: true }); }, REFRESH_MS);
+  }
 });

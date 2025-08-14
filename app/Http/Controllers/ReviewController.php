@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class ReviewController extends Controller
@@ -32,52 +34,198 @@ class ReviewController extends Controller
         // Mapea locale app -> BCP47 para Viator
         $acceptLang = $this->mapLocale(app()->getLocale());
 
+        // Clave de caché estable por combinación de parámetros e idioma
+        $cacheKey = $this->cacheKey($payload, $acceptLang);
+        $ttl      = now()->addHours(6); // 6 h es un TTL seguro para reviews
+
+        // 1) Si hay caché, responde de una
+        if ($cached = Cache::get($cacheKey)) {
+            return response()->json($cached + ['cached' => true], 200);
+        }
+
+        // 2) Coalescing lock para evitar stampedes (requiere store con locks; si no, degrada)
+        $lock = Cache::lock("lock:$cacheKey", 10);
         try {
-            $url = config('services.viator.reviews_base');
-            $key = config('services.viator.key');
+            if ($lock->get()) {
+                // Double-check por si otro proceso ya cacheó
+                if ($cached = Cache::get($cacheKey)) {
+                    return response()->json($cached + ['cached' => true], 200);
+                }
 
-            $resp = Http::withHeaders([
-                    'exp-api-key'     => $key,
-                    'Accept'          => 'application/json;version=2.0',
-                    'Accept-Language' => $acceptLang,
-                ])
-                ->timeout(12)
-                ->retry(2, 300)
-                ->post($url, $payload);
+                $url = config('services.viator.reviews_base');
+                $key = config('services.viator.key');
 
-            if (!$resp->ok()) {
-                Log::warning('Viator reviews non-200', [
-                    'status' => $resp->status(),
-                    'body'   => $resp->body(),
-                ]);
+                $resp = Http::withHeaders([
+                        'exp-api-key'     => $key,
+                        'Accept'          => 'application/json;version=2.0',
+                        'Accept-Language' => $acceptLang,
+                    ])
+                    ->timeout(12)
+                    ->retry(2, 300)
+                    ->post($url, $payload);
 
-                return response()->json([
-                    'reviews' => [],
-                    'error'   => 'upstream_'.$resp->status(),
-                ], 200);
+                if (!$resp->ok()) {
+                    Log::warning('Viator reviews non-200', [
+                        'status' => $resp->status(),
+                        'body'   => $resp->body(),
+                    ]);
+
+                    // Cache negativo corto para no martillar al upstream en errores
+                    $negative = ['reviews' => [], 'error' => 'upstream_'.$resp->status()];
+                    Cache::put($cacheKey, $negative, now()->addMinutes(5));
+
+                    return response()->json($negative + ['cached' => false], 200);
+                }
+
+                $data = $resp->json();
+
+                if (app()->environment('local')) {
+                    Log::debug('Sample upstream review payload', [
+                        'keys'  => array_keys(($data['reviews'][0] ?? [])),
+                        'first' => ($data['reviews'][0] ?? null),
+                    ]);
+                }
+
+                $normalized = [
+                    'reviews' => $this->mapReviews($data, $validated['productCode']),
+                ];
+
+                Cache::put($cacheKey, $normalized, $ttl);
+
+                return response()->json($normalized + ['cached' => false], 200);
+            } else {
+                // Si no se pudo tomar el lock, intenta devolver caché o fallback
+                if ($cached = Cache::get($cacheKey)) {
+                    return response()->json($cached + ['cached' => true], 200);
+                }
+                return response()->json(['reviews' => [], 'error' => 'busy'], 200);
             }
-
-            $data = $resp->json();
-
-            if (app()->environment('local')) {
-                Log::debug('Sample upstream review payload', [
-                    'keys'  => array_keys(($data['reviews'][0] ?? [])),
-                    'first' => ($data['reviews'][0] ?? null),
-                ]);
-            }
-
-            return response()->json([
-                'reviews' => $this->mapReviews($data, $validated['productCode']),
-            ], 200);
-
         } catch (\Throwable $e) {
             Log::error('Viator reviews exception', ['msg' => $e->getMessage()]);
-
-            return response()->json([
-                'reviews' => [],
-                'error'   => 'exception',
-            ], 200);
+            return response()->json(['reviews' => [], 'error' => 'exception'], 200);
+        } finally {
+            optional($lock)->release();
         }
+    }
+
+    /**
+     * Batch: permite pedir varias reviews en un solo round-trip.
+     * Body esperado:
+     * {
+     *   "productCodes": ["XXX","YYY",...],
+     *   "count": 5, "start": 1, "provider": "ALL", "sortBy": "MOST_RECENT"
+     * }
+     */
+    public function fetchReviewsBatch(Request $request)
+    {
+        $validated = $request->validate([
+            'productCodes'   => 'required|array|min:1|max:50',
+            'productCodes.*' => 'string',
+            'count'          => 'nullable|integer|min:1|max:50',
+            'start'          => 'nullable|integer|min:1',
+            'provider'       => 'nullable|in:VIATOR,TRIPADVISOR,ALL',
+            'sortBy'         => 'nullable|string',
+        ]);
+
+        $count    = $validated['count']    ?? 5;
+        $start    = $validated['start']    ?? 1;
+        $provider = $validated['provider'] ?? 'ALL';
+        $sortBy   = $validated['sortBy']   ?? 'MOST_RECENT';
+
+        $acceptLang = $this->mapLocale(app()->getLocale());
+        $url        = config('services.viator.reviews_base');
+        $key        = config('services.viator.key');
+
+        $out = [];
+        $missing = [];
+
+        // 1) Intenta llenar desde caché
+        foreach ($validated['productCodes'] as $code) {
+            $payload = [
+                'productCode'                => $code,
+                'count'                      => $count,
+                'start'                      => $start,
+                'provider'                   => $provider,
+                'sortBy'                     => $sortBy,
+                'reviewsForNonPrimaryLocale' => true,
+                'showMachineTranslated'      => true,
+            ];
+            $cacheKey = $this->cacheKey($payload, $acceptLang);
+
+            if ($cached = Cache::get($cacheKey)) {
+                $out[$code] = $cached + ['cached' => true];
+            } else {
+                $missing[$code] = [$payload, $cacheKey];
+            }
+        }
+
+        // 2) Lanza en paralelo solo los faltantes
+        if (!empty($missing)) {
+            $responses = Http::pool(function ($pool) use ($missing, $url, $key, $acceptLang) {
+                $reqs = [];
+                foreach ($missing as $code => [$payload]) {
+                    $reqs[$code] = $pool->as($code)->withHeaders([
+                        'exp-api-key'     => $key,
+                        'Accept'          => 'application/json;version=2.0',
+                        'Accept-Language' => $acceptLang,
+                    ])->timeout(12)->retry(2, 300)->post($url, $payload);
+                }
+                return $reqs;
+            });
+
+            foreach ($responses as $code => $resp) {
+                if ($resp->ok()) {
+                    $data = $resp->json();
+                    $normalized = ['reviews' => $this->mapReviews($data, $code)];
+                    Cache::put($missing[$code][1], $normalized, now()->addHours(6));
+                    $out[$code] = $normalized + ['cached' => false];
+                } else {
+                    $negative = ['reviews' => [], 'error' => 'upstream_'.$resp->status()];
+                    Cache::put($missing[$code][1], $negative, now()->addMinutes(5));
+                    $out[$code] = $negative + ['cached' => false];
+                }
+            }
+        }
+
+        return response()->json(['results' => $out], 200);
+    }
+
+    /**
+     * Versión GET cacheable (idempotente) para permitir caché del navegador/CDN.
+     * Ej: GET /api/reviews/12345?count=5&start=1&provider=ALL&sortBy=MOST_RECENT
+     */
+    public function fetchReviewsGet(Request $request, string $productCode)
+    {
+        // Normaliza query params a los aceptados por fetchReviews
+        $request->merge([
+            'productCode' => $productCode,
+            'count'       => $request->query('count'),
+            'start'       => $request->query('start'),
+            'provider'    => $request->query('provider'),
+            'sortBy'      => $request->query('sortBy'),
+        ]);
+
+        $res = $this->fetchReviews($request);
+
+        // Cabeceras para permitir caché en navegador/proxy/CDN
+        return $res
+            ->header('Cache-Control', 'public, max-age=300, s-maxage=900, stale-while-revalidate=86400');
+    }
+
+    // ---------- Helpers ----------
+
+    private function cacheKey(array $payload, string $acceptLang): string
+    {
+        $keyParts = [
+            'viator:reviews',
+            $acceptLang,
+            $payload['productCode'] ?? '',
+            $payload['provider']    ?? 'ALL',
+            $payload['sortBy']      ?? 'MOST_RECENT',
+            'count='.$payload['count'],
+            'start='.$payload['start'],
+        ];
+        return Str::slug(implode('|', $keyParts), ':');
     }
 
     /**
@@ -123,9 +271,7 @@ class ReviewController extends Controller
                 'userName'      => $userName,
                 'title'         => $title ?: null,
                 'text'          => $text  ?: null,
-
-                // 👇 añadidos clave para que el front tenga siempre algo útil
-                'productTitle'  => $productTitle,                 // string ('' si no vino nada)
+                'productTitle'  => $productTitle,
                 'productCode'   => $r['productCode'] ?? $requestedCode,
             ];
         }
@@ -136,13 +282,11 @@ class ReviewController extends Controller
     /** Intenta encontrar un nombre mostrando varios esquemas (fallback si no hay userName raíz). */
     private function displayName(array $r): ?string
     {
-        // respeta posibles flags de anonimato
         $anon = $this->firstNonEmpty($r, ['anonymous', 'isAnonymous', 'user.anonymous', 'reviewer.anonymous']);
         if ($anon === true || $anon === 'true' || $anon === 1 || $anon === '1') {
             return 'Anónimo';
         }
 
-        // candidatos directos (anidados)
         $direct = $this->firstNonEmpty($r, [
             'user.name', 'user.displayName',
             'reviewer.name', 'reviewer.displayName',
@@ -153,7 +297,6 @@ class ReviewController extends Controller
             return $direct;
         }
 
-        // combinaciones first/last
         $first = $this->firstNonEmpty($r, [
             'user.firstName', 'reviewer.firstName', 'consumer.firstName', 'traveler.firstName',
         ]);
@@ -164,7 +307,6 @@ class ReviewController extends Controller
         if ($first)         return $first;
         if ($last)          return $last;
 
-        // iniciales
         $fi = $this->firstNonEmpty($r, ['user.firstInitial', 'reviewer.firstInitial']);
         $li = $this->firstNonEmpty($r, ['user.lastInitial',  'reviewer.lastInitial']);
         if ($fi || $li) return trim(($fi ?: '').($li ? ' '.$li : ''));

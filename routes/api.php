@@ -5,9 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Cart\CartController;
 use App\Http\Controllers\ReviewController;
 
-Route::post('/reviews', [ReviewController::class, 'fetchReviews'])
-    ->name('api.reviews');
-
+Route::get('/reviews/{productCode}', [ReviewController::class, 'fetchReviewsGet'])->name('api.reviews.get');
+Route::post('/reviews', [ReviewController::class, 'fetchReviews'])->name('api.reviews');
+Route::post('/reviews/batch', [ReviewController::class, 'fetchReviewsBatch'])->name('api.reviews.batch');
 // Rutas de la API para códigos promocionales
 use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
 
