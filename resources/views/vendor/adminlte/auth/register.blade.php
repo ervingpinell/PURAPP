@@ -25,10 +25,13 @@
         $registerUrl = $registerUrl ? url($registerUrl) : '';
     }
 
-    // Para rehidratar old('phone') en formato +CCC########
-    $oldPhone = old('phone');
-    $oldCc = null; $oldLocal = null;
-    if ($oldPhone && preg_match('/^\+(\d{1,4})(\d{3,})$/', $oldPhone, $m)) {
+    // Rehidratación: prioriza lo que venga en old('phone_local')
+    $oldPhone  = old('phone');         // E.164 anterior (oculto)
+    $oldLocal  = old('phone_local');   // ✅ valor visible tecleado por el usuario
+    $oldCc     = null;
+
+    // Si no vino phone_local pero sí phone en E.164, intenta descomponer (opcional)
+    if (!$oldLocal && $oldPhone && preg_match('/^\+(\d{1,4})(\d{3,})$/', $oldPhone, $m)) {
         $oldCc   = '+' . $m[1];
         $oldLocal = $m[2];
     }
@@ -39,6 +42,7 @@
 
 @section('auth_body')
 
+    {{-- Alert de errores del backend --}}
     @if ($errors->any())
         <div id="server-errors" class="alert alert-danger">
             <h5 class="mb-2">
@@ -104,19 +108,21 @@
             @enderror
         </div>
 
-        {{-- Teléfono: un solo select (sin “salto”) + número local --}}
+        {{-- Teléfono: un solo select + input visible con name="phone_local" + hidden E.164 --}}
         <div class="form-group mb-3">
+            <label class="form-label d-block mb-1">{{ __('adminlte::validation.attributes.phone') }}</label>
 
             <div class="input-group">
                 <select id="phone_cc" class="form-select" style="max-width: 180px;">
-                    @include('partials.country-codes') {{-- value=+code ; text inicia como "(+code)" --}}
+                    @include('partials.country-codes') {{-- cada option: value=+code, data-name, data-code, label "(+code)" --}}
                 </select>
 
                 <input
                     type="tel"
                     id="phone_local"
-                    class="form-control @error('phone') is-invalid @enderror"
-                    value="{{ $oldLocal ?? '' }}"
+                    name="phone_local" {{-- ✅ para rehidratación exacta --}}
+                    class="form-control @error('phone_local') is-invalid @enderror @error('phone') is-invalid @enderror"
+                    value="{{ old('phone_local', $oldLocal ?? '') }}"
                     placeholder="{{ __('adminlte::validation.attributes.phone') }}"
                     autocomplete="tel"
                     inputmode="tel"
@@ -127,14 +133,16 @@
                     </div>
                 </div>
 
-                {{-- Hidden con E.164 que se envía al backend --}}
+                {{-- Hidden que se envía al backend en E.164 (prefijo + dígitos) --}}
                 <input type="hidden" name="phone" id="phone_full" value="{{ old('phone') }}">
             </div>
 
+            {{-- Muestra error del campo visible o del E.164 según validación que uses --}}
+            @error('phone_local')
+                <div class="invalid-feedback srv" data-for="phone_local">{{ $message }}</div>
+            @enderror
             @error('phone')
-                <div class="invalid-feedback srv" data-for="phone">
-                    {{ $message }}
-                </div>
+                <div class="invalid-feedback srv" data-for="phone">{{ $message }}</div>
             @enderror
         </div>
 
@@ -265,74 +273,56 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ---- Teléfono: un solo select con type-ahead por país/código + E.164
+  // ---- Teléfono: select único con type-ahead + E.164 (sin perder primer dígito)
   const cc    = document.getElementById('phone_cc');
   const local = document.getElementById('phone_local');
   const full  = document.getElementById('phone_full');
   if (!cc || !local || !full) return;
 
   const onlyDigits = (s) => (s || '').replace(/\D+/g, '');
-  const normalize = (s) =>
-    (s || '')
-      .toString()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase();
+  const normalize  = (s) => (s || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
   function updateE164() { full.value = (cc.value || '') + onlyDigits(local.value || ''); }
 
-  // Etiquetas colapsadas/expandidas
-  let expanded = false;
+  // Etiquetas (colapsado/expandido)
   function expandLabels() {
     Array.from(cc.options).forEach(opt => {
       const name = opt.dataset.name || '';
       const code = opt.dataset.code || opt.value;
       opt.text = `${name} (${code})`;
     });
-    expanded = true;
   }
   function collapseLabels() {
     Array.from(cc.options).forEach(opt => {
       const code = opt.dataset.code || opt.value;
       opt.text = `(${code})`;
     });
-    expanded = false;
   }
 
-  // Type-ahead
-  let nameBuf = '';
-  let codeBuf = '';
-  let lastTypeTs = 0;
-  const BUF_WINDOW_MS = 800;
-  function resetBuffers(){ nameBuf = ''; codeBuf = ''; }
-
-  function searchAndSelect() {
+  // Type-ahead (letras / números)
+  let nameBuf='', codeBuf='', lastTypeTs=0;
+  const BUF_MS = 800;
+  function resetBuf(){ nameBuf=''; codeBuf=''; }
+  function searchSelect(){
     if (codeBuf) {
-      const want = codeBuf;
-      const idx = Array.from(cc.options).findIndex(opt => {
-        const raw = opt.dataset.code || opt.value || '';
-        const cmp = raw.replace(/[^\d]/g, '');
-        return cmp.startsWith(want);
-      });
-      if (idx >= 0) { cc.selectedIndex = idx; return true; }
+      const idx = Array.from(cc.options).findIndex(o =>
+        (o.dataset.code || o.value || '').replace(/[^\d]/g,'').startsWith(codeBuf)
+      );
+      if (idx>=0) { cc.selectedIndex = idx; return; }
     }
     if (nameBuf) {
       const want = normalize(nameBuf);
-      const idx = Array.from(cc.options).findIndex(opt => {
-        const nm = normalize(opt.dataset.name || '');
-        return nm.startsWith(want);
-      });
-      if (idx >= 0) { cc.selectedIndex = idx; return true; }
+      const idx = Array.from(cc.options).findIndex(o => normalize(o.dataset.name || '').startsWith(want));
+      if (idx>=0) { cc.selectedIndex = idx; return; }
     }
-    return false;
   }
 
-  cc.addEventListener('mousedown', () => { expandLabels(); resetBuffers(); });
-  cc.addEventListener('focus',     () => { expandLabels(); resetBuffers(); });
+  cc.addEventListener('mousedown', () => { expandLabels(); resetBuf(); });
+  cc.addEventListener('focus',     () => { expandLabels(); resetBuf(); });
 
   cc.addEventListener('keydown', (e) => {
     const now = Date.now();
-    if (now - lastTypeTs > BUF_WINDOW_MS) resetBuffers();
+    if (now - lastTypeTs > BUF_MS) resetBuf();
     lastTypeTs = now;
 
     if (e.key === 'Escape') { e.preventDefault(); collapseLabels(); return; }
@@ -340,43 +330,37 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (/^[a-zA-ZñÑáéíóúÁÉÍÓÚüÜ]$/.test(e.key)) {
       e.preventDefault();
-      nameBuf += e.key;
-      codeBuf = '';
-      searchAndSelect();
-      return;
+      nameBuf += e.key; codeBuf='';
+      searchSelect(); return;
     }
     if (/^[0-9+]$/.test(e.key)) {
       e.preventDefault();
       const add = e.key === '+' ? '' : e.key;
-      codeBuf += add;
-      nameBuf = '';
-      searchAndSelect();
-      return;
+      codeBuf += add; nameBuf='';
+      searchSelect(); return;
     }
     if (e.key === 'Backspace') {
       e.preventDefault();
-      if (codeBuf) codeBuf = codeBuf.slice(0, -1);
-      else if (nameBuf) nameBuf = nameBuf.slice(0, -1);
-      searchAndSelect();
+      if (codeBuf) codeBuf = codeBuf.slice(0,-1); else if (nameBuf) nameBuf = nameBuf.slice(0,-1);
+      searchSelect(); return;
     }
   });
 
   cc.addEventListener('change', () => { collapseLabels(); updateE164(); });
-  cc.addEventListener('blur',   () => { collapseLabels(); resetBuffers(); });
+  cc.addEventListener('blur',   () => { collapseLabels(); resetBuf(); });
 
   local.addEventListener('input', updateE164);
   document.getElementById('registerForm').addEventListener('submit', updateE164);
 
-  // Inicializa (selecciona old('phone') si viene)
+  // Inicializa (mantén old values)
   (function init(){
+    // Si old('phone') trae prefijo, intenta seleccionarlo
     const old = full.value;
-    if (old) {
-      const m = old.match(/^\+\d{1,4}/);
-      if (m) {
-        const wanted = m[0];
-        const found = Array.from(cc.options).find(o => o.value === wanted);
-        if (found) cc.value = wanted;
-      }
+    const m = old ? old.match(/^\+\d{1,4}/) : null;
+    if (m) {
+      const wanted = m[0];
+      const found = Array.from(cc.options).find(o => o.value === wanted);
+      if (found) cc.value = wanted;
     }
     collapseLabels(); // visible: solo "(+código)"
     updateE164();
