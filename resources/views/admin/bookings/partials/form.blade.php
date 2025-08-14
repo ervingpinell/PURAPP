@@ -1,3 +1,18 @@
+{{-- Mensajes de éxito o error --}}
+@if(session('success'))
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
+@if(session('error'))
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
 {{-- Cliente --}}
 <div class="mb-3">
   <label class="form-label">Cliente</label>
@@ -63,7 +78,6 @@
     @endforeach
   </select>
 </div>
-
 
 {{-- Fecha del Tour --}}
 <div class="mb-3">
