@@ -1,7 +1,17 @@
+@php
+  // Hoy según la zona horaria de la app
+  $tz = config('app.timezone', 'America/Costa_Rica');
+  $today = \Carbon\Carbon::today($tz)->toDateString();
+@endphp
+
+@once
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@endonce
+
 <div class="modal fade" id="modalRegistrar" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <form id="createBookingForm" action="{{ route('admin.reservas.store') }}" method="POST" novalidate>
-       @csrf
+      @csrf
 
       <div class="modal-content">
         <div class="modal-header">
@@ -14,7 +24,7 @@
           <input type="hidden" name="booking_date" value="{{ now()->toDateString() }}">
           <input type="hidden" name="is_other_hotel" id="is_other_hotel" value="0">
 
-          {{-- Tu formulario principal (user_id, tour_id, tour_date, schedule_id, status, pax, hotel_id, other_hotel_name, tour_language_id, etc.) --}}
+          {{-- Form principal (user_id, tour_id, tour_date, schedule_id, status, pax, hotel_id, other_hotel_name, tour_language_id, etc.) --}}
           @include('admin.bookings.partials.form', ['modo' => 'crear'])
 
           {{-- Código promocional (opcional) --}}
@@ -58,7 +68,7 @@
   </script>
 @endif
 
-{{-- Toggle "Other hotel" si tu partial define #hotel_id, #other_hotel_wrapper, #other_hotel_name --}}
+{{-- Toggle "Other hotel" si el partial define #hotel_id, #other_hotel_wrapper, #other_hotel_name --}}
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const sel   = document.getElementById('hotel_id');
@@ -78,6 +88,8 @@
     sel.addEventListener('change', toggle);
   });
 </script>
+
+{{-- Validación de fecha (no días pasados) + Promo code + Spinner en un único submit --}}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const form      = document.getElementById('createBookingForm');
@@ -86,7 +98,38 @@ document.addEventListener('DOMContentLoaded', () => {
   const promoHelp = document.getElementById('promo_help');
   const btnApply  = document.getElementById('btn-apply-promo');
 
-  let promoValid = false; // estado local
+  // localizar el input de fecha del partial
+  const dateInput = form?.querySelector('input[name="tour_date"]');
+
+  // ====== FECHA: bloquear días pasados (sin tocar el partial) ======
+  if (dateInput) {
+    // setear min="YYYY-MM-DD"
+    dateInput.setAttribute('min', {{ json_encode($today) }});
+
+    // si escriben manualmente una fecha pasada, corrige a hoy
+    dateInput.addEventListener('change', () => {
+      if (!dateInput.value) return;
+      const picked = new Date(dateInput.value); picked.setHours(0,0,0,0);
+      const today  = new Date({{ json_encode($today) }}); today.setHours(0,0,0,0);
+      if (picked < today) dateInput.value = {{ json_encode($today) }};
+    });
+  }
+
+  // ====== Helpers de botón ======
+  const showSpinner = (text) => {
+    if (!btnSubmit) return;
+    btnSubmit.disabled = true;
+    btnSubmit.dataset.originalText = btnSubmit.dataset.originalText || btnSubmit.innerHTML;
+    btnSubmit.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i> ${text}`;
+  };
+  const restoreBtn = () => {
+    if (!btnSubmit) return;
+    btnSubmit.disabled = false;
+    if (btnSubmit.dataset.originalText) btnSubmit.innerHTML = btnSubmit.dataset.originalText;
+  };
+
+  // ====== Promo code ======
+  let promoValid = false;
 
   function setPromoState({valid, message}) {
     promoValid = valid;
@@ -112,7 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
 
-      // Ajusta al shape de tu endpoint
       if (data.valid) {
         const msg = data.message || (data.discount_percent
           ? `Code applied: -${data.discount_percent}%`
@@ -120,9 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `Code applied: -$${Number(data.discount_amount).toFixed(2)}`
             : 'Code applied');
         setPromoState({ valid: true, message: msg });
-        // normaliza a MAYÚSCULAS sin espacios
         if (promoInp) promoInp.value = (code || '').toUpperCase().replace(/\s+/g,'');
-        // opcional: desactivar Apply tras aplicar
         btnApply?.setAttribute('disabled', 'disabled');
       } else {
         setPromoState({ valid: false, message: data.message || 'Invalid promo code.' });
@@ -150,29 +190,38 @@ document.addEventListener('DOMContentLoaded', () => {
     btnApply?.removeAttribute('disabled');
   });
 
-  // ÚNICO manejador de submit (spinner + validación promo + envío)
+  // ====== ÚNICO manejador de submit (primero fecha, luego promo) ======
   form?.addEventListener('submit', async (e) => {
-    if (!btnSubmit) return;
+    // 1) Validación de fecha pasada ANTES de cualquier cosa
+    if (dateInput && dateInput.value) {
+      const picked = new Date(dateInput.value); picked.setHours(0,0,0,0);
+      const today  = new Date({{ json_encode($today) }}); today.setHours(0,0,0,0);
+      if (picked < today) {
+        e.preventDefault();
+        restoreBtn();
+        if (window.Swal) {
+          Swal.fire({
+            icon: 'error',
+            title: @json(__('adminlte::adminlte.error') ?? 'Error'),
+            text:  @json(__('adminlte::adminlte.cannot_book_past_dates') ?? 'No puedes reservar para fechas anteriores a hoy.'),
+            confirmButtonColor: '#dc3545'
+          });
+        } else {
+          alert(@json(__('adminlte::adminlte.cannot_book_past_dates') ?? 'No puedes reservar para fechas anteriores a hoy.'));
+        }
+        dateInput.focus();
+        return false;
+      }
+    }
 
-    const showSpinner = (text) => {
-      btnSubmit.disabled = true;
-      btnSubmit.dataset.originalText = btnSubmit.dataset.originalText || btnSubmit.innerHTML;
-      btnSubmit.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i> ${text}`;
-    };
-    const restoreBtn = () => {
-      btnSubmit.disabled = false;
-      if (btnSubmit.dataset.originalText) btnSubmit.innerHTML = btnSubmit.dataset.originalText;
-    };
+    // 2) Promo + spinner como de costumbre
+    const code = promoInp?.value?.trim();
 
-    const code = promoInp?.value.trim();
-
-    // Si no hay promo => spinner y que siga el submit normal
     if (!code) {
       showSpinner('Guardando...');
       return;
     }
 
-    // Hay promo: si no está validado aún, validamos y controlamos el flujo
     if (!promoValid) {
       e.preventDefault();
       showSpinner('Validando…');
@@ -180,15 +229,12 @@ document.addEventListener('DOMContentLoaded', () => {
       await validatePromo(code);
 
       if (promoValid) {
-        // ya validó: cambia a "Guardando..." y envía programáticamente
         showSpinner('Guardando...');
-        form.submit(); // OJO: no dispara de nuevo el evento submit (está bien)
+        form.submit(); // no re-dispara el listener
       } else {
-        // inválido: permitir que corrijan
         restoreBtn();
       }
     } else {
-      // promo ya validada previamente => solo spinner
       showSpinner('Guardando...');
     }
   });

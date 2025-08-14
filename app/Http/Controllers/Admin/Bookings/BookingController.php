@@ -23,6 +23,9 @@ use App\Mail\BookingCancelledMail;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\PromoCode;
 use Illuminate\Support\Facades\RateLimiter;
+use Carbon\Carbon;
+use Illuminate\Validation\ValidationException;
+
 
 
 
@@ -117,7 +120,7 @@ class BookingController extends Controller
             'user_id'          => 'required|exists:users,user_id',
             'tour_id'          => 'required|exists:tours,tour_id',
             'booking_date'     => 'required|date',
-            'tour_date'        => 'required|date',
+            'tour_date' => ['required', 'date', 'after_or_equal:today'],
             'status'           => 'required|in:pending,confirmed,cancelled',
             'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
             'adults_quantity'  => 'required|integer|min:1',
@@ -128,6 +131,7 @@ class BookingController extends Controller
             'other_hotel_name' => 'nullable|string|max:255',
             'promo_code'       => 'nullable|string',
         ]);
+        
 
         // 1) Validar promo (si viene) y cortar si no existe
         if ($request->filled('promo_code')) {
@@ -143,6 +147,16 @@ class BookingController extends Controller
                     ->with('openModal', 'register');
             }
         }
+        // 1.1) Validar timeZone 
+        $tz = config('app.timezone', 'America/Costa_Rica');
+        $today = Carbon::today($tz);
+
+        if (Carbon::parse($v['tour_date'], $tz)->lt($today)) {
+            throw ValidationException::withMessages([
+                'tour_date' => 'No puedes reservar para fechas anteriores a hoy.',
+            ]);
+        }
+
 
         // 2) Antidoble submit
         $key = sprintf('booking:%s:%s:%s:%s',
@@ -271,7 +285,7 @@ class BookingController extends Controller
         'tour_id'          => 'required|exists:tours,tour_id',
         'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
         'booking_date'     => 'required|date',
-        'tour_date'        => 'required|date',
+        'tour_date' => ['required', 'date', 'after_or_equal:today'],
         'schedule_id'      => 'required|exists:schedules,schedule_id',
         'adults_quantity'  => 'required|integer|min:1',
         'kids_quantity'    => 'required|integer|min:0|max:2',
@@ -285,6 +299,18 @@ class BookingController extends Controller
         'promo_code'       => 'nullable|string',
         'remove_promo'     => 'nullable|boolean',
     ]);
+
+    // 1.1) Validar timeZone
+    $tz = config('app.timezone', 'America/Costa_Rica');
+    $today = Carbon::today($tz);
+
+    if (Carbon::parse($r['tour_date'], $tz)->lt($today)) {
+        return back()
+            ->withErrors(['tour_date' => 'No puedes reservar para fechas anteriores a hoy.'])
+            ->withInput()
+            ->with('showEditModal', $id);
+    }
+
 
     // 2) Cargar booking + detalle + promo actual (si hay)
     $booking = Booking::with(['detail','tour','user'])->findOrFail($id);
@@ -560,7 +586,7 @@ class BookingController extends Controller
         $booking = DB::transaction(function () use ($user, $request) {
             $cart = Cart::with('items.tour')->where('user_id', $user->user_id)->first();
             if (!$cart || $cart->items->isEmpty()) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
+                throw ValidationException::withMessages([
                     'cart' => 'Tu carrito está vacío.',
                 ]);
             }
@@ -569,12 +595,25 @@ class BookingController extends Controller
             $groups = $cart->items->groupBy(fn($item) => $item->tour_id . '_' . $item->tour_date . '_' . $item->schedule_id);
 
             foreach ($groups as $items) {
+                $tz         = config('app.timezone', 'America/Costa_Rica');
+                $today      = Carbon::today($tz);
+
                 $first      = $items->first();
                 $tour       = $first->tour;
                 $tourDate   = $first->tour_date;
                 $scheduleId = $first->schedule_id;
-                $schedule   = $tour->schedules()->where('schedules.schedule_id', $scheduleId)->firstOrFail();
 
+                // 🔒 Validar que no sea fecha pasada
+                if (Carbon::parse($tourDate, $tz)->lt($today)) {
+                    throw ValidationException::withMessages([
+                        'tour_date' => "La fecha {$tourDate} ya pasó. No se puede reservar '{$tour->name}' en días anteriores.",
+                    ]);
+                }
+
+                // Validar que el horario pertenezca al tour
+                $schedule = $tour->schedules()->where('schedules.schedule_id', $scheduleId)->firstOrFail();
+
+                // Validar fechas bloqueadas
                 $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
                     ->where(function ($query) use ($scheduleId) {
                         $query->whereNull('schedule_id')->orWhere('schedule_id', $scheduleId);
@@ -586,11 +625,12 @@ class BookingController extends Controller
                     ->exists();
 
                 if ($isBlocked) {
-                    throw \Illuminate\Validation\ValidationException::withMessages([
+                    throw ValidationException::withMessages([
                         'tour_date' => "La fecha {$tourDate} está bloqueada para '{$tour->name}'.",
                     ]);
                 }
 
+                // Validar capacidad
                 $reserved = BookingDetail::where('tour_id', $tour->tour_id)
                     ->where('tour_date', $tourDate)
                     ->where('schedule_id', $scheduleId)
@@ -600,13 +640,13 @@ class BookingController extends Controller
 
                 if ($reserved + $requested > $schedule->max_capacity) {
                     $available = $schedule->max_capacity - $reserved;
-                    throw \Illuminate\Validation\ValidationException::withMessages([
+                    throw ValidationException::withMessages([
                         'capacity' => "Para '{$tour->name}' el día {$tourDate} solo quedan {$available} plazas para ese horario.",
                     ]);
                 }
             }
 
-            // ✅ Total + promo
+            // ✅ Calcular total + promo
             $totalBooking = $cart->items->sum(fn($item) =>
                 ($item->tour->adult_price * $item->adults_quantity)
                 + ($item->tour->kid_price * $item->kids_quantity)
@@ -631,6 +671,7 @@ class BookingController extends Controller
 
             $firstItem = $cart->items->first();
 
+            // Crear cabecera de reserva
             $booking = Booking::create([
                 'user_id'           => $user->user_id,
                 'tour_id'           => $firstItem->tour_id,
@@ -642,6 +683,7 @@ class BookingController extends Controller
                 'is_active'         => true,
             ]);
 
+            // Crear detalles
             foreach ($cart->items as $item) {
                 BookingDetail::create([
                     'booking_id'       => $booking->booking_id,
@@ -672,12 +714,13 @@ class BookingController extends Controller
             return $booking;
         });
 
-        // 📧 Email fuera de la transacción
+        // 📧 Enviar correo fuera de la transacción
         Mail::to($booking->user->email)->send(new \App\Mail\BookingCreatedMail($booking));
 
         return redirect()->route('admin.cart.index')
             ->with('success', 'Reservas generadas correctamente desde el carrito.');
     }
+
 
 
 
@@ -756,16 +799,19 @@ class BookingController extends Controller
     public function reservedCount(Request $request)
     {
         $data = $request->validate([
-            'tour_id'   => 'required|exists:tours,tour_id',
-            'tour_date' => 'required|date',
+            'tour_id'     => 'required|exists:tours,tour_id',
+            'schedule_id' => 'required|exists:schedules,schedule_id', 
+            'tour_date'   => ['required', 'date', 'after_or_equal:today'],
         ]);
 
         $reserved = BookingDetail::where('tour_id', $data['tour_id'])
             ->where('tour_date', $data['tour_date'])
             ->where('schedule_id', $data['schedule_id'])
             ->sum(DB::raw('adults_quantity + kids_quantity'));
+
         return response()->json(['reserved' => $reserved]);
     }
+
 
     /**
      * Show the authenticated customer’s reservations.
