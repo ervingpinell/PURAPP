@@ -15,11 +15,11 @@ return [
     ],
 
     'attributes' => [
-        'full_name' => 'full name',
-        'email' => 'email',
-        'phone' => 'phone',
-        'password' => 'password',
-        'password_confirmation' => 'password confirmation',
+        'full_name' => 'Full name',
+        'email' => 'Email',
+        'phone' => 'Phone number',
+        'password' => 'Password',
+        'password_confirmation' => 'assword confirmation',
     ],
         'password_requirements' => [
         'length' => '- 8 characters long',

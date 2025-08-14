@@ -15,11 +15,11 @@ return [
     ],
 
     'attributes' => [
-        'full_name' => 'nome completo',
-        'email' => 'e-mail',
-        'phone' => 'telefone',
-        'password' => 'senha',
-        'password_confirmation' => 'confirmação de senha',
+        'full_name' => 'Nome completo',
+        'email' => 'E-mail',
+       'phone' => 'Número de telefone',
+        'password' => 'Senha',
+        'password_confirmation' => 'Confirmação de senha',
     ],
             // --- Validação personalizada ---
     'validation_error_title' => 'Por favor, corrija os seguintes erros:',

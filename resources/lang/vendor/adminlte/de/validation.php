@@ -17,7 +17,7 @@ return [
     'attributes' => [
         'full_name' => 'vollständiger Name',
         'email' => 'E-Mail',
-        'phone' => 'Telefon',
+        'phone' => 'Telefonnummer',
         'password' => 'Passwort',
         'password_confirmation' => 'Passwortbestätigung',
     ],

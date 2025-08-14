@@ -24,6 +24,14 @@
         $loginUrl    = $loginUrl    ? url($loginUrl)    : '';
         $registerUrl = $registerUrl ? url($registerUrl) : '';
     }
+
+    // Para rehidratar old('phone') en formato +CCC########
+    $oldPhone = old('phone');
+    $oldCc = null; $oldLocal = null;
+    if ($oldPhone && preg_match('/^\+(\d{1,4})(\d{3,})$/', $oldPhone, $m)) {
+        $oldCc   = '+' . $m[1];
+        $oldLocal = $m[2];
+    }
 @endphp
 
 @section('title', __('adminlte::adminlte.register'))
@@ -31,7 +39,6 @@
 
 @section('auth_body')
 
-    {{-- Alert de errores del backend (usa adminlte::validation) --}}
     @if ($errors->any())
         <div id="server-errors" class="alert alert-danger">
             <h5 class="mb-2">
@@ -46,7 +53,6 @@
         </div>
     @endif
 
-    {{-- Evitar prompts nativos del navegador en inglés --}}
     <form id="registerForm" action="{{ $registerUrl }}" method="POST" novalidate>
         @csrf
 
@@ -98,23 +104,33 @@
             @enderror
         </div>
 
-        {{-- Phone (opcional) --}}
+        {{-- Teléfono: un solo select (sin “salto”) + número local --}}
         <div class="form-group mb-3">
+
             <div class="input-group">
+                <select id="phone_cc" class="form-select" style="max-width: 180px;">
+                    @include('partials.country-codes') {{-- value=+code ; text inicia como "(+code)" --}}
+                </select>
+
                 <input
-                    type="text"
-                    name="phone"
+                    type="tel"
+                    id="phone_local"
                     class="form-control @error('phone') is-invalid @enderror"
-                    value="{{ old('phone') }}"
+                    value="{{ $oldLocal ?? '' }}"
                     placeholder="{{ __('adminlte::validation.attributes.phone') }}"
                     autocomplete="tel"
+                    inputmode="tel"
                 >
                 <div class="input-group-append">
                     <div class="input-group-text">
                         <span class="fas fa-phone {{ config('adminlte.classes_auth_icon', '') }}"></span>
                     </div>
                 </div>
+
+                {{-- Hidden con E.164 que se envía al backend --}}
+                <input type="hidden" name="phone" id="phone_full" value="{{ old('phone') }}">
             </div>
+
             @error('phone')
                 <div class="invalid-feedback srv" data-for="phone">
                     {{ $message }}
@@ -183,7 +199,6 @@
             @enderror
         </div>
 
-        {{-- Submit --}}
         <button type="submit" class="btn w-100 text-nowrap {{ config('adminlte.classes_auth_btn', 'btn-flat btn-primary') }}">
             <span class="fas fa-user-plus me-2"></span>
             {{ __('adminlte::adminlte.register') }}
@@ -213,59 +228,159 @@
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Mostrar/ocultar contraseña (UX)
-    document.querySelectorAll('.toggle-password').forEach(toggle => {
-        toggle.addEventListener('click', function (e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('data-target');
-            const input = document.getElementById(targetId);
-            const icon = this.querySelector('i');
-            if (!input) return;
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
-            }
-        });
+  // ---- Mostrar/ocultar contraseñas
+  document.querySelectorAll('.toggle-password').forEach(toggle => {
+    toggle.addEventListener('click', function (e) {
+      e.preventDefault();
+      const targetId = this.getAttribute('data-target');
+      const input = document.getElementById(targetId);
+      const icon = this.querySelector('i');
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+      }
     });
+  });
 
-    // Requisitos de contraseña (solo guía visual)
-    const passwordInput = document.getElementById('password');
-    const reqLength  = document.getElementById('req-length');
-    const reqSpecial = document.getElementById('req-special');
-    const reqNumber  = document.getElementById('req-number');
-
-    function markReq(el, ok) {
-        if (!el) return;
-        el.classList.toggle('text-success', ok);
-        el.classList.toggle('text-muted', !ok);
-    }
-
-    if (passwordInput) {
-        passwordInput.addEventListener('input', function () {
-            const v = passwordInput.value || '';
-            markReq(reqLength,  v.length >= 8);
-            markReq(reqSpecial, /[.:!@#$%^&*()_+\-]/.test(v));
-            markReq(reqNumber,  /\d/.test(v));
-        });
-    }
-
-    // UX: al teclear/cambiar, ocultar mensajes del servidor del campo y el alert general
-    const form = document.getElementById('registerForm');
-    const serverAlert = document.getElementById('server-errors');
-
-    form.querySelectorAll('input').forEach(input => {
-        ['input','change'].forEach(evt => input.addEventListener(evt, () => {
-            if (serverAlert) serverAlert.classList.add('d-none');
-            const group = input.closest('.form-group');
-            group?.querySelectorAll(`.invalid-feedback.srv[data-for="${input.name}"]`).forEach(el => el.classList.add('d-none'));
-            input.classList.remove('is-invalid');
-        }));
+  // ---- Requisitos de contraseña (guía visual)
+  const passwordInput = document.getElementById('password');
+  const reqLength  = document.getElementById('req-length');
+  const reqSpecial = document.getElementById('req-special');
+  const reqNumber  = document.getElementById('req-number');
+  function markReq(el, ok) {
+    if (!el) return;
+    el.classList.toggle('text-success', ok);
+    el.classList.toggle('text-muted', !ok);
+  }
+  if (passwordInput) {
+    passwordInput.addEventListener('input', function () {
+      const v = passwordInput.value || '';
+      markReq(reqLength,  v.length >= 8);
+      markReq(reqSpecial, /[.:!@#$%^&*()_+\-]/.test(v));
+      markReq(reqNumber,  /\d/.test(v));
     });
+  }
 
-    // IMPORTANTE: no bloqueamos el submit; la validación es SOLO del backend
+  // ---- Teléfono: un solo select con type-ahead por país/código + E.164
+  const cc    = document.getElementById('phone_cc');
+  const local = document.getElementById('phone_local');
+  const full  = document.getElementById('phone_full');
+  if (!cc || !local || !full) return;
+
+  const onlyDigits = (s) => (s || '').replace(/\D+/g, '');
+  const normalize = (s) =>
+    (s || '')
+      .toString()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+
+  function updateE164() { full.value = (cc.value || '') + onlyDigits(local.value || ''); }
+
+  // Etiquetas colapsadas/expandidas
+  let expanded = false;
+  function expandLabels() {
+    Array.from(cc.options).forEach(opt => {
+      const name = opt.dataset.name || '';
+      const code = opt.dataset.code || opt.value;
+      opt.text = `${name} (${code})`;
+    });
+    expanded = true;
+  }
+  function collapseLabels() {
+    Array.from(cc.options).forEach(opt => {
+      const code = opt.dataset.code || opt.value;
+      opt.text = `(${code})`;
+    });
+    expanded = false;
+  }
+
+  // Type-ahead
+  let nameBuf = '';
+  let codeBuf = '';
+  let lastTypeTs = 0;
+  const BUF_WINDOW_MS = 800;
+  function resetBuffers(){ nameBuf = ''; codeBuf = ''; }
+
+  function searchAndSelect() {
+    if (codeBuf) {
+      const want = codeBuf;
+      const idx = Array.from(cc.options).findIndex(opt => {
+        const raw = opt.dataset.code || opt.value || '';
+        const cmp = raw.replace(/[^\d]/g, '');
+        return cmp.startsWith(want);
+      });
+      if (idx >= 0) { cc.selectedIndex = idx; return true; }
+    }
+    if (nameBuf) {
+      const want = normalize(nameBuf);
+      const idx = Array.from(cc.options).findIndex(opt => {
+        const nm = normalize(opt.dataset.name || '');
+        return nm.startsWith(want);
+      });
+      if (idx >= 0) { cc.selectedIndex = idx; return true; }
+    }
+    return false;
+  }
+
+  cc.addEventListener('mousedown', () => { expandLabels(); resetBuffers(); });
+  cc.addEventListener('focus',     () => { expandLabels(); resetBuffers(); });
+
+  cc.addEventListener('keydown', (e) => {
+    const now = Date.now();
+    if (now - lastTypeTs > BUF_WINDOW_MS) resetBuffers();
+    lastTypeTs = now;
+
+    if (e.key === 'Escape') { e.preventDefault(); collapseLabels(); return; }
+    if (e.key === 'Enter' || e.key === ' ') return;
+
+    if (/^[a-zA-ZñÑáéíóúÁÉÍÓÚüÜ]$/.test(e.key)) {
+      e.preventDefault();
+      nameBuf += e.key;
+      codeBuf = '';
+      searchAndSelect();
+      return;
+    }
+    if (/^[0-9+]$/.test(e.key)) {
+      e.preventDefault();
+      const add = e.key === '+' ? '' : e.key;
+      codeBuf += add;
+      nameBuf = '';
+      searchAndSelect();
+      return;
+    }
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      if (codeBuf) codeBuf = codeBuf.slice(0, -1);
+      else if (nameBuf) nameBuf = nameBuf.slice(0, -1);
+      searchAndSelect();
+    }
+  });
+
+  cc.addEventListener('change', () => { collapseLabels(); updateE164(); });
+  cc.addEventListener('blur',   () => { collapseLabels(); resetBuffers(); });
+
+  local.addEventListener('input', updateE164);
+  document.getElementById('registerForm').addEventListener('submit', updateE164);
+
+  // Inicializa (selecciona old('phone') si viene)
+  (function init(){
+    const old = full.value;
+    if (old) {
+      const m = old.match(/^\+\d{1,4}/);
+      if (m) {
+        const wanted = m[0];
+        const found = Array.from(cc.options).find(o => o.value === wanted);
+        if (found) cc.value = wanted;
+      }
+    }
+    collapseLabels(); // visible: solo "(+código)"
+    updateE164();
+  })();
 });
 </script>
 @endpush
