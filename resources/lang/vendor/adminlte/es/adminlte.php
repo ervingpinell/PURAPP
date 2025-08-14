@@ -36,12 +36,8 @@ return [
     'password_reset_failed' => 'No se pudo restablecer la contraseña. Intentá de nuevo más tarde.',
     'password_reset_link_sent' => 'Se envió el enlace para restablecer la contraseña a tu correo.',
     'password_reset_link_failed' => 'No se pudo enviar el enlace. Intentá más tarde.',
-    'password_requirements' => [
-        'length' => '- Al menos 8 caracteres',
-        'special' => '- 1 carácter especial ( .¡!@#$%^&*()_+- )',
-        'number' => '- 1 número',
-    ],
-    'invalid_credentials'=> 'Credenciales inválidas. Por favor, intenta de nuevo.',
+
+
 
     // ─── NAVEGACIÓN GENERAL ───────────────────────────
     'back' => 'Volver',
@@ -309,4 +305,7 @@ return [
     'status_unknown' => 'Desconocido',
 
     'view_receipt' => 'Ver comprobante',
+
+    'validation.unique' => 'Este correo ya se encuentra en uso',
+
 ];

@@ -15,14 +15,6 @@ main {
 .bg-green-dark {
   background-color: #0f2419;
 }
-/* Evita que el ancho del bloque de acciones cambie cuando aparece el nombre */
-@media (min-width: 768px) {
-  .navbar-actions-fixed {
-    min-width: 280px;         /* Ajusta según lo que ocupe idioma + carrito + usuario */
-    justify-content: flex-end;
-    gap: 12px;                /* Separación interna agradable */
-  }
-}
 
 /* Si decides mostrar el nombre: que no crezca y se recorte */
 .user-name {

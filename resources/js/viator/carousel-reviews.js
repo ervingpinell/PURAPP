@@ -15,7 +15,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     poweredBy: window.I18N?.powered_by ?? 'Powered by',
   };
 
-  // Peticiones en paralelo
+  // helpers
+  const escapeHtml = (str = '') =>
+    String(str)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+
+  const renderStars = (rating) => {
+    const full = Math.floor(rating);
+    const half = rating % 1 >= 0.5 ? 1 : 0;
+    const empty = 5 - full - half;
+
+    let stars = '';
+    for (let i = 0; i < full; i++) stars += '★';
+    if (half) stars += '⯨';
+    for (let i = 0; i < empty; i++) stars += '☆';
+
+    const formatted = Number.isInteger(rating) ? rating : Number(rating).toFixed(1);
+    return `<div class="mb-2 review-stars text-warning">${stars}<span class="rating-number"> (${formatted}/5)</span></div>`;
+  };
+
+  // Nombre a mostrar: backend (product.name) -> título de Viator en review -> code -> ''
+  const resolveProductName = (product, firstReview) =>
+    (product?.name) ||
+    (firstReview?.productTitle) ||
+    (product?.code) ||
+    '';
+
+  // Peticiones en paralelo por producto
   const requests = products.map(({ code }) =>
     fetch('/api/reviews', {
       method: 'POST',
@@ -30,37 +60,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         provider: 'VIATOR',
         sortBy: 'MOST_RECENT',
       })
-    }).then(res => res.ok ? res.json() : Promise.reject(new Error('HTTP ' + res.status)))
-      .catch(err => ({ error: err }))
+    }).then(res => (res.ok ? res.json() : Promise.reject(new Error('HTTP ' + res.status))))
+      .catch(err => ({ error: err?.message || 'request_error' }))
   );
 
   const results = await Promise.all(requests);
   const frag = document.createDocumentFragment();
   let slideIndex = 0;
 
-  products.forEach((prod, i) => {
-    const { id, name, code } = prod;
+  products.forEach((product, i) => {
     const data = results[i];
 
     if (data?.error || !Array.isArray(data?.reviews) || data.reviews.length === 0) {
-      // Si quieres mostrar una tarjeta vacía por producto, descomenta:
-      // const empty = document.createElement('div');
-      // empty.className = 'carousel-item' + (slideIndex === 0 ? ' active' : '');
-      // empty.innerHTML = `<div class="w-100 text-center text-muted py-5">${T.none}</div>`;
-      // frag.appendChild(empty);
       return;
     }
 
     // 2 reviews aleatorias por producto
     const shuffled = [...data.reviews].sort(() => 0.5 - Math.random()).slice(0, 2);
+    const nameForHeader = resolveProductName(product, shuffled[0]);
 
     shuffled.forEach((r) => {
       const avatar = r.avatarUrl || '/images/avatar-default.png';
       const date = r.publishedDate ? new Date(r.publishedDate).toLocaleDateString() : T.noDate;
-      const stars = renderStars(r.rating);
+      const stars = renderStars(r.rating || 0);
       const userName = r.userName || T.anonymous;
       const reviewTitle = r.title || '';
       const text = (r.text || '').trim();
+
+      // truncado por palabras
       const words = text.split(/\s+/);
       const needsCollapse = words.length > 45;
       const collapsedText = needsCollapse ? words.slice(0, 45).join(' ') : text;
@@ -69,15 +96,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       slide.className = 'carousel-item' + (slideIndex === 0 ? ' active' : '');
       slide.dataset.slideIndex = String(slideIndex);
 
-      // Usamos data attrs para toggle
       slide.innerHTML = `
         <div class="review-item card shadow-sm border-0 mx-auto w-100" style="max-width: 600px;">
           <div class="card-body d-flex flex-column justify-content-between position-relative" style="min-height: 400px;">
             <span class="tour-name fw-semibold">
               <a href="#" class="tour-link text-success fw-semibold d-inline-block"
-                 data-id="${id}" data-name="${escapeHtml(name)}"
+                 data-id="${product.id}"
+                 data-name="${escapeHtml(nameForHeader)}"
                  style="text-decoration: underline;">
-                 ${escapeHtml(name)}
+                 ${escapeHtml(nameForHeader)}
               </a>
             </span>
 
@@ -106,10 +133,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
 
             <div class="text-end mt-3">
-              <a href="https://www.viator.com/searchResults/all?search=${encodeURIComponent(code)}"
+              <a href="https://www.viator.com/searchResults/all?search=${encodeURIComponent(product.code)}"
                  target="_blank"
                  class="text-muted small text-decoration-none viator-credit"
-                 title="Ver ${escapeHtml(name)} en Viator">
+                 title="Ver ${escapeHtml(nameForHeader)} en Viator">
                  ${T.poweredBy} Viator
               </a>
             </div>
@@ -127,11 +154,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // Inserta todo de una
   inner.innerHTML = '';
   inner.appendChild(frag);
 
-  // Delegación de eventos: toggle "Ver más / Ver menos"
+  // Delegación: toggle "Ver más / Ver menos"
   inner.addEventListener('click', (e) => {
     const link = e.target.closest('.toggle-review');
     if (!link) return;
@@ -157,14 +183,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Delegación de eventos: abrir modal de confirmación
+  // Delegación: abrir modal de confirmación
   inner.addEventListener('click', (e) => {
     const a = e.target.closest('.tour-link');
     if (!a) return;
     e.preventDefault();
 
     const tourId = a.dataset.id;
-    const tourName = a.dataset.name;
+    const tourName = a.dataset.name || '';
 
     const modalText = document.getElementById('confirmTourModalText');
     const modalGoBtn = document.getElementById('confirmTourModalGo');
@@ -175,30 +201,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (modalConfirmBtn) modalConfirmBtn.href = `/tour/${encodeURIComponent(tourId)}`;
 
     const modalEl = document.getElementById('confirmTourModal');
-    if (modalEl) new bootstrap.Modal(modalEl).show();
+    if (modalEl && window.bootstrap?.Modal) new bootstrap.Modal(modalEl).show();
   });
 });
-
-// Utilidades
-function renderStars(rating) {
-  const full = Math.floor(rating);
-  const half = rating % 1 >= 0.5 ? 1 : 0;
-  const empty = 5 - full - half;
-
-  let stars = '';
-  for (let i = 0; i < full; i++) stars += '★';
-  if (half) stars += '⯨';
-  for (let i = 0; i < empty; i++) stars += '☆';
-
-  const formatted = Number.isInteger(rating) ? rating : Number(rating).toFixed(1);
-  return `<div class="mb-2 review-stars text-warning">${stars}<span class="rating-number"> (${formatted}/5)</span></div>`;
-}
-
-function escapeHtml(str = '') {
-  return String(str)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}

@@ -36,12 +36,8 @@ return [
     'password_reset_failed' => 'Échec de la réinitialisation du mot de passe. Réessayez plus tard.',
     'password_reset_link_sent' => 'Lien de réinitialisation envoyé à votre e-mail.',
     'password_reset_link_failed' => 'Échec de l’envoi du lien de réinitialisation. Veuillez réessayer.',
-    'password_requirements' => [
-        'length' => '- Minimum 8 caractères',
-        'special' => '- 1 caractère spécial ( .¡!@#$%^&*()_+- )',
-        'number' => '- 1 chiffre',
-    ],
-    'invalid_credentials'=> 'Identifiants invalides. Veuillez réessayer.',
+
+
 
     // ─── NAVIGATION GÉNÉRALE ──────────────────────────
     'back' => 'Retour',
@@ -314,5 +310,6 @@ return [
     'status_unknown' => 'Inconnu',
 
     'view_receipt' => 'Voir le reçu',
+
 ];
 

@@ -29,6 +29,9 @@ class ReviewController extends Controller
             'showMachineTranslated'      => true,
         ];
 
+        // Mapea locale app -> BCP47 para Viator
+        $acceptLang = $this->mapLocale(app()->getLocale());
+
         try {
             $url = config('services.viator.reviews_base');
             $key = config('services.viator.key');
@@ -36,7 +39,7 @@ class ReviewController extends Controller
             $resp = Http::withHeaders([
                     'exp-api-key'     => $key,
                     'Accept'          => 'application/json;version=2.0',
-                    'Accept-Language' => 'en-US',
+                    'Accept-Language' => $acceptLang,
                 ])
                 ->timeout(12)
                 ->retry(2, 300)
@@ -64,7 +67,7 @@ class ReviewController extends Controller
             }
 
             return response()->json([
-                'reviews' => $this->mapReviews($data),
+                'reviews' => $this->mapReviews($data, $validated['productCode']),
             ], 200);
 
         } catch (\Throwable $e) {
@@ -79,14 +82,14 @@ class ReviewController extends Controller
 
     /**
      * Adapta la respuesta al shape del JS:
-     * avatarUrl, publishedDate (ISO si se puede), rating, userName, title, text
+     * avatarUrl, publishedDate (ISO), rating, userName, title, text, productTitle, productCode
      */
-    private function mapReviews(array $data): array
+    private function mapReviews(array $data, string $requestedCode): array
     {
         $out = [];
 
         foreach (($data['reviews'] ?? []) as $r) {
-            // Prioriza campos raíz según la documentación:
+            // Prioriza campos raíz
             $userName      = $r['userName']      ?? $this->displayName($r) ?? 'Anónimo';
             $publishedIso  = $r['publishedDate'] ?? null; // ya es ISO date-time
             $avatarUrl     = $r['avatarUrl']     ?? $this->firstNonEmpty($r, [
@@ -97,6 +100,11 @@ class ReviewController extends Controller
                                 ?? 0);
             $title         = $r['title'] ?? $this->firstNonEmpty($r, ['headline', 'summary']);
             $text          = $r['text']  ?? $this->firstNonEmpty($r, ['content', 'reviewText', 'body', 'comments']);
+
+            // Nombre del producto (para cabeceras del carrusel)
+            $productTitle  = $r['productTitle']
+                ?? $this->firstNonEmpty($r, ['product.title', 'productName', 'titleOfProduct'])
+                ?? '';
 
             // Si no vino publishedDate, intenta normalizar de otras llaves
             if (!$publishedIso) {
@@ -110,20 +118,22 @@ class ReviewController extends Controller
 
             $out[] = [
                 'avatarUrl'     => $avatarUrl ?: null,
-                'publishedDate' => $publishedIso,       // el front hace new Date(...)
+                'publishedDate' => $publishedIso,
                 'rating'        => $rating,
                 'userName'      => $userName,
                 'title'         => $title ?: null,
                 'text'          => $text  ?: null,
+
+                // 👇 añadidos clave para que el front tenga siempre algo útil
+                'productTitle'  => $productTitle,                 // string ('' si no vino nada)
+                'productCode'   => $r['productCode'] ?? $requestedCode,
             ];
         }
 
         return $out;
     }
 
-    /**
-     * Intenta encontrar un nombre mostrando varios esquemas (fallback si no hay userName raíz).
-     */
+    /** Intenta encontrar un nombre mostrando varios esquemas (fallback si no hay userName raíz). */
     private function displayName(array $r): ?string
     {
         // respeta posibles flags de anonimato
@@ -197,5 +207,18 @@ class ReviewController extends Controller
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    /** Mapea locales comunes a BCP47 aceptados por Viator */
+    private function mapLocale(?string $appLocale): string
+    {
+        $appLocale = $appLocale ?: 'en';
+        return match ($appLocale) {
+            'es', 'es_CR', 'es_MX', 'es-CR', 'es-MX' => 'es-ES',
+            'pt', 'pt_BR', 'pt-BR'                    => 'pt-BR',
+            'fr', 'fr_FR', 'fr-FR'                    => 'fr-FR',
+            'de', 'de_DE', 'de-DE'                    => 'de-DE',
+            default                                   => 'en-US',
+        };
     }
 }

@@ -36,12 +36,8 @@ return [
     'password_reset_failed' => 'Password reset failed. Please try again later.',
     'password_reset_link_sent' => 'Password reset link sent to your email. Please check your inbox.',
     'password_reset_link_failed' => 'Failed to send password reset link. Please try again later.',
-    'password_requirements' => [
-        'length' => '- 8 characters long',
-        'special' => '- 1 special character ( .¡!@#$%^&*()_+- )',
-        'number' => '- 1 number',
-    ],
-    'invalid_credentials'=> 'Invalid credentials. Please try again.',
+
+
 
     // ─── GENERAL NAVIGATION ───────────────────────────
     'back' => 'Back',
@@ -297,4 +293,7 @@ return [
     'status_unknown' => 'Unknown',
 
     'view_receipt' => 'View Receipt',
+
+
+
 ];

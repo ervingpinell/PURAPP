@@ -115,7 +115,6 @@
       <i class="{{ $iconClasses }}" title="{{ __('adminlte::adminlte.cart') }}"></i>
       <span class="cart-count-badge badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
             style="font-size:.7rem;display:none;">0</span>
-      @if($isDesktop) {{ __('adminlte::adminlte.cart') }} @endif
     </a>
   @endauth
 </div>

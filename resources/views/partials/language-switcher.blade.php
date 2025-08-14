@@ -21,41 +21,92 @@
   @endphp
 
   <button
-      class="language-switcher-toggle"
+      class="language-switcher-toggle btn btn-outline-secondary dropdown-toggle"
       type="button"
       id="languageDropdown"
-      data-bs-toggle="dropdown"  {{-- BS5 --}}
-      data-toggle="dropdown"     {{-- BS4 --}}
+      data-bs-toggle="dropdown"   {{-- BS5 --}}
+      data-toggle="dropdown"      {{-- BS4 --}}
       aria-expanded="false">
-      <img src="{{ asset('svg/flags/' . $flag) }}" alt="Current language" width="20">
+      <img src="{{ asset('svg/flags/' . $flag) }}" alt="Current language" width="20" class="me-1">
       {{ $label }}
   </button>
 
   <ul class="dropdown-menu dropdown-menu-end dropdown-menu-right" aria-labelledby="languageDropdown">
     <li>
-      <a class="language-switcher-item" href="{{ route('switch.language', 'es') }}">
-        <img src="{{ asset('svg/flags/es.svg') }}" width="20"> Español
+      <a class="dropdown-item language-switcher-item" href="{{ route('switch.language', 'es') }}">
+        <img src="{{ asset('svg/flags/es.svg') }}" width="20" class="me-1"> Español
       </a>
     </li>
     <li>
-      <a class="language-switcher-item" href="{{ route('switch.language', 'en') }}">
-        <img src="{{ asset('svg/flags/en.svg') }}" width="20"> English
+      <a class="dropdown-item language-switcher-item" href="{{ route('switch.language', 'en') }}">
+        <img src="{{ asset('svg/flags/en.svg') }}" width="20" class="me-1"> English
       </a>
     </li>
     <li>
-      <a class="language-switcher-item" href="{{ route('switch.language', 'fr') }}">
-        <img src="{{ asset('svg/flags/fr.svg') }}" width="20"> Français
+      <a class="dropdown-item language-switcher-item" href="{{ route('switch.language', 'fr') }}">
+        <img src="{{ asset('svg/flags/fr.svg') }}" width="20" class="me-1"> Français
       </a>
     </li>
     <li>
-      <a class="language-switcher-item" href="{{ route('switch.language', 'pt') }}">
-        <img src="{{ asset('svg/flags/pt.svg') }}" width="20"> Português
+      <a class="dropdown-item language-switcher-item" href="{{ route('switch.language', 'pt') }}">
+        <img src="{{ asset('svg/flags/pt.svg') }}" width="20" class="me-1"> Português
       </a>
     </li>
     <li>
-      <a class="language-switcher-item" href="{{ route('switch.language', 'de') }}">
-        <img src="{{ asset('svg/flags/de.svg') }}" width="20"> Deutsch
+      <a class="dropdown-item language-switcher-item" href="{{ route('switch.language', 'de') }}">
+        <img src="{{ asset('svg/flags/de.svg') }}" width="20" class="me-1"> Deutsch
       </a>
     </li>
   </ul>
 </div>
+
+@push('css')
+<style>
+  /* Evita que la card recorte el dropdown */
+  .login-card-body, .register-card-body, .card, .card-body { overflow: visible !important; }
+
+  /* Asegura stacking correcto del dropdown sobre alerts/inputs */
+  .language-switcher { position: relative; z-index: 1060; }
+  .language-switcher .dropdown-menu { z-index: 1080; }
+
+  /* Fondo sólido también en modo oscuro */
+  .dark-mode .language-switcher .dropdown-menu,
+  [data-theme="dark"] .language-switcher .dropdown-menu {
+    background-color: #2b2f3a !important;
+    color: #e9ecef !important;
+  }
+</style>
+@endpush
+
+@push('js')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.language-switcher').forEach(function (wrapper) {
+    const btn  = wrapper.querySelector('[data-bs-toggle="dropdown"], [data-toggle="dropdown"]');
+    const menu = wrapper.querySelector('.dropdown-menu');
+
+    // Bootstrap 5
+    if (window.bootstrap && bootstrap.Dropdown) {
+      new bootstrap.Dropdown(btn);
+      return;
+    }
+    // Bootstrap 4 (jQuery)
+    if (window.jQuery && jQuery.fn.dropdown) {
+      jQuery(btn).dropdown();
+      return;
+    }
+    // Fallback sin Bootstrap: toggle manual
+    if (btn && menu) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        menu.classList.toggle('show');
+      });
+      document.addEventListener('click', function (e) {
+        if (!wrapper.contains(e.target)) menu.classList.remove('show');
+      });
+    }
+  });
+});
+</script>
+@endpush

@@ -36,12 +36,7 @@ return [
     'password_reset_failed' => 'Erro ao redefinir a senha. Tente novamente mais tarde.',
     'password_reset_link_sent' => 'Link de redefinição de senha enviado para seu e-mail.',
     'password_reset_link_failed' => 'Falha ao enviar o link de redefinição. Tente novamente.',
-    'password_requirements' => [
-        'length' => '- Pelo menos 8 caracteres',
-        'special' => '- 1 caractere especial ( .¡!@#$%^&*()_+- )',
-        'number' => '- 1 número',
-    ],
-    'invalid_credentials'=> 'Credenciais inválidas. Por favor, tente novamente.',
+
 
     // ─── NAVEGAÇÃO GERAL ─────────────────────────────
     'back' => 'Voltar',
@@ -312,4 +307,6 @@ return [
     'status_unknown' => 'Desconhecido',
 
     'view_receipt' => 'Ver comprovante',
+
+
 ];

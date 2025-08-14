@@ -36,12 +36,6 @@ return [
     'password_reset_failed' => 'Fehler beim Zurücksetzen des Passworts. Bitte versuchen Sie es erneut.',
     'password_reset_link_sent' => 'Link zum Zurücksetzen des Passworts wurde gesendet.',
     'password_reset_link_failed' => 'Fehler beim Senden des Links. Bitte versuchen Sie es erneut.',
-    'password_requirements' => [
-        'length' => '- Mindestens 8 Zeichen',
-        'special' => '- 1 Sonderzeichen ( .¡!@#$%^&*()_+- )',
-        'number' => '- 1 Zahl',
-    ],
-    'invalid_credentials' => 'Ungültige Anmeldeinformationen. Bitte versuchen Sie es erneut.',
 
     // ─── ALLGEMEINE NAVIGATION ────────────────────────
     'back' => 'Zurück',
@@ -310,4 +304,6 @@ return [
     'status_unknown' => 'Unbekannt',
 
     'view_receipt' => 'Beleg anzeigen',
+
+
 ];

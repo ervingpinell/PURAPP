@@ -1,7 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
     const tours = window.VIATOR_TOURS || [];
 
-    tours.forEach(({ id, code }) => {
+    const resolveProductName = (tour, firstReview) =>
+        (tour?.name) ||
+        (firstReview?.productTitle) ||
+        (tour?.code) ||
+        '';
+
+    tours.forEach(({ id, code, name }) => {
         const container = document.getElementById(`carousel-${id}`);
         const card = document.getElementById(`card-${id}`);
         if (!container || !card) return;
@@ -34,8 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const r = data.reviews[index];
                 const stars = '★'.repeat(Math.round(r.rating)) + '☆'.repeat(5 - Math.round(r.rating));
                 const date = r.publishedDate ? new Date(r.publishedDate).toLocaleDateString() : '';
-                const isShort = r.text.length < 120;
-                const truncated = r.text.length > 250;
+                const isShort = (r.text || '').length < 120;
+                const truncated = (r.text || '').length > 250;
                 const shortText = truncated ? r.text.slice(0, 250) + '...' : r.text;
 
                 container.innerHTML = `
@@ -51,11 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
 
                 // Expandir visualmente la tarjeta
-                if (expanded) {
-                    card.classList.add('expanded');
-                } else {
-                    card.classList.remove('expanded');
-                }
+                card.classList.toggle('expanded', expanded);
             };
 
             render();
@@ -80,32 +82,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     render();
                 }
             });
+
+            // ✅ Activar modal al hacer clic en el nombre del tour con fallback
+            const links = document.querySelectorAll(`.tour-link[data-id="${id}"]`);
+            links.forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+
+                    const tourName = resolveProductName({ id, code, name }, data.reviews[0]);
+
+                    const modalName = document.getElementById('tourModalName');
+                    const modalLink = document.getElementById('tourModalConfirm');
+
+                    if (modalName) modalName.textContent = tourName;
+                    if (modalLink) modalLink.href = `/tour/${id}`;
+
+                    const modalElement = document.getElementById('confirmTourModal');
+                    if (modalElement) {
+                        new bootstrap.Modal(modalElement).show();
+                    }
+                });
+            });
         })
         .catch(err => {
             console.error('❌ Error cargando reseñas:', err);
             container.innerHTML = `<p class="text-danger text-center">Error loading reviews.</p>`;
-        });
-    });
-
-    // ✅ Activar modal al hacer clic en el nombre del tour
-    document.querySelectorAll('.tour-link').forEach(link => {
-        link.addEventListener('click', e => {
-            e.preventDefault();
-
-            const id = link.dataset.id;
-            const name = link.dataset.name;
-
-            const modalName = document.getElementById('tourModalName');
-            const modalLink = document.getElementById('tourModalConfirm');
-
-            if (modalName) modalName.textContent = name;
-            if (modalLink) modalLink.href = `/tour/${id}`;
-
-            const modalElement = document.getElementById('confirmTourModal');
-            if (modalElement) {
-                const modal = new bootstrap.Modal(modalElement);
-                modal.show();
-            }
         });
     });
 });

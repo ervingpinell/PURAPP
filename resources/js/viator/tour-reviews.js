@@ -5,10 +5,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const next = document.querySelector(`.carousel-next[data-tour="${tourId}"]`);
   const wrapper = container?.closest('.tour-review-carousel');
 
+  const T = {
+    none: window.I18N?.no_reviews ?? 'No hay reseñas disponibles.',
+    seeMore: window.I18N?.see_more ?? 'Ver más',
+    seeLess: window.I18N?.see_less ?? 'Ver menos',
+    anonymous: window.I18N?.anonymous ?? 'Anónimo',
+  };
+
   if (!container || !window.productCode) {
-  container.innerHTML = '<p class="text-muted text-center">No se encontraron reseñas relacionadas a este tour.</p>';
-  return;
-}
+    if (container) container.innerHTML = `<p class="text-muted text-center">${T.none}</p>`;
+    return;
+  }
+
+  const renderStars = (rating) => {
+    const r = Math.max(0, Math.min(5, Number(rating) || 0));
+    const full = Math.floor(r);
+    const empty = 5 - full;
+    return '★'.repeat(full) + '☆'.repeat(empty);
+  };
 
   fetch(`/api/reviews`, {
     method: 'POST',
@@ -27,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
   .then(res => res.ok ? res.json() : Promise.reject(res))
   .then(data => {
     if (!data.reviews || data.reviews.length === 0) {
-      container.innerHTML = '<p class="text-muted text-center">No hay reseñas disponibles.</p>';
+      container.innerHTML = `<p class="text-muted text-center">${T.none}</p>`;
       return;
     }
 
@@ -37,32 +51,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderReview = (i) => {
       const r = reviews[i];
-      const stars = '★'.repeat(Math.round(r.rating)) + '☆'.repeat(5 - Math.round(r.rating));
+      const stars = renderStars(r.rating);
       const date = r.publishedDate ? new Date(r.publishedDate).toLocaleDateString() : '';
       const label = r.title ? `<div class="review-label">${r.title}</div>` : '';
 
-      const fullText = r.text.trim();
+      const fullText = (r.text || '').trim();
       const truncated = fullText.length > 250;
       const shortText = truncated ? fullText.slice(0, 250).trim() + '...' : fullText;
 
       container.innerHTML = `
         <div class="review-body-wrapper">
           <div class="review-header">
-            <strong>${r.userName || 'Anónimo'}</strong>
+            <strong>${r.userName || T.anonymous}</strong>
             <small>${date}</small>
-            <div class="review-stars">${stars} <span class="rating-number">(${r.rating}/5)</span></div>
+            <div class="review-stars">${stars} <span class="rating-number">(${Number(r.rating || 0).toFixed(1)}/5)</span></div>
             ${label}
           </div>
           <div class="review-content ${expanded ? 'expanded' : ''}" id="review-text-${i}">${expanded ? fullText : shortText}</div>
           <div class="review-footer">
-            ${truncated ? `<button class="toggle-review">${expanded ? 'Ver menos' : 'Ver más'}</button>` : ''}
+            ${truncated ? `<button class="toggle-review">${expanded ? T.seeLess : T.seeMore}</button>` : ''}
           </div>
         </div>
       `;
 
-      if (wrapper) {
-        wrapper.classList.toggle('expanded', expanded);
-      }
+      if (wrapper) wrapper.classList.toggle('expanded', expanded);
 
       const toggleBtn = container.querySelector('.toggle-review');
       const reviewText = container.querySelector(`#review-text-${i}`);
@@ -72,11 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
           expanded = !expanded;
           reviewText.classList.toggle('expanded', expanded);
           reviewText.textContent = expanded ? fullText : shortText;
-          toggleBtn.textContent = expanded ? 'Ver menos' : 'Ver más';
-
-          if (wrapper) {
-            wrapper.classList.toggle('expanded', expanded);
-          }
+          toggleBtn.textContent = expanded ? T.seeLess : T.seeMore;
+          if (wrapper) wrapper.classList.toggle('expanded', expanded);
         });
       }
     };

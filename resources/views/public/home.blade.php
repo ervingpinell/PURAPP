@@ -1,9 +1,11 @@
 @extends('layouts.app')
 
 @section('title', 'Inicio')
+
 @push('meta')
     <meta name="robots" content="noindex, nofollow">
 @endpush
+
 {{-- ✅ Estilos específicos del home --}}
 @push('styles')
     @vite([
@@ -18,36 +20,24 @@
     @include('partials.tours', ['toursByType' => $toursByType, 'typeMeta' => $typeMeta])
 </section>
 
-    <section class="home-testimonials">
-        {{-- 🔁 Testimonios (Viator y otros) --}}
-        @include('partials.testimonials')
-    </section>
+<section class="home-testimonials">
+    {{-- 🔁 Testimonios (Viator y otros) --}}
+    @include('partials.testimonials')
+</section>
 
-    <section class="ws-section">
-        @include('partials.ws-widget')
-    </section>
+<section class="ws-section">
+    @include('partials.ws-widget')
+</section>
 @endsection
 
 @push('scripts')
-    @php
-        $carouselProductCodes = collect($carouselProductCodes ?? [])->map(function ($p) {
-            return [
-                'id'   => $p['id'] ?? null,
-                'code' => $p['code'] ?? null,
-                'name' => isset($p['id'])
-                    ? \App\Models\Tour::find($p['id'])?->getTranslatedName()
-                    : null,
-            ];
-        })->filter();
-    @endphp
+<script>
+  // 👇 Enviamos exactamente lo que armó el controlador
+  // Formato esperado: [{ id, code, name }]
+  window.VIATOR_CAROUSEL_PRODUCTS = @json($carouselProductCodes, JSON_UNESCAPED_UNICODE);
+</script>
 
-    <script>
-        window.VIATOR_CAROUSEL_PRODUCTS = @json($carouselProductCodes);
-    </script>
-
-    @vite('resources/js/viator/carousel-reviews.js')
+@vite('resources/js/viator/carousel-reviews.js')
 @endpush
-
-
 
 @include('partials.show-tour-modal')
