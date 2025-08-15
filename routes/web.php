@@ -87,8 +87,11 @@ Route::get('/cart/count', [CartController::class, 'count'])
     Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
     Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
     Route::post('/contact/send', [HomeController::class, 'sendContact'])->name('contact.send');
-    Route::get('/policies', [PolicyController::class, 'publicIndex'])->name('policies.index');
-    Route::get('/policies/{policyId}', [PolicyController::class, 'showPublic'])->name('policies.show');
+// routes/web.php
+Route::get('/politicas', [\App\Http\Controllers\Site\PoliciesController::class, 'index'])
+    ->name('site.policies.index');
+    Route::get('/politicas/{policy}', [\App\Http\Controllers\Site\PoliciesController::class, 'show'])
+    ->name('site.policies.show');
 
 // Test de correo
     Route::get('/send-test-email', function () {
@@ -154,18 +157,19 @@ Route::get('/cart/count', [CartController::class, 'count'])
         Route::resource('faqs', AdminFaqController::class)->except(['show']);
         Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
 
-Route::get('/policies',               [PolicyController::class, 'index'])->name('policies.index');
-Route::post('/policies',              [PolicyController::class, 'store'])->name('policies.store');
-Route::put('/policies/{policy}',      [PolicyController::class, 'update'])->name('policies.update')->whereNumber('policy');
-Route::post('/policies/{policy}/toggle', [PolicyController::class, 'toggleStatus'])->name('policies.toggleStatus')->whereNumber('policy');
-Route::delete('/policies/{policy}',   [PolicyController::class, 'destroy'])->name('policies.destroy')->whereNumber('policy');
+// Categorías (policies)
+    Route::get('policies', [PolicyController::class, 'index'])->name('policies.index');
+    Route::post('policies', [PolicyController::class, 'store'])->name('policies.store');
+    Route::put('policies/{policy}', [PolicyController::class, 'update'])->name('policies.update');
+    Route::post('policies/{policy}/toggle', [PolicyController::class, 'toggle'])->name('policies.toggle');
+    Route::delete('policies/{policy}', [PolicyController::class, 'destroy'])->name('policies.destroy');
 
-// Policy Sections (nested)
-Route::get('/policies/{policy}/sections',                   [PolicySectionController::class, 'index'])->name('policies.sections.index')->whereNumber('policy');
-Route::post('/policies/{policy}/sections',                  [PolicySectionController::class, 'store'])->name('policies.sections.store')->whereNumber('policy');
-Route::put('/policies/{policy}/sections/{section}',         [PolicySectionController::class, 'update'])->name('policies.sections.update')->whereNumber('policy')->whereNumber('section');
-Route::post('/policies/{policy}/sections/{section}/toggle', [PolicySectionController::class, 'toggle'])->name('policies.sections.toggle')->whereNumber('policy')->whereNumber('section');
-Route::delete('/policies/{policy}/sections/{section}',      [PolicySectionController::class, 'destroy'])->name('policies.sections.destroy')->whereNumber('policy')->whereNumber('section');
+    // Secciones por categoría
+    Route::get('policies/{policy}/sections', [PolicySectionController::class, 'index'])->name('policies.sections.index');
+    Route::post('policies/{policy}/sections', [PolicySectionController::class, 'store'])->name('policies.sections.store');
+    Route::put('policies/{policy}/sections/{section}', [PolicySectionController::class, 'update'])->name('policies.sections.update');
+    Route::post('policies/{policy}/sections/{section}/toggle', [PolicySectionController::class, 'toggle'])->name('policies.sections.toggle');
+    Route::delete('policies/{policy}/sections/{section}', [PolicySectionController::class, 'destroy'])->name('policies.sections.destroy');
 
 // Códigos promocionales
         Route::get('/promoCode', [PromoCodeController::class, 'index'])->name('promoCode.index');

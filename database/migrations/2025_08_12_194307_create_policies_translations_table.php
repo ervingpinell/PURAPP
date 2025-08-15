@@ -8,18 +8,15 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('policy_translations', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('policy_id');
-            $table->string('locale', 10);   // es, en, pt_BR, etc.
-            $table->string('title');
-            $table->longText('content');
+            $table->foreignId('policy_id')
+                  ->constrained('policies', 'policy_id')
+                  ->cascadeOnDelete();
+            $table->string('locale', 10);          // ej: es, en, pt_BR
+            $table->string('title');               // título por idioma
+            $table->longText('content')->nullable(); // descripción por idioma
             $table->timestamps();
 
-            $table->unique(['policy_id', 'locale']); // una traducción por idioma
-            $table->foreign('policy_id')
-                ->references('policy_id')
-                ->on('policies')
-                ->cascadeOnDelete();
-
+            $table->unique(['policy_id', 'locale']);
             $table->index('locale');
         });
     }

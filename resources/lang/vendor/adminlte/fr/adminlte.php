@@ -286,6 +286,7 @@ return [
     'confirm_new_password_placeholder' => 'Confirmer le nouveau mot de passe',
 
     'policies' => 'Politiques',
+        'all_policies' => 'Toutes nos politiques',
 
     'no_reservations_yet' => 'Aucune réservation pour le moment !',
     'no_reservations_message' => 'Il semble que vous n\'ayez réservé aucune aventure avec nous. Pourquoi ne pas explorer nos circuits incroyables ?',

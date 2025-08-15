@@ -61,6 +61,7 @@ return [
     'contact' => 'Contact',
     'about' => 'About Us',
     'privacy_policy' => 'Privacy Policy',
+    'all_policies' => 'All Our Policies ',
     'terms_and_conditions' => 'Terms and Conditions',
     'cancellation_and_refunds_policies' => 'Cancellation and Refund Policies',
     'reports' => 'Reports',

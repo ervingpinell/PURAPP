@@ -60,6 +60,7 @@ return [
     'contact' => 'Contato',
     'about' => 'Sobre nós',
     'privacy_policy' => 'Política de Privacidade',
+    'all_policies' => 'Todas as nossas políticas',
     'terms_and_conditions' => 'Termos e Condições',
     'cancellation_and_refunds_policies' => 'Políticas de cancelamento e reembolso',
     'reports' => 'Relatórios',

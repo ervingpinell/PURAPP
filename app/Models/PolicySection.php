@@ -32,25 +32,22 @@ class PolicySection extends Model
         return $this->belongsTo(Policy::class, 'policy_id', 'policy_id');
     }
 
-    public function translations()
-    {
-        return $this->hasMany(PolicySectionTranslation::class, 'section_id', 'section_id');
-    }
+public function translations()
+{
+    return $this->hasMany(\App\Models\PolicySectionTranslation::class, 'section_id', 'section_id');
+}
 
     /* Helpers de traducción (igual estilo que Faq/Policy) */
-    public function translation(?string $locale = null)
-    {
-        $locale   = $locale ?? app()->getLocale();
-        $fallback = config('app.fallback_locale', 'es');
+public function translation(?string $locale = null)
+{
+    $locale   = $locale ?: app()->getLocale();
+    $fallback = config('app.fallback_locale');
+    $bag = $this->relationLoaded('translations') ? $this->translations : $this->translations()->get();
 
-        $bag = $this->relationLoaded('translations')
-            ? $this->translations
-            : $this->translations()->get();
-
-        return $bag->firstWhere('locale', $locale)
-            ?? $bag->firstWhere('locale', $fallback)
-            ?? $bag->first();
-    }
+    return $bag->firstWhere('locale', $locale)
+        ?? $bag->firstWhere('locale', $fallback)
+        ?? $bag->first();
+}
 
     public function translate(?string $locale = null)
     {

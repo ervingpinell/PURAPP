@@ -8,17 +8,16 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('policy_section_translations', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('section_id');
+            $table->foreignId('section_id')
+                  ->constrained('policy_sections', 'section_id')
+                  ->cascadeOnDelete();
             $table->string('locale', 10);
-            $table->string('title');       // subtítulo
-            $table->longText('content');   // contenido del subtítulo
+            $table->string('title');
+            $table->longText('content')->nullable();
             $table->timestamps();
 
-            $table->unique(['section_id','locale']);
-
-            $table->foreign('section_id')
-                ->references('section_id')->on('policy_sections')
-                ->cascadeOnDelete();
+            $table->unique(['section_id', 'locale']);
+            $table->index('locale');
         });
     }
 

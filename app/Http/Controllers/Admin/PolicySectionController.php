@@ -3,194 +3,180 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+
 use App\Models\Policy;
 use App\Models\PolicySection;
 use App\Models\PolicySectionTranslation;
+use App\Services\Contracts\TranslatorInterface;
 
 class PolicySectionController extends Controller
 {
-    /**
-     * Lista todas las secciones de una política (activas e inactivas)
-     */
-    public function index(Policy $policy)
-    {
-        $sections = PolicySection::where('policy_id', $policy->policy_id)
-            ->orderBy('sort_order')
-            ->orderBy('section_id')
-            ->with('translations')
-            ->get();
-
-        return view('admin.policies.sections.index', compact('policy', 'sections'));
+    public function __construct(
+        protected TranslatorInterface $translator
+    ) {
+        // $this->middleware(['auth', 'can:manage-policies']);
     }
 
     /**
-     * Crea una sección y su traducción para el locale enviado
+     * Lista secciones de una categoría (ADMIN).
      */
-    public function store(Request $request, Policy $policy)
+    public function index(Policy $policy): View
     {
-        $allowedLocales = ['es','en','fr','pt','de'];
+        $sections = $policy->sections()
+            ->withoutGlobalScopes()
+            ->with('translations')
+            ->orderBy('sort_order')
+            ->get();
 
-        // Normaliza locale y checkbox antes de validar
-        $rawLocale  = $request->input('locale', app()->getLocale());
-        $normLocale = substr(strtolower(str_replace('_','-', $rawLocale)), 0, 2);
+        return view('admin.policies.sections.index', compact('policy','sections'));
+    }
 
-        $request->merge([
-            'locale'    => $normLocale,
-            'is_active' => $request->boolean('is_active'),
-        ]);
+    /**
+     * Crear sección + traducción base (DeepL SOLO en create).
+     */
+    public function store(Request $request, Policy $policy): RedirectResponse
+    {
+        $allowedLocales = array_keys(config('app.supported_locales', [
+            'es'=>'Español','en'=>'English','pt_BR'=>'Português (Brasil)','fr'=>'Français','de'=>'Deutsch',
+        ]));
 
-        $validated = $request->validate([
+        $request->validate([
             'key'        => ['nullable','string','max:100'],
-            'sort_order' => [
-                'nullable','integer','min:0',
-                Rule::unique('policy_sections', 'sort_order')
-                    ->where(fn($q) => $q->where('policy_id', $policy->policy_id)),
-            ],
-            'is_active'  => ['nullable','boolean'],
-            'locale'     => ['required', Rule::in($allowedLocales)],
+            'sort_order' => ['nullable','integer','min:0'],
+            'is_active'  => ['nullable','in:0,1'],
+
+            'locale'     => ['nullable', Rule::in($allowedLocales)],
             'title'      => ['required','string','max:255'],
             'content'    => ['required','string'],
-        ], [
-            'sort_order.min'    => 'El orden debe ser 0 o mayor.',
-            'sort_order.unique' => 'Ya existe otra sección con ese orden en esta política.',
         ]);
 
-        $locale    = $validated['locale'];
-        $isActive  = (bool)($validated['is_active'] ?? true);
-
-        // Si no se envía sort_order, coloca el siguiente bloque (+10)
-        $sortOrder = $validated['sort_order']
-            ?? ((int) PolicySection::where('policy_id', $policy->policy_id)->max('sort_order') + 10);
-
-        DB::transaction(function () use ($policy, $validated, $locale, $isActive, $sortOrder) {
+        return DB::transaction(function () use ($request, $policy) {
             $section = PolicySection::create([
                 'policy_id'  => $policy->policy_id,
-                'key'        => $validated['key'] ?? null,
-                'sort_order' => $sortOrder,
-                'is_active'  => $isActive,
+                'key'        => $request->input('key'),
+                'sort_order' => (int) $request->input('sort_order', 0),
+                'is_active'  => $request->boolean('is_active', true),
             ]);
+
+            $baseLocale = (string) ($request->input('locale') ?: app()->getLocale());
 
             PolicySectionTranslation::create([
                 'section_id' => $section->section_id,
-                'locale'     => $locale,
-                'title'      => $validated['title'],
-                'content'    => $validated['content'],
+                'locale'     => $baseLocale,
+                'title'      => (string) $request->input('title'),
+                'content'    => (string) $request->input('content'),
             ]);
-        });
 
-        return redirect()
-            ->route('admin.policies.sections.index', $policy)
-            ->with('success', '✅ Sección creada correctamente.');
+            // DeepL SOLO aquí
+            $this->translateSectionIfMissing($section, $baseLocale);
+
+            return back()->with('success', '✅ Sección creada y traducida.');
+        });
     }
 
     /**
-     * Actualiza metadatos de la sección y hace upsert de traducción para el locale enviado
+     * Editar sección + traducción del locale actual (SIN DeepL).
      */
-    public function update(Request $request, Policy $policy, PolicySection $section)
+    public function update(Request $request, Policy $policy, PolicySection $section): RedirectResponse
     {
-        // Asegura que la sección pertenece a la política
-        if ((int)$section->policy_id !== (int)$policy->policy_id) {
-            abort(404);
-        }
+        if ($section->policy_id !== $policy->policy_id) abort(404);
 
-        $allowedLocales = ['es','en','fr','pt','de'];
+        $allowedLocales = array_keys(config('app.supported_locales', [
+            'es'=>'Español','en'=>'English','pt_BR'=>'Português (Brasil)','fr'=>'Français','de'=>'Deutsch',
+        ]));
 
-        // Normaliza locale y checkbox antes de validar
-        $rawLocale  = $request->input('locale', app()->getLocale());
-        $normLocale = substr(strtolower(str_replace('_','-', $rawLocale)), 0, 2);
-
-        $request->merge([
-            'locale'    => $normLocale,
-            'is_active' => $request->boolean('is_active'),
-        ]);
-
-        $validated = $request->validate([
+        $request->validate([
             'key'        => ['nullable','string','max:100'],
-            'sort_order' => [
-                'nullable','integer','min:0',
-                Rule::unique('policy_sections', 'sort_order')
-                    ->ignore($section->section_id, 'section_id')
-                    ->where(fn($q) => $q->where('policy_id', $policy->policy_id)),
-            ],
-            'is_active'  => ['nullable','boolean'],
-            'locale'     => ['required', Rule::in($allowedLocales)],
-            'title'      => ['nullable','string','max:255'],
-            'content'    => ['nullable','string'],
-        ], [
-            'sort_order.min'    => 'El orden debe ser 0 o mayor.',
-            'sort_order.unique' => 'Ya existe otra sección con ese orden en esta política.',
+            'sort_order' => ['nullable','integer','min:0'],
+            'is_active'  => ['nullable','in:0,1'],
+
+            'locale'     => ['nullable', Rule::in($allowedLocales)],
+            'title'      => ['required','string','max:255'],
+            'content'    => ['required','string'],
         ]);
 
-        $locale    = $validated['locale'];
-        $isActive  = array_key_exists('is_active', $validated)
-            ? (bool)$validated['is_active']
-            : (bool)$section->is_active;
-
-        $sortOrder = $validated['sort_order'] ?? $section->sort_order;
-
-        DB::transaction(function () use ($section, $validated, $locale, $isActive, $sortOrder) {
-            // Actualiza metadatos de la sección
+        return DB::transaction(function () use ($request, $section) {
             $section->update([
-                'key'        => $validated['key'] ?? $section->key,
-                'sort_order' => $sortOrder,
-                'is_active'  => $isActive,
+                'key'        => $request->input('key'),
+                'sort_order' => (int) $request->input('sort_order', 0),
+                'is_active'  => $request->boolean('is_active', true),
             ]);
 
-            // Upsert de traducción del locale (solo si viene contenido)
-            $hasTitle   = array_key_exists('title', $validated);
-            $hasContent = array_key_exists('content', $validated);
+            $locale = (string) ($request->input('locale') ?: app()->getLocale());
 
-            if ($hasTitle || $hasContent) {
-                $tr = PolicySectionTranslation::firstOrNew([
-                    'section_id' => $section->section_id,
-                    'locale'     => $locale,
-                ]);
+            $tr = PolicySectionTranslation::firstOrNew([
+                'section_id' => $section->section_id,
+                'locale'     => $locale,
+            ]);
+            $tr->title   = (string) $request->input('title');
+            $tr->content = (string) $request->input('content');
+            $tr->save();
 
-                if ($hasTitle)   $tr->title   = $validated['title'];
-                if ($hasContent) $tr->content = $validated['content'];
-
-                $tr->save();
-            }
+            // SIN DeepL en update
+            return back()->with('success', '✅ Sección actualizada.');
         });
-
-        return redirect()
-            ->route('admin.policies.sections.index', $section->policy_id)
-            ->with('success', '✅ Sección actualizada correctamente.');
     }
 
     /**
-     * Alterna activo/inactivo
+     * Activar/Desactivar sección (ADMIN).
      */
-    public function toggle(Policy $policy, PolicySection $section)
+    public function toggle(Policy $policy, PolicySection $section): RedirectResponse
     {
-        if ((int)$section->policy_id !== (int)$policy->policy_id) {
-            abort(404);
-        }
+        if ($section->policy_id !== $policy->policy_id) abort(404);
 
-        $section->is_active = ! $section->is_active;
-        $section->save();
+        $section->update(['is_active' => !$section->is_active]);
 
-        return redirect()
-            ->route('admin.policies.sections.index', $policy)
-            ->with('success', 'Estado de la sección actualizado.');
+        return back()->with(
+            'success',
+            $section->is_active ? '✅ Sección activada' : '⚠️ Sección desactivada'
+        );
     }
 
     /**
-     * Elimina la sección (sus traducciones se borran por FK ON DELETE CASCADE)
+     * Eliminar sección (ADMIN).
      */
-    public function destroy(Policy $policy, PolicySection $section)
+    public function destroy(Policy $policy, PolicySection $section): RedirectResponse
     {
-        if ((int)$section->policy_id !== (int)$policy->policy_id) {
-            abort(404);
-        }
+        if ($section->policy_id !== $policy->policy_id) abort(404);
 
         $section->delete();
 
-        return redirect()
-            ->route('admin.policies.sections.index', $policy)
-            ->with('success', '🗑️ Sección eliminada.');
+        return back()->with('success', '🗑️ Sección eliminada.');
+    }
+
+    /**
+     * DeepL helper: crear traducciones faltantes (sólo en store()).
+     */
+    private function translateSectionIfMissing(PolicySection $section, string $baseLocale): void
+    {
+        $supported = array_keys(config('app.supported_locales', [
+            'es'=>'Español','en'=>'English','pt_BR'=>'Português (Brasil)','fr'=>'Français','de'=>'Deutsch',
+        ]));
+
+        $base = $section->translations()->where('locale', $baseLocale)->first();
+        if (!$base) return;
+
+        foreach ($supported as $target) {
+            if ($target === $baseLocale) continue;
+
+            $existing = $section->translations()->where('locale', $target)->first();
+            if ($existing) continue;
+
+            try { $titleT = $this->translator->translate($base->title, $target); }
+            catch (\Throwable $e) { $titleT = $base->title; }
+
+            try { $contentT = $this->translator->translate($base->content, $target); }
+            catch (\Throwable $e) { $contentT = $base->content; }
+
+            PolicySectionTranslation::updateOrCreate(
+                ['section_id' => $section->section_id, 'locale' => $target],
+                ['title' => $titleT, 'content' => $contentT]
+            );
+        }
     }
 }
