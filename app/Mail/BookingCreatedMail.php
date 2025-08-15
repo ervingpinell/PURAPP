@@ -2,30 +2,66 @@
 
 namespace App\Mail;
 
+use App\Models\Booking;
+use App\Models\BookingDetail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Str;
 
 class BookingCreatedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $booking;
+    public Booking $booking;
+    /** @var \Illuminate\Support\Collection<int, BookingDetail> */
+    public $details;
+    public string $lang;
+    public string $company;
 
     /**
-     * Create a new message instance.
+     * @param \App\Models\Booking $booking
+     * @param \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection|null $details
      */
-    public function __construct($booking)
+    public function __construct(Booking $booking, $details = null)
     {
-        $this->booking = $booking; // Pasas la reserva completa
+        // Solo garantizamos el user para el saludo
+        $this->booking = $booking->loadMissing(['user']);
+
+        // Si no recibimos detalles, cargamos todos los del booking
+        $this->details = collect($details ?? BookingDetail::with(['tour','hotel','schedule','tourLanguage','booking'])
+            ->where('booking_id', $booking->booking_id)->get());
+
+        $this->company = config('app.company_name', 'Green Vacations');
+
+        // Determinar idioma por el primer detalle (si el controlador manda 1 por item
+        // quedará perfecto; si manda varios, ya se validó que son del mismo idioma)
+        $this->lang = $this->resolveLangFromDetail($this->details->first());
     }
 
-    /**
-     * Build the message.
-     */
+    protected function resolveLangFromDetail(?BookingDetail $detail): string
+    {
+        if (!$detail) return 'en';
+        $name = optional($detail->tourLanguage)->name; // p.ej. "Español", "Inglés"
+        $val  = Str::lower($name ?? '');
+        // Si contiene "es" -> español; en cualquier otro caso, inglés
+        return Str::contains($val, 'es') ? 'es' : 'en';
+    }
+
     public function build()
     {
-        return $this->subject('Confirmación de Reserva - Green Vacations')
-                    ->view('emails.booking_created');
+        // Asunto localizado (sin tocar app()->setLocale())
+        $subject = __('adminlte::email.booking_created_subject', [
+            'reference' => $this->booking->booking_reference
+        ], $this->lang);
+
+        return $this->subject($subject)
+            ->view('emails.booking_created')
+            ->with([
+                'booking' => $this->booking,
+                'details' => $this->details, // colección de BookingDetail
+                'lang'    => $this->lang,
+                'company' => $this->company,
+            ]);
     }
 }

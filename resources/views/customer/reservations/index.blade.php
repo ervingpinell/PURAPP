@@ -91,7 +91,7 @@
                                     @if(optional($booking->tour)->image_path)
                                         <img src="{{ asset('storage/' . $booking->tour->image_path) }}" class="card-img-top card-img-top-custom" alt="{{ optional($booking->tour)->name }}">
                                     @else
-                                        <img src="{{ asset('images/default_tour_placeholder.png') }}" class="card-img-top card-img-top-custom" alt="{{ __('adminlte::adminlte.generic_tour') }}">
+                                        <img src="{{ asset('images/volcano.png') }}" class="card-img-top card-img-top-custom" alt="{{ __('adminlte::adminlte.generic_tour') }}">
                                     @endif
 
                                     <div class="card-body">

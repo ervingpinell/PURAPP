@@ -308,4 +308,5 @@ return [
 
     'validation.unique' => 'Este correo ya se encuentra en uso',
 
+
 ];

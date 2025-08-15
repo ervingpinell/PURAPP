@@ -12,6 +12,7 @@
   <div class="modal-dialog">
     <form id="createBookingForm" action="{{ route('admin.reservas.store') }}" method="POST" novalidate>
       @csrf
+      <input type="hidden" name="_modal" value="register"><!-- 👈 Para reabrir este modal tras errores -->
 
       <div class="modal-content">
         <div class="modal-header">
@@ -20,11 +21,21 @@
         </div>
 
         <div class="modal-body">
-          <!-- Requeridos por el controller -->
-          <input type="hidden" name="booking_date" value="{{ now()->toDateString() }}">
-          <input type="hidden" name="is_other_hotel" id="is_other_hotel" value="0">
+          {{-- ⛑️ Resumen de errores (solo si vienen de este modal) --}}
+          @if ($errors->any() && (session('openModal') === 'register' || old('_modal') === 'register'))
+            <div class="alert alert-danger">
+              <ul class="mb-0">
+                @foreach ($errors->all() as $err)
+                  <li>{{ $err }}</li>
+                @endforeach
+              </ul>
+            </div>
+          @endif
 
-          {{-- Form principal (user_id, tour_id, tour_date, schedule_id, status, pax, hotel_id, other_hotel_name, tour_language_id, etc.) --}}
+          <!-- Requerido por el controller -->
+          <input type="hidden" name="booking_date" value="{{ now()->toDateString() }}">
+
+          {{-- Form principal (campos: user_id, tour_id, schedule_id, tour_language_id, tour_date, hotel_id/other, pax, status, etc.) --}}
           @include('admin.bookings.partials.form', ['modo' => 'crear'])
 
           {{-- Código promocional (opcional) --}}
@@ -59,63 +70,128 @@
   </div>
 </div>
 
-{{-- Reabrir el modal si hubo errores de validación --}}
-@if ($errors->any())
+{{-- Reabrir este modal si el error viene de aquí --}}
+@if (session('openModal') === 'register' || (old('_modal') === 'register' && $errors->any()))
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      new bootstrap.Modal(document.getElementById('modalRegistrar')).show();
+      const m = document.getElementById('modalRegistrar');
+      if (m) new bootstrap.Modal(m).show();
     });
   </script>
 @endif
 
-{{-- Toggle "Other hotel" si el partial define #hotel_id, #other_hotel_wrapper, #other_hotel_name --}}
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const sel   = document.getElementById('hotel_id');
-    const wrap  = document.getElementById('other_hotel_wrapper');
-    const hid   = document.getElementById('is_other_hotel');
-    const input = document.getElementById('other_hotel_name');
-    if (!sel || !wrap || !hid) return;
-
-    const toggle = () => {
-      const isOther = sel.value === 'other';
-      wrap.classList.toggle('d-none', !isOther);
-      hid.value = isOther ? 1 : 0;
-      if (!isOther && input) input.value = '';
-    };
-
-    toggle();
-    sel.addEventListener('change', toggle);
-  });
-</script>
-
-{{-- Validación de fecha (no días pasados) + Promo code + Spinner en un único submit --}}
+{{-- Reset al abrir + fecha mínima + toggle otro hotel + horarios dinámicos + promo + spinner --}}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const form      = document.getElementById('createBookingForm');
+  const regModal = document.getElementById('modalRegistrar');
+  if (!regModal) return;
+
+  const form      = regModal.querySelector('#createBookingForm');
   const btnSubmit = form?.querySelector('button[type="submit"]');
-  const promoInp  = document.getElementById('promo_code');
-  const promoHelp = document.getElementById('promo_help');
-  const btnApply  = document.getElementById('btn-apply-promo');
 
-  // localizar el input de fecha del partial
-  const dateInput = form?.querySelector('input[name="tour_date"]');
+  // Inputs
+  const dateInput   = form?.querySelector('input[name="tour_date"]');
+  const userSel     = form?.querySelector('select[name="user_id"]');
+  const langSel     = form?.querySelector('select[name="tour_language_id"]');
+  const statusSel   = form?.querySelector('select[name="status"]');
+  const adultsInp   = form?.querySelector('input[name="adults_quantity"]');
+  const kidsInp     = form?.querySelector('input[name="kids_quantity"]');
 
-  // ====== FECHA: bloquear días pasados (sin tocar el partial) ======
+  const hotelSel    = form?.querySelector('#hotel_id');
+  const wrapOther   = form?.querySelector('#other_hotel_wrapper');
+  const hiddenOther = form?.querySelector('#is_other_hotel');
+  const otherInput  = form?.querySelector('#other_hotel_name');
+
+  const tourSel     = form?.querySelector('#selectTour');
+  const schedSel    = form?.querySelector('#selectSchedule');
+
+  const promoInp    = form?.querySelector('#promo_code');
+  const promoHelp   = form?.querySelector('#promo_help');
+  const btnApply    = form?.querySelector('#btn-apply-promo');
+
+  let promoValid    = false;
+
+  // No resetea si venimos de errores del servidor para este mismo modal
+  const shouldPreserve = {!! (session('openModal') === 'register' || (old('_modal') === 'register' && $errors->any())) ? 'true' : 'false' !!};
+
+  // ---------- RESET AUTOMÁTICO AL ABRIR ----------
+  regModal.addEventListener('show.bs.modal', () => {
+    if (shouldPreserve) return;
+
+    // Reset nativo del form
+    form?.reset();
+
+    // Valores por defecto
+    if (userSel)   userSel.value   = '';
+    if (langSel)   langSel.value   = '';
+    if (statusSel) statusSel.value = 'pending';
+
+    if (tourSel)  tourSel.value  = '';
+    if (schedSel) schedSel.innerHTML = '<option value="">Seleccione un horario</option>';
+
+    if (hotelSel) hotelSel.value = '';
+    if (wrapOther)   wrapOther.classList.add('d-none');
+    if (hiddenOther) hiddenOther.value = '0';
+    if (otherInput)  otherInput.value  = '';
+
+    if (adultsInp) adultsInp.value = 1;
+    if (kidsInp)   kidsInp.value   = 0;
+
+    if (promoInp)  promoInp.value  = '';
+    if (promoHelp) {
+      promoHelp.textContent = '';
+      promoHelp.classList.remove('text-success', 'text-danger');
+    }
+    promoValid = false;
+  });
+
+  // ---------- FECHA MÍNIMA ----------
   if (dateInput) {
-    // setear min="YYYY-MM-DD"
-    dateInput.setAttribute('min', {{ json_encode($today) }});
-
-    // si escriben manualmente una fecha pasada, corrige a hoy
+    dateInput.setAttribute('min', @json($today));
     dateInput.addEventListener('change', () => {
       if (!dateInput.value) return;
-      const picked = new Date(dateInput.value); picked.setHours(0,0,0,0);
-      const today  = new Date({{ json_encode($today) }}); today.setHours(0,0,0,0);
-      if (picked < today) dateInput.value = {{ json_encode($today) }};
+      const picked = new Date(dateInput.value + 'T00:00:00');
+      const today  = new Date(@json($today) + 'T00:00:00');
+      if (picked < today) dateInput.value = @json($today);
     });
   }
 
-  // ====== Helpers de botón ======
+  // ---------- OTRO HOTEL ----------
+  const toggleOther = () => {
+    if (!hotelSel || !wrapOther || !hiddenOther) return;
+    const isOther = hotelSel.value === 'other';
+    wrapOther.classList.toggle('d-none', !isOther);
+    hiddenOther.value = isOther ? 1 : 0;
+    if (!isOther && otherInput) otherInput.value = '';
+  };
+  toggleOther();
+  hotelSel?.addEventListener('change', toggleOther);
+
+  // ---------- HORARIOS POR TOUR ----------
+  const rebuildSchedules = () => {
+    if (!tourSel || !schedSel) return;
+    const opt  = tourSel.options[tourSel.selectedIndex];
+    const json = opt ? opt.getAttribute('data-schedules') : '[]';
+    let list = [];
+    try { list = JSON.parse(json || '[]'); } catch(e) {}
+
+    schedSel.innerHTML = '<option value="">Seleccione un horario</option>';
+    list.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s.schedule_id;
+      o.textContent = `${s.start_time} – ${s.end_time}`;
+      schedSel.appendChild(o);
+    });
+
+    // Si el usuario está corrigiendo tras error y había elegido un horario:
+    @if(old('schedule_id'))
+      schedSel.value = @json(old('schedule_id'));
+    @endif
+  };
+  rebuildSchedules();
+  tourSel?.addEventListener('change', rebuildSchedules);
+
+  // ---------- SPINNER ----------
   const showSpinner = (text) => {
     if (!btnSubmit) return;
     btnSubmit.disabled = true;
@@ -128,9 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnSubmit.dataset.originalText) btnSubmit.innerHTML = btnSubmit.dataset.originalText;
   };
 
-  // ====== Promo code ======
-  let promoValid = false;
-
+  // ---------- PROMO ----------
   function setPromoState({valid, message}) {
     promoValid = valid;
     if (promoHelp) {
@@ -151,7 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         body: JSON.stringify({ code })
       });
-
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
 
@@ -173,7 +246,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Botón "Apply"
   btnApply?.addEventListener('click', async () => {
     const code = (promoInp?.value || '').trim();
     if (!code) {
@@ -184,39 +256,32 @@ document.addEventListener('DOMContentLoaded', () => {
     await validatePromo(code);
   });
 
-  // Si editan el campo, se invalida el estado
   promoInp?.addEventListener('input', () => {
     setPromoState({ valid: false, message: '' });
     btnApply?.removeAttribute('disabled');
   });
 
-  // ====== ÚNICO manejador de submit (primero fecha, luego promo) ======
+  // ---------- SUBMIT ÚNICO ----------
   form?.addEventListener('submit', async (e) => {
-    // 1) Validación de fecha pasada ANTES de cualquier cosa
+    // Fecha no pasada
     if (dateInput && dateInput.value) {
-      const picked = new Date(dateInput.value); picked.setHours(0,0,0,0);
-      const today  = new Date({{ json_encode($today) }}); today.setHours(0,0,0,0);
+      const picked = new Date(dateInput.value + 'T00:00:00');
+      const today  = new Date(@json($today) + 'T00:00:00');
       if (picked < today) {
         e.preventDefault();
         restoreBtn();
         if (window.Swal) {
-          Swal.fire({
-            icon: 'error',
-            title: @json(__('adminlte::adminlte.error') ?? 'Error'),
-            text:  @json(__('adminlte::adminlte.cannot_book_past_dates') ?? 'No puedes reservar para fechas anteriores a hoy.'),
-            confirmButtonColor: '#dc3545'
-          });
+          Swal.fire({ icon: 'error', title: 'Error', text: 'No puedes reservar para fechas anteriores a hoy.', confirmButtonColor: '#dc3545' });
         } else {
-          alert(@json(__('adminlte::adminlte.cannot_book_past_dates') ?? 'No puedes reservar para fechas anteriores a hoy.'));
+          alert('No puedes reservar para fechas anteriores a hoy.');
         }
         dateInput.focus();
         return false;
       }
     }
 
-    // 2) Promo + spinner como de costumbre
+    // Promo
     const code = promoInp?.value?.trim();
-
     if (!code) {
       showSpinner('Guardando...');
       return;
@@ -225,9 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!promoValid) {
       e.preventDefault();
       showSpinner('Validando…');
-
       await validatePromo(code);
-
       if (promoValid) {
         showSpinner('Guardando...');
         form.submit(); // no re-dispara el listener

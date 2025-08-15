@@ -4,17 +4,18 @@
       <th>ID Reserva</th>
       <th>Estado</th>
       <th>Fecha Reserva</th>
+        <th>Referencia</th>
       <th>Cliente</th>
       <th>Correo</th>
       <th>Teléfono</th>
       <th>Tour</th>
+      <th>Idioma</th>
       <th>Fecha Tour</th>
       <th>Hotel</th>
       <th>Horario</th>
       <th>Tipo</th>
       <th>Adultos</th>
       <th>Niños</th>
-      <th>Referencia</th>
       <th>Promo Code</th>
       <th>Total</th>
       <th>Acciones</th>
@@ -34,17 +35,18 @@
       </span>
     </td>
     <td>{{ $booking->booking_date }}</td>
+        <td>{{ $booking->booking_reference }}</td>
     <td>{{ $booking->user->full_name ?? '-' }}</td>
     <td>{{ $booking->user->email ?? '-' }}</td>
     <td>{{ $booking->user->phone ?? '-' }}</td>
     <td>{{ $detail->tour->name ?? '-' }}</td>
+<td>{{ $detail->tourLanguage->name ?? '-' }}</td>
     <td>{{ optional($detail)->tour_date?->format('Y-m-d') ?? '-' }}</td>
     <td>{{ $detail->hotel->name ?? $detail->other_hotel_name ?? '-' }}</td>
     <td>{{ $detail->schedule->start_time ?? '' }} - {{ $detail->schedule->end_time ?? '' }}</td>
     <td>{{ optional($detail->tour->tourType ?? null)->name ?? '—' }}</td>
     <td>{{ $detail->adults_quantity }}</td>
     <td>{{ $detail->kids_quantity }}</td>
-    <td>{{ $booking->booking_reference }}</td>
     <td>{{ $booking->promoCode->code ?? '—' }}</td>
     <td>${{ number_format($booking->total, 2) }}</td>
     <td class="text-nowrap">

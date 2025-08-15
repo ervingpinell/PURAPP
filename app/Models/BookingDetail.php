@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Booking;
-use App\Models\Tour;              
+use App\Models\Tour;
 use App\Models\TourLanguage;
 use App\Models\TourSchedule;
 
@@ -15,10 +15,10 @@ class BookingDetail extends Model
     protected $casts = [
         'tour_date' => 'date',
     ];
-    public    $timestamps = true; 
+    public    $timestamps = true;
     protected $fillable = [
         'booking_id',
-        'tour_id',                  
+        'tour_id',
         'schedule_id',
         'tour_date',
         'tour_language_id',
@@ -56,4 +56,5 @@ class BookingDetail extends Model
     {
         return $this->belongsTo(HotelList::class, 'hotel_id', 'hotel_id');
     }
+
 }

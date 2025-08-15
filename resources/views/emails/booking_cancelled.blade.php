@@ -1,36 +1,38 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ $mailLocale }}">
 <head>
     <meta charset="UTF-8">
-    <title>Cancelación de Reserva</title>
+    <title>{{ __('adminlte::email.booking_cancelled_title', [], $mailLocale) }}</title>
 </head>
-<body style="font-family: Arial, sans-serif; color: #333;">
-    <h2 style="color: #D9534F;">¡Hola {{ $booking->user->full_name }}!</h2>
+<body style="font-family: Arial, sans-serif; color: #333; line-height:1.5;">
+    <h2 style="color:#B00020; margin-bottom:8px;">
+        {{ __('adminlte::email.greeting', ['name' => $booking->user->full_name], $mailLocale) }}
+    </h2>
 
-    <p>Lamentamos informarte que tu reserva con <strong>Green Vacations</strong> ha sido <strong>cancelada</strong>.</p>
-
-    <h4>📅 Detalles de la Reserva Cancelada:</h4>
-    <ul>
-        <li><strong>Código de Reserva:</strong> {{ $booking->booking_reference }}</li>
-        <li><strong>Tour:</strong> {{ $booking->tour->name }}</li>
-        <li><strong>Fecha:</strong> {{ optional($booking->details->first())->tour_date ? \Carbon\Carbon::parse($booking->details->first()->tour_date)->format('d/m/Y') : '-' }}</li>
-        <li><strong>Adultos:</strong> {{ $booking->details->first()->adults_quantity ?? '-' }}</li>
-        <li><strong>Niños:</strong> {{ $booking->details->first()->kids_quantity ?? '-' }}</li>
-        <li><strong>Hotel:</strong>
-            @if(optional($booking->details->first())->is_other_hotel)
-                {{ $booking->details->first()->other_hotel_name }}
-            @else
-                {{ optional($booking->details->first()->hotel)->name ?? '-' }}
-            @endif
-        </li>
-        <li><strong>Estado:</strong> Cancelada</li>
-    </ul>
-
-    <p>Si necesitas reprogramar tu reserva o tienes dudas, por favor contáctanos a 
-        <a href="mailto:info@greenvacations.com">info@greenvacations.com</a>.
+    <p style="margin-top:0;">
+        {{ __('adminlte::email.booking_cancelled_message', ['company' => $company], $mailLocale) }}
     </p>
 
-    <p>Sentimos los inconvenientes y esperamos poder ayudarte pronto.<br>
-    El equipo de Green Vacations 🌿</p>
+    <h3 style="margin-top:24px;">🗂️ {{ __('adminlte::email.booking_cancelled_details', [], $mailLocale) }}</h3>
+    <ul style="padding-left:18px;">
+        <li><strong>{{ __('adminlte::email.booking_reference', [], $mailLocale) }}:</strong> {{ $reference }}</li>
+        <li><strong>{{ __('adminlte::email.tour', [], $mailLocale) }}:</strong> {{ $booking->tour->translated_name ?? $booking->tour->name }}</li>
+        <li><strong>{{ __('adminlte::email.tour_language', [], $mailLocale) }}:</strong> {{ $tourLangLabel }}</li>
+        <li><strong>{{ __('adminlte::email.date', [], $mailLocale) }}:</strong> {{ optional($booking->detail->tour_date)->format('d/m/Y') }}</li>
+        <li><strong>{{ __('adminlte::email.adults', [], $mailLocale) }}:</strong> {{ $booking->detail->adults_quantity }}</li>
+        <li><strong>{{ __('adminlte::email.kids', [], $mailLocale) }}:</strong> {{ $booking->detail->kids_quantity }}</li>
+        <li><strong>{{ __('adminlte::email.hotel', [], $mailLocale) }}:</strong> {{ $booking->detail->hotel->name ?? $booking->detail->other_hotel_name ?? '—' }}</li>
+        <li><strong>{{ __('adminlte::email.total', [], $mailLocale) }}:</strong> ${{ number_format($booking->total, 2) }}</li>
+        <li><strong>{{ __('adminlte::email.status', [], $mailLocale) }}:</strong> {{ $statusLabel }}</li>
+    </ul>
+
+    <p style="margin-top:16px;">
+        {{ __('adminlte::email.contact_us', ['email' => $contactEmail], $mailLocale) }}
+    </p>
+
+    <p style="margin-top:16px;">
+        {{ __('adminlte::email.farewell', [], $mailLocale) }}<br>
+        {{ __('adminlte::email.team_name', ['company' => $company], $mailLocale) }}
+    </p>
 </body>
 </html>

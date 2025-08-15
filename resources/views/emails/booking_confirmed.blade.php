@@ -1,26 +1,38 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ $mailLocale }}">
 <head>
     <meta charset="UTF-8">
-    <title>Reserva Confirmada</title>
+    <title>{{ __('adminlte::email.booking_confirmed_title', [], $mailLocale) }}</title>
 </head>
-<body style="font-family: Arial, sans-serif; color: #333;">
-    <h2 style="color: #2E8B57;">¡Hola {{ $booking->user->full_name }}!</h2>
+<body style="font-family: Arial, sans-serif; color: #333; line-height:1.5;">
+    <h2 style="color:#2E8B57; margin-bottom:8px;">
+        {{ __('adminlte::email.greeting', ['name' => $booking->user->full_name], $mailLocale) }}
+    </h2>
 
-    <p>¡Tu reserva con <strong>Green Vacations</strong> ha sido <strong>confirmada</strong> con éxito! 🎉</p>
+    <p style="margin-top:0;">
+        {{ __('adminlte::email.booking_confirmed_message', ['company' => $company, 'reference' => $reference], $mailLocale) }}
+    </p>
 
-    <h4>📅 Detalles de tu Reserva:</h4>
-    <ul>
-        <li><strong>Tour:</strong> {{ $booking->tour->name }}</li>
-        <li><strong>Fecha:</strong> {{ $booking->detail->tour_date->format('d/m/Y') }}</li>
-        <li><strong>Adultos:</strong> {{ $booking->detail->adults_quantity }}</li>
-        <li><strong>Niños:</strong> {{ $booking->detail->kids_quantity }}</li>
-        <li><strong>Hotel:</strong> {{ $booking->detail->hotel->name ?? $booking->detail->other_hotel_name }}</li>
-        <li><strong>Total:</strong> ${{ number_format($booking->total, 2) }}</li>
+    <h3 style="margin-top:24px;">📅 {{ __('adminlte::email.booking_details', [], $mailLocale) }}</h3>
+    <ul style="padding-left:18px;">
+        <li><strong>{{ __('adminlte::email.booking_reference', [], $mailLocale) }}:</strong> {{ $reference }}</li>
+        <li><strong>{{ __('adminlte::email.tour', [], $mailLocale) }}:</strong> {{ $booking->tour->translated_name ?? $booking->tour->name }}</li>
+        <li><strong>{{ __('adminlte::email.tour_language', [], $mailLocale) }}:</strong> {{ $tourLangLabel }}</li>
+        <li><strong>{{ __('adminlte::email.date', [], $mailLocale) }}:</strong> {{ optional($booking->detail->tour_date)->format('d/m/Y') }}</li>
+        <li><strong>{{ __('adminlte::email.adults', [], $mailLocale) }}:</strong> {{ $booking->detail->adults_quantity }}</li>
+        <li><strong>{{ __('adminlte::email.kids', [], $mailLocale) }}:</strong> {{ $booking->detail->kids_quantity }}</li>
+        <li><strong>{{ __('adminlte::email.hotel', [], $mailLocale) }}:</strong> {{ $booking->detail->hotel->name ?? $booking->detail->other_hotel_name ?? '—' }}</li>
+        <li><strong>{{ __('adminlte::email.total', [], $mailLocale) }}:</strong> ${{ number_format($booking->total, 2) }}</li>
+        <li><strong>{{ __('adminlte::email.status', [], $mailLocale) }}:</strong> {{ $statusLabel }}</li>
     </ul>
 
-    <p>🙌 Ahora todo está listo. Si tienes alguna pregunta, contáctanos a <a href="mailto:info@greenvacations.com">info@greenvacations.com</a>.</p>
+    <p style="margin-top:16px;">
+        {{ __('adminlte::email.contact_us', ['email' => $contactEmail], $mailLocale) }}
+    </p>
 
-    <p>¡Nos vemos pronto!<br>El equipo de Green Vacations 🌿</p>
+    <p style="margin-top:16px;">
+        {{ __('adminlte::email.enjoy_experience', [], $mailLocale) }}<br>
+        {{ __('adminlte::email.team_name', ['company' => $company], $mailLocale) }} 🌿
+    </p>
 </body>
 </html>

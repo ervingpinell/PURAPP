@@ -38,6 +38,11 @@ class Booking extends Model
         return $this->belongsTo(Tour::class, 'tour_id');
     }
 
+    public function tourLanguage()
+{
+    return $this->belongsTo(\App\Models\TourLanguage::class, 'tour_language_id', 'tour_language_id');
+}
+
     /** Al asignar status, lo guardamos en minúsculas */
     public function setStatusAttribute($value)
     {

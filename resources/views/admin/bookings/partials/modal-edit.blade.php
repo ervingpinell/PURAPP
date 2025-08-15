@@ -10,6 +10,7 @@
       data-booking-id="{{ $reserva->booking_id }}">
       @csrf
       @method('PUT')
+      <input type="hidden" name="_modal" value="edit:{{ $reserva->booking_id }}"><!-- 👈 Para reabrir este modal -->
 
       <div class="modal-content">
         <div class="modal-header">
@@ -20,6 +21,18 @@
         </div>
 
         <div class="modal-body">
+          @php $showMyErrors = (session('showEditModal') == $reserva->booking_id) || (old('_modal') === 'edit:'.$reserva->booking_id); @endphp
+
+          @if ($showMyErrors && $errors->any())
+            <div class="alert alert-danger">
+              <ul class="mb-0">
+                @foreach ($errors->all() as $err)
+                  <li>{{ $err }}</li>
+                @endforeach
+              </ul>
+            </div>
+          @endif
+
           @include('admin.bookings.partials.edit-form', [
             'booking'  => $reserva,
             'statuses' => [
@@ -39,8 +52,8 @@
   </div>
 </div>
 
-{{-- Reabrir este modal si el controlador devolvió errores para esta reserva --}}
-@if (session('showEditModal') == $reserva->booking_id)
+{{-- Reabrir este modal si corresponde --}}
+@if (session('showEditModal') == $reserva->booking_id || (old('_modal') === 'edit:'.$reserva->booking_id && $errors->any()))
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const m = document.getElementById('modalEditar{{ $reserva->booking_id }}');
@@ -55,26 +68,19 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!form) return;
 
   const btnSubmit = form.querySelector('button[type="submit"]');
-  const btnCancel = form.querySelector('[data-bs-dismiss="modal"]');
 
-  // 1) Evitar doble submit + spinner
+  // Evitar doble submit + spinner
   form.addEventListener('submit', (e) => {
-    if (form.dataset.submitted === 'true') {
-      e.preventDefault();
-      return;
-    }
+    if (form.dataset.submitted === 'true') { e.preventDefault(); return; }
     form.dataset.submitted = 'true';
-
     if (btnSubmit) {
       btnSubmit.disabled = true;
       btnSubmit.dataset.originalText = btnSubmit.innerHTML;
       btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Actualizando...';
     }
-    // Si también quieres bloquear "Cancelar" mientras envía, descomenta:
-    // if (btnCancel) btnCancel.disabled = true;
   });
 
-  // 2) Toggle "Otro hotel" (funciona dentro de ESTE modal)
+  // Toggle "Otro hotel" (scoped al modal)
   const hotelSel      = form.querySelector('select[name="hotel_id"]');
   const otherWrap     = form.querySelector('[data-role="other-hotel-wrapper"]');
   const isOtherHidden = form.querySelector('input[name="is_other_hotel"]');
@@ -92,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
   toggleOtherHotel();
   hotelSel?.addEventListener('change', toggleOtherHotel);
 
-  // 3) Actualizar horarios cuando cambie el tour (usa data-schedules del <option>)
+  // Actualizar horarios cuando cambie el tour
   const tourSel  = form.querySelector('select[name="tour_id"]');
   const schedSel = form.querySelector('select[name="schedule_id"]');
 
@@ -102,16 +108,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let list = [];
     try { list = JSON.parse(json || '[]'); } catch(e) { console.error(e); }
 
-    // reconstruir opciones
-    if (schedSel) {
-      schedSel.innerHTML = '<option value="">Seleccione horario</option>';
-      list.forEach(s => {
-        const o = document.createElement('option');
-        o.value = s.schedule_id;
-        o.textContent = `${s.start_time} – ${s.end_time}`;
-        schedSel.appendChild(o);
-      });
-    }
+    schedSel.innerHTML = '<option value="">Seleccione horario</option>';
+    list.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s.schedule_id;
+      o.textContent = `${s.start_time} – ${s.end_time}`;
+      schedSel.appendChild(o);
+    });
+    schedSel.value = '';
   });
 });
 </script>
