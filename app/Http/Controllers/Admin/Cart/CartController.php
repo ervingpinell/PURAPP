@@ -202,46 +202,49 @@ class CartController extends Controller
 
 public function allCarts(Request $request)
 {
-    $estado = $request->filled('estado') ? (int) $request->estado : null;
+    $estado = $request->query('estado'); // '1', '0' o null
 
-    $carritos = Cart::with([
+    $query = \App\Models\Cart::query()
+        ->with([
             'user',
-            'items' => function ($q) use ($estado) {
-                if (!is_null($estado)) $q->where('is_active', $estado);
-            },
-            'items.tour',           // precios vienen del tour
-            'items.tour.schedules', // para el select de horarios
+            'items.tour',
             'items.language',
             'items.schedule',
         ])
+        ->withCount('items') // para $cart->items_count en el blade
         ->whereHas('user', function ($q) use ($request) {
             if ($request->filled('correo')) {
-                // Si usas MySQL, cambia 'ilike' por 'like'
-                $q->where('email', 'ilike', '%'.$request->correo.'%');
+                // Si usas MySQL cambia 'ilike' por 'like'
+                $q->where('email', 'ilike', '%' . $request->correo . '%');
             }
         })
-        ->whereHas('items', function ($q) use ($estado) {
-            if (!is_null($estado)) $q->where('is_active', $estado);
-        })
-        ->get();
+        ->whereHas('items'); // sólo carritos con ítems
 
-    // ✅ Total por carrito en USD usando precios del Tour
-    $carritos->transform(function ($cart) {
-        $total = $cart->items->sum(function ($it) {
-            $ap = (float) (($it->tour->adult_price ?? 0));
-            $kp = (float) (($it->tour->kid_price   ?? 0));
-            $aq = (int)   ($it->adults_quantity    ?? 0);
-            $kq = (int)   ($it->kids_quantity      ?? 0);
+    // ✅ Usa has() (no filled()) y filtra por estado del CARRITO
+    if ($request->has('estado') && in_array($estado, ['0','1'], true)) {
+        $query->where('is_active', (bool)$estado);
+    }
+
+    $carritos = $query->orderByDesc('updated_at')->get();
+
+    // ✅ Calcula total en USD por carrito con precios del tour
+    foreach ($carritos as $cart) {
+        $cart->total_usd = $cart->items->sum(function ($it) {
+            $ap = (float)($it->tour->adult_price ?? 0);
+            $kp = (float)($it->tour->kid_price   ?? 0);
+            $aq = (int)($it->adults_quantity ?? 0);
+            $kq = (int)($it->kids_quantity   ?? 0);
             return ($ap * $aq) + ($kp * $kq);
         });
-        $cart->total_usd   = $total;
-        $cart->items_count = $cart->items->count();
-        return $cart;
-    });
+    }
 
     return view('admin.Cart.general', compact('carritos'));
 }
 
+public function toggleActive(\App\Models\Cart $cart){
+    $cart->update(['is_active' => !$cart->is_active]);
+    return back()->with('success', 'Estado del carrito actualizado correctamente.');
+}
 
     public function count()
     {

@@ -52,8 +52,7 @@
                 <th>Total carrito</th>
                 <th>Estado</th>
                 <th>Última modificación</th>
-
-                <th style="width: 220px;">Acciones</th>
+                <th style="width: 240px;">Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -65,8 +64,9 @@
                 <td>
                     <button class="btn btn-sm btn-info"
                         data-bs-toggle="modal"
-                        data-bs-target="#modalItemsCart{{ $cart->cart_id }}">
-                        <i class="fas fa-list"></i> Ver tours ({{ $cart->items_count }})
+                        data-bs-target="#modalItemsCart{{ $cart->cart_id }}"
+                        title="Ver tours" data-bs-toggle="tooltip">
+                        <i class="fas fa-list"></i> ({{ $cart->items_count }})
                     </button>
                 </td>
                 <td><strong>${{ number_format($cart->total_usd, 2) }}</strong></td>
@@ -79,23 +79,31 @@
                 <td>{{ $cart->updated_at->format('d/m/Y H:i') }}</td>
 
                 <td class="text-center">
-{{-- Ver tours --}}
-<button class="btn btn-info btn-sm me-1"
-    data-bs-toggle="modal"
-    data-bs-target="#modalItemsCart{{ $cart->cart_id }}"
-    title="Ver tours" data-bs-toggle="tooltip">
-    <i class="fas fa-eye"></i>
-</button>
+                    {{-- 👁️ Ver tours --}}
+                    <button class="btn btn-info btn-sm me-1"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalItemsCart{{ $cart->cart_id }}"
+                        title="Ver tours" data-bs-toggle="tooltip">
+                        <i class="fas fa-eye"></i>
+                    </button>
 
-{{-- 🗑️ Eliminar carrito completo --}}
-<form action="{{ route('admin.cart.destroy', $cart->cart_id) }}" method="POST" class="d-inline-block form-eliminar-carrito">
-    @csrf
-    @method('DELETE')
-    <button class="btn btn-danger btn-sm" title="Eliminar carrito" data-bs-toggle="tooltip">
-        <i class="fas fa-trash"></i>
-    </button>
-</form>
+                    {{-- 🔁 Activar/Desactivar carrito --}}
+                    <form action="{{ route('admin.cart.toggle', $cart->cart_id) }}" method="POST" class="d-inline-block me-1">
+                        @csrf @method('PATCH')
+                        <button class="btn btn-sm {{ $cart->is_active ? 'btn-success' : 'btn-secondary' }}"
+                                title="{{ $cart->is_active ? 'Desactivar carrito' : 'Activar carrito' }}"
+                                data-bs-toggle="tooltip">
+                            <i class="fas {{ $cart->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
+                        </button>
+                    </form>
 
+                    {{-- 🗑️ Eliminar carrito completo --}}
+                    <form action="{{ route('admin.cart.destroy', $cart->cart_id) }}" method="POST" class="d-inline-block form-eliminar-carrito">
+                        @csrf @method('DELETE')
+                        <button class="btn btn-danger btn-sm" title="Eliminar carrito" data-bs-toggle="tooltip">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
                 </td>
             </tr>
         @endforeach
@@ -174,7 +182,7 @@
                             {{-- ✏️ Editar: cerrar modal del carrito, abrir modal de edición --}}
                             <button
                                 class="btn btn-sm btn-warning btn-open-edit"
-                                title="Editar"
+                                title="Editar" data-bs-toggle="tooltip"
                                 data-parent="#modalItemsCart{{ $cart->cart_id }}"
                                 data-child="#modalEditar{{ $item->item_id }}">
                                 <i class="fas fa-edit"></i>
@@ -183,7 +191,7 @@
                             {{-- 🗑️ Eliminar ítem --}}
                             <form action="{{ route('admin.cart.item.destroy', $item->item_id) }}" method="POST" class="d-inline-block form-eliminar">
                                 @csrf @method('DELETE')
-                                <button class="btn btn-sm btn-danger" title="Eliminar">
+                                <button class="btn btn-sm btn-danger" title="Eliminar" data-bs-toggle="tooltip">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </form>
@@ -211,7 +219,8 @@
         <div class="text-muted">
             Cliente: <strong>{{ $cart->user->full_name }}</strong> ·
             Email: <strong>{{ $cart->user->email }}</strong> ·
-            Tel: <strong>{{ $cart->user->full_phone ?? 'N/A' }}</strong>
+            Tel: <strong>{{ $cart->user->full_phone ?? 'N/A' }}</strong> ·
+            Última modificación: <strong>{{ $cart->updated_at->format('d/m/Y H:i') }}</strong>
         </div>
         <div class="fs-5">
             Total del carrito: <strong>${{ number_format($cartTotalFooter, 2) }}</strong>
@@ -308,7 +317,13 @@
     @endif
 
     <script>
-    // Evitar "modales anidados": cerrar el de carrito y abrir el de edición; al cerrar edición, reabrir carrito
+    // Habilita tooltips
+    document.addEventListener('DOMContentLoaded', () => {
+        const list = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        list.map(el => new bootstrap.Tooltip(el));
+    });
+
+    // Evitar "modales anidados"
     document.addEventListener('click', function(e){
       const btn = e.target.closest('.btn-open-edit');
       if (!btn) return;
