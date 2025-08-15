@@ -135,7 +135,7 @@
                 {{-- Secciones (solo vista resumida) --}}
                 <div class="d-flex justify-content-between align-items-center mb-2">
                   <h6 class="mb-0"><i class="fas fa-list-ul mr-1"></i> Secciones</h6>
-                  <a href="{{ route('admin.policies.sections.index', $policy) }}" class="btn btn-sm btn-outline-primary">
+                  <a href="{{ route('admin.policies.sections.index', $policy) }}" class="btn btn-sm btn-success">
                     <i class="fas fa-sliders-h"></i> Gestionar secciones
                   </a>
                 </div>

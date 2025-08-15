@@ -1,3 +1,4 @@
+{{-- resources/views/admin/profile/profile.blade.php --}}
 @extends('adminlte::page')
 
 @section('title', __('adminlte::adminlte.edit_profile'))
@@ -58,12 +59,13 @@
           </div>
 
           {{-- Password opcional --}}
-          <div class="form-group mb-3">
+          <div class="form-group mb-2">
             <label class="form-label"><i class="fas fa-lock"></i> {{ __('adminlte::validation.attributes.password') }}</label>
             <div class="input-group">
               <input type="password" id="password" name="password"
                      class="form-control @error('password') is-invalid @enderror"
-                     placeholder="{{ __('adminlte::validation.attributes.password') }}" autocomplete="new-password">
+                     placeholder="{{ __('adminlte::validation.attributes.password') }}" autocomplete="new-password"
+                     aria-describedby="password-reqs-admin">
               <div class="input-group-append">
                 <div class="input-group-text">
                   <a href="#" class="text-reset toggle-password" data-target="password" aria-label="{{ __('adminlte::adminlte.show_password') }}">
@@ -75,6 +77,14 @@
             @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
           </div>
 
+          {{-- Requisitos de contraseña (guía visual) --}}
+          <ul id="password-reqs-admin" class="mb-3" style="font-size:.9rem; list-style:none; padding-left:1rem;">
+            <li id="req-length-admin"  class="text-muted">{{ __('adminlte::validation.password_requirements.length') }}</li>
+            <li id="req-special-admin" class="text-muted">{{ __('adminlte::validation.password_requirements.special') }}</li>
+            <li id="req-number-admin"  class="text-muted">{{ __('adminlte::validation.password_requirements.number') }}</li>
+          </ul>
+
+          {{-- Confirmación --}}
           <div class="form-group mb-1">
             <label class="form-label"><i class="fas fa-lock"></i> {{ __('adminlte::validation.attributes.password_confirmation') }}</label>
             <input type="password" id="password_confirmation" name="password_confirmation"
@@ -99,7 +109,7 @@
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  // toggle password
+  // --- Mostrar/ocultar contraseña
   document.querySelectorAll('.toggle-password').forEach(btn => {
     btn.addEventListener('click', function(e){
       e.preventDefault();
@@ -111,6 +121,27 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  // --- Requisitos de contraseña (dinámicos)
+  const pwd = document.getElementById('password');
+  const reqLen  = document.getElementById('req-length-admin');
+  const reqSpec = document.getElementById('req-special-admin');
+  const reqNum  = document.getElementById('req-number-admin');
+
+  function mark(el, ok){
+    if (!el) return;
+    el.classList.toggle('text-success', ok);
+    el.classList.toggle('text-muted',  !ok);
+  }
+  if (pwd) {
+    pwd.addEventListener('input', function () {
+      const v = pwd.value || '';
+      mark(reqLen,  v.length >= 8);
+      mark(reqSpec, /[.:!@#$%^&*()_+\-]/.test(v));
+      mark(reqNum,  /\d/.test(v));
+    });
+  }
+
+  // --- Country code: expandir/cerrar etiquetas y seleccionar valor del usuario
   const cc = document.getElementById('phone_cc');
 
   function expandLabels(){
@@ -127,10 +158,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  cc.addEventListener('focus', expandLabels);
-  cc.addEventListener('blur', collapseLabels);
-
+  // Selecciona el código guardado/old si existe (el partial marca CR por defecto)
+  const wantedCc = @json(old('country_code', $user->country_code));
+  if (wantedCc) {
+    const found = Array.from(cc.options).find(o => o.value === wantedCc);
+    if (found) cc.value = wantedCc;
+  }
   collapseLabels();
+
+  cc.addEventListener('focus', expandLabels);
+  cc.addEventListener('blur',  collapseLabels);
 });
 </script>
 
