@@ -308,5 +308,11 @@ return [
 
     'view_receipt' => 'Ver comprovante',
 
+'show_password' => 'Mostrar senha',
+'user_registered_successfully'   => 'Usuário registrado com sucesso.',
+'user_updated_successfully'      => 'Usuário atualizado com sucesso.',
+'user_reactivated_successfully'  => 'Usuário reativado com sucesso.',
+'user_deactivated_successfully'  => 'Usuário desativado com sucesso.',
+'profile_updated_successfully'   => 'Perfil atualizado com sucesso.',
 
 ];

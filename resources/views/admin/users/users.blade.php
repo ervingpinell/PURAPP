@@ -90,7 +90,8 @@
                     <td>{{ $user->full_name }}</td>
                     <td>{{ $user->email }}</td>
                     <td>{{ $user->role->role_name ?? 'Sin rol' }}</td>
-                    <td>{{$user->phone}}</td>
+<td>{{ trim($user->country_code . ' ' . $user->phone) }}</td>
+
                     <td>
                         @if ($user->status)
                             <span class="badge bg-success">Activo</span>
@@ -148,10 +149,17 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="mb-3">
-                                        <label>Numero de Telefono</label>
-                                        <input type="text" name="phone" class="form-control" value="{{ $user->phone }}" required>
-                                    </div>
+<div class="mb-3">
+    <label>Código de país</label>
+    <select name="country_code" class="form-select">
+        @include('partials.country-codes', ['selected' => $user->country_code])
+    </select>
+</div>
+<div class="mb-3">
+    <label>Número de Teléfono</label>
+    <input type="text" name="phone" class="form-control" value="{{ $user->phone }}" required>
+</div>
+
                                     <div class="mb-3">
                                         <label>Nueva contraseña (opcional)</label>
                                         <input type="password" name="password" class="form-control" autocomplete="new-password">
@@ -302,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function () {
         icon = 'success';
         title = 'Usuario Registrado';
         color = '#007bff';
-        break;  
+        break;
     }
 
     Swal.fire({

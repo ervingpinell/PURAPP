@@ -62,10 +62,10 @@
 
         {{-- Card Box --}}
         <div class="card {{ config('adminlte.classes_auth_card', 'card-outline card-primary') }}">
-    
+
             {{-- Card Header --}}
             @hasSection('auth_header')
-            
+
                 <div class="card-header {{ config('adminlte.classes_auth_header', '') }}">
                     <h3 class="card-title float-none text-center">
                         @yield('auth_header')
@@ -75,7 +75,7 @@
 
             {{-- Card Body --}}
             <div class="card-body {{ $authType }}-card-body {{ config('adminlte.classes_auth_body', '') }}">
-                
+
                 @yield('auth_body')
             </div>
 

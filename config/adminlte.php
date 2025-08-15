@@ -238,7 +238,7 @@ return [
     |
     */
 
-    'right_sidebar' => true,
+    'right_sidebar' => false,
     'right_sidebar_icon' => 'fas fa-cogs',
     'right_sidebar_theme' => 'dark',
     'right_sidebar_slide' => true,
@@ -259,7 +259,7 @@ return [
     */
 
     'use_route_url' => false,
-    'dashboard_url' => 'admin',
+    'dashboard_url' => '/',
     'logout_url' => 'logout',
     'login_url' => 'login',
     'register_url' => 'register',
@@ -304,7 +304,7 @@ return [
    'menu' => [
 
     // Widgets de la barra superior
-    ['type' => 'navbar-search', 'text' => 'search', 'topnav_right' => true],
+    ['type' => 'navbar-search', 'text' => 'search', 'topnav_right' => false],
     ['type' => 'fullscreen-widget', 'topnav_right' => true],
 
     // Buscador del sidebar
@@ -313,7 +313,7 @@ return [
     // Acceso rápido
     [
         'text' => 'Inicio',
-        'route' => 'home',
+        'route' => 'admin.home',
         'icon' => 'fas fa-fw fa-home'
     ],
     [
@@ -328,12 +328,12 @@ return [
         'icon'    => 'fas fa-shopping-cart',
         'submenu' => [
             [
-                'text' => 'Carritos Activos',
+                'text' => 'Mi Carrito',
                 'route' => 'admin.cart.index',
                 'icon'  => 'fas fa-shopping-cart',
             ],
             [
-                'text' => 'Lista General',
+                'text' => 'Carritos Activos',
                 'route' => 'admin.cart.general',
                 'icon'  => 'fas fa-list',
             ],

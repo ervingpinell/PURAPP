@@ -309,4 +309,13 @@ return [
     'validation.unique' => 'Este correo ya se encuentra en uso',
 
 
+
+
+    // Éxitos (usados en controladores)
+        'show_password' => 'Mostrar contraseña',
+    'user_registered_successfully'   => 'Usuario registrado correctamente.',
+    'user_updated_successfully'      => 'Usuario actualizado correctamente.',
+    'user_reactivated_successfully'  => 'Usuario reactivado correctamente.',
+    'user_deactivated_successfully'  => 'Usuario desactivado correctamente.',
+    'profile_updated_successfully'   => 'Perfil actualizado correctamente.',
 ];

@@ -29,7 +29,11 @@
             <div class="card-body">
                 <p><i class="fas fa-id-card"></i> <strong>Nombre:</strong> {{ $cart->user->full_name ?? 'N/A' }}</p>
                 <p><i class="fas fa-envelope"></i> <strong>Email:</strong> {{ $cart->user->email ?? 'N/A' }}</p>
-                <p><i class="fas fa-phone"></i> <strong>Teléfono:</strong> {{ $cart->user->phone ?? 'N/A' }}</p>
+            <p>
+    <i class="fas fa-phone"></i>
+    <strong>Teléfono:</strong> {{ $cart->user->full_phone ?? 'N/A' }}
+</p>
+
             </div>
         </div>
 
@@ -314,5 +318,5 @@
             @endforeach
         });
     </script>
-    
+
 @stop

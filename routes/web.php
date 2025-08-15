@@ -222,5 +222,6 @@ Route::resource('roles', RoleController::class)->except(['show']);
         Route::delete('/carrito/item/{item}', [CartController::class, 'destroy'])->name('cart.item.destroy');
         Route::delete('/admin/carrito/item/{item}', [CartController::class, 'destroy'])->name('admin.cart.item.destroy');
         Route::get('/carritos-todos', [CartController::class, 'allCarts'])->name('cart.general');
+        Route::delete('/carritos/{cart}', [CartController::class, 'destroyCart'])->name('cart.destroy');
     });
 });

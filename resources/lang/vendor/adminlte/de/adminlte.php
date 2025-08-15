@@ -306,4 +306,12 @@ return [
     'view_receipt' => 'Beleg anzeigen',
 
 
+'show_password' => 'Passwort anzeigen',
+'user_registered_successfully'   => 'Benutzer erfolgreich registriert.',
+'user_updated_successfully'      => 'Benutzer erfolgreich aktualisiert.',
+'user_reactivated_successfully'  => 'Benutzer erfolgreich reaktiviert.',
+'user_deactivated_successfully'  => 'Benutzer erfolgreich deaktiviert.',
+'profile_updated_successfully'   => 'Profil erfolgreich aktualisiert.',
+
+
 ];

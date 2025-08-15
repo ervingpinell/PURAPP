@@ -311,5 +311,12 @@ return [
 
     'view_receipt' => 'Voir le reçu',
 
+'show_password' => 'Afficher le mot de passe',
+'user_registered_successfully'   => 'Utilisateur enregistré avec succès.',
+'user_updated_successfully'      => 'Utilisateur mis à jour avec succès.',
+'user_reactivated_successfully'  => 'Utilisateur réactivé avec succès.',
+'user_deactivated_successfully'  => 'Utilisateur désactivé avec succès.',
+'profile_updated_successfully'   => 'Profil mis à jour avec succès.',
+
 ];
 

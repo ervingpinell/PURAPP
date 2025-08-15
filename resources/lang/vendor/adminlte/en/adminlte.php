@@ -294,7 +294,13 @@ return [
 
     'view_receipt' => 'View Receipt',
 
-
+    // Éxitos (usados en controladores)
+        'show_password' => 'Show Password',
+    'user_registered_successfully'   => 'User registered successfully.',
+    'user_updated_successfully'      => 'User updated successfully.',
+    'user_reactivated_successfully'  => 'User reactivated successfully.',
+    'user_deactivated_successfully'  => 'User deactivated successfully.',
+    'profile_updated_successfully'   => 'Profile updated successfully.',
 
 
 ];
