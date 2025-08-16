@@ -179,21 +179,19 @@ Route::get('/politicas', [\App\Http\Controllers\Site\PoliciesController::class, 
         // Tours
         Route::resource('tours', TourController::class)->except(['create', 'edit', 'show']);
         Route::prefix('tours')->name('tours.')->group(function () {
-    Route::resource('schedule', TourScheduleController::class)
+    Route::resource('schedule', \App\Http\Controllers\Admin\Tours\TourScheduleController::class)
         ->except(['create','edit','show']);
 
-    // Toggle global (ya lo tienes)
-    Route::put('schedule/{schedule:schedule_id}/toggle', [TourScheduleController::class, 'toggle'])
+    Route::put('schedule/{schedule}/toggle', [\App\Http\Controllers\Admin\Tours\TourScheduleController::class, 'toggle'])
         ->name('schedule.toggle');
 
-    // Adjuntar / Detach (ya los tienes)
-    Route::post('schedule/{tour:tour_id}/attach', [TourScheduleController::class, 'attach'])
+    Route::post('schedule/{tour}/attach', [\App\Http\Controllers\Admin\Tours\TourScheduleController::class, 'attach'])
         ->name('schedule.attach');
-    Route::delete('schedule/{tour:tour_id}/{schedule:schedule_id}/detach', [TourScheduleController::class, 'detach'])
+
+    Route::delete('schedule/{tour}/{schedule}/detach', [\App\Http\Controllers\Admin\Tours\TourScheduleController::class, 'detach'])
         ->name('schedule.detach');
 
-    // 👇 NUEVA: toggle de la asignación (pivote)
-    Route::patch('schedule/{tour:tour_id}/{schedule:schedule_id}/assignment-toggle', [TourScheduleController::class, 'toggleAssignment'])
+    Route::patch('schedule/{tour}/{schedule}/assignment-toggle', [\App\Http\Controllers\Admin\Tours\TourScheduleController::class, 'toggleAssignment'])
         ->name('schedule.assignment.toggle');
 
     Route::resource('itinerary', ItineraryController::class)->except(['show']);

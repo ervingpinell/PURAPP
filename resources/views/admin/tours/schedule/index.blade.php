@@ -4,16 +4,12 @@
 
 @section('content_header')
   <h1>Gestión de Horarios</h1>
+  {{-- Patrón para construir la URL de update (se reemplaza ___ID___ en JS) --}}
+  <meta name="schedule-update-url" content="{{ route('admin.tours.schedule.update', ['schedule' => '___ID___']) }}">
 @stop
 
 @section('content')
 <div class="p-3">
-
-  @php
-    // Si prefieres, pásalo desde el controller (ya lo hace index()).
-    // $generalSchedules = \App\Models\Schedule::orderBy('start_time')->get();
-    // $tours = \App\Models\Tour::with(['schedules' => fn($q) => $q->orderBy('start_time')])->orderBy('name')->get();
-  @endphp
 
   {{-- ===================== HORARIOS GENERALES ===================== --}}
   <div class="card mb-4 shadow-sm">
@@ -124,9 +120,7 @@
 
           <div class="card-body">
             @forelse($tour->schedules as $bloque)
-              @php
-                $assignActive = (bool) ($bloque->pivot->is_active ?? true);
-              @endphp
+              @php $assignActive = (bool) ($bloque->pivot->is_active ?? true); @endphp
 
               <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2">
                 <div>
@@ -138,30 +132,28 @@
                     {{ $bloque->label ?: 'Sin etiqueta' }} · Cap: {{ $bloque->max_capacity ?? '—' }}
                   </div>
 
-                  {{-- Estados diferenciados (spans dinámicos) --}}
-<div class="small mt-1">
-  <span class="me-3">
-    <strong>Horario:</strong>
-    @if ($bloque->is_active)
-      <span class="badge bg-success">Activo</span>
-    @else
-      <span class="badge bg-danger">Inactivo</span>
-    @endif
-  </span>
-  <span>
-    <strong>Asignación:</strong>
-    @if ($assignActive)
-      <span class="badge bg-success">Activa</span>
-    @else
-      <span class="badge bg-danger">Inactiva</span>
-    @endif
-  </span>
-</div>
-
+                  <div class="small mt-1">
+                    <span class="me-3">
+                      <strong>Horario:</strong>
+                      @if ($bloque->is_active)
+                        <span class="badge bg-success">Activo</span>
+                      @else
+                        <span class="badge bg-danger">Inactivo</span>
+                      @endif
+                    </span>
+                    <span>
+                      <strong>Asignación:</strong>
+                      @if ($assignActive)
+                        <span class="badge bg-success">Activa</span>
+                      @else
+                        <span class="badge bg-danger">Inactiva</span>
+                      @endif
+                    </span>
+                  </div>
                 </div>
 
                 <div class="d-inline-flex gap-2">
-                  {{-- Editar GLOBAL (misma entidad Schedule) --}}
+                  {{-- Editar GLOBAL --}}
                   <button class="btn btn-edit btn-sm"
                           data-bs-toggle="modal"
                           data-bs-target="#modalEditarHorarioGeneral"
@@ -185,7 +177,7 @@
                     </button>
                   </form>
 
-                  {{-- Quitar del tour (DETACH) --}}
+                  {{-- Quitar del tour --}}
                   <form action="{{ route('admin.tours.schedule.detach', [$tour->tour_id, $bloque->schedule_id]) }}"
                         method="POST" class="d-inline form-detach" data-tour="{{ $tour->name }}">
                     @csrf @method('DELETE')
@@ -361,13 +353,16 @@
             <input type="text" id="edit-label" name="label" class="form-control" maxlength="255">
           </div>
         </div>
+
+        {{-- Booleano robusto (si desmarcas, llega 0) --}}
+        <input type="hidden" name="is_active" value="0">
         <div class="form-check mt-2">
           <input class="form-check-input" type="checkbox" id="edit-active" name="is_active" value="1">
           <label class="form-check-label" for="edit-active">Activo</label>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-edit"><i class="fas fa-save"></i> Guardar cambios</button>
+        <button class="btn btn-edit" type="submit"><i class="fas fa-save"></i> Guardar cambios</button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
       </div>
     </form>
@@ -378,26 +373,81 @@
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-// Rellenar modal de edición (global)
+// ===== Utils =====
+function timeToHHMM(t) {
+  if (!t) return '';
+  const m = String(t).match(/^(\d{2}):(\d{2})(?::\d{2})?$/);
+  return m ? `${m[1]}:${m[2]}` : t;
+}
+
+// ===== Spinner + lock (solo botones; NO deshabilita inputs) =====
+function lockAndSubmit(form, opts = {}) {
+  const loadingText = opts.loadingText || 'Procesando...';
+
+  // Si el form es inválido, muestra validación nativa
+  if (!form.checkValidity()) {
+    if (typeof form.reportValidity === 'function') form.reportValidity();
+    return;
+  }
+
+  // 1) Deshabilita SOLO los botones del form
+  const buttons = form.querySelectorAll('button');
+  let submitBtn =
+    form.querySelector('button[type="submit"]') ||
+    form.querySelector('.btn-edit, .btn-primary, .btn-success');
+
+  buttons.forEach(btn => {
+    if (submitBtn && btn === submitBtn) return; // dejamos el principal para spinner
+    btn.disabled = true;
+  });
+
+  // 2) Spinner en el botón submit
+  if (submitBtn) {
+    if (!submitBtn.dataset.originalHtml) submitBtn.dataset.originalHtml = submitBtn.innerHTML;
+    submitBtn.innerHTML =
+      '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
+      loadingText;
+    submitBtn.classList.add('disabled');
+    submitBtn.disabled = true;
+  }
+
+  // 3) Por si algún input estuvo disabled por otra lógica, lo reactivamos
+  form.querySelectorAll('input, select, textarea').forEach(el => {
+    if (el.disabled) el.disabled = false;
+  });
+
+  // 4) Enviar
+  form.submit();
+}
+
+// ===== Rellenar modal de edición =====
 document.getElementById('modalEditarHorarioGeneral')?.addEventListener('show.bs.modal', function (ev) {
   const btn = ev.relatedTarget; if (!btn) return;
-  const id = btn.getAttribute('data-id');
-  const start = btn.getAttribute('data-start') || '';
-  const end = btn.getAttribute('data-end') || '';
-  const label = btn.getAttribute('data-label') || '';
-  const cap = btn.getAttribute('data-capacity') || '';
+
+  const id     = btn.getAttribute('data-id');
+  const start  = timeToHHMM(btn.getAttribute('data-start') || '');
+  const end    = timeToHHMM(btn.getAttribute('data-end')   || '');
+  const label  = btn.getAttribute('data-label') || '';
+  const cap    = btn.getAttribute('data-capacity') || '';
   const active = btn.getAttribute('data-active') === '1';
 
   const form = document.getElementById('formEditarHorarioGeneral');
-  form.action = "{{ route('admin.tours.schedule.update', '__ID__') }}".replace('__ID__', id);
-  document.getElementById('edit-start').value = start;
-  document.getElementById('edit-end').value = end;
-  document.getElementById('edit-label').value = label;
+
+  // Usa meta con patrón seguro para la action
+  const pattern = document.querySelector('meta[name="schedule-update-url"]')?.content;
+  if (pattern) form.action = pattern.replace('___ID___', id);
+
+  // Rellena campos
+  document.getElementById('edit-start').value    = start;
+  document.getElementById('edit-end').value      = end;
+  document.getElementById('edit-label').value    = label;
   document.getElementById('edit-capacity').value = cap;
   document.getElementById('edit-active').checked = active;
 });
 
-// Confirmación SweetAlert: Toggle GLOBAL
+// ===== Confirmaciones con SweetAlert + lock/spinner =====
+
+// Toggle GLOBAL
 document.querySelectorAll('.form-toggle-global').forEach(form => {
   form.addEventListener('submit', function(e) {
     e.preventDefault();
@@ -413,11 +463,11 @@ document.querySelectorAll('.form-toggle-global').forEach(form => {
       confirmButtonColor: '#f39c12',
       cancelButtonColor: '#6c757d',
       confirmButtonText: 'Sí, continuar'
-    }).then(r => { if (r.isConfirmed) form.submit(); });
+    }).then(r => { if (r.isConfirmed) lockAndSubmit(form, {loadingText: 'Aplicando...'}); });
   });
 });
 
-// Confirmación SweetAlert: Toggle ASIGNACIÓN (pivote)
+// Toggle ASIGNACIÓN (pivote por tour)
 document.querySelectorAll('.form-assignment-toggle').forEach(form => {
   form.addEventListener('submit', function(e) {
     e.preventDefault();
@@ -433,11 +483,11 @@ document.querySelectorAll('.form-assignment-toggle').forEach(form => {
       confirmButtonColor: '#f39c12',
       cancelButtonColor: '#6c757d',
       confirmButtonText: 'Sí, continuar'
-    }).then(r => { if (r.isConfirmed) form.submit(); });
+    }).then(r => { if (r.isConfirmed) lockAndSubmit(form, {loadingText: 'Aplicando...'}); });
   });
 });
 
-// Confirmación SweetAlert: Eliminar GLOBAL
+// Eliminar GLOBAL
 document.querySelectorAll('.form-delete').forEach(form => {
   form.addEventListener('submit', function(e) {
     e.preventDefault();
@@ -450,11 +500,11 @@ document.querySelectorAll('.form-delete').forEach(form => {
       confirmButtonColor: '#dd4b39',
       cancelButtonColor: '#6c757d',
       confirmButtonText: 'Sí, eliminar'
-    }).then(r => { if (r.isConfirmed) form.submit(); });
+    }).then(r => { if (r.isConfirmed) lockAndSubmit(form, {loadingText: 'Eliminando...'}); });
   });
 });
 
-// Confirmación SweetAlert: Quitar del tour (DETACH)
+// Quitar del tour (DETACH)
 document.querySelectorAll('.form-detach').forEach(form => {
   form.addEventListener('submit', function(e) {
     e.preventDefault();
@@ -467,16 +517,41 @@ document.querySelectorAll('.form-detach').forEach(form => {
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d',
       confirmButtonText: 'Sí, quitar'
-    }).then(r => { if (r.isConfirmed) form.submit(); });
+    }).then(r => { if (r.isConfirmed) lockAndSubmit(form, {loadingText: 'Quitando...'}); });
   });
 });
 
-// Flash messages
+// ===== Envío modal: validación + spinner =====
+document.getElementById('formEditarHorarioGeneral')?.addEventListener('submit', function(e){
+  if (!this.checkValidity()) {
+    e.preventDefault();
+    Swal.fire({
+      icon: 'info',
+      title: 'Faltan datos',
+      text: 'Revisa los campos requeridos (inicio, fin y capacidad).',
+      confirmButtonColor: '#0d6efd'
+    });
+    return;
+  }
+  e.preventDefault();
+  lockAndSubmit(this, {loadingText: 'Guardando cambios...'});
+});
+
+// ===== Flash messages y errores de validación =====
 @if (session('success'))
   Swal.fire({ icon: 'success', title: 'Éxito', text: @json(session('success')), timer: 2000, showConfirmButton: false });
 @endif
 @if (session('error'))
   Swal.fire({ icon: 'error', title: 'Error', text: @json(session('error')), timer: 2600, showConfirmButton: false });
 @endif
+@if ($errors->any())
+  Swal.fire({
+    icon: 'error',
+    title: 'No se pudo guardar',
+    html: `<ul style="text-align:left;margin:0;padding-left:18px;">{!! collect($errors->all())->map(fn($e)=>"<li>".e($e)."</li>")->implode('') !!}</ul>`,
+    confirmButtonColor: '#dc3545'
+  });
+@endif
 </script>
+
 @stop
