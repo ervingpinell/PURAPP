@@ -94,8 +94,27 @@ class Tour extends Model
             'schedule_tour',
             'tour_id',
             'schedule_id'
-        )->withTimestamps();
+        )
+        ->withPivot('is_active') // 👈 necesario para leer/guardar estado por tour
+        ->withTimestamps();
     }
+public function activeSchedules()
+{
+    return $this->belongsToMany(
+        \App\Models\Schedule::class,
+        'schedule_tour',
+        'tour_id',
+        'schedule_id'
+    )
+    ->withPivot('is_active')
+    ->where('schedules.is_active', true)   // activo global
+    ->wherePivot('is_active', true)        // activo en la asignación
+    ->orderBy('schedules.start_time')
+    ->withTimestamps();
+}
+
+
+
 
     public function availabilities()
     {

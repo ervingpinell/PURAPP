@@ -39,7 +39,12 @@ class TourController extends Controller
                 $q->wherePivot('is_active', true)
                   ->where('itinerary_items.is_active', true);
             },
-            'schedules' => fn ($q) => $q->where('is_active', true),
+            // Solo mostrar horarios disponibles (global y asignación activa)
+            'schedules' => function ($q) {
+                $q->where('schedules.is_active', true)
+                  ->wherePivot('is_active', true)
+                  ->orderBy('schedules.start_time');
+            },
         ])->orderBy('tour_id')->get();
 
         $tourtypes      = TourType::where('is_active', true)->orderBy('name')->get();
@@ -207,19 +212,24 @@ class TourController extends Controller
                         'start_time' => $sched['start_time'],
                         'end_time'   => $sched['end_time'],
                         'label'      => $sched['label'],
-                        'is_active'  => true,
+                        'is_active'  => true, // GLOBAL
                     ]);
                     $scheduleIds[] = $schedule->schedule_id;
                 }
-                $tour->schedules()->sync($scheduleIds);
+
+                // pivote con is_active=true
+                $pivotData = collect($scheduleIds)->mapWithKeys(fn ($id) => [
+                    $id => ['is_active' => true],
+                ])->all();
+
+                $tour->schedules()->sync($pivotData);
 
                 // Traducciones automáticas (ES, EN, FR, PT, DE)
-$nameTr = [];
-foreach (['es', 'en', 'fr', 'pt', 'de'] as $lang) {
-    $nameTr[$lang] = $translator->translatePreserveOutsideParentheses($v['name'], $lang);
-}
-
-$overviewTr = $translator->translateAll($v['overview'] ?? '');
+                $nameTr = [];
+                foreach (['es', 'en', 'fr', 'pt', 'de'] as $lang) {
+                    $nameTr[$lang] = $translator->translatePreserveOutsideParentheses($v['name'], $lang);
+                }
+                $overviewTr = $translator->translateAll($v['overview'] ?? '');
 
                 foreach (['es', 'en', 'fr', 'pt', 'de'] as $lang) {
                     TourTranslation::create([
@@ -339,21 +349,27 @@ $overviewTr = $translator->translateAll($v['overview'] ?? '');
                 $tour->amenities()->sync($v['amenities'] ?? []);
                 $tour->excludedAmenities()->sync($v['excluded_amenities'] ?? []);
 
-                // Horarios (recrea simples)
+                // Horarios: recrea simples + pivote activa
                 $tour->schedules()->detach();
+
                 $scheduleIds = [];
                 foreach ($schedulesInput as $sched) {
                     $schedule = Schedule::create([
                         'start_time' => $sched['start_time'],
                         'end_time'   => $sched['end_time'],
                         'label'      => $sched['label'],
-                        'is_active'  => true,
+                        'is_active'  => true, // GLOBAL
                     ]);
                     $scheduleIds[] = $schedule->schedule_id;
                 }
-                $tour->schedules()->sync($scheduleIds);
 
-                // Solo aseguramos ES (manteniendo tu lógica actual)
+                $pivotData = collect($scheduleIds)->mapWithKeys(fn ($id) => [
+                    $id => ['is_active' => true],
+                ])->all();
+
+                $tour->schedules()->sync($pivotData);
+
+                // Traducción principal ES (manteniendo tu lógica)
                 TourTranslation::updateOrCreate(
                     ['tour_id' => $tour->tour_id, 'locale' => 'es'],
                     ['name' => $v['name'], 'overview' => $v['overview'] ?? '']

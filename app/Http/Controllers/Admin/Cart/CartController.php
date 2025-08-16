@@ -70,8 +70,21 @@ class CartController extends Controller
             $cart = Cart::create(['user_id' => $user->user_id, 'is_active' => true]);
         }
 
-        $tour     = \App\Models\Tour::findOrFail($request->tour_id);
-        $schedule = \App\Models\Schedule::findOrFail($request->schedule_id);
+ $tour = \App\Models\Tour::findOrFail($request->tour_id);
+
+// Valida que el horario pertenece al tour y que está activo global + pivote
+$schedule = $tour->schedules()
+    ->where('schedules.schedule_id', $request->schedule_id)
+    ->where('schedules.is_active', true)
+    ->wherePivot('is_active', true)
+    ->first();
+
+if (!$schedule) {
+    return back()->withErrors([
+        'schedule_id' => 'El horario seleccionado no está disponible para este tour (inactivo o no asignado).'
+    ]);
+}
+
 
         $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
             ->where('schedule_id', $request->schedule_id)
