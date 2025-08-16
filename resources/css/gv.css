@@ -11,6 +11,53 @@
   -webkit-box-shadow: 0 0 0 1000px #343a40 inset;
   transition: background-color 5000s ease-in-out 0s;
 }
+/* View (Info = cyan) */
+.btn-view {
+  color: #fff;
+  background-color: #17a2b8; /* info */
+  border-color: #17a2b8;
+}
+.btn-view:hover {
+  color: #fff;
+  background-color: #138496;
+  border-color: #117a8b;
+}
+
+/* Edit (Success = verde AdminLTE #00bc8c) */
+.btn-edit {
+  color: #fff;
+  background-color: #00bc8c;
+  border-color: #00bc8c;
+}
+.btn-edit:hover {
+  color: #fff;
+  background-color: #009970;
+  border-color: #008d66;
+}
+
+/* Toggle (Warning = amarillo AdminLTE) */
+.btn-toggle {
+  color: #212529;
+  background-color: #f39c12;
+  border-color: #e08e0b;
+}
+.btn-toggle:hover {
+  color: #212529;
+  background-color: #e08e0b;
+  border-color: #c77c06;
+}
+
+/* Delete (Danger = rojo AdminLTE) */
+.btn-delete {
+  color: #fff;
+  background-color: #dd4b39;
+  border-color: #d73925;
+}
+.btn-delete:hover {
+  color: #fff;
+  background-color: #c23321;
+  border-color: #ac2925;
+}
 
  .login-box,
 .register-box,
@@ -51,7 +98,7 @@
   height: auto;
   border-radius: 2px;
   display: inline-block;
-  
+
 }
 
 .language-switcher .dropdown-menu {

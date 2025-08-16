@@ -171,18 +171,18 @@
                 {{-- Acciones --}}
                 <td>
                     {{-- Botón carrito --}}
-                    <button class="btn btn-success btn-sm" data-bs-toggle="modal"
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
                         data-bs-target="#modalCart{{ $tour->tour_id }}">
                         <i class="fas fa-cart-plus"></i>
                     </button>
 
-                    <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal"
+                    <a href="#" class="btn btn-edit btn-sm" data-bs-toggle="modal"
                         data-bs-target="#modalEditar{{ $tour->tour_id }}">
                         <i class="fas fa-edit"></i>
                     </a>
                     <form action="{{ route('admin.tours.destroy', $tour->tour_id) }}" method="POST" style="display:inline;">
                         @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-sm {{ $tour->is_active ? 'btn-danger' : 'btn-success' }}"
+                        <button type="submit" class="btn btn-sm {{ $tour->is_active ? 'btn-toggle' : 'btn-toggle' }}"
                             onclick="return confirm('{{ $tour->is_active ? '¿Deseas desactivar este tour?' : '¿Deseas activar este tour?' }}')">
                             <i class="fas {{ $tour->is_active ? 'fa-toggle-off' : 'fa-toggle-on' }}"></i>
                         </button>

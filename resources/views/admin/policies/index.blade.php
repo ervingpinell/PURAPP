@@ -78,7 +78,7 @@
                       <i class="fas fa-eye"></i>
                     </a>
 
-                    <button class="btn btn-warning btn-sm me-1"
+                    <button class="btn btn-edit btn-sm me-1"
                             data-bs-toggle="modal"
                             data-bs-target="#editPolicyModal-{{ $p->policy_id }}"
                             title="Editar" data-bs-toggle="tooltip">
@@ -87,7 +87,7 @@
 
                     <form class="d-inline me-1" method="POST" action="{{ route('admin.policies.toggle', $p) }}">
                       @csrf
-                      <button class="btn btn-sm {{ $p->is_active ? 'btn-success' : 'btn-secondary' }}"
+                      <button class="btn btn-sm {{ $p->is_active ? 'btn-toggle' : 'btn-toggle' }}"
                               title="{{ $p->is_active ? 'Desactivar categoría' : 'Activar categoría' }}"
                               data-bs-toggle="tooltip">
                         <i class="fas {{ $p->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>

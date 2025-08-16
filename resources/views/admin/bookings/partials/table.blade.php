@@ -53,11 +53,11 @@
 
         {{-- Botón descargar comprobante --}}
         <a href="{{ route('admin.reservas.comprobante', $booking->booking_id) }}"
-                  class="btn btn-success btn-sm">
+                  class="btn btn-primary btn-sm">
                   <i class="fas fa-file-download"></i>
         </a>
         {{-- Botón Editar --}}
-        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $booking->booking_id }}">
+        <button class="btn btn-sm btn-edit" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $booking->booking_id }}">
             <i class="fas fa-edit"></i>
         </button>
 
@@ -65,7 +65,7 @@
         <form action="{{ route('admin.reservas.destroy', $booking->booking_id) }}" method="POST" class="d-inline">
             @csrf
             @method('DELETE')
-            <button class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar esta reserva?')">
+            <button class="btn btn-sm btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta reserva?')">
                 <i class="fas fa-trash-alt"></i>
             </button>
         </form>

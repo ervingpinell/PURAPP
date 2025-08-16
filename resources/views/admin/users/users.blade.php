@@ -101,7 +101,7 @@
                     </td>
                     <td>
                         <!-- Botón editar -->
-                        <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $user->user_id }}">
+                        <a href="#" class="btn btn-edit btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $user->user_id }}">
                             <i class="fas fa-edit"></i>
                         </a>
 
@@ -110,7 +110,7 @@
                             @csrf
                             @method('DELETE')
                             <button type="submit"
-                                class="btn btn-sm {{ $user->status ? 'btn-danger' : 'btn-success' }}"
+                                class="btn btn-sm {{ $user->status ? 'btn-delete' : 'btn-view' }}"
                                 onclick="return confirm('{{ $user->status ? '¿Deseas desactivar este usuario?' : '¿Deseas reactivar este usuario?' }}')">
                                 <i class="fas {{ $user->status ? 'fa-user-slash' : 'fa-user-check' }}"></i>
                             </button>

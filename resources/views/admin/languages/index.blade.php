@@ -34,15 +34,15 @@
                     @endif
                 </td>
                 <td>
-                    <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $language->tour_language_id }}">
+                    <a href="#" class="btn btn-edit btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $language->tour_language_id }}">
                         <i class="fas fa-edit"></i>
                     </a>
                     <form action="{{ route('admin.languages.destroy', $language->tour_language_id) }}" method="POST" style="display: inline-block;">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-sm {{ $language->is_active ? 'btn-danger' : 'btn-success' }}"
+                        <button type="submit" class="btn btn-sm {{ $language->is_active ? 'btn-toggle' : 'btn-toggle' }}"
                             onclick="return confirm('{{ $language->is_active ? '¿Deseas desactivarlo?' : '¿Deseas activarlo?' }}')">
-                            <i class="fas {{ $language->is_active ? 'fa-user-slash' : 'fa-user-check' }}"></i>
+         <i class="fas {{ $language->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                         </button>
                     </form>
                 </td>

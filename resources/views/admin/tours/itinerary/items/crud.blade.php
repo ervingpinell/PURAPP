@@ -3,7 +3,7 @@
 <hr>
 <div class="d-flex justify-content-between align-items-center mb-2">
     <h4>Ítems de Itinerario</h4>
-    <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegistrarItem">
+    <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarItem">
         <i class="fas fa-plus"></i> Añadir Ítem
     </a>
 </div>
@@ -39,29 +39,34 @@
                         <span class="badge bg-secondary">Inactivo</span>
                     @endif
                 </td>
-                <td>
-                    <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarItem{{ $item->item_id }}">
-                        <i class="fas fa-edit"></i>
-                    </a>
-                    @php
-                        $active    = $item->is_active;
-                        $btnClass  = $active ? 'btn-danger' : 'btn-success';
-                        $icon      = $active ? 'fa-times-circle' : 'fa-check-circle';
-                        $confirm   = $active ? '¿Desactivar este ítem?' : '¿Activar este ítem?';
-                    @endphp
+<td>
+    {{-- Editar --}}
+    <a href="#" class="btn btn-edit btn-sm"
+       data-bs-toggle="modal"
+       data-bs-target="#modalEditarItem{{ $item->item_id }}">
+        <i class="fas fa-edit"></i>
+    </a>
 
-                    <form action="{{ route('admin.tours.itinerary_items.destroy', $item->item_id) }}" method="POST" style="display:inline-block">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit"
-                                class="btn btn-sm {{ $btnClass }}"
-                                onclick="return confirm('{{ $confirm }}')"
-                                title="{{ $active ? 'Desactivar ítem' : 'Activar ítem' }}">
-                            <i class="fas {{ $icon }}"></i>
-                        </button>
-                    </form>
+    @php
+        $active   = $item->is_active;
+        $icon     = $active ? 'fa-toggle-on' : 'fa-toggle-off';
+        $confirm  = $active ? '¿Desactivar este ítem?' : '¿Activar este ítem?';
+        $title    = $active ? 'Desactivar ítem' : 'Activar ítem';
+    @endphp
 
-                </td>
+    <form action="{{ route('admin.tours.itinerary_items.destroy', $item->item_id) }}"
+          method="POST" class="d-inline">
+        @csrf
+        @method('DELETE')
+        <button type="submit"
+                class="btn btn-sm btn-toggle"
+                onclick="return confirm('{{ $confirm }}')"
+                title="{{ $title }}">
+            <i class="fas {{ $icon }}"></i>
+        </button>
+    </form>
+</td>
+
             </tr>
 
             <!-- Modal editar ítem -->

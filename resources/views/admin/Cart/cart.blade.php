@@ -96,7 +96,7 @@
                             </td>
                             <td>
                                 {{-- Editar --}}
-                                <button class="btn btn-sm btn-warning"
+                                <button class="btn btn-sm btn-edit"
                                         data-bs-toggle="modal"
                                         data-bs-target="#modalEditar{{ $item->item_id }}">
                                     <i class="fas fa-edit"></i>
@@ -107,7 +107,7 @@
                                       class="d-inline delete-form">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger">
+                                    <button type="submit" class="btn btn-sm btn-delete">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </form>

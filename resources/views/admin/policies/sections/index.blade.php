@@ -60,7 +60,7 @@
                 </td>
                 <td>
                   <div class="actions text-center my-1">
-                    <button class="btn btn-warning btn-sm"
+                    <button class="btn btn-edit btn-sm"
                             data-bs-toggle="modal"
                             data-bs-target="#editSectionModal-{{ $s->section_id }}"
                             title="Editar" data-bs-toggle="tooltip">
@@ -70,7 +70,7 @@
                     <form class="d-inline" method="POST"
                           action="{{ route('admin.policies.sections.toggle', [$policy, $s]) }}">
                       @csrf
-                      <button class="btn btn-sm {{ $s->is_active ? 'btn-success' : 'btn-secondary' }}"
+                      <button class="btn btn-sm {{ $s->is_active ? 'btn-toggle' : 'btn-toggle' }}"
                               title="{{ $s->is_active ? 'Desactivar sección' : 'Activar sección' }}"
                               data-bs-toggle="tooltip">
                         <i class="fas {{ $s->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>

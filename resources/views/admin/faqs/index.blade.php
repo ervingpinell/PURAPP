@@ -49,7 +49,7 @@
                           $aAttr = e(str_replace(["\r", "\n"], ' ', strip_tags($faq->answer)));
                         @endphp
                         <button
-                          class="btn btn-sm btn-info"
+                          class="btn btn-sm btn-edit"
                           data-bs-toggle="modal"
                           data-bs-target="#editFaqModal"
                           data-id="{{ $faq->id }}"

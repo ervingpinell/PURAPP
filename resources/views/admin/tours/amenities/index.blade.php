@@ -33,22 +33,41 @@
                         <span class="badge bg-secondary">Inactivo</span>
                     @endif
                 </td>
-                <td>
-                    <!-- Editar -->
-                    <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $amenity->amenity_id }}">
-                        <i class="fas fa-edit"></i>
-                    </a>
+<td>
+  {{-- Editar --}}
+  <a href="#" class="btn btn-edit btn-sm"
+     data-bs-toggle="modal" data-bs-target="#modalEditar{{ $amenity->amenity_id }}"
+     title="Editar">
+    <i class="fas fa-edit"></i>
+  </a>
 
-                    <!-- Activar/Desactivar -->
-                    <form action="{{ route('admin.tours.amenities.destroy', $amenity->amenity_id) }}" method="POST" style="display:inline-block;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-sm {{ $amenity->is_active ? 'btn-danger' : 'btn-success' }}"
-                            onclick="return confirm('{{ $amenity->is_active ? '¿Deseas desactivarla?' : '¿Deseas activarla?' }}')">
-                            <i class="fas {{ $amenity->is_active ? 'fa-times-circle' : 'fa-check-circle' }}"></i>
-                        </button>
-                    </form>
-                </td>
+  {{-- Toggle activar/desactivar --}}
+  <form action="{{ route('admin.tours.amenities.toggle', $amenity->amenity_id) }}"
+        method="POST" class="d-inline">
+    @csrf
+    @method('PATCH')
+    <button type="submit"
+            class="btn btn-toggle btn-sm"
+            title="{{ $amenity->is_active ? 'Desactivar' : 'Activar' }}"
+            onclick="return confirm('{{ $amenity->is_active ? '¿Deseas desactivarla?' : '¿Deseas activarla?' }}')">
+      <i class="fas {{ $amenity->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
+    </button>
+  </form>
+
+  {{-- Eliminar definitivo --}}
+  <form action="{{ route('admin.tours.amenities.destroy', $amenity->amenity_id) }}"
+        method="POST" class="d-inline">
+    @csrf
+    @method('DELETE')
+    <button type="submit"
+            class="btn btn-delete btn-sm"
+            title="Eliminar definitivamente"
+            onclick="return confirm('¿Eliminar definitivamente esta amenidad? Esta acción no se puede deshacer.')">
+      <i class="fas fa-trash"></i>
+    </button>
+  </form>
+</td>
+
             </tr>
 
             <!-- Modal editar -->

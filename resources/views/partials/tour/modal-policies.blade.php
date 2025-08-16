@@ -1,61 +1,100 @@
 @php
-  /** @var \App\Models\Tour $tour */
   use App\Models\Policy;
 
+  // Cargar solo las dos políticas requeridas
   $cancel  = Policy::byType('cancelacion');
   $refund  = Policy::byType('reembolso');
 
-  $tCancel = $cancel?->translation(app()->getLocale()) ?? $cancel?->translation('es');
-  $tRefund = $refund?->translation(app()->getLocale()) ?? $refund?->translation('es');
+  // Traducciones (el modelo ya maneja fallback)
+  $tCancel = $cancel?->translation();
+  $tRefund = $refund?->translation();
 
-  $modalId = 'policiesModal-'.$tour->tour_id;
-
-  // Limitar texto para hacerlo "pequeño"
-  $limit = 600;
+  // Helper: recorte y escape seguro (quita el recorte si no lo quieres)
+  $limit = 3000;
   $trim  = function (?string $txt) use ($limit) {
     if (!$txt) return null;
-    // Corta conservando multibyte y agrega "…"
     $out = mb_strimwidth($txt, 0, $limit, '…', 'UTF-8');
     return nl2br(e($out));
   };
+
+  $cancelTitle   = $tCancel?->title ?: __('Política de Cancelación');
+  $cancelContent = $tCancel && filled($tCancel->content)
+      ? $trim($tCancel->content)
+      : '<em class="text-muted">'.e(__('No hay una política de cancelación configurada.')).'</em>';
+
+  $refundTitle   = $tRefund?->title ?: __('Política de Reembolsos');
+  $refundContent = $tRefund && filled($tRefund->content)
+      ? $trim($tRefund->content)
+      : '<em class="text-muted">'.e(__('No hay una política de reembolsos configurada.')).'</em>';
 @endphp
 
-<div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}Label" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-sm modal-dialog-scrollable">
+{{-- Templates ocultos SOLO para cancelación y reembolsos --}}
+<template id="tpl-policy-cancelacion">
+  <h5 class="modal-title">{{ $cancelTitle }}</h5>
+  <div class="policy-body">{!! $cancelContent !!}</div>
+</template>
+
+<template id="tpl-policy-reembolso">
+  <h5 class="modal-title">{{ $refundTitle }}</h5>
+  <div class="policy-body">{!! $refundContent !!}</div>
+</template>
+
+{{-- MODAL ÚNICO --}}
+<div class="modal fade" id="policyModal" tabindex="-1" aria-labelledby="policyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="{{ $modalId }}Label">{{ __('adminlte::adminlte.policies') }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+        <h5 id="policyModalLabel" class="modal-title">{{ __('Política') }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Cerrar') }}"></button>
       </div>
-
       <div class="modal-body">
-        {{-- Cancelación --}}
-        <div class="mb-3">
-          <h6 class="mb-1">{{ $tCancel?->title ?? __('Política de Cancelación') }}</h6>
-          @if($tCancel && filled($tCancel->content))
-            <div class="small text-muted">{!! $trim($tCancel->content) !!}</div>
-          @else
-            <div class="small text-muted"><em>{{ __('No hay una política de cancelación configurada.') }}</em></div>
-          @endif
-        </div>
-
-        {{-- Reembolsos --}}
-        <div>
-          <h6 class="mb-1">{{ $tRefund?->title ?? __('Política de Reembolsos') }}</h6>
-          @if($tRefund && filled($tRefund->content))
-            <div class="small text-muted">{!! $trim($tRefund->content) !!}</div>
-          @else
-            <div class="small text-muted"><em>{{ __('No hay una política de reembolsos configurada.') }}</em></div>
-          @endif
-        </div>
+        <div id="policyModalBody" class="text-muted small"></div>
       </div>
-
       <div class="modal-footer">
-        <a href="{{ route('policies.index') }}" class="btn btn-outline-secondary btn-sm">
-          {{ __('Ver todas las políticas') }}
-        </a>
-        <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">{{ __('Cerrar') }}</button>
+        <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">
+          {{ __('Cerrar') }}
+        </button>
       </div>
     </div>
   </div>
 </div>
+
+@push('scripts')
+<script>
+(function () {
+  // Abre el modal con la política indicada: "cancelacion" o "reembolso"
+  function openPolicy(kind) {
+    const tpl  = document.getElementById(`tpl-policy-${kind}`);
+    const body = document.getElementById('policyModalBody');
+    const titleEl = document.getElementById('policyModalLabel');
+    if (!tpl || !body || !titleEl) return;
+
+    const frag = tpl.content.cloneNode(true);
+    const newTitle = frag.querySelector('.modal-title')?.textContent || '{{ __('Política') }}';
+    const newBody  = frag.querySelector('.policy-body')?.innerHTML || '';
+
+    titleEl.textContent = newTitle;
+    body.innerHTML = newBody;
+
+    const modalEl = document.getElementById('policyModal');
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+  }
+
+  // Delegación de eventos: cualquier elemento con [data-policy="cancelacion|reembolso"]
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-policy]');
+    if (!btn) return;
+
+    const kind = btn.getAttribute('data-policy');
+    if (kind === 'cancelacion' || kind === 'reembolso') {
+      e.preventDefault();
+      openPolicy(kind);
+    }
+  });
+
+  // Exponer helper global opcional por si quieres abrir desde JS
+  window.openPolicyModal = openPolicy;
+})();
+</script>
+@endpush

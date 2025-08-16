@@ -90,7 +90,7 @@
                     {{-- 🔁 Activar/Desactivar carrito --}}
                     <form action="{{ route('admin.cart.toggle', $cart->cart_id) }}" method="POST" class="d-inline-block me-1">
                         @csrf @method('PATCH')
-                        <button class="btn btn-sm {{ $cart->is_active ? 'btn-success' : 'btn-secondary' }}"
+                        <button class="btn btn-sm {{ $cart->is_active ? 'btn-toggle' : 'btn-toggle' }}"
                                 title="{{ $cart->is_active ? 'Desactivar carrito' : 'Activar carrito' }}"
                                 data-bs-toggle="tooltip">
                             <i class="fas {{ $cart->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
@@ -100,7 +100,7 @@
                     {{-- 🗑️ Eliminar carrito completo --}}
                     <form action="{{ route('admin.cart.destroy', $cart->cart_id) }}" method="POST" class="d-inline-block form-eliminar-carrito">
                         @csrf @method('DELETE')
-                        <button class="btn btn-danger btn-sm" title="Eliminar carrito" data-bs-toggle="tooltip">
+                        <button class="btn btn-delete btn-sm" title="Eliminar carrito" data-bs-toggle="tooltip">
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
@@ -181,7 +181,7 @@
                         <td class="d-flex justify-content-center gap-1">
                             {{-- ✏️ Editar: cerrar modal del carrito, abrir modal de edición --}}
                             <button
-                                class="btn btn-sm btn-warning btn-open-edit"
+                                class="btn btn-sm btn-edit btn-open-edit"
                                 title="Editar" data-bs-toggle="tooltip"
                                 data-parent="#modalItemsCart{{ $cart->cart_id }}"
                                 data-child="#modalEditar{{ $item->item_id }}">
@@ -191,7 +191,7 @@
                             {{-- 🗑️ Eliminar ítem --}}
                             <form action="{{ route('admin.cart.item.destroy', $item->item_id) }}" method="POST" class="d-inline-block form-eliminar">
                                 @csrf @method('DELETE')
-                                <button class="btn btn-sm btn-danger" title="Eliminar" data-bs-toggle="tooltip">
+                                <button class="btn btn-sm btn-delete" title="Eliminar" data-bs-toggle="tooltip">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </form>
@@ -244,7 +244,7 @@
   <div class="modal-dialog">
     <form method="POST" action="{{ route('admin.cart.updateFromPost', $item->item_id) }}" class="modal-content">
       @csrf
-      <div class="modal-header bg-warning text-white">
+      <div class="modal-header bg-edit text-white">
         <h5 class="modal-title" id="modalLabel{{ $item->item_id }}">Editar Ítem del Carrito</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>

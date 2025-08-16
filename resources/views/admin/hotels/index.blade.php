@@ -71,41 +71,40 @@
                                 {{ $hotel->is_active ? 'Activo' : 'Inactivo' }}
                             </span>
                         </td>
-                        <td class="text-center">
-                            <div class="d-inline-flex flex-wrap gap-2">
-                                {{-- ✏️ Editar nombre/estado (modal) --}}
-                                <button
-                                    class="btn btn-success btn-sm"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#editHotelModal-{{ $hotel->hotel_id }}"
-                                    title="Editar hotel">
-                                    <i class="fas fa-edit"></i>
-                                </button>
+<td class="text-center">
+    <div class="d-inline-flex flex-wrap gap-2">
+        {{-- ✏️ Editar nombre/estado (modal) --}}
+        <button
+            class="btn btn-success btn-sm"
+            data-bs-toggle="modal"
+            data-bs-target="#editHotelModal-{{ $hotel->hotel_id }}"
+            title="Editar hotel">
+            <i class="fas fa-edit"></i>
+        </button>
 
-                                {{-- 🔁 Activar/Desactivar (rápido) --}}
-                                <form action="{{ route('admin.hotels.update', $hotel->hotel_id) }}"
-                                      method="POST" class="d-inline">
-                                    @csrf @method('PUT')
-                                    <input type="hidden" name="name" value="{{ $hotel->name }}">
-                                    <input type="hidden" name="is_active" value="{{ $hotel->is_active ? 0 : 1 }}">
-                                    <button type="submit"
-                                        class="btn btn-warning btn-sm"
-                                        title="{{ $hotel->is_active ? 'Desactivar' : 'Activar' }}">
-                                        <i class="fas fa-toggle-{{ $hotel->is_active ? 'on' : 'off' }}"></i>
-                                    </button>
-                                </form>
+        {{-- 🔁 Activar/Desactivar usando toggle() --}}
+        <form action="{{ route('admin.hotels.toggle', $hotel->hotel_id) }}"
+              method="POST" class="d-inline">
+            @csrf @method('PATCH')
+            <button type="submit"
+                class="btn btn-warning btn-sm"
+                title="{{ $hotel->is_active ? 'Desactivar' : 'Activar' }}">
+                <i class="fas fa-toggle-{{ $hotel->is_active ? 'on' : 'off' }}"></i>
+            </button>
+        </form>
 
-                                {{-- 🗑️ Eliminar/Desactivar definitivo (según tu destroy actual) --}}
-                                <form action="{{ route('admin.hotels.destroy', $hotel->hotel_id) }}"
-                                      method="POST" class="d-inline"
-                                      onsubmit="return confirm('¿Seguro que deseas cambiar el estado de este hotel?');">
-                                    @csrf @method('DELETE')
-                                    <button class="btn btn-danger btn-sm" title="Eliminar / Cambiar estado">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
+        {{-- 🗑️ Eliminar definitivo --}}
+        <form action="{{ route('admin.hotels.destroy', $hotel->hotel_id) }}"
+              method="POST" class="d-inline"
+              onsubmit="return confirm('¿Seguro que deseas eliminar este hotel definitivamente?');">
+            @csrf @method('DELETE')
+            <button class="btn btn-delete btn-sm" title="Eliminar hotel">
+                <i class="fas fa-trash"></i>
+            </button>
+        </form>
+    </div>
+</td>
+
                     </tr>
 
                     {{-- MODAL: Editar hotel --}}

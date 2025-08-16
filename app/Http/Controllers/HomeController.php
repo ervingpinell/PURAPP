@@ -77,61 +77,67 @@ class HomeController extends Controller
     }
 
     public function showTour($id)
-    {
-        $locale   = app()->getLocale();
-        $fallback = config('app.fallback_locale', 'es');
+{
+    $locale   = app()->getLocale();
+    $fallback = config('app.fallback_locale', 'es');
 
-        $tour = Tour::with([
-            'tourType.translations',
-            'schedules',
-            'languages',
-            'itinerary.items.translations',
-            'itinerary.translations',
-            'amenities.translations',
-            'excludedAmenities.translations',
-            'translations',
-        ])->findOrFail($id);
+    $tour = Tour::with([
+        'tourType.translations',
+        'schedules',
+        'languages',
+        'itinerary.items.translations',
+        'itinerary.translations',
+        'amenities.translations',
+        'excludedAmenities.translations',
+        'translations',
+    ])->findOrFail($id);
 
-        // Traducciones desde DB o fallback (y si no hay traducciones aún, usa el original)
-        $t = ($tour->translations ?? collect())->firstWhere('locale', $locale)
-           ?: ($tour->translations ?? collect())->firstWhere('locale', $fallback);
+    // Traducciones del tour
+    $t = ($tour->translations ?? collect())->firstWhere('locale', $locale)
+       ?: ($tour->translations ?? collect())->firstWhere('locale', $fallback);
 
-        $tour->translated_name     = $t->name     ?? $tour->name;
-        $tour->translated_overview = $t->overview ?? $tour->overview;
+    $tour->translated_name     = $t->name     ?? $tour->name;
+    $tour->translated_overview = $t->overview ?? $tour->overview;
 
-        // Itinerario
-        if ($tour->itinerary) {
-            $it = ($tour->itinerary->translations ?? collect())->firstWhere('locale', $locale)
-               ?: ($tour->itinerary->translations ?? collect())->firstWhere('locale', $fallback);
+    // Itinerario
+    if ($tour->itinerary) {
+        $it = ($tour->itinerary->translations ?? collect())->firstWhere('locale', $locale)
+           ?: ($tour->itinerary->translations ?? collect())->firstWhere('locale', $fallback);
 
-            $tour->itinerary->translated_name        = $it->name        ?? $tour->itinerary->name;
-            $tour->itinerary->translated_description = $it->description ?? $tour->itinerary->description;
+        $tour->itinerary->translated_name        = $it->name        ?? $tour->itinerary->name;
+        $tour->itinerary->translated_description = $it->description ?? $tour->itinerary->description;
 
-            foreach ($tour->itinerary->items as $item) {
-                $itT = ($item->translations ?? collect())->firstWhere('locale', $locale)
-                    ?: ($item->translations ?? collect())->firstWhere('locale', $fallback);
-                $item->translated_title       = $itT->title       ?? $item->title;
-                $item->translated_description = $itT->description ?? $item->description;
-            }
+        foreach ($tour->itinerary->items as $item) {
+            $itT = ($item->translations ?? collect())->firstWhere('locale', $locale)
+                ?: ($item->translations ?? collect())->firstWhere('locale', $fallback);
+            $item->translated_title       = $itT->title       ?? $item->title;
+            $item->translated_description = $itT->description ?? $item->description;
         }
-
-        // Amenidades
-        foreach ($tour->amenities as $a) {
-            $t = ($a->translations ?? collect())->firstWhere('locale', $locale)
-               ?: ($a->translations ?? collect())->firstWhere('locale', $fallback);
-            $a->translated_name = $t->name ?? $a->name;
-        }
-
-        foreach ($tour->excludedAmenities as $e) {
-            $t = ($e->translations ?? collect())->firstWhere('locale', $locale)
-               ?: ($e->translations ?? collect())->firstWhere('locale', $fallback);
-            $e->translated_name = $t->name ?? $e->name;
-        }
-
-        $hotels = HotelList::orderBy('name')->get();
-
-        return view('public.tour-show', compact('tour', 'hotels'));
     }
+
+    // Amenidades
+    foreach ($tour->amenities as $a) {
+        $t = ($a->translations ?? collect())->firstWhere('locale', $locale)
+           ?: ($a->translations ?? collect())->firstWhere('locale', $fallback);
+        $a->translated_name = $t->name ?? $a->name;
+    }
+
+    foreach ($tour->excludedAmenities as $e) {
+        $t = ($e->translations ?? collect())->firstWhere('locale', $locale)
+           ?: ($e->translations ?? collect())->firstWhere('locale', $fallback);
+        $e->translated_name = $t->name ?? $e->name;
+    }
+
+    $hotels = HotelList::orderBy('name')->get();
+
+    // ✅ Definir variables esperadas por el include
+    // Si tienes columnas en tours:
+    $cancel = $tour->cancel_policy ?? null;
+    $refund = $tour->refund_policy ?? null;
+
+
+    return view('public.tour-show', compact('tour', 'hotels', 'cancel', 'refund'));
+}
 
     public function contact()
     {

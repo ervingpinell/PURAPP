@@ -1,5 +1,7 @@
 <?php
 
+
+
 namespace App\Http\Controllers\Admin\Tours;
 
 use App\Http\Controllers\Controller;
@@ -32,7 +34,6 @@ class AmenityController extends Controller
                 'is_active' => true,
             ]);
 
-            // Traducciones automáticas (ES, EN, FR, PT, DE)
             $nameTr = $translator->translateAll($name);
 
             foreach (['es', 'en', 'fr', 'pt', 'de'] as $lang) {
@@ -54,16 +55,12 @@ class AmenityController extends Controller
     {
         $request->validate([
             'name' => [
-                'required',
-                'string',
-                'max:255',
+                'required','string','max:255',
                 Rule::unique('amenities', 'name')->ignore($amenity->amenity_id, 'amenity_id'),
             ],
         ]);
 
-        $amenity->update([
-            'name' => $request->string('name')->trim(),
-        ]);
+        $amenity->update(['name' => $request->string('name')->trim()]);
 
         return redirect()
             ->route('admin.tours.amenities.index')
@@ -71,17 +68,30 @@ class AmenityController extends Controller
             ->with('alert_type', 'actualizado');
     }
 
-    public function destroy(Amenity $amenity)
-    {
-        $amenity->update([
-            'is_active' => ! $amenity->is_active,
-        ]);
+    /** ✅ Activar/Desactivar (antes estaba en destroy) */
+public function toggle(Amenity $amenity)
+{
+    $amenity->update(['is_active' => !$amenity->is_active]);
 
-        $accion = $amenity->is_active ? 'activado' : 'desactivado';
+    $accion = $amenity->is_active ? 'activado' : 'desactivado';
 
-        return redirect()
-            ->route('admin.tours.amenities.index')
-            ->with('success', "Amenidad {$accion} correctamente.")
-            ->with('alert_type', $accion);
-    }
+    return redirect()
+        ->route('admin.tours.amenities.index')
+        ->with('success', "Amenidad {$accion} correctamente.")
+        ->with('alert_type', $accion);
+}
+
+public function destroy(Amenity $amenity)
+{
+    // Si no tienes ON DELETE CASCADE y quieres borrar traducciones manualmente:
+    // AmenityTranslation::where('amenity_id', $amenity->amenity_id)->delete();
+
+    $amenity->delete(); // hard delete (si no usas SoftDeletes)
+
+    return redirect()
+        ->route('admin.tours.amenities.index')
+        ->with('success', 'Amenidad eliminada definitivamente.')
+        ->with('alert_type', 'eliminado');
+}
+
 }

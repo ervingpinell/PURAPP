@@ -187,7 +187,11 @@ Route::get('/politicas', [\App\Http\Controllers\Site\PoliciesController::class, 
             Route::resource('availability', TourAvailabilityController::class)->except(['show']);
             Route::resource('excluded_dates', TourExcludedDateController::class)->except(['show']);
             Route::post('excluded_dates/block-all', [TourExcludedDateController::class, 'blockAll'])->name('excluded_dates.blockAll');
-            Route::resource('amenities', AmenityController::class)->except(['show']);
+    Route::resource('amenities', AmenityController::class)->except(['show']);
+
+    // ✅ Toggle activar/desactivar
+    Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])
+        ->name('amenities.toggle');
         });
 
         // Fechas excluidas públicas
@@ -220,7 +224,8 @@ Route::resource('roles', RoleController::class)->except(['show']);
         // Hoteles
         Route::resource('hotels', HotelListController::class)->except(['show', 'create', 'edit']);
         Route::post('hotels/sort', [HotelListController::class, 'sort'])->name('hotels.sort');
-
+    Route::patch('/hotels/{hotel}/toggle', [HotelListController::class, 'toggle'])->name('hotels.toggle');
+Route::delete('/hotels/{hotel}', [HotelListController::class, 'destroy'])->name('hotels.destroy');
         // Carrito Admin
         Route::get('/carrito', [CartController::class, 'index'])->name('cart.index');
         Route::post('/carrito', [CartController::class, 'store'])->name('cart.store');

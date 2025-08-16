@@ -26,24 +26,24 @@
     @endforeach
   </p>
 
-  {{-- 🔗 Enlace que abre el modal de políticas --}}
+  {{-- 🔗 Enlaces que abren el modal dinámico (sin data-bs-target) --}}
 <h4 class="mt-3">{{ __('adminlte::adminlte.policies') }}</h4>
-<p class="badges-group">
-  <span
-    role="button" tabindex="0"
-    class="fw-semibold policy-link"
-    data-bs-toggle="modal"
-    data-bs-target="#policiesModal-{{ $tour->tour_id }}"
-    style="cursor:pointer; text-decoration: underline; color: var(--primary-dark) !important;"
-  >
-    {{ __('adminlte::adminlte.cancellation_and_refunds_policies') }}
-  </span>
+<p class="badges-group mb-0">
+  <a href="#" class="fw-semibold policy-link d-block mb-1"
+     data-policy="cancelacion"
+     style="text-decoration: underline; color: var(--primary-dark) !important;">
+    {{ __('Ver política de cancelación') }}
+  </a>
+
+  <a href="#" class="fw-semibold policy-link d-block"
+     data-policy="reembolso"
+     style="text-decoration: underline; color: var(--primary-dark) !important;">
+    {{ __('Ver política de reembolsos') }}
+  </a>
 </p>
 
-{{-- Modal (partial) --}}
-@include('partials.tour.modal-policies', ['tour' => $tour])
 
 </div>
 
-{{-- Modal de políticas (partial) --}}
-@include('partials.tour.modal-policies', ['tour' => $tour])
+{{-- Modal de políticas (incluye UNA sola vez en la página) --}}
+@include('partials.tour.modal-policies')

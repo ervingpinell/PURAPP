@@ -40,7 +40,7 @@
 
                 <td class="text-nowrap">
                     <!-- Editar (VERDE) -->
-                    <a href="#" class="btn btn-success btn-sm me-1" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $tourtype->tour_type_id }}" title="Editar">
+                    <a href="#" class="btn btn-edit btn-sm me-1" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $tourtype->tour_type_id }}" title="Editar">
                         <i class="fas fa-edit"></i>
                     </a>
 
@@ -49,7 +49,7 @@
                         @csrf
                         @method('PUT')
                         <button type="submit"
-                                class="btn btn-warning btn-sm"
+                                class="btn btn-toggle btn-sm"
                                 title="{{ $tourtype->is_active ? 'Desactivar' : 'Activar' }}"
                                 onclick="return confirm('{{ $tourtype->is_active ? '¿Deseas desactivarlo?' : '¿Deseas activarlo?' }}')">
                             <i class="fas fa-toggle-{{ $tourtype->is_active ? 'on' : 'off' }}"></i>
@@ -61,7 +61,7 @@
                           class="d-inline form-delete" data-name="{{ $tourtype->name }}">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">
+                        <button type="submit" class="btn btn-delete btn-sm" title="Eliminar">
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>

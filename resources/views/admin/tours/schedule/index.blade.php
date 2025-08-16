@@ -42,7 +42,7 @@
                   </span>
                 </div>
                 <div>
-                  <button class="btn btn-sm btn-warning"
+                  <button class="btn btn-sm btn-edit"
                           data-bs-toggle="modal"
                           data-bs-target="#modalEditar{{ $bloque->schedule_id }}">
                     <i class="fas fa-edit"></i>
@@ -51,9 +51,9 @@
                         method="POST" class="d-inline">
                     @csrf @method('PUT')
                     <button type="submit"
-                            class="btn btn-sm {{ $bloque->is_active ? 'btn-danger' : 'btn-success' }}"
+                            class="btn btn-sm {{ $bloque->is_active ? 'btn-toggle' : 'btn-toggle' }}"
                             onclick="return confirm('¿Estás seguro?')">
-                      <i class="fas {{ $bloque->is_active ? 'fa-times' : 'fa-check' }}"></i>
+      <i class="fas {{ $bloque->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                     </button>
                   </form>
                 </div>

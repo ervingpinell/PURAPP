@@ -106,14 +106,14 @@
 <div class="d-flex align-items-center btn-action-group ms-auto mt-2 mt-md-0">
 
     {{-- Asignar Ítems --}}
-    <a href="#" class="btn btn-sm btn-success"
+    <a href="#" class="btn btn-sm btn-view"
        data-bs-toggle="modal"
        data-bs-target="#modalAsignar{{ $itinerary->itinerary_id }}">
         Asignar
     </a>
 
     {{-- Editar --}}
-    <a href="#" class="btn btn-sm btn-warning"
+    <a href="#" class="btn btn-sm btn-edit"
        data-bs-toggle="modal"
        data-bs-target="#modalEditar{{ $itinerary->itinerary_id }}">
         Editar
@@ -126,7 +126,7 @@
         @method('DELETE')
         @php
             $active = $itinerary->is_active;
-            $btnClass = $active ? 'btn-danger' : 'btn-success';
+            $btnClass = $active ? 'btn-delete' : 'btn-secondary';
             $text    = $active ? '¿Desactivar este itinerario?' : '¿Activar este itinerario?';
             $label   = $active ? 'Desactivar' : 'Activar';
         @endphp
