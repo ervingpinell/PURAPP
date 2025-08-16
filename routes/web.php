@@ -217,6 +217,7 @@ Route::resource('roles', RoleController::class)->except(['show']);
 
         // Hoteles
         Route::resource('hotels', HotelListController::class)->except(['show', 'create', 'edit']);
+        Route::post('hotels/sort', [HotelListController::class, 'sort'])->name('hotels.sort');
 
         // Carrito Admin
         Route::get('/carrito', [CartController::class, 'index'])->name('cart.index');

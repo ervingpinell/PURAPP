@@ -13,6 +13,14 @@
         </div>
     @endif
 
+    {{-- Botón para ordenar alfabéticamente --}}
+    <form action="{{ route('admin.hotels.sort') }}" method="POST" class="mb-3">
+        @csrf
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-sort-alpha-down"></i> Ordenar alfabéticamente
+        </button>
+    </form>
+
     {{-- Formulario para agregar nuevo hotel --}}
     <form action="{{ route('admin.hotels.store') }}" method="POST" class="mb-4">
         @csrf
