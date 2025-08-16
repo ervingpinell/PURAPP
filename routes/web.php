@@ -213,6 +213,8 @@ Route::resource('roles', RoleController::class)->except(['show']);
         // Categorías, idiomas, tipos de tour
         Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);
         Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
+        Route::delete('/tourtypes/{id}', [TourTypeController::class, 'destroy'])
+    ->name('admin.tourtypes.destroy');
         Route::resource('languages', TourLanguageController::class, ['parameters' => ['languages' => 'language']])->except(['show']);
 
         // Hoteles

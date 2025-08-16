@@ -42,14 +42,22 @@
           </thead>
           <tbody>
             @forelse ($policies as $p)
-              @php $t = $p->translation(); @endphp
+              @php
+                $t = $p->translation();
+                $from = $p->effective_from
+                    ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('Y-m-d')
+                    : null;
+                $to = $p->effective_to
+                    ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('Y-m-d')
+                    : null;
+              @endphp
               <tr class="text-center">
                 <td>{{ $p->policy_id }}</td>
                 <td class="text-start"><code>{{ $p->name }}</code></td>
                 <td class="text-start">{{ $t?->title ?? '—' }}</td>
                 <td>
-                  @if($p->effective_from || $p->effective_to)
-                    {{ $p->effective_from ?? '—' }} &rarr; {{ $p->effective_to ?? '—' }}
+                  @if($from || $to)
+                    {{ $from ?? '—' }} &rarr; {{ $to ?? '—' }}
                   @else
                     <span class="text-muted">—</span>
                   @endif
@@ -64,20 +72,20 @@
                 <td>
                   <div class="actions text-center my-1">
                     {{-- 👁️ Ver (igual que Carritos) --}}
-                    <a class="btn btn-info btn-sm"
+                    <a class="btn btn-info btn-sm me-1"
                        href="{{ route('admin.policies.sections.index', $p) }}"
                        title="Ver secciones" data-bs-toggle="tooltip">
                       <i class="fas fa-eye"></i>
                     </a>
 
-                    <button class="btn btn-warning btn-sm"
+                    <button class="btn btn-warning btn-sm me-1"
                             data-bs-toggle="modal"
                             data-bs-target="#editPolicyModal-{{ $p->policy_id }}"
                             title="Editar" data-bs-toggle="tooltip">
                       <i class="fas fa-edit"></i>
                     </button>
 
-                    <form class="d-inline" method="POST" action="{{ route('admin.policies.toggle', $p) }}">
+                    <form class="d-inline me-1" method="POST" action="{{ route('admin.policies.toggle', $p) }}">
                       @csrf
                       <button class="btn btn-sm {{ $p->is_active ? 'btn-success' : 'btn-secondary' }}"
                               title="{{ $p->is_active ? 'Desactivar categoría' : 'Activar categoría' }}"
@@ -163,7 +171,15 @@
 
   {{-- MODALES: Editar categoría --}}
   @foreach ($policies as $p)
-    @php $tt = $p->translation(); @endphp
+    @php
+      $tt = $p->translation();
+      $fromVal = $p->effective_from
+          ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('Y-m-d')
+          : '';
+      $toVal = $p->effective_to
+          ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('Y-m-d')
+          : '';
+    @endphp
     <div class="modal fade" id="editPolicyModal-{{ $p->policy_id }}" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <form class="modal-content" method="POST" action="{{ route('admin.policies.update', $p) }}">
@@ -180,11 +196,11 @@
               </div>
               <div class="col-md-3">
                 <label class="form-label">Vigencia desde</label>
-                <input type="date" name="effective_from" class="form-control" value="{{ $p->effective_from }}">
+                <input type="date" name="effective_from" class="form-control" value="{{ $fromVal }}">
               </div>
               <div class="col-md-3">
                 <label class="form-label">Vigencia hasta</label>
-                <input type="date" name="effective_to" class="form-control" value="{{ $p->effective_to }}">
+                <input type="date" name="effective_to" class="form-control" value="{{ $toVal }}">
               </div>
               <div class="col-md-3">
                 <div class="form-check mt-4">

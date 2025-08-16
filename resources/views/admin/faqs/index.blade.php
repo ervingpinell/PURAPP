@@ -32,7 +32,8 @@
                     <td>
                         <div class="faq-answer position-relative" style="max-height: 3.5em; overflow: hidden;" data-expanded="false">
                             <div class="answer-content">{{ strip_tags($faq->answer) }}</div>
-                            <div class="fade-overlay position-absolute bottom-0 start-0 w-100" style="height: 1.5em; background: linear-gradient(to bottom, transparent, white);"></div>
+                            <div class="fade-overlay position-absolute bottom-0 start-0 w-100"
+                                 style="height: 1.5em; background: linear-gradient(to bottom, transparent, white);"></div>
                         </div>
                         <button class="btn btn-link p-0 mt-1 toggle-answer d-none" style="font-size: 0.85em;">Leer más</button>
                     </td>
@@ -42,91 +43,112 @@
                         </span>
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-info" data-bs-toggle="modal"
-                            data-bs-target="#editFaqModal{{ $faq->id }}">
-                            <i class="fas fa-edit"></i>
+                        <!-- EDITAR: modal único; pasar datos seguros por data-* -->
+                        @php
+                          $qAttr = e(strip_tags($faq->question));
+                          $aAttr = e(str_replace(["\r", "\n"], ' ', strip_tags($faq->answer)));
+                        @endphp
+                        <button
+                          class="btn btn-sm btn-info"
+                          data-bs-toggle="modal"
+                          data-bs-target="#editFaqModal"
+                          data-id="{{ $faq->id }}"
+                          data-action="{{ route('admin.faqs.update', $faq) }}"
+                          data-question="{{ $qAttr }}"
+                          data-answer="{{ $aAttr }}"
+                        >
+                          <i class="fas fa-edit"></i>
                         </button>
 
                         <form action="{{ route('admin.faqs.toggleStatus', $faq) }}" method="POST" class="d-inline">
                             @csrf
-                            <button type="submit" class="btn btn-sm btn-warning">
+                            <button type="submit" class="btn btn-sm btn-warning" title="Cambiar estado">
                                 <i class="fas fa-toggle-{{ $faq->is_active ? 'off' : 'on' }}"></i>
                             </button>
                         </form>
 
                         <form action="{{ route('admin.faqs.destroy', $faq) }}" method="POST" class="d-inline"
-                            onsubmit="return confirm('¿Eliminar esta pregunta?')">
-                            @csrf @method('DELETE')
-                            <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                              onsubmit="return confirm('¿Eliminar esta pregunta?')">
+                            @csrf
+                            @method('DELETE')
+                            <button class="btn btn-sm btn-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
                         </form>
                     </td>
                 </tr>
-
-                <!-- Modal Editar -->
-                <div class="modal fade" id="editFaqModal{{ $faq->id }}" tabindex="-1">
-                    <div class="modal-dialog">
-                        <form class="modal-content" method="POST" action="{{ route('admin.faqs.update', $faq) }}">
-                            @csrf @method('PUT')
-                            <div class="modal-header">
-                                <h5 class="modal-title">Editar Pregunta</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <label>Pregunta</label>
-                                    <input type="text" name="question" class="form-control" value="{{ $faq->question }}" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label>Respuesta</label>
-                                    <textarea name="answer" class="form-control" rows="4" required>{{ $faq->answer }}</textarea>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button class="btn btn-primary">Guardar cambios</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
             @endforeach
         </tbody>
     </table>
 
-    <!-- Modal Crear -->
-    <div class="modal fade" id="createFaqModal" tabindex="-1">
+    <!-- Modal CREAR (único) -->
+    <div class="modal fade" id="createFaqModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
-            <form class="modal-content" method="POST" action="{{ route('admin.faqs.store') }}">
-                @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title">Nueva Pregunta Frecuente</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label>Pregunta</label>
-                        <input type="text" name="question" class="form-control" required>
+            <div class="modal-content">
+                <form method="POST" action="{{ route('admin.faqs.store') }}">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">Nueva Pregunta Frecuente</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
-                    <div class="mb-3">
-                        <label>Respuesta</label>
-                        <textarea name="answer" class="form-control" rows="4" required></textarea>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Pregunta</label>
+                            <input type="text" name="question" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Respuesta</label>
+                            <textarea name="answer" class="form-control" rows="4" required></textarea>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-primary">Registrar</button>
-                </div>
-            </form>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary">Registrar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal EDITAR (único, reutilizable) -->
+    <div class="modal fade" id="editFaqModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="editFaqForm" method="POST" action="#">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar Pregunta</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Pregunta</label>
+                            <input id="editQuestion" type="text" name="question" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Respuesta</label>
+                            <textarea id="editAnswer" name="answer" class="form-control" rows="4" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 @stop
 
 @push('js')
+@verbatim
 <script>
+  // Leer más / Leer menos
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.faq-answer').forEach(container => {
       const content = container.querySelector('.answer-content');
       const toggleBtn = container.parentElement.querySelector('.toggle-answer');
       const fadeOverlay = container.querySelector('.fade-overlay');
 
-      // Verifica si el contenido sobrepasa el contenedor
       const contentHeight = content.scrollHeight;
       const maxHeight = parseFloat(getComputedStyle(container).maxHeight);
 
@@ -138,10 +160,30 @@
         const isExpanded = container.getAttribute('data-expanded') === 'true';
         container.style.maxHeight = isExpanded ? '3.5em' : 'none';
         fadeOverlay.style.display = isExpanded ? '' : 'none';
-        container.setAttribute('data-expanded', !isExpanded);
+        container.setAttribute('data-expanded', (!isExpanded).toString());
         this.textContent = isExpanded ? 'Leer más' : 'Leer menos';
       });
     });
   });
+
+  // Rellenar modal de EDICIÓN con los datos del botón que lo abrió
+  const editModal = document.getElementById('editFaqModal');
+  editModal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    if (!button) return;
+
+    const action   = button.getAttribute('data-action')   || '#';
+    const question = button.getAttribute('data-question') || '';
+    const answer   = button.getAttribute('data-answer')   || '';
+
+    const form = document.getElementById('editFaqForm');
+    const qInp = document.getElementById('editQuestion');
+    const aTxt = document.getElementById('editAnswer');
+
+    form.action = action;
+    qInp.value  = question;
+    aTxt.value  = answer;
+  });
 </script>
+@endverbatim
 @endpush

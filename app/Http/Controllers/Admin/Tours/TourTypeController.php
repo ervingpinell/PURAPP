@@ -8,6 +8,7 @@ use App\Models\TourType;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Exception;
+use Illuminate\Http\RedirectResponse;
 
 class TourTypeController extends Controller
 {
@@ -92,4 +93,23 @@ class TourTypeController extends Controller
             return back()->with('error', 'No se pudo cambiar el estado del tipo de tour.');
         }
     }
+
+public function destroy(int $id): RedirectResponse
+{
+    $tourType = TourType::findOrFail($id);
+
+    try {
+        $tourType->delete();
+        return back()->with([
+            'success'    => 'Tipo de tour eliminado correctamente.',
+            'alert_type' => 'eliminado',
+        ]);
+    } catch (\Throwable $e) {
+        // Si hay FK (tours que lo usan), puedes mostrar mensaje claro
+        return back()->with([
+            'success'    => 'No se pudo eliminar: este tipo de tour está en uso.',
+            'alert_type' => 'error',
+        ]);
+    }
+}
 }

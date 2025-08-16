@@ -4,16 +4,15 @@ namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
 use App\Models\Policy;
-use Illuminate\Contracts\View\View;
 
 class PoliciesController extends Controller
 {
-    /** GET /politicas - Listado público */
-    public function index(): View
+    /** GET /politicas — listado público (todas las categorías activas y vigentes) */
+    public function index()
     {
         $policies = Policy::query()
             ->active()
-            ->effectiveOn() // hoy por defecto (scope del modelo)
+            ->effectiveOn() // hoy por defecto
             ->with([
                 'translations',
                 'activeSections' => fn($q) => $q->orderBy('sort_order'),
@@ -25,8 +24,8 @@ class PoliciesController extends Controller
         return view('policies.index', compact('policies'));
     }
 
-    /** GET /politicas/{policy} - Detalle público */
-    public function show(Policy $policy): View
+    /** GET /politicas/{policy} — detalle público de una categoría */
+    public function show(Policy $policy)
     {
         $policy->loadMissing([
             'translations',

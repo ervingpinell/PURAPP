@@ -3,11 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\Policy;
 use App\Models\PolicyTranslation;
@@ -17,15 +15,10 @@ class PolicyController extends Controller
 {
     public function __construct(
         protected TranslatorInterface $translator
-    ) {
-        // Opcional: middleware de admin
-        // $this->middleware(['auth', 'can:manage-policies']);
-    }
+    ) {}
 
-    /**
-     * Listado de categorías con conteo de secciones (ADMIN).
-     */
-    public function index(Request $request): View
+    /** Listado de categorías (admin) */
+    public function index(Request $request)
     {
         $q = Policy::query()
             ->withCount('sections')
@@ -46,10 +39,8 @@ class PolicyController extends Controller
         return view('admin.policies.index', compact('policies'));
     }
 
-    /**
-     * Crear categoría + traducción base (DeepL SOLO en create).
-     */
-    public function store(Request $request): RedirectResponse
+    /** Crear categoría + traducciones (DeepL SOLO en create) */
+    public function store(Request $request)
     {
         $allowedLocales = array_keys(config('app.supported_locales', [
             'es' => 'Español', 'en' => 'English', 'pt_BR' => 'Português (Brasil)', 'fr' => 'Français', 'de' => 'Deutsch',
@@ -74,7 +65,9 @@ class PolicyController extends Controller
                 'is_active'      => $request->boolean('is_active', true),
             ]);
 
-            $baseLocale = (string) ($request->input('locale') ?: app()->getLocale());
+            $baseLocale = Policy::canonicalLocale(
+                (string) ($request->input('locale') ?: app()->getLocale())
+            );
 
             PolicyTranslation::create([
                 'policy_id' => $policy->policy_id,
@@ -83,19 +76,15 @@ class PolicyController extends Controller
                 'content'   => (string) $request->input('content'),
             ]);
 
-            // DeepL SOLO aquí
             $this->translatePolicyIfMissing($policy, $baseLocale);
 
-            return redirect()
-                ->route('admin.policies.index')
+            return redirect()->route('admin.policies.index')
                 ->with('success', '✅ Categoría creada y traducida.');
         });
     }
 
-    /**
-     * Editar categoría + traducción del locale actual (SIN DeepL).
-     */
-    public function update(Request $request, Policy $policy): RedirectResponse
+    /** Editar categoría + traducción del locale actual (SIN DeepL) */
+    public function update(Request $request, Policy $policy)
     {
         $allowedLocales = array_keys(config('app.supported_locales', [
             'es'=>'Español','en'=>'English','pt_BR'=>'Português (Brasil)','fr'=>'Français','de'=>'Deutsch',
@@ -120,7 +109,9 @@ class PolicyController extends Controller
                 'is_active'      => $request->boolean('is_active', true),
             ]);
 
-            $locale = (string) ($request->input('locale') ?: app()->getLocale());
+            $locale = Policy::canonicalLocale(
+                (string) ($request->input('locale') ?: app()->getLocale())
+            );
 
             $tr = PolicyTranslation::firstOrNew([
                 'policy_id' => $policy->policy_id,
@@ -130,15 +121,12 @@ class PolicyController extends Controller
             $tr->content = (string) $request->input('content');
             $tr->save();
 
-            // SIN DeepL en update
             return back()->with('success', '✅ Categoría actualizada.');
         });
     }
 
-    /**
-     * Activar/Desactivar categoría (ADMIN).
-     */
-    public function toggle(Policy $policy): RedirectResponse
+    /** Activar/Desactivar categoría */
+    public function toggle(Policy $policy)
     {
         $policy->update(['is_active' => !$policy->is_active]);
 
@@ -148,18 +136,14 @@ class PolicyController extends Controller
         );
     }
 
-    /**
-     * Eliminar categoría (borra también secciones por FK) (ADMIN).
-     */
-    public function destroy(Policy $policy): RedirectResponse
+    /** Eliminar categoría (borra también secciones por FK) */
+    public function destroy(Policy $policy)
     {
         $policy->delete();
         return back()->with('success', '🗑️ Categoría eliminada.');
     }
 
-    /**
-     * DeepL helper: crear traducciones faltantes (sólo en store()).
-     */
+    /** DeepL helper: crear traducciones faltantes (solo en store) */
     private function translatePolicyIfMissing(Policy $policy, string $baseLocale): void
     {
         $supported = array_keys(config('app.supported_locales', [

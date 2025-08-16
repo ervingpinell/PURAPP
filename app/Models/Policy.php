@@ -11,15 +11,13 @@ class Policy extends Model
 {
     use HasFactory;
 
-    /** ───────────────── Configuración base ───────────────── */
     protected $table = 'policies';
     protected $primaryKey = 'policy_id';
     public $incrementing = true;
     protected $keyType = 'int';
     public $timestamps = true;
 
-    // Si tu esquema ACTUAL NO tiene 'type', es mejor no incluirlo en fillable.
-    // Si lo tienes, puedes volver a añadirlo aquí sin problema.
+    // Quita 'type' si tu tabla no lo tiene.
     protected $fillable = [
         // 'type',
         'name',
@@ -36,64 +34,90 @@ class Policy extends Model
         'effective_to'   => 'date',
     ];
 
-    /** Route model binding usando la PK numérica */
     public function getRouteKeyName(): string
     {
         return 'policy_id';
     }
 
-    /** ───────────────── Relaciones ───────────────── */
+    /* ─────────────── Relaciones ─────────────── */
 
     public function translations()
     {
         return $this->hasMany(PolicyTranslation::class, 'policy_id', 'policy_id');
     }
 
-    /**
-     * Todas las secciones (admin).
-     * Ordena por sort_order y luego por PK para estabilidad.
-     */
     public function sections()
     {
         return $this->hasMany(PolicySection::class, 'policy_id', 'policy_id')
-                    ->orderBy('sort_order')
-                    ->orderBy('section_id');
+            ->orderBy('sort_order')
+            ->orderBy('section_id');
     }
 
-    /**
-     * Solo secciones activas (público).
-     */
     public function activeSections()
     {
         return $this->sections()->where('is_active', true);
     }
 
-    /** ───────────────── Helpers de traducción ───────────────── */
+    /* ─────────────── Locales ─────────────── */
 
-    /**
-     * Devuelve la traducción en $locale o hace fallback a la configuración.
-     */
+    public static function canonicalLocale(string $loc): string
+    {
+        $loc   = str_replace('-', '_', trim($loc));
+        $short = strtolower(substr($loc, 0, 2));
+
+        return match ($short) {
+            'es' => 'es',
+            'en' => 'en',
+            'fr' => 'fr',
+            'de' => 'de',
+            'pt' => 'pt_BR', // clave canónica usada en DB
+            default => $loc,
+        };
+    }
+
     public function translation(?string $locale = null)
     {
-        $loc      = $locale ?: app()->getLocale();
-        $fallback = (string) config('app.fallback_locale', 'es');
+        $requested = self::canonicalLocale($locale ?: app()->getLocale());
+        $fallback  = self::canonicalLocale((string) config('app.fallback_locale', 'es'));
 
         $bag = $this->relationLoaded('translations')
             ? $this->getRelation('translations')
             : $this->translations()->get();
 
-        return $bag->firstWhere('locale', $loc)
-            ?: $bag->firstWhere('locale', $fallback)
+        $candidates = array_values(array_unique([
+            $requested,
+            strtolower($requested),
+            strtoupper($requested),
+            str_replace('_', '-', $requested),
+            str_replace('-', '_', $requested),
+            substr($requested, 0, 2),
+        ]));
+
+        $found = $bag->first(function ($t) use ($candidates) {
+            $v = (string) ($t->locale ?? '');
+            $norms = [
+                $v,
+                strtolower($v),
+                strtoupper($v),
+                str_replace('-', '_', $v),
+                str_replace('_', '-', $v),
+                substr($v, 0, 2),
+            ];
+            return count(array_intersect($candidates, $norms)) > 0;
+        });
+
+        if ($found) return $found;
+
+        return $bag->firstWhere('locale', $fallback)
+            ?: $bag->firstWhere('locale', substr($fallback, 0, 2))
             ?: $bag->first();
     }
 
-    /** Alias para parecerse a otros modelos (FAQ, etc.) */
     public function translate(?string $locale = null)
     {
         return $this->translation($locale);
     }
 
-    /** Accessors convenientes */
     public function getTitleTranslatedAttribute(): ?string
     {
         return optional($this->translation())?->title;
@@ -104,63 +128,45 @@ class Policy extends Model
         return optional($this->translation())?->content;
     }
 
-    /** ───────────────── Scopes ───────────────── */
+    /* ─────────────── Scopes ─────────────── */
 
     public function scopeActive($q)
     {
         return $q->where('is_active', true);
     }
 
-    /**
-     * Políticas vigentes en una fecha (default: hoy).
-     * Incluye rangos abiertos (null).
-     */
     public function scopeEffectiveOn($q, ?Carbon $date = null)
     {
         $d = ($date ?: now())->toDateString();
 
         return $q->where(function ($qq) use ($d) {
-            $qq->whereNull('effective_from')->orWhereDate('effective_from', '<=', $d);
-        })->where(function ($qq) use ($d) {
-            $qq->whereNull('effective_to')->orWhereDate('effective_to', '>=', $d);
-        });
+                $qq->whereNull('effective_from')->orWhereDate('effective_from', '<=', $d);
+            })->where(function ($qq) use ($d) {
+                $qq->whereNull('effective_to')->orWhereDate('effective_to', '>=', $d);
+            });
     }
 
-    /**
-     * Scope de compatibilidad con "type":
-     * - Usa columna 'type' si existe.
-     * - Si no existe, NO aplica filtro aquí (para evitar SQL error); deja el filtro al helper byType().
-     */
     public function scopeType($q, string $type)
     {
         if (Schema::hasColumn($this->getTable(), 'type')) {
             return $q->where('type', $type);
         }
-        // Sin columna 'type', devolvemos $q tal cual (no filtramos).
         return $q;
     }
 
-    /** ───────────────── Helpers (compat) ───────────────── */
+    /* ─────────────── Compat byType() ─────────────── */
 
-    /**
-     * Compat con el código antiguo: devuelve la política activa por "tipo".
-     * Si existe la columna 'type', la usa. Si NO existe:
-     *   - mapea por 'name' (p. ej. "Política de Cancelación")
-     *   - como último recurso, busca por traducciones (title LIKE).
-     */
     public static function byType(string $type): ?self
     {
         $q = static::query()->active();
 
-        // Caso 1: existe 'type'
         if (Schema::hasColumn((new static)->getTable(), 'type')) {
             return $q->where('type', $type)
-                     ->orderByDesc('is_default')
-                     ->orderByDesc('effective_from')
-                     ->first();
+                ->orderByDesc('is_default')
+                ->orderByDesc('effective_from')
+                ->first();
         }
 
-        // Caso 2: fallback por nombre "humano"
         $map = [
             'terminos'    => 'Términos y Condiciones',
             'cancelacion' => 'Política de Cancelación',
@@ -173,19 +179,14 @@ class Policy extends Model
 
             $q->where(function ($qq) use ($base) {
                 $qq->where('name', $base)
-                   ->orWhere('name', 'like', $base.'%'); // cubre "(General)", etc.
+                   ->orWhere('name', 'like', $base.'%');
             });
 
             return $q->orderByDesc('effective_from')->first();
         }
 
-        // Último recurso: buscar por títulos traducidos que contengan el término
         return $q->whereHas('translations', function ($qq) use ($type) {
-                // Si usas Postgres y quieres case-insensitive real, cambia a ILIKE:
-                // $qq->whereRaw('title ILIKE ?', ['%'.$type.'%']);
-                $qq->where('title', 'like', '%'.$type.'%');
-            })
-            ->orderByDesc('effective_from')
-            ->first();
+            $qq->where('title', 'like', '%'.$type.'%');
+        })->orderByDesc('effective_from')->first();
     }
 }
