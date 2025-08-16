@@ -1,27 +1,78 @@
-@php
-  $variant = $variant ?? 'desktop';
-  $isDesktop = $variant === 'desktop';
+@props(['variant' => 'desktop'])
 
-  $triggerId = $id ?? ($isDesktop ? 'cartDropdownDesktop' : 'cartDropdownMobile');
-  $triggerClasses = $isDesktop
+@php
+  use Illuminate\Support\Facades\Storage;
+
+  $isDesktop   = $variant === 'desktop';
+  $triggerId   = $isDesktop ? 'cartDropdownDesktop' : 'cartDropdownMobile';
+  $triggerCls  = $isDesktop
       ? 'nav-link cart-icon-wrapper position-relative dropdown-toggle'
       : 'cart-icon-wrapper position-relative dropdown-toggle';
-  $iconClasses = $isDesktop ? 'fas fa-shopping-cart' : 'fas fa-shopping-cart text-white';
+  $iconCls     = $isDesktop ? 'fas fa-shopping-cart' : 'fas fa-shopping-cart text-white';
+
+  /**
+   * Variables que normalmente inyectas desde un View Composer
+   * (AppServiceProvider o un composer dedicado):
+   * - $headerCart   (Carrito con items precargados)
+   * - $headerCount  (# de items)
+   * - $headerTotal  (Total estimado)
+   *
+   * Si no existen, las normalizamos a “falsies” para evitar errores.
+   */
+  $headerCart  = $headerCart  ?? null;
+  $headerCount = $headerCount ?? ($headerCart?->items?->count() ?? 0);
+  $headerTotal = $headerTotal ?? ($headerCart
+                     ? $headerCart->items->sum(fn($i) =>
+                         ($i->tour->adult_price ?? 0) * ($i->adults_quantity ?? 0) +
+                         ($i->tour->kid_price   ?? 0) * ($i->kids_quantity   ?? 0))
+                     : 0);
+
+  // Helper para obtener la portada de un tour
+  $coverFromTour = function ($tour) {
+      if (!$tour) {
+          return asset('images/volcano.png');
+      }
+
+      // 1) Campo directo en DB (ej: tours.image_path)
+      if (!empty($tour->image_path)) {
+          return asset('storage/'.$tour->image_path);
+      }
+
+      // 2) Primera imagen en storage/app/public/tours/{id}/gallery
+      $tid = $tour->tour_id ?? $tour->id ?? null;
+      if ($tid) {
+          $folder = "tours/{$tid}/gallery";
+          if (Storage::disk('public')->exists($folder)) {
+              $file = collect(Storage::disk('public')->files($folder))
+                  ->filter(fn($p) => preg_match('/\.(jpe?g|png|webp)$/i', $p))
+                  ->sort(fn($a,$b) => strnatcasecmp($a,$b))
+                  ->first();
+
+              if ($file) {
+                  return asset('storage/'.$file);
+              }
+          }
+      }
+
+      // 3) Fallback
+      return asset('images/volcano.png');
+  };
 @endphp
 
 <div class="dropdown">
   @auth
     <a href="#"
-       class="{{ $triggerClasses }}"
        id="{{ $triggerId }}"
+       class="{{ $triggerCls }}"
        data-bs-toggle="dropdown"
        data-bs-auto-close="outside"
        aria-expanded="false">
-      <i class="{{ $iconClasses }}" title="{{ __('adminlte::adminlte.cart') }}"></i>
-
+      <i class="{{ $iconCls }}" title="{{ __('adminlte::adminlte.cart') }}"></i>
       <span class="cart-count-badge badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
-            style="font-size:.7rem; {{ $headerCount ? '' : 'display:none;' }}">{{ $headerCount }}</span>
-
+            style="font-size:.7rem; {{ $headerCount ? '' : 'display:none;' }}">
+        {{ $headerCount }}
+      </span>
+      @if($isDesktop) {{ __('adminlte::adminlte.cart') }} @endif
     </a>
 
     <div class="dropdown-menu dropdown-menu-end p-0 mini-cart-menu" aria-labelledby="{{ $triggerId }}">
@@ -29,49 +80,40 @@
         <div class="mini-cart-list" style="max-height:60vh;overflow:auto;">
           @foreach($headerCart->items as $it)
             @php
-              $img = $it->tour->image_path ? asset('storage/'.$it->tour->image_path) : asset('images/volcano.png');
+              $img = $coverFromTour($it->tour);
               $sum = ($it->tour->adult_price ?? 0) * ($it->adults_quantity ?? 0)
                    + ($it->tour->kid_price   ?? 0) * ($it->kids_quantity   ?? 0);
             @endphp
 
             <div class="d-flex gap-2 p-3 border-bottom position-relative mini-cart-item">
-              {{-- Botón eliminar --}}
+              {{-- Eliminar --}}
               <form class="mini-cart-remove-form"
                     action="{{ route('public.cart.destroy', $it->item_id) }}"
                     method="POST"
                     onsubmit="return confirmMiniRemove(event, this);">
                 @csrf @method('DELETE')
-                <button type="submit"
-                        class="mini-cart-remove"
+                <button type="submit" class="mini-cart-remove"
                         aria-label="{{ __('adminlte::adminlte.remove_from_cart') }}">
                   <i class="fas fa-times"></i>
                 </button>
               </form>
 
-              <img src="{{ $img }}" class="rounded" alt="" style="width:56px;height:56px;object-fit:cover;">
+              <img src="{{ $img }}" class="rounded" alt=""
+                   style="width:56px;height:56px;object-fit:cover;">
               <div class="flex-grow-1 pe-4">
-                <div class="fw-semibold small">{{ $it->tour->getTranslatedName() }}</div>
-
-                {{-- Fecha --}}
-                <div class="text-muted" style="font-size:.82rem;">
-                  {{ \Carbon\Carbon::parse($it->tour_date)->translatedFormat('d M, Y') }}
+                <div class="fw-semibold small">
+                  {{ $it->tour?->getTranslatedName() ?? '-' }}
                 </div>
-
-                {{-- Horario --}}
-                @if($it->schedule)
-                  <div class="text-muted" style="font-size:.82rem;">
-                    {{ \Carbon\Carbon::parse($it->schedule->start_time)->format('g:i A') }}
-                    – {{ \Carbon\Carbon::parse($it->schedule->end_time)->format('g:i A') }}
-                  </div>
-                @endif
-
-                {{-- Cantidades --}}
                 <div class="text-muted" style="font-size:.82rem;">
-                  {{ $it->adults_quantity ?? 0 }} {{ __('adminlte::adminlte.adult') }},
-                  {{ $it->kids_quantity ?? 0 }} {{ __('adminlte::adminlte.kid') }}
+                  {{ \Carbon\Carbon::parse($it->tour_date)->translatedFormat('d MMM, Y') }}
+                  @if($it->schedule)
+                    · {{ \Carbon\Carbon::parse($it->schedule->start_time)->format('g:i A') }}
+                      – {{ \Carbon\Carbon::parse($it->schedule->end_time)->format('g:i A') }}
+                  @endif
+                  · {{ ($it->adults_quantity ?? 0) + ($it->kids_quantity ?? 0) }}
+                    {{ __('adminlte::adminlte.pax') ?? 'pax' }}
                 </div>
               </div>
-
               <div class="fw-bold small text-success mini-cart-price">
                 ${{ number_format($sum, 2) }}
               </div>
@@ -82,16 +124,18 @@
         <div class="p-3">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <span class="fw-semibold">{{ __('adminlte::adminlte.totalEstimated') }}</span>
-            <span class="fw-bold" style="color:#006633">${{ number_format($headerTotal, 2) }}</span>
+            <span class="fw-bold" style="color:#006633">
+              ${{ number_format($headerTotal, 2) }}
+            </span>
           </div>
           <div class="d-grid gap-2">
-            <a href="{{ route('public.cart.index') }}" class="btn btn-success btn-sm">
-              {{ __('adminlte::adminlte.view_cart') ?? 'Ver carrito' }}
+            <a class="btn btn-success btn-sm" href="{{ route('public.cart.index') }}">
+              {{ __('adminlte::adminlte.view_cart') ?? 'View cart' }}
             </a>
             <form action="{{ route('public.reservas.storeFromCart') }}" method="POST">
               @csrf
               <button class="btn btn-outline-success btn-sm w-100">
-                {{ __('adminlte::adminlte.confirmBooking') }}
+                {{ __('adminlte::adminlte.confirmBooking') ?? 'Confirm booking' }}
               </button>
             </form>
           </div>
@@ -103,18 +147,18 @@
       @endif
     </div>
   @else
-    {{-- Invitado: abrir login (con Swal si está disponible) --}}
     @php
-      $guestLinkClasses = $isDesktop
+      $guestLinkCls = $isDesktop
         ? 'nav-link cart-icon-wrapper position-relative'
         : 'cart-icon-wrapper position-relative';
     @endphp
     <a href="{{ route('login') }}"
-       class="{{ $guestLinkClasses }}"
+       class="{{ $guestLinkCls }}"
        onclick="return askLoginWithSwal(event, this.href);">
-      <i class="{{ $iconClasses }}" title="{{ __('adminlte::adminlte.cart') }}"></i>
+      <i class="{{ $iconCls }}" title="{{ __('adminlte::adminlte.cart') }}"></i>
       <span class="cart-count-badge badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
             style="font-size:.7rem;display:none;">0</span>
+      @if($isDesktop) {{ __('adminlte::adminlte.cart') }} @endif
     </a>
   @endauth
 </div>
@@ -167,34 +211,19 @@
   </script>
 
   <style>
-    /* === FIX: sin subrayado y caret del color actual === */
-    .cart-icon-wrapper {
-      text-decoration: none !important;
-      -webkit-tap-highlight-color: transparent; /* quita highlight azul en Android */
-    }
+    /* Icono y caret */
+    .cart-icon-wrapper { text-decoration: none !important; -webkit-tap-highlight-color: transparent; }
     .cart-icon-wrapper:hover,
     .cart-icon-wrapper:focus,
-    .cart-icon-wrapper:active {
-      text-decoration: none !important;
-      outline: none !important;
-      box-shadow: none !important;
-    }
-    /* El caret de Bootstrap usa currentColor → heredará blanco si el header es oscuro */
-    .cart-icon-wrapper.dropdown-toggle::after {
-      border-top-color: currentColor !important;
-    }
+    .cart-icon-wrapper:active { text-decoration: none !important; outline: none !important; box-shadow: none !important; }
+    .cart-icon-wrapper.dropdown-toggle::after { border-top-color: currentColor !important; }
+    .navbar-dark .cart-icon-wrapper, .bg-dark .cart-icon-wrapper { color: #fff !important; }
 
-    /* Si tu header es oscuro, fuerza blanco en mobile para el <a> */
-    .navbar-dark .cart-icon-wrapper,
-    .bg-dark .cart-icon-wrapper {
-      color: #fff !important;
-    }
-
-    /* ===== Mini-cart estilos existentes ===== */
+    /* Mini-cart */
     .mini-cart-menu{ width:360px; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.15); }
     .mini-cart-list .d-flex:hover{ background:#f8f9fa; }
-    .mini-cart-item{ padding-right: 3rem; }
-    .mini-cart-price{ margin-right: 36px; }
+    .mini-cart-item{ padding-right:3rem; }
+    .mini-cart-price{ margin-right:36px; }
     .mini-cart-remove-form{ position:absolute; top:8px; right:8px; z-index:2; }
     .mini-cart-remove{
       width:28px; height:28px; border-radius:999px;

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Storage;
 
 class Tour extends Model
 {
@@ -14,6 +15,9 @@ class Tour extends Model
     public $incrementing = true;
     protected $keyType = 'int';
     public $timestamps = true;
+
+    // Exponer atributos calculados
+    protected $appends = ['images', 'cover_image_url'];
 
     protected $fillable = [
         'name',
@@ -37,10 +41,17 @@ class Tour extends Model
         'is_active'    => 'bool',
     ];
 
-    // Scopes
-    public function scopeActive($q) { return $q->where('is_active', true); }
+    /* =====================
+     * Scopes
+     * ===================== */
+    public function scopeActive($q)
+    {
+        return $q->where('is_active', true);
+    }
 
-    // Relations
+    /* =====================
+     * Relaciones
+     * ===================== */
     public function tourType()
     {
         return $this->belongsTo(TourType::class, 'tour_type_id', 'tour_type_id');
@@ -101,93 +112,127 @@ class Tour extends Model
         return $this->hasMany(TourExcludedDate::class, 'tour_id', 'tour_id');
     }
 
-    // Translations
-public function translations()
-{
-    return $this->hasMany(TourTranslation::class, 'tour_id', 'tour_id');
-}
+    /* =====================
+     * Traducciones
+     * ===================== */
+    public function translations()
+    {
+        return $this->hasMany(TourTranslation::class, 'tour_id', 'tour_id');
+    }
 
+    public function translate(?string $locale = null)
+    {
+        $locale = $locale ?: app()->getLocale() ?: 'es';
 
-public function translate(?string $locale = null)
-{
-    $locale = $locale ?: app()->getLocale() ?: 'es';
+        // Normaliza a guiones y arma candidatos
+        $locale = str_replace('_', '-', $locale);
+        $candidates = [$locale];
 
-    // Normaliza a guiones y arma candidatos
-    $locale = str_replace('_', '-', $locale);
-    $candidates = [$locale];
-
-    // sin región (es-CR -> es)
-    if (str_contains($locale, '-')) {
-        $base = explode('-', $locale)[0];
-        if (!in_array($base, $candidates, true)) {
-            $candidates[] = $base;
+        // sin región (es-CR -> es)
+        if (str_contains($locale, '-')) {
+            $base = explode('-', $locale)[0];
+            if (!in_array($base, $candidates, true)) {
+                $candidates[] = $base;
+            }
         }
-    }
 
-    // fallback de la app (ej. en o en-US)
-    $appFallback = str_replace('_', '-', (string) config('app.fallback_locale', 'en'));
-    if (!in_array($appFallback, $candidates, true)) {
-        $candidates[] = $appFallback;
-    }
-    if (str_contains($appFallback, '-')) {
-        $base = explode('-', $appFallback)[0];
-        if (!in_array($base, $candidates, true)) {
-            $candidates[] = $base;
+        // fallback de la app (ej. en o en-US)
+        $appFallback = str_replace('_', '-', (string) config('app.fallback_locale', 'en'));
+        if (!in_array($appFallback, $candidates, true)) {
+            $candidates[] = $appFallback;
         }
-    }
+        if (str_contains($appFallback, '-')) {
+            $base = explode('-', $appFallback)[0];
+            if (!in_array($base, $candidates, true)) {
+                $candidates[] = $base;
+            }
+        }
 
-    // español como último recurso
-    if (!in_array('es', $candidates, true)) {
-        $candidates[] = 'es';
-    }
+        // español como último recurso
+        if (!in_array('es', $candidates, true)) {
+            $candidates[] = 'es';
+        }
 
-    // Obtiene translations (si ya está eager-loaded no dispara query)
-    $translations = $this->relationLoaded('translations')
-        ? $this->getRelation('translations')
-        : $this->translations()->get();
+        // Obtiene translations (si ya está eager-loaded no dispara query)
+        $translations = $this->relationLoaded('translations')
+            ? $this->getRelation('translations')
+            : $this->translations()->get();
 
-    if ($translations->isEmpty()) {
+        if ($translations->isEmpty()) {
+            return null;
+        }
+
+        // Indexa por exacto y por idioma base
+        $byExact = [];
+        $byLang  = [];
+        foreach ($translations as $tr) {
+            $loc = str_replace('_', '-', (string) $tr->locale);
+            $byExact[$loc] = $tr;
+
+            $lang = explode('-', $loc)[0];
+            if (!isset($byLang[$lang])) {
+                $byLang[$lang] = $tr;
+            }
+        }
+
+        // Busca por candidatos: exacto -> idioma
+        foreach ($candidates as $cand) {
+            if (isset($byExact[$cand])) {
+                return $byExact[$cand];
+            }
+            $lang = explode('-', $cand)[0];
+            if (isset($byLang[$lang])) {
+                return $byLang[$lang];
+            }
+        }
+
         return null;
     }
 
-    // Indexa por exacto y por idioma base
-    $byExact = [];
-    $byLang  = [];
-    foreach ($translations as $tr) {
-        $loc = str_replace('_', '-', (string) $tr->locale);
-        $byExact[$loc] = $tr;
-
-        $lang = explode('-', $loc)[0];
-        // conserva el primero encontrado por idioma
-        if (!isset($byLang[$lang])) {
-            $byLang[$lang] = $tr;
-        }
+    public function getTranslatedName(?string $preferredLocale = null): string
+    {
+        $tr = $this->translate($preferredLocale);
+        return ($tr?->name) ?? ($this->name ?? '');
     }
 
-    // Busca por candidatos: exacto -> idioma
-    foreach ($candidates as $cand) {
-        if (isset($byExact[$cand])) {
-            return $byExact[$cand];
-        }
-        $lang = explode('-', $cand)[0];
-        if (isset($byLang[$lang])) {
-            return $byLang[$lang];
-        }
+    public function getTranslatedOverview(?string $preferredLocale = null): string
+    {
+        $tr = $this->translate($preferredLocale);
+        return ($tr?->overview) ?? ($this->overview ?? '');
     }
 
-    return null;
-}
+    /* =====================
+     * Accessors de imágenes
+     * ===================== */
 
-    // Accessors (opcionales)
-public function getTranslatedName(?string $preferredLocale = null): string
-{
-    $tr = $this->translate($preferredLocale);
-    return ($tr?->name) ?? ($this->name ?? '');
-}
+    /**
+     * Array de URLs públicas de las imágenes del tour
+     * (lee de storage/app/public/tours/{tour_id}/gallery/*.{webp,jpg,jpeg,png})
+     */
+    public function getImagesAttribute(): array
+    {
+        $dir = "tours/{$this->tour_id}/gallery";
 
-public function getTranslatedOverview(?string $preferredLocale = null): string
-{
-    $tr = $this->translate($preferredLocale);
-    return ($tr?->overview) ?? ($this->overview ?? '');
-}
+        if (!Storage::disk('public')->exists($dir)) {
+            return [];
+        }
+
+        $files = collect(Storage::disk('public')->files($dir))
+            ->filter(fn ($p) => preg_match('/\.(webp|jpe?g|png)$/i', $p))
+            ->sort(function ($a, $b) {
+                return strnatcasecmp(basename($a), basename($b));
+            })
+            ->values();
+
+        return $files->map(fn ($path) => Storage::url($path))->all();
+    }
+
+    /**
+     * URL de portada (primera imagen o fallback)
+     */
+    public function getCoverImageUrlAttribute(): string
+    {
+        $images = $this->images;
+        return $images[0] ?? asset('images/volcano.png');
+    }
 }
