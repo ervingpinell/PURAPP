@@ -32,6 +32,8 @@ use App\Http\Controllers\Admin\FaqController as AdminFaqController;
 use App\Http\Controllers\Admin\TranslationController;
 use App\Http\Controllers\Admin\PolicyController;
 use App\Http\Controllers\Admin\PolicySectionController;
+use App\Http\Controllers\Admin\TourImageController;
+
 
 
 // Otros
@@ -156,6 +158,20 @@ Route::get('/politicas', [\App\Http\Controllers\Site\PoliciesController::class, 
         // FAQs
         Route::resource('faqs', AdminFaqController::class)->except(['show']);
         Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
+
+        //Images de Tours
+        Route::get('tours/images', [TourImageController::class, 'pick'])
+            ->name('tours.images.pick');
+
+        // ✅ CRUD de imágenes por tour
+        Route::prefix('tours/{tour}/images')->name('tours.images.')->group(function () {
+            Route::get('/',        [TourImageController::class, 'index'])->name('index');
+            Route::post('/',       [TourImageController::class, 'store'])->name('store');
+            Route::delete('{img}', [TourImageController::class, 'destroy'])->name('destroy');
+            Route::post('reorder', [TourImageController::class, 'reorder'])->name('reorder');
+            Route::post('{img}/cover', [TourImageController::class, 'setCover'])->name('cover');
+            Route::patch('{img}',  [TourImageController::class, 'update'])->name('update');
+        });
 
 // Categorías (policies)
     Route::get('policies', [PolicyController::class, 'index'])->name('policies.index');

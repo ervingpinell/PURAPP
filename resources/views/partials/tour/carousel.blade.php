@@ -2,56 +2,66 @@
 @php
     use Illuminate\Support\Facades\Storage;
 
-    // Carpeta esperada: storage/app/public/tours/{tour_id}/gallery
-    $tourId = $tour->tour_id ?? $tour->id ?? null;
-    $folder = $tourId ? "tours/{$tourId}/gallery" : null;
-
-    // Busca archivos válidos en la carpeta
+    // 1) Intentar desde BD (tour_images)
     $images = collect();
-    if ($folder && Storage::disk('public')->exists($folder)) {
-        $allowed = ['jpg','jpeg','png','webp'];
-        $files = collect(Storage::disk('public')->files($folder))
-            ->filter(function ($path) use ($allowed) {
-                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-                return in_array($ext, $allowed, true);
-            })
-            // orden natural: 01.jpg, 2.jpg, 10.jpg…
-            ->sort(fn ($a, $b) => strnatcasecmp($a, $b))
-            ->values();
 
-        $images = $files->map(fn ($p) => asset('storage/'.$p));
+    if (isset($tour) && method_exists($tour, 'images')) {
+        // Usa la relación si ya viene cargada; si no, la carga ordenada
+        $dbImages = $tour->relationLoaded('images')
+            ? $tour->getRelation('images')
+            : $tour->images()
+                ->orderByDesc('is_cover')
+                ->orderBy('position')
+                ->orderBy('id')
+                ->get();
+
+        if ($dbImages && $dbImages->count()) {
+            // En el modelo TourImage definimos accessor getUrlAttribute()
+            $images = $dbImages->map(fn ($img) => $img->url)->values();
+        }
     }
 
-    // Fallback si no hay imágenes
+    // 2) Fallback: leer carpeta storage/app/public/tours/{tour_id}/gallery
+    if ($images->isEmpty()) {
+        $tourId = $tour->tour_id ?? $tour->id ?? null;
+        $folder = $tourId ? "tours/{$tourId}/gallery" : null;
+
+        if ($folder && Storage::disk('public')->exists($folder)) {
+            $allowed = ['jpg','jpeg','png','webp'];
+            $files = collect(Storage::disk('public')->files($folder))
+                ->filter(function ($path) use ($allowed) {
+                    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                    return in_array($ext, $allowed, true);
+                })
+                ->sort(fn ($a, $b) => strnatcasecmp($a, $b))
+                ->values();
+
+            $images = $files->map(fn ($p) => asset('storage/'.$p));
+        }
+    }
+
+    // 3) Último fallback
     if ($images->isEmpty()) {
         $images = collect([asset('images/volcano.png')]);
     }
 
-    // Asegura al menos 4 slides duplicando la primera
+    // 4) Asegurar mínimo 4 slides (opcional)
     while ($images->count() < 4) {
         $images->push($images->first());
     }
+    $images = $images->values();
 
-    $images = $images->values(); // array limpio
-
-    // Intervalo lento (ms) para el carrusel principal
-    $intervalMs = 8000; // 8 segundos
+    // Intervalo del carrusel principal (ms)
+    $intervalMs = 8000; // 8s
 @endphp
 
-@vite([
-  'resources/css/tour-carousel.css',
-  'resources/js/tour-carousel.js'
-])
-
 <style>
-  /* Ajustes mínimos por si tu CSS no lo trae */
   #tourCarousel .thumb-box img {
     width: 92px; height: 92px; object-fit: cover; border-radius: .5rem;
     border: 2px solid transparent; cursor: pointer;
   }
   #tourCarousel .thumb-box img.active { border-color: #198754; }
   #tourCarousel .thumb-box { max-height: 462px; overflow: auto; }
-  /* Lightbox modal */
   #tourLightbox .modal-dialog { max-width: min(1100px, 95vw); }
   #tourLightbox .modal-body { padding: 0; background: #000; }
   #tourLightbox .carousel-item img {
@@ -61,14 +71,12 @@
 
 <div id="tourCarousel"
      class="carousel slide shadow rounded mb-4"
-     data-bs-ride="carousel"                 {{-- auto con intervalo --}}
-     data-bs-interval="{{ $intervalMs }}"    {{-- lento: 2s --}}
-     data-bs-touch="false"                   {{-- sin swipe/scroll accidental --}}
+     data-bs-ride="carousel"
+     data-bs-interval="{{ $intervalMs }}"
+     data-bs-touch="false"
      style="height:462px;max-height:462px;min-height:462px;">
 
   <div class="row gx-2 h-100 flex-column-reverse flex-md-row">
-
-    {{-- ■■■ MINIATURAS DESKTOP (con scroll) ■■■ --}}
     @if($images->count() > 1)
       <div class="col-auto d-none d-md-flex flex-column gap-2 pe-2 thumb-box h-100">
         @foreach($images as $i => $src)
@@ -83,7 +91,6 @@
       </div>
     @endif
 
-    {{-- ■■■ IMAGEN PRINCIPAL ■■■ --}}
     <div class="col position-relative h-100">
       <div class="carousel-inner h-100 rounded shadow-sm overflow-hidden">
         @foreach($images as $i => $src)
@@ -99,7 +106,6 @@
         @endforeach
       </div>
 
-      {{-- Controles ← → --}}
       <button class="carousel-control-prev" type="button"
               data-bs-target="#tourCarousel" data-bs-slide="prev"
               aria-label="Slide anterior">
@@ -112,7 +118,6 @@
         <span class="carousel-control-next-icon" aria-hidden="true"></span>
       </button>
 
-      {{-- Indicadores (solo mobile) --}}
       @if($images->count() > 1)
         <div class="carousel-indicators d-md-none">
           @foreach($images as $i => $src)
@@ -127,11 +132,9 @@
         </div>
       @endif
     </div>
-
   </div>
 </div>
 
-{{-- ■■■ LIGHTBOX (Modal Bootstrap) – sin auto-slide ■■■ --}}
 <div class="modal fade" id="tourLightbox" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-xl">
     <div class="modal-content bg-black">
@@ -169,17 +172,15 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  // Carrusel principal – lento y sin swipe
   const mainEl = document.getElementById('tourCarousel');
   const main = bootstrap.Carousel.getOrCreateInstance(mainEl, {
-    interval: {{ $intervalMs }}, // 8s
+    interval: {{ $intervalMs }},
     ride: 'carousel',
     touch: false,
     pause: 'hover',
     wrap: true
   });
 
-  // Marcos de miniaturas: mantén "active" en la que toca
   const thumbs = mainEl.querySelectorAll('.thumb-box img');
   if (thumbs.length) {
     mainEl.addEventListener('slid.bs.carousel', (ev) => {
@@ -189,14 +190,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Lightbox (modal) sin auto-slide
   const lbEl = document.getElementById('tourLightbox');
   const lbCarouselEl = document.getElementById('tourLightboxCarousel');
   const lb = bootstrap.Carousel.getOrCreateInstance(lbCarouselEl, {
     interval: false, ride: false, touch: false, pause: false, wrap: true
   });
 
-  // Abrir modal desde imagen principal
   mainEl.querySelectorAll('[data-open-lightbox]').forEach((img) => {
     img.addEventListener('click', (e) => {
       const idx = Number(e.currentTarget.dataset.index || 0);
@@ -206,16 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // También permite abrir desde miniaturas (opcional)
-  thumbs.forEach((t, i) => {
-    t.addEventListener('dblclick', () => {
-      const modal = new bootstrap.Modal(lbEl, { backdrop: true, keyboard: true });
-      modal.show();
-      lb.to(i);
-    });
-  });
-
-  // Bloquea el scroll / rueda dentro del modal para evitar cambios involuntarios
   lbEl.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
   lbEl.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 });

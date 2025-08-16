@@ -439,6 +439,11 @@ return [
                 'route' => 'admin.tours.index',
                 'icon'  => 'fas fa-map-marked-alt',
             ],
+            [
+                'text'  => 'Imágenes de Tours',
+                'route' => 'admin.tours.images.pick',
+                'icon'  => 'fas fa-images',
+            ],
         ],
     ],
 

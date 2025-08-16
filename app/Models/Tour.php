@@ -235,4 +235,42 @@ class Tour extends Model
         $images = $this->images;
         return $images[0] ?? asset('images/volcano.png');
     }
+
+    public function images()
+    {
+        return $this->hasMany(TourImage::class, 'tour_id', 'tour_id')->orderBy('position');
+    }
+
+    public function coverImage()
+    {
+        return $this->hasOne(TourImage::class, 'tour_id', 'tour_id')->where('is_cover', true);
+    }
+
+    // Helpers para front
+    public function coverUrl(): string
+    {
+        if ($this->relationLoaded('coverImage') ? $this->coverImage : $this->coverImage()->first()) {
+            return $this->coverImage->url();
+        }
+        // fallback al campo image_path si lo tienes, o al volcano
+        if (!empty($this->image_path)) return asset('storage/'.$this->image_path);
+        return asset('images/volcano.png');
+    }
+
+    public function galleryUrls(): array
+    {
+        $imgs = ($this->relationLoaded('images') ? $this->images : $this->images()->get());
+        if ($imgs->isNotEmpty()) return $imgs->map->url()->all();
+
+        // fallback a escanear carpeta si aún no migras todo
+        $folder = "tours/{$this->tour_id}/gallery";
+        if (\Storage::disk('public')->exists($folder)) {
+            return collect(\Storage::disk('public')->files($folder))
+                ->filter(fn($p) => in_array(strtolower(pathinfo($p, PATHINFO_EXTENSION)), ['jpg','jpeg','png','webp']))
+                ->sort(fn($a,$b) => strnatcasecmp($a,$b))
+                ->map(fn($p) => asset('storage/'.$p))
+                ->values()->all();
+        }
+        return [asset('images/volcano.png')];
+    }
 }
