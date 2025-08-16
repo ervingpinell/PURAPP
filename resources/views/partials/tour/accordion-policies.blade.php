@@ -1,11 +1,10 @@
 @php
-    /** @var \App\Models\Tour $tour */
-    $prefix   = 'policies-'.$tour->tour_id;
-    $cancel   = \App\Models\Policy::byType('cancelacion');
-    $refund   = \App\Models\Policy::byType('reembolso');
-    $tCancel  = $cancel?->translation();
-    $tRefund  = $refund?->translation();
+    /** @var \App\Models\Policy|null $cancel */
+    /** @var \App\Models\Policy|null $refund */
+    $tCancel = $cancel?->translation(); // fallback ya lo maneja el modelo
+    $tRefund = $refund?->translation();
 @endphp
+
 
 <div class="accordion-item border-0 border-bottom">
   <h2 class="accordion-header" id="heading-{{ $prefix }}">

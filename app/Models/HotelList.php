@@ -12,7 +12,8 @@ class HotelList extends Model
     protected $table = 'hotels_list';
     protected $primaryKey = 'hotel_id';
 
-    protected $fillable = ['name', 'is_active'];
+protected $fillable = ['name', 'is_active', 'sort_order'];
+
 
     public function cartItems()
     {

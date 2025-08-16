@@ -186,3 +186,10 @@
   </div>
 
 </fieldset>
+
+{{-- Botones de acción --}}
+<div class="mt-3 d-flex justify-content-end">
+    <button type="submit" class="btn btn-primary" @if($isPast) disabled @endif>
+        <i class="fas fa-check-circle"></i> Confirmar cambios
+    </button>
+</div>

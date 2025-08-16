@@ -19,12 +19,11 @@ class PoliciesSeeder extends Seeder
          * 1) TÉRMINOS Y CONDICIONES (Categoría + Secciones)
          */
         $terms = Policy::updateOrCreate(
-            ['type' => 'terminos'],
+            ['name' => 'Términos y Condiciones'], // clave única ahora
             [
-                'name'           => 'Términos y Condiciones',
-                'is_default'     => false,
                 'is_active'      => true,
                 'effective_from' => $today,
+                'effective_to'   => null,
             ]
         );
 
@@ -210,12 +209,11 @@ TXT;
          * 2) CANCELACIÓN
          */
         $cancel = Policy::updateOrCreate(
-            ['type' => 'cancelacion'],
+            ['name' => 'Política de Cancelación (General)'],
             [
-                'name'           => 'Política de Cancelación (General)',
-                'is_default'     => true,
                 'is_active'      => true,
                 'effective_from' => $today,
+                'effective_to'   => null,
             ]
         );
 
@@ -231,12 +229,11 @@ TXT;
          * 3) REEMBOLSOS
          */
         $refund = Policy::updateOrCreate(
-            ['type' => 'reembolso'],
+            ['name' => 'Política de Reembolsos'],
             [
-                'name'           => 'Política de Reembolsos',
-                'is_default'     => false,
                 'is_active'      => true,
                 'effective_from' => $today,
+                'effective_to'   => null,
             ]
         );
 
@@ -252,12 +249,11 @@ TXT;
          * 4) PRIVACIDAD
          */
         $privacy = Policy::updateOrCreate(
-            ['type' => 'privacidad'],
+            ['name' => 'Política de Privacidad'],
             [
-                'name'           => 'Política de Privacidad',
-                'is_default'     => false,
                 'is_active'      => true,
                 'effective_from' => $today,
+                'effective_to'   => null,
             ]
         );
 

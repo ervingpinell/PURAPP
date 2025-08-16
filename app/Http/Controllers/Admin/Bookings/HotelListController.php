@@ -11,30 +11,37 @@ class HotelListController extends Controller
     /**
      * Muestra todos los hoteles activos e inactivos.
      */
-    public function index()
-    {
-        $hotels = HotelList::orderBy('name')->get();
+public function index()
+{
+    $hotels = HotelList::orderByRaw('sort_order IS NULL, sort_order ASC')
+        ->orderBy('name', 'asc')
+        ->get();
 
-        return view('admin.hotels.index', compact('hotels'));
-    }
+    return view('admin.hotels.index', compact('hotels'));
+}
+
 
     /**
      * Guarda un nuevo hotel en la base de datos.
      */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:hotels_list,name',
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255|unique:hotels_list,name',
+    ]);
 
-        HotelList::create([
-            'name' => $request->name,
-            'is_active' => true,
-        ]);
+    $nextOrder = (HotelList::max('sort_order') ?? 0) + 1;
 
-        return redirect()->route('admin.hotels.index')
-            ->with('success', 'Hotel creado exitosamente.');
-    }
+    HotelList::create([
+        'name' => $request->name,
+        'is_active' => true,
+        'sort_order' => $nextOrder, // <- opcional
+    ]);
+
+    return redirect()->route('admin.hotels.index')
+        ->with('success', 'Hotel creado exitosamente.');
+}
+
 
     /**
      * Actualiza un hotel existente.
@@ -54,6 +61,22 @@ class HotelListController extends Controller
         return redirect()->route('admin.hotels.index')
             ->with('success', 'Hotel actualizado correctamente.');
     }
+
+    /**
+ * Ordena los hoteles alfabéticamente y actualiza en la base de datos.
+ */
+public function sort()
+{
+    $hotels = HotelList::orderBy('name', 'asc')->get();
+
+    $order = 1;
+    foreach ($hotels as $hotel) {
+        $hotel->update(['sort_order' => $order]);
+        $order++;
+    }
+
+    return redirect()->route('admin.hotels.index')->with('success', 'Hoteles ordenados alfabéticamente.');
+}
 
 /**
  * Cambia el estado activo/inactivo del hotel.

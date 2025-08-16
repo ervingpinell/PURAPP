@@ -59,6 +59,7 @@ return [
     'contact' => 'Kontakt',
     'about' => 'Über uns',
     'privacy_policy' => 'Datenschutzerklärung',
+    'all_policies' => 'Alle unsere Richtlinien',
     'terms_and_conditions' => 'Geschäftsbedingungen',
     'cancellation_and_refunds_policies' => 'Rücktritts- und Erstattungsrichtlinien',
     'reports' => 'Berichte',

@@ -402,9 +402,9 @@ return [
                 'icon'  => 'fas fa-calendar-alt',
             ],
             [
-                'text'  => 'Disponibilidades',
+                'text'  => 'Bloquear Fechas',
                 'route' => 'admin.tours.excluded_dates.index',
-                'icon'  => 'fas fa-check-circle',
+                'icon' => 'fas fa-ban',
             ],
         ],
     ],
