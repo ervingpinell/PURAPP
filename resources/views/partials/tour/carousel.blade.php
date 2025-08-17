@@ -5,19 +5,22 @@
     // 1) Intentar desde BD (tour_images)
     $images = collect();
 
-    if (isset($tour) && method_exists($tour, 'images')) {
-        // Usa la relación si ya viene cargada; si no, la carga ordenada
-        $dbImages = $tour->relationLoaded('images')
+    if (isset($tour)) {
+        // Trae la colección, venga cargada o no
+        $imgs = $tour->relationLoaded('images')
             ? $tour->getRelation('images')
-            : $tour->images()
-                ->orderByDesc('is_cover')
-                ->orderBy('position')
-                ->orderBy('id')
-                ->get();
+            : (method_exists($tour, 'images') ? $tour->images()->get() : collect());
 
-        if ($dbImages && $dbImages->count()) {
-            // En el modelo TourImage definimos accessor getUrlAttribute()
-            $images = $dbImages->map(fn ($img) => $img->url)->values();
+        if ($imgs && $imgs->count()) {
+            // Reordenar SIEMPRE: cover primero, luego posición, luego id
+            $imgs = $imgs->sortBy([
+                ['is_cover', 'desc'],
+                ['position', 'asc'],
+                ['id', 'asc'],
+            ])->values();
+
+            // Accesor getUrlAttribute() del modelo TourImage
+            $images = $imgs->map(fn ($img) => $img->url)->values();
         }
     }
 
@@ -77,7 +80,9 @@
      style="height:462px;max-height:462px;min-height:462px;">
 
   <div class="row gx-2 h-100 flex-column-reverse flex-md-row">
+
     @if($images->count() > 1)
+      {{-- Miniaturas (solo desktop) --}}
       <div class="col-auto d-none d-md-flex flex-column gap-2 pe-2 thumb-box h-100">
         @foreach($images as $i => $src)
           <img src="{{ $src }}"
@@ -91,6 +96,7 @@
       </div>
     @endif
 
+    {{-- Imagen principal --}}
     <div class="col position-relative h-100">
       <div class="carousel-inner h-100 rounded shadow-sm overflow-hidden">
         @foreach($images as $i => $src)
@@ -106,6 +112,7 @@
         @endforeach
       </div>
 
+      {{-- Controles --}}
       <button class="carousel-control-prev" type="button"
               data-bs-target="#tourCarousel" data-bs-slide="prev"
               aria-label="Slide anterior">
@@ -118,6 +125,7 @@
         <span class="carousel-control-next-icon" aria-hidden="true"></span>
       </button>
 
+      {{-- Indicadores (solo mobile) --}}
       @if($images->count() > 1)
         <div class="carousel-indicators d-md-none">
           @foreach($images as $i => $src)
@@ -132,9 +140,11 @@
         </div>
       @endif
     </div>
+
   </div>
 </div>
 
+{{-- Lightbox (Modal) --}}
 <div class="modal fade" id="tourLightbox" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-xl">
     <div class="modal-content bg-black">
@@ -181,6 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
     wrap: true
   });
 
+  // Mantener miniatura activa en desktop
   const thumbs = mainEl.querySelectorAll('.thumb-box img');
   if (thumbs.length) {
     mainEl.addEventListener('slid.bs.carousel', (ev) => {
@@ -190,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Lightbox
   const lbEl = document.getElementById('tourLightbox');
   const lbCarouselEl = document.getElementById('tourLightboxCarousel');
   const lb = bootstrap.Carousel.getOrCreateInstance(lbCarouselEl, {
@@ -205,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Evitar scroll accidental dentro del modal
   lbEl.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
   lbEl.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 });

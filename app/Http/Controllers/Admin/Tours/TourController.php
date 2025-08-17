@@ -39,7 +39,7 @@ class TourController extends Controller
                 $q->wherePivot('is_active', true)
                   ->where('itinerary_items.is_active', true);
             },
-            'schedules' => fn ($q) => $q->where('is_active', true),
+            'schedules' => fn ($q) => $q->where('schedules.is_active', true),
         ])->orderBy('tour_id')->get();
 
         $tourtypes      = TourType::where('is_active', true)->orderBy('name')->get();
