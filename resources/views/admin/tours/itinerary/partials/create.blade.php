@@ -1,7 +1,9 @@
 <!-- Modal: Crear Itinerario -->
 <div class="modal fade" id="modalCrearItinerario" tabindex="-1" aria-labelledby="modalCrearItinerarioLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
-    <form action="{{ route('admin.tours.itinerary.store') }}" method="POST" class="modal-content">
+    <form action="{{ route('admin.tours.itinerary.store') }}"
+          method="POST"
+          class="modal-content form-create-itinerary">
       @csrf
       <div class="modal-header">
         <h5 class="modal-title" id="modalCrearItinerarioLabel">Crear nuevo itinerario</h5>

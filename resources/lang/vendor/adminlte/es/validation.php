@@ -37,4 +37,15 @@ return [
         'number' => '- 1 número',
     ],
       'invalid_credentials'=> 'Credenciales inválidas. Por favor, intenta de nuevo.',
+
+          'required' => 'El campo :attribute es obligatorio.',
+    'unique'   => 'El campo :attribute ya está en uso.',
+    'max' => [
+        'string' => 'El campo :attribute no puede exceder :max caracteres.',
+    ],
+
+    'attributes' => [
+        'name'        => 'nombre del itinerario',
+        'description' => 'descripción',
+    ],
 ];

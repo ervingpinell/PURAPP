@@ -233,7 +233,8 @@ Route::resource('roles', RoleController::class)->except(['show']);
         Route::delete('/tourtypes/{id}', [TourTypeController::class, 'destroy'])
     ->name('admin.tourtypes.destroy');
         Route::resource('languages', TourLanguageController::class, ['parameters' => ['languages' => 'language']])->except(['show']);
-
+Route::patch('languages/{language}/toggle', [TourLanguageController::class, 'toggle'])
+    ->name('languages.toggle');
         // Hoteles
         Route::resource('hotels', HotelListController::class)->except(['show', 'create', 'edit']);
         Route::post('hotels/sort', [HotelListController::class, 'sort'])->name('hotels.sort');

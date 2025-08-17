@@ -1,4 +1,6 @@
-{{-- Bootstrap y SweetAlert2 --}}
+{{-- resources/views/admin/tours/scripts.blade.php --}}
+
+{{-- Bootstrap y SweetAlert2 (si no los cargas globalmente en layout) --}}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
