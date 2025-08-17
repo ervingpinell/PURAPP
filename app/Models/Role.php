@@ -6,19 +6,21 @@ use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
 {
-    protected $table = 'roles';
+protected $table = 'roles';
     protected $primaryKey = 'role_id';
-    public $timestamps = false;
+    public $incrementing = true;
+    protected $keyType = 'int';
 
-    protected $fillable = [
-        'role_name',
-        'description',
-    ];
+    protected $fillable = ['role_name', 'description', 'is_active'];
 
     // Relación con usuarios (1:N)
     public function users()
     {
         return $this->hasMany(User::class, 'role_id', 'role_id');
+    }
+        public function getRouteKeyName()
+    {
+        return 'role_id';
     }
 }
 
