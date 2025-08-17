@@ -21,7 +21,8 @@ return [
         'password' => 'Contraseña',
         'password_confirmation' => 'Confirmación de contraseña',
     ],
-                // --- Validación personalizada ---
+
+    // --- Validación personalizada ---
     'validation_error_title' => 'Por favor corrige los siguientes errores:',
     'required_full_name' => 'El nombre completo es obligatorio.',
     'required_email' => 'El correo electrónico es obligatorio.',
@@ -36,16 +37,6 @@ return [
         'special' => '- 1 carácter especial ( .¡!@#$%^&*()_+- )',
         'number' => '- 1 número',
     ],
-      'invalid_credentials'=> 'Credenciales inválidas. Por favor, intenta de nuevo.',
 
-          'required' => 'El campo :attribute es obligatorio.',
-    'unique'   => 'El campo :attribute ya está en uso.',
-    'max' => [
-        'string' => 'El campo :attribute no puede exceder :max caracteres.',
-    ],
-
-    'attributes' => [
-        'name'        => 'nombre del itinerario',
-        'description' => 'descripción',
-    ],
+    'invalid_credentials' => 'Credenciales inválidas. Por favor, intenta de nuevo.',
 ];

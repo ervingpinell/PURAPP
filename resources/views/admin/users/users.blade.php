@@ -102,13 +102,14 @@
                     <i class="fas fa-edit"></i>
                 </a>
 
-                {{-- Activar / Desactivar --}}
-                <form action="{{ route('admin.users.destroy', $user->user_id) }}" method="POST" style="display:inline-block;">
+                {{-- Activar / Desactivar con SweetAlert --}}
+                <form action="{{ route('admin.users.destroy', $user->user_id) }}" method="POST" class="d-inline js-status-form"
+                      data-question="{{ $user->status ? '¿Deseas desactivar este usuario?' : '¿Deseas reactivar este usuario?' }}"
+                      data-confirm="{{ $user->status ? 'Sí, desactivar' : 'Sí, reactivar' }}"
+                      data-success="{{ $user->status ? 'Usuario desactivado' : 'Usuario reactivado' }}">
                     @csrf
                     @method('DELETE')
-                    <button type="submit"
-                        class="btn btn-sm {{ $user->status ? 'btn-delete' : 'btn-view' }}"
-                        onclick="return confirm('{{ $user->status ? '¿Deseas desactivar este usuario?' : '¿Deseas reactivar este usuario?' }}')">
+                    <button type="submit" class="btn btn-sm {{ $user->status ? 'btn-delete' : 'btn-view' }}">
                         <i class="fas {{ $user->status ? 'fa-user-slash' : 'fa-user-check' }}"></i>
                     </button>
                 </form>
@@ -146,7 +147,7 @@
                                 </select>
                             </div>
 
-                            {{-- Código de país + Teléfono (USANDO PARTIAL) --}}
+                            {{-- Código de país + Teléfono --}}
                             <div class="mb-3">
                                 <label>Código de país</label>
                                 <select name="country_code" class="form-select" required>
@@ -163,17 +164,26 @@
 
                             {{-- Password opcional --}}
                             <div class="mb-3">
-                                <label>Nueva contraseña (opcional)</label>
-                                <input type="password" name="password" class="form-control" autocomplete="new-password">
-                                <ul id="password-requirements-{{ $user->user_id }}" class="mb-3 pl-3" style="list-style:none; padding-left:1rem;">
-                                    <li class="req-length text-muted">Mínimo 8 caracteres</li>
-                                    <li class="req-special text-muted">Al menos un carácter especial (!@#...)</li>
-                                    <li class="req-number text-muted">Al menos un número</li>
+                                <label>{{ __('adminlte::validation.attributes.password') }}</label>
+                                <div class="password-wrapper">
+                                    <input type="password" name="password" class="form-control password-input" autocomplete="new-password">
+                                    <i class="fas fa-eye toggle-password-abs" role="button" aria-label="Mostrar/Ocultar"></i>
+                                </div>
+                                <ul class="password-reqs list-unstyled small ms-1 mt-2">
+                                    <li data-rule="length"  class="text-muted">Al menos 8 caracteres</li>
+                                    <li data-rule="special" class="text-muted">1 carácter especial ( .,!@#$%^&*()_+- )</li>
+                                    <li data-rule="number"  class="text-muted">1 número</li>
                                 </ul>
                             </div>
                             <div class="mb-3">
-                                <label>Confirmar contraseña</label>
-                                <input type="password" name="password_confirmation" class="form-control" autocomplete="new-password">
+                                <label>{{ __('adminlte::validation.attributes.password_confirmation') }}</label>
+                                <div class="password-wrapper">
+                                    <input type="password" name="password_confirmation" class="form-control password-confirm-input" autocomplete="new-password">
+                                    <i class="fas fa-eye toggle-password-abs" role="button" aria-label="Mostrar/Ocultar"></i>
+                                </div>
+                                <ul class="password-reqs list-unstyled small ms-1 mt-2">
+                                    <li data-rule="match" class="text-muted">Las contraseñas coinciden</li>
+                                </ul>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -217,7 +227,7 @@
                         </select>
                     </div>
 
-                    {{-- Código de país + Teléfono (USANDO PARTIAL) --}}
+                    {{-- Código de país + Teléfono --}}
                     <div class="mb-3">
                         <label>Código de país</label>
                         <select name="country_code" class="form-select" required>
@@ -233,17 +243,26 @@
                     </div>
 
                     <div class="mb-3">
-                        <label>Contraseña</label>
-                        <input type="password" name="password" class="form-control" required autocomplete="new-password">
-                        <ul id="password-requirements-register" class="mb-3 pl-3" style="list-style:none; padding-left:1rem;">
-                            <li class="req-length text-muted">Mínimo 8 caracteres</li>
-                            <li class="req-special text-muted">Al menos un carácter especial (!@#...)</li>
-                            <li class="req-number text-muted">Al menos un número</li>
+                        <label>{{ __('adminlte::validation.attributes.password') }}</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password" class="form-control password-input" required autocomplete="new-password">
+                            <i class="fas fa-eye toggle-password-abs" role="button" aria-label="Mostrar/Ocultar"></i>
+                        </div>
+                        <ul class="password-reqs list-unstyled small ms-1 mt-2">
+                            <li data-rule="length"  class="text-muted">Al menos 8 caracteres</li>
+                            <li data-rule="special" class="text-muted">1 carácter especial ( .,!@#$%^&*()_+- )</li>
+                            <li data-rule="number"  class="text-muted">1 número</li>
                         </ul>
                     </div>
                     <div class="mb-3">
-                        <label>Confirmar Contraseña</label>
-                        <input type="password" name="password_confirmation" class="form-control" required autocomplete="new-password">
+                        <label>{{ __('adminlte::validation.attributes.password_confirmation') }}</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password_confirmation" class="form-control password-confirm-input" required autocomplete="new-password">
+                            <i class="fas fa-eye toggle-password-abs" role="button" aria-label="Mostrar/Ocultar"></i>
+                        </div>
+                        <ul class="password-reqs list-unstyled small ms-1 mt-2">
+                            <li data-rule="match" class="text-muted">Las contraseñas coinciden</li>
+                        </ul>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -257,78 +276,102 @@
 @stop
 
 @section('css')
-{{-- Estilos adicionales aquí --}}
+<style>
+/* Icono ojo dentro del input */
+.password-wrapper { position: relative; }
+.password-wrapper .toggle-password-abs {
+    position: absolute; top: 50%; right: .75rem; transform: translateY(-50%);
+    opacity: .7; cursor: pointer; pointer-events: auto;
+}
+.password-wrapper .toggle-password-abs:hover { opacity: 1; }
+/* Alinear bullets de requisitos */
+.password-reqs li { margin: .15rem 0; }
+</style>
 @stop
 
 @section('js')
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{{-- SweetAlert2 --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Validación visual de password (en ambos modales)
-    document.querySelectorAll("input[name='password']").forEach((input) => {
-        const modal = input.closest('.modal');
-        if (!modal) return;
-        const reqList = modal.querySelector('ul');
-        if (!reqList) return;
-        const reqs = reqList.querySelectorAll('li');
-        if (reqs.length !== 3) return;
-
-        input.addEventListener('input', function () {
-            const val = this.value;
-            const length = val.length >= 8;
-            const number = /\d/.test(val);
-            const special = /[!@#$%^&*(),.?":{}|<>_\-+=]/.test(val);
-            updateRequirement(reqs[0], length);
-            updateRequirement(reqs[1], special);
-            updateRequirement(reqs[2], number);
-        });
-
-        function updateRequirement(el, ok) {
-            el.classList.remove('text-success', 'text-muted');
-            el.classList.add(ok ? 'text-success' : 'text-muted');
-        }
+    // Toggle ojo (mostrar/ocultar)
+    document.body.addEventListener('click', function (e) {
+        const icon = e.target.closest('.toggle-password-abs');
+        if (!icon) return;
+        const input = icon.previousElementSibling;
+        if (!input) return;
+        input.type = input.type === 'password' ? 'text' : 'password';
+        icon.classList.toggle('fa-eye');
+        icon.classList.toggle('fa-eye-slash');
+        input.focus();
     });
-});
-</script>
 
-@if(session('success') && session('alert_type'))
-<script>
-    let icon = 'success', title = 'Éxito', color = '#3085d6';
-    switch ("{{ session('alert_type') }}") {
-        case 'activado': icon='success'; title='Usuario Activado'; color='#28a745'; break;
-        case 'desactivado': icon='warning'; title='Usuario Desactivado'; color='#ffc107'; break;
-        case 'actualizado': icon='info'; title='Usuario Actualizado'; color='#17a2b8'; break;
-        case 'creado': icon='success'; title='Usuario Registrado'; color='#007bff'; break;
+    // Validación en vivo (requisitos + match)
+    function rulesFor(value){ return {
+        length: value.length >= 8,
+        number: /\d/.test(value),
+        special: /[!@#$%^&*(),.?":{}|<>_\-+=]/.test(value),
+    }; }
+    function paintReqs(listEl, rules){
+        if (!listEl) return;
+        listEl.querySelectorAll('li').forEach(li => {
+            const r = li.dataset.rule;
+            const ok = (r === 'match') ? !!rules.match : !!rules[r];
+            li.classList.toggle('text-success', ok);
+            li.classList.toggle('text-muted', !ok);
+        });
     }
-    Swal.fire({ icon, title, text: @json(session('success')), confirmButtonColor: color, confirmButtonText: 'OK' });
-</script>
-@endif
+    function wireModal(modal){
+        const pass = modal.querySelector('.password-input');
+        const conf = modal.querySelector('.password-confirm-input');
+        const passReq = pass ? pass.closest('.mb-3').querySelector('.password-reqs') : null;
+        const confReq = conf ? conf.closest('.mb-3').querySelector('.password-reqs') : null;
+        function refresh(){
+            const p = pass ? pass.value : '';
+            const c = conf ? conf.value : '';
+            const base = rulesFor(p);
+            paintReqs(passReq, base);
+            if (confReq) paintReqs(confReq, Object.assign({}, base, { match: (p.length||c.length) ? (p === c && p.length>0) : false }));
+        }
+        pass && pass.addEventListener('input', refresh);
+        conf && conf.addEventListener('input', refresh);
+        refresh();
+    }
+    document.querySelectorAll('.modal').forEach(wireModal);
+    document.addEventListener('shown.bs.modal', e => wireModal(e.target));
 
-@if (session('error_password'))
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    Swal.fire({ icon:'error', title:'Contraseña inválida', text:@json(session('error_password')), confirmButtonColor:'#d33' });
-    new bootstrap.Modal(document.getElementById('modalRegistrar')).show();
+    // Confirmación SweetAlert para activar/desactivar
+    document.querySelectorAll('.js-status-form').forEach(form => {
+        form.addEventListener('submit', function(ev){
+            ev.preventDefault();
+            const q = form.dataset.question || '¿Confirmar acción?';
+            const okText = form.dataset.confirm || 'Sí, confirmar';
+            Swal.fire({
+                icon: 'question',
+                title: 'Confirmación',
+                text: q,
+                showCancelButton: true,
+                confirmButtonText: okText,
+                cancelButtonText: 'Cancelar'
+            }).then(res => {
+                if (res.isConfirmed) form.submit();
+            });
+        });
+    });
+
+    // Alertas de sesión (éxito / error)
+    @if(session('success'))
+        Swal.fire({ icon:'success', title:'Éxito', text:@json(session('success')) });
+    @endif
+    @if(session('error'))
+        Swal.fire({ icon:'error', title:'Error', text:@json(session('error')) });
+    @endif
+
+    // Si hubo error de validación en registro, reabrimos modal (opcional)
+    @if ($errors->any() && session('show_register_modal'))
+        const m = new bootstrap.Modal(document.getElementById('modalRegistrar'));
+        m.show();
+    @endif
 });
 </script>
-@endif
-
-@if ($errors->has('email'))
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    Swal.fire({ icon:'error', title:'Correo duplicado', text:@json($errors->first('email')), confirmButtonColor:'#d33' });
-    new bootstrap.Modal(document.getElementById('modalRegistrar')).show();
-});
-</script>
-@endif
-
-@if (session('show_register_modal'))
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    new bootstrap.Modal(document.getElementById('modalRegistrar')).show();
-});
-</script>
-@endif
 @stop
