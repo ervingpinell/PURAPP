@@ -189,13 +189,24 @@ class BookingController extends Controller
         // 3) Transacción con validaciones de negocio
         try {
             $booking = \DB::transaction(function () use ($request, $v) {
-                $tour = \App\Models\Tour::with('schedules')->findOrFail($v['tour_id']);
-                // Asegura que el schedule pertenezca al tour
-                $schedule = $tour->schedules()->where('schedules.schedule_id', $v['schedule_id'])->firstOrFail();
+$tour = \App\Models\Tour::with('schedules')->findOrFail($v['tour_id']);
 
-                // Fechas bloqueadas
-                $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
-                    ->where(function ($query) use ($v) {
+// Debe pertenecer al tour Y estar activo global y en pivote
+$schedule = $tour->schedules()
+    ->where('schedules.schedule_id', $v['schedule_id'])
+    ->where('schedules.is_active', true)
+    ->wherePivot('is_active', true)
+    ->first();
+
+if (!$schedule) {
+    throw \Illuminate\Validation\ValidationException::withMessages([
+        'schedule_id' => 'El horario no está disponible para este tour (inactivo o no asignado).',
+    ]);
+}
+
+// Fechas bloqueadas
+$isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
+    ->where(function ($query) use ($v) {
                         $query->whereNull('schedule_id')->orWhere('schedule_id', $v['schedule_id']);
                     })
                     ->where('start_date', '<=', $v['tour_date'])
@@ -348,14 +359,20 @@ class BookingController extends Controller
         $currentPromo = \App\Models\PromoCode::where('used_by_booking_id', $booking->booking_id)->first();
 
         // 3) Tour elegido y schedule
-        $tour = \App\Models\Tour::with('schedules')->findOrFail($r['tour_id']);
-        $schedule = $tour->schedules()->where('schedules.schedule_id', $r['schedule_id'])->first();
-        if (! $schedule) {
-            return back()
-                ->withErrors(['schedule_id' => 'El horario seleccionado no pertenece al tour elegido.'])
-                ->with('showEditModal', $booking->booking_id)
-                ->withInput();
-        }
+$tour = \App\Models\Tour::with('schedules')->findOrFail($r['tour_id']);
+$schedule = $tour->schedules()
+    ->where('schedules.schedule_id', $r['schedule_id'])
+    ->where('schedules.is_active', true)
+    ->wherePivot('is_active', true)
+    ->first();
+
+if (!$schedule) {
+    return back()
+        ->withErrors(['schedule_id' => 'El horario seleccionado no está disponible para este tour (inactivo o no asignado).'])
+        ->with('showEditModal', $booking->booking_id)
+        ->withInput();
+}
+
 
         // 4) Fechas bloqueadas
         $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
@@ -654,7 +671,19 @@ public function storeFromCart(Request $request)
             }
 
             // Validar que el horario pertenezca al tour
-            $schedule = $tour->schedules()->where('schedules.schedule_id', $scheduleId)->firstOrFail();
+// Debe pertenecer y estar activo global + pivote
+$schedule = $tour->schedules()
+    ->where('schedules.schedule_id', $scheduleId)
+    ->where('schedules.is_active', true)
+    ->wherePivot('is_active', true)
+    ->first();
+
+if (!$schedule) {
+    throw \Illuminate\Validation\ValidationException::withMessages([
+        'schedule_id' => "El horario seleccionado no está disponible para '{$tour->name}'.",
+    ]);
+}
+
 
             // Fechas bloqueadas
             $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)

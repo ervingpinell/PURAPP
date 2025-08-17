@@ -7,6 +7,9 @@ use App\Models\HotelList;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Models\TourType;
+use App\Models\TourExcludedDate;
+use Carbon\CarbonPeriod;
+use Illuminate\Support\Carbon;
 
 class HomeController extends Controller
 {
@@ -76,68 +79,152 @@ class HomeController extends Controller
         return view('public.home', compact('toursByType', 'typeMeta', 'carouselProductCodes'));
     }
 
+
     public function showTour($id)
-{
-    $locale   = app()->getLocale();
-    $fallback = config('app.fallback_locale', 'es');
+    {
+        $locale   = app()->getLocale();
+        $fallback = config('app.fallback_locale', 'es');
 
-    $tour = Tour::with([
-        'tourType.translations',
-        'schedules',
-        'languages',
-        'itinerary.items.translations',
-        'itinerary.translations',
-        'amenities.translations',
-        'excludedAmenities.translations',
-        'translations',
-    ])->findOrFail($id);
+        $tour = Tour::with([
+            'tourType.translations',
+            // horarios visibles: global + pivote
+            'schedules' => function ($q) {
+                $q->where('schedules.is_active', true)
+                  ->wherePivot('is_active', true)
+                  ->orderBy('schedules.start_time');
+            },
+            // idiomas activos
+            'languages' => function ($q) {
+                $q->wherePivot('is_active', true)
+                  ->where('tour_languages.is_active', true)
+                  ->orderBy('name');
+            },
+            'itinerary.items.translations',
+            'itinerary.translations',
+            'amenities.translations',
+            'excludedAmenities.translations',
+            'translations',
+        ])->findOrFail($id);
 
-    // Traducciones del tour
-    $t = ($tour->translations ?? collect())->firstWhere('locale', $locale)
-       ?: ($tour->translations ?? collect())->firstWhere('locale', $fallback);
+        // Traducciones
+        $t = ($tour->translations ?? collect())->firstWhere('locale', $locale)
+           ?: ($tour->translations ?? collect())->firstWhere('locale', $fallback);
 
-    $tour->translated_name     = $t->name     ?? $tour->name;
-    $tour->translated_overview = $t->overview ?? $tour->overview;
+        $tour->translated_name     = $t->name     ?? $tour->name;
+        $tour->translated_overview = $t->overview ?? $tour->overview;
 
-    // Itinerario
-    if ($tour->itinerary) {
-        $it = ($tour->itinerary->translations ?? collect())->firstWhere('locale', $locale)
-           ?: ($tour->itinerary->translations ?? collect())->firstWhere('locale', $fallback);
+        if ($tour->itinerary) {
+            $it = ($tour->itinerary->translations ?? collect())->firstWhere('locale', $locale)
+               ?: ($tour->itinerary->translations ?? collect())->firstWhere('locale', $fallback);
 
-        $tour->itinerary->translated_name        = $it->name        ?? $tour->itinerary->name;
-        $tour->itinerary->translated_description = $it->description ?? $tour->itinerary->description;
+            $tour->itinerary->translated_name        = $it->name        ?? $tour->itinerary->name;
+            $tour->itinerary->translated_description = $it->description ?? $tour->itinerary->description;
 
-        foreach ($tour->itinerary->items as $item) {
-            $itT = ($item->translations ?? collect())->firstWhere('locale', $locale)
-                ?: ($item->translations ?? collect())->firstWhere('locale', $fallback);
-            $item->translated_title       = $itT->title       ?? $item->title;
-            $item->translated_description = $itT->description ?? $item->description;
+            foreach ($tour->itinerary->items as $item) {
+                $itT = ($item->translations ?? collect())->firstWhere('locale', $locale)
+                    ?: ($item->translations ?? collect())->firstWhere('locale', $fallback);
+                $item->translated_title       = $itT->title       ?? $item->title;
+                $item->translated_description = $itT->description ?? $item->description;
+            }
         }
+
+        foreach ($tour->amenities as $a) {
+            $ta = ($a->translations ?? collect())->firstWhere('locale', $locale)
+                ?: ($a->translations ?? collect())->firstWhere('locale', $fallback);
+            $a->translated_name = $ta->name ?? $a->name;
+        }
+
+        foreach ($tour->excludedAmenities as $e) {
+            $te = ($e->translations ?? collect())->firstWhere('locale', $locale)
+                ?: ($e->translations ?? collect())->firstWhere('locale', $fallback);
+            $e->translated_name = $te->name ?? $e->name;
+        }
+
+        // =========================
+        // Bloqueos de fechas/horarios
+        // =========================
+        $visibleScheduleIds = $tour->schedules->pluck('schedule_id')->map(fn($v)=>(int)$v)->all();
+
+        // Trae SOLO bloqueos globales o de los horarios visibles
+        $blocked = TourExcludedDate::query()
+            ->where('tour_id', $tour->tour_id)
+            ->where(function ($q) use ($visibleScheduleIds) {
+                $q->whereNull('schedule_id');
+                if (!empty($visibleScheduleIds)) {
+                    $q->orWhereIn('schedule_id', $visibleScheduleIds);
+                }
+            })
+            ->get(['schedule_id','start_date','end_date']);
+
+        // Globales (sin horario)
+        $blockedGeneral = [];
+        foreach ($blocked->whereNull('schedule_id') as $row) {
+            $start = Carbon::parse($row->start_date)->toImmutable();
+            $end   = $row->end_date ? Carbon::parse($row->end_date)->toImmutable() : $start;
+            for ($d=$start; $d->lte($end); $d=$d->addDay()) {
+                $blockedGeneral[] = $d->toDateString();
+            }
+        }
+        $blockedGeneral = array_values(array_unique($blockedGeneral));
+
+        // Por horario (solo visibles)
+        $blockedBySchedule = [];
+        foreach ($blocked->whereNotNull('schedule_id') as $row) {
+            $sid   = (string) $row->schedule_id;
+            $start = Carbon::parse($row->start_date)->toImmutable();
+            $end   = $row->end_date ? Carbon::parse($row->end_date)->toImmutable() : $start;
+            for ($d=$start; $d->lte($end); $d=$d->addDay()) {
+                $blockedBySchedule[$sid][] = $d->toDateString();
+            }
+        }
+        foreach ($blockedBySchedule as $sid => $dates) {
+            $blockedBySchedule[$sid] = array_values(array_unique($dates));
+        }
+
+        // Días totalmente bloqueados (todos los horarios visibles bloqueados ese día)
+        $fullyBlockedDates = [];
+        if (!empty($visibleScheduleIds)) {
+            $total = count($visibleScheduleIds);
+            // cuenta por día
+            $countByDate = [];
+
+            // globales suman "total" directamente (todos los horarios)
+            foreach ($blockedGeneral as $date) {
+                $countByDate[$date] = ($countByDate[$date] ?? 0) + $total;
+            }
+            // específicos suman de a 1
+            foreach ($blockedBySchedule as $sid => $dates) {
+                foreach ($dates as $date) {
+                    $countByDate[$date] = ($countByDate[$date] ?? 0) + 1;
+                }
+            }
+
+            foreach ($countByDate as $date => $cnt) {
+                if ($cnt >= $total) {
+                    $fullyBlockedDates[] = $date;
+                }
+            }
+            $fullyBlockedDates = array_values(array_unique($fullyBlockedDates));
+        }
+
+        // Datos extra para la vista
+        $hotels = HotelList::orderBy('name')->get();
+        $cancel = $tour->cancel_policy ?? null;
+        $refund = $tour->refund_policy ?? null;
+        return view('public.tour-show', compact(
+            'tour',
+            'hotels',
+            'cancel',
+            'refund',
+            'blockedGeneral',
+            'blockedBySchedule',
+            'fullyBlockedDates'
+
+        ));
     }
 
-    // Amenidades
-    foreach ($tour->amenities as $a) {
-        $t = ($a->translations ?? collect())->firstWhere('locale', $locale)
-           ?: ($a->translations ?? collect())->firstWhere('locale', $fallback);
-        $a->translated_name = $t->name ?? $a->name;
-    }
-
-    foreach ($tour->excludedAmenities as $e) {
-        $t = ($e->translations ?? collect())->firstWhere('locale', $locale)
-           ?: ($e->translations ?? collect())->firstWhere('locale', $fallback);
-        $e->translated_name = $t->name ?? $e->name;
-    }
-
-    $hotels = HotelList::orderBy('name')->get();
-
-    // ✅ Definir variables esperadas por el include
-    // Si tienes columnas en tours:
-    $cancel = $tour->cancel_policy ?? null;
-    $refund = $tour->refund_policy ?? null;
 
 
-    return view('public.tour-show', compact('tour', 'hotels', 'cancel', 'refund'));
-}
 
     public function contact()
     {

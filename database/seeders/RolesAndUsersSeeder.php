@@ -11,6 +11,9 @@ class RolesAndUsersSeeder extends Seeder
 {
 public function run(): void
 {
+            DB::table('roles')->truncate();
+        DB::table('users')->truncate();
+
     $now = Carbon::now();
 
     DB::table('roles')->insertOrIgnore([
@@ -27,7 +30,7 @@ public function run(): void
             'full_name' => 'Erving Pinell',
             'email'     => 'ervingpinell@gmail.com',
             'password'  => Hash::make('-erving1234'),
-            'role_id'   => 2,
+            'role_id'   => 1,
             'phone'     => '24791471',
             'status'    => true,
             'is_active' => true,

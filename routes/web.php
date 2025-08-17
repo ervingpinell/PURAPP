@@ -194,21 +194,48 @@ Route::get('/politicas', [\App\Http\Controllers\Site\PoliciesController::class, 
 
         // Tours
         Route::resource('tours', TourController::class)->except(['create', 'edit', 'show']);
-        Route::prefix('tours')->name('tours.')->group(function () {
-            Route::resource('schedule', TourScheduleController::class)->except(['create', 'edit', 'show']);
-            Route::put('schedule/{schedule}/toggle', [TourScheduleController::class, 'toggle'])->name('schedule.toggle');
-            Route::resource('itinerary', ItineraryController::class)->except(['show']);
-            Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');
-            Route::resource('itinerary_items', ItineraryItemController::class)->except(['show', 'create', 'edit']);
-            Route::resource('availability', TourAvailabilityController::class)->except(['show']);
-            Route::resource('excluded_dates', TourExcludedDateController::class)->except(['show']);
-            Route::post('excluded_dates/block-all', [TourExcludedDateController::class, 'blockAll'])->name('excluded_dates.blockAll');
-    Route::resource('amenities', AmenityController::class)->except(['show']);
+Route::prefix('tours')->name('tours.')->group(function () {
 
-    // ✅ Toggle activar/desactivar
-    Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])
+    // === Horarios ===
+    Route::resource('schedule', \App\Http\Controllers\Admin\Tours\TourScheduleController::class)
+        ->except(['create','edit','show']);
+    Route::put('schedule/{schedule}/toggle', [\App\Http\Controllers\Admin\Tours\TourScheduleController::class, 'toggle'])
+        ->name('schedule.toggle');
+    Route::post('schedule/{tour}/attach', [\App\Http\Controllers\Admin\Tours\TourScheduleController::class, 'attach'])
+        ->name('schedule.attach');
+    Route::delete('schedule/{tour}/{schedule}/detach', [\App\Http\Controllers\Admin\Tours\TourScheduleController::class, 'detach'])
+        ->name('schedule.detach');
+    Route::patch('schedule/{tour}/{schedule}/assignment-toggle', [\App\Http\Controllers\Admin\Tours\TourScheduleController::class, 'toggleAssignment'])
+        ->name('schedule.assignment.toggle');
+
+    // === Itinerarios e ítems ===
+    Route::resource('itinerary', \App\Http\Controllers\Admin\Tours\ItineraryController::class)->except(['show']);
+    Route::post('itinerary/{itinerary}/assign-items', [\App\Http\Controllers\Admin\Tours\ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');
+    Route::resource('itinerary_items', \App\Http\Controllers\Admin\Tours\ItineraryItemController::class)->except(['show', 'create', 'edit']);
+
+    // === Disponibilidad ===
+    Route::resource('availability', \App\Http\Controllers\Admin\Tours\TourAvailabilityController::class)->except(['show']);
+
+    // === Fechas excluidas (NUEVO: GET explícito + toggle) ===
+    Route::get('excluded_dates', [\App\Http\Controllers\Admin\Tours\TourExcludedDateController::class, 'index'])
+        ->name('excluded_dates.index');
+    Route::resource('excluded_dates', \App\Http\Controllers\Admin\Tours\TourExcludedDateController::class)
+        ->except(['show','index']); // evitamos colisión con el GET explícito
+    Route::post('excluded_dates/toggle', [\App\Http\Controllers\Admin\Tours\TourExcludedDateController::class, 'toggle'])
+        ->name('excluded_dates.toggle');
+    Route::post('excluded_dates/bulk-toggle', [\App\Http\Controllers\Admin\Tours\TourExcludedDateController::class, 'bulkToggle'])
+        ->name('excluded_dates.bulkToggle');
+    Route::post('excluded_dates/block-all', [\App\Http\Controllers\Admin\Tours\TourExcludedDateController::class, 'blockAll'])
+        ->name('excluded_dates.blockAll');
+Route::get('excluded_dates/blocked', [\App\Http\Controllers\Admin\Tours\TourExcludedDateController::class, 'blocked'])
+  ->name('excluded_dates.blocked');
+
+    // === Amenidades ===
+    Route::resource('amenities', \App\Http\Controllers\Admin\Tours\AmenityController::class)->except(['show']);
+    Route::patch('amenities/{amenity}/toggle', [\App\Http\Controllers\Admin\Tours\AmenityController::class, 'toggle'])
         ->name('amenities.toggle');
-        });
+});
+
 
         // Fechas excluidas públicas
         Route::post('/tour-excluded/block-all', [TourExcludedDateController::class, 'storeMultiple'])->name('tour-excluded.store-multiple');
@@ -228,7 +255,8 @@ Route::get('/politicas', [\App\Http\Controllers\Site\PoliciesController::class, 
 
         // Usuarios y roles
         Route::resource('users', UserRegisterController::class)->except(['show']);
-Route::resource('roles', RoleController::class)->except(['show']);
+ Route::resource('roles', RoleController::class)->except(['show', 'create']);
+    Route::patch('roles/{role}/toggle', [RoleController::class, 'toggle'])->name('roles.toggle');
 
         // Categorías, idiomas, tipos de tour
         Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);
@@ -236,7 +264,8 @@ Route::resource('roles', RoleController::class)->except(['show']);
         Route::delete('/tourtypes/{id}', [TourTypeController::class, 'destroy'])
     ->name('admin.tourtypes.destroy');
         Route::resource('languages', TourLanguageController::class, ['parameters' => ['languages' => 'language']])->except(['show']);
-
+Route::patch('languages/{language}/toggle', [TourLanguageController::class, 'toggle'])
+    ->name('languages.toggle');
         // Hoteles
         Route::resource('hotels', HotelListController::class)->except(['show', 'create', 'edit']);
         Route::post('hotels/sort', [HotelListController::class, 'sort'])->name('hotels.sort');

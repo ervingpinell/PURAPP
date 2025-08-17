@@ -7,188 +7,199 @@
 @stop
 
 @section('content')
-        <div class="p-3 table-responsive">
-            <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-                <i class="fas fa-plus"></i> Añadir Usuario
-            </a>
+<div class="p-3 table-responsive">
+    <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
+        <i class="fas fa-plus"></i> Añadir Usuario
+    </a>
 
-            <div class="card mb-3">
-                <div class="card-body">
-                    <form method="GET" action="{{ route('admin.users.index') }}">
-                        <!-- Filtro por rol -->
-                        <div class="row justify-content-center mb-2">
-                            <div class="col-md-4 text-center">
-                                <label for="rol" class="form-label">Filtrar por rol:</label>
-                                <select name="rol" id="rol" class="form-select text-center">
-                                    <option value="">-- Todos --</option>
-                                    @foreach ($roles as $rol)
-                                        <option value="{{ $rol->role_id }}" {{ request('rol') == $rol->role_id ? 'selected' : '' }}>
-                                            {{ $rol->role_name }}
+    {{-- FILTROS --}}
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="GET" action="{{ route('admin.users.index') }}">
+                {{-- Filtro por rol --}}
+                <div class="row justify-content-center mb-2">
+                    <div class="col-md-4 text-center">
+                        <label for="rol" class="form-label">Filtrar por rol:</label>
+                        <select name="rol" id="rol" class="form-select text-center">
+                            <option value="">-- Todos --</option>
+                            @foreach ($roles as $rol)
+                                <option value="{{ $rol->role_id }}" {{ request('rol') == $rol->role_id ? 'selected' : '' }}>
+                                    {{ $rol->role_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                {{-- Filtro por estado --}}
+                <div class="row justify-content-center mb-2">
+                    <div class="col-md-4 text-center">
+                        <label for="estado" class="form-label">Filtrar por estado:</label>
+                        <select name="estado" id="estado" class="form-select text-center">
+                            <option value="">-- Todos --</option>
+                            <option value="1" {{ request('estado') == '1' ? 'selected' : '' }}>Activos</option>
+                            <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Inactivos</option>
+                        </select>
+                    </div>
+                </div>
+                {{-- Filtro por correo --}}
+                <div class="row justify-content-center mb-2">
+                    <div class="col-md-4 text-center">
+                        <label for="email" class="form-label">Filtrar por correo:</label>
+                        <input type="email" name="email" id="email" class="form-control text-center"
+                               placeholder="ejemplo@correo.com" value="{{ request('email') }}">
+                    </div>
+                </div>
+
+                {{-- Botones --}}
+                <div class="row justify-content-center">
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-times"></i> Limpiar
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- TABLA --}}
+<table class="table table-striped table-bordered table-hover">
+    <thead class="bg-primary text-white">
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Rol</th>
+            <th>Teléfono</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach ($users as $user)
+        <tr>
+            <td>{{ $user->user_id }}</td>
+            <td>{{ $user->full_name }}</td>
+            <td>{{ $user->email }}</td>
+            <td>{{ $user->role->role_name ?? 'Sin rol' }}</td>
+            <td>{{ trim($user->country_code . ' ' . $user->phone) }}</td>
+            <td>
+                @if ($user->status)
+                    <span class="badge bg-success">Activo</span>
+                @else
+                    <span class="badge bg-secondary">Inactivo</span>
+                @endif
+            </td>
+            <td>
+                {{-- Editar --}}
+                <a href="#" class="btn btn-edit btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $user->user_id }}">
+                    <i class="fas fa-edit"></i>
+                </a>
+
+                {{-- Activar / Desactivar con SweetAlert --}}
+                <form action="{{ route('admin.users.destroy', $user->user_id) }}" method="POST" class="d-inline js-status-form"
+                      data-question="{{ $user->status ? '¿Deseas desactivar este usuario?' : '¿Deseas reactivar este usuario?' }}"
+                      data-confirm="{{ $user->status ? 'Sí, desactivar' : 'Sí, reactivar' }}"
+                      data-success="{{ $user->status ? 'Usuario desactivado' : 'Usuario reactivado' }}">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm {{ $user->status ? 'btn-delete' : 'btn-view' }}">
+                        <i class="fas {{ $user->status ? 'fa-user-slash' : 'fa-user-check' }}"></i>
+                    </button>
+                </form>
+            </td>
+        </tr>
+
+        {{-- Modal Editar --}}
+        <div class="modal fade" id="modalEditar{{ $user->user_id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <form action="{{ route('admin.users.update', $user->user_id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Editar Usuario</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label>Nombre</label>
+                                <input type="text" name="full_name" class="form-control" value="{{ $user->full_name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label>Correo</label>
+                                <input type="email" name="email" class="form-control" value="{{ $user->email }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label>Rol</label>
+                                <select name="role_id" class="form-control" required>
+                                    @foreach ($roles as $role)
+                                        <option value="{{ $role->role_id }}" {{ $user->role_id == $role->role_id ? 'selected' : '' }}>
+                                            {{ $role->role_name }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
-                        </div>
-                        <!-- Filtro por estado -->
-                        <div class="row justify-content-center mb-2">
-                            <div class="col-md-4 text-center">
-                                <label for="estado" class="form-label">Filtrar por estado:</label>
-                                <select name="estado" id="estado" class="form-select text-center">
-                                    <option value="">-- Todos --</option>
-                                    <option value="1" {{ request('estado') == '1' ? 'selected' : '' }}>Activos</option>
-                                    <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Inactivos</option>
+
+                            {{-- Código de país + Teléfono --}}
+                            <div class="mb-3">
+                                <label>Código de país</label>
+                                <select name="country_code" class="form-select" required>
+                                    @include('partials.country-codes', [
+                                        'selected'  => $user->country_code,
+                                        'showNames' => true
+                                    ])
                                 </select>
                             </div>
-                        </div>
+                            <div class="mb-3">
+                                <label>Número de Teléfono</label>
+                                <input type="text" name="phone" class="form-control" value="{{ $user->phone }}" required>
+                            </div>
 
-                        <!-- Filtro por correo -->
-                        <div class="row justify-content-center mb-2">
-                            <div class="col-md-4 text-center">
-                                <label for="email" class="form-label">Filtrar por correo:</label>
-                                <input type="email" name="email" id="email" class="form-control text-center"
-                                placeholder="ejemplo@correo.com" value="{{ request('email') }}">
+                            {{-- Password opcional --}}
+                            <div class="mb-3">
+                                <label>{{ __('adminlte::validation.attributes.password') }}</label>
+                                <div class="password-wrapper">
+                                    <input type="password" name="password" class="form-control password-input" autocomplete="new-password">
+                                    <i class="fas fa-eye toggle-password-abs" role="button" aria-label="Mostrar/Ocultar"></i>
+                                </div>
+                                <ul class="password-reqs list-unstyled small ms-1 mt-2">
+                                    <li data-rule="length"  class="text-muted">Al menos 8 caracteres</li>
+                                    <li data-rule="special" class="text-muted">1 carácter especial ( .,!@#$%^&*()_+- )</li>
+                                    <li data-rule="number"  class="text-muted">1 número</li>
+                                </ul>
+                            </div>
+                            <div class="mb-3">
+                                <label>{{ __('adminlte::validation.attributes.password_confirmation') }}</label>
+                                <div class="password-wrapper">
+                                    <input type="password" name="password_confirmation" class="form-control password-confirm-input" autocomplete="new-password">
+                                    <i class="fas fa-eye toggle-password-abs" role="button" aria-label="Mostrar/Ocultar"></i>
+                                </div>
+                                <ul class="password-reqs list-unstyled small ms-1 mt-2">
+                                    <li data-rule="match" class="text-muted">Las contraseñas coinciden</li>
+                                </ul>
                             </div>
                         </div>
-
-                        <!-- Botones -->
-                        <div class="row justify-content-center">
-                            <div class="col-md-2">
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-search"></i> Buscar
-                                </button>
-                            </div>
-                            <div class="col-md-2">
-                                <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary w-100">
-                                    <i class="fas fa-times"></i> Limpiar
-                                </a>
-                            </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-warning">Actualizar</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
-
-
-
-
-    <table class="table table-striped table-bordered table-hover">
-        <thead class="bg-primary text-white">
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Correo</th>
-                <th>Rol</th>
-                <th>Numero de Telefono</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($users as $user)
-                <tr>
-                    <td>{{ $user->user_id }}</td>
-                    <td>{{ $user->full_name }}</td>
-                    <td>{{ $user->email }}</td>
-                    <td>{{ $user->role->role_name ?? 'Sin rol' }}</td>
-<td>{{ trim($user->country_code . ' ' . $user->phone) }}</td>
-
-                    <td>
-                        @if ($user->status)
-                            <span class="badge bg-success">Activo</span>
-                        @else
-                            <span class="badge bg-secondary">Inactivo</span>
-                        @endif
-                    </td>
-                    <td>
-                        <!-- Botón editar -->
-                        <a href="#" class="btn btn-edit btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $user->user_id }}">
-                            <i class="fas fa-edit"></i>
-                        </a>
-
-                        <!-- Botón desactivar -->
-                        <form action="{{ route('admin.users.destroy', $user->user_id) }}" method="POST" style="display: inline-block;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                class="btn btn-sm {{ $user->status ? 'btn-delete' : 'btn-view' }}"
-                                onclick="return confirm('{{ $user->status ? '¿Deseas desactivar este usuario?' : '¿Deseas reactivar este usuario?' }}')">
-                                <i class="fas {{ $user->status ? 'fa-user-slash' : 'fa-user-check' }}"></i>
-                            </button>
-                        </form>
-
-                    </td>
-                </tr>
-
-                <!-- Modal Editar -->
-                <div class="modal fade" id="modalEditar{{ $user->user_id }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <form action="{{ route('admin.users.update', $user->user_id) }}" method="POST">
-                            @csrf
-                            @method('PUT')
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Editar Usuario</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="mb-3">
-                                        <label>Nombre</label>
-                                        <input type="text" name="full_name" class="form-control" value="{{ $user->full_name }}" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label>Correo</label>
-                                        <input type="email" name="email" class="form-control" value="{{ $user->email }}" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label>Rol</label>
-                                        <select name="role_id" class="form-control" required>
-                                            @foreach ($roles as $role)
-                                                <option value="{{ $role->role_id }}" {{ $user->role_id == $role->role_id ? 'selected' : '' }}>
-                                                    {{ $role->role_name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-<div class="mb-3">
-    <label>Código de país</label>
-    <select name="country_code" class="form-select">
-        @include('partials.country-codes', ['selected' => $user->country_code])
-    </select>
-</div>
-<div class="mb-3">
-    <label>Número de Teléfono</label>
-    <input type="text" name="phone" class="form-control" value="{{ $user->phone }}" required>
+    @endforeach
+    </tbody>
+</table>
 </div>
 
-                                    <div class="mb-3">
-                                        <label>Nueva contraseña (opcional)</label>
-                                        <input type="password" name="password" class="form-control" autocomplete="new-password">
-                                        <ul id="password-requirements-{{ $user->user_id }}" class="mb-3 pl-3" style="list-style: none; padding-left: 1rem;">
-                                        <li class="req-length text-muted">Mínimo 8 caracteres</li>
-                                        <li class="req-special text-muted">Al menos un carácter especial (!@#...)</li>
-                                        <li class="req-number text-muted">Al menos un número</li>
-                                    </ul>
-
-                                    </div>
-                                    <div class="mb-3">
-                                        <label>Confirmar contraseña</label>
-                                        <input type="password" name="password_confirmation" class="form-control" autocomplete="new-password">
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="submit" class="btn btn-warning">Actualizar</button>
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            @endforeach
-        </tbody>
-    </table>
-</div>
-
-<!-- Modal Registrar -->
+{{-- Modal Registrar --}}
 <div class="modal fade" id="modalRegistrar" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <form action="{{ route('admin.users.store') }}" method="POST">
@@ -215,23 +226,43 @@
                             @endforeach
                         </select>
                     </div>
+
+                    {{-- Código de país + Teléfono --}}
                     <div class="mb-3">
-                        <label>Numero Telefono</label>
+                        <label>Código de país</label>
+                        <select name="country_code" class="form-select" required>
+                            @include('partials.country-codes', [
+                                'selected'  => old('country_code'),
+                                'showNames' => true
+                            ])
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Número Teléfono</label>
                         <input type="text" name="phone" class="form-control" required value="{{ old('phone') }}">
                     </div>
-                    <div class="mb-3">
-                        <label>Contraseña</label>
-                        <input type="password" name="password" class="form-control" required autocomplete="new-password">
-                        <ul id="password-requirements-register" class="mb-3 pl-3">
-                        <li class="req-length text-muted">Mínimo 8 caracteres</li>
-                        <li class="req-special text-muted">Al menos un carácter especial (!@#...)</li>
-                        <li class="req-number text-muted">Al menos un número</li>
-                    </ul>
 
+                    <div class="mb-3">
+                        <label>{{ __('adminlte::validation.attributes.password') }}</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password" class="form-control password-input" required autocomplete="new-password">
+                            <i class="fas fa-eye toggle-password-abs" role="button" aria-label="Mostrar/Ocultar"></i>
+                        </div>
+                        <ul class="password-reqs list-unstyled small ms-1 mt-2">
+                            <li data-rule="length"  class="text-muted">Al menos 8 caracteres</li>
+                            <li data-rule="special" class="text-muted">1 carácter especial ( .,!@#$%^&*()_+- )</li>
+                            <li data-rule="number"  class="text-muted">1 número</li>
+                        </ul>
                     </div>
                     <div class="mb-3">
-                        <label>Confirmar Contraseña</label>
-                        <input type="password" name="password_confirmation" class="form-control" required autocomplete="new-password">
+                        <label>{{ __('adminlte::validation.attributes.password_confirmation') }}</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password_confirmation" class="form-control password-confirm-input" required autocomplete="new-password">
+                            <i class="fas fa-eye toggle-password-abs" role="button" aria-label="Mostrar/Ocultar"></i>
+                        </div>
+                        <ul class="password-reqs list-unstyled small ms-1 mt-2">
+                            <li data-rule="match" class="text-muted">Las contraseñas coinciden</li>
+                        </ul>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -245,127 +276,102 @@
 @stop
 
 @section('css')
-{{-- Estilos adicionales aquí --}}
+<style>
+/* Icono ojo dentro del input */
+.password-wrapper { position: relative; }
+.password-wrapper .toggle-password-abs {
+    position: absolute; top: 50%; right: .75rem; transform: translateY(-50%);
+    opacity: .7; cursor: pointer; pointer-events: auto;
+}
+.password-wrapper .toggle-password-abs:hover { opacity: 1; }
+/* Alinear bullets de requisitos */
+.password-reqs li { margin: .15rem 0; }
+</style>
 @stop
 
 @section('js')
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+{{-- SweetAlert2 --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll("input[name='password']").forEach((input) => {
-        const modal = input.closest('.modal');
-        if (!modal) return;
-
-        const reqList = modal.querySelector('ul');
-        if (!reqList) return;
-
-        const reqs = reqList.querySelectorAll('li');
-        if (reqs.length !== 3) return;
-
-        input.addEventListener('input', function () {
-            const val = this.value;
-            const length = val.length >= 8;
-            const number = /\d/.test(val);
-            const special = /[!@#$%^&*(),.?":{}|<>_\-+=]/.test(val);
-
-            updateRequirement(reqs[0], length);
-            updateRequirement(reqs[1], special);
-            updateRequirement(reqs[2], number);
-        });
-
-        function updateRequirement(element, valid) {
-            element.classList.remove('text-success', 'text-muted');
-            element.classList.add(valid ? 'text-success' : 'text-muted');
-        }
+    // Toggle ojo (mostrar/ocultar)
+    document.body.addEventListener('click', function (e) {
+        const icon = e.target.closest('.toggle-password-abs');
+        if (!icon) return;
+        const input = icon.previousElementSibling;
+        if (!input) return;
+        input.type = input.type === 'password' ? 'text' : 'password';
+        icon.classList.toggle('fa-eye');
+        icon.classList.toggle('fa-eye-slash');
+        input.focus();
     });
-});
 
-</script>
-
-
-@if(session('success') && session('alert_type'))
-<script>
-    let icon = 'success';
-    let title = 'Éxito';
-    let color = '#3085d6';
-
-    switch ("{{ session('alert_type') }}") {
-        case 'activado':
-            icon = 'success';
-            title = 'Usuario Activado';
-            color = '#28a745';
-            break;
-        case 'desactivado':
-            icon = 'warning';
-            title = 'Usuario Desactivado';
-            color = '#ffc107';
-            break;
-        case 'actualizado':
-            icon = 'info';
-            title = 'Usuario Actualizado';
-            color = '#17a2b8';
-            break;
-        case 'creado':
-        icon = 'success';
-        title = 'Usuario Registrado';
-        color = '#007bff';
-        break;
+    // Validación en vivo (requisitos + match)
+    function rulesFor(value){ return {
+        length: value.length >= 8,
+        number: /\d/.test(value),
+        special: /[!@#$%^&*(),.?":{}|<>_\-+=]/.test(value),
+    }; }
+    function paintReqs(listEl, rules){
+        if (!listEl) return;
+        listEl.querySelectorAll('li').forEach(li => {
+            const r = li.dataset.rule;
+            const ok = (r === 'match') ? !!rules.match : !!rules[r];
+            li.classList.toggle('text-success', ok);
+            li.classList.toggle('text-muted', !ok);
+        });
     }
+    function wireModal(modal){
+        const pass = modal.querySelector('.password-input');
+        const conf = modal.querySelector('.password-confirm-input');
+        const passReq = pass ? pass.closest('.mb-3').querySelector('.password-reqs') : null;
+        const confReq = conf ? conf.closest('.mb-3').querySelector('.password-reqs') : null;
+        function refresh(){
+            const p = pass ? pass.value : '';
+            const c = conf ? conf.value : '';
+            const base = rulesFor(p);
+            paintReqs(passReq, base);
+            if (confReq) paintReqs(confReq, Object.assign({}, base, { match: (p.length||c.length) ? (p === c && p.length>0) : false }));
+        }
+        pass && pass.addEventListener('input', refresh);
+        conf && conf.addEventListener('input', refresh);
+        refresh();
+    }
+    document.querySelectorAll('.modal').forEach(wireModal);
+    document.addEventListener('shown.bs.modal', e => wireModal(e.target));
 
-    Swal.fire({
-        icon: icon,
-        title: title,
-        text: '{{ session('success') }}',
-        confirmButtonColor: color,
-        confirmButtonText: 'OK'
-    });
-</script>
-@endif
-
-
-
-@if (session('error_password'))
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        Swal.fire({
-            icon: 'error',
-            title: 'Contraseña inválida',
-            text: '{{ session('error_password') }}',
-            confirmButtonColor: '#d33'
+    // Confirmación SweetAlert para activar/desactivar
+    document.querySelectorAll('.js-status-form').forEach(form => {
+        form.addEventListener('submit', function(ev){
+            ev.preventDefault();
+            const q = form.dataset.question || '¿Confirmar acción?';
+            const okText = form.dataset.confirm || 'Sí, confirmar';
+            Swal.fire({
+                icon: 'question',
+                title: 'Confirmación',
+                text: q,
+                showCancelButton: true,
+                confirmButtonText: okText,
+                cancelButtonText: 'Cancelar'
+            }).then(res => {
+                if (res.isConfirmed) form.submit();
+            });
         });
-
-        const modal = new bootstrap.Modal(document.getElementById('modalRegistrar'));
-        modal.show();
     });
+
+    // Alertas de sesión (éxito / error)
+    @if(session('success'))
+        Swal.fire({ icon:'success', title:'Éxito', text:@json(session('success')) });
+    @endif
+    @if(session('error'))
+        Swal.fire({ icon:'error', title:'Error', text:@json(session('error')) });
+    @endif
+
+    // Si hubo error de validación en registro, reabrimos modal (opcional)
+    @if ($errors->any() && session('show_register_modal'))
+        const m = new bootstrap.Modal(document.getElementById('modalRegistrar'));
+        m.show();
+    @endif
+});
 </script>
-@endif
-
-@if ($errors->has('email'))
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        Swal.fire({
-            icon: 'error',
-            title: 'Correo duplicado',
-            text: '{{ $errors->first('email') }}',
-            confirmButtonColor: '#d33'
-        });
-
-        const modal = new bootstrap.Modal(document.getElementById('modalRegistrar'));
-        modal.show();
-    });
-</script>
-@endif
-
-@if (session('show_register_modal'))
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const modal = new bootstrap.Modal(document.getElementById('modalRegistrar'));
-        modal.show();
-    });
-</script>
-@endif
-
-
-
 @stop

@@ -33,41 +33,40 @@
                         <span class="badge bg-secondary">Inactivo</span>
                     @endif
                 </td>
-<td>
-  {{-- Editar --}}
-  <a href="#" class="btn btn-edit btn-sm"
-     data-bs-toggle="modal" data-bs-target="#modalEditar{{ $amenity->amenity_id }}"
-     title="Editar">
-    <i class="fas fa-edit"></i>
-  </a>
+                <td>
+                    {{-- Editar --}}
+                    <a href="#" class="btn btn-edit btn-sm"
+                       data-bs-toggle="modal" data-bs-target="#modalEditar{{ $amenity->amenity_id }}"
+                       title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </a>
 
-  {{-- Toggle activar/desactivar --}}
-  <form action="{{ route('admin.tours.amenities.toggle', $amenity->amenity_id) }}"
-        method="POST" class="d-inline">
-    @csrf
-    @method('PATCH')
-    <button type="submit"
-            class="btn btn-toggle btn-sm"
-            title="{{ $amenity->is_active ? 'Desactivar' : 'Activar' }}"
-            onclick="return confirm('{{ $amenity->is_active ? '¿Deseas desactivarla?' : '¿Deseas activarla?' }}')">
-      <i class="fas {{ $amenity->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
-    </button>
-  </form>
+                    {{-- Toggle activar/desactivar (SweetAlert) --}}
+                    <form action="{{ route('admin.tours.amenities.toggle', $amenity->amenity_id) }}"
+                          method="POST" class="d-inline toggle-form"
+                          data-active="{{ $amenity->is_active ? 1 : 0 }}">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit"
+                                class="btn btn-toggle btn-sm"
+                                title="{{ $amenity->is_active ? 'Desactivar' : 'Activar' }}">
+                          <i class="fas {{ $amenity->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
+                        </button>
+                    </form>
 
-  {{-- Eliminar definitivo --}}
-  <form action="{{ route('admin.tours.amenities.destroy', $amenity->amenity_id) }}"
-        method="POST" class="d-inline">
-    @csrf
-    @method('DELETE')
-    <button type="submit"
-            class="btn btn-delete btn-sm"
-            title="Eliminar definitivamente"
-            onclick="return confirm('¿Eliminar definitivamente esta amenidad? Esta acción no se puede deshacer.')">
-      <i class="fas fa-trash"></i>
-    </button>
-  </form>
-</td>
-
+                    {{-- Eliminar definitivo (SweetAlert) --}}
+                    <form action="{{ route('admin.tours.amenities.destroy', $amenity->amenity_id) }}"
+                          method="POST" class="d-inline delete-form"
+                          data-name="{{ $amenity->name }}">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                                class="btn btn-delete btn-sm"
+                                title="Eliminar definitivamente">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </td>
             </tr>
 
             <!-- Modal editar -->
@@ -127,6 +126,9 @@
 @stop
 
 @section('js')
+{{-- SweetAlert2 CDN (si ya lo cargas global, puedes omitir esta línea) --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 @if(session('success') && session('alert_type'))
 <script>
     let icon = 'success';
@@ -135,25 +137,15 @@
 
     switch ("{{ session('alert_type') }}") {
         case 'activado':
-            icon = 'success';
-            title = 'Amenidad Activada';
-            color = '#28a745';
-            break;
+            icon = 'success'; title = 'Amenidad Activada'; color = '#28a745'; break;
         case 'desactivado':
-            icon = 'warning';
-            title = 'Amenidad Desactivada';
-            color = '#ffc107';
-            break;
+            icon = 'warning'; title = 'Amenidad Desactivada'; color = '#ffc107'; break;
         case 'actualizado':
-            icon = 'info';
-            title = 'Amenidad Actualizada';
-            color = '#17a2b8';
-            break;
+            icon = 'info'; title = 'Amenidad Actualizada'; color = '#17a2b8'; break;
         case 'creado':
-            icon = 'success';
-            title = 'Amenidad Creada';
-            color = '#007bff';
-            break;
+            icon = 'success'; title = 'Amenidad Creada'; color = '#007bff'; break;
+        case 'eliminado':
+            icon = 'error'; title = 'Amenidad Eliminada'; color = '#dc3545'; break;
     }
 
     Swal.fire({
@@ -181,4 +173,42 @@
     });
 </script>
 @endif
+
+<script>
+// Confirmación SweetAlert: Toggle
+document.querySelectorAll('.toggle-form').forEach(form => {
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const isActive = form.getAttribute('data-active') === '1';
+    Swal.fire({
+      title: isActive ? '¿Desactivar amenidad?' : '¿Activar amenidad?',
+      text: isActive
+        ? 'La amenidad quedará inactiva.'
+        : 'La amenidad quedará activa.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#f39c12',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, continuar'
+    }).then(r => { if (r.isConfirmed) form.submit(); });
+  });
+});
+
+// Confirmación SweetAlert: Eliminar definitivo
+document.querySelectorAll('.delete-form').forEach(form => {
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name = form.getAttribute('data-name') || 'esta amenidad';
+    Swal.fire({
+      title: '¿Eliminar definitivamente?',
+      html: 'Se eliminará <b>' + name + '</b> y no podrás deshacerlo.',
+      icon: 'error',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, eliminar'
+    }).then(r => { if (r.isConfirmed) form.submit(); });
+  });
+});
+</script>
 @stop

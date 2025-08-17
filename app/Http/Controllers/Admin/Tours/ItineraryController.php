@@ -18,10 +18,7 @@ class ItineraryController extends Controller
 {
     public function index(ItineraryService $service)
     {
-        $itineraries = Itinerary::with('items')
-            ->orderBy('name')
-            ->get();
-
+        $itineraries = Itinerary::with('items')->orderBy('name')->get();
         $items = $service->getAvailableItems();
 
         return view('admin.tours.itinerary.index', compact('itineraries', 'items'));
@@ -30,16 +27,19 @@ class ItineraryController extends Controller
     public function store(Request $request, TranslatorInterface $translator)
     {
         $request->validate([
-            'name'        => 'required|string|max:255|unique:itineraries,name',
-            'description' => 'nullable|string|max:1000',
+            'name'        => ['required','string','max:255', Rule::unique('itineraries','name')],
+            'description' => ['nullable','string','max:1000'],
+        ], [
+            'name.required'   => 'El nombre del itinerario es obligatorio.',
+            'name.unique'     => 'Ya existe un itinerario con ese nombre.',
+            'name.max'        => 'El nombre no puede exceder 255 caracteres.',
+            'description.max' => 'La descripción no puede exceder 1000 caracteres.',
         ]);
 
         try {
             DB::transaction(function () use ($request, $translator) {
                 $name = $request->string('name')->trim();
-                $description = $request->filled('description')
-                    ? $request->string('description')->trim()
-                    : '';
+                $description = $request->filled('description') ? $request->string('description')->trim() : '';
 
                 $itinerary = Itinerary::create([
                     'name'        => $name,
@@ -47,7 +47,7 @@ class ItineraryController extends Controller
                     'is_active'   => true,
                 ]);
 
-                // Automatic translations (ES, EN, FR, PT, DE)
+                // Traducciones automáticas (ES, EN, FR, PT, DE)
                 $nameTranslations = $translator->translateAll($name);
                 $descriptionTranslations = $translator->translateAll($description);
 
@@ -61,12 +61,10 @@ class ItineraryController extends Controller
                 }
             });
 
-            return redirect()
-                ->back()
-                ->with('success', 'Itinerary created successfully.');
+            return back()->with('success', 'Itinerario creado correctamente.');
         } catch (Exception $e) {
-            Log::error('Error creating itinerary: ' . $e->getMessage());
-            return back()->with('error', 'Failed to create itinerary.');
+            Log::error('Error creando itinerario: ' . $e->getMessage());
+            return back()->with('error', 'No se pudo crear el itinerario.');
         }
     }
 
@@ -74,19 +72,20 @@ class ItineraryController extends Controller
     {
         $request->validate([
             'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('itineraries', 'name')->ignore($itinerary->itinerary_id, 'itinerary_id'),
+                'required','string','max:255',
+                Rule::unique('itineraries','name')->ignore($itinerary->itinerary_id, 'itinerary_id'),
             ],
             'description' => 'nullable|string|max:1000',
+        ], [
+            'name.required'   => 'El nombre del itinerario es obligatorio.',
+            'name.unique'     => 'Ya existe un itinerario con ese nombre.',
+            'name.max'        => 'El nombre no puede exceder 255 caracteres.',
+            'description.max' => 'La descripción no puede exceder 1000 caracteres.',
         ]);
 
         try {
             $name = $request->string('name')->trim();
-            $description = $request->filled('description')
-                ? $request->string('description')->trim()
-                : '';
+            $description = $request->filled('description') ? $request->string('description')->trim() : '';
 
             $itinerary->update([
                 'name'        => $name,
@@ -95,39 +94,54 @@ class ItineraryController extends Controller
 
             return redirect()
                 ->route('admin.tours.itinerary.index')
-                ->with('success', 'Itinerary updated successfully.');
+                ->with('success', 'Itinerario actualizado correctamente.');
         } catch (Exception $e) {
-            Log::error('Error updating itinerary: ' . $e->getMessage());
-            return back()->with('error', 'Failed to update itinerary.');
+            Log::error('Error actualizando itinerario: ' . $e->getMessage());
+            return back()->with('error', 'No se pudo actualizar el itinerario.');
         }
     }
 
+    /**
+     * Activa/Desactiva un itinerario conservando sus ítems.
+     * - Al desactivar: NO se desvinculan los ítems. (Opcional: podrías marcar el pivote como inactivo)
+     * - Al activar: solo cambia el flag del itinerario.
+     */
     public function destroy(Itinerary $itinerary)
     {
         try {
             if ($itinerary->is_active) {
-                $itinerary->items()->detach();
+                // Solo desactivar el itinerario — NO detach
                 $itinerary->update(['is_active' => false]);
 
-                return redirect()
-                    ->back()
-                    ->with('success', 'Itinerary deactivated successfully.');
+                // OPCIONAL: si quieres que no aparezcan los ítems en listados que miran el pivote,
+                // puedes desactivarlos en el pivote sin perderlos:
+                // $itinerary->items()->updateExistingPivot(
+                //     $itinerary->items->pluck('item_id')->all(),
+                //     ['is_active' => false]
+                // );
+
+                return back()->with('success', 'Itinerario desactivado correctamente (ítems conservados).');
             }
 
+            // Reactivar itinerario
             $itinerary->update(['is_active' => true]);
 
-            return redirect()
-                ->back()
-                ->with('success', 'Itinerary activated successfully.');
+            // OPCIONAL: reactivar ítems del pivote si los desactivaste al apagar:
+            // $itinerary->items()->updateExistingPivot(
+            //     $itinerary->items->pluck('item_id')->all(),
+            //     ['is_active' => true]
+            // );
+
+            return back()->with('success', 'Itinerario activado correctamente.');
         } catch (Exception $e) {
-            Log::error('Error changing itinerary status: ' . $e->getMessage());
-            return back()->with('error', 'Failed to change itinerary status.');
+            Log::error('Error cambiando estado de itinerario: ' . $e->getMessage());
+            return back()->with('error', 'No se pudo cambiar el estado del itinerario.');
         }
     }
 
     public function assignItems(Request $request, Itinerary $itinerary)
     {
-        // item_ids arrives as associative array: [item_id => order, ...]
+        // item_ids llega como array asociativo: [item_id => order, ...]
         $rawData = $request->input('item_ids', []);
 
         $itemIds = collect($rawData)
@@ -139,12 +153,12 @@ class ItineraryController extends Controller
 
         if (count($itemIds) === 0) {
             return back()
-                ->withErrors(['item_ids' => 'You must select at least one item.'])
+                ->withErrors(['item_ids' => 'Debes seleccionar al menos un ítem.'])
                 ->withInput()
                 ->with('showAssignModal', $itinerary->itinerary_id);
         }
 
-        // Check if all selected items exist and are active
+        // Verificar que los ítems existan y estén activos
         $activeItems = ItineraryItem::whereIn('item_id', $itemIds)
             ->where('is_active', true)
             ->pluck('item_id')
@@ -153,19 +167,17 @@ class ItineraryController extends Controller
         $inactiveItems = array_diff($itemIds, $activeItems);
         if (count($inactiveItems)) {
             return back()
-                ->withErrors(['item_ids' => 'You cannot assign an inactive item.'])
+                ->withErrors(['item_ids' => 'No puedes asignar un ítem inactivo.'])
                 ->withInput()
                 ->with('showAssignModal', $itinerary->itinerary_id);
         }
 
-        // Build pivot data: item_order, is_active
+        // Construir datos del pivote
         $syncData = [];
         foreach ($rawData as $itemId => $order) {
-            if ($itemId === 'dummy') {
-                continue;
-            }
-            $syncData[(int) $itemId] = [
-                'item_order' => (int) $order,
+            if ($itemId === 'dummy') continue;
+            $syncData[(int)$itemId] = [
+                'item_order' => (int)$order,
                 'is_active'  => true,
             ];
         }
@@ -174,6 +186,6 @@ class ItineraryController extends Controller
 
         return redirect()
             ->route('admin.tours.itinerary.index')
-            ->with('success', 'Items assigned successfully.');
+            ->with('success', 'Ítems asignados correctamente.');
     }
 }
