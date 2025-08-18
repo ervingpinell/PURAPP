@@ -36,33 +36,47 @@
           </div>
 
           <div class="card-body">
-            <form action="{{ route('contact.send') }}" method="POST">
-              @csrf
+<form action="{{ route('contact.send') }}" method="POST">
+  @csrf
 
-              <div class="mb-3">
-                <label for="name" class="form-label">{{ __('adminlte::adminlte.name') }}</label>
-                <input type="text" class="form-control" name="name" id="name" required value="{{ old('name') }}">
-              </div>
+  {{-- Honeypot anti-spam: oculto con CSS --}}
+  <div style="position:absolute; left:-9999px; top:-9999px;">
+    <label for="website">Website</label>
+    <input type="text" name="website" id="website" tabindex="-1" autocomplete="off">
+  </div>
 
-              <div class="mb-3">
-                <label for="email" class="form-label">{{ __('adminlte::adminlte.email') }}</label>
-                <input type="email" class="form-control" name="email" id="email" required value="{{ old('email') }}">
-              </div>
+  <div class="mb-3">
+    <label for="name" class="form-label">{{ __('adminlte::adminlte.name') }}</label>
+    <input type="text" class="form-control @error('name') is-invalid @enderror"
+           name="name" id="name" required value="{{ old('name') }}">
+    @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+  </div>
 
-              <div class="mb-3">
-                <label for="subject" class="form-label">{{ __('adminlte::adminlte.subject') }}</label>
-                <input type="text" class="form-control" name="subject" id="subject" required value="{{ old('subject') }}">
-              </div>
+  <div class="mb-3">
+    <label for="email" class="form-label">{{ __('adminlte::adminlte.email') }}</label>
+    <input type="email" class="form-control @error('email') is-invalid @enderror"
+           name="email" id="email" required value="{{ old('email') }}">
+    @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+  </div>
 
-              <div class="mb-3">
-                <label for="message" class="form-label">{{ __('adminlte::adminlte.message') }}</label>
-                <textarea class="form-control" name="message" id="message" rows="5" required>{{ old('message') }}</textarea>
-              </div>
+  <div class="mb-3">
+    <label for="subject" class="form-label">{{ __('adminlte::adminlte.subject') }}</label>
+    <input type="text" class="form-control @error('subject') is-invalid @enderror"
+           name="subject" id="subject" required value="{{ old('subject') }}">
+    @error('subject') <div class="invalid-feedback">{{ $message }}</div> @enderror
+  </div>
 
-              <button type="submit" class="btn btn-success bg-green-dark w-100">
-                <i class="fas fa-paper-plane me-1"></i> {{ __('adminlte::adminlte.send_message') }}
-              </button>
-            </form>
+  <div class="mb-3">
+    <label for="message" class="form-label">{{ __('adminlte::adminlte.message') }}</label>
+    <textarea class="form-control @error('message') is-invalid @enderror" name="message" id="message" rows="5" required>{{ old('message') }}</textarea>
+    @error('message') <div class="invalid-feedback">{{ $message }}</div> @enderror
+  </div>
+
+  <button type="submit" class="btn btn-success bg-green-dark w-100">
+    <i class="fas fa-paper-plane me-1"></i> {{ __('adminlte::adminlte.send_message') }}
+  </button>
+</form>
+
           </div>
         </div>
       </div>

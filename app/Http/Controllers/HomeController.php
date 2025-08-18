@@ -6,10 +6,13 @@ use App\Models\Tour;
 use App\Models\HotelList;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use App\Models\TourType;
 use App\Models\TourExcludedDate;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Carbon;
+use App\Mail\ContactMessage;
+
 
 class HomeController extends Controller
 {
@@ -231,15 +234,44 @@ class HomeController extends Controller
         return view('public.contact');
     }
 
-    public function sendContact(Request $request)
-    {
-        $validated = $request->validate([
-            'name'    => 'required|string|max:100',
-            'email'   => 'required|email',
-            'subject' => 'required|string|max:150',
-            'message' => 'required|string|max:1000',
+public function sendContact(Request $request)
+{
+    // Validación (un poco más estricta y con bail)
+    $validated = $request->validate([
+        'name'    => 'bail|required|string|min:2|max:100',
+        'email'   => 'bail|required|email',
+        'subject' => 'bail|required|string|min:3|max:150',
+        'message' => 'bail|required|string|min:5|max:1000',
+        'website' => 'nullable|string|max:50', // honeypot
+    ]);
+
+    // Honeypot: si tiene contenido, tratar como enviado (sin mandar nada)
+    if (!empty(data_get($validated, 'website'))) {
+        return back()->with('success', __('adminlte::adminlte.message_sent_spam_caught')
+            ?? 'Tu mensaje ha sido enviado.');
+    }
+
+    try {
+        $to = config('mail.to.contact', config('mail.from.address', 'info@greenvacationscr.com'));
+
+        Mail::to($to)->send(new ContactMessage($validated));
+        // Si usas cola:
+        // Mail::to($to)->queue(new ContactMessage($validated));
+
+        return back()->with('success', __('adminlte::adminlte.contact_success')
+            ?? 'Tu mensaje ha sido enviado con éxito. Pronto te contactaremos.');
+    } catch (\Throwable $e) {
+        // En producción puedes evitar el trace completo para reducir PII
+        Log::error('Error enviando contacto: '.$e->getMessage(), [
+            'ip' => $request->ip(),
+            // 'trace' => $e->getTraceAsString(), // opcional en local
         ]);
 
-        return back()->with('success', 'Tu mensaje ha sido enviado con éxito. Pronto te contactaremos.');
+        return back()
+            ->withInput()
+            ->withErrors(['email' => __('adminlte::adminlte.contact_error')
+                ?? 'Ocurrió un error al enviar tu mensaje. Intenta de nuevo en unos minutos.']);
     }
+}
+
 }
