@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Green Vacations</title>
+  <title>@yield('title', 'Green Vacations')</title>
 
   {{-- Favicon --}}
   <link rel="icon" href="{{ asset('favicons/favicon.ico') }}" sizes="any">
@@ -37,6 +37,15 @@
   </main>
 
   @include('partials.footer')
+
+  {{-- WhatsApp flotante en todo el sitio EXCEPTO en /contact --}}
+  @unless (request()->routeIs('contact'))
+    @include('partials.ws-widget', [
+      'variant' => 'floating',
+      // 'phone' => '50624791471',
+      // 'defaultMsg' => __('adminlte::adminlte.whatsapp_placeholder'),
+    ])
+  @endunless
 
   {{-- Scripts externos --}}
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

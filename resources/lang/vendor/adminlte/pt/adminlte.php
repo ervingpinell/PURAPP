@@ -38,7 +38,10 @@ return [
     'password_reset_link_sent' => 'Link de redefinição de senha enviado para seu e-mail.',
     'password_reset_link_failed' => 'Falha ao enviar o link de redefinição. Tente novamente.',
     'passwords_match' => 'As senhas correspondem.',
-
+    'open_tour' => 'Ir para o tour?',
+    'open_tour_text_pre' => 'Você está prestes a abrir a página do tour',
+    'open_tour_confirm' => 'Ir agora',
+    'open_tour_cancel' => 'Cancelar',
     // ─── NAVEGAÇÃO GERAL ─────────────────────────────
     'back' => 'Voltar',
     'home' => 'Início',

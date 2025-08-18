@@ -335,6 +335,10 @@ return [
     'too_many_attempts' => 'Demasiados intentos fallidos. Intenta de nuevo en :seconds segundos.',
 ],
 
+    'open_tour'          => 'Ir al tour?',
+    'open_tour_text_pre' => 'Vas a abrir la página del tour',
+    'open_tour_confirm'  => 'Ir ahora',
+    'open_tour_cancel'   => 'Cancelar',
 
     // Éxitos (usados en controladores)
         'show_password' => 'Mostrar contraseña',

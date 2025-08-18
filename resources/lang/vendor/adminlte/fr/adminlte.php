@@ -38,7 +38,10 @@ return [
     'password_reset_link_sent' => 'Lien de réinitialisation envoyé à votre e-mail.',
     'password_reset_link_failed' => 'Échec de l’envoi du lien de réinitialisation. Veuillez réessayer.',
     'passwords_match' => 'Les mots de passe correspondent.',
-
+    'open_tour' => 'Aller à l’excursion?',
+    'open_tour_text_pre' => 'Vous êtes sur le point d’ouvrir la page de l’excursion',
+    'open_tour_confirm' => 'Aller maintenant',
+    'open_tour_cancel' => 'Annuler',
 
     // ─── NAVIGATION GÉNÉRALE ──────────────────────────
     'back' => 'Retour',

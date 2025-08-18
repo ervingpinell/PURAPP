@@ -61,7 +61,7 @@ Route::middleware([SetLocale::class])->group(function () {
 
     // Reviews públicas (Viator)
     Route::get('/reviews', function () {
-        $tours = \App\Models\Tour::whereNotNull('viator_code')
+        $tours = Tour::whereNotNull('viator_code')
             ->active()
             ->select('tour_id', 'name', 'viator_code')
             ->with(['translations' => function ($q) {

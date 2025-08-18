@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="review-content ${expanded ? 'expanded' : ''}">
             <p>${escapeHtml(expanded || !truncated ? text : shortText)}</p>
           </div>
-          ${truncated ? `<button class="review-toggle">${expanded ? 'Ver menos' : 'Ver más'}</button>` : ''}
+          ${truncated ? `<button class="review-toggle">${expanded ? 'read less' : 'read more...'}</button>` : ''}
         </div>
       `;
 
