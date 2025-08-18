@@ -29,11 +29,7 @@
             <div class="card-body">
                 <p><i class="fas fa-id-card"></i> <strong>Nombre:</strong> {{ $cart->user->full_name ?? 'N/A' }}</p>
                 <p><i class="fas fa-envelope"></i> <strong>Email:</strong> {{ $cart->user->email ?? 'N/A' }}</p>
-            <p>
-    <i class="fas fa-phone"></i>
-    <strong>Teléfono:</strong> {{ $cart->user->full_phone ?? 'N/A' }}
-</p>
-
+                <p><i class="fas fa-phone"></i> <strong>Teléfono:</strong> {{ $cart->user->full_phone ?? 'N/A' }}</p>
             </div>
         </div>
 
@@ -70,9 +66,9 @@
                             <td>
                                 @if($item->schedule)
                                     <span class="badge bg-success">
-                                    {{ \Carbon\Carbon::parse($item->schedule->start_time)->format('g:i A') }}
-                                    –
-                                    {{ \Carbon\Carbon::parse($item->schedule->end_time)->format('g:i A') }}
+                                        {{ \Carbon\Carbon::parse($item->schedule->start_time)->format('g:i A') }}
+                                        –
+                                        {{ \Carbon\Carbon::parse($item->schedule->end_time)->format('g:i A') }}
                                     </span>
                                 @else
                                     <span class="text-muted">Sin horario</span>
@@ -81,11 +77,11 @@
                             <td>{{ $item->adults_quantity }}</td>
                             <td>{{ $item->kids_quantity }}</td>
                             <td>
-                              ${{ number_format(
-                                  $item->tour->adult_price * $item->adults_quantity +
-                                  $item->tour->kid_price   * $item->kids_quantity,
-                                  2
-                              ) }}
+                                ${{ number_format(
+                                    $item->tour->adult_price * $item->adults_quantity +
+                                    $item->tour->kid_price   * $item->kids_quantity,
+                                    2
+                                ) }}
                             </td>
                             <td>
                                 @if($item->is_active)
@@ -118,42 +114,67 @@
             </table>
         </div>
 
-        {{-- Boton de Enviar Reserva --}}
-        {{-- Código Promocional --}}
-        <div class="card mt-4 shadow">
-        <div class="card-header bg-secondary text-white">
-            <i class="fas fa-tags"></i> Código Promocional
-        </div>
-        <div class="card-body d-flex flex-wrap align-items-center gap-2">
-            <input type="text" id="promo-code" class="form-control w-auto" placeholder="Ingresa código" />
-            <button type="button" id="apply-promo" class="btn btn-primary">Aplicar</button>
+        @php
+            // Fallback de totales (por si el controlador no envió adminSubtotal/adminDiscount/adminTotal)
+            $__subtotal = $cart->items->sum(fn($i) =>
+                ($i->tour->adult_price * $i->adults_quantity) + ($i->tour->kid_price * $i->kids_quantity)
+            );
+            $__adminSubtotal = isset($adminSubtotal) ? $adminSubtotal : $__subtotal;
+            $__adminDiscount = isset($adminDiscount) ? $adminDiscount : 0;
+            $__adminTotal    = isset($adminTotal)    ? $adminTotal    : max($__adminSubtotal - $__adminDiscount, 0);
+        @endphp
 
-            {{-- Total dinámico --}}
-            <div class="ms-3">
-            <strong>Total estimado: $<span id="cart-total">
-                {{ number_format($cart->items->sum(fn($item) =>
-                    $item->tour->adult_price * $item->adults_quantity +
-                    $item->tour->kid_price   * $item->kids_quantity
-                ), 2) }}
-            </span></strong>
+        {{-- Código Promocional (ADMIN) --}}
+        <div class="card mt-4 shadow">
+            <div class="card-header bg-secondary text-white">
+                <i class="fas fa-tags"></i> Código Promocional
             </div>
 
-            {{-- Campo oculto para guardar el código aplicado --}}
-            <input type="hidden" name="promo_code" id="promo_code_hidden" value="">
+            <div class="card-body">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <input type="text" id="promo-code" class="form-control w-auto" placeholder="Ingresa código"
+                        value="{{ $adminPromo['code'] ?? '' }}" />
+                    <button type="button" id="apply-promo" class="btn btn-primary">Aplicar</button>
+                    @if(!empty($adminPromo))
+                        <button type="button" id="remove-promo" class="btn btn-outline-danger">Quitar</button>
+                    @endif
+
+                    {{-- Hidden para UI (se sincroniza con el del form de abajo) --}}
+                    <input type="hidden" id="promo_code_hidden_ui" value="{{ $adminPromo['code'] ?? '' }}">
+                </div>
+
+                {{-- Mensaje (único, sin duplicados) --}}
+                <div id="promo-message" class="small mt-2">
+                    @if(!empty($adminPromo))
+                        <span class="text-success">
+                            {{ $adminPromo['code'] }} aplicado
+                            ({{ $adminPromo['amount'] ? '$'.number_format($adminPromo['amount'],2) : '' }}
+                            {{ $adminPromo['amount'] && $adminPromo['percent'] ? ' + ' : '' }}
+                            {{ $adminPromo['percent'] ? $adminPromo['percent'].'%' : '' }})
+                        </span>
+                    @endif
+                </div>
+
+                {{-- Totales dinámicos --}}
+                <div class="mt-3">
+                    <div><strong>Subtotal:</strong> $<span id="cart-subtotal">{{ number_format($__adminSubtotal, 2) }}</span></div>
+                    <div><strong>Descuento:</strong> $<span id="cart-discount">{{ number_format($__adminDiscount, 2) }}</span></div>
+                    <div class="fs-5">
+                        <strong>Total estimado:</strong> $<span id="cart-total">{{ number_format($__adminTotal, 2) }}</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        {{-- Mensaje de error / éxito --}}
-        <div id="promo-message" class="text-danger small mt-2 ms-3"></div>
-        </div>
-
-        {{-- Botón Confirmar y Enviar --}}
-        <form method="POST" action="{{ route('admin.reservas.storeFromCart') }}">
+        {{-- Confirmar y Enviar --}}
+        <form method="POST" action="{{ route('admin.reservas.storeFromCart') }}" class="mt-3">
             @csrf
-            <button type="submit" class="btn btn-success btn-lg mt-3">
+            {{-- Este es el que viaja al controlador --}}
+            <input type="hidden" name="promo_code" id="promo_code_hidden_form" value="{{ $adminPromo['code'] ?? '' }}">
+            <button type="submit" class="btn btn-success btn-lg">
                 <i class="fas fa-paper-plane"></i> Confirmar y Enviar Solicitud de Reserva
             </button>
         </form>
-
 
         {{-- Modales de edición --}}
         @foreach($cart->items as $item)
@@ -204,17 +225,17 @@
                                    id="edit_is_other_{{ $item->item_id }}"
                                    value="{{ $item->is_other_hotel ? 1 : 0 }}">
                             <div class="mb-3">
-                            <label>Horario</label>
-                            <select name="schedule_id" class="form-control">
-                                <option value="">Seleccione un horario</option>
-                                @foreach($item->tour->schedules as $sched)
-                                <option value="{{ $sched->schedule_id }}"
-                                    {{ $item->schedule && $item->schedule->schedule_id == $sched->schedule_id ? 'selected' : '' }}>
-                                    {{ \Carbon\Carbon::parse($sched->start_time)->format('g:i A') }} –
-                                    {{ \Carbon\Carbon::parse($sched->end_time)->format('g:i A') }}
-                                </option>
-                                @endforeach
-                            </select>
+                                <label>Horario</label>
+                                <select name="schedule_id" class="form-control">
+                                    <option value="">Seleccione un horario</option>
+                                    @foreach($item->tour->schedules as $sched)
+                                        <option value="{{ $sched->schedule_id }}"
+                                            {{ $item->schedule && $item->schedule->schedule_id == $sched->schedule_id ? 'selected' : '' }}>
+                                            {{ \Carbon\Carbon::parse($sched->start_time)->format('g:i A') }} –
+                                            {{ \Carbon\Carbon::parse($sched->end_time)->format('g:i A') }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <div class="mb-3">
@@ -280,23 +301,6 @@
 
         // Control Hotel “Otro…”
         document.addEventListener('DOMContentLoaded', () => {
-            // En el formulario de confirmar carrito
-            const hotelSel = document.getElementById('hotel_id'),
-                  wrap     = document.getElementById('other_hotel_wrapper'),
-                  hidden   = document.getElementById('is_other_hotel'),
-                  input    = document.getElementById('other_hotel_name');
-
-            hotelSel.addEventListener('change', () => {
-                if (hotelSel.value === 'other') {
-                    wrap.classList.remove('d-none');
-                    hidden.value = 1;
-                } else {
-                    wrap.classList.add('d-none');
-                    hidden.value = 0;
-                    input.value  = '';
-                }
-            });
-
             // En cada modal de edición
             @foreach($cart->items as $item)
                 (function(){
@@ -319,4 +323,101 @@
         });
     </script>
 
+    {{-- Cupón (ADMIN) --}}
+    <script>
+    (() => {
+      const csrf        = '{{ csrf_token() }}';
+      const routeApply  = '{{ route("admin.cart.applyPromo") }}';
+      const routeRemove = '{{ route("admin.cart.removePromo") }}';
+
+      const $code    = document.getElementById('promo-code');
+      const $apply   = document.getElementById('apply-promo');
+      const $remove  = document.getElementById('remove-promo');
+      const $msg     = document.getElementById('promo-message');
+
+      const $sub     = document.getElementById('cart-subtotal');
+      const $disc    = document.getElementById('cart-discount');
+      const $total   = document.getElementById('cart-total');
+
+      // Hiddens (UI + FORM REAL)
+      const $hiddenUI   = document.getElementById('promo_code_hidden_ui');
+      const $hiddenForm = document.getElementById('promo_code_hidden_form');
+
+      // Helper: sincroniza ambos hiddens
+      function syncHidden(value) {
+        if ($hiddenUI)   $hiddenUI.value   = value || '';
+        if ($hiddenForm) $hiddenForm.value = value || '';
+      }
+
+      $apply?.addEventListener('click', async () => {
+        const code = ($code?.value || '').trim();
+        if (!code) {
+          return Swal.fire({ icon:'info', title:'Ingresa un código' });
+        }
+        try {
+          const resp = await fetch(routeApply, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': csrf,
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ code })
+          });
+          const data = await resp.json();
+          if (!data.ok) {
+            syncHidden('');
+            $msg.innerHTML = `<span class="text-danger">${data.message ?? 'No se pudo aplicar.'}</span>`;
+            return;
+          }
+
+          syncHidden(data.code);
+          $msg.innerHTML   = `<span class="text-success">${data.code} aplicado (${data.label})</span>`;
+          $sub.textContent = data.subtotal;
+          $disc.textContent= data.discount;
+          $total.textContent = data.new_total;
+
+          // Si no existía botón "Quitar", créalo dinámicamente
+          if (!$remove) {
+            const btn = document.createElement('button');
+            btn.id = 'remove-promo';
+            btn.type = 'button';
+            btn.className = 'btn btn-outline-danger ms-2';
+            btn.textContent = 'Quitar';
+            $apply.parentElement.appendChild(btn);
+            attachRemove(btn);
+          }
+        } catch (e) {
+          Swal.fire({ icon:'error', title:'Error', text:'No se pudo validar el cupón.' });
+        }
+      });
+
+      function attachRemove(btn){
+        btn.addEventListener('click', async () => {
+          try {
+            const resp = await fetch(routeRemove, {
+              method: 'DELETE',
+              headers: {
+                'X-CSRF-TOKEN': csrf,
+                'X-Requested-With': 'XMLHttpRequest'
+              }
+            });
+            const data = await resp.json();
+            if (data.ok) {
+              syncHidden('');
+              if ($code) $code.value = '';
+              $msg.innerHTML = `<span class="text-muted">Cupón eliminado.</span>`;
+              // Al quitar, descuento 0 y total = subtotal mostrado
+              $disc.textContent  = '0.00';
+              $total.textContent = $sub.textContent;
+              btn.remove();
+            }
+          } catch (e) {
+            Swal.fire({ icon:'error', title:'Error', text:'No se pudo quitar el cupón.' });
+          }
+        });
+      }
+      if ($remove) attachRemove($remove);
+    })();
+    </script>
 @stop
