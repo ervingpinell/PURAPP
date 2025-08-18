@@ -78,6 +78,7 @@
             <th>Rol</th>
             <th>Teléfono</th>
             <th>Estado</th>
+            <th>Verificado</th> {{-- nueva columna --}}
             <th>Acciones</th>
         </tr>
     </thead>
@@ -88,12 +89,19 @@
             <td>{{ $user->full_name }}</td>
             <td>{{ $user->email }}</td>
             <td>{{ $user->role->role_name ?? 'Sin rol' }}</td>
-            <td>{{ trim($user->country_code . ' ' . $user->phone) }}</td>
+            <td>{{ trim(($user->country_code ?? '').' '.($user->phone ?? '')) }}</td>
             <td>
                 @if ($user->status)
                     <span class="badge bg-success">Activo</span>
                 @else
                     <span class="badge bg-secondary">Inactivo</span>
+                @endif
+            </td>
+            <td>
+                @if ($user->email_verified_at)
+                    <span class="badge bg-success">Sí</span>
+                @else
+                    <span class="badge bg-danger">No</span>
                 @endif
             </td>
             <td>
@@ -111,6 +119,25 @@
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm {{ $user->status ? 'btn-delete' : 'btn-view' }}">
                         <i class="fas {{ $user->status ? 'fa-user-slash' : 'fa-user-check' }}"></i>
+                    </button>
+                </form>
+
+                {{-- Desbloquear (solo si está bloqueado) --}}
+                @if(!empty($user->is_locked) && $user->is_locked)
+                    <form action="{{ route('admin.users.unlock', $user->user_id) }}" method="POST" class="d-inline">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit" class="btn btn-sm btn-warning">
+                            <i class="fas fa-unlock"></i> Desbloquear
+                        </button>
+                    </form>
+                @endif
+
+                {{-- Reenviar verificación de correo --}}
+                <form method="POST" action="{{ route('admin.users.resendVerification', $user->user_id) }}" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="fas fa-paper-plane"></i> Reenviar verificación
                     </button>
                 </form>
             </td>
@@ -323,18 +350,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function wireModal(modal){
         const pass = modal.querySelector('.password-input');
-        const conf = modal.querySelector('.password-confirm-input');
+        theConf = modal.querySelector('.password-confirm-input');
         const passReq = pass ? pass.closest('.mb-3').querySelector('.password-reqs') : null;
-        const confReq = conf ? conf.closest('.mb-3').querySelector('.password-reqs') : null;
+        const confReq = theConf ? theConf.closest('.mb-3').querySelector('.password-reqs') : null;
         function refresh(){
             const p = pass ? pass.value : '';
-            const c = conf ? conf.value : '';
+            const c = theConf ? theConf.value : '';
             const base = rulesFor(p);
             paintReqs(passReq, base);
             if (confReq) paintReqs(confReq, Object.assign({}, base, { match: (p.length||c.length) ? (p === c && p.length>0) : false }));
         }
         pass && pass.addEventListener('input', refresh);
-        conf && conf.addEventListener('input', refresh);
+        theConf && theConf.addEventListener('input', refresh);
         refresh();
     }
     document.querySelectorAll('.modal').forEach(wireModal);

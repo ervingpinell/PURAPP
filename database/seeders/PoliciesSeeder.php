@@ -47,7 +47,7 @@ TXT;
         // Sección: Cookies
         $cookies = PolicySection::updateOrCreate(
             ['policy_id' => $terms->policy_id, 'key' => 'cookies'],
-            ['sort_order' => 10, 'is_active' => true]
+            ['sort_order' => 1, 'is_active' => true]
         );
 
         $cookiesContent = <<<'TXT'
@@ -63,7 +63,7 @@ TXT;
         // Sección: Licencia
         $license = PolicySection::updateOrCreate(
             ['policy_id' => $terms->policy_id, 'key' => 'licencia'],
-            ['sort_order' => 20, 'is_active' => true]
+            ['sort_order' => 2, 'is_active' => true]
         );
 
         $licenseContent = <<<'TXT'
@@ -86,7 +86,7 @@ TXT;
         // Sección: Comentarios
         $comments = PolicySection::updateOrCreate(
             ['policy_id' => $terms->policy_id, 'key' => 'comentarios'],
-            ['sort_order' => 30, 'is_active' => true]
+            ['sort_order' => 3, 'is_active' => true]
         );
 
         $commentsContent = <<<'TXT'
@@ -111,7 +111,7 @@ TXT;
         // Sección: Hipervínculos a nuestro contenido
         $links = PolicySection::updateOrCreate(
             ['policy_id' => $terms->policy_id, 'key' => 'hipervinculos'],
-            ['sort_order' => 40, 'is_active' => true]
+            ['sort_order' => 4, 'is_active' => true]
         );
 
         $linksContent = <<<'TXT'
@@ -132,7 +132,7 @@ TXT;
         // Sección: Marcos flotantes
         $frames = PolicySection::updateOrCreate(
             ['policy_id' => $terms->policy_id, 'key' => 'marcos'],
-            ['sort_order' => 50, 'is_active' => true]
+            ['sort_order' => 5, 'is_active' => true]
         );
 
         $framesContent = <<<'TXT'
@@ -147,7 +147,7 @@ TXT;
         // Sección: Responsabilidad por el contenido
         $contentResp = PolicySection::updateOrCreate(
             ['policy_id' => $terms->policy_id, 'key' => 'responsabilidad_contenido'],
-            ['sort_order' => 60, 'is_active' => true]
+            ['sort_order' => 6, 'is_active' => true]
         );
 
         $contentRespContent = <<<'TXT'
@@ -162,7 +162,7 @@ TXT;
         // Sección: Reserva de Derechos
         $rights = PolicySection::updateOrCreate(
             ['policy_id' => $terms->policy_id, 'key' => 'reserva_derechos'],
-            ['sort_order' => 70, 'is_active' => true]
+            ['sort_order' => 7, 'is_active' => true]
         );
 
         $rightsContent = <<<'TXT'
@@ -177,7 +177,7 @@ TXT;
         // Sección: Eliminación de enlaces
         $removeLinks = PolicySection::updateOrCreate(
             ['policy_id' => $terms->policy_id, 'key' => 'eliminacion_enlaces'],
-            ['sort_order' => 80, 'is_active' => true]
+            ['sort_order' => 8, 'is_active' => true]
         );
 
         $removeLinksContent = <<<'TXT'
@@ -192,7 +192,7 @@ TXT;
         // Sección: Descargo de responsabilidad
         $disclaimer = PolicySection::updateOrCreate(
             ['policy_id' => $terms->policy_id, 'key' => 'descargo'],
-            ['sort_order' => 90, 'is_active' => true]
+            ['sort_order' => 9, 'is_active' => true]
         );
 
         $disclaimerContent = <<<'TXT'
@@ -221,7 +221,7 @@ TXT;
             ['policy_id' => $cancel->policy_id, 'locale' => 'es'],
             [
                 'title'   => 'Política de Cancelación',
-                'content' => "• Cancelaciones con 24 horas o más de antelación: reembolso completo.\n• Cancelaciones entre 12 y 24 horas: reembolso del 50%.\n• Con menos de 12 horas o no presentación: no reembolsable.\n• Cambios de fecha sujetos a disponibilidad.\n• Las tarifas de terceros (hoteles, parques, etc.) pueden tener condiciones adicionales.",
+                'content' => "• Cancelaciones con 24 horas o más de antelación: reembolso completo.\n• Con menos de 24 horas o no presentación: no reembolsable.\n• Cambios de fecha sujetos a disponibilidad.",
             ]
         );
 

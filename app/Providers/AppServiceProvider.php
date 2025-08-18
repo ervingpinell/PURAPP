@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use App\Services\Contracts\TranslatorInterface;
 use App\Services\DeepLTranslator;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Notifications\Messages\MailMessage;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,6 +22,16 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+VerifyEmail::toMailUsing(function ($notifiable, string $url) {
+    return (new MailMessage)
+        ->subject(__('adminlte::auth.verify.subject'))
+        // usa una clave que exista (o pon texto plano)
+        ->greeting(__('adminlte::adminlte.hello') ?? 'Hola')
+        ->line(__('adminlte::auth.verify.intro'))
+        ->action(__('adminlte::auth.verify.action'), $url)
+        ->line(__('adminlte::auth.verify.outro'));
+        // ← quita: ->line(__('adminlte::auth.verify.browser_hint', ['url' => $url]));
+});
         Schema::defaultStringLength(191);
 
         View::composer('*', function ($view) {

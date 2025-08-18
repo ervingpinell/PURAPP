@@ -5,26 +5,36 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\Registered;
 use App\Models\User;
 
 class RegisterController extends Controller
 {
+    /**
+     * Muestra el formulario de registro
+     */
     public function create(Request $request)
     {
         $locale = session('locale', config('app.locale'));
         app()->setLocale($locale);
 
+        if ($request->has('redirect')) {
+            session(['after_login_redirect' => $request->get('redirect')]);
+        }
+
         return view('adminlte::auth.register');
     }
 
+    /**
+     * Guarda el usuario y envía correo de verificación
+     */
     public function store(Request $request)
     {
-        // Normaliza email (no tocamos phone_local para no perder el primer dígito)
+        // Normaliza email
         $request->merge([
             'email' => $request->email ? mb_strtolower(trim($request->email)) : $request->email,
         ]);
 
-        // ✅ Sin reglas para teléfono; es opcional y solo debe persistir en old()
         $validated = $request->validate(
             [
                 'full_name'             => ['bail','required','string','max:100'],
@@ -59,17 +69,25 @@ class RegisterController extends Controller
             ]
         );
 
-        User::create([
+        // Crear usuario (NO iniciar sesión)
+        $user = User::create([
             'full_name' => $validated['full_name'],
             'email'     => $validated['email'],
-            // Guardamos el teléfono si vino (E.164 en hidden "phone"); si no, null.
             'phone'     => $request->input('phone') ?: null,
             'password'  => Hash::make($validated['password']),
-            'role_id'   => 3,
-            'status'    => true,
+            'role_id'   => 3,     // Rol por defecto
+            'status'    => true,  // Activo
         ]);
 
-        return redirect()->route('login')
-            ->with('success', __('adminlte::adminlte.account_created'));
+        // Dispara el evento de registro (envía email de verificación)
+        event(new Registered($user));
+
+        // Guardamos el correo en sesión (opcional: enmascarado)
+        session()->flash('registered_email', $validated['email']);
+
+        // Redirigimos a la página pública de agradecimiento
+        return redirect()
+            ->route('register.thanks')
+            ->with('status', __('adminlte::adminlte.verify_email_sent'));
     }
 }

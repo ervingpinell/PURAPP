@@ -1,7 +1,7 @@
 <?php
 
 return [
-
+'hello' => 'Hello',
     // ─── AUTHENTICATION AND REGISTRATION ──────────────
     'full_name' => 'Full Name',
     'email' => 'Email',
@@ -15,6 +15,7 @@ return [
     'i_forgot_my_password' => 'I Forgot My Password',
     'i_already_have_a_membership' => 'I Already Have an Account',
     'sign_in' => 'Sign In',
+    'sign_out' => 'Sign Out',
     'log_out' => 'Log Out',
     'toggle_navigation' => 'Toggle Navigation',
     'login_message' => 'Sign in',
@@ -36,7 +37,7 @@ return [
     'password_reset_failed' => 'Password reset failed. Please try again later.',
     'password_reset_link_sent' => 'Password reset link sent to your email. Please check your inbox.',
     'password_reset_link_failed' => 'Failed to send password reset link. Please try again later.',
-
+    'passwords_match' => 'Passwords match.',
 
 
     // ─── GENERAL NAVIGATION ───────────────────────────
@@ -303,5 +304,43 @@ return [
     'user_deactivated_successfully'  => 'User deactivated successfully.',
     'profile_updated_successfully'   => 'Profile updated successfully.',
 
+'other_hotel_required' => 'Please enter the name of the hotel.',
+'promo_invalid_or_used' => 'Invalid or already used promo code.',
+'promo_invalid' => 'Invalid promo code.',
+'promo_already_used' => 'That promo code has already been used in another booking.',
+'no_past_dates' => 'You cannot book for dates prior to today.',
+'dupe_submit_cart' => 'A similar booking is already being processed. Please try again in a few seconds.',
+'schedule_not_available' => 'The schedule is not available for this tour (inactive or not assigned).',
+'date_blocked' => 'The selected date is blocked for this tour.',
+'capacity_left' => 'Only :available seats are left for this schedule.',
+'booking_created_success' => 'Booking created successfully.',
+'booking_updated_success' => 'Booking updated successfully.',
+'validation' => [
+    'too_many_attempts' => 'Too many failed attempts. Please try again in :seconds seconds.',
+],
+// Hotels
+'hotel_name_required' => 'The hotel name is required.',
+'hotel_name_unique'   => 'A hotel with that name already exists.',
+'hotel_name_max'      => 'The hotel name may not exceed :max characters.',
+'hotel_created_success' => 'Hotel created successfully.',
+'hotel_updated_success' => 'Hotel updated successfully.',
+'is_active_required'  => 'The status is required.',
+'is_active_boolean'   => 'The status must be true or false.',
+'outside_list' => 'This hotel is outside our list. Please contact us to verify if transportation is possible.',
+'auth_required_title' => 'You must log in to book',
+'auth_required_body'  => 'Log in or register to start your purchase. The fields are locked until you log in.',
+'login_now'           => 'Log in',
+  'back_to_login'      => 'Back to login',
+
+  'mail' => [
+    'trouble_clicking' => 'If you’re having trouble clicking the ":actionText" button, copy and paste this URL into your web browser',
+],
+
+'verify' => [
+    'title'     => 'Verify your email address',
+    'message'   => 'Before continuing, please verify your email. We have sent you a verification link.',
+    'resend'    => 'Resend verification email',
+    'link_sent' => 'We have sent you a new verification link.',
+],
 
 ];

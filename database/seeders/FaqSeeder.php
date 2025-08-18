@@ -26,7 +26,7 @@ class FaqSeeder extends Seeder
 
         Faq::create([
             'question' => '¿Necesito pagar en línea?',
-            'answer' => 'Se recomienda siempre pagar en línea para asegurar tu espacio. Si tienes algun problema para realizarlo, contactanos',
+            'answer' => 'Siempre se recomienda pagar en línea para asegurar tu espacio. Si tienes algún problema para realizarlo, contáctanos.',
         ]);
 
         Faq::create([
@@ -35,13 +35,34 @@ class FaqSeeder extends Seeder
         ]);
 
                 Faq::create([
-            'question' => '¿Hay descuentos para niños o grupos?',
-            'answer' => 'Sí, ofrecemos descuentos especiales para niños y grupos grandes. Contáctanos para más detalles según el tour que te interese.',
+            'question' => '¿El agua de La Fortuna es potable?',
+            'answer' => 'Sí, en Costa Rica la gran mayoría de agua es potable (recomendamos consultar fuentes locales). Pero al menos en La Fortuna, contamos con agua de excelente calidad.',
         ]);
 
                         Faq::create([
-            'question' => '¿Qué tipo de ropa traer?',
-            'answer' => 'Recomendamos traer cualquier tipo de ropa cómoda, solamente asegurate de utilizar un buen repelente de mosquitos y bloqueador solar. En el caso de los tours de caminatas, los zapatos cerrados son obligatorios.',
+            'question' => '¿El tour incluye agua?',
+            'answer' => 'Sí, el tour incluye agua embotellada para todos los participantes. Sin embargo, recomendamos traer su propia botella rellenable para reducir la contaminación plástica.',
+        ]);
+        Faq::create([
+            'question' => '¿Necesito traer mi pasaporte?',
+            'answer' => 'No es necesario, pero se recomienda llevar una copia en caso de emergencias.',
+        ]);
+
+        Faq::create([
+            'question' => '¿Puedo dejar mis pertenencias en el transporte?',
+            'answer' => 'Claro! Generalmente es muy seguro y puedes dejar tus pertenencias en el transporte, pero te recomendamos no dejar objetos de valor y llevar contigo lo esencial durante el tour.',
+        ]);
+            Faq::create([
+            'question' => '¿Qué tipo de ropa debo traer para el Safari?',
+            'answer' => 'Recomendamos traer cualquier tipo de ropa cómoda, sandalias o zapatos de agua, ropa extra, tu propia botella de agua, toallas, sombreros, protector solar, binoculares, cámaras, bolsas impermeables, repelente de insectos y cualquier otro artículo personal que puedas necesitar.',
+        ]);
+                    Faq::create([
+            'question' => '¿Qué tipo de ropa debo traer para las caminatas?',
+            'answer' => 'Recomendamos traer cualquier tipo de ropa cómoda, zapatos cerrados (obligatorios en algunos parques), sombrillas, ponchos, sombreros, protector solar, binoculares, cámaras, bolsas impermeables, botellas de agua (no plásticas), repelente de insectos y cualquier otro artículo personal que puedas necesitar.',
+        ]);
+                            Faq::create([
+            'question' => '¿Hay casilleros para dejar las cosas?',
+            'answer' => 'Lamentablemente no contamos con casilleros',
         ]);
     }
 }

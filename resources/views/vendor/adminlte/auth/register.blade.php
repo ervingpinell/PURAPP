@@ -10,7 +10,6 @@
 <style>
   .form-group .invalid-feedback { display:block; }
   .input-group .input-group-text { min-width: 42px; justify-content: center; }
-  /* Requisitos de contraseña */
   #password-requirements { font-size:.875rem; list-style:none; padding-left:1rem; margin-top:.5rem; }
   #password-requirements li { transition: color .15s ease-in-out; }
 </style>
@@ -51,7 +50,6 @@
   <form id="registerForm" action="{{ $registerUrl }}" method="POST" novalidate>
     @csrf
 
-    {{-- Nombre --}}
     <div class="form-group mb-3">
       <div class="input-group">
         <input type="text" name="full_name"
@@ -65,7 +63,6 @@
       @error('full_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
-    {{-- Email --}}
     <div class="form-group mb-3">
       <div class="input-group">
         <input type="email" name="email"
@@ -79,7 +76,6 @@
       @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
-    {{-- Teléfono (código + número nacional) --}}
     <div class="form-group mb-3">
       <label class="form-label">{{ __('adminlte::validation.attributes.phone') }}</label>
       <div class="input-group">
@@ -99,7 +95,6 @@
       @error('phone')        <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
     </div>
 
-    {{-- Password --}}
     <div class="form-group mb-1">
       <div class="input-group">
         <input type="password" id="password" name="password"
@@ -116,14 +111,12 @@
       @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
-    {{-- Requisitos de contraseña (guía visual) --}}
     <ul id="password-requirements" class="mb-3">
       <li id="req-length"  class="text-muted">{{ __('adminlte::validation.password_requirements.length') }}</li>
       <li id="req-special" class="text-muted">{{ __('adminlte::validation.password_requirements.special') }}</li>
       <li id="req-number"  class="text-muted">{{ __('adminlte::validation.password_requirements.number') }}</li>
     </ul>
 
-    {{-- Confirmación --}}
     <div class="form-group mb-3">
       <div class="input-group">
         <input type="password" id="password_confirmation" name="password_confirmation"
@@ -148,7 +141,7 @@
 
 @section('auth_footer')
   <div class="d-flex justify-content-between align-items-center">
-    <a href="{{ $loginUrl }}">{{ __('adminlte::adminlte.i_already_have_a_membership') }}</a>
+    <a href="{{ $loginUrl }}" class="text-success">{{ __('adminlte::adminlte.i_already_have_a_membership') }}</a>
     @include('partials.language-switcher')
   </div>
   <div class="mt-3 text-center">
@@ -161,7 +154,6 @@
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  // Mostrar/ocultar contraseñas
   document.querySelectorAll('.toggle-password').forEach(btn => {
     btn.addEventListener('click', function(e){
       e.preventDefault();
@@ -173,7 +165,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // Etiquetas del select de código (compacto/extendido)
   const cc = document.getElementById('phone_cc');
   function expandLabels(){
     Array.from(cc.options).forEach(opt => {
@@ -190,9 +181,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   cc.addEventListener('focus', expandLabels);
   cc.addEventListener('blur', collapseLabels);
-  collapseLabels(); // init
+  collapseLabels();
 
-  // Guía visual de requisitos de contraseña
   const pwd = document.getElementById('password');
   const reqLen = document.getElementById('req-length');
   const reqSp  = document.getElementById('req-special');
@@ -213,7 +203,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (pwd) {
     pwd.addEventListener('input', checkPasswordHints);
-    // inicializa estado si hay old input o autocompletado
     checkPasswordHints();
   }
 });

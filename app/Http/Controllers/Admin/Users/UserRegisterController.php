@@ -91,6 +91,14 @@ class UserRegisterController extends Controller
     {
         return redirect()->route('admin.users.index');
     }
+    public function unlock($id)
+{
+    $user = User::findOrFail($id);
+    $user->is_locked = false;
+    $user->save();
+
+    return back()->with('success', 'Usuario desbloqueado.');
+}
 
     // Actualizar usuario
     public function update(Request $request, $id)

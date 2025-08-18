@@ -23,42 +23,54 @@ class HotelListController extends Controller
     /**
      * Guarda un nuevo hotel en la base de datos.
      */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:hotels_list,name',
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255|unique:hotels_list,name',
+    ], [
+        'name.required' => __('adminlte::adminlte.hotel_name_required'),
+        'name.unique'   => __('adminlte::adminlte.hotel_name_unique'),
+        'name.max'      => __('adminlte::adminlte.hotel_name_max'),
+    ]);
 
-        $nextOrder = (HotelList::max('sort_order') ?? 0) + 1;
+    $nextOrder = (HotelList::max('sort_order') ?? 0) + 1;
 
-        HotelList::create([
-            'name' => $request->name,
-            'is_active' => true,
-            'sort_order' => $nextOrder,
-        ]);
+    HotelList::create([
+        'name' => $request->name,
+        'is_active' => true,
+        'sort_order' => $nextOrder,
+    ]);
 
-        return redirect()->route('admin.hotels.index')
-            ->with('success', 'Hotel creado exitosamente.');
-    }
+    return redirect()->route('admin.hotels.index')
+        ->with('success', __('adminlte::adminlte.hotel_created_success'));
+}
+
 
     /**
      * Actualiza un hotel existente.
      */
-    public function update(Request $request, HotelList $hotel)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:hotels_list,name,' . $hotel->hotel_id . ',hotel_id',
-            'is_active' => 'required|boolean',
-        ]);
+public function update(Request $request, HotelList $hotel)
+{
+    $request->validate([
+        'name' => 'required|string|max:255|unique:hotels_list,name,' . $hotel->hotel_id . ',hotel_id',
+        'is_active' => 'required|boolean',
+    ], [
+        'name.required'      => __('adminlte::adminlte.hotel_name_required'),
+        'name.unique'        => __('adminlte::adminlte.hotel_name_unique'),
+        'name.max'           => __('adminlte::adminlte.hotel_name_max'),
+        'is_active.required' => __('adminlte::adminlte.is_active_required'),
+        'is_active.boolean'  => __('adminlte::adminlte.is_active_boolean'),
+    ]);
 
-        $hotel->update([
-            'name' => $request->name,
-            'is_active' => $request->is_active,
-        ]);
+    $hotel->update([
+        'name' => $request->name,
+        'is_active' => $request->is_active,
+    ]);
 
-        return redirect()->route('admin.hotels.index')
-            ->with('success', 'Hotel actualizado correctamente.');
-    }
+    return redirect()->route('admin.hotels.index')
+        ->with('success', __('adminlte::adminlte.hotel_updated_success'));
+}
+
 
     /**
      * Ordena los hoteles alfabéticamente y actualiza en la base de datos.

@@ -3,17 +3,20 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\SetLocale;
 
-// Controllers públicos y de autenticación
+// Públicos & Auth
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashBoardController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\UnlockAccountController;
+use App\Http\Controllers\Admin\UserVerificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FaqController;
-use App\Http\Controllers\ReviewController;
 
-// Controladores del panel admin
+// Admin
 use App\Http\Controllers\Admin\Users\UserRegisterController;
 use App\Http\Controllers\Admin\Users\RoleController;
 use App\Http\Controllers\Admin\Languages\TourLanguageController;
@@ -33,96 +36,138 @@ use App\Http\Controllers\Admin\TranslationController;
 use App\Http\Controllers\Admin\PolicyController;
 use App\Http\Controllers\Admin\PolicySectionController;
 use App\Http\Controllers\Admin\TourImageController;
+use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
 
-
-
-// Otros
 use Illuminate\Support\Facades\Mail;
 use App\Models\Tour;
 
-//Codigos promocionales
-use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
-
-
-
 Route::middleware([SetLocale::class])->group(function () {
 
-// Página pública de reviews
-// routes/web.php
-Route::get('/reviews', function () {
-    $tours = \App\Models\Tour::whereNotNull('viator_code')
-        ->active()
-        ->select('tour_id', 'name', 'viator_code')
-        ->with(['translations' => function ($q) {
-            // Incluye las columnas que realmente existen en tour_translations
-            $q->select('id', 'tour_id', 'locale', 'name', 'overview');
-        }])
-        ->get();
-
-    return view('public.reviews', compact('tours'));
-})->name('reviews');
-
-
-
-// API Promo Codes
-Route::post('/api/apply-promo', [PromoCodeController::class, 'apply'])->name('api.promo.apply');
-Route::post('/apply-promo', [PromoCodeController::class, 'apply'])->name('api.promo.apply');
-
-
-
-// Contador del carrito (JS público)
-Route::get('/cart/count', [CartController::class, 'count'])
-    ->name('cart.count.public');
-    // Test de traducciones
-    Route::get('/test-translations/{tour}', function (Tour $tour) {
-        return $tour->translations->mapWithKeys(fn($t) => [$t->locale => [
-            'name' => $t->name,
-            'overview' => $t->overview
-        ]]);
-    });
-
-    // 🌐 Rutas públicas
+    /**
+     * =======================
+     * Públicas
+     * =======================
+     */
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/language/{language}', [DashBoardController::class, 'switchLanguage'])->name('switch.language');
     Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
-    Route::get('/tour/{id}', [HomeController::class, 'showTour'])->name('tours.show');
     Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
+    Route::get('/tour/{id}', [HomeController::class, 'showTour'])->name('tours.show');
     Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
     Route::post('/contact/send', [HomeController::class, 'sendContact'])->name('contact.send');
-// routes/web.php
-Route::get('/politicas', [\App\Http\Controllers\Site\PoliciesController::class, 'index'])
-    ->name('site.policies.index');
-    Route::get('/politicas/{policy}', [\App\Http\Controllers\Site\PoliciesController::class, 'show'])
-    ->name('site.policies.show');
 
-// Test de correo
+    // Reviews públicas (Viator)
+    Route::get('/reviews', function () {
+        $tours = \App\Models\Tour::whereNotNull('viator_code')
+            ->active()
+            ->select('tour_id', 'name', 'viator_code')
+            ->with(['translations' => function ($q) {
+                $q->select('id', 'tour_id', 'locale', 'name', 'overview');
+            }])
+            ->get();
+        return view('public.reviews', compact('tours'));
+    })->name('reviews');
+
+    // Políticas públicas
+    Route::get('/politicas', [\App\Http\Controllers\Site\PoliciesController::class, 'index'])
+        ->name('site.policies.index');
+    Route::get('/politicas/{policy}', [\App\Http\Controllers\Site\PoliciesController::class, 'show'])
+        ->name('site.policies.show');
+
+    // Test correo (dev)
     Route::get('/send-test-email', function () {
         $booking = App\Models\Booking::latest()->with(['user', 'detail', 'tour'])->first();
         Mail::to($booking->user->email)->send(new App\Mail\BookingCreatedMail($booking));
         return 'Correo enviado!';
     });
 
-    // 🔐 Autenticación
-    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LoginController::class, 'login']);
-    Route::get('/register', [RegisterController::class, 'create'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
-    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+    // Contador del carrito (JS público)
+    Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count.public');
 
-    // Verificación de correo
-    Route::get('/email/verify', [VerifyEmailController::class, 'notice'])->middleware('auth')->name('verification.notice');
-    Route::get('/email/verify/{id}/{hash}', [VerifyEmailController::class, 'verify'])->middleware(['auth', 'signed'])->name('verification.verify');
-    Route::post('/email/resend', [VerifyEmailController::class, 'resend'])->middleware('auth')->name('verification.resend');
+    // Promo Codes
+    Route::post('/api/apply-promo', [PromoCodeController::class, 'apply'])->name('api.promo.apply');
+    Route::post('/apply-promo',     [PromoCodeController::class, 'apply'])->name('promo.apply');
 
     /**
-     * =====================
-     * 🧑‍💼 Perfil del cliente
-     * =====================
+     * =======================
+     * Auth (Login / Register / Email Verify / Password Reset / Unlock)
+     * =======================
      */
-    Route::middleware(['auth'])->group(function () {
+
+    // Login
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1');
+    Route::view('/account/locked', 'auth.account-locked')->name('account.locked');
+
+    // Unlock Account
+Route::get('/unlock-account/{user}/{hash}', [UnlockAccountController::class, 'process'])
+    ->middleware('signed')
+    ->name('account.unlock.process');
+
+
+
+    // Register
+    Route::get('/register', [RegisterController::class, 'create'])->name('register');
+    Route::post('/register', [RegisterController::class, 'store'])
+        ->name('register.store')
+        ->middleware('throttle:3,1');
+Route::get('/register/thanks', function () {
+    // Si quieres mostrar el correo, lo tomamos de sesión y lo “enmascaramos”
+    $email = session('registered_email');
+    return view('auth.register-thanks', compact('email'));
+})->name('register.thanks');
+
+    // Logout
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+    // Email Verification
+Route::get('/email/verify', [VerifyEmailController::class, 'notice'])
+    ->middleware('auth')
+    ->name('verification.notice');
+
+Route::get('/email/verify/{id}/{hash}', [\App\Http\Controllers\Auth\VerifyEmailController::class, 'verify'])
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
+
+Route::post('/email/verification-notification', [VerifyEmailController::class, 'resend'])
+    ->middleware(['auth', 'throttle:3,1'])
+    ->name('verification.send');
+
+
+    // Password Reset
+    Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])
+        ->middleware('guest')
+        ->name('password.request');
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
+        ->middleware('guest', 'throttle:5,1')
+        ->name('password.email');
+    Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
+        ->middleware('guest')
+        ->name('password.reset');
+    Route::post('/reset-password', [NewPasswordController::class, 'store'])
+        ->middleware('guest')
+        ->name('password.update');
+
+    // Aliases legacy
+    Route::get('/password/reset', fn () => redirect()->route('password.request'))
+        ->middleware('guest');
+    Route::post('/password/email', [PasswordResetLinkController::class, 'store'])
+        ->middleware('guest');
+    Route::get('/password/reset/{token}', [NewPasswordController::class, 'create'])
+        ->middleware('guest');
+    Route::post('/password/reset', [NewPasswordController::class, 'store'])
+        ->middleware('guest');
+
+    /**
+     * =======================
+     * Perfil cliente + Carrito
+     * =======================
+     */
+   Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
         Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::post('/profile/edit', [ProfileController::class, 'update'])->name('profile.update');
+
         Route::get('/my-reservations', [BookingController::class, 'myReservations'])->name('my-reservations');
         Route::get('/my-reservations/{booking}/receipt', [BookingController::class, 'showReceipt'])->name('my-reservations.receipt');
 
@@ -130,16 +175,15 @@ Route::get('/politicas', [\App\Http\Controllers\Site\PoliciesController::class, 
         Route::get('/mi-carrito', [CartController::class, 'index'])->name('public.cart.index');
         Route::post('/carrito/agregar/{tour}', [CartController::class, 'store'])->name('carrito.agregar');
         Route::post('/reservas/from-cart', [BookingController::class, 'storeFromCart'])->name('public.reservas.storeFromCart');
+        Route::delete('/cart/{item}', [CartController::class, 'destroy'])->name('public.cart.destroy');
     });
 
-    Route::delete('/cart/{item}', [CartController::class, 'destroy'])->name('public.cart.destroy');
-
     /**
-     * =====================
-     * ⚙️ Panel de administración
-     * =====================
+     * =======================
+     * Admin
+     * =======================
      */
-    Route::middleware(['auth', 'CheckRole'])->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['auth', 'verified', 'CheckRole'])->prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/', [DashBoardController::class, 'dashboard'])->name('home');
 
@@ -159,11 +203,8 @@ Route::get('/politicas', [\App\Http\Controllers\Site\PoliciesController::class, 
         Route::resource('faqs', AdminFaqController::class)->except(['show']);
         Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
 
-        //Images de Tours
-        Route::get('tours/images', [TourImageController::class, 'pick'])
-            ->name('tours.images.pick');
-
-        // ✅ CRUD de imágenes por tour
+        // Imágenes de Tours
+        Route::get('tours/images', [TourImageController::class, 'pick'])->name('tours.images.pick');
         Route::prefix('tours/{tour}/images')->name('tours.images.')->group(function () {
             Route::get('/',        [TourImageController::class, 'index'])->name('index');
             Route::post('/',       [TourImageController::class, 'store'])->name('store');
@@ -173,77 +214,51 @@ Route::get('/politicas', [\App\Http\Controllers\Site\PoliciesController::class, 
             Route::patch('{img}',  [TourImageController::class, 'update'])->name('update');
         });
 
-// Categorías (policies)
-    Route::get('policies', [PolicyController::class, 'index'])->name('policies.index');
-    Route::post('policies', [PolicyController::class, 'store'])->name('policies.store');
-    Route::put('policies/{policy}', [PolicyController::class, 'update'])->name('policies.update');
-    Route::post('policies/{policy}/toggle', [PolicyController::class, 'toggle'])->name('policies.toggle');
-    Route::delete('policies/{policy}', [PolicyController::class, 'destroy'])->name('policies.destroy');
+        // Policies & Sections
+        Route::get('policies', [PolicyController::class, 'index'])->name('policies.index');
+        Route::post('policies', [PolicyController::class, 'store'])->name('policies.store');
+        Route::put('policies/{policy}', [PolicyController::class, 'update'])->name('policies.update');
+        Route::post('policies/{policy}/toggle', [PolicyController::class, 'toggle'])->name('policies.toggle');
+        Route::delete('policies/{policy}', [PolicyController::class, 'destroy'])->name('policies.destroy');
 
-    // Secciones por categoría
-    Route::get('policies/{policy}/sections', [PolicySectionController::class, 'index'])->name('policies.sections.index');
-    Route::post('policies/{policy}/sections', [PolicySectionController::class, 'store'])->name('policies.sections.store');
-    Route::put('policies/{policy}/sections/{section}', [PolicySectionController::class, 'update'])->name('policies.sections.update');
-    Route::post('policies/{policy}/sections/{section}/toggle', [PolicySectionController::class, 'toggle'])->name('policies.sections.toggle');
-    Route::delete('policies/{policy}/sections/{section}', [PolicySectionController::class, 'destroy'])->name('policies.sections.destroy');
+        Route::get('policies/{policy}/sections', [PolicySectionController::class, 'index'])->name('policies.sections.index');
+        Route::post('policies/{policy}/sections', [PolicySectionController::class, 'store'])->name('policies.sections.store');
+        Route::put('policies/{policy}/sections/{section}', [PolicySectionController::class, 'update'])->name('policies.sections.update');
+        Route::post('policies/{policy}/sections/{section}/toggle', [PolicySectionController::class, 'toggle'])->name('policies.sections.toggle');
+        Route::delete('policies/{policy}/sections/{section}', [PolicySectionController::class, 'destroy'])->name('policies.sections.destroy');
 
-// Códigos promocionales
+        // Promo Codes
         Route::get('/promoCode', [PromoCodeController::class, 'index'])->name('promoCode.index');
         Route::post('/promoCode', [PromoCodeController::class, 'store'])->name('promoCode.store');
         Route::delete('/promoCode/{promo}', [PromoCodeController::class, 'destroy'])->name('promoCode.destroy');
 
         // Tours
         Route::resource('tours', TourController::class)->except(['create', 'edit', 'show']);
-Route::prefix('tours')->name('tours.')->group(function () {
+        Route::prefix('tours')->name('tours.')->group(function () {
+            Route::resource('schedule', TourScheduleController::class)->except(['create','edit','show']);
+            Route::put('schedule/{schedule}/toggle', [TourScheduleController::class, 'toggle'])->name('schedule.toggle');
+            Route::post('schedule/{tour}/attach', [TourScheduleController::class, 'attach'])->name('schedule.attach');
+            Route::delete('schedule/{tour}/{schedule}/detach', [TourScheduleController::class, 'detach'])->name('schedule.detach');
+            Route::patch('schedule/{tour}/{schedule}/assignment-toggle', [TourScheduleController::class, 'toggleAssignment'])->name('schedule.assignment.toggle');
 
-    // === Horarios ===
-    Route::resource('schedule', \App\Http\Controllers\Admin\Tours\TourScheduleController::class)
-        ->except(['create','edit','show']);
-    Route::put('schedule/{schedule}/toggle', [\App\Http\Controllers\Admin\Tours\TourScheduleController::class, 'toggle'])
-        ->name('schedule.toggle');
-    Route::post('schedule/{tour}/attach', [\App\Http\Controllers\Admin\Tours\TourScheduleController::class, 'attach'])
-        ->name('schedule.attach');
-    Route::delete('schedule/{tour}/{schedule}/detach', [\App\Http\Controllers\Admin\Tours\TourScheduleController::class, 'detach'])
-        ->name('schedule.detach');
-    Route::patch('schedule/{tour}/{schedule}/assignment-toggle', [\App\Http\Controllers\Admin\Tours\TourScheduleController::class, 'toggleAssignment'])
-        ->name('schedule.assignment.toggle');
+            Route::resource('itinerary', ItineraryController::class)->except(['show']);
+            Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');
+            Route::resource('itinerary_items', ItineraryItemController::class)->except(['show', 'create', 'edit']);
 
-    // === Itinerarios e ítems ===
-    Route::resource('itinerary', \App\Http\Controllers\Admin\Tours\ItineraryController::class)->except(['show']);
-    Route::post('itinerary/{itinerary}/assign-items', [\App\Http\Controllers\Admin\Tours\ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');
-    Route::resource('itinerary_items', \App\Http\Controllers\Admin\Tours\ItineraryItemController::class)->except(['show', 'create', 'edit']);
+            Route::resource('availability', TourAvailabilityController::class)->except(['show']);
 
-    // === Disponibilidad ===
-    Route::resource('availability', \App\Http\Controllers\Admin\Tours\TourAvailabilityController::class)->except(['show']);
+            Route::get('excluded_dates', [TourExcludedDateController::class, 'index'])->name('excluded_dates.index');
+            Route::resource('excluded_dates', TourExcludedDateController::class)->except(['show','index']);
+            Route::post('excluded_dates/toggle', [TourExcludedDateController::class, 'toggle'])->name('excluded_dates.toggle');
+            Route::post('excluded_dates/bulk-toggle', [TourExcludedDateController::class, 'bulkToggle'])->name('excluded_dates.bulkToggle');
+            Route::post('excluded_dates/block-all', [TourExcludedDateController::class, 'blockAll'])->name('excluded_dates.blockAll');
+            Route::get('excluded_dates/blocked', [TourExcludedDateController::class, 'blocked'])->name('excluded_dates.blocked');
 
-    // === Fechas excluidas (NUEVO: GET explícito + toggle) ===
-    Route::get('excluded_dates', [\App\Http\Controllers\Admin\Tours\TourExcludedDateController::class, 'index'])
-        ->name('excluded_dates.index');
-    Route::resource('excluded_dates', \App\Http\Controllers\Admin\Tours\TourExcludedDateController::class)
-        ->except(['show','index']); // evitamos colisión con el GET explícito
-    Route::post('excluded_dates/toggle', [\App\Http\Controllers\Admin\Tours\TourExcludedDateController::class, 'toggle'])
-        ->name('excluded_dates.toggle');
-    Route::post('excluded_dates/bulk-toggle', [\App\Http\Controllers\Admin\Tours\TourExcludedDateController::class, 'bulkToggle'])
-        ->name('excluded_dates.bulkToggle');
-    Route::post('excluded_dates/block-all', [\App\Http\Controllers\Admin\Tours\TourExcludedDateController::class, 'blockAll'])
-        ->name('excluded_dates.blockAll');
-Route::get('excluded_dates/blocked', [\App\Http\Controllers\Admin\Tours\TourExcludedDateController::class, 'blocked'])
-  ->name('excluded_dates.blocked');
+            Route::resource('amenities', AmenityController::class)->except(['show']);
+            Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])->name('amenities.toggle');
+        });
 
-    // === Amenidades ===
-    Route::resource('amenities', \App\Http\Controllers\Admin\Tours\AmenityController::class)->except(['show']);
-    Route::patch('amenities/{amenity}/toggle', [\App\Http\Controllers\Admin\Tours\AmenityController::class, 'toggle'])
-        ->name('amenities.toggle');
-});
-
-
-        // Fechas excluidas públicas
-        Route::post('/tour-excluded/block-all', [TourExcludedDateController::class, 'storeMultiple'])->name('tour-excluded.store-multiple');
-        Route::post('/tour-excluded/block-all-all', [TourExcludedDateController::class, 'blockAll'])->name('tour-excluded.block-all');
-        Route::delete('tours/excluded-dates/delete-all', [TourExcludedDateController::class, 'destroyAll'])->name('tours.excluded_dates.destroyAll');
-        Route::delete('tours/excluded-dates/delete-selected', [TourExcludedDateController::class, 'destroySelected'])->name('tours.excluded_dates.destroySelected');
-
-        // Reservaciones
+        // Reservas
         Route::get('/reservas/excel', [BookingController::class, 'generarExcel'])->name('reservas.excel');
         Route::get('reservas/pdf', [BookingController::class, 'generarPDF'])->name('reservas.pdf');
         Route::get('reservas/{reserva}/comprobante', [BookingController::class, 'generarComprobante'])->name('reservas.comprobante');
@@ -255,22 +270,29 @@ Route::get('excluded_dates/blocked', [\App\Http\Controllers\Admin\Tours\TourExcl
 
         // Usuarios y roles
         Route::resource('users', UserRegisterController::class)->except(['show']);
- Route::resource('roles', RoleController::class)->except(['show', 'create']);
-    Route::patch('roles/{role}/toggle', [RoleController::class, 'toggle'])->name('roles.toggle');
+        Route::resource('roles', RoleController::class)->except(['show', 'create']);
+        Route::patch('roles/{role}/toggle', [RoleController::class, 'toggle'])->name('roles.toggle');
 
-        // Categorías, idiomas, tipos de tour
+        // Desbloqueo de usuarios (admin)
+        Route::patch('/users/{id}/unlock', [UserRegisterController::class, 'unlock'])->name('users.unlock');
+
+        // Reenviar verificación de email (admin)
+        Route::post('/users/{user}/resend-verification', [UserVerificationController::class, 'resend'])
+            ->name('users.resendVerification');
+
+        // Tour Types
         Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);
         Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
-        Route::delete('/tourtypes/{id}', [TourTypeController::class, 'destroy'])
-    ->name('admin.tourtypes.destroy');
+
+        // Idiomas
         Route::resource('languages', TourLanguageController::class, ['parameters' => ['languages' => 'language']])->except(['show']);
-Route::patch('languages/{language}/toggle', [TourLanguageController::class, 'toggle'])
-    ->name('languages.toggle');
+        Route::patch('languages/{language}/toggle', [TourLanguageController::class, 'toggle'])->name('languages.toggle');
+
         // Hoteles
         Route::resource('hotels', HotelListController::class)->except(['show', 'create', 'edit']);
         Route::post('hotels/sort', [HotelListController::class, 'sort'])->name('hotels.sort');
-    Route::patch('/hotels/{hotel}/toggle', [HotelListController::class, 'toggle'])->name('hotels.toggle');
-Route::delete('/hotels/{hotel}', [HotelListController::class, 'destroy'])->name('hotels.destroy');
+        Route::patch('/hotels/{hotel}/toggle', [HotelListController::class, 'toggle'])->name('hotels.toggle');
+
         // Carrito Admin
         Route::get('/carrito', [CartController::class, 'index'])->name('cart.index');
         Route::post('/carrito', [CartController::class, 'store'])->name('cart.store');
@@ -281,6 +303,5 @@ Route::delete('/hotels/{hotel}', [HotelListController::class, 'destroy'])->name(
         Route::get('/carritos-todos', [CartController::class, 'allCarts'])->name('cart.general');
         Route::delete('/carritos/{cart}', [CartController::class, 'destroyCart'])->name('cart.destroy');
         Route::patch('/admin/carritos/{cart}/toggle', [CartController::class, 'toggleActive'])->name('cart.toggle');
-
     });
 });

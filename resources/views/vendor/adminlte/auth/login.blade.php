@@ -1,16 +1,14 @@
 @extends('adminlte::auth.auth-page', ['authType' => 'login'])
 
-
 @section('dashboard_url', '/')
 
 @section('adminlte_css_pre')
     <link rel="stylesheet" href="{{ asset('vendor/icheck-bootstrap/icheck-bootstrap.min.css') }}">
-   <!-- <link rel="stylesheet" href="{{ asset('css/gv.css') }}"> -->
 @stop
 
 @php
-    $loginUrl = View::getSection('login_url') ?? config('adminlte.login_url', 'login');
-    $registerUrl = View::getSection('register_url') ?? config('adminlte.register_url', 'register');
+    $loginUrl     = View::getSection('login_url') ?? config('adminlte.login_url', 'login');
+    $registerUrl  = View::getSection('register_url') ?? config('adminlte.register_url', 'register');
     $passResetUrl = View::getSection('password_reset_url') ?? config('adminlte.password_reset_url', 'password/reset');
 
     if (config('adminlte.use_route_url', false)) {
@@ -24,9 +22,16 @@
     }
 @endphp
 
-@section('auth_header', __('adminlte::adminlte.login_message'))
+@section('auth_header', __('adminlte::auth.login_message'))
 
 @section('auth_body')
+
+    @if (session('status'))
+      <div class="alert alert-success">
+        <i class="fas fa-check-circle me-1"></i>
+        {{ session('status') }}
+      </div>
+    @endif
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible">
@@ -43,7 +48,7 @@
     <form action="{{ $loginUrl }}" method="post">
         @csrf
 
-        {{-- Email field --}}
+        {{-- Email --}}
         <div class="input-group mb-3">
             <input
                 type="email"
@@ -64,7 +69,7 @@
             @enderror
         </div>
 
-        {{-- Password field --}}
+        {{-- Password --}}
         <div class="input-group mb-3">
             <input
                 type="password"
@@ -75,7 +80,7 @@
             >
             <div class="input-group-append">
                 <div class="input-group-text">
-                    <a href="#" class="text-reset toggle-password" data-target="password">
+                    <a href="#" class="text-reset toggle-password" data-target="password" aria-label="Mostrar u ocultar contraseña">
                         <i class="fas fa-eye"></i>
                     </a>
                 </div>
@@ -85,7 +90,15 @@
             @enderror
         </div>
 
-        {{-- Login button --}}
+        @if($passResetUrl)
+            <p class="mb-1">
+                <a href="{{ $passResetUrl }}">
+                    {{ __('adminlte::auth.i_forgot_my_password') }}
+                </a>
+            </p>
+        @endif
+
+        {{-- Botón Iniciar sesión --}}
         <div class="row">
             <div class="col-12">
                 <button
@@ -93,7 +106,7 @@
                     class="btn w-100 text-nowrap {{ config('adminlte.classes_auth_btn', 'btn-flat btn-primary') }}"
                 >
                     <span class="fas fa-sign-in-alt me-2"></span>
-                    {{ __('adminlte::adminlte.sign_in') }}
+                    {{ __('adminlte::auth.sign_in') }}
                 </button>
             </div>
         </div>
@@ -103,18 +116,10 @@
 @section('auth_footer')
     <div class="d-flex justify-content-between align-items-center">
         <div>
-            @if($passResetUrl)
-                <p class="mb-1">
-                    <a href="{{ $passResetUrl }}">
-                        {{ __('adminlte::adminlte.i_forgot_my_password') }}
-                    </a>
-                </p>
-            @endif
-
             @if($registerUrl)
                 <p class="mb-0">
-                    <a href="{{ $registerUrl }}">
-                        {{ __('adminlte::adminlte.register_a_new_membership') }}
+                    <a href="{{ $registerUrl }}" class="btn btn-success">
+                        <i class="fas fa-user-plus me-1"></i> {{ __('adminlte::auth.register') }}
                     </a>
                 </p>
             @endif
@@ -142,14 +147,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const input    = document.getElementById(targetId);
             if (!input) return;
 
+            const icon = this.querySelector('i');
             if (input.type === 'password') {
                 input.type = 'text';
-                this.querySelector('i')
-                    .classList.replace('fa-eye', 'fa-eye-slash');
+                if (icon) icon.classList.replace('fa-eye', 'fa-eye-slash');
             } else {
                 input.type = 'password';
-                this.querySelector('i')
-                    .classList.replace('fa-eye-slash', 'fa-eye');
+                if (icon) icon.classList.replace('fa-eye-slash', 'fa-eye');
             }
         });
     });

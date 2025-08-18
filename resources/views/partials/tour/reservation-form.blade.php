@@ -11,109 +11,129 @@
   @csrf
   <input type="hidden" name="tour_id" value="{{ $tour->tour_id }}">
 
-  {{-- Título y precio --}}
-  <h3 class="fw-bold fs-5 mb-2">{{ __('adminlte::adminlte.price') }}</h3>
-  <div class="price-breakdown mb-3">
-    <span class="fw-bold">{{ __('adminlte::adminlte.adult') }}:</span>
-    <span class="price-adult fw-bold text-danger">${{ number_format($tour->adult_price, 2) }}</span> |
-    <span class="fw-bold">{{ __('adminlte::adminlte.kid') }}:</span>
-    <span class="price-kid fw-bold text-danger">${{ number_format($tour->kid_price, 2) }}</span>
-  </div>
+  {{-- ===== HEADER (SIEMPRE visible): Precios y total ===== --}}
+  <div class="form-header">
+    {{-- Aviso compacto SOLO aquí --}}
+    @guest
+      <div class="alert alert-warning d-flex align-items-center gap-2 mb-3">
+        <i class="fas fa-lock me-2"></i>
+        <div>
+          <strong>{{ __('adminlte::adminlte.auth_required_title') ?? 'Debes iniciar sesión para reservar' }}</strong>
+          <div class="small">
+            {{ __('adminlte::adminlte.auth_required_body') ?? 'Inicia sesión o regístrate para completar tu compra. Los campos se desbloquean al iniciar sesión.' }}
+          </div>
+        </div>
 
-  {{-- Viajeros --}}
-  <div class="mb-2">
-    <button type="button"
-      class="btn traveler-button w-100 d-flex align-items-center justify-content-between"
-      data-bs-toggle="modal" data-bs-target="#travelerModal">
-      <span><i class="fas fa-user me-2"></i> <span id="traveler-summary">2</span></span>
-      <i class="fas fa-chevron-down"></i>
-    </button>
-  </div>
+  <a href="{{ route('login', ['redirect' => url()->current()]) }}"
+     class="btn btn-success gv-cta w-100 mt-3">
+    <i class="fas fa-cart-plus me-2"></i> {{ __('adminlte::adminlte.login_now') }}
+  </a>
+      </div>
+    @endguest
 
-  {{-- Total dinámico --}}
-  <p class="fw-bold mb-3 gv-total">
-    {{ __('adminlte::adminlte.total') }}:
-    <span id="reservation-total-price" class="text-danger">$0.00</span>
-  </p>
-
-  {{-- Fecha --}}
-  <label class="form-label">{{ __('adminlte::adminlte.select_date') }}</label>
-  <input
-    id="tourDateInput"
-    type="text"
-    name="tour_date"
-    class="form-control mb-1"
-    placeholder="dd/mm/yyyy"
-    required
-  >
-
-  {{-- Horario --}}
-  <label class="form-label mt-2">{{ __('adminlte::adminlte.select_time') }}</label>
-  <select name="schedule_id" class="form-select mb-1" id="scheduleSelect" required>
-    <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
-    @foreach($tour->schedules->sortBy('start_time') as $schedule)
-      <option value="{{ $schedule->schedule_id }}">
-        {{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}
-      </option>
-    @endforeach
-  </select>
-  <div id="noSlotsHelp" class="form-text text-danger mb-3" style="display:none;"></div>
-
-  {{-- Idioma --}}
-  <label class="form-label">{{ __('adminlte::adminlte.select_language') }}</label>
-  <select name="tour_language_id" class="form-select mb-3" required>
-    <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
-    @foreach($tour->languages as $lang)
-      <option value="{{ $lang->tour_language_id }}">{{ $lang->name }}</option>
-    @endforeach
-  </select>
-
-  {{-- Hotel --}}
-  <label class="form-label">{{ __('adminlte::adminlte.select_hotel') }}</label>
-  <select class="form-select mb-3" id="hotelSelect" name="hotel_id">
-    <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
-    @foreach($hotels as $hotel)
-      <option value="{{ $hotel->hotel_id }}">{{ $hotel->name }}</option>
-    @endforeach
-    <option value="other">{{ __('adminlte::adminlte.hotel_other') }}</option>
-  </select>
-
-  <div class="mb-3 d-none" id="otherHotelWrapper">
-    <label for="otherHotelInput" class="form-label">{{ __('adminlte::adminlte.hotel_name') }}</label>
-    <input type="text" class="form-control" name="other_hotel_name" id="otherHotelInput"
-           placeholder="{{ __('adminlte::adminlte.hotel_name') }}">
-    <div class="form-text text-danger mt-1" id="outsideAreaMessage" style="display:none;">
-      {{ __('adminlte::adminlte.outside_area') }}
+    <h3 class="fw-bold fs-5 mb-2">{{ __('adminlte::adminlte.price') }}</h3>
+    <div class="price-breakdown mb-3">
+      <span class="fw-bold">{{ __('adminlte::adminlte.adult') }}:</span>
+      <span class="price-adult fw-bold text-danger">${{ number_format($tour->adult_price, 2) }}</span> |
+      <span class="fw-bold">{{ __('adminlte::adminlte.kid') }}:</span>
+      <span class="price-kid fw-bold text-danger">${{ number_format($tour->kid_price, 2) }}</span>
     </div>
+
+    {{-- Total (visible siempre) --}}
+    <p class="fw-bold mb-3 gv-total">
+      {{ __('adminlte::adminlte.total') }}:
+      <span id="reservation-total-price" class="text-danger">$0.00</span>
+    </p>
   </div>
 
-  {{-- Hidden fields --}}
-  <input type="hidden" name="is_other_hotel" id="isOtherHotel" value="0">
-  <input type="hidden" name="adults_quantity" id="adults_quantity" value="2" required>
-  <input type="hidden" name="kids_quantity" id="kids_quantity" value="0">
-  <input type="hidden" name="selected_pickup_point" id="selectedPickupPoint">
-  <input type="hidden" name="selected_meeting_point" id="selectedMeetingPoint">
+  {{-- ===== BODY (bloqueable): Todos los campos ===== --}}
+  <div class="form-body position-relative">
+    <fieldset @guest disabled aria-disabled="true" @endguest>
+      {{-- Viajeros --}}
+      <div class="mb-2">
+        <button type="button"
+          class="btn traveler-button w-100 d-flex align-items-center justify-content-between"
+          data-bs-toggle="modal" data-bs-target="#travelerModal">
+          <span><i class="fas fa-user me-2"></i> <span id="traveler-summary">2</span></span>
+          <i class="fas fa-chevron-down"></i>
+        </button>
+      </div>
+
+      {{-- Fecha --}}
+      <label class="form-label">{{ __('adminlte::adminlte.select_date') }}</label>
+      <input id="tourDateInput" type="text" name="tour_date" class="form-control mb-1"
+             placeholder="dd/mm/yyyy" required>
+
+      {{-- Horario --}}
+      <label class="form-label mt-2">{{ __('adminlte::adminlte.select_time') }}</label>
+      <select name="schedule_id" class="form-select mb-1" id="scheduleSelect" required>
+        <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
+        @foreach($tour->schedules->sortBy('start_time') as $schedule)
+          <option value="{{ $schedule->schedule_id }}">
+            {{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}
+          </option>
+        @endforeach
+      </select>
+      <div id="noSlotsHelp" class="form-text text-danger mb-3" style="display:none;"></div>
+
+      {{-- Idioma --}}
+      <label class="form-label">{{ __('adminlte::adminlte.select_language') }}</label>
+      <select name="tour_language_id" class="form-select mb-3" required>
+        <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
+        @foreach($tour->languages as $lang)
+          <option value="{{ $lang->tour_language_id }}">{{ $lang->name }}</option>
+        @endforeach
+      </select>
+
+      {{-- Hotel --}}
+      <label class="form-label">{{ __('adminlte::adminlte.select_hotel') }}</label>
+      <select class="form-select mb-3" id="hotelSelect" name="hotel_id">
+        <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
+        @foreach($hotels as $hotel)
+          <option value="{{ $hotel->hotel_id }}">{{ $hotel->name }}</option>
+        @endforeach
+        <option value="other">{{ __('adminlte::adminlte.hotel_other') }}</option>
+      </select>
+
+      <div class="mb-3 d-none" id="otherHotelWrapper">
+        <label for="otherHotelInput" class="form-label">{{ __('adminlte::adminlte.hotel_name') }}</label>
+        <input type="text" class="form-control" name="other_hotel_name" id="otherHotelInput"
+               placeholder="{{ __('adminlte::adminlte.hotel_name') }}">
+        <div class="form-text text-danger mt-1" id="outsideAreaMessage" style="display:none;">
+          {{ __('adminlte::adminlte.outside_area')
+              ?: 'Has ingresado un hotel personalizado. Contáctanos para confirmar si podemos ofrecer transporte desde ese lugar.' }}
+        </div>
+      </div>
+
+      {{-- Hidden fields --}}
+      <input type="hidden" name="is_other_hotel" id="isOtherHotel" value="0">
+      <input type="hidden" name="adults_quantity" id="adults_quantity" value="2" required>
+      <input type="hidden" name="kids_quantity" id="kids_quantity" value="0">
+      <input type="hidden" name="selected_pickup_point" id="selectedPickupPoint">
+      <input type="hidden" name="selected_meeting_point" id="selectedMeetingPoint">
+    </fieldset>
+  </div>
 
   {{-- CTA --}}
   @auth
-    <button type="submit" class="btn btn-success gv-cta w-100">
+    <button type="submit" class="btn btn-success gv-cta w-100 mt-3">
       <i class="fas fa-cart-plus me-2"></i> {{ __('adminlte::adminlte.add_to_cart') }}
     </button>
   @else
-    <a href="{{ route('login') }}" class="btn btn-success gv-cta w-100"
+    <a href="{{ route('login') }}" class="btn btn-success gv-cta w-100 mt-3"
        onclick="return askLoginWithSwal(event, this.href);">
       <i class="fas fa-cart-plus me-2"></i> {{ __('adminlte::adminlte.add_to_cart') }}
     </a>
   @endauth
 </form>
 
-{{-- ======= Estilos unificados + Choices dropdown ======= --}}
+{{-- ======= Estilos ======= --}}
 <style>
-.gv-ui .form-control,
-.gv-ui .form-select,
-.gv-ui .choices__inner {
-  background-color: #fff !important;
-}
+  .gv-ui .form-control,
+  .gv-ui .form-select,
+  .gv-ui .choices__inner { background-color: #fff !important; }
+
+  .form-body { position: relative; }
 </style>
 
 {{-- ======= Librerías (una sola vez) ======= --}}
@@ -125,11 +145,12 @@
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 @endonce
 
-{{-- ======= Comportamiento: bloqueos + dropdowns grandes ======= --}}
+{{-- ======= Comportamiento ======= --}}
 @push('scripts')
 <script>
 (function(){
-  // ==== Datos del padre (ya definidos en la vista principal) ====
+  window.isAuthenticated = @json(Auth::check());
+
   const fullyBlockedDates = Array.isArray(window.fullyBlockedDates) ? window.fullyBlockedDates : [];
   const blockedGeneral    = Array.isArray(window.blockedGeneral) ? window.blockedGeneral : [];
   const blockedBySchedule = (window.blockedBySchedule && typeof window.blockedBySchedule === 'object') ? window.blockedBySchedule : {};
@@ -139,62 +160,45 @@
   const helpMsg     = document.getElementById('noSlotsHelp');
   const todayIso    = @json($today);
 
-  // ===== Choices instances =====
-  const scheduleChoices = new Choices(scheduleSel, {
-    searchEnabled: false,
-    shouldSort: false,
-    itemSelectText: '',
-    placeholder: true,
-    placeholderValue: '-- {{ __('adminlte::adminlte.select_option') }} --'
-  });
+  const langSelect  = document.querySelector('select[name="tour_language_id"]');
+  const hotelSelect = document.getElementById('hotelSelect');
 
-  const langSelect   = document.querySelector('select[name="tour_language_id"]');
-  const hotelSelect  = document.getElementById('hotelSelect');
+  if (!window.isAuthenticated) {
+    if (dateInput) {
+      dateInput.setAttribute('disabled', 'disabled');
+      dateInput.setAttribute('readonly', 'readonly');
+    }
+    scheduleSel && scheduleSel.setAttribute('disabled', 'disabled');
+    langSelect  && langSelect.setAttribute('disabled', 'disabled');
+    hotelSelect && hotelSelect.setAttribute('disabled', 'disabled');
+    return;
+  }
 
+  // Choices (solo auth)
+  const scheduleChoices = new Choices(scheduleSel, { searchEnabled:false, shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- {{ __('adminlte::adminlte.select_option') }} --' });
   const langChoices  = new Choices(langSelect,  { searchEnabled:false, shouldSort:false, itemSelectText:'' });
   const hotelChoices = new Choices(hotelSelect, { searchEnabled:true,  shouldSort:false, itemSelectText:'' });
 
-  // Lista base de horarios para reconstrucciones
-  const BASE_CHOICES = scheduleChoices._store.choices
-    .filter(c => c.value !== '')
-    .map(c => ({ value: String(c.value), label: c.label }));
+  const BASE_CHOICES = scheduleChoices._store.choices.filter(c => c.value !== '').map(c => ({ value:String(c.value), label:c.label }));
   const SCHEDULE_IDS = BASE_CHOICES.map(o => o.value);
 
-  // Helpers
-  const isoFromDate = (d) => {
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const dd = String(d.getDate()).padStart(2,'0');
-    return `${yyyy}-${mm}-${dd}`;
-  };
-  const isDayFullyBlocked = (iso) => {
-    if (!iso) return false;
-    if (fullyBlockedDates.includes(iso)) return true;
-    if (blockedGeneral.includes(iso)) return true;
-    if (!SCHEDULE_IDS.length) return false;
-    return SCHEDULE_IDS.every(id => (blockedBySchedule[id] || []).includes(iso));
-  };
-  const isBlockedForSchedule = (iso, sid) =>
-    blockedGeneral.includes(iso) || (blockedBySchedule[sid] || []).includes(iso);
+  const isoFromDate = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const isDayFullyBlocked = (iso) => iso && (fullyBlockedDates.includes(iso) || blockedGeneral.includes(iso) || (SCHEDULE_IDS.length && SCHEDULE_IDS.every(id => (blockedBySchedule[id] || []).includes(iso))));
+  const isBlockedForSchedule = (iso, sid) => blockedGeneral.includes(iso) || (blockedBySchedule[sid] || []).includes(iso);
 
   function rebuildScheduleChoices(iso){
     const ph = [{ value:'', label:'-- {{ __('adminlte::adminlte.select_option') }} --', disabled:true, selected:true }];
-
     if (!iso || isDayFullyBlocked(iso)) {
       scheduleChoices.clearStore();
       scheduleChoices.setChoices(ph, 'value', 'label', true);
       scheduleChoices.disable();
-      helpMsg.textContent = iso
-        ? @json(__('adminlte::adminlte.no_times_for_day') ?? 'No hay horarios disponibles para esa fecha.')
-        : '';
+      helpMsg.textContent = iso ? @json(__('adminlte::adminlte.no_times_for_day') ?? 'No hay horarios disponibles para esa fecha.') : '';
       helpMsg.style.display = iso ? '' : 'none';
       return;
     }
-
     const allowed = BASE_CHOICES.filter(o => !isBlockedForSchedule(iso, o.value));
     scheduleChoices.clearStore();
     scheduleChoices.setChoices(ph.concat(allowed), 'value', 'label', true);
-
     if (allowed.length === 0) {
       scheduleChoices.disable();
       helpMsg.textContent = @json(__('adminlte::adminlte.no_times_for_day') ?? 'No hay horarios disponibles para esa fecha.');
@@ -205,44 +209,48 @@
     }
   }
 
-  // ==== Flatpickr: bloquea fechas sin horarios ====
+  // Flatpickr (solo auth)
   if (window.flatpickr && dateInput) {
     flatpickr(dateInput, {
-      dateFormat: 'Y-m-d',  // valor para backend
+      dateFormat: 'Y-m-d',
       altInput: true,
-      altFormat: 'd/m/Y',   // visual para usuario
+      altFormat: 'd/m/Y',
       minDate: todayIso,
       disable: [ (date) => isDayFullyBlocked(isoFromDate(date)) ],
       onChange: (_sel, iso) => rebuildScheduleChoices(iso),
-      onReady: (_sel, iso) => {
-        if (!iso) {
-          scheduleChoices.disable();
-          helpMsg.style.display = 'none';
-        } else {
-          rebuildScheduleChoices(iso);
-        }
-      }
+      onReady: (_sel, iso) => { if (!iso) { scheduleChoices.disable(); helpMsg.style.display = 'none'; } else { rebuildScheduleChoices(iso); } }
     });
   } else {
-    // Fallback nativo si no carga flatpickr
     dateInput.type = 'date';
     dateInput.min  = todayIso;
     dateInput.addEventListener('change', e => rebuildScheduleChoices(e.target.value));
     scheduleChoices.disable();
   }
 
-  // “Otro hotel” con Choices
+  // “Otro hotel”
   const otherWrap = document.getElementById('otherHotelWrapper');
   const isOtherH  = document.getElementById('isOtherHotel');
   const otherInp  = document.getElementById('otherHotelInput');
+  const warnMsg   = document.getElementById('outsideAreaMessage');
+  const formEl    = document.querySelector('form.reservation-box');
+
   const toggleOther = () => {
     const isOther = (hotelChoices.getValue(true) === 'other');
     otherWrap.classList.toggle('d-none', !isOther);
     if (isOtherH) isOtherH.value = isOther ? 1 : 0;
-    if (!isOther && otherInp) otherInp.value = '';
+    if (isOther) { warnMsg && (warnMsg.style.display = ''); otherInp && otherInp.setAttribute('required','required'); }
+    else { warnMsg && (warnMsg.style.display = 'none'); if (otherInp) { otherInp.removeAttribute('required'); otherInp.value=''; } }
   };
+
   hotelSelect.addEventListener('change', toggleOther);
   toggleOther();
+
+  if (formEl) {
+    formEl.addEventListener('submit', (e) => {
+      const isOther = isOtherH && String(isOtherH.value) === '1';
+      if (isOther && otherInp && !otherInp.value.trim()) { e.preventDefault(); otherInp.focus(); }
+    });
+  }
 })();
 </script>
 @endpush

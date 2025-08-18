@@ -1,7 +1,7 @@
 <?php
 
 return [
-
+'hello' => 'Bonjour',
     // ─── AUTHENTIFICATION ET INSCRIPTION ──────────────
     'full_name' => 'Nom complet',
     'email' => 'Email',
@@ -15,6 +15,7 @@ return [
     'i_forgot_my_password' => 'Mot de passe oublié',
     'i_already_have_a_membership' => 'J’ai déjà un compte',
     'sign_in' => 'Connexion',
+    'sign_out' => 'Déconnexion',
     'log_out' => 'Déconnexion',
     'toggle_navigation' => 'Basculer la navigation',
     'login_message' => 'Connectez-vous',
@@ -36,7 +37,7 @@ return [
     'password_reset_failed' => 'Échec de la réinitialisation du mot de passe. Réessayez plus tard.',
     'password_reset_link_sent' => 'Lien de réinitialisation envoyé à votre e-mail.',
     'password_reset_link_failed' => 'Échec de l’envoi du lien de réinitialisation. Veuillez réessayer.',
-
+    'passwords_match' => 'Les mots de passe correspondent.',
 
 
     // ─── NAVIGATION GÉNÉRALE ──────────────────────────
@@ -318,6 +319,45 @@ return [
 'user_reactivated_successfully'  => 'Utilisateur réactivé avec succès.',
 'user_deactivated_successfully'  => 'Utilisateur désactivé avec succès.',
 'profile_updated_successfully'   => 'Profil mis à jour avec succès.',
+
+'other_hotel_required' => 'Veuillez saisir le nom de l’hôtel.',
+'promo_invalid_or_used' => 'Code promotionnel invalide ou déjà utilisé.',
+'promo_invalid' => 'Code promotionnel invalide.',
+'promo_already_used' => 'Ce code promotionnel a déjà été utilisé pour une autre réservation.',
+'no_past_dates' => 'Vous ne pouvez pas réserver pour des dates antérieures à aujourd’hui.',
+'dupe_submit_cart' => 'Une réservation similaire est déjà en cours de traitement. Réessayez dans quelques secondes.',
+'schedule_not_available' => 'L’horaire n’est pas disponible pour ce tour (inactif ou non attribué).',
+'date_blocked' => 'La date sélectionnée est bloquée pour ce tour.',
+'capacity_left' => 'Il ne reste que :available places disponibles pour cet horaire.',
+'booking_created_success' => 'Réservation créée avec succès.',
+'booking_updated_success' => 'Réservation mise à jour avec succès.',
+'validation' => [
+    'too_many_attempts' => 'Trop de tentatives échouées. Veuillez réessayer dans :seconds secondes.',
+],
+// Hôtels
+'hotel_name_required' => 'Le nom de l’hôtel est obligatoire.',
+'hotel_name_unique'   => 'Un hôtel portant ce nom existe déjà.',
+'hotel_name_max'      => 'Le nom de l’hôtel ne peut pas dépasser :max caractères.',
+'hotel_created_success' => 'Hôtel créé avec succès.',
+'hotel_updated_success' => 'Hôtel mis à jour avec succès.',
+'is_active_required'  => 'Le statut est obligatoire.',
+'is_active_boolean'   => 'Le statut doit être vrai ou faux.',
+'outside_list' => 'Cet hôtel ne figure pas dans notre liste. Veuillez nous contacter pour vérifier si un transport est possible.',
+'auth_required_title' => 'Vous devez vous connecter pour réserver',
+'auth_required_body'  => 'Connectez-vous ou inscrivez-vous pour commencer votre achat. Les champs sont bloqués jusqu’à votre connexion.',
+'login_now'           => 'Se connecter',
+  'back_to_login'      => 'Retour à la connexion',
+
+  'mail' => [
+    'trouble_clicking' => 'Si vous avez des difficultés à cliquer sur le bouton « :actionText », copiez et collez cette URL dans votre navigateur',
+],
+
+'verify' => [
+    'title'     => 'Vérifiez votre adresse e-mail',
+    'message'   => 'Avant de continuer, veuillez vérifier votre e-mail. Nous vous avons envoyé un lien de vérification.',
+    'resend'    => 'Renvoyer l’e-mail de vérification',
+    'link_sent' => 'Nous vous avons envoyé un nouveau lien de vérification.',
+],
 
 ];
 
