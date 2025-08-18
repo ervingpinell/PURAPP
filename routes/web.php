@@ -303,5 +303,8 @@ Route::post('/email/verification-notification', [VerifyEmailController::class, '
         Route::get('/carritos-todos', [CartController::class, 'allCarts'])->name('cart.general');
         Route::delete('/carritos/{cart}', [CartController::class, 'destroyCart'])->name('cart.destroy');
         Route::patch('/admin/carritos/{cart}/toggle', [CartController::class, 'toggleActive'])->name('cart.toggle');
+        Route::post('/carrito/apply-promo',  [CartController::class, 'applyPromoAdmin'])->name('cart.applyPromo');
+        Route::delete('/carrito/remove-promo', [CartController::class, 'removePromoAdmin'])->name('cart.removePromo');
+
     });
 });

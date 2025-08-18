@@ -10,6 +10,7 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\TourLanguage;
 use App\Models\HotelList;
+use App\Models\PromoCode;
 
 class CartController extends Controller
 {
@@ -210,6 +211,92 @@ if (!$schedule) {
     });
 
     return back()->with('success', __('adminlte::adminlte.cartDeleted') ?? 'Carrito eliminado correctamente.');
+}
+private function adminCartSubtotal(\App\Models\Cart $cart): float
+{
+    return (float) $cart->items->sum(function ($it) {
+        $ap = (float)($it->tour->adult_price ?? 0);
+        $kp = (float)($it->tour->kid_price   ?? 0);
+        $aq = (int)($it->adults_quantity ?? 0);
+        $kq = (int)($it->kids_quantity   ?? 0);
+        return ($ap * $aq) + ($kp * $kq);
+    });
+}
+
+/**
+ * Aplica cupón en el carrito ADMIN (AJAX)
+ * - Valida que exista
+ * - Que no esté marcado como usado (one-shot)
+ * - Calcula descuento por monto fijo o % (si ambos existen, se suman)
+ * - Guarda en sesión 'admin_cart_promo'
+ */
+public function applyPromoAdmin(Request $request)
+{
+    $request->validate(['code' => ['required','string','max:50']]);
+
+    $user = Auth::user();
+    $cart = $user->cart()->where('is_active', true)
+        ->with('items.tour')->first();
+
+    if (!$cart || !$cart->items->count()) {
+        return response()->json(['ok' => false, 'message' => 'No hay ítems en el carrito.'], 422);
+    }
+
+    $code = strtoupper(trim($request->code));
+    $promo = PromoCode::whereRaw('UPPER(code) = ?', [$code])->first();
+
+    if (!$promo) {
+        return response()->json(['ok' => false, 'message' => 'Código inválido.'], 422);
+    }
+    if ($promo->is_used) {
+        return response()->json(['ok' => false, 'message' => 'Este código ya fue utilizado.'], 422);
+    }
+
+    $subtotal = $this->adminCartSubtotal($cart);
+
+    // Calcula descuento (se suman amount + percent si ambos existen)
+    $discountFixed = max(0.0, (float)($promo->discount_amount ?? 0));
+    $discountPerc  = max(0.0, (float)($promo->discount_percent ?? 0));
+    $discountFromPerc = round($subtotal * ($discountPerc / 100), 2);
+
+    $discount = min($subtotal, round($discountFixed + $discountFromPerc, 2));
+    $newTotal = max(0, round($subtotal - $discount, 2));
+
+    // Guarda en sesión separada para ADMIN
+    session([
+        'admin_cart_promo' => [
+            'code'      => $promo->code,
+            'amount'    => $discountFixed,
+            'percent'   => $discountPerc,
+            'discount'  => $discount,
+            'subtotal'  => $subtotal,
+            'new_total' => $newTotal,
+            'applied_at'=> now()->toISOString(),
+        ]
+    ]);
+
+    // Texto amigable
+    $parts = [];
+    if ($discountFixed > 0) $parts[] = '$'.number_format($discountFixed, 2);
+    if ($discountPerc  > 0) $parts[] = $discountPerc.'%';
+    $label = implode(' + ', $parts);
+
+    return response()->json([
+        'ok'        => true,
+        'message'   => 'Código aplicado.',
+        'code'      => $promo->code,
+        'label'     => $label ?: 'Descuento',
+        'discount'  => number_format($discount, 2),
+        'subtotal'  => number_format($subtotal, 2),
+        'new_total' => number_format($newTotal, 2),
+    ]);
+}
+
+/** Quita cupón en ADMIN */
+public function removePromoAdmin(Request $request)
+{
+    $request->session()->forget('admin_cart_promo');
+    return response()->json(['ok' => true, 'message' => 'Cupón eliminado.']);
 }
 
 
