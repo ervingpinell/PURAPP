@@ -2,68 +2,32 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Default Mailer
-    |--------------------------------------------------------------------------
-    |
-    | This option controls the default mailer that is used to send all email
-    | messages unless another mailer is explicitly specified when sending
-    | the message. All additional mailers can be configured within the
-    | "mailers" array. Examples of each type of mailer are provided.
-    |
-    */
-
-    'default' => env('MAIL_MAILER', 'log'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Mailer Configurations
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure all of the mailers used by your application plus
-    | their respective settings. Several examples have been configured for
-    | you and you are free to add your own as your application requires.
-    |
-    | Laravel supports a variety of mail "transport" drivers that can be used
-    | when delivering an email. You may specify which one you're using for
-    | your mailers below. You may also add additional mailers if needed.
-    |
-    | Supported: "smtp", "sendmail", "mailgun", "ses", "ses-v2",
-    |            "postmark", "resend", "log", "array",
-    |            "failover", "roundrobin"
-    |
-    */
+    // Usa smtp por defecto (o failover en prod si quieres respaldo a log)
+    'default' => env('MAIL_MAILER', 'smtp'),
 
     'mailers' => [
 
         'smtp' => [
             'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME'),
-            'url' => env('MAIL_URL'),
-            'host' => env('MAIL_HOST', '127.0.0.1'),
-            'port' => env('MAIL_PORT', 2525),
+            // Para SMTPS (465) puedes usar 'scheme' => 'smtps'
+            'scheme' => env('MAIL_SCHEME'),          // opcional
+            'url' => env('MAIL_URL'),                // opcional
+            'host' => env('MAIL_HOST', 'smtp.gmail.com'),
+            'port' => env('MAIL_PORT', 587),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
+            // IMPORTANTE: en la mayoría de proveedores usa 'tls' (587) o 'ssl' (465)
+            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
             'timeout' => null,
-            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+            'local_domain' => env(
+                'MAIL_EHLO_DOMAIN',
+                parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)
+            ),
         ],
 
-        'ses' => [
-            'transport' => 'ses',
-        ],
-
-        'postmark' => [
-            'transport' => 'postmark',
-            // 'message_stream_id' => env('POSTMARK_MESSAGE_STREAM_ID'),
-            // 'client' => [
-            //     'timeout' => 5,
-            // ],
-        ],
-
-        'resend' => [
-            'transport' => 'resend',
-        ],
+        'ses' => [ 'transport' => 'ses' ],
+        'postmark' => [ 'transport' => 'postmark' ],
+        'resend' => [ 'transport' => 'resend' ],
 
         'sendmail' => [
             'transport' => 'sendmail',
@@ -75,42 +39,28 @@ return [
             'channel' => env('MAIL_LOG_CHANNEL'),
         ],
 
-        'array' => [
-            'transport' => 'array',
-        ],
+        'array' => [ 'transport' => 'array' ],
 
+        // Útil en producción: intenta smtp y si falla, cae a log.
         'failover' => [
             'transport' => 'failover',
-            'mailers' => [
-                'smtp',
-                'log',
-            ],
+            'mailers' => ['smtp', 'log'],
         ],
 
+        // Ejemplo si quieres repartir entre varios proveedores
         'roundrobin' => [
             'transport' => 'roundrobin',
-            'mailers' => [
-                'ses',
-                'postmark',
-            ],
+            'mailers' => ['ses', 'postmark'],
         ],
-
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Global "From" Address
-    |--------------------------------------------------------------------------
-    |
-    | You may wish for all emails sent by your application to be sent from
-    | the same address. Here you may specify a name and address that is
-    | used globally for all emails that are sent by your application.
-    |
-    */
 
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'info@greenvacationscr.com'),
         'name' => env('MAIL_FROM_NAME', 'Green Vacations CR'),
     ],
 
+    // (Opcional) Destinatarios por defecto para ciertas funciones propias
+    'to' => [
+        'contact' => env('MAIL_TO_CONTACT', 'info@greenvacationscr.com'),
+    ],
 ];

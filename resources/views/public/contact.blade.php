@@ -5,10 +5,12 @@
 @section('content')
 <section class="contact-section py-5 text-white">
   <div class="container">
+
+    {{-- ====== FILA PRINCIPAL: Form + Info ====== --}}
     <div class="row gy-4 justify-content-center align-items-stretch flex-wrap">
 
-      {{-- 📝 Formulario --}}
-      <div class="col-lg-7 col-md-12 d-flex">
+      {{-- 📝 Formulario (más ancho) --}}
+      <div class="col-lg-8 col-md-12 d-flex">
         @if(session('success'))
           <script>
             Swal.fire({
@@ -36,27 +38,50 @@
           </div>
 
           <div class="card-body">
-            <form action="{{ route('contact.send') }}" method="POST">
+            <form action="{{ route('contact.send') }}" method="POST" novalidate>
               @csrf
+
+              {{-- Honeypot anti-spam: oculto con CSS --}}
+              <div style="position:absolute; left:-9999px; top:-9999px;">
+                <label for="website">Website</label>
+                <input type="text" name="website" id="website" tabindex="-1" autocomplete="off">
+              </div>
 
               <div class="mb-3">
                 <label for="name" class="form-label">{{ __('adminlte::adminlte.name') }}</label>
-                <input type="text" class="form-control" name="name" id="name" required value="{{ old('name') }}">
+                <input
+                  type="text"
+                  class="form-control form-control-lg @error('name') is-invalid @enderror"
+                  name="name" id="name" required value="{{ old('name') }}"
+                  autocomplete="name">
+                @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
               </div>
 
               <div class="mb-3">
                 <label for="email" class="form-label">{{ __('adminlte::adminlte.email') }}</label>
-                <input type="email" class="form-control" name="email" id="email" required value="{{ old('email') }}">
+                <input
+                  type="email"
+                  class="form-control form-control-lg @error('email') is-invalid @enderror"
+                  name="email" id="email" required value="{{ old('email') }}"
+                  autocomplete="email" inputmode="email">
+                @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
               </div>
 
               <div class="mb-3">
                 <label for="subject" class="form-label">{{ __('adminlte::adminlte.subject') }}</label>
-                <input type="text" class="form-control" name="subject" id="subject" required value="{{ old('subject') }}">
+                <input
+                  type="text"
+                  class="form-control form-control-lg @error('subject') is-invalid @enderror"
+                  name="subject" id="subject" required value="{{ old('subject') }}">
+                @error('subject') <div class="invalid-feedback">{{ $message }}</div> @enderror
               </div>
 
               <div class="mb-3">
                 <label for="message" class="form-label">{{ __('adminlte::adminlte.message') }}</label>
-                <textarea class="form-control" name="message" id="message" rows="5" required>{{ old('message') }}</textarea>
+                <textarea
+                  class="form-control form-control-lg @error('message') is-invalid @enderror"
+                  name="message" id="message" rows="6" required>{{ old('message') }}</textarea>
+                @error('message') <div class="invalid-feedback">{{ $message }}</div> @enderror
               </div>
 
               <button type="submit" class="btn btn-success bg-green-dark w-100">
@@ -67,8 +92,8 @@
         </div>
       </div>
 
-      {{-- 📍 Información de contacto + Mapa --}}
-      <div class="col-lg-5 col-md-12 d-flex">
+      {{-- 📍 Información de contacto (sin mapa aquí) --}}
+      <div class="col-lg-4 col-md-12 d-flex">
         <div class="card shadow-sm border bg-light flex-fill w-100">
           <div class="card-body">
             <h4 class="fw-bold mb-3">{{ __('adminlte::adminlte.contact_us') }}</h4>
@@ -96,21 +121,66 @@
               {{ __('adminlte::adminlte.business_schedule') }}
             </span>
 
-            {{-- 🗺️ Mapa de Google --}}
-            <div class="ratio ratio-4x3 mt-4">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3923.569916995397!2d-84.6532029!3d10.455662299999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa00c5bdfd9a475%3A0x7c12d295387f6352!2sAgencia%20de%20Viajes%20Green%20Vacation!5e0!3m2!1ses!2scr!4v1753803457057!5m2!1ses!2scr"
-                width="100%" height="250" style="border:0;" allowfullscreen="" loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"></iframe>
+            {{-- 💬 WhatsApp inline (dentro de la card) --}}
+            <div class="mt-3">
+              @include('partials.ws-widget', [
+                  'variant'        => 'inline',
+                  'buttonClass'    => 'btn btn-outline-success',
+                  'phone'          => '50624791471',
+              ])
             </div>
           </div>
         </div>
       </div>
 
-    </div>
-  </div>
-</section>
+    </div> {{-- /row --}}
 
-{{-- ✅ Modal de WhatsApp --}}
-@include('partials.ws-widget')
+    {{-- ====== FILA SECUNDARIA: Mapa a pantalla completa debajo ====== --}}
+    @php
+      // Mapeo de locales de la app -> códigos válidos del parámetro "hl" de Google Maps Embed
+      $locale       = app()->getLocale();
+      $hlMap = [
+        'es'    => 'es',
+        'es-CR' => 'es',
+        'en'    => 'en',
+        'en-US' => 'en',
+        'en-GB' => 'en',
+        'fr'    => 'fr',
+        'fr-FR' => 'fr',
+        'pt'    => 'pt',
+        'pt-PT' => 'pt',
+        'pt-BR' => 'pt-BR',
+        'de'    => 'de',
+        'de-DE' => 'de',
+        'it'    => 'it',
+        'nl'    => 'nl',
+        'ru'    => 'ru',
+        'ja'    => 'ja',
+        'zh'    => 'zh-CN',  // chino simplificado
+        'zh-CN' => 'zh-CN',
+        'zh-TW' => 'zh-TW',  // chino tradicional
+      ];
+      // Por defecto, si no hay match, usa inglés
+      $mapLang = $hlMap[$locale] ?? 'en';
+    @endphp
+
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card shadow-sm border bg-light">
+          <div class="card-body p-2 p-sm-3">
+<div class="ratio ratio-16x9">
+  <iframe
+    src="{{ $mapSrc }}"
+    style="border:0;" allowfullscreen loading="lazy"
+    referrerpolicy="no-referrer-when-downgrade"></iframe>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>{{-- /container --}}
+</section>
 @endsection

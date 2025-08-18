@@ -6,7 +6,7 @@
       {{ __('adminlte::adminlte.what_customers_thinks_about') }}
     </h2>
     <h3 class="text-secondary">
-      {{ $tour->getTranslatedName() }}   {{-- ✅ nombre traducido --}}
+      {{ $tour->getTranslatedName() }}
     </h3>
   </div>
 
@@ -37,16 +37,38 @@
   </div>
 
   {{-- 👣 Créditos Viator --}}
-  <div class="powered-by text-center mt-3">
-    <small>
-      Powered by
-      <a href="https://www.viator.com/tours/tour/d1-{{ $tour->viator_code }}?pid=P00137209"
-         target="_blank" rel="noopener"
-         class="text-decoration-none text-dark fw-semibold">
-        Viator
-      </a>
-    </small>
-  </div>
+  @php
+    // nombre en inglés para slug estable; fallback a traducido/base
+    $nameEn = optional($tour->translations)->firstWhere('locale','en')->name
+              ?? $tour->getTranslatedName('en')
+              ?? $tour->name;
+
+    // params de afiliado opcionales desde config/services.php → ['viator' => ['affiliate' => [...]]]
+    $affiliateParams = config('services.viator.affiliate');
+  @endphp
+
+  @if (!empty($tour->viator_code))
+    <div class="powered-by text-center mt-3">
+      <small>
+        Powered by
+        <a
+          href="{{ viator_product_url(
+                  $tour->viator_code,
+                  $tour->viator_destination_id ?? 821,
+                  $tour->viator_city_slug ?? 'La-Fortuna',
+                  $tour->viator_slug ?? null,
+                  $nameEn,
+                  $affiliateParams // ← sin hardcode
+              ) }}"
+          target="_blank"
+          rel="noopener sponsored"
+          class="text-decoration-none text-dark fw-semibold"
+          title="View {{ $nameEn }} on Viator" hreflang="en">
+          Viator
+        </a>
+      </small>
+    </div>
+  @endif
 </div>
 
 {{-- 🧠 Variables para JS (nombre traducido + code) --}}

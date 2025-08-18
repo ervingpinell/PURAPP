@@ -54,11 +54,14 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
     Route::get('/tour/{id}', [HomeController::class, 'showTour'])->name('tours.show');
     Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
-    Route::post('/contact/send', [HomeController::class, 'sendContact'])->name('contact.send');
+    Route::post('/contact', [HomeController::class, 'sendContact'])
+        ->middleware('throttle:6,1')   // máx 6 envíos por minuto por IP
+        ->name('contact.send');
+
 
     // Reviews públicas (Viator)
     Route::get('/reviews', function () {
-        $tours = \App\Models\Tour::whereNotNull('viator_code')
+        $tours = Tour::whereNotNull('viator_code')
             ->active()
             ->select('tour_id', 'name', 'viator_code')
             ->with(['translations' => function ($q) {

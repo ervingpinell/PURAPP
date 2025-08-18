@@ -7,13 +7,11 @@
   class="reservation-box gv-ui p-3 shadow-sm rounded bg-white mb-4 border"
   data-adult-price="{{ $tour->adult_price }}"
   data-kid-price="{{ $tour->kid_price }}">
-
   @csrf
   <input type="hidden" name="tour_id" value="{{ $tour->tour_id }}">
 
-  {{-- ===== HEADER (SIEMPRE visible): Precios y total ===== --}}
+  {{-- ===== HEADER ===== --}}
   <div class="form-header">
-    {{-- Aviso compacto SOLO aquí --}}
     @guest
       <div class="alert alert-warning d-flex align-items-center gap-2 mb-3">
         <i class="fas fa-lock me-2"></i>
@@ -23,11 +21,9 @@
             {{ __('adminlte::adminlte.auth_required_body') ?? 'Inicia sesión o regístrate para completar tu compra. Los campos se desbloquean al iniciar sesión.' }}
           </div>
         </div>
-
-  <a href="{{ route('login', ['redirect' => url()->current()]) }}"
-     class="btn btn-success gv-cta w-100 mt-3">
-    <i class="fas fa-cart-plus me-2"></i> {{ __('adminlte::adminlte.login_now') }}
-  </a>
+        <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="btn btn-success gv-cta w-100 mt-3">
+          <i class="fas fa-cart-plus me-2"></i> {{ __('adminlte::adminlte.login_now') }}
+        </a>
       </div>
     @endguest
 
@@ -39,14 +35,13 @@
       <span class="price-kid fw-bold text-danger">${{ number_format($tour->kid_price, 2) }}</span>
     </div>
 
-    {{-- Total (visible siempre) --}}
     <p class="fw-bold mb-3 gv-total">
       {{ __('adminlte::adminlte.total') }}:
       <span id="reservation-total-price" class="text-danger">$0.00</span>
     </p>
   </div>
 
-  {{-- ===== BODY (bloqueable): Todos los campos ===== --}}
+  {{-- ===== BODY ===== --}}
   <div class="form-body position-relative">
     <fieldset @guest disabled aria-disabled="true" @endguest>
       {{-- Viajeros --}}
@@ -116,7 +111,7 @@
 
   {{-- CTA --}}
   @auth
-    <button type="submit" class="btn btn-success gv-cta w-100 mt-3">
+    <button id="addToCartBtn" type="button" class="btn btn-success gv-cta w-100 mt-3">
       <i class="fas fa-cart-plus me-2"></i> {{ __('adminlte::adminlte.add_to_cart') }}
     </button>
   @else
@@ -132,7 +127,6 @@
   .gv-ui .form-control,
   .gv-ui .form-select,
   .gv-ui .choices__inner { background-color: #fff !important; }
-
   .form-body { position: relative; }
 </style>
 
@@ -149,7 +143,20 @@
 @push('scripts')
 <script>
 (function(){
+  const formEl = document.querySelector('form.reservation-box');
+  if (!formEl) return;
+
+  // Evita doble binding si el partial se inyecta más de una vez
+  if (formEl.dataset.bound === '1') return;
+  formEl.dataset.bound = '1';
+
+  // Mata cualquier submit nativo
+  formEl.addEventListener('submit', (e) => e.preventDefault());
+
+  // ======= Config/UI existentes =======
   window.isAuthenticated = @json(Auth::check());
+  window.CART_COUNT_URL  = @json(route('cart.count.public'));
+  const todayIso = @json($today);
 
   const fullyBlockedDates = Array.isArray(window.fullyBlockedDates) ? window.fullyBlockedDates : [];
   const blockedGeneral    = Array.isArray(window.blockedGeneral) ? window.blockedGeneral : [];
@@ -158,23 +165,17 @@
   const dateInput   = document.getElementById('tourDateInput');
   const scheduleSel = document.getElementById('scheduleSelect');
   const helpMsg     = document.getElementById('noSlotsHelp');
-  const todayIso    = @json($today);
-
   const langSelect  = document.querySelector('select[name="tour_language_id"]');
   const hotelSelect = document.getElementById('hotelSelect');
 
   if (!window.isAuthenticated) {
-    if (dateInput) {
-      dateInput.setAttribute('disabled', 'disabled');
-      dateInput.setAttribute('readonly', 'readonly');
-    }
+    if (dateInput) { dateInput.setAttribute('disabled', 'disabled'); dateInput.setAttribute('readonly', 'readonly'); }
     scheduleSel && scheduleSel.setAttribute('disabled', 'disabled');
     langSelect  && langSelect.setAttribute('disabled', 'disabled');
     hotelSelect && hotelSelect.setAttribute('disabled', 'disabled');
     return;
   }
 
-  // Choices (solo auth)
   const scheduleChoices = new Choices(scheduleSel, { searchEnabled:false, shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- {{ __('adminlte::adminlte.select_option') }} --' });
   const langChoices  = new Choices(langSelect,  { searchEnabled:false, shouldSort:false, itemSelectText:'' });
   const hotelChoices = new Choices(hotelSelect, { searchEnabled:true,  shouldSort:false, itemSelectText:'' });
@@ -209,7 +210,6 @@
     }
   }
 
-  // Flatpickr (solo auth)
   if (window.flatpickr && dateInput) {
     flatpickr(dateInput, {
       dateFormat: 'Y-m-d',
@@ -220,7 +220,7 @@
       onChange: (_sel, iso) => rebuildScheduleChoices(iso),
       onReady: (_sel, iso) => { if (!iso) { scheduleChoices.disable(); helpMsg.style.display = 'none'; } else { rebuildScheduleChoices(iso); } }
     });
-  } else {
+  } else if (dateInput) {
     dateInput.type = 'date';
     dateInput.min  = todayIso;
     dateInput.addEventListener('change', e => rebuildScheduleChoices(e.target.value));
@@ -232,7 +232,6 @@
   const isOtherH  = document.getElementById('isOtherHotel');
   const otherInp  = document.getElementById('otherHotelInput');
   const warnMsg   = document.getElementById('outsideAreaMessage');
-  const formEl    = document.querySelector('form.reservation-box');
 
   const toggleOther = () => {
     const isOther = (hotelChoices.getValue(true) === 'other');
@@ -241,16 +240,70 @@
     if (isOther) { warnMsg && (warnMsg.style.display = ''); otherInp && otherInp.setAttribute('required','required'); }
     else { warnMsg && (warnMsg.style.display = 'none'); if (otherInp) { otherInp.removeAttribute('required'); otherInp.value=''; } }
   };
-
   hotelSelect.addEventListener('change', toggleOther);
   toggleOther();
 
-  if (formEl) {
-    formEl.addEventListener('submit', (e) => {
-      const isOther = isOtherH && String(isOtherH.value) === '1';
-      if (isOther && otherInp && !otherInp.value.trim()) { e.preventDefault(); otherInp.focus(); }
-    });
-  }
+  // ======= CLICK AJAX (1 SOLO REQUEST) =======
+  const addBtn = document.getElementById('addToCartBtn');
+  if (!addBtn) return;
+
+  let submitting = false;
+  addBtn.addEventListener('click', async () => {
+    if (submitting) return;
+    submitting = true;
+
+    const prevHTML = addBtn.innerHTML;
+    addBtn.disabled = true;
+    addBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>{{ __('adminlte::adminlte.add_to_cart') }}';
+
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const fd = new FormData(formEl);
+
+    try {
+      const res = await fetch(formEl.action, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrf,
+        },
+        body: fd
+      });
+
+      let data = {};
+      try { data = await res.json(); } catch (_) {}
+
+      if (!res.ok) {
+        const msg = (data && data.message) ? data.message : 'No se pudo agregar el tour. Intenta de nuevo.';
+        await Swal.fire({ icon: 'error', title: 'Error', text: msg });
+        return;
+      }
+
+      const okMsg = (data && data.message) ? data.message : 'Tour añadido al carrito.';
+      await Swal.fire({ icon: 'success', title: 'Success', text: okMsg, confirmButtonColor: '#198754' });
+
+      // Actualiza badge del carrito (si el backend envía count, úsalo; si no, consulta)
+      if (typeof data.count !== 'undefined' && window.setCartCount) {
+        window.setCartCount(data.count);
+      } else if (window.CART_COUNT_URL && window.setCartCount) {
+        try {
+          const cRes = await fetch(window.CART_COUNT_URL, { headers: { 'Accept': 'application/json' }});
+          const cData = await cRes.json();
+          window.setCartCount(cData.count || 0);
+        } catch (_) {}
+      }
+
+      // Recarga misma página (para refrescar disponibilidad/UI)
+      window.location.reload();
+
+    } catch (err) {
+      await Swal.fire({ icon: 'error', title: 'Error', text: 'Error de red. Intenta nuevamente.' });
+    } finally {
+      addBtn.disabled = false;
+      addBtn.innerHTML = prevHTML;
+      submitting = false;
+    }
+  });
 })();
 </script>
 @endpush

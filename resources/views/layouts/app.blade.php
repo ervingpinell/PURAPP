@@ -1,85 +1,81 @@
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Green Vacations</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>@yield('title', 'Green Vacations')</title>
 
-    {{-- Favicon --}}
-<link rel="icon" href="{{ asset('favicons/favicon.ico') }}" sizes="any">
-<link rel="icon" type="image/png" href="{{ asset('favicons/favicon-32x32.png') }}">
-<link rel="apple-touch-icon" href="{{ asset('favicons/apple-touch-icon.png') }}">
+  {{-- Favicon --}}
+  <link rel="icon" href="{{ asset('favicons/favicon.ico') }}" sizes="any">
+  <link rel="icon" type="image/png" href="{{ asset('favicons/favicon-32x32.png') }}">
+  <link rel="apple-touch-icon" href="{{ asset('favicons/apple-touch-icon.png') }}">
 
+  {{-- Estilos externos --}}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    {{-- Estilos externos --}}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  {{-- Meta opcionales (por vista) --}}
+  @stack('meta')
 
-    {{-- Meta opcionales (por vista) --}}
-    @stack('meta')
+  {{-- Vite: CSS y JS base --}}
+  @vite([
+    'resources/js/public.js',
+    'resources/css/gv.css',
+    'resources/css/home.css',
+  ])
 
-    {{-- Vite: CSS y JS base --}}
-    @vite([
-        'resources/js/public.js',
-        'resources/css/gv.css',
-        'resources/css/home.css',
-    ])
-
-    {{-- Estilos adicionales (por vista) --}}
-    @stack('styles')
+  {{-- Estilos adicionales (por vista) --}}
+  @stack('styles')
 </head>
 
 <body class="d-flex flex-column min-vh-100">
-    @include('partials.header')
-    {{-- Contenido principal --}}
- <main class="flex-grow-1">
-        @yield('content')
-    </main>
+  @include('partials.header')
 
-    {{-- Footer --}}
-    @include('partials.footer')
+  <main class="flex-grow-1">
+    @yield('content')
+  </main>
 
-    {{-- Scripts externos --}}
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  @include('partials.footer')
 
-    {{-- Scripts adicionales (por vista) --}}
-    @stack('scripts')
+  {{-- WhatsApp flotante en todo el sitio EXCEPTO en /contact --}}
+  @unless (request()->routeIs('contact'))
+    @include('partials.ws-widget', [
+      'variant' => 'floating',
+      // 'phone' => '50624791471',
+      // 'defaultMsg' => __('adminlte::adminlte.whatsapp_placeholder'),
+    ])
+  @endunless
 
-    {{-- Error con SweetAlert --}}
-    @if(session('error'))
-        <script>
-            Swal.fire({
-                icon: 'error',
-                title: 'Acceso Denegado',
-                text: "{{ session('error') }}",
-                confirmButtonColor: '#d33'
-            });
-        </script>
-    @endif
+  {{-- Scripts externos --}}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    {{-- Actualización de cantidad del carrito --}}
+  {{-- Helper global para actualizar el badge del carrito --}}
+  <script>
+    window.setCartCount = function(count) {
+      const n = Number(count || 0);
+      document.querySelectorAll('.cart-count-badge').forEach(el => {
+        el.textContent = n;
+        el.style.display = n > 0 ? 'inline-block' : 'none';
+      });
+    };
+  </script>
+
+  {{-- Scripts adicionales (por vista) --}}
+  @stack('scripts')
+
+  {{-- Error con SweetAlert por sesión --}}
+  @if(session('error'))
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const badgeEls = document.querySelectorAll('.cart-count-badge');
-
-            function updateCartCount() {
-                fetch('{{ route('cart.count.public') }}')
-                    .then(res => res.json())
-                    .then(data => {
-                        badgeEls.forEach(el => {
-                            el.textContent = data.count;
-                            el.style.display = data.count > 0 ? 'inline-block' : 'none';
-                        });
-                    })
-                    .catch(err => console.error('Error al obtener la cantidad del carrito', err));
-            }
-
-            updateCartCount();
-        });
+      Swal.fire({
+        icon: 'error',
+        title: 'Acceso Denegado',
+        text: @json(session('error')),
+        confirmButtonColor: '#d33'
+      });
     </script>
+  @endif
 </body>
 </html>

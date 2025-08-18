@@ -105,12 +105,14 @@
                   {{ $it->tour?->getTranslatedName() ?? '-' }}
                 </div>
                 <div class="text-muted" style="font-size:.82rem;">
-                  {{ \Carbon\Carbon::parse($it->tour_date)->translatedFormat('d MMM, Y') }}
+                  {{ \Carbon\Carbon::parse($it->tour_date)->translatedFormat('d M, Y') }}
+                  <br>
                   @if($it->schedule)
-                    · {{ \Carbon\Carbon::parse($it->schedule->start_time)->format('g:i A') }}
+                    {{ \Carbon\Carbon::parse($it->schedule->start_time)->format('g:i A') }}
                       – {{ \Carbon\Carbon::parse($it->schedule->end_time)->format('g:i A') }}
                   @endif
-                  · {{ ($it->adults_quantity ?? 0) + ($it->kids_quantity ?? 0) }}
+                  <br>
+                  {{ ($it->adults_quantity ?? 0) + ($it->kids_quantity ?? 0) }}
                     {{ __('adminlte::adminlte.pax') ?? 'pax' }}
                 </div>
               </div>

@@ -29,19 +29,3 @@
     @endforelse
   </p>
 
-  {{-- Enlaces que abren el modal de políticas --}}
-  <h4 class="mt-3">{{ __('adminlte::adminlte.policies') }}</h4>
-  <p class="badges-group mb-0">
-    <a href="#" class="fw-semibold policy-link d-block mb-1"
-       data-policy="cancelacion"
-       style="text-decoration: underline; color: var(--primary-dark) !important;">
-      {{ __('Ver política de cancelación') }}
-    </a>
-
-    <a href="#" class="fw-semibold policy-link d-block"
-       data-policy="reembolso"
-       style="text-decoration: underline; color: var(--primary-dark) !important;">
-      {{ __('Ver política de reembolsos') }}
-    </a>
-  </p>
-</div>

@@ -294,6 +294,11 @@ return [
     'status_cancelled' => 'Cancelled',
     'status_unknown' => 'Unknown',
 
+    'open_tour' => 'Go to the tour?',
+    'open_tour_text_pre' => 'You are about to open the tour page',
+    'open_tour_confirm' => 'Go now',
+    'open_tour_cancel' => 'Cancel',
+
     'view_receipt' => 'View Receipt',
 
     // Éxitos (usados en controladores)
@@ -342,5 +347,7 @@ return [
     'resend'    => 'Resend verification email',
     'link_sent' => 'We have sent you a new verification link.',
 ],
+
+
 
 ];

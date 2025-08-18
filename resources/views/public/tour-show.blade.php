@@ -76,6 +76,10 @@
   window.fullyBlockedDates = @json($fullyBlockedDates ?? []);
 </script>
 
+@include('partials.ws-widget')
+
+{{-- ✅ Modal de Calendario --}}
+
 {{-- ✅ Travelers Modal --}}
 @include('partials.bookmodal')
 @endsection

@@ -89,6 +89,10 @@ return [
     'full_day' => 'Ganztägig',
     'full_day_description' => 'Perfekt für alle, die an einem einzigen Tag ein vollständiges Erlebnis suchen',
     'half_day_description' => 'Ideale Touren für ein kurzes Abenteuer für alle mit wenig Zeit.',
+    'open_tour' => 'Zur Tour gehen?',
+    'open_tour_text_pre' => 'Sie sind dabei, die Tourseite zu öffnen',
+    'open_tour_confirm' => 'Jetzt gehen',
+    'open_tour_cancel' => 'Abbrechen',
 
     'full_day_tours' => 'Ganztagestouren',
     'half_day_tours' => 'Halbtagestouren',

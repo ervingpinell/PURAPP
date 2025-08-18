@@ -1,4 +1,4 @@
-// resources/js/viator/testimonials-carousel.js
+// resources/js/viator/carousel-reviews.js
 import { fetchReviewsBatch } from '../reviews-fetcher';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -9,16 +9,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const REFRESH_MS = Number(window.REVIEWS_REFRESH_MS) || (10 * 60 * 1000);
 
+  // ====== I18N ======
   const T = {
     loading:   window.I18N?.loading_reviews ?? 'Cargando reseñas...',
     none:      window.I18N?.no_reviews ?? 'No hay reseñas para mostrar.',
-    seeMore:   window.I18N?.see_more ?? 'Ver más',
-    seeLess:   window.I18N?.see_less ?? 'Ver menos',
+    seeMore:   window.I18N?.see_more ?? 'Leer más',
+    seeLess:   window.I18N?.see_less ?? 'Leer menos',
     anonymous: window.I18N?.anonymous ?? 'Anónimo',
     noDate:    window.I18N?.no_date ?? 'Fecha no disponible',
     poweredBy: window.I18N?.powered_by ?? 'Powered by',
   };
 
+  // ====== Utils ======
   const escapeHtml = (str = '') =>
     String(str)
       .replaceAll('&', '&amp;')
@@ -43,8 +45,65 @@ document.addEventListener('DOMContentLoaded', async () => {
   const resolveProductName = (product, firstReview) =>
     (product?.name) || (firstReview?.productTitle) || (product?.code) || '';
 
+  // ====== Viator URL helpers ======
+  const VIATOR_DEFAULTS = { destId: 821, citySlug: 'La-Fortuna' };
+
+  /** Crea slug de producto legible tipo "Arenal-Volcano-La-Fortuna-and-Lunch" */
+  const toProductSlug = (name = '') => {
+    let s = String(name)
+      .replace(/&|\+/g, ' and ')                             // & y + -> "and"
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')      // quitar tildes
+      .replace(/[^A-Za-z0-9\s-]/g, ' ')                      // quitar símbolos
+      .replace(/\s+/g, ' ')                                  // colapsar espacios
+      .trim();
+    s = s.split(' ').map(w => (w ? (w[0].toUpperCase() + w.slice(1)) : '')).join('-');
+    return s || 'Tour';
+  };
+
+  /** Agrega parámetros de query (afiliación/tracking) si existen */
+  const appendQuery = (url, params) => {
+    if (!params) return url;
+    try {
+      const u = new URL(url);
+      if (typeof params === 'string') {
+        // admite "?pid=...&campaign=..." como string
+        const s = params.startsWith('?') ? params.slice(1) : params;
+        new URLSearchParams(s).forEach((v, k) => u.searchParams.set(k, v));
+      } else if (typeof params === 'object') {
+        Object.entries(params).forEach(([k, v]) => {
+          if (v != null && v !== '') u.searchParams.set(k, String(v));
+        });
+      }
+      return u.toString();
+    } catch {
+      return url;
+    }
+  };
+
+  /**
+   * Construye URL pública de la ficha en Viator:
+   * https://www.viator.com/tours/{CitySlug}/{ProductSlug}/d{DEST_ID}-{PRODUCT_CODE}
+   */
+  const viatorProductUrl = (p = {}, fallbackName = '') => {
+    const code        = (p.code || '').trim();
+    const destId      = Number(p.destId ?? p.viator_destination_id) || VIATOR_DEFAULTS.destId;
+    const citySlugRaw = (p.citySlug ?? p.viator_city_slug ?? VIATOR_DEFAULTS.citySlug) || VIATOR_DEFAULTS.citySlug;
+    const citySlug    = citySlugRaw.replace(/\s+/g, '-'); // por si llega con espacios
+    const productSlug = p.viatorSlug ?? p.viator_slug ?? toProductSlug(fallbackName || p.name || code);
+
+    let url = `https://www.viator.com/tours/${encodeURIComponent(citySlug)}/${productSlug}/d${destId}-${encodeURIComponent(code)}`;
+
+    // Soporte opcional de afiliación: window.VIATOR_AFFILIATE (objeto o string "?pid=...")
+    if (window.VIATOR_AFFILIATE) {
+      url = appendQuery(url, window.VIATOR_AFFILIATE);
+    }
+    return url;
+  };
+
+  // ====== Data ======
   const codes = products.map(p => p.code).filter(Boolean);
 
+  // ====== Render ======
   const buildSlides = () => {
     const frag = document.createDocumentFragment();
     let slideIndex = 0;
@@ -54,8 +113,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const dataReviews = Array.isArray(payload?.reviews) ? payload.reviews : [];
       if (!dataReviews.length) return;
 
+      // Toma 2 reseñas aleatorias por producto
       const shuffled = [...dataReviews].sort(() => 0.5 - Math.random()).slice(0, 2);
       const nameForHeader = resolveProductName(product, shuffled[0]);
+      const viatorHref    = viatorProductUrl(product, nameForHeader);
 
       shuffled.forEach((r) => {
         const avatar = r.avatarUrl || '/images/avatar-default.png';
@@ -109,8 +170,9 @@ document.addEventListener('DOMContentLoaded', async () => {
               </div>
 
               <div class="text-end mt-3">
-                <a href="https://www.viator.com/searchResults/all?search=${encodeURIComponent(product.code)}"
+                <a href="${viatorHref}"
                    target="_blank"
+                   rel="noopener sponsored"
                    class="text-muted small text-decoration-none viator-credit"
                    title="Ver ${escapeHtml(nameForHeader)} en Viator">
                    ${T.poweredBy} Viator
@@ -135,7 +197,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     return true;
   };
 
+  // ====== Delegated events ======
   const bindDelegates = () => {
+    // Ver más / Ver menos
     inner.addEventListener('click', (e) => {
       const link = e.target.closest('.toggle-review');
       if (!link) return;
@@ -161,6 +225,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
+    // Click en el nombre del tour -> modal (si existe)
     inner.addEventListener('click', (e) => {
       const a = e.target.closest('.tour-link');
       if (!a) return;
@@ -182,10 +247,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   };
 
+  // ====== Carga de reseñas ======
   const load = (opts = {}) =>
-    fetchReviewsBatch(codes, { count: 5, start: 1, provider: 'ALL', sortBy: 'MOST_RECENT', ttlMs: 5 * 60 * 1000, ...opts })
-      .then(() => { buildSlides() && bindDelegates(); })
-      .catch(() => { container.outerHTML = `<p class="text-muted">${T.none}</p>`; });
+    fetchReviewsBatch(codes, {
+      count: 5,
+      start: 1,
+      provider: 'ALL',
+      sortBy: 'MOST_RECENT',
+      ttlMs: 5 * 60 * 1000,
+      ...opts
+    })
+    .then(() => { buildSlides() && bindDelegates(); })
+    .catch(() => { container.outerHTML = `<p class="text-muted">${T.none}</p>`; });
 
   // primera carga
   await load();

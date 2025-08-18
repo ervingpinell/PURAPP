@@ -9,6 +9,11 @@ function isFresh(code, ttlMs) {
   return Date.now() - ts < ttlMs;
 }
 
+/** Filtro: solo 4–5 estrellas */
+function filterHighRated(reviews = []) {
+  return reviews.filter(r => Number(r?.rating) >= 4);
+}
+
 /**
  * GET cacheable + memoria con TTL opcional
  * opts: { count, start, provider, sortBy, ttlMs, force }
@@ -41,7 +46,13 @@ export function fetchReviewsOnce(code, opts = {}) {
   })
     .then(r => (r.ok ? r.json() : Promise.reject(r)))
     .then(data => {
-      window.__REVIEWS_CACHE__[code] = data;      // guarda payload
+      // Aplica filtro justo al recibir la respuesta
+      if (Array.isArray(data?.reviews)) {
+        data.reviews = filterHighRated(data.reviews);
+      } else {
+        data = { reviews: [] };
+      }
+      window.__REVIEWS_CACHE__[code] = data;      // guarda payload filtrado
       window.__REVIEWS_TS__[code]    = Date.now(); // marca fresco
       return data;
     })
@@ -54,7 +65,7 @@ export function fetchReviewsOnce(code, opts = {}) {
 /**
  * POST batch + memoria con TTL opcional
  * opts: { count, start, provider, sortBy, ttlMs, force }
- * Devuelve: { results: { CODE: payload } }
+ * Devuelve: { results: { CODE: payloadFiltrado } }
  */
 export function fetchReviewsBatch(productCodes = [], opts = {}) {
   if (!Array.isArray(productCodes) || productCodes.length === 0) {
@@ -101,6 +112,12 @@ export function fetchReviewsBatch(productCodes = [], opts = {}) {
     .then(payload => {
       const results = payload?.results || {};
       for (const code of Object.keys(results)) {
+        const data = results[code] || {};
+        if (Array.isArray(data?.reviews)) {
+          data.reviews = filterHighRated(data.reviews);
+        } else {
+          results[code] = { reviews: [] };
+        }
         window.__REVIEWS_CACHE__[code] = results[code];
         window.__REVIEWS_TS__[code]    = Date.now();
       }
