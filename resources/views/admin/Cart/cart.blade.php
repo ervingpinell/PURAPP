@@ -166,7 +166,7 @@
             </div>
         </div>
 
-        {{-- Confirmar y Enviar (el hidden promo_code VA DENTRO DEL FORM) --}}
+        {{-- Confirmar y Enviar --}}
         <form method="POST" action="{{ route('admin.reservas.storeFromCart') }}" class="mt-3">
             @csrf
             {{-- Este es el que viaja al controlador --}}
