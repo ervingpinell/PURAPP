@@ -273,6 +273,12 @@ return [
 
     'policies' => 'Policies',
 
+    // SweetAlerts (actions)
+    'confirmReservationTitle' => 'Are you sure?',
+    'confirmReservationText' => 'Your booking will be confirmed',
+    'confirmReservationConfirm' => 'Yes, confirm',
+    'confirmReservationCancel' => 'Cancel',
+
 
     'no_reservations_yet' => 'No reservations yet!',
     'no_reservations_message' => 'It seems you haven\'t booked any adventure with us. Why not explore our amazing tours?',

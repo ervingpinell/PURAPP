@@ -301,6 +301,12 @@ return [
     'error' => 'Error',
     'validation_error' => 'Datos incompletos',
 
+    // SweetAlerts (acciones)
+    'confirmReservationTitle' => '¿Estás seguro?',
+    'confirmReservationText' => 'Se confirmará tu reserva',
+    'confirmReservationConfirm' => 'Sí, confirmar',
+    'confirmReservationCancel' => 'Cancelar',
+
 
     'edit_profile_of' => 'Editar Perfil',
     'profile_information' => 'Información del Perfil',

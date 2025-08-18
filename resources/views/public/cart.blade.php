@@ -2,40 +2,37 @@
 
 @section('title', 'Mi Carrito')
 
-
 @section('content')
 <div class="container py-5 mb-5">
   <h1 class="mb-4"><i class="fas fa-shopping-cart"></i> {{ __('adminlte::adminlte.myCart') }}</h1>
 
- @if (session('success') || session('error'))
-  @once
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  @endonce
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      @if (session('success'))
-        Swal.fire({
-          icon: 'success',
-          title: @json(__('adminlte::adminlte.success') ?? 'Éxito'),
-          text:  @json(session('success')),
-          confirmButtonColor: '#198754',
-          allowOutsideClick: false
-        });
-      @endif
-      @if (session('error'))
-        Swal.fire({
-          icon: 'error',
-          title: @json(__('adminlte::adminlte.error') ?? 'Error'),
-          text:  @json(session('error')),
-          confirmButtonColor: '#dc3545',
-          allowOutsideClick: false
-        });
-      @endif
-    });
-  </script>
-@endif
-
-
+  @if (session('success') || session('error'))
+    @once
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @endonce
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        @if (session('success'))
+          Swal.fire({
+            icon: 'success',
+            title: @json(__('adminlte::adminlte.success') ?? 'Éxito'),
+            text:  @json(session('success')),
+            confirmButtonColor: '#198754',
+            allowOutsideClick: false
+          });
+        @endif
+        @if (session('error'))
+          Swal.fire({
+            icon: 'error',
+            title: @json(__('adminlte::adminlte.error') ?? 'Error'),
+            text:  @json(session('error')),
+            confirmButtonColor: '#dc3545',
+            allowOutsideClick: false
+          });
+        @endif
+      });
+    </script>
+  @endif
 
   @if($cart && $cart->items->count())
 
@@ -58,8 +55,7 @@
         <tbody>
           @foreach($cart->items as $item)
             <tr class="text-center">
-             <td>{{ $item->tour->getTranslatedName() }}</td>
-
+              <td>{{ $item->tour->getTranslatedName() }}</td>
               <td>{{ \Carbon\Carbon::parse($item->tour_date)->format('d/m/Y') }}</td>
               <td>
                 @if($item->schedule)
@@ -87,8 +83,7 @@
                 </span>
               </td>
               <td>
-                <form action="{{ route('public.cart.destroy', $item->item_id) }}" method="POST"
-                      onsubmit="return confirm('¿Eliminar este tour del carrito?');">
+                <form action="{{ route('public.cart.destroy', $item->item_id) }}" method="POST" class="delete-item-form">
                   @csrf @method('DELETE')
                   <button type="submit" class="btn btn-danger btn-sm">
                     <i class="fas fa-trash"></i> {{ __('adminlte::adminlte.delete') }}
@@ -133,8 +128,7 @@
                 {{ $item->is_active ? __('adminlte::adminlte.active') : __('adminlte::adminlte.inactive') }}
               </span>
             </p>
-            <form action="{{ route('public.cart.destroy', $item->item_id) }}" method="POST"
-                  onsubmit="return confirm('¿Eliminar este tour del carrito?');">
+            <form action="{{ route('public.cart.destroy', $item->item_id) }}" method="POST" class="delete-item-form">
               @csrf @method('DELETE')
               <button type="submit" class="btn btn-danger btn-sm w-100">
                 <i class="fas fa-trash"></i> {{ __('adminlte::adminlte.delete') }}
@@ -171,8 +165,7 @@
     </div>
 
     {{-- Confirmar Reserva --}}
-    <form action="{{ route('public.reservas.storeFromCart') }}" method="POST"
-          onsubmit="return confirm('¿Estás seguro de confirmar la reserva?');">
+    <form action="{{ route('public.reservas.storeFromCart') }}" method="POST" id="confirm-reserva-form">
       @csrf
       <input type="hidden" name="promo_code" id="promo_code_hidden" value="">
       <div class="d-grid">
@@ -192,4 +185,52 @@
 
 @push('scripts')
   @vite('resources/js/cart/promo-code.js')
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Confirmar reserva
+      const reservaForm = document.getElementById('confirm-reserva-form');
+      if(reservaForm){
+        reservaForm.addEventListener('submit', function(e){
+          e.preventDefault();
+          Swal.fire({
+            title: @json(__('adminlte::adminlte.confirmReservationTitle')),
+            text: @json(__('adminlte::adminlte.confirmReservationText')),
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#d33',
+            confirmButtonText: @json(__('adminlte::adminlte.confirmReservationConfirm')),
+            cancelButtonText: @json(__('adminlte::adminlte.confirmReservationCancel'))
+          }).then((result) => {
+            if(result.isConfirmed){
+              reservaForm.submit();
+            }
+          });
+        });
+      }
+
+      // Eliminar item del carrito
+      const deleteForms = document.querySelectorAll('.delete-item-form');
+      deleteForms.forEach(form => {
+        form.addEventListener('submit', function(e){
+          e.preventDefault();
+          Swal.fire({
+            title: @json(__('adminlte::adminlte.deleteItemTitle')),
+            text: @json(__('adminlte::adminlte.deleteItemText')),
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: @json(__('adminlte::adminlte.deleteItemConfirm')),
+            cancelButtonText: @json(__('adminlte::adminlte.deleteItemCancel'))
+          }).then((result) => {
+            if(result.isConfirmed){
+              form.submit();
+            }
+          });
+        });
+      });
+    });
+  </script>
 @endpush

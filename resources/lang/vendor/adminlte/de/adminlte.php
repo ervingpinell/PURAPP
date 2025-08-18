@@ -288,6 +288,10 @@ return [
     'new_password_optional' => 'Neues Passwort (optional)',
     'leave_blank_if_no_change' => 'Leer lassen, wenn Sie es nicht ändern möchten',
     'confirm_new_password_placeholder' => 'Neues Passwort bestätigen',
+    'confirmReservationTitle' => 'Sind Sie sicher?',
+    'confirmReservationText' => 'Ihre Buchung wird bestätigt',
+    'confirmReservationConfirm' => 'Ja, bestätigen',
+    'confirmReservationCancel' => 'Abbrechen',
 
     'policies' => 'Richtlinien',
 

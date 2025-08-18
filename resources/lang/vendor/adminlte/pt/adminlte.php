@@ -285,6 +285,10 @@ return [
     'new_password_optional' => 'Nova senha (opcional)',
     'leave_blank_if_no_change' => 'Deixe em branco se não deseja alterá-la',
     'confirm_new_password_placeholder' => 'Confirmar nova senha',
+    'confirmReservationTitle' => 'Você tem certeza?',
+    'confirmReservationText' => 'Sua reserva será confirmada',
+    'confirmReservationConfirm' => 'Sim, confirmar',
+    'confirmReservationCancel' => 'Cancelar',
 
     'policies' => 'Políticas',
 
