@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Customer Reviews')
+@section('title', __('adminlte::adminlte.reviews'))
 
 @push('meta')
     <meta name="robots" content="noindex, nofollow">

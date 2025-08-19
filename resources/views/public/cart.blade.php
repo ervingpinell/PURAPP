@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Mi Carrito')
-
+@section('title', __('adminlte::adminlte.myCart'))
 
 @section('content')
 <div class="container py-5 mb-5">

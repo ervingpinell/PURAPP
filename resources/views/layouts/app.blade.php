@@ -4,12 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>@yield('title', 'Green Vacations')</title>
 
-  {{-- Favicon --}}
-  <link rel="icon" href="{{ asset('favicons/favicon.ico') }}" sizes="any">
-  <link rel="icon" type="image/png" href="{{ asset('favicons/favicon-32x32.png') }}">
-  <link rel="apple-touch-icon" href="{{ asset('favicons/apple-touch-icon.png') }}">
+  @php
+      // Prefijo absoluto hacia /public (evita problemas en subcarpetas tipo /Project-Green-Vacation/public)
+      $ASSET_ROOT = rtrim(asset(''), '/');
+
+      // Título con prefijo fijo "GV | "
+      $pageTitle = $__env->yieldContent('title') ?: 'Green Vacations';
+      $fullTitle = 'GV | ' . trim($pageTitle);
+  @endphp
+  <title>{{ $fullTitle }}</title>
+
+  {{-- Favicons (archivos en /public) --}}
+  <link rel="icon" href="{{ $ASSET_ROOT }}/favicon.ico" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="{{ $ASSET_ROOT }}/favicon.svg">
+  <link rel="icon" type="image/png" sizes="96x96" href="{{ $ASSET_ROOT }}/favicon-96x96.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ $ASSET_ROOT }}/apple-touch-icon.png">
+  <link rel="manifest" href="{{ $ASSET_ROOT }}/site.webmanifest">
+  <meta name="theme-color" content="#0f5132">
 
   {{-- Estilos externos --}}
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
