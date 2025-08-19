@@ -105,15 +105,31 @@
                   {{ $it->tour?->getTranslatedName() ?? '-' }}
                 </div>
                 <div class="text-muted" style="font-size:.82rem;">
-                  {{ \Carbon\Carbon::parse($it->tour_date)->translatedFormat('d M, Y') }}
+                  {{ \Carbon\Carbon::parse($it->tour_date)->translatedFormat('d M Y') }}
                   <br>
                   @if($it->schedule)
                     {{ \Carbon\Carbon::parse($it->schedule->start_time)->format('g:i A') }}
                       – {{ \Carbon\Carbon::parse($it->schedule->end_time)->format('g:i A') }}
                   @endif
                   <br>
-                  {{ ($it->adults_quantity ?? 0) + ($it->kids_quantity ?? 0) }}
-                    {{ __('adminlte::adminlte.pax') ?? 'pax' }}
+                @php
+                    $adults = (int) ($it->adults_quantity ?? 0);
+                    $kids   = (int) ($it->kids_quantity ?? 0);
+
+                    $adultLabel = $adults === 1
+                        ? __('adminlte::adminlte.adult')
+                        : __('adminlte::adminlte.adults');
+
+                    $kidLabel = $kids === 1
+                        ? __('adminlte::adminlte.kid')
+                        : __('adminlte::adminlte.kids');
+                @endphp
+
+                {{ $adults }} {{ $adultLabel }}
+                @if($kids > 0)
+                    | {{ $kids }} {{ $kidLabel }}
+                @endif
+
                 </div>
               </div>
               <div class="fw-bold small text-success mini-cart-price">

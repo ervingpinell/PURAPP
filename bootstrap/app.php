@@ -5,7 +5,8 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\CheckIfUserLocked;
-use Illuminate\Auth\Middleware\EnsureEmailIsVerified; // 👈 AÑADIR
+use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
+use App\Http\Middleware\LogContext; // 👈 NUEVO
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,11 +18,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'CheckRole' => \App\Http\Middleware\CheckRole::class,
             'locked'    => CheckIfUserLocked::class,
-            'verified'  => EnsureEmailIsVerified::class, // 👈 AÑADIR
+            'verified'  => EnsureEmailIsVerified::class,
+            'logctx'    => LogContext::class,            // 👈 opcional
         ]);
 
-        // Middleware global
+        // Middleware global (orden recomendado)
         $middleware->append([
+            LogContext::class,         // 👈 primero para que agregue contexto a todo
             SetLocale::class,
             CheckIfUserLocked::class,
         ]);

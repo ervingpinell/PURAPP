@@ -3,14 +3,21 @@
 namespace App\Http\Controllers\Admin\Tours;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use Exception;
 use App\Models\Tour;
 use App\Models\Schedule;
-use Illuminate\Support\Facades\Log;
-use Exception;
+use App\Services\LoggerHelper;
+use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\Tour\Schedule\StoreScheduleRequest;
+use App\Http\Requests\Tour\Schedule\UpdateScheduleRequest;
+use App\Http\Requests\Tour\Schedule\AttachScheduleToTourRequest;
+use App\Http\Requests\Tour\Schedule\ToggleScheduleRequest;
+use App\Http\Requests\Tour\Schedule\ToggleScheduleAssignmentRequest;
 
 class TourScheduleController extends Controller
 {
+    protected string $controller = 'TourScheduleController';
+
     /** Página principal: horarios generales + tours con sus horarios */
     public function index()
     {
@@ -25,99 +32,41 @@ class TourScheduleController extends Controller
         return view('admin.tours.schedule.index', compact('generalSchedules', 'tours'));
     }
 
-    /** Normaliza entradas de hora (e.g., "3:15 pm") a H:i */
-    private function parseTime(?string $input): ?string
-    {
-        if (!$input) return null;
-
-        $input = trim($input);
-
-        // Si ya viene con segundos válidos, lo pasamos a H:i
-        if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $input)) {
-            return \DateTime::createFromFormat('H:i:s', $input)?->format('H:i') ?? null;
-        }
-
-        // Formatos comunes
-        $candidates = [
-            'H:i',
-            'g:i a', 'g:iA', 'g:ia', 'g:i A',
-            'g a', 'gA', 'ga', 'g A', // 3 pm
-            'H:i \h',                  // 13:00 h
-        ];
-
-        foreach ($candidates as $fmt) {
-            $dt = \DateTime::createFromFormat($fmt, strtolower($input));
-            if ($dt !== false) {
-                return $dt->format('H:i');
-            }
-        }
-
-        return null;
-    }
-
-    /** Mensajes de validación en ES */
-    private function validationMessages(): array
-    {
-        return [
-            'tour_id.exists'          => 'El tour seleccionado no existe.',
-            'start_time.required'     => 'El campo "Inicio" es obligatorio.',
-            'start_time.date_format'  => 'El campo "Inicio" debe tener el formato HH:MM (24h).',
-            'end_time.required'       => 'El campo "Fin" es obligatorio.',
-            'end_time.date_format'    => 'El campo "Fin" debe tener el formato HH:MM (24h).',
-            'end_time.after'          => 'El campo "Fin" debe ser posterior al campo "Inicio".',
-            'label.string'            => 'La etiqueta debe ser texto.',
-            'label.max'               => 'La etiqueta no puede superar 255 caracteres.',
-            'max_capacity.required'   => 'La capacidad máxima es obligatoria.',
-            'max_capacity.integer'    => 'La capacidad máxima debe ser un número entero.',
-            'max_capacity.min'        => 'La capacidad máxima debe ser al menos 1.',
-            'is_active.boolean'       => 'El estado debe ser verdadero o falso.',
-        ];
-    }
-
     /**
      * Crear horario (general o para un tour)
      * - Si viene `tour_id`, se adjunta al tour con pivote is_active = true
      * - Si NO, queda como horario general
      */
-    public function store(Request $request)
+    public function store(StoreScheduleRequest $request): RedirectResponse
     {
-        $request->merge([
-            'start_time' => $this->parseTime($request->input('start_time')),
-            'end_time'   => $this->parseTime($request->input('end_time')),
-        ]);
-
-        $validated = $request->validate([
-            'tour_id'      => ['nullable', 'exists:tours,tour_id'],
-            'start_time'   => ['required', 'date_format:H:i'],
-            'end_time'     => ['required', 'date_format:H:i', 'after:start_time'],
-            'label'        => ['nullable', 'string', 'max:255'],
-            'max_capacity' => ['required', 'integer', 'min:1'],
-            'is_active'    => ['nullable', 'boolean'],
-        ], $this->validationMessages());
-
-        // Checkbox: por defecto true si no viene (crear nuevo)
-        $isActive = $request->has('is_active') ? $request->boolean('is_active') : true;
-
         try {
+            $data = $request->validated();
+
             $schedule = Schedule::create([
-                'start_time'   => $validated['start_time'],  // el mutator añadirá :00 si hace falta
-                'end_time'     => $validated['end_time'],
-                'label'        => $validated['label'] ?? null,
-                'max_capacity' => $validated['max_capacity'],
-                'is_active'    => $isActive,                 // GLOBAL
+                'start_time'   => $data['start_time'],
+                'end_time'     => $data['end_time'],
+                'label'        => $data['label'] ?? null,
+                'max_capacity' => $data['max_capacity'],
+                'is_active'    => $request->has('is_active') ? $request->boolean('is_active') : true,
             ]);
 
-            if (!empty($validated['tour_id'])) {
-                // asignación activa por defecto en la pivote
+            if (!empty($data['tour_id'])) {
                 $schedule->tours()->syncWithoutDetaching([
-                    $validated['tour_id'] => ['is_active' => true],
+                    $data['tour_id'] => ['is_active' => true],
                 ]);
             }
+
+            LoggerHelper::mutated($this->controller, 'store', 'schedule', $schedule->getKey(), [
+                'tour_id_attached' => $data['tour_id'] ?? null,
+                'user_id'          => optional($request->user())->getAuthIdentifier(),
+            ]);
 
             return redirect()->route('admin.tours.schedule.index')
                 ->with('success', 'Horario creado correctamente.');
         } catch (Exception $e) {
-            Log::error('Error al crear horario: '.$e->getMessage(), ['exception' => $e]);
+            LoggerHelper::exception($this->controller, 'store', 'schedule', null, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
             return back()->with('error', 'Hubo un problema al crear el horario.')->withInput();
         }
     }
@@ -129,47 +78,45 @@ class TourScheduleController extends Controller
     }
 
     /** Actualizar horario (global; no toca asociaciones) */
-    public function update(Request $request, Schedule $schedule)
+    public function update(UpdateScheduleRequest $request, Schedule $schedule): RedirectResponse
     {
-        $request->merge([
-            'start_time' => $this->parseTime($request->input('start_time')),
-            'end_time'   => $this->parseTime($request->input('end_time')),
-        ]);
-
-        $validated = $request->validate([
-            'start_time'   => ['required', 'date_format:H:i'],
-            'end_time'     => ['required', 'date_format:H:i', 'after:start_time'],
-            'label'        => ['nullable', 'string', 'max:255'],
-            'max_capacity' => ['required', 'integer', 'min:1'],
-            'is_active'    => ['nullable', 'boolean'],
-        ], $this->validationMessages());
-
         try {
-            // si el checkbox viene desmarcado, guardamos false
-            $isActive = $request->boolean('is_active');
+            $data = $request->validated();
 
             $schedule->update([
-                'start_time'   => $validated['start_time'],
-                'end_time'     => $validated['end_time'],
-                'label'        => $validated['label'] ?? null,
-                'max_capacity' => $validated['max_capacity'],
-                'is_active'    => $isActive,
+                'start_time'   => $data['start_time'],
+                'end_time'     => $data['end_time'],
+                'label'        => $data['label'] ?? null,
+                'max_capacity' => $data['max_capacity'],
+                // si el checkbox viene desmarcado, guardamos false
+                'is_active'    => $request->boolean('is_active'),
+            ]);
+
+            LoggerHelper::mutated($this->controller, 'update', 'schedule', $schedule->getKey(), [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
             return redirect()->route('admin.tours.schedule.index')
                 ->with('success', 'Horario actualizado correctamente.');
         } catch (Exception $e) {
-            Log::error('Error al actualizar horario #'.$schedule->getKey().': '.$e->getMessage(), ['exception' => $e]);
+            LoggerHelper::exception($this->controller, 'update', 'schedule', $schedule->getKey(), $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
             return back()->with('error', 'Hubo un problema al actualizar el horario.')->withInput();
         }
     }
 
     /** Toggle GLOBAL (schedules.is_active) */
-    public function toggle(Schedule $schedule)
+    public function toggle(ToggleScheduleRequest $request, Schedule $schedule): RedirectResponse
     {
         try {
             $schedule->is_active = ! $schedule->is_active;
             $schedule->save();
+
+            LoggerHelper::mutated($this->controller, 'toggle', 'schedule', $schedule->getKey(), [
+                'is_active' => $schedule->is_active,
+                'user_id'   => optional($request->user())->getAuthIdentifier(),
+            ]);
 
             $msg = $schedule->is_active
                 ? 'Horario activado correctamente (global).'
@@ -177,7 +124,9 @@ class TourScheduleController extends Controller
 
             return back()->with('success', $msg);
         } catch (Exception $e) {
-            Log::error('Error al cambiar estado global del horario #'.$schedule->getKey().': '.$e->getMessage(), ['exception' => $e]);
+            LoggerHelper::exception($this->controller, 'toggle', 'schedule', $schedule->getKey(), $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
             return back()->with('error', 'No se pudo cambiar el estado global del horario.');
         }
     }
@@ -185,7 +134,7 @@ class TourScheduleController extends Controller
     /**
      * Toggle de la ASIGNACIÓN (pivote) — NO afecta global
      */
-    public function toggleAssignment(Tour $tour, Schedule $schedule)
+    public function toggleAssignment(ToggleScheduleAssignmentRequest $request, Tour $tour, Schedule $schedule): RedirectResponse
     {
         try {
             $rel = $tour->schedules()->where('schedules.schedule_id', $schedule->getKey())->first();
@@ -197,60 +146,89 @@ class TourScheduleController extends Controller
             $current = (bool) ($rel->pivot->is_active ?? true);
             $tour->schedules()->updateExistingPivot($schedule->getKey(), ['is_active' => ! $current]);
 
+            LoggerHelper::mutated($this->controller, 'toggleAssignment', 'tour_schedule_pivot', $schedule->getKey(), [
+                'tour_id'        => $tour->getKey(),
+                'schedule_id'    => $schedule->getKey(),
+                'pivot_is_active'=> ! $current,
+                'user_id'        => optional($request->user())->getAuthIdentifier(),
+            ]);
+
             return back()->with('success', ! $current
                 ? 'Asignación activada para este tour.'
                 : 'Asignación desactivada para este tour.');
         } catch (Exception $e) {
-            Log::error('Error al cambiar estado de la asignación tour#'.$tour->getKey().' schedule#'.$schedule->getKey().': '.$e->getMessage(), ['exception' => $e]);
+            LoggerHelper::exception($this->controller, 'toggleAssignment', 'tour_schedule_pivot', $schedule->getKey(), $e, [
+                'tour_id'  => $tour->getKey(),
+                'user_id'  => optional($request->user())->getAuthIdentifier(),
+            ]);
             return back()->with('error', 'No se pudo cambiar el estado de la asignación.');
         }
     }
 
     /** Adjuntar horario existente a un tour */
-    public function attach(Request $request, Tour $tour)
+    public function attach(AttachScheduleToTourRequest $request, Tour $tour): RedirectResponse
     {
-        $data = $request->validate([
-            'schedule_id' => ['required', 'exists:schedules,schedule_id'],
-        ], [
-            'schedule_id.required' => 'Debes seleccionar un horario.',
-            'schedule_id.exists'   => 'El horario seleccionado no existe.',
-        ]);
-
         try {
+            $data = $request->validated();
+
             $tour->schedules()->syncWithoutDetaching([
                 $data['schedule_id'] => ['is_active' => true],
             ]);
 
+            LoggerHelper::mutated($this->controller, 'attach', 'tour_schedule_pivot', $data['schedule_id'], [
+                'tour_id' => $tour->getKey(),
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
             return back()->with('success', 'Horario asignado al tour.');
         } catch (Exception $e) {
-            Log::error('Error al asignar horario al tour#'.$tour->getKey().': '.$e->getMessage(), ['exception' => $e]);
+            LoggerHelper::exception($this->controller, 'attach', 'tour_schedule_pivot', null, $e, [
+                'tour_id' => $tour->getKey(),
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
             return back()->with('error', 'No se pudo asignar el horario al tour.');
         }
     }
 
     /** Quitar horario de un tour (DETACH) */
-    public function detach(Tour $tour, Schedule $schedule)
+    public function detach(Tour $tour, Schedule $schedule): RedirectResponse
     {
         try {
             $tour->schedules()->detach($schedule->getKey());
+
+            LoggerHelper::mutated($this->controller, 'detach', 'tour_schedule_pivot', $schedule->getKey(), [
+                'tour_id' => $tour->getKey(),
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
             return back()->with('success', 'Horario eliminado del tour correctamente.');
         } catch (Exception $e) {
-            Log::error('Error al desasignar horario del tour#'.$tour->getKey().' schedule#'.$schedule->getKey().': '.$e->getMessage(), ['exception' => $e]);
+            LoggerHelper::exception($this->controller, 'detach', 'tour_schedule_pivot', $schedule->getKey(), $e, [
+                'tour_id' => $tour->getKey(),
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
             return back()->with('error', 'No se pudo desasignar el horario del tour.');
         }
     }
 
     /** Eliminar horario (hard delete, global) */
-    public function destroy(Schedule $schedule)
+    public function destroy(Schedule $schedule): RedirectResponse
     {
         try {
-            // $schedule->tours()->detach(); // si no tienes ON DELETE CASCADE en pivot
+            $id = $schedule->getKey();
+            // $schedule->tours()->detach(); // si no tienes ON DELETE CASCADE
             $schedule->delete();
+
+            LoggerHelper::mutated($this->controller, 'destroy', 'schedule', $id, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
 
             return redirect()->route('admin.tours.schedule.index')
                 ->with('success', 'Horario eliminado correctamente.');
         } catch (Exception $e) {
-            Log::error('Error al eliminar horario #'.$schedule->getKey().': '.$e->getMessage(), ['exception' => $e]);
+            LoggerHelper::exception($this->controller, 'destroy', 'schedule', $schedule->getKey(), $e, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
             return back()->with('error', 'Hubo un problema al eliminar el horario.');
         }
     }

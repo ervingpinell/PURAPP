@@ -9,267 +9,204 @@ use App\Models\TourExcludedDate;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
+use Exception;
+use App\Services\LoggerHelper;
+use App\Http\Requests\Tour\TourExcludedDate\StoreExcludedDateRequest;
+use App\Http\Requests\Tour\TourExcludedDate\UpdateExcludedDateRequest;
+use App\Http\Requests\Tour\TourExcludedDate\ToggleExcludedDateRequest;
+use App\Http\Requests\Tour\TourExcludedDate\BulkToggleExcludedDatesRequest;
+use App\Http\Requests\Tour\TourExcludedDate\StoreMultipleExcludedDatesRequest;
+use App\Http\Requests\Tour\TourExcludedDate\BlockAllRequest;
+use App\Http\Requests\Tour\TourExcludedDate\DestroySelectedExcludedDatesRequest;
 
 class TourExcludedDateController extends Controller
 {
+    protected string $controller = 'TourExcludedDateController';
+
     /**
      * Vista “Disponibilidades” por día (AM/PM) con filtros.
      */
-public function index(Request $request)
-{
-    $tz       = config('app.timezone', 'America/Costa_Rica');
-    $today    = \Carbon\Carbon::today($tz);
-    $todayStr = $today->toDateString();
+    public function index(Request $request)
+    {
+        $timezone         = config('app.timezone', 'America/Costa_Rica');
+        $today            = Carbon::today($timezone)->startOfDay();
+        $todayDateString  = $today->toDateString();
 
-    // 1) Limpieza de registros pasados para aligerar carga
-    \App\Models\TourExcludedDate::whereDate('end_date', '<', $todayStr)
-        ->orWhere(function($q) use($todayStr){
-            $q->whereNull('end_date')->whereDate('start_date','<',$todayStr);
-        })
-        ->delete();
+        // Limpieza silenciosa de registros pasados
+        $this->purgePastExcludedDates($todayDateString);
+        $this->purgePastAvailabilities($todayDateString);
 
-    // Opcional: limpiar disponibilidades pasadas
-    \App\Models\TourAvailability::whereDate('date','<', $todayStr)->delete();
+        // Normalizar filtros de entrada
+        $requestedStart   = Carbon::parse($request->input('date', $todayDateString), $timezone);
+        $startDate        = $requestedStart->lt($today) ? $today : $requestedStart;
+        $startDateString  = $startDate->toDateString();
 
-    // 2) Normalizar filtros
-    $rawDate = $request->input('date', $todayStr);
-    $start   = \Carbon\Carbon::parse($rawDate, $tz);
-    if ($start->lt($today)) {
-        $start = $today; // forzar hoy si viene una fecha pasada
+        $daysRequested    = (int) $request->input('days', 7);
+        $days             = max(1, min(30, $daysRequested)); // clamp 1..30
+        $searchQuery      = trim((string) $request->input('q', ''));
+
+        // Cargar tours (con filtro opcional por nombre)
+        $tours = Tour::with('schedules')
+            ->when($searchQuery !== '', fn ($query) => $query->where('name', 'like', "%{$searchQuery}%"))
+            ->orderBy('name')
+            ->get();
+
+        // Construir rango de fechas inclusivo
+        $endDateString = Carbon::parse($startDateString, $timezone)->addDays($days - 1)->toDateString();
+        $dateRange     = collect(CarbonPeriod::create($startDateString, $endDateString))->map->toDateString();
+
+        // Cargar registros de disponibilidad y exclusión dentro del rango
+        $availabilityRecords = TourAvailability::whereIn('date', $dateRange)->get();
+        $exclusionRecords    = TourExcludedDate::whereIn('start_date', $dateRange)->get();
+
+        // Construir calendario completo (AM/PM)
+        $calendar = $this->buildCalendar($tours, $dateRange, $timezone, $availabilityRecords, $exclusionRecords);
+
+        return view('admin.tours.excluded_dates.index', [
+            'calendar' => $calendar,
+            'date'     => $startDateString,
+            'days'     => $days,
+            'q'        => $searchQuery,
+        ]);
     }
-    $startDate = $start->toDateString();
-
-    // clamp Days 1..30
-    $days = (int) $request->input('days', 7);
-    $days = max(1, min(30, $days));
-
-    $q = trim((string)$request->input('q', ''));
-
-    // 3) Tours (filtro por nombre si aplica)
-    $tours = \App\Models\Tour::with('schedules')
-        ->when($q !== '', fn($qq) => $qq->where('name', 'like', "%{$q}%"))
-        ->orderBy('name')
-        ->get();
-
-    // 4) Periodo inclusivo [start, start+days-1]
-    $endDate = \Carbon\Carbon::parse($startDate, $tz)->addDays($days - 1)->toDateString();
-    $period  = \Carbon\CarbonPeriod::create($startDate, $endDate);
-    $dateList = collect($period)->map->toDateString();
-
-    // 5) Cargar disponibilidades/bloqueos del rango
-    $avail = \App\Models\TourAvailability::whereIn('date', $dateList)->get();
-    $excls = \App\Models\TourExcludedDate::whereIn('start_date', $dateList)->get();
-
-    // 6) Construir calendario
-    $calendar = [];
-    foreach ($dateList as $dateStr) {
-        $calendar[$dateStr] = ['am' => [], 'pm' => []];
-
-        foreach ($tours as $tour) {
-            foreach ($tour->schedules as $schedule) {
-                $time   = \Carbon\Carbon::parse($schedule->start_time, $tz);
-                $bucket = ((int)$time->format('H') < 12) ? 'am' : 'pm';
-
-                $a = $avail->first(fn($x) =>
-                    $x->tour_id == $tour->tour_id &&
-                    $x->schedule_id == $schedule->schedule_id &&
-                    $x->date === $dateStr
-                );
-
-                $e = $excls->first(fn($x) =>
-                    $x->tour_id == $tour->tour_id &&
-                    $x->schedule_id == $schedule->schedule_id &&
-                    \Carbon\Carbon::parse($x->start_date, $tz)->toDateString() === $dateStr
-                );
-
-                $isAvailable = $a !== null ? (bool)$a->is_available : ($e === null);
-
-                $calendar[$dateStr][$bucket][] = [
-                    'tour_id'     => $tour->tour_id,
-                    'tour_name'   => $tour->name,
-                    'schedule_id' => $schedule->schedule_id,
-                    'time'        => $time->format('g:ia'),
-                    'is_available'=> $isAvailable,
-                    'date'        => $dateStr,
-                ];
-            }
-        }
-
-        foreach (['am','pm'] as $b) {
-            usort($calendar[$dateStr][$b], fn($a,$b) => strnatcasecmp($a['tour_name'], $b['tour_name']));
-        }
-    }
-
-    return view('admin.tours.excluded_dates.index', [
-        'calendar' => $calendar,
-        'date'     => $startDate,
-        'days'     => $days,
-        'q'        => $q,
-    ]);
-}
-// App/Http/Controllers/Admin/Tours/TourExcludedDateController.php
-
-public function blocked(Request $request)
-{
-    $startDate = $request->input('date', \Carbon\Carbon::today()->toDateString());
-    $days      = (int)($request->input('days', 7));
-    $q         = trim((string)$request->input('q', ''));
-
-    // Construir calendario igual que en index()
-    $tours = \App\Models\Tour::with('schedules')
-        ->when($q !== '', fn($qq) => $qq->where('name', 'like', "%{$q}%"))
-        ->orderBy('name')
-        ->get();
-
-    $period   = \Carbon\CarbonPeriod::create($startDate, $days - 1);
-    $dateList = collect($period)->map->toDateString();
-
-    $avail = \App\Models\TourAvailability::whereIn('date', $dateList)->get();
-    $excls = \App\Models\TourExcludedDate::whereIn('start_date', $dateList)->get();
-
-    $calendar = [];
-    foreach ($dateList as $dateStr) {
-        $calendar[$dateStr] = ['am' => [], 'pm' => []];
-
-        foreach ($tours as $tour) {
-            foreach ($tour->schedules as $schedule) {
-                $time   = \Carbon\Carbon::parse($schedule->start_time);
-                $bucket = ((int)$time->format('H') < 12) ? 'am' : 'pm';
-
-                $a = $avail->first(fn($x) =>
-                    $x->tour_id == $tour->tour_id &&
-                    $x->schedule_id == $schedule->schedule_id &&
-                    $x->date === $dateStr
-                );
-
-                $e = $excls->first(fn($x) =>
-                    $x->tour_id == $tour->tour_id &&
-                    $x->schedule_id == $schedule->schedule_id &&
-                    \Carbon\Carbon::parse($x->start_date)->toDateString() === $dateStr
-                );
-
-                $isAvailable = $a !== null ? (bool)$a->is_available : ($e === null);
-
-                if ($isAvailable === false) { // solo bloqueados
-                    $calendar[$dateStr][$bucket][] = [
-                        'tour_id'     => $tour->tour_id,
-                        'tour_name'   => $tour->name,
-                        'schedule_id' => $schedule->schedule_id,
-                        'time'        => $time->format('g:ia'),
-                        'is_available'=> $isAvailable,
-                        'date'        => $dateStr,
-                    ];
-                }
-            }
-        }
-
-        foreach (['am','pm'] as $b) {
-            usort($calendar[$dateStr][$b], fn($a,$b) => strnatcasecmp($a['tour_name'], $b['tour_name']));
-        }
-    }
-
-    // Limpia días vacíos para que la vista quede compacta
-    $calendar = array_filter($calendar, function($buckets){
-        return count($buckets['am']) + count($buckets['pm']) > 0;
-    });
-
-    return view('admin.tours.excluded_dates.blocked', [
-        'calendar' => $calendar,
-        'date'     => $startDate,
-        'days'     => $days,
-        'q'        => $q,
-    ]);
-}
-
 
     /**
-     * Compatibilidad: crear un registro puntual en excluded_dates.
+     * Vista “solo bloqueados” en el rango seleccionado.
      */
-    public function store(Request $request)
+    public function blocked(Request $request)
     {
-        $request->validate([
-            'tour_id'     => 'required|exists:tours,tour_id',
-            'schedule_id' => 'nullable|exists:schedules,schedule_id',
-            'start_date'  => 'required|date',
-            'end_date'    => 'nullable|date|after_or_equal:start_date',
-            'reason'      => 'nullable|string|max:255',
+        $timezone        = config('app.timezone', 'America/Costa_Rica');
+        $startDateString = $request->input('date', Carbon::today($timezone)->toDateString());
+        $days            = (int) $request->input('days', 7);
+        $searchQuery     = trim((string) $request->input('q', ''));
+
+        $tours = Tour::with('schedules')
+            ->when($searchQuery !== '', fn ($query) => $query->where('name', 'like', "%{$searchQuery}%"))
+            ->orderBy('name')
+            ->get();
+
+        // Ojo: aquí el rango se construía con (start, days-1). Conservamos comportamiento.
+        $dateRange = collect(CarbonPeriod::create($startDateString, $days - 1))->map->toDateString();
+
+        $availabilityRecords = TourAvailability::whereIn('date', $dateRange)->get();
+        $exclusionRecords    = TourExcludedDate::whereIn('start_date', $dateRange)->get();
+
+        // Construir calendario y filtrar solo bloqueados
+        $calendar = $this->buildCalendar($tours, $dateRange, $timezone, $availabilityRecords, $exclusionRecords, onlyBlocked: true);
+
+        // Compactar días sin bloqueos
+        $calendar = array_filter($calendar, fn ($buckets) => count($buckets['am']) + count($buckets['pm']) > 0);
+
+        return view('admin.tours.excluded_dates.blocked', [
+            'calendar' => $calendar,
+            'date'     => $startDateString,
+            'days'     => $days,
+            'q'        => $searchQuery,
         ]);
+    }
 
-        $exists = TourExcludedDate::where('tour_id', $request->tour_id)
-            ->where('schedule_id', $request->schedule_id)
-            ->whereDate('start_date', $request->start_date)
-            ->exists();
+    public function store(StoreExcludedDateRequest $request)
+    {
+        try {
+            $alreadyExists = TourExcludedDate::where('tour_id', $request->tour_id)
+                ->where('schedule_id', $request->schedule_id)
+                ->whereDate('start_date', $request->start_date)
+                ->exists();
 
-        if (!$exists) {
-            TourExcludedDate::create($request->all());
+            if (!$alreadyExists) {
+                TourExcludedDate::create($request->validated());
+            }
+
+            LoggerHelper::mutated($this->controller, 'store', 'tour_excluded_date', null, [
+                'tour_id'     => $request->tour_id,
+                'schedule_id' => $request->schedule_id,
+                'start_date'  => $request->start_date,
+                'user_id'     => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('success', 'Fecha bloqueada creada correctamente.');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'store', 'tour_excluded_date', null, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('error', 'No se pudo crear la fecha bloqueada.');
         }
-
-        return redirect()->back()->with('success', 'Fecha bloqueada creada correctamente.');
     }
 
-    public function destroy($id)
+    public function update(UpdateExcludedDateRequest $request, TourExcludedDate $excludedDate)
     {
-        $date = TourExcludedDate::findOrFail($id);
-        $date->delete();
+        try {
+            $excludedDate->update($request->validated());
 
-        return redirect()->back()->with('success', 'Fecha bloqueada eliminada.');
+            LoggerHelper::mutated($this->controller, 'update', 'tour_excluded_date', $excludedDate->tour_excluded_date_id, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return redirect()
+                ->route('admin.tours.excluded_dates.index')
+                ->with('success', 'Fecha bloqueada actualizada correctamente.');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'update', 'tour_excluded_date', $excludedDate->tour_excluded_date_id, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('error', 'No se pudo actualizar la fecha bloqueada.');
+        }
     }
 
-    public function update(Request $request, $id)
+    public function destroy(TourExcludedDate $excludedDate)
     {
-        $request->validate([
-            'tour_id'    => 'required|exists:tours,tour_id',
-            'start_date' => 'required|date',
-            'end_date'   => 'nullable|date|after_or_equal:start_date',
-            'reason'     => 'nullable|string|max:255',
-        ]);
+        try {
+            $excludedDateId = $excludedDate->tour_excluded_date_id;
+            $excludedDate->delete();
 
-        $excludedDate = TourExcludedDate::findOrFail($id);
+            LoggerHelper::mutated($this->controller, 'destroy', 'tour_excluded_date', $excludedDateId, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
 
-        $excludedDate->update([
-            'tour_id'    => $request->tour_id,
-            'start_date' => $request->start_date,
-            'end_date'   => $request->end_date,
-            'reason'     => $request->reason,
-        ]);
+            return back()->with('success', 'Fecha bloqueada eliminada.');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'destroy', 'tour_excluded_date', $excludedDate->tour_excluded_date_id ?? null, $e, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
 
-        return redirect()->route('admin.tours.excluded_dates.index')
-            ->with('success', 'Fecha bloqueada actualizada correctamente.');
+            return back()->with('error', 'No se pudo eliminar la fecha bloqueada.');
+        }
     }
 
     /**
      * Bloqueo total por rango (todos los tours/horarios).
      */
-    public function blockAll(Request $request)
+    public function blockAll(BlockAllRequest $request)
     {
         try {
-            $request->validate([
-                'start_date' => 'required|date',
-                'end_date'   => 'nullable|date|after_or_equal:start_date',
-                'reason'     => 'nullable|string',
-            ]);
+            $startDate = $request->start_date;
+            $endDate   = $request->end_date ?? $startDate;
+            $reason    = $request->reason ?? 'Bloqueo total';
 
-            $start  = $request->start_date;
-            $end    = $request->end_date ?? $start;
-            $reason = $request->reason ?? 'Bloqueo total';
-
-            $tours  = Tour::with('schedules')->get();
-            $period = CarbonPeriod::create($start, $end);
+            $tours     = Tour::with('schedules')->get();
+            $dateRange = CarbonPeriod::create($startDate, $endDate);
 
             foreach ($tours as $tour) {
                 foreach ($tour->schedules as $schedule) {
-                    foreach ($period as $date) {
+                    foreach ($dateRange as $date) {
                         $day = $date->format('Y-m-d');
 
-                        TourAvailability::updateOrCreate([
-                            'tour_id'     => $tour->tour_id,
-                            'schedule_id' => $schedule->schedule_id,
-                            'date'        => $day,
-                        ], [
-                            'is_available' => false,
-                            'reason'       => $reason,
-                        ]);
+                        // Disponibilidad a false
+                        TourAvailability::updateOrCreate(
+                            [
+                                'tour_id'     => $tour->tour_id,
+                                'schedule_id' => $schedule->schedule_id,
+                                'date'        => $day,
+                            ],
+                            [
+                                'is_available' => false,
+                                'reason'       => $reason,
+                            ]
+                        );
 
+                        // Registro de exclusión (evitar duplicados)
                         $exists = TourExcludedDate::where('tour_id', $tour->tour_id)
                             ->where('schedule_id', $schedule->schedule_id)
                             ->whereDate('start_date', $day)
@@ -288,8 +225,18 @@ public function blocked(Request $request)
                 }
             }
 
+            LoggerHelper::mutated($this->controller, 'blockAll', 'tour_excluded_date', null, [
+                'start_date' => $startDate,
+                'end_date'   => $endDate,
+                'user_id'    => optional($request->user())->getAuthIdentifier(),
+            ]);
+
             return response()->json(['success' => true]);
-        } catch (\Throwable $e) {
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'blockAll', 'tour_excluded_date', null, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
             return response()->json([
                 'success' => false,
                 'error'   => $e->getMessage(),
@@ -300,130 +247,294 @@ public function blocked(Request $request)
     /**
      * Alternar / forzar estado para un tour+horario en una fecha.
      */
-    public function toggle(Request $request)
+    public function toggle(ToggleExcludedDateRequest $request)
     {
-        $data = $request->validate([
-            'tour_id'     => 'required|exists:tours,tour_id',
-            'schedule_id' => 'required|exists:schedules,schedule_id',
-            'date'        => 'required|date',
-            'want'        => 'nullable|in:block,unblock',
-            'reason'      => 'nullable|string|max:255',
-        ]);
-
-        $date   = Carbon::parse($data['date'])->toDateString();
-        $reason = $data['reason'] ?? null;
-
-        $current = TourAvailability::where([
-            'tour_id'     => $data['tour_id'],
-            'schedule_id' => $data['schedule_id'],
-            'date'        => $date,
-        ])->first();
-
-        $isAvailable = $current?->is_available ?? true;
-
-        $new = $data['want'] === 'block' ? false
-             : ($data['want'] === 'unblock' ? true : !$isAvailable);
-
-        $rec = TourAvailability::updateOrCreate(
-            [
-                'tour_id'     => $data['tour_id'],
-                'schedule_id' => $data['schedule_id'],
-                'date'        => $date,
-            ],
-            [
-                'is_available' => $new,
-                'reason'       => $new ? null : ($reason ?: 'Blocked'),
-            ]
-        );
-
-        if ($new === false) {
-            TourExcludedDate::firstOrCreate([
-                'tour_id'     => $data['tour_id'],
-                'schedule_id' => $data['schedule_id'],
-                'start_date'  => $date,
-                'end_date'    => $date,
-            ], [
-                'reason' => $rec->reason,
+        try {
+            $result = $this->performToggle([
+                'tour_id'     => (int) $request->tour_id,
+                'schedule_id' => (int) $request->schedule_id,
+                'date'        => (string) $request->date,
+                'want'        => $request->input('want'),
+                'reason'      => $request->input('reason'),
             ]);
-        } else {
-            TourExcludedDate::where([
-                'tour_id'     => $data['tour_id'],
-                'schedule_id' => $data['schedule_id'],
-            ])->whereDate('start_date', $date)->delete();
-        }
 
-        return response()->json([
-            'ok'           => true,
-            'is_available' => $new,
-            'label'        => $new ? 'Available' : 'Blocked',
-        ]);
+            LoggerHelper::mutated($this->controller, 'toggle', 'tour_availability', null, [
+                'tour_id'      => $request->tour_id,
+                'schedule_id'  => $request->schedule_id,
+                'date'         => $request->date,
+                'is_available' => $result['is_available'],
+                'user_id'      => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return response()->json($result);
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'toggle', 'tour_availability', null, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return response()->json(['ok' => false, 'error' => 'Toggle failed'], 500);
+        }
     }
 
     /**
-     * Alternar en lote (o forzar con want=block|unblock).
+     * Alternar / forzar estado en lote (o forzar con want=block|unblock).
      */
-    public function bulkToggle(Request $request)
+    public function bulkToggle(BulkToggleExcludedDatesRequest $request)
     {
-        $validated = $request->validate([
-            'items'                => 'required|array|min:1',
-            'items.*.tour_id'      => 'required|exists:tours,tour_id',
-            'items.*.schedule_id'  => 'required|exists:schedules,schedule_id',
-            'items.*.date'         => 'required|date',
-            'want'                 => 'nullable|in:block,unblock',
-            'reason'               => 'nullable|string|max:255',
-        ]);
+        try {
+            $changedCount = 0;
 
-        $changed = 0;
-        foreach ($validated['items'] as $it) {
-            $sub = new Request(array_merge($it, [
-                'want'   => $validated['want'] ?? null,
-                'reason' => $validated['reason'] ?? null,
-            ]));
-            $res = $this->toggle($sub);
-            if ($res->getStatusCode() === 200) $changed++;
+            foreach ($request->input('items', []) as $item) {
+                $payload = [
+                    'tour_id'     => (int) $item['tour_id'],
+                    'schedule_id' => (int) $item['schedule_id'],
+                    'date'        => (string) $item['date'],
+                    'want'        => $request->input('want'),
+                    'reason'      => $request->input('reason'),
+                ];
+
+                $result = $this->performToggle($payload);
+                if (!empty($result['ok']) && $result['ok'] === true) {
+                    $changedCount++;
+                }
+            }
+
+            LoggerHelper::mutated($this->controller, 'bulkToggle', 'tour_availability', null, [
+                'items'   => $changedCount,
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return response()->json(['ok' => true, 'changed' => $changedCount]);
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'bulkToggle', 'tour_availability', null, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return response()->json(['ok' => false, 'error' => 'Bulk toggle failed'], 500);
         }
-
-        return response()->json(['ok' => true, 'changed' => $changed]);
     }
 
     /**
-     * Alias para /admin/tour-excluded/block-all (bloquear lote).
+     * Alias para bloquear items en lote.
      */
-    public function storeMultiple(Request $request)
+    public function storeMultiple(StoreMultipleExcludedDatesRequest $request)
     {
-        $validated = $request->validate([
-            'items'               => 'required|array|min:1',
-            'items.*.tour_id'     => 'required|exists:tours,tour_id',
-            'items.*.schedule_id' => 'required|exists:schedules,schedule_id',
-            'items.*.date'        => 'required|date',
-            'reason'              => 'nullable|string|max:255',
-        ]);
+        try {
+            $changedCount = 0;
 
-        $req = new Request([
-            'items'  => $validated['items'],
-            'want'   => 'block',
-            'reason' => $validated['reason'] ?? 'Bloqueo múltiple',
-        ]);
+            foreach ($request->input('items', []) as $item) {
+                $result = $this->performToggle([
+                    'tour_id'     => (int) $item['tour_id'],
+                    'schedule_id' => (int) $item['schedule_id'],
+                    'date'        => (string) $item['date'],
+                    'want'        => 'block',
+                    'reason'      => $request->input('reason', 'Bloqueo múltiple'),
+                ]);
 
-        return $this->bulkToggle($req);
+                if (!empty($result['ok']) && $result['ok'] === true) {
+                    $changedCount++;
+                }
+            }
+
+            LoggerHelper::mutated($this->controller, 'storeMultiple', 'tour_excluded_date', null, [
+                'items'   => $changedCount,
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return response()->json(['ok' => true, 'changed' => $changedCount]);
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'storeMultiple', 'tour_excluded_date', null, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return response()->json(['ok' => false, 'error' => 'Store multiple failed'], 500);
+        }
     }
 
+    /**
+     * Operación administrativa (sin log para evitar ruido masivo).
+     */
     public function destroyAll()
     {
         TourExcludedDate::truncate();
-        return redirect()->back()->with('success', 'Todas las fechas bloqueadas han sido eliminadas.');
+        return back()->with('success', 'Todas las fechas bloqueadas han sido eliminadas.');
     }
 
-    public function destroySelected(Request $request)
+    public function destroySelected(DestroySelectedExcludedDatesRequest $request)
     {
-        $ids = $request->input('ids');
+        try {
+            $idsToDelete = $request->input('ids', []);
+            TourExcludedDate::whereIn('tour_excluded_date_id', $idsToDelete)->delete();
 
-        if (!is_array($ids) || empty($ids)) {
-            return response()->json(['error' => 'No se proporcionaron fechas a eliminar.'], 400);
+            LoggerHelper::mutated($this->controller, 'destroySelected', 'tour_excluded_date', null, [
+                'count'   => count($idsToDelete),
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return response()->json(['success' => 'Fechas eliminadas correctamente.']);
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'destroySelected', 'tour_excluded_date', null, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return response()->json(['error' => 'No se pudieron eliminar las fechas.'], 500);
+        }
+    }
+
+    /* ============================================================
+     |  Helpers privados (nombres claros y propósito único)
+     |============================================================ */
+
+    /**
+     * Purga registros de TourExcludedDate anteriores a hoy.
+     */
+    private function purgePastExcludedDates(string $todayDateString): void
+    {
+        TourExcludedDate::whereDate('end_date', '<', $todayDateString)
+            ->orWhere(function ($query) use ($todayDateString) {
+                $query->whereNull('end_date')->whereDate('start_date', '<', $todayDateString);
+            })
+            ->delete();
+    }
+
+    /**
+     * Purga registros de disponibilidad en fechas pasadas.
+     */
+    private function purgePastAvailabilities(string $todayDateString): void
+    {
+        TourAvailability::whereDate('date', '<', $todayDateString)->delete();
+    }
+
+    /**
+     * Construye la matriz calendario agrupada en AM/PM
+     * y opcionalmente retorna solo los slots bloqueados.
+     *
+     * @param \Illuminate\Support\Collection $tours
+     * @param \Illuminate\Support\Collection|array $dateRange
+     * @param string $timezone
+     * @param \Illuminate\Support\Collection $availabilityRecords
+     * @param \Illuminate\Support\Collection $exclusionRecords
+     * @param bool $onlyBlocked
+     * @return array<string, array{am: array<int, array>, pm: array<int, array>}>
+     */
+    private function buildCalendar($tours, $dateRange, string $timezone, $availabilityRecords, $exclusionRecords, bool $onlyBlocked = false): array
+    {
+        $calendar = [];
+
+        foreach ($dateRange as $dateString) {
+            $calendar[$dateString] = ['am' => [], 'pm' => []];
+
+            foreach ($tours as $tour) {
+                foreach ($tour->schedules as $schedule) {
+                    $startTime     = Carbon::parse($schedule->start_time, $timezone);
+                    $scheduleBucket = ((int) $startTime->format('H') < 12) ? 'am' : 'pm';
+
+                    $availability = $availabilityRecords->first(fn ($record) =>
+                        $record->tour_id == $tour->tour_id &&
+                        $record->schedule_id == $schedule->schedule_id &&
+                        $record->date === $dateString
+                    );
+
+                    $exclusion = $exclusionRecords->first(fn ($record) =>
+                        $record->tour_id == $tour->tour_id &&
+                        $record->schedule_id == $schedule->schedule_id &&
+                        Carbon::parse($record->start_date, $timezone)->toDateString() === $dateString
+                    );
+
+                    $isAvailable = $availability !== null
+                        ? (bool) $availability->is_available
+                        : ($exclusion === null);
+
+                    if ($onlyBlocked && $isAvailable) {
+                        continue; // en vista "blocked" omitimos disponibles
+                    }
+
+                    $calendar[$dateString][$scheduleBucket][] = [
+                        'tour_id'      => $tour->tour_id,
+                        'tour_name'    => $tour->name,
+                        'schedule_id'  => $schedule->schedule_id,
+                        'time'         => $startTime->format('g:ia'),
+                        'is_available' => $isAvailable,
+                        'date'         => $dateString,
+                    ];
+                }
+            }
+
+            // Ordenar por nombre de tour (humano-legible)
+            foreach (['am', 'pm'] as $bucket) {
+                usort(
+                    $calendar[$dateString][$bucket],
+                    fn ($left, $right) => strnatcasecmp($left['tour_name'], $right['tour_name'])
+                );
+            }
         }
 
-        TourExcludedDate::whereIn('tour_excluded_date_id', $ids)->delete();
+        return $calendar;
+    }
 
-        return response()->json(['success' => 'Fechas eliminadas correctamente.']);
+    /**
+     * Lógica reusable para toggle/block/unblock de un tour+horario en una fecha.
+     * Devuelve estructura JSON consistente.
+     *
+     * @param array{tour_id:int,schedule_id:int,date:string,want:?string,reason:?string} $data
+     * @return array{ok:bool,is_available:bool,label:string}
+     */
+    private function performToggle(array $data): array
+    {
+        $targetDate = Carbon::parse($data['date'])->toDateString();
+        $reason     = $data['reason'] ?? null;
+
+        $currentAvailability = TourAvailability::where([
+            'tour_id'     => $data['tour_id'],
+            'schedule_id' => $data['schedule_id'],
+            'date'        => $targetDate,
+        ])->first();
+
+        $currentIsAvailable = $currentAvailability?->is_available ?? true;
+
+        $nextIsAvailable = match ($data['want'] ?? null) {
+            'block'   => false,
+            'unblock' => true,
+            default   => !$currentIsAvailable,
+        };
+
+        $updatedAvailability = TourAvailability::updateOrCreate(
+            [
+                'tour_id'     => $data['tour_id'],
+                'schedule_id' => $data['schedule_id'],
+                'date'        => $targetDate,
+            ],
+            [
+                'is_available' => $nextIsAvailable,
+                'reason'       => $nextIsAvailable ? null : ($reason ?: 'Blocked'),
+            ]
+        );
+
+        if ($nextIsAvailable === false) {
+            // Asegura registro en excluded_dates
+            TourExcludedDate::firstOrCreate(
+                [
+                    'tour_id'     => $data['tour_id'],
+                    'schedule_id' => $data['schedule_id'],
+                    'start_date'  => $targetDate,
+                    'end_date'    => $targetDate,
+                ],
+                [
+                    'reason' => $updatedAvailability->reason,
+                ]
+            );
+        } else {
+            // Si se habilita, eliminar exclusión puntual de ese día
+            TourExcludedDate::where([
+                'tour_id'     => $data['tour_id'],
+                'schedule_id' => $data['schedule_id'],
+            ])->whereDate('start_date', $targetDate)->delete();
+        }
+
+        return [
+            'ok'           => true,
+            'is_available' => $nextIsAvailable,
+            'label'        => $nextIsAvailable ? 'Available' : 'Blocked',
+        ];
     }
 }
