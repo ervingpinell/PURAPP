@@ -9,16 +9,10 @@
   $activeSections = $policy->activeSections ?? collect();
 @endphp
 
-{{-- CSS embebido para asegurar que aplique aunque no exista @stack('css') en el layout --}}
 <style>
-  /* Oculta el chevrón por defecto del acordeón de Bootstrap */
   .accordion-button::after { content: none !important; display: none !important; }
-
-  /* Estética base */
   .accordion-item { background: transparent; }
   .accordion-button { background: transparent; }
-
-  /* Toggling de +/− con aria-expanded (sin JS) */
   .accordion-button .icon-plus,
   .accordion-button .icon-minus { display: inline-block; }
   .accordion-button[aria-expanded="false"] .icon-minus { display: none !important; }
@@ -28,12 +22,12 @@
 <div class="container py-4">
   <h1 class="mb-2 big-title text-center">{{ $t?->title ?? $policy->name }}</h1>
 
-  {{-- Descripción/intro --}}
+  {{-- Description/intro --}}
   @if(filled($t?->content))
     <div class="mb-4">{!! nl2br(e($t->content)) !!}</div>
   @endif
 
-  {{-- Secciones --}}
+  {{-- Sections --}}
   @if($activeSections->isNotEmpty())
     <div class="accordion" id="policySectionsAccordion">
       @foreach($activeSections as $section)

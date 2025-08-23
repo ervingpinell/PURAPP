@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        // tour_language_tour
         Schema::table('tour_language_tour', function (Blueprint $table) {
             if (!Schema::hasColumn('tour_language_tour', 'created_at')) {
                 $table->timestamp('created_at')->nullable();
@@ -17,7 +16,6 @@ return new class extends Migration {
             }
         });
 
-        // amenity_tour
         Schema::table('amenity_tour', function (Blueprint $table) {
             if (!Schema::hasColumn('amenity_tour', 'created_at')) {
                 $table->timestamp('created_at')->nullable();
@@ -27,7 +25,6 @@ return new class extends Migration {
             }
         });
 
-        // excluded_amenity_tour
         Schema::table('excluded_amenity_tour', function (Blueprint $table) {
             if (!Schema::hasColumn('excluded_amenity_tour', 'created_at')) {
                 $table->timestamp('created_at')->nullable();
@@ -37,7 +34,6 @@ return new class extends Migration {
             }
         });
 
-        // schedule_tour
         Schema::table('schedule_tour', function (Blueprint $table) {
             if (!Schema::hasColumn('schedule_tour', 'created_at')) {
                 $table->timestamp('created_at')->nullable();

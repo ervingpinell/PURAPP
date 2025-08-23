@@ -24,7 +24,6 @@ class DashBoardController extends Controller
 
 public function switchLanguage(string $language)
 {
-    // Mapeo a tus carpetas reales
     $map = [
         'es' => 'es',
         'es_CR' => 'es',
@@ -38,12 +37,12 @@ public function switchLanguage(string $language)
     if (isset($map[$language])) {
         $locale = $map[$language];
         session(['locale' => $locale]);
-        app()->setLocale($locale); // aplica en esta request
+        app()->setLocale($locale);
     }
 
     $referer = url()->previous() ?: route('home');
 
-    // Evita bucles si vienes del login
+
     $path = parse_url($referer, PHP_URL_PATH) ?? '';
     if (str_starts_with($path, '/login')) {
         return redirect()->route('login');

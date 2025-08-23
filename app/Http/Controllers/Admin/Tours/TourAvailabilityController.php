@@ -42,7 +42,6 @@ class TourAvailabilityController extends Controller
                 'date'         => $data['date'],
                 'start_time'   => $data['start_time'] ?? null,
                 'end_time'     => $data['end_time'] ?? null,
-                // Aceptamos "available" del form y lo guardamos en "is_available"
                 'is_available' => $request->boolean('available', true),
                 'is_active'    => $request->boolean('is_active', true),
             ];

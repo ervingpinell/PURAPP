@@ -21,9 +21,9 @@ class HomeController extends Controller
         $locale   = app()->getLocale();
         $fallback = config('app.fallback_locale', 'es');
 
-        // 1) Tipos de tour con traducciones -> meta para UI
+        // 1) Tipos de tour con traducciones
         $typeMeta = TourType::active()
-            ->with('translations') // si no hay traducciones aún, la colección vendrá vacía
+            ->with('translations')
             ->orderBy('name')
             ->get()
             ->mapWithKeys(function ($type) use ($locale, $fallback) {
@@ -61,7 +61,7 @@ class HomeController extends Controller
             ->sortBy('tour_type_id_group', SORT_NATURAL | SORT_FLAG_CASE)
             ->groupBy(fn ($t) => $t->tour_type_id_group);
 
-        // 4) Carrusel Viator — hoy usa nombre original (ES); mañana usará traducción si existe
+        // 4) Carrusel Viator
         $viatorTours = Tour::with('translations')
             ->whereNotNull('viator_code')
             ->inRandomOrder()
@@ -75,7 +75,7 @@ class HomeController extends Controller
             return [
                 'id'   => $t->tour_id,
                 'code' => $t->viator_code,
-                'name' => $tr->name ?? $t->name ?? '',   // nunca null
+                'name' => $tr->name ?? $t->name ?? '',
             ];
         })->values();
 
@@ -90,13 +90,11 @@ class HomeController extends Controller
 
         $tour = Tour::with([
             'tourType.translations',
-            // horarios visibles: global + pivote
             'schedules' => function ($q) {
                 $q->where('schedules.is_active', true)
                   ->wherePivot('is_active', true)
                   ->orderBy('schedules.start_time');
             },
-            // idiomas activos
             'languages' => function ($q) {
                 $q->wherePivot('is_active', true)
                   ->where('tour_languages.is_active', true)
@@ -109,7 +107,6 @@ class HomeController extends Controller
             'translations',
         ])->findOrFail($id);
 
-        // Traducciones
         $t = ($tour->translations ?? collect())->firstWhere('locale', $locale)
            ?: ($tour->translations ?? collect())->firstWhere('locale', $fallback);
 
@@ -143,9 +140,7 @@ class HomeController extends Controller
             $e->translated_name = $te->name ?? $e->name;
         }
 
-        // =========================
         // Bloqueos de fechas/horarios
-        // =========================
         $visibleScheduleIds = $tour->schedules->pluck('schedule_id')->map(fn($v)=>(int)$v)->all();
 
         // Trae SOLO bloqueos globales o de los horarios visibles

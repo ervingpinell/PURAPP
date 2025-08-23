@@ -11,17 +11,14 @@ use App\Models\Itinerary;
 use App\Models\ItineraryItem;
 use App\Models\Amenity;
 use App\Models\Faq;
-use App\Models\TourType; // 👈 NEW
-
+use App\Models\TourType;
 // Traducciones
 use App\Models\TourTranslation;
 use App\Models\ItineraryTranslation;
 use App\Models\ItineraryItemTranslation;
 use App\Models\AmenityTranslation;
 use App\Models\FaqTranslation;
-use App\Models\TourTypeTranslation; // 👈 NEW
-
-// Policies (solo cabecera; las secciones se gestionan en su controller dedicado)
+use App\Models\TourTypeTranslation;
 use App\Models\Policy;
 use App\Models\PolicyTranslation;
 
@@ -41,18 +38,18 @@ class TranslationController extends Controller
             'amenities'        => 'amenidad',
             'faqs'             => 'pregunta frecuente',
             'policies'         => 'política',
-            'tour_types'       => 'tipo de tour', // 👈 NEW
+            'tour_types'       => 'tipo de tour',
             default            => abort(404),
         };
 
         $items = match ($type) {
             'tours'            => Tour::orderBy('tour_id')->get(),
             'itineraries'      => Itinerary::orderBy('itinerary_id')->get(),
-            'itinerary_items'  => ItineraryItem::orderBy('id')->get(), // ajusta si tu PK es distinta
+            'itinerary_items'  => ItineraryItem::orderBy('id')->get(),
             'amenities'        => Amenity::orderBy('amenity_id')->get(),
             'faqs'             => Faq::orderBy('faq_id')->get(),
             'policies'         => Policy::orderBy('policy_id')->get(),
-            'tour_types'       => TourType::orderBy('tour_type_id')->get(), // 👈 NEW
+            'tour_types'       => TourType::orderBy('tour_type_id')->get(),
             default            => collect(),
         };
 
@@ -70,7 +67,7 @@ class TranslationController extends Controller
             'amenities'        => Amenity::findOrFail($id),
             'faqs'             => Faq::findOrFail($id),
             'policies'         => Policy::findOrFail($id),
-            'tour_types'       => TourType::findOrFail($id), // 👈 NEW
+            'tour_types'       => TourType::findOrFail($id),
             default            => abort(404),
         };
 
@@ -79,7 +76,6 @@ class TranslationController extends Controller
 
     public function edit(string $type, int $id)
     {
-        // Puedes ampliar locales si lo necesitas
         $availableLocales = ['es', 'en', 'fr', 'pt', 'de'];
         $locale = request('locale', 'en');
 
@@ -107,7 +103,7 @@ class TranslationController extends Controller
             case 'itinerary_items':
                 $item = ItineraryItem::findOrFail($id);
                 $translationModel = ItineraryItemTranslation::class;
-                $foreignKey = 'item_id'; // ajusta si tu FK real es distinto
+                $foreignKey = 'item_id';
                 $fields = ['title', 'description'];
                 break;
 
@@ -132,7 +128,7 @@ class TranslationController extends Controller
                 $fields = ['title', 'content'];
                 break;
 
-            case 'tour_types': // 👈 NEW
+            case 'tour_types'
                 $item = TourType::findOrFail($id);
                 $translationModel = TourTypeTranslation::class;
                 $foreignKey = 'tour_type_id';
@@ -190,7 +186,7 @@ class TranslationController extends Controller
             case 'itinerary_items':
                 $model = ItineraryItem::findOrFail($id);
                 $translationModel = ItineraryItemTranslation::class;
-                $foreignKey = 'item_id'; // ajusta si tu FK real es distinto
+                $foreignKey = 'item_id';
                 $fields = ['title', 'description'];
                 break;
 
@@ -215,7 +211,7 @@ class TranslationController extends Controller
                 $fields = ['title', 'content'];
                 break;
 
-            case 'tour_types': // 👈 NEW
+            case 'tour_types':
                 $model = TourType::findOrFail($id);
                 $translationModel = TourTypeTranslation::class;
                 $foreignKey = 'tour_type_id';
@@ -226,7 +222,7 @@ class TranslationController extends Controller
                 abort(404, 'Tipo de traducción no válido');
         }
 
-        // ---------- Guardado SEGURO (sin nulls indeseados) ----------
+
         $translation = $translationModel::firstOrNew([
             $foreignKey => $model->getKey(),
             'locale'    => $locale,
@@ -234,10 +230,10 @@ class TranslationController extends Controller
 
         foreach ($fields as $field) {
             if (array_key_exists($field, $data)) {
-                // Vino en el request (aunque sea ''), úsalo
+
                 $translation->{$field} = $data[$field];
             } else {
-                // No vino: si es nuevo el registro, inicializa desde el modelo o ''
+
                 if (!$translation->exists) {
                     $translation->{$field} = (string) ($model->{$field} ?? '');
                 }
@@ -245,9 +241,9 @@ class TranslationController extends Controller
         }
         $translation->save();
 
-        // ---------- Extras: T O U R S (itinerario + ítems) ----------
+
         if ($type === 'tours' && $model->itinerary) {
-            // Itinerario
+
             $itineraryData = $request->input('itinerary_translations', []);
             if (!empty($itineraryData)) {
                 $itTr = ItineraryTranslation::firstOrNew([
@@ -270,11 +266,11 @@ class TranslationController extends Controller
                 $itTr->save();
             }
 
-            // Ítems de itinerario
+
             $itemData = $request->input('item_translations', []);
             if (!empty($itemData)) {
                 foreach ($model->itinerary->items as $item) {
-                    $itemKey = $item->id; // ajusta si tu PK es distinta
+                    $itemKey = $item->id;
                     if (!array_key_exists($itemKey, $itemData)) continue;
 
                     $payload = $itemData[$itemKey] ?? [];

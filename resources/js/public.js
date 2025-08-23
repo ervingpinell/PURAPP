@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ===============================
-  // SCROLL CON OFFSET PARA #tours
+  // OFFSET SCROLL FOR #tours
   // ===============================
   const offset = 100;
 
@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.scrollTo({ top: top - offset, behavior: 'smooth' });
   }
 
-  // Botones que apuntan a #tours
   document.querySelectorAll('.scroll-to-tours').forEach(link => {
     link.addEventListener('click', function (e) {
       e.preventDefault();
@@ -42,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Si la página ya cargó con #tours, ajustar
   if (window.location.hash === '#tours') {
     const referrer = document.referrer;
     const cameFromOtherPage = referrer && !referrer.includes(window.location.origin + '/');
@@ -66,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ===============================
-  // TOGGLE ICONOS DEL ACORDEÓN
+  // ACCORDION TOGGLE ICONS
   // ===============================
   document.querySelectorAll('.accordion-button').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -79,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ===============================
-  // CONTADOR DEL CARRITO
+  // CART ITEM COUNTER
   // ===============================
   function updateCartCount() {
     fetch('/cart/count')
@@ -99,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCartCount();
 
   // ===============================
-  // PRECIOS DEL MODAL Y RESERVA
+  // PRICES
   // ===============================
   const modalTotalPrice = document.getElementById('modal-total-price');
   const reservationTotalPrice = document.getElementById('reservation-total-price');
@@ -133,24 +131,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ===============================
-  // CONTADORES (via + / -)
+  // COUNTERS ( + / -)
   // ===============================
   const plusBtns  = document.querySelectorAll('.traveler-btn[data-action="increase"]');
   const minusBtns = document.querySelectorAll('.traveler-btn[data-action="decrease"]');
-
-  // Referencias seguras
   const adultCountEl = document.getElementById('adult-count');
   const kidCountEl   = document.getElementById('kid-count');
-
-  // Inicialización segura
   if (adultCountEl && kidCountEl) {
     if (!adultCountEl.textContent) adultCountEl.textContent = '2';
     if (!kidCountEl.textContent)   kidCountEl.textContent   = '0';
     updateModalTotal();
     updateReservationTotal();
   }
-
-  // Handlers con refs seguras
   plusBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const type = btn.dataset.type;
@@ -189,8 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
       updateModalTotal();
     });
   });
-
-  // Aplicar del modal
   document.querySelector('#travelerModal .btn-success')?.addEventListener('click', () => {
     const adultCount = parseInt(adultCountEl?.textContent || 0);
     const kidCount   = parseInt(kidCountEl?.textContent   || 0);
@@ -199,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ===============================
-  // VALIDACIÓN DE CUPO AL AGREGAR
+  // VALIDATE CAPACITY
   // ===============================
   const addToCartForm = document.querySelector('.reservation-box');
   if (addToCartForm) {
@@ -244,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ===============================
-  // PICKUP AUTOCOMPLETADO
+  // PICKUP
   // ===============================
   const pickupInput         = document.getElementById('pickupInput');
   const pickupList          = document.getElementById('pickupList');

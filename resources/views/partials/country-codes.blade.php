@@ -1,4 +1,3 @@
-{{-- resources/views/partials/country-codes.blade.php --}}
 @php
 $countries = [
 

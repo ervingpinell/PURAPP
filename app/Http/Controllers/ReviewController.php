@@ -31,14 +31,11 @@ class ReviewController extends Controller
             'showMachineTranslated'      => true,
         ];
 
-        // Mapea locale app -> BCP47 para Viator
         $acceptLang = $this->mapLocale(app()->getLocale());
 
-        // Clave de caché estable por combinación de parámetros e idioma
         $cacheKey = $this->cacheKey($payload, $acceptLang);
-        $ttl      = now()->addHours(6); // 6 h es un TTL seguro para reviews
+        $ttl      = now()->addHours(6);
 
-        // 1) Si hay caché, responde de una
         if ($cached = Cache::get($cacheKey)) {
             return response()->json($cached + ['cached' => true], 200);
         }

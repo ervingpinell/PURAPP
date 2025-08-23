@@ -9,7 +9,7 @@ use App\Models\TourType;
 use App\Services\LoggerHelper;
 use App\Http\Requests\Tour\TourType\StoreTourTypeRequest;
 use App\Http\Requests\Tour\TourType\UpdateTourTypeRequest;
-use App\Http\Requests\Tour\TourType\ToggleTourTypeRequest; // 👈 NUEVO
+use App\Http\Requests\Tour\TourType\ToggleTourTypeRequest;
 
 class TourTypeController extends Controller
 {

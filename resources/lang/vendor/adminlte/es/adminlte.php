@@ -282,7 +282,7 @@ return [
     'send_message' => 'Enviar mensaje',
     'message_sent' => 'Mensaje enviado',
     'business_hours' => 'Horario de atención',
-    'business_schedule' => 'Lunes a domingo, de 7:30 a. m. a 7:00 p. m.',
+    'business_schedule' => 'Lunes a domingo, de 7:30 a. m. a 7:30 p. m.',
 
     // ─── ERRORES ──────────────────────────────────────
     'access_denied' => 'Acceso denegado',

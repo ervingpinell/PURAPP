@@ -1,4 +1,3 @@
-{{-- resources/views/partials/language-switcher.blade.php --}}
 <div class="dropdown language-switcher">
   @php
       $locale = app()->getLocale();
@@ -24,8 +23,8 @@
       class="language-switcher-toggle btn btn-outline-secondary dropdown-toggle"
       type="button"
       id="languageDropdown"
-      data-bs-toggle="dropdown"   {{-- BS5 --}}
-      data-toggle="dropdown"      {{-- BS4 --}}
+      data-bs-toggle="dropdown"
+      data-toggle="dropdown"
       aria-expanded="false">
       <img src="{{ asset('svg/flags/' . $flag) }}" alt="Current language" width="20" class="me-1">
       {{ $label }}
@@ -62,14 +61,9 @@
 
 @push('css')
 <style>
-  /* Evita que la card recorte el dropdown */
   .login-card-body, .register-card-body, .card, .card-body { overflow: visible !important; }
-
-  /* Asegura stacking correcto del dropdown sobre alerts/inputs */
   .language-switcher { position: relative; z-index: 1060; }
   .language-switcher .dropdown-menu { z-index: 1080; }
-
-  /* Fondo sólido también en modo oscuro */
   .dark-mode .language-switcher .dropdown-menu,
   [data-theme="dark"] .language-switcher .dropdown-menu {
     background-color: #2b2f3a !important;
@@ -85,17 +79,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const btn  = wrapper.querySelector('[data-bs-toggle="dropdown"], [data-toggle="dropdown"]');
     const menu = wrapper.querySelector('.dropdown-menu');
 
-    // Bootstrap 5
     if (window.bootstrap && bootstrap.Dropdown) {
       new bootstrap.Dropdown(btn);
       return;
     }
-    // Bootstrap 4 (jQuery)
     if (window.jQuery && jQuery.fn.dropdown) {
       jQuery(btn).dropdown();
       return;
     }
-    // Fallback sin Bootstrap: toggle manual
     if (btn && menu) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();

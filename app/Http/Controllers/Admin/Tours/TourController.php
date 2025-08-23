@@ -21,7 +21,7 @@ use App\Services\LoggerHelper;
 
 use App\Http\Requests\Tour\Tour\StoreTourRequest;
 use App\Http\Requests\Tour\Tour\UpdateTourRequest;
-use App\Http\Requests\Tour\Tour\ToggleTourRequest; // 👈 NUEVO
+use App\Http\Requests\Tour\Tour\ToggleTourRequest;
 
 class TourController extends Controller
 {

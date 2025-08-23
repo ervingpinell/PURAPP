@@ -13,7 +13,7 @@ class InitialSetupSeeder extends Seeder
         $now = Carbon::now();
 
 
-        // ✅ 5) Insertar Hotels
+
         $hotels = [
             'The Springs Resort and Spa',
             'Arenal Kioro',

@@ -1,4 +1,3 @@
-{{-- resources/views/profile/edit.blade.php --}}
 @extends('adminlte::auth.auth-page', ['authType' => 'login'])
 
 @php
@@ -19,20 +18,17 @@
 <style>
   .form-group .invalid-feedback { display:block; }
   .input-group .input-group-text { min-width: 42px; justify-content: center; }
-
-  /* Centrar logo (como tu versión vieja) */
   .login-logo { text-align: center !important; }
   .login-logo img { margin: 0 auto; display: block; }
 </style>
 @endpush
 
 @section('auth_body')
-    {{-- Alert de éxito simple (si prefieres SweetAlert, avísame y lo cambio) --}}
     @if(session('success'))
         <div class="alert alert-success text-center">{{ session('success') }}</div>
     @endif
 
-    {{-- Bloque de errores del backend --}}
+    {{-- Errors --}}
     @if ($errors->any())
         <div id="server-errors" class="alert alert-danger">
             <h5 class="mb-2">
@@ -50,7 +46,7 @@
     <form action="{{ $updateUrl }}" method="POST" id="publicProfileForm" novalidate>
         @csrf
 
-        {{-- Nombre Completo --}}
+        {{-- Full name --}}
         <div class="input-group mb-3">
             <input type="text" name="full_name" id="full_name"
                 class="form-control @error('full_name') is-invalid @enderror"
@@ -86,13 +82,13 @@
             @enderror
         </div>
 
-        {{-- Teléfono: código de país + número nacional (guardados por separado) --}}
+        {{-- Phone --}}
         <div class="mb-3">
             <div class="input-group">
                 <select id="phone_cc" name="country_code"
                         class="form-select @error('country_code') is-invalid @enderror"
                         style="max-width: 140px;">
-                    @include('partials.country-codes') {{-- ( +código ) al cerrar; País (+código) al abrir --}}
+                    @include('partials.country-codes')
                 </select>
 
                 <input type="tel" name="phone" id="phone"
@@ -111,7 +107,7 @@
             @error('phone')        <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
         </div>
 
-        {{-- Nueva contraseña (opcional) --}}
+        {{-- New password (optional) --}}
         <div class="input-group mb-3">
             <input type="password" name="password" id="password"
                 class="form-control @error('password') is-invalid @enderror"
@@ -129,7 +125,7 @@
             @enderror
         </div>
 
-        {{-- Confirmar contraseña --}}
+        {{-- Confirm password --}}
         <div class="input-group mb-3">
             <input type="password" name="password_confirmation" id="password_confirmation"
                 class="form-control @error('password_confirmation') is-invalid @enderror"
@@ -154,7 +150,6 @@
 @stop
 
 @section('auth_footer')
-    {{-- Footer: botón volver a la izquierda + idioma a la derecha --}}
     <div class="d-flex justify-content-between align-items-center">
         <a href="{{ $homeUrl }}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left mr-1"></i> {{ __('adminlte::adminlte.back') }}
@@ -166,7 +161,6 @@
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Mostrar/ocultar contraseña
     const passwordInput = document.getElementById('password');
     const togglePassword = document.getElementById('toggle-password');
     const passwordConfirmationInput = document.getElementById('password_confirmation');
@@ -186,7 +180,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (togglePassword) togglePassword.addEventListener('click', () => toggleVisibility(passwordInput, togglePassword));
     if (togglePasswordConfirmation) togglePasswordConfirmation.addEventListener('click', () => toggleVisibility(passwordConfirmationInput, togglePasswordConfirmation));
 
-    // Select de código: cerrado -> "(+código)"; abierto -> "País (+código)"
     const cc = document.getElementById('phone_cc');
     if (cc) {
         function expandLabels(){
@@ -205,9 +198,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         cc.addEventListener('focus', expandLabels);
         cc.addEventListener('blur', collapseLabels);
-        collapseLabels(); // init
+        collapseLabels();
 
-        // Preselecciona el código guardado del usuario si existe
         const currentCode = @json(old('country_code', auth()->user()->country_code ?? null));
         if (currentCode) cc.value = currentCode;
     }

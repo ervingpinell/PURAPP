@@ -23,43 +23,35 @@ class TourExcludedDateController extends Controller
 {
     protected string $controller = 'TourExcludedDateController';
 
-    /**
-     * Vista “Disponibilidades” por día (AM/PM) con filtros.
-     */
+
     public function index(Request $request)
     {
         $timezone         = config('app.timezone', 'America/Costa_Rica');
         $today            = Carbon::today($timezone)->startOfDay();
         $todayDateString  = $today->toDateString();
 
-        // Limpieza silenciosa de registros pasados
         $this->purgePastExcludedDates($todayDateString);
         $this->purgePastAvailabilities($todayDateString);
 
-        // Normalizar filtros de entrada
         $requestedStart   = Carbon::parse($request->input('date', $todayDateString), $timezone);
         $startDate        = $requestedStart->lt($today) ? $today : $requestedStart;
         $startDateString  = $startDate->toDateString();
 
         $daysRequested    = (int) $request->input('days', 7);
-        $days             = max(1, min(30, $daysRequested)); // clamp 1..30
+        $days             = max(1, min(30, $daysRequested));
         $searchQuery      = trim((string) $request->input('q', ''));
 
-        // Cargar tours (con filtro opcional por nombre)
         $tours = Tour::with('schedules')
             ->when($searchQuery !== '', fn ($query) => $query->where('name', 'like', "%{$searchQuery}%"))
             ->orderBy('name')
             ->get();
 
-        // Construir rango de fechas inclusivo
         $endDateString = Carbon::parse($startDateString, $timezone)->addDays($days - 1)->toDateString();
         $dateRange     = collect(CarbonPeriod::create($startDateString, $endDateString))->map->toDateString();
 
-        // Cargar registros de disponibilidad y exclusión dentro del rango
         $availabilityRecords = TourAvailability::whereIn('date', $dateRange)->get();
         $exclusionRecords    = TourExcludedDate::whereIn('start_date', $dateRange)->get();
 
-        // Construir calendario completo (AM/PM)
         $calendar = $this->buildCalendar($tours, $dateRange, $timezone, $availabilityRecords, $exclusionRecords);
 
         return view('admin.tours.excluded_dates.index', [
@@ -70,9 +62,6 @@ class TourExcludedDateController extends Controller
         ]);
     }
 
-    /**
-     * Vista “solo bloqueados” en el rango seleccionado.
-     */
     public function blocked(Request $request)
     {
         $timezone        = config('app.timezone', 'America/Costa_Rica');
@@ -85,16 +74,14 @@ class TourExcludedDateController extends Controller
             ->orderBy('name')
             ->get();
 
-        // Ojo: aquí el rango se construía con (start, days-1). Conservamos comportamiento.
+
         $dateRange = collect(CarbonPeriod::create($startDateString, $days - 1))->map->toDateString();
 
         $availabilityRecords = TourAvailability::whereIn('date', $dateRange)->get();
         $exclusionRecords    = TourExcludedDate::whereIn('start_date', $dateRange)->get();
 
-        // Construir calendario y filtrar solo bloqueados
         $calendar = $this->buildCalendar($tours, $dateRange, $timezone, $availabilityRecords, $exclusionRecords, onlyBlocked: true);
 
-        // Compactar días sin bloqueos
         $calendar = array_filter($calendar, fn ($buckets) => count($buckets['am']) + count($buckets['pm']) > 0);
 
         return view('admin.tours.excluded_dates.blocked', [
@@ -175,9 +162,6 @@ class TourExcludedDateController extends Controller
         }
     }
 
-    /**
-     * Bloqueo total por rango (todos los tours/horarios).
-     */
     public function blockAll(BlockAllRequest $request)
     {
         try {
@@ -193,7 +177,6 @@ class TourExcludedDateController extends Controller
                     foreach ($dateRange as $date) {
                         $day = $date->format('Y-m-d');
 
-                        // Disponibilidad a false
                         TourAvailability::updateOrCreate(
                             [
                                 'tour_id'     => $tour->tour_id,
@@ -206,7 +189,6 @@ class TourExcludedDateController extends Controller
                             ]
                         );
 
-                        // Registro de exclusión (evitar duplicados)
                         $exists = TourExcludedDate::where('tour_id', $tour->tour_id)
                             ->where('schedule_id', $schedule->schedule_id)
                             ->whereDate('start_date', $day)
@@ -244,9 +226,6 @@ class TourExcludedDateController extends Controller
         }
     }
 
-    /**
-     * Alternar / forzar estado para un tour+horario en una fecha.
-     */
     public function toggle(ToggleExcludedDateRequest $request)
     {
         try {
@@ -276,9 +255,6 @@ class TourExcludedDateController extends Controller
         }
     }
 
-    /**
-     * Alternar / forzar estado en lote (o forzar con want=block|unblock).
-     */
     public function bulkToggle(BulkToggleExcludedDatesRequest $request)
     {
         try {
@@ -314,9 +290,6 @@ class TourExcludedDateController extends Controller
         }
     }
 
-    /**
-     * Alias para bloquear items en lote.
-     */
     public function storeMultiple(StoreMultipleExcludedDatesRequest $request)
     {
         try {
@@ -351,9 +324,7 @@ class TourExcludedDateController extends Controller
         }
     }
 
-    /**
-     * Operación administrativa (sin log para evitar ruido masivo).
-     */
+
     public function destroyAll()
     {
         TourExcludedDate::truncate();
@@ -380,14 +351,6 @@ class TourExcludedDateController extends Controller
             return response()->json(['error' => 'No se pudieron eliminar las fechas.'], 500);
         }
     }
-
-    /* ============================================================
-     |  Helpers privados (nombres claros y propósito único)
-     |============================================================ */
-
-    /**
-     * Purga registros de TourExcludedDate anteriores a hoy.
-     */
     private function purgePastExcludedDates(string $todayDateString): void
     {
         TourExcludedDate::whereDate('end_date', '<', $todayDateString)
@@ -397,26 +360,12 @@ class TourExcludedDateController extends Controller
             ->delete();
     }
 
-    /**
-     * Purga registros de disponibilidad en fechas pasadas.
-     */
     private function purgePastAvailabilities(string $todayDateString): void
     {
         TourAvailability::whereDate('date', '<', $todayDateString)->delete();
     }
 
-    /**
-     * Construye la matriz calendario agrupada en AM/PM
-     * y opcionalmente retorna solo los slots bloqueados.
-     *
-     * @param \Illuminate\Support\Collection $tours
-     * @param \Illuminate\Support\Collection|array $dateRange
-     * @param string $timezone
-     * @param \Illuminate\Support\Collection $availabilityRecords
-     * @param \Illuminate\Support\Collection $exclusionRecords
-     * @param bool $onlyBlocked
-     * @return array<string, array{am: array<int, array>, pm: array<int, array>}>
-     */
+
     private function buildCalendar($tours, $dateRange, string $timezone, $availabilityRecords, $exclusionRecords, bool $onlyBlocked = false): array
     {
         $calendar = [];
@@ -446,7 +395,7 @@ class TourExcludedDateController extends Controller
                         : ($exclusion === null);
 
                     if ($onlyBlocked && $isAvailable) {
-                        continue; // en vista "blocked" omitimos disponibles
+                        continue;
                     }
 
                     $calendar[$dateString][$scheduleBucket][] = [
@@ -460,7 +409,6 @@ class TourExcludedDateController extends Controller
                 }
             }
 
-            // Ordenar por nombre de tour (humano-legible)
             foreach (['am', 'pm'] as $bucket) {
                 usort(
                     $calendar[$dateString][$bucket],
@@ -472,13 +420,7 @@ class TourExcludedDateController extends Controller
         return $calendar;
     }
 
-    /**
-     * Lógica reusable para toggle/block/unblock de un tour+horario en una fecha.
-     * Devuelve estructura JSON consistente.
-     *
-     * @param array{tour_id:int,schedule_id:int,date:string,want:?string,reason:?string} $data
-     * @return array{ok:bool,is_available:bool,label:string}
-     */
+
     private function performToggle(array $data): array
     {
         $targetDate = Carbon::parse($data['date'])->toDateString();
@@ -511,7 +453,6 @@ class TourExcludedDateController extends Controller
         );
 
         if ($nextIsAvailable === false) {
-            // Asegura registro en excluded_dates
             TourExcludedDate::firstOrCreate(
                 [
                     'tour_id'     => $data['tour_id'],
@@ -524,7 +465,6 @@ class TourExcludedDateController extends Controller
                 ]
             );
         } else {
-            // Si se habilita, eliminar exclusión puntual de ese día
             TourExcludedDate::where([
                 'tour_id'     => $data['tour_id'],
                 'schedule_id' => $data['schedule_id'],

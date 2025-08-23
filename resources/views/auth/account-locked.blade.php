@@ -8,7 +8,6 @@
 @endsection
 
 @section('auth_body')
-    {{-- Verde: solo si realmente se envió el enlace (el controlador pone status) --}}
     @if (session('status'))
         <div class="alert alert-success alert-dismissible">
             <i class="fas fa-check-circle me-1"></i>
@@ -16,7 +15,6 @@
         </div>
     @endif
 
-    {{-- Mensaje de bloqueo --}}
     @if (session('locked_message'))
         <div class="alert alert-danger">
             {{ session('locked_message') }}
@@ -29,14 +27,11 @@
 
     @php $retry = (int) session('retry_seconds', 0); @endphp
 
-    {{-- Sugerencia de espera (si aplica) --}}
     @if ($retry > 0)
         <p class="small text-muted mb-0">
             {{ __('Intentos permitidos nuevamente en :secs segundos.', ['secs' => $retry]) }}
         </p>
     @endif
-
-    {{-- Sin botón de reenvío ni formulario (el controlador ya envía con throttling) --}}
 @endsection
 
 @section('auth_footer')

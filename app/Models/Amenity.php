@@ -34,8 +34,8 @@ class Amenity extends Model
             'amenity_id',
             'tour_id'
         )
-        ->withPivot('is_active')     // si tu pivote lo tiene
-        ->withTimestamps();          // si tu pivote tiene timestamps
+        ->withPivot('is_active')
+        ->withTimestamps();
     }
 
     public function excludedFromTours()
@@ -50,10 +50,9 @@ class Amenity extends Model
         ->withTimestamps();
     }
 
-    // Translations
+
     public function translations()
     {
-        // 👇 especifica también el local key (amenity_id)
         return $this->hasMany(AmenityTranslation::class, 'amenity_id', 'amenity_id');
     }
 
@@ -61,7 +60,6 @@ class Amenity extends Model
     {
         $locale = $locale ?? app()->getLocale();
 
-        // Evita N+1 si ya está cargada la relación
         if ($this->relationLoaded('translations')) {
             return $this->translations->firstWhere('locale', $locale)
                 ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
@@ -75,7 +73,6 @@ class Amenity extends Model
                 ->first();
     }
 
-    // (Opcional) Accessor directo
     public function getNameTranslatedAttribute(): ?string
     {
         return optional($this->translate())?->name;

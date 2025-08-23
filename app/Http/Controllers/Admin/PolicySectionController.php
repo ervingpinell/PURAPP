@@ -18,7 +18,6 @@ class PolicySectionController extends Controller
         protected TranslatorInterface $translator
     ) {}
 
-    /** Lista secciones de una categoría (admin) */
     public function index(Policy $policy)
     {
         $sections = $policy->sections()
@@ -30,7 +29,6 @@ class PolicySectionController extends Controller
         return view('admin.policies.sections.index', compact('policy','sections'));
     }
 
-    /** Crear sección + traducciones (DeepL SOLO en create) */
     public function store(Request $request, Policy $policy)
     {
         $allowedLocales = array_keys(config('app.supported_locales', [
@@ -72,7 +70,6 @@ class PolicySectionController extends Controller
         });
     }
 
-    /** Editar sección + traducción del locale actual (SIN DeepL) */
     public function update(Request $request, Policy $policy, PolicySection $section)
     {
         if ($section->policy_id !== $policy->policy_id) abort(404);
@@ -114,7 +111,6 @@ class PolicySectionController extends Controller
         });
     }
 
-    /** Activar/Desactivar sección */
     public function toggle(Policy $policy, PolicySection $section)
     {
         if ($section->policy_id !== $policy->policy_id) abort(404);
@@ -127,7 +123,6 @@ class PolicySectionController extends Controller
         );
     }
 
-    /** Eliminar sección */
     public function destroy(Policy $policy, PolicySection $section)
     {
         if ($section->policy_id !== $policy->policy_id) abort(404);
@@ -137,7 +132,6 @@ class PolicySectionController extends Controller
         return back()->with('success', '🗑️ Sección eliminada.');
     }
 
-    /** DeepL helper: crear traducciones faltantes (solo en store) */
     private function translateSectionIfMissing(PolicySection $section, string $baseLocale): void
     {
         $supported = array_keys(config('app.supported_locales', [

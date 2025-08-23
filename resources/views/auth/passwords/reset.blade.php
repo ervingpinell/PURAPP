@@ -44,7 +44,6 @@
             @enderror
         </div>
 
-        {{-- Reglas de contraseña (dinámicas) --}}
         <div class="small mb-3" id="pwRulesWrap" aria-live="polite">
             <ul class="list-unstyled mb-0 pw-rules">
                 <li class="pw-rule" data-rule="length">
@@ -105,9 +104,9 @@
 
 @push('css')
 <style>
-    .pw-rules .pw-rule { color: #6c757d; }                 /* muted default */
-    .pw-rules .pw-rule.valid { color: #198754; }           /* Bootstrap success */
-    .pw-rules .pw-rule.invalid { color: #dc3545; }         /* Bootstrap danger */
+    .pw-rules .pw-rule { color: #6c757d; }
+    .pw-rules .pw-rule.valid { color: #198754; }
+    .pw-rules .pw-rule.invalid { color: #dc3545; }
     .pw-rules .rule-icon { width: 1rem; text-align: center; }
 </style>
 @endpush
@@ -115,7 +114,6 @@
 @section('adminlte_js')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Toggle mostrar/ocultar contraseña
     document.querySelectorAll('.toggle-password').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
             e.preventDefault();
@@ -137,7 +135,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Validación en tiempo real de la contraseña
     const pass  = document.getElementById('password');
     const pass2 = document.getElementById('password_confirmation');
     const btn   = document.getElementById('submitBtn');
@@ -160,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     const meetsLength  = (v) => (v || '').length >= 8;
-    // Incluye: punto ., ¡ (U+00A1), signos comunes, guion y guion bajo
+
     const meetsSpecial = (v) => /[.\u00A1!@#$%^&*()_+\-]/.test(v || '');
     const meetsNumber  = (v) => /[0-9]/.test(v || '');
     const matchesBoth  = (a, b) => (a || '') === (b || '') && a.length > 0;
@@ -178,7 +175,6 @@ document.addEventListener('DOMContentLoaded', function () {
         setRuleState(rulesEls.special, okSpec);
         setRuleState(rulesEls.number, okNum);
 
-        // Para "match": solo marcamos inválido si hay algo tipeado en confirm y no coincide; si está vacío, queda neutro
         if (v2.length === 0) {
             if (rulesEls.match) {
                 rulesEls.match.classList.remove('valid','invalid');
@@ -188,8 +184,6 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             setRuleState(rulesEls.match, okMat);
         }
-
-        // Habilitar submit solo si TODO está OK
         const allGood = okLen && okSpec && okNum && okMat;
         btn.disabled = !allGood;
     }
@@ -199,7 +193,6 @@ document.addEventListener('DOMContentLoaded', function () {
         pass2.addEventListener(evt, evaluate);
     });
 
-    // Evaluación inicial
     evaluate();
 });
 </script>

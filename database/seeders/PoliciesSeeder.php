@@ -19,7 +19,7 @@ class PoliciesSeeder extends Seeder
          * 1) TÉRMINOS Y CONDICIONES (Categoría + Secciones)
          */
         $terms = Policy::updateOrCreate(
-            ['name' => 'Términos y Condiciones'], // clave única ahora
+            ['name' => 'Términos y Condiciones'],
             [
                 'is_active'      => true,
                 'effective_from' => $today,

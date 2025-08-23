@@ -8,14 +8,12 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('policies', function (Blueprint $table) {
             $table->id('policy_id');
-            $table->string('name');                 // nombre interno visible en admin
+            $table->string('name');
             $table->boolean('is_active')->default(true);
             $table->date('effective_from')->nullable();
             $table->date('effective_to')->nullable();
             $table->timestamps();
-
-            // Índices útiles
-            $table->index('name'); // si prefieres, puedes cambiarlo a unique()
+            $table->index('name');
             $table->index('is_active');
             $table->index(['effective_from', 'effective_to']);
         });

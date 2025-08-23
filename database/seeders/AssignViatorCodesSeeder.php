@@ -9,7 +9,6 @@ class AssignViatorCodesSeeder extends Seeder
 {
     public function run(): void
     {
-        // Mapa de tour_id => viator_code
         $codes = [
             1 => '12732P1',
             2 => '12732P3',

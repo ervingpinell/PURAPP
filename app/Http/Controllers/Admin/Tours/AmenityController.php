@@ -92,9 +92,6 @@ class AmenityController extends Controller
         }
     }
 
-    /**
-     * Toggle active flag (soft-block).
-     */
     public function toggle(Amenity $amenity)
     {
         try {
@@ -122,9 +119,6 @@ class AmenityController extends Controller
         }
     }
 
-    /**
-     * Hard delete (si no usas SoftDeletes).
-     */
     public function destroy(Amenity $amenity)
     {
         try {

@@ -9,7 +9,7 @@
     {{-- ====== FILA PRINCIPAL: Form + Info ====== --}}
     <div class="row gy-4 justify-content-center align-items-stretch flex-wrap">
 
-      {{-- 📝 Formulario (más ancho) --}}
+      {{-- 📝 Formulario --}}
       <div class="col-lg-8 col-md-12 d-flex">
         @if(session('success'))
           <script>

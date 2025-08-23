@@ -265,7 +265,7 @@ return [
     'send_message' => 'Nachricht senden',
     'message_sent' => 'Nachricht gesendet',
     'business_hours' => 'Geschäftszeiten',
-    'business_schedule' => 'Montag bis Sonntag, 07:30 bis 19:00 Uhr',
+    'business_schedule' => 'Montag bis Sonntag, 07:30 bis 19:30 Uhr',
 
     // ─── FEHLER ──────────────────────────────────────
     'access_denied' => 'Zugriff verweigert',

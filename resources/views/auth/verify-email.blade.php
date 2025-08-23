@@ -9,20 +9,15 @@
 
 @section('auth_body')
 
-    {{-- Mensaje de éxito (reenvío, etc.) --}}
     @if (session('status'))
         <div class="alert alert-success" role="alert">
             <i class="fas fa-check-circle me-1"></i>
             {{ session('status') }}
         </div>
     @endif
-
-    {{-- Texto principal --}}
     <p class="mb-2">
         {{ __('adminlte::auth.verify.message') }}
     </p>
-
-    {{-- Botón para reenviar (usa la ruta que tienes definida: verification.send) --}}
     <form method="POST" action="{{ route('verification.send') }}">
         @csrf
         <button type="submit" class="btn btn-primary btn-block">

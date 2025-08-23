@@ -16,24 +16,19 @@ class PromoCodeController extends Controller
 
     public function store(Request $request)
     {
-        // Validación básica
         $request->validate([
             'code'     => 'required|string|unique:promo_codes,code',
             'discount' => 'required|numeric|min:0',
             'type'     => 'required|in:percent,amount',
         ]);
 
-        // Reglas adicionales: porcentaje <= 100 si aplica
         if ($request->type === 'percent' && (float)$request->discount > 100) {
             return back()
                 ->withErrors(['discount' => 'El porcentaje no puede ser mayor a 100.'])
                 ->withInput();
         }
-
-        // Normaliza el código: quita espacios internos y convierte a mayúsculas
         $normalizedCode = strtoupper(trim(preg_replace('/\s+/', '', $request->code)));
 
-        // Unicidad case/space-insensitive a nivel app (además del unique simple)
         $exists = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$normalizedCode])->exists();
         if ($exists) {
             return back()
@@ -42,7 +37,6 @@ class PromoCodeController extends Controller
         }
 
         $promo = new PromoCode();
-        // Guarda normalizado (para evitar variaciones con espacios)
         $promo->code = $normalizedCode;
 
         if ($request->type === 'percent') {
@@ -86,7 +80,7 @@ class PromoCodeController extends Controller
                     'success' => false,
                     'valid'   => false,
                     'message' => 'Código inválido o ya usado.',
-                ], 200); // <- SIEMPRE 200
+                ], 200);
             }
 
             $resp = [
@@ -114,7 +108,6 @@ class PromoCodeController extends Controller
 
             return response()->json($resp, 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // Evita redirecciones 422 que el front interpreta como “error del sistema”
             return response()->json([
                 'success' => false,
                 'valid'   => false,
@@ -122,7 +115,6 @@ class PromoCodeController extends Controller
                 'errors'  => $e->errors(),
             ], 200);
         } catch (\Throwable $e) {
-            // Falla controlada
             return response()->json([
                 'success' => false,
                 'valid'   => false,

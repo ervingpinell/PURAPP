@@ -23,7 +23,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            // Foreign keys
+
             $table->foreign('user_id')
                   ->references('user_id')
                   ->on('users')

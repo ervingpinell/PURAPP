@@ -25,10 +25,8 @@ class BookingCreatedMail extends Mailable
      */
     public function __construct(Booking $booking, $details = null)
     {
-        // Solo garantizamos el user para el saludo
         $this->booking = $booking->loadMissing(['user']);
 
-        // Si no recibimos detalles, cargamos todos los del booking
         $this->details = collect($details ?? BookingDetail::with(['tour','hotel','schedule','tourLanguage','booking'])
             ->where('booking_id', $booking->booking_id)->get());
 
@@ -42,15 +40,13 @@ class BookingCreatedMail extends Mailable
     protected function resolveLangFromDetail(?BookingDetail $detail): string
     {
         if (!$detail) return 'en';
-        $name = optional($detail->tourLanguage)->name; // p.ej. "Español", "Inglés"
+        $name = optional($detail->tourLanguage)->name;
         $val  = Str::lower($name ?? '');
-        // Si contiene "es" -> español; en cualquier otro caso, inglés
         return Str::contains($val, 'es') ? 'es' : 'en';
     }
 
     public function build()
     {
-        // Asunto localizado (sin tocar app()->setLocale())
         $subject = __('adminlte::email.booking_created_subject', [
             'reference' => $this->booking->booking_reference
         ], $this->lang);
@@ -59,7 +55,7 @@ class BookingCreatedMail extends Mailable
             ->view('emails.booking_created')
             ->with([
                 'booking' => $this->booking,
-                'details' => $this->details, // colección de BookingDetail
+                'details' => $this->details,
                 'lang'    => $this->lang,
                 'company' => $this->company,
             ]);

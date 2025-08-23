@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('carts', function (Blueprint $table) {
      $table->id('cart_id');
-    $table->unsignedBigInteger('user_id'); // o sesión si no hay login
+    $table->unsignedBigInteger('user_id');
     $table->boolean('is_active')->default(true);
     $table->timestamps();
 

@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('excluded_amenity_tour', function (Blueprint $table) {
             $table->id();
 
-            // 🔧 Especificar claves foráneas correctamente:
+
             $table->unsignedBigInteger('tour_id');
             $table->unsignedBigInteger('amenity_id');
 

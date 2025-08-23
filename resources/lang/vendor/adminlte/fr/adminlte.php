@@ -265,7 +265,7 @@ return [
     'send_message' => 'Envoyer le message',
     'message_sent' => 'Message envoyé',
     'business_hours' => 'Heures d’ouverture',
-    'business_schedule' => 'Du lundi au dimanche, de 7h30 à 19h00',
+    'business_schedule' => 'Du lundi au dimanche, de 7h30 à 19h30',
 
     // ─── ERREURS ──────────────────────────────────────
     'access_denied' => 'Accès refusé',

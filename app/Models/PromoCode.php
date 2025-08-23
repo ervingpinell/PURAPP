@@ -20,9 +20,6 @@ class PromoCode extends Model
         'used_at' => 'datetime',
     ];
 
-    /**
-     * Aplica el descuento y devuelve el nuevo total.
-     */
     public function applyDiscount(float $total): float
     {
         if ($this->discount_amount) {
@@ -36,9 +33,6 @@ class PromoCode extends Model
         return $total;
     }
 
-    /**
-     * Marca este código como usado.
-     */
     public function markAsUsed(int $bookingId): void
     {
         $this->update([

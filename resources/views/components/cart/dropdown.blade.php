@@ -9,16 +9,6 @@
       ? 'nav-link cart-icon-wrapper position-relative dropdown-toggle'
       : 'cart-icon-wrapper position-relative dropdown-toggle';
   $iconCls     = $isDesktop ? 'fas fa-shopping-cart' : 'fas fa-shopping-cart text-white';
-
-  /**
-   * Variables que normalmente inyectas desde un View Composer
-   * (AppServiceProvider o un composer dedicado):
-   * - $headerCart   (Carrito con items precargados)
-   * - $headerCount  (# de items)
-   * - $headerTotal  (Total estimado)
-   *
-   * Si no existen, las normalizamos a “falsies” para evitar errores.
-   */
   $headerCart  = $headerCart  ?? null;
   $headerCount = $headerCount ?? ($headerCart?->items?->count() ?? 0);
   $headerTotal = $headerTotal ?? ($headerCart
@@ -27,18 +17,16 @@
                          ($i->tour->kid_price   ?? 0) * ($i->kids_quantity   ?? 0))
                      : 0);
 
-  // Helper para obtener la portada de un tour
+  // Get Tour Cover
   $coverFromTour = function ($tour) {
       if (!$tour) {
           return asset('images/volcano.png');
       }
 
-      // 1) Campo directo en DB (ej: tours.image_path)
       if (!empty($tour->image_path)) {
           return asset('storage/'.$tour->image_path);
       }
 
-      // 2) Primera imagen en storage/app/public/tours/{id}/gallery
       $tid = $tour->tour_id ?? $tour->id ?? null;
       if ($tid) {
           $folder = "tours/{$tid}/gallery";
@@ -86,7 +74,7 @@
             @endphp
 
             <div class="d-flex gap-2 p-3 border-bottom position-relative mini-cart-item">
-              {{-- Eliminar --}}
+              {{-- Remove Item --}}
               <form class="mini-cart-remove-form"
                     action="{{ route('public.cart.destroy', $it->item_id) }}"
                     method="POST"
@@ -229,15 +217,12 @@
   </script>
 
   <style>
-    /* Icono y caret */
     .cart-icon-wrapper { text-decoration: none !important; -webkit-tap-highlight-color: transparent; }
     .cart-icon-wrapper:hover,
     .cart-icon-wrapper:focus,
     .cart-icon-wrapper:active { text-decoration: none !important; outline: none !important; box-shadow: none !important; }
     .cart-icon-wrapper.dropdown-toggle::after { border-top-color: currentColor !important; }
     .navbar-dark .cart-icon-wrapper, .bg-dark .cart-icon-wrapper { color: #fff !important; }
-
-    /* Mini-cart */
     .mini-cart-menu{ width:360px; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.15); }
     .mini-cart-list .d-flex:hover{ background:#f8f9fa; }
     .mini-cart-item{ padding-right:3rem; }

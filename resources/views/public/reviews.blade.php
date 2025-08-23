@@ -54,7 +54,6 @@
                                 $tour->viator_destination_id ?? 821,
                                 $tour->viator_city_slug ?? 'La-Fortuna',
                                 $tour->viator_slug ?? null,
-                                // Nombre en inglés para un slug más estable; fallback al nombre base
                                 optional($tour->translations)->firstWhere('locale','en')->name
                                     ?? $tour->getTranslatedName('en')
                                     ?? $displayName

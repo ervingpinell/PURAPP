@@ -5,7 +5,8 @@ namespace App\Services;
 final class LogSanitizer
 {
     /**
-     * Campos sensibles que jamás deben loguearse en claro
+     * Lista de claves sensibles que deben redactarse por completo.
+     * Se compara en minúsculas y con coincidencia exacta.
      */
     private const SENSITIVE_KEYS = [
         'password', 'password_confirmation',
@@ -16,7 +17,8 @@ final class LogSanitizer
     ];
 
     /**
-     * Enmascarar email (ejemplo: a***@example.com)
+     * Enmascara un email manteniendo el primer carácter del usuario y el dominio completo.
+     * Ej: "john.doe@example.com" => "j***@example.com"
      */
     public static function maskEmail(string $email): string
     {
@@ -24,63 +26,77 @@ final class LogSanitizer
             return $email;
         }
 
-        [$user, $domain] = explode('@', $email, 2);
-        $userMasked = mb_substr($user, 0, 1) . '***';
+        [$localPart, $domain] = explode('@', $email, 2);
+        $maskedLocalPart = mb_substr($localPart, 0, 1) . '***';
 
-        return $userMasked . '@' . $domain;
+        return $maskedLocalPart . '@' . $domain;
     }
 
     /**
-     * Enmascarar string genérico manteniendo n caracteres al inicio y al final
+     * Enmascara una cadena dejando visibles los extremos.
+     * Ej: "ABCDEFGH" (keepStart=2, keepEnd=2) => "AB****GH"
      */
-    public static function maskString(string $value, int $keepStart = 2, int $keepEnd = 2): string
-    {
-        $len = mb_strlen($value);
+    public static function maskString(
+        string $value,
+        int $visibleStartChars = 2,
+        int $visibleEndChars = 2
+    ): string {
+        $length = mb_strlen($value);
 
-        if ($len <= ($keepStart + $keepEnd)) {
-            return str_repeat('*', $len);
+        if ($length <= ($visibleStartChars + $visibleEndChars)) {
+            return str_repeat('*', $length);
         }
 
-        return mb_substr($value, 0, $keepStart)
-            . str_repeat('*', $len - ($keepStart + $keepEnd))
-            . mb_substr($value, -$keepEnd);
+        return mb_substr($value, 0, $visibleStartChars)
+            . str_repeat('*', $length - ($visibleStartChars + $visibleEndChars))
+            . mb_substr($value, -$visibleEndChars);
     }
 
     /**
-     * Sanitizar arrays (recursivo).
-     * - Oculta campos sensibles.
-     * - Recorta strings largos.
-     * - Enmascara emails.
+     * Sanitiza arreglos para logs:
+     *  - Redacta completamente claves sensibles.
+     *  - Trunca strings largos.
+     *  - Enmascara emails dentro de strings simples.
+     *  - Llama recursivamente si encuentra sub-arreglos.
+     *
+     * @param array $data              Datos originales.
+     * @param int   $maxStringLength   Longitud máxima permitida antes de truncar.
+     * @return array                   Datos sanitizados aptos para logging.
      */
-    public static function scrubArray(array $data, int $maxStringLen = 120): array
+    public static function scrubArray(array $data, int $maxStringLength = 120): array
     {
-        $clean = [];
+        $sanitizedData = [];
 
-        foreach ($data as $k => $v) {
-            $key = strtolower((string) $k);
+        foreach ($data as $originalKey => $originalValue) {
+            $normalizedKey = strtolower((string) $originalKey);
 
-            if (in_array($key, self::SENSITIVE_KEYS, true)) {
-                $clean[$k] = '[REDACTED]';
+            // 1) Redactar claves sensibles
+            if (in_array($normalizedKey, self::SENSITIVE_KEYS, true)) {
+                $sanitizedData[$originalKey] = '[REDACTED]';
                 continue;
             }
 
-            if (is_string($v)) {
-                // Recortar strings largos
-                $v = mb_strlen($v) > $maxStringLen
-                    ? mb_substr($v, 0, $maxStringLen) . '…'
-                    : $v;
+            $sanitizedValue = $originalValue;
 
-                // Heurística: si parece email, enmascarar
-                if (str_contains($v, '@') && str_contains($v, '.')) {
-                    $v = self::maskEmail($v);
+            // 2) Transformaciones por tipo
+            if (is_string($sanitizedValue)) {
+                // 2.a) Truncar si excede el máximo
+                if (mb_strlen($sanitizedValue) > $maxStringLength) {
+                    $sanitizedValue = mb_substr($sanitizedValue, 0, $maxStringLength) . '…';
                 }
-            } elseif (is_array($v)) {
-                $v = self::scrubArray($v, $maxStringLen);
+
+                // 2.b) Enmascarar emails simples
+                if (str_contains($sanitizedValue, '@') && str_contains($sanitizedValue, '.')) {
+                    $sanitizedValue = self::maskEmail($sanitizedValue);
+                }
+            } elseif (is_array($sanitizedValue)) {
+                // 2.c) Recursividad para sub-arreglos
+                $sanitizedValue = self::scrubArray($sanitizedValue, $maxStringLength);
             }
 
-            $clean[$k] = $v;
+            $sanitizedData[$originalKey] = $sanitizedValue;
         }
 
-        return $clean;
+        return $sanitizedData;
     }
 }

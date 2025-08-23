@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('faq_translations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('faq_id')
-                  ->constrained('faqs', 'faq_id')   // 👈 referencia correcta
+                  ->constrained('faqs', 'faq_id')
                   ->cascadeOnDelete();
 
             $table->string('locale', 5);

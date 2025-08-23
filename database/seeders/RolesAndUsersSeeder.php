@@ -22,7 +22,6 @@ public function run(): void
         ['role_name' => 'Customer',   'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
     ]);
 
-    // ✅ Re-sincronizar la secuencia después del insert manual
     DB::statement("SELECT setval(pg_get_serial_sequence('roles', 'role_id'), MAX(role_id)) FROM roles;");
 
     DB::table('users')->insertOrIgnore([

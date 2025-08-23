@@ -32,8 +32,7 @@ use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
-    /** Listado de reservas */
-    /** Listado de reservas */ public function index(Request $request)
+public function index(Request $request)
     {
         $sort      = $request->get('sort', 'booking_id');
         $direction = $request->get('direction', 'asc');

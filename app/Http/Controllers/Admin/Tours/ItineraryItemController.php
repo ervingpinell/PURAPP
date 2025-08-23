@@ -80,7 +80,7 @@ public function update(UpdateItineraryItemRequest $request, ItineraryItem $itine
         $itinerary_item->update($payload);
 
         LoggerHelper::mutated($this->controller, 'update', 'itinerary_item', $itinerary_item->item_id, [
-            'is_active' => $itinerary_item->is_active, // solo para referencia en el log
+            'is_active' => $itinerary_item->is_active,
             'user_id'   => optional($request->user())->getAuthIdentifier(),
         ]);
 
@@ -93,10 +93,6 @@ public function update(UpdateItineraryItemRequest $request, ItineraryItem $itine
     }
 }
 
-
-    /**
-     * Alterna is_active y, si queda inactivo, lo desvincula de itinerarios.
-     */
     public function destroy(ToggleItineraryItemRequest $request, ItineraryItem $itinerary_item)
     {
         try {

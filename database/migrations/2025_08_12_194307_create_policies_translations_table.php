@@ -11,9 +11,9 @@ return new class extends Migration {
             $table->foreignId('policy_id')
                   ->constrained('policies', 'policy_id')
                   ->cascadeOnDelete();
-            $table->string('locale', 10);          // ej: es, en, pt_BR
-            $table->string('title');               // título por idioma
-            $table->longText('content')->nullable(); // descripción por idioma
+            $table->string('locale', 10);
+            $table->string('title');
+            $table->longText('content')->nullable();
             $table->timestamps();
 
             $table->unique(['policy_id', 'locale']);

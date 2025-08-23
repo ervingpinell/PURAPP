@@ -18,7 +18,6 @@ class TourScheduleController extends Controller
 {
     protected string $controller = 'TourScheduleController';
 
-    /** Página principal: horarios generales + tours con sus horarios */
     public function index()
     {
         $generalSchedules = Schedule::orderBy('start_time')->get();
@@ -71,13 +70,13 @@ class TourScheduleController extends Controller
         }
     }
 
-    /** (Opcional) Vista de edición individual */
+
     public function edit(Schedule $schedule)
     {
         return view('admin.tours.schedule.edit', compact('schedule'));
     }
 
-    /** Actualizar horario (global; no toca asociaciones) */
+
     public function update(UpdateScheduleRequest $request, Schedule $schedule): RedirectResponse
     {
         try {
@@ -88,7 +87,6 @@ class TourScheduleController extends Controller
                 'end_time'     => $data['end_time'],
                 'label'        => $data['label'] ?? null,
                 'max_capacity' => $data['max_capacity'],
-                // si el checkbox viene desmarcado, guardamos false
                 'is_active'    => $request->boolean('is_active'),
             ]);
 
@@ -106,7 +104,6 @@ class TourScheduleController extends Controller
         }
     }
 
-    /** Toggle GLOBAL (schedules.is_active) */
     public function toggle(ToggleScheduleRequest $request, Schedule $schedule): RedirectResponse
     {
         try {
@@ -131,9 +128,7 @@ class TourScheduleController extends Controller
         }
     }
 
-    /**
-     * Toggle de la ASIGNACIÓN (pivote) — NO afecta global
-     */
+
     public function toggleAssignment(ToggleScheduleAssignmentRequest $request, Tour $tour, Schedule $schedule): RedirectResponse
     {
         try {
@@ -165,7 +160,6 @@ class TourScheduleController extends Controller
         }
     }
 
-    /** Adjuntar horario existente a un tour */
     public function attach(AttachScheduleToTourRequest $request, Tour $tour): RedirectResponse
     {
         try {
@@ -190,7 +184,6 @@ class TourScheduleController extends Controller
         }
     }
 
-    /** Quitar horario de un tour (DETACH) */
     public function detach(Tour $tour, Schedule $schedule): RedirectResponse
     {
         try {
@@ -211,12 +204,10 @@ class TourScheduleController extends Controller
         }
     }
 
-    /** Eliminar horario (hard delete, global) */
     public function destroy(Schedule $schedule): RedirectResponse
     {
         try {
             $id = $schedule->getKey();
-            // $schedule->tours()->detach(); // si no tienes ON DELETE CASCADE
             $schedule->delete();
 
             LoggerHelper::mutated($this->controller, 'destroy', 'schedule', $id, [

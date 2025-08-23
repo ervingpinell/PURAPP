@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('booking_id');
             $table->unsignedBigInteger('tour_id');
 
-            
+
             $table->unsignedBigInteger('schedule_id')->nullable();
 
             $table->date('tour_date');
@@ -36,17 +36,15 @@ return new class extends Migration
 
             $table->timestamps();
 
-            // Relaciones
             $table->foreign('booking_id')->references('booking_id')->on('bookings')->onDelete('cascade');
             $table->foreign('tour_id')->references('tour_id')->on('tours')->onDelete('cascade');
-            
-            
+
+
             $table->foreign('schedule_id')->references('schedule_id')->on('schedules')->onDelete('set null');
 
             $table->foreign('hotel_id')->references('hotel_id')->on('hotels_list')->onDelete('set null');
             $table->foreign('tour_language_id')->references('tour_language_id')->on('tour_languages')->onDelete('restrict');
 
-            // Indexes
             $table->index('booking_id');
             $table->index('tour_id');
         });

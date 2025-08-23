@@ -7,12 +7,12 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void {
         Schema::table('users', function (Blueprint $table) {
-            // Token usado por Laravel para "remember me" y recuperación
+
             if (!Schema::hasColumn('users', 'remember_token')) {
                 $table->rememberToken()->after('password');
             }
 
-            // Campo para bloquear la cuenta
+
             if (!Schema::hasColumn('users', 'is_locked')) {
                 $table->boolean('is_locked')
                     ->default(false)

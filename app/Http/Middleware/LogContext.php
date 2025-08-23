@@ -12,7 +12,6 @@ class LogContext
 {
     public const HEADER = 'X-Request-Id';
 
-    // Para no llenar logs con UAs gigantes o URLs largas
     private const MAX_UA_LEN   = 180;
     private const MAX_PATH_LEN = 300;
     private const MAX_REF_LEN  = 300;
@@ -43,7 +42,6 @@ class LogContext
             $ua = mb_substr($ua, 0, self::MAX_UA_LEN).'…';
         }
 
-        // Ojo: no logueamos body por defecto (riesgo de datos sensibles)
         $requestSize = (int) ($request->header('content-length') ?? 0);
 
         // 3) Contexto global para todos los logs de esta request

@@ -33,11 +33,11 @@
           </div>
         </div>
 
-        <!-- Inputs ocultos -->
+        <!-- Hidden Inputs -->
         <input type="hidden" name="adult_count" id="adult_count" value="2">
         <input type="hidden" name="kid_count" id="kid_count" value="0">
 
-        <!-- Total SOLO del modal -->
+        <!-- Total -->
         <p class="fw-bold mt-3" id="modal-total-price">{{ __('adminlte::adminlte.total') }}: $0.00</p>
 
         <p class="small text-muted mb-0">{{ __('adminlte::adminlte.max_limits_info') }}</p>

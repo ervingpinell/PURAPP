@@ -72,10 +72,10 @@ Route::middleware([SetLocale::class])->group(function () {
     })->name('reviews');
 
     // Políticas públicas
-    Route::get('/politicas', [\App\Http\Controllers\Site\PoliciesController::class, 'index'])
-        ->name('site.policies.index');
-    Route::get('/politicas/{policy}', [\App\Http\Controllers\Site\PoliciesController::class, 'show'])
-        ->name('site.policies.show');
+    Route::get('/politicas', [\App\Http\Controllers\PoliciesController::class, 'index'])
+        ->name('policies.index');
+    Route::get('/politicas/{policy}', [\App\Http\Controllers\PoliciesController::class, 'show'])
+        ->name('policies.show');
 
     // Test correo (dev)
     Route::get('/send-test-email', function () {

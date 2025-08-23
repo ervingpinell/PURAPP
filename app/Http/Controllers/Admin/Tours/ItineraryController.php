@@ -33,8 +33,8 @@ class ItineraryController extends Controller
     {
         try {
             $data       = $request->validated();
-            $name       = $data['name'];                         // normalizado en el FormRequest
-            $description= (string) ($data['description'] ?? ''); // evitar null para traducciones
+            $name       = $data['name'];
+            $description= (string) ($data['description'] ?? '');
             $locales    = ['es', 'en', 'fr', 'pt', 'de'];
 
             DB::transaction(function () use ($name, $description, $locales, $translator, $request) {
@@ -44,7 +44,6 @@ class ItineraryController extends Controller
                     'is_active'   => true,
                 ]);
 
-                // Traducciones automáticas
                 $nameTr = $translator->translateAll($name);
                 $descTr = $translator->translateAll($description);
 
@@ -76,7 +75,7 @@ class ItineraryController extends Controller
     public function update(UpdateItineraryRequest $request, Itinerary $itinerary)
     {
         try {
-            $data = $request->validated(); // name y description ya normalizados
+            $data = $request->validated();
 
             $itinerary->update([
                 'name'        => $data['name'],
@@ -98,10 +97,6 @@ class ItineraryController extends Controller
             return back()->with('error', 'Could not update the itinerary.');
         }
     }
-
-    /**
-     * Toggle active flag. Items remain linked (no detach).
-     */
     public function destroy(Itinerary $itinerary)
     {
         try {
@@ -126,15 +121,11 @@ class ItineraryController extends Controller
         }
     }
 
-    /**
-     * Assign items to an itinerary with order and active flag in pivot.
-     * Expects: items = [item_id => order, ...]
-     */
 public function assignItems(AssignItineraryItemsRequest $request, Itinerary $itinerary)
 {
     try {
         $data     = $request->validated();
-        $rawMap   = $data['items'] ?? [];      // <-- viene normalizado del Request
+        $rawMap   = $data['items'] ?? [];
         $pivotData = [];
 
         foreach ($rawMap as $itemId => $order) {

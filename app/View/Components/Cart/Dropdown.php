@@ -10,13 +10,10 @@ use App\Models\Cart;
 
 class Dropdown extends Component
 {
-    /** @var 'mobile'|'desktop' */
     public string $variant;
 
-    /** @var string|null */
     public ?string $id;
 
-    // Datos que expondrá el componente a la vista
     public ?Cart $headerCart = null;
     public int $headerCount = 0;
     public float $headerTotal = 0.0;
@@ -29,7 +26,6 @@ class Dropdown extends Component
         $this->variant = $variant;
         $this->id = $id;
 
-        // Cargar datos del carrito (no hay lógica en el Blade del header)
         if (Auth::check()) {
             $cart = Cart::with(['items.tour','items.schedule','items.language','items.hotel'])
                 ->where('user_id', Auth::id())

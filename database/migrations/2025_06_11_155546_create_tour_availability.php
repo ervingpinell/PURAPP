@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('availability_id');
 
             $table->unsignedBigInteger('tour_id');
-            $table->unsignedBigInteger('schedule_id')->nullable(); 
+            $table->unsignedBigInteger('schedule_id')->nullable();
 
             $table->date('date');
             $table->time('start_time')->nullable();
@@ -26,7 +26,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            // 🔗 Llaves foráneas
+
             $table->foreign('tour_id')
                   ->references('tour_id')
                   ->on('tours')

@@ -17,7 +17,6 @@ class PolicyController extends Controller
         protected TranslatorInterface $translator
     ) {}
 
-    /** Listado de categorías (admin) */
     public function index(Request $request)
     {
         $q = Policy::query()
@@ -39,7 +38,6 @@ class PolicyController extends Controller
         return view('admin.policies.index', compact('policies'));
     }
 
-    /** Crear categoría + traducciones (DeepL SOLO en create) */
     public function store(Request $request)
     {
         $allowedLocales = array_keys(config('app.supported_locales', [
@@ -83,7 +81,6 @@ class PolicyController extends Controller
         });
     }
 
-    /** Editar categoría + traducción del locale actual (SIN DeepL) */
     public function update(Request $request, Policy $policy)
     {
         $allowedLocales = array_keys(config('app.supported_locales', [
@@ -125,7 +122,6 @@ class PolicyController extends Controller
         });
     }
 
-    /** Activar/Desactivar categoría */
     public function toggle(Policy $policy)
     {
         $policy->update(['is_active' => !$policy->is_active]);
@@ -136,14 +132,12 @@ class PolicyController extends Controller
         );
     }
 
-    /** Eliminar categoría (borra también secciones por FK) */
     public function destroy(Policy $policy)
     {
         $policy->delete();
         return back()->with('success', '🗑️ Categoría eliminada.');
     }
 
-    /** DeepL helper: crear traducciones faltantes (solo en store) */
     private function translatePolicyIfMissing(Policy $policy, string $baseLocale): void
     {
         $supported = array_keys(config('app.supported_locales', [

@@ -1,6 +1,4 @@
-{{-- 🌟 Carrusel de reseñas específicas del tour --}}
 <div class="col-md-12 my-5">
-  {{-- 🧾 Título --}}
   <div class="text-center mb-4">
     <h2 class="fw-bold" style="color: #256d1b">
       {{ __('adminlte::adminlte.what_customers_thinks_about') }}
@@ -10,7 +8,7 @@
     </h3>
   </div>
 
-  {{-- 🔁 Carrusel de reseñas --}}
+
   <div class="tour-review-carousel-wrapper">
     <button
       class="carousel-nav carousel-prev"
@@ -36,9 +34,7 @@
     >❯</button>
   </div>
 
-  {{-- 👣 Créditos Viator --}}
   @php
-    // nombre en inglés para slug estable; fallback a traducido/base
     $nameEn = optional($tour->translations)->firstWhere('locale','en')->name
               ?? $tour->getTranslatedName('en')
               ?? $tour->name;
@@ -58,7 +54,7 @@
                   $tour->viator_city_slug ?? 'La-Fortuna',
                   $tour->viator_slug ?? null,
                   $nameEn,
-                  $affiliateParams // ← sin hardcode
+                  $affiliateParams
               ) }}"
           target="_blank"
           rel="noopener sponsored"
@@ -71,7 +67,6 @@
   @endif
 </div>
 
-{{-- 🧠 Variables para JS (nombre traducido + code) --}}
 @php
   $VIATOR_PRODUCT_DATA = [
     'code' => $tour->viator_code,

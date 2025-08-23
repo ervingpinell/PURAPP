@@ -1,30 +1,23 @@
-{{-- resources/views/partials/tour/carousel.blade.php --}}
 @php
     use Illuminate\Support\Facades\Storage;
-
-    // 1) Intentar desde BD (tour_images)
     $images = collect();
 
     if (isset($tour)) {
-        // Trae la colección, venga cargada o no
         $imgs = $tour->relationLoaded('images')
             ? $tour->getRelation('images')
             : (method_exists($tour, 'images') ? $tour->images()->get() : collect());
 
         if ($imgs && $imgs->count()) {
-            // Reordenar SIEMPRE: cover primero, luego posición, luego id
             $imgs = $imgs->sortBy([
                 ['is_cover', 'desc'],
                 ['position', 'asc'],
                 ['id', 'asc'],
             ])->values();
 
-            // Accesor getUrlAttribute() del modelo TourImage
+            // getUrlAttribute() of TourImage model
             $images = $imgs->map(fn ($img) => $img->url)->values();
         }
     }
-
-    // 2) Fallback: leer carpeta storage/app/public/tours/{tour_id}/gallery
     if ($images->isEmpty()) {
         $tourId = $tour->tour_id ?? $tour->id ?? null;
         $folder = $tourId ? "tours/{$tourId}/gallery" : null;
@@ -42,19 +35,13 @@
             $images = $files->map(fn ($p) => asset('storage/'.$p));
         }
     }
-
-    // 3) Último fallback
     if ($images->isEmpty()) {
         $images = collect([asset('images/volcano.png')]);
     }
-
-    // 4) Asegurar mínimo 4 slides (opcional)
-    while ($images->count() < 4) {
+    while ($images->count() < 5) {
         $images->push($images->first());
     }
     $images = $images->values();
-
-    // Intervalo del carrusel principal (ms)
     $intervalMs = 8000; // 8s
 @endphp
 
@@ -82,7 +69,7 @@
   <div class="row gx-2 h-100 flex-column-reverse flex-md-row">
 
     @if($images->count() > 1)
-      {{-- Miniaturas (solo desktop) --}}
+      {{-- Thumbnails (only desktop) --}}
       <div class="col-auto d-none d-md-flex flex-column gap-2 pe-2 thumb-box h-100">
         @foreach($images as $i => $src)
           <img src="{{ $src }}"
@@ -96,7 +83,7 @@
       </div>
     @endif
 
-    {{-- Imagen principal --}}
+    {{-- Image --}}
     <div class="col position-relative h-100">
       <div class="carousel-inner h-100 rounded shadow-sm overflow-hidden">
         @foreach($images as $i => $src)
@@ -112,7 +99,7 @@
         @endforeach
       </div>
 
-      {{-- Controles --}}
+      {{-- Controls --}}
       <button class="carousel-control-prev" type="button"
               data-bs-target="#tourCarousel" data-bs-slide="prev"
               aria-label="Slide anterior">
@@ -125,7 +112,7 @@
         <span class="carousel-control-next-icon" aria-hidden="true"></span>
       </button>
 
-      {{-- Indicadores (solo mobile) --}}
+      {{-- Indicators (only mobile) --}}
       @if($images->count() > 1)
         <div class="carousel-indicators d-md-none">
           @foreach($images as $i => $src)
@@ -191,7 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
     wrap: true
   });
 
-  // Mantener miniatura activa en desktop
   const thumbs = mainEl.querySelectorAll('.thumb-box img');
   if (thumbs.length) {
     mainEl.addEventListener('slid.bs.carousel', (ev) => {
@@ -217,7 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Evitar scroll accidental dentro del modal
   lbEl.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
   lbEl.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 });

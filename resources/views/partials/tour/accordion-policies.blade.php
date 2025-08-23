@@ -1,19 +1,9 @@
 @php
-  /** @var \App\Models\Tour $tour */
-  /** @var \App\Models\Policy|null $cancel */
-  /** @var \App\Models\Policy|null $refund */
-
   use App\Models\Policy;
   use Illuminate\Support\Str;
-
-  // ID único para este bloque (si no lo pasan desde el include)
   $prefix = $prefix ?? ('pol-' . ($tour->tour_id ?? Str::uuid()));
-
-  // Si no te enviaron las políticas desde la vista/controlador, cárgalas aquí
   $cancel = $cancel ?? Policy::byType('cancelacion');
   $refund = $refund ?? Policy::byType('reembolso');
-
-  // Traducciones (el modelo ya maneja fallback de locale)
   $tCancel = $cancel?->translation();
   $tRefund = $refund?->translation();
 @endphp
@@ -39,10 +29,10 @@
   <div id="collapse-{{ $prefix }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ $prefix }}">
     <div class="accordion-body px-0">
 
-      {{-- Sub-acordeón interno --}}
+      {{-- Sub-acordeon --}}
       <div class="accordion" id="inner-{{ $prefix }}">
 
-        {{-- Cancelación --}}
+        {{-- Cancelation --}}
         <div class="accordion-item border-0 border-top">
           <h2 class="accordion-header" id="heading-cancel-{{ $prefix }}">
             <button
@@ -72,7 +62,7 @@
           </div>
         </div>
 
-        {{-- Reembolsos --}}
+        {{-- Refund --}}
         <div class="accordion-item border-0 border-top">
           <h2 class="accordion-header" id="heading-refund-{{ $prefix }}">
             <button
@@ -102,7 +92,7 @@
           </div>
         </div>
 
-        {{-- Mensaje general si ambas faltan --}}
+        {{-- fallback --}}
         @if((!$cancel || !$tCancel || blank($tCancel->content)) && (!$refund || !$tRefund || blank($tRefund->content)))
           <div class="small text-muted mt-3">
             <em>{{ __('No hay políticas configuradas por el momento.') }}</em>
@@ -110,7 +100,6 @@
         @endif
 
       </div>
-      {{-- /inner accordion --}}
 
     </div>
   </div>

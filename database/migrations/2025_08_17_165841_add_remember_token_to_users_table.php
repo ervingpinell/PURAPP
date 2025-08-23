@@ -8,9 +8,8 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // agrega la columna sólo si no existe
             if (! Schema::hasColumn('users', 'remember_token')) {
-                $table->rememberToken()->nullable(); // varchar(100) null
+                $table->rememberToken()->nullable();
             }
         });
     }

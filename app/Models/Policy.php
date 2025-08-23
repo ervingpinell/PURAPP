@@ -17,9 +17,7 @@ class Policy extends Model
     protected $keyType = 'int';
     public $timestamps = true;
 
-    // Quita 'type' si tu tabla no lo tiene.
     protected $fillable = [
-        // 'type',
         'name',
         'is_default',
         'is_active',
@@ -39,7 +37,6 @@ class Policy extends Model
         return 'policy_id';
     }
 
-    /* ─────────────── Relaciones ─────────────── */
 
     public function translations()
     {
@@ -58,7 +55,6 @@ class Policy extends Model
         return $this->sections()->where('is_active', true);
     }
 
-    /* ─────────────── Locales ─────────────── */
 
     public static function canonicalLocale(string $loc): string
     {
@@ -70,7 +66,7 @@ class Policy extends Model
             'en' => 'en',
             'fr' => 'fr',
             'de' => 'de',
-            'pt' => 'pt_BR', // clave canónica usada en DB
+            'pt' => 'pt_BR',
             default => $loc,
         };
     }
@@ -128,7 +124,6 @@ class Policy extends Model
         return optional($this->translation())?->content;
     }
 
-    /* ─────────────── Scopes ─────────────── */
 
     public function scopeActive($q)
     {
@@ -154,7 +149,6 @@ class Policy extends Model
         return $q;
     }
 
-    /* ─────────────── Compat byType() ─────────────── */
 
     public static function byType(string $type): ?self
     {

@@ -11,28 +11,25 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('tour_excluded_dates', function (Blueprint $table) {
-            // PK 
+
             $table->id('tour_excluded_date_id');
 
-            // FK hacia tours
+
             $table->unsignedBigInteger('tour_id');
             $table->foreign('tour_id')
                   ->references('tour_id')
                   ->on('tours')
                   ->onDelete('cascade');
 
-            // FK hacia horarios (opcional)
             $table->unsignedBigInteger('schedule_id')->nullable();
             $table->foreign('schedule_id')
                   ->references('schedule_id')
                   ->on('schedules')
                   ->onDelete('set null');
 
-            // Rango de fechas
             $table->date('start_date');
             $table->date('end_date')->nullable();
 
-            // Razón opcional
             $table->string('reason')->nullable();
 
             $table->timestamps();
