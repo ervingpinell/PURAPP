@@ -5,289 +5,315 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-// Modelos base
+// Base models
 use App\Models\Tour;
 use App\Models\Itinerary;
 use App\Models\ItineraryItem;
 use App\Models\Amenity;
 use App\Models\Faq;
 use App\Models\TourType;
-// Traducciones
+use App\Models\Policy;
+
+// Translation models
 use App\Models\TourTranslation;
 use App\Models\ItineraryTranslation;
 use App\Models\ItineraryItemTranslation;
 use App\Models\AmenityTranslation;
 use App\Models\FaqTranslation;
 use App\Models\TourTypeTranslation;
-use App\Models\Policy;
 use App\Models\PolicyTranslation;
 
 class TranslationController extends Controller
 {
+    /**
+     * Entry point for the translations module.
+     */
     public function index()
     {
         return view('admin.translations.index');
     }
 
+    /**
+     * Show a selector list for the chosen entity type.
+     */
     public function select(string $type)
     {
-        $labelSingular = match ($type) {
-            'tours'            => 'tour',
-            'itineraries'      => 'itinerario',
-            'itinerary_items'  => 'ítem de itinerario',
-            'amenities'        => 'amenidad',
-            'faqs'             => 'pregunta frecuente',
-            'policies'         => 'política',
-            'tour_types'       => 'tipo de tour',
-            default            => abort(404),
+        $entityLabel = match ($type) {
+            'tours'           => 'tour',
+            'itineraries'     => 'itinerary',
+            'itinerary_items' => 'itinerary item',
+            'amenities'       => 'amenity',
+            'faqs'            => 'FAQ',
+            'policies'        => 'policy',
+            'tour_types'      => 'tour type',
+            default           => abort(404),
         };
 
         $items = match ($type) {
-            'tours'            => Tour::orderBy('tour_id')->get(),
-            'itineraries'      => Itinerary::orderBy('itinerary_id')->get(),
-            'itinerary_items'  => ItineraryItem::orderBy('id')->get(),
-            'amenities'        => Amenity::orderBy('amenity_id')->get(),
-            'faqs'             => Faq::orderBy('faq_id')->get(),
-            'policies'         => Policy::orderBy('policy_id')->get(),
-            'tour_types'       => TourType::orderBy('tour_type_id')->get(),
-            default            => collect(),
+            'tours'           => Tour::orderBy('tour_id')->get(),
+            'itineraries'     => Itinerary::orderBy('itinerary_id')->get(),
+            'itinerary_items' => ItineraryItem::orderBy('item_id')->get(),
+            'amenities'       => Amenity::orderBy('amenity_id')->get(),
+            'faqs'            => Faq::orderBy('faq_id')->get(),
+            'policies'        => Policy::orderBy('policy_id')->get(),
+            'tour_types'      => TourType::orderBy('tour_type_id')->get(),
+            default           => collect(),
         };
 
-        $title = "Seleccionar {$labelSingular} para traducir";
+        $title = "Select {$entityLabel} to translate";
 
-        return view('admin.translations.select', compact('items', 'type', 'labelSingular', 'title'));
+        return view('admin.translations.select', compact('items', 'type', 'entityLabel', 'title'));
     }
 
+    /**
+     * Choose locale to translate for a specific entity.
+     */
     public function selectLocale(string $type, int $id)
     {
-        $item = match ($type) {
-            'tours'            => Tour::findOrFail($id),
-            'itineraries'      => Itinerary::findOrFail($id),
-            'itinerary_items'  => ItineraryItem::findOrFail($id),
-            'amenities'        => Amenity::findOrFail($id),
-            'faqs'             => Faq::findOrFail($id),
-            'policies'         => Policy::findOrFail($id),
-            'tour_types'       => TourType::findOrFail($id),
-            default            => abort(404),
+        $entity = match ($type) {
+            'tours'           => Tour::findOrFail($id),
+            'itineraries'     => Itinerary::findOrFail($id),
+            'itinerary_items' => ItineraryItem::findOrFail($id),
+            'amenities'       => Amenity::findOrFail($id),
+            'faqs'            => Faq::findOrFail($id),
+            'policies'        => Policy::findOrFail($id),
+            'tour_types'      => TourType::findOrFail($id),
+            default           => abort(404),
         };
 
-        return view('admin.translations.choose-locale', compact('type', 'item'));
+        return view('admin.translations.choose-locale', [
+            'type' => $type,
+            'item' => $entity,
+        ]);
     }
 
+    /**
+     * Edit translations for the selected entity and locale.
+     */
     public function edit(string $type, int $id)
     {
         $availableLocales = ['es', 'en', 'fr', 'pt', 'de'];
         $locale = request('locale', 'en');
+        if (!in_array($locale, $availableLocales, true)) {
+            $locale = 'en';
+        }
 
-        $item = null;
+        $entity = null;
         $translationModel = null;
-        $fields = [];
         $foreignKey = '';
+        $fields = [];
         $translations = [];
 
         switch ($type) {
             case 'tours':
-                $item = Tour::with(['itinerary.items'])->findOrFail($id);
+                $entity = Tour::with(['itinerary.items'])->findOrFail($id);
                 $translationModel = TourTranslation::class;
                 $foreignKey = 'tour_id';
                 $fields = ['name', 'overview'];
                 break;
 
             case 'itineraries':
-                $item = Itinerary::findOrFail($id);
+                $entity = Itinerary::findOrFail($id);
                 $translationModel = ItineraryTranslation::class;
                 $foreignKey = 'itinerary_id';
                 $fields = ['name', 'description'];
                 break;
 
             case 'itinerary_items':
-                $item = ItineraryItem::findOrFail($id);
+                $entity = ItineraryItem::findOrFail($id);
                 $translationModel = ItineraryItemTranslation::class;
                 $foreignKey = 'item_id';
                 $fields = ['title', 'description'];
                 break;
 
             case 'amenities':
-                $item = Amenity::findOrFail($id);
+                $entity = Amenity::findOrFail($id);
                 $translationModel = AmenityTranslation::class;
                 $foreignKey = 'amenity_id';
                 $fields = ['name'];
                 break;
 
             case 'faqs':
-                $item = Faq::findOrFail($id);
+                $entity = Faq::findOrFail($id);
                 $translationModel = FaqTranslation::class;
                 $foreignKey = 'faq_id';
                 $fields = ['question', 'answer'];
                 break;
 
             case 'policies':
-                $item = Policy::findOrFail($id);
-                $translationModel = PolicyTranslation::class;
-                $foreignKey = 'policy_id';
-                $fields = ['title', 'content'];
-                break;
-
-            case 'tour_types'
-                $item = TourType::findOrFail($id);
-                $translationModel = TourTypeTranslation::class;
-                $foreignKey = 'tour_type_id';
-                $fields = ['name', 'description', 'duration'];
-                break;
-
-            default:
-                abort(404, 'Tipo de traducción no válido');
-        }
-
-        foreach ($availableLocales as $lang) {
-            $record = $translationModel::where($foreignKey, $item->getKey())
-                ->where('locale', $lang)
-                ->first();
-
-            foreach ($fields as $field) {
-                $translations[$lang][$field] = $record ? ($record->{$field} ?? '') : '';
-            }
-        }
-
-        return view('admin.translations.edit', [
-            'type'         => $type,
-            'item'         => $item,
-            'locale'       => $locale,
-            'fields'       => $fields,
-            'translations' => $translations[$locale] ?? [],
-        ]);
-    }
-
-    public function update(Request $request, string $type, int $id)
-    {
-        $locale = $request->input('locale');
-        $data   = $request->input('translations', []);
-
-        $model = null;
-        $translationModel = null;
-        $foreignKey = '';
-        $fields = [];
-
-        switch ($type) {
-            case 'tours':
-                $model = Tour::with(['itinerary.items'])->findOrFail($id);
-                $translationModel = TourTranslation::class;
-                $foreignKey = 'tour_id';
-                $fields = ['name', 'overview'];
-                break;
-
-            case 'itineraries':
-                $model = Itinerary::findOrFail($id);
-                $translationModel = ItineraryTranslation::class;
-                $foreignKey = 'itinerary_id';
-                $fields = ['name', 'description'];
-                break;
-
-            case 'itinerary_items':
-                $model = ItineraryItem::findOrFail($id);
-                $translationModel = ItineraryItemTranslation::class;
-                $foreignKey = 'item_id';
-                $fields = ['title', 'description'];
-                break;
-
-            case 'amenities':
-                $model = Amenity::findOrFail($id);
-                $translationModel = AmenityTranslation::class;
-                $foreignKey = 'amenity_id';
-                $fields = ['name'];
-                break;
-
-            case 'faqs':
-                $model = Faq::findOrFail($id);
-                $translationModel = FaqTranslation::class;
-                $foreignKey = 'faq_id';
-                $fields = ['question', 'answer'];
-                break;
-
-            case 'policies':
-                $model = Policy::findOrFail($id);
+                $entity = Policy::findOrFail($id);
                 $translationModel = PolicyTranslation::class;
                 $foreignKey = 'policy_id';
                 $fields = ['title', 'content'];
                 break;
 
             case 'tour_types':
-                $model = TourType::findOrFail($id);
+                $entity = TourType::findOrFail($id);
                 $translationModel = TourTypeTranslation::class;
                 $foreignKey = 'tour_type_id';
                 $fields = ['name', 'description', 'duration'];
                 break;
 
             default:
-                abort(404, 'Tipo de traducción no válido');
+                abort(404, 'Invalid translation type.');
         }
 
+        foreach ($availableLocales as $lang) {
+            $existing = $translationModel::where($foreignKey, $entity->getKey())
+                ->where('locale', $lang)
+                ->first();
 
+            foreach ($fields as $field) {
+                $translations[$lang][$field] = $existing ? ($existing->{$field} ?? '') : '';
+            }
+        }
+
+        return view('admin.translations.edit', [
+            'type'         => $type,
+            'item'         => $entity,
+            'locale'       => $locale,
+            'fields'       => $fields,
+            'translations' => $translations[$locale] ?? [],
+        ]);
+    }
+
+    /**
+     * Persist translations for an entity/locale.
+     */
+    public function update(Request $request, string $type, int $id)
+    {
+        $validated = $request->validate([
+            'locale'        => 'required|in:es,en,fr,pt,de',
+            'translations'  => 'nullable|array',
+            'itinerary_translations' => 'nullable|array',
+            'item_translations'      => 'nullable|array',
+        ]);
+
+        $locale             = $validated['locale'];
+        $fieldValues        = $validated['translations'] ?? [];
+        $itineraryValues    = $validated['itinerary_translations'] ?? [];
+        $itemValuesById     = $validated['item_translations'] ?? [];
+
+        $entity = null;
+        $translationModel = null;
+        $foreignKey = '';
+        $fields = [];
+
+        switch ($type) {
+            case 'tours':
+                $entity = Tour::with(['itinerary.items'])->findOrFail($id);
+                $translationModel = TourTranslation::class;
+                $foreignKey = 'tour_id';
+                $fields = ['name', 'overview'];
+                break;
+
+            case 'itineraries':
+                $entity = Itinerary::findOrFail($id);
+                $translationModel = ItineraryTranslation::class;
+                $foreignKey = 'itinerary_id';
+                $fields = ['name', 'description'];
+                break;
+
+            case 'itinerary_items':
+                $entity = ItineraryItem::findOrFail($id);
+                $translationModel = ItineraryItemTranslation::class;
+                $foreignKey = 'item_id';
+                $fields = ['title', 'description'];
+                break;
+
+            case 'amenities':
+                $entity = Amenity::findOrFail($id);
+                $translationModel = AmenityTranslation::class;
+                $foreignKey = 'amenity_id';
+                $fields = ['name'];
+                break;
+
+            case 'faqs':
+                $entity = Faq::findOrFail($id);
+                $translationModel = FaqTranslation::class;
+                $foreignKey = 'faq_id';
+                $fields = ['question', 'answer'];
+                break;
+
+            case 'policies':
+                $entity = Policy::findOrFail($id);
+                $translationModel = PolicyTranslation::class;
+                $foreignKey = 'policy_id';
+                $fields = ['title', 'content'];
+                break;
+
+            case 'tour_types':
+                $entity = TourType::findOrFail($id);
+                $translationModel = TourTypeTranslation::class;
+                $foreignKey = 'tour_type_id';
+                $fields = ['name', 'description', 'duration'];
+                break;
+
+            default:
+                abort(404, 'Invalid translation type.');
+        }
+
+        // Upsert main translation
         $translation = $translationModel::firstOrNew([
-            $foreignKey => $model->getKey(),
+            $foreignKey => $entity->getKey(),
             'locale'    => $locale,
         ]);
 
         foreach ($fields as $field) {
-            if (array_key_exists($field, $data)) {
-
-                $translation->{$field} = $data[$field];
-            } else {
-
-                if (!$translation->exists) {
-                    $translation->{$field} = (string) ($model->{$field} ?? '');
-                }
+            if (array_key_exists($field, $fieldValues)) {
+                $translation->{$field} = (string) $fieldValues[$field];
+            } elseif (!$translation->exists) {
+                // Seed with original if creating a new translation row
+                $translation->{$field} = (string) ($entity->{$field} ?? '');
             }
         }
         $translation->save();
 
-
-        if ($type === 'tours' && $model->itinerary) {
-
-            $itineraryData = $request->input('itinerary_translations', []);
-            if (!empty($itineraryData)) {
+        // If editing a tour, optionally update its itinerary + items in the same locale
+        if ($type === 'tours' && $entity->itinerary) {
+            if (!empty($itineraryValues)) {
                 $itTr = ItineraryTranslation::firstOrNew([
-                    'itinerary_id' => $model->itinerary->itinerary_id,
+                    'itinerary_id' => $entity->itinerary->itinerary_id,
                     'locale'       => $locale,
                 ]);
 
-                if (array_key_exists('name', $itineraryData)) {
-                    $itTr->name = $itineraryData['name'];
+                if (array_key_exists('name', $itineraryValues)) {
+                    $itTr->name = (string) $itineraryValues['name'];
                 } elseif (!$itTr->exists) {
-                    $itTr->name = (string) ($model->itinerary->name ?? '');
+                    $itTr->name = (string) ($entity->itinerary->name ?? '');
                 }
 
-                if (array_key_exists('description', $itineraryData)) {
-                    $itTr->description = $itineraryData['description'];
+                if (array_key_exists('description', $itineraryValues)) {
+                    $itTr->description = (string) $itineraryValues['description'];
                 } elseif (!$itTr->exists) {
-                    $itTr->description = (string) ($model->itinerary->description ?? '');
+                    $itTr->description = (string) ($entity->itinerary->description ?? '');
                 }
 
                 $itTr->save();
             }
 
+            if (!empty($itemValuesById)) {
+                foreach ($entity->itinerary->items as $item) {
+                    $itemId = $item->item_id;
+                    if (!array_key_exists($itemId, $itemValuesById)) {
+                        continue;
+                    }
 
-            $itemData = $request->input('item_translations', []);
-            if (!empty($itemData)) {
-                foreach ($model->itinerary->items as $item) {
-                    $itemKey = $item->id;
-                    if (!array_key_exists($itemKey, $itemData)) continue;
-
-                    $payload = $itemData[$itemKey] ?? [];
+                    $payload = $itemValuesById[$itemId] ?? [];
 
                     $itemTr = ItineraryItemTranslation::firstOrNew([
-                        'item_id' => $itemKey,
+                        'item_id' => $itemId,
                         'locale'  => $locale,
                     ]);
 
                     if (array_key_exists('title', $payload)) {
-                        $itemTr->title = $payload['title'];
+                        $itemTr->title = (string) $payload['title'];
                     } elseif (!$itemTr->exists) {
                         $itemTr->title = (string) ($item->title ?? '');
                     }
 
                     if (array_key_exists('description', $payload)) {
-                        $itemTr->description = $payload['description'];
+                        $itemTr->description = (string) $payload['description'];
                     } elseif (!$itemTr->exists) {
                         $itemTr->description = (string) ($item->description ?? '');
                     }
@@ -299,6 +325,6 @@ class TranslationController extends Controller
 
         return redirect()
             ->route('admin.translations.select', ['type' => $type])
-            ->with('success', '✅ Traducción actualizada correctamente.');
+            ->with('success', __('adminlte::adminlte.translation_updated_successfully') ?: 'Translation updated successfully.');
     }
 }

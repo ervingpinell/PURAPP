@@ -2,103 +2,96 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Tour;
-use App\Models\HotelList;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
-use App\Models\TourType;
-use App\Models\TourExcludedDate;
-use Carbon\CarbonPeriod;
-use Illuminate\Support\Carbon;
 use App\Mail\ContactMessage;
-
+use App\Models\HotelList;
+use App\Models\Tour;
+use App\Models\TourExcludedDate;
+use App\Models\TourType;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        $locale   = app()->getLocale();
-        $fallback = config('app.fallback_locale', 'es');
+        $currentLocale  = app()->getLocale();
+        $fallbackLocale = config('app.fallback_locale', 'es');
 
-        // 1) Tipos de tour con traducciones
+        // Tour type metadata with locale-aware fallbacks
         $typeMeta = TourType::active()
             ->with('translations')
             ->orderBy('name')
             ->get()
-            ->mapWithKeys(function ($type) use ($locale, $fallback) {
-                $tr = ($type->translations ?? collect())->firstWhere('locale', $locale)
-                    ?: ($type->translations ?? collect())->firstWhere('locale', $fallback);
+            ->mapWithKeys(function ($type) use ($currentLocale, $fallbackLocale) {
+                $translation = $this->pickTranslation($type->translations, $currentLocale, $fallbackLocale);
 
                 return [
                     $type->tour_type_id => [
                         'id'          => $type->tour_type_id,
-                        'title'       => $tr->name ?? $type->name,                 // fallback al original (ES)
-                        'duration'    => $tr->duration ?? $type->duration ?? '',
-                        'description' => $tr->description ?? $type->description ?? '',
+                        'title'       => $translation->name ?? $type->name,
+                        'duration'    => $translation->duration ?? $type->duration ?? '',
+                        'description' => $translation->description ?? $type->description ?? '',
                     ],
                 ];
             });
 
-        // 2) Tours con traducciones y tipo (con fallback al original)
+        // Active tours with locale-aware name/overview and grouped by type
         $tours = Tour::with(['tourType.translations', 'itinerary.items', 'translations'])
             ->where('is_active', true)
             ->get()
-            ->map(function ($tour) use ($locale, $fallback) {
-                $tTr = ($tour->translations ?? collect())->firstWhere('locale', $locale)
-                    ?: ($tour->translations ?? collect())->firstWhere('locale', $fallback);
+            ->map(function ($tour) use ($currentLocale, $fallbackLocale) {
+                $translation = $this->pickTranslation($tour->translations, $currentLocale, $fallbackLocale);
 
-                $tour->translated_name     = $tTr->name ?? $tour->name;
-                $tour->translated_overview = $tTr->overview ?? $tour->overview;
-
-                $tour->tour_type_id_group  = optional($tour->tourType)->tour_type_id ?? 'sin_categoria';
+                $tour->translated_name     = $translation->name ?? $tour->name;
+                $tour->translated_overview = $translation->overview ?? $tour->overview;
+                $tour->tour_type_id_group  = optional($tour->tourType)->tour_type_id ?? 'uncategorized';
 
                 return $tour;
             });
 
-        // 3) Agrupar por id de tipo
         $toursByType = $tours
             ->sortBy('tour_type_id_group', SORT_NATURAL | SORT_FLAG_CASE)
-            ->groupBy(fn ($t) => $t->tour_type_id_group);
+            ->groupBy(fn ($tour) => $tour->tour_type_id_group);
 
-        // 4) Carrusel Viator
+        // Viator carousel products
         $viatorTours = Tour::with('translations')
             ->whereNotNull('viator_code')
             ->inRandomOrder()
             ->limit(6)
             ->get(['tour_id', 'viator_code', 'name']);
 
-        $carouselProductCodes = $viatorTours->map(function ($t) use ($locale, $fallback) {
-            $tr = ($t->translations ?? collect())->firstWhere('locale', $locale)
-                ?: ($t->translations ?? collect())->firstWhere('locale', $fallback);
+        $carouselProductCodes = $viatorTours->map(function ($tour) use ($currentLocale, $fallbackLocale) {
+            $translation = $this->pickTranslation($tour->translations, $currentLocale, $fallbackLocale);
 
             return [
-                'id'   => $t->tour_id,
-                'code' => $t->viator_code,
-                'name' => $tr->name ?? $t->name ?? '',
+                'id'   => $tour->tour_id,
+                'code' => $tour->viator_code,
+                'name' => $translation->name ?? $tour->name ?? '',
             ];
         })->values();
 
         return view('public.home', compact('toursByType', 'typeMeta', 'carouselProductCodes'));
     }
 
-
-    public function showTour($id)
+    public function showTour(int $id)
     {
-        $locale   = app()->getLocale();
-        $fallback = config('app.fallback_locale', 'es');
+        $currentLocale  = app()->getLocale();
+        $fallbackLocale = config('app.fallback_locale', 'es');
 
         $tour = Tour::with([
             'tourType.translations',
-            'schedules' => function ($q) {
-                $q->where('schedules.is_active', true)
-                  ->wherePivot('is_active', true)
-                  ->orderBy('schedules.start_time');
+            'schedules' => function ($scheduleQuery) {
+                $scheduleQuery->where('schedules.is_active', true)
+                    ->wherePivot('is_active', true)
+                    ->orderBy('schedules.start_time');
             },
-            'languages' => function ($q) {
-                $q->wherePivot('is_active', true)
-                  ->where('tour_languages.is_active', true)
-                  ->orderBy('name');
+            'languages' => function ($languageQuery) {
+                $languageQuery->wherePivot('is_active', true)
+                    ->where('tour_languages.is_active', true)
+                    ->orderBy('name');
             },
             'itinerary.items.translations',
             'itinerary.translations',
@@ -107,200 +100,189 @@ class HomeController extends Controller
             'translations',
         ])->findOrFail($id);
 
-        $t = ($tour->translations ?? collect())->firstWhere('locale', $locale)
-           ?: ($tour->translations ?? collect())->firstWhere('locale', $fallback);
+        // Tour main translation
+        $tourTr = $this->pickTranslation($tour->translations, $currentLocale, $fallbackLocale);
+        $tour->translated_name     = $tourTr->name     ?? $tour->name;
+        $tour->translated_overview = $tourTr->overview ?? $tour->overview;
 
-        $tour->translated_name     = $t->name     ?? $tour->name;
-        $tour->translated_overview = $t->overview ?? $tour->overview;
-
+        // Itinerary and items
         if ($tour->itinerary) {
-            $it = ($tour->itinerary->translations ?? collect())->firstWhere('locale', $locale)
-               ?: ($tour->itinerary->translations ?? collect())->firstWhere('locale', $fallback);
-
-            $tour->itinerary->translated_name        = $it->name        ?? $tour->itinerary->name;
-            $tour->itinerary->translated_description = $it->description ?? $tour->itinerary->description;
+            $itTr = $this->pickTranslation($tour->itinerary->translations, $currentLocale, $fallbackLocale);
+            $tour->itinerary->translated_name        = $itTr->name        ?? $tour->itinerary->name;
+            $tour->itinerary->translated_description = $itTr->description ?? $tour->itinerary->description;
 
             foreach ($tour->itinerary->items as $item) {
-                $itT = ($item->translations ?? collect())->firstWhere('locale', $locale)
-                    ?: ($item->translations ?? collect())->firstWhere('locale', $fallback);
-                $item->translated_title       = $itT->title       ?? $item->title;
-                $item->translated_description = $itT->description ?? $item->description;
+                $itemTr = $this->pickTranslation($item->translations, $currentLocale, $fallbackLocale);
+                $item->translated_title       = $itemTr->title       ?? $item->title;
+                $item->translated_description = $itemTr->description ?? $item->description;
             }
         }
 
-        foreach ($tour->amenities as $a) {
-            $ta = ($a->translations ?? collect())->firstWhere('locale', $locale)
-                ?: ($a->translations ?? collect())->firstWhere('locale', $fallback);
-            $a->translated_name = $ta->name ?? $a->name;
+        // Amenities (included)
+        foreach ($tour->amenities as $amenity) {
+            $amenityTr = $this->pickTranslation($amenity->translations, $currentLocale, $fallbackLocale);
+            $amenity->translated_name = $amenityTr->name ?? $amenity->name;
         }
 
-        foreach ($tour->excludedAmenities as $e) {
-            $te = ($e->translations ?? collect())->firstWhere('locale', $locale)
-                ?: ($e->translations ?? collect())->firstWhere('locale', $fallback);
-            $e->translated_name = $te->name ?? $e->name;
+        // Amenities (excluded)
+        foreach ($tour->excludedAmenities as $amenity) {
+            $amenityTr = $this->pickTranslation($amenity->translations, $currentLocale, $fallbackLocale);
+            $amenity->translated_name = $amenityTr->name ?? $amenity->name;
         }
 
-        // Bloqueos de fechas/horarios
-        $visibleScheduleIds = $tour->schedules->pluck('schedule_id')->map(fn($v)=>(int)$v)->all();
+        // Date/schedule blocks (only for visible schedules)
+        $visibleScheduleIds = $tour->schedules->pluck('schedule_id')->map(fn ($sid) => (int) $sid)->all();
 
-        // Trae SOLO bloqueos globales o de los horarios visibles
-        $blocked = TourExcludedDate::query()
+        $blockedRows = TourExcludedDate::query()
             ->where('tour_id', $tour->tour_id)
-            ->where(function ($q) use ($visibleScheduleIds) {
-                $q->whereNull('schedule_id');
+            ->where(function ($query) use ($visibleScheduleIds) {
+                $query->whereNull('schedule_id');
                 if (!empty($visibleScheduleIds)) {
-                    $q->orWhereIn('schedule_id', $visibleScheduleIds);
+                    $query->orWhereIn('schedule_id', $visibleScheduleIds);
                 }
             })
-            ->get(['schedule_id','start_date','end_date']);
+            ->get(['schedule_id', 'start_date', 'end_date']);
 
-        // Globales (sin horario)
+        // Global blocks (no schedule)
         $blockedGeneral = [];
-        foreach ($blocked->whereNull('schedule_id') as $row) {
-            $start = Carbon::parse($row->start_date)->toImmutable();
-            $end   = $row->end_date ? Carbon::parse($row->end_date)->toImmutable() : $start;
-            for ($d=$start; $d->lte($end); $d=$d->addDay()) {
-                $blockedGeneral[] = $d->toDateString();
+        foreach ($blockedRows->whereNull('schedule_id') as $row) {
+            $startDate = Carbon::parse($row->start_date)->toDateString();
+            $endDate   = $row->end_date ? Carbon::parse($row->end_date)->toDateString() : $startDate;
+
+            foreach (CarbonPeriod::create($startDate, $endDate) as $date) {
+                $blockedGeneral[] = $date->toDateString();
             }
         }
         $blockedGeneral = array_values(array_unique($blockedGeneral));
 
-        // Por horario (solo visibles)
+        // Schedule-specific blocks
         $blockedBySchedule = [];
-        foreach ($blocked->whereNotNull('schedule_id') as $row) {
-            $sid   = (string) $row->schedule_id;
-            $start = Carbon::parse($row->start_date)->toImmutable();
-            $end   = $row->end_date ? Carbon::parse($row->end_date)->toImmutable() : $start;
-            for ($d=$start; $d->lte($end); $d=$d->addDay()) {
-                $blockedBySchedule[$sid][] = $d->toDateString();
+        foreach ($blockedRows->whereNotNull('schedule_id') as $row) {
+            $scheduleKey = (string) $row->schedule_id;
+            $startDate   = Carbon::parse($row->start_date)->toDateString();
+            $endDate     = $row->end_date ? Carbon::parse($row->end_date)->toDateString() : $startDate;
+
+            foreach (CarbonPeriod::create($startDate, $endDate) as $date) {
+                $blockedBySchedule[$scheduleKey][] = $date->toDateString();
             }
         }
-        foreach ($blockedBySchedule as $sid => $dates) {
-            $blockedBySchedule[$sid] = array_values(array_unique($dates));
+        foreach ($blockedBySchedule as $scheduleKey => $dates) {
+            $blockedBySchedule[$scheduleKey] = array_values(array_unique($dates));
         }
 
-        // Días totalmente bloqueados (todos los horarios visibles bloqueados ese día)
+        // Dates fully blocked (all visible schedules blocked on that day)
         $fullyBlockedDates = [];
         if (!empty($visibleScheduleIds)) {
-            $total = count($visibleScheduleIds);
-            // cuenta por día
-            $countByDate = [];
+            $visibleCount = count($visibleScheduleIds);
+            $blocksPerDay = [];
 
-            // globales suman "total" directamente (todos los horarios)
             foreach ($blockedGeneral as $date) {
-                $countByDate[$date] = ($countByDate[$date] ?? 0) + $total;
+                $blocksPerDay[$date] = ($blocksPerDay[$date] ?? 0) + $visibleCount;
             }
-            // específicos suman de a 1
-            foreach ($blockedBySchedule as $sid => $dates) {
+            foreach ($blockedBySchedule as $dates) {
                 foreach ($dates as $date) {
-                    $countByDate[$date] = ($countByDate[$date] ?? 0) + 1;
+                    $blocksPerDay[$date] = ($blocksPerDay[$date] ?? 0) + 1;
                 }
             }
 
-            foreach ($countByDate as $date => $cnt) {
-                if ($cnt >= $total) {
+            foreach ($blocksPerDay as $date => $count) {
+                if ($count >= $visibleCount) {
                     $fullyBlockedDates[] = $date;
                 }
             }
             $fullyBlockedDates = array_values(array_unique($fullyBlockedDates));
         }
 
-        // Datos extra para la vista
-        $hotels = HotelList::orderBy('name')->get();
-        $cancel = $tour->cancel_policy ?? null;
-        $refund = $tour->refund_policy ?? null;
+        $hotels       = HotelList::orderBy('name')->get();
+        $cancelPolicy = $tour->cancel_policy ?? null;
+        $refundPolicy = $tour->refund_policy ?? null;
+
         return view('public.tour-show', compact(
             'tour',
             'hotels',
-            'cancel',
-            'refund',
+            'cancelPolicy',
+            'refundPolicy',
             'blockedGeneral',
             'blockedBySchedule',
             'fullyBlockedDates'
-
         ));
     }
 
+    public function contact()
+    {
+        // Map app locale to Google Maps `hl` param
+        $localeMap = [
+            'es' => 'es', 'es-CR' => 'es',
+            'en' => 'en', 'en-US' => 'en', 'en-GB' => 'en',
+            'fr' => 'fr', 'fr-FR' => 'fr',
+            'pt' => 'pt', 'pt-PT' => 'pt', 'pt-BR' => 'pt-BR',
+            'de' => 'de', 'de-DE' => 'de',
+            'it' => 'it', 'nl' => 'nl', 'ru' => 'ru', 'ja' => 'ja',
+            'zh' => 'zh-CN', 'zh-CN' => 'zh-CN', 'zh-TW' => 'zh-TW',
+        ];
 
+        $mapLang     = $localeMap[app()->getLocale()] ?? 'en';
+        $placeName   = 'Agencia de Viajes Green Vacation';
+        $placeAddr   = 'La Fortuna, San Carlos, Costa Rica';
+        $centerLat   = 10.4556623;
+        $centerLng   = -84.6532029;
+        $encodedQuery = rawurlencode("{$placeName}, {$placeAddr}");
 
+        $mapSrc = "https://maps.google.com/maps?hl={$mapLang}&gl=CR&q={$encodedQuery}"
+                . "&ll={$centerLat},{$centerLng}&z=16&iwloc=near&output=embed";
 
-public function contact()
-{
-    // Idioma del mapa según locale
-    $locale = app()->getLocale();
-    $hlMap = [
-        'es'    => 'es', 'es-CR' => 'es',
-        'en'    => 'en', 'en-US' => 'en', 'en-GB' => 'en',
-        'fr'    => 'fr', 'fr-FR' => 'fr',
-        'pt'    => 'pt', 'pt-PT' => 'pt', 'pt-BR' => 'pt-BR',
-        'de'    => 'de', 'de-DE' => 'de',
-        'it'    => 'it',
-        'nl'    => 'nl',
-        'ru'    => 'ru',
-        'ja'    => 'ja',
-        'zh'    => 'zh-CN', 'zh-CN' => 'zh-CN', 'zh-TW' => 'zh-TW',
-    ];
-    $mapLang = $hlMap[$locale] ?? 'en';
-
-    // Datos del lugar
-    $placeName    = 'Agencia de Viajes Green Vacation';
-    $placeAddress = 'La Fortuna, San Carlos, Costa Rica';
-
-    // Centro del mapa (opcional, ayuda a encuadrar)
-    $lat = 10.4556623;
-    $lng = -84.6532029;
-
-    // Consulta por NOMBRE + DIRECCIÓN (esto fuerza el pin “con nombre”)
-    $q = rawurlencode("{$placeName}, {$placeAddress}");
-
-    // Mapa embebido clásico que respeta ?hl= y muestra pin de búsqueda
-    // - q: fuerza el resultado con nombre
-    // - ll + z: centra y ajusta zoom
-    // - iwloc=near: ayuda a que el pin quede visible
-    $mapSrc = "https://maps.google.com/maps?hl={$mapLang}&gl=CR&q={$q}&ll={$lat},{$lng}&z=16&iwloc=near&output=embed";
-
-    return view('public.contact', compact('mapLang', 'mapSrc'));
-}
-
-
-public function sendContact(Request $request)
-{
-    // Validación (un poco más estricta y con bail)
-    $validated = $request->validate([
-        'name'    => 'bail|required|string|min:2|max:100',
-        'email'   => 'bail|required|email',
-        'subject' => 'bail|required|string|min:3|max:150',
-        'message' => 'bail|required|string|min:5|max:1000',
-        'website' => 'nullable|string|max:50', // honeypot
-    ]);
-
-    // Honeypot: si tiene contenido, tratar como enviado (sin mandar nada)
-    if (!empty(data_get($validated, 'website'))) {
-        return back()->with('success', __('adminlte::adminlte.message_sent_spam_caught')
-            ?? 'Tu mensaje ha sido enviado.');
+        return view('public.contact', compact('mapLang', 'mapSrc'));
     }
 
-    try {
-        $to = config('mail.to.contact', config('mail.from.address', 'info@greenvacationscr.com'));
-
-        Mail::to($to)->send(new ContactMessage($validated));
-        // Si usas cola:
-        // Mail::to($to)->queue(new ContactMessage($validated));
-
-        return back()->with('success', __('adminlte::adminlte.contact_success')
-            ?? 'Tu mensaje ha sido enviado con éxito. Pronto te contactaremos.');
-    } catch (\Throwable $e) {
-        // En producción puedes evitar el trace completo para reducir PII
-        Log::error('Error enviando contacto: '.$e->getMessage(), [
-            'ip' => $request->ip(),
-            // 'trace' => $e->getTraceAsString(), // opcional en local
+    public function sendContact(Request $request)
+    {
+        $validated = $request->validate([
+            'name'    => 'bail|required|string|min:2|max:100',
+            'email'   => 'bail|required|email',
+            'subject' => 'bail|required|string|min:3|max:150',
+            'message' => 'bail|required|string|min:5|max:1000',
+            'website' => 'nullable|string|max:50', // honeypot
         ]);
 
-        return back()
-            ->withInput()
-            ->withErrors(['email' => __('adminlte::adminlte.contact_error')
-                ?? 'Ocurrió un error al enviar tu mensaje. Intenta de nuevo en unos minutos.']);
-    }
-}
+        // Honeypot: pretend success if filled
+        if (!empty(data_get($validated, 'website'))) {
+            return back()->with(
+                'success',
+                __('adminlte::adminlte.message_sent_spam_caught') ?? 'Your message has been sent.'
+            );
+        }
 
+        try {
+            $recipient = config('mail.to.contact', config('mail.from.address', 'info@greenvacationscr.com'));
+            Mail::to($recipient)->send(new ContactMessage($validated));
+
+            return back()->with(
+                'success',
+                __('adminlte::adminlte.contact_success') ?? 'Your message has been sent successfully. We will contact you soon.'
+            );
+        } catch (\Throwable $e) {
+            Log::error('Contact form send error: '.$e->getMessage(), [
+                'ip' => $request->ip(),
+            ]);
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'email' => __('adminlte::adminlte.contact_error')
+                        ?? 'An error occurred while sending your message. Please try again in a few minutes.',
+                ]);
+        }
+    }
+
+    /**
+     * Pick a translation for a locale, falling back when necessary.
+     *
+     * @param \Illuminate\Support\Collection|null $translations
+     */
+    private function pickTranslation($translations, string $locale, string $fallback)
+    {
+        $collection = $translations ?? collect();
+        return $collection->firstWhere('locale', $locale)
+            ?: $collection->firstWhere('locale', $fallback);
+    }
 }

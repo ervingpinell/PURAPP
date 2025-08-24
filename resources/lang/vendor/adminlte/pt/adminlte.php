@@ -357,4 +357,15 @@ return [
     'link_sent' => 'Enviámos-lhe um novo link de verificação.',
 ],
 
+    'reviews_loaded'         => 'As avaliações foram carregadas com sucesso.',
+    'reviews_upstream_error' => 'Houve um problema com o provedor de avaliações.',
+    'reviews_busy'           => 'O serviço está ocupado, por favor tente novamente mais tarde.',
+    'reviews_exception'      => 'Ocorreu um erro inesperado ao carregar as avaliações.',
+
+    'message_sent_spam_caught' => 'Sua mensagem foi enviada.',
+    'contact_success'          => 'Sua mensagem foi enviada com sucesso. Entraremos em contato em breve.',
+    'contact_error'            => 'Ocorreu um erro ao enviar sua mensagem. Por favor, tente novamente em alguns minutos.',
+
+        'translation_updated_successfully' => 'Tradução atualizada com sucesso.',
+
 ];

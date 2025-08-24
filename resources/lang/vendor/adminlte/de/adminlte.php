@@ -354,4 +354,15 @@ return [
     'link_sent' => 'Enviámos-lhe um novo link de verificação.',
 ],
 
+    'reviews_loaded'         => 'Bewertungen wurden erfolgreich geladen.',
+    'reviews_upstream_error' => 'Es gab ein Problem mit dem Bewertungsanbieter.',
+    'reviews_busy'           => 'Der Dienst ist beschäftigt, bitte versuchen Sie es in Kürze erneut.',
+    'reviews_exception'      => 'Beim Laden der Bewertungen ist ein unerwarteter Fehler aufgetreten.',
+
+    'message_sent_spam_caught' => 'Ihre Nachricht wurde gesendet.',
+    'contact_success'          => 'Ihre Nachricht wurde erfolgreich gesendet. Wir werden uns bald bei Ihnen melden.',
+    'contact_error'            => 'Beim Senden Ihrer Nachricht ist ein Fehler aufgetreten. Bitte versuchen Sie es in ein paar Minuten erneut.',
+
+        'translation_updated_successfully' => 'Übersetzung erfolgreich aktualisiert.',
+
 ];

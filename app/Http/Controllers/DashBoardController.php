@@ -2,90 +2,103 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Tour;
-use App\Models\Role;
-use App\Models\User;
-use App\Models\Schedule;
-use Illuminate\Support\Facades\Auth;
-use App\Models\TourType;
 use App\Models\Amenity;
-use App\Models\TourLanguage;
-use App\Models\ItineraryItem;
-use App\Models\Itinerary;
 use App\Models\Booking;
+use App\Models\Itinerary;
+use App\Models\ItineraryItem;
+use App\Models\Role;
+use App\Models\Schedule;
+use App\Models\Tour;
+use App\Models\TourLanguage;
+use App\Models\TourType;
+use App\Models\User;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 
 class DashBoardController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         return view('index');
     }
 
-public function switchLanguage(string $language)
-{
-    $map = [
-        'es' => 'es',
-        'es_CR' => 'es',
-        'pt' => 'pt',
-        'pt_BR' => 'pt',
-        'en' => 'en',
-        'fr' => 'fr',
-        'de' => 'de',
-    ];
-
-    if (isset($map[$language])) {
-        $locale = $map[$language];
-        session(['locale' => $locale]);
-        app()->setLocale($locale);
-    }
-
-    $referer = url()->previous() ?: route('home');
-
-
-    $path = parse_url($referer, PHP_URL_PATH) ?? '';
-    if (str_starts_with($path, '/login')) {
-        return redirect()->route('login');
-    }
-
-    return redirect()->to($referer);
-}
-
-
-
-    public function dashboard()
+    /**
+     * Normalize and switch the app locale, then return to the previous page.
+     */
+    public function switchLanguage(string $language): RedirectResponse
     {
-        if (!in_array(Auth::user()->role_id, [1, 2])) {
-            return redirect()->route('login')->with('error', __('adminlte::adminlte.access_denied'));
+        $normalized = str_replace('-', '_', strtolower($language));
+
+        $localeMap = [
+            'es'    => 'es',
+            'es_cr' => 'es',
+            'pt'    => 'pt',
+            'pt_br' => 'pt',
+            'en'    => 'en',
+            'fr'    => 'fr',
+            'de'    => 'de',
+        ];
+
+        if (isset($localeMap[$normalized])) {
+            $targetLocale = $localeMap[$normalized];
+            session(['locale' => $targetLocale]);
+            app()->setLocale($targetLocale);
         }
 
-        $totalUsuarios   = User::count();
-        $totalTours      = Tour::count();
-        $roles           = Role::count();
-        $tourTypes       = TourType::count();
-        $totalIdiomas    = TourLanguage::count();
-        $totalHorarios   = Schedule::count();
-        $totalAmenities  = Amenity::count();
-        $totalItinerarios = ItineraryItem::count();
-        $totalReservas   = Booking::count();
+        $previousUrl = url()->previous() ?: route('home');
+        $path        = parse_url($previousUrl, PHP_URL_PATH) ?? '';
 
+        // Avoid redirecting back into /login
+        if (str_starts_with($path, '/login')) {
+            return redirect()->route('login');
+        }
+
+        return redirect()->to($previousUrl);
+    }
+
+    /**
+     * Admin dashboard (roles 1 or 2).
+     */
+    public function dashboard(): View|RedirectResponse
+    {
+        $user = Auth::user();
+        if (!$user || !in_array($user->role_id, [1, 2], true)) {
+            return redirect()
+                ->route('login')
+                ->with('error', __('adminlte::adminlte.access_denied'));
+        }
+
+        // KPI counters
+        $totalUsers          = User::count();
+        $totalTours          = Tour::count();
+        $totalRoles          = Role::count();
+        $totalTourTypes      = TourType::count();
+        $totalLanguages      = TourLanguage::count();
+        $totalSchedules      = Schedule::count();
+        $totalAmenities      = Amenity::count();
+        $totalItineraryItems = ItineraryItem::count();
+        $totalBookings       = Booking::count();
+
+        // Extra data
         $itineraries = Itinerary::with('items')->get();
 
-        $upcomingBookings = Booking::with(['user','detail.tour'])
-            ->whereHas('detail', fn($q) => $q->where('tour_date', '>=', today()))
+        $upcomingBookings = Booking::with(['user', 'detail.tour'])
+            ->whereHas('detail', fn ($query) => $query->where('tour_date', '>=', today()))
             ->orderBy('booking_date')
             ->take(5)
             ->get();
 
         return view('admin.dashboard', compact(
-            'totalUsuarios',
+            'totalUsers',
             'totalTours',
-            'tourTypes',
-            'totalIdiomas',
-            'totalHorarios',
+            'totalRoles',
+            'totalTourTypes',
+            'totalLanguages',
+            'totalSchedules',
             'totalAmenities',
-            'totalItinerarios',
-            'totalReservas',
+            'totalItineraryItems',
+            'totalBookings',
             'itineraries',
             'upcomingBookings'
         ));

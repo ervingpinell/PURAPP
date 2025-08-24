@@ -22,12 +22,10 @@
 <div class="container py-4">
   <h1 class="mb-2 big-title text-center">{{ $t?->title ?? $policy->name }}</h1>
 
-  {{-- Description/intro --}}
   @if(filled($t?->content))
     <div class="mb-4">{!! nl2br(e($t->content)) !!}</div>
   @endif
 
-  {{-- Sections --}}
   @if($activeSections->isNotEmpty())
     <div class="accordion" id="policySectionsAccordion">
       @foreach($activeSections as $section)
@@ -50,7 +48,7 @@
                 <i class="fas fa-plus icon-plus"></i>
                 <i class="fas fa-minus icon-minus"></i>
               </span>
-              {{ $st?->title ?? __('Sección') }}
+              {{ $st?->title ?? __('policies.section') }}
             </button>
           </h2>
 

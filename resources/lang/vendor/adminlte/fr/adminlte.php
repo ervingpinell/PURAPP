@@ -361,6 +361,15 @@ return [
     'resend'    => 'Renvoyer l’e-mail de vérification',
     'link_sent' => 'Nous vous avons envoyé un nouveau lien de vérification.',
 ],
+    'reviews_loaded'         => 'Les avis ont été chargés avec succès.',
+    'reviews_upstream_error' => 'Il y a eu un problème avec le fournisseur d\'avis.',
+    'reviews_busy'           => 'Le service est occupé, veuillez réessayer dans quelques instants.',
+    'reviews_exception'      => 'Une erreur inattendue est survenue lors du chargement des avis.',
 
+    'message_sent_spam_caught' => 'Votre message a été envoyé.',
+    'contact_success'          => 'Votre message a été envoyé avec succès. Nous vous contacterons bientôt.',
+    'contact_error'            => 'Une erreur est survenue lors de l\'envoi de votre message. Veuillez réessayer dans quelques minutes.',
+
+    'translation_updated_successfully' => 'Traduction mise à jour avec succès.',
 ];
 
