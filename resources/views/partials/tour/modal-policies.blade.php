@@ -1,15 +1,10 @@
 @php
   use App\Models\Policy;
 
-  // Cargar solo las dos políticas requeridas
   $cancel  = Policy::byType('cancelacion');
   $refund  = Policy::byType('reembolso');
-
-  // Traducciones (el modelo ya maneja fallback)
   $tCancel = $cancel?->translation();
   $tRefund = $refund?->translation();
-
-  // Helper: recorte y escape seguro (quita el recorte si no lo quieres)
   $limit = 3000;
   $trim  = function (?string $txt) use ($limit) {
     if (!$txt) return null;
@@ -28,7 +23,7 @@
       : '<em class="text-muted">'.e(__('No hay una política de reembolsos configurada.')).'</em>';
 @endphp
 
-{{-- Templates ocultos SOLO para cancelación y reembolsos --}}
+{{-- Hidden templates just for cancelation and refund --}}
 <template id="tpl-policy-cancelacion">
   <h5 class="modal-title">{{ $cancelTitle }}</h5>
   <div class="policy-body">{!! $cancelContent !!}</div>
@@ -39,7 +34,7 @@
   <div class="policy-body">{!! $refundContent !!}</div>
 </template>
 
-{{-- MODAL ÚNICO --}}
+{{-- MODAL --}}
 <div class="modal fade" id="policyModal" tabindex="-1" aria-labelledby="policyModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
     <div class="modal-content">
@@ -62,7 +57,6 @@
 @push('scripts')
 <script>
 (function () {
-  // Abre el modal con la política indicada: "cancelacion" o "reembolso"
   function openPolicy(kind) {
     const tpl  = document.getElementById(`tpl-policy-${kind}`);
     const body = document.getElementById('policyModalBody');
@@ -81,7 +75,6 @@
     modal.show();
   }
 
-  // Delegación de eventos: cualquier elemento con [data-policy="cancelacion|reembolso"]
   document.addEventListener('click', function(e) {
     const btn = e.target.closest('[data-policy]');
     if (!btn) return;
@@ -93,7 +86,6 @@
     }
   });
 
-  // Exponer helper global opcional por si quieres abrir desde JS
   window.openPolicyModal = openPolicy;
 })();
 </script>

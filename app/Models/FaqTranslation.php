@@ -18,7 +18,6 @@ class FaqTranslation extends Model
 
     public function faq()
     {
-        // owner key explícito por PK no estándar
         return $this->belongsTo(Faq::class, 'faq_id', 'faq_id');
     }
 }

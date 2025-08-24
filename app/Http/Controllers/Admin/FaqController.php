@@ -65,7 +65,6 @@ class FaqController extends Controller
             'answer'   => $request->string('answer')->trim(),
         ]);
 
-        // Nota: no retraducimos aquí; las traducciones se editan en el módulo de traducciones
         return redirect()
             ->route('admin.faqs.index')
             ->with('success', 'Pregunta actualizada correctamente.');

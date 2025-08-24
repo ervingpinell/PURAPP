@@ -8,7 +8,7 @@ class TourTypeTranslation extends Model
 {
     protected $table = 'tour_type_translations';
 
-    protected $primaryKey = 'id'; // O ajusta si tu PK es diferente
+    protected $primaryKey = 'id';
     public $incrementing = true;
     protected $keyType = 'int';
     public $timestamps = true;
@@ -18,7 +18,7 @@ class TourTypeTranslation extends Model
         'locale',
         'name',
         'description',
-        'duration', // ✅ Incluido porque ahora traduces este campo
+        'duration',
     ];
 
     public function tourType()

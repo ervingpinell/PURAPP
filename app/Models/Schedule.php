@@ -9,13 +9,12 @@ class Schedule extends Model
 {
     protected $table = 'schedules';
 
-    // PK y binding
+
     protected $primaryKey = 'schedule_id';
     public $incrementing = true;
     protected $keyType = 'int';
     public $timestamps = true;
 
-    // Para que {schedule} en las rutas use schedule_id
     public function getRouteKeyName()
     {
         return 'schedule_id';
@@ -34,10 +33,7 @@ class Schedule extends Model
         'max_capacity' => 'integer',
     ];
 
-    /**
-     * Normaliza start_time/end_time a HH:MM:SS al asignarlos.
-     * (si recibes "13:00", guardará "13:00:00")
-     */
+
     protected function startTime(): Attribute
     {
         return Attribute::make(
@@ -61,10 +57,6 @@ class Schedule extends Model
             }
         );
     }
-
-    /**
-     * Relación con tours (pivot schedule_tour con is_active)
-     */
     public function tours()
     {
         return $this->belongsToMany(
@@ -76,9 +68,7 @@ class Schedule extends Model
          ->withTimestamps();
     }
 
-    /**
-     * Scope útil para filtrar activos
-     */
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

@@ -12,9 +12,9 @@ class RoleController extends Controller
 public function index(Request $request)
 {
     $q      = trim((string) $request->get('q', ''));
-    $sort   = $request->get('sort', 'name');     // id | name
-    $dir    = $request->get('dir', 'asc');       // asc | desc
-    $status = $request->get('status', 'all');    // all | active | inactive
+    $sort   = $request->get('sort', 'name');
+    $dir    = $request->get('dir', 'asc');
+    $status = $request->get('status', 'all');
 
     $rolesQ = Role::query();
 
@@ -22,20 +22,17 @@ public function index(Request $request)
         $rolesQ->where('role_name', 'like', "%{$q}%");
     }
 
-    // Filtro por estado
     if ($status === 'active') {
         $rolesQ->where('is_active', true);
     } elseif ($status === 'inactive') {
         $rolesQ->where('is_active', false);
     }
 
-    // 👇 Orden principal: activos primero (is_active DESC)
     $rolesQ->orderBy('is_active', 'desc');
 
-    // Orden secundario: por id o nombre
     if ($sort === 'id') {
         $rolesQ->orderBy('role_id', $dir);
-    } else { // name
+    } else {
         $rolesQ->orderBy('role_name', $dir);
     }
 
@@ -45,18 +42,14 @@ public function index(Request $request)
 }
 
 
-    /**
-     * Formulario de edición.
-     */
+
     public function edit($id)
     {
         $role = Role::findOrFail($id);
         return view('admin.roles.edit', compact('role'));
     }
 
-    /**
-     * Crear nuevo rol.
-     */
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -69,9 +62,6 @@ public function index(Request $request)
         return redirect()->back()->with('success', 'Rol creado correctamente.');
     }
 
-    /**
-     * Actualizar rol existente.
-     */
     public function update(Request $request, $id)
     {
         $role = Role::findOrFail($id);
@@ -86,9 +76,6 @@ public function index(Request $request)
         return redirect()->route('admin.roles.index')->with('success', 'Rol actualizado correctamente.');
     }
 
-    /**
-     * Activar/Desactivar (toggle) un rol.
-     */
     public function toggle($id)
     {
         $role = Role::findOrFail($id);
@@ -99,9 +86,6 @@ public function index(Request $request)
         return redirect()->back()->with('success', $msg);
     }
 
-    /**
-     * Eliminar (DELETE) un rol.
-     */
     public function destroy($id)
     {
         $role = Role::findOrFail($id);
@@ -111,7 +95,7 @@ public function index(Request $request)
             return redirect()->route('admin.roles.index')
                 ->with('success', 'Rol eliminado correctamente.');
         } catch (QueryException $e) {
-            // Error típico de restricción de clave foránea: SQLSTATE 23000
+
             if ($e->getCode() === '23000') {
                 return redirect()->back()->with('error',
                     'No se puede eliminar el rol porque está relacionado con usuarios o permisos. ' .
@@ -119,7 +103,6 @@ public function index(Request $request)
                 );
             }
 
-            // Otros errores
             return redirect()->back()->with('error', 'No se pudo eliminar el rol. Detalle: ' . $e->getMessage());
         }
     }

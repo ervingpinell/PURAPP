@@ -1,21 +1,16 @@
 @php
-  /** @var \App\Models\Tour $tour */
-  /** @var \App\Models\Policy|null $cancel */
-  /** @var \App\Models\Policy|null $refund */
-
   use App\Models\Policy;
   use Illuminate\Support\Str;
 
-  // ID único para este bloque (si no lo pasan desde el include)
-  $prefix = $prefix ?? ('pol-' . ($tour->tour_id ?? Str::uuid()));
+  $prefix  = $prefix ?? ('pol-' . ($tour->tour_id ?? Str::uuid()));
+  $locale  = app()->getLocale();
 
-  // Si no te enviaron las políticas desde la vista/controlador, cárgalas aquí
-  $cancel = $cancel ?? Policy::byType('cancelacion');
-  $refund = $refund ?? Policy::byType('reembolso');
+  $cancel  = $cancel ?? Policy::byType('cancelacion');
+  $refund  = $refund ?? Policy::byType('reembolso');
 
-  // Traducciones (el modelo ya maneja fallback de locale)
-  $tCancel = $cancel?->translation();
-  $tRefund = $refund?->translation();
+  // Si tu método translation() acepta locale, pásalo; si no, deja como estaba.
+  $tCancel = $cancel?->translation($locale) ?? $cancel?->translation('es');
+  $tRefund = $refund?->translation($locale) ?? $refund?->translation('es');
 @endphp
 
 <div class="accordion-item border-0 border-bottom">
@@ -32,17 +27,15 @@
         <i class="fas fa-plus icon-plus"></i>
         <i class="fas fa-minus icon-minus"></i>
       </span>
-      {{ __('adminlte::adminlte.policies') }}
+      {{ __('policies.page_title') }}
     </button>
   </h2>
 
   <div id="collapse-{{ $prefix }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ $prefix }}">
     <div class="accordion-body px-0">
 
-      {{-- Sub-acordeón interno --}}
       <div class="accordion" id="inner-{{ $prefix }}">
-
-        {{-- Cancelación --}}
+        {{-- Cancellation --}}
         <div class="accordion-item border-0 border-top">
           <h2 class="accordion-header" id="heading-cancel-{{ $prefix }}">
             <button
@@ -57,7 +50,7 @@
                 <i class="fas fa-plus icon-plus"></i>
                 <i class="fas fa-minus icon-minus"></i>
               </span>
-              {{ $tCancel?->title ?? __('Política de Cancelación') }}
+              {{ $tCancel?->title ?? __('policies.cancellation_policy') }}
             </button>
           </h2>
 
@@ -66,13 +59,13 @@
               @if($cancel && $tCancel && filled($tCancel->content))
                 {!! nl2br(e($tCancel->content)) !!}
               @else
-                <em class="text-muted">{{ __('No hay una política de cancelación configurada.') }}</em>
+                <em class="text-muted">{{ __('policies.no_cancellation_policy') }}</em>
               @endif
             </div>
           </div>
         </div>
 
-        {{-- Reembolsos --}}
+        {{-- Refund --}}
         <div class="accordion-item border-0 border-top">
           <h2 class="accordion-header" id="heading-refund-{{ $prefix }}">
             <button
@@ -87,7 +80,7 @@
                 <i class="fas fa-plus icon-plus"></i>
                 <i class="fas fa-minus icon-minus"></i>
               </span>
-              {{ $tRefund?->title ?? __('Política de Reembolsos') }}
+              {{ $tRefund?->title ?? __('policies.refund_policy') }}
             </button>
           </h2>
 
@@ -96,21 +89,20 @@
               @if($refund && $tRefund && filled($tRefund->content))
                 {!! nl2br(e($tRefund->content)) !!}
               @else
-                <em class="text-muted">{{ __('No hay una política de reembolsos configurada.') }}</em>
+                <em class="text-muted">{{ __('policies.no_refund_policy') }}</em>
               @endif
             </div>
           </div>
         </div>
 
-        {{-- Mensaje general si ambas faltan --}}
+        {{-- Fallback global --}}
         @if((!$cancel || !$tCancel || blank($tCancel->content)) && (!$refund || !$tRefund || blank($tRefund->content)))
           <div class="small text-muted mt-3">
-            <em>{{ __('No hay políticas configuradas por el momento.') }}</em>
+            <em>{{ __('policies.no_policies') }}</em>
           </div>
         @endif
 
       </div>
-      {{-- /inner accordion --}}
 
     </div>
   </div>

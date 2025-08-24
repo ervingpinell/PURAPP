@@ -17,44 +17,46 @@ class PolicyController extends Controller
         protected TranslatorInterface $translator
     ) {}
 
-    /** Listado de categorías (admin) */
     public function index(Request $request)
     {
-        $q = Policy::query()
+        $query = Policy::query()
             ->withCount('sections')
             ->with('translations');
 
         if ($request->filled('active')) {
-            $q->where('is_active', $request->boolean('active'));
+            $query->where('is_active', $request->boolean('active'));
         }
         if ($request->filled('from')) {
-            $q->whereDate('effective_from', '>=', $request->date('from'));
+            $query->whereDate('effective_from', '>=', $request->date('from'));
         }
         if ($request->filled('to')) {
-            $q->whereDate('effective_to', '<=', $request->date('to'));
+            $query->whereDate('effective_to', '<=', $request->date('to'));
         }
 
-        $policies = $q->orderByDesc('policy_id')->get();
+        $policies = $query->orderByDesc('policy_id')->get();
 
         return view('admin.policies.index', compact('policies'));
     }
 
-    /** Crear categoría + traducciones (DeepL SOLO en create) */
     public function store(Request $request)
     {
-        $allowedLocales = array_keys(config('app.supported_locales', [
-            'es' => 'Español', 'en' => 'English', 'pt_BR' => 'Português (Brasil)', 'fr' => 'Français', 'de' => 'Deutsch',
+        $supportedLocales = array_keys(config('app.supported_locales', [
+            'es'    => 'Español',
+            'en'    => 'English',
+            'pt_BR' => 'Português (Brasil)',
+            'fr'    => 'Français',
+            'de'    => 'Deutsch',
         ]));
 
         $request->validate([
-            'name'           => ['required','string','max:255'],
-            'effective_from' => ['nullable','date'],
-            'effective_to'   => ['nullable','date','after_or_equal:effective_from'],
-            'is_active'      => ['nullable','in:0,1'],
+            'name'           => ['required', 'string', 'max:255'],
+            'effective_from' => ['nullable', 'date'],
+            'effective_to'   => ['nullable', 'date', 'after_or_equal:effective_from'],
+            'is_active'      => ['nullable', 'in:0,1'],
 
-            'locale'         => ['nullable', Rule::in($allowedLocales)],
-            'title'          => ['required','string','max:255'],
-            'content'        => ['required','string'],
+            'locale'         => ['nullable', Rule::in($supportedLocales)],
+            'title'          => ['required', 'string', 'max:255'],
+            'content'        => ['required', 'string'],
         ]);
 
         return DB::transaction(function () use ($request) {
@@ -78,27 +80,31 @@ class PolicyController extends Controller
 
             $this->translatePolicyIfMissing($policy, $baseLocale);
 
-            return redirect()->route('admin.policies.index')
-                ->with('success', '✅ Categoría creada y traducida.');
+            return redirect()
+                ->route('admin.policies.index')
+                ->with('success', __('policies.category_created'));
         });
     }
 
-    /** Editar categoría + traducción del locale actual (SIN DeepL) */
     public function update(Request $request, Policy $policy)
     {
-        $allowedLocales = array_keys(config('app.supported_locales', [
-            'es'=>'Español','en'=>'English','pt_BR'=>'Português (Brasil)','fr'=>'Français','de'=>'Deutsch',
+        $supportedLocales = array_keys(config('app.supported_locales', [
+            'es'    => 'Español',
+            'en'    => 'English',
+            'pt_BR' => 'Português (Brasil)',
+            'fr'    => 'Français',
+            'de'    => 'Deutsch',
         ]));
 
         $request->validate([
-            'name'           => ['required','string','max:255'],
-            'effective_from' => ['nullable','date'],
-            'effective_to'   => ['nullable','date','after_or_equal:effective_from'],
-            'is_active'      => ['nullable','in:0,1'],
+            'name'           => ['required', 'string', 'max:255'],
+            'effective_from' => ['nullable', 'date'],
+            'effective_to'   => ['nullable', 'date', 'after_or_equal:effective_from'],
+            'is_active'      => ['nullable', 'in:0,1'],
 
-            'locale'         => ['nullable', Rule::in($allowedLocales)],
-            'title'          => ['required','string','max:255'],
-            'content'        => ['required','string'],
+            'locale'         => ['nullable', Rule::in($supportedLocales)],
+            'title'          => ['required', 'string', 'max:255'],
+            'content'        => ['required', 'string'],
         ]);
 
         return DB::transaction(function () use ($request, $policy) {
@@ -109,65 +115,85 @@ class PolicyController extends Controller
                 'is_active'      => $request->boolean('is_active', true),
             ]);
 
-            $locale = Policy::canonicalLocale(
+            $targetLocale = Policy::canonicalLocale(
                 (string) ($request->input('locale') ?: app()->getLocale())
             );
 
-            $tr = PolicyTranslation::firstOrNew([
+            $translation = PolicyTranslation::firstOrNew([
                 'policy_id' => $policy->policy_id,
-                'locale'    => $locale,
+                'locale'    => $targetLocale,
             ]);
-            $tr->title   = (string) $request->input('title');
-            $tr->content = (string) $request->input('content');
-            $tr->save();
 
-            return back()->with('success', '✅ Categoría actualizada.');
+            $translation->title   = (string) $request->input('title');
+            $translation->content = (string) $request->input('content');
+            $translation->save();
+
+            return back()->with('success', __('policies.category_updated'));
         });
     }
 
-    /** Activar/Desactivar categoría */
     public function toggle(Policy $policy)
     {
-        $policy->update(['is_active' => !$policy->is_active]);
+        $policy->update(['is_active' => ! $policy->is_active]);
 
         return back()->with(
             'success',
-            $policy->is_active ? '✅ Categoría activada' : '⚠️ Categoría desactivada'
+            $policy->is_active
+                ? __('policies.category_activated')
+                : __('policies.category_deactivated')
         );
     }
 
-    /** Eliminar categoría (borra también secciones por FK) */
     public function destroy(Policy $policy)
     {
         $policy->delete();
-        return back()->with('success', '🗑️ Categoría eliminada.');
+
+        return back()->with('success', __('policies.category_deleted'));
     }
 
-    /** DeepL helper: crear traducciones faltantes (solo en store) */
+    /**
+     * Auto-translate to other supported locales when missing.
+     */
     private function translatePolicyIfMissing(Policy $policy, string $baseLocale): void
     {
-        $supported = array_keys(config('app.supported_locales', [
-            'es'=>'Español','en'=>'English','pt_BR'=>'Português (Brasil)','fr'=>'Français','de'=>'Deutsch',
+        $supportedLocales = array_keys(config('app.supported_locales', [
+            'es'    => 'Español',
+            'en'    => 'English',
+            'pt_BR' => 'Português (Brasil)',
+            'fr'    => 'Français',
+            'de'    => 'Deutsch',
         ]));
 
-        $base = $policy->translations()->where('locale', $baseLocale)->first();
-        if (!$base) return;
+        $baseTranslation = $policy->translations()->where('locale', $baseLocale)->first();
+        if (! $baseTranslation) {
+            return;
+        }
 
-        foreach ($supported as $target) {
-            if ($target === $baseLocale) continue;
+        foreach ($supportedLocales as $targetLocale) {
+            if ($targetLocale === $baseLocale) {
+                continue;
+            }
 
-            $existing = $policy->translations()->where('locale', $target)->first();
-            if ($existing) continue;
+            $exists = $policy->translations()->where('locale', $targetLocale)->exists();
+            if ($exists) {
+                continue;
+            }
 
-            try { $titleT = $this->translator->translate($base->title, $target); }
-            catch (\Throwable $e) { $titleT = $base->title; }
+            try {
+                $translatedTitle = $this->translator->translate($baseTranslation->title, $targetLocale);
+            } catch (\Throwable $e) {
+                $translatedTitle = $baseTranslation->title;
+            }
 
-            try { $contentT = $this->translator->translate($base->content, $target); }
-            catch (\Throwable $e) { $contentT = $base->content; }
+            try {
+                $translatedContent = $this->translator->translate($baseTranslation->content, $targetLocale);
+            } catch (\Throwable $e) {
+                $translatedContent = $baseTranslation->content;
+            }
 
             PolicyTranslation::updateOrCreate(
-                ['policy_id' => $policy->policy_id, 'locale' => $target],
-                ['title' => $titleT, 'content' => $contentT]
+                ['policy_id' => $policy->policy_id, 'locale' => $targetLocale],
+                ['title' => $translatedTitle, 'content' => $translatedContent]
             );
         }
     }

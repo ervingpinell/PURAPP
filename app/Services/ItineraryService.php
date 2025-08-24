@@ -98,9 +98,9 @@ public function createWithItems(string $name, array $items, string $description 
 
 public function getAvailableItems()
 {
-    $query = \App\Models\ItineraryItem::query()->orderBy('title');
+    $query = ItineraryItem::query()->orderBy('title');
 
-    // Filtro por estado si se especifica en la URL
+
     if (request('estado') === 'activos') {
         $query->where('is_active', true);
     } elseif (request('estado') === 'inactivos') {

@@ -262,7 +262,7 @@ return [
     'send_message' => 'Enviar mensagem',
     'message_sent' => 'Mensagem enviada',
     'business_hours' => 'Horário de atendimento',
-    'business_schedule' => 'Segunda a domingo, das 7:30 às 19:00',
+    'business_schedule' => 'Segunda a domingo, das 7:30 às 19:30',
 
     // ─── ERROS ────────────────────────────────────────
     'access_denied' => 'Acesso negado',
@@ -360,5 +360,16 @@ return [
     'resend'    => 'Reenviar e-mail de verificação',
     'link_sent' => 'Enviámos-lhe um novo link de verificação.',
 ],
+
+    'reviews_loaded'         => 'As avaliações foram carregadas com sucesso.',
+    'reviews_upstream_error' => 'Houve um problema com o provedor de avaliações.',
+    'reviews_busy'           => 'O serviço está ocupado, por favor tente novamente mais tarde.',
+    'reviews_exception'      => 'Ocorreu um erro inesperado ao carregar as avaliações.',
+
+    'message_sent_spam_caught' => 'Sua mensagem foi enviada.',
+    'contact_success'          => 'Sua mensagem foi enviada com sucesso. Entraremos em contato em breve.',
+    'contact_error'            => 'Ocorreu um erro ao enviar sua mensagem. Por favor, tente novamente em alguns minutos.',
+
+        'translation_updated_successfully' => 'Tradução atualizada com sucesso.',
 
 ];

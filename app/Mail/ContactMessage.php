@@ -25,7 +25,6 @@ class ContactMessage extends Mailable
 
     public function build()
     {
-        // IMPORTANTE: usar replyTo para poder responder al cliente desde tu bandeja
         return $this->subject('Contacto: ' . $this->subjectLine)
             ->replyTo($this->email, $this->name)
             ->markdown('emails.contact.message', [

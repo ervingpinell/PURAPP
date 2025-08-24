@@ -25,36 +25,29 @@ class Booking extends Model
         'is_active',
     ];
 
-
-    /** Relación con el usuario */
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-
-    /** Relación con el tour */
     public function tour()
     {
         return $this->belongsTo(Tour::class, 'tour_id');
     }
 
     public function tourLanguage()
-{
-    return $this->belongsTo(\App\Models\TourLanguage::class, 'tour_language_id', 'tour_language_id');
-}
-
-    /** Al asignar status, lo guardamos en minúsculas */
+    {
+        return $this->belongsTo(\App\Models\TourLanguage::class, 'tour_language_id', 'tour_language_id');
+    }
     public function setStatusAttribute($value)
     {
         $this->attributes['status'] = strtolower($value);
     }
-    //relacion a bookingDetails
     public function details()
     {
         return $this->hasMany(BookingDetail::class, 'booking_id', 'booking_id');
     }
 
-   public function detail()
+    public function detail()
     {
         return $this->hasOne(BookingDetail::class, 'booking_id', 'booking_id');
     }

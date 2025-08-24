@@ -21,14 +21,14 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     protected $casts = [
-        'status'            => 'boolean',     // 👈 recomendado
+        'status'            => 'boolean',
         'is_locked'         => 'boolean',
         'email_verified_at' => 'datetime',
     ];
 
     protected $hidden = ['password', 'remember_token'];
 
-    // ===== Relaciones =====
+
     public function role()
     {
         return $this->belongsTo(Role::class, 'role_id', 'role_id');
@@ -39,13 +39,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Cart::class, 'user_id')->where('is_active', true);
     }
 
-    // Helper
+
     public function isLocked(): bool
     {
         return (bool) $this->is_locked;
     }
 
-    // ===== AdminLTE helpers =====
+
     public function adminlte_desc()
     {
         return $this->role ? $this->role->role_name : 'Sin rol';
@@ -61,15 +61,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->full_name);
     }
 
-    // Alias name
     public function name(): Attribute
     {
         return Attribute::get(fn () => $this->full_name);
     }
 
-    // ===== Mutators =====
-
-    // Normaliza email a minúsculas y trim (recomendado)
     protected function email(): Attribute
     {
         return Attribute::make(
@@ -101,7 +97,6 @@ class User extends Authenticatable implements MustVerifyEmail
         );
     }
 
-    // ===== Accesores =====
     public function getFullPhoneAttribute(): ?string
     {
         if ($this->country_code && $this->phone) {

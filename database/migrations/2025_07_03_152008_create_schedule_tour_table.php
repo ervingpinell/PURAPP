@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreign('schedule_id')->references('schedule_id')->on('schedules')->onDelete('cascade');
             $table->foreign('tour_id')->references('tour_id')->on('tours')->onDelete('cascade');
 
-            $table->unique(['schedule_id', 'tour_id']); // Para evitar duplicados
+            $table->unique(['schedule_id', 'tour_id']);
         });
 
     }

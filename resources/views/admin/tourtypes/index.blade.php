@@ -44,14 +44,17 @@
                         <i class="fas fa-edit"></i>
                     </a>
 
-                    <!-- Activar/Desactivar (interruptor naranja) -->
-                    <form action="{{ route('admin.tourtypes.toggle', $tourtype->tour_type_id) }}" method="POST" class="d-inline me-1">
+                    <!-- Activar/Desactivar (SweetAlert) -->
+                    <form action="{{ route('admin.tourtypes.toggle', $tourtype->tour_type_id) }}"
+                          method="POST"
+                          class="d-inline me-1 form-toggle"
+                          data-name="{{ $tourtype->name }}"
+                          data-active="{{ $tourtype->is_active ? 1 : 0 }}">
                         @csrf
                         @method('PUT')
                         <button type="submit"
                                 class="btn btn-toggle btn-sm"
-                                title="{{ $tourtype->is_active ? 'Desactivar' : 'Activar' }}"
-                                onclick="return confirm('{{ $tourtype->is_active ? '¿Deseas desactivarlo?' : '¿Deseas activarlo?' }}')">
+                                title="{{ $tourtype->is_active ? 'Desactivar' : 'Activar' }}">
                             <i class="fas fa-toggle-{{ $tourtype->is_active ? 'on' : 'off' }}"></i>
                         </button>
                     </form>
@@ -219,6 +222,7 @@
 <script>
   // Confirmación para eliminar
   document.addEventListener('DOMContentLoaded', function () {
+    // Eliminar
     document.querySelectorAll('.form-delete').forEach(form => {
       form.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -237,16 +241,44 @@
         });
       });
     });
+
+    // Toggle activar/desactivar (SweetAlert)
+    document.querySelectorAll('.form-toggle').forEach(form => {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const name   = this.dataset.name || 'este tipo de tour';
+        const active = Number(this.dataset.active) === 1;
+
+        const actionText = active ? 'desactivarlo' : 'activarlo';
+        const title      = active ? 'Desactivar' : 'Activar';
+        const color      = '#fd7e14'; // naranja
+
+        Swal.fire({
+          icon: 'question',
+          title: title,
+          text: `¿Seguro que deseas ${actionText} "${name}"?`,
+          showCancelButton: true,
+          confirmButtonColor: color,
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: active ? 'Sí, desactivar' : 'Sí, activar',
+          cancelButtonText: 'Cancelar'
+        }).then(res => {
+          if (res.isConfirmed) this.submit();
+        });
+      });
+    });
   });
 </script>
 
-@if ($errors->has('name'))
+@if ($errors->any())
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        const firstError = @json($errors->first());
         Swal.fire({
             icon: 'error',
-            title: 'Nombre inválido',
-            text: '{{ $errors->first('name') }}',
+            title: 'Validación',
+            text: firstError || 'Revisa los campos del formulario.',
             confirmButtonColor: '#d33'
         });
 
@@ -256,8 +288,11 @@
             const modalId = 'modalRegistrar';
         @endif
 
-        const modal = new bootstrap.Modal(document.getElementById(modalId));
-        modal.show();
+        const modalEl = document.getElementById(modalId);
+        if (modalEl) {
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
     });
 </script>
 @endif

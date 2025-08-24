@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 <head>
-    {{-- Custom Styles - Consider moving these to a dedicated CSS file like public/css/app.css or public/css/customer.css --}}
     <style>
         body {
             display: flex;
@@ -10,8 +9,6 @@
             background-color: #f8f9fa; /* Light background for the page */
         }
         main { flex: 1; }
-
-        /* Reservation Card Styles */
         .card-img-top-custom { height: 200px; object-fit: cover; width: 100%; border-top-left-radius: calc(0.5rem - 1px); border-top-right-radius: calc(0.5rem - 1px); }
         .card { border: none; border-radius: 0.5rem; transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
         .card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); }

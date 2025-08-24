@@ -16,7 +16,6 @@ class Tour extends Model
     protected $keyType = 'int';
     public $timestamps = true;
 
-    // Exponer atributos calculados
     protected $appends = ['images', 'cover_image_url'];
 
     protected $fillable = [
@@ -41,12 +40,9 @@ class Tour extends Model
         'is_active'    => 'bool',
     ];
 
-    /* =====================
-     * Scopes
-     * ===================== */
-    public function scopeActive($q)
+    public function scopeActive($query)
     {
-        return $q->where('is_active', true);
+        return $query->where('is_active', true);
     }
 
     /* =====================
@@ -95,26 +91,23 @@ class Tour extends Model
             'tour_id',
             'schedule_id'
         )
-        ->withPivot('is_active') // 👈 necesario para leer/guardar estado por tour
-        ->withTimestamps();
+            ->withPivot('is_active')
+            ->withTimestamps();
     }
-public function activeSchedules()
-{
-    return $this->belongsToMany(
-        \App\Models\Schedule::class,
-        'schedule_tour',
-        'tour_id',
-        'schedule_id'
-    )
-    ->withPivot('is_active')
-    ->where('schedules.is_active', true)   // activo global
-    ->wherePivot('is_active', true)        // activo en la asignación
-    ->orderBy('schedules.start_time')
-    ->withTimestamps();
-}
-
-
-
+    public function activeSchedules()
+    {
+        return $this->belongsToMany(
+            \App\Models\Schedule::class,
+            'schedule_tour',
+            'tour_id',
+            'schedule_id'
+        )
+            ->withPivot('is_active')
+            ->where('schedules.is_active', true)
+            ->wherePivot('is_active', true)
+            ->orderBy('schedules.start_time')
+            ->withTimestamps();
+    }
 
     public function availabilities()
     {
@@ -131,9 +124,6 @@ public function activeSchedules()
         return $this->hasMany(TourExcludedDate::class, 'tour_id', 'tour_id');
     }
 
-    /* =====================
-     * Traducciones
-     * ===================== */
     public function translations()
     {
         return $this->hasMany(TourTranslation::class, 'tour_id', 'tour_id');
@@ -143,11 +133,9 @@ public function activeSchedules()
     {
         $locale = $locale ?: app()->getLocale() ?: 'es';
 
-        // Normaliza a guiones y arma candidatos
         $locale = str_replace('_', '-', $locale);
         $candidates = [$locale];
 
-        // sin región (es-CR -> es)
         if (str_contains($locale, '-')) {
             $base = explode('-', $locale)[0];
             if (!in_array($base, $candidates, true)) {
@@ -155,7 +143,6 @@ public function activeSchedules()
             }
         }
 
-        // fallback de la app (ej. en o en-US)
         $appFallback = str_replace('_', '-', (string) config('app.fallback_locale', 'en'));
         if (!in_array($appFallback, $candidates, true)) {
             $candidates[] = $appFallback;
@@ -167,12 +154,11 @@ public function activeSchedules()
             }
         }
 
-        // español como último recurso
+
         if (!in_array('es', $candidates, true)) {
             $candidates[] = 'es';
         }
 
-        // Obtiene translations (si ya está eager-loaded no dispara query)
         $translations = $this->relationLoaded('translations')
             ? $this->getRelation('translations')
             : $this->translations()->get();
@@ -181,7 +167,7 @@ public function activeSchedules()
             return null;
         }
 
-        // Indexa por exacto y por idioma base
+
         $byExact = [];
         $byLang  = [];
         foreach ($translations as $tr) {
@@ -194,7 +180,7 @@ public function activeSchedules()
             }
         }
 
-        // Busca por candidatos: exacto -> idioma
+
         foreach ($candidates as $cand) {
             if (isset($byExact[$cand])) {
                 return $byExact[$cand];
@@ -220,14 +206,7 @@ public function activeSchedules()
         return ($tr?->overview) ?? ($this->overview ?? '');
     }
 
-    /* =====================
-     * Accessors de imágenes
-     * ===================== */
 
-    /**
-     * Array de URLs públicas de las imágenes del tour
-     * (lee de storage/app/public/tours/{tour_id}/gallery/*.{webp,jpg,jpeg,png})
-     */
     public function getImagesAttribute(): array
     {
         $dir = "tours/{$this->tour_id}/gallery";
@@ -237,18 +216,15 @@ public function activeSchedules()
         }
 
         $files = collect(Storage::disk('public')->files($dir))
-            ->filter(fn ($p) => preg_match('/\.(webp|jpe?g|png)$/i', $p))
+            ->filter(fn($p) => preg_match('/\.(webp|jpe?g|png)$/i', $p))
             ->sort(function ($a, $b) {
                 return strnatcasecmp(basename($a), basename($b));
             })
             ->values();
 
-        return $files->map(fn ($path) => Storage::url($path))->all();
+        return $files->map(fn($path) => Storage::url($path))->all();
     }
 
-    /**
-     * URL de portada (primera imagen o fallback)
-     */
     public function getCoverImageUrlAttribute(): string
     {
         $images = $this->images;
@@ -265,14 +241,13 @@ public function activeSchedules()
         return $this->hasOne(TourImage::class, 'tour_id', 'tour_id')->where('is_cover', true);
     }
 
-    // Helpers para front
+
     public function coverUrl(): string
     {
         if ($this->relationLoaded('coverImage') ? $this->coverImage : $this->coverImage()->first()) {
             return $this->coverImage->url();
         }
-        // fallback al campo image_path si lo tienes, o al volcano
-        if (!empty($this->image_path)) return asset('storage/'.$this->image_path);
+        if (!empty($this->image_path)) return asset('storage/' . $this->image_path);
         return asset('images/volcano.png');
     }
 
@@ -281,13 +256,12 @@ public function activeSchedules()
         $imgs = ($this->relationLoaded('images') ? $this->images : $this->images()->get());
         if ($imgs->isNotEmpty()) return $imgs->map->url()->all();
 
-        // fallback a escanear carpeta si aún no migras todo
         $folder = "tours/{$this->tour_id}/gallery";
         if (\Storage::disk('public')->exists($folder)) {
             return collect(\Storage::disk('public')->files($folder))
-                ->filter(fn($p) => in_array(strtolower(pathinfo($p, PATHINFO_EXTENSION)), ['jpg','jpeg','png','webp']))
-                ->sort(fn($a,$b) => strnatcasecmp($a,$b))
-                ->map(fn($p) => asset('storage/'.$p))
+                ->filter(fn($p) => in_array(strtolower(pathinfo($p, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'webp']))
+                ->sort(fn($a, $b) => strnatcasecmp($a, $b))
+                ->map(fn($p) => asset('storage/' . $p))
                 ->values()->all();
         }
         return [asset('images/volcano.png')];

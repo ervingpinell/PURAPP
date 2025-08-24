@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\FromView;
 class BookingsExport implements FromView
 {
     protected $filters;
-    protected $bookings; // ⬅️ Agregá esta propiedad
+    protected $bookings;
 
     public function __construct(array $filters = [], $bookings = null)
     {
@@ -24,7 +24,6 @@ class BookingsExport implements FromView
         ]);
     }
 
-    /** ✅ Genera nombre dinámico para el archivo Excel */
     public static function generarNombre(array $filters): string
     {
         $nombre = 'Reporte';

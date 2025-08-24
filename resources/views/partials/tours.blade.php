@@ -1,11 +1,8 @@
-{{-- resources/views/partials/tour/tours.blade.php --}}
 @php
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * Fallback: toma la primera imagen válida de storage/app/public/tours/{tourId}/gallery
- */
+
 $coverFromFolder = function (?int $tourId): string {
     if (!$tourId) return asset('images/volcano.png');
 
@@ -40,17 +37,17 @@ $coverFromFolder = function (?int $tourId): string {
 
       $first = $group->first();
 
-      // Textos del tipo
+      //TourTypes tranlsated Text
       $translatedTitle       = $meta['title']       ?? '';
       $translatedDuration    = $meta['duration']    ?? '';
       $translatedDescription = $meta['description'] ?? '';
 
-      // Portada de la tarjeta del tipo: BD (cover) -> carpeta
+      //TourTypes cards covers
       $firstCover = optional($first->coverImage)->url
           ?? $coverFromFolder($first->tour_id ?? $first->id ?? null);
   @endphp
 
-  {{-- Card del tipo (abre modal) --}}
+  {{-- Type Card (opens the modal) --}}
   <div class="tour-card" style="cursor:pointer"
        data-bs-toggle="modal" data-bs-target="#modal-{{ Str::slug($slug) }}">
     <img src="{{ $firstCover }}" class="card-img-top" alt="{{ $first->getTranslatedName() }}">
@@ -72,7 +69,7 @@ $coverFromFolder = function (?int $tourId): string {
     </div>
   </div>
 
-  {{-- Modal por tipo --}}
+  {{-- Modal per type --}}
   <div class="modal fade" id="modal-{{ Str::slug($slug) }}" tabindex="-1"
        aria-labelledby="modalLabel-{{ Str::slug($slug) }}" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -91,7 +88,7 @@ $coverFromFolder = function (?int $tourId): string {
             <div class="row">
               @foreach ($group as $tour)
                 @php
-                  // Portada del tour dentro del modal: BD (cover) -> carpeta
+                  // Tour cover
                   $tourCover = optional($tour->coverImage)->url
                       ?? $coverFromFolder($tour->tour_id ?? $tour->id ?? null);
                 @endphp

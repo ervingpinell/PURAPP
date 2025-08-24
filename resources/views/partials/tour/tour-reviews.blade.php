@@ -1,21 +1,18 @@
-{{-- 🌟 Carrusel de reseñas específicas del tour --}}
 <div class="col-md-12 my-5">
-  {{-- 🧾 Título --}}
   <div class="text-center mb-4">
     <h2 class="fw-bold" style="color: #256d1b">
-      {{ __('adminlte::adminlte.what_customers_thinks_about') }}
+      {{ __('reviews.what_customers_think_about') }}
     </h2>
     <h3 class="text-secondary">
       {{ $tour->getTranslatedName() }}
     </h3>
   </div>
 
-  {{-- 🔁 Carrusel de reseñas --}}
   <div class="tour-review-carousel-wrapper">
     <button
       class="carousel-nav carousel-prev"
       type="button"
-      aria-label="{{ __('adminlte::adminlte.previous_review') }}"
+      aria-label="{{ __('reviews.previous_review') }}"
       data-tour="{{ $tour->tour_id }}"
     >❮</button>
 
@@ -24,33 +21,30 @@
       id="review-carousel-tour-{{ $tour->tour_id }}"
     >
       <p class="text-center text-muted">
-        {{ __('adminlte::adminlte.loading_reviews') }}
+        {{ __('reviews.loading') }}
       </p>
     </div>
 
     <button
       class="carousel-nav carousel-next"
       type="button"
-      aria-label="{{ __('adminlte::adminlte.next_review') }}"
+      aria-label="{{ __('reviews.next_review') }}"
       data-tour="{{ $tour->tour_id }}"
     >❯</button>
   </div>
 
-  {{-- 👣 Créditos Viator --}}
   @php
-    // nombre en inglés para slug estable; fallback a traducido/base
     $nameEn = optional($tour->translations)->firstWhere('locale','en')->name
               ?? $tour->getTranslatedName('en')
               ?? $tour->name;
 
-    // params de afiliado opcionales desde config/services.php → ['viator' => ['affiliate' => [...]]]
     $affiliateParams = config('services.viator.affiliate');
   @endphp
 
   @if (!empty($tour->viator_code))
     <div class="powered-by text-center mt-3">
       <small>
-        Powered by
+        {{ __('reviews.powered_by') }}
         <a
           href="{{ viator_product_url(
                   $tour->viator_code,
@@ -58,12 +52,13 @@
                   $tour->viator_city_slug ?? 'La-Fortuna',
                   $tour->viator_slug ?? null,
                   $nameEn,
-                  $affiliateParams // ← sin hardcode
+                  $affiliateParams
               ) }}"
           target="_blank"
           rel="noopener sponsored"
           class="text-decoration-none text-dark fw-semibold"
-          title="View {{ $nameEn }} on Viator" hreflang="en">
+          title="{{ __('reviews.view_on_viator', ['name' => $nameEn]) }}"
+          hreflang="en">
           Viator
         </a>
       </small>
@@ -71,7 +66,6 @@
   @endif
 </div>
 
-{{-- 🧠 Variables para JS (nombre traducido + code) --}}
 @php
   $VIATOR_PRODUCT_DATA = [
     'code' => $tour->viator_code,

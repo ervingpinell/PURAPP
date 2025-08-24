@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('adminlte::adminlte.policies'))
-
+@section('title', __('policies.page_title')) {{-- o __('policies.categories_title') si prefieres --}}
 @section('content')
 @php $locale = app()->getLocale(); @endphp
 
@@ -16,10 +15,10 @@
 </style>
 
 <div class="container py-4">
-  <h1 class="mb-3 big-title text-center">{{ __('adminlte::adminlte.policies') }}</h1>
+  <h1 class="mb-3 big-title text-center">{{ __('policies.page_title') }}</h1>
 
   @if($policies->isEmpty())
-    <p class="text-muted">{{ __('No hay políticas disponibles por el momento.') }}</p>
+    <p class="text-muted">{{ __('policies.no_policies') }}</p>
   @else
     <div class="accordion" id="allPoliciesAccordion">
       @foreach($policies as $policy)
@@ -75,7 +74,7 @@
                             <i class="fas fa-plus icon-plus"></i>
                             <i class="fas fa-minus icon-minus"></i>
                           </span>
-                          {{ $st?->title ?? __('Sección') }}
+                          {{ $st?->title ?? __('policies.section') }}
                         </button>
                       </h2>
 

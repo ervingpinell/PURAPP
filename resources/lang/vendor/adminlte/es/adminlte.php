@@ -282,7 +282,7 @@ return [
     'send_message' => 'Enviar mensaje',
     'message_sent' => 'Mensaje enviado',
     'business_hours' => 'Horario de atención',
-    'business_schedule' => 'Lunes a domingo, de 7:30 a. m. a 7:00 p. m.',
+    'business_schedule' => 'Lunes a domingo, de 7:30 a. m. a 7:30 p. m.',
 
     // ─── ERRORES ──────────────────────────────────────
     'access_denied' => 'Acceso denegado',
@@ -361,4 +361,16 @@ return [
     'mail' => [
         'trouble_clicking' => 'Si tienes problemas para hacer clic en el botón ":actionText", copia y pega la siguiente URL en tu navegador',
     ],
+
+        'reviews_loaded'         => 'Las reseñas se cargaron correctamente.',
+    'reviews_upstream_error' => 'Hubo un problema con el proveedor de reseñas.',
+    'reviews_busy'           => 'El servicio está ocupado, por favor intenta nuevamente más tarde.',
+    'reviews_exception'      => 'Ocurrió un error inesperado al cargar las reseñas.',
+
+    'message_sent_spam_caught' => 'Tu mensaje ha sido enviado.',
+    'contact_success'          => 'Tu mensaje ha sido enviado con éxito. Nos pondremos en contacto contigo pronto.',
+    'contact_error'            => 'Ocurrió un error al enviar tu mensaje. Por favor, intenta nuevamente en unos minutos.',
+
+        'translation_updated_successfully' => 'Traducción actualizada correctamente.',
+
 ];

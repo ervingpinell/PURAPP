@@ -6,7 +6,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
-                {{-- ✅ Este span es para el JS de Home --}}
                 <span id="confirmTourModalText" class="d-block mb-1">
                     {{ __('adminlte::adminlte.would_you_like_to_visit') }}
                     <strong id="tourModalName">{{ __('adminlte::adminlte.this_tour') }}</strong>?
@@ -19,7 +18,6 @@
                 <a href="#" id="tourModalConfirm" class="btn btn-success">
                     {{ __('adminlte::adminlte.confirm') }}
                 </a>
-                {{-- Alias para JS de home --}}
                 <a href="#" id="confirmTourModalGo" class="d-none"></a>
             </div>
         </div>

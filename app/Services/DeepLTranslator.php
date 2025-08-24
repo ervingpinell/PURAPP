@@ -10,22 +10,17 @@ use Illuminate\Support\Facades\Log;
 
 class DeepLTranslator implements TranslatorInterface
 {
-    /** SDK */
     private ?DeepL $client = null;
 
-    /** Preferencias de estilo */
     private string $formality;
     private string $enVariant;
     private string $ptVariant;
 
-    /** Feature flag / clave */
     private bool $enabled;
     private ?string $apiKey;
 
-    /** Reintentos súper cortos (sin dormir) */
-    private int $maxAttempts = 2; // intento inicial + 1 retry rápido
+    private int $maxAttempts = 2;
 
-    /** Mapeos */
     private const BASE_TARGET_MAP = [
         'es'    => 'ES',
         'fr'    => 'FR',
@@ -46,7 +41,6 @@ class DeepLTranslator implements TranslatorInterface
 
     public function __construct(?string $apiKey = null)
     {
-        // Flags y opciones desde config/env
         $this->apiKey    = $apiKey
             ?? config('services.deepl.auth_key')
             ?? env('DEEPL_AUTH_KEY');
@@ -56,13 +50,11 @@ class DeepLTranslator implements TranslatorInterface
         $this->enVariant = strtolower((string) config('services.deepl.en_variant', 'en-US'));// en-US|en-GB
         $this->ptVariant = strtolower((string) config('services.deepl.pt_variant', 'pt-BR')); // pt-BR|pt-PT
 
-        // Si no hay clave o está deshabilitado, dejamos $client = null y devolvemos originales.
         if ($this->enabled && !empty($this->apiKey)) {
             $this->client = new DeepL($this->apiKey);
         }
     }
 
-    /** Detecta idioma (si falla, null) */
     public function detect(string $text): ?string
     {
         $text = trim($text);
@@ -77,7 +69,7 @@ class DeepLTranslator implements TranslatorInterface
                     return self::BASE_LANG[$code] ?? strtolower(substr($code, 0, 2));
                 } catch (TooManyRequestsException|DeepLException $e) {
                     if (++$attempt >= $this->maxAttempts) throw $e;
-                    // retry rápido sin dormir
+
                 }
             }
         } catch (\Throwable $e) {
@@ -86,7 +78,6 @@ class DeepLTranslator implements TranslatorInterface
         }
     }
 
-    /** Traduce; si falla, devuelve el original (sin dormir) */
     public function translate(string $text, string $targetLocale): string
     {
         $text = (string) $text;
@@ -101,7 +92,7 @@ class DeepLTranslator implements TranslatorInterface
                     'formality' => $this->formality,
                 ]);
 
-                // El SDK devuelve TextResult o array
+
                 if (is_array($res)) {
                     $first = $res[0]->text ?? null;
                     return is_string($first) ? $first : $text;
@@ -113,9 +104,9 @@ class DeepLTranslator implements TranslatorInterface
                     Log::warning('DeepL translate failed', [
                         'target' => $target, 'msg' => $e->getMessage()
                     ]);
-                    return $text; // fallback inmediato
+                    return $text;
                 }
-                // retry rápido sin backoff
+
             } catch (\Throwable $e) {
                 Log::error('DeepL translate unexpected error', ['msg' => $e->getMessage()]);
                 return $text;
@@ -123,7 +114,7 @@ class DeepLTranslator implements TranslatorInterface
         }
     }
 
-    /** Traduce a los locales principales; si falla algún idioma, devuelve el original para ese idioma */
+
     public function translateAll(string $text): array
     {
         $text = (string) $text;
@@ -136,10 +127,7 @@ class DeepLTranslator implements TranslatorInterface
         return $out;
     }
 
-    /**
-     * Traduce SOLO lo que está dentro de paréntesis.
-     * Texto fuera de paréntesis queda tal cual.
-     */
+
     public function translatePreserveOutsideParentheses(string $text, string $targetLocale): string
     {
         $text = (string) $text;
@@ -165,7 +153,6 @@ class DeepLTranslator implements TranslatorInterface
         return $out;
     }
 
-    /** Mapea locale app → DeepL */
     private function mapTarget(string $locale): string
     {
         $key = strtolower(str_replace('_', '-', $locale));

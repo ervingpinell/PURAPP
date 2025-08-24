@@ -18,7 +18,6 @@ class Faq extends Model
     protected $fillable = [
         'question',
         'answer',
-        // Estos dos parecen legacy si ya usas faq_translations:
         'translated_question',
         'translated_answer',
         'is_active',
@@ -35,7 +34,6 @@ class Faq extends Model
 
     public function translations()
     {
-        // especifica local key por tener PK no estándar
         return $this->hasMany(FaqTranslation::class, 'faq_id', 'faq_id');
     }
 
@@ -56,7 +54,6 @@ class Faq extends Model
                 ->first();
     }
 
-    // (Opcional) accessors directos
     public function getQuestionTranslatedAttribute(): ?string
     {
         return optional($this->translate())?->question;

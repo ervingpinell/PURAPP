@@ -44,8 +44,9 @@
   {{-- ===== BODY ===== --}}
   <div class="form-body position-relative">
     <fieldset @guest disabled aria-disabled="true" @endguest>
-      {{-- Viajeros --}}
-      <div class="mb-2">
+
+{{-- ===== Travelers ===== --}}
+        <div class="mb-2">
         <button type="button"
           class="btn traveler-button w-100 d-flex align-items-center justify-content-between"
           data-bs-toggle="modal" data-bs-target="#travelerModal">
@@ -54,12 +55,12 @@
         </button>
       </div>
 
-      {{-- Fecha --}}
+{{-- ===== Date ===== --}}
       <label class="form-label">{{ __('adminlte::adminlte.select_date') }}</label>
       <input id="tourDateInput" type="text" name="tour_date" class="form-control mb-1"
              placeholder="dd/mm/yyyy" required>
 
-      {{-- Horario --}}
+{{-- ===== Schedule ===== --}}
       <label class="form-label mt-2">{{ __('adminlte::adminlte.select_time') }}</label>
       <select name="schedule_id" class="form-select mb-1" id="scheduleSelect" required>
         <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
@@ -71,7 +72,7 @@
       </select>
       <div id="noSlotsHelp" class="form-text text-danger mb-3" style="display:none;"></div>
 
-      {{-- Idioma --}}
+{{-- ===== Language ===== --}}
       <label class="form-label">{{ __('adminlte::adminlte.select_language') }}</label>
       <select name="tour_language_id" class="form-select mb-3" required>
         <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
@@ -80,7 +81,7 @@
         @endforeach
       </select>
 
-      {{-- Hotel --}}
+{{-- ===== Hotel ===== --}}
       <label class="form-label">{{ __('adminlte::adminlte.select_hotel') }}</label>
       <select class="form-select mb-3" id="hotelSelect" name="hotel_id">
         <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
@@ -122,7 +123,6 @@
   @endauth
 </form>
 
-{{-- ======= Estilos ======= --}}
 <style>
   .gv-ui .form-control,
   .gv-ui .form-select,
@@ -130,7 +130,6 @@
   .form-body { position: relative; }
 </style>
 
-{{-- ======= Librerías (una sola vez) ======= --}}
 @once
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -139,21 +138,18 @@
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 @endonce
 
-{{-- ======= Comportamiento ======= --}}
 @push('scripts')
 <script>
 (function(){
   const formEl = document.querySelector('form.reservation-box');
   if (!formEl) return;
 
-  // Evita doble binding si el partial se inyecta más de una vez
   if (formEl.dataset.bound === '1') return;
   formEl.dataset.bound = '1';
 
-  // Mata cualquier submit nativo
+
   formEl.addEventListener('submit', (e) => e.preventDefault());
 
-  // ======= Config/UI existentes =======
   window.isAuthenticated = @json(Auth::check());
   window.CART_COUNT_URL  = @json(route('cart.count.public'));
   const todayIso = @json($today);
@@ -227,7 +223,7 @@
     scheduleChoices.disable();
   }
 
-  // “Otro hotel”
+  // Other hotel
   const otherWrap = document.getElementById('otherHotelWrapper');
   const isOtherH  = document.getElementById('isOtherHotel');
   const otherInp  = document.getElementById('otherHotelInput');
@@ -243,7 +239,7 @@
   hotelSelect.addEventListener('change', toggleOther);
   toggleOther();
 
-  // ======= CLICK AJAX (1 SOLO REQUEST) =======
+  // ======= AJAX =======
   const addBtn = document.getElementById('addToCartBtn');
   if (!addBtn) return;
 
@@ -282,7 +278,6 @@
       const okMsg = (data && data.message) ? data.message : 'Tour añadido al carrito.';
       await Swal.fire({ icon: 'success', title: 'Success', text: okMsg, confirmButtonColor: '#198754' });
 
-      // Actualiza badge del carrito (si el backend envía count, úsalo; si no, consulta)
       if (typeof data.count !== 'undefined' && window.setCartCount) {
         window.setCartCount(data.count);
       } else if (window.CART_COUNT_URL && window.setCartCount) {
@@ -293,7 +288,6 @@
         } catch (_) {}
       }
 
-      // Recarga misma página (para refrescar disponibilidad/UI)
       window.location.reload();
 
     } catch (err) {

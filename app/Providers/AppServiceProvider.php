@@ -25,12 +25,10 @@ class AppServiceProvider extends ServiceProvider
 VerifyEmail::toMailUsing(function ($notifiable, string $url) {
     return (new MailMessage)
         ->subject(__('adminlte::auth.verify.subject'))
-        // usa una clave que exista (o pon texto plano)
         ->greeting(__('adminlte::adminlte.hello') ?? 'Hola')
         ->line(__('adminlte::auth.verify.intro'))
         ->action(__('adminlte::auth.verify.action'), $url)
         ->line(__('adminlte::auth.verify.outro'));
-        // ← quita: ->line(__('adminlte::auth.verify.browser_hint', ['url' => $url]));
 });
         Schema::defaultStringLength(191);
 

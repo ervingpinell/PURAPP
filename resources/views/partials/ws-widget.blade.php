@@ -1,11 +1,11 @@
 @php
-  // Parámetros (con defaults)
+  // Params (defaults)
   $variant        = $variant        ?? 'floating'; // 'floating' | 'inline'
   $phone          = preg_replace('/\D+/', '', $phone ?? '50624791471');
   $defaultMsg     = $defaultMsg     ?? __('adminlte::adminlte.whatsapp_placeholder');
   $buttonClass    = $buttonClass    ?? 'btn btn-success';
   $containerClass = $containerClass ?? '';
-  $widgetId       = $widgetId       ?? 'wsw_'.Str::random(6); // evitar colisiones de Alpine
+  $widgetId       = $widgetId       ?? 'wsw_'.Str::random(6);
 @endphp
 
 <div
@@ -15,7 +15,7 @@
   class="{{ $containerClass }}
          @if($variant === 'floating') whatsapp-widget z-50 position-fixed bottom-0 end-0 m-3 @endif">
 
-  {{-- Panel / Caja --}}
+  {{-- Panel --}}
   <div
     @if($variant === 'floating')
       x-show="isOpen" x-transition
@@ -38,7 +38,7 @@
         </div>
       </div>
 
-      {{-- Botón cerrar sólo en modo flotante --}}
+      {{-- Close button (floating --}}
       @if($variant === 'floating')
         <button type="button" class="btn btn-sm text-white" @click="isOpen = false">
           <i class="fas fa-times"></i>
@@ -86,7 +86,7 @@
     </div>
   </div>
 
-  {{-- Botón flotante (sólo en variante floating) --}}
+  {{-- Floating button --}}
   @if($variant === 'floating')
     <button
       type="button"

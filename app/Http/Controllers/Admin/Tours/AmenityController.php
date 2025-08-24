@@ -1,97 +1,146 @@
 <?php
 
-
-
 namespace App\Http\Controllers\Admin\Tours;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use App\Models\Amenity;
 use App\Models\AmenityTranslation;
 use App\Services\Contracts\TranslatorInterface;
+use App\Services\LoggerHelper;
+use App\Http\Requests\Tour\Amenity\StoreAmenityRequest;
+use App\Http\Requests\Tour\Amenity\UpdateAmenityRequest;
 
 class AmenityController extends Controller
 {
+    protected string $controller = 'AmenityController';
+
     public function index()
     {
         $amenities = Amenity::orderBy('name')->get();
+
         return view('admin.tours.amenities.index', compact('amenities'));
     }
 
-    public function store(Request $request, TranslatorInterface $translator)
+    public function store(StoreAmenityRequest $request, TranslatorInterface $translator)
     {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:amenities,name',
-        ]);
+        try {
+            DB::transaction(function () use ($request, $translator) {
+                $name       = $request->string('name')->trim();
+                $localeList = ['es', 'en', 'fr', 'pt', 'de'];
 
-        DB::transaction(function () use ($request, $translator) {
-            $name = $request->string('name')->trim();
+                $amenity = Amenity::create([
+                    'name'      => $name,
+                    'is_active' => true,
+                ]);
 
-            $amenity = Amenity::create([
-                'name'      => $name,
-                'is_active' => true,
+                $translated = $translator->translateAll($name);
+
+                foreach ($localeList as $locale) {
+                    AmenityTranslation::create([
+                        'amenity_id' => $amenity->amenity_id,
+                        'locale'     => $locale,
+                        'name'       => $translated[$locale] ?? $name,
+                    ]);
+                }
+
+                LoggerHelper::mutated($this->controller, 'store', 'amenity', $amenity->amenity_id, [
+                    'locales_saved' => count($localeList),
+                    'user_id'       => optional(request()->user())->getAuthIdentifier(),
+                ]);
+            });
+
+            return redirect()
+                ->route('admin.tours.amenities.index')
+                ->with('success', 'Amenity created successfully.')
+                ->with('alert_type', 'created');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'store', 'amenity', null, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            $nameTr = $translator->translateAll($name);
-
-            foreach (['es', 'en', 'fr', 'pt', 'de'] as $lang) {
-                AmenityTranslation::create([
-                    'amenity_id' => $amenity->amenity_id,
-                    'locale'     => $lang,
-                    'name'       => $nameTr[$lang] ?? $name,
-                ]);
-            }
-        });
-
-        return redirect()
-            ->route('admin.tours.amenities.index')
-            ->with('success', 'Amenidad creada correctamente.')
-            ->with('alert_type', 'creado');
+            return back()
+                ->with('error', 'Could not create the amenity.')
+                ->with('alert_type', 'error');
+        }
     }
 
-    public function update(Request $request, Amenity $amenity)
+    public function update(UpdateAmenityRequest $request, Amenity $amenity)
     {
-        $request->validate([
-            'name' => [
-                'required','string','max:255',
-                Rule::unique('amenities', 'name')->ignore($amenity->amenity_id, 'amenity_id'),
-            ],
-        ]);
+        try {
+            $amenity->update([
+                'name' => $request->string('name')->trim(),
+            ]);
 
-        $amenity->update(['name' => $request->string('name')->trim()]);
+            LoggerHelper::mutated($this->controller, 'update', 'amenity', $amenity->amenity_id, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
 
-        return redirect()
-            ->route('admin.tours.amenities.index')
-            ->with('success', 'Amenidad actualizada correctamente.')
-            ->with('alert_type', 'actualizado');
+            return redirect()
+                ->route('admin.tours.amenities.index')
+                ->with('success', 'Amenity updated successfully.')
+                ->with('alert_type', 'updated');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'update', 'amenity', $amenity->amenity_id, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return back()
+                ->with('error', 'Could not update the amenity.')
+                ->with('alert_type', 'error');
+        }
     }
 
-    /** ✅ Activar/Desactivar (antes estaba en destroy) */
-public function toggle(Amenity $amenity)
-{
-    $amenity->update(['is_active' => !$amenity->is_active]);
+    public function toggle(Amenity $amenity)
+    {
+        try {
+            $amenity->update(['is_active' => ! $amenity->is_active]);
 
-    $accion = $amenity->is_active ? 'activado' : 'desactivado';
+            LoggerHelper::mutated($this->controller, 'toggle', 'amenity', $amenity->amenity_id, [
+                'is_active' => $amenity->is_active,
+                'user_id'   => optional(request()->user())->getAuthIdentifier(),
+            ]);
 
-    return redirect()
-        ->route('admin.tours.amenities.index')
-        ->with('success', "Amenidad {$accion} correctamente.")
-        ->with('alert_type', $accion);
-}
+            $statusLabel = $amenity->is_active ? 'activated' : 'deactivated';
 
-public function destroy(Amenity $amenity)
-{
-    // Si no tienes ON DELETE CASCADE y quieres borrar traducciones manualmente:
-    // AmenityTranslation::where('amenity_id', $amenity->amenity_id)->delete();
+            return redirect()
+                ->route('admin.tours.amenities.index')
+                ->with('success', "Amenity {$statusLabel} successfully.")
+                ->with('alert_type', $statusLabel);
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'toggle', 'amenity', $amenity->amenity_id, $e, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
 
-    $amenity->delete(); // hard delete (si no usas SoftDeletes)
+            return back()
+                ->with('error', 'Could not change amenity status.')
+                ->with('alert_type', 'error');
+        }
+    }
 
-    return redirect()
-        ->route('admin.tours.amenities.index')
-        ->with('success', 'Amenidad eliminada definitivamente.')
-        ->with('alert_type', 'eliminado');
-}
+    public function destroy(Amenity $amenity)
+    {
+        try {
+            $id = $amenity->amenity_id;
+            $amenity->delete();
 
+            LoggerHelper::mutated($this->controller, 'destroy', 'amenity', $id, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return redirect()
+                ->route('admin.tours.amenities.index')
+                ->with('success', 'Amenity permanently deleted.')
+                ->with('alert_type', 'deleted');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'destroy', 'amenity', $amenity->amenity_id ?? null, $e, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return back()
+                ->with('error', 'Could not delete the amenity.')
+                ->with('alert_type', 'error');
+        }
+    }
 }

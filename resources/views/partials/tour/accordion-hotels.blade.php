@@ -21,7 +21,7 @@
     <div class="accordion-body px-0">
       <div class="row g-4">
 
-        {{-- 📝 Nota --}}
+        {{-- 📝 Note --}}
         <div class="mt-3">
           <strong>{{ __('adminlte::adminlte.pickup_details') }}</strong>
           <p>{{ __('adminlte::adminlte.pickup_note') }}</p>
@@ -87,7 +87,6 @@
                   </div>
                 </label>
               </li>
-              {{-- Agrega más puntos si lo necesitas --}}
             </ul>
 
             <div id="meetingNotFound" class="text-danger small mt-2 d-none">

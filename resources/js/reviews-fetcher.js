@@ -1,15 +1,14 @@
-// resources/js/reviews-fetcher.js
 window.__REVIEWS_PROMISES__ = window.__REVIEWS_PROMISES__ || {};
 window.__REVIEWS_CACHE__    = window.__REVIEWS_CACHE__    || {};
-window.__REVIEWS_TS__       = window.__REVIEWS_TS__       || {}; // timestamps por code
+window.__REVIEWS_TS__       = window.__REVIEWS_TS__       || {};
 
 function isFresh(code, ttlMs) {
-  if (!ttlMs) return !!window.__REVIEWS_CACHE__[code]; // sin TTL => válido si existe
+  if (!ttlMs) return !!window.__REVIEWS_CACHE__[code];
   const ts = window.__REVIEWS_TS__[code] || 0;
   return Date.now() - ts < ttlMs;
 }
 
-/** Filtro: solo 4–5 estrellas */
+
 function filterHighRated(reviews = []) {
   return reviews.filter(r => Number(r?.rating) >= 4);
 }

@@ -49,8 +49,6 @@ class Itinerary extends Model
             ->where('itinerary_items.is_active', true)
             ->orderBy('itinerary_item_itinerary.item_order');
     }
-
-    // Translations
     public function translations()
     {
         return $this->hasMany(ItineraryTranslation::class, 'itinerary_id', 'itinerary_id');

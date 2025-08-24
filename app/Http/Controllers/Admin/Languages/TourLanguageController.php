@@ -61,13 +61,6 @@ class TourLanguageController extends Controller
             ->with('alert_type', 'actualizado');
     }
 
-    /**
-     * Alterna is_active (activar/desactivar) sin borrar el registro.
-     * Ruta sugerida (con binding por ID normal):
-     *   Route::patch('languages/{language}/toggle', ...)->name('admin.languages.toggle');
-     * Si tu PK es tour_language_id y usas binding por esa columna:
-     *   Route::patch('languages/{language:tour_language_id}/toggle', ...)->name('admin.languages.toggle');
-     */
     public function toggle(TourLanguage $language)
     {
         $language->update([

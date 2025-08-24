@@ -32,12 +32,11 @@ class TranslationSeeder extends Seeder
     {
         $this->clearTranslations();
 
-        /** @var TranslatorInterface $translator */
         $translator = app(TranslatorInterface::class);
 
         $this->translateTourTypes($translator);
         $this->translatePolicies($translator);
-        $this->translatePolicySections($translator); // 👈 NUEVO
+        $this->translatePolicySections($translator);
 
         $this->translateTours($translator);
         $this->translateItineraries($translator);
@@ -121,8 +120,6 @@ class TranslationSeeder extends Seeder
 
         $this->command?->info('🧾 Policy sections translated.');
     }
-
-    /* ====== Resto sin cambios sustanciales ====== */
 
     protected function translateTourTypes(TranslatorInterface $translator): void
     {

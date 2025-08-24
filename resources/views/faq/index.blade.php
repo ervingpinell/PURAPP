@@ -12,7 +12,6 @@
         <div class="accordion" id="faqAccordion">
             @foreach ($faqs as $faq)
                 @php
-                    // Asegura IDs únicos incluso si esta vista se incluye varias veces
                     $uid = 'faq-'.($faq->id ?? $loop->index);
                     $headingId = "heading-{$uid}";
                     $collapseId = "collapse-{$uid}";
@@ -49,7 +48,5 @@
         </div>
     @endif
 </div>
-
-{{-- ✅ Modal de WhatsApp --}}
 @include('partials.ws-widget')
 @endsection

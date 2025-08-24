@@ -13,7 +13,6 @@ protected $table = 'roles';
 
     protected $fillable = ['role_name', 'description', 'is_active'];
 
-    // Relación con usuarios (1:N)
     public function users()
     {
         return $this->hasMany(User::class, 'role_id', 'role_id');

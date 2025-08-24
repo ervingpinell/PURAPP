@@ -18,7 +18,6 @@ class TourTranslation extends Model
 
     public function tour()
     {
-        // owner key explícito por PK no estándar
         return $this->belongsTo(Tour::class, 'tour_id', 'tour_id');
     }
 }

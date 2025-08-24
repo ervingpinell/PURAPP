@@ -73,7 +73,6 @@ class CartController extends Controller
 
  $tour = \App\Models\Tour::findOrFail($request->tour_id);
 
-// Valida que el horario pertenece al tour y que está activo global + pivote
 $schedule = $tour->schedules()
     ->where('schedules.schedule_id', $request->schedule_id)
     ->where('schedules.is_active', true)
@@ -202,10 +201,8 @@ if (!$schedule) {
 
     public function destroyCart(\App\Models\Cart $cart)
 {
-    // Si quieres, valida permisos aquí (ej: Gate::authorize('delete', $cart);)
 
     \DB::transaction(function () use ($cart) {
-        // Borra primero los ítems (por si no tienes ON DELETE CASCADE)
         $cart->items()->delete();
         $cart->delete();
     });
@@ -223,13 +220,6 @@ private function adminCartSubtotal(\App\Models\Cart $cart): float
     });
 }
 
-/**
- * Aplica cupón en el carrito ADMIN (AJAX)
- * - Valida que exista
- * - Que no esté marcado como usado (one-shot)
- * - Calcula descuento por monto fijo o % (si ambos existen, se suman)
- * - Guarda en sesión 'admin_cart_promo'
- */
 public function applyPromoAdmin(Request $request)
 {
     $request->validate(['code' => ['required','string','max:50']]);
@@ -254,7 +244,6 @@ public function applyPromoAdmin(Request $request)
 
     $subtotal = $this->adminCartSubtotal($cart);
 
-    // Calcula descuento (se suman amount + percent si ambos existen)
     $discountFixed = max(0.0, (float)($promo->discount_amount ?? 0));
     $discountPerc  = max(0.0, (float)($promo->discount_percent ?? 0));
     $discountFromPerc = round($subtotal * ($discountPerc / 100), 2);
@@ -262,7 +251,6 @@ public function applyPromoAdmin(Request $request)
     $discount = min($subtotal, round($discountFixed + $discountFromPerc, 2));
     $newTotal = max(0, round($subtotal - $discount, 2));
 
-    // Guarda en sesión separada para ADMIN
     session([
         'admin_cart_promo' => [
             'code'      => $promo->code,
@@ -275,7 +263,6 @@ public function applyPromoAdmin(Request $request)
         ]
     ]);
 
-    // Texto amigable
     $parts = [];
     if ($discountFixed > 0) $parts[] = '$'.number_format($discountFixed, 2);
     if ($discountPerc  > 0) $parts[] = $discountPerc.'%';
@@ -292,7 +279,6 @@ public function applyPromoAdmin(Request $request)
     ]);
 }
 
-/** Quita cupón en ADMIN */
 public function removePromoAdmin(Request $request)
 {
     $request->session()->forget('admin_cart_promo');
@@ -302,32 +288,29 @@ public function removePromoAdmin(Request $request)
 
 public function allCarts(Request $request)
 {
-    $estado = $request->query('estado'); // '1', '0' o null
+    $estado = $request->query('estado');
 
-    $query = \App\Models\Cart::query()
+    $query = Cart::query()
         ->with([
             'user',
             'items.tour',
             'items.language',
             'items.schedule',
         ])
-        ->withCount('items') // para $cart->items_count en el blade
+        ->withCount('items')
         ->whereHas('user', function ($q) use ($request) {
             if ($request->filled('correo')) {
-                // Si usas MySQL cambia 'ilike' por 'like'
                 $q->where('email', 'ilike', '%' . $request->correo . '%');
             }
         })
-        ->whereHas('items'); // sólo carritos con ítems
+        ->whereHas('items');
 
-    // ✅ Usa has() (no filled()) y filtra por estado del CARRITO
     if ($request->has('estado') && in_array($estado, ['0','1'], true)) {
         $query->where('is_active', (bool)$estado);
     }
 
     $carritos = $query->orderByDesc('updated_at')->get();
 
-    // ✅ Calcula total en USD por carrito con precios del tour
     foreach ($carritos as $cart) {
         $cart->total_usd = $cart->items->sum(function ($it) {
             $ap = (float)($it->tour->adult_price ?? 0);
@@ -341,7 +324,7 @@ public function allCarts(Request $request)
     return view('admin.Cart.general', compact('carritos'));
 }
 
-public function toggleActive(\App\Models\Cart $cart){
+public function toggleActive(Cart $cart){
     $cart->update(['is_active' => !$cart->is_active]);
     return back()->with('success', 'Estado del carrito actualizado correctamente.');
 }

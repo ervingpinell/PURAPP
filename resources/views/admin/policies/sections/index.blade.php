@@ -1,20 +1,19 @@
-{{-- resources/views/admin/policies/sections/index.blade.php --}}
 @extends('adminlte::page')
 
-@section('title', 'Secciones — ' . ($policy->translation()?->title ?? $policy->name))
+@section('title', __('policies.sections_title', ['policy' => ($policy->translation()?->title ?? $policy->name)]))
 
 @section('content_header')
   <div class="d-flex align-items-center justify-content-between flex-wrap">
     <h1 class="mb-2">
       <i class="fas fa-list-ul"></i>
-      Secciones — <small class="text-muted">{{ $policy->translation()?->title ?? $policy->name }}</small>
+      {{ __('policies.sections_title', ['policy' => ($policy->translation()?->title ?? $policy->name)]) }}
     </h1>
     <div class="mb-2">
       <a class="btn btn-secondary" href="{{ route('admin.policies.index') }}">
-        <i class="fas fa-arrow-left"></i> Volver a categorías
+        <i class="fas fa-arrow-left"></i> {{ __('policies.back_to_categories') }}
       </a>
       <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSectionModal">
-        <i class="fas fa-plus"></i> Nueva sección
+        <i class="fas fa-plus"></i> {{ __('policies.new_section') }}
       </button>
     </div>
   </div>
@@ -36,12 +35,12 @@
         <table class="table table-hover mb-0 align-middle">
           <thead class="table-dark">
             <tr class="text-center">
-              <th>ID</th>
-              <th>Clave</th>
-              <th>Orden</th>
-              <th>Título ({{ strtoupper(app()->getLocale()) }})</th>
-              <th>Estado</th>
-              <th style="width: 240px;">Acciones</th>
+              <th>{{ __('policies.id') }}</th>
+              <th>{{ __('policies.key') }}</th>
+              <th>{{ __('policies.order') }}</th>
+              <th>{{ __('policies.title_current_locale') }}</th>
+              <th>{{ __('policies.status') }}</th>
+              <th style="width: 240px;">{{ __('policies.actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -55,7 +54,7 @@
                 <td>
                   <span class="badge {{ $s->is_active ? 'bg-success' : 'bg-danger' }}">
                     <i class="fas {{ $s->is_active ? 'fa-check-circle' : 'fa-times-circle' }}"></i>
-                    {{ $s->is_active ? 'Activa' : 'Inactiva' }}
+                    {{ $s->is_active ? __('policies.active') : __('policies.inactive') }}
                   </span>
                 </td>
                 <td>
@@ -63,15 +62,15 @@
                     <button class="btn btn-edit btn-sm"
                             data-bs-toggle="modal"
                             data-bs-target="#editSectionModal-{{ $s->section_id }}"
-                            title="Editar" data-bs-toggle="tooltip">
+                            title="{{ __('policies.edit') }}" data-bs-toggle="tooltip">
                       <i class="fas fa-edit"></i>
                     </button>
 
                     <form class="d-inline" method="POST"
                           action="{{ route('admin.policies.sections.toggle', [$policy, $s]) }}">
                       @csrf
-                      <button class="btn btn-sm {{ $s->is_active ? 'btn-toggle' : 'btn-toggle' }}"
-                              title="{{ $s->is_active ? 'Desactivar sección' : 'Activar sección' }}"
+                      <button class="btn btn-sm btn-toggle"
+                              title="{{ $s->is_active ? __('policies.deactivate_section') : __('policies.activate_section') }}"
                               data-bs-toggle="tooltip">
                         <i class="fas {{ $s->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                       </button>
@@ -79,10 +78,10 @@
 
                     <form class="d-inline" method="POST"
                           action="{{ route('admin.policies.sections.destroy', [$policy, $s]) }}"
-                          onsubmit="return confirm('¿Eliminar esta sección?');">
+                          onsubmit="return confirm(@json(__('policies.delete_section_confirm')));">
                       @csrf @method('DELETE')
                       <button class="btn btn-danger btn-sm"
-                              title="Eliminar" data-bs-toggle="tooltip">
+                              title="{{ __('policies.delete') }}" data-bs-toggle="tooltip">
                         <i class="fas fa-trash"></i>
                       </button>
                     </form>
@@ -90,7 +89,7 @@
                 </td>
               </tr>
             @empty
-              <tr><td colspan="6" class="text-center text-muted p-4">Sin secciones registradas.</td></tr>
+              <tr><td colspan="6" class="text-center text-muted p-4">{{ __('policies.no_sections') }}</td></tr>
             @endforelse
           </tbody>
         </table>
@@ -104,17 +103,17 @@
       <form class="modal-content" method="POST" action="{{ route('admin.policies.sections.store', $policy) }}">
         @csrf
         <div class="modal-header">
-          <h5 class="modal-title">Nueva sección</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          <h5 class="modal-title">{{ __('policies.new_section') }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('policies.close') }}"></button>
         </div>
         <div class="modal-body">
           <div class="row g-3">
             <div class="col-md-4">
-              <label class="form-label">Clave interna (opcional)</label>
-              <input type="text" name="key" class="form-control" placeholder="p.ej. cookies">
+              <label class="form-label">{{ __('policies.internal_key_optional') }}</label>
+              <input type="text" name="key" class="form-control" placeholder="cookies">
             </div>
             <div class="col-md-3">
-              <label class="form-label">Orden</label>
+              <label class="form-label">{{ __('policies.order') }}</label>
               <input type="number" min="0" name="sort_order" class="form-control" value="0">
             </div>
             <div class="col-md-3">
@@ -122,7 +121,7 @@
                 <input type="hidden" name="is_active" value="0">
                 <input type="checkbox" name="is_active" value="1"
                        class="form-check-input" id="s-active-new" checked>
-                <label class="form-check-label" for="s-active-new">Activa</label>
+                <label class="form-check-label" for="s-active-new">{{ __('policies.active') }}</label>
               </div>
             </div>
           </div>
@@ -132,17 +131,17 @@
           <input type="hidden" name="locale" value="{{ app()->getLocale() }}">
 
           <div class="mb-3">
-            <label class="form-label">Título ({{ strtoupper(app()->getLocale()) }})</label>
+            <label class="form-label">{{ __('policies.title_label') }} ({{ strtoupper(app()->getLocale()) }})</label>
             <input type="text" name="title" class="form-control" required>
           </div>
           <div class="mb-3">
-            <label class="form-label">Contenido ({{ strtoupper(app()->getLocale()) }})</label>
+            <label class="form-label">{{ __('policies.content_label') }} ({{ strtoupper(app()->getLocale()) }})</label>
             <textarea name="content" class="form-control" rows="10" required></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-primary"><i class="fas fa-save"></i> Registrar</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button class="btn btn-primary"><i class="fas fa-save"></i> {{ __('policies.register') }}</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('policies.close') }}</button>
         </div>
       </form>
     </div>
@@ -156,17 +155,17 @@
         <form class="modal-content" method="POST" action="{{ route('admin.policies.sections.update', [$policy, $s]) }}">
           @csrf @method('PUT')
           <div class="modal-header">
-            <h5 class="modal-title">Editar sección</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <h5 class="modal-title">{{ __('policies.edit_section') }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('policies.close') }}"></button>
           </div>
           <div class="modal-body">
             <div class="row g-3">
               <div class="col-md-4">
-                <label class="form-label">Clave interna (opcional)</label>
+                <label class="form-label">{{ __('policies.internal_key_optional') }}</label>
                 <input type="text" name="key" class="form-control" value="{{ $s->key }}">
               </div>
               <div class="col-md-3">
-                <label class="form-label">Orden</label>
+                <label class="form-label">{{ __('policies.order') }}</label>
                 <input type="number" min="0" name="sort_order" class="form-control" value="{{ $s->sort_order }}">
               </div>
               <div class="col-md-3">
@@ -175,7 +174,7 @@
                   <input type="checkbox" name="is_active" value="1"
                          class="form-check-input"
                          id="s-active-{{ $s->section_id }}" {{ $s->is_active ? 'checked' : '' }}>
-                  <label class="form-check-label" for="s-active-{{ $s->section_id }}">Activa</label>
+                  <label class="form-check-label" for="s-active-{{ $s->section_id }}">{{ __('policies.active') }}</label>
                 </div>
               </div>
             </div>
@@ -184,25 +183,23 @@
 
             <input type="hidden" name="locale" value="{{ app()->getLocale() }}">
             <div class="mb-3">
-              <label class="form-label">Título ({{ strtoupper(app()->getLocale()) }})</label>
+              <label class="form-label">{{ __('policies.title_label') }} ({{ strtoupper(app()->getLocale()) }})</label>
               <input type="text" name="title" class="form-control" value="{{ $tt?->title }}">
             </div>
             <div class="mb-3">
-              <label class="form-label">Contenido ({{ strtoupper(app()->getLocale()) }})</label>
+              <label class="form-label">{{ __('policies.content_label') }} ({{ strtoupper(app()->getLocale()) }})</label>
               <textarea name="content" class="form-control" rows="10">{{ $tt?->content }}</textarea>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-primary"><i class="fas fa-save"></i> Guardar cambios</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <button class="btn btn-primary"><i class="fas fa-save"></i> {{ __('policies.save_changes') }}</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('policies.close') }}</button>
           </div>
         </form>
       </div>
     </div>
   @endforeach
 @stop
-
-
 
 @section('js')
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

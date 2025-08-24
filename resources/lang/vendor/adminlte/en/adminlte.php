@@ -207,7 +207,7 @@ return [
     'send_message'   => 'Send message',
     'message_sent'   => 'Message sent',
     'business_hours'    => 'Business hours',
-    'business_schedule' => 'Monday to Sunday, from 7:30 a.m. to 7:00 p.m.',
+    'business_schedule' => 'Monday to Sunday, from 7:30 a.m. to 7:30 p.m.',
 
     // ─── WHATSAPP ────────────────────────────────────
     'whatsapp_title' => 'Green Vacations CR',
@@ -355,5 +355,15 @@ return [
 ],
 
 
+    'reviews_loaded'         => 'Reviews loaded successfully.',
+    'reviews_upstream_error' => 'There was a problem with the reviews provider.',
+    'reviews_busy'           => 'Service is busy, please try again shortly.',
+    'reviews_exception'      => 'An unexpected error occurred while loading reviews.',
+
+      'message_sent_spam_caught' => 'Your message has been sent.',
+    'contact_success'          => 'Your message has been sent successfully. We will contact you soon.',
+    'contact_error'            => 'An error occurred while sending your message. Please try again in a few minutes.',
+
+        'translation_updated_successfully' => 'Translation updated successfully.',
 
 ];

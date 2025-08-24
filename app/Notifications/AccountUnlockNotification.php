@@ -19,7 +19,7 @@ class AccountUnlockNotification extends Notification
 
     public function toMail($notifiable)
     {
-        // Traducciones con fallback
+
         $subject = __('adminlte::auth.account.unlock_mail_subject') ?: 'Desbloqueo de cuenta';
         $intro   = __('adminlte::auth.account.unlock_mail_intro')   ?: 'Recibimos una solicitud para desbloquear tu cuenta.';
         $action  = __('adminlte::auth.account.unlock_mail_action')  ?: 'Desbloquear mi cuenta';

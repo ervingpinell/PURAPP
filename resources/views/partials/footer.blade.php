@@ -1,7 +1,5 @@
-{{-- resources/views/layouts/partials/footer.blade.php --}}
 <footer class="footer-nature">
   @php
-    /** Carga segura (funciona con o sin columna 'type') */
     $terms   = \App\Models\Policy::byType('terminos');
     $privacy = \App\Models\Policy::byType('privacidad');
 
@@ -56,7 +54,7 @@
         @if($terms)
           <li class="d-flex align-items-center mb-2">
             <i class="fas fa-balance-scale me-2"></i>
-            <a href="{{ route('site.policies.show', $terms) }}">
+            <a href="{{ route('policies.show', $terms) }}">
               {{ __('adminlte::adminlte.terms_and_conditions') }}
             </a>
           </li>
@@ -65,7 +63,7 @@
         @if($privacy)
           <li class="d-flex align-items-center mb-2">
             <i class="fas fa-shield-alt me-2"></i>
-            <a href="{{ route('site.policies.show', $privacy) }}">
+            <a href="{{ route('policies.show', $privacy) }}">
               {{ __('adminlte::adminlte.privacy_policy') }}
             </a>
           </li>
@@ -73,7 +71,7 @@
 
         <li class="d-flex align-items-center mb-2">
           <i class="fas fa-list me-2"></i>
-          <a href="{{ route('site.policies.index') }}">
+          <a href="{{ route('policies.index') }}">
             {{ __('adminlte::adminlte.all_policies') }}
           </a>
         </li>

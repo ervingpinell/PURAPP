@@ -1,4 +1,3 @@
-{{-- resources/views/errors/429.blade.php --}}
 @extends('adminlte::auth.auth-page', ['authType' => 'login'])
 
 @section('title', __('Demasiados intentos'))

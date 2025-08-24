@@ -12,10 +12,9 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        // Usa los blades que ya tienes (ambos con teléfono y country code)
         return in_array($user->role_id, [1, 2])
-            ? view('admin.profile.profile', compact('user'))   // Admin
-            : view('profile.edit', compact('user'));           // Público (auth-page)
+            ? view('admin.profile.profile', compact('user'))
+            : view('profile.edit', compact('user'));
     }
 
     public function update(Request $request)
@@ -40,7 +39,6 @@ class ProfileController extends Controller
         $user->full_name = $validated['full_name'];
         $user->email     = $validated['email'];
 
-        // Procesa teléfono solo si el form lo envía (permite limpiar)
         if ($request->hasAny(['country_code','phone'])) {
             $ccDigits    = preg_replace('/\D+/', '', (string) $request->country_code);
             $phoneDigits = preg_replace('/\D+/', '', (string) $request->phone);
@@ -58,8 +56,8 @@ class ProfileController extends Controller
                 $national = null;
             }
 
-            $user->country_code = $request->country_code; // mutator normaliza a "+XXX"
-            $user->phone        = $national;              // mutator deja dígitos o null
+            $user->country_code = $request->country_code;
+            $user->phone        = $national;
         }
 
         if (!empty($validated['password'])) {

@@ -7,9 +7,7 @@ use App\Models\User;
 
 class UserVerificationController extends Controller
 {
-    /**
-     * Reenvía el correo de verificación de un usuario desde el panel admin.
-     */
+
     public function resend(User $user)
     {
         if ($user->hasVerifiedEmail()) {

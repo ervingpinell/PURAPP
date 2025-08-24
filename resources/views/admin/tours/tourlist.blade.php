@@ -150,15 +150,20 @@
                     </a>
 
                     {{-- Toggle con SweetAlert --}}
-                    <form action="{{ route('admin.tours.destroy', $tour->tour_id) }}" method="POST"
-                          class="d-inline js-toggle-form"
-                          data-question="{{ $tour->is_active ? '¿Deseas desactivar este tour?' : '¿Deseas activar este tour?' }}"
-                          data-confirm="{{ $tour->is_active ? 'Sí, desactivar' : 'Sí, activar' }}">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-toggle">
-                            <i class="fas {{ $tour->is_active ? 'fa-toggle-off' : 'fa-toggle-on' }}"></i>
+                    <form action="{{ route('admin.tours.toggle', $tour->tour_id) }}"
+                        method="POST"
+                        class="d-inline js-toggle-form"
+                        data-question="{{ $tour->is_active ? '¿Deseas desactivar este tour?' : '¿Deseas activar este tour?' }}"
+                        data-confirm="{{ $tour->is_active ? 'Sí, desactivar' : 'Sí, activar' }}">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit"
+                                class="btn btn-sm btn-toggle"
+                                title="{{ $tour->is_active ? 'Desactivar' : 'Activar' }}">
+                            <i class="fas fa-toggle-{{ $tour->is_active ? 'on' : 'off' }}"></i>
                         </button>
                     </form>
+
                 </td>
             </tr>
         @endforeach

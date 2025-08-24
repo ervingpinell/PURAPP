@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', __('adminlte::adminlte.tours'))
 @push('meta')
   <meta name="robots" content="noindex, nofollow">
 @endpush

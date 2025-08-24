@@ -3,113 +3,138 @@
 namespace App\Http\Controllers\Admin\Tours;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\TourType;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rule;
 use Exception;
 use Illuminate\Http\RedirectResponse;
+use App\Models\TourType;
+use App\Services\LoggerHelper;
+use App\Http\Requests\Tour\TourType\StoreTourTypeRequest;
+use App\Http\Requests\Tour\TourType\UpdateTourTypeRequest;
+use App\Http\Requests\Tour\TourType\ToggleTourTypeRequest;
 
 class TourTypeController extends Controller
 {
+    protected string $controller = 'TourTypeController';
+
     public function index()
     {
         $tourTypes = TourType::orderByDesc('created_at')->get();
+
         return view('admin.tourtypes.index', compact('tourTypes'));
     }
 
-    public function store(Request $request)
+    public function store(StoreTourTypeRequest $request): RedirectResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:tour_types,name',
-            'description' => 'nullable|string',
-            'duration' => 'nullable|string|max:255',
-        ]);
-
         try {
-            TourType::create([
-                'name' => $request->name,
-                'description' => $request->description,
-                'duration' => $request->duration,
-                'is_active' => true,
+            $data = $request->validated();
+
+            $tourType = TourType::create([
+                'name'        => $data['name'],
+                'description' => $data['description'] ?? null,
+                'duration'    => $data['duration'] ?? null,
+                'is_active'   => true,
             ]);
 
-            return redirect()->route('admin.tourtypes.index')
+            LoggerHelper::mutated($this->controller, 'store', 'tour_type', $tourType->getKey(), [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return redirect()
+                ->route('admin.tourtypes.index')
                 ->with('success', 'Tipo de tour creado correctamente.')
                 ->with('alert_type', 'creado');
+
         } catch (Exception $e) {
-            Log::error('Error al crear tipo de tour: ' . $e->getMessage());
+            LoggerHelper::exception($this->controller, 'store', 'tour_type', null, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
             return back()->with('error', 'No se pudo crear el tipo de tour.');
         }
     }
 
-    public function update(Request $request, TourType $tourType)
+    public function update(UpdateTourTypeRequest $request, TourType $tourType): RedirectResponse
     {
         try {
-            $request->validate([
-                'name' => [
-                    'required',
-                    'string',
-                    'max:255',
-                    Rule::unique('tour_types', 'name')->ignore($tourType->tour_type_id, 'tour_type_id'),
-                ],
-                'description' => 'nullable|string',
-                'duration' => 'nullable|string|max:255',
-            ]);
+            $data = $request->validated();
 
             $tourType->update([
-                'name' => $request->name,
-                'description' => $request->description,
-                'duration' => $request->duration,
+                'name'        => $data['name'],
+                'description' => $data['description'] ?? null,
+                'duration'    => $data['duration'] ?? null,
             ]);
 
-            return redirect()->route('admin.tourtypes.index')
+            LoggerHelper::mutated($this->controller, 'update', 'tour_type', $tourType->getKey(), [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return redirect()
+                ->route('admin.tourtypes.index')
                 ->with('success', 'Tipo de tour actualizado correctamente.')
                 ->with('alert_type', 'actualizado');
 
         } catch (Exception $e) {
-            Log::error('Error al actualizar tipo de tour: ' . $e->getMessage());
+            LoggerHelper::exception($this->controller, 'update', 'tour_type', $tourType->getKey(), $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
 
             return back()
                 ->with('error', 'Ocurrió un error inesperado al actualizar el tipo de tour.')
                 ->withInput()
-                ->with('edit_modal', $tourType->tour_type_id);
+                ->with('edit_modal', $tourType->getKey());
         }
     }
 
-    public function toggle(TourType $tourType)
+    public function toggle(ToggleTourTypeRequest $request, TourType $tourType): RedirectResponse
     {
         try {
-            $tourType->is_active = !$tourType->is_active;
+            $tourType->is_active = ! $tourType->is_active;
             $tourType->save();
+
+            LoggerHelper::mutated($this->controller, 'toggle', 'tour_type', $tourType->getKey(), [
+                'is_active' => $tourType->is_active,
+                'user_id'   => optional($request->user())->getAuthIdentifier(),
+            ]);
 
             $accion = $tourType->is_active ? 'activado' : 'desactivado';
 
-            return redirect()->route('admin.tourtypes.index')
+            return redirect()
+                ->route('admin.tourtypes.index')
                 ->with('success', "Tipo de tour {$accion} correctamente.")
                 ->with('alert_type', $accion);
+
         } catch (Exception $e) {
-            Log::error('Error al cambiar estado del tipo de tour: ' . $e->getMessage());
+            LoggerHelper::exception($this->controller, 'toggle', 'tour_type', $tourType->getKey(), $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
             return back()->with('error', 'No se pudo cambiar el estado del tipo de tour.');
         }
     }
 
-public function destroy(int $id): RedirectResponse
-{
-    $tourType = TourType::findOrFail($id);
+    public function destroy(int $id): RedirectResponse
+    {
+        $tourType = TourType::findOrFail($id);
 
-    try {
-        $tourType->delete();
-        return back()->with([
-            'success'    => 'Tipo de tour eliminado correctamente.',
-            'alert_type' => 'eliminado',
-        ]);
-    } catch (\Throwable $e) {
-        // Si hay FK (tours que lo usan), puedes mostrar mensaje claro
-        return back()->with([
-            'success'    => 'No se pudo eliminar: este tipo de tour está en uso.',
-            'alert_type' => 'error',
-        ]);
+        try {
+            $tourType->delete();
+
+            LoggerHelper::mutated($this->controller, 'destroy', 'tour_type', $id, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with([
+                'success'    => 'Tipo de tour eliminado correctamente.',
+                'alert_type' => 'eliminado',
+            ]);
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'destroy', 'tour_type', $id, $e, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with([
+                'success'    => 'No se pudo eliminar: este tipo de tour está en uso.',
+                'alert_type' => 'error',
+            ]);
+        }
     }
-}
 }

@@ -72,10 +72,10 @@ Route::middleware([SetLocale::class])->group(function () {
     })->name('reviews');
 
     // Políticas públicas
-    Route::get('/politicas', [\App\Http\Controllers\Site\PoliciesController::class, 'index'])
-        ->name('site.policies.index');
-    Route::get('/politicas/{policy}', [\App\Http\Controllers\Site\PoliciesController::class, 'show'])
-        ->name('site.policies.show');
+    Route::get('/politicas', [\App\Http\Controllers\PoliciesController::class, 'index'])
+        ->name('policies.index');
+    Route::get('/politicas/{policy}', [\App\Http\Controllers\PoliciesController::class, 'show'])
+        ->name('policies.show');
 
     // Test correo (dev)
     Route::get('/send-test-email', function () {
@@ -236,7 +236,13 @@ Route::post('/email/verification-notification', [VerifyEmailController::class, '
         Route::delete('/promoCode/{promo}', [PromoCodeController::class, 'destroy'])->name('promoCode.destroy');
 
         // Tours
-        Route::resource('tours', TourController::class)->except(['create', 'edit', 'show']);
+
+        Route::resource('tours', TourController::class)
+            ->except(['create', 'edit', 'show', 'destroy']);
+
+        Route::patch('tours/{tour:tour_id}/toggle', [TourController::class, 'toggle'])
+            ->name('tours.toggle');
+
         Route::prefix('tours')->name('tours.')->group(function () {
             Route::resource('schedule', TourScheduleController::class)->except(['create','edit','show']);
             Route::put('schedule/{schedule}/toggle', [TourScheduleController::class, 'toggle'])->name('schedule.toggle');

@@ -9,7 +9,7 @@ return new class extends Migration {
         Schema::create('itinerary_translations', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('itinerary_id');
-            $table->string('locale', 5); // 'en', 'fr', etc.
+            $table->string('locale', 5);
             $table->string('name');
             $table->text('description')->nullable();
             $table->timestamps();

@@ -9,11 +9,8 @@ class TourAvailability extends Model
 {
     use HasFactory;
 
-    protected $table = 'tour_availability'; // Confirmar que la tabla se llama así
+    protected $table = 'tour_availability';
     protected $primaryKey = 'availability_id';
-
-    // Si la tabla no tiene created_at y updated_at, desactiva timestamps:
-    // public $timestamps = false;
 
     protected $fillable = [
         'tour_id',

@@ -8,7 +8,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Si ya existe por alguna razón (ambientes inconsistentes), sáltate la creación
         if (Schema::hasTable('tour_type_translations')) {
             return;
         }
@@ -16,7 +15,6 @@ return new class extends Migration
         Schema::create('tour_type_translations', function (Blueprint $table) {
             $table->id();
 
-            // FK a tour_types.tour_type_id (en Postgres usa foreignId + constrained)
             $table->foreignId('tour_type_id')
                   ->constrained('tour_types', 'tour_type_id')
                   ->cascadeOnDelete();
@@ -24,7 +22,7 @@ return new class extends Migration
             $table->string('locale', 5);
             $table->string('name', 255);
             $table->text('description')->nullable();
-            $table->string('duration', 191)->nullable(); // 191 por compat con algunos índices
+            $table->string('duration', 191)->nullable();
             $table->timestamps();
 
             $table->unique(['tour_type_id', 'locale'], 'tour_type_translations_tour_type_id_locale_unique');
