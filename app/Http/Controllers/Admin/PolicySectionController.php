@@ -3,20 +3,20 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use App\Models\Policy;
 use App\Models\PolicySection;
 use App\Models\PolicySectionTranslation;
 use App\Services\Contracts\TranslatorInterface;
+use App\Services\LoggerHelper;
 
 class PolicySectionController extends Controller
 {
-    public function __construct(
-        protected TranslatorInterface $translator
-    ) {}
+    protected string $controller = 'PolicySectionController';
 
+    /** Listado de secciones de una política */
     public function index(Policy $policy)
     {
         $sections = $policy->sections()
@@ -28,158 +28,219 @@ class PolicySectionController extends Controller
         return view('admin.policies.sections.index', compact('policy', 'sections'));
     }
 
-    public function store(Request $request, Policy $policy)
+    /** Crear sección + traducciones (translateAll) */
+    public function store(Request $request, Policy $policy, TranslatorInterface $translator)
     {
-        $supportedLocales = array_keys(config('app.supported_locales', [
-            'es' => 'Español', 'en' => 'English', 'pt_BR' => 'Português (Brasil)', 'fr' => 'Français', 'de' => 'Deutsch',
-        ]));
-
-        $request->validate([
-            'key'        => ['nullable', 'string', 'max:100'],
+        // Reglas y mensajes claros
+        $rules = [
+            'name'       => ['required', 'string', 'max:255'], // nombre base en cualquier idioma
+            'content'    => ['required', 'string'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active'  => ['nullable', 'in:0,1'],
+        ];
 
-            'locale'     => ['nullable', Rule::in($supportedLocales)],
-            'title'      => ['required', 'string', 'max:255'],
-            'content'    => ['required', 'string'],
-        ]);
+        $messages = [
+            'required'    => 'Este campo es obligatorio.',
+            'string'      => 'Debe ser un texto válido.',
+            'max.string'  => 'No debe superar :max caracteres.',
+            'integer'     => 'Debe ser un número entero.',
+            'min'         => 'Debe ser un valor mayor o igual a :min.',
+            'in'          => 'El valor seleccionado no es válido.',
+        ];
 
-        return DB::transaction(function () use ($request, $policy) {
-            $section = PolicySection::create([
-                'policy_id'  => $policy->policy_id,
-                'key'        => $request->input('key'),
-                'sort_order' => (int) $request->input('sort_order', 0),
-                'is_active'  => $request->boolean('is_active', true),
+        $attributes = [
+            'name'       => 'Nombre',
+            'content'    => 'Contenido',
+            'sort_order' => 'Orden',
+            'is_active'  => 'Activo',
+        ];
+
+        $request->validate($rules, $messages, $attributes);
+
+        $supportedLocales = ['es','en','fr','pt','de'];
+
+        try {
+            DB::transaction(function () use ($request, $policy, $translator, $supportedLocales) {
+                $baseName    = $request->string('name')->trim();
+                $baseContent = $request->string('content')->trim();
+
+                // Base: lo que verás en la tabla es policy_sections.name
+                $section = PolicySection::create([
+                    'policy_id'  => $policy->policy_id,
+                    'name'       => $baseName,
+                    'sort_order' => (int) $request->input('sort_order', 0),
+                    'is_active'  => (bool) $request->boolean('is_active', true),
+                ]);
+
+                // Traducción automática (si falla, caemos al texto original)
+                try { $nameTranslations    = (array) $translator->translateAll($baseName); }    catch (\Throwable $e) { $nameTranslations = []; }
+                try { $contentTranslations = (array) $translator->translateAll($baseContent); } catch (\Throwable $e) { $contentTranslations = []; }
+
+                foreach ($supportedLocales as $locale) {
+                    PolicySectionTranslation::updateOrCreate(
+                        ['section_id' => $section->section_id, 'locale' => $locale],
+                        [
+                            'name'    => $nameTranslations[$locale]    ?? $baseName,
+                            'content' => $contentTranslations[$locale] ?? $baseContent,
+                        ]
+                    );
+                }
+
+                LoggerHelper::mutated($this->controller, 'store', 'policy_section', $section->section_id, [
+                    'policy_id'     => $policy->policy_id,
+                    'locales_saved' => count($supportedLocales),
+                    'user_id'       => optional(request()->user())->getAuthIdentifier(),
+                ]);
+            });
+
+            return redirect()
+                ->route('admin.policies.sections.index', $policy)
+                ->with('success', __('adminlte::adminlte.saved_successfully') ?? 'Sección creada correctamente.');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'store', 'policy_section', null, $e, [
+                'policy_id' => $policy->policy_id,
+                'user_id'   => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            $baseLocale = PolicySection::canonicalLocale(
-                (string) ($request->input('locale') ?: app()->getLocale())
-            );
-
-            PolicySectionTranslation::create([
-                'section_id' => $section->section_id,
-                'locale'     => $baseLocale,
-                'title'      => (string) $request->input('title'),
-                'content'    => (string) $request->input('content'),
-            ]);
-
-            $this->createMissingTranslations($section, $baseLocale);
-
-            return back()->with('success', __('policies.section_created'));
-        });
+            return back()
+                ->withInput()
+                ->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo crear la sección.');
+        }
     }
 
+    /** Actualizar solo base (name/sort_order/is_active). No retraduce. */
     public function update(Request $request, Policy $policy, PolicySection $section)
     {
-        if ($section->policy_id !== $policy->policy_id) {
-            abort(404);
-        }
-
-        $supportedLocales = array_keys(config('app.supported_locales', [
-            'es' => 'Español', 'en' => 'English', 'pt_BR' => 'Português (Brasil)', 'fr' => 'Français', 'de' => 'Deutsch',
-        ]));
-
-        $request->validate([
-            'key'        => ['nullable', 'string', 'max:100'],
+        $rules = [
+            'name'       => ['nullable', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active'  => ['nullable', 'in:0,1'],
+        ];
 
-            'locale'     => ['nullable', Rule::in($supportedLocales)],
-            'title'      => ['required', 'string', 'max:255'],
-            'content'    => ['required', 'string'],
+        $messages = [
+            'string'     => 'Debe ser un texto válido.',
+            'max.string' => 'No debe superar :max caracteres.',
+            'integer'    => 'Debe ser un número entero.',
+            'min'        => 'Debe ser un valor mayor o igual a :min.',
+            'in'         => 'El valor seleccionado no es válido.',
+        ];
+
+        $attributes = [
+            'name'       => 'Nombre',
+            'sort_order' => 'Orden',
+            'is_active'  => 'Activo',
+        ];
+
+        $request->validate($rules, $messages, $attributes);
+
+        try {
+            $updateAttributes = [
+                'sort_order' => $request->filled('sort_order') ? (int) $request->input('sort_order') : $section->sort_order,
+                'is_active'  => $request->has('is_active') ? (bool) $request->boolean('is_active') : $section->is_active,
+            ];
+
+            if ($request->filled('name')) {
+                $updateAttributes['name'] = (string) $request->string('name')->trim();
+            }
+
+            $section->update($updateAttributes);
+
+            LoggerHelper::mutated($this->controller, 'update', 'policy_section', $section->section_id, [
+                'policy_id' => $policy->policy_id,
+                'user_id'   => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return redirect()
+                ->route('admin.policies.sections.index', $policy)
+                ->with('success', __('adminlte::adminlte.updated_successfully') ?? 'Sección actualizada correctamente.');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'update', 'policy_section', $section->section_id, $e, [
+                'policy_id' => $policy->policy_id,
+                'user_id'   => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return back()
+                ->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo actualizar la sección.');
+        }
+    }
+
+    /** Activar/Desactivar una sección */
+    public function toggle(Request $request, Policy $policy, PolicySection $section)
+    {
+        try {
+            $section->update(['is_active' => ! $section->is_active]);
+            $section->refresh();
+
+            LoggerHelper::mutated($this->controller, 'toggle', 'policy_section', $section->section_id, [
+                'policy_id' => $policy->policy_id,
+                'is_active' => $section->is_active,
+                'user_id'   => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            $feedbackMessage = $section->is_active
+                ? __('policies.activated_successfully')   ?? 'Sección activada.'
+                : __('policies.deactivated_successfully') ?? 'Sección desactivada.';
+
+            return back()->with('success', $feedbackMessage);
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'toggle', 'policy_section', $section->section_id, $e, [
+                'policy_id' => $policy->policy_id,
+                'user_id'   => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return back()
+                ->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo cambiar el estado de la sección.');
+        }
+    }
+
+    /** Borrar (o marcar inactiva, según tu flujo) */
+    public function destroy(Request $request, Policy $policy, PolicySection $section)
+    {
+        try {
+            $deletedId = $section->section_id;
+            $section->delete();
+
+            LoggerHelper::mutated($this->controller, 'destroy', 'policy_section', $deletedId, [
+                'policy_id' => $policy->policy_id,
+                'user_id'   => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('success', __('adminlte::adminlte.deleted_successfully') ?? 'Sección eliminada.');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'destroy', 'policy_section', $section->section_id ?? null, $e, [
+                'policy_id' => $policy->policy_id,
+                'user_id'   => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo eliminar la sección.');
+        }
+    }
+
+    /** Ordenar secciones (drag & drop) */
+    public function sort(Request $request, Policy $policy)
+    {
+        $validated = $request->validate([
+            'orders'                 => ['required', 'array'],
+            'orders.*.section_id'    => ['required', 'integer'],
+            'orders.*.sort_order'    => ['required', 'integer', 'min:0'],
+        ], [
+            'required'  => 'Este campo es obligatorio.',
+            'array'     => 'Formato inválido.',
+            'integer'   => 'Debe ser un número entero.',
+            'min'       => 'Debe ser un valor mayor o igual a :min.',
+        ], [
+            'orders'              => 'Orden',
+            'orders.*.section_id' => 'Sección',
+            'orders.*.sort_order' => 'Orden',
         ]);
 
-        return DB::transaction(function () use ($request, $section) {
-            $section->update([
-                'key'        => $request->input('key'),
-                'sort_order' => (int) $request->input('sort_order', 0),
-                'is_active'  => $request->boolean('is_active', true),
-            ]);
-
-            $targetLocale = PolicySection::canonicalLocale(
-                (string) ($request->input('locale') ?: app()->getLocale())
-            );
-
-            $translation = PolicySectionTranslation::firstOrNew([
-                'section_id' => $section->section_id,
-                'locale'     => $targetLocale,
-            ]);
-
-            $translation->title   = (string) $request->input('title');
-            $translation->content = (string) $request->input('content');
-            $translation->save();
-
-            return back()->with('success', __('policies.section_updated'));
+        DB::transaction(function () use ($validated) {
+            foreach ($validated['orders'] as $orderRow) {
+                PolicySection::where('section_id', $orderRow['section_id'])
+                    ->update(['sort_order' => $orderRow['sort_order']]);
+            }
         });
-    }
 
-    public function toggle(Policy $policy, PolicySection $section)
-    {
-        if ($section->policy_id !== $policy->policy_id) {
-            abort(404);
-        }
-
-        $section->update(['is_active' => ! $section->is_active]);
-
-        return back()->with(
-            'success',
-            $section->is_active
-                ? __('policies.section_activated')
-                : __('policies.section_deactivated')
-        );
-    }
-
-    public function destroy(Policy $policy, PolicySection $section)
-    {
-        if ($section->policy_id !== $policy->policy_id) {
-            abort(404);
-        }
-
-        $section->delete();
-
-        return back()->with('success', __('policies.section_deleted'));
-    }
-
-    /**
-     * Auto-create missing translations for other supported locales using the translator service.
-     */
-    private function createMissingTranslations(PolicySection $section, string $baseLocale): void
-    {
-        $supportedLocales = array_keys(config('app.supported_locales', [
-            'es' => 'Español', 'en' => 'English', 'pt_BR' => 'Português (Brasil)', 'fr' => 'Français', 'de' => 'Deutsch',
-        ]));
-
-        $base = $section->translations()->where('locale', $baseLocale)->first();
-        if (! $base) {
-            return;
-        }
-
-        foreach ($supportedLocales as $targetLocale) {
-            if ($targetLocale === $baseLocale) {
-                continue;
-            }
-
-            $alreadyExists = $section->translations()->where('locale', $targetLocale)->exists();
-            if ($alreadyExists) {
-                continue;
-            }
-
-            try {
-                $translatedTitle = $this->translator->translate($base->title, $targetLocale);
-            } catch (\Throwable $e) {
-                $translatedTitle = $base->title;
-            }
-
-            try {
-                $translatedContent = $this->translator->translate($base->content, $targetLocale);
-            } catch (\Throwable $e) {
-                $translatedContent = $base->content;
-            }
-
-            PolicySectionTranslation::updateOrCreate(
-                ['section_id' => $section->section_id, 'locale' => $targetLocale],
-                ['title' => $translatedTitle, 'content' => $translatedContent]
-            );
-        }
+        return response()->json(['ok' => true]);
     }
 }

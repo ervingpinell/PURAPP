@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('policies.page_title')) {{-- o __('policies.categories_title') si prefieres --}}
+@section('title', __('policies.page_title'))
 @section('content')
 @php $locale = app()->getLocale(); @endphp
 
@@ -23,64 +23,67 @@
     <div class="accordion" id="allPoliciesAccordion">
       @foreach($policies as $policy)
         @php
-          $t        = $policy->translation($locale) ?? $policy->translation('es');
-          $pid      = "policy-{$policy->policy_id}";
-          $sections = $policy->sections ?? collect();
+          $translatedPolicy  = $policy->translation($locale) ?? $policy->translation('es');
+          $accordionId       = "policy-{$policy->policy_id}";
+          $sections = method_exists($policy, 'activeSections')
+                        ? $policy->activeSections()->orderBy('sort_order')->get()
+                        : (($policy->sections ?? collect())->sortBy('sort_order'));
         @endphp
 
         <div class="accordion-item border-0 border-bottom">
-          <h2 class="accordion-header" id="heading-{{ $pid }}">
+          <h2 class="accordion-header" id="heading-{{ $accordionId }}">
             <button
               class="accordion-button bg-white px-0 shadow-none collapsed"
               type="button"
               data-bs-toggle="collapse"
-              data-bs-target="#collapse-{{ $pid }}"
+              data-bs-target="#collapse-{{ $accordionId }}"
               aria-expanded="false"
-              aria-controls="collapse-{{ $pid }}"
+              aria-controls="collapse-{{ $accordionId }}"
             >
               <span class="me-2 d-inline-flex align-items-center" aria-hidden="true">
                 <i class="fas fa-plus icon-plus"></i>
                 <i class="fas fa-minus icon-minus"></i>
               </span>
-              {{ $t?->title ?? $policy->name }}
+              {{ $translatedPolicy?->name ?? $policy->name ?? __('policies.untitled') }}
             </button>
           </h2>
 
-          <div id="collapse-{{ $pid }}" class="accordion-collapse collapse" data-bs-parent="#allPoliciesAccordion">
+          <div id="collapse-{{ $accordionId }}" class="accordion-collapse collapse" data-bs-parent="#allPoliciesAccordion">
             <div class="accordion-body px-0">
-              @if(filled($t?->content))
-                <div class="mb-3">{!! nl2br(e($t->content)) !!}</div>
+
+              @if(filled($translatedPolicy?->content))
+                <div class="mb-3">{!! nl2br(e($translatedPolicy->content)) !!}</div>
               @endif
 
               @if($sections->isNotEmpty())
-                <div class="accordion" id="inner-{{ $pid }}">
+                <div class="accordion" id="inner-{{ $accordionId }}">
                   @foreach($sections as $section)
                     @php
-                      $st  = $section->translation($locale) ?? $section->translation('es');
-                      $sid = "sec-{$policy->policy_id}-{$section->section_id}";
+                      $translatedSection = $section->translation($locale) ?? $section->translation('es');
+                      $sectionId         = "sec-{$policy->policy_id}-{$section->section_id}";
                     @endphp
 
                     <div class="accordion-item border-0 border-top">
-                      <h2 class="accordion-header" id="heading-{{ $sid }}">
+                      <h2 class="accordion-header" id="heading-{{ $sectionId }}">
                         <button
                           class="accordion-button bg-white px-0 shadow-none collapsed"
                           type="button"
                           data-bs-toggle="collapse"
-                          data-bs-target="#collapse-{{ $sid }}"
+                          data-bs-target="#collapse-{{ $sectionId }}"
                           aria-expanded="false"
-                          aria-controls="collapse-{{ $sid }}"
+                          aria-controls="collapse-{{ $sectionId }}"
                         >
                           <span class="me-2 d-inline-flex align-items-center" aria-hidden="true">
                             <i class="fas fa-plus icon-plus"></i>
                             <i class="fas fa-minus icon-minus"></i>
                           </span>
-                          {{ $st?->title ?? __('policies.section') }}
+                          {{ $translatedSection?->name ?? $section->name ?? __('policies.section') }}
                         </button>
                       </h2>
 
-                      <div id="collapse-{{ $sid }}" class="accordion-collapse collapse" data-bs-parent="#inner-{{ $pid }}">
+                      <div id="collapse-{{ $sectionId }}" class="accordion-collapse collapse" data-bs-parent="#inner-{{ $accordionId }}">
                         <div class="accordion-body px-0">
-                          {!! nl2br(e($st?->content ?? '')) !!}
+                          {!! nl2br(e($translatedSection?->content ?? '')) !!}
                         </div>
                       </div>
                     </div>

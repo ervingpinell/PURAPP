@@ -367,5 +367,50 @@ return [
     'contact_error'            => 'Ocorreu um erro ao enviar sua mensagem. Por favor, tente novamente em alguns minutos.',
 
         'translation_updated_successfully' => 'Tradução atualizada com sucesso.',
+    'translation_deleted_successfully' => 'Tradução eliminada com sucesso.',
+    'translation_created_successfully' => 'Tradução criada com sucesso.',
+    'main_information' => 'Informação Principal',
+    'section_translations' => 'Traduções de Seção',
+    'edit_translation' => 'Editar Tradução',
+
+    'dashboard' => [
+    'title'      => 'Painel',
+    'greeting'   => 'Olá :name! 👋',
+    'welcome_to' => 'Bem-vindo ao painel administrativo de :app.',
+    'hint'       => 'Use o menu lateral para começar a gerenciar o conteúdo.',
+],
+
+'entities' => [
+    'users'        => 'Usuários',
+    'tours'        => 'Passeios',
+    'tour_types'   => 'Tipos de Passeio',
+    'languages'    => 'Idiomas',
+    'schedules'    => 'Agendas',
+    'amenities'    => 'Comodidades',
+    'bookings'     => 'Reservas',
+    'total_bookings'=> 'Reservas Totais',
+    'itineraries'  => 'Roteiros',
+    'items'        => 'Itens',
+],
+
+'sections' => [
+    'available_itineraries' => 'Roteiros disponíveis',
+    'upcoming_bookings'     => 'Próximas reservas',
+],
+
+'empty' => [
+    'itinerary_items'   => 'Este roteiro ainda não possui itens.',
+    'itineraries'       => 'Nenhum roteiro encontrado.',
+    'upcoming_bookings' => 'Não há próximas reservas.',
+],
+
+'buttons' => [
+    'view' => 'Ver',
+],
+
+'labels' => [
+    'reference' => 'Referência',
+    'date'      => 'Data',
+],
 
 ];

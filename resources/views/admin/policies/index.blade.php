@@ -9,14 +9,20 @@
 @stop
 
 @section('content')
-  @if (session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
-  @endif
-  @if ($errors->any())
-    <div class="alert alert-danger">
-      <ul class="mb-0">@foreach ($errors->all() as $e) <li>{{ $e }}</li> @endforeach</ul>
-    </div>
-  @endif
+  {{-- ALERTAS (fallback si no hay JS) --}}
+  <noscript>
+    @if (session('success'))
+      <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+    @if (session('error'))
+      <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+    @if ($errors->any())
+      <div class="alert alert-danger">
+        <ul class="mb-0">@foreach ($errors->all() as $e) <li>{{ $e }}</li> @endforeach</ul>
+      </div>
+    @endif
+  </noscript>
 
   <div class="mb-3">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createPolicyModal">
@@ -31,8 +37,7 @@
           <thead class="table-dark">
             <tr class="text-center">
               <th>{{ __('policies.id') }}</th>
-              <th>{{ __('policies.internal_name') }}</th>
-              <th>{{ __('policies.title_current_locale') }}</th>
+              <th class="text-center">{{ __('policies.title_current_locale') }}</th>
               <th>{{ __('policies.validity_range') }}</th>
               <th>{{ __('policies.status') }}</th>
               <th>{{ __('policies.sections') }}</th>
@@ -43,17 +48,13 @@
             @forelse ($policies as $p)
               @php
                 $t = $p->translation();
-                $from = $p->effective_from
-                    ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('Y-m-d')
-                    : null;
-                $to = $p->effective_to
-                    ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('Y-m-d')
-                    : null;
+                $from = $p->effective_from ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('Y-m-d') : null;
+                $to   = $p->effective_to   ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('Y-m-d')   : null;
               @endphp
               <tr class="text-center">
                 <td>{{ $p->policy_id }}</td>
-                <td class="text-start"><code>{{ $p->name }}</code></td>
-                <td class="text-start">{{ $t?->title ?? '—' }}</td>
+                {{-- nombre normal traducido al locale actual --}}
+                <td class="text-center">{{ $t?->name ?? '—' }}</td>
                 <td>
                   @if($from || $to)
                     {{ $from ?? '—' }} &rarr; {{ $to ?? '—' }}
@@ -83,20 +84,26 @@
                       <i class="fas fa-edit"></i>
                     </button>
 
-                    <form class="d-inline me-1" method="POST" action="{{ route('admin.policies.toggle', $p) }}">
+                    {{-- Toggle con SweetAlert --}}
+                    <form class="d-inline me-1 js-confirm-toggle"
+                          method="POST"
+                          action="{{ route('admin.policies.toggle', $p) }}"
+                          data-active="{{ $p->is_active ? 1 : 0 }}">
                       @csrf
-                      <button class="btn btn-sm btn-toggle"
+                      <button class="btn btn-toggle btn-sm"
                               title="{{ $p->is_active ? __('policies.deactivate_category') : __('policies.activate_category') }}"
                               data-bs-toggle="tooltip">
                         <i class="fas {{ $p->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                       </button>
                     </form>
 
-                    <form class="d-inline" method="POST"
+                    {{-- Eliminar con SweetAlert --}}
+                    <form class="d-inline js-confirm-delete"
+                          method="POST"
                           action="{{ route('admin.policies.destroy', $p) }}"
-                          onsubmit="return confirm(@json(__('policies.delete_category_confirm')));">
+                          data-message="{{ __('policies.delete_category_confirm') }}">
                       @csrf @method('DELETE')
-                      <button class="btn btn-danger btn-sm"
+                      <button class="btn btn-delete btn-sm"
                               title="{{ __('policies.delete') }}" data-bs-toggle="tooltip">
                         <i class="fas fa-trash"></i>
                       </button>
@@ -105,7 +112,7 @@
                 </td>
               </tr>
             @empty
-              <tr><td colspan="7" class="text-center text-muted p-4">{{ __('policies.no_categories') }}</td></tr>
+              <tr><td colspan="6" class="text-center text-muted p-4">{{ __('policies.no_categories') }}</td></tr>
             @endforelse
           </tbody>
         </table>
@@ -113,7 +120,7 @@
     </div>
   </div>
 
-  {{-- MODAL: Nueva categoría --}}
+  {{-- MODAL: Nueva categoría (solo nombre normal + contenido) --}}
   <div class="modal fade" id="createPolicyModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
       <form class="modal-content" method="POST" action="{{ route('admin.policies.store') }}">
@@ -124,10 +131,6 @@
         </div>
         <div class="modal-body">
           <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">{{ __('policies.internal_name') }}</label>
-              <input type="text" name="name" class="form-control" required>
-            </div>
             <div class="col-md-3">
               <label class="form-label">{{ __('policies.valid_from') }}</label>
               <input type="date" name="effective_from" class="form-control" value="{{ now()->toDateString() }}">
@@ -136,8 +139,8 @@
               <label class="form-label">{{ __('policies.valid_to') }}</label>
               <input type="date" name="effective_to" class="form-control">
             </div>
-            <div class="col-md-3">
-              <div class="form-check mt-4">
+            <div class="col-md-3 d-flex align-items-end">
+              <div class="form-check">
                 <input type="hidden" name="is_active" value="0">
                 <input type="checkbox" name="is_active" value="1"
                        class="form-check-input" id="p-active-new" checked>
@@ -148,14 +151,13 @@
 
           <hr>
 
-          <input type="hidden" name="locale" value="{{ app()->getLocale() }}">
-
           <div class="mb-3">
-            <label class="form-label">{{ __('policies.title_label') }} ({{ strtoupper(app()->getLocale()) }})</label>
-            <input type="text" name="title" class="form-control" required>
+            <label class="form-label">{{ __('policies.name') }}</label>
+            <input type="text" name="name" class="form-control" required>
+            <small class="text-muted">{{ __('policies.lang_autodetect_hint') ?? 'Puedes escribir en cualquier idioma; se detecta automáticamente.' }}</small>
           </div>
           <div class="mb-3">
-            <label class="form-label">{{ __('policies.description_label') }} ({{ strtoupper(app()->getLocale()) }})</label>
+            <label class="form-label">{{ __('policies.description_label') }}</label>
             <textarea name="content" class="form-control" rows="8" required></textarea>
           </div>
         </div>
@@ -167,16 +169,11 @@
     </div>
   </div>
 
-  {{-- MODALES: Editar categoría --}}
+  {{-- MODALES: Editar categoría (sin nombre interno; NO edita traducciones) --}}
   @foreach ($policies as $p)
     @php
-      $tt = $p->translation();
-      $fromVal = $p->effective_from
-          ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('Y-m-d')
-          : '';
-      $toVal = $p->effective_to
-          ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('Y-m-d')
-          : '';
+      $fromVal = $p->effective_from ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('Y-m-d') : '';
+      $toVal   = $p->effective_to   ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('Y-m-d')   : '';
     @endphp
     <div class="modal fade" id="editPolicyModal-{{ $p->policy_id }}" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -188,10 +185,6 @@
           </div>
           <div class="modal-body">
             <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label">{{ __('policies.internal_name') }}</label>
-                <input type="text" name="name" class="form-control" value="{{ $p->name }}" required>
-              </div>
               <div class="col-md-3">
                 <label class="form-label">{{ __('policies.valid_from') }}</label>
                 <input type="date" name="effective_from" class="form-control" value="{{ $fromVal }}">
@@ -210,18 +203,7 @@
                 </div>
               </div>
             </div>
-
-            <hr>
-
-            <input type="hidden" name="locale" value="{{ app()->getLocale() }}">
-            <div class="mb-3">
-              <label class="form-label">{{ __('policies.title_label') }} ({{ strtoupper(app()->getLocale()) }})</label>
-              <input type="text" name="title" class="form-control" value="{{ $tt?->title }}">
-            </div>
-            <div class="mb-3">
-              <label class="form-label">{{ __('policies.description_label') }} ({{ strtoupper(app()->getLocale()) }})</label>
-              <textarea name="content" class="form-control" rows="8">{{ $tt?->content }}</textarea>
-            </div>
+            {{-- Nota: si quisieras editar nombre normal/descripcion, habría que añadir campos y controlador para traducciones. --}}
           </div>
           <div class="modal-footer">
             <button class="btn btn-primary"><i class="fas fa-save"></i> {{ __('policies.save_changes') }}</button>
@@ -235,13 +217,85 @@
 
 @section('js')
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
   document.addEventListener('DOMContentLoaded', () => {
-    [...document.querySelectorAll('[data-bs-toggle="tooltip"]')]
-      .forEach(el => new bootstrap.Tooltip(el));
+    // tooltips
+    [...document.querySelectorAll('[data-bs-toggle="tooltip"]')].forEach(el => new bootstrap.Tooltip(el));
+
+    // limpiar backdrops duplicados
     document.addEventListener('hidden.bs.modal', () => {
       const backs = document.querySelectorAll('.modal-backdrop');
       if (backs.length > 1) backs.forEach((b,i) => { if (i < backs.length-1) b.remove(); });
+    });
+
+    // --- SweetAlert2 Toasters ---
+    const flashSuccess = @json(session('success'));
+    const flashError   = @json(session('error'));
+    const valErrors    = @json($errors->any() ? $errors->all() : []);
+
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3200,
+      timerProgressBar: true
+    });
+
+    if (flashSuccess) Toast.fire({ icon: 'success', title: flashSuccess });
+    if (flashError)   Toast.fire({ icon: 'error',   title: flashError });
+
+    if (valErrors && valErrors.length) {
+      const list = '<ul class="text-start mb-0">' + valErrors.map(e => `<li>${e}</li>`).join('') + '</ul>';
+      Swal.fire({
+        icon: 'warning',
+        title: @json(__('adminlte::adminlte.validation_errors') ?? 'Please review the highlighted fields.'),
+        html: list,
+        confirmButtonText: 'OK'
+      });
+    }
+
+    // Confirmación de borrado
+    document.querySelectorAll('.js-confirm-delete').forEach(form => {
+      form.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const msg = form.dataset.message || @json(__('policies.delete_category_confirm'));
+        Swal.fire({
+          title: msg,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: @json(__('policies.delete') ?? 'Delete'),
+          cancelButtonText: @json(__('policies.close') ?? 'Cancel'),
+        }).then((result) => {
+          if (result.isConfirmed) form.submit();
+        });
+      });
+    });
+
+    // Confirmación de activar/desactivar
+    document.querySelectorAll('.js-confirm-toggle').forEach(form => {
+      form.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const isActive = form.dataset.active === '1';
+        const msg = isActive
+          ? (@json(__('policies.deactivate_category_confirm')) || '¿Desactivar esta categoría?')
+          : (@json(__('policies.activate_category_confirm'))  || '¿Activar esta categoría?');
+
+        Swal.fire({
+          title: msg,
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: isActive ? '#d33' : '#28a745',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: isActive ? @json(__('policies.deactivate_category') ?? 'Desactivar')
+                                      : @json(__('policies.activate_category')   ?? 'Activar'),
+          cancelButtonText: @json(__('policies.close') ?? 'Cancelar'),
+        }).then((result) => {
+          if (result.isConfirmed) form.submit();
+        });
+      });
     });
   });
   </script>

@@ -12,7 +12,7 @@ class PolicySectionTranslation extends Model
     protected $fillable = [
         'section_id',
         'locale',
-        'title',
+        'name',
         'content',
     ];
 

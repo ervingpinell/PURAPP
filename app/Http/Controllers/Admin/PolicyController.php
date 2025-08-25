@@ -3,198 +3,222 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
-
 use App\Models\Policy;
 use App\Models\PolicyTranslation;
 use App\Services\Contracts\TranslatorInterface;
+use App\Services\LoggerHelper;
 
 class PolicyController extends Controller
 {
-    public function __construct(
-        protected TranslatorInterface $translator
-    ) {}
+    protected string $controller = 'PolicyController';
 
+    /** Listado de políticas con filtros simples */
     public function index(Request $request)
     {
-        $query = Policy::query()
-            ->withCount('sections')
-            ->with('translations');
+        $policiesQuery = Policy::query()
+            ->with('translations')
+            ->withCount('sections');
 
-        if ($request->filled('active')) {
-            $query->where('is_active', $request->boolean('active'));
+        if ($request->filled('q')) {
+            $searchTerm = trim((string) $request->input('q'));
+
+            $policiesQuery->where(function ($policyQuery) use ($searchTerm) {
+                $policyQuery->where('name', 'like', "%{$searchTerm}%")
+                    ->orWhereHas('translations', function ($translationsQuery) use ($searchTerm) {
+                        $translationsQuery->where('name', 'like', "%{$searchTerm}%");
+                    });
+            });
         }
+
         if ($request->filled('from')) {
-            $query->whereDate('effective_from', '>=', $request->date('from'));
+            $policiesQuery->whereDate('effective_from', '>=', $request->date('from'));
         }
         if ($request->filled('to')) {
-            $query->whereDate('effective_to', '<=', $request->date('to'));
+            $policiesQuery->whereDate('effective_to', '<=', $request->date('to'));
         }
 
-        $policies = $query->orderByDesc('policy_id')->get();
+        $policies = $policiesQuery->orderByDesc('policy_id')->get();
 
         return view('admin.policies.index', compact('policies'));
     }
 
-    public function store(Request $request)
+    /** Crear política + traducciones (translateAll) */
+    public function store(Request $request, TranslatorInterface $translator)
     {
-        $supportedLocales = array_keys(config('app.supported_locales', [
-            'es'    => 'Español',
-            'en'    => 'English',
-            'pt_BR' => 'Português (Brasil)',
-            'fr'    => 'Français',
-            'de'    => 'Deutsch',
-        ]));
-
-        $request->validate([
-            'name'           => ['required', 'string', 'max:255'],
+        $rules = [
+            'is_active'      => ['nullable', 'in:0,1'],
             'effective_from' => ['nullable', 'date'],
             'effective_to'   => ['nullable', 'date', 'after_or_equal:effective_from'],
-            'is_active'      => ['nullable', 'in:0,1'],
-
-            'locale'         => ['nullable', Rule::in($supportedLocales)],
-            'title'          => ['required', 'string', 'max:255'],
+            'name'           => ['required', 'string', 'max:255'],
             'content'        => ['required', 'string'],
-        ]);
+        ];
 
-        return DB::transaction(function () use ($request) {
-            $policy = Policy::create([
-                'name'           => $request->string('name')->trim(),
-                'effective_from' => $request->input('effective_from'),
-                'effective_to'   => $request->input('effective_to'),
-                'is_active'      => $request->boolean('is_active', true),
-            ]);
+        $messages = [
+            'required'                     => 'Este campo es obligatorio.',
+            'string'                       => 'Debe ser un texto válido.',
+            'max.string'                   => 'No debe superar :max caracteres.',
+            'date'                         => 'Debe ser una fecha válida.',
+            'in'                           => 'El valor seleccionado no es válido.',
+            'effective_to.after_or_equal'  => 'La fecha de fin debe ser posterior o igual a la fecha de inicio.',
+        ];
 
-            $baseLocale = Policy::canonicalLocale(
-                (string) ($request->input('locale') ?: app()->getLocale())
-            );
+        $attributes = [
+            'name'           => 'Nombre',
+            'content'        => 'Contenido',
+            'is_active'      => 'Activo',
+            'effective_from' => 'Vigente desde',
+            'effective_to'   => 'Vigente hasta',
+        ];
 
-            PolicyTranslation::create([
-                'policy_id' => $policy->policy_id,
-                'locale'    => $baseLocale,
-                'title'     => (string) $request->input('title'),
-                'content'   => (string) $request->input('content'),
-            ]);
+        $request->validate($rules, $messages, $attributes);
 
-            $this->translatePolicyIfMissing($policy, $baseLocale);
+        $locales = ['es','en','fr','pt','de'];
+
+        try {
+            DB::transaction(function () use ($request, $translator, $locales) {
+                $baseName    = $request->string('name')->trim();
+                $baseContent = $request->string('content')->trim();
+
+                $policy = Policy::create([
+                    'name'           => $baseName,
+                    'is_active'      => (bool) $request->boolean('is_active', true),
+                    'effective_from' => $request->date('effective_from'),
+                    'effective_to'   => $request->date('effective_to'),
+                ]);
+
+                // Traducciones automáticas (si falla, usamos el original)
+                try { $nameTranslations    = (array) $translator->translateAll($baseName); }    catch (\Throwable $e) { $nameTranslations = []; }
+                try { $contentTranslations = (array) $translator->translateAll($baseContent); } catch (\Throwable $e) { $contentTranslations = []; }
+
+                foreach ($locales as $locale) {
+                    PolicyTranslation::updateOrCreate(
+                        ['policy_id' => $policy->policy_id, 'locale' => $locale],
+                        [
+                            'name'    => $nameTranslations[$locale]    ?? $baseName,
+                            'content' => $contentTranslations[$locale] ?? $baseContent,
+                        ]
+                    );
+                }
+
+                LoggerHelper::mutated($this->controller, 'store', 'policy', $policy->policy_id, [
+                    'locales_saved' => count($locales),
+                    'user_id'       => optional(request()->user())->getAuthIdentifier(),
+                ]);
+            });
 
             return redirect()
                 ->route('admin.policies.index')
-                ->with('success', __('policies.category_created'));
-        });
+                ->with('success', __('adminlte::adminlte.saved_successfully') ?? 'Policy created successfully.');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'store', 'policy', null, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return back()
+                ->withInput()
+                ->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo crear la política.');
+        }
     }
 
+    /** Actualizar solo campos base (no retraduce) */
     public function update(Request $request, Policy $policy)
     {
-        $supportedLocales = array_keys(config('app.supported_locales', [
-            'es'    => 'Español',
-            'en'    => 'English',
-            'pt_BR' => 'Português (Brasil)',
-            'fr'    => 'Français',
-            'de'    => 'Deutsch',
-        ]));
-
-        $request->validate([
-            'name'           => ['required', 'string', 'max:255'],
+        $rules = [
+            'name'           => ['nullable', 'string', 'max:255'],
+            'is_active'      => ['nullable', 'in:0,1'],
             'effective_from' => ['nullable', 'date'],
             'effective_to'   => ['nullable', 'date', 'after_or_equal:effective_from'],
-            'is_active'      => ['nullable', 'in:0,1'],
+        ];
 
-            'locale'         => ['nullable', Rule::in($supportedLocales)],
-            'title'          => ['required', 'string', 'max:255'],
-            'content'        => ['required', 'string'],
-        ]);
+        $messages = [
+            'string'                      => 'Debe ser un texto válido.',
+            'max.string'                  => 'No debe superar :max caracteres.',
+            'date'                        => 'Debe ser una fecha válida.',
+            'in'                          => 'El valor seleccionado no es válido.',
+            'effective_to.after_or_equal' => 'La fecha de fin debe ser posterior o igual a la fecha de inicio.',
+        ];
 
-        return DB::transaction(function () use ($request, $policy) {
-            $policy->update([
-                'name'           => $request->string('name')->trim(),
-                'effective_from' => $request->input('effective_from'),
-                'effective_to'   => $request->input('effective_to'),
-                'is_active'      => $request->boolean('is_active', true),
+        $attributes = [
+            'name'           => 'Nombre',
+            'is_active'      => 'Activo',
+            'effective_from' => 'Vigente desde',
+            'effective_to'   => 'Vigente hasta',
+        ];
+
+        $request->validate($rules, $messages, $attributes);
+
+        try {
+            $updateAttributes = [
+                'is_active'      => (bool) $request->boolean('is_active', $policy->is_active),
+                'effective_from' => $request->filled('effective_from') ? $request->date('effective_from') : $policy->effective_from,
+                'effective_to'   => $request->filled('effective_to')   ? $request->date('effective_to')   : $policy->effective_to,
+            ];
+
+            if ($request->filled('name')) {
+                $updateAttributes['name'] = (string) $request->string('name')->trim();
+            }
+
+            $policy->update($updateAttributes);
+
+            LoggerHelper::mutated($this->controller, 'update', 'policy', $policy->policy_id, [
+                'is_active' => $policy->is_active,
+                'user_id'   => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            $targetLocale = Policy::canonicalLocale(
-                (string) ($request->input('locale') ?: app()->getLocale())
-            );
-
-            $translation = PolicyTranslation::firstOrNew([
-                'policy_id' => $policy->policy_id,
-                'locale'    => $targetLocale,
+            return back()->with('success', __('adminlte::adminlte.updated_successfully') ?? 'Policy updated successfully.');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'update', 'policy', $policy->policy_id, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-
-            $translation->title   = (string) $request->input('title');
-            $translation->content = (string) $request->input('content');
-            $translation->save();
-
-            return back()->with('success', __('policies.category_updated'));
-        });
-    }
-
-    public function toggle(Policy $policy)
-    {
-        $policy->update(['is_active' => ! $policy->is_active]);
-
-        return back()->with(
-            'success',
-            $policy->is_active
-                ? __('policies.category_activated')
-                : __('policies.category_deactivated')
-        );
-    }
-
-    public function destroy(Policy $policy)
-    {
-        $policy->delete();
-
-        return back()->with('success', __('policies.category_deleted'));
-    }
-
-    /**
-     * Auto-translate to other supported locales when missing.
-     */
-    private function translatePolicyIfMissing(Policy $policy, string $baseLocale): void
-    {
-        $supportedLocales = array_keys(config('app.supported_locales', [
-            'es'    => 'Español',
-            'en'    => 'English',
-            'pt_BR' => 'Português (Brasil)',
-            'fr'    => 'Français',
-            'de'    => 'Deutsch',
-        ]));
-
-        $baseTranslation = $policy->translations()->where('locale', $baseLocale)->first();
-        if (! $baseTranslation) {
-            return;
+            return back()->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo actualizar la política.');
         }
+    }
 
-        foreach ($supportedLocales as $targetLocale) {
-            if ($targetLocale === $baseLocale) {
-                continue;
-            }
+    public function destroy(Request $request, Policy $policy)
+    {
+        try {
+            $deletedId = $policy->policy_id;
+            $policy->delete();
 
-            $exists = $policy->translations()->where('locale', $targetLocale)->exists();
-            if ($exists) {
-                continue;
-            }
+            LoggerHelper::mutated($this->controller, 'destroy', 'policy', $deletedId, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
 
-            try {
-                $translatedTitle = $this->translator->translate($baseTranslation->title, $targetLocale);
-            } catch (\Throwable $e) {
-                $translatedTitle = $baseTranslation->title;
-            }
+            return redirect()
+                ->route('admin.policies.index')
+                ->with('success', __('adminlte::adminlte.deleted_successfully') ?? 'Policy deleted.');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'destroy', 'policy', $policy->policy_id ?? null, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+            return back()->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo eliminar la política.');
+        }
+    }
 
-            try {
-                $translatedContent = $this->translator->translate($baseTranslation->content, $targetLocale);
-            } catch (\Throwable $e) {
-                $translatedContent = $baseTranslation->content;
-            }
+    public function toggle(Request $request, Policy $policy)
+    {
+        try {
+            $policy->update(['is_active' => ! $policy->is_active]);
+            $policy->refresh();
 
-            PolicyTranslation::updateOrCreate(
-                ['policy_id' => $policy->policy_id, 'locale' => $targetLocale],
-                ['title' => $translatedTitle, 'content' => $translatedContent]
-            );
+            LoggerHelper::mutated($this->controller, 'toggle', 'policy', $policy->policy_id, [
+                'is_active' => $policy->is_active,
+                'user_id'   => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            $feedbackMessage = $policy->is_active
+                ? __('policies.activated_successfully')   ?? 'Policy activated.'
+                : __('policies.deactivated_successfully') ?? 'Policy deactivated.';
+
+            return back()->with('success', $feedbackMessage);
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'toggle', 'policy', $policy->policy_id, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+            return back()->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo cambiar el estado.');
         }
     }
 }

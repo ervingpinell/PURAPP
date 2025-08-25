@@ -364,5 +364,54 @@ return [
     'contact_error'            => 'Beim Senden Ihrer Nachricht ist ein Fehler aufgetreten. Bitte versuchen Sie es in ein paar Minuten erneut.',
 
         'translation_updated_successfully' => 'Übersetzung erfolgreich aktualisiert.',
+        'translation_deleted_successfully' => 'Übersetzung erfolgreich gelöscht.',
+        'translation_created_successfully' => 'Übersetzung erfolgreich erstellt.',
+        'main_information' => 'Hauptinformationen',
+        'section_translations' => 'Abschnittsübersetzungen',
+        'edit_translation' => 'Übersetzung bearbeiten',
+
+        'create_translation' => 'Übersetzung erstellen',
+
+        'translation' => 'Übersetzung',
+
+        'dashboard' => [
+    'title'      => 'Dashboard',
+    'greeting'   => 'Hallo :name! 👋',
+    'welcome_to' => 'Willkommen im Adminbereich von :app.',
+    'hint'       => 'Nutze das Seitenmenü, um Inhalte zu verwalten.',
+],
+
+'entities' => [
+    'users'        => 'Benutzer',
+    'tours'        => 'Touren',
+    'tour_types'   => 'Tourtypen',
+    'languages'    => 'Sprachen',
+    'schedules'    => 'Zeitpläne',
+    'amenities'    => 'Ausstattungen',
+    'bookings'     => 'Buchungen',
+    'total_bookings'=> 'Gesamtbuchungen',
+    'itineraries'  => 'Reiserouten',
+    'items'        => 'Elemente',
+],
+
+'sections' => [
+    'available_itineraries' => 'Verfügbare Reiserouten',
+    'upcoming_bookings'     => 'Anstehende Buchungen',
+],
+
+'empty' => [
+    'itinerary_items'   => 'Diese Reiseroute hat noch keine Elemente.',
+    'itineraries'       => 'Keine Reiserouten gefunden.',
+    'upcoming_bookings' => 'Keine anstehenden Buchungen.',
+],
+
+'buttons' => [
+    'view' => 'Ansehen',
+],
+
+'labels' => [
+    'reference' => 'Referenz',
+    'date'      => 'Datum',
+],
 
 ];

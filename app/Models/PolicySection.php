@@ -15,8 +15,67 @@ class PolicySection extends Model
     protected $keyType = 'int';
     public $timestamps = true;
 
-    protected $fillable = ['policy_id','key','sort_order','is_active'];
-    protected $casts = ['is_active' => 'bool'];
+    protected $fillable = [
+        'policy_id',
+        'name',
+        'sort_order',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active'  => 'bool',
+        'sort_order' => 'int',
+    ];
+
+    /* -------------------- BOOT & AUTO-TRADUCCIONES -------------------- */
+
+    protected static function booted()
+    {
+        // Sembrar traducciones para todos los locales soportados al crear
+        static::created(function (self $section) {
+            $section->seedMissingTranslations();
+        });
+
+        // Si cambia el nombre base, actualizar traducciones vacías
+        static::updated(function (self $section) {
+            if ($section->wasChanged('name')) {
+                $section->syncNameIntoTranslations();
+            }
+        });
+    }
+
+    /**
+     * Crea traducciones faltantes para los locales soportados.
+     * Rellena name con el base y content vacío.
+     */
+    public function seedMissingTranslations(?array $locales = null): void
+    {
+        $locales = $locales ?: config('app.supported_locales', ['es','en','fr','pt','de']);
+        foreach ($locales as $loc) {
+            $norm = Policy::canonicalLocale($loc);
+            $this->translations()->firstOrCreate(
+                ['locale' => $norm],
+                ['name' => (string) $this->name, 'content' => '']
+            );
+        }
+    }
+
+    /**
+     * Copia el nombre base a las traducciones cuyo "name" esté vacío.
+     * No sobrescribe traducciones ya personalizadas.
+     */
+    public function syncNameIntoTranslations(): void
+    {
+        $current = (string) ($this->name ?? '');
+        $this->translations()->get()->each(function (PolicySectionTranslation $tr) use ($current) {
+            if (blank($tr->name)) {
+                $tr->name = $current;
+                $tr->save();
+            }
+        });
+    }
+
+    /* -------------------- RELACIONES -------------------- */
 
     public function policy()
     {
@@ -28,35 +87,24 @@ class PolicySection extends Model
         return $this->hasMany(PolicySectionTranslation::class, 'section_id', 'section_id');
     }
 
-    public static function canonicalLocale(string $loc): string
+    /* -------------------- SCOPES -------------------- */
+
+    public function scopeActive($q)
     {
-        $loc   = str_replace('-', '_', trim($loc));
-        $short = strtolower(substr($loc, 0, 2));
-        return match ($short) {
-            'es' => 'es', 'en' => 'en', 'fr' => 'fr', 'de' => 'de', 'pt' => 'pt_BR', default => $loc,
-        };
+        return $q->where('is_active', true);
     }
+
+    /* -------------------- HELPERS DE TRADUCCIÓN -------------------- */
 
     public function translation(?string $locale = null)
     {
-        $requested = self::canonicalLocale($locale ?: app()->getLocale());
-        $fallback  = self::canonicalLocale((string) config('app.fallback_locale', 'es'));
+        $locale   = $locale ?: app()->getLocale();
+        $fallback = config('app.fallback_locale', 'es');
 
-        $bag = $this->relationLoaded('translations')
-            ? $this->getRelation('translations')
-            : $this->translations()->get();
+        $bag = $this->relationLoaded('translations') ? $this->translations : $this->translations()->get();
 
-        $cands = array_values(array_unique([
-            $requested, strtolower($requested), strtoupper($requested),
-            str_replace('_','-',$requested), str_replace('-','_',$requested),
-            substr($requested,0,2),
-        ]));
-
-        $found = $bag->first(function($t) use($cands){
-            $v = (string) ($t->locale ?? '');
-            $norms = [$v, strtolower($v), strtoupper($v), str_replace('-','_',$v), str_replace('_','-',$v), substr($v,0,2)];
-            return count(array_intersect($cands, $norms)) > 0;
-        });
+        $found = $bag->firstWhere('locale', $locale)
+            ?: $bag->firstWhere('locale', substr($locale, 0, 2));
 
         if ($found) return $found;
 

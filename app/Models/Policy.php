@@ -37,6 +37,51 @@ class Policy extends Model
         return 'policy_id';
     }
 
+    /* ===================== BOOT & AUTO-TRADUCCIONES ===================== */
+
+    protected static function booted()
+    {
+        static::created(function (self $policy) {
+            $policy->seedMissingTranslations();
+        });
+
+        static::updated(function (self $policy) {
+            if ($policy->wasChanged('name')) {
+                $policy->syncNameIntoTranslations();
+            }
+        });
+    }
+
+    /**
+     * Sembrar traducciones faltantes para locales soportados.
+     */
+    public function seedMissingTranslations(?array $locales = null): void
+    {
+        $locales = $locales ?: config('app.supported_locales', ['es','en','fr','pt','de']);
+        foreach ($locales as $loc) {
+            $norm = self::canonicalLocale($loc);
+            $this->translations()->firstOrCreate(
+                ['locale' => $norm],
+                ['name' => (string) $this->name, 'content' => '']
+            );
+        }
+    }
+
+    /**
+     * Rellenar name traducido si está vacío cuando cambia el base.
+     */
+    public function syncNameIntoTranslations(): void
+    {
+        $current = (string) ($this->name ?? '');
+        $this->translations()->get()->each(function (PolicyTranslation $tr) use ($current) {
+            if (blank($tr->name)) {
+                $tr->name = $current;
+                $tr->save();
+            }
+        });
+    }
+
+    /* ===================== RELACIONES ===================== */
 
     public function translations()
     {
@@ -55,6 +100,7 @@ class Policy extends Model
         return $this->sections()->where('is_active', true);
     }
 
+    /* ===================== LOCALIZACIÓN ===================== */
 
     public static function canonicalLocale(string $loc): string
     {
@@ -114,9 +160,17 @@ class Policy extends Model
         return $this->translation($locale);
     }
 
+    /* ===================== ACCESSORS ===================== */
+
+    public function getNameTranslatedAttribute(): ?string
+    {
+        return optional($this->translation())?->name ?? $this->name;
+    }
+
     public function getTitleTranslatedAttribute(): ?string
     {
-        return optional($this->translation())?->title;
+        // Compatibilidad con código legado que esperaba "title"
+        return optional($this->translation())?->name ?? $this->name;
     }
 
     public function getContentTranslatedAttribute(): ?string
@@ -124,6 +178,7 @@ class Policy extends Model
         return optional($this->translation())?->content;
     }
 
+    /* ===================== SCOPES ===================== */
 
     public function scopeActive($q)
     {
@@ -149,13 +204,17 @@ class Policy extends Model
         return $q;
     }
 
+    /* ===================== HELPERS ===================== */
 
     public static function byType(string $type): ?self
     {
-        $q = static::query()->active();
+        $query = static::query()
+            ->active()
+            ->effectiveOn()
+            ->with('translations');
 
         if (Schema::hasColumn((new static)->getTable(), 'type')) {
-            return $q->where('type', $type)
+            return $query->where('type', $type)
                 ->orderByDesc('is_default')
                 ->orderByDesc('effective_from')
                 ->first();
@@ -171,16 +230,18 @@ class Policy extends Model
         if (isset($map[$type])) {
             $base = $map[$type];
 
-            $q->where(function ($qq) use ($base) {
+            $query->where(function ($qq) use ($base) {
                 $qq->where('name', $base)
                    ->orWhere('name', 'like', $base.'%');
             });
 
-            return $q->orderByDesc('effective_from')->first();
+            return $query->orderByDesc('effective_from')->first();
         }
 
-        return $q->whereHas('translations', function ($qq) use ($type) {
-            $qq->where('title', 'like', '%'.$type.'%');
-        })->orderByDesc('effective_from')->first();
+        return $query->whereHas('translations', function ($qq) use ($type) {
+                $qq->where('name', 'like', '%'.$type.'%');
+            })
+            ->orderByDesc('effective_from')
+            ->first();
     }
 }

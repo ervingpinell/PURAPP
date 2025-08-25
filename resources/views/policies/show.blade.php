@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', optional($policy->translation(app()->getLocale()) ?? $policy->translation('es'))->title ?? $policy->name)
-
-@section('content')
 @php
   $locale = app()->getLocale();
-  $t = $policy->translation($locale) ?? $policy->translation('es');
-  $activeSections = $policy->activeSections ?? collect();
+  $translatedPolicy = $policy->translation($locale) ?? $policy->translation('es');
+  $pageTitle = $translatedPolicy?->name ?? $policy->name ?? __('policies.untitled');
 @endphp
 
+@section('title', $pageTitle)
+
+@section('content')
 <style>
   .accordion-button::after { content: none !important; display: none !important; }
   .accordion-item { background: transparent; }
@@ -20,46 +20,54 @@
 </style>
 
 <div class="container py-4">
-  <h1 class="mb-2 big-title text-center">{{ $t?->title ?? $policy->name }}</h1>
+  <h1 class="mb-3 big-title text-center">{{ $pageTitle }}</h1>
 
-  @if(filled($t?->content))
-    <div class="mb-4">{!! nl2br(e($t->content)) !!}</div>
+  @if(filled($translatedPolicy?->content))
+    <div class="mb-4">{!! nl2br(e($translatedPolicy->content)) !!}</div>
   @endif
 
-  @if($activeSections->isNotEmpty())
+  @php
+    $sections = method_exists($policy, 'activeSections')
+                ? $policy->activeSections()->orderBy('sort_order')->get()
+                : (($policy->sections ?? collect())->sortBy('sort_order'));
+  @endphp
+
+  @if($sections->isNotEmpty())
     <div class="accordion" id="policySectionsAccordion">
-      @foreach($activeSections as $section)
+      @foreach($sections as $section)
         @php
-          $st  = $section->translation($locale) ?? $section->translation('es');
-          $sid = "sec-{$policy->policy_id}-{$section->section_id}";
+          $translatedSection = $section->translation($locale) ?? $section->translation('es');
+          $sectionId = "section-{$section->section_id}";
         @endphp
 
         <div class="accordion-item border-0 border-bottom">
-          <h2 class="accordion-header" id="heading-{{ $sid }}">
+          <h2 class="accordion-header" id="heading-{{ $sectionId }}">
             <button
               class="accordion-button bg-white px-0 shadow-none collapsed"
               type="button"
               data-bs-toggle="collapse"
-              data-bs-target="#collapse-{{ $sid }}"
+              data-bs-target="#collapse-{{ $sectionId }}"
               aria-expanded="false"
-              aria-controls="collapse-{{ $sid }}"
+              aria-controls="collapse-{{ $sectionId }}"
             >
-              <span class="me-2 d-inline-flex align-items-center">
+              <span class="me-2 d-inline-flex align-items-center" aria-hidden="true">
                 <i class="fas fa-plus icon-plus"></i>
                 <i class="fas fa-minus icon-minus"></i>
               </span>
-              {{ $st?->title ?? __('policies.section') }}
+              {{ $translatedSection?->name ?? $section->name ?? __('policies.section') }}
             </button>
           </h2>
 
-          <div id="collapse-{{ $sid }}" class="accordion-collapse collapse" data-bs-parent="#policySectionsAccordion">
+          <div id="collapse-{{ $sectionId }}" class="accordion-collapse collapse" data-bs-parent="#policySectionsAccordion">
             <div class="accordion-body px-0">
-              {!! nl2br(e($st?->content ?? '')) !!}
+              {!! nl2br(e($translatedSection?->content ?? '')) !!}
             </div>
           </div>
         </div>
       @endforeach
     </div>
+  @else
+    <p class="text-muted">{{ __('policies.no_sections') }}</p>
   @endif
 </div>
 @endsection
