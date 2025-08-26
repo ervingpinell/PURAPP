@@ -312,6 +312,8 @@ return [
     'close'             => 'Fermer',
     'selectOption'     => 'Sélectionner une option',
     'notSpecified' => 'Non précisé',
+    'saving' => 'Enregistrement en cours…',
+
 
 
     'policies' => 'Politiques',

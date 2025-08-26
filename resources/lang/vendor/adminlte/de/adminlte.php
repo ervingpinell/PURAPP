@@ -314,6 +314,8 @@ return [
     'close'             => 'Schließen',
     'selectOption'     => 'Option auswählen',
     'notSpecified'     => 'Nicht angegeben',
+    'saving' => 'Speichern…',
+
 
 
     'no_reservations_yet' => 'Noch keine Reservierungen!',

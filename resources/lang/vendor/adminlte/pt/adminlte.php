@@ -311,6 +311,8 @@ return [
     'close'             => 'Fechar',
     'selectOption'     => 'Selecione uma opção',
     'notSpecified'     => 'Não especificado',
+    'saving' => 'Salvando…',
+
 
 
 

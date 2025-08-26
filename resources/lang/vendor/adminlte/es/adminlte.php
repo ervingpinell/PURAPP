@@ -319,6 +319,8 @@ return [
     'update'            => 'Actualizar',
     'close'             => 'Cerrar',
     'notSpecified'     => 'No especificado',
+    'saving' => 'Guardando…',
+
 
 
     // SweetAlerts (acciones)

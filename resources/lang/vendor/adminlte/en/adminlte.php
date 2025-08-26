@@ -288,6 +288,8 @@ return [
     'edit'              => 'Edit',
     'selectOption'     => 'Select an option',
     'notSpecified'     => 'Not specified',
+    'saving' => 'Saving…',
+
 
 
     // SweetAlerts (actions)
