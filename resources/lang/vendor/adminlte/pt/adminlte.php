@@ -291,6 +291,27 @@ return [
     'confirmReservationCancel' => 'Cancelar',
 
     'policies' => 'Políticas',
+    'editItem'          => 'Editar item',
+    'date'              => 'Data',
+    'schedule'          => 'Horário',
+    'scheduleHelp'      => 'Se o passeio não requer horário, deixe em branco.',
+    'language'          => 'Idioma',
+    'adults'            => 'Adultos',
+    'kids'              => 'Crianças',
+    'hotel'             => 'Hotel',
+    'customHotel'       => 'Hotel personalizado…',
+    'otherHotel'        => 'Usar hotel personalizado',
+    'customHotelName'   => 'Nome do hotel personalizado',
+    'customHotelHelp'   => 'Se você digitar um hotel personalizado, a seleção da lista será ignorada.',
+    'status'            => 'Status',
+    'active'            => 'Ativo',
+    'inactive'          => 'Inativo',
+    'cancel'            => 'Cancelar',
+    'update'            => 'Atualizar',
+    'close'             => 'Fechar',
+    'selectOption'     => 'Selecione uma opção',
+    'notSpecified'     => 'Não especificado',
+
 
 
     'no_reservations_yet' => 'Ainda não há reservas!',

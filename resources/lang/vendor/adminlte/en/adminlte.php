@@ -251,7 +251,6 @@ return [
 
     // ─── CART MODAL LOGIN ──────────────────────────────────────
     'login' => 'Log in',
-    'cancel' => 'Cancel',
     'view_cart' => 'View cart',
     'login_required_title' => 'Login required',
     'login_required_text' => 'You must log in to add items to the cart.',
@@ -272,6 +271,24 @@ return [
     'save_changes' => 'Save Changes',
 
     'policies' => 'Policies',
+    'editItem'          => 'Edit item',
+    'date'              => 'Date',
+    'schedule'          => 'Schedule',
+    'scheduleHelp'      => 'If the tour does not require a schedule, leave it empty.',
+    'customHotel'       => 'Custom hotel…',
+    'otherHotel'        => 'Use custom hotel',
+    'customHotelName'   => 'Custom hotel name',
+    'customHotelHelp'   => 'If you enter a custom hotel, the list selection will be ignored.',
+    'status'            => 'Status',
+    'active'            => 'Active',
+    'inactive'          => 'Inactive',
+    'cancel'            => 'Cancel',
+    'update'            => 'Update',
+    'close'             => 'Close',
+    'edit'              => 'Edit',
+    'selectOption'     => 'Select an option',
+    'notSpecified'     => 'Not specified',
+
 
     // SweetAlerts (actions)
     'confirmReservationTitle' => 'Are you sure?',

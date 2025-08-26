@@ -179,6 +179,7 @@ Route::post('/email/verification-notification', [VerifyEmailController::class, '
         Route::post('/carrito/agregar/{tour}', [CartController::class, 'store'])->name('carrito.agregar');
         Route::post('/reservas/from-cart', [BookingController::class, 'storeFromCart'])->name('public.reservas.storeFromCart');
         Route::delete('/cart/{item}', [CartController::class, 'destroy'])->name('public.cart.destroy');
+        Route::put('/cart/{item}', [CartController::class, 'update'])->name('public.cart.update');
     });
 
     /**
