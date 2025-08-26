@@ -14,7 +14,7 @@ class PoliciesController extends Controller
             ->effectiveOn()
             ->with([
                 'translations',
-                'activeSections' => fn($q) => $q->orderBy('sort_order'),
+                'activeSections' => fn($sectionQuery) => $sectionQuery->orderBy('sort_order'),
                 'activeSections.translations',
             ])
             ->orderByDesc('effective_from')
@@ -27,7 +27,7 @@ class PoliciesController extends Controller
     {
         $policy->loadMissing([
             'translations',
-            'activeSections' => fn($q) => $q->orderBy('sort_order'),
+            'activeSections' => fn($sectionQuery) => $sectionQuery->orderBy('sort_order'),
             'activeSections.translations',
         ]);
 

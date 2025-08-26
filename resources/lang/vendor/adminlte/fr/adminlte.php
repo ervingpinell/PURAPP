@@ -396,5 +396,51 @@ return [
     'contact_error'            => 'Une erreur est survenue lors de l\'envoi de votre message. Veuillez réessayer dans quelques minutes.',
 
     'translation_updated_successfully' => 'Traduction mise à jour avec succès.',
+    'translation_deleted_successfully' => 'Traduction supprimée avec succès.',
+    'translation_created_successfully' => 'Traduction créée avec succès.',
+    'main_information' => 'Informations Principales',
+    'section_translations' => 'Traductions de Section',
+    'edit_translation' => 'Modifier la Traduction',
+
+    'dashboard' => [
+    'title'      => 'Tableau de bord',
+    'greeting'   => 'Bonjour :name ! 👋',
+    'welcome_to' => 'Bienvenue sur le panneau d’administration de :app.',
+    'hint'       => 'Utilisez le menu latéral pour commencer à gérer le contenu.',
+],
+
+'entities' => [
+    'users'        => 'Utilisateurs',
+    'tours'        => 'Circuits',
+    'tour_types'   => 'Types de circuits',
+    'languages'    => 'Langues',
+    'schedules'    => 'Horaires',
+    'amenities'    => 'Équipements',
+    'bookings'     => 'Réservations',
+    'total_bookings'=> 'Réservations totales',
+    'itineraries'  => 'Itinéraires',
+    'items'        => 'Éléments',
+],
+
+'sections' => [
+    'available_itineraries' => 'Itinéraires disponibles',
+    'upcoming_bookings'     => 'Réservations à venir',
+],
+
+'empty' => [
+    'itinerary_items'   => 'Cet itinéraire ne contient pas encore d’éléments.',
+    'itineraries'       => 'Aucun itinéraire trouvé.',
+    'upcoming_bookings' => 'Aucune réservation à venir.',
+],
+
+'buttons' => [
+    'view' => 'Voir',
+],
+
+'labels' => [
+    'reference' => 'Référence',
+    'date'      => 'Date',
+],
+
 ];
 

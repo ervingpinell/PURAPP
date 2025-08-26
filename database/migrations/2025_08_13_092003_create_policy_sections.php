@@ -11,15 +11,14 @@ return new class extends Migration {
             $table->foreignId('policy_id')
                   ->constrained('policies', 'policy_id')
                   ->cascadeOnDelete();
-            $table->string('key')->nullable();     // identificador opcional (interno)
+            $table->string('key')->nullable();
             $table->unsignedInteger('sort_order')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
             $table->index(['policy_id', 'sort_order']);
             $table->index('is_active');
-            // Nota: "key" es palabra reservada en MySQL, pero Laravel la cita con backticks.
-            // Si prefieres evitarlo, usa "code" o "slug".
+
         });
     }
 

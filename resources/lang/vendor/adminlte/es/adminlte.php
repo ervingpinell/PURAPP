@@ -391,6 +391,51 @@ return [
     'contact_success'          => 'Tu mensaje ha sido enviado con éxito. Nos pondremos en contacto contigo pronto.',
     'contact_error'            => 'Ocurrió un error al enviar tu mensaje. Por favor, intenta nuevamente en unos minutos.',
 
-        'translation_updated_successfully' => 'Traducción actualizada correctamente.',
+    'translation_updated_successfully' => 'Traducción actualizada correctamente.',
+    'translation_deleted_successfully' => 'Traducción eliminada correctamente.',
+    'translation_created_successfully' => 'Traducción creada correctamente.',
+    'main_information' => 'Información Principal',
+    'section_translations' => 'Traducciones de Sección',
+    'edit_translation' => 'Editar Traducción',
+
+'dashboard' => [
+    'title'      => 'Panel',
+    'greeting'   => 'Hola :name! 👋',
+    'welcome_to' => 'Bienvenido al panel de administración de :app.',
+    'hint'       => 'Usa el menú lateral para comenzar a gestionar el contenido.',
+],
+
+'entities' => [
+    'users'        => 'Usuarios',
+    'tours'        => 'Tours',
+    'tour_types'   => 'Tipos de Tour',
+    'languages'    => 'Idiomas',
+    'schedules'    => 'Horarios',
+    'amenities'    => 'Amenidades',
+    'bookings'     => 'Reservas',
+    'total_bookings'=> 'Reservas Totales',
+    'itineraries'  => 'Itinerarios',
+    'items'        => 'Ítems',
+],
+
+'sections' => [
+    'available_itineraries' => 'Itinerarios disponibles',
+    'upcoming_bookings'     => 'Próximas reservas',
+],
+
+'empty' => [
+    'itinerary_items'   => 'Este itinerario aún no tiene ítems.',
+    'itineraries'       => 'No se encontraron itinerarios.',
+    'upcoming_bookings' => 'No hay próximas reservas.',
+],
+
+'buttons' => [
+    'view' => 'Ver',
+],
+
+'labels' => [
+    'reference' => 'Referencia',
+    'date'      => 'Fecha',
+],
 
 ];

@@ -39,14 +39,14 @@ TXT;
         PolicyTranslation::updateOrCreate(
             ['policy_id' => $terms->policy_id, 'locale' => 'es'],
             [
-                'title'   => 'Términos y Condiciones',
+                'name'    => 'Términos y Condiciones', // antes 'title'
                 'content' => $termsDescription,
             ]
         );
 
         // Sección: Cookies
         $cookies = PolicySection::updateOrCreate(
-            ['policy_id' => $terms->policy_id, 'key' => 'cookies'],
+            ['policy_id' => $terms->policy_id, 'name' => 'cookies'], // antes 'key'
             ['sort_order' => 1, 'is_active' => true]
         );
 
@@ -57,12 +57,12 @@ TXT;
 
         PolicySectionTranslation::updateOrCreate(
             ['section_id' => $cookies->section_id, 'locale' => 'es'],
-            ['title' => 'Cookies', 'content' => $cookiesContent]
+            ['name' => 'Cookies', 'content' => $cookiesContent] // antes 'title'
         );
 
         // Sección: Licencia
         $license = PolicySection::updateOrCreate(
-            ['policy_id' => $terms->policy_id, 'key' => 'licencia'],
+            ['policy_id' => $terms->policy_id, 'name' => 'licencia'],
             ['sort_order' => 2, 'is_active' => true]
         );
 
@@ -80,12 +80,12 @@ TXT;
 
         PolicySectionTranslation::updateOrCreate(
             ['section_id' => $license->section_id, 'locale' => 'es'],
-            ['title' => 'Licencia', 'content' => $licenseContent]
+            ['name' => 'Licencia', 'content' => $licenseContent]
         );
 
         // Sección: Comentarios
         $comments = PolicySection::updateOrCreate(
-            ['policy_id' => $terms->policy_id, 'key' => 'comentarios'],
+            ['policy_id' => $terms->policy_id, 'name' => 'comentarios'],
             ['sort_order' => 3, 'is_active' => true]
         );
 
@@ -105,12 +105,12 @@ TXT;
 
         PolicySectionTranslation::updateOrCreate(
             ['section_id' => $comments->section_id, 'locale' => 'es'],
-            ['title' => 'Comentarios', 'content' => $commentsContent]
+            ['name' => 'Comentarios', 'content' => $commentsContent]
         );
 
         // Sección: Hipervínculos a nuestro contenido
         $links = PolicySection::updateOrCreate(
-            ['policy_id' => $terms->policy_id, 'key' => 'hipervinculos'],
+            ['policy_id' => $terms->policy_id, 'name' => 'hipervinculos'],
             ['sort_order' => 4, 'is_active' => true]
         );
 
@@ -126,12 +126,12 @@ TXT;
 
         PolicySectionTranslation::updateOrCreate(
             ['section_id' => $links->section_id, 'locale' => 'es'],
-            ['title' => 'Hipervínculos a nuestro contenido', 'content' => $linksContent]
+            ['name' => 'Hipervínculos a nuestro contenido', 'content' => $linksContent]
         );
 
         // Sección: Marcos flotantes
         $frames = PolicySection::updateOrCreate(
-            ['policy_id' => $terms->policy_id, 'key' => 'marcos'],
+            ['policy_id' => $terms->policy_id, 'name' => 'marcos'],
             ['sort_order' => 5, 'is_active' => true]
         );
 
@@ -141,12 +141,12 @@ TXT;
 
         PolicySectionTranslation::updateOrCreate(
             ['section_id' => $frames->section_id, 'locale' => 'es'],
-            ['title' => 'Marcos flotantes', 'content' => $framesContent]
+            ['name' => 'Marcos flotantes', 'content' => $framesContent]
         );
 
         // Sección: Responsabilidad por el contenido
         $contentResp = PolicySection::updateOrCreate(
-            ['policy_id' => $terms->policy_id, 'key' => 'responsabilidad_contenido'],
+            ['policy_id' => $terms->policy_id, 'name' => 'responsabilidad_contenido'],
             ['sort_order' => 6, 'is_active' => true]
         );
 
@@ -156,12 +156,12 @@ TXT;
 
         PolicySectionTranslation::updateOrCreate(
             ['section_id' => $contentResp->section_id, 'locale' => 'es'],
-            ['title' => 'Responsabilidad por el contenido', 'content' => $contentRespContent]
+            ['name' => 'Responsabilidad por el contenido', 'content' => $contentRespContent]
         );
 
         // Sección: Reserva de Derechos
         $rights = PolicySection::updateOrCreate(
-            ['policy_id' => $terms->policy_id, 'key' => 'reserva_derechos'],
+            ['policy_id' => $terms->policy_id, 'name' => 'reserva_derechos'],
             ['sort_order' => 7, 'is_active' => true]
         );
 
@@ -171,12 +171,12 @@ TXT;
 
         PolicySectionTranslation::updateOrCreate(
             ['section_id' => $rights->section_id, 'locale' => 'es'],
-            ['title' => 'Reserva de Derechos', 'content' => $rightsContent]
+            ['name' => 'Reserva de Derechos', 'content' => $rightsContent]
         );
 
         // Sección: Eliminación de enlaces
         $removeLinks = PolicySection::updateOrCreate(
-            ['policy_id' => $terms->policy_id, 'key' => 'eliminacion_enlaces'],
+            ['policy_id' => $terms->policy_id, 'name' => 'eliminacion_enlaces'],
             ['sort_order' => 8, 'is_active' => true]
         );
 
@@ -186,12 +186,12 @@ TXT;
 
         PolicySectionTranslation::updateOrCreate(
             ['section_id' => $removeLinks->section_id, 'locale' => 'es'],
-            ['title' => 'Eliminación de enlaces de nuestro sitio web', 'content' => $removeLinksContent]
+            ['name' => 'Eliminación de enlaces de nuestro sitio web', 'content' => $removeLinksContent]
         );
 
         // Sección: Descargo de responsabilidad
         $disclaimer = PolicySection::updateOrCreate(
-            ['policy_id' => $terms->policy_id, 'key' => 'descargo'],
+            ['policy_id' => $terms->policy_id, 'name' => 'descargo'],
             ['sort_order' => 9, 'is_active' => true]
         );
 
@@ -202,14 +202,14 @@ TXT;
 
         PolicySectionTranslation::updateOrCreate(
             ['section_id' => $disclaimer->section_id, 'locale' => 'es'],
-            ['title' => 'Descargo de responsabilidad', 'content' => $disclaimerContent]
+            ['name' => 'Descargo de responsabilidad', 'content' => $disclaimerContent]
         );
 
         /**
          * 2) CANCELACIÓN
          */
         $cancel = Policy::updateOrCreate(
-            ['name' => 'Política de Cancelación (General)'],
+            ['name' => 'Política de Cancelación'], // <— sin "(General)" para byType('cancelacion')
             [
                 'is_active'      => true,
                 'effective_from' => $today,
@@ -220,7 +220,7 @@ TXT;
         PolicyTranslation::updateOrCreate(
             ['policy_id' => $cancel->policy_id, 'locale' => 'es'],
             [
-                'title'   => 'Política de Cancelación',
+                'name'    => 'Política de Cancelación', // antes 'title'
                 'content' => "• Cancelaciones con 24 horas o más de antelación: reembolso completo.\n• Con menos de 24 horas o no presentación: no reembolsable.\n• Cambios de fecha sujetos a disponibilidad.",
             ]
         );
@@ -240,7 +240,7 @@ TXT;
         PolicyTranslation::updateOrCreate(
             ['policy_id' => $refund->policy_id, 'locale' => 'es'],
             [
-                'title'   => 'Política de Reembolsos',
+                'name'    => 'Política de Reembolsos',
                 'content' => "• Los reembolsos se procesan al método de pago original.\n• El tiempo de acreditación depende del banco/emisor.\n• Cargos de terceros no siempre son reembolsables.\n• Podemos solicitar documentación adicional para validar el reembolso.",
             ]
         );
@@ -260,7 +260,7 @@ TXT;
         PolicyTranslation::updateOrCreate(
             ['policy_id' => $privacy->policy_id, 'locale' => 'es'],
             [
-                'title'   => 'Política de Privacidad',
+                'name'    => 'Política de Privacidad',
                 'content' => "• Tratamos datos personales conforme a la normativa aplicable.\n• Usamos la información para gestionar reservas y comunicación.\n• Puedes ejercer derechos de acceso, rectificación y supresión.\n• Compartimos datos con terceros solo cuando es necesario para la operación.",
             ]
         );

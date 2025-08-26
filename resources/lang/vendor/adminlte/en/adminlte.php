@@ -382,5 +382,50 @@ return [
     'contact_error'            => 'An error occurred while sending your message. Please try again in a few minutes.',
 
         'translation_updated_successfully' => 'Translation updated successfully.',
+    'translation_deleted_successfully' => 'Translation deleted successfully.',
+    'translation_created_successfully' => 'Translation created successfully.',
+    'main_information' => 'Main Information',
+    'section_translations' => 'Section Translations',
+    'edit_translation' => 'Edit Translation',
+    'select_translation' => 'Select Translation',
 
+    'dashboard' => [
+    'title'      => 'Dashboard',
+    'greeting'   => 'Hello :name! 👋',
+    'welcome_to' => 'Welcome to the :app admin panel.',
+    'hint'       => 'Use the sidebar menu to start managing content.',
+],
+
+'entities' => [
+    'users'        => 'Users',
+    'tours'        => 'Tours',
+    'tour_types'   => 'Tour Types',
+    'languages'    => 'Languages',
+    'schedules'    => 'Schedules',
+    'amenities'    => 'Amenities',
+    'bookings'     => 'Bookings',
+    'total_bookings'=> 'Total Bookings',
+    'itineraries'  => 'Itineraries',
+    'items'        => 'Items',
+],
+
+'sections' => [
+    'available_itineraries' => 'Available Itineraries',
+    'upcoming_bookings'     => 'Upcoming Bookings',
+],
+
+'empty' => [
+    'itinerary_items'   => 'This itinerary has no items yet.',
+    'itineraries'       => 'No itineraries found.',
+    'upcoming_bookings' => 'No upcoming bookings.',
+],
+
+'buttons' => [
+    'view' => 'View',
+],
+
+'labels' => [
+    'reference' => 'Reference',
+    'date'      => 'Date',
+],
 ];

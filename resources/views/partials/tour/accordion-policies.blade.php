@@ -8,102 +8,48 @@
   $cancel  = $cancel ?? Policy::byType('cancelacion');
   $refund  = $refund ?? Policy::byType('reembolso');
 
-  // Si tu método translation() acepta locale, pásalo; si no, deja como estaba.
   $tCancel = $cancel?->translation($locale) ?? $cancel?->translation('es');
   $tRefund = $refund?->translation($locale) ?? $refund?->translation('es');
 @endphp
 
 <div class="accordion-item border-0 border-bottom">
-  <h2 class="accordion-header" id="heading-{{ $prefix }}">
-    <button
-      class="accordion-button bg-white px-0 shadow-none collapsed"
-      type="button"
-      data-bs-toggle="collapse"
-      data-bs-target="#collapse-{{ $prefix }}"
-      aria-expanded="false"
-      aria-controls="collapse-{{ $prefix }}"
-    >
-      <span class="me-2 d-inline-flex align-items-center" aria-hidden="true">
-        <i class="fas fa-plus icon-plus"></i>
-        <i class="fas fa-minus icon-minus"></i>
-      </span>
-      {{ __('policies.page_title') }}
+  <h2 class="accordion-header" id="{{ $prefix }}-cancel-heading">
+    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $prefix }}-cancel" aria-expanded="false" aria-controls="{{ $prefix }}-cancel">
+      <i class="fas fa-undo me-2"></i>
+      {{ $tCancel?->name ?? __('policies.cancellation_policy') }}
     </button>
   </h2>
+  <div id="{{ $prefix }}-cancel" class="accordion-collapse collapse" aria-labelledby="{{ $prefix }}-cancel-heading">
+    <div class="accordion-body">
+      @if($tCancel && filled($tCancel->content))
+        {!! nl2br(e($tCancel->content)) !!}
+      @else
+        <span class="text-muted">{{ __('policies.no_content') }}</span>
+      @endif
+    </div>
+  </div>
+</div>
 
-  <div id="collapse-{{ $prefix }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ $prefix }}">
-    <div class="accordion-body px-0">
+<div class="accordion-item border-0 border-bottom">
+  <h2 class="accordion-header" id="{{ $prefix }}-refund-heading">
+    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $prefix }}-refund" aria-expanded="false" aria-controls="{{ $prefix }}-refund">
+      <i class="fas fa-hand-holding-usd me-2"></i>
+      {{ $tRefund?->name ?? __('policies.refund_policy') }}
+    </button>
+  </h2>
+  <div id="{{ $prefix }}-refund" class="accordion-collapse collapse" aria-labelledby="{{ $prefix }}-refund-heading">
+    <div class="accordion-body">
+      @if($tRefund && filled($tRefund->content))
+        {!! nl2br(e($tRefund->content)) !!}
+      @else
+        <span class="text-muted">{{ __('policies.no_content') }}</span>
+      @endif
 
-      <div class="accordion" id="inner-{{ $prefix }}">
-        {{-- Cancellation --}}
-        <div class="accordion-item border-0 border-top">
-          <h2 class="accordion-header" id="heading-cancel-{{ $prefix }}">
-            <button
-              class="accordion-button bg-white px-0 shadow-none collapsed"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#collapse-cancel-{{ $prefix }}"
-              aria-expanded="false"
-              aria-controls="collapse-cancel-{{ $prefix }}"
-            >
-              <span class="me-2 d-inline-flex align-items-center" aria-hidden="true">
-                <i class="fas fa-plus icon-plus"></i>
-                <i class="fas fa-minus icon-minus"></i>
-              </span>
-              {{ $tCancel?->title ?? __('policies.cancellation_policy') }}
-            </button>
-          </h2>
-
-          <div id="collapse-cancel-{{ $prefix }}" class="accordion-collapse collapse" aria-labelledby="heading-cancel-{{ $prefix }}" data-bs-parent="#inner-{{ $prefix }}">
-            <div class="accordion-body px-0">
-              @if($cancel && $tCancel && filled($tCancel->content))
-                {!! nl2br(e($tCancel->content)) !!}
-              @else
-                <em class="text-muted">{{ __('policies.no_cancellation_policy') }}</em>
-              @endif
-            </div>
-          </div>
+      @if((!$cancel || !$tCancel || blank($tCancel->content)) && (!$refund || !$tRefund || blank($tRefund->content)))
+        <div class="small text-muted mt-3">
+          <em>{{ __('policies.no_policies') }}</em>
         </div>
-
-        {{-- Refund --}}
-        <div class="accordion-item border-0 border-top">
-          <h2 class="accordion-header" id="heading-refund-{{ $prefix }}">
-            <button
-              class="accordion-button bg-white px-0 shadow-none collapsed"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#collapse-refund-{{ $prefix }}"
-              aria-expanded="false"
-              aria-controls="collapse-refund-{{ $prefix }}"
-            >
-              <span class="me-2 d-inline-flex align-items-center" aria-hidden="true">
-                <i class="fas fa-plus icon-plus"></i>
-                <i class="fas fa-minus icon-minus"></i>
-              </span>
-              {{ $tRefund?->title ?? __('policies.refund_policy') }}
-            </button>
-          </h2>
-
-          <div id="collapse-refund-{{ $prefix }}" class="accordion-collapse collapse" aria-labelledby="heading-refund-{{ $prefix }}" data-bs-parent="#inner-{{ $prefix }}">
-            <div class="accordion-body px-0">
-              @if($refund && $tRefund && filled($tRefund->content))
-                {!! nl2br(e($tRefund->content)) !!}
-              @else
-                <em class="text-muted">{{ __('policies.no_refund_policy') }}</em>
-              @endif
-            </div>
-          </div>
-        </div>
-
-        {{-- Fallback global --}}
-        @if((!$cancel || !$tCancel || blank($tCancel->content)) && (!$refund || !$tRefund || blank($tRefund->content)))
-          <div class="small text-muted mt-3">
-            <em>{{ __('policies.no_policies') }}</em>
-          </div>
-        @endif
-
-      </div>
-
+      @endif
     </div>
   </div>
 </div>
