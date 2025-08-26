@@ -23,7 +23,12 @@
   <div class="row">
     <!-- Users -->
     <div class="col-md-4 mb-3">
-      <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.users') }}" text="{{ $totalUsers }}" icon="fas fa-users" theme="info"/>
+      <x-adminlte-info-box
+        title="{{ __('adminlte::adminlte.entities.users') }}"
+        text="{{ $totalUsers ?? 0 }}"
+        icon="fas fa-users"
+        theme="info"
+      />
       <a href="{{ route('admin.users.index') }}" class="btn btn-info btn-block mt-2">
         {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.users') }}
       </a>
@@ -31,7 +36,12 @@
 
     <!-- Tours -->
     <div class="col-md-4 mb-3">
-      <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.tours') }}" text="{{ $totalTours }}" icon="fas fa-map" theme="warning"/>
+      <x-adminlte-info-box
+        title="{{ __('adminlte::adminlte.entities.tours') }}"
+        text="{{ $totalTours ?? 0 }}"
+        icon="fas fa-map"
+        theme="warning"
+      />
       <a href="{{ route('admin.tours.index') }}" class="btn btn-warning btn-block mt-2">
         {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.tours') }}
       </a>
@@ -39,7 +49,12 @@
 
     <!-- Tour Types -->
     <div class="col-md-4 mb-3">
-      <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.tour_types') }}" text="{{ $totalTourTypes }}" icon="fas fa-tags" theme="success"/>
+      <x-adminlte-info-box
+        title="{{ __('adminlte::adminlte.entities.tour_types') }}"
+        text="{{ $totalTourTypes ?? ($tourTypes ?? 0) }}"
+        icon="fas fa-tags"
+        theme="success"
+      />
       <a href="{{ route('admin.tourtypes.index') }}" class="btn btn-success btn-block mt-2">
         {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.tour_types') }}
       </a>
@@ -47,7 +62,12 @@
 
     <!-- Languages -->
     <div class="col-md-4 mb-3">
-      <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.languages') }}" text="{{ $totalLanguages }}" icon="fas fa-globe" theme="primary"/>
+      <x-adminlte-info-box
+        title="{{ __('adminlte::adminlte.entities.languages') }}"
+        text="{{ $totalLanguages ?? 0 }}"
+        icon="fas fa-globe"
+        theme="primary"
+      />
       <a href="{{ route('admin.languages.index') }}" class="btn btn-primary btn-block mt-2">
         {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.languages') }}
       </a>
@@ -55,7 +75,12 @@
 
     <!-- Schedules -->
     <div class="col-md-4 mb-3">
-      <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.schedules') }}" text="{{ $totalSchedules }}" icon="fas fa-clock" theme="dark"/>
+      <x-adminlte-info-box
+        title="{{ __('adminlte::adminlte.entities.schedules') }}"
+        text="{{ $totalSchedules ?? 0 }}"
+        icon="fas fa-clock"
+        theme="dark"
+      />
       <a href="{{ route('admin.tours.schedule.index') }}" class="btn btn-dark btn-block mt-2">
         {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.schedules') }}
       </a>
@@ -63,7 +88,12 @@
 
     <!-- Amenities -->
     <div class="col-md-4 mb-3">
-      <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.amenities') }}" text="{{ $totalAmenities }}" icon="fas fa-concierge-bell" theme="secondary"/>
+      <x-adminlte-info-box
+        title="{{ __('adminlte::adminlte.entities.amenities') }}"
+        text="{{ $totalAmenities ?? 0 }}"
+        icon="fas fa-concierge-bell"
+        theme="secondary"
+      />
       <a href="{{ route('admin.tours.amenities.index') }}" class="btn btn-secondary btn-block mt-2">
         {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.amenities') }}
       </a>
@@ -71,7 +101,12 @@
 
     <!-- Total Bookings -->
     <div class="col-md-4 mb-3">
-      <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.total_bookings') }}" text="{{ $totalBookings }}" icon="fas fa-calendar-check" theme="success"/>
+      <x-adminlte-info-box
+        title="{{ __('adminlte::adminlte.entities.total_bookings') }}"
+        text="{{ $totalBookings ?? 0 }}"
+        icon="fas fa-calendar-check"
+        theme="success"
+      />
       <a href="{{ route('admin.reservas.index') }}" class="btn btn-success btn-block mt-2">
         {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.bookings') }}
       </a>
@@ -85,7 +120,7 @@
         <h4 class="mb-0">{{ __('adminlte::adminlte.sections.available_itineraries') }}</h4>
       </div>
       <div class="card-body">
-        @forelse ($itineraries as $itinerary)
+        @forelse (($itineraries ?? collect()) as $itinerary)
           <div class="mb-2">
             <button class="btn btn-outline-danger w-100 text-start"
                     data-bs-toggle="collapse"
@@ -93,11 +128,12 @@
               {{ $itinerary->name }} <i class="fas fa-chevron-down float-end"></i>
             </button>
             <div id="collapse{{ $itinerary->itinerary_id }}" class="collapse mt-2">
-              @if ($itinerary->items->isEmpty())
+              @php $items = $itinerary->items ?? collect(); @endphp
+              @if ($items->isEmpty())
                 <p class="text-muted">{{ __('adminlte::adminlte.empty.itinerary_items') }}</p>
               @else
                 <ul class="list-group">
-                  @foreach ($itinerary->items->sortBy('order') as $item)
+                  @foreach ($items->sortBy('order') as $item)
                     <li class="list-group-item">
                       <strong>{{ $item->title }}</strong><br>
                       <span class="text-muted">{{ $item->description }}</span>
@@ -121,12 +157,17 @@
         <h5 class="mb-0">{{ __('adminlte::adminlte.sections.upcoming_bookings') }}</h5>
       </div>
       <div class="card-body">
-        @forelse ($upcomingBookings as $booking)
+        @forelse (($upcomingBookings ?? collect()) as $booking)
           <div class="mb-2">
-            <strong>{{ $booking->user->full_name }}</strong>
-            – {{ $booking->tour->name ?? $booking->detail->tour->name ?? '' }}<br>
-            <small class="text-muted">{{ __('adminlte::adminlte.labels.reference') }}: {{ $booking->booking_reference }}</small><br>
-            <span class="text-muted">{{ __('adminlte::adminlte.labels.date') }}: {{ $booking->detail->tour_date->format('d/m/Y') }}</span>
+            <strong>{{ $booking->user->full_name ?? '—' }}</strong>
+            – {{ $booking->tour->name ?? optional(optional($booking->detail)->tour)->name ?? '—' }}<br>
+            <small class="text-muted">
+              {{ __('adminlte::adminlte.labels.reference') }}: {{ $booking->booking_reference ?? '—' }}
+            </small><br>
+            <span class="text-muted">
+              {{ __('adminlte::adminlte.labels.date') }}:
+              {{ optional(optional($booking->detail)->tour_date)->format('d/m/Y') ?? '—' }}
+            </span>
           </div>
           <hr>
         @empty

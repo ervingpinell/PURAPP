@@ -300,6 +300,34 @@ return [
     'success' => 'Éxito',
     'error' => 'Error',
     'validation_error' => 'Datos incompletos',
+    'editItem'          => 'Editar ítem',
+    'date'              => 'Fecha',
+    'schedule'          => 'Horario',
+    'scheduleHelp'      => 'Si el tour no requiere horario, déjelo vacío.',
+    'language'          => 'Idioma',
+    'adults'            => 'Adultos',
+    'kids'              => 'Niños',
+    'hotel'             => 'Hotel',
+    'customHotel'       => 'Hotel personalizado…',
+    'otherHotel'        => 'Usar hotel personalizado',
+    'customHotelName'   => 'Nombre de hotel personalizado',
+    'customHotelHelp'   => 'Si escribe un hotel personalizado, se ignorará la selección de la lista.',
+    'status'            => 'Estado',
+    'active'            => 'Activo',
+    'inactive'          => 'Inactivo',
+    'cancel'            => 'Cancelar',
+    'update'            => 'Actualizar',
+    'close'             => 'Cerrar',
+    'notSpecified'     => 'No especificado',
+    'saving' => 'Guardando…',
+
+
+
+    // SweetAlerts (acciones)
+    'confirmReservationTitle' => '¿Estás seguro?',
+    'confirmReservationText' => 'Se confirmará tu reserva',
+    'confirmReservationConfirm' => 'Sí, confirmar',
+    'confirmReservationCancel' => 'Cancelar',
 
 
     'edit_profile_of' => 'Editar Perfil',

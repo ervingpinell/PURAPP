@@ -13,9 +13,7 @@
   @include('partials.tour.accordion-itinerary', ['tour' => $tour])
   @include('partials.tour.accordion-included', ['tour' => $tour])
   @include('partials.tour.accordion-hotels', ['tour' => $tour, 'hotels' => $hotels])
-  @include('partials.tour.accordion-policies', [
-      'tour'   => $tour,
-      'cancel' => $cancel,
-      'refund' => $refund,
-  ])
+  @include('partials.tour.accordion-policies', ['tour'        => $tour,'cancelPolicy'=> $cancelPolicy, 'refundPolicy'=> $refundPolicy,
+])
+
 </div>
