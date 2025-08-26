@@ -5,13 +5,16 @@ namespace App\Http\Controllers\Admin\Bookings;
 use App\Http\Controllers\Controller;
 use App\Models\HotelList;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class HotelListController extends Controller
 {
     /**
      * Muestra todos los hoteles activos e inactivos.
      */
-    public function index()
+    public function index(): RedirectResponse|\Illuminate\View\View
     {
         $hotels = HotelList::orderByRaw('sort_order IS NULL, sort_order ASC')
             ->orderBy('name', 'asc')
@@ -23,102 +26,123 @@ class HotelListController extends Controller
     /**
      * Guarda un nuevo hotel en la base de datos.
      */
-public function store(Request $request)
-{
-    $request->validate([
-        'name' => 'required|string|max:255|unique:hotels_list,name',
-    ], [
-        'name.required' => __('adminlte::adminlte.hotel_name_required'),
-        'name.unique'   => __('adminlte::adminlte.hotel_name_unique'),
-        'name.max'      => __('adminlte::adminlte.hotel_name_max'),
-    ]);
+    public function store(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:hotels_list,name',
+        ]);
 
-    $nextOrder = (HotelList::max('sort_order') ?? 0) + 1;
+        try {
+            $nextOrder = (HotelList::max('sort_order') ?? 0) + 1;
 
-    HotelList::create([
-        'name' => $request->name,
-        'is_active' => true,
-        'sort_order' => $nextOrder,
-    ]);
+            HotelList::create([
+                'name'       => $request->string('name')->trim(),
+                'is_active'  => true,
+                'sort_order' => $nextOrder,
+            ]);
 
-    return redirect()->route('admin.hotels.index')
-        ->with('success', __('adminlte::adminlte.hotel_created_success'));
-}
+            return redirect()
+                ->route('admin.hotels.index')
+                ->with('success', __('hotels.created_success'));
+        } catch (Exception $e) {
+            Log::error('Hotel store error: '.$e->getMessage());
 
+            return back()
+                ->withInput()
+                ->with('error', __('hotels.unexpected_error'));
+        }
+    }
 
     /**
      * Actualiza un hotel existente.
      */
-public function update(Request $request, HotelList $hotel)
-{
-    $request->validate([
-        'name' => 'required|string|max:255|unique:hotels_list,name,' . $hotel->hotel_id . ',hotel_id',
-        'is_active' => 'required|boolean',
-    ], [
-        'name.required'      => __('adminlte::adminlte.hotel_name_required'),
-        'name.unique'        => __('adminlte::adminlte.hotel_name_unique'),
-        'name.max'           => __('adminlte::adminlte.hotel_name_max'),
-        'is_active.required' => __('adminlte::adminlte.is_active_required'),
-        'is_active.boolean'  => __('adminlte::adminlte.is_active_boolean'),
-    ]);
+    public function update(Request $request, HotelList $hotel): RedirectResponse
+    {
+        $request->validate([
+            'name'      => 'required|string|max:255|unique:hotels_list,name,' . $hotel->hotel_id . ',hotel_id',
+            'is_active' => 'required|boolean',
+        ]);
 
-    $hotel->update([
-        'name' => $request->name,
-        'is_active' => $request->is_active,
-    ]);
+        try {
+            $hotel->update([
+                'name'      => $request->string('name')->trim(),
+                'is_active' => (bool) $request->boolean('is_active'),
+            ]);
 
-    return redirect()->route('admin.hotels.index')
-        ->with('success', __('adminlte::adminlte.hotel_updated_success'));
-}
+            return redirect()
+                ->route('admin.hotels.index')
+                ->with('success', __('hotels.updated_success'));
+        } catch (Exception $e) {
+            Log::error('Hotel update error: '.$e->getMessage());
 
+            return back()
+                ->withInput()
+                ->with('error', __('hotels.unexpected_error'));
+        }
+    }
 
     /**
      * Ordena los hoteles alfabéticamente y actualiza en la base de datos.
      */
-    public function sort()
+    public function sort(): RedirectResponse
     {
-        $hotels = HotelList::orderBy('name', 'asc')->get();
+        try {
+            $hotels = HotelList::orderBy('name', 'asc')->get();
 
-        $order = 1;
-        foreach ($hotels as $hotel) {
-            $hotel->update(['sort_order' => $order]);
-            $order++;
+            $order = 1;
+            foreach ($hotels as $hotel) {
+                $hotel->update(['sort_order' => $order]);
+                $order++;
+            }
+
+            return redirect()
+                ->route('admin.hotels.index')
+                ->with('success', __('hotels.sorted_success'));
+        } catch (Exception $e) {
+            Log::error('Hotel sort error: '.$e->getMessage());
+
+            return back()->with('error', __('hotels.unexpected_error'));
         }
-
-        return redirect()->route('admin.hotels.index')->with('success', 'Hoteles ordenados alfabéticamente.');
     }
 
     /**
      * Cambia el estado activo/inactivo del hotel.
      */
-    public function toggle(HotelList $hotel)
+    public function toggle(HotelList $hotel): RedirectResponse
     {
         try {
-            $hotel->is_active = !$hotel->is_active;
+            $hotel->is_active = ! $hotel->is_active;
             $hotel->save();
 
-            $mensaje = $hotel->is_active
-                ? 'Hotel activado correctamente.'
-                : 'Hotel desactivado correctamente.';
+            $message = $hotel->is_active
+                ? __('hotels.activated_success')
+                : __('hotels.deactivated_success');
 
-            return redirect()->route('admin.hotels.index')->with('success', $mensaje);
-        } catch (\Exception $e) {
-            \Log::error('Error al cambiar estado del hotel: ' . $e->getMessage());
-            return back()->with('error', 'Hubo un problema al cambiar el estado del hotel.');
+            return redirect()
+                ->route('admin.hotels.index')
+                ->with('success', $message);
+        } catch (Exception $e) {
+            Log::error('Hotel toggle error: '.$e->getMessage());
+
+            return back()->with('error', __('hotels.unexpected_error'));
         }
     }
 
     /**
      * Elimina un hotel de la base de datos.
      */
-    public function destroy(HotelList $hotel)
+    public function destroy(HotelList $hotel): RedirectResponse
     {
         try {
             $hotel->delete();
-            return redirect()->route('admin.hotels.index')->with('success', 'Hotel eliminado correctamente.');
-        } catch (\Exception $e) {
-            \Log::error('Error al eliminar hotel: ' . $e->getMessage());
-            return back()->with('error', 'Hubo un problema al eliminar el hotel.');
+
+            return redirect()
+                ->route('admin.hotels.index')
+                ->with('success', __('hotels.deleted_success'));
+        } catch (Exception $e) {
+            Log::error('Hotel destroy error: '.$e->getMessage());
+
+            return back()->with('error', __('hotels.unexpected_error'));
         }
     }
 }

@@ -15,18 +15,6 @@
     --gap:.5rem;
     --sticky-top:64px; /* lo ajusta el JS */
   }
-/* SOLO los toasts de marcado/desmarcado */
-.gv-toast-mark .swal2-title{
-  color:#000000 !important;   /* ← tu color */
-  font-weight:600;
-}
-.gv-toast-mark .swal2-timer-progress-bar{
-  background:#5b4fff !important;
-}
-
-/* (Opcional) Si quieres cambiar el texto de los MODALES (no toasts) */
-.gv-alert-mark .swal2-title{           color:#5b4fff !important; }
-.gv-alert-mark .swal2-html-container{  color:#5b4fff !important; }
 
   .al-title{ color:#fff; padding:.55rem var(--pad-x); border-radius:.25rem; }
   .al-day-header{ display:flex; align-items:center; gap:var(--gap); border:1px solid var(--title-separator); }
@@ -260,13 +248,16 @@ const TOGGLE_URL = @json(route('admin.tours.excluded_dates.toggle'));
 const BULK_URL   = @json(route('admin.tours.excluded_dates.bulkToggle'));
 const CSRF       = @json(csrf_token());
 
-/* ========= SweetAlert helpers ========= */
+
 const toast = Swal.mixin({
   toast: true,
   position: 'top-end',
   showConfirmButton: false,
   timer: 1600,
-  timerProgressBar: true
+  timerProgressBar: true,
+  customClass: {
+    popup: 'my-toast'
+  }
 });
 
 /* ===== Header sticky ===== */
@@ -339,7 +330,7 @@ iQ.addEventListener('input', debounce(() => {
   if(iQ.value.trim().length > 0){
     iDays.value = Math.max(Number(iDays.value||1), 30);
   }
-  toast.fire({icon:'info', title:'Buscando...' });
+  toast.fire({icon:'info', title:'Buscando...'});
   form.submit();
 }, 400));
 
@@ -505,22 +496,14 @@ function toggleMarkDay(btn, day){
   const all = areAllChecked(cbs);
   cbs.forEach(cb => cb.checked = !all);
   refreshMarkLabelsFor(day);
-toast.fire({
-  icon:'info',
-  title: (!all ? 'Marcados' : 'Desmarcados') + ` ${cbs.length}`,
-  customClass: { popup: 'gv-toast-mark' }
-});
+  toast.fire({ icon:'info', title: (!all ? 'Marcados' : 'Desmarcados') + ` ${cbs.length}` });
 }
 function toggleMarkBlock(btn, day, bucket){
   const cbs = getBlockCheckboxes(day, bucket);
   const all = areAllChecked(cbs);
   cbs.forEach(cb => cb.checked = !all);
   refreshMarkLabelsFor(day);
-toast.fire({
-  icon:'info',
-  title: (!all ? 'Marcados' : 'Desmarcados') + ` ${cbs.length}`,
-  customClass: { popup: 'gv-toast-mark' }
-});
+  toast.fire({ icon:'info', title: (!all ? 'Marcados' : 'Desmarcados') + ` ${cbs.length}` });
 }
 document.addEventListener('change', (e) => {
   if(!e.target.classList.contains('select-item')) return;
@@ -558,9 +541,8 @@ async function bulkToggle(items, want){
       btnUnblock.disabled = available ? true : false;
     }
 
-    // >>> NUEVO: desmarcar todas las selecciones después de aplicar
+    // Desmarcar selección y refrescar etiquetas
     document.querySelectorAll('.select-item:checked').forEach(cb => cb.checked = false);
-    // refrescar etiquetas para los días afectados
     const affectedDays = [...new Set(items.map(it => it.date))];
     affectedDays.forEach(day => refreshMarkLabelsFor(day));
 

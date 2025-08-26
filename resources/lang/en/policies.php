@@ -18,14 +18,14 @@ return [
     'active'                  => 'Active',
     'inactive'                => 'Inactive',
 
-    // Categories list: actions
+    // Category list: actions
     'new_category'            => 'New category',
     'view_sections'           => 'View sections',
     'edit'                    => 'Edit',
     'activate_category'       => 'Activate category',
     'deactivate_category'     => 'Deactivate category',
     'delete'                  => 'Delete',
-    'delete_category_confirm' => 'Delete the category and ALL of its sections?',
+    'delete_category_confirm' => 'Delete this category and ALL its sections?',
     'no_categories'           => 'No categories found.',
     'edit_category'           => 'Edit category',
 
@@ -51,21 +51,21 @@ return [
 
     // Public
     'page_title'              => 'Policies',
-    'no_policies'             => 'No policies available at the moment.',
+    'no_policies'             => 'There are no policies available at the moment.',
     'section'                 => 'Section',
     'cancellation_policy'     => 'Cancellation Policy',
     'refund_policy'           => 'Refund Policy',
     'no_cancellation_policy'  => 'No cancellation policy configured.',
     'no_refund_policy'        => 'No refund policy configured.',
 
-    // Messages
+    // Messages (categories)
     'category_created'        => 'Category created successfully.',
     'category_updated'        => 'Category updated successfully.',
     'category_activated'      => 'Category activated successfully.',
     'category_deactivated'    => 'Category deactivated successfully.',
     'category_deleted'        => 'Category deleted successfully.',
 
-    // --- NEW KEYS (refactor) ---
+    // --- NEW KEYS (refactor / module utilities) ---
     'untitled'                => 'Untitled',
     'no_content'              => 'No content available.',
     'display_name'            => 'Display name',
@@ -73,13 +73,44 @@ return [
     'name_base'               => 'Base name',
     'name_base_help'          => 'Short identifier/slug for the section (internal only).',
     'translation_content'     => 'Translated content',
-    'locale'                  => 'Locale',
+    'locale'                  => 'Language',
     'save'                    => 'Save',
-    'confirm_delete'          => 'Are you sure you want to delete this section?',
-    'bulk_edit_sections'      => 'Bulk edit sections',
     'name_base_label'         => 'Base name',
     'translation_name'        => 'Translated name',
-    'lang_autodetect_hint'    => 'You can write in any language; it will be automatically detected.',
-    'bulk_edit_hint'           => 'Changes to all sections will be saved along with the category translation when you click “Save”.',
+    'lang_autodetect_hint'    => 'You can type in any language; it is detected automatically.',
+    'bulk_edit_sections'      => 'Quick edit of sections',
+    'bulk_edit_hint'          => 'Changes to all sections will be saved together with the category translation when you click “Save”.',
+    'no_changes_made'         => 'No changes made.',
+    'no_sections_found'       => 'No sections found.',
 
+    // Messages (sections)
+    'section_created'         => 'Section created successfully.',
+    'section_updated'         => 'Section updated successfully.',
+    'section_activated'       => 'Section activated successfully.',
+    'section_deactivated'     => 'Section deactivated successfully.',
+    'section_deleted'         => 'Section deleted successfully.',
+
+    // Generic module messages
+    'created_success'         => 'Created successfully.',
+    'updated_success'         => 'Updated successfully.',
+    'deleted_success'         => 'Deleted successfully.',
+    'activated_success'       => 'Activated successfully.',
+    'deactivated_success'     => 'Deactivated successfully.',
+    'unexpected_error'        => 'An unexpected error occurred.',
+
+    // Buttons / common texts (SweetAlert)
+    'create'                  => 'Create',
+    'activate'                => 'Activate',
+    'deactivate'              => 'Deactivate',
+    'cancel'                  => 'Cancel',
+    'ok'                      => 'OK',
+    'validation_errors'       => 'There are validation errors',
+    'error_title'             => 'Error',
+
+    // Section-specific confirmations
+    'confirm_create_section'      => 'Create this section?',
+    'confirm_edit_section'        => 'Save changes to this section?',
+    'confirm_delete_section'      => 'Are you sure you want to delete this section?',
+    'confirm_deactivate_section'  => 'Are you sure you want to deactivate this section?',
+    'confirm_activate_section'    => 'Are you sure you want to activate this section?',
 ];

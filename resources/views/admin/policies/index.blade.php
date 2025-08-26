@@ -12,10 +12,10 @@
   {{-- ALERTAS (fallback si no hay JS) --}}
   <noscript>
     @if (session('success'))
-      <div class="alert alert-success">{{ session('success') }}</div>
+      <div class="alert alert-success">{{ __(session('success')) }}</div>
     @endif
     @if (session('error'))
-      <div class="alert alert-danger">{{ session('error') }}</div>
+      <div class="alert alert-danger">{{ __(session('error')) }}</div>
     @endif
     @if ($errors->any())
       <div class="alert alert-danger">
@@ -63,7 +63,7 @@
                   @endif
                 </td>
                 <td>
-                  <span class="badge {{ $p->is_active ? 'bg-success' : 'bg-danger' }}">
+                  <span class="badge {{ $p->is_active ? 'bg-success' : 'bg-secondary' }}">
                     <i class="fas {{ $p->is_active ? 'fa-check-circle' : 'fa-times-circle' }}"></i>
                     {{ $p->is_active ? __('policies.active') : __('policies.inactive') }}
                   </span>
@@ -90,7 +90,7 @@
                           action="{{ route('admin.policies.toggle', $p) }}"
                           data-active="{{ $p->is_active ? 1 : 0 }}">
                       @csrf
-                      <button class="btn btn-toggle btn-sm"
+                      <button class="btn {{ $p->is_active ? 'btn-toggle' : 'btn-secondary' }} btn-sm"
                               title="{{ $p->is_active ? __('policies.deactivate_category') : __('policies.activate_category') }}"
                               data-bs-toggle="tooltip">
                         <i class="fas {{ $p->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
@@ -154,7 +154,7 @@
           <div class="mb-3">
             <label class="form-label">{{ __('policies.name') }}</label>
             <input type="text" name="name" class="form-control" required>
-            <small class="text-muted">{{ __('policies.lang_autodetect_hint') ?? 'Puedes escribir en cualquier idioma; se detecta automáticamente.' }}</small>
+            <small class="text-muted">{{ __('policies.lang_autodetect_hint') }}</small>
           </div>
           <div class="mb-3">
             <label class="form-label">{{ __('policies.description_label') }}</label>
@@ -169,7 +169,7 @@
     </div>
   </div>
 
-  {{-- MODALES: Editar categoría (sin nombre interno; NO edita traducciones) --}}
+  {{-- MODALES: Editar categoría (no edita traducciones aquí) --}}
   @foreach ($policies as $p)
     @php
       $fromVal = $p->effective_from ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('Y-m-d') : '';
@@ -203,7 +203,6 @@
                 </div>
               </div>
             </div>
-            {{-- Nota: si quisieras editar nombre normal/descripcion, habría que añadir campos y controlador para traducciones. --}}
           </div>
           <div class="modal-footer">
             <button class="btn btn-primary"><i class="fas fa-save"></i> {{ __('policies.save_changes') }}</button>
@@ -218,44 +217,53 @@
 @section('js')
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  {{-- Éxito / Error (traducciones de policies.*) --}}
+  @if(session('success'))
+    <script>
+      Swal.fire({
+        icon: 'success',
+        title: @json(__(session('success'))),
+        showConfirmButton: false,
+        timer: 2000
+      });
+    </script>
+  @endif
+
+  @if(session('error'))
+    <script>
+      Swal.fire({
+        icon: 'error',
+        title: @json(__('policies.error_title')),
+        text: @json(__(session('error')))
+      });
+    </script>
+  @endif
+
   <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // tooltips
+    // Tooltips
     [...document.querySelectorAll('[data-bs-toggle="tooltip"]')].forEach(el => new bootstrap.Tooltip(el));
 
-    // limpiar backdrops duplicados
+    // Limpiar backdrops duplicados
     document.addEventListener('hidden.bs.modal', () => {
       const backs = document.querySelectorAll('.modal-backdrop');
       if (backs.length > 1) backs.forEach((b,i) => { if (i < backs.length-1) b.remove(); });
     });
 
-    // --- SweetAlert2 Toasters ---
-    const flashSuccess = @json(session('success'));
-    const flashError   = @json(session('error'));
-    const valErrors    = @json($errors->any() ? $errors->all() : []);
-
-    const Toast = Swal.mixin({
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 3200,
-      timerProgressBar: true
-    });
-
-    if (flashSuccess) Toast.fire({ icon: 'success', title: flashSuccess });
-    if (flashError)   Toast.fire({ icon: 'error',   title: flashError });
-
+    // Validaciones (errores) como modal
+    const valErrors = @json($errors->any() ? $errors->all() : []);
     if (valErrors && valErrors.length) {
       const list = '<ul class="text-start mb-0">' + valErrors.map(e => `<li>${e}</li>`).join('') + '</ul>';
       Swal.fire({
         icon: 'warning',
-        title: @json(__('adminlte::adminlte.validation_errors') ?? 'Please review the highlighted fields.'),
+        title: @json(__('policies.validation_errors')),
         html: list,
-        confirmButtonText: 'OK'
+        confirmButtonText: @json(__('policies.ok')),
       });
     }
 
-    // Confirmación de borrado
+    // Confirmación ELIMINAR categoría
     document.querySelectorAll('.js-confirm-delete').forEach(form => {
       form.addEventListener('submit', (ev) => {
         ev.preventDefault();
@@ -266,35 +274,27 @@
           showCancelButton: true,
           confirmButtonColor: '#d33',
           cancelButtonColor: '#6c757d',
-          confirmButtonText: @json(__('policies.delete') ?? 'Delete'),
-          cancelButtonText: @json(__('policies.close') ?? 'Cancel'),
-        }).then((result) => {
-          if (result.isConfirmed) form.submit();
-        });
+          confirmButtonText: @json(__('policies.delete')),
+          cancelButtonText: @json(__('policies.cancel')),
+        }).then(res => { if (res.isConfirmed) form.submit(); });
       });
     });
 
-    // Confirmación de activar/desactivar
+    // Confirmación ACTIVAR / DESACTIVAR categoría
     document.querySelectorAll('.js-confirm-toggle').forEach(form => {
       form.addEventListener('submit', (ev) => {
         ev.preventDefault();
         const isActive = form.dataset.active === '1';
-        const msg = isActive
-          ? (@json(__('policies.deactivate_category_confirm')) || '¿Desactivar esta categoría?')
-          : (@json(__('policies.activate_category_confirm'))  || '¿Activar esta categoría?');
-
+        const title = isActive ? @json(__('policies.deactivate_category')) : @json(__('policies.activate_category'));
         Swal.fire({
-          title: msg,
+          title: title + '?',
           icon: 'question',
           showCancelButton: true,
           confirmButtonColor: isActive ? '#d33' : '#28a745',
           cancelButtonColor: '#6c757d',
-          confirmButtonText: isActive ? @json(__('policies.deactivate_category') ?? 'Desactivar')
-                                      : @json(__('policies.activate_category')   ?? 'Activar'),
-          cancelButtonText: @json(__('policies.close') ?? 'Cancelar'),
-        }).then((result) => {
-          if (result.isConfirmed) form.submit();
-        });
+          confirmButtonText: title,
+          cancelButtonText: @json(__('policies.cancel')),
+        }).then(res => { if (res.isConfirmed) form.submit(); });
       });
     });
   });

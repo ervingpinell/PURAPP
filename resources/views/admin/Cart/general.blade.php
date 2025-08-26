@@ -90,7 +90,7 @@
                     {{-- 🔁 Activar/Desactivar carrito --}}
                     <form action="{{ route('admin.cart.toggle', $cart->cart_id) }}" method="POST" class="d-inline-block me-1">
                         @csrf @method('PATCH')
-                        <button class="btn btn-sm {{ $cart->is_active ? 'btn-toggle' : 'btn-toggle' }}"
+                        <button class="btn btn-sm {{ $cart->is_active ? 'btn-toggle' : 'btn-secondary' }}"
                                 title="{{ $cart->is_active ? 'Desactivar carrito' : 'Activar carrito' }}"
                                 data-bs-toggle="tooltip">
                             <i class="fas {{ $cart->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>

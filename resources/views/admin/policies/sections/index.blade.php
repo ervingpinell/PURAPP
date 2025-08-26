@@ -20,31 +20,20 @@
 @stop
 
 @section('content')
-  {{-- ALERTAS (fallback si no hay JS) --}}
+  {{-- Fallback solo si no hay JS --}}
   <noscript>
     @if(session('success'))
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fas fa-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
+      <div class="alert alert-success">{{ __(session('success')) }}</div>
     @endif
-
     @if(session('error'))
-      <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fas fa-exclamation-triangle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
+      <div class="alert alert-danger">{{ __(session('error')) }}</div>
     @endif
-
     @if ($errors->any())
-      <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        <strong><i class="fas fa-info-circle me-1"></i>{{ __('adminlte::adminlte.validation_errors') ?? 'Please review the highlighted fields.' }}</strong>
+      <div class="alert alert-warning">
+        <strong>{{ __('policies.validation_errors') ?? 'Revisa los campos.' }}</strong>
         <ul class="mb-0 mt-1">
-          @foreach ($errors->all() as $error)
-            <li>{{ $error }}</li>
-          @endforeach
+          @foreach ($errors->all() as $e) <li>{{ $e }}</li> @endforeach
         </ul>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
     @endif
   </noscript>
@@ -56,7 +45,7 @@
           <thead class="table-dark">
             <tr class="text-center">
               <th>{{ __('policies.id') }}</th>
-              <th class="text-center">{{ __('policies.name') }}</th> {{-- base policy_sections.name centrado --}}
+              <th class="text-center">{{ __('policies.name') }}</th>
               <th>{{ __('policies.order') }}</th>
               <th>{{ __('policies.status') }}</th>
               <th style="width: 280px;">{{ __('policies.actions') }}</th>
@@ -90,17 +79,17 @@
                   <form action="{{ route('admin.policies.sections.toggle', [$policy, $s]) }}" method="POST"
                         class="d-inline js-confirm-toggle" data-active="{{ $s->is_active ? 1 : 0 }}">
                     @csrf
-                    <button class="btn btn-sm btn-toggle"
+                    <button class="btn btn-sm {{ $s->is_active ? 'btn-toggle' : 'btn-secondary' }}"
                       title="{{ $s->is_active ? __('policies.deactivate_section') : __('policies.activate_section') }}"
                       data-bs-toggle="tooltip">
                       <i class="fas {{ $s->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                     </button>
                   </form>
 
-                  {{-- Delete con SweetAlert --}}
+                  {{-- Eliminar con SweetAlert --}}
                   <form action="{{ route('admin.policies.sections.destroy', [$policy, $s]) }}" method="POST"
                         class="d-inline js-confirm-delete"
-                        data-message="{{ __('policies.confirm_delete') }}">
+                        data-message="{{ __('policies.confirm_delete_section') }}">
                     @csrf @method('DELETE')
                     <button class="btn btn-sm btn-delete"
                       title="{{ __('policies.delete') }}" data-bs-toggle="tooltip">
@@ -116,7 +105,7 @@
             <div class="modal fade" id="editSectionModal-{{ $s->section_id }}" tabindex="-1" aria-hidden="true">
               <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
-                  <form action="{{ route('admin.policies.sections.update', [$policy, $s]) }}" method="POST">
+                  <form action="{{ route('admin.policies.sections.update', [$policy, $s]) }}" method="POST" class="js-confirm-edit">
                     @csrf @method('PUT')
                     <div class="modal-header">
                       <h5 class="modal-title">{{ __('policies.edit_section') }}</h5>
@@ -124,13 +113,11 @@
                     </div>
                     <div class="modal-body">
                       <div class="row g-3">
-                        {{-- Nombre base --}}
                         <div class="col-md-6">
                           <label class="form-label">{{ __('policies.name') }}</label>
                           <input type="text" name="name" class="form-control" value="{{ $s->name }}">
                         </div>
 
-                        {{-- Orden / Activo --}}
                         <div class="col-md-3">
                           <label class="form-label">{{ __('policies.order') }}</label>
                           <input type="number" min="0" name="sort_order" class="form-control" value="{{ $s->sort_order }}">
@@ -166,7 +153,7 @@
   <div class="modal fade" id="createSectionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
-        <form action="{{ route('admin.policies.sections.store', $policy) }}" method="POST">
+        <form action="{{ route('admin.policies.sections.store', $policy) }}" method="POST" class="js-confirm-create">
           @csrf
           <div class="modal-header">
             <h5 class="modal-title">{{ __('policies.new_section') }}</h5>
@@ -214,11 +201,33 @@
 @section('js')
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  {{-- Éxito / Error (sin toast, estilo carrito) --}}
+  @if(session('success'))
+    <script>
+      Swal.fire({
+        icon: 'success',
+        title: @json(__(session('success'))),
+        showConfirmButton: false,
+        timer: 2000
+      });
+    </script>
+  @endif
+
+  @if(session('error'))
+    <script>
+      Swal.fire({
+        icon: 'error',
+        title: @json(__('policies.error_title') ?? 'Error'),
+        text: @json(__(session('error')))
+      });
+    </script>
+  @endif
+
   <script>
   document.addEventListener('DOMContentLoaded', () => {
     // tooltips
-    [...document.querySelectorAll('[data-bs-toggle="tooltip"]')]
-      .forEach(el => new bootstrap.Tooltip(el));
+    [...document.querySelectorAll('[data-bs-toggle="tooltip"]')].forEach(el => new bootstrap.Tooltip(el));
 
     // limpiar backdrops duplicados
     document.addEventListener('hidden.bs.modal', () => {
@@ -226,75 +235,85 @@
       if (backs.length > 1) backs.forEach((b,i) => { if (i < backs.length-1) b.remove(); });
     });
 
-    // --- SweetAlert2 Toasters ---
-    const flashSuccess = @json(session('success'));
-    const flashError   = @json(session('error'));
-    const valErrors    = @json($errors->any() ? $errors->all() : []);
-
-    const Toast = Swal.mixin({
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 3200,
-      timerProgressBar: true
-    });
-
-    if (flashSuccess) {
-      Toast.fire({ icon: 'success', title: flashSuccess });
-    }
-    if (flashError) {
-      Toast.fire({ icon: 'error', title: flashError });
-    }
+    // Validaciones como modal
+    const valErrors = @json($errors->any() ? $errors->all() : []);
     if (valErrors && valErrors.length) {
       const list = '<ul class="text-start mb-0">' + valErrors.map(e => `<li>${e}</li>`).join('') + '</ul>';
       Swal.fire({
         icon: 'warning',
-        title: @json(__('adminlte::adminlte.validation_errors') ?? 'Please review the highlighted fields.'),
+        title: @json(__('policies.validation_errors') ?? 'Hay errores de validación'),
         html: list,
-        confirmButtonText: 'OK'
+        confirmButtonText: @json(__('policies.ok') ?? 'Aceptar'),
       });
     }
 
-    // Confirmación de borrado
+    // Confirmación CREAR sección
+    document.querySelectorAll('.js-confirm-create').forEach(form => {
+      form.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        Swal.fire({
+          title: @json(__('policies.confirm_create_section') ?? '¿Crear esta sección?'),
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#28a745',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: @json(__('policies.create') ?? 'Crear'),
+          cancelButtonText: @json(__('policies.cancel') ?? 'Cancelar'),
+        }).then((res) => { if (res.isConfirmed) form.submit(); });
+      });
+    });
+
+    // Confirmación EDITAR sección
+    document.querySelectorAll('.js-confirm-edit').forEach(form => {
+      form.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        Swal.fire({
+          title: @json(__('policies.confirm_edit_section') ?? '¿Guardar cambios de la sección?'),
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#0d6efd',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: @json(__('policies.save_changes') ?? 'Guardar cambios'),
+          cancelButtonText: @json(__('policies.cancel') ?? 'Cancelar'),
+        }).then((res) => { if (res.isConfirmed) form.submit(); });
+      });
+    });
+
+    // Confirmación ELIMINAR sección
     document.querySelectorAll('.js-confirm-delete').forEach(form => {
       form.addEventListener('submit', (ev) => {
         ev.preventDefault();
-        const msg = form.dataset.message || @json(__('policies.confirm_delete'));
+        const msg = form.dataset.message || @json(__('policies.confirm_delete_section'));
         Swal.fire({
           title: msg,
           icon: 'warning',
           showCancelButton: true,
           confirmButtonColor: '#d33',
           cancelButtonColor: '#6c757d',
-          confirmButtonText: @json(__('policies.delete') ?? 'Delete'),
-          cancelButtonText: @json(__('policies.close') ?? 'Cancel'),
-        }).then((result) => {
-          if (result.isConfirmed) form.submit();
-        });
+          confirmButtonText: @json(__('policies.delete') ?? 'Eliminar'),
+          cancelButtonText: @json(__('policies.cancel') ?? 'Cancelar'),
+        }).then((res) => { if (res.isConfirmed) form.submit(); });
       });
     });
 
-    // Confirmación de activar/desactivar
+    // Confirmación ACTIVAR/DESACTIVAR sección
     document.querySelectorAll('.js-confirm-toggle').forEach(form => {
       form.addEventListener('submit', (ev) => {
         ev.preventDefault();
         const isActive = form.dataset.active === '1';
-        const msg = isActive
-          ? (@json(__('policies.deactivate_section_confirm')) || '¿Desactivar esta sección?')
-          : (@json(__('policies.activate_section_confirm'))  || '¿Activar esta sección?');
-
         Swal.fire({
-          title: msg,
+          title: isActive
+            ? @json(__('policies.confirm_deactivate_section'))
+            : @json(__('policies.confirm_activate_section')),
           icon: 'question',
           showCancelButton: true,
           confirmButtonColor: isActive ? '#d33' : '#28a745',
           cancelButtonColor: '#6c757d',
-          confirmButtonText: isActive ? @json(__('policies.deactivate_section') ?? 'Desactivar')
-                                      : @json(__('policies.activate_section')   ?? 'Activar'),
-          cancelButtonText: @json(__('policies.close') ?? 'Cancelar'),
-        }).then((result) => {
-          if (result.isConfirmed) form.submit();
-        });
+          confirmButtonText: isActive
+            ? @json(__('policies.deactivate') ?? 'Desactivar')
+            : @json(__('policies.activate') ?? 'Activar'),
+          cancelButtonText: @json(__('policies.cancel') ?? 'Cancelar'),
+        }).then((res) => { if (res.isConfirmed) form.submit(); });
       });
     });
   });

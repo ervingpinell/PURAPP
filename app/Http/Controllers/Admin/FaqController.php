@@ -8,6 +8,7 @@ use App\Models\FaqTranslation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\Contracts\TranslatorInterface;
+use Exception;
 
 class FaqController extends Controller
 {
@@ -24,33 +25,39 @@ class FaqController extends Controller
             'answer'   => 'required|string',
         ]);
 
-        DB::transaction(function () use ($request, $translator) {
-            $question = $request->string('question')->trim();
-            $answer   = $request->string('answer')->trim();
+        try {
+            DB::transaction(function () use ($request, $translator) {
+                $question = $request->string('question')->trim();
+                $answer   = $request->string('answer')->trim();
 
-            $faq = Faq::create([
-                'question'  => $question,
-                'answer'    => $answer,
-                'is_active' => true,
-            ]);
-
-            // Traducción automática a ES, EN, FR, PT, DE (DeepL devuelve el mismo texto si ya está en ese idioma)
-            $qTr = $translator->translateAll($question);
-            $aTr = $translator->translateAll($answer);
-
-            foreach (['es', 'en', 'fr', 'pt', 'de'] as $lang) {
-                FaqTranslation::create([
-                    'faq_id'   => $faq->faq_id,
-                    'locale'   => $lang,
-                    'question' => $qTr[$lang] ?? $question,
-                    'answer'   => $aTr[$lang] ?? $answer,
+                $faq = Faq::create([
+                    'question'  => $question,
+                    'answer'    => $answer,
+                    'is_active' => true,
                 ]);
-            }
-        });
 
-        return redirect()
-            ->route('admin.faqs.index')
-            ->with('success', 'Pregunta registrada correctamente.');
+                // Traducciones automáticas (si falla, usa original)
+                try { $qTr = (array) $translator->translateAll($question); } catch (\Throwable $e) { $qTr = []; }
+                try { $aTr = (array) $translator->translateAll($answer);   } catch (\Throwable $e) { $aTr = []; }
+
+                foreach (['es','en','fr','pt','de'] as $lang) {
+                    FaqTranslation::create([
+                        'faq_id'   => $faq->faq_id,
+                        'locale'   => $lang,
+                        'question' => $qTr[$lang] ?? $question,
+                        'answer'   => $aTr[$lang] ?? $answer,
+                    ]);
+                }
+            });
+
+            return redirect()
+                ->route('admin.faqs.index')
+                ->with('success', 'faq.created_success');
+        } catch (Exception $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'faq.unexpected_error');
+        }
     }
 
     public function update(Request $request, Faq $faq)
@@ -60,31 +67,50 @@ class FaqController extends Controller
             'answer'   => 'required|string',
         ]);
 
-        $faq->update([
-            'question' => $request->string('question')->trim(),
-            'answer'   => $request->string('answer')->trim(),
-        ]);
+        try {
+            $faq->update([
+                'question' => $request->string('question')->trim(),
+                'answer'   => $request->string('answer')->trim(),
+            ]);
 
-        return redirect()
-            ->route('admin.faqs.index')
-            ->with('success', 'Pregunta actualizada correctamente.');
+            return redirect()
+                ->route('admin.faqs.index')
+                ->with('success', 'faq.updated_success');
+        } catch (Exception $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'faq.unexpected_error');
+        }
     }
 
     public function destroy(Faq $faq)
     {
-        $faq->delete();
-        return redirect()
-            ->route('admin.faqs.index')
-            ->with('success', 'Pregunta eliminada.');
+        try {
+            $faq->delete();
+
+            return redirect()
+                ->route('admin.faqs.index')
+                ->with('success', 'faq.deleted_success');
+        } catch (Exception $e) {
+            return back()
+                ->with('error', 'faq.unexpected_error');
+        }
     }
 
     public function toggleStatus(Faq $faq)
     {
-        $faq->is_active = ! $faq->is_active;
-        $faq->save();
+        try {
+            $faq->is_active = ! $faq->is_active;
+            $faq->save();
 
-        return redirect()
-            ->route('admin.faqs.index')
-            ->with('success', 'Estado actualizado.');
+            $key = $faq->is_active ? 'faq.activated_success' : 'faq.deactivated_success';
+
+            return redirect()
+                ->route('admin.faqs.index')
+                ->with('success', $key);
+        } catch (Exception $e) {
+            return back()
+                ->with('error', 'faq.unexpected_error');
+        }
     }
 }

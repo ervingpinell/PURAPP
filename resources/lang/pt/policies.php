@@ -9,9 +9,9 @@ return [
     'id'                      => 'ID',
     'internal_name'           => 'Nome interno',
     'title_current_locale'    => 'Título (idioma atual)',
-    'validity_range'          => 'Período de validade',
-    'valid_from'              => 'Válida a partir de',
-    'valid_to'                => 'Válida até',
+    'validity_range'          => 'Período de vigência',
+    'valid_from'              => 'Válido a partir de',
+    'valid_to'                => 'Válido até',
     'status'                  => 'Status',
     'sections'                => 'Seções',
     'actions'                 => 'Ações',
@@ -32,7 +32,7 @@ return [
     // Formulários (categoria)
     'title_label'             => 'Título',
     'description_label'       => 'Descrição',
-    'register'                => 'Cadastrar',
+    'register'                => 'Registrar',
     'save_changes'            => 'Salvar alterações',
     'close'                   => 'Fechar',
 
@@ -55,31 +55,62 @@ return [
     'section'                 => 'Seção',
     'cancellation_policy'     => 'Política de Cancelamento',
     'refund_policy'           => 'Política de Reembolso',
-    'no_cancellation_policy'  => 'Não há política de cancelamento configurada.',
-    'no_refund_policy'        => 'Não há política de reembolso configurada.',
+    'no_cancellation_policy'  => 'Nenhuma política de cancelamento configurada.',
+    'no_refund_policy'        => 'Nenhuma política de reembolso configurada.',
 
-    // Mensagens
+    // Mensagens (categorias)
     'category_created'        => 'Categoria criada com sucesso.',
     'category_updated'        => 'Categoria atualizada com sucesso.',
     'category_activated'      => 'Categoria ativada com sucesso.',
     'category_deactivated'    => 'Categoria desativada com sucesso.',
     'category_deleted'        => 'Categoria excluída com sucesso.',
 
-    // --- NOVAS CHAVES (refactor) ---
+    // --- NOVAS CHAVES (refactor / utilidades do módulo) ---
     'untitled'                => 'Sem título',
     'no_content'              => 'Nenhum conteúdo disponível.',
     'display_name'            => 'Nome de exibição',
     'name'                    => 'Nome',
     'name_base'               => 'Nome base',
-    'name_base_help'          => 'Identificador/slug curto da seção (somente interno).',
+    'name_base_help'          => 'Identificador curto/slug da seção (somente interno).',
     'translation_content'     => 'Conteúdo traduzido',
     'locale'                  => 'Idioma',
     'save'                    => 'Salvar',
-    'confirm_delete'          => 'Tem certeza que deseja excluir esta seção?',
-    'bulk_edit_sections'      => 'Edição em lote de seções',
     'name_base_label'         => 'Nome base',
     'translation_name'        => 'Nome traduzido',
-    'lang_autodetect_hint'    => 'Você pode escrever em qualquer idioma; será detectado automaticamente.',
-    'bulk_edit_hint'           => 'As alterações em todas as seções serão salvas junto com a tradução da categoria quando você clicar em “Salvar”.',
+    'lang_autodetect_hint'    => 'Você pode escrever em qualquer idioma; a detecção é automática.',
+    'bulk_edit_sections'      => 'Edição rápida de seções',
+    'bulk_edit_hint'          => 'As alterações em todas as seções serão salvas junto com a tradução da categoria quando você clicar em “Salvar”.',
+    'no_changes_made'         => 'Nenhuma alteração realizada.',
+    'no_sections_found'       => 'Nenhuma seção encontrada.',
 
+    // Mensagens (seções)
+    'section_created'         => 'Seção criada com sucesso.',
+    'section_updated'         => 'Seção atualizada com sucesso.',
+    'section_activated'       => 'Seção ativada com sucesso.',
+    'section_deactivated'     => 'Seção desativada com sucesso.',
+    'section_deleted'         => 'Seção excluída com sucesso.',
+
+    // Mensagens genéricas do módulo
+    'created_success'         => 'Criado com sucesso.',
+    'updated_success'         => 'Atualizado com sucesso.',
+    'deleted_success'         => 'Excluído com sucesso.',
+    'activated_success'       => 'Ativado com sucesso.',
+    'deactivated_success'     => 'Desativado com sucesso.',
+    'unexpected_error'        => 'Ocorreu um erro inesperado.',
+
+    // Botões / textos comuns (SweetAlert)
+    'create'                  => 'Criar',
+    'activate'                => 'Ativar',
+    'deactivate'              => 'Desativar',
+    'cancel'                  => 'Cancelar',
+    'ok'                      => 'OK',
+    'validation_errors'       => 'Há erros de validação',
+    'error_title'             => 'Erro',
+
+    // Confirmações específicas das seções
+    'confirm_create_section'      => 'Criar esta seção?',
+    'confirm_edit_section'        => 'Salvar as alterações da seção?',
+    'confirm_delete_section'      => 'Tem certeza de que deseja excluir esta seção?',
+    'confirm_deactivate_section'  => 'Tem certeza de que deseja desativar esta seção?',
+    'confirm_activate_section'    => 'Tem certeza de que deseja ativar esta seção?',
 ];

@@ -1,26 +1,26 @@
 @extends('adminlte::page')
 
-@section('title', 'Tipos de Tours')
+@section('title', __('tourtypes.title'))
 
 @section('content_header')
-    <h1>Tipos de Tours</h1>
+    <h1><i class="fas fa-map-signs"></i> {{ __('tourtypes.title') }}</h1>
 @stop
 
 @section('content')
 <div class="p-3 table-responsive">
     <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-        <i class="fas fa-plus"></i> Añadir Tipo de Tour
+        <i class="fas fa-plus"></i> {{ __('tourtypes.new') }}
     </a>
 
     <table class="table table-bordered table-striped table-hover">
         <thead class="bg-primary text-white">
             <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Descripción</th>
-                <th>Duración</th>
-                <th>Estado</th>
-                <th>Acciones</th>
+                <th>{{ __('tourtypes.id') }}</th>
+                <th>{{ __('tourtypes.name') }}</th>
+                <th>{{ __('tourtypes.description') }}</th>
+                <th>{{ __('tourtypes.duration') }}</th>
+                <th>{{ __('tourtypes.status') }}</th>
+                <th>{{ __('tourtypes.actions') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -32,46 +32,52 @@
                 <td>{{ $tourtype->duration }}</td>
                 <td>
                     @if ($tourtype->is_active)
-                        <span class="badge bg-success">Activo</span>
+                        <span class="badge bg-success">{{ __('tourtypes.active') }}</span>
                     @else
-                        <span class="badge bg-secondary">Inactivo</span>
+                        <span class="badge bg-secondary">{{ __('tourtypes.inactive') }}</span>
                     @endif
                 </td>
 
                 <td class="text-nowrap">
-                    <!-- Editar (VERDE) -->
-                    <a href="#" class="btn btn-edit btn-sm me-1" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $tourtype->tour_type_id }}" title="Editar">
+                    {{-- Editar --}}
+                    <a href="#"
+                       class="btn btn-edit btn-sm me-1"
+                       data-bs-toggle="modal"
+                       data-bs-target="#modalEditar{{ $tourtype->tour_type_id }}"
+                       title="{{ __('tourtypes.edit') }}">
                         <i class="fas fa-edit"></i>
                     </a>
 
-                    <!-- Activar/Desactivar (SweetAlert) -->
+                    {{-- Activar/Desactivar (SweetAlert) --}}
                     <form action="{{ route('admin.tourtypes.toggle', $tourtype->tour_type_id) }}"
                           method="POST"
-                          class="d-inline me-1 form-toggle"
+                          class="d-inline me-1 js-confirm-toggle"
                           data-name="{{ $tourtype->name }}"
                           data-active="{{ $tourtype->is_active ? 1 : 0 }}">
                         @csrf
                         @method('PUT')
                         <button type="submit"
-                                class="btn btn-toggle btn-sm"
-                                title="{{ $tourtype->is_active ? 'Desactivar' : 'Activar' }}">
+                                class="btn btn-sm {{ $tourtype->is_active ? 'btn-toggle' : 'btn-secondary' }}"
+                                title="{{ $tourtype->is_active ? __('tourtypes.deactivate') : __('tourtypes.activate') }}">
                             <i class="fas fa-toggle-{{ $tourtype->is_active ? 'on' : 'off' }}"></i>
                         </button>
                     </form>
 
-                    <!-- Eliminar -->
-                    <form action="{{ route('admin.tourtypes.destroy', $tourtype->tour_type_id) }}" method="POST"
-                          class="d-inline form-delete" data-name="{{ $tourtype->name }}">
+                    {{-- Eliminar --}}
+                    <form action="{{ route('admin.tourtypes.destroy', $tourtype->tour_type_id) }}"
+                          method="POST"
+                          class="d-inline js-confirm-delete"
+                          data-name="{{ $tourtype->name }}">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-delete btn-sm" title="Eliminar">
+                        <button type="submit" class="btn btn-delete btn-sm" title="{{ __('tourtypes.delete') }}">
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
                 </td>
             </tr>
 
-            <!-- Modal editar -->
+            {{-- Modal editar --}}
             <div class="modal fade" id="modalEditar{{ $tourtype->tour_type_id }}" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog">
                   <form action="{{ route('admin.tourtypes.update', $tourtype->tour_type_id) }}" method="POST" autocomplete="off">
@@ -79,39 +85,39 @@
                         @method('PUT')
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">Editar Tipo de Tour</h5>
+                                <h5 class="modal-title">{{ __('tourtypes.edit_title') }}</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
                                 <div class="mb-3">
-                                    <label>Nombre</label>
+                                    <label>{{ __('tourtypes.name') }}</label>
                                     <input
                                         type="text"
                                         name="name"
                                         class="form-control"
-                                        placeholder="Ej.: Aventura, Naturaleza, Relax"
+                                        placeholder="{{ __('tourtypes.examples_placeholder') }}"
                                         value="{{ session('edit_modal') == $tourtype->tour_type_id ? old('name', $tourtype->name) : $tourtype->name }}"
                                         required
                                     >
                                 </div>
                                 <div class="mb-3">
-                                    <label>Descripción</label>
+                                    <label>{{ __('tourtypes.description') }}</label>
                                     <textarea
                                         name="description"
                                         class="form-control"
                                         rows="3"
-                                        placeholder="Describe brevemente este tipo de tour (opcional)"
+                                        placeholder="{{ __('tourtypes.description') }} ({{ __('tourtypes.optional') ?? 'opcional' }})"
                                     >{{ session('edit_modal') == $tourtype->tour_type_id ? old('description', $tourtype->description) : $tourtype->description }}</textarea>
                                 </div>
                                 <div class="mb-3">
-                                    <label>Duración</label>
+                                    <label>{{ __('tourtypes.duration') }}</label>
                                     <input
                                         type="text"
                                         name="duration"
                                         class="form-control"
                                         list="durationOptions"
-                                        placeholder="Ej.: 4 horas, 8 horas"
-                                        title="Usa un formato como: 4 horas, 6 horas, 8 horas"
+                                        placeholder="{{ __('tourtypes.duration_placeholder') }}"
+                                        title="{{ __('tourtypes.suggested_duration_hint') }}"
                                         value="{{ session('edit_modal') == $tourtype->tour_type_id ? old('duration', $tourtype->duration) : ($tourtype->duration ?: '4 horas') }}"
                                     >
                                     <datalist id="durationOptions">
@@ -120,12 +126,12 @@
                                         <option value="8 horas"></option>
                                         <option value="10 horas"></option>
                                     </datalist>
-                                    <small class="text-muted">Formato sugerido: “4 horas”, “8 horas”.</small>
+                                    <small class="text-muted">{{ __('tourtypes.suggested_duration_hint') }}</small>
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="submit" class="btn btn-success">Actualizar</button>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-success">{{ __('tourtypes.update') }}</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('tourtypes.cancel') }}</button>
                             </div>
                         </div>
                     </form>
@@ -136,46 +142,46 @@
     </table>
 </div>
 
-<!-- Modal registrar -->
+{{-- Modal registrar --}}
 <div class="modal fade" id="modalRegistrar" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <form action="{{ route('admin.tourtypes.store') }}" method="POST" autocomplete="off">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Registrar Tipo de Tour</h5>
+                    <h5 class="modal-title">{{ __('tourtypes.create_title') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label>Nombre</label>
+                        <label>{{ __('tourtypes.name') }}</label>
                         <input
                             type="text"
                             name="name"
                             class="form-control"
-                            placeholder="Ej.: Aventura, Naturaleza, Relax"
+                            placeholder="{{ __('tourtypes.examples_placeholder') }}"
                             value="{{ old('name') }}"
                             required
                         >
                     </div>
                     <div class="mb-3">
-                        <label>Descripción</label>
+                        <label>{{ __('tourtypes.description') }}</label>
                         <textarea
                             name="description"
                             class="form-control"
                             rows="3"
-                            placeholder="Describe brevemente este tipo de tour (opcional)"
+                            placeholder="{{ __('tourtypes.description') }} ({{ __('tourtypes.optional') ?? 'opcional' }})"
                         >{{ old('description') }}</textarea>
                     </div>
                     <div class="mb-3">
-                        <label>Duración</label>
+                        <label>{{ __('tourtypes.duration') }}</label>
                         <input
                             type="text"
                             name="duration"
                             class="form-control"
                             list="durationOptionsCreate"
-                            placeholder="Ej.: 4 horas, 8 horas"
-                            title="Usa un formato como: 4 horas, 6 horas, 8 horas"
+                            placeholder="{{ __('tourtypes.duration_placeholder') }}"
+                            title="{{ __('tourtypes.suggested_duration_hint') }}"
                             value="{{ old('duration', '4 horas') }}"
                         >
                         <datalist id="durationOptionsCreate">
@@ -184,12 +190,12 @@
                             <option value="8 horas"></option>
                             <option value="10 horas"></option>
                         </datalist>
-                        <small class="text-muted">Deja “4 horas” si aplica; puedes cambiarlo.</small>
+                        <small class="text-muted">{{ __('tourtypes.keep_default_hint') }}</small>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-primary">Guardar</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-primary">{{ __('tourtypes.register') }}</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('tourtypes.cancel') }}</button>
                 </div>
             </div>
         </form>
@@ -201,99 +207,109 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-@if(session('success') && session('alert_type'))
+{{-- Éxito / Error (modal centrado, sin toast) --}}
+@if(session('success'))
 <script>
-    let icon = 'success';
-    let title = 'Éxito';
-    let color = '#3085d6';
-
-    switch ("{{ session('alert_type') }}") {
-        case 'activado':     icon='success'; title='Tipo de Tour Activado';     color='#fd7e14'; break; // naranja
-        case 'desactivado':  icon='warning'; title='Tipo de Tour Desactivado';  color='#fd7e14'; break; // naranja
-        case 'actualizado':  icon='info';    title='Tipo de Tour Actualizado';  color='#17a2b8'; break;
-        case 'creado':       icon='success'; title='Tipo de Tour Creado';       color='#007bff'; break;
-        case 'eliminado':    icon='success'; title='Tipo de Tour Eliminado';    color='#dc3545'; break;
-    }
-
-    Swal.fire({ icon, title, text: '{{ session('success') }}', confirmButtonColor: color, confirmButtonText: 'OK' });
-</script>
-@endif
-
-<script>
-  // Confirmación para eliminar
-  document.addEventListener('DOMContentLoaded', function () {
-    // Eliminar
-    document.querySelectorAll('.form-delete').forEach(form => {
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        const name = this.dataset.name || 'este tipo de tour';
-        Swal.fire({
-          title: '¿Eliminar?',
-          text: `Se eliminará "${name}". Esta acción no se puede deshacer.`,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#dc3545',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: 'Sí, eliminar',
-          cancelButtonText: 'Cancelar'
-        }).then(res => {
-          if (res.isConfirmed) this.submit();
-        });
-      });
-    });
-
-    // Toggle activar/desactivar (SweetAlert)
-    document.querySelectorAll('.form-toggle').forEach(form => {
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        const name   = this.dataset.name || 'este tipo de tour';
-        const active = Number(this.dataset.active) === 1;
-
-        const actionText = active ? 'desactivarlo' : 'activarlo';
-        const title      = active ? 'Desactivar' : 'Activar';
-        const color      = '#fd7e14'; // naranja
-
-        Swal.fire({
-          icon: 'question',
-          title: title,
-          text: `¿Seguro que deseas ${actionText} "${name}"?`,
-          showCancelButton: true,
-          confirmButtonColor: color,
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: active ? 'Sí, desactivar' : 'Sí, activar',
-          cancelButtonText: 'Cancelar'
-        }).then(res => {
-          if (res.isConfirmed) this.submit();
-        });
-      });
-    });
+  Swal.fire({
+    icon: 'success',
+    title: @json(__(session('success'))),
+    showConfirmButton: false,
+    timer: 2000
   });
 </script>
+@endif
 
-@if ($errors->any())
+@if(session('error'))
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const firstError = @json($errors->first());
-        Swal.fire({
-            icon: 'error',
-            title: 'Validación',
-            text: firstError || 'Revisa los campos del formulario.',
-            confirmButtonColor: '#d33'
-        });
-
-        @if (session('edit_modal'))
-            const modalId = 'modalEditar{{ session('edit_modal') }}';
-        @else
-            const modalId = 'modalRegistrar';
-        @endif
-
-        const modalEl = document.getElementById(modalId);
-        if (modalEl) {
-            const modal = new bootstrap.Modal(modalEl);
-            modal.show();
-        }
-    });
+  Swal.fire({
+    icon: 'error',
+    title: @json(__('tourtypes.error_title')),
+    text: @json(__(session('error')))
+  });
 </script>
 @endif
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Tooltips si el layout trae Bootstrap
+  if (window.bootstrap && bootstrap.Tooltip) {
+    [...document.querySelectorAll('[data-bs-toggle="tooltip"]')].forEach(el => new bootstrap.Tooltip(el));
+  }
+
+  // Eliminar backdrops sobrantes
+  document.addEventListener('hidden.bs.modal', () => {
+    const backs = document.querySelectorAll('.modal-backdrop');
+    if (backs.length > 1) backs.forEach((b,i) => { if (i < backs.length-1) b.remove(); });
+  });
+
+  // Confirmación ELIMINAR
+  document.querySelectorAll('.js-confirm-delete').forEach(form => {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const name = this.dataset.name || '';
+      const tmpl = @json(__('tourtypes.confirm_delete', ['name' => ':name']));
+      const text = tmpl.replace(':name', name);
+
+      Swal.fire({
+        title: @json(__('tourtypes.delete')),
+        text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: @json(__('tourtypes.delete')),
+        cancelButtonText: @json(__('tourtypes.cancel'))
+      }).then(res => { if (res.isConfirmed) this.submit(); });
+    });
+  });
+
+  // Confirmación ACTIVAR / DESACTIVAR
+  document.querySelectorAll('.js-confirm-toggle').forEach(form => {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const name   = this.dataset.name || '';
+      const active = Number(this.dataset.active) === 1;
+
+      const title = active ? @json(__('tourtypes.deactivate')) : @json(__('tourtypes.activate'));
+      const tmpl  = active
+          ? @json(__('tourtypes.confirm_deactivate', ['name' => ':name']))
+          : @json(__('tourtypes.confirm_activate',   ['name' => ':name']));
+      const text  = tmpl.replace(':name', name);
+
+      Swal.fire({
+        icon: 'question',
+        title,
+        text,
+        showCancelButton: true,
+        confirmButtonColor: '#fd7e14',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: active ? @json(__('tourtypes.deactivate')) : @json(__('tourtypes.activate')),
+        cancelButtonText: @json(__('tourtypes.cancel'))
+      }).then(res => { if (res.isConfirmed) this.submit(); });
+    });
+  });
+
+  // Errores de validación => abrir modal correcto
+  @if ($errors->any())
+    const firstError = @json($errors->first());
+    Swal.fire({
+      icon: 'warning',
+      title: @json(__('tourtypes.validation_errors')),
+      text: firstError || '',
+      confirmButtonColor: '#d33'
+    });
+
+    @if (session('edit_modal'))
+      const modalId = 'modalEditar{{ session('edit_modal') }}';
+    @else
+      const modalId = 'modalRegistrar';
+    @endif
+
+    const modalEl = document.getElementById(modalId);
+    if (modalEl && window.bootstrap) {
+      bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+  @endif
+});
+</script>
 @stop

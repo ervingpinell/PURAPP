@@ -16,14 +16,6 @@
     --sticky-offset: 64px;
   }
 
-  .gv-toast-mark .swal2-title{
-  color:#000000 !important;   /* ← tu color */
-  font-weight:600;
-}
-.gv-toast-mark .swal2-timer-progress-bar{
-  background:#5b4fff !important;
-}
-
   .al-title{ color:#fff; padding:.55rem var(--pad-x); border-radius:.25rem; }
   .al-day-header{ display:flex; align-items:center; gap:var(--gap); border:1px solid var(--title-separator); }
   .al-block-title{
@@ -198,6 +190,9 @@ const toast = Swal.mixin({
   showConfirmButton: false,
   timer: 1600,
   timerProgressBar: true
+    customClass: {
+    popup: 'my-toast'
+  }
 });
 
 /* Sticky offset (header AdminLTE + título de página) */

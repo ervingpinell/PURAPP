@@ -31,9 +31,9 @@ class PolicySectionController extends Controller
     /** Crear sección + traducciones (translateAll) */
     public function store(Request $request, Policy $policy, TranslatorInterface $translator)
     {
-        // Reglas y mensajes claros
+        // Validaciones (se mantienen tal cual)
         $rules = [
-            'name'       => ['required', 'string', 'max:255'], // nombre base en cualquier idioma
+            'name'       => ['required', 'string', 'max:255'],
             'content'    => ['required', 'string'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active'  => ['nullable', 'in:0,1'],
@@ -95,7 +95,7 @@ class PolicySectionController extends Controller
 
             return redirect()
                 ->route('admin.policies.sections.index', $policy)
-                ->with('success', __('adminlte::adminlte.saved_successfully') ?? 'Sección creada correctamente.');
+                ->with('success', 'policies.section_created');
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'policy_section', null, $e, [
                 'policy_id' => $policy->policy_id,
@@ -104,13 +104,14 @@ class PolicySectionController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo crear la sección.');
+                ->with('error', 'policies.unexpected_error');
         }
     }
 
     /** Actualizar solo base (name/sort_order/is_active). No retraduce. */
     public function update(Request $request, Policy $policy, PolicySection $section)
     {
+        // Validaciones (se mantienen tal cual)
         $rules = [
             'name'       => ['nullable', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
@@ -152,7 +153,7 @@ class PolicySectionController extends Controller
 
             return redirect()
                 ->route('admin.policies.sections.index', $policy)
-                ->with('success', __('adminlte::adminlte.updated_successfully') ?? 'Sección actualizada correctamente.');
+                ->with('success', 'policies.section_updated');
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'update', 'policy_section', $section->section_id, $e, [
                 'policy_id' => $policy->policy_id,
@@ -160,7 +161,7 @@ class PolicySectionController extends Controller
             ]);
 
             return back()
-                ->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo actualizar la sección.');
+                ->with('error', 'policies.unexpected_error');
         }
     }
 
@@ -177,11 +178,11 @@ class PolicySectionController extends Controller
                 'user_id'   => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            $feedbackMessage = $section->is_active
-                ? __('policies.activated_successfully')   ?? 'Sección activada.'
-                : __('policies.deactivated_successfully') ?? 'Sección desactivada.';
+            $feedbackKey = $section->is_active
+                ? 'policies.section_activated'
+                : 'policies.section_deactivated';
 
-            return back()->with('success', $feedbackMessage);
+            return back()->with('success', $feedbackKey);
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'toggle', 'policy_section', $section->section_id, $e, [
                 'policy_id' => $policy->policy_id,
@@ -189,11 +190,11 @@ class PolicySectionController extends Controller
             ]);
 
             return back()
-                ->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo cambiar el estado de la sección.');
+                ->with('error', 'policies.unexpected_error');
         }
     }
 
-    /** Borrar (o marcar inactiva, según tu flujo) */
+    /** Borrar sección */
     public function destroy(Request $request, Policy $policy, PolicySection $section)
     {
         try {
@@ -205,14 +206,15 @@ class PolicySectionController extends Controller
                 'user_id'   => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('success', __('adminlte::adminlte.deleted_successfully') ?? 'Sección eliminada.');
+            return back()->with('success', 'policies.section_deleted');
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy', 'policy_section', $section->section_id ?? null, $e, [
                 'policy_id' => $policy->policy_id,
                 'user_id'   => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo eliminar la sección.');
+            return back()
+                ->with('error', 'policies.unexpected_error');
         }
     }
 

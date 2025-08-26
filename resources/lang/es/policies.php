@@ -58,14 +58,14 @@ return [
     'no_cancellation_policy'  => 'No hay una política de cancelación configurada.',
     'no_refund_policy'        => 'No hay una política de reembolsos configurada.',
 
-    // Mensajes
+    // Mensajes (categorías)
     'category_created'        => 'Categoría creada con éxito.',
     'category_updated'        => 'Categoría actualizada con éxito.',
     'category_activated'      => 'Categoría activada con éxito.',
     'category_deactivated'    => 'Categoría desactivada con éxito.',
     'category_deleted'        => 'Categoría eliminada con éxito.',
 
-    // --- NUEVAS CLAVES (refactor) ---
+    // --- NUEVAS CLAVES (refactor / utilidades de módulo) ---
     'untitled'                => 'Sin título',
     'no_content'              => 'Sin contenido disponible.',
     'display_name'            => 'Nombre visible',
@@ -75,11 +75,42 @@ return [
     'translation_content'     => 'Contenido traducido',
     'locale'                  => 'Idioma',
     'save'                    => 'Guardar',
-    'confirm_delete'          => '¿Seguro que deseas eliminar esta sección?',
-    'bulk_edit_sections'      => 'Edición rápida de secciones',
     'name_base_label'         => 'Nombre base',
     'translation_name'        => 'Nombre traducido',
     'lang_autodetect_hint'    => 'Puedes escribir en cualquier idioma; se detecta automáticamente.',
-    'bulk_edit_hint'           => 'Las modificaciones en todas las secciones se guardarán junto con la traducción de la categoría cuando hagas clic en “Guardar”.',
+    'bulk_edit_sections'      => 'Edición rápida de secciones',
+    'bulk_edit_hint'          => 'Las modificaciones en todas las secciones se guardarán junto con la traducción de la categoría cuando hagas clic en “Guardar”.',
+    'no_changes_made'         => 'No se han realizado cambios.',
+    'no_sections_found'       => 'No se han encontrado secciones.',
 
+    // Mensajes (secciones)
+    'section_created'         => 'Sección creada con éxito.',
+    'section_updated'         => 'Sección actualizada con éxito.',
+    'section_activated'       => 'Sección activada con éxito.',
+    'section_deactivated'     => 'Sección desactivada con éxito.',
+    'section_deleted'         => 'Sección eliminada con éxito.',
+
+    // Mensajes genéricos del módulo (para controladores/alerts)
+    'created_success'         => 'Creado correctamente.',
+    'updated_success'         => 'Actualizado correctamente.',
+    'deleted_success'         => 'Eliminado correctamente.',
+    'activated_success'       => 'Activado correctamente.',
+    'deactivated_success'     => 'Desactivado correctamente.',
+    'unexpected_error'        => 'Ha ocurrido un error inesperado.',
+
+    // Botones / textos comunes para SweetAlert (módulo)
+    'create'                  => 'Crear',
+    'activate'                => 'Activar',
+    'deactivate'              => 'Desactivar',
+    'cancel'                  => 'Cancelar',
+    'ok'                      => 'Aceptar',
+    'validation_errors'       => 'Hay errores de validación',
+    'error_title'             => 'Error',
+
+    // Confirmaciones específicas de secciones (SweetAlert)
+    'confirm_create_section'      => '¿Crear esta sección?',
+    'confirm_edit_section'        => '¿Guardar cambios de la sección?',
+    'confirm_delete_section'      => '¿Seguro que deseas eliminar esta sección?',
+    'confirm_deactivate_section'  => '¿Seguro que deseas desactivar esta sección?',
+    'confirm_activate_section'    => '¿Seguro que deseas activar esta sección?',
 ];

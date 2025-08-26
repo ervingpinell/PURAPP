@@ -37,7 +37,7 @@ return [
     'close'                   => 'Schließen',
 
     // Abschnitte
-    'back_to_categories'      => 'Zurück zu Kategorien',
+    'back_to_categories'      => 'Zurück zu den Kategorien',
     'new_section'             => 'Neuer Abschnitt',
     'key'                     => 'Schlüssel',
     'order'                   => 'Reihenfolge',
@@ -54,18 +54,18 @@ return [
     'no_policies'             => 'Derzeit sind keine Richtlinien verfügbar.',
     'section'                 => 'Abschnitt',
     'cancellation_policy'     => 'Stornierungsrichtlinie',
-    'refund_policy'           => 'Rückerstattungsrichtlinie',
+    'refund_policy'           => 'Erstattungsrichtlinie',
     'no_cancellation_policy'  => 'Keine Stornierungsrichtlinie konfiguriert.',
-    'no_refund_policy'        => 'Keine Rückerstattungsrichtlinie konfiguriert.',
+    'no_refund_policy'        => 'Keine Erstattungsrichtlinie konfiguriert.',
 
-    // Meldungen
+    // Meldungen (Kategorien)
     'category_created'        => 'Kategorie erfolgreich erstellt.',
     'category_updated'        => 'Kategorie erfolgreich aktualisiert.',
     'category_activated'      => 'Kategorie erfolgreich aktiviert.',
     'category_deactivated'    => 'Kategorie erfolgreich deaktiviert.',
     'category_deleted'        => 'Kategorie erfolgreich gelöscht.',
 
-    // --- NEUE SCHLÜSSEL (Refactor) ---
+    // --- NEUE SCHLÜSSEL (Refactor / Modul) ---
     'untitled'                => 'Ohne Titel',
     'no_content'              => 'Kein Inhalt verfügbar.',
     'display_name'            => 'Anzeigename',
@@ -75,11 +75,42 @@ return [
     'translation_content'     => 'Übersetzter Inhalt',
     'locale'                  => 'Sprache',
     'save'                    => 'Speichern',
-    'confirm_delete'          => 'Möchten Sie diesen Abschnitt wirklich löschen?',
-    'bulk_edit_sections'      => 'Sammelbearbeitung der Abschnitte',
     'name_base_label'         => 'Basisname',
     'translation_name'        => 'Übersetzter Name',
-    'lang_autodetect_hint'    => 'Sie können in jeder Sprache schreiben; es wird automatisch erkannt.',
-    'bulk_edit_hint'           => 'Änderungen an allen Abschnitten werden zusammen mit der Übersetzung der Kategorie gespeichert, wenn Sie auf „Speichern“ klicken.',
+    'lang_autodetect_hint'    => 'Sie können in jeder Sprache schreiben; sie wird automatisch erkannt.',
+    'bulk_edit_sections'      => 'Schnellbearbeitung von Abschnitten',
+    'bulk_edit_hint'          => 'Änderungen an allen Abschnitten werden zusammen mit der Übersetzung der Kategorie gespeichert, wenn Sie auf „Speichern“ klicken.',
+    'no_changes_made'         => 'Keine Änderungen vorgenommen.',
+    'no_sections_found'       => 'Keine Abschnitte gefunden.',
 
+    // Meldungen (Abschnitte)
+    'section_created'         => 'Abschnitt erfolgreich erstellt.',
+    'section_updated'         => 'Abschnitt erfolgreich aktualisiert.',
+    'section_activated'       => 'Abschnitt erfolgreich aktiviert.',
+    'section_deactivated'     => 'Abschnitt erfolgreich deaktiviert.',
+    'section_deleted'         => 'Abschnitt erfolgreich gelöscht.',
+
+    // Generische Modulmeldungen
+    'created_success'         => 'Erfolgreich erstellt.',
+    'updated_success'         => 'Erfolgreich aktualisiert.',
+    'deleted_success'         => 'Erfolgreich gelöscht.',
+    'activated_success'       => 'Erfolgreich aktiviert.',
+    'deactivated_success'     => 'Erfolgreich deaktiviert.',
+    'unexpected_error'        => 'Es ist ein unerwarteter Fehler aufgetreten.',
+
+    // Buttons / allgemeine Texte (SweetAlert)
+    'create'                  => 'Erstellen',
+    'activate'                => 'Aktivieren',
+    'deactivate'              => 'Deaktivieren',
+    'cancel'                  => 'Abbrechen',
+    'ok'                      => 'OK',
+    'validation_errors'       => 'Es liegen Validierungsfehler vor',
+    'error_title'             => 'Fehler',
+
+    // Abschnitts-spezifische Bestätigungen
+    'confirm_create_section'      => 'Diesen Abschnitt erstellen?',
+    'confirm_edit_section'        => 'Änderungen am Abschnitt speichern?',
+    'confirm_delete_section'      => 'Möchten Sie diesen Abschnitt wirklich löschen?',
+    'confirm_deactivate_section'  => 'Möchten Sie diesen Abschnitt wirklich deaktivieren?',
+    'confirm_activate_section'    => 'Möchten Sie diesen Abschnitt wirklich aktivieren?',
 ];

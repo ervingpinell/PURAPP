@@ -111,7 +111,7 @@ class PolicyController extends Controller
 
             return redirect()
                 ->route('admin.policies.index')
-                ->with('success', __('adminlte::adminlte.saved_successfully') ?? 'Policy created successfully.');
+                ->with('success', 'policies.category_created');
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'policy', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -119,7 +119,7 @@ class PolicyController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo crear la política.');
+                ->with('error', 'policies.unexpected_error');
         }
     }
 
@@ -168,12 +168,12 @@ class PolicyController extends Controller
                 'user_id'   => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('success', __('adminlte::adminlte.updated_successfully') ?? 'Policy updated successfully.');
+            return back()->with('success', 'policies.category_updated');
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'update', 'policy', $policy->policy_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo actualizar la política.');
+            return back()->with('error', 'policies.unexpected_error');
         }
     }
 
@@ -189,12 +189,12 @@ class PolicyController extends Controller
 
             return redirect()
                 ->route('admin.policies.index')
-                ->with('success', __('adminlte::adminlte.deleted_successfully') ?? 'Policy deleted.');
+                ->with('success', 'policies.category_deleted');
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy', 'policy', $policy->policy_id ?? null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo eliminar la política.');
+            return back()->with('error', 'policies.unexpected_error');
         }
     }
 
@@ -209,16 +209,16 @@ class PolicyController extends Controller
                 'user_id'   => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            $feedbackMessage = $policy->is_active
-                ? __('policies.activated_successfully')   ?? 'Policy activated.'
-                : __('policies.deactivated_successfully') ?? 'Policy deactivated.';
+            $feedbackKey = $policy->is_active
+                ? 'policies.category_activated'
+                : 'policies.category_deactivated';
 
-            return back()->with('success', $feedbackMessage);
+            return back()->with('success', $feedbackKey);
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'toggle', 'policy', $policy->policy_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', __('adminlte::adminlte.unexpected_error') ?? 'No se pudo cambiar el estado.');
+            return back()->with('error', 'policies.unexpected_error');
         }
     }
 }
