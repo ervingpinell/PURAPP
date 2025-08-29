@@ -39,7 +39,7 @@ class TourTypeController extends Controller
 
             return redirect()
                 ->route('admin.tourtypes.index')
-                ->with('success', 'tourtypes.created_success');
+                ->with('success', 'm_config.tourtypes.created_success');
 
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'tour_type', null, $e, [
@@ -47,7 +47,7 @@ class TourTypeController extends Controller
             ]);
 
             return back()
-                ->with('error', 'tourtypes.unexpected_error')
+                ->with('error', 'm_config.tourtypes.unexpected_error')
                 ->withInput();
         }
     }
@@ -69,7 +69,7 @@ class TourTypeController extends Controller
 
             return redirect()
                 ->route('admin.tourtypes.index')
-                ->with('success', 'tourtypes.updated_success');
+                ->with('success', 'm_config.tourtypes.updated_success');
 
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'update', 'tour_type', $tourType->getKey(), $e, [
@@ -77,7 +77,7 @@ class TourTypeController extends Controller
             ]);
 
             return back()
-                ->with('error', 'tourtypes.unexpected_error')
+                ->with('error', 'm_config.tourtypes.unexpected_error')
                 ->withInput()
                 ->with('edit_modal', $tourType->getKey());
         }
@@ -94,7 +94,9 @@ class TourTypeController extends Controller
                 'user_id'   => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            $key = $tourType->is_active ? 'tourtypes.activated_success' : 'tourtypes.deactivated_success';
+            $key = $tourType->is_active
+                ? 'm_config.tourtypes.activated_success'
+                : 'm_config.tourtypes.deactivated_success';
 
             return redirect()
                 ->route('admin.tourtypes.index')
@@ -105,7 +107,7 @@ class TourTypeController extends Controller
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', 'tourtypes.unexpected_error');
+            return back()->with('error', 'm_config.tourtypes.unexpected_error');
         }
     }
 
@@ -120,13 +122,13 @@ class TourTypeController extends Controller
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('success', 'tourtypes.deleted_success');
+            return back()->with('success', 'm_config.tourtypes.deleted_success');
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy', 'tour_type', $id, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', 'tourtypes.in_use_error');
+            return back()->with('error', 'm_config.tourtypes.in_use_error');
         }
     }
 }

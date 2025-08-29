@@ -128,7 +128,7 @@ Route::get('/email/verify', [VerifyEmailController::class, 'notice'])
     ->middleware('auth')
     ->name('verification.notice');
 
-Route::get('/email/verify/{id}/{hash}', [\App\Http\Controllers\Auth\VerifyEmailController::class, 'verify'])
+Route::get('/email/verify/{id}/{hash}', [VerifyEmailController::class, 'verify'])
     ->middleware(['signed', 'throttle:6,1'])
     ->name('verification.verify');
 
@@ -254,6 +254,8 @@ Route::post('/email/verification-notification', [VerifyEmailController::class, '
             Route::resource('itinerary', ItineraryController::class)->except(['show']);
             Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');
             Route::resource('itinerary_items', ItineraryItemController::class)->except(['show', 'create', 'edit']);
+            Route::patch('itinerary_items/{itinerary_item}/toggle', [ItineraryItemController::class, 'toggle'])
+            ->name('itinerary_items.toggle');
 
             Route::resource('availability', TourAvailabilityController::class)->except(['show']);
 

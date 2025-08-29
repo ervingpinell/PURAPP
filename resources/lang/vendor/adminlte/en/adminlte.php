@@ -66,7 +66,7 @@ return [
     'terms_and_conditions' => 'Terms and Conditions',
     'cancellation_and_refunds_policies' => 'Cancellation and Refund Policies',
     'reports' => 'Reports',
-    'footer_text'=> 'Green Vacations',
+    'footer_text'=> 'Green Vacations CR',
     'quick_links'=> 'Quick Links',
     'rights_reserved' => 'All rights reserved',
 

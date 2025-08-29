@@ -222,7 +222,7 @@ class HomeController extends Controller
         ];
 
         $mapLang     = $localeMap[app()->getLocale()] ?? 'en';
-        $placeName   = 'Agencia de Viajes Green Vacation';
+        $placeName   = 'Agencia de Viajes Green Vacations CR';
         $placeAddr   = 'La Fortuna, San Carlos, Costa Rica';
         $centerLat   = 10.4556623;
         $centerLng   = -84.6532029;

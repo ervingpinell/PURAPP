@@ -215,7 +215,7 @@ return [
     'close' => 'Schließen',
 
     // ─── FOOTER ──────────────────────────────────────
-    'contact_us' => 'Kontaktiere uns',
+    'contact_us' => 'Kontaktiere Uns',
     'location' => 'San José, Costa Rica',
     'rights_reserved' => 'Alle Rechte vorbehalten',
 

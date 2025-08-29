@@ -1,10 +1,10 @@
 @extends('adminlte::page')
 
-@section('title', __('policies.categories_title'))
+@section('title', __('m_config.policies.categories_title'))
 
 @section('content_header')
   <h1 class="mb-2">
-    <i class="fas fa-shield-alt"></i> {{ __('policies.categories_title') }}
+    <i class="fas fa-shield-alt"></i> {{ __('m_config.policies.categories_title') }}
   </h1>
 @stop
 
@@ -26,7 +26,7 @@
 
   <div class="mb-3">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createPolicyModal">
-      <i class="fas fa-plus"></i> {{ __('policies.new_category') }}
+      <i class="fas fa-plus"></i> {{ __('m_config.policies.new_category') }}
     </button>
   </div>
 
@@ -36,12 +36,12 @@
         <table class="table table-hover mb-0 align-middle">
           <thead class="table-dark">
             <tr class="text-center">
-              <th>{{ __('policies.id') }}</th>
-              <th class="text-center">{{ __('policies.title_current_locale') }}</th>
-              <th>{{ __('policies.validity_range') }}</th>
-              <th>{{ __('policies.status') }}</th>
-              <th>{{ __('policies.sections') }}</th>
-              <th>{{ __('policies.actions') }}</th>
+              <th>{{ __('m_config.policies.id') }}</th>
+              <th class="text-center">{{ __('m_config.policies.title_current_locale') }}</th>
+              <th>{{ __('m_config.policies.validity_range') }}</th>
+              <th>{{ __('m_config.policies.status') }}</th>
+              <th>{{ __('m_config.policies.sections') }}</th>
+              <th>{{ __('m_config.policies.actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -65,7 +65,7 @@
                 <td>
                   <span class="badge {{ $p->is_active ? 'bg-success' : 'bg-secondary' }}">
                     <i class="fas {{ $p->is_active ? 'fa-check-circle' : 'fa-times-circle' }}"></i>
-                    {{ $p->is_active ? __('policies.active') : __('policies.inactive') }}
+                    {{ $p->is_active ? __('m_config.policies.active') : __('m_config.policies.inactive') }}
                   </span>
                 </td>
                 <td>{{ $p->sections_count ?? $p->sections()->count() }}</td>
@@ -73,14 +73,14 @@
                   <div class="actions text-center my-1">
                     <a class="btn btn-info btn-sm me-1"
                        href="{{ route('admin.policies.sections.index', $p) }}"
-                       title="{{ __('policies.view_sections') }}" data-bs-toggle="tooltip">
+                       title="{{ __('m_config.policies.view_sections') }}" data-bs-toggle="tooltip">
                       <i class="fas fa-eye"></i>
                     </a>
 
                     <button class="btn btn-edit btn-sm me-1"
                             data-bs-toggle="modal"
                             data-bs-target="#editPolicyModal-{{ $p->policy_id }}"
-                            title="{{ __('policies.edit') }}" data-bs-toggle="tooltip">
+                            title="{{ __('m_config.policies.edit') }}">
                       <i class="fas fa-edit"></i>
                     </button>
 
@@ -91,7 +91,7 @@
                           data-active="{{ $p->is_active ? 1 : 0 }}">
                       @csrf
                       <button class="btn {{ $p->is_active ? 'btn-toggle' : 'btn-secondary' }} btn-sm"
-                              title="{{ $p->is_active ? __('policies.deactivate_category') : __('policies.activate_category') }}"
+                              title="{{ $p->is_active ? __('m_config.policies.deactivate_category') : __('m_config.policies.activate_category') }}"
                               data-bs-toggle="tooltip">
                         <i class="fas {{ $p->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                       </button>
@@ -101,10 +101,10 @@
                     <form class="d-inline js-confirm-delete"
                           method="POST"
                           action="{{ route('admin.policies.destroy', $p) }}"
-                          data-message="{{ __('policies.delete_category_confirm') }}">
+                          data-message="{{ __('m_config.policies.delete_category_confirm') }}">
                       @csrf @method('DELETE')
                       <button class="btn btn-delete btn-sm"
-                              title="{{ __('policies.delete') }}" data-bs-toggle="tooltip">
+                              title="{{ __('m_config.policies.delete') }}" data-bs-toggle="tooltip">
                         <i class="fas fa-trash"></i>
                       </button>
                     </form>
@@ -112,7 +112,7 @@
                 </td>
               </tr>
             @empty
-              <tr><td colspan="6" class="text-center text-muted p-4">{{ __('policies.no_categories') }}</td></tr>
+              <tr><td colspan="6" class="text-center text-muted p-4">{{ __('m_config.policies.no_categories') }}</td></tr>
             @endforelse
           </tbody>
         </table>
@@ -126,17 +126,17 @@
       <form class="modal-content" method="POST" action="{{ route('admin.policies.store') }}">
         @csrf
         <div class="modal-header">
-          <h5 class="modal-title">{{ __('policies.new_category') }}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('policies.close') }}"></button>
+          <h5 class="modal-title">{{ __('m_config.policies.new_category') }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_config.policies.close') }}"></button>
         </div>
         <div class="modal-body">
           <div class="row g-3">
             <div class="col-md-3">
-              <label class="form-label">{{ __('policies.valid_from') }}</label>
+              <label class="form-label">{{ __('m_config.policies.valid_from') }}</label>
               <input type="date" name="effective_from" class="form-control" value="{{ now()->toDateString() }}">
             </div>
             <div class="col-md-3">
-              <label class="form-label">{{ __('policies.valid_to') }}</label>
+              <label class="form-label">{{ __('m_config.policies.valid_to') }}</label>
               <input type="date" name="effective_to" class="form-control">
             </div>
             <div class="col-md-3 d-flex align-items-end">
@@ -144,7 +144,7 @@
                 <input type="hidden" name="is_active" value="0">
                 <input type="checkbox" name="is_active" value="1"
                        class="form-check-input" id="p-active-new" checked>
-                <label class="form-check-label" for="p-active-new">{{ __('policies.active') }}</label>
+                <label class="form-check-label" for="p-active-new">{{ __('m_config.policies.active') }}</label>
               </div>
             </div>
           </div>
@@ -152,18 +152,18 @@
           <hr>
 
           <div class="mb-3">
-            <label class="form-label">{{ __('policies.name') }}</label>
+            <label class="form-label">{{ __('m_config.policies.name') }}</label>
             <input type="text" name="name" class="form-control" required>
-            <small class="text-muted">{{ __('policies.lang_autodetect_hint') }}</small>
+            <small class="text-muted">{{ __('m_config.policies.lang_autodetect_hint') }}</small>
           </div>
           <div class="mb-3">
-            <label class="form-label">{{ __('policies.description_label') }}</label>
+            <label class="form-label">{{ __('m_config.policies.description_label') }}</label>
             <textarea name="content" class="form-control" rows="8" required></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-primary"><i class="fas fa-save"></i> {{ __('policies.register') }}</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('policies.close') }}</button>
+          <button class="btn btn-primary"><i class="fas fa-save"></i> {{ __('m_config.policies.register') }}</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_config.policies.close') }}</button>
         </div>
       </form>
     </div>
@@ -180,17 +180,17 @@
         <form class="modal-content" method="POST" action="{{ route('admin.policies.update', $p) }}">
           @csrf @method('PUT')
           <div class="modal-header">
-            <h5 class="modal-title">{{ __('policies.edit_category') }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('policies.close') }}"></button>
+            <h5 class="modal-title">{{ __('m_config.policies.edit_category') }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_config.policies.close') }}"></button>
           </div>
           <div class="modal-body">
             <div class="row g-3">
               <div class="col-md-3">
-                <label class="form-label">{{ __('policies.valid_from') }}</label>
+                <label class="form-label">{{ __('m_config.policies.valid_from') }}</label>
                 <input type="date" name="effective_from" class="form-control" value="{{ $fromVal }}">
               </div>
               <div class="col-md-3">
-                <label class="form-label">{{ __('policies.valid_to') }}</label>
+                <label class="form-label">{{ __('m_config.policies.valid_to') }}</label>
                 <input type="date" name="effective_to" class="form-control" value="{{ $toVal }}">
               </div>
               <div class="col-md-3">
@@ -199,14 +199,14 @@
                   <input type="checkbox" name="is_active" value="1"
                          class="form-check-input"
                          id="p-active-{{ $p->policy_id }}" {{ $p->is_active ? 'checked' : '' }}>
-                  <label class="form-check-label" for="p-active-{{ $p->policy_id }}">{{ __('policies.active') }}</label>
+                  <label class="form-check-label" for="p-active-{{ $p->policy_id }}">{{ __('m_config.policies.active') }}</label>
                 </div>
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-primary"><i class="fas fa-save"></i> {{ __('policies.save_changes') }}</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('policies.close') }}</button>
+            <button class="btn btn-primary"><i class="fas fa-save"></i> {{ __('m_config.policies.save_changes') }}</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_config.policies.close') }}</button>
           </div>
         </form>
       </div>
@@ -218,7 +218,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  {{-- Éxito / Error (traducciones de policies.*) --}}
+  {{-- Éxito / Error (usa claves m_config.policies.* si las mandas como clave en session) --}}
   @if(session('success'))
     <script>
       Swal.fire({
@@ -234,7 +234,7 @@
     <script>
       Swal.fire({
         icon: 'error',
-        title: @json(__('policies.error_title')),
+        title: @json(__('m_config.policies.error_title')),
         text: @json(__(session('error')))
       });
     </script>
@@ -257,9 +257,9 @@
       const list = '<ul class="text-start mb-0">' + valErrors.map(e => `<li>${e}</li>`).join('') + '</ul>';
       Swal.fire({
         icon: 'warning',
-        title: @json(__('policies.validation_errors')),
+        title: @json(__('m_config.policies.validation_errors')),
         html: list,
-        confirmButtonText: @json(__('policies.ok')),
+        confirmButtonText: @json(__('m_config.policies.ok')),
       });
     }
 
@@ -267,15 +267,15 @@
     document.querySelectorAll('.js-confirm-delete').forEach(form => {
       form.addEventListener('submit', (ev) => {
         ev.preventDefault();
-        const msg = form.dataset.message || @json(__('policies.delete_category_confirm'));
+        const msg = form.dataset.message || @json(__('m_config.policies.delete_category_confirm'));
         Swal.fire({
           title: msg,
           icon: 'warning',
           showCancelButton: true,
           confirmButtonColor: '#d33',
           cancelButtonColor: '#6c757d',
-          confirmButtonText: @json(__('policies.delete')),
-          cancelButtonText: @json(__('policies.cancel')),
+          confirmButtonText: @json(__('m_config.policies.delete')),
+          cancelButtonText: @json(__('m_config.policies.cancel')),
         }).then(res => { if (res.isConfirmed) form.submit(); });
       });
     });
@@ -285,15 +285,15 @@
       form.addEventListener('submit', (ev) => {
         ev.preventDefault();
         const isActive = form.dataset.active === '1';
-        const title = isActive ? @json(__('policies.deactivate_category')) : @json(__('policies.activate_category'));
+        const titleVar = isActive ? @json(__('m_config.policies.deactivate_category')) : @json(__('m_config.policies.activate_category'));
         Swal.fire({
-          title: title + '?',
+          title: titleVar + '?',
           icon: 'question',
           showCancelButton: true,
           confirmButtonColor: isActive ? '#d33' : '#28a745',
           cancelButtonColor: '#6c757d',
-          confirmButtonText: title,
-          cancelButtonText: @json(__('policies.cancel')),
+          confirmButtonText: titleVar,
+          cancelButtonText: @json(__('m_config.policies.cancel')),
         }).then(res => { if (res.isConfirmed) form.submit(); });
       });
     });

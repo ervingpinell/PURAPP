@@ -1,26 +1,26 @@
 @extends('adminlte::page')
 
-@section('title', __('tourtypes.title'))
+@section('title', __('m_config.tourtypes.title'))
 
 @section('content_header')
-    <h1><i class="fas fa-map-signs"></i> {{ __('tourtypes.title') }}</h1>
+    <h1><i class="fas fa-map-signs"></i> {{ __('m_config.tourtypes.title') }}</h1>
 @stop
 
 @section('content')
 <div class="p-3 table-responsive">
     <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-        <i class="fas fa-plus"></i> {{ __('tourtypes.new') }}
+        <i class="fas fa-plus"></i> {{ __('m_config.tourtypes.new') }}
     </a>
 
     <table class="table table-bordered table-striped table-hover">
         <thead class="bg-primary text-white">
             <tr>
-                <th>{{ __('tourtypes.id') }}</th>
-                <th>{{ __('tourtypes.name') }}</th>
-                <th>{{ __('tourtypes.description') }}</th>
-                <th>{{ __('tourtypes.duration') }}</th>
-                <th>{{ __('tourtypes.status') }}</th>
-                <th>{{ __('tourtypes.actions') }}</th>
+                <th>{{ __('m_config.tourtypes.id') }}</th>
+                <th>{{ __('m_config.tourtypes.name') }}</th>
+                <th>{{ __('m_config.tourtypes.description') }}</th>
+                <th>{{ __('m_config.tourtypes.duration') }}</th>
+                <th>{{ __('m_config.tourtypes.status') }}</th>
+                <th>{{ __('m_config.tourtypes.actions') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -32,9 +32,9 @@
                 <td>{{ $tourtype->duration }}</td>
                 <td>
                     @if ($tourtype->is_active)
-                        <span class="badge bg-success">{{ __('tourtypes.active') }}</span>
+                        <span class="badge bg-success">{{ __('m_config.tourtypes.active') }}</span>
                     @else
-                        <span class="badge bg-secondary">{{ __('tourtypes.inactive') }}</span>
+                        <span class="badge bg-secondary">{{ __('m_config.tourtypes.inactive') }}</span>
                     @endif
                 </td>
 
@@ -44,7 +44,7 @@
                        class="btn btn-edit btn-sm me-1"
                        data-bs-toggle="modal"
                        data-bs-target="#modalEditar{{ $tourtype->tour_type_id }}"
-                       title="{{ __('tourtypes.edit') }}">
+                       title="{{ __('m_config.tourtypes.edit') }}">
                         <i class="fas fa-edit"></i>
                     </a>
 
@@ -58,7 +58,7 @@
                         @method('PUT')
                         <button type="submit"
                                 class="btn btn-sm {{ $tourtype->is_active ? 'btn-toggle' : 'btn-secondary' }}"
-                                title="{{ $tourtype->is_active ? __('tourtypes.deactivate') : __('tourtypes.activate') }}">
+                                title="{{ $tourtype->is_active ? __('m_config.tourtypes.deactivate') : __('m_config.tourtypes.activate') }}">
                             <i class="fas fa-toggle-{{ $tourtype->is_active ? 'on' : 'off' }}"></i>
                         </button>
                     </form>
@@ -70,7 +70,7 @@
                           data-name="{{ $tourtype->name }}">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-delete btn-sm" title="{{ __('tourtypes.delete') }}">
+                        <button type="submit" class="btn btn-delete btn-sm" title="{{ __('m_config.tourtypes.delete') }}">
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
@@ -85,39 +85,39 @@
                         @method('PUT')
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">{{ __('tourtypes.edit_title') }}</h5>
+                                <h5 class="modal-title">{{ __('m_config.tourtypes.edit_title') }}</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
                                 <div class="mb-3">
-                                    <label>{{ __('tourtypes.name') }}</label>
+                                    <label>{{ __('m_config.tourtypes.name') }}</label>
                                     <input
                                         type="text"
                                         name="name"
                                         class="form-control"
-                                        placeholder="{{ __('tourtypes.examples_placeholder') }}"
+                                        placeholder="{{ __('m_config.tourtypes.examples_placeholder') }}"
                                         value="{{ session('edit_modal') == $tourtype->tour_type_id ? old('name', $tourtype->name) : $tourtype->name }}"
                                         required
                                     >
                                 </div>
                                 <div class="mb-3">
-                                    <label>{{ __('tourtypes.description') }}</label>
+                                    <label>{{ __('m_config.tourtypes.description') }}</label>
                                     <textarea
                                         name="description"
                                         class="form-control"
                                         rows="3"
-                                        placeholder="{{ __('tourtypes.description') }} ({{ __('tourtypes.optional') ?? 'opcional' }})"
+                                        placeholder="{{ __('m_config.tourtypes.description') }} ({{ __('m_config.tourtypes.optional') ?? 'opcional' }})"
                                     >{{ session('edit_modal') == $tourtype->tour_type_id ? old('description', $tourtype->description) : $tourtype->description }}</textarea>
                                 </div>
                                 <div class="mb-3">
-                                    <label>{{ __('tourtypes.duration') }}</label>
+                                    <label>{{ __('m_config.tourtypes.duration') }}</label>
                                     <input
                                         type="text"
                                         name="duration"
                                         class="form-control"
                                         list="durationOptions"
-                                        placeholder="{{ __('tourtypes.duration_placeholder') }}"
-                                        title="{{ __('tourtypes.suggested_duration_hint') }}"
+                                        placeholder="{{ __('m_config.tourtypes.duration_placeholder') }}"
+                                        title="{{ __('m_config.tourtypes.suggested_duration_hint') }}"
                                         value="{{ session('edit_modal') == $tourtype->tour_type_id ? old('duration', $tourtype->duration) : ($tourtype->duration ?: '4 horas') }}"
                                     >
                                     <datalist id="durationOptions">
@@ -126,12 +126,12 @@
                                         <option value="8 horas"></option>
                                         <option value="10 horas"></option>
                                     </datalist>
-                                    <small class="text-muted">{{ __('tourtypes.suggested_duration_hint') }}</small>
+                                    <small class="text-muted">{{ __('m_config.tourtypes.suggested_duration_hint') }}</small>
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="submit" class="btn btn-success">{{ __('tourtypes.update') }}</button>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('tourtypes.cancel') }}</button>
+                                <button type="submit" class="btn btn-success">{{ __('m_config.tourtypes.update') }}</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_config.tourtypes.cancel') }}</button>
                             </div>
                         </div>
                     </form>
@@ -149,39 +149,39 @@
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">{{ __('tourtypes.create_title') }}</h5>
+                    <h5 class="modal-title">{{ __('m_config.tourtypes.create_title') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label>{{ __('tourtypes.name') }}</label>
+                        <label>{{ __('m_config.tourtypes.name') }}</label>
                         <input
                             type="text"
                             name="name"
                             class="form-control"
-                            placeholder="{{ __('tourtypes.examples_placeholder') }}"
+                            placeholder="{{ __('m_config.tourtypes.examples_placeholder') }}"
                             value="{{ old('name') }}"
                             required
                         >
                     </div>
                     <div class="mb-3">
-                        <label>{{ __('tourtypes.description') }}</label>
+                        <label>{{ __('m_config.tourtypes.description') }}</label>
                         <textarea
                             name="description"
                             class="form-control"
                             rows="3"
-                            placeholder="{{ __('tourtypes.description') }} ({{ __('tourtypes.optional') ?? 'opcional' }})"
+                            placeholder="{{ __('m_config.tourtypes.description') }} ({{ __('m_config.tourtypes.optional') ?? 'opcional' }})"
                         >{{ old('description') }}</textarea>
                     </div>
                     <div class="mb-3">
-                        <label>{{ __('tourtypes.duration') }}</label>
+                        <label>{{ __('m_config.tourtypes.duration') }}</label>
                         <input
                             type="text"
                             name="duration"
                             class="form-control"
                             list="durationOptionsCreate"
-                            placeholder="{{ __('tourtypes.duration_placeholder') }}"
-                            title="{{ __('tourtypes.suggested_duration_hint') }}"
+                            placeholder="{{ __('m_config.tourtypes.duration_placeholder') }}"
+                            title="{{ __('m_config.tourtypes.suggested_duration_hint') }}"
                             value="{{ old('duration', '4 horas') }}"
                         >
                         <datalist id="durationOptionsCreate">
@@ -190,12 +190,12 @@
                             <option value="8 horas"></option>
                             <option value="10 horas"></option>
                         </datalist>
-                        <small class="text-muted">{{ __('tourtypes.keep_default_hint') }}</small>
+                        <small class="text-muted">{{ __('m_config.tourtypes.keep_default_hint') }}</small>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-primary">{{ __('tourtypes.register') }}</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('tourtypes.cancel') }}</button>
+                    <button class="btn btn-primary">{{ __('m_config.tourtypes.register') }}</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_config.tourtypes.cancel') }}</button>
                 </div>
             </div>
         </form>
@@ -223,7 +223,7 @@
 <script>
   Swal.fire({
     icon: 'error',
-    title: @json(__('tourtypes.error_title')),
+    title: @json(__('m_config.tourtypes.error_title')),
     text: @json(__(session('error')))
   });
 </script>
@@ -247,18 +247,18 @@ document.addEventListener('DOMContentLoaded', function () {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       const name = this.dataset.name || '';
-      const tmpl = @json(__('tourtypes.confirm_delete', ['name' => ':name']));
+      const tmpl = @json(__('m_config.tourtypes.confirm_delete', ['name' => ':name']));
       const text = tmpl.replace(':name', name);
 
       Swal.fire({
-        title: @json(__('tourtypes.delete')),
+        title: @json(__('m_config.tourtypes.delete')),
         text,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc3545',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: @json(__('tourtypes.delete')),
-        cancelButtonText: @json(__('tourtypes.cancel'))
+        confirmButtonText: @json(__('m_config.tourtypes.delete')),
+        cancelButtonText: @json(__('m_config.tourtypes.cancel'))
       }).then(res => { if (res.isConfirmed) this.submit(); });
     });
   });
@@ -270,10 +270,10 @@ document.addEventListener('DOMContentLoaded', function () {
       const name   = this.dataset.name || '';
       const active = Number(this.dataset.active) === 1;
 
-      const title = active ? @json(__('tourtypes.deactivate')) : @json(__('tourtypes.activate'));
+      const title = active ? @json(__('m_config.tourtypes.deactivate')) : @json(__('m_config.tourtypes.activate'));
       const tmpl  = active
-          ? @json(__('tourtypes.confirm_deactivate', ['name' => ':name']))
-          : @json(__('tourtypes.confirm_activate',   ['name' => ':name']));
+          ? @json(__('m_config.tourtypes.confirm_deactivate', ['name' => ':name']))
+          : @json(__('m_config.tourtypes.confirm_activate',   ['name' => ':name']));
       const text  = tmpl.replace(':name', name);
 
       Swal.fire({
@@ -283,8 +283,8 @@ document.addEventListener('DOMContentLoaded', function () {
         showCancelButton: true,
         confirmButtonColor: '#fd7e14',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: active ? @json(__('tourtypes.deactivate')) : @json(__('tourtypes.activate')),
-        cancelButtonText: @json(__('tourtypes.cancel'))
+        confirmButtonText: active ? @json(__('m_config.tourtypes.deactivate')) : @json(__('m_config.tourtypes.activate')),
+        cancelButtonText: @json(__('m_config.tourtypes.cancel'))
       }).then(res => { if (res.isConfirmed) this.submit(); });
     });
   });
@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const firstError = @json($errors->first());
     Swal.fire({
       icon: 'warning',
-      title: @json(__('tourtypes.validation_errors')),
+      title: @json(__('m_config.tourtypes.validation_errors')),
       text: firstError || '',
       confirmButtonColor: '#d33'
     });

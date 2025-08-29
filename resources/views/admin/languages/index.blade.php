@@ -1,24 +1,24 @@
 @extends('adminlte::page')
 
-@section('title', 'Idiomas de Tours')
+@section('title', __('m_tours.language.ui.page_title'))
 
 @section('content_header')
-    <h1>Gestión de Idiomas</h1>
+    <h1>{{ __('m_tours.language.ui.page_heading') }}</h1>
 @stop
 
 @section('content')
 <div class="p-3 table-responsive">
     <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-        <i class="fas fa-plus"></i> Añadir Idioma
+        <i class="fas fa-plus"></i> {{ __('m_tours.language.ui.add') }}
     </a>
 
     <table class="table table-bordered table-striped table-hover align-middle">
         <thead class="bg-primary text-white">
             <tr>
-                <th>ID</th>
-                <th>Idioma</th>
-                <th class="text-center">Estado</th>
-                <th class="text-center" style="width:220px;">Acciones</th>
+                <th>{{ __('m_tours.language.ui.table.id') }}</th>
+                <th>{{ __('m_tours.language.ui.table.name') }}</th>
+                <th class="text-center">{{ __('m_tours.language.ui.table.state') }}</th>
+                <th class="text-center" style="width:220px;">{{ __('m_tours.language.ui.table.actions') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -28,16 +28,17 @@
                 <td>{{ $language->name }}</td>
                 <td class="text-center">
                     @if ($language->is_active)
-                        <span class="badge bg-success">Activo</span>
+                        <span class="badge bg-success">{{ __('m_tours.language.status.active') }}</span>
                     @else
-                        <span class="badge bg-secondary">Inactivo</span>
+                        <span class="badge bg-secondary">{{ __('m_tours.language.status.inactive') }}</span>
                     @endif
                 </td>
                 <td class="text-center">
                     {{-- Editar --}}
                     <a href="#" class="btn btn-edit btn-sm"
                        data-bs-toggle="modal"
-                       data-bs-target="#modalEditar{{ $language->tour_language_id }}">
+                       data-bs-target="#modalEditar{{ $language->tour_language_id }}"
+                       title="{{ __('m_tours.language.ui.edit_title') }}">
                         <i class="fas fa-edit"></i>
                     </a>
 
@@ -49,8 +50,9 @@
                           data-active="{{ $language->is_active ? 1 : 0 }}">
                         @csrf
                         @method('PATCH')
-                        <button type="submit" class="btn btn-sm btn-toggle"
-                                title="{{ $language->is_active ? 'Desactivar' : 'Activar' }}">
+                        <button type="submit"
+                                class="btn btn-sm {{ $language->is_active ? 'btn-toggle' : 'btn-secondary' }}"
+                                title="{{ $language->is_active ? __('m_tours.language.ui.toggle_off') : __('m_tours.language.ui.toggle_on') }}">
                             <i class="fas {{ $language->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                         </button>
                     </form>
@@ -63,7 +65,7 @@
                           data-name="{{ $language->name }}">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                        <button type="submit" class="btn btn-sm btn-danger" title="{{ __('m_tours.language.ui.delete_forever') }}">
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
@@ -81,20 +83,20 @@
                         @method('PUT')
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">Editar Idioma</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                <h5 class="modal-title">{{ __('m_tours.language.ui.edit_title') }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_tours.language.ui.close') }}"></button>
                             </div>
                             <div class="modal-body">
                                 <div class="mb-3">
-                                    <label class="form-label">Idioma</label>
+                                    <label class="form-label">{{ __('m_tours.language.fields.name') }}</label>
                                     <input type="text" name="name" class="form-control" value="{{ $language->name }}" required>
                                 </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="submit" class="btn btn-warning">
-                                    <i class="fas fa-save me-1"></i> Actualizar
+                                    <i class="fas fa-save me-1"></i> {{ __('m_tours.language.ui.update') }}
                                 </button>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.language.ui.cancel') }}</button>
                             </div>
                         </div>
                     </form>
@@ -113,20 +115,20 @@
             <input type="hidden" name="_from" value="create">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Registrar Idioma</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <h5 class="modal-title">{{ __('m_tours.language.ui.create_title') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_tours.language.ui.close') }}"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Idioma</label>
+                        <label class="form-label">{{ __('m_tours.language.fields.name') }}</label>
                         <input type="text" name="name" class="form-control" required value="{{ old('name') }}">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-1"></i> Guardar
+                        <i class="fas fa-save me-1"></i> {{ __('m_tours.language.ui.save') }}
                     </button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.language.ui.cancel') }}</button>
                 </div>
             </div>
         </form>
@@ -138,7 +140,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 // ===== Utilidad: spinner + lock (solo botones; NO deshabilita inputs) =====
-function lockAndSubmit(form, loadingText = 'Procesando...') {
+function lockAndSubmit(form, loadingText = @json(__('m_tours.language.ui.processing'))) {
   if (!form.checkValidity()) {
     if (typeof form.reportValidity === 'function') form.reportValidity();
     return;
@@ -169,23 +171,26 @@ function lockAndSubmit(form, loadingText = 'Procesando...') {
 document.querySelectorAll('.form-toggle-language').forEach(form => {
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-    const name = form.getAttribute('data-name') || 'este idioma';
+    const name = form.getAttribute('data-name') || @json(__('m_tours.language.ui.item_this'));
     const isActive = form.getAttribute('data-active') === '1';
 
     Swal.fire({
-      title: isActive ? '¿Desactivar idioma?' : '¿Activar idioma?',
-      html: isActive
-        ? 'El idioma <b>'+name+'</b> quedará <b>inactivo</b>.'
-        : 'El idioma <b>'+name+'</b> quedará <b>activo</b>.',
+      title: isActive ? @json(__('m_tours.language.ui.toggle_confirm_off_title'))
+                      : @json(__('m_tours.language.ui.toggle_confirm_on_title')),
+      html:  (isActive
+              ? @json(__('m_tours.language.ui.toggle_confirm_off_html', ['label' => ':label']))
+              : @json(__('m_tours.language.ui.toggle_confirm_on_html',  ['label' => ':label']))
+            ).replace(':label', name),
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Sí, continuar',
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: @json(__('m_tours.language.ui.yes_continue')),
+      cancelButtonText: @json(__('m_tours.language.ui.cancel')),
       confirmButtonColor: isActive ? '#ffc107' : '#28a745',
       cancelButtonColor: '#6c757d'
     }).then(res => {
       if (res.isConfirmed) {
-        lockAndSubmit(form, isActive ? 'Desactivando...' : 'Activando...');
+        lockAndSubmit(form, isActive ? @json(__('m_tours.language.ui.deactivating'))
+                                     : @json(__('m_tours.language.ui.activating')));
       }
     });
   });
@@ -196,16 +201,16 @@ document.querySelectorAll('.form-edit-language').forEach(form => {
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     Swal.fire({
-      title: '¿Guardar cambios?',
+      title: @json(__('m_tours.language.ui.edit_confirm_title')),
       icon: 'question',
       showCancelButton: true,
-      confirmButtonText: 'Sí, guardar',
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: @json(__('m_tours.language.ui.edit_confirm_button')),
+      cancelButtonText: @json(__('m_tours.language.ui.cancel')),
       confirmButtonColor: '#0d6efd',
       cancelButtonColor: '#6c757d'
     }).then(res => {
       if (res.isConfirmed) {
-        lockAndSubmit(form, 'Guardando...');
+        lockAndSubmit(form, @json(__('m_tours.language.ui.saving')));
       }
     });
   });
@@ -216,19 +221,19 @@ document.querySelectorAll('.form-edit-language').forEach(form => {
 document.querySelectorAll('.form-delete-language').forEach(form => {
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-    const name = form.getAttribute('data-name') || 'este idioma';
+    const name = form.getAttribute('data-name') || @json(__('m_tours.language.ui.item_this'));
     Swal.fire({
-      title: '¿Eliminar definitivamente?',
-      html: 'Se eliminará <b>'+name+'</b> y no podrás deshacerlo.',
+      title: @json(__('m_tours.language.ui.delete_confirm_title')),
+      html:  @json(__('m_tours.language.ui.delete_confirm_html', ['label' => ':label'])).replace(':label', name),
       icon: 'error',
       showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: @json(__('m_tours.language.ui.yes_delete')),
+      cancelButtonText: @json(__('m_tours.language.ui.cancel')),
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }).then(res => {
       if (res.isConfirmed) {
-        lockAndSubmit(form, 'Eliminando...');
+        lockAndSubmit(form, @json(__('m_tours.language.ui.deleting')));
       }
     });
   });
@@ -236,35 +241,29 @@ document.querySelectorAll('.form-delete-language').forEach(form => {
 */
 
 // ===== Flash messages =====
-@if(session('success') && session('alert_type'))
-(function(){
-  let icon = 'success';
-  let title = 'Éxito';
-  let color = '#3085d6';
-  switch ("{{ session('alert_type') }}") {
-    case 'activado':     icon='success'; title='Idioma Activado';     color='#28a745'; break;
-    case 'desactivado':  icon='warning'; title='Idioma Desactivado';  color='#ffc107'; break;
-    case 'actualizado':  icon='info';    title='Idioma Actualizado';  color='#17a2b8'; break;
-    case 'creado':       icon='success'; title='Idioma Registrado';   color='#007bff'; break;
-  }
-  Swal.fire({ icon, title, text: @json(session('success')), confirmButtonColor: color });
-})();
+@if(session('success'))
+  Swal.fire({
+    icon: 'success',
+    title: @json(__('m_tours.common.success_title')),
+    text: @json(session('success')),
+    timer: 2200,
+    showConfirmButton: false
+  });
 @endif
 
-// ===== Errores de validación (crear o editar) =====
 @if ($errors->any())
-Swal.fire({
-  icon: 'error',
-  title: 'No se pudo guardar',
-  html: `<ul style="text-align:left;margin:0;padding-left:18px;">{!! collect($errors->all())->map(fn($e)=>"<li>".e($e)."</li>")->implode('') !!}</ul>`,
-  confirmButtonColor: '#d33'
-}).then(() => {
-  // Si el error fue al crear, abrimos el modal Registrar otra vez
-  @if (old('_from') === 'create')
-    const el = document.getElementById('modalRegistrar');
-    if (el && typeof bootstrap !== 'undefined') new bootstrap.Modal(el).show();
-  @endif
-});
+  Swal.fire({
+    icon: 'error',
+    title: @json(__('m_tours.language.error.save')),
+    html: `<ul style="text-align:left;margin:0;padding-left:18px;">{!! collect($errors->all())->map(fn($e)=>"<li>".e($e)."</li>")->implode('') !!}</ul>`,
+    confirmButtonColor: '#d33'
+  }).then(() => {
+    // Si el error fue al crear, abrimos el modal Registrar otra vez
+    @if (old('_from') === 'create')
+      const el = document.getElementById('modalRegistrar');
+      if (el && typeof bootstrap !== 'undefined') new bootstrap.Modal(el).show();
+    @endif
+  });
 @endif
 </script>
 @stop

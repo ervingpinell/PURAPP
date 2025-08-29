@@ -10,7 +10,7 @@
       $ASSET_ROOT = rtrim(asset(''), '/');
 
       // Título con prefijo fijo "GV | "
-      $pageTitle = $__env->yieldContent('title') ?: 'Green Vacations';
+      $pageTitle = $__env->yieldContent('title') ?: 'Green Vacations CR';
       $fullTitle = 'GV | ' . trim($pageTitle);
   @endphp
   <title>{{ $fullTitle }}</title>

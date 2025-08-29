@@ -15,7 +15,7 @@ return [
     */
 
     'title' => '',
-    'title_prefix' => 'Green Vacations',
+    'title_prefix' => 'Green Vacations CR',
     'title_postfix' => '',
 
     /*
@@ -63,12 +63,12 @@ return [
     |
     */
 
-    'logo' => 'Green Vacations',
+    'logo' => 'Green Vacations CR',
     'logo_img' => 'images\logoCompanyWhite.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xl',
-    'logo_img_alt' => 'Green Vacations',
+    'logo_img_alt' => 'Green Vacations CR',
 
     /*
     |--------------------------------------------------------------------------
@@ -114,7 +114,7 @@ return [
         'mode' => 'fullscreen',
         'img' => [
             'path' => 'images\logoCompanyWhite.png',
-            'alt' => 'Green Vacation Loading',
+            'alt' => 'Green Vacations Loading',
             'effect' => 'animation__shake',
             'width' => 60,
             'height' => 60,

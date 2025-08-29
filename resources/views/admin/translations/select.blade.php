@@ -10,11 +10,10 @@
 @php
   use Illuminate\Support\Str;
 
-  // Caer en un nombre genérico si no viene desde el controlador
-  $label = ($entityLabel ?? ($labelSingular ?? 'elemento'));
+  $labelPlural   = __('m_config.translations.entities.' . $type);
+  $labelSingular = __('m_config.translations.entities_singular.' . $type);
 @endphp
 
-{{-- Fallback sin JS --}}
 <noscript>
   @if (session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
@@ -24,7 +23,7 @@
   @endif
   @if ($errors->any())
     <div class="alert alert-warning">
-      <strong>{{ __('adminlte::adminlte.validation_errors') ?? 'Revisa los campos.' }}</strong>
+      <strong>{{ __('m_config.translations.validation_errors') }}</strong>
       <ul class="mb-0 mt-1">
         @foreach ($errors->all() as $error)
           <li>{{ $error }}</li>
@@ -37,7 +36,7 @@
 <div class="card shadow-sm">
   <div class="card-body">
     @if ($items->isEmpty())
-      <p class="text-muted mb-0">No hay {{ Str::plural($label) }} disponibles para traducir.</p>
+      <p class="text-muted mb-0">{{ __('m_config.translations.no_items', ['entity' => Str::lower($labelPlural)]) }}</p>
     @else
       <ul class="list-group">
         @foreach ($items as $item)
@@ -46,15 +45,15 @@
             $hasId  = !empty($itemId);
 
             $displayText = match($type) {
-              'tours'            => $item->name ?? 'Sin nombre',
-              'itineraries'      => $item->name ?? 'Sin nombre',
-              'itinerary_items'  => $item->title ?? 'Sin título',
-              'amenities'        => $item->name ?? 'Sin nombre',
-              'faqs'             => Str::limit($item->question ?? 'Sin pregunta', 60),
-              // Para políticas mostramos el nombre traducido si existe; si no, el base
-              'policies'         => optional($item->translation())->name ?? ($item->name ?? 'Sin título'),
-              'tour_types'       => $item->name ?? 'Sin nombre',
-              default            => 'Elemento'
+              'tours'            => $item->name ?? '—',
+              'itineraries'      => $item->name ?? '—',
+              'itinerary_items'  => $item->title ?? '—',
+              'amenities'        => $item->name ?? '—',
+              'faqs'             => Str::limit($item->question ?? '—', 60),
+              // Para políticas, usar SIEMPRE el nombre base
+              'policies'         => $item->name ?? '—',
+              'tour_types'       => $item->name ?? '—',
+              default            => '—'
             };
           @endphp
 
@@ -64,10 +63,10 @@
             @if ($hasId)
               <a href="{{ route('admin.translations.locale', ['type' => $type, 'id' => $itemId]) }}"
                  class="btn btn-sm btn-primary">
-                <i class="fas fa-chevron-right"></i> Seleccionar
+                <i class="fas fa-chevron-right"></i> {{ __('m_config.translations.select') }}
               </a>
             @else
-              <span class="badge bg-secondary">ID no disponible</span>
+              <span class="badge bg-secondary">{{ __('m_config.translations.id_unavailable') }}</span>
             @endif
           </li>
         @endforeach
@@ -86,18 +85,18 @@
     const valErrors    = @json($errors->any() ? $errors->all() : []);
 
     if (flashSuccess) {
-      Swal.fire({ icon: 'success', title: flashSuccess, confirmButtonText: 'OK' });
+      Swal.fire({ icon: 'success', title: flashSuccess, confirmButtonText: @json(__('m_config.translations.ok')) });
     }
     if (flashError) {
-      Swal.fire({ icon: 'error', title: flashError, confirmButtonText: 'OK' });
+      Swal.fire({ icon: 'error', title: flashError, confirmButtonText: @json(__('m_config.translations.ok')) });
     }
     if (valErrors && valErrors.length) {
       const list = '<ul class="text-start mb-0">' + valErrors.map(e => `<li>${e}</li>`).join('') + '</ul>';
       Swal.fire({
         icon: 'warning',
-        title: @json(__('adminlte::adminlte.validation_errors') ?? 'Revisa los campos.'),
+        title: @json(__('m_config.translations.validation_errors')),
         html: list,
-        confirmButtonText: 'OK'
+        confirmButtonText: @json(__('m_config.translations.ok')),
       });
     }
   });

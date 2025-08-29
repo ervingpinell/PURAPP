@@ -10,7 +10,7 @@
           {{ __('adminlte::adminlte.dashboard.greeting', ['name' => Auth::user()->full_name]) }}
         </h3>
         <p class="mb-0">
-          {{ __('adminlte::adminlte.dashboard.welcome_to', ['app' => 'Green Vacations']) }}
+          {{ __('adminlte::adminlte.dashboard.welcome_to', ['app' => 'Green Vacations CR']) }}
           {{ __('adminlte::adminlte.dashboard.hint') }}
         </p>
       </div>

@@ -12,9 +12,7 @@ use Illuminate\Support\Str;
 
 class TourImageController extends Controller
 {
-    /**
-     * List images for a tour.
-     */
+    /** List images for a tour. */
     public function index(Tour $tour)
     {
         $tour->load(['images', 'coverImage']);
@@ -23,9 +21,7 @@ class TourImageController extends Controller
         return view('admin.tours.images', compact('tour', 'max'));
     }
 
-    /**
-     * Upload images for a tour (respecting per-tour limit).
-     */
+    /** Upload images for a tour (respecting per-tour limit). */
     public function store(Request $request, Tour $tour)
     {
         $maxSizeKb = (int) config('tours.max_image_kb', 8192); // 8MB default
@@ -43,8 +39,8 @@ class TourImageController extends Controller
         if ($allow <= 0) {
             return back()->with('swal', [
                 'icon'  => 'warning',
-                'title' => __('Limit reached'),
-                'text'  => __('Image limit reached for this tour.'),
+                'title' => __('m_tours.image.limit_reached_title'),
+                'text'  => __('m_tours.image.limit_reached_text'),
             ]);
         }
 
@@ -91,23 +87,21 @@ class TourImageController extends Controller
         }
 
         $msg = $created > 0
-            ? __('Images uploaded successfully.')
-            : __('No images were uploaded.');
+            ? __('m_tours.image.upload_success')
+            : __('m_tours.image.upload_none');
 
         if ($truncated) {
-            $msg .= ' '.__('Some files were skipped due to the per-tour limit.');
+            $msg .= ' '.__('m_tours.image.upload_truncated');
         }
 
         return back()->with('swal', [
             'icon'  => $created > 0 ? 'success' : 'info',
-            'title' => $created > 0 ? __('Done') : __('Notice'),
+            'title' => $created > 0 ? __('m_tours.image.done') : __('m_tours.image.notice'),
             'text'  => $msg,
         ]);
     }
 
-    /**
-     * Update an image (caption only for now).
-     */
+    /** Update an image (caption only for now). */
     public function update(Request $request, Tour $tour, TourImage $img)
     {
         abort_unless($img->tour_id === $tour->tour_id, 404);
@@ -120,21 +114,18 @@ class TourImageController extends Controller
 
         return back()->with('swal', [
             'icon'  => 'success',
-            'title' => __('Saved'),
-            'text'  => __('Caption updated successfully.'),
+            'title' => __('m_tours.image.saved'),
+            'text'  => __('m_tours.image.caption_updated'),
         ]);
     }
 
-    /**
-     * Delete an image. If it was cover, set next image as cover.
-     */
+    /** Delete an image. If it was cover, set next image as cover. */
     public function destroy(Tour $tour, TourImage $img)
     {
         abort_unless($img->tour_id === $tour->tour_id, 404);
 
         $wasCover = (bool) $img->is_cover;
 
-        // Try to delete file; ignore if missing
         if ($img->path && Storage::disk('public')->exists($img->path)) {
             Storage::disk('public')->delete($img->path);
         }
@@ -150,26 +141,24 @@ class TourImageController extends Controller
 
         return back()->with('swal', [
             'icon'  => 'success',
-            'title' => __('Deleted'),
-            'text'  => __('Image removed successfully.'),
+            'title' => __('m_tours.image.deleted'),
+            'text'  => __('m_tours.image.image_removed'),
         ]);
     }
 
-    /**
-     * Reorder images (expects `order` = [imageId1, imageId2, ...]).
-     */
+    /** Reorder images (expects `order` = [imageId1, imageId2, ...]). */
     public function reorder(Request $request, Tour $tour)
     {
         $order = $request->input('order', []);
         if (!is_array($order) || empty($order)) {
-            return $this->reorderResponse($request, false, __('Invalid order payload.'));
+            return $this->reorderResponse($request, false, __('m_tours.image.invalid_order'));
         }
 
         // Only apply to images belonging to this tour
         $validIds = $tour->images()->pluck('id')->all();
         $newOrder = array_values(array_intersect($order, $validIds));
         if (empty($newOrder)) {
-            return $this->reorderResponse($request, false, __('Nothing to reorder.'));
+            return $this->reorderResponse($request, false, __('m_tours.image.nothing_to_reorder'));
         }
 
         DB::transaction(function () use ($newOrder) {
@@ -178,7 +167,7 @@ class TourImageController extends Controller
             }
         });
 
-        return $this->reorderResponse($request, true, __('Order saved.'));
+        return $this->reorderResponse($request, true, __('m_tours.image.order_saved'));
     }
 
     protected function reorderResponse(Request $request, bool $ok, string $message)
@@ -189,14 +178,12 @@ class TourImageController extends Controller
 
         return back()->with('swal', [
             'icon'  => $ok ? 'success' : 'warning',
-            'title' => $ok ? __('Done') : __('Notice'),
+            'title' => $ok ? __('m_tours.image.done') : __('m_tours.image.notice'),
             'text'  => $message,
         ]);
     }
 
-    /**
-     * Set an image as cover.
-     */
+    /** Set an image as cover. */
     public function setCover(Tour $tour, TourImage $img)
     {
         abort_unless($img->tour_id === $tour->tour_id, 404);
@@ -208,14 +195,12 @@ class TourImageController extends Controller
 
         return back()->with('swal', [
             'icon'  => 'success',
-            'title' => __('Cover updated'),
-            'text'  => __('This image is now the cover.'),
+            'title' => __('m_tours.image.cover_updated_title'),
+            'text'  => __('m_tours.image.cover_updated_text'),
         ]);
     }
 
-    /**
-     * Picker: list tours to manage their images.
-     */
+    /** Picker: list tours to manage their images. */
     public function pick(Request $request)
     {
         $q = trim((string) $request->query('q', ''));
@@ -224,7 +209,6 @@ class TourImageController extends Controller
             ->with(['coverImage:id,tour_id,path,is_cover'])
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($qq) use ($q) {
-                    // Postgres case-insensitive
                     $qq->where('name', 'ILIKE', "%{$q}%")
                        ->orWhere('viator_code', 'ILIKE', "%{$q}%");
 
@@ -246,9 +230,7 @@ class TourImageController extends Controller
         return view('admin.tours.images.pick', compact('tours', 'q'));
     }
 
-    /**
-     * Helper: find a "cover-like" image from storage if no DB cover is set.
-     */
+    /** Helper: find a "cover-like" image from storage if no DB cover is set. */
     protected function coverFromStorage(int $tourId): string
     {
         $folder = "tours/{$tourId}/gallery";

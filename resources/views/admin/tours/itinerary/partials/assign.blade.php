@@ -10,12 +10,12 @@
 
         <div class="modal-header flex-wrap">
           <h5 class="modal-title w-100 fw-bold fs-4 mb-2">
-            Asignar ítems a {{ $itinerary->name }}
+            {{ __('m_tours.itinerary.ui.assign_title', ['name' => $itinerary->name]) }}
           </h5>
           <span class="text-warning small ps-4">
-            Arrastre y suelte los items para definir el orden.
+            {{ __('m_tours.itinerary.ui.drag_hint') }}
           </span>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_tours.itinerary.ui.close') }}"></button>
         </div>
 
         <div class="modal-body">
@@ -40,7 +40,8 @@
                     <strong>{{ $item->title }}</strong>
                   </label>
                 </div>
-                <i class="fas fa-arrows-alt handle text-muted"></i>
+                <i class="fas fa-arrows-alt handle text-muted"
+                   title="{{ __('m_tours.itinerary.ui.drag_handle') }}"></i>
               </li>
             @endforeach
           </ul>
@@ -51,8 +52,12 @@
         </div>
 
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Guardar</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">
+            {{ __('m_tours.itinerary.ui.save') }}
+          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            {{ __('m_tours.itinerary.ui.cancel') }}
+          </button>
         </div>
 
       </div>

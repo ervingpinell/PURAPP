@@ -1,71 +1,86 @@
 <hr>
 <div class="d-flex justify-content-between align-items-center mb-2">
-  <h4>Ítems de Itinerario</h4>
+  <h4>{{ __('m_tours.itinerary_item.ui.list_title') }}</h4>
   <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarItem">
-    <i class="fas fa-plus"></i> Añadir Ítem
+    <i class="fas fa-plus"></i> {{ __('m_tours.itinerary_item.ui.add_item') }}
   </a>
 </div>
 
 <div class="table-responsive">
-  <table class="table table-bordered table-striped table-hover">
+  <table class="table table-bordered table-striped table-hover align-middle">
     <thead class="bg-secondary text-white">
       <tr>
         <th>#</th>
-        <th>Título</th>
-        <th>Descripción</th>
-        <th>Estado</th>
-        <th>Acciones</th>
+        <th>{{ __('m_tours.itinerary_item.fields.title') }}</th>
+        <th>{{ __('m_tours.itinerary_item.fields.description') }}</th>
+        <th>{{ __('m_tours.itinerary_item.ui.state') }}</th>
+        <th class="text-nowrap">{{ __('m_tours.itinerary_item.ui.actions') }}</th>
       </tr>
     </thead>
     <tbody>
       @foreach ($items as $item)
+      @php
+        $active  = (bool) $item->is_active;
+        $icon    = $active ? 'fa-toggle-on' : 'fa-toggle-off';
+        $titleTg = $active ? __('m_tours.itinerary_item.ui.toggle_off') : __('m_tours.itinerary_item.ui.toggle_on');
+      @endphp
       <tr>
-        <td>{{ $item->item_id }}</td>
-        <td>{{ $item->title }}</td>
+        <td class="text-nowrap">{{ $item->item_id }}</td>
+        <td class="fw-semibold">{{ $item->title }}</td>
         <td>
           <div class="desc-wrapper">
             <div class="desc-truncate" id="desc-{{ $item->item_id }}">
               {{ $item->description }}
             </div>
-            <button class="btn-toggle-desc" data-target="desc-{{ $item->item_id }}">Ver más</button>
+            <button type="button" class="btn-toggle-desc" data-target="desc-{{ $item->item_id }}">
+              {{ __('m_tours.itinerary_item.ui.see_more') }}
+            </button>
           </div>
         </td>
-        <td>
-          @if ($item->is_active)
-            <span class="badge bg-success">Activo</span>
+        <td class="text-nowrap">
+          @if ($active)
+            <span class="badge bg-success">{{ __('m_tours.itinerary_item.status.active') }}</span>
           @else
-            <span class="badge bg-secondary">Inactivo</span>
+            <span class="badge bg-secondary">{{ __('m_tours.itinerary_item.status.inactive') }}</span>
           @endif
         </td>
-        <td>
+        <td class="text-nowrap">
           {{-- Editar --}}
           <a href="#" class="btn btn-edit btn-sm"
              data-bs-toggle="modal"
-             data-bs-target="#modalEditarItem{{ $item->item_id }}">
+             data-bs-target="#modalEditarItem{{ $item->item_id }}"
+             title="{{ __('m_tours.itinerary_item.ui.edit_item') }}">
             <i class="fas fa-edit"></i>
           </a>
 
-          @php
-            $active  = $item->is_active;
-            $icon    = $active ? 'fa-toggle-on' : 'fa-toggle-off';
-            $title   = $active ? 'Desactivar ítem' : 'Activar ítem';
-          @endphp
+          {{-- Toggle (PATCH) --}}
+          <form action="{{ route('admin.tours.itinerary_items.toggle', $item->item_id) }}"
+                method="POST"
+                class="d-inline">
+            @csrf
+            @method('PATCH')
+            <button type="submit"
+                    class="btn btn-sm {{ $active ? 'btn-toggle' : 'btn-secondary' }}"
+                    title="{{ $titleTg }}">
+              <i class="fas {{ $icon }}"></i>
+            </button>
+          </form>
 
-          {{-- Alternar (tu destroy hace toggle) --}}
+          {{-- Delete (DELETE definitivo) + SweetAlert --}}
           <form action="{{ route('admin.tours.itinerary_items.destroy', $item->item_id) }}"
                 method="POST"
-                class="d-inline form-toggle-item"
-                data-title="ítem">
+                class="d-inline form-delete-item"
+                data-label="{{ $item->title }}">
             @csrf
             @method('DELETE')
-            <button type="submit" class="btn btn-sm btn-toggle" title="{{ $title }}">
-              <i class="fas {{ $icon }}"></i>
+            <button type="submit" class="btn btn-delete btn-sm" title="{{ __('m_tours.itinerary_item.ui.delete_forever') }}">
+              <i class="fas fa-trash"></i>
             </button>
           </form>
         </td>
       </tr>
 
-      <!-- Modal editar ítem -->
+      {{-- Modal editar ítem --}}
       <div class="modal fade" id="modalEditarItem{{ $item->item_id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
           <form action="{{ route('admin.tours.itinerary_items.update', $item->item_id) }}"
@@ -75,22 +90,22 @@
             @method('PUT')
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title">Editar Ítem</h5>
+                <h5 class="modal-title">{{ __('m_tours.itinerary_item.ui.edit_item') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
               </div>
               <div class="modal-body">
                 <div class="mb-3">
-                  <label>Título</label>
+                  <label class="form-label">{{ __('m_tours.itinerary_item.fields.title') }}</label>
                   <input type="text" name="title" class="form-control" value="{{ $item->title }}" required>
                 </div>
                 <div class="mb-3">
-                  <label>Descripción</label>
+                  <label class="form-label">{{ __('m_tours.itinerary_item.fields.description') }}</label>
                   <textarea name="description" class="form-control" required>{{ $item->description }}</textarea>
                 </div>
               </div>
               <div class="modal-footer">
-                <button type="submit" class="btn btn-warning">Actualizar</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-warning">{{ __('m_tours.itinerary_item.ui.update') }}</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.itinerary_item.ui.cancel') }}</button>
               </div>
             </div>
           </form>
@@ -101,7 +116,7 @@
   </table>
 </div>
 
-<!-- Modal registrar ítem -->
+{{-- Modal registrar ítem --}}
 <div class="modal fade" id="modalRegistrarItem" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <form action="{{ route('admin.tours.itinerary_items.store') }}"
@@ -110,22 +125,22 @@
       @csrf
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Registrar Ítem</h5>
+          <h5 class="modal-title">{{ __('m_tours.itinerary_item.ui.register_item') }}</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label>Título</label>
+            <label class="form-label">{{ __('m_tours.itinerary_item.fields.title') }}</label>
             <input type="text" name="title" class="form-control" required>
           </div>
           <div class="mb-3">
-            <label>Descripción</label>
+            <label class="form-label">{{ __('m_tours.itinerary_item.fields.description') }}</label>
             <textarea name="description" class="form-control" required></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Guardar</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">{{ __('m_tours.itinerary_item.ui.save') }}</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.itinerary_item.ui.cancel') }}</button>
         </div>
       </div>
     </form>
@@ -149,4 +164,49 @@
     .btn-toggle-desc { font-size: 0.7rem; }
   }
 </style>
+@endpush
+
+@push('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  // Toggle "ver más / ver menos"
+  document.querySelectorAll('.btn-toggle-desc').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-target');
+      const el = document.getElementById(id);
+      el.classList.toggle('desc-expanded');
+      btn.textContent = el.classList.contains('desc-expanded')
+        ? @json(__('m_tours.itinerary_item.ui.see_less'))
+        : @json(__('m_tours.itinerary_item.ui.see_more'));
+    });
+  });
+
+  // SweetAlert para DELETE
+  document.querySelectorAll('.form-delete-item').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const label = form.getAttribute('data-label') || @json(__('m_tours.itinerary_item.ui.item_this'));
+      Swal.fire({
+        title: @json(__('m_tours.itinerary_item.ui.delete_confirm_title')),
+        html: @json(__('m_tours.itinerary_item.ui.delete_confirm_html', ['label' => ':label'])).replace(':label', label),
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: @json(__('m_tours.itinerary_item.ui.yes_delete'))
+      }).then(r => {
+        if (r.isConfirmed) {
+          const btn = form.querySelector('button[type="submit"]');
+          if (btn) {
+            btn.disabled = true;
+            btn.innerHTML =
+              '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
+              @json(__('m_tours.itinerary_item.ui.deleting'));
+          }
+          form.submit();
+        }
+      });
+    });
+  });
+</script>
 @endpush

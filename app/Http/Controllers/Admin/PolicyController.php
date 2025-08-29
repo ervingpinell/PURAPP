@@ -57,20 +57,20 @@ class PolicyController extends Controller
         ];
 
         $messages = [
-            'required'                     => 'Este campo es obligatorio.',
-            'string'                       => 'Debe ser un texto válido.',
-            'max.string'                   => 'No debe superar :max caracteres.',
-            'date'                         => 'Debe ser una fecha válida.',
-            'in'                           => 'El valor seleccionado no es válido.',
-            'effective_to.after_or_equal'  => 'La fecha de fin debe ser posterior o igual a la fecha de inicio.',
+            'required'                     => __('validation.required', ['attribute' => ':attribute']),
+            'string'                       => __('validation.string',   ['attribute' => ':attribute']),
+            'max.string'                   => __('validation.max.string', ['attribute' => ':attribute', 'max' => ':max']),
+            'date'                         => __('validation.date',     ['attribute' => ':attribute']),
+            'in'                           => __('validation.in',       ['attribute' => ':attribute']),
+            'effective_to.after_or_equal'  => __('validation.after_or_equal', ['attribute' => ':attribute', 'date' => __('m_config.policies.valid_from')]),
         ];
 
         $attributes = [
-            'name'           => 'Nombre',
-            'content'        => 'Contenido',
-            'is_active'      => 'Activo',
-            'effective_from' => 'Vigente desde',
-            'effective_to'   => 'Vigente hasta',
+            'name'           => __('m_config.policies.name'),
+            'content'        => __('m_config.policies.content_label'),
+            'is_active'      => __('m_config.policies.active'),
+            'effective_from' => __('m_config.policies.valid_from'),
+            'effective_to'   => __('m_config.policies.valid_to'),
         ];
 
         $request->validate($rules, $messages, $attributes);
@@ -89,7 +89,7 @@ class PolicyController extends Controller
                     'effective_to'   => $request->date('effective_to'),
                 ]);
 
-                // Traducciones automáticas (si falla, usamos el original)
+                // Traducciones automáticas (fallback al original si falla)
                 try { $nameTranslations    = (array) $translator->translateAll($baseName); }    catch (\Throwable $e) { $nameTranslations = []; }
                 try { $contentTranslations = (array) $translator->translateAll($baseContent); } catch (\Throwable $e) { $contentTranslations = []; }
 
@@ -111,7 +111,7 @@ class PolicyController extends Controller
 
             return redirect()
                 ->route('admin.policies.index')
-                ->with('success', 'policies.category_created');
+                ->with('success', 'm_config.policies.category_created');
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'policy', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -119,7 +119,7 @@ class PolicyController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', 'policies.unexpected_error');
+                ->with('error', 'm_config.policies.unexpected_error');
         }
     }
 
@@ -134,18 +134,18 @@ class PolicyController extends Controller
         ];
 
         $messages = [
-            'string'                      => 'Debe ser un texto válido.',
-            'max.string'                  => 'No debe superar :max caracteres.',
-            'date'                        => 'Debe ser una fecha válida.',
-            'in'                          => 'El valor seleccionado no es válido.',
-            'effective_to.after_or_equal' => 'La fecha de fin debe ser posterior o igual a la fecha de inicio.',
+            'string'                      => __('validation.string',   ['attribute' => ':attribute']),
+            'max.string'                  => __('validation.max.string', ['attribute' => ':attribute', 'max' => ':max']),
+            'date'                        => __('validation.date',     ['attribute' => ':attribute']),
+            'in'                          => __('validation.in',       ['attribute' => ':attribute']),
+            'effective_to.after_or_equal' => __('validation.after_or_equal', ['attribute' => ':attribute', 'date' => __('m_config.policies.valid_from')]),
         ];
 
         $attributes = [
-            'name'           => 'Nombre',
-            'is_active'      => 'Activo',
-            'effective_from' => 'Vigente desde',
-            'effective_to'   => 'Vigente hasta',
+            'name'           => __('m_config.policies.name'),
+            'is_active'      => __('m_config.policies.active'),
+            'effective_from' => __('m_config.policies.valid_from'),
+            'effective_to'   => __('m_config.policies.valid_to'),
         ];
 
         $request->validate($rules, $messages, $attributes);
@@ -168,12 +168,12 @@ class PolicyController extends Controller
                 'user_id'   => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('success', 'policies.category_updated');
+            return back()->with('success', 'm_config.policies.category_updated');
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'update', 'policy', $policy->policy_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', 'policies.unexpected_error');
+            return back()->with('error', 'm_config.policies.unexpected_error');
         }
     }
 
@@ -189,12 +189,12 @@ class PolicyController extends Controller
 
             return redirect()
                 ->route('admin.policies.index')
-                ->with('success', 'policies.category_deleted');
+                ->with('success', 'm_config.policies.category_deleted');
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy', 'policy', $policy->policy_id ?? null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', 'policies.unexpected_error');
+            return back()->with('error', 'm_config.policies.unexpected_error');
         }
     }
 
@@ -210,15 +210,15 @@ class PolicyController extends Controller
             ]);
 
             $feedbackKey = $policy->is_active
-                ? 'policies.category_activated'
-                : 'policies.category_deactivated';
+                ? 'm_config.policies.category_activated'
+                : 'm_config.policies.category_deactivated';
 
             return back()->with('success', $feedbackKey);
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'toggle', 'policy', $policy->policy_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', 'policies.unexpected_error');
+            return back()->with('error', 'm_config.policies.unexpected_error');
         }
     }
 }

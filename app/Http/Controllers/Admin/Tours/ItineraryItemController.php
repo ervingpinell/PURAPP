@@ -40,7 +40,7 @@ class ItineraryItemController extends Controller
                     'is_active'   => true,
                 ]);
 
-                // Traducción automática
+                // Traducciones automáticas
                 $titleTr = $translator->translateAll($title);
                 $descTr  = $translator->translateAll($description);
 
@@ -59,65 +59,95 @@ class ItineraryItemController extends Controller
                 ]);
             });
 
-            return back()->with('success', 'Itinerary item created successfully.');
+            return back()->with('success', __('m_tours.itinerary_item.success.created'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'itinerary_item', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', 'Could not create the item.');
+            return back()->with('error', __('m_tours.itinerary_item.error.create'));
         }
     }
 
-public function update(UpdateItineraryItemRequest $request, ItineraryItem $itinerary_item)
-{
-    try {
+    public function update(UpdateItineraryItemRequest $request, ItineraryItem $itinerary_item)
+    {
+        try {
+            $payload = [
+                'title'       => $request->string('title')->trim(),
+                'description' => $request->string('description')->trim(),
+            ];
 
-        $payload = [
-            'title'       => $request->string('title')->trim(),
-            'description' => $request->string('description')->trim(),
-        ];
+            $itinerary_item->update($payload);
 
-        $itinerary_item->update($payload);
+            LoggerHelper::mutated($this->controller, 'update', 'itinerary_item', $itinerary_item->item_id, [
+                'is_active' => $itinerary_item->is_active,
+                'user_id'   => optional($request->user())->getAuthIdentifier(),
+            ]);
 
-        LoggerHelper::mutated($this->controller, 'update', 'itinerary_item', $itinerary_item->item_id, [
-            'is_active' => $itinerary_item->is_active,
-            'user_id'   => optional($request->user())->getAuthIdentifier(),
-        ]);
-
-        return back()->with('success', 'Item updated successfully.');
-    } catch (Exception $e) {
-        LoggerHelper::exception($this->controller, 'update', 'itinerary_item', $itinerary_item->item_id, $e, [
-            'user_id' => optional($request->user())->getAuthIdentifier(),
-        ]);
-        return back()->with('error', 'Could not update the item.');
+            return back()->with('success', __('m_tours.itinerary_item.success.updated'));
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'update', 'itinerary_item', $itinerary_item->item_id, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+            return back()->with('error', __('m_tours.itinerary_item.error.update'));
+        }
     }
-}
 
-    public function destroy(ToggleItineraryItemRequest $request, ItineraryItem $itinerary_item)
+    /** PATCH: Activar/Desactivar (toggle) */
+    public function toggle(ToggleItineraryItemRequest $request, ItineraryItem $itinerary_item)
     {
         try {
             $itinerary_item->update(['is_active' => ! $itinerary_item->is_active]);
             $itinerary_item->refresh();
 
+            // Si se desactiva, desasignarlo de itinerarios
             if (! $itinerary_item->is_active && method_exists($itinerary_item, 'itineraries')) {
                 $itinerary_item->itineraries()->detach();
             }
 
-            LoggerHelper::mutated($this->controller, 'destroy', 'itinerary_item', $itinerary_item->item_id, [
+            LoggerHelper::mutated($this->controller, 'toggle', 'itinerary_item', $itinerary_item->item_id, [
                 'is_active' => $itinerary_item->is_active,
                 'user_id'   => optional($request->user())->getAuthIdentifier(),
             ]);
 
             $message = $itinerary_item->is_active
-                ? 'Item activated successfully.'
-                : 'Item deactivated successfully.';
+                ? __('m_tours.itinerary_item.success.activated')
+                : __('m_tours.itinerary_item.success.deactivated');
 
             return back()->with('success', $message);
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'destroy', 'itinerary_item', $itinerary_item->item_id, $e, [
+            LoggerHelper::exception($this->controller, 'toggle', 'itinerary_item', $itinerary_item->item_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', 'Could not change item status.');
+            return back()->with('error', __('m_tours.itinerary_item.error.toggle'));
+        }
+    }
+
+    /** DELETE: Eliminación definitiva */
+    public function destroy(ItineraryItem $itinerary_item)
+    {
+        try {
+            DB::transaction(function () use ($itinerary_item) {
+                if (method_exists($itinerary_item, 'itineraries')) {
+                    $itinerary_item->itineraries()->detach();
+                }
+                if (method_exists($itinerary_item, 'translations')) {
+                    $itinerary_item->translations()->delete();
+                } else {
+                    ItineraryItemTranslation::where('item_id', $itinerary_item->item_id)->delete();
+                }
+                $itinerary_item->delete();
+            });
+
+            LoggerHelper::mutated($this->controller, 'destroy', 'itinerary_item', $itinerary_item->item_id, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('success', __('m_tours.itinerary_item.success.deleted'));
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'destroy', 'itinerary_item', $itinerary_item->item_id ?? null, $e, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+            return back()->with('error', __('m_tours.itinerary_item.error.delete'));
         }
     }
 }
