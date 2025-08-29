@@ -61,21 +61,21 @@ class TourScheduleController extends Controller
             ]);
 
             return redirect()->route('admin.tours.schedule.index')
-                ->with('success', 'Horario creado correctamente.');
+                ->with('success', __('m_tours.schedule.success.created'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'schedule', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', 'Hubo un problema al crear el horario.')->withInput();
+            return back()
+                ->with('error', __('m_tours.schedule.error.create'))
+                ->withInput();
         }
     }
-
 
     public function edit(Schedule $schedule)
     {
         return view('admin.tours.schedule.edit', compact('schedule'));
     }
-
 
     public function update(UpdateScheduleRequest $request, Schedule $schedule): RedirectResponse
     {
@@ -95,12 +95,14 @@ class TourScheduleController extends Controller
             ]);
 
             return redirect()->route('admin.tours.schedule.index')
-                ->with('success', 'Horario actualizado correctamente.');
+                ->with('success', __('m_tours.schedule.success.updated'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'update', 'schedule', $schedule->getKey(), $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', 'Hubo un problema al actualizar el horario.')->withInput();
+            return back()
+                ->with('error', __('m_tours.schedule.error.update'))
+                ->withInput();
         }
     }
 
@@ -116,18 +118,17 @@ class TourScheduleController extends Controller
             ]);
 
             $msg = $schedule->is_active
-                ? 'Horario activado correctamente (global).'
-                : 'Horario desactivado correctamente (global).';
+                ? __('m_tours.schedule.success.activated_global')
+                : __('m_tours.schedule.success.deactivated_global');
 
             return back()->with('success', $msg);
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'toggle', 'schedule', $schedule->getKey(), $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', 'No se pudo cambiar el estado global del horario.');
+            return back()->with('error', __('m_tours.schedule.error.toggle'));
         }
     }
-
 
     public function toggleAssignment(ToggleScheduleAssignmentRequest $request, Tour $tour, Schedule $schedule): RedirectResponse
     {
@@ -135,7 +136,7 @@ class TourScheduleController extends Controller
             $rel = $tour->schedules()->where('schedules.schedule_id', $schedule->getKey())->first();
 
             if (!$rel) {
-                return back()->with('error', 'El horario no está asignado a este tour.');
+                return back()->with('error', __('m_tours.schedule.error.not_assigned_to_tour'));
             }
 
             $current = (bool) ($rel->pivot->is_active ?? true);
@@ -149,14 +150,14 @@ class TourScheduleController extends Controller
             ]);
 
             return back()->with('success', ! $current
-                ? 'Asignación activada para este tour.'
-                : 'Asignación desactivada para este tour.');
+                ? __('m_tours.schedule.success.assignment_activated')
+                : __('m_tours.schedule.success.assignment_deactivated'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'toggleAssignment', 'tour_schedule_pivot', $schedule->getKey(), $e, [
-                'tour_id'  => $tour->getKey(),
-                'user_id'  => optional($request->user())->getAuthIdentifier(),
+                'tour_id' => $tour->getKey(),
+                'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', 'No se pudo cambiar el estado de la asignación.');
+            return back()->with('error', __('m_tours.schedule.error.assignment_toggle'));
         }
     }
 
@@ -174,13 +175,13 @@ class TourScheduleController extends Controller
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('success', 'Horario asignado al tour.');
+            return back()->with('success', __('m_tours.schedule.success.attached'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'attach', 'tour_schedule_pivot', null, $e, [
                 'tour_id' => $tour->getKey(),
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', 'No se pudo asignar el horario al tour.');
+            return back()->with('error', __('m_tours.schedule.error.attach'));
         }
     }
 
@@ -194,13 +195,13 @@ class TourScheduleController extends Controller
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('success', 'Horario eliminado del tour correctamente.');
+            return back()->with('success', __('m_tours.schedule.success.detached'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'detach', 'tour_schedule_pivot', $schedule->getKey(), $e, [
                 'tour_id' => $tour->getKey(),
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', 'No se pudo desasignar el horario del tour.');
+            return back()->with('error', __('m_tours.schedule.error.detach'));
         }
     }
 
@@ -215,12 +216,12 @@ class TourScheduleController extends Controller
             ]);
 
             return redirect()->route('admin.tours.schedule.index')
-                ->with('success', 'Horario eliminado correctamente.');
+                ->with('success', __('m_tours.schedule.success.deleted'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy', 'schedule', $schedule->getKey(), $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', 'Hubo un problema al eliminar el horario.');
+            return back()->with('error', __('m_tours.schedule.error.delete'));
         }
     }
 }

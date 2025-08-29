@@ -1,4 +1,3 @@
-{{-- resources/views/admin/translations/partials/edit-policy-translations.blade.php --}}
 @php
     /** @var \App\Models\Policy $item */
     // Variables esperadas: $type, $item, $locale
@@ -20,7 +19,7 @@
         <table id="{{ $tableId }}" class="table align-middle mb-0">
           <thead class="table-dark">
             <tr>
-              <th style="width: 90px;">ID</th>
+              <th style="width: 90px;">{{ __('policies.id') }}</th>
               <th>{{ __('policies.name_base') }}</th>
               <th>{{ __('policies.translation_name') }}</th>
               <th>{{ __('policies.translation_content') }}</th>
@@ -38,14 +37,14 @@
               <tr>
                 <td>#{{ $section->section_id }}</td>
                 <td class="text-break">
-                  <span class="badge bg-success">{{ $section->name ?: '—' }}</span>
+                  <span class="badge bg-success">{{ $section->name ?: __('policies.untitled') }}</span>
                 </td>
                 <td class="text-break">
-                  {{ $translatedSection?->name ?: "Sección #".($index+1) }}
+                  {{ $translatedSection?->name ?: __('policies.section') . ' #' . ($index+1) }}
                 </td>
                 <td class="text-break">
                   <div class="small">
-                    {!! nl2br(e(\Illuminate\Support\Str::limit($translatedSection?->content ?? '', 160))) !!}
+                    {!! nl2br(e(\Illuminate\Support\Str::limit($translatedSection?->content ?? __('policies.no_content'), 160))) !!}
                   </div>
                 </td>
                 <td class="text-center">
@@ -75,7 +74,8 @@
                           <strong>{{ $section->name ?: '—' }}</strong>
                         </span>
                         <span class="ms-auto small text-muted">
-                          {{ __('policies.editing_locale') ?? 'Editando' }}: <strong>{{ strtoupper($locale) }}</strong>
+                          {{ __('policies.editing_locale') ?? __('m_config.translations.select_language_title') }}:
+                          <strong>{{ strtoupper($locale) }}</strong>
                         </span>
                       </div>
 
@@ -113,7 +113,11 @@
                 </td>
               </tr>
             @empty
-              <tr><td colspan="5" class="text-center text-muted">{{ __('policies.no_sections') }}</td></tr>
+              <tr>
+                <td colspan="5" class="text-center text-muted">
+                  {{ __('policies.no_sections') }}
+                </td>
+              </tr>
             @endforelse
           </tbody>
         </table>
@@ -121,7 +125,7 @@
 
       <div class="p-3 text-muted small">
         <i class="fas fa-info-circle me-1"></i>
-        {{ __('policies.bulk_edit_hint') ?? 'Los cambios de todas las secciones se guardan junto con la traducción de la categoría cuando presiones “Guardar”.' }}
+        {{ __('policies.bulk_edit_hint') }}
       </div>
     </div>
   </div>
@@ -142,12 +146,10 @@
         const el = document.querySelector(targetSel);
         if (!el) return;
 
-        // Usar la API de Bootstrap 5 para cerrar
         try {
           const instance = bootstrap.Collapse.getOrCreateInstance(el, { toggle: false });
           instance.hide();
         } catch (err) {
-          // Fallback por si bootstrap no está en scope por alguna razón
           el.classList.remove('show');
         }
       });

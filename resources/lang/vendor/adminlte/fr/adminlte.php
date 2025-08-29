@@ -68,7 +68,7 @@ return [
     'terms_and_conditions' => 'Conditions d’utilisation',
     'cancellation_and_refunds_policies' => 'Politiques d’annulation et de remboursement',
     'reports' => 'Rapports',
-'footer_text'=> 'Green Vacations',
+'footer_text'=> 'Green Vacations CR',
 'quick_links'=> 'Liens rapides',
 'rights_reserved' => 'Tous droits réservés',
 

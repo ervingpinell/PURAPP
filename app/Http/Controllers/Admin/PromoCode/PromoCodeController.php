@@ -16,28 +16,59 @@ class PromoCodeController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'code'         => 'required|string|unique:promo_codes,code',
-            'discount'     => 'required|numeric|min:0',
-            'type'         => 'required|in:percent,amount',
-            'valid_from'   => 'nullable|date',
-            'valid_until'  => 'nullable|date|after_or_equal:valid_from',
-            'usage_limit'  => 'nullable|integer|min:1', // null = ilimitado
-        ]);
+        // Atributos y mensajes localizados
+        $attributes = [
+            'code'        => __('m_config.promocode.fields.code'),
+            'discount'    => __('m_config.promocode.fields.discount'),
+            'type'        => __('m_config.promocode.fields.type'),
+            'valid_from'  => __('m_config.promocode.fields.valid_from'),
+            'valid_until' => __('m_config.promocode.fields.valid_until'),
+            'usage_limit' => __('m_config.promocode.fields.usage_limit'),
+        ];
 
-        if ($request->type === 'percent' && (float)$request->discount > 100) {
+        $messages = [
+            'required'                    => __('validation.required', ['attribute' => ':attribute']),
+            'string'                      => __('validation.string',   ['attribute' => ':attribute']),
+            'unique'                      => __('validation.unique',   ['attribute' => ':attribute']),
+            'numeric'                     => __('validation.numeric',  ['attribute' => ':attribute']),
+            'integer'                     => __('validation.integer',  ['attribute' => ':attribute']),
+            'min.numeric'                 => __('validation.min.numeric', ['attribute' => ':attribute', 'min' => 0]),
+            'min.integer'                 => __('validation.min.numeric', ['attribute' => ':attribute', 'min' => 1]),
+            'in'                          => __('validation.in', ['attribute' => ':attribute']),
+            'date'                        => __('validation.date', ['attribute' => ':attribute']),
+            'valid_until.after_or_equal'  => __('validation.after_or_equal', ['attribute' => ':attribute', 'date' => __('m_config.promocode.fields.valid_from')]),
+        ];
+
+        $rules = [
+            'code'        => 'required|string|unique:promo_codes,code',
+            'discount'    => 'required|numeric|min:0',
+            'type'        => 'required|in:percent,amount',
+            'valid_from'  => 'nullable|date',
+            'valid_until' => 'nullable|date|after_or_equal:valid_from',
+            'usage_limit' => 'nullable|integer|min:1', // null = ilimitado
+        ];
+
+        $request->validate($rules, $messages, $attributes);
+
+        // % no puede ser > 100
+        if ($request->type === 'percent' && (float) $request->discount > 100) {
             return back()
-                ->withErrors(['discount' => 'El porcentaje no puede ser mayor a 100.'])
+                ->withErrors(['discount' => __('m_config.promocode.messages.percent_over_100')])
                 ->withInput();
         }
 
-        $normalizedCode = PromoCode::normalize($request->code);
+        // Normaliza código (usa método del modelo si existe; si no, fallback)
+        if (method_exists(PromoCode::class, 'normalize')) {
+            $normalizedCode = PromoCode::normalize($request->code);
+        } else {
+            $normalizedCode = strtoupper(trim(preg_replace('/\s+/', '', (string) $request->code)));
+        }
 
         // Unicidad ignorando espacios y mayúsculas
         $exists = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$normalizedCode])->exists();
         if ($exists) {
             return back()
-                ->withErrors(['code' => 'Este código (ignorando espacios y mayúsculas) ya existe.'])
+                ->withErrors(['code' => __('m_config.promocode.messages.code_exists_normalized')])
                 ->withInput();
         }
 
@@ -52,46 +83,92 @@ class PromoCodeController extends Controller
             $promo->discount_percent = null;
         }
 
-        // Vigencia (pueden ser null)
+        // Vigencia
         $promo->valid_from  = $request->input('valid_from');
         $promo->valid_until = $request->input('valid_until');
 
-        // Límite de usos (null = ilimitado)
-        $promo->usage_limit = $request->filled('usage_limit') ? (int)$request->usage_limit : null;
+        // Usos (null = ilimitado)
+        $promo->usage_limit = $request->filled('usage_limit') ? (int) $request->usage_limit : null;
         $promo->usage_count = 0;
 
         $promo->save();
 
-        return redirect()->route('admin.promoCode.index')->with('success', 'Promo code created successfully.');
+        return redirect()
+            ->route('admin.promoCode.index')
+            ->with('success', __('m_config.promocode.messages.created_success'));
     }
 
     public function destroy(PromoCode $promo)
     {
         $promo->delete();
-        return redirect()->route('admin.promoCode.index')->with('success', 'Promo code deleted successfully.');
+
+        return redirect()
+            ->route('admin.promoCode.index')
+            ->with('success', __('m_config.promocode.messages.deleted_success'));
     }
 
     public function apply(Request $request)
     {
         try {
             $request->validate([
-                'code'    => 'required|string',
-                'total'   => 'nullable|numeric|min:0',   
-                'preview' => 'nullable|boolean',
+                'code'            => 'required|string',
+                'total'           => 'nullable|numeric|min:0',   // compat legado
+                'preview'         => 'nullable|boolean',
                 'items'           => 'nullable|array',
                 'items.*.total'   => 'required_with:items|numeric|min:0',
+            ], [], [
+                'code'  => __('m_config.promocode.fields.code'),
+                'total' => 'total',
             ]);
 
-            $code    = \App\Models\PromoCode::normalize($request->input('code', ''));
+            // Normaliza búsqueda
+            if (method_exists(PromoCode::class, 'normalize')) {
+                $code = PromoCode::normalize($request->input('code', ''));
+            } else {
+                $code = strtoupper(trim(preg_replace('/\s+/', '', (string) $request->input('code', ''))));
+            }
+
             $preview = $request->boolean('preview', true);
 
-            $promo = \App\Models\PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$code])->first();
+            $promo = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$code])->first();
 
-            if (!$promo || ! $promo->isValidToday() || ! $promo->hasRemainingUses()) {
+            // --- Validaciones de vigencia y usos (fallback si el modelo no las expone) ---
+            $isValidToday = function () use ($promo) {
+                if (!$promo) return false;
+                $tz = config('app.timezone', 'UTC');
+                $today = \Carbon\Carbon::today($tz)->toDateString();
+
+                if ($promo->valid_from && $today < \Carbon\Carbon::parse($promo->valid_from, $tz)->toDateString()) {
+                    return false;
+                }
+                if ($promo->valid_until && $today > \Carbon\Carbon::parse($promo->valid_until, $tz)->toDateString()) {
+                    return false;
+                }
+                return true;
+            };
+
+            $hasRemainingUses = function () use ($promo) {
+                if (!$promo) return false;
+                if (is_null($promo->usage_limit)) return true; // ilimitado
+                return (int)$promo->usage_count < (int)$promo->usage_limit;
+            };
+
+            $remainingUses = function () use ($promo) {
+                if (!$promo) return null;
+                if (is_null($promo->usage_limit)) return null;
+                return max(0, (int)$promo->usage_limit - (int)$promo->usage_count);
+            };
+
+            // Si existen helpers en el modelo, úsalos; si no, fallback
+            $validToday   = $promo && (method_exists($promo, 'isValidToday') ? $promo->isValidToday() : $isValidToday());
+            $hasUsesLeft  = $promo && (method_exists($promo, 'hasRemainingUses') ? $promo->hasRemainingUses() : $hasRemainingUses());
+            $remaining    = $promo ? ($promo->remaining_uses ?? $remainingUses()) : 0;
+
+            if (!$promo || !$validToday || !$hasUsesLeft) {
                 return response()->json([
                     'success' => false,
                     'valid'   => false,
-                    'message' => 'Código inválido, fuera de vigencia o sin usos disponibles.',
+                    'message' => __('m_config.promocode.messages.invalid_or_used'),
                 ], 200);
             }
 
@@ -99,20 +176,18 @@ class PromoCodeController extends Controller
             $resp = [
                 'success'          => true,
                 'valid'            => true,
-                'message'          => 'Código válido.',
+                'message'          => __('m_config.promocode.messages.valid'),
                 'code'             => $promo->code,
                 'type'             => $promo->discount_percent !== null ? 'percent' : 'amount',
                 'discount_percent' => $promo->discount_percent !== null ? (float) $promo->discount_percent : null,
                 'discount_amount'  => $promo->discount_amount  !== null ? (float) $promo->discount_amount  : null,
                 'preview'          => $preview,
-                'remaining_uses'   => $promo->remaining_uses, // null = ilimitado
+                'remaining_uses'   => $remaining,
             ];
 
-            // Si mandan items → devolvemos desglose por ítem
+            // Si mandan items → devolvemos desglose por ítem (aplica a N ítems según remaining_uses)
             $items = collect($request->input('items', []))
-                ->map(fn($it) => [
-                    'total' => (float) ($it['total'] ?? 0),
-                ]);
+                ->map(fn($it) => ['total' => (float) ($it['total'] ?? 0)]);
 
             if ($items->isNotEmpty()) {
                 $isPercent   = $promo->discount_percent !== null;
@@ -121,14 +196,10 @@ class PromoCodeController extends Controller
                 $unlimited   = is_null($promo->usage_limit);
                 $remaining   = $unlimited ? PHP_INT_MAX : max(0, (int)$promo->usage_limit - (int)$promo->usage_count);
 
-                // Estrategia: aplicar a ítems de mayor subtotal primero
-                $indexed = $items->values()->map(function ($it, $i) {
-                    return ['index' => $i, 'base_total' => (float)$it['total']];
-                });
-
-                $sorted = $indexed->sortByDesc('base_total')->values();
-                $applyCount = min($remaining, $sorted->count());
-
+                // Ordena por subtotal desc y aplica a los primeros N
+                $indexed = $items->values()->map(fn($it, $i) => ['index' => $i, 'base_total' => (float)$it['total']]);
+                $sorted  = $indexed->sortByDesc('base_total')->values();
+                $applyCount  = min($remaining, $sorted->count());
                 $applyIndexes = $sorted->take($applyCount)->pluck('index')->all();
 
                 $perItem = [];
@@ -172,17 +243,15 @@ class PromoCodeController extends Controller
                 return response()->json($resp, 200);
             }
 
-            // Legacy: si no mandan items, seguimos con "total"
+            // Legado: si no mandan items, se calcula a nivel total del carrito
             $total = (float) $request->input('total', 0);
             if ($total > 0) {
                 $discount = 0.0;
                 if ($promo->discount_percent !== null) {
                     $discount = round($total * ($promo->discount_percent / 100), 2);
                 } elseif ($promo->discount_amount !== null) {
-                    $discount = (float) $promo->discount_amount;
+                    $discount = min((float) $promo->discount_amount, $total);
                 }
-                $discount = min($discount, $total);
-
                 $resp['discount_applied'] = $discount;
                 $resp['new_total']        = round($total - $discount, 2);
             }
@@ -199,9 +268,8 @@ class PromoCodeController extends Controller
             return response()->json([
                 'success' => false,
                 'valid'   => false,
-                'message' => 'Error del servidor, inténtalo de nuevo.',
+                'message' => __('m_config.promocode.messages.server_error'),
             ], 200);
         }
     }
-
 }

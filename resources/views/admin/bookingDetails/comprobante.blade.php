@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ app()->getLocale() }}">
 <head>
   <meta charset="utf-8">
-  <title>Comprobante de Reserva</title>
+  <title>{{ __('receipt.title') }}</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Lora:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -133,58 +133,80 @@
 </head>
 <body>
   <div class="comprobante-container">
-    <h2>COMPROBANTE DE RESERVA</h2>
-    <h3>GREEN VACATION CR</h3>
+    <h2>{{ mb_strtoupper(__('receipt.title'), 'UTF-8') }}</h2>
+    <h3>{{ config('app.name', __('receipt.company')) }}</h3>
 
     @php
+      use Carbon\Carbon;
+      Carbon::setLocale(app()->getLocale());
+
       $tour   = $reserva->tour;
       $detail = $reserva->detail;
-      $aQty   = $detail->adults_quantity;
-      $kQty   = $detail->kids_quantity;
+      $aQty   = (int) $detail->adults_quantity;
+      $kQty   = (int) $detail->kids_quantity;
       $aPrice = $tour->adult_price ?? 0;
       $kPrice = $tour->kid_price ?? 0;
+
       $hotel  = $detail->is_other_hotel
                   ? $detail->other_hotel_name
                   : optional($detail->hotel)->name ?? '—';
+
       $horario = $detail->schedule
-        ? \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') . ' – ' .
-          \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A')
-        : 'Sin horario';
+        ? Carbon::parse($detail->schedule->start_time)->isoFormat('LT') . ' – ' . Carbon::parse($detail->schedule->end_time)->isoFormat('LT')
+        : __('receipt.no_schedule');
+
+      $bookingDate = Carbon::parse($reserva->booking_date)->isoFormat('L');
+      $tourDate    = Carbon::parse($detail->tour_date)->isoFormat('L');
+
+      $subtotal = ($aPrice * $aQty) + ($kPrice * $kQty);
+      $descuento = 0;
+
+      if ($reserva->promoCode) {
+          if ($reserva->promoCode->discount_percent) {
+              $descuento = $subtotal * ($reserva->promoCode->discount_percent / 100);
+          } elseif ($reserva->promoCode->discount_amount) {
+              $descuento = $reserva->promoCode->discount_amount;
+          }
+      }
+
+      // Traducir estado si existe clave, si no, ucfirst simple
+      $statusKey = 'receipt.statuses.' . strtolower((string)$reserva->status);
+      $statusT = trans()->has($statusKey) ? __($statusKey) : ucfirst((string)$reserva->status);
     @endphp
 
     <div class="datos-grid">
       <div class="dato">
-        <strong>Código</strong>
+        <strong>{{ __('receipt.code') }}</strong>
         <span>{{ $reserva->booking_reference }}</span>
       </div>
       <div class="dato">
-        <strong>Cliente</strong>
+        <strong>{{ __('receipt.client') }}</strong>
         <span>{{ optional($reserva->user)->full_name }}</span>
         <small>({{ optional($reserva->user)->email }})</small>
       </div>
       <div class="dato">
-        <strong>Tour</strong>
+        <strong>{{ __('receipt.tour') }}</strong>
         <span>{{ $tour->name }}</span>
       </div>
       <div class="dato">
-        <strong>Fecha de reserva</strong>
-        <span>{{ \Carbon\Carbon::parse($reserva->booking_date)->format('d/m/Y') }}</span>
+        <strong>{{ __('receipt.booking_date') }}</strong>
+        <span>{{ $bookingDate }}</span>
       </div>
       <div class="dato">
-        <strong>Fecha de Tour</strong>
-        <span>{{ \Carbon\Carbon::parse($detail->tour_date)->format('d/m/Y') }}</span>
+        <strong>{{ __('receipt.tour_date') }}</strong>
+        <span>{{ $tourDate }}</span>
       </div>
       <div class="dato">
-        <strong>Horario</strong>
+        <strong>{{ __('receipt.schedule') }}</strong>
         <span>{{ $horario }}</span>
       </div>
       <div class="dato">
-        <strong>Hotel</strong>
+        <strong>{{ __('receipt.hotel') }}</strong>
         <span>{{ $hotel }}</span>
       </div>
       <div class="dato">
-        <strong>Estado</strong>
-        <span>{{ ucfirst($reserva->status) }}</span>
+        <strong>{{ __('receipt.status') }}</strong>
+        <span>{{ $statusT }}</span>
       </div>
     </div>
 
@@ -192,62 +214,51 @@
 
     <div class="datos-grid">
       <div class="dato">
-        <strong>Adultos (x{{ $aQty }})</strong>
+        <strong>{{ str_replace(':count', (string)$aQty, __('receipt.adults_x')) }}</strong>
         <span>${{ number_format($aPrice * $aQty, 2) }}</span>
       </div>
       <div class="dato">
-        <strong>Niños (x{{ $kQty }})</strong>
+        <strong>{{ str_replace(':count', (string)$kQty, __('receipt.kids_x')) }}</strong>
         <span>${{ number_format($kPrice * $kQty, 2) }}</span>
       </div>
       <div class="dato">
-        <strong>Personas</strong>
+        <strong>{{ __('receipt.people') }}</strong>
         <span>{{ $aQty + $kQty }}</span>
       </div>
     </div>
 
     <div class="total-section">
-    <div style="text-align: right;">
-      @php
-        $subtotal = ($aPrice * $aQty) + ($kPrice * $kQty);
-        $descuento = 0;
-
-        if ($reserva->promoCode) {
-            if ($reserva->promoCode->discount_percent) {
-                $descuento = $subtotal * ($reserva->promoCode->discount_percent / 100);
-            } elseif ($reserva->promoCode->discount_amount) {
-                $descuento = $reserva->promoCode->discount_amount;
-            }
-        }
-      @endphp
-
-      <div>
-        <strong>Subtotal:</strong> ${{ number_format($subtotal, 2) }}
-      </div>
-
-      @if($descuento > 0)
-        <div style="color: green;">
-          <strong>Descuento ({{ $reserva->promoCode->code }}):</strong>
-          -${{ number_format($descuento, 2) }}
+      <div style="text-align: right;">
+        <div>
+          <strong>{{ __('receipt.subtotal') }}:</strong> ${{ number_format($subtotal, 2) }}
         </div>
-      @endif
 
-      <div class="total mt-2">
-        TOTAL: ${{ number_format($reserva->total, 2) }}
+        @if($descuento > 0)
+          <div style="color: green;">
+            <strong>{{ __('receipt.discount') }} ({{ $reserva->promoCode->code }}):</strong>
+            -${{ number_format($descuento, 2) }}
+          </div>
+        @endif
+
+        <div class="total mt-2">
+          {{ __('receipt.total') }}: ${{ number_format($reserva->total, 2) }}
+        </div>
       </div>
     </div>
-  </div>
 
     <div class="qr-container">
       @php
         $data = urlencode($reserva->booking_reference);
         $urlQr = "https://api.qrserver.com/v1/create-qr-code/?size=120x120&data={$data}";
-        $png = file_get_contents($urlQr);
-        $base64 = base64_encode($png);
+        $png = @file_get_contents($urlQr);
+        $base64 = $png ? base64_encode($png) : null;
       @endphp
 
-      <img src="data:image/png;base64,{{ $base64 }}" alt="QR Código de Reserva" style="width:120px; height:120px;">
-      <p class="qr-label">Escanea para verificar tu reserva</p>
-      <p class="qr-label">¡Gracias por reservar con Green Vacations Costa Rica!</p>
+      @if($base64)
+        <img src="data:image/png;base64,{{ $base64 }}" alt="{{ __('receipt.qr_alt') }}" style="width:120px; height:120px;">
+      @endif
+      <p class="qr-label">{{ __('receipt.qr_scan') }}</p>
+      <p class="qr-label">{{ __('receipt.thanks', ['company' => config('app.name', __('receipt.company'))]) }}</p>
     </div>
   </div>
 </body>

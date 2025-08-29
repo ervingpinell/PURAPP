@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Itinerarios y sus Ítems')
+@section('title', __('m_tours.itinerary.ui.page_title'))
 
 @section('content_header')
-    <h1>Itinerarios y Gestión de Ítems</h1>
+    <h1>{{ __('m_tours.itinerary.ui.page_heading') }}</h1>
 @stop
 
 @push('css')
@@ -34,7 +34,6 @@
         text-overflow: ellipsis;
     }
 
-    /* Espaciado entre botones */
     .btn-action-group > .btn { margin-left: 0.5rem; }
     .btn-action-group > *:not(:first-child) { margin-left: 0.5rem; }
 
@@ -47,7 +46,6 @@
     $itineraryToEdit = request('itinerary_id');
 @endphp
 
-{{-- Mensajes (igual tenemos SweetAlert abajo) --}}
 @if(session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
@@ -66,7 +64,7 @@
 
 <div class="p-3">
     <a href="#" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalCrearItinerario">
-        <i class="fas fa-plus"></i> Nuevo Itinerario
+        <i class="fas fa-plus"></i> {{ __('m_tours.itinerary.ui.new_itinerary') }}
     </a>
 
     @foreach($itineraries as $itinerary)
@@ -91,21 +89,21 @@
                     <a href="#" class="btn btn-sm btn-view"
                        data-bs-toggle="modal"
                        data-bs-target="#modalAsignar{{ $itinerary->itinerary_id }}">
-                        Asignar
+                        {{ __('m_tours.itinerary.ui.assign') }}
                     </a>
 
                     {{-- Editar --}}
                     <a href="#" class="btn btn-sm btn-edit"
                        data-bs-toggle="modal"
                        data-bs-target="#modalEditar{{ $itinerary->itinerary_id }}">
-                        Editar
+                        {{ __('m_tours.itinerary.ui.edit') }}
                     </a>
 
-                    {{-- Alternar activo/inactivo --}}
+                    {{-- Alternar activo/inactivo (usa destroy como toggle) --}}
                     @php
-                        $active = $itinerary->is_active;
+                        $active  = (bool) $itinerary->is_active;
                         $btnClass = $active ? 'btn-delete' : 'btn-secondary';
-                        $label   = $active ? 'Desactivar' : 'Activar';
+                        $label   = $active ? __('m_tours.itinerary.ui.toggle_off') : __('m_tours.itinerary.ui.toggle_on');
                     @endphp
                     <form action="{{ route('admin.tours.itinerary.destroy', $itinerary->itinerary_id) }}"
                           method="POST"
@@ -131,7 +129,7 @@
                     @endif
 
                     @if ($itinerary->items->isEmpty())
-                        <p class="text-warning">No hay ítems asignados a este itinerario.</p>
+                        <p class="text-warning">{{ __('m_tours.itinerary.ui.no_items_assigned') }}</p>
                     @else
                         <ul class="list-group">
                             @foreach ($itinerary->items->sortBy('order') as $item)
@@ -145,12 +143,15 @@
             </div>
         </div>
 
-        {{-- Modales --}}
-        @include('admin.tours.itinerary.partials.create')
+        {{-- Modales por itinerario --}}
         @include('admin.tours.itinerary.partials.assign', ['items' => $items])
         @include('admin.tours.itinerary.partials.edit', ['itinerary' => $itinerary])
     @endforeach
 
+    {{-- Modal global: crear itinerario --}}
+    @include('admin.tours.itinerary.partials.create')
+
+    {{-- CRUD de ítems (ya usa m_tours.itinerary_item.*) --}}
     @include('admin.tours.itinerary.items.crud', ['items' => $items])
 </div>
 @endsection
@@ -179,19 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ===== Ver más / Ver menos en descripciones =====
-    document.querySelectorAll(".btn-toggle-desc").forEach(button => {
-        button.addEventListener("click", function () {
-            const targetId = this.getAttribute("data-target");
-            const desc = document.getElementById(targetId);
-            if (!desc) return;
-            desc.classList.toggle("desc-expanded");
-            this.textContent = desc.classList.contains("desc-expanded") ? "Ver menos" : "Ver más";
-        });
-    });
-
     // ===== Util: lock + spinner (no deshabilita inputs) =====
-    function lockAndSubmit(form, loadingText = 'Procesando...') {
+    function lockAndSubmit(form, loadingText = @json(__('m_tours.itinerary.ui.processing'))) {
         if (!form.checkValidity()) {
             if (typeof form.reportValidity === 'function') form.reportValidity();
             return;
@@ -210,7 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.disabled = true;
         }
 
-        // Asegura que inputs no queden deshabilitados al enviar
         form.querySelectorAll('input,select,textarea').forEach(el => { if (el.disabled) el.disabled = false; });
         form.submit();
     }
@@ -219,24 +208,34 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.form-toggle-itinerary').forEach(form => {
         form.addEventListener('submit', e => {
             e.preventDefault();
-            const name = form.dataset.name || 'este itinerario';
+            const name = form.dataset.name || @json(__('m_tours.itinerary.ui.itinerary_this'));
             const isActive = form.dataset.active === '1';
             Swal.fire({
-                title: isActive ? '¿Desactivar itinerario?' : '¿Activar itinerario?',
-                html: isActive
-                    ? 'El itinerario <b>'+name+'</b> quedará <b>inactivo</b>.'
-                    : 'El itinerario <b>'+name+'</b> quedará <b>activo</b>.',
+                title: isActive
+                    ? @json(__('m_tours.itinerary.ui.toggle_confirm_off_title'))
+                    : @json(__('m_tours.itinerary.ui.toggle_confirm_on_title')),
+                html: (isActive
+                    ? @json(__('m_tours.itinerary.ui.toggle_confirm_off_html', ['label' => ':label']))
+                    : @json(__('m_tours.itinerary.ui.toggle_confirm_on_html',  ['label' => ':label']))
+                ).replace(':label', name),
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Sí, continuar',
-                cancelButtonText: 'Cancelar',
+                confirmButtonText: @json(__('m_tours.itinerary.ui.yes_continue')),
+                cancelButtonText:  @json(__('m_tours.itinerary.ui.cancel')),
                 confirmButtonColor: isActive ? '#ffc107' : '#28a745',
                 cancelButtonColor: '#6c757d'
-            }).then(res => { if (res.isConfirmed) lockAndSubmit(form, isActive ? 'Desactivando...' : 'Activando...'); });
+            }).then(res => {
+                if (res.isConfirmed) {
+                    lockAndSubmit(form, isActive
+                        ? @json(__('m_tours.itinerary.ui.deactivating'))
+                        : @json(__('m_tours.itinerary.ui.activating'))
+                    );
+                }
+            });
         });
     });
 
-    // ===== Asignar Ítems (genera item_ids[ID]=orden, valida y confirma) =====
+    // ===== Asignar Ítems: construye item_ids[ID]=orden + confirma =====
     document.querySelectorAll('form[data-itinerary-id].form-assign-items').forEach(form => {
         form.addEventListener('submit', e => {
             e.preventDefault();
@@ -246,14 +245,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const hiddenContainer = document.getElementById(`ordered-inputs-${itineraryId}`);
 
             if (!ul || !hiddenContainer) {
-                // fallback: enviar normal
-                lockAndSubmit(form, 'Guardando...');
+                lockAndSubmit(form, @json(__('m_tours.itinerary.ui.saving')));
                 return;
             }
 
-            // Limpia y reconstruye los inputs hidden en orden visual
             hiddenContainer.innerHTML = '';
-
             let index = 0;
             let anySelected = false;
 
@@ -270,28 +266,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Elimina el dummy si hay seleccionados
             const dummy = form.querySelector('input[name="item_ids[dummy]"]');
             if (dummy && anySelected) dummy.remove();
 
             if (!anySelected) {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Debes seleccionar al menos un ítem',
-                    text: 'Por favor, selecciona al menos un ítem para continuar.'
+                    title: @json(__('m_tours.itinerary.ui.select_one_title')),
+                    text:  @json(__('m_tours.itinerary.ui.select_one_text')),
+                    confirmButtonColor: '#0d6efd'
                 });
                 return;
             }
 
             Swal.fire({
-                title: '¿Asignar ítems seleccionados?',
+                title: @json(__('m_tours.itinerary.ui.assign_confirm_title')),
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: 'Sí, asignar',
-                cancelButtonText: 'Cancelar',
+                confirmButtonText: @json(__('m_tours.itinerary.ui.assign_confirm_button')),
+                cancelButtonText:  @json(__('m_tours.itinerary.ui.cancel')),
                 confirmButtonColor: '#0d6efd',
                 cancelButtonColor: '#6c757d'
-            }).then(res => { if (res.isConfirmed) lockAndSubmit(form, 'Asignando...'); });
+            }).then(res => { if (res.isConfirmed) lockAndSubmit(form, @json(__('m_tours.itinerary.ui.assigning'))); });
         });
     });
 
@@ -307,15 +303,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== SweetAlert flash =====
     @if (session('success'))
-      Swal.fire({ icon: 'success', title: 'Éxito', text: @json(session('success')), timer: 2200, showConfirmButton: false });
+      Swal.fire({ icon: 'success', title: @json(__('m_tours.itinerary.ui.flash_success_title')), text: @json(session('success')), timer: 2200, showConfirmButton: false });
     @endif
     @if (session('error'))
-      Swal.fire({ icon: 'error', title: 'Error', text: @json(session('error')), confirmButtonColor: '#d33' });
+      Swal.fire({ icon: 'error', title: @json(__('m_tours.itinerary.ui.flash_error_title')), text: @json(session('error')), confirmButtonColor: '#d33' });
     @endif
     @if ($errors->any())
       Swal.fire({
         icon: 'error',
-        title: 'No se pudo procesar',
+        title: @json(__('m_tours.itinerary.ui.validation_failed_title')),
         html: `<ul style="text-align:left;margin:0;padding-left:18px;">{!! collect($errors->all())->map(fn($e)=>"<li>".e($e)."</li>")->implode('') !!}</ul>`,
         confirmButtonColor: '#d33'
       });
@@ -323,23 +319,3 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 @endpush
-
-@push('css')
-<style>
-    .desc-wrapper { max-width: 240px; min-width: 100px; word-wrap: break-word; }
-    .desc-truncate {
-        overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
-        -webkit-line-clamp: 1; -webkit-box-orient: vertical;
-        max-height: 2em; transition: all 0.3s ease;
-        word-break: break-word; white-space: normal;
-    }
-    .desc-expanded { -webkit-line-clamp: unset !important; max-height: none !important; }
-    .btn-toggle-desc { font-size: 0.75rem; color: #007bff; background: none; border: none; padding: 0; cursor: pointer; }
-    @media (max-width: 768px) {
-        .desc-wrapper { max-width: 140px; }
-        .desc-truncate { font-size: 0.8rem; }
-        .btn-toggle-desc { font-size: 0.7rem; }
-    }
-</style>
-@endpush
-

@@ -19,7 +19,6 @@ class AmenityController extends Controller
     public function index()
     {
         $amenities = Amenity::orderBy('name')->get();
-
         return view('admin.tours.amenities.index', compact('amenities'));
     }
 
@@ -53,16 +52,13 @@ class AmenityController extends Controller
 
             return redirect()
                 ->route('admin.tours.amenities.index')
-                ->with('success', 'Amenity created successfully.')
-                ->with('alert_type', 'created');
+                ->with('success', __('m_tours.amenity.success.created'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'amenity', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()
-                ->with('error', 'Could not create the amenity.')
-                ->with('alert_type', 'error');
+            return back()->with('error', __('m_tours.amenity.error.create'));
         }
     }
 
@@ -79,19 +75,17 @@ class AmenityController extends Controller
 
             return redirect()
                 ->route('admin.tours.amenities.index')
-                ->with('success', 'Amenity updated successfully.')
-                ->with('alert_type', 'updated');
+                ->with('success', __('m_tours.amenity.success.updated'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'update', 'amenity', $amenity->amenity_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()
-                ->with('error', 'Could not update the amenity.')
-                ->with('alert_type', 'error');
+            return back()->with('error', __('m_tours.amenity.error.update'));
         }
     }
 
+    /** Toggle activar/desactivar */
     public function toggle(Amenity $amenity)
     {
         try {
@@ -102,23 +96,23 @@ class AmenityController extends Controller
                 'user_id'   => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            $statusLabel = $amenity->is_active ? 'activated' : 'deactivated';
+            $msg = $amenity->is_active
+                ? __('m_tours.amenity.success.activated')
+                : __('m_tours.amenity.success.deactivated');
 
             return redirect()
                 ->route('admin.tours.amenities.index')
-                ->with('success', "Amenity {$statusLabel} successfully.")
-                ->with('alert_type', $statusLabel);
+                ->with('success', $msg);
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'toggle', 'amenity', $amenity->amenity_id, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()
-                ->with('error', 'Could not change amenity status.')
-                ->with('alert_type', 'error');
+            return back()->with('error', __('m_tours.amenity.error.toggle'));
         }
     }
 
+    /** Eliminación definitiva */
     public function destroy(Amenity $amenity)
     {
         try {
@@ -131,16 +125,13 @@ class AmenityController extends Controller
 
             return redirect()
                 ->route('admin.tours.amenities.index')
-                ->with('success', 'Amenity permanently deleted.')
-                ->with('alert_type', 'deleted');
+                ->with('success', __('m_tours.amenity.success.deleted'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy', 'amenity', $amenity->amenity_id ?? null, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()
-                ->with('error', 'Could not delete the amenity.')
-                ->with('alert_type', 'error');
+            return back()->with('error', __('m_tours.amenity.error.delete'));
         }
     }
 }

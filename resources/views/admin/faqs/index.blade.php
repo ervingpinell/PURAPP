@@ -1,24 +1,24 @@
 @extends('adminlte::page')
 
-@section('title', __('faq.title'))
+@section('title', __('m_config.faq.title'))
 
 @section('content_header')
-    <h1><i class="fas fa-question-circle"></i> {{ __('faq.title') }}</h1>
+    <h1><i class="fas fa-question-circle"></i> {{ __('m_config.faq.title') }}</h1>
 @stop
 
 @section('content')
     <!-- Botón Crear -->
     <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createFaqModal">
-        <i class="fas fa-plus"></i> {{ __('faq.new') }}
+        <i class="fas fa-plus"></i> {{ __('m_config.faq.new') }}
     </button>
 
     <table class="table table-bordered">
         <thead class="table-dark">
             <tr>
-                <th>{{ __('faq.question') }}</th>
-                <th>{{ __('faq.answer') }}</th>
-                <th>{{ __('faq.status') }}</th>
-                <th style="width: 160px;">{{ __('faq.actions') }}</th>
+                <th>{{ __('m_config.faq.question') }}</th>
+                <th>{{ __('m_config.faq.answer') }}</th>
+                <th>{{ __('m_config.faq.status') }}</th>
+                <th style="width: 160px;">{{ __('m_config.faq.actions') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -32,12 +32,12 @@
                                  style="height: 1.5em; background: linear-gradient(to bottom, transparent, white);"></div>
                         </div>
                         <button class="btn btn-link p-0 mt-1 toggle-answer d-none" style="font-size: 0.85em;">
-                            {{ __('faq.read_more') }}
+                            {{ __('m_config.faq.read_more') }}
                         </button>
                     </td>
                     <td>
                         <span class="badge bg-{{ $faq->is_active ? 'success' : 'secondary' }}">
-                            {{ $faq->is_active ? __('faq.active') : __('faq.inactive') }}
+                            {{ $faq->is_active ? __('m_config.faq.active') : __('m_config.faq.inactive') }}
                         </span>
                     </td>
                     <td>
@@ -55,7 +55,7 @@
                           data-action="{{ route('admin.faqs.update', $faq) }}"
                           data-question="{{ $qAttr }}"
                           data-answer="{{ $aAttr }}"
-                          title="{{ __('faq.edit') }}"
+                          title="{{ __('m_config.faq.edit') }}"
                         >
                           <i class="fas fa-edit"></i>
                         </button>
@@ -65,17 +65,17 @@
                               class="d-inline js-confirm-toggle" data-active="{{ $faq->is_active ? 1 : 0 }}">
                             @csrf
                             <button type="submit" class="btn btn-sm {{ $faq->is_active ? 'btn-toggle' : 'btn-secondary' }}"
-                                    title="{{ $faq->is_active ? __('faq.deactivate') : __('faq.activate') }}" data-bs-toggle="tooltip">
+                                    title="{{ $faq->is_active ? __('m_config.faq.deactivate') : __('m_config.faq.activate') }}" data-bs-toggle="tooltip">
                                 <i class="fas fa-toggle-{{ $faq->is_active ? 'on' : 'off' }}"></i>
                             </button>
                         </form>
 
                         <!-- ELIMINAR -->
                         <form action="{{ route('admin.faqs.destroy', $faq) }}" method="POST"
-                              class="d-inline js-confirm-delete" data-message="{{ __('faq.confirm_delete') }}">
+                              class="d-inline js-confirm-delete" data-message="{{ __('m_config.faq.confirm_delete') }}">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-danger" title="{{ __('faq.delete') }}" data-bs-toggle="tooltip">
+                            <button type="submit" class="btn btn-sm btn-danger" title="{{ __('m_config.faq.delete') }}" data-bs-toggle="tooltip">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </form>
@@ -92,22 +92,22 @@
                 <form method="POST" action="{{ route('admin.faqs.store') }}" class="js-confirm-create">
                     @csrf
                     <div class="modal-header">
-                        <h5 class="modal-title">{{ __('faq.new') }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('faq.close') }}"></button>
+                        <h5 class="modal-title">{{ __('m_config.faq.new') }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_config.faq.close') }}"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">{{ __('faq.question') }}</label>
+                            <label class="form-label">{{ __('m_config.faq.question') }}</label>
                             <input type="text" name="question" class="form-control" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">{{ __('faq.answer') }}</label>
+                            <label class="form-label">{{ __('m_config.faq.answer') }}</label>
                             <textarea name="answer" class="form-control" rows="4" required></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('faq.close') }}</button>
-                        <button type="submit" class="btn btn-primary">{{ __('faq.create') }}</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_config.faq.close') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('m_config.faq.create') }}</button>
                     </div>
                 </form>
             </div>
@@ -122,22 +122,22 @@
                     @csrf
                     @method('PUT')
                     <div class="modal-header">
-                        <h5 class="modal-title">{{ __('faq.edit') }} {{ __('faq.question') }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('faq.close') }}"></button>
+                        <h5 class="modal-title">{{ __('m_config.faq.edit') }} {{ __('m_config.faq.question') }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_config.faq.close') }}"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">{{ __('faq.question') }}</label>
+                            <label class="form-label">{{ __('m_config.faq.question') }}</label>
                             <input id="editQuestion" type="text" name="question" class="form-control" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">{{ __('faq.answer') }}</label>
+                            <label class="form-label">{{ __('m_config.faq.answer') }}</label>
                             <textarea id="editAnswer" name="answer" class="form-control" rows="4" required></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('faq.cancel') }}</button>
-                        <button type="submit" class="btn btn-primary">{{ __('faq.save') }}</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_config.faq.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('m_config.faq.save') }}</button>
                     </div>
                 </form>
             </div>
@@ -164,7 +164,7 @@
   <script>
     Swal.fire({
       icon: 'error',
-      title: @json(__('faq.error_title')),
+      title: @json(__('m_config.faq.error_title')),
       text: @json(__(session('error')))
     });
   </script>
@@ -172,26 +172,23 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  // Tooltips (si usas Bootstrap 5 a través del layout)
   if (window.bootstrap && bootstrap.Tooltip) {
     [...document.querySelectorAll('[data-bs-toggle="tooltip"]')].forEach(el => new bootstrap.Tooltip(el));
   }
 
-  // Limpieza de backdrops sobrantes
   document.addEventListener('hidden.bs.modal', () => {
     const backs = document.querySelectorAll('.modal-backdrop');
     if (backs.length > 1) backs.forEach((b,i) => { if (i < backs.length-1) b.remove(); });
   });
 
-  // Validaciones (errores) como modal
   const valErrors = @json($errors->any() ? $errors->all() : []);
   if (valErrors && valErrors.length) {
     const list = '<ul class="text-start mb-0">' + valErrors.map(e => `<li>${e}</li>`).join('') + '</ul>';
     Swal.fire({
       icon: 'warning',
-      title: @json(__('faq.validation_errors')),
+      title: @json(__('m_config.faq.validation_errors')),
       html: list,
-      confirmButtonText: @json(__('faq.ok')),
+      confirmButtonText: @json(__('m_config.faq.ok')),
     });
   }
 
@@ -200,13 +197,13 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', (ev) => {
       ev.preventDefault();
       Swal.fire({
-        title: @json(__('faq.confirm_create')),
+        title: @json(__('m_config.faq.confirm_create')),
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#28a745',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: @json(__('faq.create')),
-        cancelButtonText: @json(__('faq.cancel')),
+        confirmButtonText: @json(__('m_config.faq.create')),
+        cancelButtonText: @json(__('m_config.faq.cancel')),
       }).then((res) => { if (res.isConfirmed) form.submit(); });
     });
   });
@@ -216,13 +213,13 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', (ev) => {
       ev.preventDefault();
       Swal.fire({
-        title: @json(__('faq.confirm_edit')),
+        title: @json(__('m_config.faq.confirm_edit')),
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#0d6efd',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: @json(__('faq.edit')),
-        cancelButtonText: @json(__('faq.cancel')),
+        confirmButtonText: @json(__('m_config.faq.edit')),
+        cancelButtonText: @json(__('m_config.faq.cancel')),
       }).then((res) => { if (res.isConfirmed) form.submit(); });
     });
   });
@@ -231,15 +228,15 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.js-confirm-delete').forEach(form => {
     form.addEventListener('submit', (ev) => {
       ev.preventDefault();
-      const msg = form.dataset.message || @json(__('faq.confirm_delete'));
+      const msg = form.dataset.message || @json(__('m_config.faq.confirm_delete'));
       Swal.fire({
         title: msg,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: @json(__('faq.delete')),
-        cancelButtonText: @json(__('faq.cancel')),
+        confirmButtonText: @json(__('m_config.faq.delete')),
+        cancelButtonText: @json(__('m_config.faq.cancel')),
       }).then((res) => { if (res.isConfirmed) form.submit(); });
     });
   });
@@ -250,13 +247,13 @@ document.addEventListener('DOMContentLoaded', () => {
       ev.preventDefault();
       const isActive = form.dataset.active === '1';
       Swal.fire({
-        title: isActive ? @json(__('faq.confirm_deactivate')) : @json(__('faq.confirm_activate')),
+        title: isActive ? @json(__('m_config.faq.confirm_deactivate')) : @json(__('m_config.faq.confirm_activate')),
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: isActive ? '#d33' : '#28a745',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: isActive ? @json(__('faq.deactivate')) : @json(__('faq.activate')),
-        cancelButtonText: @json(__('faq.cancel')),
+        confirmButtonText: isActive ? @json(__('m_config.faq.deactivate')) : @json(__('m_config.faq.activate')),
+        cancelButtonText: @json(__('m_config.faq.cancel')),
       }).then((res) => { if (res.isConfirmed) form.submit(); });
     });
   });
@@ -277,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
       container.style.maxHeight = isExpanded ? '3.5em' : 'none';
       if (fadeOverlay) fadeOverlay.style.display = isExpanded ? '' : 'none';
       container.setAttribute('data-expanded', (!isExpanded).toString());
-      this.textContent = isExpanded ? @json(__('faq.read_more')) : @json(__('faq.read_less'));
+      this.textContent = isExpanded ? @json(__('m_config.faq.read_more')) : @json(__('m_config.faq.read_less'));
     });
   });
 

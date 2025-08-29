@@ -23,8 +23,8 @@ class TourLanguageController extends Controller
                 'unique:tour_languages,name',
             ],
         ], [
-            'name.required' => 'El nombre del idioma es obligatorio.',
-            'name.unique'   => 'Ya existe un idioma con ese nombre.',
+            'name.required' => __('m_tours.language.validation.name.required'),
+            'name.unique'   => __('m_tours.language.validation.name.unique'),
         ]);
 
         TourLanguage::create([
@@ -34,8 +34,7 @@ class TourLanguageController extends Controller
 
         return redirect()
             ->route('admin.languages.index')
-            ->with('success', 'Idioma creado exitosamente.')
-            ->with('alert_type', 'creado');
+            ->with('success', __('m_tours.language.success.created'));
     }
 
     public function update(Request $request, TourLanguage $language)
@@ -47,8 +46,8 @@ class TourLanguageController extends Controller
                     ->ignore($language->getKey(), 'tour_language_id'),
             ],
         ], [
-            'name.required' => 'El nombre del idioma es obligatorio.',
-            'name.unique'   => 'Ya existe un idioma con ese nombre.',
+            'name.required' => __('m_tours.language.validation.name.required'),
+            'name.unique'   => __('m_tours.language.validation.name.unique'),
         ]);
 
         $language->update([
@@ -57,8 +56,7 @@ class TourLanguageController extends Controller
 
         return redirect()
             ->route('admin.languages.index')
-            ->with('success', 'Idioma actualizado correctamente.')
-            ->with('alert_type', 'actualizado');
+            ->with('success', __('m_tours.language.success.updated'));
     }
 
     public function toggle(TourLanguage $language)
@@ -67,17 +65,15 @@ class TourLanguageController extends Controller
             'is_active' => ! $language->is_active,
         ]);
 
-        $accion = $language->is_active ? 'activado' : 'desactivado';
+        $key = $language->is_active ? 'activated' : 'deactivated';
 
         return redirect()
             ->route('admin.languages.index')
-            ->with('success', "Idioma {$accion} correctamente.")
-            ->with('alert_type', $accion);
+            ->with('success', __('m_tours.language.success.' . $key));
     }
 
     /**
      * (Opcional) Borrado real – dejado comentado.
-     * Si algún día quieres eliminar físicamente:
      */
     /*
     public function destroy(TourLanguage $language)
@@ -87,8 +83,7 @@ class TourLanguageController extends Controller
 
         return redirect()
             ->route('admin.languages.index')
-            ->with('success', "Idioma «{$name}» eliminado.")
-            ->with('alert_type', 'eliminado');
+            ->with('success', __('m_tours.language.ui.flash.deleted_title') . " «{$name}»");
     }
     */
 }

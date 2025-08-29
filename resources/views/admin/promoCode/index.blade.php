@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'Códigos Promocionales')
+@section('title', __('m_config.promocode.title'))
 
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -8,8 +8,8 @@
 @if(session('success'))
 Swal.fire({
   icon:'success',
-  title:'Éxito',
-  text:'{{ session('success') }}',
+  title:@json(__('m_config.promocode.success_title')),
+  text:@json(__(session('success'))),
   confirmButtonColor:'#3085d6',
   timer:3000,
   timerProgressBar:true
@@ -18,8 +18,8 @@ Swal.fire({
 @if(session('error'))
 Swal.fire({
   icon:'error',
-  title:'Error',
-  text:'{{ session('error') }}',
+  title:@json(__('m_config.promocode.error_title')),
+  text:@json(__(session('error'))),
   confirmButtonColor:'#d33'
 });
 @endif
@@ -30,29 +30,29 @@ Swal.fire({
 <div class="container-fluid">
 
   {{-- 🧾 FORMULARIO PARA CREAR CÓDIGO --}}
-  <h2 class="mb-4">Generar nuevo código promocional</h2>
+  <h2 class="mb-4">{{ __('m_config.promocode.create_title') }}</h2>
 
   <form method="POST" action="{{ route('admin.promoCode.store') }}">
     @csrf
 
     <div class="row g-3 mb-2">
       <div class="col-md-4">
-        <label for="code" class="form-label">Código</label>
+        <label for="code" class="form-label">{{ __('m_config.promocode.fields.code') }}</label>
         <input type="text" name="code" id="code" class="form-control" value="{{ old('code') }}" required>
         @error('code') <small class="text-danger">{{ $message }}</small> @enderror
       </div>
 
       <div class="col-md-3">
-        <label for="discount" class="form-label">Descuento</label>
+        <label for="discount" class="form-label">{{ __('m_config.promocode.fields.discount') }}</label>
         <input type="number" step="0.01" name="discount" id="discount" class="form-control" value="{{ old('discount') }}" required>
         @error('discount') <small class="text-danger">{{ $message }}</small> @enderror
       </div>
 
       <div class="col-md-3">
-        <label for="type" class="form-label">Tipo</label>
+        <label for="type" class="form-label">{{ __('m_config.promocode.fields.type') }}</label>
         <select name="type" id="type" class="form-control" required>
-          <option value="percent" @selected(old('type')==='percent')>% (porcentaje)</option>
-          <option value="amount"  @selected(old('type')==='amount')>$ (monto fijo)</option>
+          <option value="percent" @selected(old('type')==='percent')>{{ __('m_config.promocode.types.percent') }}</option>
+          <option value="amount"  @selected(old('type')==='amount')>{{ __('m_config.promocode.types.amount') }}</option>
         </select>
         @error('type') <small class="text-danger">{{ $message }}</small> @enderror
       </div>
@@ -60,19 +60,19 @@ Swal.fire({
 
     <div class="row g-3 mb-2">
       <div class="col-md-3">
-        <label for="valid_from" class="form-label">Válido desde</label>
+        <label for="valid_from" class="form-label">{{ __('m_config.promocode.fields.valid_from') }}</label>
         <input type="date" name="valid_from" id="valid_from" class="form-control" value="{{ old('valid_from') }}">
         @error('valid_from') <small class="text-danger">{{ $message }}</small> @enderror
       </div>
 
       <div class="col-md-3">
-        <label for="valid_until" class="form-label">Válido hasta</label>
+        <label for="valid_until" class="form-label">{{ __('m_config.promocode.fields.valid_until') }}</label>
         <input type="date" name="valid_until" id="valid_until" class="form-control" value="{{ old('valid_until') }}">
         @error('valid_until') <small class="text-danger">{{ $message }}</small> @enderror
       </div>
 
       <div class="col-md-3">
-        <label for="usage_limit" class="form-label">Límite de usos</label>
+        <label for="usage_limit" class="form-label">{{ __('m_config.promocode.fields.usage_limit') }}</label>
         <input
           type="number"
           min="1"
@@ -80,30 +80,32 @@ Swal.fire({
           id="usage_limit"
           class="form-control"
           value="{{ old('usage_limit') }}"
-          placeholder="Vacío = ilimitado">
+          placeholder="{{ __('m_config.promocode.labels.unlimited_placeholder') }}">
         @error('usage_limit') <small class="text-danger">{{ $message }}</small> @enderror
-        <small class="text-muted">Déjalo vacío para usos ilimitados. Pon 1 para un solo uso.</small>
+        <small class="text-muted">{{ __('m_config.promocode.labels.unlimited_hint') }}</small>
       </div>
 
       <div class="col-md-3 d-flex align-items-end">
-        <button type="submit" class="btn btn-success w-100">Generar</button>
+        <button type="submit" class="btn btn-success w-100">
+          {{ __('m_config.promocode.actions.generate') }}
+        </button>
       </div>
     </div>
   </form>
 
   {{-- 📋 LISTADO DE CÓDIGOS --}}
-  <h3 class="mt-5">Códigos promocionales existentes</h3>
+  <h3 class="mt-5">{{ __('m_config.promocode.list_title') }}</h3>
 
   <table class="table table-dark table-bordered align-middle">
     <thead>
       <tr>
-        <th style="width: 14rem;">Código</th>
-        <th style="width: 12rem;">Descuento</th>
-        <th style="width: 16rem;">Vigencia</th>
-        <th style="width: 10rem;">Estado (fecha)</th>
-        <th style="width: 14rem;">Usos</th>
-        <th style="width: 10rem;">Estado (uso)</th>
-        <th style="width: 10rem;">Acciones</th>
+        <th style="width: 14rem;">{{ __('m_config.promocode.table.code') }}</th>
+        <th style="width: 12rem;">{{ __('m_config.promocode.table.discount') }}</th>
+        <th style="width: 16rem;">{{ __('m_config.promocode.table.validity') }}</th>
+        <th style="width: 10rem;">{{ __('m_config.promocode.table.date_status') }}</th>
+        <th style="width: 14rem;">{{ __('m_config.promocode.table.usage') }}</th>
+        <th style="width: 10rem;">{{ __('m_config.promocode.table.usage_status') }}</th>
+        <th style="width: 10rem;">{{ __('m_config.promocode.table.actions') }}</th>
       </tr>
     </thead>
     <tbody>
@@ -116,17 +118,16 @@ Swal.fire({
           $vu = $promo->valid_until ? \Carbon\Carbon::parse($promo->valid_until, $tz) : null;
 
           // Estado por fechas
-          $dateStatus = 'Vigente';
+          $dateStatus = __('m_config.promocode.date_status.active');
           $dateClass  = 'bg-success';
-          if ($vf && $today->lt($vf)) { $dateStatus = 'Programado'; $dateClass = 'bg-info'; }
-          if ($vu && $today->gt($vu)) { $dateStatus = 'Expirado';   $dateClass = 'bg-secondary'; }
+          if ($vf && $today->lt($vf)) { $dateStatus = __('m_config.promocode.date_status.scheduled'); $dateClass = 'bg-info'; }
+          if ($vu && $today->gt($vu)) { $dateStatus = __('m_config.promocode.date_status.expired');   $dateClass = 'bg-secondary'; }
 
-          // Estado por uso (nuevo esquema: usage_limit / usage_count)
-          // Si usage_limit es null => ilimitado; usamos is_used solo como compat.
+          // Estado por uso
           $isExhausted = false;
           if (!is_null($promo->usage_limit)) {
               $isExhausted = (int)$promo->usage_count >= (int)$promo->usage_limit;
-          } elseif ($promo->is_used) { // compat legada
+          } elseif ($promo->is_used) { // compat legado
               $isExhausted = true;
           }
 
@@ -135,8 +136,7 @@ Swal.fire({
                         : ($promo->usage_count . ' / ' . $promo->usage_limit);
 
           $usageClass  = $isExhausted ? 'bg-danger' : 'bg-success';
-          $usageStatus = $isExhausted ? 'Agotado' : 'Disponible';
-
+          $usageStatus = $isExhausted ? __('m_config.promocode.status.used') : __('m_config.promocode.status.available');
         @endphp
 
         <tr>
@@ -144,9 +144,9 @@ Swal.fire({
 
           <td>
             @if (!is_null($promo->discount_percent))
-              {{ number_format($promo->discount_percent, 2) }}%
+              {{ number_format($promo->discount_percent, 2) }}{{ __('m_config.promocode.symbols.percent') }}
             @elseif (!is_null($promo->discount_amount))
-              ${{ number_format($promo->discount_amount, 2) }}
+              {{ __('m_config.promocode.symbols.currency') }}{{ number_format($promo->discount_amount, 2) }}
             @else
               —
             @endif
@@ -158,7 +158,7 @@ Swal.fire({
               —
               {{ $promo->valid_until ? \Carbon\Carbon::parse($promo->valid_until)->format('Y-m-d') : '—' }}
             @else
-              — (sin límite)
+              — {{ __('m_config.promocode.labels.no_limit') }}
             @endif
           </td>
 
@@ -171,7 +171,7 @@ Swal.fire({
               <span>{{ $usageLabel }}</span>
               @if(property_exists($promo, 'remaining_uses'))
                 <span class="badge bg-dark">
-                  restantes:
+                  {{ __('m_config.promocode.labels.remaining') }}:
                   {{ is_null($promo->remaining_uses) ? '∞' : $promo->remaining_uses }}
                 </span>
               @endif
@@ -185,16 +185,16 @@ Swal.fire({
           <td>
             <form action="{{ route('admin.promoCode.destroy', $promo) }}"
                   method="POST"
-                  onsubmit="return confirm('¿Eliminar este código?')">
+                  onsubmit="return confirm(@json(__('m_config.promocode.confirm_delete')))">
               @csrf
               @method('DELETE')
-              <button class="btn btn-outline-danger btn-sm">Eliminar</button>
+              <button class="btn btn-outline-danger btn-sm">{{ __('m_config.promocode.actions.delete') }}</button>
             </form>
           </td>
         </tr>
       @empty
         <tr>
-          <td colspan="7" class="text-center">No hay códigos promocionales.</td>
+          <td colspan="7" class="text-center">{{ __('m_config.promocode.empty') }}</td>
         </tr>
       @endforelse
     </tbody>

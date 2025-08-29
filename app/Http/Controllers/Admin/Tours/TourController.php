@@ -179,14 +179,14 @@ class TourController extends Controller
 
             return redirect()
                 ->route('admin.tours.index')
-                ->with('success', 'Tour creado correctamente.');
+                ->with('success', __('m_tours.tour.success.created'));
         } catch (Exception $exception) {
             LoggerHelper::exception($this->controller, 'store', 'tour', null, $exception, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
             return back()
-                ->with('error', 'Hubo un problema al crear el tour.')
+                ->with('error', __('m_tours.tour.error.create'))
                 ->withInput()
                 ->with('showCreateModal', true);
         }
@@ -264,27 +264,24 @@ class TourController extends Controller
 
             return redirect()
                 ->route('admin.tours.index')
-                ->with('success', 'Tour actualizado correctamente.');
+                ->with('success', __('m_tours.tour.success.updated'));
         } catch (Exception $exception) {
             LoggerHelper::exception($this->controller, 'update', 'tour', $tour->tour_id, $exception, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
             return back()
-                ->with('error', 'Hubo un problema al actualizar el tour.')
+                ->with('error', __('m_tours.tour.error.update'))
                 ->withInput()
                 ->with('showEditModal', $tour->tour_id);
         }
     }
 
-    /**
-     * Toggle de estado activo (no toca relaciones).
-     */
+    /** Toggle de estado activo (no toca relaciones). */
     public function toggle(ToggleTourRequest $request, Tour $tour)
     {
         try {
-            $newActiveState = ! $tour->is_active;
-            $tour->update(['is_active' => $newActiveState]);
+            $tour->update(['is_active' => ! $tour->is_active]);
 
             LoggerHelper::mutated($this->controller, 'toggle', 'tour', $tour->tour_id, [
                 'is_active' => $tour->is_active,
@@ -292,8 +289,8 @@ class TourController extends Controller
             ]);
 
             $statusMessage = $tour->is_active
-                ? 'Tour activado correctamente.'
-                : 'Tour desactivado correctamente.';
+                ? __('m_tours.tour.success.activated')
+                : __('m_tours.tour.success.deactivated');
 
             return redirect()
                 ->route('admin.tours.index')
@@ -303,7 +300,7 @@ class TourController extends Controller
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', 'Hubo un problema al cambiar el estado del tour.');
+            return back()->with('error', __('m_tours.tour.error.toggle'));
         }
     }
 }

@@ -52,11 +52,11 @@ class FaqController extends Controller
 
             return redirect()
                 ->route('admin.faqs.index')
-                ->with('success', 'faq.created_success');
+                ->with('success', 'm_config.faq.created_success');
         } catch (Exception $e) {
             return back()
                 ->withInput()
-                ->with('error', 'faq.unexpected_error');
+                ->with('error', 'm_config.faq.unexpected_error');
         }
     }
 
@@ -75,11 +75,11 @@ class FaqController extends Controller
 
             return redirect()
                 ->route('admin.faqs.index')
-                ->with('success', 'faq.updated_success');
+                ->with('success', 'm_config.faq.updated_success');
         } catch (Exception $e) {
             return back()
                 ->withInput()
-                ->with('error', 'faq.unexpected_error');
+                ->with('error', 'm_config.faq.unexpected_error');
         }
     }
 
@@ -90,10 +90,10 @@ class FaqController extends Controller
 
             return redirect()
                 ->route('admin.faqs.index')
-                ->with('success', 'faq.deleted_success');
+                ->with('success', 'm_config.faq.deleted_success');
         } catch (Exception $e) {
             return back()
-                ->with('error', 'faq.unexpected_error');
+                ->with('error', 'm_config.faq.unexpected_error');
         }
     }
 
@@ -103,14 +103,16 @@ class FaqController extends Controller
             $faq->is_active = ! $faq->is_active;
             $faq->save();
 
-            $key = $faq->is_active ? 'faq.activated_success' : 'faq.deactivated_success';
+            $key = $faq->is_active
+                ? 'm_config.faq.activated_success'
+                : 'm_config.faq.deactivated_success';
 
             return redirect()
                 ->route('admin.faqs.index')
                 ->with('success', $key);
         } catch (Exception $e) {
             return back()
-                ->with('error', 'faq.unexpected_error');
+                ->with('error', 'm_config.faq.unexpected_error');
         }
     }
 }

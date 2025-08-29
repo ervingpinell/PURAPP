@@ -30,7 +30,7 @@ class BookingCreatedMail extends Mailable
         $this->details = collect($details ?? BookingDetail::with(['tour','hotel','schedule','tourLanguage','booking'])
             ->where('booking_id', $booking->booking_id)->get());
 
-        $this->company = config('app.company_name', 'Green Vacations');
+        $this->company = config('app.company_name', 'Green Vacations CR');
 
         // Determinar idioma por el primer detalle (si el controlador manda 1 por item
         // quedará perfecto; si manda varios, ya se validó que son del mismo idioma)

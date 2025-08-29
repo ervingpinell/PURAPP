@@ -6,22 +6,39 @@
           class="modal-content form-create-itinerary">
       @csrf
       <div class="modal-header">
-        <h5 class="modal-title" id="modalCrearItinerarioLabel">Crear nuevo itinerario</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        <h5 class="modal-title" id="modalCrearItinerarioLabel">
+          {{ __('m_tours.itinerary.ui.create_title') }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_tours.itinerary.ui.close') }}"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label for="name" class="form-label">Nombre del itinerario</label>
-          <input type="text" name="name" id="name" class="form-control" required maxlength="255">
+          <label for="new-itinerary-name" class="form-label">
+            {{ __('m_tours.itinerary.fields.name') }}
+          </label>
+          <input type="text"
+                 name="name"
+                 id="new-itinerary-name"
+                 class="form-control"
+                 required maxlength="255">
         </div>
         <div class="mb-3">
-          <label for="description" class="form-label">Descripción (opcional)</label>
-          <textarea name="description" id="description" class="form-control" maxlength="1000"></textarea>
+          <label for="new-itinerary-description" class="form-label">
+            {{ __('m_tours.itinerary.fields.description_optional') }}
+          </label>
+          <textarea name="description"
+                    id="new-itinerary-description"
+                    class="form-control"
+                    maxlength="1000"></textarea>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Crear</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          {{ __('m_tours.itinerary.ui.cancel') }}
+        </button>
+        <button type="submit" class="btn btn-primary">
+          {{ __('m_tours.itinerary.ui.create_button') }}
+        </button>
       </div>
     </form>
   </div>
