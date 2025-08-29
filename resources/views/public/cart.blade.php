@@ -70,7 +70,15 @@
         </thead>
         <tbody>
           @foreach($cart->items as $item)
-            <tr class="text-center">
+            @php
+              $itemSubtotal = ($item->tour->adult_price * $item->adults_quantity)
+                            + ($item->tour->kid_price   * $item->kids_quantity);
+            @endphp
+            <tr
+              class="text-center cart-item-row"
+              data-item-id="{{ $item->item_id }}"
+              data-subtotal="{{ number_format($itemSubtotal, 2, '.', '') }}"
+            >
               <td>{{ $item->tour->getTranslatedName() ?? $item->tour->name }}</td>
               <td>{{ \Carbon\Carbon::parse($item->tour_date)->format('d/m/Y') }}</td>
               <td>
@@ -123,7 +131,13 @@
     {{-- Tarjetas (móvil) --}}
     <div class="d-block d-md-none">
       @foreach($cart->items as $item)
-        <div class="card mb-3 shadow-sm">
+        @php
+          $itemSubtotal = ($item->tour->adult_price * $item->adults_quantity)
+                        + ($item->tour->kid_price   * $item->kids_quantity);
+        @endphp
+        <div class="card mb-3 shadow-sm cart-item-card"
+             data-item-id="{{ $item->item_id }}"
+             data-subtotal="{{ number_format($itemSubtotal, 2, '.', '') }}">
           <div class="card-header text-center fw-semibold">
             {{ $item->tour->getTranslatedName() ?? $item->tour->name }}
           </div>
@@ -359,10 +373,7 @@
 @endpush
 
 @push('scripts')
-  @vite('resources/js/cart/promo-code.js')
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  {{-- IMPORTANTE: No dupliques Bootstrap JS si AdminLTE ya lo carga.
-       Usa BS5 con data-bs-* o BS4 con data-* según tu stack. --}}
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -401,7 +412,7 @@
         });
       });
 
-      // Toggle "otro hotel" por ítem (sobre los modales ya fuera del display:none)
+      // Toggle "otro hotel"
       document.querySelectorAll('select[id^="hotel-select-"]').forEach(select => {
         const itemId = select.id.replace('hotel-select-', '');
         const wrapper = document.getElementById('custom-hotel-wrapper-' + itemId);
@@ -431,7 +442,7 @@
         });
       });
 
-      // Anti doble submit
+      // Anti doble submit (modales)
       document.querySelectorAll('.edit-item-form').forEach(f => {
         f.addEventListener('submit', (e) => {
           const btn = f.querySelector('button[type="submit"]');
@@ -443,6 +454,111 @@
           }
         });
       });
+
+      // ======= PROMO CODE (por ítem con deduplicación) =======
+      const applyBtn    = document.getElementById('apply-promo');
+      const codeInput   = document.getElementById('promo-code');
+      const msgBox      = document.getElementById('promo-message');
+      const totalEl     = document.getElementById('cart-total');
+      const codeHidden  = document.getElementById('promo_code_hidden');
+
+      const getUniqueItemElements = () => {
+        const els = Array.from(document.querySelectorAll('.cart-item-row, .cart-item-card'));
+        const seen = new Set();
+        return els.filter(el => {
+          const id = el.dataset.itemId || '';
+          if (!id || seen.has(id)) return false;
+          seen.add(id);
+          return true;
+        });
+      };
+
+      const getBaseCartTotal = () => {
+        const els = getUniqueItemElements();
+        let sum = 0;
+        els.forEach(el => {
+          const v = parseFloat(el.dataset.subtotal || '0');
+          if (!isNaN(v)) sum += v;
+        });
+        return Math.round(sum * 100) / 100;
+      };
+
+      const renderOk = (data) => {
+        if (Array.isArray(data.items_result)) {
+          totalEl.textContent = Number(data.cart_new_total).toFixed(2);
+          const applied = data.applied_items ?? 0;
+          const discTot = data.cart_discount_total ?? 0;
+
+          msgBox.classList.remove('text-danger');
+          msgBox.classList.add('text-success');
+          msgBox.innerHTML = `
+            <i class="fas fa-check-circle me-1"></i>
+            Cupón <strong>${data.code}</strong> aplicado a <strong>${applied}</strong> ítem(s).
+            Descuento total: <strong>$${Number(discTot).toFixed(2)}</strong>.
+            Nuevo total: <strong>$${Number(data.cart_new_total).toFixed(2)}</strong>.
+          `;
+          if (codeHidden) codeHidden.value = data.code;
+        } else {
+          const base = getBaseCartTotal();
+          const newT = typeof data.new_total === 'number' ? data.new_total : base;
+          totalEl.textContent = Number(newT).toFixed(2);
+
+          msgBox.classList.remove('text-danger');
+          msgBox.classList.add('text-success');
+          msgBox.innerHTML = `
+            <i class="fas fa-check-circle me-1"></i>
+            Cupón <strong>${data.code}</strong> aplicado.
+            Nuevo total: <strong>$${Number(newT).toFixed(2)}</strong>.
+          `;
+          if (codeHidden) codeHidden.value = data.code;
+        }
+      };
+
+      const renderError = (message) => {
+        msgBox.classList.remove('text-success');
+        msgBox.classList.add('text-danger');
+        msgBox.innerHTML = `<i class="fas fa-times-circle me-1"></i>${message}`;
+        totalEl.textContent = getBaseCartTotal().toFixed(2);
+        if (codeHidden) codeHidden.value = '';
+      };
+
+      if (applyBtn && codeInput && totalEl) {
+        applyBtn.addEventListener('click', async () => {
+          const code = (codeInput.value || '').trim();
+          if (!code) return renderError('Ingrese un código.');
+
+          const els   = getUniqueItemElements();
+          const items = els.map(el => ({ total: parseFloat(el.dataset.subtotal || '0') || 0 }));
+
+          const payload = {
+            code,
+            preview: true,
+            ...(items.length > 0 ? { items } : { total: getBaseCartTotal() }),
+          };
+
+          try {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const res = await fetch(@json(route('promo.apply')), {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (data.success && data.valid) {
+              renderOk(data);
+            } else {
+              renderError(data.message || 'Código inválido o sin vigencia/usos.');
+            }
+          } catch (e) {
+            renderError('No se pudo aplicar el cupón. Intente de nuevo.');
+          }
+        });
+      }
     });
   </script>
 @endpush

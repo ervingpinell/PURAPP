@@ -61,4 +61,15 @@ class Booking extends Model
     {
         return $this->hasOne(\App\Models\PromoCode::class, 'used_by_booking_id', 'booking_id');
     }
+    public function redemption()
+    {
+        // Una redención por reserva
+        return $this->hasOne(\App\Models\PromoCodeRedemption::class, 'booking_id', 'booking_id')->with('promoCode');
+    }
+    // accessor para mantener $booking->promoCode funcionando
+    public function getPromoCodeAttribute()
+    {
+        return $this->redemption?->promoCode;
+    }
+
 }

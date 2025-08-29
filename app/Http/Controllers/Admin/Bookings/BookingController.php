@@ -46,7 +46,8 @@ public function index(Request $request)
             'user',
             'detail.tour.tourType',
             'detail.hotel',
-            'detail.schedule'
+            'detail.schedule',
+            'redemption.promoCode',
         ])
             ->join('users', 'bookings.user_id', '=', 'users.user_id')
             ->select('bookings.*');
@@ -629,7 +630,7 @@ public function index(Request $request)
     public function generarPDF()
     {
         // Asegúrate de cargar schedules dentro de detail
-        $reservas = Booking::with(['user', 'tour', 'detail.schedule', 'promoCode'])
+        $reservas = Booking::with(['user', 'tour', 'detail.schedule', 'promoCode','redemption.promoCode'])
             ->orderBy('booking_id')
             ->get();
 
@@ -738,7 +739,6 @@ public function index(Request $request)
                 $cleanCode = \App\Models\PromoCode::normalize($promoCodeValue);
                 $promoCode = \App\Models\PromoCode::whereRaw('UPPER(TRIM(REPLACE(code, \' \', \'\'))) = ?', [$cleanCode])->first();
 
-                // ✔️ Chequeo de vigencia y usos
                 if ($promoCode && (! $promoCode->isValidToday() || ! $promoCode->hasRemainingUses())) {
                     throw \Illuminate\Validation\ValidationException::withMessages([
                         'promo_code' => 'El código está fuera de vigencia o sin usos disponibles.',
@@ -746,23 +746,41 @@ public function index(Request $request)
                 }
             }
 
+            // ⚖️ Preparar estrategia de aplicación por ítem
+            // Ordenamos por mayor subtotal primero para maximizar el beneficio
+            $itemsOrdered = $cart->items->map(function ($item) {
+                $adultPrice = $item->tour->adult_price;
+                $kidPrice   = $item->tour->kid_price;
+                $baseTotal  = ($adultPrice * $item->adults_quantity) + ($kidPrice * $item->kids_quantity);
+                return [$item, $baseTotal, $adultPrice, $kidPrice];
+            })->sortByDesc(fn($tuple) => $tuple[1])->values();
+
+            $unlimited = $promoCode ? is_null($promoCode->usage_limit) : false;
+            $remaining = $promoCode
+                ? ($unlimited ? PHP_INT_MAX : max(0, (int)$promoCode->usage_limit - (int)$promoCode->usage_count))
+                : 0;
+
+            $applyMap = []; // booking-item-id (temporal index) => true si aplica cupón
+            if ($promoCode) {
+                $applyCount = min($remaining, $itemsOrdered->count());
+                // Marcar los primeros N (mayor subtotal)
+                for ($i = 0; $i < $applyCount; $i++) {
+                    $applyMap[$i] = true;
+                }
+            }
+
             $created = [];
-            $promoApplied = false; // aplicamos la promo solo a la PRIMERA reserva creada (tu lógica original)
 
             // 🧾 Crear UNA reserva por ÍTEM del carrito
-            foreach ($cart->items as $item) {
-                $tour       = $item->tour; // eager loaded
-                $adultPrice = $tour->adult_price;
-                $kidPrice   = $tour->kid_price;
-                $baseTotal  = ($adultPrice * $item->adults_quantity) + ($kidPrice * $item->kids_quantity);
+            foreach ($itemsOrdered as $idx => [$item, $baseTotal, $adultPrice, $kidPrice]) {
 
                 $total = $baseTotal;
+                $applyThis = $promoCode && isset($applyMap[$idx]);
 
-                // Aplicar promo SOLO al primer booking (si existe)
-                if ($promoCode && !$promoApplied) {
-                    if ($promoCode->discount_amount) {
+                if ($applyThis) {
+                    if (!is_null($promoCode->discount_amount)) {
                         $total = max($baseTotal - $promoCode->discount_amount, 0);
-                    } elseif ($promoCode->discount_percent) {
+                    } elseif (!is_null($promoCode->discount_percent)) {
                         $total = max($baseTotal - ($baseTotal * ($promoCode->discount_percent / 100)), 0);
                     }
                 }
@@ -776,11 +794,11 @@ public function index(Request $request)
                     'booking_reference' => strtoupper(\Illuminate\Support\Str::random(10)),
                     'booking_date'      => now(),
                     'status'            => 'pending',
-                    'total'             => $total,
+                    'total'             => round($total, 2),
                     'is_active'         => true,
                 ]);
 
-                // Detalle (1 a 1 con la cabecera)
+                // Detalle
                 \App\Models\BookingDetail::create([
                     'booking_id'       => $booking->booking_id,
                     'tour_id'          => $item->tour_id,
@@ -794,14 +812,13 @@ public function index(Request $request)
                     'kids_quantity'    => $item->kids_quantity,
                     'adult_price'      => $adultPrice,
                     'kid_price'        => $kidPrice,
-                    'total'            => $total,
+                    'total'            => round($total, 2),
                     'is_active'        => true,
                 ]);
 
-                // Marcar promo como usada en ESTA reserva (una sola vez, si aplica)
-                if ($promoCode && !$promoApplied) {
+                if ($applyThis) {
+                    // Registra UNA redención por esta reserva
                     $promoCode->redeemForBooking($booking->booking_id, (int) $user->user_id);
-                    $promoApplied = true;
                 }
 
                 $created[] = $booking;
@@ -813,10 +830,9 @@ public function index(Request $request)
             return $created;
         });
 
-        // 📧 Enviar correo(s) consolidando por idioma (para todos los bookings creados)
+        // 📧 Enviar correos agrupados por idioma (igual que tenías)
         $createdBookings = collect($createdBookings);
 
-        // Traer todos los detalles de estas reservas con sus relaciones
         $allDetails = \App\Models\BookingDetail::with(['tour','schedule','hotel','tourLanguage','booking.user'])
             ->whereIn('booking_id', $createdBookings->pluck('booking_id')->all())
             ->get();
@@ -836,6 +852,7 @@ public function index(Request $request)
         return redirect()->route('admin.cart.index')
             ->with('success', 'Reservas generadas correctamente desde el carrito.');
     }
+
 
 
 

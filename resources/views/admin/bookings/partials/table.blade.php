@@ -40,7 +40,7 @@
     <td>{{ $booking->user->email ?? '-' }}</td>
     <td>{{ $booking->user->phone ?? '-' }}</td>
     <td>{{ $detail->tour->name ?? '-' }}</td>
-<td>{{ $detail->tourLanguage->name ?? '-' }}</td>
+    <td>{{ $detail->tourLanguage->name ?? '-' }}</td>
     <td>{{ optional($detail)->tour_date?->format('Y-m-d') ?? '-' }}</td>
     <td>{{ $detail->hotel->name ?? $detail->other_hotel_name ?? '-' }}</td>
     <td>{{ $detail->schedule->start_time ?? '' }} - {{ $detail->schedule->end_time ?? '' }}</td>

@@ -76,15 +76,16 @@ class PromoCodeController extends Controller
         try {
             $request->validate([
                 'code'    => 'required|string',
-                'total'   => 'nullable|numeric|min:0',
+                'total'   => 'nullable|numeric|min:0',   
                 'preview' => 'nullable|boolean',
+                'items'           => 'nullable|array',
+                'items.*.total'   => 'required_with:items|numeric|min:0',
             ]);
 
-            $code    = PromoCode::normalize($request->input('code', ''));
-            $total   = (float) $request->input('total', 0);
+            $code    = \App\Models\PromoCode::normalize($request->input('code', ''));
             $preview = $request->boolean('preview', true);
 
-            $promo = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$code])->first();
+            $promo = \App\Models\PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$code])->first();
 
             if (!$promo || ! $promo->isValidToday() || ! $promo->hasRemainingUses()) {
                 return response()->json([
@@ -94,6 +95,7 @@ class PromoCodeController extends Controller
                 ], 200);
             }
 
+            // Respuesta base
             $resp = [
                 'success'          => true,
                 'valid'            => true,
@@ -106,6 +108,72 @@ class PromoCodeController extends Controller
                 'remaining_uses'   => $promo->remaining_uses, // null = ilimitado
             ];
 
+            // Si mandan items → devolvemos desglose por ítem
+            $items = collect($request->input('items', []))
+                ->map(fn($it) => [
+                    'total' => (float) ($it['total'] ?? 0),
+                ]);
+
+            if ($items->isNotEmpty()) {
+                $isPercent   = $promo->discount_percent !== null;
+                $percent     = (float) $promo->discount_percent;
+                $amount      = (float) $promo->discount_amount;
+                $unlimited   = is_null($promo->usage_limit);
+                $remaining   = $unlimited ? PHP_INT_MAX : max(0, (int)$promo->usage_limit - (int)$promo->usage_count);
+
+                // Estrategia: aplicar a ítems de mayor subtotal primero
+                $indexed = $items->values()->map(function ($it, $i) {
+                    return ['index' => $i, 'base_total' => (float)$it['total']];
+                });
+
+                $sorted = $indexed->sortByDesc('base_total')->values();
+                $applyCount = min($remaining, $sorted->count());
+
+                $applyIndexes = $sorted->take($applyCount)->pluck('index')->all();
+
+                $perItem = [];
+                $cartDiscountTotal = 0.0;
+                $cartNewTotal      = 0.0;
+
+                foreach ($items as $i => $it) {
+                    $base = (float)$it['total'];
+                    $applied = in_array($i, $applyIndexes, true);
+
+                    $disc = 0.0;
+                    if ($applied) {
+                        if ($isPercent) {
+                            $disc = round($base * ($percent / 100), 2);
+                        } else {
+                            $disc = min($amount, $base);
+                        }
+                    }
+                    $newT = round(max($base - $disc, 0), 2);
+
+                    $cartDiscountTotal += $disc;
+                    $cartNewTotal      += $newT;
+
+                    $perItem[] = [
+                        'index'            => $i,
+                        'base_total'       => round($base, 2),
+                        'applied'          => $applied,
+                        'discount_applied' => round($disc, 2),
+                        'new_total'        => $newT,
+                    ];
+                }
+
+                $resp['items_result']        = $perItem;
+                $resp['cart_discount_total'] = round($cartDiscountTotal, 2);
+                $resp['cart_new_total']      = round($cartNewTotal, 2);
+                $resp['applied_items']       = count($applyIndexes);
+                $resp['remaining_uses_after_preview'] = $unlimited
+                    ? null
+                    : max(0, (int)$remaining - (int)count($applyIndexes));
+
+                return response()->json($resp, 200);
+            }
+
+            // Legacy: si no mandan items, seguimos con "total"
+            $total = (float) $request->input('total', 0);
             if ($total > 0) {
                 $discount = 0.0;
                 if ($promo->discount_percent !== null) {
@@ -114,6 +182,7 @@ class PromoCodeController extends Controller
                     $discount = (float) $promo->discount_amount;
                 }
                 $discount = min($discount, $total);
+
                 $resp['discount_applied'] = $discount;
                 $resp['new_total']        = round($total - $discount, 2);
             }
@@ -134,4 +203,5 @@ class PromoCodeController extends Controller
             ], 200);
         }
     }
+
 }
