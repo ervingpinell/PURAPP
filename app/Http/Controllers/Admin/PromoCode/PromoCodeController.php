@@ -16,44 +16,53 @@ class PromoCodeController extends Controller
 
     public function store(Request $request)
     {
-        // Mensajes/labels traducidos para la validación
+        // Atributos y mensajes localizados
         $attributes = [
-            'code'     => __('m_config.promocode.fields.code'),
-            'discount' => __('m_config.promocode.fields.discount'),
-            'type'     => __('m_config.promocode.fields.type'),
+            'code'        => __('m_config.promocode.fields.code'),
+            'discount'    => __('m_config.promocode.fields.discount'),
+            'type'        => __('m_config.promocode.fields.type'),
+            'valid_from'  => __('m_config.promocode.fields.valid_from'),
+            'valid_until' => __('m_config.promocode.fields.valid_until'),
+            'usage_limit' => __('m_config.promocode.fields.usage_limit'),
         ];
 
         $messages = [
-            'required'        => __('validation.required', ['attribute' => ':attribute']),
-            'numeric'         => __('validation.numeric',  ['attribute' => ':attribute']),
-            'min.numeric'     => __('validation.min.numeric', ['attribute' => ':attribute', 'min' => 0]),
-            'in'              => __('validation.in', ['attribute' => ':attribute']),
-            'unique'          => __('validation.unique', ['attribute' => ':attribute']),
+            'required'                    => __('validation.required', ['attribute' => ':attribute']),
+            'string'                      => __('validation.string',   ['attribute' => ':attribute']),
+            'unique'                      => __('validation.unique',   ['attribute' => ':attribute']),
+            'numeric'                     => __('validation.numeric',  ['attribute' => ':attribute']),
+            'integer'                     => __('validation.integer',  ['attribute' => ':attribute']),
+            'min.numeric'                 => __('validation.min.numeric', ['attribute' => ':attribute', 'min' => 0]),
+            'min.integer'                 => __('validation.min.numeric', ['attribute' => ':attribute', 'min' => 1]),
+            'in'                          => __('validation.in', ['attribute' => ':attribute']),
+            'date'                        => __('validation.date', ['attribute' => ':attribute']),
+            'valid_until.after_or_equal'  => __('validation.after_or_equal', ['attribute' => ':attribute', 'date' => __('m_config.promocode.fields.valid_from')]),
         ];
 
-        $request->validate([
-            'code'         => 'required|string|unique:promo_codes,code',
-            'discount'     => 'required|numeric|min:0',
-            'type'         => 'required|in:percent,amount',
-            'valid_from'   => 'nullable|date',
-            'valid_until'  => 'nullable|date|after_or_equal:valid_from',
-            'usage_limit'  => 'nullable|integer|min:1', // null = ilimitado
-        ]);
-            'code'     => 'required|string|unique:promo_codes,code',
-            'discount' => 'required|numeric|min:0',
-            'type'     => 'required|in:percent,amount',
-        ], $messages, $attributes);
+        $rules = [
+            'code'        => 'required|string|unique:promo_codes,code',
+            'discount'    => 'required|numeric|min:0',
+            'type'        => 'required|in:percent,amount',
+            'valid_from'  => 'nullable|date',
+            'valid_until' => 'nullable|date|after_or_equal:valid_from',
+            'usage_limit' => 'nullable|integer|min:1', // null = ilimitado
+        ];
 
+        $request->validate($rules, $messages, $attributes);
+
+        // Validación adicional de % > 100
         if ($request->type === 'percent' && (float) $request->discount > 100) {
             return back()
                 ->withErrors(['discount' => __('m_config.promocode.messages.percent_over_100')])
                 ->withInput();
         }
 
-        $normalizedCode = PromoCode::normalize($request->code);
-
-        // Normaliza código para evitar duplicados con espacios/mayúsculas
-        $normalizedCode = strtoupper(trim(preg_replace('/\s+/', '', $request->code)));
+        // Normaliza código (usa método del modelo si existe; si no, fallback)
+        if (method_exists(PromoCode::class, 'normalize')) {
+            $normalizedCode = PromoCode::normalize($request->code);
+        } else {
+            $normalizedCode = strtoupper(trim(preg_replace('/\s+/', '', (string) $request->code)));
+        }
 
         // Unicidad ignorando espacios y mayúsculas
         $exists = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$normalizedCode])->exists();
@@ -74,19 +83,19 @@ class PromoCodeController extends Controller
             $promo->discount_percent = null;
         }
 
-        // Vigencia (pueden ser null)
+        // Vigencia
         $promo->valid_from  = $request->input('valid_from');
         $promo->valid_until = $request->input('valid_until');
 
-        // Límite de usos (null = ilimitado)
-        $promo->usage_limit = $request->filled('usage_limit') ? (int)$request->usage_limit : null;
+        // Usos
+        $promo->usage_limit = $request->filled('usage_limit') ? (int) $request->usage_limit : null; // null = ilimitado
         $promo->usage_count = 0;
 
         $promo->save();
 
         return redirect()
             ->route('admin.promoCode.index')
-            ->with('success', __('m_config.promocode.messages.created_success'));
+            ->with('success', 'm_config.promocode.messages.created_success');
     }
 
     public function destroy(PromoCode $promo)
@@ -95,7 +104,7 @@ class PromoCodeController extends Controller
 
         return redirect()
             ->route('admin.promoCode.index')
-            ->with('success', __('m_config.promocode.messages.deleted_success'));
+            ->with('success', 'm_config.promocode.messages.deleted_success');
     }
 
     public function apply(Request $request)
@@ -107,21 +116,28 @@ class PromoCodeController extends Controller
                 'preview' => 'nullable|boolean',
             ], [], [
                 'code'  => __('m_config.promocode.fields.code'),
-                'total' => 'total', // opcional: podrías añadir clave si lo muestras en UI
+                'total' => 'total',
             ]);
 
-            $code    = PromoCode::normalize($request->input('code', ''));
+            // Normaliza búsqueda
+            if (method_exists(PromoCode::class, 'normalize')) {
+                $code = PromoCode::normalize($request->input('code', ''));
+            } else {
+                $code = strtoupper(trim(preg_replace('/\s+/', '', (string) $request->input('code', ''))));
+            }
+
             $total   = (float) $request->input('total', 0);
             $preview = $request->boolean('preview', true);
 
             $promo = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$code])->first();
 
-            if (!$promo || ! $promo->isValidToday() || ! $promo->hasRemainingUses()) {
+            // Reglas de validez personalizadas (asumiendo helpers en el modelo)
+            if (!$promo || (method_exists($promo, 'isValidToday') && ! $promo->isValidToday()) ||
+                (method_exists($promo, 'hasRemainingUses') && ! $promo->hasRemainingUses())) {
                 return response()->json([
                     'success' => false,
                     'valid'   => false,
                     'message' => __('m_config.promocode.messages.invalid_or_used'),
-                    'message' => 'Código inválido, fuera de vigencia o sin usos disponibles.',
                 ], 200);
             }
 
@@ -134,7 +150,7 @@ class PromoCodeController extends Controller
                 'discount_percent' => $promo->discount_percent !== null ? (float) $promo->discount_percent : null,
                 'discount_amount'  => $promo->discount_amount  !== null ? (float) $promo->discount_amount  : null,
                 'preview'          => $preview,
-                'remaining_uses'   => $promo->remaining_uses, // null = ilimitado
+                'remaining_uses'   => property_exists($promo, 'remaining_uses') ? $promo->remaining_uses : null,
             ];
 
             if ($total > 0) {
@@ -154,7 +170,7 @@ class PromoCodeController extends Controller
             return response()->json([
                 'success' => false,
                 'valid'   => false,
-                'message' => $e->getMessage(), // Laravel ya localiza estos mensajes
+                'message' => $e->getMessage(),
                 'errors'  => $e->errors(),
             ], 200);
         } catch (\Throwable $e) {

@@ -352,61 +352,80 @@ return [
         ],
     ],
 
-    // =========================================================
-    // ==== PROMOCODE ==========================================
-    // =========================================================
-    'promocode' => [
-        'title'         => 'Códigos Promocionales',
-        'create_title'  => 'Generar nuevo código promocional',
-        'list_title'    => 'Códigos promocionales existentes',
+   // =========================================================
+// ==== PROMOCODE ==========================================
+// =========================================================
+'promocode' => [
+    'title'        => 'Códigos Promocionales',
+    'create_title' => 'Generar nuevo código promocional',
+    'list_title'   => 'Códigos promocionales existentes',
 
-        'success_title' => 'Éxito',
-        'error_title'   => 'Error',
+    'success_title' => 'Éxito',
+    'error_title'   => 'Error',
 
-        'fields' => [
-            'code'     => 'Código',
-            'discount' => 'Descuento',
-            'type'     => 'Tipo',
-        ],
-
-        'types' => [
-            'percent'  => '%',
-            'amount'   => '$',
-        ],
-
-        'symbols' => [
-            'percent'  => '%',
-            'currency' => '$',
-        ],
-
-        'table' => [
-            'code'     => 'Código',
-            'discount' => 'Descuento',
-            'status'   => 'Estado',
-            'actions'  => 'Acciones',
-        ],
-
-        'status' => [
-            'used'       => 'Usado',
-            'available'  => 'Disponible',
-        ],
-
-        'actions' => [
-            'generate' => 'Generar',
-            'delete'   => 'Eliminar',
-        ],
-
-        'confirm_delete' => '¿Estás seguro de que deseas eliminar este código?',
-        'empty'          => 'No hay códigos promocionales disponibles.',
-
-        'messages' => [
-    'created_success'       => 'Código promocional creado correctamente.',
-    'deleted_success'       => 'Código promocional eliminado correctamente.',
-    'percent_over_100'      => 'El porcentaje no puede ser mayor a 100.',
-    'code_exists_normalized'=> 'Este código (ignorando espacios y mayúsculas) ya existe.',
-    'invalid_or_used'       => 'Código inválido o ya usado.',
-    'valid'                 => 'Código válido.',
-    'server_error'          => 'Error del servidor, inténtalo de nuevo.',
-],
+    'fields' => [
+        'code'        => 'Código',
+        'discount'    => 'Descuento',
+        'type'        => 'Tipo',
+        'valid_from'  => 'Válido desde',
+        'valid_until' => 'Válido hasta',
+        'usage_limit' => 'Límite de usos',
     ],
+
+    'types' => [
+        'percent' => '%',
+        'amount'  => '$',
+    ],
+
+    'symbols' => [
+        'percent'  => '%',
+        'currency' => '$',
+    ],
+
+    'table' => [
+        'code'         => 'Código',
+        'discount'     => 'Descuento',
+        'validity'     => 'Vigencia',
+        'date_status'  => 'Estado (fecha)',
+        'usage'        => 'Usos',
+        'usage_status' => 'Estado (uso)',
+        'actions'      => 'Acciones',
+    ],
+
+    'status' => [
+        'used'      => 'Usado',
+        'available' => 'Disponible',
+    ],
+
+    'date_status' => [
+        'scheduled' => 'Programado',
+        'active'    => 'Vigente',
+        'expired'   => 'Expirado',
+    ],
+
+    'actions' => [
+        'generate' => 'Generar',
+        'delete'   => 'Eliminar',
+    ],
+
+    'labels' => [
+        'unlimited_placeholder' => 'Vacío = ilimitado',
+        'unlimited_hint'        => 'Déjalo vacío para usos ilimitados. Pon 1 para un solo uso.',
+        'no_limit'              => '(sin límite)',
+        'remaining'             => 'restantes',
+    ],
+
+    'confirm_delete' => '¿Estás seguro de que deseas eliminar este código?',
+    'empty'          => 'No hay códigos promocionales disponibles.',
+
+    'messages' => [
+        'created_success'         => 'Código promocional creado correctamente.',
+        'deleted_success'         => 'Código promocional eliminado correctamente.',
+        'percent_over_100'        => 'El porcentaje no puede ser mayor a 100.',
+        'code_exists_normalized'  => 'Este código (ignorando espacios y mayúsculas) ya existe.',
+        'invalid_or_used'         => 'Código inválido o ya usado.',
+        'valid'                   => 'Código válido.',
+        'server_error'            => 'Error del servidor, inténtalo de nuevo.',
+    ],
+],
 ];

@@ -353,58 +353,77 @@ return [
     // ==== PROMOCODE ==========================================
     // =========================================================
     'promocode' => [
-        'title'         => 'Codes promotionnels',
-        'create_title'  => 'Générer un nouveau code promotionnel',
-        'list_title'    => 'Codes promotionnels existants',
+    'title'        => 'Codes promotionnels',
+    'create_title' => 'Générer un nouveau code promotionnel',
+    'list_title'   => 'Codes promotionnels existants',
 
-        'success_title' => 'Succès',
-        'error_title'   => 'Erreur',
+    'success_title' => 'Succès',
+    'error_title'   => 'Erreur',
 
-        'fields' => [
-            'code'     => 'Code',
-            'discount' => 'Remise',
-            'type'     => 'Type',
-        ],
-
-        'types' => [
-            'percent'  => '%',
-            'amount'   => '$',
-        ],
-
-        'symbols' => [
-            'percent'  => '%',
-            'currency' => '$',
-        ],
-
-        'table' => [
-            'code'     => 'Code',
-            'discount' => 'Remise',
-            'status'   => 'Statut',
-            'actions'  => 'Actions',
-        ],
-
-        'status' => [
-            'used'       => 'Utilisé',
-            'available'  => 'Disponible',
-        ],
-
-        'actions' => [
-            'generate' => 'Générer',
-            'delete'   => 'Supprimer',
-        ],
-
-        'confirm_delete' => 'Voulez-vous vraiment supprimer ce code ?',
-        'empty'          => 'Aucun code promotionnel disponible.',
-
-        'messages' => [
-    'created_success'        => 'Code promotionnel créé avec succès.',
-    'deleted_success'        => 'Code promotionnel supprimé avec succès.',
-    'percent_over_100'       => 'Le pourcentage ne peut pas dépasser 100.',
-    'code_exists_normalized' => 'Ce code (en ignorant les espaces et les majuscules) existe déjà.',
-    'invalid_or_used'        => 'Code invalide ou déjà utilisé.',
-    'valid'                  => 'Code valide.',
-    'server_error'           => 'Erreur du serveur, veuillez réessayer.',
-],
+    'fields' => [
+        'code'        => 'Code',
+        'discount'    => 'Remise',
+        'type'        => 'Type',
+        'valid_from'  => 'Valide à partir du',
+        'valid_until' => 'Valide jusqu’au',
+        'usage_limit' => 'Limite d’utilisations',
     ],
+
+    'types' => [
+        'percent' => '%',
+        'amount'  => '$',
+    ],
+
+    'symbols' => [
+        'percent'  => '%',
+        'currency' => '$',
+    ],
+
+    'table' => [
+        'code'         => 'Code',
+        'discount'     => 'Remise',
+        'validity'     => 'Validité',
+        'date_status'  => 'Statut (date)',
+        'usage'        => 'Utilisations',
+        'usage_status' => 'Statut (utilisation)',
+        'actions'      => 'Actions',
+    ],
+
+    'status' => [
+        'used'      => 'Utilisé',
+        'available' => 'Disponible',
+    ],
+
+    'date_status' => [
+        'scheduled' => 'Programmé',
+        'active'    => 'En vigueur',
+        'expired'   => 'Expiré',
+    ],
+
+    'actions' => [
+        'generate' => 'Générer',
+        'delete'   => 'Supprimer',
+    ],
+
+    'labels' => [
+        'unlimited_placeholder' => 'Vide = illimité',
+        'unlimited_hint'        => 'Laissez vide pour un nombre illimité d’utilisations. Indiquez 1 pour un seul usage.',
+        'no_limit'              => '(sans limite)',
+        'remaining'             => 'restants',
+    ],
+
+    'confirm_delete' => 'Êtes-vous sûr de vouloir supprimer ce code ?',
+    'empty'          => 'Aucun code promotionnel disponible.',
+
+    'messages' => [
+        'created_success'        => 'Code promotionnel créé avec succès.',
+        'deleted_success'        => 'Code promotionnel supprimé avec succès.',
+        'percent_over_100'       => 'Le pourcentage ne peut pas être supérieur à 100.',
+        'code_exists_normalized' => 'Ce code (en ignorant les espaces et la casse) existe déjà.',
+        'invalid_or_used'        => 'Code invalide, hors de validité ou sans utilisations restantes.',
+        'valid'                  => 'Code valide.',
+        'server_error'           => 'Erreur du serveur, réessayez.',
+    ],
+],
 
 ];

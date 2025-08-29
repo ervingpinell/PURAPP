@@ -355,59 +355,79 @@ return [
     // =========================================================
     // ==== PROMOCODE ==========================================
     // =========================================================
-    'promocode' => [
-        'title'         => 'Promotional Codes',
-        'create_title'  => 'Generate new promo code',
-        'list_title'    => 'Existing promo codes',
+   'promocode' => [
+    'title'        => 'Promo Codes',
+    'create_title' => 'Generate new promo code',
+    'list_title'   => 'Existing promo codes',
 
-        'success_title' => 'Success',
-        'error_title'   => 'Error',
+    'success_title' => 'Success',
+    'error_title'   => 'Error',
 
-        'fields' => [
-            'code'     => 'Code',
-            'discount' => 'Discount',
-            'type'     => 'Type',
-        ],
-
-        'types' => [
-            'percent'  => '%',
-            'amount'   => '$',
-        ],
-
-        'symbols' => [
-            'percent'  => '%',
-            'currency' => '$',
-        ],
-
-        'table' => [
-            'code'     => 'Code',
-            'discount' => 'Discount',
-            'status'   => 'Status',
-            'actions'  => 'Actions',
-        ],
-
-        'status' => [
-            'used'       => 'Used',
-            'available'  => 'Available',
-        ],
-
-        'actions' => [
-            'generate' => 'Generate',
-            'delete'   => 'Delete',
-        ],
-
-        'confirm_delete' => 'Are you sure you want to delete this code?',
-        'empty'          => 'There are no promo codes available.',
-
-        'messages' => [
-    'created_success'       => 'Promo code created successfully.',
-    'deleted_success'       => 'Promo code deleted successfully.',
-    'percent_over_100'      => 'The percentage cannot be greater than 100.',
-    'code_exists_normalized'=> 'This code (ignoring spaces and capitalization) already exists.',
-    'invalid_or_used'       => 'Invalid or already used code.',
-    'valid'                 => 'Valid code.',
-    'server_error'          => 'Server error, please try again.',
-],
+    'fields' => [
+        'code'        => 'Code',
+        'discount'    => 'Discount',
+        'type'        => 'Type',
+        'valid_from'  => 'Valid from',
+        'valid_until' => 'Valid until',
+        'usage_limit' => 'Usage limit',
     ],
+
+    'types' => [
+        'percent' => '%',
+        'amount'  => '$',
+    ],
+
+    'symbols' => [
+        'percent'  => '%',
+        'currency' => '$',
+    ],
+
+    'table' => [
+        'code'         => 'Code',
+        'discount'     => 'Discount',
+        'validity'     => 'Validity',
+        'date_status'  => 'Status (date)',
+        'usage'        => 'Uses',
+        'usage_status' => 'Status (usage)',
+        'actions'      => 'Actions',
+    ],
+
+    'status' => [
+        'used'      => 'Used',
+        'available' => 'Available',
+    ],
+
+    'date_status' => [
+        'scheduled' => 'Scheduled',
+        'active'    => 'Active',
+        'expired'   => 'Expired',
+    ],
+
+    'actions' => [
+        'generate' => 'Generate',
+        'delete'   => 'Delete',
+    ],
+
+    'labels' => [
+        'unlimited_placeholder' => 'Empty = unlimited',
+        'unlimited_hint'        => 'Leave empty for unlimited uses. Set 1 for single use.',
+        'no_limit'              => '(no limit)',
+        'remaining'             => 'remaining',
+    ],
+
+    'confirm_delete' => 'Are you sure you want to delete this code?',
+    'empty'          => 'No promo codes available.',
+
+    'messages' => [
+        'created_success'        => 'Promo code created successfully.',
+        'deleted_success'        => 'Promo code deleted successfully.',
+        'percent_over_100'       => 'The percentage cannot be greater than 100.',
+        'code_exists_normalized' => 'This code (ignoring spaces and case) already exists.',
+        'invalid_or_used'        => 'Invalid code, out of validity or with no remaining uses.',
+        'valid'                  => 'Valid code.',
+        'server_error'           => 'Server error, please try again.',
+    ],
+],
+
 
 ];

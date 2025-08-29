@@ -352,58 +352,77 @@ return [
     // =========================================================
     // ==== PROMOCODE ==========================================
     // =========================================================
-    'promocode' => [
-        'title'         => 'Gutscheincodes',
-        'create_title'  => 'Neuen Gutscheincode erstellen',
-        'list_title'    => 'Vorhandene Gutscheincodes',
+'promocode' => [
+    'title'        => 'Gutscheincodes',
+    'create_title' => 'Neuen Gutscheincode erstellen',
+    'list_title'   => 'Vorhandene Gutscheincodes',
 
-        'success_title' => 'Erfolg',
-        'error_title'   => 'Fehler',
+    'success_title' => 'Erfolg',
+    'error_title'   => 'Fehler',
 
-        'fields' => [
-            'code'     => 'Code',
-            'discount' => 'Rabatt',
-            'type'     => 'Typ',
-        ],
-
-        'types' => [
-            'percent'  => '%',
-            'amount'   => '$',
-        ],
-
-        'symbols' => [
-            'percent'  => '%',
-            'currency' => '$',
-        ],
-
-        'table' => [
-            'code'     => 'Code',
-            'discount' => 'Rabatt',
-            'status'   => 'Status',
-            'actions'  => 'Aktionen',
-        ],
-
-        'status' => [
-            'used'       => 'Verwendet',
-            'available'  => 'Verfügbar',
-        ],
-
-        'actions' => [
-            'generate' => 'Erstellen',
-            'delete'   => 'Löschen',
-        ],
-
-        'confirm_delete' => 'Diesen Code wirklich löschen?',
-        'empty'          => 'Keine Gutscheincodes verfügbar.',
-
-        'messages' => [
-    'created_success'       => 'Gutscheincode erfolgreich erstellt.',
-    'deleted_success'       => 'Gutscheincode erfolgreich gelöscht.',
-    'percent_over_100'      => 'Der Prozentsatz darf 100 nicht überschreiten.',
-    'code_exists_normalized'=> 'Dieser Code (unabhängig von Groß-/Kleinschreibung und Leerzeichen) existiert bereits.',
-    'invalid_or_used'       => 'Ungültiger oder bereits verwendeter Code.',
-    'valid'                 => 'Gültiger Code.',
-    'server_error'          => 'Serverfehler, bitte versuche es erneut.',
-],
+    'fields' => [
+        'code'        => 'Code',
+        'discount'    => 'Rabatt',
+        'type'        => 'Typ',
+        'valid_from'  => 'Gültig ab',
+        'valid_until' => 'Gültig bis',
+        'usage_limit' => 'Nutzungslimit',
     ],
+
+    'types' => [
+        'percent' => '%',
+        'amount'  => '$',
+    ],
+
+    'symbols' => [
+        'percent'  => '%',
+        'currency' => '$',
+    ],
+
+    'table' => [
+        'code'         => 'Code',
+        'discount'     => 'Rabatt',
+        'validity'     => 'Gültigkeitszeitraum',
+        'date_status'  => 'Status (Datum)',
+        'usage'        => 'Nutzungen',
+        'usage_status' => 'Status (Nutzung)',
+        'actions'      => 'Aktionen',
+    ],
+
+    'status' => [
+        'used'      => 'Verwendet',
+        'available' => 'Verfügbar',
+    ],
+
+    'date_status' => [
+        'scheduled' => 'Geplant',
+        'active'    => 'Gültig',
+        'expired'   => 'Abgelaufen',
+    ],
+
+    'actions' => [
+        'generate' => 'Erstellen',
+        'delete'   => 'Löschen',
+    ],
+
+    'labels' => [
+        'unlimited_placeholder' => 'Leer = unbegrenzt',
+        'unlimited_hint'        => 'Leer lassen für unbegrenzte Nutzungen. Für einmalige Nutzung 1 eintragen.',
+        'no_limit'              => '(kein Limit)',
+        'remaining'             => 'verbleibend',
+    ],
+
+    'confirm_delete' => 'Möchten Sie diesen Code wirklich löschen?',
+    'empty'          => 'Keine Gutscheincodes vorhanden.',
+
+    'messages' => [
+        'created_success'        => 'Gutscheincode erfolgreich erstellt.',
+        'deleted_success'        => 'Gutscheincode erfolgreich gelöscht.',
+        'percent_over_100'       => 'Der Prozentsatz darf nicht größer als 100 sein.',
+        'code_exists_normalized' => 'Dieser Code (ohne Leerzeichen und Groß-/Kleinschreibung) existiert bereits.',
+        'invalid_or_used'        => 'Ungültiger Code, nicht gültig oder keine verbleibenden Nutzungen.',
+        'valid'                  => 'Code gültig.',
+        'server_error'           => 'Serverfehler, bitte versuche es erneut.',
+    ],
+],
 ];
