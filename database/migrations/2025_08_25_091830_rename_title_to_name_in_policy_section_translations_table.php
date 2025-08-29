@@ -4,25 +4,26 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     */
+return new class extends Migration {
     public function up(): void
     {
-        Schema::table('policy_sections', function (Blueprint $table) {
-            $table->renameColumn('key', 'name');
-        });
+        if (Schema::hasTable('policy_section_translations')
+            && Schema::hasColumn('policy_section_translations', 'title')
+            && !Schema::hasColumn('policy_section_translations', 'name')) {
+            Schema::table('policy_section_translations', function (Blueprint $table) {
+                $table->renameColumn('title', 'name');
+            });
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('policy_sections', function (Blueprint $table) {
-            $table->renameColumn('key', 'title');
-        });
+        if (Schema::hasTable('policy_section_translations')
+            && Schema::hasColumn('policy_section_translations', 'name')
+            && !Schema::hasColumn('policy_section_translations', 'title')) {
+            Schema::table('policy_section_translations', function (Blueprint $table) {
+                $table->renameColumn('name', 'title');
+            });
+        }
     }
 };
