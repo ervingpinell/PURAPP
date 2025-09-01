@@ -25,6 +25,8 @@ use App\Models\PromoCode;
 use Illuminate\Support\Facades\RateLimiter;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
+use App\Support\BookingRules;
+
 
 
 
@@ -123,11 +125,19 @@ public function index(Request $request)
     {
         // 0) Validación inicial envuelta para reabrir el modal de registro
         try {
+            $tz = config('app.timezone', 'America/Costa_Rica');
+            $minDate = BookingRules::earliestBookableDate();
+
             $v = $request->validate([
                 'user_id'          => 'required|exists:users,user_id',
                 'tour_id'          => 'required|exists:tours,tour_id',
                 'booking_date'     => 'required|date',
-                'tour_date'        => ['required', 'date', 'after_or_equal:today'],
+                'tour_date'        => ['required', 'date', function ($attr, $value, $fail) use ($tz, $minDate) {
+                    $dt = \Carbon\Carbon::parse($value, $tz)->startOfDay();
+                    if ($dt->lt($minDate)) {
+                        $fail(__('adminlte::adminlte.no_past_dates') . ' (min: ' . $minDate->toDateString() . ')');
+                    }
+                }],
                 'status'           => 'required|in:pending,confirmed,cancelled',
                 'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
                 'adults_quantity'  => 'required|integer|min:1',
@@ -149,32 +159,17 @@ public function index(Request $request)
 
         // 1) Validar promo (si viene) y marcar el modal de registro al fallar
         if ($request->filled('promo_code')) {
-            $cleanCode = \App\Models\PromoCode::normalize($request->input('promo_code'));
-            $promo = \App\Models\PromoCode::whereRaw("UPPER(TRIM(REPLACE(code, ' ', ''))) = ?", [$cleanCode])->first();
+            $cleanCode = strtoupper(trim(preg_replace('/\s+/', '', $request->input('promo_code'))));
+            $promoExists = \App\Models\PromoCode::whereRaw("UPPER(TRIM(REPLACE(code, ' ', ''))) = ?", [$cleanCode])
+                ->where('is_used', false)
+                ->exists();
 
-            if (! $promo) {
+            if (!$promoExists) {
                 return back()
                     ->withErrors(['promo_code' => __('adminlte::adminlte.promo_invalid_or_used')])
                     ->with('openModal', 'register')
                     ->withInput();
             }
-
-            if (! $promo->isValidToday() || ! $promo->hasRemainingUses()) {
-                return back()
-                    ->withErrors(['promo_code' => 'El código está fuera de vigencia o sin usos disponibles.'])
-                    ->with('openModal', 'register')
-                    ->withInput();
-            }
-        }
-
-        // 1.1) Validar timeZone (si falla, reabrir modal de registro)
-        $tz = config('app.timezone', 'America/Costa_Rica');
-        $today = \Carbon\Carbon::today($tz);
-        if (\Carbon\Carbon::parse($v['tour_date'], $tz)->lt($today)) {
-            return back()
-                ->withErrors(['tour_date' => __('adminlte::adminlte.no_past_dates')])
-                ->with('openModal', 'register')
-                ->withInput();
         }
 
         // 2) Anti doble submit (si falla, reabrir modal de registro)
@@ -247,15 +242,10 @@ public function index(Request $request)
                 $discountAmount = 0;
 
                 if ($request->filled('promo_code')) {
-                    $cleanCode = \App\Models\PromoCode::normalize($request->input('promo_code'));
-                    $promoCode = \App\Models\PromoCode::whereRaw("UPPER(TRIM(REPLACE(code, ' ', ''))) = ?", [$cleanCode])->first();
-
-                    // ✔️ Vigencia y usos dentro de la transacción
-                    if ($promoCode && (! $promoCode->isValidToday() || ! $promoCode->hasRemainingUses())) {
-                        throw \Illuminate\Validation\ValidationException::withMessages([
-                            'promo_code' => 'El código está fuera de vigencia o sin usos disponibles.',
-                        ]);
-                    }
+                    $cleanCode = strtoupper(trim(preg_replace('/\s+/', '', $request->input('promo_code'))));
+                    $promoCode = \App\Models\PromoCode::whereRaw("UPPER(TRIM(REPLACE(code, ' ', ''))) = ?", [$cleanCode])
+                        ->where('is_used', false)
+                        ->first();
                 }
 
                 if ($promoCode) {
@@ -299,7 +289,7 @@ public function index(Request $request)
                 ]);
 
                 if ($promoCode) {
-                    $promoCode->redeemForBooking($booking->booking_id, (int)$v['user_id']);
+                    $promoCode->markAsUsed($booking->booking_id);
                 }
 
                 return $booking;
@@ -329,17 +319,26 @@ public function index(Request $request)
 
 
 
+
     /** Actualizar reserva existente */
     public function update(Request $request, $id)
     {
         // 0) Validación inicial envuelta para reabrir el modal correcto
         try {
+            $tz = config('app.timezone', 'America/Costa_Rica');
+            $minDate = \App\Support\BookingRules::earliestBookableDate();
+
             $r = $request->validate([
                 'user_id'          => 'required|exists:users,user_id',
                 'tour_id'          => 'required|exists:tours,tour_id',
                 'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
                 'booking_date'     => 'required|date',
-                'tour_date'        => ['required', 'date', 'after_or_equal:today'],
+                'tour_date'        => ['required', 'date', function ($attr, $value, $fail) use ($tz, $minDate) {
+                    $dt = \Carbon\Carbon::parse($value, $tz)->startOfDay();
+                    if ($dt->lt($minDate)) {
+                        $fail(__('adminlte::adminlte.no_past_dates') . ' (min: ' . $minDate->toDateString() . ')');
+                    }
+                }],
                 'schedule_id'      => 'required|exists:schedules,schedule_id',
                 'adults_quantity'  => 'required|integer|min:1',
                 'kids_quantity'    => 'required|integer|min:0|max:2',
@@ -360,24 +359,10 @@ public function index(Request $request)
                 ->withInput();
         }
 
-        // 1) Validar timeZone (si falla, reabrir modal de edición)
-        $tz = config('app.timezone', 'America/Costa_Rica');
-        $today = \Carbon\Carbon::today($tz);
-        if (\Carbon\Carbon::parse($r['tour_date'], $tz)->lt($today)) {
-            return back()
-                ->withErrors(['tour_date' => __('adminlte::adminlte.no_past_dates')])
-                ->with('showEditModal', $id)
-                ->withInput();
-        }
-
         // 2) Cargar booking + detalle + promo actual
         $booking = \App\Models\Booking::with(['detail', 'tour', 'user'])->findOrFail($id);
         $detail  = $booking->detail()->firstOrFail();
-
-        // Cupón actualmente aplicado vía redenciones
-        $currentPromo = \App\Models\PromoCode::whereHas('redemptions', function($q) use ($booking) {
-            $q->where('booking_id', $booking->booking_id);
-        })->first();
+        $currentPromo = \App\Models\PromoCode::where('used_by_booking_id', $booking->booking_id)->first();
 
         // 3) Tour elegido y schedule
         $tour = \App\Models\Tour::with('schedules')->findOrFail($r['tour_id']);
@@ -436,11 +421,11 @@ public function index(Request $request)
         // 7) Resolver promo
         $removePromo = $request->boolean('remove_promo');
         $inputCode   = $request->filled('promo_code')
-            ? \App\Models\PromoCode::normalize($request->input('promo_code'))
+            ? strtoupper(trim(preg_replace('/\s+/', '', $request->input('promo_code'))))
             : null;
 
         $currentCode = $currentPromo
-            ? \App\Models\PromoCode::normalize($currentPromo->code)
+            ? strtoupper(trim(preg_replace('/\s+/', '', $currentPromo->code)))
             : null;
 
         $promoToAssign = null;
@@ -451,13 +436,13 @@ public function index(Request $request)
         } else {
             if ($inputCode) {
                 if ($currentCode && $currentCode === $inputCode) {
-                    $promoToAssign = $currentPromo; // mantener el mismo
+                    $promoToAssign = $currentPromo;
                 } else {
                     $candidate = \App\Models\PromoCode::whereRaw("UPPER(TRIM(REPLACE(code, ' ', ''))) = ?", [$inputCode])->first();
-                    if (! $candidate) {
+                    if (!$candidate) {
                         $errorPromo = __('adminlte::adminlte.promo_invalid');
-                    } elseif (! $candidate->isValidToday() || ! $candidate->hasRemainingUses()) {
-                        $errorPromo = 'El código está fuera de vigencia o sin usos disponibles.';
+                    } elseif ($candidate->is_used && (int)$candidate->used_by_booking_id !== (int)$booking->booking_id) {
+                        $errorPromo = __('adminlte::adminlte.promo_already_used');
                     } else {
                         $promoToAssign = $candidate;
                     }
@@ -498,17 +483,23 @@ public function index(Request $request)
             $currentPromo,
             $promoToAssign
         ) {
-            // Redenciones (multi-uso)
+            // a) Promo
             if ($removePromo) {
                 if ($currentPromo) {
-                    $currentPromo->revokeRedemptionForBooking($booking->booking_id);
+                    $currentPromo->is_used = false;
+                    $currentPromo->used_by_booking_id = null;
+                    $currentPromo->save();
                 }
             } else {
                 if ($currentPromo && (!$promoToAssign || $currentPromo->id !== $promoToAssign->id)) {
-                    $currentPromo->revokeRedemptionForBooking($booking->booking_id);
+                    $currentPromo->is_used = false;
+                    $currentPromo->used_by_booking_id = null;
+                    $currentPromo->save();
                 }
-                if ($promoToAssign && (!$currentPromo || $currentPromo->id !== $promoToAssign->id)) {
-                    $promoToAssign->redeemForBooking($booking->booking_id, (int)$r['user_id']);
+                if ($promoToAssign) {
+                    $promoToAssign->is_used = true;
+                    $promoToAssign->used_by_booking_id = $booking->booking_id;
+                    $promoToAssign->save();
                 }
             }
 
@@ -562,6 +553,7 @@ public function index(Request $request)
             ->route('admin.reservas.index')
             ->with('success', __('adminlte::adminlte.booking_updated_success'));
     }
+
 
 
 
@@ -673,17 +665,18 @@ public function index(Request $request)
 
             foreach ($groups as $items) {
                 $tz         = config('app.timezone', 'America/Costa_Rica');
-                $today      = \Carbon\Carbon::today($tz);
+                $minDate    = \App\Support\BookingRules::earliestBookableDate();
 
                 $first      = $items->first();
                 $tour       = $first->tour;
                 $tourDate   = $first->tour_date;
                 $scheduleId = $first->schedule_id;
 
-                // 🔒 No permitir fecha pasada
-                if (\Carbon\Carbon::parse($tourDate, $tz)->lt($today)) {
+                // 🔒 Cierre por cutoff: no permitir reservar una fecha menor al mínimo calculado
+                $dt = \Carbon\Carbon::parse($tourDate, $tz)->startOfDay();
+                if ($dt->lt($minDate)) {
                     throw \Illuminate\Validation\ValidationException::withMessages([
-                        'tour_date' => "La fecha {$tourDate} ya pasó. No se puede reservar '{$tour->name}' en días anteriores.",
+                        'tour_date' => "La fecha {$tourDate} ya no está disponible para reserva (mínima: {$minDate->toDateString()}).",
                     ]);
                 }
 
@@ -736,51 +729,29 @@ public function index(Request $request)
             $promoCode = null;
             $promoCodeValue = $request->input('promo_code');
             if ($promoCodeValue) {
-                $cleanCode = \App\Models\PromoCode::normalize($promoCodeValue);
-                $promoCode = \App\Models\PromoCode::whereRaw('UPPER(TRIM(REPLACE(code, \' \', \'\'))) = ?', [$cleanCode])->first();
-
-                if ($promoCode && (! $promoCode->isValidToday() || ! $promoCode->hasRemainingUses())) {
-                    throw \Illuminate\Validation\ValidationException::withMessages([
-                        'promo_code' => 'El código está fuera de vigencia o sin usos disponibles.',
-                    ]);
-                }
-            }
-
-            // ⚖️ Preparar estrategia de aplicación por ítem
-            // Ordenamos por mayor subtotal primero para maximizar el beneficio
-            $itemsOrdered = $cart->items->map(function ($item) {
-                $adultPrice = $item->tour->adult_price;
-                $kidPrice   = $item->tour->kid_price;
-                $baseTotal  = ($adultPrice * $item->adults_quantity) + ($kidPrice * $item->kids_quantity);
-                return [$item, $baseTotal, $adultPrice, $kidPrice];
-            })->sortByDesc(fn($tuple) => $tuple[1])->values();
-
-            $unlimited = $promoCode ? is_null($promoCode->usage_limit) : false;
-            $remaining = $promoCode
-                ? ($unlimited ? PHP_INT_MAX : max(0, (int)$promoCode->usage_limit - (int)$promoCode->usage_count))
-                : 0;
-
-            $applyMap = []; // booking-item-id (temporal index) => true si aplica cupón
-            if ($promoCode) {
-                $applyCount = min($remaining, $itemsOrdered->count());
-                // Marcar los primeros N (mayor subtotal)
-                for ($i = 0; $i < $applyCount; $i++) {
-                    $applyMap[$i] = true;
-                }
+                $cleanCode = strtoupper(trim(preg_replace('/\s+/', '', $promoCodeValue)));
+                $promoCode = \App\Models\PromoCode::whereRaw('UPPER(TRIM(REPLACE(code, \' \', \'\'))) = ?', [$cleanCode])
+                    ->where('is_used', false)
+                    ->first();
             }
 
             $created = [];
+            $promoApplied = false; // aplicamos la promo solo a la PRIMERA reserva creada
 
             // 🧾 Crear UNA reserva por ÍTEM del carrito
-            foreach ($itemsOrdered as $idx => [$item, $baseTotal, $adultPrice, $kidPrice]) {
+            foreach ($cart->items as $item) {
+                $tour       = $item->tour; // ya viene eager loaded
+                $adultPrice = $tour->adult_price;
+                $kidPrice   = $tour->kid_price;
+                $baseTotal  = ($adultPrice * $item->adults_quantity) + ($kidPrice * $item->kids_quantity);
 
                 $total = $baseTotal;
-                $applyThis = $promoCode && isset($applyMap[$idx]);
 
-                if ($applyThis) {
-                    if (!is_null($promoCode->discount_amount)) {
+                // Aplicar promo SOLO al primer booking (si existe)
+                if ($promoCode && !$promoApplied) {
+                    if ($promoCode->discount_amount) {
                         $total = max($baseTotal - $promoCode->discount_amount, 0);
-                    } elseif (!is_null($promoCode->discount_percent)) {
+                    } elseif ($promoCode->discount_percent) {
                         $total = max($baseTotal - ($baseTotal * ($promoCode->discount_percent / 100)), 0);
                     }
                 }
@@ -794,11 +765,11 @@ public function index(Request $request)
                     'booking_reference' => strtoupper(\Illuminate\Support\Str::random(10)),
                     'booking_date'      => now(),
                     'status'            => 'pending',
-                    'total'             => round($total, 2),
+                    'total'             => $total,
                     'is_active'         => true,
                 ]);
 
-                // Detalle
+                // Detalle (1 a 1 con la cabecera)
                 \App\Models\BookingDetail::create([
                     'booking_id'       => $booking->booking_id,
                     'tour_id'          => $item->tour_id,
@@ -812,13 +783,14 @@ public function index(Request $request)
                     'kids_quantity'    => $item->kids_quantity,
                     'adult_price'      => $adultPrice,
                     'kid_price'        => $kidPrice,
-                    'total'            => round($total, 2),
+                    'total'            => $total,
                     'is_active'        => true,
                 ]);
 
-                if ($applyThis) {
-                    // Registra UNA redención por esta reserva
-                    $promoCode->redeemForBooking($booking->booking_id, (int) $user->user_id);
+                // Marcar promo como usada en ESTA reserva (una sola vez)
+                if ($promoCode && !$promoApplied) {
+                    $promoCode->markAsUsed($booking->booking_id);
+                    $promoApplied = true;
                 }
 
                 $created[] = $booking;
@@ -830,9 +802,10 @@ public function index(Request $request)
             return $created;
         });
 
-        // 📧 Enviar correos agrupados por idioma (igual que tenías)
+        // 📧 Enviar correo(s) consolidando por idioma (para todos los bookings creados)
         $createdBookings = collect($createdBookings);
 
+        // Traer todos los detalles de estas reservas con sus relaciones
         $allDetails = \App\Models\BookingDetail::with(['tour','schedule','hotel','tourLanguage','booking.user'])
             ->whereIn('booking_id', $createdBookings->pluck('booking_id')->all())
             ->get();
@@ -852,6 +825,7 @@ public function index(Request $request)
         return redirect()->route('admin.cart.index')
             ->with('success', 'Reservas generadas correctamente desde el carrito.');
     }
+
 
 
 
@@ -930,10 +904,18 @@ public function index(Request $request)
 
     public function reservedCount(Request $request)
     {
+        $tz = config('app.timezone', 'America/Costa_Rica');
+        $minDate = \App\Support\BookingRules::earliestBookableDate();
+
         $data = $request->validate([
             'tour_id'     => 'required|exists:tours,tour_id',
             'schedule_id' => 'required|exists:schedules,schedule_id',
-            'tour_date'   => ['required', 'date', 'after_or_equal:today'],
+            'tour_date'   => ['required', 'date', function ($attr, $value, $fail) use ($tz, $minDate) {
+                $dt = \Carbon\Carbon::parse($value, $tz)->startOfDay();
+                if ($dt->lt($minDate)) {
+                    $fail(__('adminlte::adminlte.no_past_dates') . ' (min: ' . $minDate->toDateString() . ')');
+                }
+            }],
         ]);
 
         $reserved = BookingDetail::where('tour_id', $data['tour_id'])
@@ -943,6 +925,7 @@ public function index(Request $request)
 
         return response()->json(['reserved' => $reserved]);
     }
+
 
 
     /**

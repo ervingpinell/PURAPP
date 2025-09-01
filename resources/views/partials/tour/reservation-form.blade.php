@@ -1,6 +1,9 @@
 @php
   $tz = config('app.timezone', 'America/Costa_Rica');
   $today = \Carbon\Carbon::today($tz)->toDateString();
+
+  // 🚦 Fecha mínima reservable según cutoff/lead-days
+  $minBookable = \App\Support\BookingRules::earliestBookableDate()->toDateString();
 @endphp
 
 <form action="{{ route('carrito.agregar', $tour->tour_id) }}" method="POST"
@@ -45,8 +48,8 @@
   <div class="form-body position-relative">
     <fieldset @guest disabled aria-disabled="true" @endguest>
 
-{{-- ===== Travelers ===== --}}
-        <div class="mb-2">
+      {{-- ===== Travelers ===== --}}
+      <div class="mb-2">
         <button type="button"
           class="btn traveler-button w-100 d-flex align-items-center justify-content-between"
           data-bs-toggle="modal" data-bs-target="#travelerModal">
@@ -55,12 +58,15 @@
         </button>
       </div>
 
-{{-- ===== Date ===== --}}
+      {{-- ===== Date ===== --}}
       <label class="form-label">{{ __('adminlte::adminlte.select_date') }}</label>
       <input id="tourDateInput" type="text" name="tour_date" class="form-control mb-1"
              placeholder="dd/mm/yyyy" required>
+      <div class="form-text">
+        {{ __('Reservas para mañana cierran hoy a las :hour', ['hour' => config('booking.cutoff_hour')]) }}
+      </div>
 
-{{-- ===== Schedule ===== --}}
+      {{-- ===== Schedule ===== --}}
       <label class="form-label mt-2">{{ __('adminlte::adminlte.select_time') }}</label>
       <select name="schedule_id" class="form-select mb-1" id="scheduleSelect" required>
         <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
@@ -72,7 +78,7 @@
       </select>
       <div id="noSlotsHelp" class="form-text text-danger mb-3" style="display:none;"></div>
 
-{{-- ===== Language ===== --}}
+      {{-- ===== Language ===== --}}
       <label class="form-label">{{ __('adminlte::adminlte.select_language') }}</label>
       <select name="tour_language_id" class="form-select mb-3" required>
         <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
@@ -81,7 +87,7 @@
         @endforeach
       </select>
 
-{{-- ===== Hotel ===== --}}
+      {{-- ===== Hotel ===== --}}
       <label class="form-label">{{ __('adminlte::adminlte.select_hotel') }}</label>
       <select class="form-select mb-3" id="hotelSelect" name="hotel_id">
         <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
@@ -147,12 +153,12 @@
   if (formEl.dataset.bound === '1') return;
   formEl.dataset.bound = '1';
 
-
   formEl.addEventListener('submit', (e) => e.preventDefault());
 
   window.isAuthenticated = @json(Auth::check());
   window.CART_COUNT_URL  = @json(route('cart.count.public'));
-  const todayIso = @json($today);
+  const todayIso    = @json($today);
+  const minBookable = @json($minBookable);
 
   const fullyBlockedDates = Array.isArray(window.fullyBlockedDates) ? window.fullyBlockedDates : [];
   const blockedGeneral    = Array.isArray(window.blockedGeneral) ? window.blockedGeneral : [];
@@ -206,19 +212,20 @@
     }
   }
 
+  // ✅ Usar cutoff en minDate
   if (window.flatpickr && dateInput) {
     flatpickr(dateInput, {
       dateFormat: 'Y-m-d',
       altInput: true,
       altFormat: 'd/m/Y',
-      minDate: todayIso,
+      minDate: minBookable,
       disable: [ (date) => isDayFullyBlocked(isoFromDate(date)) ],
       onChange: (_sel, iso) => rebuildScheduleChoices(iso),
       onReady: (_sel, iso) => { if (!iso) { scheduleChoices.disable(); helpMsg.style.display = 'none'; } else { rebuildScheduleChoices(iso); } }
     });
   } else if (dateInput) {
     dateInput.type = 'date';
-    dateInput.min  = todayIso;
+    dateInput.min  = minBookable; // ✅ fallback con cutoff
     dateInput.addEventListener('change', e => rebuildScheduleChoices(e.target.value));
     scheduleChoices.disable();
   }
