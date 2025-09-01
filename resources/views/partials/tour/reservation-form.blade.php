@@ -1,15 +1,28 @@
 @php
-  $tz = config('app.timezone', 'America/Costa_Rica');
+  $tz    = config('app.timezone', 'America/Costa_Rica');
   $today = \Carbon\Carbon::today($tz)->toDateString();
 
   // 🚦 Fecha mínima reservable según cutoff/lead-days
   $minBookable = \App\Support\BookingRules::earliestBookableDate()->toDateString();
+
+  // 🔧 Lee ajustes desde AppSetting (con fallback a config)
+  $cutoffRaw = \App\Models\AppSetting::get('booking.cutoff_hour', config('booking.cutoff_hour', '18:00')); // "HH:MM"
+  $leadDays  = (int) \App\Models\AppSetting::get('booking.lead_days', (int) config('booking.lead_days', 1));
+
+  // ⏱️ Normaliza hora a HH:MM (24h) en TZ de la app
+  try {
+      $cutoffHM = \Carbon\Carbon::createFromFormat('H:i', (string)$cutoffRaw, $tz)->format('H:i');
+  } catch (\Throwable $e) {
+      $cutoffHM = '18:00';
+  }
 @endphp
 
 <form action="{{ route('carrito.agregar', $tour->tour_id) }}" method="POST"
   class="reservation-box gv-ui p-3 shadow-sm rounded bg-white mb-4 border"
   data-adult-price="{{ $tour->adult_price }}"
-  data-kid-price="{{ $tour->kid_price }}">
+  data-kid-price="{{ $tour->kid_price }}"
+  data-cutoff="{{ $cutoffHM }}"
+  data-lead-days="{{ $leadDays }}">
   @csrf
   <input type="hidden" name="tour_id" value="{{ $tour->tour_id }}">
 
@@ -62,8 +75,15 @@
       <label class="form-label">{{ __('adminlte::adminlte.select_date') }}</label>
       <input id="tourDateInput" type="text" name="tour_date" class="form-control mb-1"
              placeholder="dd/mm/yyyy" required>
-      <div class="form-text">
-        {{ __('Reservas para mañana cierran hoy a las :hour', ['hour' => config('booking.cutoff_hour')]) }}
+
+      <div class="form-text" id="cutoffHint">
+        @if ($leadDays === 0)
+          {{ __('Reservas para hoy cierran a las :time', ['time' => $cutoffHM]) }}
+        @elseif ($leadDays === 1)
+          {{ __('Reservas para mañana cierran hoy a las :time', ['time' => $cutoffHM]) }}
+        @else
+          {{ __('Reservas para fechas a :days día(s) cierran el día anterior a las :time', ['days' => $leadDays, 'time' => $cutoffHM]) }}
+        @endif
       </div>
 
       {{-- ===== Schedule ===== --}}
@@ -212,7 +232,7 @@
     }
   }
 
-  // ✅ Usar cutoff en minDate
+  // ✅ Flatpickr con minDate ya calculado por reglas (cutoff/lead-days)
   if (window.flatpickr && dateInput) {
     flatpickr(dateInput, {
       dateFormat: 'Y-m-d',
@@ -224,8 +244,9 @@
       onReady: (_sel, iso) => { if (!iso) { scheduleChoices.disable(); helpMsg.style.display = 'none'; } else { rebuildScheduleChoices(iso); } }
     });
   } else if (dateInput) {
+    // Fallback nativo
     dateInput.type = 'date';
-    dateInput.min  = minBookable; // ✅ fallback con cutoff
+    dateInput.min  = minBookable;
     dateInput.addEventListener('change', e => rebuildScheduleChoices(e.target.value));
     scheduleChoices.disable();
   }
@@ -246,7 +267,7 @@
   hotelSelect.addEventListener('change', toggleOther);
   toggleOther();
 
-  // ======= AJAX =======
+  // ======= AJAX Add to cart =======
   const addBtn = document.getElementById('addToCartBtn');
   if (!addBtn) return;
 
