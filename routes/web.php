@@ -37,6 +37,7 @@ use App\Http\Controllers\Admin\PolicyController;
 use App\Http\Controllers\Admin\PolicySectionController;
 use App\Http\Controllers\Admin\TourImageController;
 use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
+use App\Http\Controllers\Admin\Settings\BookingSettingsController;
 
 use Illuminate\Support\Facades\Mail;
 use App\Models\Tour;
@@ -195,6 +196,10 @@ Route::post('/email/verification-notification', [VerifyEmailController::class, '
         Route::get('/profile', [ProfileController::class, 'adminShow'])->name('profile.show');
         Route::get('/profile/edit', [ProfileController::class, 'adminEdit'])->name('profile.edit');
         Route::post('/profile/edit', [ProfileController::class, 'adminUpdate'])->name('profile.update');
+
+        //CutOff
+        Route::get('settings/booking', [BookingSettingsController::class, 'edit'])->name('settings.booking.edit');
+        Route::put('settings/booking', [BookingSettingsController::class, 'update'])->name('settings.booking.update');
 
         // Traducciones
         Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');

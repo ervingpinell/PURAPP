@@ -370,6 +370,11 @@ return [
                 'route' => 'admin.tourtypes.index',
                 'icon' => 'fas fa-tags',
             ],
+            [
+                'text'  => 'Ajustes de Reservas',
+                'route' => 'admin.settings.booking.edit',
+                'icon'  => 'fas fa-clock',
+            ],
         ],
     ],
 

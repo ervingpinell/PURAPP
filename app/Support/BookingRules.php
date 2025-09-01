@@ -2,46 +2,38 @@
 
 namespace App\Support;
 
+use App\Models\AppSetting;
 use Carbon\Carbon;
 
 class BookingRules
 {
-    /**
-     * Fecha más temprana reservable considerando lead_days y cutoff.
-     * Regla: si ya pasó el cutoff de hoy, “mañana” queda bloqueada, por lo que
-     * el mínimo pasa a “pasado mañana”.
-     */
-    public static function earliestBookableDate(?Carbon $now = null): Carbon
+    public static function nowTz(): Carbon
     {
-        $tz  = config('app.timezone', 'UTC');
-        $now = $now?->copy() ?? Carbon::now($tz);
-
-        $leadDays = (int) config('booking.lead_days', 1); // por defecto 1 (mañana)
-        $cutoff   = (string) config('booking.cutoff_hour', '18:00');
-
-        // cutoff hoy a HH:MM
-        [$h, $m] = array_pad(explode(':', $cutoff), 2, '0');
-        $todayCutoff = $now->copy()->setTime((int) $h, (int) $m, 0);
-
-        // candidato base = hoy + leadDays (p. ej. mañana)
-        $candidate = $now->copy()->addDays($leadDays)->startOfDay();
-
-        // si ya pasamos el cutoff, saltamos un día adicional
-        if ($now->gte($todayCutoff)) {
-            $candidate->addDay();
-        }
-
-        return $candidate;
+        return Carbon::now(config('app.timezone'));
     }
 
-    /**
-     * ¿Una fecha (Y-m-d) es reservable?
-     */
-    public static function isDateBookable(string $date): bool
+    public static function cutoffHour(): string
     {
-        $tz  = config('app.timezone', 'UTC');
-        $dt  = Carbon::parse($date, $tz)->startOfDay();
-        $min = self::earliestBookableDate();
-        return $dt->gte($min);
+        $h = AppSetting::get('booking.cutoff_hour', config('booking.cutoff_hour', '18:00'));
+        // Sanitiza
+        return preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $h) ? $h : '18:00';
+    }
+
+    public static function leadDays(): int
+    {
+        return (int) AppSetting::get('booking.lead_days', (int) config('booking.lead_days', 1));
+    }
+
+    public static function earliestBookableDate(): Carbon
+    {
+        $tz = config('app.timezone');
+        [$hh, $mm] = array_pad(explode(':', static::cutoffHour()), 2, 0);
+
+        $now = Carbon::now($tz);
+        $cutoffToday = Carbon::createFromTime((int)$hh, (int)$mm, 0, $tz);
+
+        $base = $now->lt($cutoffToday) ? static::leadDays() : static::leadDays() + 1;
+
+        return $now->copy()->startOfDay()->addDays($base);
     }
 }
