@@ -31,7 +31,7 @@
         @php $cover = $tour->cover_url ?? asset('images/volcano.png'); @endphp
 
         <div class="col-6 col-sm-4 col-md-3 col-xl-2">
-          <div class="card h-100">
+          <div class="card h-100 d-flex flex-column">
             <img src="{{ $cover }}" class="card-img-top" alt="{{ __('m_tours.image.ui.cover_alt') }}">
             <div class="card-body p-2 d-flex flex-column">
               <div class="small fw-bold mb-1">

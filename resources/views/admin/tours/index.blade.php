@@ -2,7 +2,6 @@
 <style>
   #modalRegistrar .card { border: 1px solid rgba(255,255,255,.08); }
   #modalRegistrar .schedule-row:last-child { border-bottom: 0 !important; margin-bottom: 0 !important; padding-bottom: 0 !important; }
-  /* ayuda a que el color picker no se vea estrecho en algunos temas */
   .form-control-color { height: 38px; }
 </style>
 
@@ -10,10 +9,9 @@
     <link rel="stylesheet" href="{{ asset('css/gv.css') }}">
 @stop
 
-@section('title', 'Gestión de Tours')
-
+@section('title', __('m_tours.tour.ui.page_title'))
 @section('content_header')
-    <h1>Gestión de Tours</h1>
+    <h1>{{ __('m_tours.tour.ui.page_heading') }}</h1>
 @stop
 
 @section('content')
@@ -21,12 +19,12 @@
 
         {{-- Botón para registrar un nuevo tour --}}
         <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-            <i class="fas fa-plus"></i> Añadir Tour
+            <i class="fas fa-plus"></i> {{ __('m_tours.tour.ui.add_tour') }} {{-- i18n: agregar ui.add_tour --}}
         </a>
 
-        {{-- Botón para ver el carrito --}}
+        {{-- Botón para ver el carrito (si aplica) --}}
         <a href="{{ route('admin.cart.index') }}" class="btn btn-primary mb-3">
-            <i class="fas fa-shopping-cart"></i> Ver carrito
+            <i class="fas fa-shopping-cart"></i> {{ __('m_tours.tour.ui.view_cart') }} {{-- i18n: agregar ui.view_cart --}}
         </a>
 
         {{-- Tabla de tours --}}
@@ -35,18 +33,18 @@
         </div>
     </div>
 
-    {{-- Template de ítems de itinerario (para clonar filas cuando haga falta en otros modales) --}}
+    {{-- Template de ítems de itinerario --}}
     @include('admin.tours.itinerary.template')
 
-    {{-- Modal de creación (versión nueva: asignar itinerario + horarios existentes/nuevos) --}}
+    {{-- Modal de creación --}}
     @include('admin.tours.create')
 
-    {{-- Modales de edición (versión nueva: asignar itinerario + horarios existentes/nuevos) --}}
+    {{-- Modales de edición --}}
     @include('admin.tours.edit')
 @stop
 
 @php
-    // JSON para previsualizar itinerarios (descr + ítems) en crear/editar
+    // JSON para previsualizar itinerarios
     $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {
         return [
             'description' => $it->description,
@@ -61,6 +59,5 @@
 @endphp
 
 @section('js')
-    {{-- Tus scripts generales (si los tienes separados) --}}
     @include('admin.tours.scripts')
 @stop

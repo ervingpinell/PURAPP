@@ -1,8 +1,6 @@
 {{-- Estilos compactos + controles de fuente --}}
 <style>
-    /* base vía variable (la setea JS) */
     .table-sm td, .table-sm th { padding: .3rem; font-size: var(--tbl-font-size, 1rem); }
-
     td.overview-cell, td.amenities-cell, td.not-included-amenities-cell, td.itinerary-cell {
         max-width: 300px; min-width: 150px; white-space: normal; word-break: break-word;
     }
@@ -16,8 +14,6 @@
     }
     .overview-expanded{ -webkit-line-clamp: unset; max-height: none; }
     .badge-truncate{ display:inline-block; max-width:100px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:middle; font-size:.75rem; }
-
-    /* Toolbar de tamaño de fuente */
     .font-toolbar{ display:flex; gap:.5rem; align-items:center; margin:.5rem 0 1rem; }
     .font-toolbar .btn{ line-height:1; padding:.25rem .5rem; }
     .font-toolbar .size-indicator{ min-width:3.5rem; text-align:center; font-variant-numeric: tabular-nums; }
@@ -27,30 +23,30 @@
 
 {{-- Toolbar de tamaño de fuente --}}
 <div class="font-toolbar">
-    <button class="btn btn-outline-secondary btn-sm" id="fontSmaller" type="button" title="Reducir tamaño">A−</button>
+    <button class="btn btn-outline-secondary btn-sm" id="fontSmaller" type="button" title="{{ __('m_tours.tour.ui.font_decrease_title') }}">A−</button>
     <div class="size-indicator" id="fontIndicator">115%</div>
-    <button class="btn btn-outline-secondary btn-sm" id="fontBigger" type="button" title="Aumentar tamaño">A+</button>
+    <button class="btn btn-outline-secondary btn-sm" id="fontBigger" type="button" title="{{ __('m_tours.tour.ui.font_increase_title') }}">A+</button>
 </div>
 
 <table class="table table-sm table-bordered table-striped table-hover w-100" id="toursTable">
     <thead class="bg-primary text-white">
         <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th style="width: 200px;">Resumen</th>
-            <th style="width: 100px;">Amenidades</th>
-            <th style="width: 100px;">Exlusiones</th>
-            <th style="width: 180px;">Itinerario</th>
-            <th class="d-none d-md-table-cell">Idiomas</th>
-            <th>Horarios</th>
-            <th>Precio Adulto</th>
-            <th class="d-none d-md-table-cell">Precio Niño</th>
-            <th class="d-none d-md-table-cell">Duración (h)</th>
-            <th class="d-none d-md-table-cell">Cupo Máx.</th>
-            <th>Tipo</th>
-            <th class="d-none d-md-table-cell">Viator Code</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th>{{ __('m_tours.tour.table.id') }}</th>
+            <th>{{ __('m_tours.tour.table.name') }}</th>
+            <th style="width: 200px;">{{ __('m_tours.tour.table.overview') }}</th>
+            <th style="width: 100px;">{{ __('m_tours.tour.table.amenities') }}</th>
+            <th style="width: 100px;">{{ __('m_tours.tour.table.exclusions') }}</th>
+            <th style="width: 180px;">{{ __('m_tours.tour.table.itinerary') }}</th>
+            <th class="d-none d-md-table-cell">{{ __('m_tours.tour.table.languages') }}</th>
+            <th>{{ __('m_tours.tour.table.schedules') }}</th>
+            <th>{{ __('m_tours.tour.table.adult_price') }}</th>
+            <th class="d-none d-md-table-cell">{{ __('m_tours.tour.table.kid_price') }}</th>
+            <th class="d-none d-md-table-cell">{{ __('m_tours.tour.table.length_hours') }}</th>
+            <th class="d-none d-md-table-cell">{{ __('m_tours.tour.table.max_capacity') }}</th>
+            <th>{{ __('m_tours.tour.table.type') }}</th>
+            <th class="d-none d-md-table-cell">{{ __('m_tours.tour.table.viator_code') }}</th>
+            <th>{{ __('m_tours.tour.table.status') }}</th>
+            <th>{{ __('m_tours.tour.table.actions') }}</th>
         </tr>
     </thead>
     <tbody id="toursTbody">
@@ -65,7 +61,7 @@
                     <div id="{{ $overviewId }}" class="overview-preview">{{ $tour->overview }}</div>
                     <button type="button" class="btn btn-link btn-sm mt-1 p-0"
                         onclick="toggleOverview('{{ $overviewId }}', this)">
-                        Ver más
+                        {{ __('m_tours.tour.ui.see_more') }}
                     </button>
                 </td>
 
@@ -74,7 +70,7 @@
                     @forelse($tour->amenities as $am)
                         <span class="badge bg-info mb-1 badge-truncate" title="{{ $am->name }}">{{ $am->name }}</span>
                     @empty
-                        <span class="text-muted">Sin amenidades</span>
+                        <span class="text-muted">{{ __('m_tours.tour.ui.none.amenities') }}</span>
                     @endforelse
                 </td>
 
@@ -83,7 +79,7 @@
                     @forelse ($tour->excludedAmenities as $amenity)
                         <span class="badge bg-danger mb-1 badge-truncate" title="{{ $amenity->name }}">{{ $amenity->name }}</span>
                     @empty
-                        <span class="text-muted">Sin exclusiones</span>
+                        <span class="text-muted">{{ __('m_tours.tour.ui.none.exclusions') }}</span>
                     @endforelse
                 </td>
 
@@ -94,10 +90,10 @@
                         @forelse($tour->itinerary->items as $item)
                             <span class="badge bg-info mb-1 badge-truncate" title="{{ $item->title }}">{{ $item->title }}</span>
                         @empty
-                            <small class="text-muted">(Sin ítems)</small>
+                            <small class="text-muted">{{ __('m_tours.tour.ui.none.itinerary_items') }}</small>
                         @endforelse
                     @else
-                        <span class="text-muted">Sin itinerario</span>
+                        <span class="text-muted">{{ __('m_tours.tour.ui.none.itinerary') }}</span>
                     @endif
                 </td>
 
@@ -106,7 +102,7 @@
                     @forelse($tour->languages as $lang)
                         <span class="badge bg-secondary">{{ $lang->name }}</span>
                     @empty
-                        <span class="text-muted">Sin idiomas</span>
+                        <span class="text-muted">{{ __('m_tours.tour.ui.none.languages') }}</span>
                     @endforelse
                 </td>
 
@@ -120,7 +116,7 @@
                             </span>
                         </div>
                     @empty
-                        <span class="text-muted">Sin horarios</span>
+                        <span class="text-muted">{{ __('m_tours.tour.ui.none.schedules') }}</span>
                     @endforelse
                 </td>
 
@@ -134,7 +130,7 @@
                 {{-- Estado --}}
                 <td>
                     <span class="badge {{ $tour->is_active ? 'bg-success' : 'bg-secondary' }}">
-                        {{ $tour->is_active ? 'Activo' : 'Inactivo' }}
+                        {{ $tour->is_active ? __('m_tours.tour.status.active') : __('m_tours.tour.status.inactive') }}
                     </span>
                 </td>
 
@@ -153,13 +149,13 @@
                     <form action="{{ route('admin.tours.toggle', $tour->tour_id) }}"
                         method="POST"
                         class="d-inline js-toggle-form"
-                        data-question="{{ $tour->is_active ? '¿Deseas desactivar este tour?' : '¿Deseas activar este tour?' }}"
-                        data-confirm="{{ $tour->is_active ? 'Sí, desactivar' : 'Sí, activar' }}">
+                        data-question="{{ $tour->is_active ? __('m_tours.tour.ui.toggle_off_title') : __('m_tours.tour.ui.toggle_on_title') }}"
+                        data-confirm="{{ $tour->is_active ? __('m_tours.tour.ui.toggle_off_button') : __('m_tours.tour.ui.toggle_on_button') }}">
                         @csrf
                         @method('PATCH')
                         <button type="submit"
                                 class="btn btn-sm btn-toggle"
-                                title="{{ $tour->is_active ? 'Desactivar' : 'Activar' }}">
+                                title="{{ $tour->is_active ? __('m_tours.tour.ui.toggle_off') : __('m_tours.tour.ui.toggle_on') }}">
                             <i class="fas fa-toggle-{{ $tour->is_active ? 'on' : 'off' }}"></i>
                         </button>
                     </form>
@@ -170,30 +166,26 @@
     </tbody>
 </table>
 
-{{-- Paginación clásica (usa paginate(8) en el controlador) --}}
 @if($tours instanceof \Illuminate\Contracts\Pagination\Paginator)
     <div class="mt-2" id="paginationLinks">
         {{ $tours->withQueryString()->links() }}
     </div>
 @endif
 
-{{-- Scroll infinito opcional (mantenlo si quieres auto-carga) --}}
 @if($tours instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator && $tours->hasMorePages())
     <div id="infinite-anchor" class="text-center my-3">
-        <button id="btnLoadMore" class="btn btn-outline-primary btn-sm">Cargar más</button>
+        <button id="btnLoadMore" class="btn btn-outline-primary btn-sm">{{ __('m_tours.tour.ui.load_more') }}</button>
     </div>
 @endif
 
 <script>
-    // Ver más / Ocultar overview
     function toggleOverview(id, btn){
         const div = document.getElementById(id);
         div.classList.toggle('overview-expanded');
-        btn.textContent = div.classList.contains('overview-expanded') ? 'Ocultar' : 'Ver más';
+        btn.textContent = div.classList.contains('overview-expanded') ? '{{ __('m_tours.tour.ui.see_less') }}' : '{{ __('m_tours.tour.ui.see_more') }}';
     }
 </script>
 
-{{-- Bootstrap + SweetAlert2 --}}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -205,11 +197,11 @@ document.addEventListener('DOMContentLoaded', () => {
             ev.preventDefault();
             Swal.fire({
                 icon: 'question',
-                title: 'Confirmación',
-                text: form.dataset.question || '¿Confirmar acción?',
+                title: '{{ __('m_tours.tour.ui.confirm_title') }}',
+                text: form.dataset.question || '{{ __('m_tours.tour.ui.confirm_text') }}',
                 showCancelButton: true,
-                confirmButtonText: form.dataset.confirm || 'Sí, confirmar',
-                cancelButtonText: 'Cancelar'
+                confirmButtonText: form.dataset.confirm || '{{ __('m_tours.tour.ui.yes_confirm') }}',
+                cancelButtonText: '{{ __('m_tours.tour.ui.cancel') }}'
             }).then(res => { if (res.isConfirmed) form.submit(); });
         });
     });
@@ -220,16 +212,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const LS_KEY = 'toursTableFontPct';
 
     function setPct(pct){
-        // límites 100%–150%
         pct = Math.max(100, Math.min(150, pct));
-        // La fuente real se define en rem con base 1rem * pct
         const rem = (pct/100).toFixed(3) + 'rem';
         root.style.setProperty('--tbl-font-size', rem);
         indicator.textContent = pct + '%';
         localStorage.setItem(LS_KEY, String(pct));
     }
 
-    // cargar desde LS, por defecto 115%
     const saved = parseInt(localStorage.getItem(LS_KEY) || '115', 10);
     setPct(saved);
 
@@ -242,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setPct(current + 5);
     });
 
-    // ========= Scroll infinito (opcional) =========
+    // ========= Scroll infinito =========
     const anchor = document.getElementById('infinite-anchor');
     const tbody = document.getElementById('toursTbody');
     const pagLinks = document.getElementById('paginationLinks');
@@ -255,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadMore(url){
         if (!url) return;
         const btn = document.getElementById('btnLoadMore');
-        if (btn) { btn.disabled = true; btn.textContent = 'Cargando...'; }
+        if (btn) { btn.disabled = true; btn.textContent = '{{ __('m_tours.tour.ui.loading') }}'; }
 
         try{
             const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
@@ -271,12 +260,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const more = nextPageUrl();
             if (!more && anchor) anchor.remove();
-            if (btn) { btn.disabled = false; btn.textContent = 'Cargar más'; }
+            if (btn) { btn.disabled = false; btn.textContent = '{{ __('m_tours.tour.ui.load_more') }}'; }
 
         }catch(e){
             console.error(e);
-            Swal.fire({ icon:'error', title:'No se pudo cargar más', timer:1800, showConfirmButton:false });
-            if (btn) { btn.disabled = false; btn.textContent = 'Cargar más'; }
+            Swal.fire({ icon:'error', title:'{{ __('m_tours.tour.ui.load_more_error') }}', timer:1800, showConfirmButton:false });
+            if (btn) { btn.disabled = false; btn.textContent = '{{ __('m_tours.tour.ui.load_more') }}'; }
         }
     }
 
