@@ -30,6 +30,8 @@ class Tour extends Model
         'itinerary_id',
         'color',
         'viator_code',
+        'cutoff_hour', 
+        'lead_days',
     ];
 
     protected $casts = [
@@ -91,7 +93,7 @@ class Tour extends Model
             'tour_id',
             'schedule_id'
         )
-            ->withPivot('is_active')
+            ->withPivot(['is_active', 'cutoff_hour', 'lead_days'])
             ->withTimestamps();
     }
     public function activeSchedules()

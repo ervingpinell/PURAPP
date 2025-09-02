@@ -200,6 +200,14 @@ Route::post('/email/verification-notification', [VerifyEmailController::class, '
         //CutOff
         Route::get('settings/booking', [BookingSettingsController::class, 'edit'])->name('settings.booking.edit');
         Route::put('settings/booking', [BookingSettingsController::class, 'update'])->name('settings.booking.update');
+        // Booking settings (global)
+        Route::get('settings/booking',  [BookingSettingsController::class, 'edit'])->name('settings.booking.edit');
+        Route::put('settings/booking',  [BookingSettingsController::class, 'update'])->name('settings.booking.update');
+
+        // Booking settings overrides
+        Route::put('settings/booking/tour',     [BookingSettingsController::class, 'updateTourOverrides'])->name('settings.booking.tour.update');
+        Route::put('settings/booking/schedule', [BookingSettingsController::class, 'updateScheduleOverrides'])->name('settings.booking.schedule.update');
+
 
         // Traducciones
         Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');

@@ -64,7 +64,7 @@ class Schedule extends Model
             'schedule_tour',
             'schedule_id',
             'tour_id'
-        )->withPivot('is_active')
+        )->withPivot(['is_active', 'cutoff_hour', 'lead_days'])
          ->withTimestamps();
     }
 

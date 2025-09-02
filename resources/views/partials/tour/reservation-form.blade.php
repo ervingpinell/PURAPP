@@ -1,28 +1,62 @@
 @php
-  $tz    = config('app.timezone', 'America/Costa_Rica');
-  $today = \Carbon\Carbon::today($tz)->toDateString();
+  use Carbon\Carbon;
+  use App\Models\AppSetting;
 
-  // 🚦 Fecha mínima reservable según cutoff/lead-days
-  $minBookable = \App\Support\BookingRules::earliestBookableDate()->toDateString();
+  $tz     = config('app.timezone', 'America/Costa_Rica');
+  $today  = Carbon::today($tz)->toDateString();
 
-  // 🔧 Lee ajustes desde AppSetting (con fallback a config)
-  $cutoffRaw = \App\Models\AppSetting::get('booking.cutoff_hour', config('booking.cutoff_hour', '18:00')); // "HH:MM"
-  $leadDays  = (int) \App\Models\AppSetting::get('booking.lead_days', (int) config('booking.lead_days', 1));
+  // ======= Global (AppSetting -> config fallback)
+  $gCutoff = (string) AppSetting::get('booking.cutoff_hour', config('booking.cutoff_hour', '18:00'));
+  $gLead   = (int)    AppSetting::get('booking.lead_days', (int) config('booking.lead_days', 1));
 
-  // ⏱️ Normaliza hora a HH:MM (24h) en TZ de la app
-  try {
-      $cutoffHM = \Carbon\Carbon::createFromFormat('H:i', (string)$cutoffRaw, $tz)->format('H:i');
-  } catch (\Throwable $e) {
-      $cutoffHM = '18:00';
+  // Helper: calcula min reservable considerando si ya pasó el cutoff
+  $calc = function (string $cutoff, int $lead) use ($tz) {
+      $now = Carbon::now($tz);
+      [$hh,$mm] = array_pad(explode(':', $cutoff, 2), 2, '00');
+      $cutoffToday = Carbon::create($now->year, $now->month, $now->day, (int)$hh, (int)$mm, 0, $tz);
+
+      $passed = $now->gte($cutoffToday);                  // ¿ya pasó el cutoff hoy?
+      $days   = max(0, (int)$lead) + ($passed ? 1 : 0);   // empuja 1 día si pasó
+      return [
+        'cutoff'       => sprintf('%02d:%02d', (int)$hh, (int)$mm),
+        'lead_days'    => (int)$lead,
+        'after_cutoff' => $passed,
+        'min'          => $now->copy()->addDays($days)->toDateString(),
+      ];
+  };
+
+  // ======= Tour (override -> global)
+  $tCutoff = $tour->cutoff_hour ?: $gCutoff;
+  $tLead   = is_null($tour->lead_days) ? $gLead : (int) $tour->lead_days;
+  $tourRule = $calc($tCutoff, $tLead);
+
+  // ======= Horarios (pivot -> tour)
+  $scheduleRules = [];
+  foreach ($tour->schedules->sortBy('start_time') as $s) {
+      $pCut = optional($s->pivot)->cutoff_hour;
+      $pLd  = optional($s->pivot)->lead_days;
+      $sCut = $pCut ?: $tCutoff;
+      $sLd  = is_null($pLd) ? $tLead : (int) $pLd;
+      $scheduleRules[$s->schedule_id] = $calc($sCut, $sLd);
   }
+
+  // Para minDate inicial si aún no hay horario seleccionado:
+  $mins = array_map(fn($r) => $r['min'], $scheduleRules);
+  $mins[] = $tourRule['min'];
+  $initialMin = min($mins);
+
+  $rulesPayload = [
+    'tz'        => $tz,
+    'tour'      => $tourRule,
+    'schedules' => $scheduleRules,
+    'initialMin'=> $initialMin,
+  ];
 @endphp
 
 <form action="{{ route('carrito.agregar', $tour->tour_id) }}" method="POST"
   class="reservation-box gv-ui p-3 shadow-sm rounded bg-white mb-4 border"
   data-adult-price="{{ $tour->adult_price }}"
-  data-kid-price="{{ $tour->kid_price }}"
-  data-cutoff="{{ $cutoffHM }}"
-  data-lead-days="{{ $leadDays }}">
+  data-kid-price="{{ $tour->kid_price }}">
   @csrf
   <input type="hidden" name="tour_id" value="{{ $tour->tour_id }}">
 
@@ -75,16 +109,7 @@
       <label class="form-label">{{ __('adminlte::adminlte.select_date') }}</label>
       <input id="tourDateInput" type="text" name="tour_date" class="form-control mb-1"
              placeholder="dd/mm/yyyy" required>
-
-      <div class="form-text" id="cutoffHint">
-        @if ($leadDays === 0)
-          {{ __('Reservas para hoy cierran a las :time', ['time' => $cutoffHM]) }}
-        @elseif ($leadDays === 1)
-          {{ __('Reservas para mañana cierran hoy a las :time', ['time' => $cutoffHM]) }}
-        @else
-          {{ __('Reservas para fechas a :days día(s) cierran el día anterior a las :time', ['days' => $leadDays, 'time' => $cutoffHM]) }}
-        @endif
-      </div>
+      <div class="form-text" id="cutoffHint"></div>
 
       {{-- ===== Schedule ===== --}}
       <label class="form-label mt-2">{{ __('adminlte::adminlte.select_time') }}</label>
@@ -167,9 +192,10 @@
 @push('scripts')
 <script>
 (function(){
+  const RULES = @json($rulesPayload);
+
   const formEl = document.querySelector('form.reservation-box');
   if (!formEl) return;
-
   if (formEl.dataset.bound === '1') return;
   formEl.dataset.bound = '1';
 
@@ -177,9 +203,8 @@
 
   window.isAuthenticated = @json(Auth::check());
   window.CART_COUNT_URL  = @json(route('cart.count.public'));
-  const todayIso    = @json($today);
-  const minBookable = @json($minBookable);
 
+  // Bloqueos que ya manejabas
   const fullyBlockedDates = Array.isArray(window.fullyBlockedDates) ? window.fullyBlockedDates : [];
   const blockedGeneral    = Array.isArray(window.blockedGeneral) ? window.blockedGeneral : [];
   const blockedBySchedule = (window.blockedBySchedule && typeof window.blockedBySchedule === 'object') ? window.blockedBySchedule : {};
@@ -187,14 +212,15 @@
   const dateInput   = document.getElementById('tourDateInput');
   const scheduleSel = document.getElementById('scheduleSelect');
   const helpMsg     = document.getElementById('noSlotsHelp');
+  const hintEl      = document.getElementById('cutoffHint');
   const langSelect  = document.querySelector('select[name="tour_language_id"]');
   const hotelSelect = document.getElementById('hotelSelect');
 
   if (!window.isAuthenticated) {
-    if (dateInput) { dateInput.setAttribute('disabled', 'disabled'); dateInput.setAttribute('readonly', 'readonly'); }
-    scheduleSel && scheduleSel.setAttribute('disabled', 'disabled');
-    langSelect  && langSelect.setAttribute('disabled', 'disabled');
-    hotelSelect && hotelSelect.setAttribute('disabled', 'disabled');
+    if (dateInput) { dateInput.setAttribute('disabled','disabled'); dateInput.setAttribute('readonly','readonly'); }
+    scheduleSel && scheduleSel.setAttribute('disabled','disabled');
+    langSelect  && langSelect.setAttribute('disabled','disabled');
+    hotelSelect && hotelSelect.setAttribute('disabled','disabled');
     return;
   }
 
@@ -205,53 +231,134 @@
   const BASE_CHOICES = scheduleChoices._store.choices.filter(c => c.value !== '').map(c => ({ value:String(c.value), label:c.label }));
   const SCHEDULE_IDS = BASE_CHOICES.map(o => o.value);
 
+  // Utils
   const isoFromDate = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  const isDayFullyBlocked = (iso) => iso && (fullyBlockedDates.includes(iso) || blockedGeneral.includes(iso) || (SCHEDULE_IDS.length && SCHEDULE_IDS.every(id => (blockedBySchedule[id] || []).includes(iso))));
-  const isBlockedForSchedule = (iso, sid) => blockedGeneral.includes(iso) || (blockedBySchedule[sid] || []).includes(iso);
+
+  const ruleForSchedule = (sid) => RULES.schedules[String(sid)] || RULES.tour;
+
+  const minAcrossAll = () => {
+    const mins = [RULES.tour.min, ...Object.values(RULES.schedules).map(r => r.min)];
+    return mins.sort()[0];
+  };
+
+  
+
+  // ¿Puede este horario reservar en la fecha seleccionada?
+  const canUseScheduleOnDate = (iso, sid) => {
+    if (!iso) return false;
+    // Bloqueos duros
+    if (fullyBlockedDates.includes(iso)) return false;
+    if (blockedGeneral.includes(iso))    return false;
+    if ((blockedBySchedule[sid] || []).includes(iso)) return false;
+
+    // Regla de cutoff/lead
+    const r = ruleForSchedule(sid);
+    if (iso < r.min) return false;
+
+    return true;
+  };
+
+  const anyScheduleAvailable = (iso) => {
+    return SCHEDULE_IDS.some((sid) => canUseScheduleOnDate(iso, sid));
+  };
+
+  const isDayFullyBlocked = (iso) => {
+    if (!iso) return true;
+    if (fullyBlockedDates.includes(iso)) return true;
+    if (blockedGeneral.includes(iso))    return true;
+    // Si ningún horario cumple su minDate/override, el día queda bloqueado
+    return !anyScheduleAvailable(iso);
+  };
 
   function rebuildScheduleChoices(iso){
     const ph = [{ value:'', label:'-- {{ __('adminlte::adminlte.select_option') }} --', disabled:true, selected:true }];
+    scheduleChoices.clearStore();
+
     if (!iso || isDayFullyBlocked(iso)) {
-      scheduleChoices.clearStore();
       scheduleChoices.setChoices(ph, 'value', 'label', true);
       scheduleChoices.disable();
-      helpMsg.textContent = iso ? @json(__('adminlte::adminlte.no_times_for_day') ?? 'No hay horarios disponibles para esa fecha.') : '';
+      helpMsg.textContent = iso ? 'No hay horarios disponibles para esa fecha.' : '';
       helpMsg.style.display = iso ? '' : 'none';
       return;
     }
-    const allowed = BASE_CHOICES.filter(o => !isBlockedForSchedule(iso, o.value));
-    scheduleChoices.clearStore();
+
+    const allowed = BASE_CHOICES.map(o => {
+      const ok = canUseScheduleOnDate(iso, o.value);
+      return { ...o, disabled: !ok };
+    });
+
     scheduleChoices.setChoices(ph.concat(allowed), 'value', 'label', true);
-    if (allowed.length === 0) {
-      scheduleChoices.disable();
-      helpMsg.textContent = @json(__('adminlte::adminlte.no_times_for_day') ?? 'No hay horarios disponibles para esa fecha.');
-      helpMsg.style.display = '';
-    } else {
+
+    // Si al menos uno habilitado -> enable; si todos disabled -> disable
+    const hasEnabled = allowed.some(c => !c.disabled);
+    if (hasEnabled) {
       scheduleChoices.enable();
       helpMsg.style.display = 'none';
+    } else {
+      scheduleChoices.disable();
+      helpMsg.textContent = 'No hay horarios disponibles para esa fecha.';
+      helpMsg.style.display = '';
     }
   }
 
-  // ✅ Flatpickr con minDate ya calculado por reglas (cutoff/lead-days)
-  if (window.flatpickr && dateInput) {
-    flatpickr(dateInput, {
-      dateFormat: 'Y-m-d',
-      altInput: true,
-      altFormat: 'd/m/Y',
-      minDate: minBookable,
-      disable: [ (date) => isDayFullyBlocked(isoFromDate(date)) ],
-      onChange: (_sel, iso) => rebuildScheduleChoices(iso),
-      onReady: (_sel, iso) => { if (!iso) { scheduleChoices.disable(); helpMsg.style.display = 'none'; } else { rebuildScheduleChoices(iso); } }
-    });
-  } else if (dateInput) {
-    // Fallback nativo
-    dateInput.type = 'date';
-    dateInput.min  = minBookable;
-    dateInput.addEventListener('change', e => rebuildScheduleChoices(e.target.value));
-    scheduleChoices.disable();
-  }
+  // Datepicker
+  let fp;
+  const setupFlatpickr = () => {
+    const initialMin = RULES.initialMin || minAcrossAll();
 
-  // Other hotel
+    if (window.flatpickr && dateInput) {
+      fp = flatpickr(dateInput, {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        minDate: initialMin,                         // 🔑 permite "mañana" si algún horario lo permite
+        disable: [ (date) => isDayFullyBlocked(isoFromDate(date)) ],
+        onChange: (_sel, iso) => rebuildScheduleChoices(iso),
+        onReady: (_sel, iso) => {
+          setHint(RULES.tour);
+          if (!iso) {
+            scheduleChoices.disable();
+            helpMsg.style.display = 'none';
+            // Opcional: abre directamente en initialMin
+            fp.setDate(initialMin, false);
+            rebuildScheduleChoices(initialMin);
+          } else {
+            rebuildScheduleChoices(iso);
+          }
+        }
+      });
+    } else if (dateInput) {
+      dateInput.type = 'date';
+      dateInput.min  = initialMin;
+      dateInput.addEventListener('change', e => rebuildScheduleChoices(e.target.value));
+      scheduleChoices.disable();
+    }
+  };
+
+  setupFlatpickr();
+
+  // Cuando cambias de HORARIO, ajusta minDate a la regla del horario
+  scheduleSel.addEventListener('change', () => {
+    const sid = scheduleSel.value;
+    const rule = sid ? ruleForSchedule(sid) : RULES.tour;
+
+    // Ajusta minDate para que el usuario pueda llegar al día permitido por ese horario
+    if (fp) fp.set('minDate', sid ? rule.min : minAcrossAll());
+
+    setHint(rule);
+
+    // Si la fecha actual quedó por debajo del min del horario elegido, la “salta” al min
+    const current = dateInput.value;
+    if (current && sid && current < rule.min) {
+      fp.setDate(rule.min, true);
+    }
+
+    // Reconstruye disponibilidad de horarios para la fecha seleccionada
+    const iso = dateInput.value || (fp ? fp.input.value : null);
+    rebuildScheduleChoices(iso);
+  });
+
+  // ======= Hotel "otro" =======
   const otherWrap = document.getElementById('otherHotelWrapper');
   const isOtherH  = document.getElementById('isOtherHotel');
   const otherInp  = document.getElementById('otherHotelInput');
@@ -267,7 +374,7 @@
   hotelSelect.addEventListener('change', toggleOther);
   toggleOther();
 
-  // ======= AJAX Add to cart =======
+  // ======= AJAX Add to cart (tu lógica existente) =======
   const addBtn = document.getElementById('addToCartBtn');
   if (!addBtn) return;
 
