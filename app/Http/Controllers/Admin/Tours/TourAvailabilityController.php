@@ -16,7 +16,9 @@ class TourAvailabilityController extends Controller
 
     public function index()
     {
-        $availabilityPage = TourAvailability::with('tour')->orderByDesc('date')->paginate(10);
+        $availabilityPage = TourAvailability::with('tour')
+            ->orderByDesc('date')
+            ->paginate(10);
 
         return view('admin.tours.availabilities.index', [
             'availabilities' => $availabilityPage,
@@ -42,8 +44,8 @@ class TourAvailabilityController extends Controller
                 'date'         => $data['date'],
                 'start_time'   => $data['start_time'] ?? null,
                 'end_time'     => $data['end_time'] ?? null,
-                'is_available' => $request->boolean('available', true),
-                'is_active'    => $request->boolean('is_active', true),
+                'is_available' => array_key_exists('available', $data) ? (bool) $data['available'] : true,
+                'is_active'    => array_key_exists('is_active', $data) ? (bool) $data['is_active'] : true,
             ];
 
             $availability = TourAvailability::create($payload);
@@ -56,13 +58,13 @@ class TourAvailabilityController extends Controller
 
             return redirect()
                 ->route('admin.tours.availabilities.index')
-                ->with('success', 'Availability created successfully.');
+                ->with('success', __('m_booking.availability.success.created'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'tour_availability', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', 'There was a problem creating the availability.');
+            return back()->with('error', __('m_booking.availability.error.create'));
         }
     }
 
@@ -86,11 +88,11 @@ class TourAvailabilityController extends Controller
                 'date'         => $data['date'],
                 'start_time'   => $data['start_time'] ?? null,
                 'end_time'     => $data['end_time'] ?? null,
-                'is_available' => $request->has('available')
-                    ? $request->boolean('available')
+                'is_available' => array_key_exists('available', $data)
+                    ? (bool) $data['available']
                     : $availability->is_available,
-                'is_active'    => $request->has('is_active')
-                    ? $request->boolean('is_active')
+                'is_active'    => array_key_exists('is_active', $data)
+                    ? (bool) $data['is_active']
                     : $availability->is_active,
             ];
 
@@ -104,13 +106,13 @@ class TourAvailabilityController extends Controller
 
             return redirect()
                 ->route('admin.tours.availabilities.index')
-                ->with('success', 'Availability updated successfully.');
+                ->with('success', __('m_booking.availability.success.updated'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'update', 'tour_availability', $availability->getKey(), $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', 'There was a problem updating the availability.');
+            return back()->with('error', __('m_booking.availability.error.update'));
         }
     }
 
@@ -125,13 +127,13 @@ class TourAvailabilityController extends Controller
 
             return redirect()
                 ->route('admin.tours.availabilities.index')
-                ->with('success', 'Availability deactivated successfully.');
+                ->with('success', __('m_booking.availability.success.deactivated'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy', 'tour_availability', $availability->getKey(), $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', 'There was a problem deactivating the availability.');
+            return back()->with('error', __('m_booking.availability.error.deactivate'));
         }
     }
 }

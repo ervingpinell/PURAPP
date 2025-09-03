@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Disponibilidades')
+@section('title', __('m_booking.availability.ui.page_title'))
 
 @section('content_header')
-  <h1><i class="fas fa-calendar-check me-2"></i> Disponibilidades</h1>
+  <h1><i class="fas fa-calendar-check me-2"></i> {{ __('m_booking.availability.ui.page_heading') }}</h1>
 @stop
 
 @push('css')
@@ -46,12 +46,11 @@
   .search-input{ min-width:260px }
   .bulk-dd .dropdown-menu{ min-width: 240px; }
 
-  /* Sticky del header de filtros (look antiguo) */
   .sticky-filters{
     position: sticky;
     top: var(--sticky-top);
-    z-index: 1041;
-    background: #343a40 !important; /* = bg-dark */
+    z-index: 900;
+    background: #343a40 !important;
     border-bottom: 1px solid var(--title-separator);
     transition: top .15s ease;
   }
@@ -65,7 +64,7 @@
   <div class="card-header bg-dark text-white d-flex flex-wrap align-items-end gap-2 sticky-filters">
     <form id="filtersForm" method="GET" action="{{ route('admin.tours.excluded_dates.index') }}" class="d-flex flex-wrap align-items-end gap-2 mb-0">
       <div>
-        <label class="form-label mb-1">Date</label>
+        <label class="form-label mb-1">{{ __('m_booking.availability.filters.date') }}</label>
         <input
           type="date"
           name="date"
@@ -76,12 +75,12 @@
         >
       </div>
       <div>
-        <label class="form-label mb-1">Days</label>
+        <label class="form-label mb-1">{{ __('m_booking.availability.filters.days') }}</label>
         <input type="number" min="1" max="30" name="days" value="{{ $days }}" class="form-control form-control-sm" style="width:100px" id="filterDays">
       </div>
       <div>
-        <label class="form-label mb-1">Product</label>
-        <input type="text" name="q" value="{{ $q }}" placeholder="Buscar tour..." class="form-control form-control-sm search-input" id="filterQ">
+        <label class="form-label mb-1">{{ __('m_booking.availability.filters.product') }}</label>
+        <input type="text" name="q" value="{{ $q }}" placeholder="{{ __('m_booking.availability.filters.search_placeholder') }}" class="form-control form-control-sm search-input" id="filterQ">
       </div>
     </form>
 
@@ -90,27 +89,26 @@
       <div class="bulk-dd">
         <div class="btn-group">
           <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            Actualizar estado
+            {{ __('m_booking.availability.filters.update_state') }}
           </button>
           <div class="dropdown-menu dropdown-menu-right dropdown-menu-end p-2">
             <button type="button" class="btn btn-danger btn-sm w-100" id="bulkBlock">
-              <i class="fas fa-ban me-1"></i> Bloquear seleccionados
+              <i class="fas fa-ban me-1"></i> {{ __('m_booking.availability.buttons.block_selected') }}
             </button>
             <button type="button" class="btn btn-success btn-sm w-100 mt-2" id="bulkUnblock">
-              <i class="fas fa-check me-1"></i> Desbloquear seleccionados
+              <i class="fas fa-check me-1"></i> {{ __('m_booking.availability.buttons.unblock_selected') }}
             </button>
           </div>
         </div>
       </div>
 
-      {{-- MÁS ESPACIO respecto al dropdown: ms-3 --}}
       <a class="btn btn-warning btn-sm js-view-blocked ms-3"
          href="{{ route('admin.tours.excluded_dates.blocked', ['date' => $date, 'days' => $days, 'q' => $q]) }}">
-        <i class="fas fa-lock me-1"></i> Ver bloqueados
+        <i class="fas fa-lock me-1"></i> {{ __('m_booking.availability.filters.view_blocked') }}
       </a>
 
       <div class="small text-muted d-none d-md-inline ms-2">
-        Tip: marca filas y usa una acción del menú.
+        {{ __('m_booking.availability.filters.tip') }}
       </div>
     </div>
   </div>
@@ -129,30 +127,36 @@
         <div class="al-title bg-dark al-day-header">
           <div class="fw-bold">
             {{ ucfirst($fmt($day)) }}
-            <span class="ms-2 text-success opacity-75">( {{ count($buckets['am']) + count($buckets['pm']) }} tours )</span>
+            <span class="ms-2 text-success opacity-75">
+              {{ __('m_booking.availability.ui.tours_count', ['count' => count($buckets['am']) + count($buckets['pm'])]) }}
+            </span>
           </div>
           <div class="ms-auto btn-gap">
             <button class="btn btn-primary btn-sm js-mark-day"
                     type="button"
                     data-day="{{ $day }}"
                     onclick="toggleMarkDay(this,'{{ $day }}')">
-              Marcar todos
+              {{ __('m_booking.availability.buttons.mark_all') }}
             </button>
-            <button class="btn btn-danger btn-sm" type="button" onclick="blockAllInDay('{{ $day }}')">Bloquear todos</button>
+            <button class="btn btn-danger btn-sm" type="button" onclick="blockAllInDay('{{ $day }}')">
+              {{ __('m_booking.availability.buttons.block_all') }}
+            </button>
           </div>
         </div>
 
         {{-- AM --}}
         <div class="al-title bg-dark al-block-title">
-          <span class="fw-bold small mb-0">Am tours (todos los tours que inicien antes de las 12:00pm)</span>
+          <span class="fw-bold small mb-0">{{ __('m_booking.availability.blocks.am_tours') }}</span>
           <div class="ms-auto btn-gap">
             <button type="button"
                     class="btn btn-primary btn-sm js-mark-block"
                     data-day="{{ $day }}" data-bucket="am"
                     onclick="toggleMarkBlock(this,'{{ $day }}','am')">
-              Marcar todos
+              {{ __('m_booking.availability.buttons.mark_all') }}
             </button>
-            <button type="button" class="btn btn-danger btn-sm" onclick="blockAllInBlock('{{ $day }}','am')">Bloquear todos</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="blockAllInBlock('{{ $day }}','am')">
+              {{ __('m_booking.availability.buttons.block_all') }}
+            </button>
           </div>
         </div>
 
@@ -168,35 +172,41 @@
                 <div class="flex-grow-1">
                   <span class="me-2">{{ $it['tour_name'] }} ({{ $it['time'] }})</span>
                   <span class="state {{ $it['is_available'] ? 'text-success' : 'text-danger' }}">
-                    {{ $it['is_available'] ? 'Available' : 'Blocked' }}
+                    {{ $it['is_available'] ? __('m_booking.availability.states.available') : __('m_booking.availability.states.blocked') }}
                   </span>
                 </div>
                 <div class="btn-gap">
                   <button type="button" class="btn btn-danger btn-sm btn-block"
                           onclick="confirmToggleOne(this, '{{ $day }}', {{ $it['tour_id'] }}, {{ $it['schedule_id'] }}, 'block')"
-                          {{ !$it['is_available'] ? 'disabled' : '' }}>Block</button>
+                          {{ !$it['is_available'] ? 'disabled' : '' }}>
+                    {{ __('m_booking.availability.buttons.block') }}
+                  </button>
                   <button type="button" class="btn btn-success btn-sm btn-unblock"
                           onclick="confirmToggleOne(this, '{{ $day }}', {{ $it['tour_id'] }}, {{ $it['schedule_id'] }}, 'unblock')"
-                          {{ $it['is_available'] ? 'disabled' : '' }}>Unblock</button>
+                          {{ $it['is_available'] ? 'disabled' : '' }}>
+                    {{ __('m_booking.availability.buttons.unblock') }}
+                  </button>
                 </div>
               </div>
             </div>
           @empty
-            <div class="text-muted al-empty">Sin tours en este bloque.</div>
+            <div class="text-muted al-empty">{{ __('m_booking.availability.blocks.empty_block') }}</div>
           @endforelse
         </div>
 
         {{-- PM --}}
         <div class="al-title bg-dark al-block-title mt-3">
-          <span class="fw-bold small mb-0">PM tours (todos los tours que inicien despues de las 12:00pm)</span>
+          <span class="fw-bold small mb-0">{{ __('m_booking.availability.blocks.pm_tours') }}</span>
           <div class="ms-auto btn-gap">
             <button type="button"
                     class="btn btn-primary btn-sm js-mark-block"
                     data-day="{{ $day }}" data-bucket="pm"
                     onclick="toggleMarkBlock(this,'{{ $day }}','pm')">
-              Marcar todos
+              {{ __('m_booking.availability.buttons.mark_all') }}
             </button>
-            <button type="button" class="btn btn-danger btn-sm" onclick="blockAllInBlock('{{ $day }}','pm')">Bloquear todos</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="blockAllInBlock('{{ $day }}','pm')">
+              {{ __('m_booking.availability.buttons.block_all') }}
+            </button>
           </div>
         </div>
 
@@ -212,27 +222,31 @@
                 <div class="flex-grow-1">
                   <span class="me-2">{{ $it['tour_name'] }} ({{ $it['time'] }})</span>
                   <span class="state {{ $it['is_available'] ? 'text-success' : 'text-danger' }}">
-                    {{ $it['is_available'] ? 'Available' : 'Blocked' }}
+                    {{ $it['is_available'] ? __('m_booking.availability.states.available') : __('m_booking.availability.states.blocked') }}
                   </span>
                 </div>
                 <div class="btn-gap">
                   <button type="button" class="btn btn-danger btn-sm btn-block"
                           onclick="confirmToggleOne(this, '{{ $day }}', {{ $it['tour_id'] }}, {{ $it['schedule_id'] }}, 'block')"
-                          {{ !$it['is_available'] ? 'disabled' : '' }}>Block</button>
+                          {{ !$it['is_available'] ? 'disabled' : '' }}>
+                    {{ __('m_booking.availability.buttons.block') }}
+                  </button>
                   <button type="button" class="btn btn-success btn-sm btn-unblock"
                           onclick="confirmToggleOne(this, '{{ $day }}', {{ $it['tour_id'] }}, {{ $it['schedule_id'] }}, 'unblock')"
-                          {{ $it['is_available'] ? 'disabled' : '' }}>Unblock</button>
+                          {{ $it['is_available'] ? 'disabled' : '' }}>
+                    {{ __('m_booking.availability.buttons.unblock') }}
+                  </button>
                 </div>
               </div>
             </div>
           @empty
-            <div class="text-muted al-empty">Sin tours en este bloque.</div>
+            <div class="text-muted al-empty">{{ __('m_booking.availability.blocks.empty_block') }}</div>
           @endforelse
         </div>
 
       </div>
     @empty
-      <div class="text-muted al-empty">No hay datos para los filtros seleccionados.</div>
+      <div class="text-muted al-empty">{{ __('m_booking.availability.blocks.no_data') }}</div>
     @endforelse
 
     <div id="tabla-baja" class="mt-4"></div>
@@ -248,6 +262,52 @@ const TOGGLE_URL = @json(route('admin.tours.excluded_dates.toggle'));
 const BULK_URL   = @json(route('admin.tours.excluded_dates.bulkToggle'));
 const CSRF       = @json(csrf_token());
 
+const I18N = {
+  filters: {
+    applying: @json(__('m_booking.availability.toasts.applying_filters')),
+    searching: @json(__('m_booking.availability.toasts.searching')),
+    updating: @json(__('m_booking.availability.toasts.updating_range')),
+    invalidTitle: @json(__('m_booking.availability.toasts.invalid_date_title')),
+    invalidText: @json(__('m_booking.availability.toasts.invalid_date_text')),
+  },
+  buttons: {
+    markAll: @json(__('m_booking.availability.buttons.mark_all')),
+    unmarkAll: @json(__('m_booking.availability.buttons.unmark_all')),
+    block: @json(__('m_booking.availability.buttons.block')),
+    unblock: @json(__('m_booking.availability.buttons.unblock')),
+  },
+  states: {
+    available: @json(__('m_booking.availability.states.available')),
+    blocked: @json(__('m_booking.availability.states.blocked')),
+  },
+  confirm: {
+    blockTitle: @json(__('m_booking.availability.confirm.block_title')),
+    blockHtml: @json(__('m_booking.availability.confirm.block_html', ['label' => ':label', 'day' => ':day'])),
+    blockBtn: @json(__('m_booking.availability.confirm.block_btn')),
+    unblockTitle: @json(__('m_booking.availability.confirm.unblock_title')),
+    unblockHtml: @json(__('m_booking.availability.confirm.unblock_html', ['label' => ':label', 'day' => ':day'])),
+    unblockBtn: @json(__('m_booking.availability.confirm.unblock_btn')),
+    bulkTitle: @json(__('m_booking.availability.confirm.bulk_title')),
+    bulkItemsHtml: @json(__('m_booking.availability.confirm.bulk_items_html', ['count' => ':count'])),
+    bulkBlockDayHtml: @json(__('m_booking.availability.confirm.bulk_block_day_html', ['day' => ':day'])),
+    bulkBlockBlockHtml: @json(__('m_booking.availability.confirm.bulk_block_block_html', ['block' => ':block', 'day' => ':day'])),
+  },
+  toasts: {
+    marked: @json(__('m_booking.availability.toasts.marked_n', ['n' => ':n'])),
+    unmarked: @json(__('m_booking.availability.toasts.unmarked_n', ['n' => ':n'])),
+    updated: @json(__('m_booking.availability.toasts.updated')),
+    updatedCount: @json(__('m_booking.availability.toasts.updated_count', ['count' => ':count'])),
+    noSelTitle: @json(__('m_booking.availability.toasts.no_selection_title')),
+    noSelText: @json(__('m_booking.availability.toasts.no_selection_text')),
+    noChangesTitle: @json(__('m_booking.availability.toasts.no_changes_title')),
+    noChangesText: @json(__('m_booking.availability.toasts.no_changes_text')),
+    errorGeneric: @json(__('m_booking.availability.toasts.error_generic')),
+    errorUpdate: @json(__('m_booking.availability.toasts.error_update')),
+  },
+  blocks: {
+    emptyBlock: @json(__('m_booking.availability.blocks.empty_block')),
+  }
+};
 
 const toast = Swal.mixin({
   toast: true,
@@ -255,9 +315,7 @@ const toast = Swal.mixin({
   showConfirmButton: false,
   timer: 1600,
   timerProgressBar: true,
-  customClass: {
-    popup: 'my-toast'
-  }
+  customClass: { popup: 'my-toast' }
 });
 
 /* ===== Header sticky ===== */
@@ -303,7 +361,10 @@ function todayStr(){
 if(iDate){
   const t = todayStr();
   if(!iDate.min) iDate.min = t;
-  if(iDate.value && iDate.value < t){ iDate.value = t; }
+  if(iDate.value && iDate.value < t){
+    Swal.fire(I18N.filters.invalidTitle, I18N.filters.invalidText, 'info');
+    iDate.value = t;
+  }
 }
 function clampDays(){
   let v = parseInt(iDays.value || '1', 10);
@@ -315,13 +376,13 @@ function clampDays(){
 iDate.addEventListener('change', () => {
   const t = todayStr();
   if(iDate.value < t){
-    Swal.fire('Fecha inválida','No se permiten fechas pasadas.','info');
+    Swal.fire(I18N.filters.invalidTitle, I18N.filters.invalidText, 'info');
     iDate.value = t;
     return;
   }
   iDays.value = 1;
   iQ.value = '';
-  toast.fire({icon:'info', title:'Aplicando filtros...'});
+  toast.fire({icon:'info', title:I18N.filters.applying});
   form.submit();
 });
 
@@ -330,12 +391,12 @@ iQ.addEventListener('input', debounce(() => {
   if(iQ.value.trim().length > 0){
     iDays.value = Math.max(Number(iDays.value||1), 30);
   }
-  toast.fire({icon:'info', title:'Buscando...'});
+  toast.fire({icon:'info', title:I18N.filters.searching});
   form.submit();
 }, 400));
 
-iDays.addEventListener('change', () => { clampDays(); toast.fire({icon:'info', title:'Actualizando rango...'}); form.submit(); });
-iDays.addEventListener('input', debounce(() => { clampDays(); toast.fire({icon:'info', title:'Actualizando rango...'}); form.submit(); }, 400));
+iDays.addEventListener('change', () => { clampDays(); toast.fire({icon:'info', title:I18N.filters.updating}); form.submit(); });
+iDays.addEventListener('input', debounce(() => { clampDays(); toast.fire({icon:'info', title:I18N.filters.updating}); form.submit(); }, 400));
 
 /* Abrir “Ver bloqueados” con confirmación */
 document.querySelector('.js-view-blocked')?.addEventListener('click', async (e) => {
@@ -343,11 +404,11 @@ document.querySelector('.js-view-blocked')?.addEventListener('click', async (e) 
   const url = e.currentTarget.href;
   const res = await Swal.fire({
     icon: 'warning',
-    title: 'Ver tours bloqueados',
-    text: 'Se abrirá la vista con los tours bloqueados para desbloquearlos.',
+    title: @json(__('m_booking.availability.confirm.view_blocked_title')),
+    text:  @json(__('m_booking.availability.confirm.view_blocked_text')),
     showCancelButton: true,
-    confirmButtonText: 'Abrir',
-    cancelButtonText: 'Cancelar'
+    confirmButtonText: @json(__('m_booking.availability.buttons.open')),
+    cancelButtonText:  @json(__('m_booking.availability.buttons.cancel'))
   });
   if(res.isConfirmed){ window.location.href = url; }
 });
@@ -367,20 +428,21 @@ async function toggleOne(el, day, tourId, scheduleId, want){
       body: JSON.stringify({ tour_id:tourId, schedule_id:scheduleId, date:day, want })
     });
     const data = await res.json();
-    if(!data.ok) throw new Error('Respuesta inválida');
+    if(!data.ok) throw new Error('bad response');
 
     const state = row.querySelector('.state');
-    state.textContent = data.label;
-    state.classList.toggle('text-success', data.is_available);
-    state.classList.toggle('text-danger', !data.is_available);
+    const available = !!data.is_available;
+    state.textContent = available ? I18N.states.available : I18N.states.blocked;
+    state.classList.toggle('text-success', available);
+    state.classList.toggle('text-danger', !available);
 
-    btnBlock.disabled   = !data.is_available ? true : false;
-    btnUnblock.disabled = data.is_available ? true : false;
+    btnBlock.disabled   = !available ? true : false;
+    btnUnblock.disabled = available ? true : false;
 
-    toast.fire({icon:'success', title: data.is_available ? 'Desbloqueado' : 'Bloqueado' });
+    toast.fire({icon:'success', title: available ? I18N.states.available : I18N.states.blocked });
   }catch(e){
     console.error(e);
-    Swal.fire('Error','No se pudo actualizar.','error');
+    Swal.fire('Error', I18N.toasts.errorUpdate, 'error');
   }finally{
     const state = row.querySelector('.state');
     btnBlock.disabled   = state.classList.contains('text-danger');
@@ -391,15 +453,17 @@ async function toggleOne(el, day, tourId, scheduleId, want){
 /* Confirmación para Block/Unblock individual */
 async function confirmToggleOne(el, day, tourId, scheduleId, want){
   const row = el.closest('.row-item');
-  const label = row?.dataset.title || 'este tour';
+  const label = row?.dataset.title || '—';
   const isBlock = want === 'block';
   const res = await Swal.fire({
     icon: 'warning',
-    title: isBlock ? '¿Bloquear tour?' : '¿Desbloquear tour?',
-    html: `${isBlock ? 'Se bloqueará' : 'Se desbloqueará'} <b>${label}</b> para la fecha <b>${day}</b>.`,
+    title: isBlock ? I18N.confirm.blockTitle : I18N.confirm.unblockTitle,
+    html: (isBlock ? I18N.confirm.blockHtml : I18N.confirm.unblockHtml)
+      .replace(':label', label)
+      .replace(':day', day),
     showCancelButton: true,
-    confirmButtonText: isBlock ? 'Sí, bloquear' : 'Sí, desbloquear',
-    cancelButtonText: 'Cancelar'
+    confirmButtonText: isBlock ? I18N.confirm.blockBtn : I18N.confirm.unblockBtn,
+    cancelButtonText:  @json(__('m_booking.availability.buttons.cancel'))
   });
   if(res.isConfirmed){
     await toggleOne(el, day, tourId, scheduleId, want);
@@ -420,28 +484,28 @@ function collectSelected(){
 
 document.getElementById('bulkBlock').addEventListener('click', async () => {
   const items = collectSelected();
-  if(!items.length){ Swal.fire('Sin selección','Marca al menos un tour.','info'); return; }
+  if(!items.length){ Swal.fire(I18N.toasts.noSelTitle, I18N.toasts.noSelText, 'info'); return; }
   const res = await Swal.fire({
     icon: 'warning',
-    title: 'Bloquear seleccionados',
-    html: `Se bloquearán <b>${items.length}</b> ítems seleccionados.`,
+    title: I18N.confirm.bulkTitle,
+    html: I18N.confirm.bulkItemsHtml.replace(':count', items.length),
     showCancelButton: true,
-    confirmButtonText: 'Bloquear',
-    cancelButtonText: 'Cancelar'
+    confirmButtonText: @json(__('m_booking.availability.buttons.block')),
+    cancelButtonText:  @json(__('m_booking.availability.buttons.cancel'))
   });
   if(res.isConfirmed) await bulkToggle(items, 'block');
 });
 
 document.getElementById('bulkUnblock').addEventListener('click', async () => {
   const items = collectSelected();
-  if(!items.length){ Swal.fire('Sin selección','Marca al menos un tour.','info'); return; }
+  if(!items.length){ Swal.fire(I18N.toasts.noSelTitle, I18N.toasts.noSelText, 'info'); return; }
   const res = await Swal.fire({
     icon: 'warning',
-    title: 'Desbloquear seleccionados',
-    html: `Se desbloquearán <b>${items.length}</b> ítems seleccionados.`,
+    title: I18N.confirm.bulkTitle,
+    html: I18N.confirm.bulkItemsHtml.replace(':count', items.length),
     showCancelButton: true,
-    confirmButtonText: 'Desbloquear',
-    cancelButtonText: 'Cancelar'
+    confirmButtonText: @json(__('m_booking.availability.buttons.unblock')),
+    cancelButtonText:  @json(__('m_booking.availability.buttons.cancel'))
   });
   if(res.isConfirmed) await bulkToggle(items, 'unblock');
 });
@@ -457,23 +521,23 @@ function itemsFromRows(rows, want){
 }
 async function blockAllInDay(day){
   const rows = document.querySelectorAll(`.row-item[data-day="${day}"]`);
-  await confirmBulkFromRows(rows, 'block', `Bloquear todos los disponibles del día <b>${day}</b>`);
+  await confirmBulkFromRows(rows, 'block', I18N.confirm.bulkBlockDayHtml.replace(':day', day));
 }
 async function blockAllInBlock(day, bucket){
   const rows = document.querySelectorAll(`#day-${day}-${bucket} .row-item`);
-  const nombre = bucket.toUpperCase();
-  await confirmBulkFromRows(rows, 'block', `Bloquear todos los disponibles del bloque <b>${nombre}</b> del <b>${day}</b>`);
+  const blockName = bucket.toUpperCase();
+  await confirmBulkFromRows(rows, 'block', I18N.confirm.bulkBlockBlockHtml.replace(':block', blockName).replace(':day', day));
 }
 async function confirmBulkFromRows(rows, want, titleHtml){
   const items = itemsFromRows(rows, want);
-  if(!items.length){ Swal.fire('Sin cambios','No hay ítems aplicables.','info'); return; }
+  if(!items.length){ Swal.fire(I18N.toasts.noChangesTitle, I18N.toasts.noChangesText, 'info'); return; }
   const res = await Swal.fire({
     icon: 'warning',
-    title: 'Confirmar acción',
-    html: `${titleHtml}<br>Ítems a afectar: <b>${items.length}</b>.`,
+    title: I18N.confirm.bulkTitle,
+    html: `${titleHtml}<br>${I18N.confirm.bulkItemsHtml.replace(':count', items.length)}`,
     showCancelButton: true,
-    confirmButtonText: want === 'block' ? 'Bloquear' : 'Desbloquear',
-    cancelButtonText: 'Cancelar'
+    confirmButtonText: want === 'block' ? @json(__('m_booking.availability.buttons.block')) : @json(__('m_booking.availability.buttons.unblock')),
+    cancelButtonText:  @json(__('m_booking.availability.buttons.cancel'))
   });
   if(res.isConfirmed){ await bulkToggle(items, want); }
 }
@@ -482,7 +546,7 @@ async function confirmBulkFromRows(rows, want, titleHtml){
 function getDayCheckboxes(day){ return document.querySelectorAll(`.row-item[data-day="${day}"] .select-item`); }
 function getBlockCheckboxes(day, bucket){ return document.querySelectorAll(`#day-${day}-${bucket} .select-item`); }
 function areAllChecked(list){ const arr = Array.from(list); return arr.length > 0 && arr.every(cb => cb.checked); }
-function setBtnLabel(btn, allChecked){ btn.textContent = allChecked ? 'Desmarcar todos' : 'Marcar todos'; }
+function setBtnLabel(btn, allChecked){ btn.textContent = allChecked ? I18N.buttons.unmarkAll : I18N.buttons.markAll; }
 function refreshMarkLabelsFor(day){
   const dayCbs = getDayCheckboxes(day);
   document.querySelectorAll(`.js-mark-day[data-day="${day}"]`).forEach(btn => setBtnLabel(btn, areAllChecked(dayCbs)));
@@ -496,14 +560,14 @@ function toggleMarkDay(btn, day){
   const all = areAllChecked(cbs);
   cbs.forEach(cb => cb.checked = !all);
   refreshMarkLabelsFor(day);
-  toast.fire({ icon:'info', title: (!all ? 'Marcados' : 'Desmarcados') + ` ${cbs.length}` });
+  toast.fire({ icon:'info', title: (!all ? I18N.toasts.marked : I18N.toasts.unmarked).replace(':n', cbs.length) });
 }
 function toggleMarkBlock(btn, day, bucket){
   const cbs = getBlockCheckboxes(day, bucket);
   const all = areAllChecked(cbs);
   cbs.forEach(cb => cb.checked = !all);
   refreshMarkLabelsFor(day);
-  toast.fire({ icon:'info', title: (!all ? 'Marcados' : 'Desmarcados') + ` ${cbs.length}` });
+  toast.fire({ icon:'info', title: (!all ? I18N.toasts.marked : I18N.toasts.unmarked).replace(':n', cbs.length) });
 }
 document.addEventListener('change', (e) => {
   if(!e.target.classList.contains('select-item')) return;
@@ -534,7 +598,7 @@ async function bulkToggle(items, want){
       const btnUnblock = row.querySelector('.btn-unblock');
 
       const available = (want === 'unblock');
-      state.textContent = available ? 'Available' : 'Blocked';
+      state.textContent = available ? I18N.states.available : I18N.states.blocked;
       state.classList.toggle('text-success', available);
       state.classList.toggle('text-danger', !available);
       btnBlock.disabled   = !available ? true : false;
@@ -548,14 +612,14 @@ async function bulkToggle(items, want){
 
     Swal.fire({
       icon:'success',
-      title:'Cambio aplicado',
-      html:`Actualizados: <b>${data.changed}</b>`,
+      title:I18N.toasts.updated,
+      html:I18N.toasts.updatedCount.replace(':count', data.changed),
       timer:1300,
       showConfirmButton:false
     });
   }catch(e){
     console.error(e);
-    Swal.fire('Error','No se pudo completar la actualización.','error');
+    Swal.fire('Error', I18N.toasts.errorGeneric, 'error');
   }
 }
 </script>
