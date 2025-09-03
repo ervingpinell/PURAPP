@@ -24,7 +24,7 @@ class TourImageController extends Controller
     /** Upload images for a tour (respecting per-tour limit). */
     public function store(Request $request, Tour $tour)
     {
-        $maxSizeKb = (int) config('tours.max_image_kb', 8192); // 8MB default
+        $maxSizeKb = (int) config('tours.max_image_kb', 30720); // 30MB default
 
         $request->validate([
             'files'   => ['required', 'array'],
@@ -43,6 +43,7 @@ class TourImageController extends Controller
                 'text'  => __('m_tours.image.limit_reached_text'),
             ]);
         }
+
 
         // Only take up to the allowed amount
         if (count($files) > $allow) {
