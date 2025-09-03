@@ -576,11 +576,12 @@ return [
 // [08] IMAGES
 // =========================================================
 'image' => [
+
     'limit_reached_title' => 'Limit erreicht',
-    'limit_reached_text'  => 'Die maximale Anzahl von Bildern für diese Tour wurde erreicht.',
+    'limit_reached_text'  => 'Das Bildlimit für diese Tour wurde erreicht.',
     'upload_success'      => 'Bilder erfolgreich hochgeladen.',
     'upload_none'         => 'Keine Bilder hochgeladen.',
-    'upload_truncated'    => 'Einige Dateien wurden wegen des Tour-Limits übersprungen.',
+    'upload_truncated'    => 'Einige Dateien wurden aufgrund des Tour-Limits übersprungen.',
     'done'                => 'Fertig',
     'notice'              => 'Hinweis',
     'saved'               => 'Gespeichert',
@@ -588,23 +589,17 @@ return [
     'deleted'             => 'Gelöscht',
     'image_removed'       => 'Bild erfolgreich entfernt.',
     'invalid_order'       => 'Ungültige Reihenfolge.',
-    'nothing_to_reorder'  => 'Nichts neu anzuordnen.',
+    'nothing_to_reorder'  => 'Nichts zu sortieren.',
     'order_saved'         => 'Reihenfolge gespeichert.',
     'cover_updated_title' => 'Titelbild aktualisiert',
-    'cover_updated_text'  => 'Dieses Bild ist nun das Titelbild.',
+    'cover_updated_text'  => 'Dieses Bild ist jetzt das Titelbild.',
     'deleting'            => 'Wird gelöscht...',
-
-    'unknown_type'          => 'unbekannt',
-    'skipped_by_type'       => "Dateien nach Typ übersprungen:\n:detail",
-    'skipped_by_type_line'  => "• :label: :count",
-    'save_errors'           => "Einige Dateien konnten nicht gespeichert werden:\n:detail",
-    'save_errors_line'      => "• :name: :message",
 
     'ui' => [
         'page_title_pick'     => 'Tour-Bilder — Tour auswählen',
         'page_heading'        => 'Tour-Bilder',
         'choose_tour'         => 'Tour auswählen',
-        'search_placeholder'  => 'Nach ID oder Name suchen…',
+        'search_placeholder'  => 'Suche nach ID oder Name…',
         'search_button'       => 'Suchen',
         'no_results'          => 'Keine Touren gefunden.',
         'manage_images'       => 'Bilder verwalten',
@@ -614,10 +609,30 @@ return [
         'caption_placeholder' => 'Bildunterschrift (optional)',
         'set_cover_btn'       => 'Als Titelbild festlegen',
         'no_images'           => 'Noch keine Bilder für diese Tour.',
-        'add_more_btn'        => 'Weitere Bilder hinzufügen',
-        'delete_btn'         => 'Löschen',
+        'delete_btn'          => 'Löschen',
+        'show_btn'            => 'Anzeigen',
+        'close_btn'           => 'Schließen',
+        'preview_title'      => 'Bildvorschau',
+
+
+        'error_title'         => 'Fehler',
+        'warning_title'       => 'Warnung',
+        'success_title'       => 'Erfolg',
+        'cancel_btn'          => 'Abbrechen',
+        'confirm_delete_title'=> 'Dieses Bild löschen?',
+        'confirm_delete_text' => 'Diese Aktion kann nicht rückgängig gemacht werden.',
+    ],
+
+    'errors' => [
+        'validation'     => 'Die übermittelten Daten sind ungültig.',
+        'upload_generic' => 'Einige Bilder konnten nicht hochgeladen werden.',
+        'update_caption' => 'Die Bildunterschrift konnte nicht aktualisiert werden.',
+        'delete'         => 'Das Bild konnte nicht gelöscht werden.',
+        'reorder'        => 'Die Reihenfolge konnte nicht gespeichert werden.',
+        'set_cover'      => 'Das Titelbild konnte nicht festgelegt werden.',
+        'load_list'      => 'Die Liste konnte nicht geladen werden.',
+        'too_large'      => 'Die Datei überschreitet die maximal zulässige Größe. Bitte versuchen Sie es mit einem kleineren Bild.',
     ],
 ],
-
 
 ];

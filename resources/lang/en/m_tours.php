@@ -576,8 +576,9 @@ return [
 // [08] IMAGES
 // =========================================================
 'image' => [
+
     'limit_reached_title' => 'Limit reached',
-    'limit_reached_text'  => 'The maximum number of images for this tour has been reached.',
+    'limit_reached_text'  => 'The image limit for this tour has been reached.',
     'upload_success'      => 'Images uploaded successfully.',
     'upload_none'         => 'No images were uploaded.',
     'upload_truncated'    => 'Some files were skipped due to the per-tour limit.',
@@ -594,14 +595,8 @@ return [
     'cover_updated_text'  => 'This image is now the cover.',
     'deleting'            => 'Deleting...',
 
-    'unknown_type'          => 'unknown',
-    'skipped_by_type'       => "Files skipped by type:\n:detail",
-    'skipped_by_type_line'  => "• :label: :count",
-    'save_errors'           => "Some files could not be saved:\n:detail",
-    'save_errors_line'      => "• :name: :message",
-
     'ui' => [
-        'page_title_pick'     => 'Tour Images — Choose tour',
+        'page_title_pick'     => 'Tour Images — Choose Tour',
         'page_heading'        => 'Tour Images',
         'choose_tour'         => 'Choose tour',
         'search_placeholder'  => 'Search by ID or name…',
@@ -614,8 +609,29 @@ return [
         'caption_placeholder' => 'Caption (optional)',
         'set_cover_btn'       => 'Set as cover',
         'no_images'           => 'No images yet for this tour.',
-        'add_more_btn'        => 'Add more images',
-        'delete_btn'         => 'Delete',
+        'delete_btn'          => 'Delete',
+        'show_btn'            => 'Show',
+        'close_btn'           => 'Close',
+        'preview_title'      => 'Image Preview',
+
+
+        'error_title'         => 'Error',
+        'warning_title'       => 'Warning',
+        'success_title'       => 'Success',
+        'cancel_btn'          => 'Cancel',
+        'confirm_delete_title'=> 'Delete this image?',
+        'confirm_delete_text' => 'This action cannot be undone.',
+    ],
+
+    'errors' => [
+        'validation'     => 'The submitted data is not valid.',
+        'upload_generic' => 'Some images could not be uploaded.',
+        'update_caption' => 'The caption could not be updated.',
+        'delete'         => 'The image could not be deleted.',
+        'reorder'        => 'The order could not be saved.',
+        'set_cover'      => 'The cover could not be set.',
+        'load_list'      => 'The list could not be loaded.',
+        'too_large'      => 'The file exceeds the maximum allowed size. Please try a smaller image.',
     ],
 ],
 

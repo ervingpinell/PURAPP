@@ -577,6 +577,7 @@ return [
 // [08] IMAGES
 // =========================================================
 'image' => [
+
     'limit_reached_title' => 'Límite alcanzado',
     'limit_reached_text'  => 'Se alcanzó el límite de imágenes para este tour.',
     'upload_success'      => 'Imágenes subidas correctamente.',
@@ -595,13 +596,6 @@ return [
     'cover_updated_text'  => 'Esta imagen ahora es la portada.',
     'deleting'            => 'Eliminando...',
 
-    // Mensajes extra de feedback en store()
-    'unknown_type'          => 'desconocido',
-    'skipped_by_type'       => "Archivos omitidos por tipo:\n:detail",
-    'skipped_by_type_line'  => "• :label: :count",
-    'save_errors'           => "Algunos archivos no se pudieron guardar:\n:detail",
-    'save_errors_line'      => "• :name: :message",
-
     'ui' => [
         'page_title_pick'     => 'Imágenes de Tours — Elegir tour',
         'page_heading'        => 'Imágenes de Tours',
@@ -616,8 +610,28 @@ return [
         'caption_placeholder' => 'Leyenda (opcional)',
         'set_cover_btn'       => 'Establecer como portada',
         'no_images'           => 'Aún no hay imágenes para este tour.',
-        'add_more_btn'        => 'Añadir más imágenes',
-        'delete_btn'         => 'Eliminar',
+        'delete_btn'          => 'Eliminar',
+        'show_btn'            => 'Mostrar',
+        'close_btn'           => 'Cerrar',
+        'preview_title'      => 'Vista previa de la imagen',
+
+        'error_title'         => 'Error',
+        'warning_title'       => 'Atención',
+        'success_title'       => 'Éxito',
+        'cancel_btn'          => 'Cancelar',
+        'confirm_delete_title'=> '¿Eliminar esta imagen?',
+        'confirm_delete_text' => 'Esta acción no se puede deshacer.',
+    ],
+
+    'errors' => [
+        'validation'     => 'Los datos enviados no son válidos.',
+        'upload_generic' => 'No se pudieron subir algunas imágenes.',
+        'update_caption' => 'No se pudo actualizar la leyenda.',
+        'delete'         => 'No se pudo eliminar la imagen.',
+        'reorder'        => 'No se pudo guardar el orden.',
+        'set_cover'      => 'No se pudo establecer la portada.',
+        'load_list'      => 'No se pudo cargar el listado.',
+        'too_large'      => 'El archivo supera el tamaño máximo permitido. Intenta con una imagen más liviana.',
     ],
 ],
 

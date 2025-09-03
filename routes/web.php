@@ -218,16 +218,18 @@ Route::post('/email/verification-notification', [VerifyEmailController::class, '
         });
     });
 
-        // Imágenes de Tours
-        Route::get('tours/images', [TourImageController::class, 'pick'])->name('tours.images.pick');
-        Route::prefix('tours/{tour}/images')->name('tours.images.')->group(function () {
-            Route::get('/',        [TourImageController::class, 'index'])->name('index');
-            Route::post('/',       [TourImageController::class, 'store'])->name('store');
-            Route::delete('{img}', [TourImageController::class, 'destroy'])->name('destroy');
-            Route::post('reorder', [TourImageController::class, 'reorder'])->name('reorder');
-            Route::post('{img}/cover', [TourImageController::class, 'setCover'])->name('cover');
-            Route::patch('{img}',  [TourImageController::class, 'update'])->name('update');
-        });
+Route::get('tours/images', [TourImageController::class, 'pick'])
+    ->name('tours.images.pick');
+Route::prefix('tours/{tour}/images')->name('tours.images.')->group(function () {
+    Route::get('/',                [TourImageController::class, 'index'])->name('index');
+    Route::post('/',               [TourImageController::class, 'store'])->name('store');
+    Route::patch('{image}',        [TourImageController::class, 'update'])->name('update');
+    Route::delete('{image}',       [TourImageController::class, 'destroy'])->name('destroy');
+    Route::post('{image}/cover',   [TourImageController::class, 'setCover'])->name('cover');
+    Route::post('reorder',         [TourImageController::class, 'reorder'])->name('reorder');
+});
+
+
         Route::prefix('/types')->name('types.')->middleware(['web','auth','verified','CheckRole'])->group(function () {
             Route::get('images', [\App\Http\Controllers\Admin\Tours\TourTypeCoverPickerController::class, 'pick'])
                 ->name('images.pick');

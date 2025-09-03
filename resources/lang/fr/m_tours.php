@@ -576,10 +576,11 @@ return [
 // [08] IMAGES
 // =========================================================
 'image' => [
+
     'limit_reached_title' => 'Limite atteinte',
-    'limit_reached_text'  => 'Le nombre maximum d’images pour ce tour a été atteint.',
-    'upload_success'      => 'Images téléversées avec succès.',
-    'upload_none'         => 'Aucune image n’a été téléversée.',
+    'limit_reached_text'  => 'La limite d’images pour ce tour a été atteinte.',
+    'upload_success'      => 'Images téléchargées avec succès.',
+    'upload_none'         => 'Aucune image n’a été téléchargée.',
     'upload_truncated'    => 'Certains fichiers ont été ignorés en raison de la limite par tour.',
     'done'                => 'Terminé',
     'notice'              => 'Avis',
@@ -594,15 +595,9 @@ return [
     'cover_updated_text'  => 'Cette image est maintenant la couverture.',
     'deleting'            => 'Suppression...',
 
-    'unknown_type'          => 'inconnu',
-    'skipped_by_type'       => "Fichiers ignorés par type :\n:detail",
-    'skipped_by_type_line'  => "• :label : :count",
-    'save_errors'           => "Certains fichiers n’ont pas pu être enregistrés :\n:detail",
-    'save_errors_line'      => "• :name : :message",
-
     'ui' => [
-        'page_title_pick'     => 'Images de tours — Choisir un tour',
-        'page_heading'        => 'Images de tours',
+        'page_title_pick'     => 'Images de Tours — Choisir un tour',
+        'page_heading'        => 'Images de Tours',
         'choose_tour'         => 'Choisir un tour',
         'search_placeholder'  => 'Rechercher par ID ou nom…',
         'search_button'       => 'Rechercher',
@@ -613,11 +608,30 @@ return [
         'upload_btn'          => 'Téléverser',
         'caption_placeholder' => 'Légende (optionnelle)',
         'set_cover_btn'       => 'Définir comme couverture',
-        'no_images'           => 'Pas encore d’images pour ce tour.',
-        'add_more_btn'        => 'Ajouter plus d’images',
-        'delete_btn'         => 'Supprimer',
+        'no_images'           => 'Aucune image pour ce tour pour l’instant.',
+        'delete_btn'          => 'Supprimer',
+        'show_btn'       => 'Afficher',
+        'close_btn'      => 'Fermer',
+        'preview_title'  => 'Aperçu de l\'image',
+
+        'error_title'         => 'Erreur',
+        'warning_title'       => 'Attention',
+        'success_title'       => 'Succès',
+        'cancel_btn'          => 'Annuler',
+        'confirm_delete_title'=> 'Supprimer cette image ?',
+        'confirm_delete_text' => 'Cette action est irréversible.',
+    ],
+
+    'errors' => [
+        'validation'     => 'Les données envoyées ne sont pas valides.',
+        'upload_generic' => 'Certaines images n’ont pas pu être téléchargées.',
+        'update_caption' => 'La légende n’a pas pu être mise à jour.',
+        'delete'         => 'L’image n’a pas pu être supprimée.',
+        'reorder'        => 'L’ordre n’a pas pu être enregistré.',
+        'set_cover'      => 'La couverture n’a pas pu être définie.',
+        'load_list'      => 'La liste n’a pas pu être chargée.',
+        'too_large'      => 'Le fichier dépasse la taille maximale autorisée. Veuillez essayer avec une image plus petite.',
     ],
 ],
-
 
 ];
