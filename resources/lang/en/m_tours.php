@@ -4,14 +4,15 @@
  *  TRANSLATION MODULE: TOURS
  *  File: resources/lang/en/m_tours.php
  *
- *  Table of Contents (sections & starting line)
- *  [01] COMMON           -> line 19
- *  [02] AMENITY          -> line 27
- *  [03] SCHEDULE         -> line 90
- *  [04] ITINERARY_ITEM   -> line 176
- *  [05] ITINERARY        -> line 239
- *  [06] LANGUAGE         -> line 302
- *  [07] TOUR             -> line 386
+ *  Index (section and starting line)
+ *  [01] COMMON           -> line 23
+ *  [02] AMENITY          -> line 31
+ *  [03] SCHEDULE         -> line 106
+ *  [04] ITINERARY_ITEM   -> line 218
+ *  [05] ITINERARY        -> line 288
+ *  [06] LANGUAGE         -> line 364
+ *  [07] TOUR             -> line 454
+ *  [08] IMAGES           -> line 578
  *************************************************************/
 
 return [
@@ -43,7 +44,7 @@ return [
             'list_title'    => 'Amenities List',
 
             'add'            => 'Add Amenity',
-            'create_title'   => 'Create Amenity',
+            'create_title'   => 'Register Amenity',
             'edit_title'     => 'Edit Amenity',
             'save'           => 'Save',
             'update'         => 'Update',
@@ -51,22 +52,22 @@ return [
             'close'          => 'Close',
             'state'          => 'Status',
             'actions'        => 'Actions',
-            'delete_forever' => 'Delete Permanently',
+            'delete_forever' => 'Delete permanently',
 
             'processing' => 'Processing...',
             'applying'   => 'Applying...',
             'deleting'   => 'Deleting...',
 
-            'toggle_on'  => 'Enable amenity',
-            'toggle_off' => 'Disable amenity',
+            'toggle_on'  => 'Activate amenity',
+            'toggle_off' => 'Deactivate amenity',
 
-            'toggle_confirm_on_title'  => 'Enable amenity?',
-            'toggle_confirm_off_title' => 'Disable amenity?',
-            'toggle_confirm_on_html'   => 'Amenity <b>:label</b> will be enabled.',
-            'toggle_confirm_off_html'  => 'Amenity <b>:label</b> will be disabled.',
+            'toggle_confirm_on_title'  => 'Activate amenity?',
+            'toggle_confirm_off_title' => 'Deactivate amenity?',
+            'toggle_confirm_on_html'   => 'Amenity <b>:label</b> will be active.',
+            'toggle_confirm_off_html'  => 'Amenity <b>:label</b> will be inactive.',
 
             'delete_confirm_title' => 'Delete permanently?',
-            'delete_confirm_html'  => '<b>:label</b> will be deleted and cannot be undone.',
+            'delete_confirm_html'  => '<b>:label</b> will be deleted and you won’t be able to undo this.',
 
             'yes_continue' => 'Yes, continue',
             'yes_delete'   => 'Yes, delete',
@@ -79,22 +80,22 @@ return [
             'updated'     => 'Amenity updated successfully.',
             'activated'   => 'Amenity activated successfully.',
             'deactivated' => 'Amenity deactivated successfully.',
-            'deleted'     => 'Amenity permanently deleted.',
+            'deleted'     => 'Amenity deleted permanently.',
         ],
 
         'error' => [
-            'create' => 'Could not create the amenity.',
-            'update' => 'Could not update the amenity.',
-            'toggle' => 'Could not change the amenity status.',
-            'delete' => 'Could not delete the amenity.',
+            'create' => 'The amenity could not be created.',
+            'update' => 'The amenity could not be updated.',
+            'toggle' => 'The amenity status could not be changed.',
+            'delete' => 'The amenity could not be deleted.',
         ],
 
         'validation' => [
             'name' => [
                 'title'    => 'Invalid name',
-                'required' => 'The :attribute field is required.',
+                'required' => 'The :attribute is required.',
                 'string'   => 'The :attribute must be a string.',
-                'max'      => 'The :attribute may not be greater than :max characters.',
+                'max'      => 'The :attribute may not exceed :max characters.',
             ],
         ],
     ],
@@ -108,7 +109,7 @@ return [
             'end_time'       => 'End',
             'label'          => 'Label',
             'label_optional' => 'Label (optional)',
-            'max_capacity'   => 'Max. capacity',
+            'max_capacity'   => 'Max capacity',
             'active'         => 'Active',
         ],
 
@@ -121,7 +122,7 @@ return [
             'page_title'        => 'Tour Schedules',
             'page_heading'      => 'Schedule Management',
 
-            'general_title'     => 'General Schedules',
+            'general_title'     => 'General schedules',
             'new_schedule'      => 'New schedule',
             'new_general_title' => 'New general schedule',
             'new'               => 'New',
@@ -145,30 +146,30 @@ return [
             'no_label'          => 'No label',
             'assigned_count'    => 'assigned schedule(s)',
 
-            'toggle_global_title'     => 'Enable/Disable (global)',
-            'toggle_global_on_title'  => 'Enable schedule (global)?',
-            'toggle_global_off_title' => 'Disable schedule (global)?',
-            'toggle_global_on_html'   => '<b>:label</b> will be enabled for all tours.',
-            'toggle_global_off_html'  => '<b>:label</b> will be disabled for all tours.',
+            'toggle_global_title'     => 'Activate/Deactivate (global)',
+            'toggle_global_on_title'  => 'Activate schedule (global)?',
+            'toggle_global_off_title' => 'Deactivate schedule (global)?',
+            'toggle_global_on_html'   => '<b>:label</b> will be activated for all tours.',
+            'toggle_global_off_html'  => '<b>:label</b> will be deactivated for all tours.',
 
-            'toggle_on_tour'          => 'Enable on this tour',
-            'toggle_off_tour'         => 'Disable on this tour',
-            'toggle_assign_on_title'  => 'Enable on this tour?',
-            'toggle_assign_off_title' => 'Disable on this tour?',
-            'toggle_assign_on_html'   => 'Assignment will be <b>active</b> for <b>:tour</b>.',
-            'toggle_assign_off_html'  => 'Assignment will be <b>inactive</b> for <b>:tour</b>.',
+            'toggle_on_tour'          => 'Activate on this tour',
+            'toggle_off_tour'         => 'Deactivate on this tour',
+            'toggle_assign_on_title'  => 'Activate on this tour?',
+            'toggle_assign_off_title' => 'Deactivate on this tour?',
+            'toggle_assign_on_html'   => 'The assignment will be <b>active</b> for <b>:tour</b>.',
+            'toggle_assign_off_html'  => 'The assignment will be <b>inactive</b> for <b>:tour</b>.',
 
-            'detach_from_tour'     => 'Detach from tour',
-            'detach_confirm_title' => 'Detach from tour?',
-            'detach_confirm_html'  => 'The schedule will be <b>detached</b> from <b>:tour</b>.',
+            'detach_from_tour'     => 'Remove from tour',
+            'detach_confirm_title' => 'Remove from tour?',
+            'detach_confirm_html'  => 'The schedule will be <b>unassigned</b> from <b>:tour</b>.',
 
             'delete_forever'       => 'Delete (global)',
             'delete_confirm_title' => 'Delete permanently?',
-            'delete_confirm_html'  => '<b>:label</b> will be deleted globally and cannot be undone.',
+            'delete_confirm_html'  => '<b>:label</b> (global) will be deleted and you won’t be able to undo this.',
 
             'yes_continue' => 'Yes, continue',
             'yes_delete'   => 'Yes, delete',
-            'yes_detach'   => 'Yes, detach',
+            'yes_detach'   => 'Yes, remove',
 
             'this_schedule' => 'this schedule',
             'this_tour'     => 'this tour',
@@ -183,7 +184,7 @@ return [
             'cancel'         => 'Cancel',
 
             'missing_fields_title' => 'Missing data',
-            'missing_fields_text'  => 'Please check required fields (start, end, and capacity).',
+            'missing_fields_text'  => 'Check required fields (start, end, and capacity).',
             'could_not_save'       => 'Could not save',
         ],
 
@@ -192,22 +193,22 @@ return [
             'updated'                => 'Schedule updated successfully.',
             'activated_global'       => 'Schedule activated successfully (global).',
             'deactivated_global'     => 'Schedule deactivated successfully (global).',
-            'attached'               => 'Schedule assigned to tour.',
-            'detached'               => 'Schedule detached from tour.',
-            'assignment_activated'   => 'Assignment enabled for this tour.',
-            'assignment_deactivated' => 'Assignment disabled for this tour.',
+            'attached'               => 'Schedule assigned to the tour.',
+            'detached'               => 'Schedule removed from the tour.',
+            'assignment_activated'   => 'Assignment activated for this tour.',
+            'assignment_deactivated' => 'Assignment deactivated for this tour.',
             'deleted'                => 'Schedule deleted successfully.',
         ],
 
         'error' => [
-            'create'               => 'There was a problem creating the schedule.',
-            'update'               => 'There was a problem updating the schedule.',
+            'create'               => 'There was an issue creating the schedule.',
+            'update'               => 'There was an issue updating the schedule.',
             'toggle'               => 'Could not change the global status of the schedule.',
             'attach'               => 'Could not assign the schedule to the tour.',
-            'detach'               => 'Could not detach the schedule from the tour.',
+            'detach'               => 'Could not unassign the schedule from the tour.',
             'assignment_toggle'    => 'Could not change the assignment status.',
             'not_assigned_to_tour' => 'The schedule is not assigned to this tour.',
-            'delete'               => 'There was a problem deleting the schedule.',
+            'delete'               => 'There was an issue deleting the schedule.',
         ],
     ],
 
@@ -238,12 +239,12 @@ return [
             'see_more'      => 'See more',
             'see_less'      => 'See less',
 
-            'toggle_on'  => 'Enable item',
-            'toggle_off' => 'Disable item',
+            'toggle_on'  => 'Activate item',
+            'toggle_off' => 'Deactivate item',
 
             'delete_forever'       => 'Delete permanently',
             'delete_confirm_title' => 'Delete permanently?',
-            'delete_confirm_html'  => '<b>:label</b> will be deleted and cannot be undone.',
+            'delete_confirm_html'  => '<b>:label</b> will be deleted and you won’t be able to undo this.',
             'yes_delete'           => 'Yes, delete',
             'item_this'            => 'this item',
 
@@ -257,26 +258,26 @@ return [
             'updated'     => 'Item updated successfully.',
             'activated'   => 'Item activated successfully.',
             'deactivated' => 'Item deactivated successfully.',
-            'deleted'     => 'Item permanently deleted.',
+            'deleted'     => 'Item deleted permanently.',
         ],
 
         'error' => [
-            'create' => 'Could not create the item.',
-            'update' => 'Could not update the item.',
-            'toggle' => 'Could not change the item status.',
-            'delete' => 'Could not delete the item.',
+            'create' => 'The item could not be created.',
+            'update' => 'The item could not be updated.',
+            'toggle' => 'The item status could not be changed.',
+            'delete' => 'The item could not be deleted.',
         ],
 
         'validation' => [
             'title' => [
-                'required' => 'The :attribute field is required.',
+                'required' => 'The :attribute is required.',
                 'string'   => 'The :attribute must be a string.',
-                'max'      => 'The :attribute may not be greater than :max characters.',
+                'max'      => 'The :attribute may not exceed :max characters.',
             ],
             'description' => [
-                'required' => 'The :attribute field is required.',
+                'required' => 'The :attribute is required.',
                 'string'   => 'The :attribute must be a string.',
-                'max'      => 'The :attribute may not be greater than :max characters.',
+                'max'      => 'The :attribute may not exceed :max characters.',
             ],
         ],
     ],
@@ -298,7 +299,7 @@ return [
 
         'ui' => [
             'page_title'    => 'Itineraries & Items',
-            'page_heading'  => 'Itinerary & Item Management',
+            'page_heading'  => 'Itineraries and Item Management',
             'new_itinerary' => 'New Itinerary',
 
             'assign'        => 'Assign',
@@ -309,10 +310,10 @@ return [
             'create_title'  => 'Create new itinerary',
             'create_button' => 'Create',
 
-            'toggle_on'  => 'Enable itinerary',
-            'toggle_off' => 'Disable itinerary',
-            'toggle_confirm_on_title'  => 'Enable itinerary?',
-            'toggle_confirm_off_title' => 'Disable itinerary?',
+            'toggle_on'  => 'Activate itinerary',
+            'toggle_off' => 'Deactivate itinerary',
+            'toggle_confirm_on_title'  => 'Activate itinerary?',
+            'toggle_confirm_off_title' => 'Deactivate itinerary?',
             'toggle_confirm_on_html'   => 'Itinerary <b>:label</b> will be <b>active</b>.',
             'toggle_confirm_off_html'  => 'Itinerary <b>:label</b> will be <b>inactive</b>.',
             'yes_continue' => 'Yes, continue',
@@ -344,16 +345,16 @@ return [
             'updated'        => 'Itinerary updated successfully.',
             'activated'      => 'Itinerary activated successfully.',
             'deactivated'    => 'Itinerary deactivated successfully.',
-            'deleted'        => 'Itinerary permanently deleted.',
+            'deleted'        => 'Itinerary deleted permanently.',
             'items_assigned' => 'Items assigned successfully.',
         ],
 
         'error' => [
-            'create'  => 'Could not create the itinerary.',
-            'update'  => 'Could not update the itinerary.',
-            'toggle'  => 'Could not change the itinerary status.',
-            'delete'  => 'Could not delete the itinerary.',
-            'assign'  => 'Could not assign items.',
+            'create'  => 'The itinerary could not be created.',
+            'update'  => 'The itinerary could not be updated.',
+            'toggle'  => 'The itinerary status could not be changed.',
+            'delete'  => 'The itinerary could not be deleted.',
+            'assign'  => 'Items could not be assigned.',
         ],
     ],
 
@@ -390,7 +391,7 @@ return [
             'cancel'         => 'Cancel',
             'close'          => 'Close',
             'actions'        => 'Actions',
-            'delete_forever' => 'Delete Permanently',
+            'delete_forever' => 'Delete permanently',
 
             'processing'   => 'Processing...',
             'saving'       => 'Saving...',
@@ -398,10 +399,10 @@ return [
             'deactivating' => 'Deactivating...',
             'deleting'     => 'Deleting...',
 
-            'toggle_on'  => 'Enable language',
-            'toggle_off' => 'Disable language',
-            'toggle_confirm_on_title'  => 'Enable language?',
-            'toggle_confirm_off_title' => 'Disable language?',
+            'toggle_on'  => 'Activate language',
+            'toggle_off' => 'Deactivate language',
+            'toggle_confirm_on_title'  => 'Activate language?',
+            'toggle_confirm_off_title' => 'Deactivate language?',
             'toggle_confirm_on_html'   => 'Language <b>:label</b> will be <b>active</b>.',
             'toggle_confirm_off_html'  => 'Language <b>:label</b> will be <b>inactive</b>.',
             'edit_confirm_title'       => 'Save changes?',
@@ -429,10 +430,10 @@ return [
         ],
 
         'error' => [
-            'create' => 'Could not create the language.',
-            'update' => 'Could not update the language.',
-            'toggle' => 'Could not change the language status.',
-            'delete' => 'Could not delete the language.',
+            'create' => 'The language could not be created.',
+            'update' => 'The language could not be updated.',
+            'toggle' => 'The language status could not be changed.',
+            'delete' => 'The language could not be deleted.',
             'save'   => 'Could not save',
         ],
 
@@ -441,109 +442,142 @@ return [
                 'title'    => 'Invalid name',
                 'required' => 'The language name is required.',
                 'string'   => 'The :attribute must be a string.',
-                'max'      => 'The :attribute may not be greater than :max characters.',
-                'unique'   => 'A language with this name already exists.',
+                'max'      => 'The :attribute may not exceed :max characters.',
+                'unique'   => 'A language with that name already exists.',
             ],
         ],
     ],
 
-    // =========================================================
-    // [07] TOUR
-    // =========================================================
-    'tour' => [
-        'fields' => [
-            'id'           => 'ID',
-            'name'         => 'Name',
-            'overview'     => 'Overview',
-            'amenities'    => 'Amenities',
-            'exclusions'   => 'Exclusions',
-            'itinerary'    => 'Itinerary',
-            'languages'    => 'Languages',
-            'schedules'    => 'Schedules',
-            'adult_price'  => 'Adult price',
-            'kid_price'    => 'Child price',
-            'length_hours' => 'Duration (h)',
-            'max_capacity' => 'Max. capacity',
-            'type'         => 'Type',
-            'viator_code'  => 'Viator code',
-            'status'       => 'Status',
-            'actions'      => 'Actions',
-        ],
-        'table' => [
-            'id'           => 'ID',
-            'name'         => 'Name',
-            'overview'     => 'Overview',
-            'amenities'    => 'Amenities',
-            'exclusions'   => 'Exclusions',
-            'itinerary'    => 'Itinerary',
-            'languages'    => 'Languages',
-            'schedules'    => 'Schedules',
-            'adult_price'  => 'Adult price',
-            'kid_price'    => 'Child price',
-            'length_hours' => 'Duration (h)',
-            'max_capacity' => 'Max. capacity',
-            'type'         => 'Type',
-            'viator_code'  => 'Viator code',
-            'status'       => 'Status',
-            'actions'      => 'Actions',
-        ],
-        'status' => [
-            'active'   => 'Active',
-            'inactive' => 'Inactive',
-        ],
-        'ui' => [
-            'page_title'   => 'Tours',
-            'page_heading' => 'Tour Management',
+// =========================================================
+// [07] TOUR
+// =========================================================
+'tour' => [
+    'title' => 'Tours',
 
-            'font_decrease_title' => 'Decrease font size',
-            'font_increase_title' => 'Increase font size',
+    'fields' => [
+        'id'            => 'ID',
+        'name'          => 'Name',
+        'overview'      => 'Overview',
+        'amenities'     => 'Amenities',
+        'exclusions'    => 'Exclusions',
+        'itinerary'     => 'Itinerary',
+        'languages'     => 'Languages',
+        'schedules'     => 'Schedules',
+        'adult_price'   => 'Adult Price',
+        'kid_price'     => 'Child Price',
+        'length_hours'  => 'Duration (hours)',
+        'max_capacity'  => 'Max capacity',
+        'type'          => 'Tour Type',
+        'viator_code'   => 'Viator Code',
+        'status'        => 'Status',
+        'actions'       => 'Actions',
+    ],
 
-            'see_more' => 'See more',
-            'see_less' => 'See less',
+    'table' => [
+        'id'            => 'ID',
+        'name'          => 'Name',
+        'overview'      => 'Overview',
+        'amenities'     => 'Amenities',
+        'exclusions'    => 'Exclusions',
+        'itinerary'     => 'Itinerary',
+        'languages'     => 'Languages',
+        'schedules'     => 'Schedules',
+        'adult_price'   => 'Adult Price',
+        'kid_price'     => 'Child Price',
+        'length_hours'  => 'Duration (h)',
+        'max_capacity'  => 'Max Cap.',
+        'type'          => 'Type',
+        'viator_code'   => 'Viator Code',
+        'status'        => 'Status',
+        'actions'       => 'Actions',
+    ],
 
-            'none' => [
-                'amenities'       => 'No amenities',
-                'exclusions'      => 'No exclusions',
-                'languages'       => 'No languages',
-                'itinerary'       => 'No itinerary',
-                'itinerary_items' => '(No items)',
-                'schedules'       => 'No schedules',
-            ],
+    'status' => [
+        'active'   => 'Active',
+        'inactive' => 'Inactive',
+    ],
 
-            'toggle_on'         => 'Enable',
-            'toggle_off'        => 'Disable',
-            'toggle_on_title'   => 'Do you want to activate this tour?',
-            'toggle_off_title'  => 'Do you want to deactivate this tour?',
-            'toggle_on_button'  => 'Yes, activate',
-            'toggle_off_button' => 'Yes, deactivate',
+    'success' => [
+        'created'     => 'Tour created successfully.',
+        'updated'     => 'Tour updated successfully.',
+        'deleted'     => 'Tour deleted.',
+        'toggled'     => 'Tour status updated.',
+        'activated'   => 'Tour activated successfully.',
+        'deactivated' => 'Tour deactivated successfully.',
+    ],
 
-            'confirm_title'   => 'Confirmation',
-            'confirm_text'    => 'Confirm action?',
-            'yes_confirm'     => 'Yes, confirm',
-            'cancel'          => 'Cancel',
+    'error' => [
+        'create'    => 'There was a problem creating the tour.',
+        'update'    => 'There was a problem updating the tour.',
+        'delete'    => 'There was a problem deleting the tour.',
+        'toggle'    => 'There was a problem changing the tour status.',
+        'not_found' => 'The tour does not exist.',
+    ],
 
-            'load_more'       => 'Load more',
-            'loading'         => 'Loading...',
-            'load_more_error' => 'Could not load more',
-        ],
-        'success' => [
-            'created'     => 'Tour created successfully.',
-            'updated'     => 'Tour updated successfully.',
-            'activated'   => 'Tour activated successfully.',
-            'deactivated' => 'Tour deactivated successfully.',
-        ],
-        'error' => [
-            'create' => 'There was a problem creating the tour.',
-            'update' => 'There was a problem updating the tour.',
-            'toggle' => 'There was a problem changing the tour status.',
+    'ui' => [
+        'page_title'       => 'Tour Management',
+        'page_heading'     => 'Tour Management',
+        'create_title'     => 'Create Tour',
+        'edit_title'       => 'Edit Tour',
+        'delete_title'     => 'Delete Tour',
+        'cancel'           => 'Cancel',
+        'save'             => 'Save',
+        'update'           => 'Update',
+        'delete_confirm'   => 'Delete this tour?',
+        'toggle_on'        => 'Activate',
+        'toggle_off'       => 'Deactivate',
+        'toggle_on_title'  => 'Activate tour?',
+        'toggle_off_title' => 'Deactivate tour?',
+        'toggle_on_button' => 'Yes, activate',
+        'toggle_off_button'=> 'Yes, deactivate',
+        'see_more'         => 'See more',
+        'see_less'         => 'Hide',
+        'load_more'        => 'Load more',
+        'loading'          => 'Loading...',
+        'load_more_error'  => 'Could not load more tours.',
+        'confirm_title'    => 'Confirmation',
+        'confirm_text'     => 'Do you want to confirm this action?',
+        'yes_confirm'      => 'Yes, confirm',
+        'no_confirm'       => 'No, cancel',
+        'add_tour'         => 'Add Tour',
+        'edit_tour'        => 'Edit Tour',
+        'delete_tour'      => 'Delete Tour',
+        'toggle_tour'      => 'Activate/Deactivate Tour',
+        'view_cart'        => 'View Cart',
+        'add_to_cart'      => 'Add to Cart',
+
+        'available_languages'    => 'Available languages',
+        'default_capacity'       => 'Default capacity',
+        'create_new_schedules'   => 'Create new schedules',
+        'multiple_hint_ctrl_cmd' => 'Hold CTRL/CMD to select multiple',
+        'use_existing_schedules' => 'Use existing schedules',
+        'add_schedule'           => 'Add schedule',
+        'schedules_title'        => 'Tour schedules',
+        'amenities_included'     => 'Included amenities',
+        'amenities_excluded'     => 'Excluded amenities',
+        'color'                  => 'Tour color',
+        'remove'                 => 'Remove',
+        'choose_itinerary'       => 'Choose itinerary',
+        'select_type'            => 'Select type',
+        'empty_means_default'    => 'Default',
+
+        'none' => [
+            'amenities'       => 'No amenities',
+            'exclusions'      => 'No exclusions',
+            'itinerary'       => 'No itinerary',
+            'itinerary_items' => 'No items',
+            'languages'       => 'No languages',
+            'schedules'       => 'No schedules',
         ],
     ],
-    // =========================================================
-    // [08] IMAGES
-    // =========================================================
-    'image' => [
+],
+
+// =========================================================
+// [08] IMAGES
+// =========================================================
+'image' => [
     'limit_reached_title' => 'Limit reached',
-    'limit_reached_text'  => 'Image limit reached for this tour.',
+    'limit_reached_text'  => 'The maximum number of images for this tour has been reached.',
     'upload_success'      => 'Images uploaded successfully.',
     'upload_none'         => 'No images were uploaded.',
     'upload_truncated'    => 'Some files were skipped due to the per-tour limit.',
@@ -558,17 +592,32 @@ return [
     'order_saved'         => 'Order saved.',
     'cover_updated_title' => 'Cover updated',
     'cover_updated_text'  => 'This image is now the cover.',
+    'deleting'            => 'Deleting...',
+
+    'unknown_type'          => 'unknown',
+    'skipped_by_type'       => "Files skipped by type:\n:detail",
+    'skipped_by_type_line'  => "• :label: :count",
+    'save_errors'           => "Some files could not be saved:\n:detail",
+    'save_errors_line'      => "• :name: :message",
 
     'ui' => [
-        'page_title_pick'   => 'Tour Images — Choose tour',
-        'page_heading'      => 'Tour Images',
-        'choose_tour'       => 'Choose tour',
-        'search_placeholder'=> 'Search by ID or name…',
-        'search_button'     => 'Search',
-        'no_results'        => 'No tours found.',
-        'manage_images'     => 'Manage images',
-        'cover_alt'         => 'Cover',
+        'page_title_pick'     => 'Tour Images — Choose tour',
+        'page_heading'        => 'Tour Images',
+        'choose_tour'         => 'Choose tour',
+        'search_placeholder'  => 'Search by ID or name…',
+        'search_button'       => 'Search',
+        'no_results'          => 'No tours found.',
+        'manage_images'       => 'Manage images',
+        'cover_alt'           => 'Cover',
+        'images_label'        => 'images',
+        'upload_btn'          => 'Upload',
+        'caption_placeholder' => 'Caption (optional)',
+        'set_cover_btn'       => 'Set as cover',
+        'no_images'           => 'No images yet for this tour.',
+        'add_more_btn'        => 'Add more images',
+        'delete_btn'         => 'Delete',
     ],
 ],
+
 
 ];

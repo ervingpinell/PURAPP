@@ -5,13 +5,14 @@
  *  Archivo: resources/lang/es/m_tours.php
  *
  *  Índice (sección y línea de inicio)
- *  [01] COMMON           -> línea 19
- *  [02] AMENITY          -> línea 27
- *  [03] SCHEDULE         -> línea 90
- *  [04] ITINERARY_ITEM   -> línea 176
- *  [05] ITINERARY        -> línea 239
- *  [06] LANGUAGE         -> línea 302
- *  [07] TOUR             -> línea 386
+ *  [01] COMMON           -> línea 23
+ *  [02] AMENITY          -> línea 31
+ *  [03] SCHEDULE         -> línea 106
+ *  [04] ITINERARY_ITEM   -> línea 218
+ *  [05] ITINERARY        -> línea 288
+ *  [06] LANGUAGE         -> línea 364
+ *  [07] TOUR             -> línea 453
+ *  [08] IMAGES           -> línea 579
  *************************************************************/
 
 return [
@@ -450,97 +451,132 @@ return [
     // [07] TOUR
     // =========================================================
     'tour' => [
+        'title' => 'Tours',
+
         'fields' => [
-            'id'           => 'ID',
-            'name'         => 'Nombre',
-            'overview'     => 'Resumen',
-            'amenities'    => 'Amenidades',
-            'exclusions'   => 'Exclusiones',
-            'itinerary'    => 'Itinerario',
-            'languages'    => 'Idiomas',
-            'schedules'    => 'Horarios',
-            'adult_price'  => 'Precio adulto',
-            'kid_price'    => 'Precio niño',
-            'length_hours' => 'Duración (h)',
-            'max_capacity' => 'Cupo máx.',
-            'type'         => 'Tipo',
-            'viator_code'  => 'Código Viator',
-            'status'       => 'Estado',
-            'actions'      => 'Acciones',
+            'id'            => 'ID',
+            'name'          => 'Nombre',
+            'overview'      => 'Resumen',
+            'amenities'     => 'Amenidades',
+            'exclusions'    => 'Exclusiones',
+            'itinerary'     => 'Itinerario',
+            'languages'     => 'Idiomas',
+            'schedules'     => 'Horarios',
+            'adult_price'   => 'Precio Adulto',
+            'kid_price'     => 'Precio Niño',
+            'length_hours'  => 'Duración (horas)',
+            'max_capacity'  => 'Cupo máximo',
+            'type'          => 'Tipo de Tour',
+            'viator_code'   => 'Código Viator',
+            'status'        => 'Estado',
+            'actions'       => 'Acciones',
         ],
+
         'table' => [
-            'id'           => 'ID',
-            'name'         => 'Nombre',
-            'overview'     => 'Resumen',
-            'amenities'    => 'Amenidades',
-            'exclusions'   => 'Exclusiones',
-            'itinerary'    => 'Itinerario',
-            'languages'    => 'Idiomas',
-            'schedules'    => 'Horarios',
-            'adult_price'  => 'Precio adulto',
-            'kid_price'    => 'Precio niño',
-            'length_hours' => 'Duración (h)',
-            'max_capacity' => 'Cupo máx.',
-            'type'         => 'Tipo',
-            'viator_code'  => 'Código Viator',
-            'status'       => 'Estado',
-            'actions'      => 'Acciones',
+            'id'            => 'ID',
+            'name'          => 'Nombre',
+            'overview'      => 'Resumen',
+            'amenities'     => 'Amenidades',
+            'exclusions'    => 'Exclusiones',
+            'itinerary'     => 'Itinerario',
+            'languages'     => 'Idiomas',
+            'schedules'     => 'Horarios',
+            'adult_price'   => 'Precio Adulto',
+            'kid_price'     => 'Precio Niño',
+            'length_hours'  => 'Duración (h)',
+            'max_capacity'  => 'Cupo Máx.',
+            'type'          => 'Tipo',
+            'viator_code'   => 'Código Viator',
+            'status'        => 'Estado',
+            'actions'       => 'Acciones',
         ],
+
         'status' => [
             'active'   => 'Activo',
             'inactive' => 'Inactivo',
         ],
+
+        'success' => [
+            'created'     => 'El tour fue creado correctamente.',
+            'updated'     => 'El tour fue actualizado correctamente.',
+            'deleted'     => 'El tour fue eliminado.',
+            'toggled'     => 'El estado del tour fue actualizado.',
+            // claves usadas por el controlador:
+            'activated'   => 'Tour activado correctamente.',
+            'deactivated' => 'Tour desactivado correctamente.',
+        ],
+
+        'error' => [
+            'create'    => 'No se pudo crear el tour.',
+            'update'    => 'No se pudo actualizar el tour.',
+            'delete'    => 'No se pudo eliminar el tour.',
+            'toggle'    => 'No se pudo cambiar el estado del tour.',
+            'not_found' => 'El tour no existe.',
+        ],
+
         'ui' => [
-            'page_title'   => 'Tours',
-            'page_heading' => 'Gestión de Tours',
+            'page_title'       => 'Gestión de Tours',
+            'page_heading'     => 'Gestión de Tours',
+            'create_title'     => 'Registrar Tour',
+            'edit_title'       => 'Editar Tour',
+            'delete_title'     => 'Eliminar Tour',
+            'cancel'           => 'Cancelar',
+            'save'             => 'Guardar',
+            'update'           => 'Actualizar',
+            'delete_confirm'   => '¿Eliminar este tour?',
+            'toggle_on'        => 'Activar',
+            'toggle_off'       => 'Desactivar',
+            'toggle_on_title'  => '¿Activar tour?',
+            'toggle_off_title' => '¿Desactivar tour?',
+            'toggle_on_button' => 'Sí, activar',
+            'toggle_off_button'=> 'Sí, desactivar',
+            'see_more'         => 'Ver más',
+            'see_less'         => 'Ocultar',
+            'load_more'        => 'Cargar más',
+            'loading'          => 'Cargando...',
+            'load_more_error'  => 'No se pudieron cargar más tours.',
+            'confirm_title'    => 'Confirmación',
+            'confirm_text'     => '¿Deseas confirmar esta acción?',
+            'yes_confirm'      => 'Sí, confirmar',
+            'no_confirm'       => 'No, cancelar',
+            'add_tour'         => 'Añadir Tour',
+            'edit_tour'        => 'Editar Tour',
+            'delete_tour'      => 'Eliminar Tour',
+            'toggle_tour'      => 'Activar/Desactivar Tour',
+            'view_cart'        => 'Ver Carrito',
+            'add_to_cart'      => 'Añadir al Carrito',
 
-            'font_decrease_title' => 'Reducir tamaño de fuente',
-            'font_increase_title' => 'Aumentar tamaño de fuente',
-
-            'see_more' => 'Ver más',
-            'see_less' => 'Ver menos',
+            // claves extra de UI
+            'available_languages'    => 'Idiomas disponibles',
+            'default_capacity'       => 'Cupo por defecto',
+            'create_new_schedules'   => 'Crear horarios nuevos',
+            'multiple_hint_ctrl_cmd' => 'Mantén CTRL/CMD para seleccionar varios',
+            'use_existing_schedules' => 'Usar horarios existentes',
+            'add_schedule'           => 'Añadir horario',
+            'schedules_title'        => 'Horarios del Tour',
+            'amenities_included'     => 'Amenidades incluidas',
+            'amenities_excluded'     => 'Amenidades no incluidas',
+            'color'                  => 'Color del Tour',
+            'remove'                 => 'Eliminar',
+            'choose_itinerary'       => 'Elegir itinerario',
+            'select_type'            => 'Seleccionar tipo',
+            'empty_means_default'    => 'Por defecto',
 
             'none' => [
                 'amenities'       => 'Sin amenidades',
                 'exclusions'      => 'Sin exclusiones',
-                'languages'       => 'Sin idiomas',
                 'itinerary'       => 'Sin itinerario',
-                'itinerary_items' => '(Sin ítems)',
+                'itinerary_items' => 'Sin ítems',
+                'languages'       => 'Sin idiomas',
                 'schedules'       => 'Sin horarios',
             ],
-
-            'toggle_on'         => 'Activar',
-            'toggle_off'        => 'Desactivar',
-            'toggle_on_title'   => '¿Deseas activar este tour?',
-            'toggle_off_title'  => '¿Deseas desactivar este tour?',
-            'toggle_on_button'  => 'Sí, activar',
-            'toggle_off_button' => 'Sí, desactivar',
-
-            'confirm_title'   => 'Confirmación',
-            'confirm_text'    => '¿Confirmar acción?',
-            'yes_confirm'     => 'Sí, confirmar',
-            'cancel'          => 'Cancelar',
-
-            'load_more'       => 'Cargar más',
-            'loading'         => 'Cargando...',
-            'load_more_error' => 'No se pudo cargar más',
-        ],
-        'success' => [
-            'created'     => 'Tour creado correctamente.',
-            'updated'     => 'Tour actualizado correctamente.',
-            'activated'   => 'Tour activado correctamente.',
-            'deactivated' => 'Tour desactivado correctamente.',
-        ],
-        'error' => [
-            'create' => 'Hubo un problema al crear el tour.',
-            'update' => 'Hubo un problema al actualizar el tour.',
-            'toggle' => 'Hubo un problema al cambiar el estado del tour.',
         ],
     ],
-    // =========================================================
-    // [08] IMAGES
-    // =========================================================
-    'image' => [
+
+// =========================================================
+// [08] IMAGES
+// =========================================================
+'image' => [
     'limit_reached_title' => 'Límite alcanzado',
     'limit_reached_text'  => 'Se alcanzó el límite de imágenes para este tour.',
     'upload_success'      => 'Imágenes subidas correctamente.',
@@ -557,16 +593,31 @@ return [
     'order_saved'         => 'Orden guardado.',
     'cover_updated_title' => 'Portada actualizada',
     'cover_updated_text'  => 'Esta imagen ahora es la portada.',
+    'deleting'            => 'Eliminando...',
+
+    // Mensajes extra de feedback en store()
+    'unknown_type'          => 'desconocido',
+    'skipped_by_type'       => "Archivos omitidos por tipo:\n:detail",
+    'skipped_by_type_line'  => "• :label: :count",
+    'save_errors'           => "Algunos archivos no se pudieron guardar:\n:detail",
+    'save_errors_line'      => "• :name: :message",
 
     'ui' => [
-        'page_title_pick'   => 'Imágenes de Tours — Elegir tour',
-        'page_heading'      => 'Imágenes de Tours',
-        'choose_tour'       => 'Elegir tour',
-        'search_placeholder'=> 'Buscar por ID o nombre…',
-        'search_button'     => 'Buscar',
-        'no_results'        => 'No se encontraron tours.',
-        'manage_images'     => 'Administrar imágenes',
-        'cover_alt'         => 'Portada',
+        'page_title_pick'     => 'Imágenes de Tours — Elegir tour',
+        'page_heading'        => 'Imágenes de Tours',
+        'choose_tour'         => 'Elegir tour',
+        'search_placeholder'  => 'Buscar por ID o nombre…',
+        'search_button'       => 'Buscar',
+        'no_results'          => 'No se encontraron tours.',
+        'manage_images'       => 'Administrar imágenes',
+        'cover_alt'           => 'Portada',
+        'images_label'        => 'imágenes',
+        'upload_btn'          => 'Subir',
+        'caption_placeholder' => 'Leyenda (opcional)',
+        'set_cover_btn'       => 'Establecer como portada',
+        'no_images'           => 'Aún no hay imágenes para este tour.',
+        'add_more_btn'        => 'Añadir más imágenes',
+        'delete_btn'         => 'Eliminar',
     ],
 ],
 

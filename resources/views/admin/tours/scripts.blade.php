@@ -1,12 +1,10 @@
 {{-- resources/views/admin/tours/scripts.blade.php --}}
-
-{{-- Bootstrap y SweetAlert2 (si no los cargas globalmente en layout) --}}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // ========= 1. Itinerary JSON (backend to JS) =========
+    // ========= 1. Itinerary JSON =========
     const itineraryData = @json($itineraryJson);
 
     // ========= 2. Mostrar ítems de itinerario (editar) =========
@@ -20,26 +18,34 @@ document.addEventListener('DOMContentLoaded', function () {
             const listContainer = sectionView?.querySelector('ul');
 
             if (selectedId === 'new') {
-                sectionNew.style.display = 'block';
-                sectionView.style.display = 'none';
+                if (sectionNew) sectionNew.style.display = 'block';
+                if (sectionView) sectionView.style.display = 'none';
                 if (descContainer) descContainer.style.display = 'none';
                 return;
             }
 
-            sectionNew.style.display = 'none';
-            sectionView.style.display = 'block';
+            if (sectionNew) sectionNew.style.display = 'none';
+            if (sectionView) sectionView.style.display = 'block';
 
             const data = itineraryData[selectedId];
             if (data) {
-                descContainer.textContent = data.description || '';
-                descContainer.style.display = data.description ? 'block' : 'none';
-                listContainer.innerHTML = data.items.length
+                if (descContainer){
+                  descContainer.textContent = data.description || '';
+                  descContainer.style.display = data.description ? 'block' : 'none';
+                }
+                if (listContainer){
+                  listContainer.innerHTML = data.items.length
                     ? data.items.map(item => `<li class="list-group-item"><strong>${item.title}</strong><br><small class="text-muted">${item.description}</small></li>`).join('')
-                    : '<li class="list-group-item text-muted">Este itinerario no contiene ítems.</li>';
+                    : `<li class="list-group-item text-muted">{{ __('m_tours.itinerary.ui.no_items_assigned') }}</li>`;
+                }
             } else {
-                descContainer.textContent = '';
-                descContainer.style.display = 'none';
-                listContainer.innerHTML = '<li class="list-group-item text-muted">Este itinerario no contiene ítems.</li>';
+                if (descContainer){
+                  descContainer.textContent = '';
+                  descContainer.style.display = 'none';
+                }
+                if (listContainer){
+                  listContainer.innerHTML = '<li class="list-group-item text-muted">{{ __('m_tours.itinerary.ui.no_items_assigned') }}</li>';
+                }
             }
         });
     });
@@ -52,37 +58,39 @@ document.addEventListener('DOMContentLoaded', function () {
     const descContainerCreate = document.getElementById('selected-itinerary-description');
 
     function updateItineraryViewCreate() {
-        const selectedId = itinerarySelect.value;
+        const selectedId = itinerarySelect?.value;
 
         if (selectedId === 'new') {
-            newItinerarySection.style.display = 'block';
-            viewSectionCreate.style.display = 'none';
-            descContainerCreate.style.display = 'none';
+            if (newItinerarySection) newItinerarySection.style.display = 'block';
+            if (viewSectionCreate) viewSectionCreate.style.display = 'none';
+            if (descContainerCreate) descContainerCreate.style.display = 'none';
             return;
         }
 
         if (selectedId && itineraryData[selectedId]) {
             const data = itineraryData[selectedId];
-            newItinerarySection.style.display = 'none';
-            viewSectionCreate.style.display = 'block';
-            viewListCreate.innerHTML = data.items.length
+            if (newItinerarySection) newItinerarySection.style.display = 'none';
+            if (viewSectionCreate) viewSectionCreate.style.display = 'block';
+            if (viewListCreate) viewListCreate.innerHTML = data.items.length
                 ? data.items.map(item => `<li class="list-group-item"><strong>${item.title}</strong><br><small class="text-muted">${item.description}</small></li>`).join('')
-                : '<li class="list-group-item text-muted">Este itinerario no contiene ítems.</li>';
-            descContainerCreate.textContent = data.description || '';
-            descContainerCreate.style.display = data.description ? 'block' : 'none';
+                : `<li class="list-group-item text-muted">{{ __('m_tours.itinerary.ui.no_items_assigned') }}</li>`;
+            if (descContainerCreate){
+              descContainerCreate.textContent = data.description || '';
+              descContainerCreate.style.display = data.description ? 'block' : 'none';
+            }
         } else {
-            newItinerarySection.style.display = 'none';
-            viewSectionCreate.style.display = 'none';
-            descContainerCreate.style.display = 'none';
+            if (newItinerarySection) newItinerarySection.style.display = 'none';
+            if (viewSectionCreate) viewSectionCreate.style.display = 'none';
+            if (descContainerCreate) descContainerCreate.style.display = 'none';
         }
     }
 
-    if (itinerarySelect && newItinerarySection && viewSectionCreate) {
+    if (itinerarySelect) {
         itinerarySelect.addEventListener('change', updateItineraryViewCreate);
         updateItineraryViewCreate();
     }
 
-    // ========= 4. Añadir y quitar ítems dinámicos =========
+    // ========= 4. Añadir / quitar ítems dinámicos (sin textos visibles) =========
     document.body.addEventListener('click', function (e) {
         const addBtn = e.target.closest('.btn-add-itinerary');
         if (addBtn) {
@@ -110,31 +118,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ========= 5. Actualizar totales en formularios =========
-    document.querySelectorAll('.modal, .cart-form').forEach(container => {
-        const adultQty = container.querySelector('.qty-adults');
-        const kidQty = container.querySelector('.qty-kids');
-        const totalField = container.querySelector('.total-field');
-        const adultPriceInput = container.querySelector('.adult-price, [name="adult_price"]');
-        const kidPriceInput = container.querySelector('.kid-price, [name="kid_price"]');
-        if (!adultQty || !kidQty || !totalField || !adultPriceInput || !kidPriceInput) return;
+    // ========= 5. Totales (sin textos visibles; solo valores) =========
 
-        const adultPrice = parseFloat(adultPriceInput.value);
-        const kidPrice = parseFloat(kidPriceInput.value);
-
-        const updateTotal = () => {
-            const a = parseInt(adultQty.value || 0);
-            const k = parseInt(kidQty.value || 0);
-            const total = (a * adultPrice) + (k * kidPrice);
-            totalField.value = container.classList.contains('cart-form') ? '₡' + total.toFixed(2) : total.toFixed(2);
-        };
-
-        adultQty.addEventListener('input', updateTotal);
-        kidQty.addEventListener('input', updateTotal);
-        updateTotal();
-    });
-
-    // ========= 6. Enviar formulario del carrito =========
+    // ========= 6. Enviar carrito (mensajes i18n) =========
     document.querySelectorAll('form[action*="cart.store"], .cart-form').forEach(form => {
         form.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -153,8 +139,8 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 Swal.fire({
                     icon: 'success',
-                    title: '¡Agregado!',
-                    text: data.message || 'El tour fue añadido al carrito correctamente.',
+                    title: '{{ __('m_tours.tour.ui.added_to_cart') }}', // i18n: agregar ui.added_to_cart
+                    text: data.message || '{{ __('m_tours.tour.ui.added_to_cart_text') }}', // i18n: agregar ui.added_to_cart_text
                     timer: 1500,
                     showConfirmButton: false
                 });
@@ -162,20 +148,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (modal) modal.hide();
             })
             .catch(() => {
-                Swal.fire('Error', 'No se pudo agregar al carrito.', 'error');
+                Swal.fire('{{ __('m_tours.common.error_title') }}', '{{ __('m_tours.tour.error.create') }}', 'error');
             });
         });
     });
 
-    // ========= 7. Alertas con sesiones =========
+    // ========= 7. Alertas por sesión =========
     @if(session('success'))
-        Swal.fire({ icon: 'success', title: '{{ session("success") }}', timer: 2000, showConfirmButton: false });
+        Swal.fire({ icon: 'success', title: @json(session('success')), timer: 2000, showConfirmButton: false });
     @endif
     @if(session('error'))
-        Swal.fire({ icon: 'error', title: '{{ session("error") }}', timer: 2500, showConfirmButton: false });
+        Swal.fire({ icon: 'error', title: @json(session('error')), timer: 2500, showConfirmButton: false });
     @endif
 
-    // ========= 8. Reabrir modal si hay errores de validación =========
+    // ========= 8. Reabrir modal si hay errores =========
     @if(session('showCreateModal'))
         new bootstrap.Modal(document.getElementById('modalRegistrar')).show();
     @endif
