@@ -371,8 +371,8 @@ return [
                 'icon' => 'fas fa-tags',
             ],
             [
-                'text'  => 'Ajustes de Reservas',
-                'route' => 'admin.settings.booking.edit',
+                'text'  => 'Cut-Off',
+                'route' => 'admin.tours.cutoff.edit',
                 'icon'  => 'fas fa-clock',
             ],
         ],

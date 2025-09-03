@@ -37,7 +37,7 @@ use App\Http\Controllers\Admin\PolicyController;
 use App\Http\Controllers\Admin\PolicySectionController;
 use App\Http\Controllers\Admin\TourImageController;
 use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
-use App\Http\Controllers\Admin\Settings\BookingSettingsController;
+use App\Http\Controllers\Admin\Tours\CutOffController;
 
 use Illuminate\Support\Facades\Mail;
 use App\Models\Tour;
@@ -197,18 +197,6 @@ Route::post('/email/verification-notification', [VerifyEmailController::class, '
         Route::get('/profile/edit', [ProfileController::class, 'adminEdit'])->name('profile.edit');
         Route::post('/profile/edit', [ProfileController::class, 'adminUpdate'])->name('profile.update');
 
-        //CutOff
-        Route::get('settings/booking', [BookingSettingsController::class, 'edit'])->name('settings.booking.edit');
-        Route::put('settings/booking', [BookingSettingsController::class, 'update'])->name('settings.booking.update');
-        // Booking settings (global)
-        Route::get('settings/booking',  [BookingSettingsController::class, 'edit'])->name('settings.booking.edit');
-        Route::put('settings/booking',  [BookingSettingsController::class, 'update'])->name('settings.booking.update');
-
-        // Booking settings overrides
-        Route::put('settings/booking/tour',     [BookingSettingsController::class, 'updateTourOverrides'])->name('settings.booking.tour.update');
-        Route::put('settings/booking/schedule', [BookingSettingsController::class, 'updateScheduleOverrides'])->name('settings.booking.schedule.update');
-
-
         // Traducciones
         Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
         Route::get('translations/{type}/select', [TranslationController::class, 'select'])->name('translations.select');
@@ -219,6 +207,16 @@ Route::post('/email/verification-notification', [VerifyEmailController::class, '
         // FAQs
         Route::resource('faqs', AdminFaqController::class)->except(['show']);
         Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
+
+        // Cut_off
+    Route::prefix('tours')->name('tours.')->group(function () {
+        Route::prefix('cutoff')->name('cutoff.')->group(function () {
+            Route::get('/',   [CutOffController::class, 'edit'])->name('edit');
+            Route::put('/',   [CutOffController::class, 'update'])->name('update');
+            Route::put('/tour',     [CutOffController::class, 'updateTourOverrides'])->name('tour.update');
+            Route::put('/schedule', [CutOffController::class, 'updateScheduleOverrides'])->name('schedule.update');
+        });
+    });
 
         // Imágenes de Tours
         Route::get('tours/images', [TourImageController::class, 'pick'])->name('tours.images.pick');
@@ -281,6 +279,8 @@ Route::post('/email/verification-notification', [VerifyEmailController::class, '
 
             Route::resource('amenities', AmenityController::class)->except(['show']);
             Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])->name('amenities.toggle');
+
+
         });
 
         // Reservas

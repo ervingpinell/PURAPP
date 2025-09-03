@@ -1,14 +1,12 @@
 <?php
 /*************************************************************
- *  KONFIGURATIONS-MODUL – ÜBERSETZUNGEN (DE)
- *  Datei: resources/lang/de/m_config.php
- *
  *  Index (durchsuchbare Anker)
- *  [01] POLICIES 16
- *  [02] TOURTYPES 134
- *  [03] FAQ 193
- *  [04] TRANSLATIONS 244
- *  [05] PROMOCODE 351
+ *  [01] POLICIES ZEILE 20
+ *  [02] TOURTYPES ZEILE 139
+ *  [03] FAQ ZEILE 198
+ *  [04] TRANSLATIONS ZEILE 249
+ *  [05] PROMOCODE ZEILE 359
+ *  [06] CUT-OFF ZEILE 436
  *************************************************************/
 
 return [
@@ -21,7 +19,7 @@ return [
         'categories_title'        => 'Richtlinienkategorien',
         'sections_title'          => 'Abschnitte — :policy',
 
-        // Spalten / allgemeine Felder
+        // Spalten / Felder
         'id'                      => 'ID',
         'internal_name'           => 'Interner Name',
         'title_current_locale'    => 'Titel',
@@ -34,14 +32,14 @@ return [
         'active'                  => 'Aktiv',
         'inactive'                => 'Inaktiv',
 
-        // Kategorieliste: Aktionen
+        // Kategorienliste: Aktionen
         'new_category'            => 'Neue Kategorie',
         'view_sections'           => 'Abschnitte anzeigen',
         'edit'                    => 'Bearbeiten',
         'activate_category'       => 'Kategorie aktivieren',
         'deactivate_category'     => 'Kategorie deaktivieren',
         'delete'                  => 'Löschen',
-        'delete_category_confirm' => 'Diese Kategorie und ALLE ihre Abschnitte löschen?<br>Dies kann nicht rückgängig gemacht werden.',
+        'delete_category_confirm' => 'Diese Kategorie und ALLE zugehörigen Abschnitte löschen?<br>Dies kann nicht rückgängig gemacht werden.',
         'no_categories'           => 'Keine Kategorien gefunden.',
         'edit_category'           => 'Kategorie bearbeiten',
 
@@ -53,7 +51,7 @@ return [
         'close'                   => 'Schließen',
 
         // Abschnitte
-        'back_to_categories'      => 'Zurück zu den Kategorien',
+        'back_to_categories'      => 'Zurück zu Kategorien',
         'new_section'             => 'Neuer Abschnitt',
         'key'                     => 'Schlüssel',
         'order'                   => 'Reihenfolge',
@@ -69,38 +67,38 @@ return [
         'page_title'              => 'Richtlinien',
         'no_policies'             => 'Derzeit sind keine Richtlinien verfügbar.',
         'section'                 => 'Abschnitt',
-        'cancellation_policy'     => 'Stornierungsbedingungen',
-        'refund_policy'           => 'Rückerstattungsbedingungen',
-        'no_cancellation_policy'  => 'Keine Stornierungsbedingungen konfiguriert.',
-        'no_refund_policy'        => 'Keine Rückerstattungsbedingungen konfiguriert.',
+        'cancellation_policy'     => 'Stornierungsrichtlinie',
+        'refund_policy'           => 'Erstattungsrichtlinie',
+        'no_cancellation_policy'  => 'Keine Stornierungsrichtlinie konfiguriert.',
+        'no_refund_policy'        => 'Keine Erstattungsrichtlinie konfiguriert.',
 
-        // Meldungen (Kategorien)
+        // Nachrichten (Kategorien)
         'category_created'        => 'Kategorie erfolgreich erstellt.',
         'category_updated'        => 'Kategorie erfolgreich aktualisiert.',
         'category_activated'      => 'Kategorie erfolgreich aktiviert.',
         'category_deactivated'    => 'Kategorie erfolgreich deaktiviert.',
         'category_deleted'        => 'Kategorie erfolgreich gelöscht.',
 
-        // --- NEUE SCHLÜSSEL (Refactor / Utilities) ---
+        // --- Neue Schlüssel (Refactor / Utilities) ---
         'untitled'                => 'Ohne Titel',
         'no_content'              => 'Kein Inhalt verfügbar.',
         'display_name'            => 'Anzeigename',
         'name'                    => 'Name',
         'name_base'               => 'Basisname',
-        'name_base_help'          => 'Kurzer Bezeichner/Slug für den Abschnitt (nur intern).',
+        'name_base_help'          => 'Kurzer Bezeichner/Slug des Abschnitts (nur intern).',
         'translation_content'     => 'Inhalt',
         'locale'                  => 'Sprache',
         'save'                    => 'Speichern',
         'name_base_label'         => 'Basisname',
         'translation_name'        => 'Übersetzter Name',
-        'lang_autodetect_hint'    => 'Sie können in jeder Sprache schreiben; sie wird automatisch erkannt.',
-        'bulk_edit_sections'      => 'Schnellbearbeitung der Abschnitte',
-        'bulk_edit_hint'          => 'Änderungen an allen Abschnitten werden zusammen mit der Kategorietraduction beim Klick auf „Speichern“ gesichert.',
+        'lang_autodetect_hint'    => 'Sie können in jeder Sprache schreiben; automatische Erkennung.',
+        'bulk_edit_sections'      => 'Schnellbearbeitung von Abschnitten',
+        'bulk_edit_hint'          => 'Alle Änderungen an Abschnitten werden zusammen mit der Kategorietraduction gespeichert, wenn Sie „Speichern“ klicken.',
         'no_changes_made'         => 'Keine Änderungen vorgenommen.',
         'no_sections_found'       => 'Keine Abschnitte gefunden.',
-        'editing_locale'          => 'Bearbeitung',
+        'editing_locale'          => 'Bearbeiten',
 
-        // Meldungen (Abschnitte)
+        // Nachrichten (Abschnitte)
         'section_created'         => 'Abschnitt erfolgreich erstellt.',
         'section_updated'         => 'Abschnitt erfolgreich aktualisiert.',
         'section_activated'       => 'Abschnitt erfolgreich aktiviert.',
@@ -115,21 +113,21 @@ return [
         'deactivated_success'     => 'Erfolgreich deaktiviert.',
         'unexpected_error'        => 'Ein unerwarteter Fehler ist aufgetreten.',
 
-        // Buttons / allgemeine Texte (SweetAlert)
+        // Buttons / SweetAlert
         'create'                  => 'Erstellen',
         'activate'                => 'Aktivieren',
         'deactivate'              => 'Deaktivieren',
         'cancel'                  => 'Abbrechen',
         'ok'                      => 'OK',
-        'validation_errors'       => 'Es liegen Validierungsfehler vor',
+        'validation_errors'       => 'Validierungsfehler',
         'error_title'             => 'Fehler',
 
-        // Abschnittsbezogene Bestätigungen
+        // Abschnittsbestätigungen
         'confirm_create_section'      => 'Diesen Abschnitt erstellen?',
         'confirm_edit_section'        => 'Änderungen an diesem Abschnitt speichern?',
         'confirm_deactivate_section'  => 'Diesen Abschnitt wirklich deaktivieren?',
         'confirm_activate_section'    => 'Diesen Abschnitt wirklich aktivieren?',
-        'confirm_delete_section'      => 'Diesen Abschnitt wirklich löschen?<br>Diese Aktion kann nicht rückgängig gemacht werden.',
+        'confirm_delete_section'      => 'Diesen Abschnitt wirklich löschen?<br>Dies kann nicht rückgängig gemacht werden.',
     ],
 
     // =========================================================
@@ -137,8 +135,8 @@ return [
     // =========================================================
     'tourtypes' => [
         // Titel / Überschriften
-        'title'                   => 'Tourtypen',
-        'new'                     => 'Tourtyp hinzufügen',
+        'title'                   => 'Tourarten',
+        'new'                     => 'Tourart hinzufügen',
 
         // Spalten / Felder
         'id'                      => 'ID',
@@ -161,33 +159,33 @@ return [
         'activate'                => 'Aktivieren',
         'deactivate'              => 'Deaktivieren',
 
-        // Modaltitel
-        'edit_title'              => 'Tourtyp bearbeiten',
-        'create_title'            => 'Tourtyp erstellen',
+        // Modal-Titel
+        'edit_title'              => 'Tourart bearbeiten',
+        'create_title'            => 'Tourart erstellen',
 
         // Platzhalter / Hinweise
-        'examples_placeholder'    => 'Z. B.: Abenteuer, Natur, Entspannung',
+        'examples_placeholder'    => 'Z. B.: Abenteuer, Natur, Erholung',
         'duration_placeholder'    => 'Z. B.: 4 Stunden, 8 Stunden',
         'suggested_duration_hint' => 'Empfohlenes Format: „4 Stunden“, „8 Stunden“.',
-        'keep_default_hint'       => 'Lassen Sie „4 Stunden“, falls zutreffend; Sie können es ändern.',
+        'keep_default_hint'       => 'Lassen Sie „4 Stunden“, falls zutreffend; anpassbar.',
         'optional'                => 'optional',
 
         // Bestätigungen
-        'confirm_delete'          => '„:name“ wirklich löschen? Dies kann nicht rückgängig gemacht werden.',
-        'confirm_activate'        => '„:name“ wirklich aktivieren?',
-        'confirm_deactivate'      => '„:name“ wirklich deaktivieren?',
+        'confirm_delete'          => '„:name“ löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+        'confirm_activate'        => '„:name“ aktivieren?',
+        'confirm_deactivate'      => '„:name“ deaktivieren?',
 
         // Meldungen (Flash)
-        'created_success'         => 'Tourtyp erfolgreich erstellt.',
-        'updated_success'         => 'Tourtyp erfolgreich aktualisiert.',
-        'deleted_success'         => 'Tourtyp erfolgreich gelöscht.',
-        'activated_success'       => 'Tourtyp erfolgreich aktiviert.',
-        'deactivated_success'     => 'Tourtyp erfolgreich deaktiviert.',
-        'in_use_error'            => 'Löschen nicht möglich: Dieser Tourtyp wird verwendet.',
-        'unexpected_error'        => 'Ein unerwarteter Fehler ist aufgetreten. Bitte erneut versuchen.',
+        'created_success'         => 'Tourart erfolgreich erstellt.',
+        'updated_success'         => 'Tourart erfolgreich aktualisiert.',
+        'deleted_success'         => 'Tourart erfolgreich gelöscht.',
+        'activated_success'       => 'Tourart erfolgreich aktiviert.',
+        'deactivated_success'     => 'Tourart erfolgreich deaktiviert.',
+        'in_use_error'            => 'Löschen nicht möglich: Diese Tourart wird verwendet.',
+        'unexpected_error'        => 'Unerwarteter Fehler. Bitte erneut versuchen.',
 
         // Validierung / generisch
-        'validation_errors'       => 'Bitte prüfen Sie die hervorgehobenen Felder.',
+        'validation_errors'       => 'Bitte die markierten Felder prüfen.',
         'error_title'             => 'Fehler',
     ],
 
@@ -195,10 +193,10 @@ return [
     // ==== FAQ ================================================
     // =========================================================
     'faq' => [
-        // Titel / Kopfzeile
-        'title'            => 'Häufige Fragen (FAQ)',
+        // Titel
+        'title'            => 'Häufig gestellte Fragen',
 
-        // Felder / Spalten
+        // Felder
         'question'         => 'Frage',
         'answer'           => 'Antwort',
         'status'           => 'Status',
@@ -206,7 +204,7 @@ return [
         'active'           => 'Aktiv',
         'inactive'         => 'Inaktiv',
 
-        // Schaltflächen / Aktionen
+        // Aktionen
         'new'              => 'Neue Frage',
         'create'           => 'Erstellen',
         'save'             => 'Speichern',
@@ -220,26 +218,26 @@ return [
 
         // UI
         'read_more'        => 'Mehr lesen',
-        'read_less'        => 'Weniger lesen',
+        'read_less'        => 'Weniger anzeigen',
 
         // Bestätigungen
         'confirm_create'   => 'Diese Frage erstellen?',
-        'confirm_edit'     => 'Änderungen an dieser Frage speichern?',
+        'confirm_edit'     => 'Änderungen speichern?',
         'confirm_delete'   => 'Diese Frage wirklich löschen?<br>Dies kann nicht rückgängig gemacht werden.',
         'confirm_activate' => 'Diese Frage wirklich aktivieren?',
         'confirm_deactivate'=> 'Diese Frage wirklich deaktivieren?',
 
         // Validierung / Fehler
-        'validation_errors'=> 'Es liegen Validierungsfehler vor',
+        'validation_errors'=> 'Validierungsfehler',
         'error_title'      => 'Fehler',
 
-        // Meldungen (Flash)
-        'created_success'      => 'Frage erfolgreich erstellt.',
-        'updated_success'      => 'Frage erfolgreich aktualisiert.',
-        'deleted_success'      => 'Frage erfolgreich gelöscht.',
-        'activated_success'    => 'Frage erfolgreich aktiviert.',
-        'deactivated_success'  => 'Frage erfolgreich deaktiviert.',
-        'unexpected_error'     => 'Ein unerwarteter Fehler ist aufgetreten.',
+        // Meldungen
+        'created_success'      => 'FAQ erfolgreich erstellt.',
+        'updated_success'      => 'FAQ erfolgreich aktualisiert.',
+        'deleted_success'      => 'FAQ erfolgreich gelöscht.',
+        'activated_success'    => 'FAQ erfolgreich aktiviert.',
+        'deactivated_success'  => 'FAQ erfolgreich deaktiviert.',
+        'unexpected_error'     => 'Unerwarteter Fehler.',
     ],
 
     // =========================================================
@@ -249,20 +247,20 @@ return [
         // Titel / allgemeine Texte
         'title'                 => 'Übersetzungsverwaltung',
         'index_title'           => 'Übersetzungsverwaltung',
-        'select_entity_title'   => 'Wähle :entity zum Übersetzen aus',
+        'select_entity_title'   => ':entity zum Übersetzen auswählen',
         'edit_title'            => 'Übersetzung bearbeiten',
         'main_information'      => 'Hauptinformationen',
         'ok'                    => 'OK',
         'save'                  => 'Speichern',
-        'validation_errors'     => 'Es sind Validierungsfehler aufgetreten',
+        'validation_errors'     => 'Validierungsfehler',
         'updated_success'       => 'Übersetzung erfolgreich aktualisiert.',
-        'unexpected_error'      => 'Die Übersetzung konnte nicht aktualisiert werden.',
+        'unexpected_error'      => 'Übersetzung konnte nicht aktualisiert werden.',
 
-        // Sprachauswahl
+        // Sprachwahl
         'choose_locale_title'   => 'Sprache auswählen',
-        'choose_locale_hint'    => 'Wähle die Sprache, in die dieses Element übersetzt werden soll.',
+        'choose_locale_hint'    => 'Wählen Sie die Sprache, in die dieses Element übersetzt werden soll.',
         'select_language_title' => 'Sprache auswählen',
-        'select_language_intro' => 'Wähle die Sprache, in die dieses Element übersetzt werden soll.',
+        'select_language_intro' => 'Wählen Sie die Sprache, in die dieses Element übersetzt werden soll.',
         'languages' => [
             'es' => 'Spanisch',
             'en' => 'Englisch',
@@ -274,9 +272,9 @@ return [
         // Listen / Buttons
         'select'                => 'Auswählen',
         'id_unavailable'        => 'ID nicht verfügbar',
-        'no_items'              => 'Keine :entity zum Übersetzen vorhanden.',
+        'no_items'              => 'Keine :entity zum Übersetzen verfügbar.',
 
-        // Gemeinsame Formularfelder
+        // Formularfelder
         'name'                  => 'Name',
         'description'           => 'Beschreibung',
         'content'               => 'Inhalt',
@@ -284,18 +282,17 @@ return [
         'itinerary'             => 'Reiseplan',
         'itinerary_name'        => 'Name des Reiseplans',
         'itinerary_description' => 'Beschreibung des Reiseplans',
-        'itinerary_items'       => 'Reiseplan-Einträge',
-        'item'                  => 'Eintrag',
-        'item_title'            => 'Titel des Eintrags',
-        'item_description'      => 'Beschreibung des Eintrags',
+        'itinerary_items'       => 'Reiseplan-Elemente',
+        'item'                  => 'Element',
+        'item_title'            => 'Elementtitel',
+        'item_description'      => 'Elementbeschreibung',
         'sections'              => 'Abschnitte',
         'edit'                  => 'Bearbeiten',
         'close'                 => 'Schließen',
         'actions'               => 'Aktionen',
 
-        // === Modulare Feldbezeichnungen =======================
+        // Modulare Feldlabels
         'fields' => [
-            // Generisch
             'name'                  => 'Name',
             'title'                 => 'Titel',
             'overview'              => 'Übersicht',
@@ -305,20 +302,19 @@ return [
             'question'              => 'Frage',
             'answer'                => 'Antwort',
 
-            // Reiseplan / Einträge
             'itinerary'             => 'Reiseplan',
             'itinerary_name'        => 'Name des Reiseplans',
             'itinerary_description' => 'Beschreibung des Reiseplans',
-            'item'                  => 'Eintrag',
-            'item_title'            => 'Titel des Eintrags',
-            'item_description'      => 'Beschreibung des Eintrags',
+            'item'                  => 'Element',
+            'item_title'            => 'Elementtitel',
+            'item_description'      => 'Elementbeschreibung',
         ],
 
-        // === Entity-spezifische Überschreibungen (optional) ===
+        // Overrides je ENTITÄT und FELD
         'entity_fields' => [
             'tour_types' => [
                 'duration' => 'Empfohlene Dauer',
-                'name'     => 'Name des Tourtyps',
+                'name'     => 'Name der Tourart',
             ],
             'faqs' => [
                 'question' => 'Frage (kundenseitig sichtbar)',
@@ -330,99 +326,223 @@ return [
         'entities' => [
             'tours'            => 'Touren',
             'itineraries'      => 'Reisepläne',
-            'itinerary_items'  => 'Reiseplan-Einträge',
+            'itinerary_items'  => 'Reiseplan-Elemente',
             'amenities'        => 'Ausstattungen',
             'faqs'             => 'FAQs',
             'policies'         => 'Richtlinien',
-            'tour_types'       => 'Tourtypen',
+            'tour_types'       => 'Tourarten',
         ],
 
         // Entitätsnamen (Singular)
         'entities_singular' => [
-            'tours'            => 'tour',
-            'itineraries'      => 'reiseplan',
-            'itinerary_items'  => 'reiseplan-eintrag',
-            'amenities'        => 'ausstattung',
-            'faqs'             => 'faq',
-            'policies'         => 'richtlinie',
-            'tour_types'       => 'tourtyp',
+            'tours'            => 'Tour',
+            'itineraries'      => 'Reiseplan',
+            'itinerary_items'  => 'Reiseplan-Element',
+            'amenities'        => 'Ausstattung',
+            'faqs'             => 'FAQ',
+            'policies'         => 'Richtlinie',
+            'tour_types'       => 'Tourart',
         ],
     ],
 
     // =========================================================
     // ==== PROMOCODE ==========================================
     // =========================================================
-'promocode' => [
-    'title'        => 'Gutscheincodes',
-    'create_title' => 'Neuen Gutscheincode erstellen',
-    'list_title'   => 'Vorhandene Gutscheincodes',
+    'promocode' => [
+        'title'        => 'Promo-Codes',
+        'create_title' => 'Neuen Promo-Code erstellen',
+        'list_title'   => 'Vorhandene Promo-Codes',
 
-    'success_title' => 'Erfolg',
-    'error_title'   => 'Fehler',
+        'success_title' => 'Erfolg',
+        'error_title'   => 'Fehler',
 
-    'fields' => [
-        'code'        => 'Code',
-        'discount'    => 'Rabatt',
-        'type'        => 'Typ',
-        'valid_from'  => 'Gültig ab',
-        'valid_until' => 'Gültig bis',
-        'usage_limit' => 'Nutzungslimit',
+        'fields' => [
+            'code'        => 'Code',
+            'discount'    => 'Rabatt',
+            'type'        => 'Typ',
+            'valid_from'  => 'Gültig ab',
+            'valid_until' => 'Gültig bis',
+            'usage_limit' => 'Nutzungsbegrenzung',
+        ],
+
+        'types' => [
+            'percent' => '%',
+            'amount'  => '$',
+        ],
+
+        'symbols' => [
+            'percent'  => '%',
+            'currency' => '$',
+        ],
+
+        'table' => [
+            'code'         => 'Code',
+            'discount'     => 'Rabatt',
+            'validity'     => 'Gültigkeit',
+            'date_status'  => 'Status (Datum)',
+            'usage'        => 'Nutzung',
+            'usage_status' => 'Status (Nutzung)',
+            'actions'      => 'Aktionen',
+        ],
+
+        'status' => [
+            'used'      => 'Verwendet',
+            'available' => 'Verfügbar',
+        ],
+
+        'date_status' => [
+            'scheduled' => 'Geplant',
+            'active'    => 'Aktiv',
+            'expired'   => 'Abgelaufen',
+        ],
+
+        'actions' => [
+            'generate' => 'Erstellen',
+            'delete'   => 'Löschen',
+        ],
+
+        'labels' => [
+            'unlimited_placeholder' => 'Leer = unbegrenzt',
+            'unlimited_hint'        => 'Leer lassen für unbegrenzt. 1 = einmalige Nutzung.',
+            'no_limit'              => '(kein Limit)',
+            'remaining'             => 'verbleibend',
+        ],
+
+        'confirm_delete' => 'Diesen Code wirklich löschen?',
+        'empty'          => 'Keine Promo-Codes verfügbar.',
+
+        'messages' => [
+            'created_success'         => 'Promo-Code erfolgreich erstellt.',
+            'deleted_success'         => 'Promo-Code erfolgreich gelöscht.',
+            'percent_over_100'        => 'Prozentsatz darf 100 nicht überschreiten.',
+            'code_exists_normalized'  => 'Dieser Code (ohne Leerzeichen und Groß-/Kleinschreibung) existiert bereits.',
+            'invalid_or_used'         => 'Ungültiger oder bereits verwendeter Code.',
+            'valid'                   => 'Gültiger Code.',
+            'server_error'            => 'Serverfehler, bitte erneut versuchen.',
+        ],
     ],
 
-    'types' => [
-        'percent' => '%',
-        'amount'  => '$',
+    // =========================================================
+    // ==== CUTOFF =============================================
+    // =========================================================
+    'cut-off' => [
+        // Titel / Überschriften
+        'title'       => 'Cut-off-Einstellungen',
+        'header'      => 'Buchungseinstellungen',
+        'server_time' => 'Serverzeit (:tz)',
+
+        // Tabs
+        'tabs' => [
+            'global'   => 'Global (Standard)',
+            'tour'     => 'Sperre pro Tour',
+            'schedule' => 'Sperre pro Zeitplan',
+            'summary'  => 'Übersicht',
+            'help'     => 'Hilfe',
+        ],
+
+        // Felder
+        'fields' => [
+            'cutoff_hour'       => 'Sperrzeit (24h)',
+            'cutoff_hour_short' => 'Sperre (24h)',
+            'lead_days'         => 'Vorlauftage',
+            'timezone'          => 'Zeitzone',
+            'tour'              => 'Tour',
+            'schedule'          => 'Zeitplan',
+        ],
+
+        // Selects / Platzhalter
+        'selects' => [
+            'tour' => '— Tour auswählen —',
+            'time' => '— Zeit auswählen —',
+        ],
+
+        // Labels
+        'labels' => [
+            'status' => 'Status',
+        ],
+
+        // Badges / Chips
+        'badges' => [
+            'inherits'            => 'Erbt global',
+            'override'            => 'Sperre',
+            'inherit_tour_global' => 'Erbt von Tour/Global',
+            'schedule'            => 'Zeitplan',
+            'tour'                => 'Tour',
+            'global'              => 'Global',
+        ],
+
+        // Aktionen
+        'actions' => [
+            'save_global'   => 'Global speichern',
+            'save_tour'     => 'Toursperre speichern',
+            'save_schedule' => 'Zeitplansperre speichern',
+            'clear'         => 'Sperre löschen',
+            'confirm'       => 'Bestätigen',
+            'cancel'        => 'Abbrechen',
+            'actions'       => 'Aktionen',
+
+        ],
+
+        // Bestätigungen (Modale)
+        'confirm' => [
+            'tour' => [
+                'title' => 'Toursperre speichern?',
+                'text'  => 'Für diese Tour wird eine spezifische Sperre angewendet. Leer lassen zum Vererben.',
+            ],
+            'schedule' => [
+                'title' => 'Zeitplansperre speichern?',
+                'text'  => 'Für diesen Zeitplan wird eine spezifische Sperre angewendet. Leer lassen zum Vererben.',
+            ],
+        ],
+
+        // Übersicht
+        'summary' => [
+            'tour_title'            => 'Sperren nach Tour',
+            'no_tour_overrides'     => 'Keine Sperren auf Tour-Ebene.',
+            'schedule_title'        => 'Sperren nach Zeitplan',
+            'no_schedule_overrides' => 'Keine Sperren auf Zeitplan-Ebene.',
+            'search_placeholder'    => 'Tour oder Zeitplan suchen…',
+        ],
+
+        // Flash / Toasts
+        'flash' => [
+            'success_title' => 'Erfolg',
+            'error_title'   => 'Fehler',
+        ],
+
+        // Hilfe
+        'help' => [
+            'title'      => 'Wie funktioniert das?',
+            'global'     => 'Standardwert für die gesamte Website.',
+            'tour'       => 'Hat eine Tour Cut-off/Vorlauftage, hat sie Vorrang vor Global.',
+            'schedule'   => 'Hat ein Zeitplan eine Sperre, hat er Vorrang vor der Tour.',
+            'precedence' => 'Vorrang',
+        ],
+
+        // Hinweise
+        'hints' => [
+            // Global
+            'cutoff_example'    => 'z. B. :ex. Nach dieser Zeit ist „heute“ nicht mehr verfügbar.',
+            'pattern_24h'       => '24-h-Format HH:MM (z. B. 09:30, 18:00).',
+            'cutoff_behavior'   => 'Nach der Sperrzeit verschiebt sich das nächstmögliche Datum auf den nächsten Tag.',
+            'lead_days'         => 'Minimale Vorlauftage (0 erlaubt Buchung am selben Tag, sofern Sperrzeit nicht überschritten).',
+            'lead_days_detail'  => 'Erlaubter Bereich: 0–30. 0 erlaubt Tagesbuchung, wenn Sperrzeit nicht überschritten.',
+            'timezone_source'   => 'Aus config(\'app.timezone\').',
+
+            // Tour
+            'pick_tour'             => 'Wählen Sie zuerst eine Tour; definieren Sie dann optional die Sperre.',
+            'tour_override_explain' => 'Wenn Sie nur eines setzen (Sperre oder Tage), erbt das andere von Global.',
+            'clear_button_hint'     => 'Mit „Sperre löschen“ zum Vererben zurückkehren.',
+            'leave_empty_inherit'   => 'Leer lassen zum Vererben.',
+
+            // Zeitplan
+            'pick_schedule'             => 'Wählen Sie anschließend den Zeitplan.',
+            'schedule_override_explain' => 'Werte hier haben Vorrang vor der Tour. Leer lassen zum Vererben.',
+            'schedule_precedence_hint'  => 'Vorrang: Zeitplan → Tour → Global.',
+
+            // Übersicht
+            'dash_means_inherit' => '„—“ bedeutet: Wert wird vererbt.',
+        ],
     ],
 
-    'symbols' => [
-        'percent'  => '%',
-        'currency' => '$',
-    ],
-
-    'table' => [
-        'code'         => 'Code',
-        'discount'     => 'Rabatt',
-        'validity'     => 'Gültigkeitszeitraum',
-        'date_status'  => 'Status (Datum)',
-        'usage'        => 'Nutzungen',
-        'usage_status' => 'Status (Nutzung)',
-        'actions'      => 'Aktionen',
-    ],
-
-    'status' => [
-        'used'      => 'Verwendet',
-        'available' => 'Verfügbar',
-    ],
-
-    'date_status' => [
-        'scheduled' => 'Geplant',
-        'active'    => 'Gültig',
-        'expired'   => 'Abgelaufen',
-    ],
-
-    'actions' => [
-        'generate' => 'Erstellen',
-        'delete'   => 'Löschen',
-    ],
-
-    'labels' => [
-        'unlimited_placeholder' => 'Leer = unbegrenzt',
-        'unlimited_hint'        => 'Leer lassen für unbegrenzte Nutzungen. Für einmalige Nutzung 1 eintragen.',
-        'no_limit'              => '(kein Limit)',
-        'remaining'             => 'verbleibend',
-    ],
-
-    'confirm_delete' => 'Möchten Sie diesen Code wirklich löschen?',
-    'empty'          => 'Keine Gutscheincodes vorhanden.',
-
-    'messages' => [
-        'created_success'        => 'Gutscheincode erfolgreich erstellt.',
-        'deleted_success'        => 'Gutscheincode erfolgreich gelöscht.',
-        'percent_over_100'       => 'Der Prozentsatz darf nicht größer als 100 sein.',
-        'code_exists_normalized' => 'Dieser Code (ohne Leerzeichen und Groß-/Kleinschreibung) existiert bereits.',
-        'invalid_or_used'        => 'Ungültiger Code, nicht gültig oder keine verbleibenden Nutzungen.',
-        'valid'                  => 'Code gültig.',
-        'server_error'           => 'Serverfehler, bitte versuche es erneut.',
-    ],
-],
 ];

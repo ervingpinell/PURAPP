@@ -4,11 +4,12 @@
  *  Archivo: resources/lang/es/m_config.php
  *
  *  Índice (anclas buscables)
- *  [01] POLICIES LÍNEA 16
- *  [02] TOURTYPES LÍNEA 134
- *  [03] FAQ LÍNEA 193
- *  [04] TRANSLATIONS LÍNEA 244
- *  [05] PROMOCODE LÍNEA 354
+ *  [01] POLICIES LÍNEA 20
+ *  [02] TOURTYPES LÍNEA 139
+ *  [03] FAQ LÍNEA 198
+ *  [04] TRANSLATIONS LÍNEA 249
+ *  [05] PROMOCODE LÍNEA 359
+ *  [06] CUT-OFF LÍNEA 436
  *************************************************************/
 
 return [
@@ -352,7 +353,7 @@ return [
         ],
     ],
 
-   // =========================================================
+// =========================================================
 // ==== PROMOCODE ==========================================
 // =========================================================
 'promocode' => [
@@ -428,4 +429,127 @@ return [
         'server_error'            => 'Error del servidor, inténtalo de nuevo.',
     ],
 ],
+
+// =========================================================
+// ==== CUTOFF =============================================
+// =========================================================
+'cut-off' => [
+    // Títulos / encabezados
+    'title'       => 'Configuración de Cut-off',
+    'header'      => 'Booking Settings',
+    'server_time' => 'Hora del servidor (:tz)',
+
+    // Tabs
+    'tabs' => [
+        'global'   => 'Global (predeterminado)',
+        'tour'     => 'Bloqueo por Tour',
+        'schedule' => 'Bloqueo por Horario',
+        'summary'  => 'Resumen',
+        'help'     => 'Ayuda',
+    ],
+
+    // Campos
+    'fields' => [
+        'cutoff_hour'       => 'Hora de corte (24h)',
+        'cutoff_hour_short' => 'Cutoff (24h)',
+        'lead_days'         => 'Días de antelación',
+        'timezone'          => 'Zona horaria',
+        'tour'              => 'Tour',
+        'schedule'          => 'Horario',
+        'actions'           => 'Acciones'
+    ],
+
+    // Selects / placeholders
+    'selects' => [
+        'tour' => '— Selecciona un tour —',
+        'time' => '— Selecciona un horario —',
+    ],
+
+    // Etiquetas
+    'labels' => [
+        'status' => 'Estado',
+    ],
+
+    // Badges / chips
+    'badges' => [
+        'inherits'            => 'Hereda Global',
+        'override'            => 'Bloqueo',
+        'inherit_tour_global' => 'Hereda del Tour/Global',
+        'schedule'            => 'Horario',
+        'tour'                => 'Tour',
+        'global'              => 'Global',
+    ],
+
+    // Acciones
+    'actions' => [
+        'save_global'   => 'Guardar global',
+        'save_tour'     => 'Guardar bloqueo de tour',
+        'save_schedule' => 'Guardar bloqueo de horario',
+        'clear'         => 'Limpiar bloqueo',
+        'confirm'       => 'Confirmar',
+        'cancel'        => 'Cancelar',
+    ],
+
+    // Confirmaciones (modales)
+    'confirm' => [
+        'tour' => [
+            'title' => '¿Guardar bloqueo del tour?',
+            'text'  => 'Se aplicará un bloqueo específico para este tour. Déjalo vacío para heredar.',
+        ],
+        'schedule' => [
+            'title' => '¿Guardar bloqueo del horario?',
+            'text'  => 'Se aplicará un bloqueo específico para este horario. Déjalo vacío para heredar.',
+        ],
+    ],
+
+    // Resumen
+    'summary' => [
+        'tour_title'            => 'Bloqueos por Tour',
+        'no_tour_overrides'     => 'No hay bloqueos a nivel tour.',
+        'schedule_title'        => 'Bloqueos por Horario',
+        'no_schedule_overrides' => 'No hay bloqueos a nivel horario.',
+        'search_placeholder'    => 'Buscar tour u horario…',
+    ],
+
+    // Flash / toasts
+    'flash' => [
+        'success_title' => 'Éxito',
+        'error_title'   => 'Error',
+    ],
+
+    // Ayuda
+    'help' => [
+        'title'      => '¿Cómo funciona?',
+        'global'     => 'Valor por defecto para toda la web.',
+        'tour'       => 'Si un tour tiene cutoff/días configurados, tiene prioridad sobre el Global.',
+        'schedule'   => 'Si un horario del tour tiene bloqueo, tiene prioridad sobre el Tour.',
+        'precedence' => 'Precedencia',
+    ],
+
+    // Pistas / ayudas (hints)
+    'hints' => [
+        // usados en Global
+        'cutoff_example'    => 'Ej.: :ex. Después de esta hora, “hoy” deja de estar disponible.',
+        'pattern_24h'       => 'Formato 24h HH:MM (ej. 09:30, 18:00).',
+        'cutoff_behavior'   => 'Si ya pasó la hora de corte, la fecha más próxima disponible se mueve al día siguiente.',
+        'lead_days'         => 'Días mínimos de antelación (0 permite reservar hoy si no se ha pasado el cutoff).',
+        'lead_days_detail'  => 'Rango permitido: 0–30. 0 permite reservar el mismo día si no se ha pasado la hora de corte.',
+        'timezone_source'   => 'Se toma de config(\'app.timezone\').',
+
+        // usados en Tour
+        'pick_tour'             => 'Selecciona primero un tour; luego define su bloqueo (opcional).',
+        'tour_override_explain' => 'Si defines solo uno (cutoff o días), el otro hereda del Global.',
+        'clear_button_hint'     => 'Usa “Limpiar bloqueo” para volver a heredar.',
+        'leave_empty_inherit'   => 'Déjalo vacío para heredar.',
+
+        // usados en Schedule
+        'pick_schedule'             => 'Después selecciona el horario del tour.',
+        'schedule_override_explain' => 'Los valores aquí tienen prioridad sobre los del Tour. Déjalo vacío para heredar.',
+        'schedule_precedence_hint'  => 'Precedencia: Horario → Tour → Global.',
+
+        // usados en Resumen
+        'dash_means_inherit' => 'El símbolo “—” indica que el valor se hereda.',
+    ],
+],
+
 ];

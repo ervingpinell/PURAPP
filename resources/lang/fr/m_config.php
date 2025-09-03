@@ -1,14 +1,12 @@
 <?php
 /*************************************************************
- *  MODULE DE CONFIGURATION – TRADUCTIONS (FR)
- *  Fichier : resources/lang/fr/m_config.php
- *
  *  Index (ancres recherchables)
- *  [01] POLICIES 16
- *  [02] TOURTYPES 134
- *  [03] FAQ 193
- *  [04] TRANSLATIONS 244
- *  [05] PROMOCODE 351
+ *  [01] POLICIES LIGNE 20
+ *  [02] TOURTYPES LIGNE 139
+ *  [03] FAQ LIGNE 198
+ *  [04] TRANSLATIONS LIGNE 249
+ *  [05] PROMOCODE LIGNE 359
+ *  [06] CUT-OFF LIGNE 436
  *************************************************************/
 
 return [
@@ -21,13 +19,13 @@ return [
         'categories_title'        => 'Catégories de politiques',
         'sections_title'          => 'Sections — :policy',
 
-        // Colonnes / champs communs
+        // Colonnes / champs
         'id'                      => 'ID',
         'internal_name'           => 'Nom interne',
         'title_current_locale'    => 'Titre',
         'validity_range'          => 'Période de validité',
-        'valid_from'              => 'Valide à partir du',
-        'valid_to'                => 'Valide jusqu’au',
+        'valid_from'              => 'Valable à partir du',
+        'valid_to'                => 'Valable jusqu’au',
         'status'                  => 'Statut',
         'sections'                => 'Sections',
         'actions'                 => 'Actions',
@@ -59,10 +57,10 @@ return [
         'order'                   => 'Ordre',
         'activate_section'        => 'Activer la section',
         'deactivate_section'      => 'Désactiver la section',
-        'delete_section_confirm'  => 'Voulez-vous vraiment supprimer cette section ?<br>Cette action est irréversible.',
+        'delete_section_confirm'  => 'Voulez-vous vraiment supprimer cette section ?<br>Action irréversible.',
         'no_sections'             => 'Aucune section trouvée.',
         'edit_section'            => 'Modifier la section',
-        'internal_key_optional'   => 'Clé interne (facultatif)',
+        'internal_key_optional'   => 'Clé interne (optionnel)',
         'content_label'           => 'Contenu',
 
         // Public
@@ -81,21 +79,21 @@ return [
         'category_deactivated'    => 'Catégorie désactivée avec succès.',
         'category_deleted'        => 'Catégorie supprimée avec succès.',
 
-        // --- NOUVELLES CLÉS (refactor / utilitaires) ---
+        // --- Nouvelles clés (refactor / utilitaires) ---
         'untitled'                => 'Sans titre',
         'no_content'              => 'Aucun contenu disponible.',
-        'display_name'            => 'Nom d’affichage',
+        'display_name'            => 'Nom affiché',
         'name'                    => 'Nom',
         'name_base'               => 'Nom de base',
-        'name_base_help'          => 'Identifiant/slug court pour la section (interne uniquement).',
+        'name_base_help'          => 'Identifiant court/slug de la section (interne).',
         'translation_content'     => 'Contenu',
         'locale'                  => 'Langue',
         'save'                    => 'Enregistrer',
         'name_base_label'         => 'Nom de base',
         'translation_name'        => 'Nom traduit',
-        'lang_autodetect_hint'    => 'Vous pouvez écrire dans n’importe quelle langue ; elle sera détectée automatiquement.',
+        'lang_autodetect_hint'    => 'Vous pouvez écrire dans n’importe quelle langue ; détection automatique.',
         'bulk_edit_sections'      => 'Édition rapide des sections',
-        'bulk_edit_hint'          => 'Les modifications sur toutes les sections seront enregistrées avec la traduction de la catégorie lorsque vous cliquerez sur « Enregistrer ».',
+        'bulk_edit_hint'          => 'Les changements seront enregistrés avec la traduction de la catégorie en cliquant sur « Enregistrer ».',
         'no_changes_made'         => 'Aucune modification effectuée.',
         'no_sections_found'       => 'Aucune section trouvée.',
         'editing_locale'          => 'Édition',
@@ -113,23 +111,23 @@ return [
         'deleted_success'         => 'Supprimé avec succès.',
         'activated_success'       => 'Activé avec succès.',
         'deactivated_success'     => 'Désactivé avec succès.',
-        'unexpected_error'        => 'Une erreur inattendue s’est produite.',
+        'unexpected_error'        => 'Une erreur inattendue est survenue.',
 
-        // Boutons / textes communs (SweetAlert)
+        // Boutons / SweetAlert
         'create'                  => 'Créer',
         'activate'                => 'Activer',
         'deactivate'              => 'Désactiver',
         'cancel'                  => 'Annuler',
         'ok'                      => 'OK',
-        'validation_errors'       => 'Des erreurs de validation se sont produites',
+        'validation_errors'       => 'Erreurs de validation',
         'error_title'             => 'Erreur',
 
-        // Confirmations spécifiques aux sections
+        // Confirmations spécifiques section
         'confirm_create_section'      => 'Créer cette section ?',
         'confirm_edit_section'        => 'Enregistrer les modifications de cette section ?',
-        'confirm_deactivate_section'  => 'Voulez-vous vraiment désactiver cette section ?',
-        'confirm_activate_section'    => 'Voulez-vous vraiment activer cette section ?',
-        'confirm_delete_section'      => 'Voulez-vous vraiment supprimer cette section ?<br>Cette action est irréversible.',
+        'confirm_deactivate_section'  => 'Voulez-vous désactiver cette section ?',
+        'confirm_activate_section'    => 'Voulez-vous activer cette section ?',
+        'confirm_delete_section'      => 'Supprimer cette section ?<br>Action irréversible.',
     ],
 
     // =========================================================
@@ -165,17 +163,17 @@ return [
         'edit_title'              => 'Modifier le type de circuit',
         'create_title'            => 'Créer un type de circuit',
 
-        // Indices / aides
+        // Aides / placeholders
         'examples_placeholder'    => 'Ex. : Aventure, Nature, Détente',
         'duration_placeholder'    => 'Ex. : 4 heures, 8 heures',
         'suggested_duration_hint' => 'Format suggéré : « 4 heures », « 8 heures ».',
-        'keep_default_hint'       => 'Laissez « 4 heures » si applicable ; vous pouvez le modifier.',
-        'optional'                => 'facultatif',
+        'keep_default_hint'       => 'Laissez « 4 heures » si applicable ; modifiable.',
+        'optional'                => 'optionnel',
 
         // Confirmations
-        'confirm_delete'          => 'Voulez-vous vraiment supprimer « :name » ? Cette action est irréversible.',
-        'confirm_activate'        => 'Voulez-vous vraiment activer « :name » ?',
-        'confirm_deactivate'      => 'Voulez-vous vraiment désactiver « :name » ?',
+        'confirm_delete'          => 'Supprimer « :name » ? Action irréversible.',
+        'confirm_activate'        => 'Activer « :name » ?',
+        'confirm_deactivate'      => 'Désactiver « :name » ?',
 
         // Messages (flash)
         'created_success'         => 'Type de circuit créé avec succès.',
@@ -184,10 +182,10 @@ return [
         'activated_success'       => 'Type de circuit activé avec succès.',
         'deactivated_success'     => 'Type de circuit désactivé avec succès.',
         'in_use_error'            => 'Suppression impossible : ce type de circuit est utilisé.',
-        'unexpected_error'        => 'Une erreur inattendue s’est produite. Veuillez réessayer.',
+        'unexpected_error'        => 'Erreur inattendue. Réessayez.',
 
         // Validation / génériques
-        'validation_errors'       => 'Veuillez vérifier les champs mis en évidence.',
+        'validation_errors'       => 'Vérifiez les champs surlignés.',
         'error_title'             => 'Erreur',
     ],
 
@@ -220,17 +218,17 @@ return [
 
         // UI
         'read_more'        => 'Lire la suite',
-        'read_less'        => 'Lire moins',
+        'read_less'        => 'Réduire',
 
         // Confirmations
         'confirm_create'   => 'Créer cette question ?',
-        'confirm_edit'     => 'Enregistrer les modifications de cette question ?',
-        'confirm_delete'   => 'Voulez-vous vraiment supprimer cette question ?<br>Cette action est irréversible.',
-        'confirm_activate' => 'Voulez-vous vraiment activer cette question ?',
-        'confirm_deactivate'=> 'Voulez-vous vraiment désactiver cette question ?',
+        'confirm_edit'     => 'Enregistrer les modifications ?',
+        'confirm_delete'   => 'Supprimer cette question ?<br>Action irréversible.',
+        'confirm_activate' => 'Activer cette question ?',
+        'confirm_deactivate'=> 'Désactiver cette question ?',
 
         // Validation / erreurs
-        'validation_errors'=> 'Des erreurs de validation se sont produites',
+        'validation_errors'=> 'Erreurs de validation',
         'error_title'      => 'Erreur',
 
         // Messages (flash)
@@ -239,7 +237,7 @@ return [
         'deleted_success'      => 'Question supprimée avec succès.',
         'activated_success'    => 'Question activée avec succès.',
         'deactivated_success'  => 'Question désactivée avec succès.',
-        'unexpected_error'     => 'Une erreur inattendue s’est produite.',
+        'unexpected_error'     => 'Erreur inattendue.',
     ],
 
     // =========================================================
@@ -254,15 +252,15 @@ return [
         'main_information'      => 'Informations principales',
         'ok'                    => 'OK',
         'save'                  => 'Enregistrer',
-        'validation_errors'     => 'Des erreurs de validation se sont produites',
+        'validation_errors'     => 'Erreurs de validation',
         'updated_success'       => 'Traduction mise à jour avec succès.',
-        'unexpected_error'      => 'La traduction n’a pas pu être mise à jour.',
+        'unexpected_error'      => 'Impossible de mettre à jour la traduction.',
 
         // Sélecteur de langue
-        'choose_locale_title'   => 'Choisir la langue',
-        'choose_locale_hint'    => 'Sélectionnez la langue dans laquelle vous souhaitez traduire cet élément.',
-        'select_language_title' => 'Choisir la langue',
-        'select_language_intro' => 'Sélectionnez la langue dans laquelle vous souhaitez traduire cet élément.',
+        'choose_locale_title'   => 'Sélectionner la langue',
+        'choose_locale_hint'    => 'Choisissez la langue vers laquelle traduire cet élément.',
+        'select_language_title' => 'Sélectionner la langue',
+        'select_language_intro' => 'Choisissez la langue vers laquelle traduire cet élément.',
         'languages' => [
             'es' => 'Espagnol',
             'en' => 'Anglais',
@@ -273,10 +271,10 @@ return [
 
         // Listes / boutons
         'select'                => 'Sélectionner',
-        'id_unavailable'        => 'ID non disponible',
+        'id_unavailable'        => 'ID indisponible',
         'no_items'              => 'Aucun :entity disponible à traduire.',
 
-        // Champs de formulaire communs
+        // Champs communs
         'name'                  => 'Nom',
         'description'           => 'Description',
         'content'               => 'Contenu',
@@ -293,9 +291,8 @@ return [
         'close'                 => 'Fermer',
         'actions'               => 'Actions',
 
-        // === Libellés modulaires ==============================
+        // Étiquettes modulaires
         'fields' => [
-            // Génériques
             'name'                  => 'Nom',
             'title'                 => 'Titre',
             'overview'              => 'Aperçu',
@@ -305,7 +302,6 @@ return [
             'question'              => 'Question',
             'answer'                => 'Réponse',
 
-            // Itinéraire / éléments
             'itinerary'             => 'Itinéraire',
             'itinerary_name'        => 'Nom de l’itinéraire',
             'itinerary_description' => 'Description de l’itinéraire',
@@ -314,15 +310,15 @@ return [
             'item_description'      => 'Description de l’élément',
         ],
 
-        // === Surcharges par entité (optionnel) ================
+        // Overrides par ENTITÉ et CHAMP
         'entity_fields' => [
             'tour_types' => [
                 'duration' => 'Durée suggérée',
                 'name'     => 'Nom du type de circuit',
             ],
             'faqs' => [
-                'question' => 'Question (visible par le client)',
-                'answer'   => 'Réponse (visible par le client)',
+                'question' => 'Question (affichée au client)',
+                'answer'   => 'Réponse (affichée au client)',
             ],
         ],
 
@@ -330,9 +326,9 @@ return [
         'entities' => [
             'tours'            => 'Circuits',
             'itineraries'      => 'Itinéraires',
-            'itinerary_items'  => 'Éléments de l’itinéraire',
+            'itinerary_items'  => 'Éléments d’itinéraire',
             'amenities'        => 'Équipements',
-            'faqs'             => 'FAQ',
+            'faqs'             => 'FAQs',
             'policies'         => 'Politiques',
             'tour_types'       => 'Types de circuit',
         ],
@@ -341,7 +337,7 @@ return [
         'entities_singular' => [
             'tours'            => 'circuit',
             'itineraries'      => 'itinéraire',
-            'itinerary_items'  => 'élément de l’itinéraire',
+            'itinerary_items'  => 'élément d’itinéraire',
             'amenities'        => 'équipement',
             'faqs'             => 'FAQ',
             'policies'         => 'politique',
@@ -353,77 +349,199 @@ return [
     // ==== PROMOCODE ==========================================
     // =========================================================
     'promocode' => [
-    'title'        => 'Codes promotionnels',
-    'create_title' => 'Générer un nouveau code promotionnel',
-    'list_title'   => 'Codes promotionnels existants',
+        'title'        => 'Codes promotionnels',
+        'create_title' => 'Générer un nouveau code promo',
+        'list_title'   => 'Codes promo existants',
 
-    'success_title' => 'Succès',
-    'error_title'   => 'Erreur',
+        'success_title' => 'Succès',
+        'error_title'   => 'Erreur',
 
-    'fields' => [
-        'code'        => 'Code',
-        'discount'    => 'Remise',
-        'type'        => 'Type',
-        'valid_from'  => 'Valide à partir du',
-        'valid_until' => 'Valide jusqu’au',
-        'usage_limit' => 'Limite d’utilisations',
+        'fields' => [
+            'code'        => 'Code',
+            'discount'    => 'Remise',
+            'type'        => 'Type',
+            'valid_from'  => 'Valable à partir du',
+            'valid_until' => 'Valable jusqu’au',
+            'usage_limit' => 'Limite d’utilisations',
+        ],
+
+        'types' => [
+            'percent' => '%',
+            'amount'  => '$',
+        ],
+
+        'symbols' => [
+            'percent'  => '%',
+            'currency' => '$',
+        ],
+
+        'table' => [
+            'code'         => 'Code',
+            'discount'     => 'Remise',
+            'validity'     => 'Validité',
+            'date_status'  => 'Statut (date)',
+            'usage'        => 'Utilisations',
+            'usage_status' => 'Statut (usage)',
+            'actions'      => 'Actions',
+        ],
+
+        'status' => [
+            'used'      => 'Utilisé',
+            'available' => 'Disponible',
+        ],
+
+        'date_status' => [
+            'scheduled' => 'Programmé',
+            'active'    => 'Actif',
+            'expired'   => 'Expiré',
+        ],
+
+        'actions' => [
+            'generate' => 'Générer',
+            'delete'   => 'Supprimer',
+        ],
+
+        'labels' => [
+            'unlimited_placeholder' => 'Vide = illimité',
+            'unlimited_hint'        => 'Laissez vide pour illimité. Mettez 1 pour un seul usage.',
+            'no_limit'              => '(sans limite)',
+            'remaining'             => 'restants',
+        ],
+
+        'confirm_delete' => 'Voulez-vous supprimer ce code ?',
+        'empty'          => 'Aucun code promo disponible.',
+
+        'messages' => [
+            'created_success'         => 'Code promo créé avec succès.',
+            'deleted_success'         => 'Code promo supprimé avec succès.',
+            'percent_over_100'        => 'Le pourcentage ne peut pas dépasser 100.',
+            'code_exists_normalized'  => 'Ce code (espaces et casse ignorés) existe déjà.',
+            'invalid_or_used'         => 'Code invalide ou déjà utilisé.',
+            'valid'                   => 'Code valide.',
+            'server_error'            => 'Erreur serveur, réessayez.',
+        ],
     ],
 
-    'types' => [
-        'percent' => '%',
-        'amount'  => '$',
-    ],
+    // =========================================================
+    // ==== CUTOFF =============================================
+    // =========================================================
+    'cut-off' => [
+        // Titres / en-têtes
+        'title'       => 'Paramètres de cut-off',
+        'header'      => 'Paramètres de réservation',
+        'server_time' => 'Heure du serveur (:tz)',
 
-    'symbols' => [
-        'percent'  => '%',
-        'currency' => '$',
-    ],
+        // Onglets
+        'tabs' => [
+            'global'   => 'Global (par défaut)',
+            'tour'     => 'Verrouillage par circuit',
+            'schedule' => 'Verrouillage par horaire',
+            'summary'  => 'Résumé',
+            'help'     => 'Aide',
+        ],
 
-    'table' => [
-        'code'         => 'Code',
-        'discount'     => 'Remise',
-        'validity'     => 'Validité',
-        'date_status'  => 'Statut (date)',
-        'usage'        => 'Utilisations',
-        'usage_status' => 'Statut (utilisation)',
-        'actions'      => 'Actions',
-    ],
+        // Champs
+        'fields' => [
+            'cutoff_hour'       => 'Heure de coupure (24h)',
+            'cutoff_hour_short' => 'Coupure (24h)',
+            'lead_days'         => 'Jours d’anticipation',
+            'timezone'          => 'Fuseau horaire',
+            'tour'              => 'Circuit',
+            'schedule'          => 'Horaire',
+        ],
 
-    'status' => [
-        'used'      => 'Utilisé',
-        'available' => 'Disponible',
-    ],
+        // Selects / placeholders
+        'selects' => [
+            'tour' => '— Sélectionnez un circuit —',
+            'time' => '— Sélectionnez un horaire —',
+        ],
 
-    'date_status' => [
-        'scheduled' => 'Programmé',
-        'active'    => 'En vigueur',
-        'expired'   => 'Expiré',
-    ],
+        // Étiquettes
+        'labels' => [
+            'status' => 'Statut',
+        ],
 
-    'actions' => [
-        'generate' => 'Générer',
-        'delete'   => 'Supprimer',
-    ],
+        // Badges / chips
+        'badges' => [
+            'inherits'            => 'Hérite du global',
+            'override'            => 'Verrou',
+            'inherit_tour_global' => 'Hérite du circuit/global',
+            'schedule'            => 'Horaire',
+            'tour'                => 'Circuit',
+            'global'              => 'Global',
+        ],
 
-    'labels' => [
-        'unlimited_placeholder' => 'Vide = illimité',
-        'unlimited_hint'        => 'Laissez vide pour un nombre illimité d’utilisations. Indiquez 1 pour un seul usage.',
-        'no_limit'              => '(sans limite)',
-        'remaining'             => 'restants',
-    ],
+        // Actions
+        'actions' => [
+            'save_global'   => 'Enregistrer global',
+            'save_tour'     => 'Enregistrer le verrou du circuit',
+            'save_schedule' => 'Enregistrer le verrou de l’horaire',
+            'clear'         => 'Effacer le verrou',
+            'confirm'       => 'Confirmer',
+            'cancel'        => 'Annuler',
+            'actions'       => 'Actions',
+        ],
 
-    'confirm_delete' => 'Êtes-vous sûr de vouloir supprimer ce code ?',
-    'empty'          => 'Aucun code promotionnel disponible.',
+        // Confirmations (modales)
+        'confirm' => [
+            'tour' => [
+                'title' => 'Enregistrer le verrou du circuit ?',
+                'text'  => 'Un verrou spécifique sera appliqué à ce circuit. Laissez vide pour hériter.',
+            ],
+            'schedule' => [
+                'title' => 'Enregistrer le verrou de l’horaire ?',
+                'text'  => 'Un verrou spécifique sera appliqué à cet horaire. Laissez vide pour hériter.',
+            ],
+        ],
 
-    'messages' => [
-        'created_success'        => 'Code promotionnel créé avec succès.',
-        'deleted_success'        => 'Code promotionnel supprimé avec succès.',
-        'percent_over_100'       => 'Le pourcentage ne peut pas être supérieur à 100.',
-        'code_exists_normalized' => 'Ce code (en ignorant les espaces et la casse) existe déjà.',
-        'invalid_or_used'        => 'Code invalide, hors de validité ou sans utilisations restantes.',
-        'valid'                  => 'Code valide.',
-        'server_error'           => 'Erreur du serveur, réessayez.',
+        // Résumé
+        'summary' => [
+            'tour_title'            => 'Verrous par circuit',
+            'no_tour_overrides'     => 'Aucun verrou au niveau circuit.',
+            'schedule_title'        => 'Verrous par horaire',
+            'no_schedule_overrides' => 'Aucun verrou au niveau horaire.',
+            'search_placeholder'    => 'Rechercher un circuit ou un horaire…',
+        ],
+
+        // Flash / toasts
+        'flash' => [
+            'success_title' => 'Succès',
+            'error_title'   => 'Erreur',
+        ],
+
+        // Aide
+        'help' => [
+            'title'      => 'Comment ça marche ?',
+            'global'     => 'Valeur par défaut pour tout le site.',
+            'tour'       => 'Si un circuit a une coupure/jours définis, cela prime sur le global.',
+            'schedule'   => 'Si un horaire a un verrou, il prime sur le circuit.',
+            'precedence' => 'Priorité',
+        ],
+
+        // Aides
+        'hints' => [
+            // Global
+            'cutoff_example'    => 'Ex. : :ex. Après cette heure, « aujourd’hui » n’est plus disponible.',
+            'pattern_24h'       => 'Format 24h HH:MM (ex. 09:30, 18:00).',
+            'cutoff_behavior'   => 'Si l’heure de coupure est passée, la première date disponible passe au lendemain.',
+            'lead_days'         => 'Jours minimum d’anticipation (0 autorise aujourd’hui si la coupure n’est pas passée).',
+            'lead_days_detail'  => 'Plage autorisée : 0–30. 0 autorise la réservation le jour même si la coupure n’est pas passée.',
+            'timezone_source'   => 'Issu de config(\'app.timezone\').',
+
+            // Circuit
+            'pick_tour'             => 'Sélectionnez d’abord un circuit ; définissez ensuite son verrou (optionnel).',
+            'tour_override_explain' => 'Si vous ne définissez qu’un seul champ (coupure ou jours), l’autre hérite du global.',
+            'clear_button_hint'     => 'Utilisez « Effacer le verrou » pour revenir à l’héritage.',
+            'leave_empty_inherit'   => 'Laissez vide pour hériter.',
+
+            // Horaire
+            'pick_schedule'             => 'Sélectionnez ensuite l’horaire du circuit.',
+            'schedule_override_explain' => 'Les valeurs ici priment sur celles du circuit. Laissez vide pour hériter.',
+            'schedule_precedence_hint'  => 'Priorité : Horaire → Circuit → Global.',
+
+            // Résumé
+            'dash_means_inherit' => 'Le symbole « — » indique que la valeur est héritée.',
+        ],
     ],
-],
 
 ];
