@@ -48,12 +48,20 @@ class AssignItineraryItemsRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'items.required'    => __('m_tours.itinerary.validation.items.required'),
-            'items.array'       => __('m_tours.itinerary.validation.items.array'),
-            'items.min'         => __('m_tours.itinerary.validation.items.min'),
-            'items.*.integer'   => __('m_tours.itinerary.validation.items.order_integer'),
-            'items.*.min'       => __('m_tours.itinerary.validation.items.order_min'),
-            'items.*.max'       => __('m_tours.itinerary.validation.items.order_max'),
+            'items.required'  => __('m_tours.itinerary.validation.items.required'),
+            'items.array'     => __('m_tours.itinerary.validation.items.array'),
+            'items.min'       => __('m_tours.itinerary.validation.items.min'),
+            'items.*.integer' => __('m_tours.itinerary.validation.items.order_integer'),
+            'items.*.min'     => __('m_tours.itinerary.validation.items.order_min'),
+            'items.*.max'     => __('m_tours.itinerary.validation.items.order_max'),
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'items'   => __('m_tours.itinerary_item.ui.list_title'),
+            'items.*' => __('m_tours.itinerary_item.fields.title'),
         ];
     }
 

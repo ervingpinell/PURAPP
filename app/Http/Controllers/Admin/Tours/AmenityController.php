@@ -25,10 +25,9 @@ class AmenityController extends Controller
     public function store(StoreAmenityRequest $request, TranslatorInterface $translator)
     {
         try {
-            $amenity = null;
-            $locales = config('i18n.supported_locales', ['es','en','fr','pt','de']);
+            $locales = supported_locales();
 
-            DB::transaction(function () use ($request, $translator, $locales, &$amenity) {
+            $amenity = DB::transaction(function () use ($request, $translator, $locales) {
                 $name = $request->string('name')->trim();
 
                 $amenity = Amenity::create([
@@ -45,9 +44,11 @@ class AmenityController extends Controller
                         'name'       => $translated[$locale] ?? $name,
                     ]);
                 }
+
+                return $amenity;
             });
 
-            // ✅ Guard: si por alguna razón el objeto quedó null, no accedas a su propiedad
+            // Guard por seguridad
             if (! $amenity) {
                 LoggerHelper::error($this->controller, 'store', 'Amenity instance is null after transaction', [
                     'entity'  => 'amenity',
@@ -57,7 +58,7 @@ class AmenityController extends Controller
                 return back()->with('error', __('m_tours.amenity.error.create'));
             }
 
-            // Log fuera de la transacción (post-commit)
+            // Log post-commit
             LoggerHelper::mutated($this->controller, 'store', 'amenity', $amenity->amenity_id, [
                 'locales_saved' => count($locales),
                 'user_id'       => optional($request->user())->getAuthIdentifier(),

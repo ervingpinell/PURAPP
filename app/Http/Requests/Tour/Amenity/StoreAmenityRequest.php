@@ -42,6 +42,13 @@ class StoreAmenityRequest extends FormRequest
         ];
     }
 
+    public function attributes(): array
+    {
+        return [
+            'name' => 'Nombre de la amenidad',
+        ];
+    }
+
     protected function failedValidation(Validator $validator)
     {
         $action = $this->route()?->getActionMethod() ?? 'store';

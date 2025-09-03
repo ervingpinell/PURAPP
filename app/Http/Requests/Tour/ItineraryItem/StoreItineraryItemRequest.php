@@ -43,7 +43,6 @@ class StoreItineraryItemRequest extends FormRequest
         ];
     }
 
-    /** Para que :attribute salga como "Título"/"Descripción" */
     public function attributes(): array
     {
         return [

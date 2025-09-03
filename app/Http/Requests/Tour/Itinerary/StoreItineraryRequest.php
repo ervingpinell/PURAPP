@@ -37,12 +37,20 @@ class StoreItineraryRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required'     => __('m_tours.itinerary.validation.name.required'),
-            'name.string'       => __('m_tours.itinerary.validation.name.string'),
-            'name.max'          => __('m_tours.itinerary.validation.name.max'),
-            'name.unique'       => __('m_tours.itinerary.validation.name.unique'),
-            'description.string'=> __('m_tours.itinerary.validation.description.string'),
-            'description.max'   => __('m_tours.itinerary.validation.description.max'),
+            'name.required'      => __('m_tours.itinerary.validation.name.required'),
+            'name.string'        => __('m_tours.itinerary.validation.name.string'),
+            'name.max'           => __('m_tours.itinerary.validation.name.max'),
+            'name.unique'        => __('m_tours.itinerary.validation.name.unique'),
+            'description.string' => __('m_tours.itinerary.validation.description.string'),
+            'description.max'    => __('m_tours.itinerary.validation.description.max'),
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'name'        => __('m_tours.itinerary.fields.name'),
+            'description' => __('m_tours.itinerary.fields.description'),
         ];
     }
 

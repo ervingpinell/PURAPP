@@ -35,7 +35,7 @@ class ItineraryController extends Controller
             $data        = $request->validated();
             $name        = $data['name'];
             $description = (string) ($data['description'] ?? '');
-            $locales     = config('i18n.supported_locales', ['es','en','fr','pt','de']);
+            $locales     = supported_locales();
 
             $itinerary = DB::transaction(function () use ($name, $description, $locales, $translator) {
                 $itinerary = Itinerary::create([

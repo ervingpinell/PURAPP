@@ -50,6 +50,13 @@ class UpdateAmenityRequest extends FormRequest
         ];
     }
 
+    public function attributes(): array
+    {
+        return [
+            'name' => 'Nombre de la amenidad',
+        ];
+    }
+
     protected function failedValidation(Validator $validator)
     {
         /** @var Amenity|null $amenity */

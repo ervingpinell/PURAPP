@@ -44,7 +44,7 @@ class UpdateItineraryItemRequest extends FormRequest
             'description.required' => __('m_tours.itinerary_item.validation.description.required'),
             'description.string'   => __('m_tours.itinerary_item.validation.description.string'),
             'description.max'      => __('m_tours.itinerary_item.validation.description.max'),
-            'is_active.boolean'    => __('validation.boolean'), // genérico de Laravel
+            'is_active.boolean'    => __('validation.boolean'),
         ];
     }
 
@@ -53,7 +53,7 @@ class UpdateItineraryItemRequest extends FormRequest
         return [
             'title'       => __('m_tours.itinerary_item.fields.title'),
             'description' => __('m_tours.itinerary_item.fields.description'),
-            'is_active'   => __('m_tours.itinerary.status.active'),
+            'is_active'   => __('m_tours.itinerary_item.status.active'),
         ];
     }
 

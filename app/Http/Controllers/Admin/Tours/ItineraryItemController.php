@@ -32,7 +32,7 @@ class ItineraryItemController extends Controller
             $data    = $request->validated();
             $title   = $data['title'];
             $desc    = $data['description'];
-            $locales = config('i18n.supported_locales', ['es','en','fr','pt','de']);
+            $locales = supported_locales();
 
             $item = DB::transaction(function () use ($title, $desc, $locales, $translator) {
                 $item = ItineraryItem::create([
@@ -83,10 +83,23 @@ class ItineraryItemController extends Controller
         try {
             $data = $request->validated();
 
-            $itinerary_item->update([
+            $payload = [
                 'title'       => $data['title'],
                 'description' => $data['description'],
-            ]);
+            ];
+
+            // Si viene is_active en el payload, lo aplicamos
+            if (array_key_exists('is_active', $data)) {
+                $payload['is_active'] = (bool) $data['is_active'];
+            }
+
+            $itinerary_item->update($payload);
+            $itinerary_item->refresh();
+
+            // Si quedó inactivo (ya sea por update o por toggle), lo desasignamos
+            if ($itinerary_item->is_active === false && method_exists($itinerary_item, 'itineraries')) {
+                $itinerary_item->itineraries()->detach();
+            }
 
             LoggerHelper::mutated($this->controller, 'update', 'itinerary_item', $itinerary_item->item_id, [
                 'is_active' => $itinerary_item->is_active,
@@ -106,6 +119,7 @@ class ItineraryItemController extends Controller
     public function toggle(ToggleItineraryItemRequest $request, ItineraryItem $itinerary_item)
     {
         try {
+            // Race-safe
             ItineraryItem::whereKey($itinerary_item->getKey())->update(['is_active' => DB::raw('NOT is_active')]);
             $itinerary_item->refresh();
 
