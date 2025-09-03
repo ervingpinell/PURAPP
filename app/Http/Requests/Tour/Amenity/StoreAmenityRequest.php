@@ -28,7 +28,7 @@ class StoreAmenityRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', Rule::unique('amenities', 'name')],
+            'name' => ['bail', 'required', 'string', 'max:255', Rule::unique('amenities', 'name')],
         ];
     }
 
@@ -44,7 +44,9 @@ class StoreAmenityRequest extends FormRequest
 
     protected function failedValidation(Validator $validator)
     {
-        LoggerHelper::validationFailed($this->controller, 'store', $validator->errors()->toArray(), [
+        $action = $this->route()?->getActionMethod() ?? 'store';
+
+        LoggerHelper::validationFailed($this->controller, $action, $validator->errors()->toArray(), [
             'entity'  => 'amenity',
             'user_id' => optional($this->user())->getAuthIdentifier(),
         ]);

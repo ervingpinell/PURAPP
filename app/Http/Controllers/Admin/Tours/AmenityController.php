@@ -25,9 +25,11 @@ class AmenityController extends Controller
     public function store(StoreAmenityRequest $request, TranslatorInterface $translator)
     {
         try {
-            DB::transaction(function () use ($request, $translator) {
-                $name       = $request->string('name')->trim();
-                $localeList = ['es', 'en', 'fr', 'pt', 'de'];
+            $amenity = null;
+            $locales = config('i18n.supported_locales', ['es','en','fr','pt','de']);
+
+            DB::transaction(function () use ($request, $translator, $locales, &$amenity) {
+                $name = $request->string('name')->trim();
 
                 $amenity = Amenity::create([
                     'name'      => $name,
@@ -36,23 +38,35 @@ class AmenityController extends Controller
 
                 $translated = $translator->translateAll($name);
 
-                foreach ($localeList as $locale) {
+                foreach ($locales as $locale) {
                     AmenityTranslation::create([
                         'amenity_id' => $amenity->amenity_id,
                         'locale'     => $locale,
                         'name'       => $translated[$locale] ?? $name,
                     ]);
                 }
-
-                LoggerHelper::mutated($this->controller, 'store', 'amenity', $amenity->amenity_id, [
-                    'locales_saved' => count($localeList),
-                    'user_id'       => optional(request()->user())->getAuthIdentifier(),
-                ]);
             });
+
+            // ✅ Guard: si por alguna razón el objeto quedó null, no accedas a su propiedad
+            if (! $amenity) {
+                LoggerHelper::error($this->controller, 'store', 'Amenity instance is null after transaction', [
+                    'entity'  => 'amenity',
+                    'user_id' => optional($request->user())->getAuthIdentifier(),
+                ]);
+
+                return back()->with('error', __('m_tours.amenity.error.create'));
+            }
+
+            // Log fuera de la transacción (post-commit)
+            LoggerHelper::mutated($this->controller, 'store', 'amenity', $amenity->amenity_id, [
+                'locales_saved' => count($locales),
+                'user_id'       => optional($request->user())->getAuthIdentifier(),
+            ]);
 
             return redirect()
                 ->route('admin.tours.amenities.index')
                 ->with('success', __('m_tours.amenity.success.created'));
+
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'amenity', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -76,6 +90,7 @@ class AmenityController extends Controller
             return redirect()
                 ->route('admin.tours.amenities.index')
                 ->with('success', __('m_tours.amenity.success.updated'));
+
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'update', 'amenity', $amenity->amenity_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -85,11 +100,12 @@ class AmenityController extends Controller
         }
     }
 
-    /** Toggle activar/desactivar */
+    /** Toggle activar/desactivar (race-safe) */
     public function toggle(Amenity $amenity)
     {
         try {
-            $amenity->update(['is_active' => ! $amenity->is_active]);
+            Amenity::whereKey($amenity->getKey())->update(['is_active' => DB::raw('NOT is_active')]);
+            $amenity->refresh();
 
             LoggerHelper::mutated($this->controller, 'toggle', 'amenity', $amenity->amenity_id, [
                 'is_active' => $amenity->is_active,
@@ -103,6 +119,7 @@ class AmenityController extends Controller
             return redirect()
                 ->route('admin.tours.amenities.index')
                 ->with('success', $msg);
+
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'toggle', 'amenity', $amenity->amenity_id, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
@@ -126,6 +143,7 @@ class AmenityController extends Controller
             return redirect()
                 ->route('admin.tours.amenities.index')
                 ->with('success', __('m_tours.amenity.success.deleted'));
+
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy', 'amenity', $amenity->amenity_id ?? null, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),

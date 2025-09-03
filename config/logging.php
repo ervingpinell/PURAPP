@@ -16,14 +16,10 @@ return [
 
     'channels' => [
 
-        // Usa un stack claro. En prod: daily (y opcional stderr en contenedores)
+        // Stack estándar: sólo 'daily' (legible y rotado por día)
         'stack' => [
             'driver' => 'stack',
-            'channels' => array_values(array_filter([
-                'daily',
-                env('LOG_USE_STDERR', false) ? 'stderr' : null, // activa con LOG_USE_STDERR=true
-                // 'slack', // si quieres recibir errores en Slack, déjalo aquí y configura su webhook
-            ])),
+            'channels' => ['daily'],
             'ignore_exceptions' => false,
         ],
 
@@ -37,7 +33,7 @@ return [
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
-            'level' => env('LOG_LEVEL', 'info'),           // en prod: info o warning
+            'level' => env('LOG_LEVEL', 'info'),  // en prod: info o warning
             'days'  => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
         ],
@@ -58,7 +54,6 @@ return [
             'handler_with' => [
                 'host' => env('PAPERTRAIL_URL'),
                 'port' => env('PAPERTRAIL_PORT'),
-                // Si tu proveedor te lo pide explícitamente, usa connectionString; si no, puedes omitirlo.
                 // 'connectionString' => 'tls://'.env('PAPERTRAIL_URL').':'.env('PAPERTRAIL_PORT'),
             ],
             'processors' => [PsrLogMessageProcessor::class],
@@ -68,7 +63,7 @@ return [
             'driver' => 'monolog',
             'level'  => env('LOG_LEVEL', 'info'),
             'handler' => StreamHandler::class,
-            'formatter' => env('LOG_STDERR_FORMATTER'), // puedes usar JsonFormatter si quieres logs estructurados
+            'formatter' => env('LOG_STDERR_FORMATTER'), // deja null para texto plano
             'with' => ['stream' => 'php://stderr'],
             'processors' => [PsrLogMessageProcessor::class],
         ],

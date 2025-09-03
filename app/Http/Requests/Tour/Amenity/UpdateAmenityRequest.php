@@ -33,8 +33,9 @@ class UpdateAmenityRequest extends FormRequest
 
         return [
             'name' => [
-                'required', 'string', 'max:255',
-                Rule::unique('amenities', 'name')->ignore($amenity?->amenity_id, 'amenity_id'),
+                'bail', 'required', 'string', 'max:255',
+                Rule::unique('amenities', 'name')
+                    ->ignore($amenity?->getKey(), $amenity?->getKeyName() ?? 'amenity_id'),
             ],
         ];
     }
@@ -53,8 +54,9 @@ class UpdateAmenityRequest extends FormRequest
     {
         /** @var Amenity|null $amenity */
         $amenity = $this->route('amenity');
+        $action  = $this->route()?->getActionMethod() ?? 'update';
 
-        LoggerHelper::validationFailed($this->controller, 'update', $validator->errors()->toArray(), [
+        LoggerHelper::validationFailed($this->controller, $action, $validator->errors()->toArray(), [
             'entity'    => 'amenity',
             'entity_id' => $amenity?->amenity_id,
             'user_id'   => optional($this->user())->getAuthIdentifier(),
