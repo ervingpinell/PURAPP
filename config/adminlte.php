@@ -449,6 +449,11 @@ return [
                 'route' => 'admin.tours.images.pick',
                 'icon'  => 'fas fa-images',
             ],
+            [
+                'text'  => 'Covers de Categorías',
+                'route' => 'admin.types.images.pick',
+                'icon'  => 'fas fa-image',
+            ],
         ],
     ],
 

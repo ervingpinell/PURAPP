@@ -38,6 +38,7 @@ use App\Http\Controllers\Admin\PolicySectionController;
 use App\Http\Controllers\Admin\TourImageController;
 use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
 use App\Http\Controllers\Admin\Settings\BookingSettingsController;
+use App\Http\Controllers\Admin\Tours\TourTypeCoverPickerController;
 
 use Illuminate\Support\Facades\Mail;
 use App\Models\Tour;
@@ -230,6 +231,17 @@ Route::post('/email/verification-notification', [VerifyEmailController::class, '
             Route::post('{img}/cover', [TourImageController::class, 'setCover'])->name('cover');
             Route::patch('{img}',  [TourImageController::class, 'update'])->name('update');
         });
+        Route::prefix('/types')->name('types.')->middleware(['web','auth','verified','CheckRole'])->group(function () {
+            Route::get('images', [\App\Http\Controllers\Admin\Tours\TourTypeCoverPickerController::class, 'pick'])
+                ->name('images.pick');
+
+            Route::get('images/{tourType}/edit', [\App\Http\Controllers\Admin\Tours\TourTypeCoverPickerController::class, 'edit'])
+                ->name('images.edit');
+
+            Route::put('images/{tourType}', [\App\Http\Controllers\Admin\Tours\TourTypeCoverPickerController::class, 'updateCover'])
+                ->name('images.update');
+        });
+
 
         // Policies & Sections
         Route::get('policies', [PolicyController::class, 'index'])->name('policies.index');

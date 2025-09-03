@@ -22,11 +22,22 @@ class TourType extends Model
         'description',
         'duration',
         'is_active',
+        'cover_path',
     ];
 
     protected $casts = [
         'is_active' => 'bool',
     ];
+
+    // Para exponer cover_url ya listo en el modelo
+    protected $appends = ['cover_url'];
+
+    public function getCoverUrlAttribute(): string
+    {
+        return $this->cover_path
+            ? asset('storage/' . ltrim($this->cover_path, '/'))
+            : asset('images/volcano.png');
+    }
 
     public function scopeActive($query)
     {
@@ -73,5 +84,10 @@ class TourType extends Model
     public function getDurationTranslatedAttribute(): ?string
     {
         return optional($this->translate())?->duration;
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'tour_type_id';
     }
 }

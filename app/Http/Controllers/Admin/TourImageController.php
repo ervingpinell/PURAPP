@@ -206,13 +206,12 @@ class TourImageController extends Controller
     {
         $q = trim((string) $request->query('q', ''));
 
-        $tours = Tour::select('tour_id', 'name', 'viator_code')
+        $tours = \App\Models\Tour::select('tour_id', 'name', 'viator_code')
             ->with(['coverImage:id,tour_id,path,is_cover'])
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($qq) use ($q) {
                     $qq->where('name', 'ILIKE', "%{$q}%")
-                       ->orWhere('viator_code', 'ILIKE', "%{$q}%");
-
+                    ->orWhere('viator_code', 'ILIKE', "%{$q}%");
                     if (is_numeric($q)) {
                         $qq->orWhere('tour_id', (int) $q);
                     }
@@ -222,14 +221,27 @@ class TourImageController extends Controller
             ->paginate(24)
             ->withQueryString();
 
-        // Ensure cover URL (relation OR first file from storage)
+        // Asegurar cover_url
         $tours->getCollection()->transform(function ($t) {
-            $t->cover_url = optional($t->coverImage)->url ?? $this->coverFromStorage($t->tour_id);
+            $t->cover_url = optional($t->coverImage)->url ?? asset('images/volcano.png');
             return $t;
         });
 
-        return view('admin.tours.images.pick', compact('tours', 'q'));
+        return view('admin.tours.images.pick', [
+            'items'         => $tours,
+            'q'             => $q,
+            'idField'       => 'tour_id',
+            'nameField'     => 'name',
+            'coverAccessor' => 'cover_url',
+            'manageRoute'   => 'admin.tours.images.index',
+            'i18n' => [
+                'title'   => __('m_tours.image.ui.page_title_pick'),
+                'heading' => __('m_tours.image.ui.page_heading'),
+                'choose'  => __('m_tours.image.ui.choose_tour'),
+            ],
+        ]);
     }
+
 
     /** Helper: find a "cover-like" image from storage if no DB cover is set. */
     protected function coverFromStorage(int $tourId): string

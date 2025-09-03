@@ -34,6 +34,8 @@ class HomeController extends Controller
                         'title'       => $translation->name ?? $type->name,
                         'duration'    => $translation->duration ?? $type->duration ?? '',
                         'description' => $translation->description ?? $type->description ?? '',
+                        // 👇 clave que usará el blade
+                        'cover_url'   => $type->cover_url,
                     ],
                 ];
             });

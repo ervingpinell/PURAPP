@@ -2,21 +2,14 @@
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
-
 $coverFromFolder = function (?int $tourId): string {
     if (!$tourId) return asset('images/volcano.png');
-
     $folder = "tours/{$tourId}/gallery";
-    if (!Storage::disk('public')->exists($folder)) {
-        return asset('images/volcano.png');
-    }
+    if (!Storage::disk('public')->exists($folder)) return asset('images/volcano.png');
 
     $allowed = ['jpg','jpeg','png','webp'];
     $first = collect(Storage::disk('public')->files($folder))
-        ->filter(function ($p) use ($allowed) {
-            $ext = strtolower(pathinfo($p, PATHINFO_EXTENSION));
-            return in_array($ext, $allowed, true);
-        })
+        ->filter(fn($p) => in_array(strtolower(pathinfo($p, PATHINFO_EXTENSION)), $allowed, true))
         ->sort(fn ($a, $b) => strnatcasecmp($a, $b))
         ->first();
 
@@ -29,28 +22,31 @@ $coverFromFolder = function (?int $tourId): string {
 </h2>
 
 <div class="tour-cards">
-@foreach ($typeMeta as $slug => $meta)
+@foreach ($typeMeta as $key => $meta)
   @php
+      // $key es el tour_type_id que usaste como índice
       /** @var \Illuminate\Support\Collection $group */
-      $group = $toursByType[$slug] ?? collect();
+      $group = $toursByType[$key] ?? collect();
       if ($group->isEmpty()) continue;
 
       $first = $group->first();
 
-      //TourTypes tranlsated Text
+      // Textos
       $translatedTitle       = $meta['title']       ?? '';
       $translatedDuration    = $meta['duration']    ?? '';
       $translatedDescription = $meta['description'] ?? '';
 
-      //TourTypes cards covers
-      $firstCover = optional($first->coverImage)->url
-          ?? $coverFromFolder($first->tour_id ?? $first->id ?? null);
+      // 👇 primero el cover de la categoría; si no, cae a la del primer tour / folder
+      $typeCover  = $meta['cover_url'] ?? null;
+      $firstCover = $typeCover
+          ?: (optional($first->coverImage)->url
+              ?? $coverFromFolder($first->tour_id ?? $first->id ?? null));
   @endphp
 
-  {{-- Type Card (opens the modal) --}}
+  {{-- Tarjeta del tipo --}}
   <div class="tour-card" style="cursor:pointer"
-       data-bs-toggle="modal" data-bs-target="#modal-{{ Str::slug($slug) }}">
-    <img src="{{ $firstCover }}" class="card-img-top" alt="{{ $first->getTranslatedName() }}">
+       data-bs-toggle="modal" data-bs-target="#modal-{{ Str::slug((string)$key) }}">
+    <img src="{{ $firstCover }}" class="card-img-top" alt="{{ $translatedTitle }}">
     <div class="card-body d-flex flex-column h-100">
       <h5 class="card-title">{{ $translatedTitle }}</h5>
 
@@ -63,20 +59,20 @@ $coverFromFolder = function (?int $tourId): string {
       @endif
 
       <a href="javascript:void(0)" class="btn btn-success w-100 btn-ver-tour"
-         data-bs-toggle="modal" data-bs-target="#modal-{{ Str::slug($slug) }}">
+         data-bs-toggle="modal" data-bs-target="#modal-{{ Str::slug((string)$key) }}">
         {{ __('adminlte::adminlte.see_tours') }}
       </a>
     </div>
   </div>
 
-  {{-- Modal per type --}}
-  <div class="modal fade" id="modal-{{ Str::slug($slug) }}" tabindex="-1"
-       aria-labelledby="modalLabel-{{ Str::slug($slug) }}" aria-hidden="true">
+  {{-- Modal por tipo --}}
+  <div class="modal fade" id="modal-{{ Str::slug((string)$key) }}" tabindex="-1"
+       aria-labelledby="modalLabel-{{ Str::slug((string)$key) }}" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header text-white" style="background:#0f2419">
           <h5 class="modal-title text-center w-100 text-white"
-              id="modalLabel-{{ Str::slug($slug) }}">
+              id="modalLabel-{{ Str::slug((string)$key) }}">
             {{ $translatedTitle }}
           </h5>
           <button type="button" class="btn-close bg-light"
@@ -88,19 +84,15 @@ $coverFromFolder = function (?int $tourId): string {
             <div class="row">
               @foreach ($group as $tour)
                 @php
-                  // Tour cover
                   $tourCover = optional($tour->coverImage)->url
                       ?? $coverFromFolder($tour->tour_id ?? $tour->id ?? null);
                 @endphp
 
                 <div class="col-12 col-md-6 col-xl-4 mb-4">
                   <div class="tour-modal-card h-100">
-                    <img src="{{ $tourCover }}"
-                         class="card-img-top" alt="{{ $tour->getTranslatedName() }}">
+                    <img src="{{ $tourCover }}" class="card-img-top" alt="{{ $tour->getTranslatedName() }}">
                     <div class="card-body d-flex flex-column">
-                      <h5 class="card-title card-title-text">
-                        {{ $tour->getTranslatedName() }}
-                      </h5>
+                      <h5 class="card-title card-title-text">{{ $tour->getTranslatedName() }}</h5>
 
                       @php
                         $rawLength = $tour->length;
@@ -108,9 +100,7 @@ $coverFromFolder = function (?int $tourId): string {
                         $label = __('adminlte::adminlte.duration');
                       @endphp
                       @if(!empty($rawLength))
-                        <p class="text-muted small mb-2">
-                          <strong>{{ $label }}:</strong> {{ $rawLength }} {{ $unit }}
-                        </p>
+                        <p class="text-muted small mb-2"><strong>{{ $label }}:</strong> {{ $rawLength }} {{ $unit }}</p>
                       @endif
 
                       <div class="mb-3 small mt-auto">
@@ -119,23 +109,18 @@ $coverFromFolder = function (?int $tourId): string {
                             <strong>{{ __('adminlte::adminlte.adult') }}</strong>
                             <small>({{ __('adminlte::adminlte.age_10_plus') }})</small>
                           </div>
-                          <strong style="color:#006633">
-                            ${{ number_format($tour->adult_price, 2) }}
-                          </strong>
+                          <strong style="color:#006633">${{ number_format($tour->adult_price, 2) }}</strong>
                         </div>
                         <div class="d-flex justify-content-between">
                           <div>
                             <strong>{{ __('adminlte::adminlte.kid') }}</strong>
                             <small>({{ __('adminlte::adminlte.age_4_to_9') }})</small>
                           </div>
-                          <strong style="color:#006633">
-                            ${{ number_format($tour->kid_price, 2) }}
-                          </strong>
+                          <strong style="color:#006633">${{ number_format($tour->kid_price, 2) }}</strong>
                         </div>
                       </div>
 
-                      <a href="{{ route('tours.show', $tour->tour_id) }}"
-                         class="btn btn-success w-100 mt-2">
+                      <a href="{{ route('tours.show', $tour->tour_id) }}" class="btn btn-success w-100 mt-2">
                         {{ __('adminlte::adminlte.see_tour') }}
                       </a>
                     </div>
@@ -147,8 +132,9 @@ $coverFromFolder = function (?int $tourId): string {
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-danger"
-                  data-bs-dismiss="modal">{{ __('adminlte::adminlte.close') }}</button>
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+            {{ __('adminlte::adminlte.close') }}
+          </button>
         </div>
       </div>
     </div>
