@@ -1,14 +1,12 @@
 <?php
 /*************************************************************
- *  CONFIG MODULE – TRANSLATIONS (EN)
- *  File: resources/lang/en/m_config.php
- *
  *  Index (searchable anchors)
- *  [01] POLICIES LINE 16
- *  [02] TOURTYPES LINE 134
- *  [03] FAQ LINE 193
- *  [04] TRANSLATIONS LINE 244
- *  [05] PROMOCODE LINE 354
+ *  [01] POLICIES LINE 20
+ *  [02] TOURTYPES LINE 139
+ *  [03] FAQ LINE 198
+ *  [04] TRANSLATIONS LINE 249
+ *  [05] PROMOCODE LINE 359
+ *  [06] CUT-OFF LINE 436
  *************************************************************/
 
 return [
@@ -67,7 +65,7 @@ return [
 
         // Public
         'page_title'              => 'Policies',
-        'no_policies'             => 'There are no policies available at the moment.',
+        'no_policies'             => 'No policies available at the moment.',
         'section'                 => 'Section',
         'cancellation_policy'     => 'Cancellation policy',
         'refund_policy'           => 'Refund policy',
@@ -81,20 +79,20 @@ return [
         'category_deactivated'    => 'Category deactivated successfully.',
         'category_deleted'        => 'Category deleted successfully.',
 
-        // --- NEW KEYS (refactor / utilities) ---
+        // --- New keys (refactor / utilities) ---
         'untitled'                => 'Untitled',
         'no_content'              => 'No content available.',
         'display_name'            => 'Display name',
         'name'                    => 'Name',
         'name_base'               => 'Base name',
-        'name_base_help'          => 'Short identifier/slug for the section (internal only).',
+        'name_base_help'          => 'Short identifier/slug of the section (internal only).',
         'translation_content'     => 'Content',
         'locale'                  => 'Language',
         'save'                    => 'Save',
         'name_base_label'         => 'Base name',
         'translation_name'        => 'Translated name',
         'lang_autodetect_hint'    => 'You can write in any language; it will be detected automatically.',
-        'bulk_edit_sections'      => 'Bulk edit sections',
+        'bulk_edit_sections'      => 'Quick edit of sections',
         'bulk_edit_hint'          => 'Changes to all sections will be saved together with the category translation when you click "Save".',
         'no_changes_made'         => 'No changes made.',
         'no_sections_found'       => 'No sections found.',
@@ -115,7 +113,7 @@ return [
         'deactivated_success'     => 'Deactivated successfully.',
         'unexpected_error'        => 'An unexpected error occurred.',
 
-        // Buttons / common texts (SweetAlert)
+        // Buttons / common SweetAlert texts
         'create'                  => 'Create',
         'activate'                => 'Activate',
         'deactivate'              => 'Deactivate',
@@ -165,17 +163,17 @@ return [
         'edit_title'              => 'Edit Tour Type',
         'create_title'            => 'Create Tour Type',
 
-        // Placeholders / hints
-        'examples_placeholder'    => 'E.g.: Adventure, Nature, Relax',
-        'duration_placeholder'    => 'E.g.: 4 hours, 8 hours',
+        // Placeholders / help
+        'examples_placeholder'    => 'e.g., Adventure, Nature, Relax',
+        'duration_placeholder'    => 'e.g., 4 hours, 8 hours',
         'suggested_duration_hint' => 'Suggested format: "4 hours", "8 hours".',
-        'keep_default_hint'       => 'Leave "4 hours" if it applies; you can change it.',
+        'keep_default_hint'       => 'Leave "4 hours" if applicable; you can change it.',
         'optional'                => 'optional',
 
         // Confirmations
-        'confirm_delete'          => 'Are you sure you want to delete ":name"? This action cannot be undone.',
-        'confirm_activate'        => 'Are you sure you want to activate ":name"?',
-        'confirm_deactivate'      => 'Are you sure you want to deactivate ":name"?',
+        'confirm_delete'          => 'Delete ":name"? This action cannot be undone.',
+        'confirm_activate'        => 'Activate ":name"?',
+        'confirm_deactivate'      => 'Deactivate ":name"?',
 
         // Messages (flash)
         'created_success'         => 'Tour type created successfully.',
@@ -183,7 +181,7 @@ return [
         'deleted_success'         => 'Tour type deleted successfully.',
         'activated_success'       => 'Tour type activated successfully.',
         'deactivated_success'     => 'Tour type deactivated successfully.',
-        'in_use_error'            => 'Cannot delete: this tour type is in use.',
+        'in_use_error'            => 'Could not delete: this tour type is in use.',
         'unexpected_error'        => 'An unexpected error occurred. Please try again.',
 
         // Validation / generic
@@ -247,8 +245,8 @@ return [
     // =========================================================
     'translations' => [
         // Titles / general texts
-        'title'                 => 'Translation Management',
-        'index_title'           => 'Translation management',
+        'title'                 => 'Translations Management',
+        'index_title'           => 'Translations management',
         'select_entity_title'   => 'Select :entity to translate',
         'edit_title'            => 'Edit translation',
         'main_information'      => 'Main information',
@@ -256,13 +254,13 @@ return [
         'save'                  => 'Save',
         'validation_errors'     => 'There are validation errors',
         'updated_success'       => 'Translation updated successfully.',
-        'unexpected_error'      => 'The translation could not be updated.',
+        'unexpected_error'      => 'Could not update the translation.',
 
         // Language selector (screen and helpers)
-        'choose_locale_title'   => 'Choose language',
-        'choose_locale_hint'    => 'Select the language you want to translate this item into.',
-        'select_language_title' => 'Choose language',
-        'select_language_intro' => 'Select the language you want to translate this item into.',
+        'choose_locale_title'   => 'Select language',
+        'choose_locale_hint'    => 'Choose the language you want to translate this item into.',
+        'select_language_title' => 'Select language',
+        'select_language_intro' => 'Choose the language you want to translate this item into.',
         'languages' => [
             'es' => 'Spanish',
             'en' => 'English',
@@ -273,30 +271,28 @@ return [
 
         // Listings / buttons
         'select'                => 'Select',
-        'id_unavailable'        => 'ID not available',
+        'id_unavailable'        => 'ID unavailable',
         'no_items'              => 'No :entity available to translate.',
 
-        // Common form fields (direct compatibility with existing blades)
+        // Common translation form fields
         'name'                  => 'Name',
         'description'           => 'Description',
         'content'               => 'Content',
         'overview'              => 'Overview',
         'itinerary'             => 'Itinerary',
-        'itinerary_name'        => 'Itinerary Name',
-        'itinerary_description' => 'Itinerary Description',
-        'itinerary_items'       => 'Itinerary Items',
+        'itinerary_name'        => 'Itinerary name',
+        'itinerary_description' => 'Itinerary description',
+        'itinerary_items'       => 'Itinerary items',
         'item'                  => 'Item',
-        'item_title'            => 'Item Title',
-        'item_description'      => 'Item Description',
+        'item_title'            => 'Item title',
+        'item_description'      => 'Item description',
         'sections'              => 'Sections',
         'edit'                  => 'Edit',
         'close'                 => 'Close',
         'actions'               => 'Actions',
 
         // === Modular field labels =============================
-        // Use as: __('m_config.translations.fields.<field>')
         'fields' => [
-            // Generic
             'name'                  => 'Name',
             'title'                 => 'Title',
             'overview'              => 'Overview',
@@ -306,7 +302,7 @@ return [
             'question'              => 'Question',
             'answer'                => 'Answer',
 
-            // Itinerary / items (tour partial)
+            // Itinerary / items (tours partial)
             'itinerary'             => 'Itinerary',
             'itinerary_name'        => 'Itinerary name',
             'itinerary_description' => 'Itinerary description',
@@ -315,9 +311,7 @@ return [
             'item_description'      => 'Item description',
         ],
 
-        // === Entity-based field overrides (optional) ==========
-        // In the blade: try entity_fields.<type>.<field> first,
-        // if not present, use fields.<field>.
+        // === Overrides by ENTITY and FIELD (optional) =========
         'entity_fields' => [
             'tour_types' => [
                 'duration' => 'Suggested duration',
@@ -355,79 +349,201 @@ return [
     // =========================================================
     // ==== PROMOCODE ==========================================
     // =========================================================
-   'promocode' => [
-    'title'        => 'Promo Codes',
-    'create_title' => 'Generate new promo code',
-    'list_title'   => 'Existing promo codes',
+    'promocode' => [
+        'title'        => 'Promotional Codes',
+        'create_title' => 'Generate new promo code',
+        'list_title'   => 'Existing promo codes',
 
-    'success_title' => 'Success',
-    'error_title'   => 'Error',
+        'success_title' => 'Success',
+        'error_title'   => 'Error',
 
-    'fields' => [
-        'code'        => 'Code',
-        'discount'    => 'Discount',
-        'type'        => 'Type',
-        'valid_from'  => 'Valid from',
-        'valid_until' => 'Valid until',
-        'usage_limit' => 'Usage limit',
+        'fields' => [
+            'code'        => 'Code',
+            'discount'    => 'Discount',
+            'type'        => 'Type',
+            'valid_from'  => 'Valid from',
+            'valid_until' => 'Valid until',
+            'usage_limit' => 'Usage limit',
+        ],
+
+        'types' => [
+            'percent' => '%',
+            'amount'  => '$',
+        ],
+
+        'symbols' => [
+            'percent'  => '%',
+            'currency' => '$',
+        ],
+
+        'table' => [
+            'code'         => 'Code',
+            'discount'     => 'Discount',
+            'validity'     => 'Validity',
+            'date_status'  => 'Status (date)',
+            'usage'        => 'Usage',
+            'usage_status' => 'Status (usage)',
+            'actions'      => 'Actions',
+        ],
+
+        'status' => [
+            'used'      => 'Used',
+            'available' => 'Available',
+        ],
+
+        'date_status' => [
+            'scheduled' => 'Scheduled',
+            'active'    => 'Active',
+            'expired'   => 'Expired',
+        ],
+
+        'actions' => [
+            'generate' => 'Generate',
+            'delete'   => 'Delete',
+        ],
+
+        'labels' => [
+            'unlimited_placeholder' => 'Empty = unlimited',
+            'unlimited_hint'        => 'Leave empty for unlimited uses. Set 1 for single use.',
+            'no_limit'              => '(no limit)',
+            'remaining'             => 'remaining',
+        ],
+
+        'confirm_delete' => 'Are you sure you want to delete this code?',
+        'empty'          => 'No promo codes available.',
+
+        'messages' => [
+            'created_success'         => 'Promo code created successfully.',
+            'deleted_success'         => 'Promo code deleted successfully.',
+            'percent_over_100'        => 'Percentage cannot be greater than 100.',
+            'code_exists_normalized'  => 'This code (ignoring spaces and case) already exists.',
+            'invalid_or_used'         => 'Invalid or already used code.',
+            'valid'                   => 'Valid code.',
+            'server_error'            => 'Server error, please try again.',
+        ],
     ],
 
-    'types' => [
-        'percent' => '%',
-        'amount'  => '$',
+    // =========================================================
+    // ==== CUTOFF =============================================
+    // =========================================================
+    'cut-off' => [
+        // Titles / headers
+        'title'       => 'Cut-off Settings',
+        'header'      => 'Booking Settings',
+        'server_time' => 'Server time (:tz)',
+
+        // Tabs
+        'tabs' => [
+            'global'   => 'Global (default)',
+            'tour'     => 'Tour Lock',
+            'schedule' => 'Schedule Lock',
+            'summary'  => 'Summary',
+            'help'     => 'Help',
+        ],
+
+        // Fields
+        'fields' => [
+            'cutoff_hour'       => 'Cut-off time (24h)',
+            'cutoff_hour_short' => 'Cut-off (24h)',
+            'lead_days'         => 'Lead days',
+            'timezone'          => 'Time zone',
+            'tour'              => 'Tour',
+            'schedule'          => 'Schedule',
+        ],
+
+        // Selects / placeholders
+        'selects' => [
+            'tour' => '— Select a tour —',
+            'time' => '— Select a time —',
+        ],
+
+        // Labels
+        'labels' => [
+            'status' => 'Status',
+        ],
+
+        // Badges / chips
+        'badges' => [
+            'inherits'            => 'Inherits Global',
+            'override'            => 'Lock',
+            'inherit_tour_global' => 'Inherits from Tour/Global',
+            'schedule'            => 'Schedule',
+            'tour'                => 'Tour',
+            'global'              => 'Global',
+        ],
+
+        // Actions
+        'actions' => [
+            'save_global'   => 'Save global',
+            'save_tour'     => 'Save tour lock',
+            'save_schedule' => 'Save schedule lock',
+            'clear'         => 'Clear lock',
+            'confirm'       => 'Confirm',
+            'cancel'        => 'Cancel',
+            'actions'      => 'Actions',
+
+        ],
+
+        // Confirmations (modals)
+        'confirm' => [
+            'tour' => [
+                'title' => 'Save tour lock?',
+                'text'  => 'A specific lock will be applied for this tour. Leave empty to inherit.',
+            ],
+            'schedule' => [
+                'title' => 'Save schedule lock?',
+                'text'  => 'A specific lock will be applied for this schedule. Leave empty to inherit.',
+            ],
+        ],
+
+        // Summary
+        'summary' => [
+            'tour_title'            => 'Tour Locks',
+            'no_tour_overrides'     => 'No tour-level locks.',
+            'schedule_title'        => 'Schedule Locks',
+            'no_schedule_overrides' => 'No schedule-level locks.',
+            'search_placeholder'    => 'Search tour or schedule…',
+        ],
+
+        // Flash / toasts
+        'flash' => [
+            'success_title' => 'Success',
+            'error_title'   => 'Error',
+        ],
+
+        // Help
+        'help' => [
+            'title'      => 'How does it work?',
+            'global'     => 'Default value for the entire site.',
+            'tour'       => 'If a tour has cut-off/lead days, it takes precedence over Global.',
+            'schedule'   => 'If a tour schedule has a lock, it takes precedence over the Tour.',
+            'precedence' => 'Precedence',
+        ],
+
+        // Hints
+        'hints' => [
+            // Global
+            'cutoff_example'    => 'e.g., :ex. After this time, “today” is no longer available.',
+            'pattern_24h'       => '24h format HH:MM (e.g., 09:30, 18:00).',
+            'cutoff_behavior'   => 'If the cut-off time has passed, the soonest available date moves to the next day.',
+            'lead_days'         => 'Minimum days in advance (0 allows booking today if the cut-off has not passed).',
+            'lead_days_detail'  => 'Allowed range: 0–30. 0 allows same-day booking if the cut-off has not passed.',
+            'timezone_source'   => 'Taken from config(\'app.timezone\').',
+
+            // Tour
+            'pick_tour'             => 'Select a tour first; then define its lock (optional).',
+            'tour_override_explain' => 'If you set only one (cut-off or days), the other inherits from Global.',
+            'clear_button_hint'     => 'Use “Clear lock” to return to inheritance.',
+            'leave_empty_inherit'   => 'Leave empty to inherit.',
+
+            // Schedule
+            'pick_schedule'             => 'Then select the tour’s schedule.',
+            'schedule_override_explain' => 'Values here take precedence over the Tour. Leave empty to inherit.',
+            'schedule_precedence_hint'  => 'Precedence: Schedule → Tour → Global.',
+
+            // Summary
+            'dash_means_inherit' => 'The “—” symbol indicates that the value is inherited.',
+        ],
     ],
-
-    'symbols' => [
-        'percent'  => '%',
-        'currency' => '$',
-    ],
-
-    'table' => [
-        'code'         => 'Code',
-        'discount'     => 'Discount',
-        'validity'     => 'Validity',
-        'date_status'  => 'Status (date)',
-        'usage'        => 'Uses',
-        'usage_status' => 'Status (usage)',
-        'actions'      => 'Actions',
-    ],
-
-    'status' => [
-        'used'      => 'Used',
-        'available' => 'Available',
-    ],
-
-    'date_status' => [
-        'scheduled' => 'Scheduled',
-        'active'    => 'Active',
-        'expired'   => 'Expired',
-    ],
-
-    'actions' => [
-        'generate' => 'Generate',
-        'delete'   => 'Delete',
-    ],
-
-    'labels' => [
-        'unlimited_placeholder' => 'Empty = unlimited',
-        'unlimited_hint'        => 'Leave empty for unlimited uses. Set 1 for single use.',
-        'no_limit'              => '(no limit)',
-        'remaining'             => 'remaining',
-    ],
-
-    'confirm_delete' => 'Are you sure you want to delete this code?',
-    'empty'          => 'No promo codes available.',
-
-    'messages' => [
-        'created_success'        => 'Promo code created successfully.',
-        'deleted_success'        => 'Promo code deleted successfully.',
-        'percent_over_100'       => 'The percentage cannot be greater than 100.',
-        'code_exists_normalized' => 'This code (ignoring spaces and case) already exists.',
-        'invalid_or_used'        => 'Invalid code, out of validity or with no remaining uses.',
-        'valid'                  => 'Valid code.',
-        'server_error'           => 'Server error, please try again.',
-    ],
-],
-
 
 ];
