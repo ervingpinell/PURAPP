@@ -19,8 +19,8 @@ return [
     // =========================================================
     'policies' => [
         // Títulos / encabezados
-        'categories_title'        => 'Categorías de Políticas',
-        'sections_title'          => 'Secciones — :policy',
+        'categories_title'        => 'Políticas',
+        'sections_title'          => 'Secciones',
 
         // Columnas / campos comunes
         'id'                      => 'ID',
@@ -197,7 +197,7 @@ return [
     // =========================================================
     'faq' => [
         // Título / cabecera
-        'title'            => 'Preguntas Frecuentes',
+        'title'            => 'FAQ',
 
         // Campos / columnas
         'question'         => 'Pregunta',
@@ -435,8 +435,8 @@ return [
 // =========================================================
 'cut-off' => [
     // Títulos / encabezados
-    'title'       => 'Configuración de Cut-off',
-    'header'      => 'Booking Settings',
+    'title'       => 'Cut-off',
+    'header'      => 'Configuración de Cut-Off',
     'server_time' => 'Hora del servidor (:tz)',
 
     // Tabs

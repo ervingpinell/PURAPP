@@ -15,7 +15,7 @@ return [
     */
 
     'title' => '',
-    'title_prefix' => 'Green Vacations CR',
+    'title_prefix' => 'GV |',
     'title_postfix' => '',
 
     /*

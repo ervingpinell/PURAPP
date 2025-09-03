@@ -282,81 +282,103 @@ return [
         ],
     ],
 
-    // =========================================================
-    // [05] ITINERARY
-    // =========================================================
-    'itinerary' => [
-        'fields' => [
-            'name'                 => 'Nombre del itinerario',
-            'description'          => 'Descripción',
-            'description_optional' => 'Descripción (opcional)',
+// =========================================================
+// [05] ITINERARY
+// =========================================================
+'itinerary' => [
+    'fields' => [
+        'name'                 => 'Nombre del itinerario',
+        'description'          => 'Descripción',
+        'description_optional' => 'Descripción (opcional)',
+    ],
+
+    'status' => [
+        'active'   => 'Activo',
+        'inactive' => 'Inactivo',
+    ],
+
+    'ui' => [
+        'page_title'    => 'Itinerarios y Ítems',
+        'page_heading'  => 'Itinerarios y Gestión de Ítems',
+        'new_itinerary' => 'Nuevo Itinerario',
+
+        'assign'        => 'Asignar',
+        'edit'          => 'Editar',
+        'save'          => 'Guardar',
+        'cancel'        => 'Cancelar',
+        'close'         => 'Cerrar',
+        'create_title'  => 'Crear nuevo itinerario',
+        'create_button' => 'Crear',
+
+        'toggle_on'  => 'Activar itinerario',
+        'toggle_off' => 'Desactivar itinerario',
+        'toggle_confirm_on_title'  => '¿Activar itinerario?',
+        'toggle_confirm_off_title' => '¿Desactivar itinerario?',
+        'toggle_confirm_on_html'   => 'El itinerario <b>:label</b> quedará <b>activo</b>.',
+        'toggle_confirm_off_html'  => 'El itinerario <b>:label</b> quedará <b>inactivo</b>.',
+        'yes_continue' => 'Sí, continuar',
+
+        'assign_title'          => 'Asignar ítems a :name',
+        'drag_hint'             => 'Arrastra y suelta los ítems para definir el orden.',
+        'drag_handle'           => 'Arrastrar para reordenar',
+        'select_one_title'      => 'Debes seleccionar al menos un ítem',
+        'select_one_text'       => 'Por favor, selecciona al menos un ítem para continuar.',
+        'assign_confirm_title'  => '¿Asignar ítems seleccionados?',
+        'assign_confirm_button' => 'Sí, asignar',
+        'assigning'             => 'Asignando...',
+
+        'no_items_assigned'       => 'No hay ítems asignados a este itinerario.',
+        'itinerary_this'          => 'este itinerario',
+        'processing'              => 'Procesando...',
+        'saving'                  => 'Guardando...',
+        'activating'              => 'Activando...',
+        'deactivating'            => 'Desactivando...',
+        'applying'                => 'Aplicando...',
+        'deleting'                => 'Eliminando...',
+        'flash_success_title'     => 'Éxito',
+        'flash_error_title'       => 'Error',
+        'validation_failed_title' => 'No se pudo procesar',
+    ],
+
+    'success' => [
+        'created'        => 'Itinerario creado correctamente.',
+        'updated'        => 'Itinerario actualizado correctamente.',
+        'activated'      => 'Itinerario activado correctamente.',
+        'deactivated'    => 'Itinerario desactivado correctamente.',
+        'deleted'        => 'Itinerario eliminado definitivamente.',
+        'items_assigned' => 'Ítems asignados correctamente.',
+    ],
+
+    'error' => [
+        'create'  => 'No se pudo crear el itinerario.',
+        'update'  => 'No se pudo actualizar el itinerario.',
+        'toggle'  => 'No se pudo cambiar el estado del itinerario.',
+        'delete'  => 'No se pudo eliminar el itinerario.',
+        'assign'  => 'No se pudieron asignar los ítems.',
+    ],
+
+    'validation' => [
+        'name' => [
+            'required' => 'El nombre del itinerario es obligatorio.',
+            'string'   => 'El nombre debe ser texto.',
+            'max'      => 'El nombre no puede exceder 255 caracteres.',
+            'unique'   => 'Ya existe un itinerario con ese nombre.',
         ],
-
-        'status' => [
-            'active'   => 'Activo',
-            'inactive' => 'Inactivo',
+        'description' => [
+            'string' => 'La descripción debe ser texto.',
+            'max'    => 'La descripción no puede exceder 1000 caracteres.',
         ],
-
-        'ui' => [
-            'page_title'    => 'Itinerarios y Ítems',
-            'page_heading'  => 'Itinerarios y Gestión de Ítems',
-            'new_itinerary' => 'Nuevo Itinerario',
-
-            'assign'        => 'Asignar',
-            'edit'          => 'Editar',
-            'save'          => 'Guardar',
-            'cancel'        => 'Cancelar',
-            'close'         => 'Cerrar',
-            'create_title'  => 'Crear nuevo itinerario',
-            'create_button' => 'Crear',
-
-            'toggle_on'  => 'Activar itinerario',
-            'toggle_off' => 'Desactivar itinerario',
-            'toggle_confirm_on_title'  => '¿Activar itinerario?',
-            'toggle_confirm_off_title' => '¿Desactivar itinerario?',
-            'toggle_confirm_on_html'   => 'El itinerario <b>:label</b> quedará <b>activo</b>.',
-            'toggle_confirm_off_html'  => 'El itinerario <b>:label</b> quedará <b>inactivo</b>.',
-            'yes_continue' => 'Sí, continuar',
-
-            'assign_title'          => 'Asignar ítems a :name',
-            'drag_hint'             => 'Arrastra y suelta los ítems para definir el orden.',
-            'drag_handle'           => 'Arrastrar para reordenar',
-            'select_one_title'      => 'Debes seleccionar al menos un ítem',
-            'select_one_text'       => 'Por favor, selecciona al menos un ítem para continuar.',
-            'assign_confirm_title'  => '¿Asignar ítems seleccionados?',
-            'assign_confirm_button' => 'Sí, asignar',
-            'assigning'             => 'Asignando...',
-
-            'no_items_assigned'       => 'No hay ítems asignados a este itinerario.',
-            'itinerary_this'          => 'este itinerario',
-            'processing'              => 'Procesando...',
-            'saving'                  => 'Guardando...',
-            'activating'              => 'Activando...',
-            'deactivating'            => 'Desactivando...',
-            'applying'                => 'Aplicando...',
-            'deleting'                => 'Eliminando...',
-            'flash_success_title'     => 'Éxito',
-            'flash_error_title'       => 'Error',
-            'validation_failed_title' => 'No se pudo procesar',
-        ],
-
-        'success' => [
-            'created'        => 'Itinerario creado correctamente.',
-            'updated'        => 'Itinerario actualizado correctamente.',
-            'activated'      => 'Itinerario activado correctamente.',
-            'deactivated'    => 'Itinerario desactivado correctamente.',
-            'deleted'        => 'Itinerario eliminado definitivamente.',
-            'items_assigned' => 'Ítems asignados correctamente.',
-        ],
-
-        'error' => [
-            'create'  => 'No se pudo crear el itinerario.',
-            'update'  => 'No se pudo actualizar el itinerario.',
-            'toggle'  => 'No se pudo cambiar el estado del itinerario.',
-            'delete'  => 'No se pudo eliminar el itinerario.',
-            'assign'  => 'No se pudieron asignar los ítems.',
+        'items' => [
+            'required'      => 'Debes seleccionar al menos un ítem.',
+            'array'         => 'El formato de los ítems no es válido.',
+            'min'           => 'Debes seleccionar al menos un ítem.',
+            'order_integer' => 'El orden debe ser un número entero.',
+            'order_min'     => 'El orden no puede ser negativo.',
+            'order_max'     => 'El orden no puede exceder 9999.',
         ],
     ],
+],
+
 
     // =========================================================
     // [06] LANGUAGE
@@ -585,19 +607,19 @@ return [
     'upload_truncated'    => 'Algunos archivos se omitieron por el límite por tour.',
     'done'                => 'Listo',
     'notice'              => 'Aviso',
-    'saved'               => 'Guardado',
+    'saved'               => 'Guardar',
     'caption_updated'     => 'Leyenda actualizada correctamente.',
     'deleted'             => 'Eliminado',
     'image_removed'       => 'Imagen eliminada correctamente.',
     'invalid_order'       => 'Carga de orden inválida.',
     'nothing_to_reorder'  => 'Nada que reordenar.',
     'order_saved'         => 'Orden guardado.',
-    'cover_updated_title' => 'Portada actualizada',
+    'cover_updated_title' => 'Actualizar portada',
     'cover_updated_text'  => 'Esta imagen ahora es la portada.',
     'deleting'            => 'Eliminando...',
 
     'ui' => [
-        'page_title_pick'     => 'Imágenes de Tours — Elegir tour',
+        'page_title_pick'     => 'Imágenes de Tours',
         'page_heading'        => 'Imágenes de Tours',
         'choose_tour'         => 'Elegir tour',
         'search_placeholder'  => 'Buscar por ID o nombre…',
@@ -608,7 +630,7 @@ return [
         'images_label'        => 'imágenes',
         'upload_btn'          => 'Subir',
         'caption_placeholder' => 'Leyenda (opcional)',
-        'set_cover_btn'       => 'Establecer como portada',
+        'set_cover_btn'       => 'Elige la imagen que quieres como portada',
         'no_images'           => 'Aún no hay imágenes para este tour.',
         'delete_btn'          => 'Eliminar',
         'show_btn'            => 'Mostrar',

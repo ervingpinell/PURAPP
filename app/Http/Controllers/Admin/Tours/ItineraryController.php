@@ -35,9 +35,9 @@ class ItineraryController extends Controller
             $data        = $request->validated();
             $name        = $data['name'];
             $description = (string) ($data['description'] ?? '');
-            $locales     = ['es', 'en', 'fr', 'pt', 'de'];
+            $locales     = config('i18n.supported_locales', ['es','en','fr','pt','de']);
 
-            DB::transaction(function () use ($name, $description, $locales, $translator, $request) {
+            $itinerary = DB::transaction(function () use ($name, $description, $locales, $translator) {
                 $itinerary = Itinerary::create([
                     'name'        => $name,
                     'description' => $description,
@@ -57,13 +57,24 @@ class ItineraryController extends Controller
                     ]);
                 }
 
-                LoggerHelper::mutated($this->controller, 'store', 'itinerary', $itinerary->itinerary_id, [
-                    'locales_saved' => count($locales),
-                    'user_id'       => optional($request->user())->getAuthIdentifier(),
-                ]);
+                return $itinerary;
             });
 
+            if (! $itinerary) {
+                LoggerHelper::error($this->controller, 'store', 'Itinerary null after commit', [
+                    'entity'  => 'itinerary',
+                    'user_id' => optional($request->user())->getAuthIdentifier(),
+                ]);
+                return back()->with('error', __('m_tours.itinerary.error.create'));
+            }
+
+            LoggerHelper::mutated($this->controller, 'store', 'itinerary', $itinerary->itinerary_id, [
+                'locales_saved' => count($locales),
+                'user_id'       => optional($request->user())->getAuthIdentifier(),
+            ]);
+
             return back()->with('success', __('m_tours.itinerary.success.created'));
+
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'itinerary', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -90,6 +101,7 @@ class ItineraryController extends Controller
             return redirect()
                 ->route('admin.tours.itinerary.index')
                 ->with('success', __('m_tours.itinerary.success.updated'));
+
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'update', 'itinerary', $itinerary->itinerary_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -100,14 +112,16 @@ class ItineraryController extends Controller
     }
 
     /**
-     * Toggle activar/desactivar itinerario (DELETE en la UI para mantener patrón con otros toggles)
+     * Toggle activar/desactivar itinerario
      */
-    public function destroy(Itinerary $itinerary)
+    public function toggle(Itinerary $itinerary)
     {
         try {
-            $itinerary->update(['is_active' => ! $itinerary->is_active]);
+            // Race-safe: NOT is_active a nivel de DB
+            Itinerary::whereKey($itinerary->getKey())->update(['is_active' => DB::raw('NOT is_active')]);
+            $itinerary->refresh();
 
-            LoggerHelper::mutated($this->controller, 'destroy', 'itinerary', $itinerary->itinerary_id, [
+            LoggerHelper::mutated($this->controller, 'toggle', 'itinerary', $itinerary->itinerary_id, [
                 'is_active' => $itinerary->is_active,
                 'user_id'   => optional(request()->user())->getAuthIdentifier(),
             ]);
@@ -117,8 +131,9 @@ class ItineraryController extends Controller
                 : __('m_tours.itinerary.success.deactivated');
 
             return back()->with('success', $msg);
+
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'destroy', 'itinerary', $itinerary->itinerary_id ?? null, $e, [
+            LoggerHelper::exception($this->controller, 'toggle', 'itinerary', $itinerary->itinerary_id ?? null, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
@@ -127,17 +142,43 @@ class ItineraryController extends Controller
     }
 
     /**
-     * Asignar ítems a un itinerario (recibe item_ids[ID]=orden desde el modal)
+     * Eliminación definitiva (NO usar aún).
+     * Dejo el método comentado para cuando quieras habilitarlo.
+     */
+    /*
+    public function destroy(Itinerary $itinerary)
+    {
+        try {
+            $id = $itinerary->itinerary_id;
+            $itinerary->delete();
+
+            LoggerHelper::mutated($this->controller, 'destroy', 'itinerary', $id, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('success', __('m_tours.itinerary.success.deleted'));
+
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'destroy', 'itinerary', $itinerary->itinerary_id ?? null, $e, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('error', __('m_tours.itinerary.error.delete'));
+        }
+    }
+    */
+
+    /**
+     * Asignar ítems a un itinerario (recibe items[ID]=orden desde el modal)
      */
     public function assignItems(AssignItineraryItemsRequest $request, Itinerary $itinerary)
     {
         try {
-            $data   = $request->validated();
-            // Soporta ambos nombres de campo por compatibilidad
-            $rawMap = $data['item_ids'] ?? $data['items'] ?? [];
+            $data = $request->validated();
+            $map  = $data['items'] ?? []; // normalizado por el Request
 
             $pivotData = [];
-            foreach ($rawMap as $itemId => $order) {
+            foreach ($map as $itemId => $order) {
                 $pivotData[(int) $itemId] = [
                     'item_order' => (int) $order,
                     'is_active'  => true,
@@ -154,6 +195,7 @@ class ItineraryController extends Controller
             return redirect()
                 ->route('admin.tours.itinerary.index')
                 ->with('success', __('m_tours.itinerary.success.items_assigned'));
+
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'assignItems', 'itinerary', $itinerary->itinerary_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),

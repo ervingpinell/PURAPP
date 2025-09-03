@@ -18,7 +18,6 @@ class UpdateItineraryRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        // Normaliza antes de validar
         $this->merge([
             'name'        => $this->string('name')->trim()->toString(),
             'description' => $this->filled('description')
@@ -29,39 +28,39 @@ class UpdateItineraryRequest extends FormRequest
 
     public function rules(): array
     {
-        // Asegúrate de que el parámetro de ruta se llame {itinerary}
-        $itinerary = $this->route('itinerary'); // Model \App\Models\Itinerary
-        $id        = $itinerary?->itinerary_id; // clave primaria personalizada
+        $itinerary = $this->route('itinerary');
+        $id        = $itinerary?->itinerary_id;
 
         return [
             'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('itineraries', 'name')->ignore($id, 'itinerary_id'),
+                'bail','required','string','max:255',
+                Rule::unique('itineraries','name')->ignore($id, 'itinerary_id'),
             ],
-            'description' => ['nullable', 'string', 'max:1000'],
+            'description' => ['nullable','string','max:1000'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'name.required'   => 'El nombre del itinerario es obligatorio.',
-            'name.string'     => 'El nombre debe ser texto.',
-            'name.max'        => 'El nombre no puede exceder 255 caracteres.',
-            'name.unique'     => 'Ya existe un itinerario con ese nombre.',
-            'description.string' => 'La descripción debe ser texto.',
-            'description.max'    => 'La descripción no puede exceder 1000 caracteres.',
+            'name.required'     => __('m_tours.itinerary.validation.name.required'),
+            'name.string'       => __('m_tours.itinerary.validation.name.string'),
+            'name.max'          => __('m_tours.itinerary.validation.name.max'),
+            'name.unique'       => __('m_tours.itinerary.validation.name.unique'),
+            'description.string'=> __('m_tours.itinerary.validation.description.string'),
+            'description.max'   => __('m_tours.itinerary.validation.description.max'),
         ];
     }
 
     protected function failedValidation(Validator $validator)
     {
-        LoggerHelper::validationFailed($this->controller, 'update', $validator->errors()->toArray(), [
-            'entity'  => 'itinerary',
-            'entity_id' => optional($this->route('itinerary'))->itinerary_id,
-            'user_id' => optional($this->user())->getAuthIdentifier(),
+        $itinerary = $this->route('itinerary');
+        $action    = $this->route()?->getActionMethod() ?? 'update';
+
+        LoggerHelper::validationFailed($this->controller, $action, $validator->errors()->toArray(), [
+            'entity'    => 'itinerary',
+            'entity_id' => $itinerary?->itinerary_id,
+            'user_id'   => optional($this->user())->getAuthIdentifier(),
         ]);
 
         parent::failedValidation($validator);

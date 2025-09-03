@@ -29,26 +29,28 @@ class StoreItineraryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => ['required', 'string', 'max:255', Rule::unique('itineraries', 'name')],
-            'description' => ['nullable', 'string', 'max:1000'],
+            'name'        => ['bail','required','string','max:255', Rule::unique('itineraries','name')],
+            'description' => ['nullable','string','max:1000'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'name.required'   => 'El nombre del itinerario es obligatorio.',
-            'name.string'     => 'El nombre debe ser texto.',
-            'name.max'        => 'El nombre no puede exceder 255 caracteres.',
-            'name.unique'     => 'Ya existe un itinerario con ese nombre.',
-            'description.string' => 'La descripción debe ser texto.',
-            'description.max'    => 'La descripción no puede exceder 1000 caracteres.',
+            'name.required'     => __('m_tours.itinerary.validation.name.required'),
+            'name.string'       => __('m_tours.itinerary.validation.name.string'),
+            'name.max'          => __('m_tours.itinerary.validation.name.max'),
+            'name.unique'       => __('m_tours.itinerary.validation.name.unique'),
+            'description.string'=> __('m_tours.itinerary.validation.description.string'),
+            'description.max'   => __('m_tours.itinerary.validation.description.max'),
         ];
     }
 
     protected function failedValidation(Validator $validator)
     {
-        LoggerHelper::validationFailed($this->controller, 'store', $validator->errors()->toArray(), [
+        $action = $this->route()?->getActionMethod() ?? 'store';
+
+        LoggerHelper::validationFailed($this->controller, $action, $validator->errors()->toArray(), [
             'entity'  => 'itinerary',
             'user_id' => optional($this->user())->getAuthIdentifier(),
         ]);

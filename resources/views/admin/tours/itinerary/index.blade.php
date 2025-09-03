@@ -69,8 +69,12 @@
 
     @foreach($itineraries as $itinerary)
         @php
-            $openEditModal = $itineraryToEdit && $itineraryToEdit == $itinerary->itinerary_id;
+            $openEditModal   = $itineraryToEdit && $itineraryToEdit == $itinerary->itinerary_id;
             $expandItinerary = $openEditModal;
+
+            $active   = (bool) $itinerary->is_active;
+            $btnClass = $active ? 'btn-delete' : 'btn-secondary';
+            $label    = $active ? __('m_tours.itinerary.ui.toggle_off') : __('m_tours.itinerary.ui.toggle_on');
         @endphp
 
         <div class="card mb-3" id="card-itinerary-{{ $itinerary->itinerary_id }}">
@@ -99,19 +103,14 @@
                         {{ __('m_tours.itinerary.ui.edit') }}
                     </a>
 
-                    {{-- Alternar activo/inactivo (usa destroy como toggle) --}}
-                    @php
-                        $active  = (bool) $itinerary->is_active;
-                        $btnClass = $active ? 'btn-delete' : 'btn-secondary';
-                        $label   = $active ? __('m_tours.itinerary.ui.toggle_off') : __('m_tours.itinerary.ui.toggle_on');
-                    @endphp
-                    <form action="{{ route('admin.tours.itinerary.destroy', $itinerary->itinerary_id) }}"
+                    {{-- Alternar activo/inactivo (PATCH a toggle) --}}
+                    <form action="{{ route('admin.tours.itinerary.toggle', $itinerary) }}"
                           method="POST"
                           class="d-inline form-toggle-itinerary"
                           data-name="{{ $itinerary->name }}"
                           data-active="{{ $active ? 1 : 0 }}">
                         @csrf
-                        @method('DELETE')
+                        @method('PATCH')
                         <button class="btn btn-sm {{ $btnClass }}" type="submit">
                             {{ $label }}
                         </button>
@@ -132,7 +131,7 @@
                         <p class="text-warning">{{ __('m_tours.itinerary.ui.no_items_assigned') }}</p>
                     @else
                         <ul class="list-group">
-                            @foreach ($itinerary->items->sortBy('order') as $item)
+                            @foreach ($itinerary->items->sortBy('pivot.item_order') as $item)
                                 <li class="list-group-item">
                                     <strong>{{ $item->title }}</strong><br>
                                 </li>

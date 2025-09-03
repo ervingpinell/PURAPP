@@ -276,6 +276,8 @@ Route::prefix('tours/{tour}/images')->name('tours.images.')->group(function () {
             Route::patch('schedule/{tour}/{schedule}/assignment-toggle', [TourScheduleController::class, 'toggleAssignment'])->name('schedule.assignment.toggle');
 
             Route::resource('itinerary', ItineraryController::class)->except(['show']);
+            Route::patch('itineraries/{itinerary}/toggle', [ItineraryController::class, 'toggle'])
+            ->name('itinerary.toggle');
             Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');
             Route::resource('itinerary_items', ItineraryItemController::class)->except(['show', 'create', 'edit']);
             Route::patch('itinerary_items/{itinerary_item}/toggle', [ItineraryItemController::class, 'toggle'])
