@@ -29,35 +29,45 @@ class ItineraryItemController extends Controller
     public function store(StoreItineraryItemRequest $request, TranslatorInterface $translator)
     {
         try {
-            DB::transaction(function () use ($request, $translator) {
-                $title       = $request->string('title')->trim();
-                $description = $request->string('description')->trim();
-                $locales     = ['es', 'en', 'fr', 'pt', 'de'];
+            $data    = $request->validated();
+            $title   = $data['title'];
+            $desc    = $data['description'];
+            $locales = config('i18n.supported_locales', ['es','en','fr','pt','de']);
 
+            $item = DB::transaction(function () use ($title, $desc, $locales, $translator) {
                 $item = ItineraryItem::create([
                     'title'       => $title,
-                    'description' => $description,
+                    'description' => $desc,
                     'is_active'   => true,
                 ]);
 
-                // Traducciones automáticas
                 $titleTr = $translator->translateAll($title);
-                $descTr  = $translator->translateAll($description);
+                $descTr  = $translator->translateAll($desc);
 
                 foreach ($locales as $locale) {
                     ItineraryItemTranslation::create([
                         'item_id'     => $item->item_id,
                         'locale'      => $locale,
                         'title'       => $titleTr[$locale] ?? $title,
-                        'description' => $descTr[$locale] ?? $description,
+                        'description' => $descTr[$locale] ?? $desc,
                     ]);
                 }
 
-                LoggerHelper::mutated($this->controller, 'store', 'itinerary_item', $item->item_id, [
-                    'locales_saved' => count($locales),
-                    'user_id'       => optional(request()->user())->getAuthIdentifier(),
-                ]);
+                return $item;
             });
+
+            if (! $item) {
+                LoggerHelper::error($this->controller, 'store', 'ItineraryItem null after commit', [
+                    'entity'  => 'itinerary_item',
+                    'user_id' => optional($request->user())->getAuthIdentifier(),
+                ]);
+                return back()->with('error', __('m_tours.itinerary_item.error.create'));
+            }
+
+            LoggerHelper::mutated($this->controller, 'store', 'itinerary_item', $item->item_id, [
+                'locales_saved' => count($locales),
+                'user_id'       => optional($request->user())->getAuthIdentifier(),
+            ]);
 
             return back()->with('success', __('m_tours.itinerary_item.success.created'));
         } catch (Exception $e) {
@@ -71,12 +81,12 @@ class ItineraryItemController extends Controller
     public function update(UpdateItineraryItemRequest $request, ItineraryItem $itinerary_item)
     {
         try {
-            $payload = [
-                'title'       => $request->string('title')->trim(),
-                'description' => $request->string('description')->trim(),
-            ];
+            $data = $request->validated();
 
-            $itinerary_item->update($payload);
+            $itinerary_item->update([
+                'title'       => $data['title'],
+                'description' => $data['description'],
+            ]);
 
             LoggerHelper::mutated($this->controller, 'update', 'itinerary_item', $itinerary_item->item_id, [
                 'is_active' => $itinerary_item->is_active,
@@ -96,10 +106,9 @@ class ItineraryItemController extends Controller
     public function toggle(ToggleItineraryItemRequest $request, ItineraryItem $itinerary_item)
     {
         try {
-            $itinerary_item->update(['is_active' => ! $itinerary_item->is_active]);
+            ItineraryItem::whereKey($itinerary_item->getKey())->update(['is_active' => DB::raw('NOT is_active')]);
             $itinerary_item->refresh();
 
-            // Si se desactiva, desasignarlo de itinerarios
             if (! $itinerary_item->is_active && method_exists($itinerary_item, 'itineraries')) {
                 $itinerary_item->itineraries()->detach();
             }
@@ -126,6 +135,8 @@ class ItineraryItemController extends Controller
     public function destroy(ItineraryItem $itinerary_item)
     {
         try {
+            $id = $itinerary_item->item_id;
+
             DB::transaction(function () use ($itinerary_item) {
                 if (method_exists($itinerary_item, 'itineraries')) {
                     $itinerary_item->itineraries()->detach();
@@ -138,7 +149,7 @@ class ItineraryItemController extends Controller
                 $itinerary_item->delete();
             });
 
-            LoggerHelper::mutated($this->controller, 'destroy', 'itinerary_item', $itinerary_item->item_id, [
+            LoggerHelper::mutated($this->controller, 'destroy', 'itinerary_item', $id, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 

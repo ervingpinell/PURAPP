@@ -19,8 +19,9 @@ class ToggleItineraryItemRequest extends FormRequest
     {
         /** @var ItineraryItem|null $itineraryItem */
         $itineraryItem = $this->route('itinerary_item');
+        $action        = $this->route()?->getActionMethod() ?? 'toggle';
 
-        LoggerHelper::validationFailed($this->controller, 'toggle', $validator->errors()->toArray(), [
+        LoggerHelper::validationFailed($this->controller, $action, $validator->errors()->toArray(), [
             'entity'    => 'itinerary_item',
             'entity_id' => $itineraryItem?->item_id,
             'user_id'   => optional($this->user())->getAuthIdentifier(),

@@ -29,22 +29,31 @@ class UpdateItineraryItemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title'       => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string', 'max:2000'],
-            'is_active'   => ['nullable', 'boolean'],
+            'title'       => ['bail','required','string','max:255'],
+            'description' => ['bail','required','string','max:2000'],
+            'is_active'   => ['nullable','boolean'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'title.required'       => 'El título es obligatorio.',
-            'title.string'         => 'El título debe ser texto.',
-            'title.max'            => 'El título no puede superar 255 caracteres.',
-            'description.required' => 'La descripción es obligatoria.',
-            'description.string'   => 'La descripción debe ser texto.',
-            'description.max'      => 'La descripción no puede superar 2000 caracteres.',
-            'is_active.boolean'    => 'El estado debe ser verdadero o falso.',
+            'title.required'       => __('m_tours.itinerary_item.validation.title.required'),
+            'title.string'         => __('m_tours.itinerary_item.validation.title.string'),
+            'title.max'            => __('m_tours.itinerary_item.validation.title.max'),
+            'description.required' => __('m_tours.itinerary_item.validation.description.required'),
+            'description.string'   => __('m_tours.itinerary_item.validation.description.string'),
+            'description.max'      => __('m_tours.itinerary_item.validation.description.max'),
+            'is_active.boolean'    => __('validation.boolean'), // genérico de Laravel
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'title'       => __('m_tours.itinerary_item.fields.title'),
+            'description' => __('m_tours.itinerary_item.fields.description'),
+            'is_active'   => __('m_tours.itinerary.status.active'),
         ];
     }
 
@@ -52,8 +61,9 @@ class UpdateItineraryItemRequest extends FormRequest
     {
         /** @var ItineraryItem|null $itineraryItem */
         $itineraryItem = $this->route('itinerary_item');
+        $action        = $this->route()?->getActionMethod() ?? 'update';
 
-        LoggerHelper::validationFailed($this->controller, 'update', $validator->errors()->toArray(), [
+        LoggerHelper::validationFailed($this->controller, $action, $validator->errors()->toArray(), [
             'entity'    => 'itinerary_item',
             'entity_id' => $itineraryItem?->item_id,
             'user_id'   => optional($this->user())->getAuthIdentifier(),

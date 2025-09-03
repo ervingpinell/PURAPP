@@ -26,29 +26,41 @@ class StoreItineraryItemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title'       => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string', 'max:2000'],
+            'title'       => ['bail','required','string','max:255'],
+            'description' => ['bail','required','string','max:2000'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'title.required'       => 'El título es obligatorio.',
-            'title.string'         => 'El título debe ser texto.',
-            'title.max'            => 'El título no puede superar 255 caracteres.',
-            'description.required' => 'La descripción es obligatoria.',
-            'description.string'   => 'La descripción debe ser texto.',
-            'description.max'      => 'La descripción no puede superar 2000 caracteres.',
+            'title.required'       => __('m_tours.itinerary_item.validation.title.required'),
+            'title.string'         => __('m_tours.itinerary_item.validation.title.string'),
+            'title.max'            => __('m_tours.itinerary_item.validation.title.max'),
+            'description.required' => __('m_tours.itinerary_item.validation.description.required'),
+            'description.string'   => __('m_tours.itinerary_item.validation.description.string'),
+            'description.max'      => __('m_tours.itinerary_item.validation.description.max'),
+        ];
+    }
+
+    /** Para que :attribute salga como "Título"/"Descripción" */
+    public function attributes(): array
+    {
+        return [
+            'title'       => __('m_tours.itinerary_item.fields.title'),
+            'description' => __('m_tours.itinerary_item.fields.description'),
         ];
     }
 
     protected function failedValidation(Validator $validator)
     {
-        LoggerHelper::validationFailed($this->controller, 'store', $validator->errors()->toArray(), [
+        $action = $this->route()?->getActionMethod() ?? 'store';
+
+        LoggerHelper::validationFailed($this->controller, $action, $validator->errors()->toArray(), [
             'entity'  => 'itinerary_item',
             'user_id' => optional($this->user())->getAuthIdentifier(),
         ]);
+
         parent::failedValidation($validator);
     }
 }
