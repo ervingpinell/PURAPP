@@ -26,8 +26,8 @@ class CartController extends Controller
             $cart = $user->cart()
                 ->where('is_active', true)
                 ->with([
-                    'items.tour.schedules',   // para <select> de horarios
-                    'items.tour.languages',   // para <select> de idiomas (TourLanguage)
+                    'items.tour.schedules',   // <select> horarios
+                    'items.tour.languages',   // <select> idiomas
                     'items.schedule',
                     'items.language',
                     'items.hotel',
@@ -53,7 +53,6 @@ class CartController extends Controller
         if (!$cart) {
             $emptyCart = new \stdClass;
             $emptyCart->items = collect();
-
             return view('admin.Cart.cart', compact('languages', 'hotels') + ['cart' => $emptyCart]);
         }
 
@@ -71,14 +70,38 @@ class CartController extends Controller
 
     public function store(Request $request)
     {
+        // -------------------------
+        // SANEOS PREVIOS AL VALIDADOR
+        // -------------------------
+        $input = $request->all();
+
+        // hotel_id: si no es entero puro, forzamos a null
+        if (!array_key_exists('hotel_id', $input) || !ctype_digit((string) $input['hotel_id'])) {
+            $input['hotel_id'] = null;
+        }
+
+        // Normaliza boolean
+        $input['is_other_hotel'] = (bool) ($input['is_other_hotel'] ?? false);
+
+        // Si viene "otro hotel" con nombre, hotel_id debe ir null
+        if ($input['is_other_hotel'] && !empty($input['other_hotel_name'])) {
+            $input['hotel_id'] = null;
+        }
+
+        // Reemplaza el request con lo saneado
+        $request->replace($input);
+
+        // -------------------------
+        // VALIDACIÓN
+        // -------------------------
         $request->validate([
             'tour_id'          => 'required|exists:tours,tour_id',
             'tour_date'        => 'required|date|after_or_equal:today',
             'schedule_id'      => 'required|exists:schedules,schedule_id',
             'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
-            'hotel_id'         => 'nullable|integer|exists:hotels_list,hotel_id',
+            'hotel_id'         => 'nullable|integer|exists:hotels_list,hotel_id', // <- nombre correcto
             'is_other_hotel'   => 'boolean',
-            'other_hotel_name' => 'nullable|string|max:255',
+            'other_hotel_name' => 'nullable|string|max:255|required_without:hotel_id',
             'adults_quantity'  => 'required|integer|min:1',
             'kids_quantity'    => 'nullable|integer|min:0|max:2',
         ]);
@@ -173,15 +196,13 @@ class CartController extends Controller
             'schedule_id'      => ['nullable','exists:schedules,schedule_id'],
             'tour_language_id' => ['required','exists:tour_languages,tour_language_id'],
             'is_active'        => ['nullable','boolean'],
-            'hotel_id'         => ['nullable','exists:hotels_list,hotel_id'],
+            'hotel_id'         => ['nullable','integer','exists:hotels_list,hotel_id'], // <- nombre correcto + integer
             'is_other_hotel'   => ['boolean'],
             'other_hotel_name' => ['nullable','string','max:255','required_if:is_other_hotel,1'],
         ]);
 
-        // Reglas de negocio (bloqueos y capacidad) si se cambia fecha/horario o cantidades:
+        // Reglas de negocio si cambia fecha/horario o cantidades
         $tour = $item->tour;
-
-        // Si llega schedule_id, validar que pertenezca al tour y (si aplicara) esté activo
         $scheduleId = $data['schedule_id'] ?? $item->schedule_id;
 
         if ($scheduleId) {
@@ -197,7 +218,6 @@ class CartController extends Controller
                 ]);
             }
 
-            // Fecha bloqueada para el nuevo horario/fecha
             $isBlocked = TourExcludedDate::where('tour_id', $tour->tour_id)
                 ->where('schedule_id', $scheduleId)
                 ->where('start_date', '<=', $data['tour_date'])
@@ -212,7 +232,6 @@ class CartController extends Controller
                 ]));
             }
 
-            // Capacidad (considera el carrito/booking actual: aquí contamos solo reservas confirmadas)
             $reserved = DB::table('booking_details')
                 ->where('tour_id', $tour->tour_id)
                 ->where('schedule_id', $scheduleId)

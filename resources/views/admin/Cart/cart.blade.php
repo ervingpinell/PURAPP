@@ -5,6 +5,33 @@
 @section('content_header')
     <h1><i class="fas fa-shopping-cart"></i> Carrito de Reservas</h1>
 @stop
+{{-- Mostrar errores de validación y excepciones en SweetAlert --}}
+@if ($errors->any())
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Errores de validación',
+                html: `{!! implode('<br>', $errors->all()) !!}`,
+                confirmButtonText: 'OK'
+            });
+        });
+    </script>
+@endif
+
+@if (session('exception'))
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Excepción',
+                html: `<pre style="text-align:left;white-space:pre-wrap">{{ addslashes(session('exception')) }}</pre>`,
+                width: 900
+            });
+        });
+    </script>
+@endif
+
 
 @section('content')
     {{-- Filtros --}}

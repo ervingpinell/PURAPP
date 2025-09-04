@@ -201,6 +201,13 @@ document.addEventListener('DOMContentLoaded', () => {
     addToCartForm.addEventListener('submit', async function (e) {
       e.preventDefault();
 
+      // --- Saneo hotel_id: entero o vacío (evita "other: ..." y similares) ---
+      const hotelIdInput = document.getElementById('selectedPickupPoint');
+      if (hotelIdInput) {
+        const v = (hotelIdInput.value || '').trim();
+        hotelIdInput.value = /^\d+$/.test(v) ? v : '';
+      }
+
       const adults    = parseInt(document.getElementById('adults_quantity')?.value || 0);
       const kids      = parseInt(document.getElementById('kids_quantity')?.value   || 0);
       const requested = adults + kids;
@@ -214,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        const res = await fetch(`/api/get-reserved?tour_id=${tourId}&schedule_id=${scheduleId}&tour_date=${tourDate}`);
+        const res = await fetch(`/api/get-reserved?tour_id=${tourId}&schedule_id=${scheduleId}&tour_date=${encodeURIComponent(tourDate)}`);
         const data = await res.json();
         const reserved = parseInt(data.reserved) || 0;
 
@@ -236,11 +243,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // ===============================
   // PICKUP
   // ===============================
-  const pickupInput         = document.getElementById('pickupInput');
-  const pickupList          = document.getElementById('pickupList');
-  const pickupValidMsg      = document.getElementById('pickupValidMsg');
-  const pickupInvalidMsg    = document.getElementById('pickupInvalidMsg');
-  const selectedPickupPoint = document.getElementById('selectedPickupPoint');
+  const pickupInput         = document.getElementById('pickupInput');        // input de texto visible (hotel_name)
+  const pickupList          = document.getElementById('pickupList');         // UL/LI con opciones
+  const pickupValidMsg      = document.getElementById('pickupValidMsg');     // msg "válido"
+  const pickupInvalidMsg    = document.getElementById('pickupInvalidMsg');   // msg "fuera de zona"
+  const selectedPickupPoint = document.getElementById('selectedPickupPoint');// hidden (hotel_id)
 
   if (pickupInput && pickupList && selectedPickupPoint) {
     pickupInput.addEventListener('input', () => {
@@ -259,7 +266,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (pickupValidMsg)   pickupValidMsg.classList.add('d-none');
       if (pickupInvalidMsg) pickupInvalidMsg.classList.toggle('d-none', found || filter === '');
 
-      selectedPickupPoint.value = found ? '' : 'other:' + pickupInput.value;
+      // ⚠️ Si no hay coincidencia, NO pongas texto en el id: deja vacío
+      selectedPickupPoint.value = '';
     });
 
     pickupInput.addEventListener('focus', () => {
@@ -273,7 +281,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const hotelId   = li.dataset.id;
 
         pickupInput.value = hotelName;
-        selectedPickupPoint.value = hotelId;
+
+        // Solo setea id si es numérico
+        selectedPickupPoint.value = /^\d+$/.test(String(hotelId)) ? hotelId : '';
 
         if (pickupValidMsg)   pickupValidMsg.classList.remove('d-none');
         if (pickupInvalidMsg) pickupInvalidMsg.classList.add('d-none');

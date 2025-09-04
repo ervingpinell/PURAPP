@@ -238,6 +238,9 @@
         <form action="{{ route('public.cart.update', $item->item_id) }}" method="POST" class="edit-item-form">
           @csrf @method('PUT')
 
+          {{-- Mantener activo al guardar --}}
+          <input type="hidden" name="is_active" value="1" />
+
           <div class="modal-header">
             <h5 class="modal-title" id="editItemLabel-{{ $item->item_id }}">
               <i class="fas fa-pencil-alt me-2"></i>
