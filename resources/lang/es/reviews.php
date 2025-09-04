@@ -15,7 +15,7 @@ return [
     'loading'                    => 'Cargando reseñas...',
     'what_visitors_say'          => 'Lo que dicen los visitantes',
     'reviews_title'              => 'Reseñas de clientes',
-    'powered_by'                 => 'Desarrollado por',
+    'powered_by'                 => 'Proveído por',
     'view_on_viator'             => 'Ver :name en Viator',
 
     // Modal / acciones

@@ -207,6 +207,10 @@ return [
 'promoCode' => '¿Tienes un código promocional?',
 'promoCodePlaceholder' => 'Ingresa tu código promocional',
 'apply' => 'Aplicar',
+'deleteItemTitle' => 'Eliminar ítem',
+'deleteItemText' => '¿Estás seguro de que deseas eliminar este ítem? Esta acción no se puede deshacer.',
+'deleteItemConfirm' => 'Eliminar',
+'deleteItemCancel' => 'Cancelar',
 
 
     // ─── VALIDACIÓN ───────────────────────────────────
@@ -258,7 +262,7 @@ return [
     'anonymous_user' => 'Anónimo',
     'see_more' => 'Ver más',
     'see_less' => 'Ver menos',
-    'powered_by_viator' => 'Desarrollado por Viator',
+    'powered_by_viator' => 'Proporcionado por Viator',
     'go_to_tour' => '¿Querés ir al tour ":name"?',
     'view_in_viator' => 'Ver :name en Viator',
 
