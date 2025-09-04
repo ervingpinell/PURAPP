@@ -211,6 +211,7 @@ return [
     'deleteItemText' => 'Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible.',
     'deleteItemConfirm' => 'Supprimer',
     'deleteItemCancel' => 'Annuler',
+    'selectOption' => 'Sélectionnez une option',
 
     // ─── VALIDATION ───────────────────────────────────
     'required_field' => 'Ce champ est obligatoire.',

@@ -211,6 +211,7 @@ return [
 'deleteItemText' => '¿Estás seguro de que deseas eliminar este ítem? Esta acción no se puede deshacer.',
 'deleteItemConfirm' => 'Eliminar',
 'deleteItemCancel' => 'Cancelar',
+'selectOption' => 'Seleccionar una opción',
 
 
     // ─── VALIDACIÓN ───────────────────────────────────

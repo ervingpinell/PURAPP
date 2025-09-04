@@ -211,6 +211,7 @@ return [
     'deleteItemText' => 'Tem certeza de que deseja excluir este item? Esta ação não pode ser desfeita.',
     'deleteItemConfirm' => 'Excluir',
     'deleteItemCancel' => 'Cancelar',
+    'selectOption' => 'Selecione uma opção',
 
     // ─── VALIDAÇÃO ────────────────────────────────────
     'required_field' => 'Este campo é obrigatório.',

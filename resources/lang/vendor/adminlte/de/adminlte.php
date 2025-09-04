@@ -211,6 +211,7 @@ return [
     'deleteItemText' => 'Sind Sie sicher, dass Sie diesen Artikel löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
     'deleteItemConfirm' => 'Löschen',
     'deleteItemCancel' => 'Abbrechen',
+    'selectOption' => 'Option auswählen',
 
     // ─── VALIDIERUNG ──────────────────────────────────
     'required_field' => 'Dieses Feld ist erforderlich.',

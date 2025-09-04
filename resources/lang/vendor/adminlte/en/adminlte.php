@@ -211,6 +211,7 @@ return [
     'deleteItemText' => 'Are you sure you want to delete this item? This action cannot be undone.',
     'deleteItemConfirm' => 'Delete',
     'deleteItemCancel' => 'Cancel',
+    'selectOption' => 'Select an option',
 
     // ─── VALIDATION ────────────────────────────────────
     'required_field' => 'This field is required.',
