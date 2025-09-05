@@ -188,7 +188,21 @@ class CartController extends Controller
 
     public function update(Request $request, CartItem $item)
     {
-        // Validación
+        // --- Normalización previa ---
+        $in = $request->all();
+
+        // boolean consistente
+        $in['is_other_hotel'] = (bool)($in['is_other_hotel'] ?? false);
+
+        // Acepta "other" o "__custom__" y cualquier no-entero => null
+        $raw = $in['hotel_id'] ?? null;
+        if ($in['is_other_hotel'] === true || $raw === 'other' || $raw === '__custom__' || (isset($raw) && !ctype_digit((string)$raw))) {
+            $in['hotel_id'] = null;
+        }
+
+        $request->replace($in);
+
+        // --- Validación ---
         $data = $request->validate([
             'tour_date'        => ['required','date','after_or_equal:today'],
             'adults_quantity'  => ['required','integer','min:1'],
@@ -196,12 +210,13 @@ class CartController extends Controller
             'schedule_id'      => ['nullable','exists:schedules,schedule_id'],
             'tour_language_id' => ['required','exists:tour_languages,tour_language_id'],
             'is_active'        => ['nullable','boolean'],
-            'hotel_id'         => ['nullable','integer','exists:hotels_list,hotel_id'], // <- nombre correcto + integer
+            // clave: bail para que no corra exists si no es integer
+            'hotel_id'         => ['bail','nullable','integer','exists:hotels_list,hotel_id'],
             'is_other_hotel'   => ['boolean'],
             'other_hotel_name' => ['nullable','string','max:255','required_if:is_other_hotel,1'],
         ]);
 
-        // Reglas de negocio si cambia fecha/horario o cantidades
+        // --- Reglas de negocio (capacidad/fechas) como ya las tienes ---
         $tour = $item->tour;
         $scheduleId = $data['schedule_id'] ?? $item->schedule_id;
 
@@ -218,7 +233,7 @@ class CartController extends Controller
                 ]);
             }
 
-            $isBlocked = TourExcludedDate::where('tour_id', $tour->tour_id)
+            $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
                 ->where('schedule_id', $scheduleId)
                 ->where('start_date', '<=', $data['tour_date'])
                 ->where(function ($q) use ($data) {
@@ -232,11 +247,11 @@ class CartController extends Controller
                 ]));
             }
 
-            $reserved = DB::table('booking_details')
+            $reserved = \DB::table('booking_details')
                 ->where('tour_id', $tour->tour_id)
                 ->where('schedule_id', $scheduleId)
                 ->where('tour_date', $data['tour_date'])
-                ->sum(DB::raw('adults_quantity + kids_quantity'));
+                ->sum(\DB::raw('adults_quantity + kids_quantity'));
 
             $requested = (int)$data['adults_quantity'] + (int)($data['kids_quantity'] ?? 0);
 
@@ -245,12 +260,12 @@ class CartController extends Controller
             }
         }
 
-        // Persistencia
+        // --- Persistencia ---
         $item->tour_date        = $data['tour_date'];
-        $item->adults_quantity  = (int) $data['adults_quantity'];
-        $item->kids_quantity    = (int) ($data['kids_quantity'] ?? 0);
+        $item->adults_quantity  = (int)$data['adults_quantity'];
+        $item->kids_quantity    = (int)($data['kids_quantity'] ?? 0);
         $item->schedule_id      = $data['schedule_id'] ?? $item->schedule_id;
-        $item->tour_language_id = (int) $data['tour_language_id'];
+        $item->tour_language_id = (int)$data['tour_language_id'];
         $item->is_active        = $request->boolean('is_active');
 
         if ($request->boolean('is_other_hotel')) {
@@ -260,13 +275,14 @@ class CartController extends Controller
         } else {
             $item->is_other_hotel   = false;
             $item->other_hotel_name = null;
-            $item->hotel_id         = ($data['hotel_id'] ?? null) === '__custom__' ? null : ($data['hotel_id'] ?? null);
+            $item->hotel_id         = $data['hotel_id'] ?? null; // ya viene saneado
         }
 
         $item->save();
 
         return back()->with('success', __('adminlte::adminlte.itemUpdated'));
     }
+
 
     public function updateFromPost(Request $request, CartItem $item)
     {
