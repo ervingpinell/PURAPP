@@ -38,6 +38,7 @@ use App\Http\Controllers\Admin\PolicySectionController;
 use App\Http\Controllers\Admin\TourImageController;
 use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
 use App\Http\Controllers\Admin\Tours\CutOffController;
+use App\Http\Controllers\Admin\MeetingPointSimpleController;
 
 use Illuminate\Support\Facades\Mail;
 use App\Models\Tour;
@@ -209,25 +210,32 @@ Route::post('/email/verification-notification', [VerifyEmailController::class, '
         Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
 
         // Cut_off
-    Route::prefix('tours')->name('tours.')->group(function () {
-        Route::prefix('cutoff')->name('cutoff.')->group(function () {
-            Route::get('/',   [CutOffController::class, 'edit'])->name('edit');
-            Route::put('/',   [CutOffController::class, 'update'])->name('update');
-            Route::put('/tour',     [CutOffController::class, 'updateTourOverrides'])->name('tour.update');
-            Route::put('/schedule', [CutOffController::class, 'updateScheduleOverrides'])->name('schedule.update');
+        Route::prefix('tours')->name('tours.')->group(function () {
+            Route::prefix('cutoff')->name('cutoff.')->group(function () {
+                Route::get('/',   [CutOffController::class, 'edit'])->name('edit');
+                Route::put('/',   [CutOffController::class, 'update'])->name('update');
+                Route::put('/tour',     [CutOffController::class, 'updateTourOverrides'])->name('tour.update');
+                Route::put('/schedule', [CutOffController::class, 'updateScheduleOverrides'])->name('schedule.update');
+            });
         });
-    });
 
-Route::get('tours/images', [TourImageController::class, 'pick'])
-    ->name('tours.images.pick');
-Route::prefix('tours/{tour}/images')->name('tours.images.')->group(function () {
-    Route::get('/',                [TourImageController::class, 'index'])->name('index');
-    Route::post('/',               [TourImageController::class, 'store'])->name('store');
-    Route::patch('{image}',        [TourImageController::class, 'update'])->name('update');
-    Route::delete('{image}',       [TourImageController::class, 'destroy'])->name('destroy');
-    Route::post('{image}/cover',   [TourImageController::class, 'setCover'])->name('cover');
-    Route::post('reorder',         [TourImageController::class, 'reorder'])->name('reorder');
-});
+        //CategoriesImages
+        Route::get('tours/images', [TourImageController::class, 'pick'])
+            ->name('tours.images.pick');
+        Route::prefix('tours/{tour}/images')->name('tours.images.')->group(function () {
+            Route::get('/',                [TourImageController::class, 'index'])->name('index');
+            Route::post('/',               [TourImageController::class, 'store'])->name('store');
+            Route::patch('{image}',        [TourImageController::class, 'update'])->name('update');
+            Route::delete('{image}',       [TourImageController::class, 'destroy'])->name('destroy');
+            Route::post('{image}/cover',   [TourImageController::class, 'setCover'])->name('cover');
+            Route::post('reorder',         [TourImageController::class, 'reorder'])->name('reorder');
+        });
+
+        //MeetingPoint
+        Route::resource('meetingpoints', MeetingPointSimpleController::class)
+            ->except(['show','create','edit']);
+        Route::patch('meetingpoints/{meetingpoint}/toggle', [MeetingPointSimpleController::class,'toggle'])
+            ->name('meetingpoints.toggle');
 
 
         Route::prefix('/types')->name('types.')->middleware(['web','auth','verified','CheckRole'])->group(function () {

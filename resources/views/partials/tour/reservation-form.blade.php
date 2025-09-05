@@ -141,6 +141,18 @@
         @endforeach
         <option value="other">{{ __('adminlte::adminlte.hotel_other') }}</option>
       </select>
+      
+      {{-- ===== Pickup / Meeting point (simple) ===== --}}
+      <label class="form-label"><i class="fas fa-map-marker-alt me-1"></i> Pickup / Meeting point</label>
+      <select class="form-select mb-3" name="selected_meeting_point" id="meetingPointSelect">
+        <option value="">-- Selecciona un punto --</option>
+        @foreach($meetingPoints as $mp)
+          <option value="{{ $mp->id }}">
+            {{ $mp->name }}{{ $mp->pickup_time ? ' — '.$mp->pickup_time : '' }}
+          </option>
+        @endforeach
+      </select>
+
 
       <div class="mb-3 d-none" id="otherHotelWrapper">
         <label for="otherHotelInput" class="form-label">{{ __('adminlte::adminlte.hotel_name') }}</label>

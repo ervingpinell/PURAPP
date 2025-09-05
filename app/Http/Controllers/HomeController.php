@@ -12,6 +12,7 @@ use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use App\Models\MeetingPoint;
 
 class HomeController extends Controller
 {
@@ -75,7 +76,10 @@ class HomeController extends Controller
             ];
         })->values();
 
-        return view('public.home', compact('toursByType', 'typeMeta', 'carouselProductCodes'));
+        //MeetingPoints
+        $meetingPoints = MeetingPoint::active()->orderBy('sort_order')->orderBy('name')->get(['id','name','pickup_time']);
+
+        return view('public.home', compact('toursByType', 'typeMeta', 'carouselProductCodes','meetingPoints'));
     }
 
     public function showTour(int $id)
@@ -199,6 +203,13 @@ class HomeController extends Controller
         $cancelPolicy = $tour->cancel_policy ?? null;
         $refundPolicy = $tour->refund_policy ?? null;
 
+        //MeetingPoints
+        $meetingPoints = MeetingPoint::active()
+        ->orderBy('sort_order')
+        ->orderBy('name')
+        ->get(['id','name','pickup_time','address','map_url']);
+
+
         return view('public.tour-show', compact(
             'tour',
             'hotels',
@@ -206,7 +217,8 @@ class HomeController extends Controller
             'refundPolicy',
             'blockedGeneral',
             'blockedBySchedule',
-            'fullyBlockedDates'
+            'fullyBlockedDates',
+            'meetingPoints'
         ));
     }
 
