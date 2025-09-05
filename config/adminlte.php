@@ -258,16 +258,16 @@ return [
     |
     */
 
-    'use_route_url' => false,
-    'dashboard_url' => '/',
-    'logout_url' => 'logout',
-    'login_url' => 'login',
-    'register_url' => 'register',
-    'password_reset_url' => 'password/reset',
-    'password_email_url' => 'password/email',
-    'profile_url' => false,
-    'disable_darkmode_routes' => false,
-    'home_url' => 'home',
+'use_route_url'       => false,
+'dashboard_url'       => '/',
+'logout_url'          => 'logout',
+'login_url'           => 'login',
+'register_url'        => 'register',
+'password_reset_url'  => 'forgot-password',
+'password_email_url'  => 'forgot-password', // <— cambia esto
+'profile_url'         => false,
+'disable_darkmode_routes' => false,
+'home_url'            => 'home',
 
     /*
     |--------------------------------------------------------------------------

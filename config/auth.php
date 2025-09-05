@@ -94,8 +94,8 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
-            'expire' => 60,
-            'throttle' => 60,
+            'expire' => env('AUTH_PASSWORD_EXPIRE', 60),
+            'throttle' => env('AUTH_PASSWORD_THROTTLE', 60),
         ],
     ],
 
@@ -111,5 +111,30 @@ return [
     */
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Email Verification
+    |--------------------------------------------------------------------------
+    |
+    | Expiry (in minutes) for the email verification link.
+    |
+    */
+
+    'verification' => [
+        'expire' => env('AUTH_EMAIL_VERIFICATION_EXPIRE', 60),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Prune Unverified Users
+    |--------------------------------------------------------------------------
+    |
+    | Number of days before pruning (deleting) unverified users.
+    | Used by User::prunable() and the scheduled 'model:prune' task.
+    |
+    */
+
+    'unverified_prune_days' => env('UNVERIFIED_PRUNE_DAYS', 7),
 
 ];

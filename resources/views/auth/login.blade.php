@@ -9,17 +9,18 @@
 @php
     $loginUrl     = View::getSection('login_url') ?? config('adminlte.login_url', 'login');
     $registerUrl  = View::getSection('register_url') ?? config('adminlte.register_url', 'register');
-    // Fortify usa /forgot-password para solicitar el correo de reset
-    $passResetUrl = View::getSection('password_reset_url') ?? config('adminlte.password_reset_url', 'forgot-password');
+
+    // ✅ Enlace oficial de Fortify para "Olvidé mi contraseña"
+    $passResetUrl = route('password.request');
 
     if (config('adminlte.use_route_url', false)) {
         $loginUrl     = $loginUrl     ? route($loginUrl)     : '';
         $registerUrl  = $registerUrl  ? route($registerUrl)  : '';
-        $passResetUrl = $passResetUrl ? route($passResetUrl) : '';
+        // $passResetUrl ya viene de route('password.request')
     } else {
         $loginUrl     = $loginUrl     ? url($loginUrl)     : '';
         $registerUrl  = $registerUrl  ? url($registerUrl)  : '';
-        $passResetUrl = $passResetUrl ? url($passResetUrl) : '';
+        // $passResetUrl ya viene de route('password.request')
     }
 @endphp
 
@@ -47,7 +48,7 @@
         </div>
     @endif
 
-    {{-- Error genérico de Fortify (credenciales inválidas, cuenta inactiva si lo personalizas, etc.) --}}
+    {{-- Error genérico (credenciales inválidas, etc.) --}}
     @if($errors->has('email'))
         <div class="alert alert-danger">
             <i class="fas fa-exclamation-triangle me-1"></i>
@@ -101,13 +102,12 @@
             @enderror
         </div>
 
-        @if($passResetUrl)
-            <p class="mb-1">
-                <a href="{{ $passResetUrl }}">
-                    {{ __('adminlte::auth.i_forgot_my_password') }}
-                </a>
-            </p>
-        @endif
+        {{-- Olvidé mi contraseña --}}
+        <p class="mb-1">
+            <a href="{{ $passResetUrl }}">
+                {{ __('adminlte::auth.i_forgot_my_password') }}
+            </a>
+        </p>
 
         {{-- Botón Iniciar sesión --}}
         <div class="row">

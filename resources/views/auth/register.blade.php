@@ -37,7 +37,7 @@
     <div id="server-errors" class="alert alert-danger">
       <h5 class="mb-2">
         <i class="icon fas fa-exclamation-triangle"></i>
-        {{ __('adminlte::adminlte.validation.validation_error_title') }}
+        {{ __('adminlte::validation.validation_error_title') }}
       </h5>
       <ul class="mb-0 ps-3">
         @foreach ($errors->all() as $error)
@@ -55,7 +55,7 @@
         <input type="text" name="full_name"
                class="form-control @error('full_name') is-invalid @enderror"
                value="{{ old('full_name') }}"
-               placeholder="{{ __('adminlte::adminlte.validation.attributes.full_name') }}" autocomplete="name">
+               placeholder="{{ __('adminlte::validation.attributes.full_name') }}" autocomplete="name">
         <div class="input-group-append">
           <div class="input-group-text"><span class="fas fa-user"></span></div>
         </div>
@@ -68,7 +68,7 @@
         <input type="email" name="email"
                class="form-control @error('email') is-invalid @enderror"
                value="{{ old('email') }}"
-               placeholder="{{ __('adminlte::adminlte.validation.attributes.email') }}" autocomplete="email">
+               placeholder="{{ __('adminlte::validation.attributes.email') }}" autocomplete="email">
         <div class="input-group-append">
           <div class="input-group-text"><span class="fas fa-envelope"></span></div>
         </div>
@@ -77,7 +77,7 @@
     </div>
 
     <div class="form-group mb-3">
-      <label class="form-label">{{ __('adminlte::adminlte.validation.attributes.phone') }}</label>
+      <label class="form-label">{{ __('adminlte::validation.attributes.phone') }}</label>
       <div class="input-group">
         <select id="phone_cc" name="country_code" class="form-select @error('country_code') is-invalid @enderror" style="max-width: 140px;">
           @include('partials.country-codes')
@@ -85,7 +85,7 @@
         <input type="tel" id="phone" name="phone"
                class="form-control @error('phone') is-invalid @enderror"
                value="{{ old('phone') }}"
-               placeholder="{{ __('adminlte::adminlte.validation.attributes.phone') }}"
+               placeholder="{{ __('adminlte::validation.attributes.phone') }}"
                inputmode="tel" autocomplete="tel">
         <div class="input-group-append">
           <div class="input-group-text"><span class="fas fa-phone"></span></div>
@@ -99,7 +99,7 @@
       <div class="input-group">
         <input type="password" id="password" name="password"
                class="form-control @error('password') is-invalid @enderror"
-               placeholder="{{ __('adminlte::adminlte.validation.attributes.password') }}" autocomplete="new-password">
+               placeholder="{{ __('adminlte::validation.attributes.password') }}" autocomplete="new-password">
         <div class="input-group-append">
           <div class="input-group-text">
             <a href="#" class="text-reset toggle-password" data-target="password" aria-label="{{ __('adminlte::adminlte.show_password') }}">
@@ -112,16 +112,16 @@
     </div>
 
     <ul id="password-requirements" class="mb-3">
-      <li id="req-length"  class="text-muted">{{ __('adminlte::adminlte.auth.password_requirements.length') }}</li>
-      <li id="req-special" class="text-muted">{{ __('adminlte::adminlte.auth.password_requirements.special') }}</li>
-      <li id="req-number"  class="text-muted">{{ __('adminlte::adminlte.auth.password_requirements.number') }}</li>
+      <li id="req-length"  class="text-muted">{{ __('adminlte::validation.password_requirements.length') }}</li>
+      <li id="req-special" class="text-muted">{{ __('adminlte::validation.password_requirements.special') }}</li>
+      <li id="req-number"  class="text-muted">{{ __('adminlte::validation.password_requirements.number') }}</li>
     </ul>
 
     <div class="form-group mb-3">
       <div class="input-group">
         <input type="password" id="password_confirmation" name="password_confirmation"
                class="form-control @error('password_confirmation') is-invalid @enderror"
-               placeholder="{{ __('adminlte::adminlte.validation.attributes.password_confirmation') }}" autocomplete="new-password">
+               placeholder="{{ __('adminlte::validation.attributes.password_confirmation') }}" autocomplete="new-password">
         <div class="input-group-append">
           <div class="input-group-text">
             <a href="#" class="text-reset toggle-password" data-target="password_confirmation" aria-label="{{ __('adminlte::adminlte.show_password') }}">
