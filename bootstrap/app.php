@@ -47,6 +47,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // 👇 nuevo
             'normalize.email' => NormalizeEmail::class,
+            '2fa.admin' => \App\Http\Middleware\RequireTwoFactorForAdmins::class,
+
         ]);
 
         // No forzamos redirect a /login en APIs

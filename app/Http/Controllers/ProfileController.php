@@ -8,28 +8,57 @@ use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
 {
+    /**
+     * Muestra la página de edición de perfil.
+     * Prepara de forma segura los datos de 2FA para la vista admin.
+     */
     public function edit()
     {
         $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
 
-        return in_array($user->role_id, [1, 2])
-            ? view('admin.profile.profile', compact('user'))
-            : view('profile.edit', compact('user'));
+        // ===== 2FA (usa los helpers del modelo; Intelephense puede marcar como "desconocidos", pero existen en runtime) =====
+        $has2FA         = method_exists($user, 'twoFactorEnabled')      ? $user->twoFactorEnabled()      : !empty($user->two_factor_secret);
+        $is2FAConfirmed = method_exists($user, 'twoFactorConfirmed')    ? $user->twoFactorConfirmed()    : !empty($user->two_factor_confirmed_at);
+        $qrSvg          = method_exists($user, 'safeTwoFactorQrCodeSvg')? $user->safeTwoFactorQrCodeSvg(): null;
+        $recoveryCodes  = method_exists($user, 'safeRecoveryCodes')     ? $user->safeRecoveryCodes()     : [];
+
+        // Admin (roles 1,2) vs público
+        if (in_array((int) $user->role_id, [1, 2], true)) {
+            return view('admin.profile.profile', [
+                'user'            => $user,
+                'has2FA'          => $has2FA,
+                'is2FAConfirmed'  => $is2FAConfirmed,
+                'qrSvg'           => $qrSvg,
+                'recoveryCodes'   => $recoveryCodes,
+            ]);
+        }
+
+        // Vista pública (sin UI de 2FA)
+        return view('profile.edit', compact('user'));
     }
 
+    /**
+     * Actualiza los datos del perfil (admin o público).
+     */
     public function update(Request $request)
     {
         $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
 
         $rules = [
-            'full_name'    => ['required','string','max:255'],
-            'email'        => ['required','email','unique:users,email,'.$user->user_id.',user_id'],
-            'country_code' => ['nullable','string','max:8','regex:/^\+?\d{1,4}$/','required_with:phone'],
-            'phone'        => ['nullable','string','max:30'],
+            'full_name'    => ['required', 'string', 'max:255'],
+            'email'        => ['required', 'email', 'unique:users,email,' . $user->user_id . ',user_id'],
+            'country_code' => ['nullable', 'string', 'max:8', 'regex:/^\+?\d{1,4}$/', 'required_with:phone'],
+            'phone'        => ['nullable', 'string', 'max:30'],
             'password'     => [
-                'nullable','string','min:8',
+                'nullable', 'string', 'min:8',
                 'regex:/[0-9]/',
-                'regex:/[.:!@#$%^&*()_+\-]/',
+                'regex:/[.\x{00A1}!@#$%^&*()_+\-]/u', // incluye "¡"
                 'confirmed',
             ],
         ];
@@ -39,33 +68,40 @@ class ProfileController extends Controller
         $user->full_name = $validated['full_name'];
         $user->email     = $validated['email'];
 
-        if ($request->hasAny(['country_code','phone'])) {
+        // Normalización de teléfono (quita el código país duplicado si viene pegado al número)
+        if ($request->hasAny(['country_code', 'phone'])) {
             $ccDigits    = preg_replace('/\D+/', '', (string) $request->country_code);
             $phoneDigits = preg_replace('/\D+/', '', (string) $request->phone);
 
-            $startsWith = function (string $haystack, string $needle): bool {
-                if ($needle === '') return false;
-                return strncmp($haystack, $needle, strlen($needle)) === 0;
-            };
+            $startsWith = fn (string $haystack, string $needle): bool =>
+                $needle !== '' && strncmp($haystack, $needle, strlen($needle)) === 0;
 
-            if ($phoneDigits !== '') {
-                $national = ($ccDigits && $startsWith($phoneDigits, $ccDigits))
+            $national = $phoneDigits !== ''
+                ? (($ccDigits && $startsWith($phoneDigits, $ccDigits))
                     ? substr($phoneDigits, strlen($ccDigits))
-                    : $phoneDigits;
-            } else {
-                $national = null;
-            }
+                    : $phoneDigits)
+                : null;
 
             $user->country_code = $request->country_code;
             $user->phone        = $national;
         }
 
+        // Password opcional
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
         }
 
         $user->save();
 
-        return redirect()->back()->with('success', __('adminlte::adminlte.profile_updated_successfully'));
+        // Redirección según contexto (admin vs público)
+        if (in_array((int) $user->role_id, [1, 2], true)) {
+            return redirect()
+                ->route('admin.profile.edit')
+                ->with('success', __('adminlte::adminlte.profile_updated_successfully'));
+        }
+
+        return redirect()
+            ->route('profile.edit')
+            ->with('success', __('adminlte::adminlte.profile_updated_successfully'));
     }
 }

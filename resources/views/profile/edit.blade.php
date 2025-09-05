@@ -1,4 +1,4 @@
-@extends('adminlte::auth.auth-page', ['authType' => 'login'])
+@extends('adminlte::auth.auth-page', ['authType' => 'profile'])
 
 @php
     $updateUrl = route('profile.update');
@@ -68,7 +68,7 @@
         <div class="input-group mb-3">
             <input type="email" name="email" id="email"
                 class="form-control @error('email') is-invalid @enderror"
-                value={{ old('email', auth()->user()->email) }}
+                value="{{ old('email', auth()->user()->email) }}"
                 placeholder="{{ __('adminlte::validation.attributes.email') }}" required autocomplete="email">
 
             <div class="input-group-append">
@@ -116,7 +116,9 @@
 
             <div class="input-group-append">
                 <div class="input-group-text">
-                    <span id="toggle-password" class="fas fa-eye {{ config('adminlte.classes_auth_icon', '') }}" style="cursor: pointer;"></span>
+                    <a href="#" class="text-reset toggle-password" data-target="password" aria-label="{{ __('adminlte::adminlte.show_password') }}">
+                      <i class="fas fa-eye"></i>
+                    </a>
                 </div>
             </div>
 
@@ -134,7 +136,9 @@
 
             <div class="input-group-append">
                 <div class="input-group-text">
-                    <span id="toggle-password-confirmation" class="fas fa-eye {{ config('adminlte.classes_auth_icon', '') }}" style="cursor: pointer;"></span>
+                    <a href="#" class="text-reset toggle-password" data-target="password_confirmation" aria-label="{{ __('adminlte::adminlte.show_password') }}">
+                      <i class="fas fa-eye"></i>
+                    </a>
                 </div>
             </div>
 
@@ -150,59 +154,50 @@
 @stop
 
 @section('auth_footer')
-    <div class="d-flex justify-content-between align-items-center">
-        <a href="{{ $homeUrl }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left mr-1"></i> {{ __('adminlte::adminlte.back') }}
-        </a>
-        @include('partials.language-switcher')
-    </div>
+  <div class="d-flex justify-content-between align-items-center">
+    <a href="{{ $homeUrl }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left mr-1"></i> {{ __('adminlte::adminlte.back') }}
+    </a>
+    @include('partials.language-switcher')
+  </div>
 @stop
 
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const passwordInput = document.getElementById('password');
-    const togglePassword = document.getElementById('toggle-password');
-    const passwordConfirmationInput = document.getElementById('password_confirmation');
-    const togglePasswordConfirmation = document.getElementById('toggle-password-confirmation');
+  // toggle password
+  document.querySelectorAll('.toggle-password').forEach(btn => {
+    btn.addEventListener('click', function(e){
+      e.preventDefault();
+      const input = document.getElementById(this.dataset.target);
+      const icon  = this.querySelector('i');
+      if (!input) return;
+      if (input.type === 'password') { input.type = 'text'; icon.classList.replace('fa-eye','fa-eye-slash'); }
+      else { input.type = 'password'; icon.classList.replace('fa-eye-slash','fa-eye'); }
+    });
+  });
 
-    function toggleVisibility(input, toggleIcon) {
-        if (!input) return;
-        if (input.type === 'password') {
-            input.type = 'text';
-            toggleIcon.classList.replace('fa-eye','fa-eye-slash');
-        } else {
-            input.type = 'password';
-            toggleIcon.classList.replace('fa-eye-slash','fa-eye');
-        }
-    }
+  // country code labels
+  const cc = document.getElementById('phone_cc');
+  function expandLabels(){
+    Array.from(cc.options).forEach(opt => {
+      const name = opt.dataset.name || '';
+      const code = opt.dataset.code || opt.value;
+      opt.textContent = `${name} (${code})`;
+    });
+  }
+  function collapseLabels(){
+    Array.from(cc.options).forEach(opt => {
+      const code = opt.dataset.code || opt.value;
+      opt.textContent = `(${code})`;
+    });
+  }
+  cc.addEventListener('focus', expandLabels);
+  cc.addEventListener('blur',  collapseLabels);
+  collapseLabels();
 
-    if (togglePassword) togglePassword.addEventListener('click', () => toggleVisibility(passwordInput, togglePassword));
-    if (togglePasswordConfirmation) togglePasswordConfirmation.addEventListener('click', () => toggleVisibility(passwordConfirmationInput, togglePasswordConfirmation));
-
-    const cc = document.getElementById('phone_cc');
-    if (cc) {
-        function expandLabels(){
-            Array.from(cc.options).forEach(opt => {
-                const name = opt.dataset.name || '';
-                const code = opt.dataset.code || opt.value;
-                opt.textContent = `${name} (${code})`;
-            });
-        }
-        function collapseLabels(){
-            Array.from(cc.options).forEach(opt => {
-                const code = opt.dataset.code || opt.value;
-                opt.textContent = `(${code})`;
-            });
-        }
-
-        cc.addEventListener('focus', expandLabels);
-        cc.addEventListener('blur', collapseLabels);
-        collapseLabels();
-
-        const currentCode = @json(old('country_code', auth()->user()->country_code ?? null));
-        if (currentCode) cc.value = currentCode;
-    }
+  const currentCode = @json(old('country_code', auth()->user()->country_code ?? null));
+  if (currentCode) cc.value = currentCode;
 });
 </script>
 @endpush

@@ -10,4 +10,22 @@ return [
     'inactive'   => 'Tu cuenta está inactiva. Contacta al soporte para reactivarla.',
     'locked'     => 'Tu cuenta está bloqueada. Contacta al soporte para desbloquearla.',
     'unverified' => 'Debes verificar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.',
+
+    // Fortify 2FA (status y textos de UI)
+    'two_factor' => [
+        // Status que Fortify guarda en session('status')
+        'enabled'                  => 'Autenticación en dos pasos activada.',
+        'confirmed'                => 'Autenticación en dos pasos confirmada.',
+        'disabled'                 => 'Autenticación en dos pasos desactivada.',
+        'recovery_codes_generated' => 'Se generaron nuevos códigos de recuperación.',
+
+        // Textos útiles para vistas
+        'remember_device'   => 'Recordar este dispositivo durante 30 días',
+        'enter_code'        => 'Introduce el código de 6 dígitos',
+        'use_recovery'      => 'Usar un código de recuperación',
+        'use_authenticator' => 'Usar app autenticadora',
+        'code'              => 'Código de autenticación',
+        'recovery_code'     => 'Código de recuperación',
+        'confirm'           => 'Confirmar',
+    ],
 ];

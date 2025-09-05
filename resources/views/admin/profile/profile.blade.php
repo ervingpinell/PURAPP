@@ -10,9 +10,32 @@
   </h1>
 @stop
 
+@push('css')
+<style>
+  .input-group .input-group-text { min-width: 42px; justify-content:center; }
+  code.d-block { font-size: .95rem; }
+</style>
+@endpush
+
 @section('content')
 <div class="d-flex justify-content-center">
-  <div class="col-md-6">
+  <div class="col-md-7 col-lg-6">
+
+    {{-- Flashes (Fortify + propios) --}}
+    @php
+      $statusMap = [
+          'two-factor-authentication-enabled'   => 'auth.two_factor.enabled',
+          'two-factor-authentication-confirmed' => 'auth.two_factor.confirmed',
+          'two-factor-authentication-disabled'  => 'auth.two_factor.disabled',
+          'recovery-codes-generated'            => 'auth.two_factor.recovery_codes_generated',
+      ];
+    @endphp
+    @if (session('status'))
+      <div class="alert alert-success">{{ __($statusMap[session('status')] ?? session('status')) }}</div>
+    @endif
+    @if (session('success')) <div class="alert alert-success">{{ session('success') }}</div> @endif
+    @if (session('error'))   <div class="alert alert-danger">{{ session('error') }}</div>   @endif
+
     <div class="card card-primary shadow">
       <div class="card-header text-center">
         <h3 class="card-title w-100">
@@ -20,9 +43,9 @@
         </h3>
       </div>
 
-      <form action="{{ route('profile.update') }}" method="POST" id="adminProfileForm" novalidate>
+      {{-- Form principal (datos del perfil) --}}
+      <form action="{{ route('admin.profile.update') }}" method="POST" id="adminProfileForm" novalidate>
         @csrf
-
         <div class="card-body">
 
           {{-- Nombre --}}
@@ -36,9 +59,14 @@
           {{-- Email --}}
           <div class="form-group mb-3">
             <label class="form-label"><i class="fas fa-envelope"></i> {{ __('adminlte::validation.attributes.email') }}</label>
-            <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                   value="{{ old('email', $user->email) }}" autocomplete="email">
-            @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            <div class="input-group">
+              <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
+                     value="{{ old('email', $user->email) }}" autocomplete="email">
+              <div class="input-group-append">
+                <div class="input-group-text"><span class="fas fa-envelope"></span></div>
+              </div>
+            </div>
+            @error('email') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
           </div>
 
           {{-- Teléfono --}}
@@ -53,6 +81,9 @@
                      value="{{ old('phone', $user->phone) }}"
                      placeholder="{{ __('adminlte::validation.attributes.phone') }}"
                      inputmode="tel" autocomplete="tel">
+              <div class="input-group-append">
+                <div class="input-group-text"><span class="fas fa-phone"></span></div>
+              </div>
             </div>
             @error('country_code') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
             @error('phone')        <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
@@ -92,7 +123,6 @@
                    placeholder="{{ __('adminlte::validation.attributes.password_confirmation') }}" autocomplete="new-password">
             @error('password_confirmation') <div class="invalid-feedback">{{ $message }}</div> @enderror
           </div>
-
         </div>
 
         <div class="card-footer text-center">
@@ -101,6 +131,83 @@
           </button>
         </div>
       </form>
+
+      {{-- Bloque 2FA (separado del form principal) --}}
+      <div class="card-body border-top">
+        <h5 class="mb-3"><i class="fas fa-shield-alt me-1"></i> Autenticación en dos pasos (2FA)</h5>
+
+        @if (empty($has2FA))
+          {{-- Activar 2FA --}}
+          <form method="POST" action="{{ url('/user/two-factor-authentication') }}">
+            @csrf
+            <button type="submit" class="btn btn-outline-primary">
+              <i class="fas fa-shield-alt me-1"></i> Activar 2FA
+            </button>
+          </form>
+        @else
+          @if (empty($is2FAConfirmed))
+            <div class="alert alert-info">
+              Escanea el QR y confirma tu código de 6 dígitos para finalizar la activación.
+            </div>
+
+            @if(!empty($qrSvg))
+              <div class="border rounded p-3 bg-white mb-3">
+                {!! $qrSvg !!}
+              </div>
+            @endif
+
+            {{-- Confirmar TOTP --}}
+            <form method="POST" action="{{ url('/user/confirmed-two-factor-authentication') }}" class="mb-3">
+              @csrf
+              <div class="input-group mb-2" style="max-width: 320px;">
+                <input type="text" name="code" class="form-control @error('code') is-invalid @enderror"
+                       placeholder="{{ __('auth.two_factor.code') }}" inputmode="numeric" autocomplete="one-time-code" autofocus>
+                <div class="input-group-append">
+                  <button class="btn btn-success" type="submit">{{ __('auth.two_factor.confirm') }}</button>
+                </div>
+              </div>
+              @error('code') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+            </form>
+          @else
+            {{-- Ya confirmado: mostramos QR (opcional) y códigos --}}
+            @if(!empty($qrSvg))
+              <div class="border rounded p-3 bg-white mb-3">
+                {!! $qrSvg !!}
+              </div>
+            @endif
+
+            <h6 class="mb-2">Códigos de recuperación</h6>
+            @if (!empty($recoveryCodes) && count($recoveryCodes))
+              <div class="row row-cols-2 row-cols-md-3 g-2">
+                @foreach ($recoveryCodes as $code)
+                  <div class="col">
+                    <code class="d-block p-2 bg-light border rounded text-center">{{ $code }}</code>
+                  </div>
+                @endforeach
+              </div>
+            @else
+              <p class="text-muted mb-1">No hay códigos listados. Puedes regenerarlos.</p>
+            @endif
+
+            <form method="POST" action="{{ url('/user/two-factor-recovery-codes') }}" class="mt-3">
+              @csrf
+              <button class="btn btn-sm btn-secondary">
+                <i class="fas fa-redo me-1"></i> Regenerar códigos de recuperación
+              </button>
+            </form>
+          @endif
+
+          {{-- Desactivar 2FA --}}
+          <form method="POST" action="{{ url('/user/two-factor-authentication') }}" class="mt-3">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-outline-danger">
+              <i class="fas fa-times me-1"></i> Desactivar 2FA
+            </button>
+          </form>
+        @endif
+      </div>
+
     </div>
   </div>
 </div>
@@ -109,7 +216,7 @@
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  // --- Mostrar/ocultar contraseña
+  // Toggle password
   document.querySelectorAll('.toggle-password').forEach(btn => {
     btn.addEventListener('click', function(e){
       e.preventDefault();
@@ -121,60 +228,30 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // --- Requisitos de contraseña (dinámicos)
+  // Requisitos de contraseña (hints)
   const pwd = document.getElementById('password');
   const reqLen  = document.getElementById('req-length-admin');
   const reqSpec = document.getElementById('req-special-admin');
   const reqNum  = document.getElementById('req-number-admin');
-
-  function mark(el, ok){
-    if (!el) return;
-    el.classList.toggle('text-success', ok);
-    el.classList.toggle('text-muted',  !ok);
-  }
+  function mark(el, ok){ if (!el) return; el.classList.toggle('text-success', ok); el.classList.toggle('text-muted', !ok); }
   if (pwd) {
     pwd.addEventListener('input', function () {
       const v = pwd.value || '';
       mark(reqLen,  v.length >= 8);
-      mark(reqSpec, /[.:!@#$%^&*()_+\-]/.test(v));
+      mark(reqSpec, /[.\u00A1!@#$%^&*()_+\-]/.test(v)); // incluye "¡"
       mark(reqNum,  /\d/.test(v));
     });
   }
 
-  // --- Country code: expandir/cerrar etiquetas y seleccionar valor del usuario
+  // Phone country code labels
   const cc = document.getElementById('phone_cc');
-
-  function expandLabels(){
-    Array.from(cc.options).forEach(opt => {
-      const name = opt.dataset.name || '';
-      const code = opt.dataset.code || opt.value;
-      opt.textContent = `${name} (${code})`;
-    });
-  }
-  function collapseLabels(){
-    Array.from(cc.options).forEach(opt => {
-      const code = opt.dataset.code || opt.value;
-      opt.textContent = `(${code})`;
-    });
-  }
-
-  // Selecciona el código guardado/old si existe (el partial marca CR por defecto)
+  function expandLabels(){ Array.from(cc.options).forEach(opt => { const name = opt.dataset.name || ''; const code = opt.dataset.code || opt.value; opt.textContent = `${name} (${code})`; }); }
+  function collapseLabels(){ Array.from(cc.options).forEach(opt => { const code = opt.dataset.code || opt.value; opt.textContent = `(${code})`; }); }
   const wantedCc = @json(old('country_code', $user->country_code));
-  if (wantedCc) {
-    const found = Array.from(cc.options).find(o => o.value === wantedCc);
-    if (found) cc.value = wantedCc;
-  }
+  if (wantedCc) { const found = Array.from(cc.options).find(o => o.value === wantedCc); if (found) cc.value = wantedCc; }
   collapseLabels();
-
   cc.addEventListener('focus', expandLabels);
   cc.addEventListener('blur',  collapseLabels);
 });
 </script>
-
-@if(session('success'))
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-  Swal.fire({ icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 1800 });
-</script>
-@endif
 @endpush
