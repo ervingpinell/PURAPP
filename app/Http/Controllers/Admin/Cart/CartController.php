@@ -493,7 +493,7 @@ class CartController extends Controller
         }
 
         // Ajusta esta vista si tu plantilla se llama distinto
-        return view('admin.Cart.carts', compact('carritos'));
+        return view('admin.Cart.general', compact('carritos'));
     }
 
     public function toggleActive(Cart $cart)
