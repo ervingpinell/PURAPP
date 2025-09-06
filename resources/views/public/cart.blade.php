@@ -27,6 +27,19 @@
 
   // Etiqueta para "Pick-up" (se usará desde JS vía data-attribute)
   $pickupLabel = __('adminlte::adminlte.pickupTime') ?? 'Pick-up';
+
+  // Mostrar columnas condicionales
+  $showHotelColumn = ($cart && $cart->items)
+      ? $cart->items->contains(function($it){
+          return $it->hotel || $it->is_other_hotel || $it->other_hotel_name;
+        })
+      : false;
+
+  $showMeetingPointColumn = ($cart && $cart->items)
+      ? $cart->items->contains(function($it){
+          return !$it->hotel && !$it->is_other_hotel && ($it->meeting_point_id || $it->meeting_point_name);
+        })
+      : false;
 @endphp
 
 <div class="container py-5 mb-5" id="mp-config" data-pickup-label="{{ $pickupLabel }}">
@@ -89,8 +102,12 @@
             <th>{{ __('adminlte::adminlte.language') }}</th>
             <th>{{ __('adminlte::adminlte.adults') }}</th>
             <th>{{ __('adminlte::adminlte.kids') }}</th>
-            <th>{{ __('adminlte::adminlte.hotel') }}</th>
-            <th>{{ __('adminlte::adminlte.meeting_point') ?? 'Meeting point' }}</th>
+            @if($showHotelColumn)
+              <th>{{ __('adminlte::adminlte.hotel') }}</th>
+            @endif
+            @if($showMeetingPointColumn)
+              <th>{{ __('adminlte::adminlte.meeting_point') ?? 'Meeting point' }}</th>
+            @endif
             <th>{{ __('adminlte::adminlte.status') }}</th>
             <th>{{ __('adminlte::adminlte.actions') }}</th>
           </tr>
@@ -119,38 +136,41 @@
               <td>{{ $item->language?->name ?? __('adminlte::adminlte.notSpecified') ?? 'No indicado' }}</td>
               <td>{{ $item->adults_quantity }}</td>
               <td>{{ $item->kids_quantity }}</td>
-              <td>
-                @if($item->is_other_hotel && $item->other_hotel_name)
-                  {{ $item->other_hotel_name }} <small class="text-muted">(personalizado)</small>
-                @elseif($item->hotel)
-                  {{ $item->hotel->name }}
-                @else
-                  <span class="text-muted">{{ __('adminlte::adminlte.notSpecified') ?? 'No indicado' }}</span>
-                @endif
-              </td>
-              <td class="text-start">
-                @if($item->meeting_point_name)
-                  <div class="fw-semibold">{{ $item->meeting_point_name }}</div>
-                  @if($item->meeting_point_pickup_time)
-                    <div class="small text-muted">
-                      {{ __('adminlte::adminlte.pickupTime') ?? 'Pick-up' }}:
-                      {{ $item->meeting_point_pickup_time }}
-                    </div>
+
+              @if($showHotelColumn)
+                <td>
+                  @if($item->is_other_hotel && $item->other_hotel_name)
+                    {{ $item->other_hotel_name }} <small class="text-muted">(personalizado)</small>
+                  @elseif($item->hotel)
+                    {{ $item->hotel->name }}
                   @endif
-                  @if($item->meeting_point_address)
-                    <div class="small text-muted">
-                      <i class="fas fa-map-marker-alt me-1"></i>{{ $item->meeting_point_address }}
-                    </div>
+                </td>
+              @endif
+
+              @if($showMeetingPointColumn)
+                <td class="text-start">
+                  @if(!$item->hotel && !$item->is_other_hotel && $item->meeting_point_name)
+                    <div class="fw-semibold">{{ $item->meeting_point_name }}</div>
+                    @if($item->meeting_point_pickup_time)
+                      <div class="small text-muted">
+                        {{ __('adminlte::adminlte.pickupTime') ?? 'Pick-up' }}:
+                        {{ $item->meeting_point_pickup_time }}
+                      </div>
+                    @endif
+                    @if($item->meeting_point_address)
+                      <div class="small text-muted">
+                        <i class="fas fa-map-marker-alt me-1"></i>{{ $item->meeting_point_address }}
+                      </div>
+                    @endif
+                    @if($item->meeting_point_map_url)
+                      <a href="{{ $item->meeting_point_map_url }}" target="_blank" class="small">
+                        <i class="fas fa-external-link-alt me-1"></i>{{ __('adminlte::adminlte.openMap') ?? 'Abrir mapa' }}
+                      </a>
+                    @endif
                   @endif
-                  @if($item->meeting_point_map_url)
-                    <a href="{{ $item->meeting_point_map_url }}" target="_blank" class="small">
-                      <i class="fas fa-external-link-alt me-1"></i>{{ __('adminlte::adminlte.openMap') ?? 'Abrir mapa' }}
-                    </a>
-                  @endif
-                @else
-                  <span class="text-muted">—</span>
-                @endif
-              </td>
+                </td>
+              @endif
+
               <td>
                 <span class="badge {{ $item->is_active ? 'bg-success' : 'bg-secondary' }}">
                   {{ $item->is_active ? __('adminlte::adminlte.active') : __('adminlte::adminlte.inactive') }}
@@ -182,8 +202,10 @@
     <div class="d-block d-md-none">
       @foreach($cart->items as $item)
         @php
-          $itemSubtotal = ($item->tour->adult_price * $item->adults_quantity)
-                        + ($item->tour->kid_price   * $item->kids_quantity);
+          $itemSubtotal   = ($item->tour->adult_price * $item->adults_quantity)
+                          + ($item->tour->kid_price   * $item->kids_quantity);
+          $showHotelInCard = ($item->is_other_hotel && $item->other_hotel_name) || $item->hotel;
+          $showMpInCard    = !$item->hotel && !$item->is_other_hotel && $item->meeting_point_name;
         @endphp
         <div class="card mb-3 shadow-sm cart-item-card"
              data-item-id="{{ $item->item_id }}"
@@ -204,18 +226,19 @@
             <div class="mb-2"><strong>{{ __('adminlte::adminlte.language') }}:</strong> {{ $item->language?->name ?? __('adminlte::adminlte.notSpecified') ?? 'No indicado' }}</div>
             <div class="mb-2"><strong>{{ __('adminlte::adminlte.adults') }}:</strong> {{ $item->adults_quantity }}</div>
             <div class="mb-2"><strong>{{ __('adminlte::adminlte.kids') }}:</strong> {{ $item->kids_quantity }}</div>
-            <div class="mb-3"><strong>{{ __('adminlte::adminlte.hotel') }}:</strong>
-              @if($item->is_other_hotel && $item->other_hotel_name)
-                {{ $item->other_hotel_name }} <small class="text-muted">(personalizado)</small>
-              @elseif($item->hotel)
-                {{ $item->hotel->name }}
-              @else
-                <span class="text-muted">{{ __('adminlte::adminlte.notSpecified') ?? 'No indicado' }}</span>
-              @endif
-            </div>
 
-            <div class="mb-3"><strong>{{ __('adminlte::adminlte.meetingPoint') ?? 'Meeting point' }}:</strong>
-              @if($item->meeting_point_name)
+            @if($showHotelInCard)
+              <div class="mb-3"><strong>{{ __('adminlte::adminlte.hotel') }}:</strong>
+                @if($item->is_other_hotel && $item->other_hotel_name)
+                  {{ $item->other_hotel_name }} <small class="text-muted">(personalizado)</small>
+                @elseif($item->hotel)
+                  {{ $item->hotel->name }}
+                @endif
+              </div>
+            @endif
+
+            @if($showMpInCard)
+              <div class="mb-3"><strong>{{ __('adminlte::adminlte.meetingPoint') ?? 'Meeting point' }}:</strong>
                 <div>{{ $item->meeting_point_name }}</div>
                 @if($item->meeting_point_pickup_time)
                   <div class="small text-muted">
@@ -230,10 +253,8 @@
                     <i class="fas fa-external-link-alt me-1"></i>{{ __('adminlte::adminlte.openMap') ?? 'Abrir mapa' }}
                   </a>
                 @endif
-              @else
-                <span class="text-muted">—</span>
-              @endif
-            </div>
+              </div>
+            @endif
 
             <div class="d-grid gap-2">
               <button
@@ -552,7 +573,7 @@
         });
       });
 
-      // ====== UI dinámica de Meeting Point (sin Blade dentro del script) ======
+      // ====== UI dinámica de Meeting Point ======
       const pickupLabel = (document.getElementById('mp-config')?.dataset?.pickupLabel) || 'Pick-up';
 
       const updateMpInfo = (selectEl) => {
@@ -612,7 +633,7 @@
         });
       });
 
-      // ======= PROMO CODE (por ítem con deduplicación) =======
+      // ======= PROMO CODE =======
       const applyBtn    = document.getElementById('apply-promo');
       const codeInput   = document.getElementById('promo-code');
       const msgBox      = document.getElementById('promo-message');
@@ -716,6 +737,73 @@
           }
         });
       }
+
+      /* =========================================================
+         EXCLUSIVIDAD Hotel vs Meeting Point en modales de edición
+         (incluye "otro hotel" con switch y texto)
+         ========================================================= */
+      document.querySelectorAll('.edit-item-form').forEach(form => {
+        const hotelSelect   = form.querySelector('select[name="hotel_id"]');
+        const meetingSelect = form.querySelector('select[name="meeting_point_id"]');
+        const modalEl       = form.closest('.modal');
+        const itemId        = (modalEl?.id || '').replace('editItemModal-','');
+        const swOther       = form.querySelector('#is-other-hotel-' + itemId);
+        const customBox     = form.querySelector('#custom-hotel-wrapper-' + itemId);
+        const customInp     = form.querySelector('#custom-hotel-input-' + itemId);
+
+        // Limpia todos los campos relacionados al hotel
+        const clearHotelSide = () => {
+          if (hotelSelect) hotelSelect.value = '';
+          if (swOther)     swOther.checked = false;
+          if (customInp)   customInp.value = '';
+          if (customBox)   customBox.style.display = 'none';
+        };
+
+        // Limpia el meeting point SIN disparar evento de cambio
+        const clearMeetingSide = () => {
+          if (meetingSelect) meetingSelect.value = '';
+          if (typeof updateMpInfo === 'function') updateMpInfo(meetingSelect);
+        };
+
+        // Habilita ambos campos
+        const enableBoth = () => {
+          if (hotelSelect)   hotelSelect.removeAttribute('disabled');
+          if (meetingSelect) meetingSelect.removeAttribute('disabled');
+        };
+
+        // Validación principal
+        const validateHotelMeetingPointEdit = () => {
+          const hotelSel   = !!(hotelSelect && hotelSelect.value && hotelSelect.value !== '');
+          const hotelCust  = !!(hotelSelect && hotelSelect.value === '__custom__');
+          const otherOn    = !!(swOther && swOther.checked);
+          const otherText  = !!(customInp && customInp.value.trim().length > 0);
+          const hasHotel   = hotelSel || hotelCust || otherOn || otherText;
+
+          const hasMeeting = !!(meetingSelect && meetingSelect.value && meetingSelect.value !== '');
+
+          if (hasHotel) {
+            clearMeetingSide();
+            if (meetingSelect) meetingSelect.setAttribute('disabled','disabled');
+            if (hotelSelect)   hotelSelect.removeAttribute('disabled');
+          } else if (hasMeeting) {
+            clearHotelSide();
+            if (hotelSelect)   hotelSelect.setAttribute('disabled','disabled');
+            if (meetingSelect) meetingSelect.removeAttribute('disabled');
+          } else {
+            enableBoth();
+          }
+        };
+
+        // Eventos
+        hotelSelect?.addEventListener('change', validateHotelMeetingPointEdit);
+        meetingSelect?.addEventListener('change', validateHotelMeetingPointEdit);
+        swOther?.addEventListener('change', validateHotelMeetingPointEdit);
+        customInp?.addEventListener('input', validateHotelMeetingPointEdit);
+
+        // Revalida al abrir el modal y estado inicial
+        modalEl?.addEventListener('shown.bs.modal', validateHotelMeetingPointEdit);
+        validateHotelMeetingPointEdit();
+      });
     });
   </script>
 @endpush
