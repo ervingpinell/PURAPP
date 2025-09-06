@@ -14,6 +14,7 @@ return [
     'status' => 'Status',
     'no_schedule' => 'No schedule',
     'people' => 'People',
+    'meeting_point' => 'Meeting point',
 
     'adults_x' => 'Adults (x:count)',
     'kids_x' => 'Kids (x:count)',

@@ -36,7 +36,7 @@
       $pCut = optional($s->pivot)->cutoff_hour;
       $pLd  = optional($s->pivot)->lead_days;
       $sCut = $pCut ?: $tCutoff;
-      $sLd  = is_null($pLd) ? $tLead : (int) $pLd;
+      $sLd  = is_null($pLd) ? $tLead : (int)$pLd;
       $scheduleRules[$s->schedule_id] = $calc($sCut, $sLd);
   }
 
@@ -125,7 +125,7 @@
 
       {{-- ===== Language ===== --}}
       <label class="form-label">{{ __('adminlte::adminlte.select_language') }}</label>
-      <select name="tour_language_id" class="form-select mb-3" required>
+      <select name="tour_language_id" class="form-select mb-3" id="languageSelect" required>
         <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
         @foreach($tour->languages as $lang)
           <option value="{{ $lang->tour_language_id }}">{{ $lang->name }}</option>
@@ -141,19 +141,8 @@
         @endforeach
         <option value="other">{{ __('adminlte::adminlte.hotel_other') }}</option>
       </select>
-      
-      {{-- ===== Pickup / Meeting point (simple) ===== --}}
-      <label class="form-label"><i class="fas fa-map-marker-alt me-1"></i> Pickup / Meeting point</label>
-      <select class="form-select mb-3" name="selected_meeting_point" id="meetingPointSelect">
-        <option value="">-- Selecciona un punto --</option>
-        @foreach($meetingPoints as $mp)
-          <option value="{{ $mp->id }}">
-            {{ $mp->name }}{{ $mp->pickup_time ? ' — '.$mp->pickup_time : '' }}
-          </option>
-        @endforeach
-      </select>
 
-
+      {{-- Campo “otro hotel” --}}
       <div class="mb-3 d-none" id="otherHotelWrapper">
         <label for="otherHotelInput" class="form-label">{{ __('adminlte::adminlte.hotel_name') }}</label>
         <input type="text" class="form-control" name="other_hotel_name" id="otherHotelInput"
@@ -163,6 +152,19 @@
               ?: 'Has ingresado un hotel personalizado. Contáctanos para confirmar si podemos ofrecer transporte desde ese lugar.' }}
         </div>
       </div>
+
+      {{-- ===== Meeting Point (Choices para que se vea igual) ===== --}}
+      <label class="form-label d-flex align-items-center gap-2">
+        <i class="fas fa-map-marker-alt"></i> <span>Meeting Point</span>
+      </label>
+      <select class="form-select mb-3" name="selected_meeting_point" id="meetingPointSelect">
+        <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
+        @foreach($meetingPoints as $mp)
+          <option value="{{ $mp->id }}">
+            {{ $mp->name }}{{ $mp->pickup_time ? ' — '.$mp->pickup_time : '' }}
+          </option>
+        @endforeach
+      </select>
 
       {{-- Hidden fields --}}
       <input type="hidden" name="is_other_hotel" id="isOtherHotel" value="0">
@@ -186,7 +188,53 @@
   @endauth
 </form>
 
+{{-- ======== ESTILO UNIFICADO (verde) ======== --}}
 <style>
+  /* Marca local del widget */
+  .reservation-box{ --brand:#2E8B57; --brand-600:#256f47; --brand-50:#eaf5ef; }
+
+  /* Inputs nativos */
+  .reservation-box .form-control:focus,
+  .reservation-box .form-select:focus{
+    border-color: var(--brand) !important;
+    box-shadow: 0 0 0 .2rem rgba(46,139,87,.25) !important;
+  }
+
+  /* Botón CTA */
+  .reservation-box .gv-cta{
+    background: var(--brand) !important;
+    border-color: var(--brand) !important;
+  }
+  .reservation-box .gv-cta:hover{ background: var(--brand-600) !important; border-color: var(--brand-600) !important; }
+
+  /* Choices.js (para que no se vea azul) */
+  .reservation-box .choices__inner{
+    border-color:#ced4da;
+    border-radius:.375rem;
+    padding:.45rem .75rem !important;
+    min-height: 42px;
+    background:#fff;
+  }
+  .reservation-box .choices.is-open .choices__inner{ border-color: var(--brand); box-shadow: 0 0 0 .2rem rgba(46,139,87,.12); }
+  .reservation-box .choices__list--dropdown{ border-color: var(--brand); }
+  .reservation-box .choices__list--dropdown .choices__item--selectable.is-highlighted{
+    background: var(--brand-50); color:#111;
+  }
+  .reservation-box .choices[data-type*="select-one"]::after{
+    border-color: var(--brand) transparent transparent transparent;
+  }
+  .reservation-box .choices[data-type*="select-one"].is-open::after{
+    border-color: transparent transparent var(--brand) transparent;
+  }
+
+  /* Flatpickr */
+  .reservation-box .flatpickr-day.selected,
+  .reservation-box .flatpickr-day.startRange,
+  .reservation-box .flatpickr-day.endRange{
+    background: var(--brand) !important; border-color: var(--brand) !important;
+  }
+  .reservation-box .flatpickr-day.today{ border-color: var(--brand) !important; }
+  .reservation-box .flatpickr-day:hover{ background: var(--brand-50); }
   .gv-ui .form-control,
   .gv-ui .form-select,
   .gv-ui .choices__inner { background-color: #fff !important; }
@@ -225,20 +273,24 @@
   const scheduleSel = document.getElementById('scheduleSelect');
   const helpMsg     = document.getElementById('noSlotsHelp');
   const hintEl      = document.getElementById('cutoffHint');
-  const langSelect  = document.querySelector('select[name="tour_language_id"]');
+  const langSelect  = document.getElementById('languageSelect');
   const hotelSelect = document.getElementById('hotelSelect');
+  const meetingSel  = document.getElementById('meetingPointSelect');
 
   if (!window.isAuthenticated) {
     if (dateInput) { dateInput.setAttribute('disabled','disabled'); dateInput.setAttribute('readonly','readonly'); }
     scheduleSel && scheduleSel.setAttribute('disabled','disabled');
     langSelect  && langSelect.setAttribute('disabled','disabled');
     hotelSelect && hotelSelect.setAttribute('disabled','disabled');
+    meetingSel  && meetingSel.setAttribute('disabled','disabled');
     return;
   }
 
+  // Choices para todos los selects
   const scheduleChoices = new Choices(scheduleSel, { searchEnabled:false, shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- {{ __('adminlte::adminlte.select_option') }} --' });
-  const langChoices  = new Choices(langSelect,  { searchEnabled:false, shouldSort:false, itemSelectText:'' });
-  const hotelChoices = new Choices(hotelSelect, { searchEnabled:true,  shouldSort:false, itemSelectText:'' });
+  const langChoices     = new Choices(langSelect,  { searchEnabled:false, shouldSort:false, itemSelectText:'' });
+  const hotelChoices    = new Choices(hotelSelect, { searchEnabled:true,  shouldSort:false, itemSelectText:'' });
+  const meetingChoices  = new Choices(meetingSel,  { searchEnabled:true,  shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- {{ __('adminlte::adminlte.select_option') }} --' });
 
   const BASE_CHOICES = scheduleChoices._store.choices.filter(c => c.value !== '').map(c => ({ value:String(c.value), label:c.label }));
   const SCHEDULE_IDS = BASE_CHOICES.map(o => o.value);
@@ -253,32 +305,25 @@
     return mins.sort()[0];
   };
 
-  
-
   // ¿Puede este horario reservar en la fecha seleccionada?
   const canUseScheduleOnDate = (iso, sid) => {
     if (!iso) return false;
-    // Bloqueos duros
     if (fullyBlockedDates.includes(iso)) return false;
     if (blockedGeneral.includes(iso))    return false;
     if ((blockedBySchedule[sid] || []).includes(iso)) return false;
 
-    // Regla de cutoff/lead
     const r = ruleForSchedule(sid);
     if (iso < r.min) return false;
 
     return true;
   };
 
-  const anyScheduleAvailable = (iso) => {
-    return SCHEDULE_IDS.some((sid) => canUseScheduleOnDate(iso, sid));
-  };
+  const anyScheduleAvailable = (iso) => SCHEDULE_IDS.some((sid) => canUseScheduleOnDate(iso, sid));
 
   const isDayFullyBlocked = (iso) => {
     if (!iso) return true;
     if (fullyBlockedDates.includes(iso)) return true;
     if (blockedGeneral.includes(iso))    return true;
-    // Si ningún horario cumple su minDate/override, el día queda bloqueado
     return !anyScheduleAvailable(iso);
   };
 
@@ -294,14 +339,9 @@
       return;
     }
 
-    const allowed = BASE_CHOICES.map(o => {
-      const ok = canUseScheduleOnDate(iso, o.value);
-      return { ...o, disabled: !ok };
-    });
-
+    const allowed = BASE_CHOICES.map(o => ({ ...o, disabled: !canUseScheduleOnDate(iso, o.value) }));
     scheduleChoices.setChoices(ph.concat(allowed), 'value', 'label', true);
 
-    // Si al menos uno habilitado -> enable; si todos disabled -> disable
     const hasEnabled = allowed.some(c => !c.disabled);
     if (hasEnabled) {
       scheduleChoices.enable();
@@ -323,7 +363,7 @@
         dateFormat: 'Y-m-d',
         altInput: true,
         altFormat: 'd/m/Y',
-        minDate: initialMin,                         // 🔑 permite "mañana" si algún horario lo permite
+        minDate: initialMin,
         disable: [ (date) => isDayFullyBlocked(isoFromDate(date)) ],
         onChange: (_sel, iso) => rebuildScheduleChoices(iso),
         onReady: (_sel, iso) => {
@@ -331,7 +371,6 @@
           if (!iso) {
             scheduleChoices.disable();
             helpMsg.style.display = 'none';
-            // Opcional: abre directamente en initialMin
             fp.setDate(initialMin, false);
             rebuildScheduleChoices(initialMin);
           } else {
@@ -346,7 +385,6 @@
       scheduleChoices.disable();
     }
   };
-
   setupFlatpickr();
 
   // Cuando cambias de HORARIO, ajusta minDate a la regla del horario
@@ -354,18 +392,14 @@
     const sid = scheduleSel.value;
     const rule = sid ? ruleForSchedule(sid) : RULES.tour;
 
-    // Ajusta minDate para que el usuario pueda llegar al día permitido por ese horario
     if (fp) fp.set('minDate', sid ? rule.min : minAcrossAll());
-
     setHint(rule);
 
-    // Si la fecha actual quedó por debajo del min del horario elegido, la “salta” al min
     const current = dateInput.value;
     if (current && sid && current < rule.min) {
       fp.setDate(rule.min, true);
     }
 
-    // Reconstruye disponibilidad de horarios para la fecha seleccionada
     const iso = dateInput.value || (fp ? fp.input.value : null);
     rebuildScheduleChoices(iso);
   });
@@ -386,7 +420,13 @@
   hotelSelect.addEventListener('change', toggleOther);
   toggleOther();
 
-  // ======= AJAX Add to cart (tu lógica existente) =======
+  // ======= Meeting point -> hidden para enviar el id seleccionado =======
+  const hiddenMP = document.getElementById('selectedMeetingPoint');
+  meetingSel.addEventListener('change', () => {
+    if (hiddenMP) hiddenMP.value = meetingChoices.getValue(true) || '';
+  });
+
+  // ======= AJAX Add to cart (igual que antes) =======
   const addBtn = document.getElementById('addToCartBtn');
   if (!addBtn) return;
 

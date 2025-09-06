@@ -14,6 +14,7 @@ return [
     'status' => 'Statut',
     'no_schedule' => 'Sans horaire',
     'people' => 'Personnes',
+    'meeting_point' => 'Point de rencontre',
 
     'adults_x' => 'Adultes (x:count)',
     'kids_x' => 'Enfants (x:count)',

@@ -1,3 +1,12 @@
+{{-- Fallback: si no viene $meetingPoints desde el controlador, lo cargamos aquí --}}
+@php
+  /** @var \Illuminate\Support\Collection<int,\App\Models\MeetingPoint> $meetingPoints */
+  $meetingPoints = $meetingPoints
+    ?? \App\Models\MeetingPoint::orderByRaw('sort_order IS NULL, sort_order ASC')
+        ->orderBy('name','asc')
+        ->get();
+@endphp
+
 {{-- Modal Editar --}}
 <div class="modal fade" id="modalEditar{{ $reserva->booking_id }}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
@@ -21,7 +30,11 @@
         </div>
 
         <div class="modal-body">
-          @php $showMyErrors = (session('showEditModal') == $reserva->booking_id) || (old('_modal') === 'edit:'.$reserva->booking_id); @endphp
+          @php
+            $showMyErrors = (session('showEditModal') == $reserva->booking_id)
+                            || (old('_modal') === 'edit:'.$reserva->booking_id);
+            $detail = $reserva->detail;
+          @endphp
 
           @if ($showMyErrors && $errors->any())
             <div class="alert alert-danger">
@@ -33,6 +46,7 @@
             </div>
           @endif
 
+          {{-- ========== FORM PRINCIPAL EXISTENTE ========== --}}
           @include('admin.bookings.partials.edit-form', [
             'booking'  => $reserva,
             'statuses' => [
@@ -41,6 +55,31 @@
               'cancelled' => 'Cancelled',
             ],
           ])
+
+          {{-- ========== MEETING POINT (simple) ========== --}}
+          <hr class="my-3">
+          <div class="mb-2">
+            <label class="form-label"><i class="fas fa-map-marker-alt me-1"></i> Meeting Point</label>
+            <select
+              name="meeting_point_id"
+              class="form-select @error('meeting_point_id') is-invalid @enderror">
+              <option value="">— Selecciona un punto de encuentro —</option>
+              @foreach ($meetingPoints as $mp)
+                <option
+                  value="{{ $mp->id }}"
+                  @selected(old('meeting_point_id', $detail->meeting_point_id ?? null) == $mp->id)>
+                  {{ $mp->name }}
+                </option>
+              @endforeach
+            </select>
+            @error('meeting_point_id')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+            <div class="form-text">
+              Solo se muestra el <strong>nombre</strong> del punto en el listado.
+            </div>
+          </div>
+          {{-- /MEETING POINT --}}
         </div>
 
         <div class="modal-footer">

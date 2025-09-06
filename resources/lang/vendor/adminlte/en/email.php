@@ -21,6 +21,7 @@ return [
     'state_confirmed' => 'Confirmed',
     'state_updated' => 'Updated',
     'state_pending' => 'Pending',
+    'meeting_point' => 'Meeting point',
 
 
     'booking_confirmed_subject' => 'Your booking (:reference) is confirmed',

@@ -4,7 +4,7 @@
       <th>ID Reserva</th>
       <th>Estado</th>
       <th>Fecha Reserva</th>
-        <th>Referencia</th>
+      <th>Referencia</th>
       <th>Cliente</th>
       <th>Correo</th>
       <th>Teléfono</th>
@@ -12,6 +12,7 @@
       <th>Idioma</th>
       <th>Fecha Tour</th>
       <th>Hotel</th>
+      <th>Meeting Point</th>
       <th>Horario</th>
       <th>Tipo</th>
       <th>Adultos</th>
@@ -35,7 +36,7 @@
       </span>
     </td>
     <td>{{ $booking->booking_date }}</td>
-        <td>{{ $booking->booking_reference }}</td>
+    <td>{{ $booking->booking_reference }}</td>
     <td>{{ $booking->user->full_name ?? '-' }}</td>
     <td>{{ $booking->user->email ?? '-' }}</td>
     <td>{{ $booking->user->phone ?? '-' }}</td>
@@ -43,6 +44,10 @@
     <td>{{ $detail->tourLanguage->name ?? '-' }}</td>
     <td>{{ optional($detail)->tour_date?->format('Y-m-d') ?? '-' }}</td>
     <td>{{ $detail->hotel->name ?? $detail->other_hotel_name ?? '-' }}</td>
+
+    {{-- SOLO nombre del punto de encuentro --}}
+    <td>{{ optional($detail->meetingPoint ?? null)->name ?? '—' }}</td>
+
     <td>{{ $detail->schedule->start_time ?? '' }} - {{ $detail->schedule->end_time ?? '' }}</td>
     <td>{{ optional($detail->tour->tourType ?? null)->name ?? '—' }}</td>
     <td>{{ $detail->adults_quantity }}</td>
@@ -50,30 +55,34 @@
     <td>{{ $booking->promoCode->code ?? '—' }}</td>
     <td>${{ number_format($booking->total, 2) }}</td>
     <td class="text-nowrap">
+      {{-- Descargar comprobante --}}
+      <a href="{{ route('admin.reservas.comprobante', $booking->booking_id) }}"
+         class="btn btn-primary btn-sm" title="Descargar comprobante">
+        <i class="fas fa-file-download"></i>
+      </a>
 
-        {{-- Botón descargar comprobante --}}
-        <a href="{{ route('admin.reservas.comprobante', $booking->booking_id) }}"
-                  class="btn btn-primary btn-sm">
-                  <i class="fas fa-file-download"></i>
-        </a>
-        {{-- Botón Editar --}}
-        <button class="btn btn-sm btn-edit" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $booking->booking_id }}">
-            <i class="fas fa-edit"></i>
+      {{-- Editar --}}
+      <button class="btn btn-sm btn-edit"
+              data-bs-toggle="modal"
+              data-bs-target="#modalEditar{{ $booking->booking_id }}"
+              title="Editar">
+        <i class="fas fa-edit"></i>
+      </button>
+
+      {{-- Eliminar --}}
+      <form action="{{ route('admin.reservas.destroy', $booking->booking_id) }}"
+            method="POST" class="d-inline">
+        @csrf
+        @method('DELETE')
+        <button class="btn btn-sm btn-delete"
+                onclick="return confirm('¿Estás seguro de eliminar esta reserva?')"
+                title="Eliminar">
+          <i class="fas fa-trash-alt"></i>
         </button>
-
-        {{-- Botón Eliminar --}}
-        <form action="{{ route('admin.reservas.destroy', $booking->booking_id) }}" method="POST" class="d-inline">
-            @csrf
-            @method('DELETE')
-            <button class="btn btn-sm btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta reserva?')">
-                <i class="fas fa-trash-alt"></i>
-            </button>
-        </form>
+      </form>
     </td>
-
   </tr>
 @endforeach
-
   </tbody>
 </table>
 
@@ -88,4 +97,3 @@
     </ul>
   </nav>
 @endif
-

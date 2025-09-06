@@ -173,6 +173,8 @@ return [
     'main_street_entrance' => 'Main street entrance',
     'example_address' => '123 Example Address',
     'hotels_meeting_points' => 'Hotels and meeting points',
+    'meeting_valid' => 'The selected meeting point is valid! Once you confirm your booking, we will send you the instructions and the exact meeting time.',
+
 
     // ─── CART & BOOKINGS ───────────────────────────────
     'cart' => 'Cart',

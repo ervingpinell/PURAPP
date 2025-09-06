@@ -61,7 +61,9 @@ return [
     'is_active_required'  => 'Status ist erforderlich.',
     'is_active_boolean'   => 'Status muss wahr oder falsch sein.',
     'outside_list' => 'Dieses Hotel befindet sich außerhalb unserer Liste. Bitte kontaktieren Sie uns, um zu prüfen, ob ein Transport möglich ist.',
-
+    'meeting_valid' => 'Der ausgewählte Treffpunkt ist gültig! Sobald Sie Ihre Buchung bestätigt haben, senden wir Ihnen die Anweisungen und die genaue Treffzeit.',
+    
+    
     // ─── ALLGEMEINE NAVIGATION ─────────────────────────
     'back' => 'Zurück',
     'home' => 'Startseite',

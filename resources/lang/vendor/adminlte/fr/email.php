@@ -22,6 +22,8 @@ return [
     'state_confirmed' => 'Confirmée',
     'state_updated' => 'Mise à jour',
     'state_pending' => 'En attente',
+    'meeting_point' => 'Point de rencontre',
+    
 
     'booking_confirmed_subject' => 'Votre réservation (:reference) est confirmée',
     'booking_confirmed_title' => 'Réservation confirmée',

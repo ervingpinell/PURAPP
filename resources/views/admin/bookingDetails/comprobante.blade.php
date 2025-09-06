@@ -151,6 +151,12 @@
                   ? $detail->other_hotel_name
                   : optional($detail->hotel)->name ?? '—';
 
+      // NUEVO: Meeting Point (solo nombre)
+      $meetingPointName = optional($detail->meetingPoint)->name ?? '—';
+      $meetingPointLabel = \Illuminate\Support\Facades\Lang::has('receipt.meeting_point')
+        ? __('receipt.meeting_point')
+        : 'Meeting Point';
+
       $horario = $detail->schedule
         ? Carbon::parse($detail->schedule->start_time)->isoFormat('LT') . ' – ' . Carbon::parse($detail->schedule->end_time)->isoFormat('LT')
         : __('receipt.no_schedule');
@@ -203,6 +209,11 @@
       <div class="dato">
         <strong>{{ __('receipt.hotel') }}</strong>
         <span>{{ $hotel }}</span>
+      </div>
+      {{-- NUEVO: Meeting Point --}}
+      <div class="dato">
+        <strong>{{ $meetingPointLabel }}</strong>
+        <span>{{ $meetingPointName }}</span>
       </div>
       <div class="dato">
         <strong>{{ __('receipt.status') }}</strong>
