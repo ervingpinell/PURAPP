@@ -27,12 +27,12 @@ class CartController extends Controller
             $cart = $user->cart()
                 ->where('is_active', true)
                 ->with([
-                    'items.tour.schedules',
-                    'items.tour.languages',
+                    'items.tour.schedules',   // horarios
+                    'items.tour.languages',   // idiomas
                     'items.schedule',
                     'items.language',
                     'items.hotel',
-                    'items.meetingPoint',
+                    'items.meetingPoint',     // meeting point
                 ])
                 ->first();
 
@@ -77,41 +77,54 @@ class CartController extends Controller
 
     public function store(Request $request)
     {
-        // ---- SANEOS PREVIOS ----
-        $input = $request->all();
+        // -------------------------
+        // SANEOS PREVIOS AL VALIDADOR
+        // -------------------------
+        $in = $request->all();
 
-        // hotel_id: si no es entero puro (o viene "other"), forzar a null
-        if (!array_key_exists('hotel_id', $input) || !ctype_digit((string) $input['hotel_id'])) {
-            $input['hotel_id'] = null;
+        // Normaliza boolean
+        $in['is_other_hotel'] = (bool)($in['is_other_hotel'] ?? false);
+
+        // hotel_id: si llega "other", "__custom__" o cualquier no-entero => null
+        if (array_key_exists('hotel_id', $in)) {
+            $raw = $in['hotel_id'];
+            if ($raw === 'other' || $raw === '__custom__' || (isset($raw) && !ctype_digit((string)$raw))) {
+                // si explícitamente eligió "otro", marcamos el flag
+                if ($raw === 'other' || $raw === '__custom__') {
+                    $in['is_other_hotel'] = true;
+                }
+                $in['hotel_id'] = null;
+            }
+        } else {
+            $in['hotel_id'] = null;
         }
 
-        // Boolean consistente
-        $input['is_other_hotel'] = filter_var($input['is_other_hotel'] ?? false, FILTER_VALIDATE_BOOLEAN);
-
-        // Si marcó “otro hotel”, anulamos hotel_id
-        if ($input['is_other_hotel']) {
-            $input['hotel_id'] = null;
+        // si marcó "otro hotel" y puso nombre, nos aseguramos de que hotel_id sea null
+        if ($in['is_other_hotel'] && !empty($in['other_hotel_name'])) {
+            $in['hotel_id'] = null;
         }
 
-        $request->replace($input);
+        $request->replace($in);
 
-        // ---- VALIDACIÓN ----
+        // -------------------------
+        // VALIDACIÓN
+        // -------------------------
         $request->validate([
             'tour_id'                 => 'required|exists:tours,tour_id',
             'tour_date'               => 'required|date|after_or_equal:today',
             'schedule_id'             => 'required|exists:schedules,schedule_id',
             'tour_language_id'        => 'required|exists:tour_languages,tour_language_id',
 
-            // clave: bail+integer para evitar exists con strings; y no exigirlo si is_other_hotel=1
+            // bail evita correr exists si falla integer; se excluye si is_other_hotel=1
             'hotel_id'                => 'bail|nullable|integer|exists:hotels_list,hotel_id|exclude_if:is_other_hotel,1',
             'is_other_hotel'          => 'boolean',
-            // clave: SOLO si is_other_hotel=1
+            // SOLO si realmente se marcó “otro hotel”
             'other_hotel_name'        => 'nullable|string|max:255|required_if:is_other_hotel,1',
 
             'adults_quantity'         => 'required|integer|min:1',
             'kids_quantity'           => 'nullable|integer|min:0|max:2',
 
-            // Meeting point
+            // Meeting point (desde el form)
             'selected_meeting_point'  => 'nullable|integer|exists:meeting_points,id',
         ]);
 
@@ -136,13 +149,17 @@ class CartController extends Controller
             ]);
         }
 
-        // Fecha bloqueada
+        // Fecha bloqueada (bloqueo por día completo o por horario específico)
         $isBlocked = TourExcludedDate::where('tour_id', $tour->tour_id)
-            ->where('schedule_id', $request->schedule_id)
+            ->where(function ($q) use ($request) {
+                $q->whereNull('schedule_id')
+                  ->orWhere('schedule_id', $request->schedule_id);
+            })
             ->where('start_date', '<=', $request->tour_date)
             ->where(function ($q) use ($request) {
                 $q->where('end_date', '>=', $request->tour_date)->orWhereNull('end_date');
-            })->exists();
+            })
+            ->exists();
 
         if ($isBlocked) {
             return back()->with('error', __('adminlte::adminlte.blocked_date_for_tour', [
@@ -164,7 +181,7 @@ class CartController extends Controller
             return back()->with('error', __('adminlte::adminlte.tourCapacityFull'));
         }
 
-        // Meeting point snapshot
+        // --- MEETING POINT (snapshot) ---
         $mpId = $request->integer('selected_meeting_point') ?: null;
         $mp   = $mpId ? MeetingPoint::find($mpId) : null;
 
@@ -183,7 +200,7 @@ class CartController extends Controller
             'kids_quantity'    => $request->kids_quantity ?? 0,
             'is_active'        => true,
 
-            // Snapshot MP
+            // Snapshot Meeting Point
             'meeting_point_id'          => $mp?->id,
             'meeting_point_name'        => $mp?->name,
             'meeting_point_pickup_time' => $mp?->pickup_time,
@@ -209,9 +226,9 @@ class CartController extends Controller
 
     public function update(Request $request, CartItem $item)
     {
-        // Normalización
+        // --- Normalización previa (aceptar "other"/"__custom__" y no enteros) ---
         $in = $request->all();
-        $in['is_other_hotel'] = filter_var($in['is_other_hotel'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $in['is_other_hotel'] = (bool)($in['is_other_hotel'] ?? false);
 
         $raw = $in['hotel_id'] ?? null;
         if ($in['is_other_hotel'] === true || $raw === 'other' || $raw === '__custom__' || (isset($raw) && !ctype_digit((string)$raw))) {
@@ -227,6 +244,7 @@ class CartController extends Controller
             'schedule_id'      => ['nullable','exists:schedules,schedule_id'],
             'tour_language_id' => ['required','exists:tour_languages,tour_language_id'],
             'is_active'        => ['nullable','boolean'],
+
             // bail + integer; y no exigirlo si is_other_hotel=1
             'hotel_id'         => ['bail','nullable','integer','exists:hotels_list,hotel_id','exclude_if:is_other_hotel,1'],
             'is_other_hotel'   => ['boolean'],
@@ -254,12 +272,17 @@ class CartController extends Controller
                 ]);
             }
 
-            $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
-                ->where('schedule_id', $scheduleId)
+            // Fecha bloqueada (día o horario)
+            $isBlocked = TourExcludedDate::where('tour_id', $tour->tour_id)
+                ->where(function ($q) use ($scheduleId) {
+                    $q->whereNull('schedule_id')
+                      ->orWhere('schedule_id', $scheduleId);
+                })
                 ->where('start_date', '<=', $data['tour_date'])
                 ->where(function ($q) use ($data) {
                     $q->where('end_date', '>=', $data['tour_date'])->orWhereNull('end_date');
-                })->exists();
+                })
+                ->exists();
 
             if ($isBlocked) {
                 return back()->with('error', __('adminlte::adminlte.blocked_date_for_tour', [
@@ -268,11 +291,11 @@ class CartController extends Controller
                 ]));
             }
 
-            $reserved = \DB::table('booking_details')
+            $reserved = DB::table('booking_details')
                 ->where('tour_id', $tour->tour_id)
                 ->where('schedule_id', $scheduleId)
                 ->where('tour_date', $data['tour_date'])
-                ->sum(\DB::raw('adults_quantity + kids_quantity'));
+                ->sum(DB::raw('adults_quantity + kids_quantity'));
 
             $requested = (int)$data['adults_quantity'] + (int)($data['kids_quantity'] ?? 0);
 
@@ -296,10 +319,10 @@ class CartController extends Controller
         } else {
             $item->is_other_hotel   = false;
             $item->other_hotel_name = null;
-            $item->hotel_id         = $data['hotel_id'] ?? null;
+            $item->hotel_id         = $data['hotel_id'] ?? null; // ya viene saneado
         }
 
-        // Meeting point (si se envía)
+        // MEETING POINT (si se envía en la edición del carrito)
         if (array_key_exists('meeting_point_id', $data)) {
             $mpId = $request->integer('meeting_point_id') ?: null;
             $mp   = $mpId ? MeetingPoint::find($mpId) : null;
@@ -332,8 +355,8 @@ class CartController extends Controller
 
         $item->update([
             'tour_date'       => $validated['tour_date'],
-            'adults_quantity' => (int) ($validated['adults_quantity']),
-            'kids_quantity'   => array_key_exists('kids_quantity', $validated) ? (int) $validated['kids_quantity'] : 0,
+            'adults_quantity' => (int)$validated['adults_quantity'],
+            'kids_quantity'   => array_key_exists('kids_quantity', $validated) ? (int)$validated['kids_quantity'] : 0,
             'schedule_id'     => array_key_exists('schedule_id', $validated) ? $validated['schedule_id'] : $item->schedule_id,
             'is_active'       => true,
         ]);
@@ -359,7 +382,7 @@ class CartController extends Controller
 
     private function adminCartSubtotal(Cart $cart): float
     {
-        return (float) $cart->items->sum(function ($it) {
+        return (float)$cart->items->sum(function ($it) {
             $ap = (float)($it->tour->adult_price ?? 0);
             $kp = (float)($it->tour->kid_price   ?? 0);
             $aq = (int)($it->adults_quantity ?? 0);
@@ -380,7 +403,7 @@ class CartController extends Controller
             return response()->json(['ok' => false, 'message' => 'No hay ítems en el carrito.'], 422);
         }
 
-        $code = strtoupper(trim($request->code));
+        $code  = strtoupper(trim($request->code));
         $promo = PromoCode::whereRaw('UPPER(code) = ?', [$code])->first();
 
         if (!$promo) {
@@ -392,8 +415,8 @@ class CartController extends Controller
 
         $subtotal = $this->adminCartSubtotal($cart);
 
-        $discountFixed = max(0.0, (float)($promo->discount_amount ?? 0));
-        $discountPerc  = max(0.0, (float)($promo->discount_percent ?? 0));
+        $discountFixed    = max(0.0, (float)($promo->discount_amount ?? 0));
+        $discountPerc     = max(0.0, (float)($promo->discount_percent ?? 0));
         $discountFromPerc = round($subtotal * ($discountPerc / 100), 2);
 
         $discount = min($subtotal, round($discountFixed + $discountFromPerc, 2));
@@ -401,13 +424,13 @@ class CartController extends Controller
 
         session([
             'admin_cart_promo' => [
-                'code'      => $promo->code,
-                'amount'    => $discountFixed,
-                'percent'   => $discountPerc,
-                'discount'  => $discount,
-                'subtotal'  => $subtotal,
-                'new_total' => $newTotal,
-                'applied_at'=> now()->toISOString(),
+                'code'       => $promo->code,
+                'amount'     => $discountFixed,
+                'percent'    => $discountPerc,
+                'discount'   => $discount,
+                'subtotal'   => $subtotal,
+                'new_total'  => $newTotal,
+                'applied_at' => now()->toISOString(),
             ]
         ]);
 
@@ -443,7 +466,7 @@ class CartController extends Controller
                 'items.tour',
                 'items.language',
                 'items.schedule',
-                'items.meetingPoint',
+                'items.meetingPoint', // meeting point
             ])
             ->withCount('items')
             ->whereHas('user', function ($q) use ($request) {
@@ -469,6 +492,23 @@ class CartController extends Controller
             });
         }
 
+        // Ajusta esta vista si tu plantilla se llama distinto
         return view('admin.Cart.carts', compact('carritos'));
+    }
+
+    public function toggleActive(Cart $cart)
+    {
+        $cart->update(['is_active' => !$cart->is_active]);
+        return back()->with('success', 'Estado del carrito actualizado correctamente.');
+    }
+
+    public function count()
+    {
+        if (!auth()->check()) {
+            return response()->json(['count' => 0]);
+        }
+        $cart  = auth()->user()->cart;
+        $count = $cart ? $cart->items()->where('is_active', true)->count() : 0;
+        return response()->json(['count' => $count]);
     }
 }
