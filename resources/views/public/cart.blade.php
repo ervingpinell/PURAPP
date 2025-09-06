@@ -331,6 +331,9 @@
     $currentMeetingPoint = $item->meeting_point_id ?? null;
     $schedules           = $item->tour->schedules ?? collect();
     $tourLangs           = $item->tour->languages ?? collect();
+
+    // Pickup mode inicial
+    $initPickup = $item->is_other_hotel ? 'custom' : ($item->hotel ? 'hotel' : ($item->meeting_point_id ? 'mp' : 'hotel'));
   @endphp
   <div class="modal fade" id="editItemModal-{{ $item->item_id }}" tabindex="-1" aria-labelledby="editItemLabel-{{ $item->item_id }}" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-sm-down">
@@ -340,6 +343,7 @@
 
           {{-- Mantener activo al guardar --}}
           <input type="hidden" name="is_active" value="1" />
+          <input type="hidden" name="is_other_hotel" id="is-other-hidden-{{ $item->item_id }}" value="{{ $item->is_other_hotel ? 1 : 0 }}">
 
           <div class="modal-header">
             <h5 class="modal-title" id="editItemLabel-{{ $item->item_id }}">
@@ -403,77 +407,75 @@
               </div>
               <div class="col-6 col-md-3">
                 <label class="form-label fw-semibold">{{ __('adminlte::adminlte.kids') }}</label>
-                <input type="number" name="kids_quantity" class="form-control" min="0" max="2" value="{{ (int) $item->kids_quantity }}">
+                <input type="number" name="kids_quantity" class="form-control" min="0" max="12" value="{{ (int) $item->kids_quantity }}">
               </div>
 
-              {{-- Hotel + Switch --}}
-              <div class="col-12 col-md-6">
-                <label class="form-label fw-semibold">{{ __('adminlte::adminlte.hotel') }}</label>
-                @php $currentHotelId = $item->hotel?->hotel_id ?? null; @endphp
-                <select name="hotel_id" id="hotel-select-{{ $item->item_id }}" class="form-select">
-                  <option value="">{{ __('adminlte::adminlte.selectOption') ?? 'Seleccione…' }}</option>
-                  @foreach(($hotels ?? []) as $hotel)
-                    <option value="{{ $hotel->hotel_id }}" @selected($currentHotelId == $hotel->hotel_id)>{{ $hotel->name }}</option>
-                  @endforeach
-                  <option value="__custom__" @selected($item->is_other_hotel)>{{ __('adminlte::adminlte.customHotel') ?? 'Hotel personalizado…' }}</option>
-                </select>
-
-                <div class="form-check form-switch mt-2">
-                  <input class="form-check-input" type="checkbox" role="switch"
-                        id="is-other-hotel-{{ $item->item_id }}"
-                        name="is_other_hotel" value="1"
-                        @checked($item->is_other_hotel)>
-                  <label class="form-check-label" for="is-other-hotel-{{ $item->item_id }}">
-                    {{ __('adminlte::adminlte.otherHotel') ?? 'Usar hotel personalizado' }}
-                  </label>
-                </div>
-              </div>
-
-              {{-- Nombre de "otro hotel" --}}
-              <div class="col-12 col-md-6" id="custom-hotel-wrapper-{{ $item->item_id }}" style="display: {{ $item->is_other_hotel ? 'block' : 'none' }};">
-                <label class="form-label fw-semibold">{{ __('adminlte::adminlte.customHotelName') ?? 'Nombre de hotel personalizado' }}</label>
-                <input type="text" name="other_hotel_name" id="custom-hotel-input-{{ $item->item_id }}" class="form-control" value="{{ $item->other_hotel_name }}">
-                <div class="form-text">{{ __('adminlte::adminlte.customHotelHelp') ?? 'Si escribe un hotel personalizado, se ignorará la selección de la lista.' }}</div>
-                @error('other_hotel_name')
-                  <div class="text-danger small mt-1">{{ $message }}</div>
-                @enderror
-              </div>
-
-              {{-- ====== MEETING POINT ====== --}}
+              {{-- ====== PICKUP (Segmented) ====== --}}
               <div class="col-12">
-                <label class="form-label fw-semibold">{{ __('adminlte::adminlte.meetingPoint') ?? 'Meeting point' }}</label>
-                <select name="meeting_point_id"
-                        class="form-select meetingpoint-select"
-                        id="meetingpoint-select-{{ $item->item_id }}"
-                        data-target="#mp-info-{{ $item->item_id }}"
-                        data-mplist='{!! $mpListJson !!}'>
-                  <option value="">{{ __('adminlte::adminlte.selectOption') ?? 'Seleccione…' }}</option>
-                  @foreach($meetingPoints as $mp)
-                    <option value="{{ $mp->id }}" @selected($currentMeetingPoint == $mp->id)>{{ $mp->name }}</option>
-                  @endforeach
-                </select>
+                <label class="form-label fw-semibold d-flex align-items-center gap-2">
+                  <i class="fas fa-bus"></i> {{ __('adminlte::adminlte.pickup') ?? 'Pickup' }}
+                </label>
 
-                {{-- Info dinámica del MP seleccionado --}}
-                <div class="border rounded p-2 mt-2 bg-light small" id="mp-info-{{ $item->item_id }}" style="display:none">
-                  <div class="mp-name fw-semibold"></div>
-                  <div class="mp-time text-muted"></div>
-                  <div class="mp-addr mt-1"></div>
-                  <a class="mp-link mt-1 d-inline-block" href="#" target="_blank" style="display:none">
-                    <i class="fas fa-external-link-alt me-1"></i>{{ __('adminlte::adminlte.openMap') ?? 'Abrir mapa' }}
-                  </a>
+                {{-- Tabs / Segmented --}}
+                <div class="btn-group w-100 mb-2 pickup-tabs" role="group" aria-label="Pickup options"
+                     data-item="{{ $item->item_id }}" data-init="{{ $initPickup }}">
+                  <button type="button" class="btn btn-outline-secondary flex-fill" data-pickup-tab="hotel">
+                    <i class="fas fa-hotel me-1"></i>{{ __('adminlte::adminlte.hotel') ?? 'Hotel' }}
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary flex-fill" data-pickup-tab="custom">
+                    <i class="fas fa-pen me-1"></i>{{ __('adminlte::adminlte.otherHotel') ?? 'Otro hotel' }}
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary flex-fill" data-pickup-tab="mp">
+                    <i class="fas fa-map-marker-alt me-1"></i>{{ __('adminlte::adminlte.meetingPoint') ?? 'Meeting point' }}
+                  </button>
                 </div>
 
-                {{-- Fallback visual si hay snapshot pero no id seleccionado --}}
-                @if(!$currentMeetingPoint && $item->meeting_point_name)
-                  <div class="mt-2 small">
-                    <i class="fas fa-info-circle me-1"></i>
-                    {{ __('adminlte::adminlte.currentMeetingPoint') ?? 'Meeting point actual' }}:
-                    <strong>{{ $item->meeting_point_name }}</strong>
-                    @if($item->meeting_point_pickup_time) — {{ $item->meeting_point_pickup_time }} @endif
+                {{-- Panes --}}
+                <div id="pickup-panes-{{ $item->item_id }}">
+                  {{-- Hotel --}}
+                  <div class="pickup-pane" id="pane-hotel-{{ $item->item_id }}" style="display:none">
+                    <select name="hotel_id" id="hotel-select-{{ $item->item_id }}" class="form-select">
+                      <option value="">{{ __('adminlte::adminlte.selectOption') ?? 'Seleccione…' }}</option>
+                      @foreach(($hotels ?? []) as $hotel)
+                        <option value="{{ $hotel->hotel_id }}" @selected($currentHotelId == $hotel->hotel_id)>{{ $hotel->name }}</option>
+                      @endforeach
+                    </select>
+                    <div class="form-text">{{ __('adminlte::adminlte.selectHotelHelp') ?? 'Elija su hotel de la lista.' }}</div>
                   </div>
-                @endif
+
+                  {{-- Otro hotel --}}
+                  <div class="pickup-pane" id="pane-custom-{{ $item->item_id }}" style="display:none">
+                    <input type="text" name="other_hotel_name" id="custom-hotel-input-{{ $item->item_id }}" class="form-control" value="{{ $item->other_hotel_name }}" placeholder="{{ __('adminlte::adminlte.customHotelName') ?? 'Nombre del hotel' }}">
+                    <div class="form-text">{{ __('adminlte::adminlte.customHotelHelp') ?? 'Escriba el nombre del hotel si no aparece en la lista.' }}</div>
+                  </div>
+
+                  {{-- Meeting point --}}
+                  <div class="pickup-pane" id="pane-mp-{{ $item->item_id }}" style="display:none">
+                    <select name="meeting_point_id"
+                            class="form-select meetingpoint-select"
+                            id="meetingpoint-select-{{ $item->item_id }}"
+                            data-target="#mp-info-{{ $item->item_id }}"
+                            data-mplist='{!! $mpListJson !!}'>
+                      <option value="">{{ __('adminlte::adminlte.selectOption') ?? 'Seleccione…' }}</option>
+                      @foreach($meetingPoints as $mp)
+                        <option value="{{ $mp->id }}" @selected($currentMeetingPoint == $mp->id)>{{ $mp->name }}</option>
+                      @endforeach
+                    </select>
+
+                    {{-- Info dinámica del MP seleccionado --}}
+                    <div class="border rounded p-2 mt-2 bg-light small" id="mp-info-{{ $item->item_id }}" style="display:none">
+                      <div class="mp-name fw-semibold"></div>
+                      <div class="mp-time text-muted"></div>
+                      <div class="mp-addr mt-1"></div>
+                      <a class="mp-link mt-1 d-inline-block" href="#" target="_blank" style="display:none">
+                        <i class="fas fa-external-link-alt me-1"></i>{{ __('adminlte::adminlte.openMap') ?? 'Abrir mapa' }}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                {{-- /Panes --}}
               </div>
-              {{-- ====== /MEETING POINT ====== --}}
+              {{-- ====== /PICKUP ====== --}}
             </div>
           </div>
 
@@ -499,6 +501,12 @@
   .modal-header, .modal-footer { padding: .75rem 1rem; }
   .btn { min-height: 42px; }
   .card .card-title { font-size: 1.05rem; }
+}
+/* Segmented buttons active state */
+.pickup-tabs .btn.active{
+  background-color:#0d6efd!important;
+  border-color:#0d6efd!important;
+  color:#fff!important;
 }
 </style>
 @endpush
@@ -540,36 +548,6 @@
             confirmButtonText: @json(__('adminlte::adminlte.deleteItemConfirm')),
             cancelButtonText: @json(__('adminlte::adminlte.deleteItemCancel'))
           }).then((result) => { if(result.isConfirmed){ form.submit(); } });
-        });
-      });
-
-      // Toggle "otro hotel"
-      document.querySelectorAll('select[id^="hotel-select-"]').forEach(select => {
-        const itemId = select.id.replace('hotel-select-', '');
-        const wrapper = document.getElementById('custom-hotel-wrapper-' + itemId);
-        const input   = document.getElementById('custom-hotel-input-' + itemId);
-        const swOther = document.getElementById('is-other-hotel-' + itemId);
-
-        const syncUI = () => {
-          const bySelect = select.value === '__custom__';
-          const bySwitch = swOther && swOther.checked;
-          const show     = bySelect || bySwitch;
-          if (wrapper) wrapper.style.display = show ? 'block' : 'none';
-          if (!show && input) input.value = '';
-        };
-
-        syncUI();
-
-        select.addEventListener('change', () => {
-          if (select.value === '__custom__' && swOther && !swOther.checked) swOther.checked = true;
-          if (select.value !== '__custom__' && swOther && swOther.checked)  swOther.checked = false;
-          syncUI();
-        });
-
-        if (swOther) swOther.addEventListener('change', () => {
-          if (swOther.checked && select.value !== '__custom__') select.value = '__custom__';
-          if (!swOther.checked && select.value === '__custom__') select.value = '';
-          syncUI();
         });
       });
 
@@ -739,70 +717,121 @@
       }
 
       /* =========================================================
-         EXCLUSIVIDAD Hotel vs Meeting Point en modales de edición
-         (incluye "otro hotel" con switch y texto)
+         PICKUP segmented logic (exclusividad y required)
          ========================================================= */
+      function setPaneState(itemId, mode){
+        const hiddenOther = document.getElementById(`is-other-hidden-${itemId}`);
+
+        // Panes
+        const paneHotel = document.getElementById(`pane-hotel-${itemId}`);
+        const paneCustom = document.getElementById(`pane-custom-${itemId}`);
+        const paneMp = document.getElementById(`pane-mp-${itemId}`);
+
+        // Controles
+        const hotelSelect = document.getElementById(`hotel-select-${itemId}`);
+        const customInput = document.getElementById(`custom-hotel-input-${itemId}`);
+        const mpSelect    = document.getElementById(`meetingpoint-select-${itemId}`);
+
+        // Mostrar/ocultar
+        paneHotel.style.display = (mode === 'hotel') ? 'block' : 'none';
+        paneCustom.style.display = (mode === 'custom') ? 'block' : 'none';
+        paneMp.style.display = (mode === 'mp') ? 'block' : 'none';
+
+        // Required + disabled
+        if (hotelSelect){
+          hotelSelect.required = (mode === 'hotel');
+          hotelSelect.disabled = !(mode === 'hotel');
+          if (mode !== 'hotel') hotelSelect.value = '';
+        }
+        if (customInput){
+          customInput.required = (mode === 'custom');
+          customInput.disabled = !(mode === 'custom');
+          if (mode !== 'custom') customInput.value = '';
+        }
+        if (mpSelect){
+          mpSelect.required = (mode === 'mp');
+          mpSelect.disabled = !(mode === 'mp');
+          if (mode !== 'mp'){ mpSelect.value = ''; updateMpInfo(mpSelect); }
+        }
+
+        if (hiddenOther) hiddenOther.value = (mode === 'custom') ? 1 : 0;
+
+        // Botones activos
+        document.querySelectorAll(`.pickup-tabs[data-item="${itemId}"] .btn`).forEach(b => {
+          b.classList.toggle('active', b.getAttribute('data-pickup-tab') === mode);
+        });
+      }
+
+      document.querySelectorAll('.pickup-tabs').forEach(group => {
+        const itemId = group.getAttribute('data-item');
+        const init   = group.getAttribute('data-init') || 'hotel';
+
+        // Estado inicial
+        setPaneState(itemId, init);
+
+        group.querySelectorAll('[data-pickup-tab]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const mode = btn.getAttribute('data-pickup-tab');
+            setPaneState(itemId, mode);
+          });
+        });
+      });
+
+      /* =========================================================
+         LOCALIZAR MENSAJES DE VALIDACIÓN (globos amarillos)
+         ========================================================= */
+      const V = {
+        required:        @json(__('adminlte::adminlte.fillThisField')   ?? 'Please fill out this field.'),
+        selectFromList:  @json(__('adminlte::adminlte.selectFromList')  ?? 'Select an item from the list.'),
+        emailInvalid:    @json(__('adminlte::adminlte.emailInvalid')     ?? 'Enter a valid email address.'),
+        tooShort:        @json(__('adminlte::adminlte.tooShort')         ?? 'Value is too short.'),
+        tooLong:         @json(__('adminlte::adminlte.tooLong')          ?? 'Value is too long.'),
+        rangeUnderflow:  @json(__('adminlte::adminlte.rangeUnderflow')   ?? 'Value is too small.'),
+        rangeOverflow:   @json(__('adminlte::adminlte.rangeOverflow')    ?? 'Value is too large.'),
+        stepMismatch:    @json(__('adminlte::adminlte.stepMismatch')     ?? 'Please match the requested step.'),
+        patternMismatch: @json(__('adminlte::adminlte.patternMismatch')  ?? 'Please match the requested format.')
+      };
+
+      function localizeValidity(el){
+        el.setCustomValidity('');
+        const v = el.validity;
+        if (v.valueMissing) {
+          el.setCustomValidity(el.tagName === 'SELECT' ? V.selectFromList : V.required);
+        } else if (v.typeMismatch && el.type === 'email') {
+          el.setCustomValidity(V.emailInvalid);
+        } else if (v.tooShort) {
+          el.setCustomValidity(V.tooShort);
+        } else if (v.tooLong) {
+          el.setCustomValidity(V.tooLong);
+        } else if (v.rangeUnderflow) {
+          el.setCustomValidity(V.rangeUnderflow);
+        } else if (v.rangeOverflow) {
+          el.setCustomValidity(V.rangeOverflow);
+        } else if (v.stepMismatch) {
+          el.setCustomValidity(V.stepMismatch);
+        } else if (v.patternMismatch) {
+          el.setCustomValidity(V.patternMismatch);
+        }
+      }
+
       document.querySelectorAll('.edit-item-form').forEach(form => {
-        const hotelSelect   = form.querySelector('select[name="hotel_id"]');
-        const meetingSelect = form.querySelector('select[name="meeting_point_id"]');
-        const modalEl       = form.closest('.modal');
-        const itemId        = (modalEl?.id || '').replace('editItemModal-','');
-        const swOther       = form.querySelector('#is-other-hotel-' + itemId);
-        const customBox     = form.querySelector('#custom-hotel-wrapper-' + itemId);
-        const customInp     = form.querySelector('#custom-hotel-input-' + itemId);
-
-        // Limpia todos los campos relacionados al hotel
-        const clearHotelSide = () => {
-          if (hotelSelect) hotelSelect.value = '';
-          if (swOther)     swOther.checked = false;
-          if (customInp)   customInp.value = '';
-          if (customBox)   customBox.style.display = 'none';
-        };
-
-        // Limpia el meeting point SIN disparar evento de cambio
-        const clearMeetingSide = () => {
-          if (meetingSelect) meetingSelect.value = '';
-          if (typeof updateMpInfo === 'function') updateMpInfo(meetingSelect);
-        };
-
-        // Habilita ambos campos
-        const enableBoth = () => {
-          if (hotelSelect)   hotelSelect.removeAttribute('disabled');
-          if (meetingSelect) meetingSelect.removeAttribute('disabled');
-        };
-
-        // Validación principal
-        const validateHotelMeetingPointEdit = () => {
-          const hotelSel   = !!(hotelSelect && hotelSelect.value && hotelSelect.value !== '');
-          const hotelCust  = !!(hotelSelect && hotelSelect.value === '__custom__');
-          const otherOn    = !!(swOther && swOther.checked);
-          const otherText  = !!(customInp && customInp.value.trim().length > 0);
-          const hasHotel   = hotelSel || hotelCust || otherOn || otherText;
-
-          const hasMeeting = !!(meetingSelect && meetingSelect.value && meetingSelect.value !== '');
-
-          if (hasHotel) {
-            clearMeetingSide();
-            if (meetingSelect) meetingSelect.setAttribute('disabled','disabled');
-            if (hotelSelect)   hotelSelect.removeAttribute('disabled');
-          } else if (hasMeeting) {
-            clearHotelSide();
-            if (hotelSelect)   hotelSelect.setAttribute('disabled','disabled');
-            if (meetingSelect) meetingSelect.removeAttribute('disabled');
-          } else {
-            enableBoth();
+        // form.setAttribute('novalidate','novalidate'); // <- si quieres desactivar totalmente los nativos
+        form.addEventListener('submit', (e) => {
+          if (!form.checkValidity()) {
+            e.preventDefault();
+            const firstInvalid = form.querySelector(':invalid');
+            if (firstInvalid) {
+              localizeValidity(firstInvalid);
+              firstInvalid.reportValidity();
+              firstInvalid.focus({ preventScroll: true });
+            }
           }
-        };
-
-        // Eventos
-        hotelSelect?.addEventListener('change', validateHotelMeetingPointEdit);
-        meetingSelect?.addEventListener('change', validateHotelMeetingPointEdit);
-        swOther?.addEventListener('change', validateHotelMeetingPointEdit);
-        customInp?.addEventListener('input', validateHotelMeetingPointEdit);
-
-        // Revalida al abrir el modal y estado inicial
-        modalEl?.addEventListener('shown.bs.modal', validateHotelMeetingPointEdit);
-        validateHotelMeetingPointEdit();
+        });
+        form.querySelectorAll('input, select, textarea').forEach(el => {
+          el.addEventListener('invalid', () => localizeValidity(el));
+          el.addEventListener('input',  () => el.setCustomValidity(''));
+          el.addEventListener('change', () => el.setCustomValidity(''));
+        });
       });
     });
   </script>

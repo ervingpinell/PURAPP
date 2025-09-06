@@ -64,6 +64,7 @@ return [
     'meeting_valid' => 'Der ausgewählte Treffpunkt ist gültig! Sobald Sie Ihre Buchung bestätigt haben, senden wir Ihnen die Anweisungen und die genaue Treffzeit.',
     'meeting_point' => 'Treffpunkt',
     'meetingPoint'  => 'Treffpunkt',
+    'selectHotelHelp' => 'Wählen Sie Ihr Hotel aus der Liste.',
 
     'pickup_time' => 'Abholzeit',
     'pickupTime'  => 'Abholzeit',
@@ -182,6 +183,11 @@ return [
     'main_street_entrance' => 'Eingang über die Hauptstraße',
     'example_address' => 'Beispieladresse 123',
     'hotels_meeting_points' => 'Hotels und Treffpunkte',
+    'selectFromList'      => 'Wählen Sie ein Element aus der Liste',
+    'fillThisField'       => 'Bitte füllen Sie dieses Feld aus',
+    'pickupRequiredTitle' => 'Abholung erforderlich',
+    'pickupRequiredBody'  => 'Sie müssen entweder ein Hotel oder einen Treffpunkt auswählen, um fortzufahren.',
+    'ok'                  => 'OK',
 
     // ─── WARENKORB & BUCHUNGEN ─────────────────────────
     'cart' => 'Warenkorb',

@@ -176,6 +176,12 @@ return [
     'meeting_valid' => 'The selected meeting point is valid! Once you confirm your booking, we will send you the instructions and the exact meeting time.',
     'meeting_point' => 'Meeting point',
     'meetingPoint'  => 'Meeting point',
+    'selectHotelHelp' => 'Select your hotel from the list.',
+    'selectFromList'      => 'Select an item from the list',
+    'fillThisField'       => 'Please fill out this field',
+    'pickupRequiredTitle' => 'Pickup required',
+    'pickupRequiredBody'  => 'You must select either a hotel or a meeting point to continue.',
+    'ok'                  => 'OK',
 
     'pickup_time' => 'Pickup time',
     'pickupTime'  => 'Pickup time',

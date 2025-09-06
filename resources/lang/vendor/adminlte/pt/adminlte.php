@@ -176,7 +176,13 @@ return [
     'meeting_valid' => 'O ponto de encontro selecionado é válido! Assim que você confirmar sua reserva, enviaremos as instruções e o horário exato do encontro.',
     'meeting_point' => 'Ponto de encontro',
     'meetingPoint'  => 'Ponto de encontro',
-
+    'selectHotelHelp' => 'Selecione o seu hotel na lista.',
+    'selectFromList'      => 'Selecione um item da lista',
+    'fillThisField'       => 'Preencha este campo',
+    'pickupRequiredTitle' => 'Pickup obrigatório',
+    'pickupRequiredBody'  => 'Você deve selecionar um hotel ou um ponto de encontro para continuar.',
+    'ok'                  => 'OK',
+    
     'pickup_time' => 'Horário de coleta',
     'pickupTime'  => 'Horário de coleta',
 

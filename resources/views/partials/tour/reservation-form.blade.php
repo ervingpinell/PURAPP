@@ -155,7 +155,7 @@
 
       {{-- ===== Meeting Point (Choices para que se vea igual) ===== --}}
       <label class="form-label d-flex align-items-center gap-2">
-        <i class="fas fa-map-marker-alt"></i> <span>Meeting Point</span>
+        <i class="fas fa-map-marker-alt"></i> <span>{{ __('adminlte::adminlte.meetingPoint') ?? 'Meeting Point' }}</span>
       </label>
       <select class="form-select mb-3" name="selected_meeting_point" id="meetingPointSelect">
         <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
@@ -190,54 +190,31 @@
 
 {{-- ======== ESTILO UNIFICADO (verde) ======== --}}
 <style>
-  /* Marca local del widget */
   .reservation-box{ --brand:#2E8B57; --brand-600:#256f47; --brand-50:#eaf5ef; }
-
-  /* Inputs nativos */
   .reservation-box .form-control:focus,
   .reservation-box .form-select:focus{
     border-color: var(--brand) !important;
     box-shadow: 0 0 0 .2rem rgba(46,139,87,.25) !important;
   }
-
-  /* Botón CTA */
   .reservation-box .gv-cta{
     background: var(--brand) !important;
     border-color: var(--brand) !important;
   }
   .reservation-box .gv-cta:hover{ background: var(--brand-600) !important; border-color: var(--brand-600) !important; }
-
-  /* Choices.js (para que no se vea azul) */
   .reservation-box .choices__inner{
-    border-color:#ced4da;
-    border-radius:.375rem;
-    padding:.45rem .75rem !important;
-    min-height: 42px;
-    background:#fff;
+    border-color:#ced4da; border-radius:.375rem; padding:.45rem .75rem !important; min-height: 42px; background:#fff;
   }
   .reservation-box .choices.is-open .choices__inner{ border-color: var(--brand); box-shadow: 0 0 0 .2rem rgba(46,139,87,.12); }
   .reservation-box .choices__list--dropdown{ border-color: var(--brand); }
-  .reservation-box .choices__list--dropdown .choices__item--selectable.is-highlighted{
-    background: var(--brand-50); color:#111;
-  }
-  .reservation-box .choices[data-type*="select-one"]::after{
-    border-color: var(--brand) transparent transparent transparent;
-  }
-  .reservation-box .choices[data-type*="select-one"].is-open::after{
-    border-color: transparent transparent var(--brand) transparent;
-  }
-
-  /* Flatpickr */
+  .reservation-box .choices__list--dropdown .choices__item--selectable.is-highlighted{ background: var(--brand-50); color:#111; }
+  .reservation-box .choices[data-type*="select-one"]::after{ border-color: var(--brand) transparent transparent transparent; }
+  .reservation-box .choices[data-type*="select-one"].is-open::after{ border-color: transparent transparent var(--brand) transparent; }
   .reservation-box .flatpickr-day.selected,
   .reservation-box .flatpickr-day.startRange,
-  .reservation-box .flatpickr-day.endRange{
-    background: var(--brand) !important; border-color: var(--brand) !important;
-  }
+  .reservation-box .flatpickr-day.endRange{ background: var(--brand) !important; border-color: var(--brand) !important; }
   .reservation-box .flatpickr-day.today{ border-color: var(--brand) !important; }
   .reservation-box .flatpickr-day:hover{ background: var(--brand-50); }
-  .gv-ui .form-control,
-  .gv-ui .form-select,
-  .gv-ui .choices__inner { background-color: #fff !important; }
+  .gv-ui .form-control, .gv-ui .form-select, .gv-ui .choices__inner { background-color: #fff !important; }
   .form-body { position: relative; }
 </style>
 
@@ -254,6 +231,16 @@
 (function(){
   const RULES = @json($rulesPayload);
 
+  // === Traducciones para JS / validaciones ===
+  const T = {
+    selectFromList: @json(__('adminlte::adminlte.selectFromList')),
+    fillThisField:  @json(__('adminlte::adminlte.fillThisField')),
+    pickupRequiredTitle: @json(__('adminlte::adminlte.pickupRequiredTitle')),
+    pickupRequiredBody:  @json(__('adminlte::adminlte.pickupRequiredBody')),
+    ok: @json(__('adminlte::adminlte.ok')),
+    selectOption: @json(__('adminlte::adminlte.select_option')),
+  };
+
   const formEl = document.querySelector('form.reservation-box');
   if (!formEl) return;
   if (formEl.dataset.bound === '1') return;
@@ -264,7 +251,6 @@
   window.isAuthenticated = @json(Auth::check());
   window.CART_COUNT_URL  = @json(route('cart.count.public'));
 
-  // Bloqueos que ya manejabas
   const fullyBlockedDates = Array.isArray(window.fullyBlockedDates) ? window.fullyBlockedDates : [];
   const blockedGeneral    = Array.isArray(window.blockedGeneral) ? window.blockedGeneral : [];
   const blockedBySchedule = (window.blockedBySchedule && typeof window.blockedBySchedule === 'object') ? window.blockedBySchedule : {};
@@ -287,10 +273,10 @@
   }
 
   // Choices para todos los selects
-  const scheduleChoices = new Choices(scheduleSel, { searchEnabled:false, shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- {{ __('adminlte::adminlte.select_option') }} --' });
+  const scheduleChoices = new Choices(scheduleSel, { searchEnabled:false, shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- ' + T.selectOption + ' --' });
   const langChoices     = new Choices(langSelect,  { searchEnabled:false, shouldSort:false, itemSelectText:'' });
   const hotelChoices    = new Choices(hotelSelect, { searchEnabled:true,  shouldSort:false, itemSelectText:'' });
-  const meetingChoices  = new Choices(meetingSel,  { searchEnabled:true,  shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- {{ __('adminlte::adminlte.select_option') }} --' });
+  const meetingChoices  = new Choices(meetingSel,  { searchEnabled:true,  shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- ' + T.selectOption + ' --' });
 
   const BASE_CHOICES = scheduleChoices._store.choices.filter(c => c.value !== '').map(c => ({ value:String(c.value), label:c.label }));
   const SCHEDULE_IDS = BASE_CHOICES.map(o => o.value);
@@ -299,27 +285,21 @@
   const isoFromDate = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
   const ruleForSchedule = (sid) => RULES.schedules[String(sid)] || RULES.tour;
-
   const minAcrossAll = () => {
     const mins = [RULES.tour.min, ...Object.values(RULES.schedules).map(r => r.min)];
     return mins.sort()[0];
   };
 
-  // ¿Puede este horario reservar en la fecha seleccionada?
   const canUseScheduleOnDate = (iso, sid) => {
     if (!iso) return false;
     if (fullyBlockedDates.includes(iso)) return false;
     if (blockedGeneral.includes(iso))    return false;
     if ((blockedBySchedule[sid] || []).includes(iso)) return false;
-
     const r = ruleForSchedule(sid);
-    if (iso < r.min) return false;
-
-    return true;
+    return !(iso < r.min);
   };
 
   const anyScheduleAvailable = (iso) => SCHEDULE_IDS.some((sid) => canUseScheduleOnDate(iso, sid));
-
   const isDayFullyBlocked = (iso) => {
     if (!iso) return true;
     if (fullyBlockedDates.includes(iso)) return true;
@@ -328,7 +308,7 @@
   };
 
   function rebuildScheduleChoices(iso){
-    const ph = [{ value:'', label:'-- {{ __('adminlte::adminlte.select_option') }} --', disabled:true, selected:true }];
+    const ph = [{ value:'', label:'-- ' + T.selectOption + ' --', disabled:true, selected:true }];
     scheduleChoices.clearStore();
 
     if (!iso || isDayFullyBlocked(iso)) {
@@ -387,19 +367,14 @@
   };
   setupFlatpickr();
 
-  // Cuando cambias de HORARIO, ajusta minDate a la regla del horario
+  // Cuando cambias de HORARIO, ajusta minDate
   scheduleSel.addEventListener('change', () => {
     const sid = scheduleSel.value;
     const rule = sid ? ruleForSchedule(sid) : RULES.tour;
-
     if (fp) fp.set('minDate', sid ? rule.min : minAcrossAll());
     setHint(rule);
-
     const current = dateInput.value;
-    if (current && sid && current < rule.min) {
-      fp.setDate(rule.min, true);
-    }
-
+    if (current && sid && current < rule.min) fp.setDate(rule.min, true);
     const iso = dateInput.value || (fp ? fp.input.value : null);
     rebuildScheduleChoices(iso);
   });
@@ -431,7 +406,6 @@
     const hotelValue = hotelChoices.getValue(true);
     const meetingValue = meetingChoices.getValue(true);
 
-    // Si se selecciona hotel, deshabilita meeting point
     if (hotelValue && hotelValue !== '') {
       meetingChoices.disable();
       meetingSel.value = '';
@@ -440,11 +414,10 @@
       meetingChoices.enable();
     }
 
-    // Si se selecciona meeting point, deshabilita hotel
     if (meetingValue && meetingValue !== '') {
       hotelChoices.disable();
       hotelSelect.value = '';
-      toggleOther(); // Oculta campo "otro hotel" si estaba visible
+      toggleOther();
       if (isOtherH) isOtherH.value = 0;
     } else {
       hotelChoices.enable();
@@ -453,17 +426,58 @@
 
   hotelSelect.addEventListener('change', validateHotelMeetingPoint);
   meetingSel.addEventListener('change', validateHotelMeetingPoint);
-
-  // Inicializa la validación al cargar
   validateHotelMeetingPoint();
 
-  // ======= AJAX Add to cart (igual que antes) =======
+  // ======= Mensajes nativos de validación en TU idioma =======
+  const setSelectValidity = (el) => el.setCustomValidity(T.selectFromList || '');
+  const setInputValidity  = (el) => el.setCustomValidity(T.fillThisField || '');
+
+  [scheduleSel, langSelect, meetingSel, hotelSelect].forEach(el => {
+    if (!el) return;
+    el.addEventListener('invalid', () => setSelectValidity(el));
+    el.addEventListener('change',  () => el.setCustomValidity(''));
+    el.addEventListener('input',   () => el.setCustomValidity(''));
+  });
+  if (dateInput) {
+    dateInput.addEventListener('invalid', () => setInputValidity(dateInput));
+    dateInput.addEventListener('input',   () => dateInput.setCustomValidity(''));
+    dateInput.addEventListener('change',  () => dateInput.setCustomValidity(''));
+  }
+
+  // ======= AJAX Add to cart =======
   const addBtn = document.getElementById('addToCartBtn');
   if (!addBtn) return;
 
   let submitting = false;
   addBtn.addEventListener('click', async () => {
     if (submitting) return;
+
+    // Validar HTML5 primero (para mostrar mensajes traducidos)
+    if (!formEl.checkValidity()) {
+      formEl.reportValidity();
+      return;
+    }
+    
+    // VALIDACIÓN: debe escoger hotel/otro hotel o meeting point
+    const hotelValue = hotelChoices.getValue(true);
+    const isOtherHotel = isOtherH && isOtherH.value === '1';
+    const otherHotelName = otherInp && otherInp.value.trim();
+    const meetingValue = meetingChoices.getValue(true);
+
+    const hasHotel = (hotelValue && hotelValue !== '' && hotelValue !== 'other') || (isOtherHotel && otherHotelName);
+    const hasMeeting = (meetingValue && meetingValue !== '');
+
+    if (!hasHotel && !hasMeeting) {
+      await Swal.fire({
+        icon: 'warning',
+        title: T.pickupRequiredTitle,
+        text:  T.pickupRequiredBody,
+        confirmButtonColor: '#198754',
+        confirmButtonText: T.ok
+      });
+      return;
+    }
+
     submitting = true;
 
     const prevHTML = addBtn.innerHTML;
@@ -494,7 +508,7 @@
       }
 
       const okMsg = (data && data.message) ? data.message : 'Tour añadido al carrito.';
-      await Swal.fire({ icon: 'success', title: 'Success', text: okMsg, confirmButtonColor: '#198754' });
+      await Swal.fire({ icon: 'success', title: 'Success', text: okMsg, confirmButtonColor: '#198754', confirmButtonText: T.ok });
 
       if (typeof data.count !== 'undefined' && window.setCartCount) {
         window.setCartCount(data.count);
@@ -509,13 +523,20 @@
       window.location.reload();
 
     } catch (err) {
-      await Swal.fire({ icon: 'error', title: 'Error', text: 'Error de red. Intenta nuevamente.' });
+      await Swal.fire({ icon: 'error', title: 'Error', text: 'Error de red. Intenta nuevamente.', confirmButtonText: T.ok });
     } finally {
       addBtn.disabled = false;
       addBtn.innerHTML = prevHTML;
       submitting = false;
     }
   });
+
+  // Helper para el hint de cutoff (si lo usabas antes)
+  function setHint(rule){
+    if(!hintEl) return;
+    const after = rule.after_cutoff ? ' ({{ __('adminlte::adminlte.after_cutoff') ?? 'después del cutoff' }})' : '';
+    hintEl.textContent = '{{ __('adminlte::adminlte.min_bookable_date') ?? 'Fecha mínima reservable' }}: ' + rule.min + after;
+  }
 })();
 </script>
 @endpush
