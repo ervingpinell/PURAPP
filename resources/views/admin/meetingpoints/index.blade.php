@@ -1,3 +1,4 @@
+{{-- resources/views/admin/meetingpoints/index.blade.php --}}
 @extends('adminlte::page')
 
 @section('title', 'Meeting Points')
@@ -13,38 +14,10 @@
 
 @section('content')
 
-    {{-- ===== Alerts / errores ===== --}}
-    <div id="alerts" class="mb-3">
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-1"></i> {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-            </div>
-        @endif
+    {{-- ===== (fallback) Contenedor de alertas Bootstrap por si falla JS ===== --}}
+    
 
-        @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-times-circle me-1"></i> {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-            </div>
-        @endif
-
-        @if ($errors->any())
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <div class="fw-bold mb-1">
-                    <i class="fas fa-ban me-1"></i> Hay errores en el formulario:
-                </div>
-                <ul class="mb-0 ps-3">
-                    @foreach ($errors->all() as $error)
-                        <li class="small">{{ $error }}</li>
-                    @endforeach
-                </ul>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-            </div>
-        @endif
-    </div>
-
-    {{-- ===== Formulario (arriba) ===== --}}
+    {{-- ===== Formulario (crear) ===== --}}
     <div class="card shadow-sm mb-3">
         <div class="card-header d-flex align-items-center justify-content-between">
             <span class="fw-semibold"><i class="fas fa-plus me-2"></i>Añadir punto</span>
@@ -55,7 +28,7 @@
             </form>
         </div>
         <div class="card-body">
-            <form action="{{ route('admin.meetingpoints.store') }}" method="POST" autocomplete="off" novalidate>
+            <form action="{{ route('admin.meetingpoints.store') }}" method="POST" autocomplete="off" novalidate class="create-form">
                 @csrf
 
                 <div class="row g-3">
@@ -63,7 +36,7 @@
                         <label class="form-label">Nombre <span class="text-danger">*</span></label>
                         <input type="text" name="name"
                                class="form-control @error('name') is-invalid @enderror"
-                               placeholder="Oficina de Green Vacations"
+                               placeholder="Parque Central de La Fortuna"
                                value="{{ old('name') }}" required>
                         @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -81,9 +54,7 @@
                     </div>
 
                     <div class="col-md-3">
-                        @php
-                            $suggestedOrder = (optional($points)->max('sort_order') ?? 0) + 1;
-                        @endphp
+                        @php $suggestedOrder = (optional($points)->max('sort_order') ?? 0) + 1; @endphp
                         <label class="form-label">Orden</label>
                         <input type="number" name="sort_order"
                                class="form-control @error('sort_order') is-invalid @enderror"
@@ -116,9 +87,12 @@
                         </div>
                     </div>
 
-                    <div class="col-12">
+                    <div class="col-12 d-flex gap-2">
                         <button class="btn btn-success">
                             <i class="fas fa-save me-1"></i> Guardar
+                        </button>
+                        <button type="reset" class="btn btn-outline-secondary">
+                            <i class="fas fa-eraser me-1"></i> Limpiar
                         </button>
                     </div>
                 </div>
@@ -126,7 +100,7 @@
         </div>
     </div>
 
-    {{-- ===== Listado (abajo) ===== --}}
+    {{-- ===== Listado ===== --}}
     <div class="card shadow-sm">
         <div class="card-header d-flex flex-wrap gap-2 align-items-center justify-content-between">
             <span class="fw-semibold"><i class="fas fa-list me-2"></i>Listado</span>
@@ -166,7 +140,8 @@
 
                                 {{-- Nombre --}}
                                 <td>
-                                    <form action="{{ route('admin.meetingpoints.update', $p->id) }}" method="POST" class="d-flex gap-2">
+                                    <form action="{{ route('admin.meetingpoints.update', $p->id) }}" method="POST"
+                                          class="d-flex gap-2 save-form" data-label="nombre «{{ $p->name }}»">
                                         @csrf @method('PUT')
                                         <input type="hidden" name="pickup_time" value="{{ $p->pickup_time }}">
                                         <input type="hidden" name="address" value="{{ $p->address }}">
@@ -182,7 +157,8 @@
 
                                 {{-- Hora --}}
                                 <td>
-                                    <form action="{{ route('admin.meetingpoints.update', $p->id) }}" method="POST" class="d-flex gap-2">
+                                    <form action="{{ route('admin.meetingpoints.update', $p->id) }}" method="POST"
+                                          class="d-flex gap-2 save-form" data-label="hora de «{{ $p->name }}»">
                                         @csrf @method('PUT')
                                         <input type="hidden" name="name" value="{{ $p->name }}">
                                         <input type="hidden" name="address" value="{{ $p->address }}">
@@ -198,7 +174,8 @@
 
                                 {{-- Dirección --}}
                                 <td>
-                                    <form action="{{ route('admin.meetingpoints.update', $p->id) }}" method="POST" class="d-flex gap-2">
+                                    <form action="{{ route('admin.meetingpoints.update', $p->id) }}" method="POST"
+                                          class="d-flex gap-2 save-form" data-label="dirección de «{{ $p->name }}»">
                                         @csrf @method('PUT')
                                         <input type="hidden" name="name" value="{{ $p->name }}">
                                         <input type="hidden" name="pickup_time" value="{{ $p->pickup_time }}">
@@ -229,7 +206,8 @@
                                     </div>
 
                                     <div id="mapEdit{{ $p->id }}" class="collapse mt-2">
-                                        <form action="{{ route('admin.meetingpoints.update', $p->id) }}" method="POST" class="d-flex gap-2">
+                                        <form action="{{ route('admin.meetingpoints.update', $p->id) }}" method="POST"
+                                              class="d-flex gap-2 save-form" data-label="URL de mapa de «{{ $p->name }}»">
                                             @csrf @method('PUT')
                                             <input type="hidden" name="name" value="{{ $p->name }}">
                                             <input type="hidden" name="pickup_time" value="{{ $p->pickup_time }}">
@@ -244,7 +222,8 @@
 
                                 {{-- Orden --}}
                                 <td>
-                                    <form action="{{ route('admin.meetingpoints.update', $p->id) }}" method="POST" class="d-flex gap-2">
+                                    <form action="{{ route('admin.meetingpoints.update', $p->id) }}" method="POST"
+                                          class="d-flex gap-2 save-form" data-label="orden de «{{ $p->name }}»">
                                         @csrf @method('PUT')
                                         <input type="hidden" name="name" value="{{ $p->name }}">
                                         <input type="hidden" name="pickup_time" value="{{ $p->pickup_time }}">
@@ -273,7 +252,8 @@
                                 {{-- Acciones --}}
                                 <td class="text-center">
                                     <div class="d-inline-flex gap-2">
-                                        <form action="{{ route('admin.meetingpoints.update', $p->id) }}" method="POST" class="d-none d-md-inline">
+                                        <form action="{{ route('admin.meetingpoints.update', $p->id) }}" method="POST"
+                                              class="d-none d-md-inline save-form" data-label="todos los campos de «{{ $p->name }}»">
                                             @csrf @method('PUT')
                                             <input type="hidden" name="name" value="{{ $p->name }}">
                                             <input type="hidden" name="pickup_time" value="{{ $p->pickup_time }}">
@@ -325,7 +305,18 @@ tr.filtered-out { display: none !important; }
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-// Filtro por texto
+/** Helpers SweetAlert */
+const swalToast = (icon='success', title='OK', text='') =>
+  Swal.fire({ icon, title, text, timer: 2200, showConfirmButton:false });
+
+const swalConfirm = (opts={}) => Swal.fire(Object.assign({
+  icon: 'warning',
+  showCancelButton: true,
+  confirmButtonText: 'Sí',
+  cancelButtonText: 'Cancelar'
+}, opts));
+
+/** Buscar/filtrar tabla */
 const filterInput = document.getElementById('tableFilter');
 if (filterInput) {
   filterInput.addEventListener('input', function(){
@@ -337,52 +328,79 @@ if (filterInput) {
   });
 }
 
-// Confirmar activar/desactivar
+/** Confirmar crear */
+document.querySelector('.create-form')?.addEventListener('submit', function(e){
+  e.preventDefault();
+  const name = (this.querySelector('input[name="name"]')?.value || '').trim();
+  swalConfirm({
+    title: 'Crear punto',
+    text: name ? `¿Crear “${name}”?` : '¿Crear este punto de encuentro?',
+  }).then(r => { if (r.isConfirmed) this.submit(); });
+});
+
+/** Confirmar guardar en línea (todas las celdas con .save-form) */
+document.querySelectorAll('.save-form').forEach(form => {
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const label = this.getAttribute('data-label') || 'cambios';
+    swalConfirm({
+      title: 'Guardar',
+      text: `¿Guardar ${label}?`,
+    }).then(r => { if (r.isConfirmed) this.submit(); });
+  });
+});
+
+/** Confirmar activar/desactivar */
 document.querySelectorAll('.toggle-form').forEach(form => {
   form.addEventListener('submit', function(e){
     e.preventDefault();
     const name = form.getAttribute('data-name') || '';
     const isActive = form.getAttribute('data-active') === '1';
-    Swal.fire({
+    swalConfirm({
       title: isActive ? `Desactivar “${name}”` : `Activar “${name}”`,
       text:  isActive ? '¿Seguro que deseas desactivarlo?' : '¿Seguro que deseas activarlo?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sí',
-      cancelButtonText: 'Cancelar'
     }).then(r=>{ if(r.isConfirmed) form.submit(); });
   });
 });
 
-// Confirmar eliminar
+/** Confirmar eliminar */
 document.querySelectorAll('.delete-form').forEach(form => {
   form.addEventListener('submit', function(e){
     e.preventDefault();
     const name = form.getAttribute('data-name') || '';
-    Swal.fire({
+    swalConfirm({
+      icon: 'error',
       title: `Eliminar “${name}”`,
       text: 'Esta acción no se puede deshacer.',
-      icon: 'error',
-      showCancelButton: true,
-      confirmButtonText: 'Eliminar',
-      cancelButtonText: 'Cancelar'
+      confirmButtonText: 'Eliminar'
     }).then(r=>{ if(r.isConfirmed) form.submit(); });
   });
 });
 
-// Flash
+/** Flash messages -> SweetAlert */
 @if (session('success'))
-  Swal.fire({icon:'success', title:'OK', text:@json(session('success')), timer:2200, showConfirmButton:false});
-@endif
-@if (session('error'))
-  Swal.fire({icon:'error', title:'Error', text:@json(session('error')), timer:2500, showConfirmButton:false});
+  swalToast('success', 'OK', @json(session('success')));
 @endif
 
-// Enfocar primer campo con error
+@if (session('error'))
+  Swal.fire({icon:'error', title:'Error', text:@json(session('error'))});
+@endif
+
+/** Errores de validación (lista) */
 @if ($errors->any())
-  document.getElementById('alerts')?.scrollIntoView({behavior:'smooth', block:'start'});
-  const firstInvalid = document.querySelector('.is-invalid');
-  if (firstInvalid) firstInvalid.focus();
+  Swal.fire({
+    icon: 'error',
+    title: 'Errores de validación',
+    html: `<ul style="text-align:left;margin:0;padding-left:18px;">
+      @foreach ($errors->all() as $error)
+        <li>{{ $error }}</li>
+      @endforeach
+    </ul>`
+  }).then(() => {
+    const firstInvalid = document.querySelector('.is-invalid');
+    if (firstInvalid) firstInvalid.focus();
+    document.getElementById('fallback-alerts')?.scrollIntoView({behavior:'smooth', block:'start'});
+  });
 @endif
 </script>
 @endpush
