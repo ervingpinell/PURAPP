@@ -177,7 +177,7 @@ Route::post('/email/verification-notification', [VerifyEmailController::class, '
         Route::get('/my-reservations/{booking}/receipt', [BookingController::class, 'showReceipt'])->name('my-reservations.receipt');
 
         // Carrito
-        Route::get('/mi-carrito', [CartController::class, 'index'])->name('public.cart.index');
+        Route::get('/my-cart', [CartController::class, 'index'])->name('public.cart.index');
         Route::post('/carrito/agregar/{tour}', [CartController::class, 'store'])->name('carrito.agregar');
         Route::post('/reservas/from-cart', [BookingController::class, 'storeFromCart'])->name('public.reservas.storeFromCart');
         Route::delete('/cart/{item}', [CartController::class, 'destroy'])->name('public.cart.destroy');
