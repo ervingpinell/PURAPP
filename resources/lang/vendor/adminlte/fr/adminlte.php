@@ -175,7 +175,13 @@ return [
     'hotels_meeting_points' => 'Hôtels et points de rencontre',
     'meeting_valid' => 'Le point de rendez-vous sélectionné est valide ! Une fois votre réservation confirmée, nous vous enverrons les instructions et l’heure exacte du rendez-vous.',
     'meeting_point' => 'Point de rencontre',
-    
+    'meetingPoint'  => 'Point de rencontre',
+
+    'pickup_time' => 'Heure de prise en charge',
+    'pickupTime'  => 'Heure de prise en charge',
+
+    'open_map' => 'Ouvrir la carte',
+    'openMap'  => 'Ouvrir la carte',
 
     // ─── PANIER & RÉSERVATIONS ─────────────────────────
     'cart' => 'Panier',

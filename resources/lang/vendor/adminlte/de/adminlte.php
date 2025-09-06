@@ -63,7 +63,13 @@ return [
     'outside_list' => 'Dieses Hotel befindet sich außerhalb unserer Liste. Bitte kontaktieren Sie uns, um zu prüfen, ob ein Transport möglich ist.',
     'meeting_valid' => 'Der ausgewählte Treffpunkt ist gültig! Sobald Sie Ihre Buchung bestätigt haben, senden wir Ihnen die Anweisungen und die genaue Treffzeit.',
     'meeting_point' => 'Treffpunkt',
-    
+    'meetingPoint'  => 'Treffpunkt',
+
+    'pickup_time' => 'Abholzeit',
+    'pickupTime'  => 'Abholzeit',
+
+    'open_map' => 'Karte öffnen',
+    'openMap'  => 'Karte öffnen',
     
     // ─── ALLGEMEINE NAVIGATION ─────────────────────────
     'back' => 'Zurück',

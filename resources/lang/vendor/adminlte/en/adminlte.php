@@ -175,7 +175,13 @@ return [
     'hotels_meeting_points' => 'Hotels and meeting points',
     'meeting_valid' => 'The selected meeting point is valid! Once you confirm your booking, we will send you the instructions and the exact meeting time.',
     'meeting_point' => 'Meeting point',
+    'meetingPoint'  => 'Meeting point',
 
+    'pickup_time' => 'Pickup time',
+    'pickupTime'  => 'Pickup time',
+
+    'open_map' => 'Open map',
+    'openMap'  => 'Open map',
 
     // ─── CART & BOOKINGS ───────────────────────────────
     'cart' => 'Cart',
