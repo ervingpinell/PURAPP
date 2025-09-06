@@ -174,7 +174,7 @@ return [
     'example_address' => 'Dirección de ejemplo 123',
     'hotels_meeting_points' => 'Hoteles y puntos de encuentro',
     'meeting_valid' => '¡El punto de encuentro seleccionado es válido! Una vez confirmes tu reserva, te enviaremos las instrucciones y la hora exacta del encuentro.',
-   
+   'meeting_point' => 'Punto de encuentro',
 
     // ─── CARRITO Y RESERVAS ────────────────────────────
     'cart' => 'Carrito',

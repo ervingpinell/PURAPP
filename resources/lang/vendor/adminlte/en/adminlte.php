@@ -174,6 +174,7 @@ return [
     'example_address' => '123 Example Address',
     'hotels_meeting_points' => 'Hotels and meeting points',
     'meeting_valid' => 'The selected meeting point is valid! Once you confirm your booking, we will send you the instructions and the exact meeting time.',
+    'meeting_point' => 'Meeting point',
 
 
     // ─── CART & BOOKINGS ───────────────────────────────

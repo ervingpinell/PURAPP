@@ -3,7 +3,33 @@
 @section('title', __('adminlte::adminlte.myCart'))
 
 @section('content')
-<div class="container py-5 mb-5">
+@php
+  // --- Fallback Meeting Points si el controller no los envía ---
+  $meetingPoints = $meetingPoints
+      ?? \App\Models\MeetingPoint::where('is_active', true)
+          ->orderByRaw('sort_order IS NULL, sort_order ASC')
+          ->orderBy('name', 'asc')
+          ->get();
+
+  // JSON preconstruido para evitar @json de arrow functions en atributos
+  $mpListJson = ($meetingPoints ?? collect())
+      ->map(function($mp){
+          return [
+              'id'          => $mp->id,
+              'name'        => $mp->name,
+              'pickup_time' => $mp->pickup_time,
+              'address'     => $mp->address,
+              'map_url'     => $mp->map_url,
+          ];
+      })
+      ->values()
+      ->toJson(); // string JSON
+
+  // Etiqueta para "Pick-up" (se usará desde JS vía data-attribute)
+  $pickupLabel = __('adminlte::adminlte.pickupTime') ?? 'Pick-up';
+@endphp
+
+<div class="container py-5 mb-5" id="mp-config" data-pickup-label="{{ $pickupLabel }}">
 
   <h1 class="mb-4 d-flex align-items-center">
     <i class="fas fa-shopping-cart me-2"></i>
@@ -64,6 +90,7 @@
             <th>{{ __('adminlte::adminlte.adults') }}</th>
             <th>{{ __('adminlte::adminlte.kids') }}</th>
             <th>{{ __('adminlte::adminlte.hotel') }}</th>
+            <th>{{ __('adminlte::adminlte.meeting_point') ?? 'Meeting point' }}</th>
             <th>{{ __('adminlte::adminlte.status') }}</th>
             <th>{{ __('adminlte::adminlte.actions') }}</th>
           </tr>
@@ -99,6 +126,29 @@
                   {{ $item->hotel->name }}
                 @else
                   <span class="text-muted">{{ __('adminlte::adminlte.notSpecified') ?? 'No indicado' }}</span>
+                @endif
+              </td>
+              <td class="text-start">
+                @if($item->meeting_point_name)
+                  <div class="fw-semibold">{{ $item->meeting_point_name }}</div>
+                  @if($item->meeting_point_pickup_time)
+                    <div class="small text-muted">
+                      {{ __('adminlte::adminlte.pickupTime') ?? 'Pick-up' }}:
+                      {{ $item->meeting_point_pickup_time }}
+                    </div>
+                  @endif
+                  @if($item->meeting_point_address)
+                    <div class="small text-muted">
+                      <i class="fas fa-map-marker-alt me-1"></i>{{ $item->meeting_point_address }}
+                    </div>
+                  @endif
+                  @if($item->meeting_point_map_url)
+                    <a href="{{ $item->meeting_point_map_url }}" target="_blank" class="small">
+                      <i class="fas fa-external-link-alt me-1"></i>{{ __('adminlte::adminlte.openMap') ?? 'Abrir mapa' }}
+                    </a>
+                  @endif
+                @else
+                  <span class="text-muted">—</span>
                 @endif
               </td>
               <td>
@@ -161,6 +211,27 @@
                 {{ $item->hotel->name }}
               @else
                 <span class="text-muted">{{ __('adminlte::adminlte.notSpecified') ?? 'No indicado' }}</span>
+              @endif
+            </div>
+
+            <div class="mb-3"><strong>{{ __('adminlte::adminlte.meetingPoint') ?? 'Meeting point' }}:</strong>
+              @if($item->meeting_point_name)
+                <div>{{ $item->meeting_point_name }}</div>
+                @if($item->meeting_point_pickup_time)
+                  <div class="small text-muted">
+                    {{ __('adminlte::adminlte.pickupTime') ?? 'Pick-up' }}: {{ $item->meeting_point_pickup_time }}
+                  </div>
+                @endif
+                @if($item->meeting_point_address)
+                  <div class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i>{{ $item->meeting_point_address }}</div>
+                @endif
+                @if($item->meeting_point_map_url)
+                  <a href="{{ $item->meeting_point_map_url }}" class="small" target="_blank">
+                    <i class="fas fa-external-link-alt me-1"></i>{{ __('adminlte::adminlte.openMap') ?? 'Abrir mapa' }}
+                  </a>
+                @endif
+              @else
+                <span class="text-muted">—</span>
               @endif
             </div>
 
@@ -229,9 +300,17 @@
 </div>
 
 {{-- ============================= --}}
-{{-- MODALES: FUERA DE BLOQUES d-none --}}
+{{-- MODALES: EDICIÓN POR ITEM   --}}
 {{-- ============================= --}}
 @foreach(($cart->items ?? collect()) as $item)
+  @php
+    $currentScheduleId   = $item->schedule?->schedule_id ?? null;
+    $currentTourLangId   = $item->tour_language_id ?? $item->language?->tour_language_id;
+    $currentHotelId      = $item->hotel?->hotel_id ?? null;
+    $currentMeetingPoint = $item->meeting_point_id ?? null;
+    $schedules           = $item->tour->schedules ?? collect();
+    $tourLangs           = $item->tour->languages ?? collect();
+  @endphp
   <div class="modal fade" id="editItemModal-{{ $item->item_id }}" tabindex="-1" aria-labelledby="editItemLabel-{{ $item->item_id }}" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-sm-down">
       <div class="modal-content">
@@ -266,10 +345,6 @@
               {{-- Horario (nullable) --}}
               <div class="col-12 col-md-6">
                 <label class="form-label fw-semibold">{{ __('adminlte::adminlte.schedule') }}</label>
-                @php
-                  $schedules = $item->tour->schedules ?? collect();
-                  $currentScheduleId = $item->schedule?->schedule_id ?? null;
-                @endphp
                 <select name="schedule_id" class="form-select">
                   <option value="">{{ __('adminlte::adminlte.selectOption') ?? 'Seleccione…' }}</option>
                   @foreach($schedules as $sch)
@@ -285,10 +360,6 @@
               {{-- Idioma --}}
               <div class="col-12 col-md-6">
                 <label class="form-label fw-semibold">{{ __('adminlte::adminlte.language') }}</label>
-                @php
-                  $tourLangs = $item->tour->languages ?? collect();
-                  $currentTourLangId = $item->tour_language_id ?? $item->language?->tour_language_id;
-                @endphp
                 <select name="tour_language_id" class="form-select" required>
                   @forelse($tourLangs as $tl)
                     <option value="{{ $tl->tour_language_id }}" @selected($currentTourLangId == $tl->tour_language_id)>
@@ -346,6 +417,42 @@
                   <div class="text-danger small mt-1">{{ $message }}</div>
                 @enderror
               </div>
+
+              {{-- ====== MEETING POINT ====== --}}
+              <div class="col-12">
+                <label class="form-label fw-semibold">{{ __('adminlte::adminlte.meetingPoint') ?? 'Meeting point' }}</label>
+                <select name="meeting_point_id"
+                        class="form-select meetingpoint-select"
+                        id="meetingpoint-select-{{ $item->item_id }}"
+                        data-target="#mp-info-{{ $item->item_id }}"
+                        data-mplist='{!! $mpListJson !!}'>
+                  <option value="">{{ __('adminlte::adminlte.selectOption') ?? 'Seleccione…' }}</option>
+                  @foreach($meetingPoints as $mp)
+                    <option value="{{ $mp->id }}" @selected($currentMeetingPoint == $mp->id)>{{ $mp->name }}</option>
+                  @endforeach
+                </select>
+
+                {{-- Info dinámica del MP seleccionado --}}
+                <div class="border rounded p-2 mt-2 bg-light small" id="mp-info-{{ $item->item_id }}" style="display:none">
+                  <div class="mp-name fw-semibold"></div>
+                  <div class="mp-time text-muted"></div>
+                  <div class="mp-addr mt-1"></div>
+                  <a class="mp-link mt-1 d-inline-block" href="#" target="_blank" style="display:none">
+                    <i class="fas fa-external-link-alt me-1"></i>{{ __('adminlte::adminlte.openMap') ?? 'Abrir mapa' }}
+                  </a>
+                </div>
+
+                {{-- Fallback visual si hay snapshot pero no id seleccionado --}}
+                @if(!$currentMeetingPoint && $item->meeting_point_name)
+                  <div class="mt-2 small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    {{ __('adminlte::adminlte.currentMeetingPoint') ?? 'Meeting point actual' }}:
+                    <strong>{{ $item->meeting_point_name }}</strong>
+                    @if($item->meeting_point_pickup_time) — {{ $item->meeting_point_pickup_time }} @endif
+                  </div>
+                @endif
+              </div>
+              {{-- ====== /MEETING POINT ====== --}}
             </div>
           </div>
 
@@ -443,6 +550,53 @@
           if (!swOther.checked && select.value === '__custom__') select.value = '';
           syncUI();
         });
+      });
+
+      // ====== UI dinámica de Meeting Point (sin Blade dentro del script) ======
+      const pickupLabel = (document.getElementById('mp-config')?.dataset?.pickupLabel) || 'Pick-up';
+
+      const updateMpInfo = (selectEl) => {
+        if (!selectEl) return;
+        let mplist = [];
+        try {
+          const raw = selectEl.getAttribute('data-mplist') || '[]';
+          mplist = JSON.parse(raw);
+        } catch (e) {
+          mplist = [];
+        }
+        const targetSel = selectEl.getAttribute('data-target');
+        const box = targetSel ? document.querySelector(targetSel) : null;
+        if (!box) return;
+
+        const id = selectEl.value ? Number(selectEl.value) : null;
+        const found = id ? mplist.find(m => Number(m.id) === id) : null;
+
+        const nameEl = box.querySelector('.mp-name');
+        const timeEl = box.querySelector('.mp-time');
+        const addrEl = box.querySelector('.mp-addr');
+        const linkEl = box.querySelector('.mp-link');
+
+        if (found) {
+          box.style.display = 'block';
+          if (nameEl) nameEl.textContent = found.name || '';
+          if (timeEl) timeEl.textContent = found.pickup_time ? (pickupLabel + ': ' + found.pickup_time) : '';
+          if (addrEl) addrEl.innerHTML = found.address ? ('<i class="fas fa-map-marker-alt me-1"></i>' + found.address) : '';
+          if (linkEl) {
+            if (found.map_url) {
+              linkEl.href = found.map_url;
+              linkEl.style.display = 'inline-block';
+            } else {
+              linkEl.style.display = 'none';
+            }
+          }
+        } else {
+          box.style.display = 'none';
+        }
+      };
+
+      document.querySelectorAll('.meetingpoint-select').forEach(sel => {
+        updateMpInfo(sel); // estado inicial
+        sel.addEventListener('change', () => updateMpInfo(sel));
       });
 
       // Anti doble submit (modales)

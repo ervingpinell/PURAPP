@@ -174,6 +174,7 @@ return [
     'example_address' => '123 Adresse Exemple',
     'hotels_meeting_points' => 'Hôtels et points de rencontre',
     'meeting_valid' => 'Le point de rendez-vous sélectionné est valide ! Une fois votre réservation confirmée, nous vous enverrons les instructions et l’heure exacte du rendez-vous.',
+    'meeting_point' => 'Point de rencontre',
     
 
     // ─── PANIER & RÉSERVATIONS ─────────────────────────
