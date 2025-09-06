@@ -530,13 +530,6 @@
       submitting = false;
     }
   });
-
-  // Helper para el hint de cutoff (si lo usabas antes)
-  function setHint(rule){
-    if(!hintEl) return;
-    const after = rule.after_cutoff ? ' ({{ __('adminlte::adminlte.after_cutoff') ?? 'después del cutoff' }})' : '';
-    hintEl.textContent = '{{ __('adminlte::adminlte.min_bookable_date') ?? 'Fecha mínima reservable' }}: ' + rule.min + after;
-  }
 })();
 </script>
 @endpush
