@@ -173,6 +173,8 @@ return [
     'main_street_entrance' => 'Entrée par la rue principale',
     'example_address' => '123 Adresse Exemple',
     'hotels_meeting_points' => 'Hôtels et points de rencontre',
+    'meeting_valid' => 'Le point de rendez-vous sélectionné est valide ! Une fois votre réservation confirmée, nous vous enverrons les instructions et l’heure exacte du rendez-vous.',
+    
 
     // ─── PANIER & RÉSERVATIONS ─────────────────────────
     'cart' => 'Panier',

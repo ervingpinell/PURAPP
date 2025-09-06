@@ -2,6 +2,19 @@
   // Hoy según la zona horaria de la app
   $tz = config('app.timezone', 'America/Costa_Rica');
   $today = \Carbon\Carbon::today($tz)->toDateString();
+
+  // Asegura la variable $meetingPoints (si no fue enviada desde el controlador)
+  // Ideal: pásala desde el controller. Fallback defensivo aquí:
+  if (!isset($meetingPoints)) {
+      try {
+          $meetingPoints = \App\Models\MeetingPoint::where('is_active', true)
+              ->orderByRaw('sort_order IS NULL, sort_order ASC')
+              ->orderBy('name', 'asc')
+              ->get();
+      } catch (\Throwable $e) {
+          $meetingPoints = collect();
+      }
+  }
 @endphp
 
 @once
@@ -35,8 +48,42 @@
           <!-- Requerido por el controller -->
           <input type="hidden" name="booking_date" value="{{ now()->toDateString() }}">
 
-          {{-- Form principal (campos: user_id, tour_id, schedule_id, tour_language_id, tour_date, hotel_id/other, pax, status, etc.) --}}
+          {{-- Form principal (user/tour/schedule/idioma/fecha/hotel/pax/estado...) --}}
           @include('admin.bookings.partials.form', ['modo' => 'crear'])
+
+          {{-- =======================
+               MEETING POINT (opcional)
+               ======================= --}}
+          <div class="mt-3">
+            <label class="form-label">
+              <i class="fas fa-map-marker-alt me-1"></i>
+              Pickup / Meeting point
+            </label>
+            <select
+              name="meeting_point_id"
+              id="meetingPointSelect"
+              class="form-select @error('meeting_point_id') is-invalid @enderror"
+            >
+              <option value="">-- Selecciona un punto --</option>
+              @foreach ($meetingPoints as $mp)
+                <option
+                  value="{{ $mp->id }}"
+                  data-name="{{ $mp->name }}"
+                  data-time="{{ $mp->pickup_time }}"
+                  data-address="{{ $mp->address }}"
+                  data-map="{{ $mp->map_url }}"
+                  {{ (string)old('meeting_point_id') === (string)$mp->id ? 'selected' : '' }}
+                >
+                  {{ $mp->name }}{{ $mp->pickup_time ? ' — '.$mp->pickup_time : '' }}
+                </option>
+              @endforeach
+            </select>
+            @error('meeting_point_id')
+              <div class="invalid-feedback d-block">{{ $message }}</div>
+            @enderror
+
+            <div id="meetingPointHelp" class="form-text mt-1"></div>
+          </div>
 
           {{-- Código promocional (opcional) --}}
           <div class="mt-3">
@@ -80,7 +127,7 @@
   </script>
 @endif
 
-{{-- Reset al abrir + fecha mínima + toggle otro hotel + horarios dinámicos + promo + spinner --}}
+{{-- Reset al abrir + fecha mínima + toggle otro hotel + horarios dinámicos + promo + spinner + meeting point --}}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const regModal = document.getElementById('modalRegistrar');
@@ -109,7 +156,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const promoHelp   = form?.querySelector('#promo_help');
   const btnApply    = form?.querySelector('#btn-apply-promo');
 
-  let promoValid    = false;
+  // Meeting point
+  const mpSel   = form?.querySelector('#meetingPointSelect');
+  const mpHelp  = form?.querySelector('#meetingPointHelp');
+
+  let promoValid = false;
 
   // No resetea si venimos de errores del servidor para este mismo modal
   const shouldPreserve = {!! (session('openModal') === 'register' || (old('_modal') === 'register' && $errors->any())) ? 'true' : 'false' !!};
@@ -143,6 +194,11 @@ document.addEventListener('DOMContentLoaded', () => {
       promoHelp.classList.remove('text-success', 'text-danger');
     }
     promoValid = false;
+
+    if (mpSel) {
+      mpSel.value = '';
+      updateMpHelp();
+    }
   });
 
   // ---------- FECHA MÍNIMA ----------
@@ -190,6 +246,26 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   rebuildSchedules();
   tourSel?.addEventListener('change', rebuildSchedules);
+
+  // ---------- MEETING POINT: ayuda dinámica ----------
+  function updateMpHelp() {
+    if (!mpSel || !mpHelp) return;
+    const opt = mpSel.options[mpSel.selectedIndex];
+    if (!opt || !opt.value) {
+      mpHelp.innerHTML = '';
+      return;
+    }
+    const time = opt.getAttribute('data-time') || '';
+    const addr = opt.getAttribute('data-address') || '';
+    const map  = opt.getAttribute('data-map') || '';
+    let html = '';
+    if (time) html += `<div><i class="far fa-clock me-1"></i><strong>Hora:</strong> ${time}</div>`;
+    if (addr) html += `<div><i class="fas fa-map-pin me-1"></i>${addr}</div>`;
+    if (map)  html += `<div><a href="${map}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt me-1"></i>Ver mapa</a></div>`;
+    mpHelp.innerHTML = html;
+  }
+  mpSel?.addEventListener('change', updateMpHelp);
+  updateMpHelp(); // inicial (respeta old('meeting_point_id'))
 
   // ---------- SPINNER ----------
   const showSpinner = (text) => {

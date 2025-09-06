@@ -21,6 +21,7 @@ return [
     'state_confirmed' => 'Bestätigt',
     'state_updated' => 'Aktualisiert',
     'state_pending' => 'Ausstehend',
+    'meeting_point' => 'Treffpunkt',
 
     'booking_confirmed_subject' => 'Deine Buchung (:reference) wurde bestätigt',
     'booking_confirmed_title' => 'Buchung bestätigt',

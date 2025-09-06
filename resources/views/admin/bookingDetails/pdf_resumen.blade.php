@@ -129,16 +129,21 @@
             $kQty   = $detail->kids_quantity;
             $aPrice = $tour->adult_price ?? 0;
             $kPrice = $tour->kid_price ?? 0;
+
             $hotel  = $detail->is_other_hotel
                 ? $detail->other_hotel_name
                 : optional($detail->hotel)->name ?? '—';
+
+            // NUEVO: Meeting Point (solo nombre)
+            $meetingPoint = optional($detail->meetingPoint)->name ?? '—';
+
             $horario = $detail->schedule
                 ? \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') . ' – ' .
                   \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A')
                 : 'Sin horario';
 
             $promoCode = $reserva->promoCode;
-            $subtotal = ($aPrice * $aQty) + ($kPrice * $kQty);
+            $subtotal  = ($aPrice * $aQty) + ($kPrice * $kQty);
             $descuento = 0;
 
             if ($promoCode) {
@@ -157,6 +162,8 @@
             <div class="dato"><strong>Fecha Tour:</strong> <span>{{ \Carbon\Carbon::parse($detail->tour_date)->format('d/m/Y') }}</span></div>
             <div class="dato"><strong>Horario:</strong> <span>{{ $horario }}</span></div>
             <div class="dato"><strong>Hotel:</strong> <span>{{ $hotel }}</span></div>
+            {{-- NUEVO: Meeting Point --}}
+            <div class="dato"><strong>Meeting Point:</strong> <span>{{ $meetingPoint }}</span></div>
             <div class="dato"><strong>Estado:</strong> <span>{{ ucfirst($reserva->status) }}</span></div>
 
             <div class="line-separator"></div>

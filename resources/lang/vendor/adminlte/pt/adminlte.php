@@ -173,6 +173,8 @@ return [
     'main_street_entrance' => 'Entrada pela rua principal',
     'example_address' => 'Endereço de Exemplo 123',
     'hotels_meeting_points' => 'Hotéis e pontos de encontro',
+    'meeting_valid' => 'O ponto de encontro selecionado é válido! Assim que você confirmar sua reserva, enviaremos as instruções e o horário exato do encontro.',
+
 
     // ─── CARRINHO & RESERVAS ──────────────────────────
     'cart' => 'Carrinho',

@@ -14,7 +14,6 @@
         {{ __('adminlte::email.booking_created_message', ['company' => $company, 'reference' => $booking->booking_reference], $lang) }}
     </p>
 
-    {{-- Si hay varias reservas, mostramos un resumen de referencias arriba --}}
     @php
         $hasMultipleBookings = $details->pluck('booking_id')->unique()->count() > 1;
     @endphp
@@ -36,7 +35,6 @@
             </ul>
         </div>
     @else
-        {{-- Caso una sola reserva: mostramos la referencia principal arriba --}}
         <p style="margin: 0 0 12px;">
             <strong>{{ __('adminlte::email.booking_reference', [], $lang) }}:</strong>
             {{ optional($details->first()->booking)->booking_reference ?? $booking->booking_reference }}
@@ -45,11 +43,26 @@
 
     <h4 style="margin: 16px 0 8px;">🧾 {{ __('adminlte::email.booking_details', [], $lang) }}</h4>
 
-    {{-- Iteramos cada item (cada uno pertenece a una reserva, muestra su reference propia) --}}
     @foreach($details as $d)
         @php
             $ref = optional($d->booking)->booking_reference ?? '—';
-            $hotel = $d->is_other_hotel ? ($d->other_hotel_name ?? '—') : ($d->hotel->name ?? '—');
+
+            // Hotel
+            $hotel = $d->is_other_hotel
+                ? ($d->other_hotel_name ?? '—')
+                : ($d->hotel->name ?? '—');
+
+            // Meeting point: nombre + pickup_time si existe
+            $meetingName = '—';
+            if ($d->meetingPoint) {
+                $meetingName = $d->meetingPoint->name;
+                if (!empty($d->meetingPoint->pickup_time)) {
+                    $meetingName .= ' — ' . \Carbon\Carbon::parse($d->meetingPoint->pickup_time)->format('g:i A');
+                }
+            } elseif (!empty($d->other_meeting_point_name ?? null)) {
+                // por si guardas “otro punto” libre
+                $meetingName = $d->other_meeting_point_name;
+            }
         @endphp
 
         <table role="presentation" cellpadding="6" cellspacing="0" style="border:1px solid #e5e5e5; margin-bottom:12px; width:100%;">
@@ -92,22 +105,22 @@
                 <td>{{ $hotel }}</td>
             </tr>
             <tr>
+                <td><strong>{{ __('adminlte::email.meeting_point', [], $lang) }}:</strong></td>
+                <td>{{ $meetingName }}</td>
+            </tr>
+            <tr>
                 <td><strong>{{ __('adminlte::email.total', [], $lang) }}:</strong></td>
                 <td>${{ number_format($d->total, 2) }}</td>
             </tr>
         </table>
     @endforeach
 
-    {{-- Total combinado de todo lo enviado en este correo (útil si son varias reservas) --}}
-    @php
-        $grand = $details->sum('total');
-    @endphp
+    @php $grand = $details->sum('total'); @endphp
     <p style="font-size:16px; margin-top:8px;">
         <strong>{{ $lang === 'es' ? 'Total de esta confirmación' : 'Total in this confirmation' }}:</strong>
         ${{ number_format($grand, 2) }}
     </p>
 
-    {{-- Mensaje de seguimiento y contacto --}}
     <p style="margin-top:16px;">
         {{ __('adminlte::email.notify_on_confirmation', [], $lang) }}
     </p>

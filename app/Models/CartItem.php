@@ -27,6 +27,11 @@ class CartItem extends Model
         'adult_price',
         'kid_price',
         'is_active',
+        'meeting_point_id',
+        'meeting_point_name',
+        'meeting_point_pickup_time',
+        'meeting_point_address',
+        'meeting_point_map_url',
     ];
 
     public function cart()
@@ -44,13 +49,17 @@ class CartItem extends Model
         return $this->belongsTo(Schedule::class, 'schedule_id', 'schedule_id');
     }
 
-public function hotel()
-{
-    return $this->belongsTo(HotelList::class, 'hotel_id');
-}
+    public function hotel()
+    {
+        return $this->belongsTo(HotelList::class, 'hotel_id');
+    }
 
     public function language()
     {
         return $this->belongsTo(TourLanguage::class, 'tour_language_id');
+    }
+    public function meetingPoint()
+    {
+        return $this->belongsTo(\App\Models\MeetingPoint::class, 'meeting_point_id');
     }
 }

@@ -454,6 +454,12 @@ return [
                 'route' => 'admin.types.images.pick',
                 'icon'  => 'fas fa-image',
             ],
+            [
+                'text'  => 'Meeting Points',
+                'route' => 'admin.meetingpoints.index', // si tu resource está bajo prefix admin
+                'icon'  => 'fas fa-map-marker-alt',
+            ],
+
         ],
     ],
 

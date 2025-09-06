@@ -173,6 +173,8 @@ return [
     'main_street_entrance' => 'Entrada por la calle principal',
     'example_address' => 'Dirección de ejemplo 123',
     'hotels_meeting_points' => 'Hoteles y puntos de encuentro',
+    'meeting_valid' => '¡El punto de encuentro seleccionado es válido! Una vez confirmes tu reserva, te enviaremos las instrucciones y la hora exacta del encuentro.',
+   
 
     // ─── CARRITO Y RESERVAS ────────────────────────────
     'cart' => 'Carrito',
@@ -200,18 +202,18 @@ return [
     'total_price' => 'Precio total',
     'total' => 'Total',
     'date'=> 'Fecha',
-'status' => 'Estado',
-'actions' => 'Acciones',
-'active'=> 'Activo',
-'delete'=> 'Eliminar',
-'promoCode' => '¿Tienes un código promocional?',
-'promoCodePlaceholder' => 'Ingresa tu código promocional',
-'apply' => 'Aplicar',
-'deleteItemTitle' => 'Eliminar ítem',
-'deleteItemText' => '¿Estás seguro de que deseas eliminar este ítem? Esta acción no se puede deshacer.',
-'deleteItemConfirm' => 'Eliminar',
-'deleteItemCancel' => 'Cancelar',
-'selectOption' => 'Seleccionar una opción',
+    'status' => 'Estado',
+    'actions' => 'Acciones',
+    'active'=> 'Activo',
+    'delete'=> 'Eliminar',
+    'promoCode' => '¿Tienes un código promocional?',
+    'promoCodePlaceholder' => 'Ingresa tu código promocional',
+    'apply' => 'Aplicar',
+    'deleteItemTitle' => 'Eliminar ítem',
+    'deleteItemText' => '¿Estás seguro de que deseas eliminar este ítem? Esta acción no se puede deshacer.',
+    'deleteItemConfirm' => 'Eliminar',
+    'deleteItemCancel' => 'Cancelar',
+    'selectOption' => 'Seleccionar una opción',
 
 
     // ─── VALIDACIÓN ───────────────────────────────────

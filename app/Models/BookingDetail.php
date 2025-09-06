@@ -30,7 +30,11 @@ class BookingDetail extends Model
         'hotel_id',
         'is_other_hotel',
         'other_hotel_name',
-        // …
+        'meeting_point_id',
+        'meeting_point_name',
+        'meeting_point_pickup_time',
+        'meeting_point_address',
+        'meeting_point_map_url',
     ];
 
     public function booking()
@@ -55,6 +59,10 @@ class BookingDetail extends Model
     public function hotel()
     {
         return $this->belongsTo(HotelList::class, 'hotel_id', 'hotel_id');
+    }
+    public function meetingPoint()
+    {
+        return $this->belongsTo(\App\Models\MeetingPoint::class, 'meeting_point_id');
     }
 
 }

@@ -13,6 +13,18 @@
         {{ __('adminlte::email.booking_cancelled_message', ['company' => $company], $mailLocale) }}
     </p>
 
+    @php
+        $detail = $booking->detail;
+        $meetingValue = '—';
+        if ($detail) {
+            $mpName = $detail->meeting_point_name ?? null;
+            $mpTime = $detail->meeting_point_pickup_time ?? null;
+            if ($mpName) {
+                $meetingValue = $mpName . ($mpTime ? ' — ' . \Carbon\Carbon::parse($mpTime)->format('g:i A') : '');
+            }
+        }
+    @endphp
+
     <h3 style="margin-top:24px;">🗂️ {{ __('adminlte::email.booking_cancelled_details', [], $mailLocale) }}</h3>
     <ul style="padding-left:18px;">
         <li><strong>{{ __('adminlte::email.booking_reference', [], $mailLocale) }}:</strong> {{ $reference }}</li>
@@ -22,6 +34,7 @@
         <li><strong>{{ __('adminlte::email.adults', [], $mailLocale) }}:</strong> {{ $booking->detail->adults_quantity }}</li>
         <li><strong>{{ __('adminlte::email.kids', [], $mailLocale) }}:</strong> {{ $booking->detail->kids_quantity }}</li>
         <li><strong>{{ __('adminlte::email.hotel', [], $mailLocale) }}:</strong> {{ $booking->detail->hotel->name ?? $booking->detail->other_hotel_name ?? '—' }}</li>
+        <li><strong>{{ __('adminlte::email.meeting_point', [], $mailLocale) }}:</strong> {{ $meetingValue }}</li>
         <li><strong>{{ __('adminlte::email.total', [], $mailLocale) }}:</strong> ${{ number_format($booking->total, 2) }}</li>
         <li><strong>{{ __('adminlte::email.status', [], $mailLocale) }}:</strong> {{ $statusLabel }}</li>
     </ul>
