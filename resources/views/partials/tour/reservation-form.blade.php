@@ -426,6 +426,37 @@
     if (hiddenMP) hiddenMP.value = meetingChoices.getValue(true) || '';
   });
 
+  // ======= Validación: solo uno entre Hotel y Meeting Point =======
+  function validateHotelMeetingPoint() {
+    const hotelValue = hotelChoices.getValue(true);
+    const meetingValue = meetingChoices.getValue(true);
+
+    // Si se selecciona hotel, deshabilita meeting point
+    if (hotelValue && hotelValue !== '') {
+      meetingChoices.disable();
+      meetingSel.value = '';
+      if (hiddenMP) hiddenMP.value = '';
+    } else {
+      meetingChoices.enable();
+    }
+
+    // Si se selecciona meeting point, deshabilita hotel
+    if (meetingValue && meetingValue !== '') {
+      hotelChoices.disable();
+      hotelSelect.value = '';
+      toggleOther(); // Oculta campo "otro hotel" si estaba visible
+      if (isOtherH) isOtherH.value = 0;
+    } else {
+      hotelChoices.enable();
+    }
+  }
+
+  hotelSelect.addEventListener('change', validateHotelMeetingPoint);
+  meetingSel.addEventListener('change', validateHotelMeetingPoint);
+
+  // Inicializa la validación al cargar
+  validateHotelMeetingPoint();
+
   // ======= AJAX Add to cart (igual que antes) =======
   const addBtn = document.getElementById('addToCartBtn');
   if (!addBtn) return;
