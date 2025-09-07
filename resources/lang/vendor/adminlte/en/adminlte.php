@@ -53,6 +53,9 @@ return [
     'capacity_left' => 'Only :available spots left for this schedule.',
     'booking_created_success' => 'Booking created successfully.',
     'booking_updated_success' => 'Booking updated successfully.',
+    'two_factor_authentication' => 'Two-Factor Authentication (2FA)',
+    'enable_2fa_to_continue' => 'Activa la autenticación en dos pasos (2FA) para continuar',
+    
 
     // 2. HOTELS
     'hotel_name_required' => 'Hotel name is required.',

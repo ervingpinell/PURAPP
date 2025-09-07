@@ -53,6 +53,7 @@ return [
     'capacity_left' => 'Solo quedan :available lugares para este horario.',
     'booking_created_success' => 'Reserva creada exitosamente.',
     'booking_updated_success' => 'Reserva actualizada exitosamente.',
+    'two_factor_authentication' => 'Autenticación en dos pasos (2FA)',
 
     // 2. HOTELS
     'hotel_name_required' => 'El nombre del hotel es obligatorio.',
