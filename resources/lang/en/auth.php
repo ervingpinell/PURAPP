@@ -13,10 +13,11 @@ return [
 
     // Fortify 2FA (status and UI texts)
     'two_factor' => [
-        'header'                 => 'Two-Factor Authentication',
-        'enabled'                  => 'Two-factor authentication enabled.',
-        'confirmed'                => 'Two-factor authentication confirmed.',
-        'disabled'                 => 'Two-factor authentication disabled.',
+        'title'              => 'Two-Factor Authentication',
+        'header'             => 'Two-Factor Authentication',
+        'enabled'            => 'Two-factor authentication enabled.',
+        'confirmed'          => 'Two-factor authentication confirmed.',
+        'disabled'           => 'Two-factor authentication disabled.',
         'recovery_codes_generated' => 'New recovery codes have been generated.',
         'remember_device'   => 'Remember this device for 30 days',
         'enter_code'        => 'Enter the 6-digit code',

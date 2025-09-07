@@ -1,5 +1,7 @@
 <?php
 
+use function Livewire\Volt\title;
+
 return [
     // Mensajes estándar de Laravel
     'failed'   => 'El correo o la contraseña no son correctos.',
@@ -13,6 +15,7 @@ return [
 
     // Fortify 2FA (status y textos de UI)
     'two_factor' => [
+        'title'              => 'Autenticación en dos pasos',
         'header'                 => 'Autenticación en dos pasos',
         'enabled'                  => 'Autenticación en dos pasos activada.',
         'confirmed'                => 'Autenticación en dos pasos confirmada.',

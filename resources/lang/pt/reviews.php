@@ -27,4 +27,6 @@ return [
     // Controles do carrossel
     'previous' => 'Anterior',
     'next'     => 'Próximo',
+    'see_more' => 'Ver mais',
+    'see_less' => 'Ver menos',
 ];

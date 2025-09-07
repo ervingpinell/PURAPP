@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
+            'noindex' => \App\Http\Middleware\NoIndex::class,
             'verified'       => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
             'logctx'         => \App\Http\Middleware\LogContext::class,
             'abilities'      => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,

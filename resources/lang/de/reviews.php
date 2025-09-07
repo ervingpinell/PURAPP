@@ -27,4 +27,6 @@ return [
     // Carousel controls
     'previous' => 'Zurück',
     'next'     => 'Weiter',
+    'see_more' => 'Mehr sehen',
+    'see_less' => 'Weniger sehen',
 ];

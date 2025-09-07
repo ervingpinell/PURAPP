@@ -13,6 +13,7 @@ return [
 
     // Fortify 2FA (status e textos da interface)
     'two_factor' => [
+        'title'              => 'Autenticação em duas etapas',
         'header'                 => 'Autenticação em duas etapas',
         'enabled'                  => 'Autenticação em duas etapas ativada.',
         'confirmed'                => 'Autenticação em duas etapas confirmada.',

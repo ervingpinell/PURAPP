@@ -55,7 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="review-header">
           <strong>${escapeHtml(r.userName || T.anonymous)}</strong>
           <small>${escapeHtml(date)}</small>
-          <div class="review-stars">${stars} <span class="rating-number">(${Number(r.rating || 0).toFixed(1)}/5)</span></div>
+<div class="review-stars">
+  ${stars}
+  <span class="rating-number">(${Number.isInteger(r.rating) ? r.rating : parseFloat(r.rating).toFixed(1)}/5)</span>
+</div>
           ${label}
         </div>
         <div class="review-content ${expanded ? 'expanded' : ''}" id="review-text-${i}">${escapeHtml(expanded ? fullText : shortText)}</div>

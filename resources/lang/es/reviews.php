@@ -15,7 +15,7 @@ return [
     'loading'                    => 'Cargando reseñas...',
     'what_visitors_say'          => 'Lo que dicen los visitantes',
     'reviews_title'              => 'Reseñas de clientes',
-    'powered_by'                 => 'Proveído por',
+    'powered_by'                 => 'Proporcionado por',
     'view_on_viator'             => 'Ver :name en Viator',
 
     // Modal / acciones
@@ -27,4 +27,6 @@ return [
     // Controles del carrusel
     'previous' => 'Anterior',
     'next'     => 'Siguiente',
+    'see_more' => 'Ver más',
+    'see_less' => 'Ver menos',
 ];

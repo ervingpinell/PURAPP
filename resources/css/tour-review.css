@@ -48,6 +48,15 @@
   color: #666;
 }
 
+.powered-by {
+  text-align: center;      /* centra horizontalmente */
+}
+.powered-by small {
+  display: inline-block;   /* asegura que respete el centrado */
+  font-size: 0.9rem;
+  color: #555;             /* opcional: gris sutil */
+}
+
 .review-stars {
   color: #f1c40f;
   font-size: 1.1rem;

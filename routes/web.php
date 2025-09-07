@@ -13,7 +13,7 @@ use App\Http\Controllers\ProfileController;
 // Admin
 use App\Http\Controllers\Admin\Users\UserRegisterController;
 use App\Http\Controllers\Admin\Users\RoleController;
-use App\Http\Controllers\Admin\Users\UserVerificationController;
+use App\Http\Controllers\ReviewEmbedController;
 use App\Http\Controllers\Admin\Languages\TourLanguageController;
 use App\Http\Controllers\Admin\Tours\TourController;
 use App\Http\Controllers\Admin\Tours\TourScheduleController;
@@ -72,6 +72,10 @@ Route::middleware([SetLocale::class])->group(function () {
 
         return view('public.reviews', compact('tours'));
     })->name('reviews');
+
+Route::get('/embed/reviews/{tour}', [ReviewEmbedController::class, 'show'])
+    ->middleware('noindex')
+    ->name('embed.reviews.show');
 
     // Políticas públicas
     Route::get('/politicas', [\App\Http\Controllers\PoliciesController::class, 'index'])->name('policies.index');

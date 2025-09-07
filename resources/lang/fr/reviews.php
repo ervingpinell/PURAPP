@@ -27,4 +27,6 @@ return [
     // Contrôles du carrousel
     'previous' => 'Précédent',
     'next'     => 'Suivant',
+    'see_more' => 'Voir plus',
+    'see_less' => 'Voir moins',
 ];
