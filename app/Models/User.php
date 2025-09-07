@@ -271,5 +271,10 @@ class User extends Authenticatable implements MustVerifyEmail
             'user_id' => $this->getKey(),
             'email'   => $this->email,
         ]);
+
     }
+
+    public function isAdmin(): bool { return (int)$this->role_id === 1; }
+public function isStaff(): bool { return in_array((int)$this->role_id, [1,2], true); }
+
 }

@@ -1,68 +1,78 @@
 <?php
-
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-
-// Tus middlewares de la app
-use App\Http\Middleware\SetLocale;
-use App\Http\Middleware\CheckIfUserLocked;
-use App\Http\Middleware\LogContext;
-use App\Http\Middleware\NormalizeEmail; // 👈 nuevo
-use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
-
-// Sanctum (abilities para tokens personales)
-use Laravel\Sanctum\Http\Middleware\CheckAbilities;
-use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
+use Illuminate\Http\Exceptions\PostTooLargeException;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__ . '/../routes/web.php',
         api: __DIR__ . '/../routes/api.php',
-        // commands: __DIR__ . '/../routes/console.php',
-        // health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-
-        // Sanctum: cookies + sesión + CSRF también en /api
         $middleware->statefulApi();
 
-        // Excepciones CSRF para endpoints POST públicos
         $middleware->validateCsrfTokens(except: [
             'api/reviews',
             'api/reviews/batch',
             'api/apply-promo',
         ]);
 
-        // Aliases
         $middleware->alias([
-            'CheckRole' => \App\Http\Middleware\CheckRole::class,
-            'locked'    => CheckIfUserLocked::class,
-            'verified'  => EnsureEmailIsVerified::class,
-            'logctx'    => LogContext::class,
-
-            // Sanctum abilities
-            'abilities' => CheckAbilities::class,
-            'ability'   => CheckForAnyAbility::class,
-
-            // 👇 nuevo
-            'normalize.email' => NormalizeEmail::class,
-            '2fa.admin' => \App\Http\Middleware\RequireTwoFactorForAdmins::class,
-
+            'verified'       => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+            'logctx'         => \App\Http\Middleware\LogContext::class,
+            'abilities'      => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
+            'ability'        => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
+            'normalize.email'=> \App\Http\Middleware\NormalizeEmail::class,
+            '2fa.admin'      => \App\Http\Middleware\RequireTwoFactorForAdmins::class,
         ]);
 
-        // No forzamos redirect a /login en APIs
-        // $middleware->redirectGuestsTo(fn () => route('login'));
-
-        // Orden global (NormalizeEmail primero)
+        // 👇 Estos se aplican globalmente (incluye vistas de error)
         $middleware->append([
-            NormalizeEmail::class, // 👈 primero
-            LogContext::class,
-            SetLocale::class,
-            CheckIfUserLocked::class,
+            \App\Http\Middleware\NormalizeEmail::class,
+            \App\Http\Middleware\LogContext::class,
+            \App\Http\Middleware\SetLocale::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+
+        // Asegura el locale para cualquier respuesta de error
+        $exceptions->render(function (\Throwable $e, $request) {
+            app()->setLocale(session('locale', config('app.locale')));
+        });
+
+        // 429 (Throttle) -> usa tu vista 'errors/429.blade.php'
+        $exceptions->render(function (ThrottleRequestsException $e, $request) {
+            $headers = $e->getHeaders();
+            $seconds = (int) ($headers['Retry-After'] ?? 600);
+
+            return response()
+                ->view('errors.429', ['seconds' => $seconds], 429)
+                ->withHeaders($headers);
+        });
+
+        // 413 (upload muy grande) -> como ya tenías
+        $exceptions->render(function (PostTooLargeException $e, $request) {
+            $title = __('m_tours.image.ui.error_title');
+            $text  = __('m_tours.image.errors.too_large');
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'ok'   => false,
+                    'swal' => [
+                        'icon'  => 'error',
+                        'title' => $title,
+                        'text'  => $text,
+                    ],
+                ], 413);
+            }
+
+            return back()->with('swal', [
+                'icon'  => 'error',
+                'title' => $title,
+                'text'  => $text,
+            ]);
+        });
     })
     ->create();

@@ -89,6 +89,7 @@ return [
             'path' => 'images\logoCompanyWhite.png',
             'alt' => 'Auth Logo',
         'style' => 'padding: 10px;',
+                'class' => 'mx-auto d-block',      // <-- centrado
         'width' => '50%',
         'height' => '50%',
         ],

@@ -3,6 +3,40 @@
 
 @section('title', __('adminlte::adminlte.edit_profile'))
 
+@push('css')
+<style>
+  /* ===== Logo arriba ===== */
+  .profile-brand {
+    display:flex;
+    justify-content:center;
+    margin: 10px 0 22px; /* espacio entre logo y tarjeta */
+  }
+  /* El enlace solo abarca la imagen, no toda la fila */
+  .profile-brand .brand-link-inline {
+    display:inline-block;
+    padding:0;
+    margin:0;
+    line-height:0;      /* evita área extra vertical */
+    border:0;
+    background:transparent;
+  }
+  .profile-brand .brand-link-inline:focus {
+    outline: 2px solid #0d6efd;
+    outline-offset: 2px;
+    border-radius: .375rem;
+  }
+  .profile-brand .brand-img {
+    height: 86px;       /* ajusta si quieres más/menos alto */
+    width: auto;
+    display:block;
+  }
+
+  /* ===== Inputs y detalles ===== */
+  .input-group .input-group-text { min-width: 42px; justify-content:center; }
+  code.d-block { font-size: .95rem; }
+</style>
+@endpush
+
 @section('content_header')
   <h1 class="text-center">
     <i class="fas fa-user-edit"></i>
@@ -10,26 +44,31 @@
   </h1>
 @stop
 
-@push('css')
-<style>
-  .input-group .input-group-text { min-width: 42px; justify-content:center; }
-  code.d-block { font-size: .95rem; }
-</style>
-@endpush
-
 @section('content')
+@php
+  $statusMap = [
+    'two-factor-authentication-enabled'   => 'auth.two_factor.enabled',
+    'two-factor-authentication-confirmed' => 'auth.two_factor.confirmed',
+    'two-factor-authentication-disabled'  => 'auth.two_factor.disabled',
+    'recovery-codes-generated'            => 'auth.two_factor.recovery_codes_generated',
+  ];
+
+  // Resuelve logo e inicio (ajusta según tu config)
+  $logoUrl = asset(config('adminlte.logo_img', 'images/logo.png'));
+  $homeUrl = route('home');
+@endphp
+
 <div class="d-flex justify-content-center">
   <div class="col-md-7 col-lg-6">
 
+    {{-- LOGO (solo la imagen es clickeable) --}}
+    <div class="profile-brand">
+      <a href="{{ $homeUrl }}" class="brand-link-inline" aria-label="{{ config('app.name') }} home">
+        <img src="{{ $logoUrl }}" alt="{{ config('app.name') }} logo" class="brand-img">
+      </a>
+    </div>
+
     {{-- Flashes (Fortify + propios) --}}
-    @php
-      $statusMap = [
-          'two-factor-authentication-enabled'   => 'auth.two_factor.enabled',
-          'two-factor-authentication-confirmed' => 'auth.two_factor.confirmed',
-          'two-factor-authentication-disabled'  => 'auth.two_factor.disabled',
-          'recovery-codes-generated'            => 'auth.two_factor.recovery_codes_generated',
-      ];
-    @endphp
     @if (session('status'))
       <div class="alert alert-success">{{ __($statusMap[session('status')] ?? session('status')) }}</div>
     @endif

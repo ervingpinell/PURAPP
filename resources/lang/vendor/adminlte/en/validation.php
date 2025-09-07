@@ -19,7 +19,7 @@ return [
         'email' => 'Email',
         'phone' => 'Phone number',
         'password' => 'Password',
-        'password_confirmation' => 'assword confirmation',
+        'password_confirmation' => 'Password confirmation',
     ],
         'password_requirements' => [
         'length' => '- 8 characters long',

@@ -2,6 +2,8 @@
 
 namespace App\Http\Responses;
 
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 
 class LoginResponse implements LoginResponseContract
@@ -11,10 +13,17 @@ class LoginResponse implements LoginResponseContract
         $user   = $request->user();
         $roleId = (int) ($user->role_id ?? 0);
 
+        // Limpia contador de fallos por usuario
+        Cache::forget('auth:fail:'.$user->getKey());
+
+        // Limpia limiter 2FA (si quedó algo colgado)
+        $twoFaKey = (string) $request->session()->get('login.id', $request->ip());
+        RateLimiter::clear('2fa|'.$twoFaKey);
+
+        // Sanitiza intended para evitar bucles
         $intended     = session('url.intended'); // puede ser null
         $intendedPath = $intended ? (string) parse_url($intended, PHP_URL_PATH) : null;
 
-        // Nunca redirigir a páginas de auth/flujo sensible post-login
         $deny = [
             '/login', '/register',
             '/forgot-password', '/reset-password',
@@ -31,13 +40,12 @@ class LoginResponse implements LoginResponseContract
         $isAdmin = in_array($roleId, [1, 2], true);
 
         if ($isAdmin) {
-            // Admins: evita intended problemática; destino por defecto /admin
             return $intended ? redirect()->to($intended) : redirect()->intended('/admin');
         }
 
-        // Clientes: si intended apunta a /admin, ignóralo
         if ($intendedPath && str_starts_with($intendedPath, '/admin')) {
             $intended = null;
+            session()->forget('url.intended');
         }
 
         return $intended ? redirect()->to($intended) : redirect()->intended('/');

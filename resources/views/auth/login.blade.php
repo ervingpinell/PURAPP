@@ -1,6 +1,7 @@
 @extends('adminlte::auth.auth-page', ['authType' => 'login'])
 
 @section('dashboard_url', '/')
+@section('title', content: __('Login'))
 
 @section('adminlte_css_pre')
     <link rel="stylesheet" href="{{ asset('vendor/icheck-bootstrap/icheck-bootstrap.min.css') }}">

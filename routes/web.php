@@ -33,7 +33,9 @@ use App\Http\Controllers\Admin\PolicyController;
 use App\Http\Controllers\Admin\PolicySectionController;
 use App\Http\Controllers\Admin\TourImageController;
 use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
-use App\Http\Controllers\Admin\UserVerificationController;
+
+// Auth
+use App\Http\Controllers\Auth\UnlockAccountController;
 
 // Models
 use App\Models\Tour;
@@ -54,7 +56,7 @@ Route::middleware([SetLocale::class])->group(function () {
 
     Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
     Route::post('/contact', [HomeController::class, 'sendContact'])
-        ->middleware('throttle:6,1')   // máx 6 envíos por minuto por IP
+        ->middleware('throttle:6,1')
         ->name('contact.send');
 
     // Reviews públicas (Viator)
@@ -95,27 +97,36 @@ Route::middleware([SetLocale::class])->group(function () {
      * =======================
      * Auth (Fortify)
      * =======================
-     *
-     * Fortify registra automáticamente:
-     * - GET /login, POST /login, POST /logout
-     * - GET /register, POST /register
-     * - GET /forgot-password, POST /forgot-password
-     * - GET /reset-password/{token}, POST /reset-password
-     * - GET /email/verify, GET /email/verify/{id}/{hash}, POST /email/verification-notification
-     * - GET /two-factor-challenge, POST /two-factor-challenge (si 2FA activo)
-     *
-     * No definas rutas duplicadas para evitar conflictos.
+     * Fortify registra automáticamente /login, /register, /forgot-password,
+     * /reset-password/{token}, /email/verify, /two-factor-challenge, etc.
      */
     Route::view('/account/locked', 'auth.account-locked')->name('account.locked'); // opcional
 
+    // Vista de enfriamiento (429 throttle). El blade usa ?until=... si viene.
+    Route::get('/auth/throttled', function () {
+        return response()->view('errors.429');
+    })->name('auth.throttled');
+
+    // Self-service unlock (opcional para usuarios finales)
+    Route::get('/unlock-account', [UnlockAccountController::class, 'form'])
+        ->name('unlock.form');
+    Route::post('/unlock-account', [UnlockAccountController::class, 'send'])
+        ->middleware('throttle:3,1')
+        ->name('unlock.send');
+
+    // Enlace firmado para desbloqueo de cuenta (desde el email)
+    Route::get('/unlock-account/{user}/{hash}', [UnlockAccountController::class, 'process'])
+        ->middleware('signed')
+        ->name('unlock.process');
+
     /**
      * =======================
-     * Perfil cliente + Carrito (Privado)
+     * Perfil + Carrito (Privado)
      * =======================
      */
     Route::middleware(['auth', 'verified'])->group(function () {
-        Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
-        Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::get('/profile',       [ProfileController::class, 'show'])->name('profile.show');
+        Route::get('/profile/edit',  [ProfileController::class, 'edit'])->name('profile.edit');
         Route::post('/profile/edit', [ProfileController::class, 'update'])->name('profile.update');
 
         Route::get('/my-reservations', [BookingController::class, 'myReservations'])->name('my-reservations');
@@ -133,28 +144,29 @@ Route::middleware([SetLocale::class])->group(function () {
      * =======================
      * Admin
      * =======================
-     *
-     * - Requiere auth + verified + CheckRole (1,2)
-     * - El perfil admin (show/edit/update) queda FUERA del '2fa.admin' para poder activarlo sin bucles
-     * - El resto del panel va dentro de '2fa.admin'
+     * - Requiere auth + verified + can:access-admin
+     * - Perfil admin SIN 2FA obligatorio (se usa para activar 2FA)
+     * - Resto del panel CON 2FA obligatorio
      */
-    Route::middleware(['auth', 'verified', 'CheckRole'])
+    Route::middleware(['auth', 'verified', 'can:access-admin'])
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
 
-            // ---- Perfil admin (SIN 2FA obligatorio: se usa para activar 2FA) ----
-            Route::get('/profile',      [ProfileController::class, 'adminShow'])->name('profile.show');
-            Route::get('/profile/edit', [ProfileController::class, 'adminEdit'])->name('profile.edit');
-            Route::post('/profile/edit',[ProfileController::class, 'adminUpdate'])->name('profile.update');
+            // Perfil admin (sin 2FA obligatorio)
+            Route::get('/profile',       [ProfileController::class, 'adminShow'])->name('profile.show');
+            Route::get('/profile/edit',  [ProfileController::class, 'adminEdit'])->name('profile.edit');
+            Route::post('/profile/edit', [ProfileController::class, 'adminUpdate'])->name('profile.update');
 
-            // ---- Resto del panel (2FA obligatorio) ----
+            // Resto del panel (2FA obligatorio)
             Route::middleware('2fa.admin')->group(function () {
 
                 Route::get('/', [DashBoardController::class, 'dashboard'])->name('home');
 
-                // Perfil admin (si quieres repetir show con 2FA ya activo, puedes dejar solo el de arriba)
-                // Route::get('/profile', [ProfileController::class, 'adminShow'])->name('profile.show');
+                // Acciones sensibles de usuario (AHORA dentro de 2FA)
+                Route::patch('users/{user}/lock',          [UserRegisterController::class, 'lock'])->name('users.lock');
+                Route::patch('users/{user}/unlock',        [UserRegisterController::class, 'unlock'])->name('users.unlock');
+                Route::patch('users/{user}/mark-verified', [UserRegisterController::class, 'markVerified'])->name('users.markVerified');
 
                 // Traducciones
                 Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
@@ -258,13 +270,6 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::resource('users', UserRegisterController::class)->except(['show']);
                 Route::resource('roles', RoleController::class)->except(['show', 'create']);
                 Route::patch('roles/{role}/toggle', [RoleController::class, 'toggle'])->name('roles.toggle');
-
-                // Desbloqueo de usuarios (admin)
-                Route::patch('/users/{id}/unlock', [UserRegisterController::class, 'unlock'])->name('users.unlock');
-
-                // Reenviar verificación de email (admin)
-                Route::post('/users/{user}/resend-verification', [UserVerificationController::class, 'resend'])
-                    ->name('users.resendVerification');
 
                 // Tour Types
                 Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);

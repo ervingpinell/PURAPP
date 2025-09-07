@@ -2,29 +2,33 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
     /**
-     * Register any authentication / authorization services.
+     * Policies por modelo (agrega aquí tus policies cuando las vayas creando).
      */
+    protected $policies = [
+    \App\Models\Tour::class => \App\Policies\TourPolicy::class,
+    ];
+
     public function boot(): void
     {
-        // Permiso para administradores
-        Gate::define('is-admin', function ($user) {
-            return $user->role->role_name === 'Admin';
+        // Acceso al panel admin (Admin + Supervisor)
+        Gate::define('access-admin', function (User $user) {
+            // Evitamos N+1 usando role_id directamente
+            return in_array((int) $user->role_id, [1, 2], true);
         });
 
-        // Permiso para colaboradores
-        Gate::define('is-collaborator', function ($user) {
-            return $user->role->role_name === 'Supervisor';
-        });
+        // Solo administradores
+        Gate::define('manage-users', fn (User $user) => (int) $user->role_id === 1);
 
-        // Permiso para ambos
-        Gate::define('any-user', function ($user) {
-            return in_array($user->role->role_name, ['Admin', 'Supervisor']);
-        });
+        // Compatibilidad con lo que tenías (opcional)
+        Gate::define('is-admin', fn (User $user) => (int) $user->role_id === 1);
+        Gate::define('is-collaborator', fn (User $user) => (int) $user->role_id === 2);
+        Gate::define('any-user', fn (User $user) => in_array((int) $user->role_id, [1, 2], true));
     }
 }

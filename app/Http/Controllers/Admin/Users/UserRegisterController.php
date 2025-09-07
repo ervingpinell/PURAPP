@@ -3,32 +3,50 @@
 namespace App\Http\Controllers\Admin\Users;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Cache;
 
 class UserRegisterController extends Controller
 {
+    /**
+     * Lista de usuarios con filtros por rol, estado y email.
+     */
     public function index(Request $request)
     {
         $roles = Role::all();
         $query = User::with('role');
 
-        if ($request->filled('rol'))    $query->where('role_id', $request->rol);
-        if ($request->filled('email'))  $query->where('email', 'like', '%'.$request->email.'%');
-        if ($request->filled('estado')) $query->where('status', $request->estado);
+        if ($request->filled('rol')) {
+            $query->where('role_id', $request->rol);
+        }
+        if ($request->filled('email')) {
+            $query->where('email', 'like', '%'.$request->email.'%');
+        }
+        if ($request->filled('estado')) {
+            $query->where('status', (bool) $request->estado);
+        }
 
         $users = $query->get();
+
         return view('admin.users.users', compact('users', 'roles'));
     }
 
+    /**
+     * (Opcional) Si usas un formulario externo para crear.
+     */
     public function create()
     {
         $roles = Role::all();
         return view('auth.register', compact('roles'));
     }
 
+    /**
+     * Registrar usuario (desde modal del panel).
+     */
     public function store(Request $request)
     {
         try {
@@ -41,28 +59,31 @@ class UserRegisterController extends Controller
                 'phone'        => ['nullable','string','max:30'],
             ]);
 
+            // Normalización de teléfono: si viene +NN... pegado al número, quítalo
             $ccDigits    = preg_replace('/\D+/', '', (string) $request->country_code);
             $phoneDigits = preg_replace('/\D+/', '', (string) $request->phone);
 
-            $startsWith = function (string $haystack, string $needle): bool {
+            $startsWith = static function (string $haystack, string $needle): bool {
                 if ($needle === '') return false;
                 return strncmp($haystack, $needle, strlen($needle)) === 0;
             };
 
-            if ($ccDigits && $startsWith($phoneDigits, $ccDigits)) {
-                $national = substr($phoneDigits, strlen($ccDigits));
-            } else {
-                $national = $phoneDigits ?: null;
+            $national = null;
+            if ($phoneDigits !== '') {
+                $national = ($ccDigits && $startsWith($phoneDigits, $ccDigits))
+                    ? substr($phoneDigits, strlen($ccDigits))
+                    : $phoneDigits;
             }
 
             User::create([
-                'full_name'    => $request->full_name,
-                'email'        => $request->email,
+                'full_name'    => trim($request->full_name),
+                'email'        => mb_strtolower(trim($request->email)),
                 'password'     => Hash::make($request->password),
-                'role_id'      => $request->role_id,
+                'role_id'      => (int) $request->role_id,
                 'status'       => true,
                 'country_code' => $request->country_code,
                 'phone'        => $national,
+                'is_locked'    => false,
             ]);
 
             return redirect()
@@ -71,8 +92,9 @@ class UserRegisterController extends Controller
                 ->with('alert_type', 'creado');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
+            // Si solo falló password, reabrir modal de registro
             if ($e->validator->errors()->count() === 1 && $e->validator->errors()->has('password')) {
-                return redirect()->back()
+                return back()
                     ->withErrors($e->validator)
                     ->with('error_password', $e->validator->errors()->first('password'))
                     ->withInput()
@@ -82,20 +104,17 @@ class UserRegisterController extends Controller
         }
     }
 
+    /**
+     * Redirige a index; edición se maneja vía modal.
+     */
     public function edit($id)
     {
         return redirect()->route('admin.users.index');
     }
-    public function unlock($id)
-{
-    $user = User::findOrFail($id);
-    $user->is_locked = false;
-    $user->save();
 
-    return back()->with('success', 'Usuario desbloqueado.');
-}
-
-
+    /**
+     * Actualiza usuario (desde modal).
+     */
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
@@ -114,25 +133,24 @@ class UserRegisterController extends Controller
             'phone'        => ['nullable','string','max:30'],
         ]);
 
-        $user->full_name = $request->full_name;
-        $user->email     = $request->email;
-        $user->role_id   = $request->role_id;
+        $user->full_name = trim($request->full_name);
+        $user->email     = mb_strtolower(trim($request->email));
+        $user->role_id   = (int) $request->role_id;
 
         if ($request->hasAny(['country_code','phone'])) {
             $ccDigits    = preg_replace('/\D+/', '', (string) $request->country_code);
             $phoneDigits = preg_replace('/\D+/', '', (string) $request->phone);
 
-            $startsWith = function (string $haystack, string $needle): bool {
+            $startsWith = static function (string $haystack, string $needle): bool {
                 if ($needle === '') return false;
                 return strncmp($haystack, $needle, strlen($needle)) === 0;
             };
 
+            $national = null;
             if ($phoneDigits !== '') {
                 $national = ($ccDigits && $startsWith($phoneDigits, $ccDigits))
                     ? substr($phoneDigits, strlen($ccDigits))
                     : $phoneDigits;
-            } else {
-                $national = null;
             }
 
             $user->country_code = $request->country_code;
@@ -151,11 +169,13 @@ class UserRegisterController extends Controller
             ->with('alert_type', 'actualizado');
     }
 
-
+    /**
+     * Activa/Inactiva usuario (toggle).
+     */
     public function destroy($id)
     {
         $user = User::findOrFail($id);
-        $user->status = !$user->status;
+        $user->status = ! (bool) $user->status;
         $user->save();
 
         $mensaje = $user->status
@@ -166,5 +186,52 @@ class UserRegisterController extends Controller
             ->route('admin.users.index')
             ->with('alert_type', $mensaje['tipo'])
             ->with('success', $mensaje['texto']);
+    }
+
+    /**
+     * BLOQUEAR manualmente (botón).
+     */
+    public function lock(Request $request, User $user)
+    {
+        $user->is_locked = true;
+        $user->save();
+
+        // Limpia contadores de negocio por si venía con intentos
+        RateLimiter::clear('login-fails:'.$user->getKey());
+
+        return back()->with('success', __('adminlte::adminlte.user_locked_successfully') ?? 'Usuario bloqueado.');
+    }
+
+    /**
+     * DESBLOQUEAR manualmente (botón).
+     */
+    public function unlock(Request $request, User $user)
+    {
+        $user->is_locked = false;
+        $user->save();
+
+        // Limpia contadores de fallos (negocio) y throttles (email|ip)
+        RateLimiter::clear('login-fails:'.$user->getKey());
+
+        $emailLc = mb_strtolower(trim($user->email));
+        RateLimiter::clear($emailLc.'|'.$request->ip());
+
+        if ($lastKey = Cache::pull('last_login_key:'.$user->getKey())) {
+            RateLimiter::clear($lastKey);
+        }
+
+        return back()->with('success', __('adminlte::adminlte.user_unlocked_successfully') ?? 'Usuario desbloqueado.');
+    }
+
+    /**
+     * Marcar como verificado (opcional) si no lo está.
+     */
+    public function markVerified(User $user)
+    {
+        if (empty($user->email_verified_at)) {
+            $user->forceFill(['email_verified_at' => now()])->save();
+        }
+
+        return back()->with('success', __('adminlte::adminlte.user_marked_verified') ?? 'Usuario marcado como verificado.');
     }
 }

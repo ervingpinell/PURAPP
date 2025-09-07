@@ -19,11 +19,11 @@ class ProfileController extends Controller
             return redirect()->route('login');
         }
 
-        // ===== 2FA (usa los helpers del modelo; Intelephense puede marcar como "desconocidos", pero existen en runtime) =====
-        $has2FA         = method_exists($user, 'twoFactorEnabled')      ? $user->twoFactorEnabled()      : !empty($user->two_factor_secret);
-        $is2FAConfirmed = method_exists($user, 'twoFactorConfirmed')    ? $user->twoFactorConfirmed()    : !empty($user->two_factor_confirmed_at);
-        $qrSvg          = method_exists($user, 'safeTwoFactorQrCodeSvg')? $user->safeTwoFactorQrCodeSvg(): null;
-        $recoveryCodes  = method_exists($user, 'safeRecoveryCodes')     ? $user->safeRecoveryCodes()     : [];
+        // ===== 2FA (usa los helpers del modelo si existen) =====
+        $has2FA         = method_exists($user, 'twoFactorEnabled')       ? $user->twoFactorEnabled()        : !empty($user->two_factor_secret);
+        $is2FAConfirmed = method_exists($user, 'twoFactorConfirmed')     ? $user->twoFactorConfirmed()      : !empty($user->two_factor_confirmed_at);
+        $qrSvg          = method_exists($user, 'safeTwoFactorQrCodeSvg') ? $user->safeTwoFactorQrCodeSvg()  : null;
+        $recoveryCodes  = method_exists($user, 'safeRecoveryCodes')      ? $user->safeRecoveryCodes()       : [];
 
         // Admin (roles 1,2) vs público
         if (in_array((int) $user->role_id, [1, 2], true)) {
@@ -103,5 +103,38 @@ class ProfileController extends Controller
         return redirect()
             ->route('profile.edit')
             ->with('success', __('adminlte::adminlte.profile_updated_successfully'));
+    }
+
+    /* ============================================================
+     | Wrappers para rutas admin/públicas (evitan cambiar rutas)
+     * ============================================================*/
+
+    /** GET /admin/profile -> si no tienes vista show, redirige al edit admin */
+    public function adminShow()
+    {
+        return redirect()->route('admin.profile.edit');
+    }
+
+    /** GET /admin/profile/edit -> usa la misma lógica de edit() */
+    public function adminEdit()
+    {
+        // Opcional: reforzar que sea admin
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+        if (!in_array((int) $user->role_id, [1,2], true)) abort(403);
+
+        return $this->edit();
+    }
+
+    /** POST /admin/profile/edit -> delega al update() */
+    public function adminUpdate(Request $request)
+    {
+        return $this->update($request);
+    }
+
+    /** GET /profile -> si no tienes show pública, redirige al edit público */
+    public function show()
+    {
+        return redirect()->route('profile.edit');
     }
 }
