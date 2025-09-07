@@ -1,68 +1,70 @@
 <?php
 
+/**
+ * Table of Contents
+ *
+ * 1. AUTHENTICATION AND REGISTRATION ........... Line 37
+ * 2. HOTELS ................................... Line 57
+ * 3. GENERAL NAVIGATION ....................... Line 67
+ * 4. CONTENT AND PAGES ........................ Line 82
+ * 5. TOURS AND REVIEWS ........................ Line 97
+ * 6. SCHEDULES ................................ Line 131
+ * 7. ITINERARIES .............................. Line 144
+ * 8. HOTELS (DETAIL) .......................... Line 156
+ * 9. CART AND BOOKINGS ........................ Line 180
+ * 10. VALIDATION .............................. Line 219
+ * 11. BUTTONS AND CRUD ........................ Line 225
+ * 12. FOOTER .................................. Line 243
+ * 13. WHATSAPP ................................ Line 247
+ * 14. REVIEWS ................................. Line 257
+ * 15. TRAVELERS ............................... Line 273
+ * 16. CONTACT ................................. Line 286
+ * 17. ERRORS .................................. Line 295
+ * 18. CART LOGIN MODAL ........................ Line 298
+ * 19. SWEETALERTS (ACTIONS) ................... Line 322
+ * 20. SUCCESSES (USED IN CONTROLLERS) ......... Line 328
+ * 21. MAIL .................................... Line 381
+ * 22. DASHBOARD ............................... Line 386
+ * 23. ENTITIES ................................ Line 394
+ * 24. SECTIONS ................................ Line 408
+ * 25. EMPTY STATES ............................ Line 414
+ * 26. BUTTONS (GENERIC) ....................... Line 421
+ * 27. LABELS .................................. Line 426
+ */
+
 return [
+
+    // 1. AUTHENTICATION AND REGISTRATION
     'hello' => 'Bonjour',
-    // ─── AUTHENTIFICATION & INSCRIPTION ───────────────
     'full_name' => 'Nom complet',
-    'email' => 'Courriel',
+    'email' => 'E-mail',
     'password' => 'Mot de passe',
     'phone' => 'Téléphone',
-    'retype_password' => 'Confirmer le mot de passe',
+    'retype_password' => 'Retaper le mot de passe',
     'remember_me' => 'Se souvenir de moi',
-    'remember_me_hint' => 'Rester connecté indéfiniment ou jusqu’à la déconnexion manuelle',
-    'register' => 'S’inscrire',
-    'register_a_new_membership' => 'Créer un nouveau compte',
-    'i_forgot_my_password' => 'Mot de passe oublié',
-    'i_already_have_a_membership' => 'J’ai déjà un compte',
-    'sign_in' => 'Se connecter',
-    'sign_out' => 'Se déconnecter',
-    'log_out' => 'Se déconnecter',
-    'toggle_navigation' => 'Afficher/masquer la navigation',
-    'login_message' => 'Connectez-vous',
-    'register_message' => 'Créer un nouveau compte',
-    'password_reset_message' => 'Réinitialiser le mot de passe',
-    'reset_password' => 'Réinitialiser le mot de passe',
-    'send_password_reset_link' => 'Envoyer le lien de réinitialisation',
-    'verify_message' => 'Votre compte doit être vérifié',
-    'verify_email_sent' => 'Un nouveau lien de vérification a été envoyé à votre courriel.',
-    'verify_check_your_email' => 'Avant de continuer, vérifiez votre courriel pour le lien de vérification.',
-    'verify_if_not_recieved' => 'Si vous n’avez pas reçu le courriel',
-    'verify_request_another' => 'cliquez ici pour en demander un autre',
-    'confirm_password_message' => 'Veuillez confirmer votre mot de passe pour continuer.',
-    'account_created' => 'Compte créé avec succès. Veuillez vous connecter.',
-    'account_already_exists' => 'Un compte avec ce courriel existe déjà. Connectez-vous ou utilisez un autre courriel.',
-    'account_creation_failed' => 'Impossible de créer le compte. Veuillez réessayer plus tard.',
-    'password_reset' => 'Mot de passe réinitialisé avec succès. Veuillez vous connecter.',
-    'password_reset_success' => 'Mot de passe réinitialisé avec succès. Veuillez vous connecter.',
-    'password_reset_failed' => 'Impossible de réinitialiser le mot de passe. Veuillez réessayer plus tard.',
-    'password_reset_link_sent' => 'Le lien de réinitialisation du mot de passe a été envoyé à votre courriel.',
-    'password_reset_link_failed' => 'Échec de l’envoi du lien. Réessayez plus tard.',
-    'passwords_match' => 'Les mots de passe correspondent.',
-
-    // ─── ERREURS / RÉSERVATIONS ───────────────────────
-    'other_hotel_required' => 'Veuillez saisir le nom de l’hôtel.',
-    'promo_invalid_or_used' => 'Code promo invalide ou déjà utilisé.',
-    'promo_invalid' => 'Code promo invalide.',
-    'promo_already_used' => 'Ce code promo a déjà été utilisé pour une autre réservation.',
-    'no_past_dates' => 'Vous ne pouvez pas réserver pour des dates passées.',
-    'dupe_submit_cart' => 'Une réservation similaire est déjà en cours de traitement. Réessayez dans quelques secondes.',
-    'schedule_not_available' => 'L’horaire n’est pas disponible pour cette excursion (inactif ou non attribué).',
-    'date_blocked' => 'La date sélectionnée est bloquée pour cette excursion.',
+    'remember_me_hint' => 'Garder la session ouverte indéfiniment ou jusqu\'à fermeture manuelle',
+    'register' => 'S\'inscrire',
+    'promo_invalid' => 'Code promotionnel invalide.',
+    'promo_already_used' => 'Ce code promotionnel a déjà été utilisé dans une autre réservation.',
+    'no_past_dates' => 'Vous ne pouvez pas réserver pour des dates antérieures à aujourd\'hui.',
+    'dupe_submit_cart' => 'Une réservation similaire est déjà en cours de traitement. Veuillez réessayer dans quelques secondes.',
+    'schedule_not_available' => 'L\'horaire n\'est pas disponible pour cette visite (inactif ou non assigné).',
+    'date_blocked' => 'La date sélectionnée est bloquée pour cette visite.',
     'capacity_left' => 'Il ne reste que :available places pour cet horaire.',
     'booking_created_success' => 'Réservation créée avec succès.',
     'booking_updated_success' => 'Réservation mise à jour avec succès.',
 
-    // ─── HÔTELS ────────────────────────────────────────
-    'hotel_name_required' => 'Le nom de l’hôtel est obligatoire.',
-    'hotel_name_unique'   => 'Un hôtel portant ce nom existe déjà.',
-    'hotel_name_max'      => 'Le nom de l’hôtel ne peut pas dépasser :max caractères.',
+    // 2. HOTELS
+    'hotel_name_required' => 'Le nom de l\'hôtel est requis.',
+    'hotel_name_unique'   => 'Un hôtel avec ce nom existe déjà.',
+    'hotel_name_max'      => 'Le nom de l\'hôtel ne peut pas dépasser :max caractères.',
     'hotel_created_success' => 'Hôtel créé avec succès.',
     'hotel_updated_success' => 'Hôtel mis à jour avec succès.',
-    'is_active_required'  => 'Le statut est obligatoire.',
+    'is_active_required'  => 'Le statut est requis.',
     'is_active_boolean'   => 'Le statut doit être vrai ou faux.',
-    'outside_list' => 'Cet hôtel ne figure pas dans notre liste. Veuillez nous contacter pour vérifier si un transport est possible.',
+    'outside_list' => 'Cet hôtel est en dehors de notre liste. Veuillez nous contacter pour vérifier si nous pouvons vous offrir un transport.',
 
-    // ─── NAVIGATION GÉNÉRALE ──────────────────────────
+    // 3. GENERAL NAVIGATION
     'back' => 'Retour',
     'home' => 'Accueil',
     'dashboard' => 'Tableau de bord',
@@ -75,61 +77,61 @@ return [
     'help' => 'Aide',
     'language' => 'Langue',
     'support' => 'Support',
-    'admin_panel' => 'Panneau d’administration',
+    'admin_panel' => 'Panneau d\'administration',
 
-    // ─── CONTENU & PAGES ──────────────────────────────
+    // 4. CONTENT AND PAGES
     'faq' => 'Foire aux questions',
     'faqpage' => 'Foire aux questions',
     'no_faqs_available' => 'Aucune FAQ disponible.',
     'contact' => 'Contact',
     'about' => 'À propos de nous',
     'privacy_policy' => 'Politique de confidentialité',
-    'terms_and_conditions' => 'Conditions générales',
+    'terms_and_conditions' => 'Termes et conditions',
     'all_policies' => 'Toutes nos politiques',
-    'cancellation_and_refunds_policies' => 'Politiques d’annulation et de remboursement',
+    'cancellation_and_refunds_policies' => 'Politiques d\'annulation et de remboursement',
     'reports' => 'Rapports',
     'footer_text'=> 'Green Vacations CR',
     'quick_links'=> 'Liens rapides',
     'rights_reserved' => 'Tous droits réservés',
 
-    // ─── EXCURSIONS & AVIS ────────────────────────────
+    // 5. TOURS AND REVIEWS
     'tours' => 'Excursions',
     'tour' => 'Excursion',
-    'tour_name' => 'Nom de l’excursion',
+    'tour_name' => 'Nom de l\'excursion',
     'overview' => 'Aperçu',
     'duration' => 'Durée',
     'price' => 'Prix',
-    'type' => 'Type d’excursion',
+    'type' => 'Type d\'excursion',
     'languages_available' => 'Langues disponibles',
-    'amenities_included' => 'Services inclus',
-    'excluded_amenities' => 'Services non inclus',
-    'tour_details' => 'Détails de l’excursion',
+    'amenities_included' => 'Commodités incluses',
+    'excluded_amenities' => 'Commodités exclues',
+    'tour_details' => 'Détails de l\'excursion',
     'select_tour' => 'Sélectionner une excursion',
     'reviews' => 'Avis',
     'hero_title' => 'Découvrez la magie du Costa Rica',
-    'hero_subtext' => 'Explorez nos excursions uniques et vivez l’aventure.',
+    'hero_subtext' => 'Explorez nos excursions uniques et vivez l\'aventure.',
     'book_now' => 'Réserver maintenant',
     'our_tours' => 'Nos excursions',
     'half_day' => 'Demi-journée',
     'full_day' => 'Journée complète',
-    'full_day_description' => 'Parfait pour ceux qui recherchent une expérience complète en une seule journée',
-    'half_day_description' => 'Excursions idéales pour une aventure rapide lorsque le temps est compté.',
-    'full_day_tours' => 'Excursions d’une journée',
-    'half_day_tours' => 'Excursions d’une demi-journée',
-    'see_tour' => 'Voir l’excursion',
+    'full_day_description' => 'Parfait pour ceux qui recherchent une expérience complète en une journée',
+    'half_day_description' => 'Excursions idéales pour une aventure rapide pour ceux qui manquent de temps.',
+    'full_day_tours' => 'Excursions journée complète',
+    'half_day_tours' => 'Excursions demi-journée',
+    'see_tour' => 'Voir l\'excursion',
     'see_tours' => 'Voir les excursions',
     'what_visitors_say' => 'Ce que disent nos visiteurs',
     'quote_1' => 'Une expérience inoubliable !',
     'guest_1' => 'Carlos M.',
-    'quote_2' => 'Je reviendrai sans hésiter.',
+    'quote_2' => 'Je reviendrai sans aucun doute.',
     'guest_2' => 'Ana G.',
-    'tour_information'=> 'Informations sur l’excursion',
+    'tour_information'=> 'Informations sur l\'excursion',
     'group_size'=> 'Taille du groupe',
 
-    // ─── HORAIRES ─────────────────────────────────────
+    // 6. SCHEDULES
     'schedule' => 'Horaire',
     'schedule_am' => 'Horaire du matin',
-    'schedule_pm' => 'Horaire de l’après-midi',
+    'schedule_pm' => 'Horaire de l\'après-midi',
     'start_time' => 'Heure de début',
     'end_time' => 'Heure de fin',
     'select_date' => 'Sélectionner une date',
@@ -139,42 +141,43 @@ return [
     'horas' => 'heures',
     'hours' => 'heures',
 
-    // ─── ITINÉRAIRES ──────────────────────────────────
+    // 7. ITINERARIES
     'itinerary' => 'Itinéraire',
     'itineraries' => 'Itinéraires',
     'new_itinerary' => 'Nouvel itinéraire',
-    'itinerary_items' => 'Éléments de l’itinéraire',
-    'item_title' => 'Titre de l’élément',
-    'item_description' => 'Description de l’élément',
+    'itinerary_items' => 'Éléments de l\'itinéraire',
+    'item_title' => 'Titre de l\'élément',
+    'item_description' => 'Description de l\'élément',
     'add_item' => 'Ajouter un élément',
-    'edit_itinerary' => 'Modifier l’itinéraire',
-    'no_itinerary_info' => 'Aucune information d’itinéraire disponible.',
+    'edit_itinerary' => 'Modifier l\'itinéraire',
+    'no_itinerary_info' => 'Aucune information sur l\'itinéraire.',
     'whats_included' => 'Ce qui est inclus',
-    // ─── HÔTELS ───────────────────────────────────────
+
+    // 8. HOTELS (DETAIL)
     'hotels' => 'Hôtels',
     'hotel' => 'Hôtel',
     'select_hotel' => 'Hôtel ou point de prise en charge',
-    'hotel_other' => 'Autre (indiquer manuellement)',
-    'hotel_name' => 'Nom de l’hôtel',
-    'other_hotel' => 'Autre hôtel (indiquer)',
-    'hotel_pickup' => 'Prise en charge à l’hôtel',
-    'outside_area' => 'Cet hôtel est hors de la zone de couverture. Veuillez nous contacter pour vérifier vos options.',
-    'pickup_valid' => 'L’hôtel sélectionné est valide ! Une fois la réservation confirmée, nous vous contacterons pour organiser l’heure de prise en charge.',
+    'hotel_other' => 'Autre (spécifier manuellement)',
+    'hotel_name' => 'Nom de l\'hôtel',
+    'other_hotel' => 'Autre hôtel (spécifier)',
+    'hotel_pickup' => 'Prise en charge à l\'hôtel',
+    'outside_area' => 'Cet hôtel est en dehors de la zone de couverture. Veuillez nous contacter pour examiner vos options.',
+    'pickup_valid' => 'L\'hôtel sélectionné est valide ! Une fois la réservation confirmée, nous vous contacterons pour coordonner l\'heure de prise en charge.',
     'pickup_details' => 'Détails de la prise en charge',
-    'pickup_note' => 'Les prises en charge gratuites s’appliquent uniquement aux hôtels de la région de La Fortuna...',
+    'pickup_note' => 'Les prises en charge gratuites s\'appliquent uniquement aux hôtels de la région de La Fortuna...',
     'pickup_points' => 'Points de prise en charge',
-    'select_pickup' => 'Sélectionnez un point de prise en charge',
+    'select_pickup' => 'Sélectionner un point de prise en charge',
     'type_to_search' => 'Tapez pour rechercher...',
     'no_pickup_available' => 'Aucun point de prise en charge disponible.',
     'pickup_not_found' => 'Hôtel non trouvé.',
     'meeting_points' => 'Points de rencontre',
-    'select_meeting' => 'Sélectionnez un point de rencontre',
+    'select_meeting' => 'Sélectionner un point de rencontre',
     'meeting_not_found' => 'Point de rencontre non trouvé.',
-    'main_street_entrance' => 'Entrée par la rue principale',
-    'example_address' => '123 Adresse Exemple',
+    'main_street_entrance' => 'Entrée de la rue principale',
+    'example_address' => 'Adresse exemple 123',
     'hotels_meeting_points' => 'Hôtels et points de rencontre',
 
-    // ─── PANIER & RÉSERVATIONS ─────────────────────────
+    // 9. CART AND BOOKINGS
     'cart' => 'Panier',
     'myCart' => 'Mon panier',
     'my_reservations' => 'Mes réservations',
@@ -184,18 +187,18 @@ return [
     'confirm_reservation' => 'Confirmer la réservation',
     'confirmBooking' => 'Confirmer la réservation',
     'cart_updated' => 'Panier mis à jour avec succès.',
-    'itemUpdated' => 'Élément du panier mis à jour avec succès.',
+    'itemUpdated' => 'Article du panier mis à jour avec succès.',
     'cartItemAdded' => 'Excursion ajoutée au panier avec succès.',
     'cartItemDeleted' => 'Excursion retirée du panier avec succès.',
     'emptyCart' => 'Votre panier est vide.',
     'no_items_in_cart' => 'Votre panier est vide.',
     'reservation_success' => 'Réservation effectuée avec succès !',
-    'reservation_failed' => 'Une erreur est survenue lors de la réservation.',
+    'reservation_failed' => 'Une erreur s\'est produite lors de la réservation.',
     'booking_reference' => 'Référence de réservation',
     'booking_date' => 'Date de réservation',
     'reservation_status' => 'Statut de la réservation',
     'blocked_date_for_tour' => 'La date :date est bloquée pour ":tour".',
-    'tourCapacityFull' => 'La capacité maximale de cette excursion est déjà atteinte.',
+    'tourCapacityFull' => 'La capacité maximale pour cette excursion est déjà atteinte.',
     'totalEstimated' => 'Total estimé',
     'total_price' => 'Prix total',
     'total' => 'Total',
@@ -204,22 +207,22 @@ return [
     'actions' => 'Actions',
     'active'=> 'Actif',
     'delete'=> 'Supprimer',
-    'promoCode' => 'Avez-vous un code promo ?',
-    'promoCodePlaceholder' => 'Saisissez votre code promo',
+    'promoCode' => 'Avez-vous un code promotionnel ?',
+    'promoCodePlaceholder' => 'Entrez votre code promotionnel',
     'apply' => 'Appliquer',
-    'deleteItemTitle' => 'Supprimer l’élément',
-    'deleteItemText' => 'Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible.',
+    'deleteItemTitle' => 'Supprimer l\'article',
+    'deleteItemText' => 'Êtes-vous sûr de vouloir supprimer cet article ? Cette action est irréversible.',
     'deleteItemConfirm' => 'Supprimer',
     'deleteItemCancel' => 'Annuler',
-    'selectOption' => 'Sélectionnez une option',
+    'selectOption' => 'Sélectionner une option',
 
-    // ─── VALIDATION ───────────────────────────────────
-    'required_field' => 'Ce champ est obligatoire.',
-    'invalid_email' => 'Adresse courriel invalide.',
+    // 10. VALIDATION
+    'required_field' => 'Ce champ est requis.',
+    'invalid_email' => 'E-mail invalide.',
     'invalid_date' => 'Date invalide.',
-    'select_option' => 'Sélectionnez une option',
+    'select_option' => 'Sélectionner une option',
 
-    // ─── BOUTONS & CRUD ───────────────────────────────
+    // 11. BUTTONS AND CRUD
     'create' => 'Créer',
     'edit' => 'Modifier',
     'update' => 'Mettre à jour',
@@ -232,29 +235,29 @@ return [
     'are_you_sure' => 'Êtes-vous sûr ?',
     'optional' => 'Optionnel',
     'edit_profile' => 'Modifier le profil',
-    'read_more' => 'Lire plus',
+    'read_more' => 'Lire la suite',
     'read_less' => 'Lire moins',
     'switch_view' => 'Changer de vue',
     'close' => 'Fermer',
 
-    // ─── PIED DE PAGE ─────────────────────────────────
+    // 12. FOOTER
     'contact_us' => 'Contactez-nous',
     'location' => 'San José, Costa Rica',
 
-    // ─── WHATSAPP ─────────────────────────────────────
+    // 13. WHATSAPP
     'whatsapp_title' => 'Green Vacations CR',
-    'whatsapp_subtitle' => 'Répond généralement immédiatement',
-    'whatsapp_attention_schedule' => ' Du lundi au dimanche, de 7h30 à 19h30 (GMT-6)',
-    'whatsapp_attention_language' => 'Assistance uniquement en espagnol et en anglais',
+    'whatsapp_subtitle' => 'Répond généralement instantanément',
+    'whatsapp_attention_schedule' => 'Lundi à dimanche, de 7h30 à 19h30 (GMT-6)',
+    'whatsapp_attention_language' => 'Support uniquement en espagnol et en anglais',
     'whatsapp_greeting' => '👋 Bonjour ! Comment pouvons-nous vous aider à planifier votre aventure au Costa Rica ?',
-    'whatsapp_placeholder' => 'Bonjour, je suis intéressé par une de vos excursions. Pourriez-vous me donner plus d’informations ?',
-    'whatsapp_button' => 'Envoyer un message',
-    'whatsapp_footer' => 'Connecté via WhatsApp Business',
+    'whatsapp_placeholder' => 'Bonjour, je suis intéressé par l\'une de vos excursions. Pouvez-vous me donner plus d\'informations ?',
+    'whatsapp_button' => 'Envoyer le message',
+    'whatsapp_footer' => 'Connecté par WhatsApp Business',
 
-    // ─── AVIS ─────────────────────────────────────────
-    'what_customers_thinks_about' => 'Ce que pensent nos clients de',
+    // 14. REVIEWS
+    'what_customers_thinks_about' => 'Ce que nos clients pensent de',
     'loading_reviews' => 'Chargement des avis',
-    'redirect_to_tour' => 'Rediriger vers l’excursion',
+    'redirect_to_tour' => 'Rediriger vers l\'excursion',
     'would_you_like_to_visit' => 'Souhaitez-vous visiter ',
     'this_tour' => 'cette excursion',
     'no_reviews_found' => 'Aucun avis trouvé pour cette excursion.',
@@ -264,83 +267,74 @@ return [
     'see_more' => 'Voir plus',
     'see_less' => 'Voir moins',
     'powered_by_viator' => 'Propulsé par Viator',
-    'go_to_tour' => 'Voulez-vous aller à l’excursion ":name" ?',
+    'go_to_tour' => 'Voulez-vous aller à l\'excursion ":name" ?',
     'view_in_viator' => 'Voir :name sur Viator',
 
-    // ─── VOYAGEURS ────────────────────────────────────
+    // 15. TRAVELERS
     'select_travelers' => 'Sélectionner les voyageurs',
-    'max_travelers_info' => 'Vous pouvez sélectionner jusqu’à 12 personnes au total.',
+    'max_travelers_info' => 'Vous pouvez sélectionner jusqu\'à 12 personnes au total.',
     'adult' => 'Adulte',
     'adults' => 'Adultes',
-    'adults_quantity' => 'Nombre d’adultes',
+    'adults_quantity' => 'Nombre d\'adultes',
     'kid' => 'Enfant',
     'kids' => 'Enfants',
-    'kids_quantity' => 'Nombre d’enfants',
+    'kids_quantity' => 'Nombre d\'enfants',
     'age_10_plus' => 'Âge 10+',
     'age_4_to_9' => 'Âge 0-9',
     'max_limits_info' => 'Max. 12 voyageurs, max. 2 enfants.',
 
-    // ─── CONTACT ──────────────────────────────────────
+    // 16. CONTACT
     'name' => 'Nom',
     'subject' => 'Sujet',
     'message' => 'Message',
     'send_message' => 'Envoyer le message',
     'message_sent' => 'Message envoyé',
-    'business_hours' => 'Heures d’ouverture',
-    'business_schedule' => 'Du lundi au dimanche, de 7h30 à 19h30',
+    'business_hours' => 'Heures d\'ouverture',
+    'business_schedule' => 'Lundi à dimanche, de 7h30 à 19h30.',
 
-    // ─── ERREURS ──────────────────────────────────────
+    // 17. ERRORS
     'access_denied' => 'Accès refusé',
 
-    // ─── MODAL PANIER LOGIN ───────────────────────────
-    'login' => 'Se connecter',
+    // 18. CART LOGIN MODAL
+    'login' => 'Connexion',
     'view_cart' => 'Voir le panier',
-    'login_required_title' => 'Connexion requise',
-    'login_required_text' => 'Vous devez être connecté pour ajouter au panier.',
-    'login_required_text_confirm' => 'Vous devez être connecté pour ajouter au panier. Aller à la connexion ?',
-    'pax' => 'pax',
+    'login_required_title' => 'Vous devez vous connecter',
+    'login_required_text' => 'Pour ajouter au panier, vous devez vous connecter.',
+    'login_required_text_confirm' => 'Pour ajouter au panier, vous devez vous connecter. Aller à la connexion ?',
+    'pax' => 'pers.',
     'remove_item_title' => 'Retirer du panier',
     'remove_item_text' => 'Voulez-vous retirer cette excursion du panier ?',
     'success' => 'Succès',
     'error' => 'Erreur',
     'validation_error' => 'Données incomplètes',
-    'editItem'          => 'Modifier l’élément',
-    'date'              => 'Date',
-    'schedule'          => 'Horaire',
-    'scheduleHelp'      => 'Si l’excursion ne nécessite pas d’horaire, laissez vide.',
-    'language'          => 'Langue',
-    'adults'            => 'Adultes',
-    'kids'              => 'Enfants',
-    'hotel'             => 'Hôtel',
+    'editItem'          => 'Modifier l\'article',
+    // Removed duplicate keys: date, schedule, language, adults, kids, hotel, status, active, cancel, update
+    'scheduleHelp'      => 'Si l\'excursion ne nécessite pas d\'horaire, laissez vide.',
     'customHotel'       => 'Hôtel personnalisé…',
     'otherHotel'        => 'Utiliser un hôtel personnalisé',
-    'customHotelName'   => 'Nom de l’hôtel personnalisé',
+    'customHotelName'   => 'Nom de l\'hôtel personnalisé',
     'customHotelHelp'   => 'Si vous saisissez un hôtel personnalisé, la sélection de la liste sera ignorée.',
-    'status'            => 'Statut',
-    'active'            => 'Actif',
     'inactive'          => 'Inactif',
-    'cancel'            => 'Annuler',
-    'update'            => 'Mettre à jour',
     'close'             => 'Fermer',
-    'notSpecified'      => 'Non spécifié',
+    'notSpecified'     => 'Non spécifié',
     'saving' => 'Enregistrement…',
-    // ─── SWEETALERTS (Actions) ─────────────────────────
+
+    // 19. SWEETALERTS (ACTIONS)
     'confirmReservationTitle' => 'Êtes-vous sûr ?',
     'confirmReservationText' => 'Votre réservation sera confirmée',
     'confirmReservationConfirm' => 'Oui, confirmer',
     'confirmReservationCancel' => 'Annuler',
 
-    // ─── PROFIL ───────────────────────────────────────
+    // 20. SUCCESSES (USED IN CONTROLLERS)
     'edit_profile_of' => 'Modifier le profil',
     'profile_information' => 'Informations du profil',
     'new_password_optional' => 'Nouveau mot de passe (optionnel)',
-    'leave_blank_if_no_change' => 'Laisser vide si vous ne souhaitez pas le modifier',
+    'leave_blank_if_no_change' => 'Laissez vide si vous ne souhaitez pas le changer',
     'confirm_new_password_placeholder' => 'Confirmer le nouveau mot de passe',
 
-    // ─── POLITIQUES & RÉSERVATIONS ─────────────────────
     'policies' => 'Politiques',
-    'no_reservations_yet' => 'Vous n’avez pas encore de réservations !',
-    'no_reservations_message' => 'Il semble que vous n’ayez pas encore réservé d’aventures avec nous. Pourquoi ne pas explorer nos excursions incroyables ?',
+    'no_reservations_yet' => 'Vous n\'avez pas encore de réservations !',
+    'no_reservations_message' => 'Il semble que vous n\'ayez pas encore réservé d\'aventures avec nous. Pourquoi ne pas explorer nos excursions incroyables ?',
     'view_available_tours' => 'Voir les excursions disponibles',
     'pending_reservations' => 'Réservations en attente',
     'confirmed_reservations' => 'Réservations confirmées',
@@ -348,108 +342,91 @@ return [
     'reservations_generic' => 'Réservations',
     'generic_tour' => 'Excursion générique',
     'unknown_tour' => 'Excursion inconnue',
-    'tour_date' => 'Date de l’excursion',
+    'tour_date' => 'Date de l\'excursion',
     'participants' => 'Participants',
     'children' => 'Enfants',
     'not_specified' => 'Non spécifié',
     'status_pending' => 'En attente',
     'status_confirmed' => 'Confirmée',
     'status_cancelled' => 'Annulée',
-    'status_unknown' => 'Inconnu',
+    'status_unknown' => 'Inconnue',
 
     'view_receipt' => 'Voir le reçu',
 
-    // ─── VALIDATION ───────────────────────────────────
-    'validation.unique' => 'Ce courriel est déjà utilisé',
+    'validation.unique' => 'Cet e-mail est déjà utilisé',
+
     'validation' => [
         'too_many_attempts' => 'Trop de tentatives échouées. Réessayez dans :seconds secondes.',
     ],
 
-    // ─── ALERTE OUVERTURE TOUR ────────────────────────
-    'open_tour'          => 'Aller à l’excursion ?',
-    'open_tour_text_pre' => 'Vous allez ouvrir la page de l’excursion',
-    'open_tour_confirm'  => 'Y aller maintenant',
+    'open_tour'          => 'Aller à l\'excursion ?',
+    'open_tour_text_pre' => 'Vous êtes sur le point d\'ouvrir la page de l\'excursion',
+    'open_tour_confirm'  => 'Aller maintenant',
     'open_tour_cancel'   => 'Annuler',
 
-    // ─── SUCCÈS (Contrôleurs) ─────────────────────────
+    // Successes (used in controllers)
     'show_password' => 'Afficher le mot de passe',
     'user_registered_successfully'   => 'Utilisateur enregistré avec succès.',
     'user_updated_successfully'      => 'Utilisateur mis à jour avec succès.',
     'user_reactivated_successfully'  => 'Utilisateur réactivé avec succès.',
     'user_deactivated_successfully'  => 'Utilisateur désactivé avec succès.',
     'profile_updated_successfully'   => 'Profil mis à jour avec succès.',
-    'auth_required_title' => 'Vous devez être connecté pour réserver',
-    'auth_required_body'  => 'Connectez-vous ou inscrivez-vous pour commencer votre achat. Les champs sont verrouillés jusqu’à la connexion.',
-    'login_now'           => 'Se connecter maintenant',
-    'back_to_login'       => 'Retour à la connexion',
+    'user_unlocked_successfully' => 'Votre compte a été déverrouillé. Vous pouvez maintenant vous connecter.',
+    'user_locked_successfully' => 'Utilisateur verrouillé avec succès.',
+    'auth_required_title' => 'Vous devez vous connecter pour réserver',
+    'auth_required_body'  => 'Connectez-vous ou inscrivez-vous pour commencer votre achat. Les champs sont verrouillés jusqu\'à la connexion.',
+    'login_now'           => 'Connexion',
+    'back_to_login'      => 'Retour à la connexion',
 
-    // ─── MAIL ─────────────────────────────────────────
+    // 21. MAIL
     'mail' => [
-        'trouble_clicking' => 'Si vous avez des difficultés à cliquer sur le bouton ":actionText", copiez et collez l’URL suivante dans votre navigateur :',
+        'trouble_clicking' => 'Si vous avez des difficultés à cliquer sur le bouton ":actionText", copiez et collez l\'URL ci-dessous dans votre navigateur web',
     ],
 
-    // ─── SERVICE AVIS ─────────────────────────────────
-    'reviews_loaded'         => 'Avis chargés avec succès.',
-    'reviews_upstream_error' => 'Un problème est survenu avec le fournisseur d’avis.',
-    'reviews_busy'           => 'Le service est occupé, veuillez réessayer plus tard.',
-    'reviews_exception'      => 'Une erreur inattendue est survenue lors du chargement des avis.',
-
-    // ─── CONTACT ──────────────────────────────────────
-    'message_sent_spam_caught' => 'Votre message a été envoyé.',
-    'contact_success'          => 'Votre message a été envoyé avec succès. Nous vous contacterons bientôt.',
-    'contact_error'            => 'Une erreur est survenue lors de l’envoi de votre message. Veuillez réessayer dans quelques minutes.',
-
-    // ─── TRADUCTIONS ──────────────────────────────────
-    'translation_updated_successfully' => 'Traduction mise à jour avec succès.',
-    'translation_deleted_successfully' => 'Traduction supprimée avec succès.',
-    'translation_created_successfully' => 'Traduction créée avec succès.',
-    'main_information' => 'Informations principales',
-    'section_translations' => 'Traductions de section',
-    'edit_translation' => 'Modifier la traduction',
-
-    // ─── TABLEAU DE BORD ──────────────────────────────
+    // 22. DASHBOARD
     'dashboard' => [
         'title'      => 'Tableau de bord',
-        'greeting'   => 'Bonjour :name! 👋',
-        'welcome_to' => 'Bienvenue dans le panneau d’administration de :app.',
-        'hint'       => 'Utilisez le menu latéral pour gérer le contenu.',
+        'greeting'   => 'Bonjour :name ! 👋',
+        'welcome_to' => 'Bienvenue sur le tableau de bord d\'administration de :app.',
+        'hint'       => 'Utilisez le menu latéral pour commencer à gérer le contenu.',
     ],
 
-    // ─── ENTITÉS ──────────────────────────────────────
+    // 23. ENTITIES
     'entities' => [
         'users'        => 'Utilisateurs',
         'tours'        => 'Excursions',
-        'tour_types'   => 'Types d’excursions',
+        'tour_types'   => 'Types d\'excursions',
         'languages'    => 'Langues',
         'schedules'    => 'Horaires',
-        'amenities'    => 'Services',
+        'amenities'    => 'Commodités',
         'bookings'     => 'Réservations',
         'total_bookings'=> 'Total des réservations',
         'itineraries'  => 'Itinéraires',
         'items'        => 'Éléments',
     ],
 
-    // ─── SECTIONS ─────────────────────────────────────
+    // 24. SECTIONS
     'sections' => [
         'available_itineraries' => 'Itinéraires disponibles',
         'upcoming_bookings'     => 'Réservations à venir',
     ],
 
-    // ─── VIDES ────────────────────────────────────────
+    // 25. EMPTY STATES
     'empty' => [
-        'itinerary_items'   => 'Cet itinéraire n’a pas encore d’éléments.',
+        'itinerary_items'   => 'Cet itinéraire n\'a pas encore d\'éléments.',
         'itineraries'       => 'Aucun itinéraire trouvé.',
         'upcoming_bookings' => 'Aucune réservation à venir.',
     ],
 
-    // ─── BOUTONS ──────────────────────────────────────
+    // 26. BUTTONS (GENERIC)
     'buttons' => [
         'view' => 'Voir',
     ],
 
-    // ─── ÉTIQUETTES ───────────────────────────────────
+    // 27. LABELS
     'labels' => [
         'reference' => 'Référence',
         'date'      => 'Date',
     ],
+
 ];

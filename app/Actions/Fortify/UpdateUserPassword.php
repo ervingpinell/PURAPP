@@ -2,31 +2,29 @@
 
 namespace App\Actions\Fortify;
 
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\UpdatesUserPasswords;
 
 class UpdateUserPassword implements UpdatesUserPasswords
 {
-    use PasswordValidationRules;
-
-    /**
-     * Validate and update the user's password.
-     *
-     * @param  array<string, string>  $input
-     */
-    public function update(User $user, array $input): void
+    public function update($user, array $input): void
     {
-        Validator::make($input, [
-            'current_password' => ['required', 'string', 'current_password:web'],
-            'password' => $this->passwordRules(),
-        ], [
-            'current_password.current_password' => __('The provided password does not match your current password.'),
-        ])->validateWithBag('updatePassword');
+        $passwordRegex = '/^(?=.*\d)(?=.*[.\x{00A1}!@#$%^&*()_+\-]).{8,}$/u';
 
-        $user->forceFill([
-            'password' => Hash::make($input['password']),
-        ])->save();
+        Validator::make(
+            $input,
+            [
+                'current_password' => ['required', 'current_password'],
+                'password'         => ['required', 'confirmed', 'min:8', "regex:$passwordRegex"],
+            ],
+            [
+                'password.confirmed' => __('adminlte::validation.custom.password.confirmed'),
+                'password.min'       => __('adminlte::validation.custom.password.min'),
+                'password.regex'     => __('adminlte::validation.custom.password.regex'),
+            ]
+        )->validate();
+
+        $user->forceFill(['password' => Hash::make($input['password'])])->save();
     }
 }

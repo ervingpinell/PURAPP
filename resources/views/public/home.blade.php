@@ -39,5 +39,3 @@
 
 @vite('resources/js/viator/carousel-reviews.js')
 @endpush
-
-@include('partials.show-tour-modal')
