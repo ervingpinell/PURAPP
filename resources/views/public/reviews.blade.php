@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('reviews.reviews_title'))
+@section('title', content: __('reviews.reviews_title'))
 
 @push('meta')
   <meta name="robots" content="noindex, nofollow">

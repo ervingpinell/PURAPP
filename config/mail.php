@@ -39,11 +39,11 @@ return [
 
         'array' => [ 'transport' => 'array' ],
 
-        'failover' => [
-            'transport' => 'failover',
-            'mailers' => ['smtp', 'log'],
-        ],
 
+    'failover' => [
+        'transport' => 'failover',
+        'mailers' => ['smtp', 'log'],
+    ],
         'roundrobin' => [
             'transport' => 'roundrobin',
             'mailers' => ['ses', 'postmark'],

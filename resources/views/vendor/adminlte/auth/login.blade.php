@@ -9,7 +9,8 @@
 @php
     $loginUrl     = View::getSection('login_url') ?? config('adminlte.login_url', 'login');
     $registerUrl  = View::getSection('register_url') ?? config('adminlte.register_url', 'register');
-    $passResetUrl = View::getSection('password_reset_url') ?? config('adminlte.password_reset_url', 'password/reset');
+    // Fortify usa /forgot-password para solicitar el correo de reset
+    $passResetUrl = View::getSection('password_reset_url') ?? config('adminlte.password_reset_url', 'forgot-password');
 
     if (config('adminlte.use_route_url', false)) {
         $loginUrl     = $loginUrl     ? route($loginUrl)     : '';
@@ -26,6 +27,7 @@
 
 @section('auth_body')
 
+    {{-- Mensajes flash --}}
     @if (session('status'))
       <div class="alert alert-success">
         <i class="fas fa-check-circle me-1"></i>
@@ -42,6 +44,14 @@
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible">
             {{ session('error') }}
+        </div>
+    @endif
+
+    {{-- Error genérico de Fortify (credenciales inválidas, cuenta inactiva si lo personalizas, etc.) --}}
+    @if($errors->has('email'))
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            {{ $errors->first('email') }}
         </div>
     @endif
 
@@ -77,6 +87,7 @@
                 id="password"
                 class="form-control @error('password') is-invalid @enderror"
                 placeholder="{{ __('adminlte::adminlte.password') }}"
+                autocomplete="current-password"
             >
             <div class="input-group-append">
                 <div class="input-group-text">

@@ -1,58 +1,126 @@
-<x-guest-layout>
-    <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
+{{-- resources/views/auth/two-factor-challenge.blade.php --}}
+@extends('adminlte::auth.auth-page', ['authType' => 'login'])
 
-        <div x-data="{ recovery: false }">
-            <div class="mb-4 text-sm text-gray-600" x-show="! recovery">
-                {{ __('Please confirm access to your account by entering the authentication code provided by your authenticator application.') }}
-            </div>
+@php
+  // Helpers de fallback para evitar ver "auth.xyz" si falta la key
+  $t = fn($key, $fallback) => __($key) !== $key ? __($key) : $fallback;
 
-            <div class="mb-4 text-sm text-gray-600" x-cloak x-show="recovery">
-                {{ __('Please confirm access to your account by entering one of your emergency recovery codes.') }}
-            </div>
+  $pageTitle = $t('auth.two_factor.title', 'Two-Factor Challenge');
+  $pageHeader = $t('auth.two_factor.header', 'Verificación en dos pasos');
 
-            <x-validation-errors class="mb-4" />
+  $labelCode        = $t('auth.two_factor.code', 'Código de autenticación');
+  $phCode           = $t('auth.two_factor.enter_code', 'Introduce el código de 6 dígitos');
+  $labelRecovery    = $t('auth.two_factor.recovery_code', 'Código de recuperación');
+  $labelRememberDev = $t('auth.two_factor.remember_device', 'Recordar este dispositivo');
+  $btnConfirm       = $t('auth.two_factor.confirm', 'Confirmar');
 
-            <form method="POST" action="{{ route('two-factor.login') }}">
-                @csrf
+  // Mapear los status que Fortify setea en session('status')
+  $statusMap = [
+    'two-factor-authentication-enabled'   => $t('auth.two_factor.enabled', 'Autenticación en dos pasos activada.'),
+    'two-factor-authentication-confirmed' => $t('auth.two_factor.confirmed', 'Autenticación en dos pasos confirmada.'),
+    'two-factor-authentication-disabled'  => $t('auth.two_factor.disabled', 'Autenticación en dos pasos desactivada.'),
+    'recovery-codes-generated'            => $t('auth.two_factor.recovery_codes_generated', 'Se generaron nuevos códigos de recuperación.'),
+  ];
+@endphp
 
-                <div class="mt-4" x-show="! recovery">
-                    <x-label for="code" value="{{ __('Code') }}" />
-                    <x-input id="code" class="block mt-1 w-full" type="text" inputmode="numeric" name="code" autofocus x-ref="code" autocomplete="one-time-code" />
-                </div>
+@section('title', $pageTitle)
+@section('auth_header', $pageHeader)
 
-                <div class="mt-4" x-cloak x-show="recovery">
-                    <x-label for="recovery_code" value="{{ __('Recovery Code') }}" />
-                    <x-input id="recovery_code" class="block mt-1 w-full" type="text" name="recovery_code" x-ref="recovery_code" autocomplete="one-time-code" />
-                </div>
+@push('css')
+<style>
+  /* Compactar la tarjeta y centrar todo */
+  .login-box, .register-box {
+    width: 420px;
+    max-width: 94%;
+  }
+  /* Logo más pulido */
+  .login-logo {
+    text-align: center !important;
+    margin-bottom: .75rem !important;
+  }
+  .login-logo img {
+    display: block;
+    margin: 0 auto;
+    max-height: 64px;
+    width: auto;
+    object-fit: contain;
+  }
+  /* Íconos alineados y del mismo ancho */
+  .input-group .input-group-text { min-width: 42px; justify-content: center; }
+  /* Bordes y aspecto sutil */
+  .card { border-radius: .75rem; }
+</style>
+@endpush
 
-                <div class="flex items-center justify-end mt-4">
-                    <button type="button" class="text-sm text-gray-600 hover:text-gray-900 underline cursor-pointer"
-                                    x-show="! recovery"
-                                    x-on:click="
-                                        recovery = true;
-                                        $nextTick(() => { $refs.recovery_code.focus() })
-                                    ">
-                        {{ __('Use a recovery code') }}
-                    </button>
+@section('auth_body')
 
-                    <button type="button" class="text-sm text-gray-600 hover:text-gray-900 underline cursor-pointer"
-                                    x-cloak
-                                    x-show="recovery"
-                                    x-on:click="
-                                        recovery = false;
-                                        $nextTick(() => { $refs.code.focus() })
-                                    ">
-                        {{ __('Use an authentication code') }}
-                    </button>
+  {{-- Errores arriba --}}
+  @if ($errors->any())
+    <div class="alert alert-danger">
+      <i class="fas fa-exclamation-triangle me-1"></i>
+      {{ $errors->first() }}
+    </div>
+  @endif
 
-                    <x-button class="ms-4">
-                        {{ __('Log in') }}
-                    </x-button>
-                </div>
-            </form>
-        </div>
-    </x-authentication-card>
-</x-guest-layout>
+  {{-- Mensajes de estado (Fortify) --}}
+  @if (session('status'))
+    <div class="alert alert-success">
+      {{ $statusMap[session('status')] ?? session('status') }}
+    </div>
+  @endif
+
+  <form method="POST" action="{{ route('two-factor.login') }}">
+    @csrf
+
+    {{-- Código TOTP --}}
+    <div class="mb-1 small text-muted">{{ $labelCode }}</div>
+    <div class="input-group mb-3">
+      <input
+        type="text"
+        name="code"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        maxlength="6"
+        autocomplete="one-time-code"
+        class="form-control"
+        placeholder="{{ $phCode }}"
+        autofocus
+      >
+      <div class="input-group-append">
+        <div class="input-group-text"><span class="fas fa-key"></span></div>
+      </div>
+    </div>
+
+    <div class="text-center text-muted mb-2">— {{ $t('auth.two_factor.use_recovery', 'Usar un código de recuperación') }} —</div>
+
+    {{-- Código de recuperación --}}
+    <div class="mb-1 small text-muted">{{ $labelRecovery }}</div>
+    <div class="input-group mb-3">
+      <input
+        type="text"
+        name="recovery_code"
+        class="form-control"
+        placeholder="{{ $labelRecovery }}"
+      >
+      <div class="input-group-append">
+        <div class="input-group-text"><span class="fas fa-life-ring"></span></div>
+      </div>
+    </div>
+
+    {{-- Recordar este dispositivo --}}
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox" name="remember" id="remember">
+      <label class="form-check-label" for="remember">
+        {{ $labelRememberDev }}
+      </label>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">
+      <i class="fas fa-shield-alt me-1"></i> {{ $btnConfirm }}
+    </button>
+  </form>
+@endsection
+
+@section('auth_footer')
+  @include('partials.language-switcher')
+@endsection
