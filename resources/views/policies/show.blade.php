@@ -67,7 +67,6 @@
       @endforeach
     </div>
   @else
-    <p class="text-muted">{{ __('policies.no_sections') }}</p>
   @endif
 </div>
 @endsection

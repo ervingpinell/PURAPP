@@ -19,6 +19,7 @@ class Policy extends Model
 
     protected $fillable = [
         'name',
+        'content',
         'is_default',
         'is_active',
         'effective_from',

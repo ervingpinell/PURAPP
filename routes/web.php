@@ -167,10 +167,6 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::patch('users/{user}/unlock',        [UserRegisterController::class, 'unlock'])->name('users.unlock');
                 Route::patch('users/{user}/mark-verified', [UserRegisterController::class, 'markVerified'])->name('users.markVerified');
 
-                // Reenviar verificación de email (admin)
-                Route::post('users/{user}/resend-verification', [UserVerificationController::class, 'resend'])
-                    ->name('users.resendVerification');
-
                 // Traducciones
                 Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
                 Route::get('translations/{type}/select', [TranslationController::class, 'select'])->name('translations.select');

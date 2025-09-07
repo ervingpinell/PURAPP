@@ -1,3 +1,4 @@
+{{-- resources/views/admin/policies/index.blade.php --}}
 @extends('adminlte::page')
 
 @section('title', __('m_config.policies.categories_title'))
@@ -24,7 +25,7 @@
     @endif
   </noscript>
 
-  <div class="mb-3">
+  <div class="mb-3 d-flex gap-2">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createPolicyModal">
       <i class="fas fa-plus"></i> {{ __('m_config.policies.new_category') }}
     </button>
@@ -47,13 +48,12 @@
           <tbody>
             @forelse ($policies as $p)
               @php
-                $t = $p->translation();
+                $t    = $p->translation(); // traducción del locale actual
                 $from = $p->effective_from ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('Y-m-d') : null;
                 $to   = $p->effective_to   ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('Y-m-d')   : null;
               @endphp
               <tr class="text-center">
                 <td>{{ $p->policy_id }}</td>
-                {{-- nombre normal traducido al locale actual --}}
                 <td class="text-center">{{ $t?->name ?? '—' }}</td>
                 <td>
                   @if($from || $to)
@@ -120,7 +120,7 @@
     </div>
   </div>
 
-  {{-- MODAL: Nueva categoría (solo nombre normal + contenido) --}}
+  {{-- MODAL: Nueva categoría (base + traducción automática en store) --}}
   <div class="modal fade" id="createPolicyModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
       <form class="modal-content" method="POST" action="{{ route('admin.policies.store') }}">
@@ -169,16 +169,21 @@
     </div>
   </div>
 
-  {{-- MODALES: Editar categoría (no edita traducciones aquí) --}}
+  {{-- MODALES: Editar categoría (actualiza base + traducción del locale actual) --}}
   @foreach ($policies as $p)
     @php
       $fromVal = $p->effective_from ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('Y-m-d') : '';
       $toVal   = $p->effective_to   ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('Y-m-d')   : '';
+      $t       = $p->translation(); // traducción del locale actual
     @endphp
     <div class="modal fade" id="editPolicyModal-{{ $p->policy_id }}" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <form class="modal-content" method="POST" action="{{ route('admin.policies.update', $p) }}">
           @csrf @method('PUT')
+
+          {{-- IMPORTANTE: locale a editar (por defecto, el actual) --}}
+          <input type="hidden" name="locale" value="{{ app()->getLocale() }}">
+
           <div class="modal-header">
             <h5 class="modal-title">{{ __('m_config.policies.edit_category') }}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_config.policies.close') }}"></button>
@@ -203,6 +208,21 @@
                 </div>
               </div>
             </div>
+
+            <hr>
+
+            {{-- Título (afecta base y la traducción del locale actual) --}}
+            <div class="mb-3">
+              <label class="form-label">{{ __('m_config.policies.name') }}</label>
+              <input type="text" name="name" class="form-control"
+                     value="{{ old('name', $t?->name ?? $p->name) }}">
+            </div>
+
+            {{-- CONTENIDO traducido del locale actual --}}
+            <div class="mb-3">
+              <label class="form-label">{{ __('m_config.policies.description_label') }}</label>
+              <textarea name="content" class="form-control" rows="8">{{ old('content', $t?->content) }}</textarea>
+            </div>
           </div>
           <div class="modal-footer">
             <button class="btn btn-primary"><i class="fas fa-save"></i> {{ __('m_config.policies.save_changes') }}</button>
@@ -213,6 +233,16 @@
     </div>
   @endforeach
 @stop
+
+@push('css')
+<style>
+  .btn-edit { background:#0dcaf0; color:#000; }
+  .btn-edit:hover { filter: brightness(.95); }
+  .btn-toggle { background:#198754; color:#fff; }
+  .btn-delete { background:#dc3545; color:#fff; }
+  .btn-delete:hover { filter: brightness(.95); }
+</style>
+@endpush
 
 @section('js')
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

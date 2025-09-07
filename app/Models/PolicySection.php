@@ -18,6 +18,7 @@ class PolicySection extends Model
     protected $fillable = [
         'policy_id',
         'name',
+        'content',
         'sort_order',
         'is_active',
     ];

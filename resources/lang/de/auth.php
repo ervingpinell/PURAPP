@@ -13,6 +13,7 @@ return [
 
     // Fortify 2FA (Status- und UI-Texte)
     'two_factor' => [
+        'header'                 => 'Zwei-Faktor-Authentifizierung',
         'enabled'                  => 'Zwei-Faktor-Authentifizierung aktiviert.',
         'confirmed'                => 'Zwei-Faktor-Authentifizierung bestätigt.',
         'disabled'                 => 'Zwei-Faktor-Authentifizierung deaktiviert.',

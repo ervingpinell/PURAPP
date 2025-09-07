@@ -2,11 +2,11 @@
 /*************************************************************
  *  Index (searchable anchors)
  *  [01] POLICIES LINE 20
- *  [02] TOURTYPES LINE 139
- *  [03] FAQ LINE 198
- *  [04] TRANSLATIONS LINE 249
- *  [05] PROMOCODE LINE 359
- *  [06] CUT-OFF LINE 436
+ *  [02] TOURTYPES LINE 141
+ *  [03] FAQ LINE 200
+ *  [04] TRANSLATIONS LINE 251
+ *  [05] PROMOCODE LINE 361
+ *  [06] CUT-OFF LINE 438
  *************************************************************/
 
 return [
@@ -62,6 +62,8 @@ return [
         'edit_section'            => 'Edit section',
         'internal_key_optional'   => 'Internal key (optional)',
         'content_label'           => 'Content',
+        'section_content'         => 'Content',
+        'base_content_hint'       => 'This is the main text of the policy. It will be automatically translated into other languages when created, but you can edit each translation afterwards.',
 
         // Public
         'page_title'              => 'Policies',

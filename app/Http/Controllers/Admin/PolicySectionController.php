@@ -38,38 +38,40 @@ class PolicySectionController extends Controller
             'is_active'  => ['nullable', 'in:0,1'],
         ];
 
-        // Mensajes genéricos (Laravel validation.*) + atributos traducidos
         $messages = [
-            'required'        => __('validation.required', ['attribute' => ':attribute']),
-            'string'          => __('validation.string',   ['attribute' => ':attribute']),
-            'max.string'      => __('validation.max.string', ['attribute' => ':attribute', 'max' => ':max']),
-            'integer'         => __('validation.integer',  ['attribute' => ':attribute']),
-            'min'             => __('validation.min.numeric', ['attribute' => ':attribute', 'min' => ':min']),
-            'in'              => __('validation.in',       ['attribute' => ':attribute']),
+            'required'   => __('validation.required', ['attribute' => ':attribute']),
+            'string'     => __('validation.string',   ['attribute' => ':attribute']),
+            'max.string' => __('validation.max.string', ['attribute' => ':attribute', 'max' => ':max']),
+            'integer'    => __('validation.integer',  ['attribute' => ':attribute']),
+            'min'        => __('validation.min.numeric', ['attribute' => ':attribute', 'min' => ':min']),
+            'in'         => __('validation.in',       ['attribute' => ':attribute']),
         ];
 
         $attributes = [
-            'name'       => __('m_config.policies.name'),
-            'content'    => __('m_config.policies.translation_content'),
+            'name'       => __('m_config.policies.section_name'),
+            'content'    => __('m_config.policies.section_content'),
             'sort_order' => __('m_config.policies.order'),
             'is_active'  => __('m_config.policies.active'),
         ];
 
-        $request->validate($rules, $messages, $attributes);
+        $validated = $request->validate($rules, $messages, $attributes);
 
         $supportedLocales = ['es','en','fr','pt','de'];
 
         try {
-            DB::transaction(function () use ($request, $policy, $translator, $supportedLocales) {
-                $baseName    = $request->string('name')->trim();
-                $baseContent = $request->string('content')->trim();
+            DB::transaction(function () use ($validated, $policy, $translator, $supportedLocales) {
+                $baseName    = trim((string) $validated['name']);
+                $baseContent = trim((string) $validated['content']);
 
-                // Base (tabla policy_sections)
+                // === Guarda base en policy_sections (incluyendo content) ===
                 $section = PolicySection::create([
                     'policy_id'  => $policy->policy_id,
                     'name'       => $baseName,
-                    'sort_order' => (int) $request->input('sort_order', 0),
-                    'is_active'  => (bool) $request->boolean('is_active', true),
+                    'content'    => $baseContent, // <- NUEVO: persistimos el contenido original
+                    'sort_order' => (int) ($validated['sort_order'] ?? 0),
+                    'is_active'  => array_key_exists('is_active', $validated)
+                        ? (bool) ((int) $validated['is_active'])
+                        : true,
                 ]);
 
                 // Traducción automática (fallback al original si falla)
@@ -99,7 +101,7 @@ class PolicySectionController extends Controller
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'policy_section', null, $e, [
                 'policy_id' => $policy->policy_id,
-                'user_id'   => optional($request->user())->getAuthIdentifier(),
+                'user_id'   => optional(request()->user())->getAuthIdentifier(),
             ]);
 
             return back()
@@ -108,11 +110,12 @@ class PolicySectionController extends Controller
         }
     }
 
-    /** Actualizar solo base (name/sort_order/is_active). No retraduce. */
+    /** Actualizar base (name/content/sort_order/is_active). No retraduce. */
     public function update(Request $request, Policy $policy, PolicySection $section)
     {
         $rules = [
             'name'       => ['nullable', 'string', 'max:255'],
+            'content'    => ['nullable', 'string'], // <- NUEVO: permitir actualizar contenido base
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active'  => ['nullable', 'in:0,1'],
         ];
@@ -126,21 +129,25 @@ class PolicySectionController extends Controller
         ];
 
         $attributes = [
-            'name'       => __('m_config.policies.name'),
+            'name'       => __('m_config.policies.section_name'),
+            'content'    => __('m_config.policies.section_content'),
             'sort_order' => __('m_config.policies.order'),
             'is_active'  => __('m_config.policies.active'),
         ];
 
-        $request->validate($rules, $messages, $attributes);
+        $validated = $request->validate($rules, $messages, $attributes);
 
         try {
             $updateAttributes = [
-                'sort_order' => $request->filled('sort_order') ? (int) $request->input('sort_order') : $section->sort_order,
-                'is_active'  => $request->has('is_active') ? (bool) $request->boolean('is_active') : $section->is_active,
+                'sort_order' => $request->filled('sort_order') ? (int) $validated['sort_order'] : $section->sort_order,
+                'is_active'  => $request->has('is_active') ? (bool) ((int) $validated['is_active']) : $section->is_active,
             ];
 
             if ($request->filled('name')) {
-                $updateAttributes['name'] = (string) $request->string('name')->trim();
+                $updateAttributes['name'] = trim((string) $validated['name']);
+            }
+            if ($request->filled('content')) {
+                $updateAttributes['content'] = trim((string) $validated['content']); // <- NUEVO
             }
 
             $section->update($updateAttributes);
@@ -221,14 +228,14 @@ class PolicySectionController extends Controller
     public function sort(Request $request, Policy $policy)
     {
         $validated = $request->validate([
-            'orders'                 => ['required', 'array'],
-            'orders.*.section_id'    => ['required', 'integer'],
-            'orders.*.sort_order'    => ['required', 'integer', 'min:0'],
+            'orders'              => ['required', 'array'],
+            'orders.*.section_id' => ['required', 'integer'],
+            'orders.*.sort_order' => ['required', 'integer', 'min:0'],
         ], [
-            'required'  => __('validation.required', ['attribute' => ':attribute']),
-            'array'     => __('validation.array',    ['attribute' => ':attribute']),
-            'integer'   => __('validation.integer',  ['attribute' => ':attribute']),
-            'min'       => __('validation.min.numeric', ['attribute' => ':attribute', 'min' => ':min']),
+            'required' => __('validation.required', ['attribute' => ':attribute']),
+            'array'    => __('validation.array',    ['attribute' => ':attribute']),
+            'integer'  => __('validation.integer',  ['attribute' => ':attribute']),
+            'min'      => __('validation.min.numeric', ['attribute' => ':attribute', 'min' => ':min']),
         ], [
             'orders'              => __('m_config.policies.order'),
             'orders.*.section_id' => __('m_config.policies.id'),

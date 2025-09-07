@@ -62,6 +62,9 @@ return [
         'edit_section'            => 'Modifier la section',
         'internal_key_optional'   => 'Clé interne (optionnel)',
         'content_label'           => 'Contenu',
+        'section_content'         => 'Contenu',
+        'base_content_hint'       => 'Ceci est le texte principal de la politique. Il sera automatiquement traduit dans d’autres langues lors de sa création, mais vous pourrez modifier chaque traduction par la suite.',
+
 
         // Public
         'page_title'              => 'Politiques',

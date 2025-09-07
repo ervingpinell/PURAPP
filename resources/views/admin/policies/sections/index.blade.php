@@ -67,7 +67,7 @@
               <td class="text-center">
                 <div class="d-flex justify-content-center gap-2 flex-wrap">
 
-                  {{-- Editar (solo base: name/sort_order/is_active) --}}
+                  {{-- Editar (base: name/content/sort_order/is_active) --}}
                   <button class="btn btn-sm btn-edit"
                           title="{{ __('m_config.policies.edit') }}"
                           data-bs-toggle="modal"
@@ -101,7 +101,7 @@
               </td>
             </tr>
 
-            {{-- Modal Edit (solo base) --}}
+            {{-- Modal Edit (BASE + contenido) --}}
             <div class="modal fade" id="editSectionModal-{{ $s->section_id }}" tabindex="-1" aria-hidden="true">
               <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
@@ -129,6 +129,16 @@
                             <label for="is_active_{{ $s->section_id }}" class="form-check-label">{{ __('m_config.policies.active') }}</label>
                           </div>
                         </div>
+
+                        {{-- === NUEVO: Contenido base de la sección === --}}
+                        <div class="col-12">
+                          <label class="form-label">{{ __('m_config.policies.section_content') ?? __('m_config.policies.translation_content') }}</label>
+                          <textarea name="content" class="form-control" rows="10">{{ old('content', $s->content) }}</textarea>
+                          <small class="text-muted d-block mt-1">
+                            {{ __('m_config.policies.base_content_hint') ?? 'Este contenido es el original (base). Las traducciones lo usarán como referencia si no hay versión en su idioma.' }}
+                          </small>
+                        </div>
+                        {{-- ============================ --}}
                       </div>
                     </div>
                     <div class="modal-footer">

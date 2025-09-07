@@ -62,6 +62,8 @@ return [
         'edit_section'            => 'Abschnitt bearbeiten',
         'internal_key_optional'   => 'Interner Schlüssel (optional)',
         'content_label'           => 'Inhalt',
+        'section_content'         => 'Inhalt',
+        'base_content_hint'       => 'Dies ist der Haupttext der Richtlinie. Er wird automatisch in andere Sprachen übersetzt, wenn er erstellt wird, aber Sie können jede Übersetzung später bearbeiten.',
 
         // Öffentlich
         'page_title'              => 'Richtlinien',
