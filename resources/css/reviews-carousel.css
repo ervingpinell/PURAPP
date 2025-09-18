@@ -1,0 +1,229 @@
+/* =========================
+   REVIEWS â€“ TOUR PAGE
+   Estructura del blade:
+   .reviews-block > .carousel-inner > .carousel-item > .slide-wrap > (hero-card | iframe-shell)
+   Usa --provider-base (px) para alturas base: el blade la inyecta inline.
+   ========================= */
+
+.reviews-block {
+  padding: 1.5rem 0 2.5rem;
+  overflow: visible;
+}
+
+.reviews-block .slide-wrap {
+  max-width: 620px;
+  width: 100%;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* === Controles del carrusel (Bootstrap) === */
+.reviews-block .carousel-control-prev,
+.reviews-block .carousel-control-next {
+  z-index: 5;
+  width: 3rem;
+  opacity: 1;
+}
+.reviews-block .carousel-control-prev-icon,
+.reviews-block .carousel-control-next-icon {
+  background-color: #256D1B;
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-size: 1.3rem 1.3rem;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: 0 4px 10px rgba(0,0,0,.2);
+}
+.reviews-block .carousel-control-prev:hover .carousel-control-prev-icon,
+.reviews-block .carousel-control-next:hover .carousel-control-next-icon {
+  background-color: #60A862;
+}
+
+/* === Card indexable (misma base visual que el embed) === */
+.reviews-block .hero-card{
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem;
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  min-height: var(--provider-base, 320px);
+  overflow: hidden;
+  box-shadow: 0 10px 22px rgba(0,0,0,.06);
+}
+.reviews-block .hero-card.pad-title{
+  padding-top: 2.4rem;
+}
+
+/* TÃ­tulo del tour arriba a la derecha */
+.reviews-block .tour-title-abs{
+  position: absolute;
+  top: .5rem;
+  right: .5rem;
+  max-width: 60%;
+  text-align: right;
+  line-height: 1.2;
+  margin: 0;
+  color: #1A5229;
+  font-size: .94rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+.reviews-block .tour-title-abs a{
+  color: #1A5229;
+  text-decoration: underline;
+}
+
+/* Cabecera */
+.reviews-block .review-head{
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding-top: .25rem;
+  margin-bottom: .25rem;
+}
+.reviews-block .avatar{
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e9ecef;
+  flex: 0 0 56px;
+}
+.reviews-block .avatar img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.reviews-block .who-when .who{ font-weight: 700; }
+.reviews-block .who-when .when{ color:#6c757d; font-size:.9rem; }
+
+/* Estrellas + rating */
+.reviews-block .stars-row.under-date{ margin:.15rem 0 .5rem 72px; }
+.reviews-block .review-stars{ color:#ffc107; font-size:1.1rem; }
+.reviews-block .rating-number{ font-size:.9rem; color:#555; margin-left:.4rem; }
+
+/* TÃ­tulo del comentario (pill) */
+.reviews-block .review-label{
+  display: block;
+  width: 100%;
+  background: #d33;
+  color: #fff;
+  padding: .55rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: .95rem;
+  margin: .6rem 0 .9rem 0;
+  text-align: center;
+}
+
+/* Texto + botÃ³n */
+.reviews-block .review-textwrap{ position: relative; }
+.reviews-block .review-content{
+  line-height: 1.5;
+  text-align: left;
+  padding: 0 .25rem;
+  word-break: break-word;
+  font-size: .9rem;
+}
+.reviews-block .review-content.clamp-8{
+  display: -webkit-box;
+  -webkit-line-clamp: 8;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.reviews-block .review-content.expanded{
+  display: block;
+  -webkit-line-clamp: unset;
+}
+
+.reviews-block .review-toggle{
+  position: absolute;
+  right: .25rem;
+  bottom: .1rem;
+  display: none;            /* JS decide si aparece */
+  background: #fff;
+  border: none;
+  padding-left: .65rem;
+  color: #256D1B;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.reviews-block .review-toggle::before{
+  content:'';
+  position: absolute;
+  left: -22px;
+  top: 0;
+  bottom: 0;
+  width: 22px;
+  background: linear-gradient(90deg, rgba(255,255,255,0), #fff 60%);
+  pointer-events: none;
+}
+
+/* Powered by al fondo */
+.reviews-block .powered-by{
+  margin-top: auto;
+  text-align: center;
+  font-size: .8rem;
+  color: #777;
+  padding-top: .75rem;
+}
+
+/* === Iframe + skeleton (altura base fija; expansiÃ³n con RESIZE) === */
+.reviews-block .iframe-shell{
+  position: relative;
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  min-height: var(--provider-base, 320px);
+  height: var(--provider-base, 320px);
+  border-radius: 12px;
+  overflow: visible;
+  background: #fff;
+  transition: height .25s ease, min-height .25s ease;
+}
+.reviews-block .iframe-skeleton{
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,#f3f3f3 0%,#eaeaea 20%,#f3f3f3 40%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite linear;
+}
+@keyframes shimmer {
+  0%{ background-position: 200% 0; }
+  100%{ background-position: -200% 0; }
+}
+.reviews-block iframe.review-embed{
+  max-width: 600px;
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  display: block;
+  background: #fff;
+  height: var(--provider-base, 320px);
+  transition: height .25s ease;
+}
+
+/* === Responsive === */
+@media (max-width:768px){
+  .reviews-block .carousel-control-prev,
+  .reviews-block .carousel-control-next{
+    width: 2.5rem;
+  }
+  .reviews-block .carousel-control-prev-icon,
+  .reviews-block .carousel-control-next-icon{
+    width: 2rem;
+    height: 2rem;
+  }
+  .reviews-block .hero-card.pad-title{ padding-top: 2.8rem; }
+  .reviews-block .tour-title-abs{ font-size: .88rem; max-width: 62%; }
+}

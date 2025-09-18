@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'noindex' => \App\Http\Middleware\NoIndex::class,
+            'noindex'        => \App\Http\Middleware\NoIndex::class,
             'verified'       => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
             'logctx'         => \App\Http\Middleware\LogContext::class,
             'abilities'      => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
@@ -29,7 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '2fa.admin'      => \App\Http\Middleware\RequireTwoFactorForAdmins::class,
         ]);
 
-        // 👇 Estos se aplican globalmente (incluye vistas de error)
+        // 👇 globales
         $middleware->append([
             \App\Http\Middleware\NormalizeEmail::class,
             \App\Http\Middleware\LogContext::class,
@@ -38,12 +39,12 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 
-        // Asegura el locale para cualquier respuesta de error
+        // asegura locale en errores
         $exceptions->render(function (\Throwable $e, $request) {
             app()->setLocale(session('locale', config('app.locale')));
         });
 
-        // 429 (Throttle) -> usa tu vista 'errors/429.blade.php'
+        // 429
         $exceptions->render(function (ThrottleRequestsException $e, $request) {
             $headers = $e->getHeaders();
             $seconds = (int) ($headers['Retry-After'] ?? 600);
@@ -53,7 +54,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->withHeaders($headers);
         });
 
-        // 413 (upload muy grande) -> como ya tenías
+        // 413
         $exceptions->render(function (PostTooLargeException $e, $request) {
             $title = __('m_tours.image.ui.error_title');
             $text  = __('m_tours.image.errors.too_large');

@@ -48,7 +48,7 @@
         <div class="navbar-links d-none d-md-flex">
             <a href="{{ route('home') }}">{{ __('adminlte::adminlte.home') }}</a>
             <a href="#" class="nav-link scroll-to-tours">{{ __('adminlte::adminlte.tours') }}</a>
-            <a href="{{ route('reviews') }}">{{ __('adminlte::adminlte.reviews') }}</a>
+<a href="{{ route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a>
             <a href="{{ route('faq.index') }}">{{ __('adminlte::adminlte.faq') }}</a>
             <a href="{{ route('contact') }}">{{ __('adminlte::adminlte.contact_us') }}</a>
         </div>
@@ -106,7 +106,7 @@
     <div class="navbar-links d-md-none" id="navbar-links">
         <a href="{{ route('home') }}">{{ __('adminlte::adminlte.home') }}</a>
         <a href="#" class="nav-link scroll-to-tours">{{ __('adminlte::adminlte.tours') }}</a>
-        <a href="{{ route('reviews') }}">{{ __('adminlte::adminlte.reviews') }}</a>
+<a href="{{ route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a>
         <a href="{{ route('faq.index') }}">{{ __('adminlte::adminlte.faq') }}</a>
         <a href="{{ route('contact') }}">{{ __('adminlte::adminlte.contact_us') }}</a>
 
