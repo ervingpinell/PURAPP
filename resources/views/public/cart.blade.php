@@ -11,36 +11,61 @@
           ->orderBy('name', 'asc')
           ->get();
 
-  // JSON preconstruido para evitar @json de arrow functions en atributos
+  // JSON listo para usar en data-attributes
   $mpListJson = ($meetingPoints ?? collect())
-      ->map(function($mp){
-          return [
-              'id'          => $mp->id,
-              'name'        => $mp->name,
-              'pickup_time' => $mp->pickup_time,
-              'address'     => $mp->address,
-              'map_url'     => $mp->map_url,
-          ];
-      })
-      ->values()
-      ->toJson(); // string JSON
+      ->map(fn($mp) => [
+          'id'          => $mp->id,
+          'name'        => $mp->name,
+          'pickup_time' => $mp->pickup_time,
+          'address'     => $mp->address,
+          'map_url'     => $mp->map_url,
+      ])->values()->toJson();
 
-  // Etiqueta para "Pick-up" (se usará desde JS vía data-attribute)
-  $pickupLabel = __('adminlte::adminlte.pickupTime') ?? 'Pick-up';
+  $pickupLabel        = __('adminlte::adminlte.pickupTime') ?? 'Pick-up';
 
-  // Mostrar columnas condicionales
+  // Columnas condicionales
   $showHotelColumn = ($cart && $cart->items)
-      ? $cart->items->contains(function($it){
-          return $it->hotel || $it->is_other_hotel || $it->other_hotel_name;
-        })
+      ? $cart->items->contains(fn($it) => $it->hotel || $it->is_other_hotel || $it->other_hotel_name)
       : false;
 
   $showMeetingPointColumn = ($cart && $cart->items)
-      ? $cart->items->contains(function($it){
-          return !$it->hotel && !$it->is_other_hotel && ($it->meeting_point_id || $it->meeting_point_name);
-        })
+      ? $cart->items->contains(fn($it) => !$it->hotel && !$it->is_other_hotel && ($it->meeting_point_id || $it->meeting_point_name))
       : false;
+
+  // Config timer
+  $expiryMinutes  = (int) config('cart.expiry_minutes', 15); // duración total
+  $extendMinutes  = (int) config('cart.extend_minutes', 15); // lo que agrega el botón
 @endphp
+
+{{-- ========== TIMER (si viene desde backend) ========== --}}
+@if(!empty($expiresAtIso))
+  <div id="cart-timer"
+       class="gv-timer shadow-sm"
+       role="alert"
+       data-expires-at="{{ $expiresAtIso }}"
+       data-total-minutes="{{ $expiryMinutes }}"
+       data-expire-endpoint="{{ route('public.cart.expire') }}"
+       data-refresh-endpoint="{{ route('public.cart.refreshExpiry') }}">
+    <div class="gv-timer-head">
+      <div class="gv-timer-icon">
+        <i class="fas fa-hourglass-half"></i>
+      </div>
+      <div class="gv-timer-text">
+        <div class="gv-timer-title">{{ __('cart.timer.will_expire') }}</div>
+        <div class="gv-timer-sub">
+          {{ __('cart.timer.time_left') }}
+          <span id="cart-timer-remaining" class="gv-timer-remaining">--:--</span>
+        </div>
+      </div>
+      <button id="cart-timer-refresh" class="btn btn-dark btn-sm gv-timer-btn">
+        {{ trans_choice('cart.timer.extend', $extendMinutes, ['count' => $extendMinutes]) }}
+      </button>
+    </div>
+    <div class="gv-timer-bar">
+      <div class="gv-timer-bar-fill" id="cart-timer-bar" style="width:100%"></div>
+    </div>
+  </div>
+@endif
 
 <div class="container py-5 mb-5" id="mp-config" data-pickup-label="{{ $pickupLabel }}">
 
@@ -60,7 +85,7 @@
     </div>
   @endif
 
-  {{-- Toasts SweetAlert --}}
+  {{-- Toasts SweetAlert (éxito/error) --}}
   @if (session('success') || session('error'))
     @once
       <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -118,11 +143,9 @@
               $itemSubtotal = ($item->tour->adult_price * $item->adults_quantity)
                             + ($item->tour->kid_price   * $item->kids_quantity);
             @endphp
-            <tr
-              class="text-center cart-item-row"
-              data-item-id="{{ $item->item_id }}"
-              data-subtotal="{{ number_format($itemSubtotal, 2, '.', '') }}"
-            >
+            <tr class="text-center cart-item-row"
+                data-item-id="{{ $item->item_id }}"
+                data-subtotal="{{ number_format($itemSubtotal, 2, '.', '') }}">
               <td>{{ $item->tour->getTranslatedName() ?? $item->tour->name }}</td>
               <td>{{ \Carbon\Carbon::parse($item->tour_date)->format('d/m/Y') }}</td>
               <td>
@@ -153,8 +176,7 @@
                     <div class="fw-semibold">{{ $item->meeting_point_name }}</div>
                     @if($item->meeting_point_pickup_time)
                       <div class="small text-muted">
-                        {{ __('adminlte::adminlte.pickupTime') ?? 'Pick-up' }}:
-                        {{ $item->meeting_point_pickup_time }}
+                        {{ __('adminlte::adminlte.pickupTime') ?? 'Pick-up' }}: {{ $item->meeting_point_pickup_time }}
                       </div>
                     @endif
                     @if($item->meeting_point_address)
@@ -177,15 +199,16 @@
                 </span>
               </td>
               <td class="text-nowrap">
-                <button
-                  type="button"
-                  class="btn btn-sm btn-primary me-1"
-                  data-bs-toggle="modal"
-                  data-bs-target="#editItemModal-{{ $item->item_id }}">
+                <button type="button"
+                        class="btn btn-sm btn-primary me-1"
+                        data-bs-toggle="modal"
+                        data-bs-target="#editItemModal-{{ $item->item_id }}">
                   <i class="fas fa-edit"></i> {{ __('adminlte::adminlte.edit') ?? 'Editar' }}
                 </button>
 
-                <form action="{{ route('public.cart.destroy', $item->item_id) }}" method="POST" class="d-inline delete-item-form">
+                <form action="{{ route('public.cart.destroy', $item->item_id) }}"
+                      method="POST"
+                      class="d-inline delete-item-form">
                   @csrf @method('DELETE')
                   <button type="submit" class="btn btn-danger btn-sm">
                     <i class="fas fa-trash"></i> {{ __('adminlte::adminlte.delete') }}
@@ -257,15 +280,16 @@
             @endif
 
             <div class="d-grid gap-2">
-              <button
-                type="button"
-                class="btn btn-success"
-                data-bs-toggle="modal"
-                data-bs-target="#editItemModal-{{ $item->item_id }}">
+              <button type="button"
+                      class="btn btn-success"
+                      data-bs-toggle="modal"
+                      data-bs-target="#editItemModal-{{ $item->item_id }}">
                 <i class="fas fa-edit"></i> {{ __('adminlte::adminlte.edit') ?? 'Editar' }}
               </button>
 
-              <form action="{{ route('public.cart.destroy', $item->item_id) }}" method="POST" class="delete-item-form">
+              <form action="{{ route('public.cart.destroy', $item->item_id) }}"
+                    method="POST"
+                    class="delete-item-form">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-danger">
                   <i class="fas fa-trash"></i> {{ __('adminlte::adminlte.delete') }}
@@ -331,9 +355,7 @@
     $currentMeetingPoint = $item->meeting_point_id ?? null;
     $schedules           = $item->tour->schedules ?? collect();
     $tourLangs           = $item->tour->languages ?? collect();
-
-    // Pickup mode inicial
-    $initPickup = $item->is_other_hotel ? 'custom' : ($item->hotel ? 'hotel' : ($item->meeting_point_id ? 'mp' : 'hotel'));
+    $initPickup          = $item->is_other_hotel ? 'custom' : ($item->hotel ? 'hotel' : ($item->meeting_point_id ? 'mp' : 'hotel'));
   @endphp
   <div class="modal fade" id="editItemModal-{{ $item->item_id }}" tabindex="-1" aria-labelledby="editItemLabel-{{ $item->item_id }}" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-sm-down">
@@ -358,13 +380,12 @@
               {{-- Fecha --}}
               <div class="col-12 col-md-6">
                 <label class="form-label fw-semibold">{{ __('adminlte::adminlte.date') }}</label>
-                <input
-                  type="date"
-                  name="tour_date"
-                  class="form-control"
-                  value="{{ \Carbon\Carbon::parse($item->tour_date)->format('Y-m-d') }}"
-                  min="{{ now()->format('Y-m-d') }}"
-                  required>
+                <input type="date"
+                       name="tour_date"
+                       class="form-control"
+                       value="{{ \Carbon\Carbon::parse($item->tour_date)->format('Y-m-d') }}"
+                       min="{{ now()->format('Y-m-d') }}"
+                       required>
               </div>
 
               {{-- Horario (nullable) --}}
@@ -496,13 +517,60 @@
 
 @push('styles')
 <style>
+/* ===== Timer moderno ===== */
+.gv-timer{
+  background: linear-gradient(90deg, #fff7e6, #fff);
+  border: 1px solid #ffe2b9;
+  border-left: 6px solid #f0ad4e;
+  border-radius: 14px;
+  padding: 14px 16px 10px;
+  margin: 10px auto 0;
+  max-width: 1100px;
+}
+.gv-timer-head{ display:flex; align-items:center; gap:14px; }
+.gv-timer-icon{
+  width:48px;height:48px; border-radius:50%;
+  display:grid; place-items:center;
+  background:#fff; border:2px dashed #f0ad4e; color:#b36b00; font-size:22px;
+}
+.gv-timer-text{ flex:1; line-height:1.2; }
+.gv-timer-title{ font-weight:700; font-size:1.05rem; color:#8a5a00; }
+.gv-timer-sub{ font-size:.95rem; color:#6c4a00; }
+.gv-timer-remaining{
+  display:inline-block;
+  font-variant-numeric: tabular-nums;
+  font-weight:800; font-size:1.15rem; color:#000; letter-spacing:.5px;
+  padding:2px 8px; border-radius:8px; background:#fff; border:1px solid #ffe2b9;
+  margin-left:6px;
+}
+.gv-timer-btn{ white-space:nowrap; }
+.gv-timer-bar{
+  position:relative; height:8px; background:#ffe7c4; border-radius:8px;
+  overflow:hidden; margin-top:10px;
+}
+.gv-timer-bar-fill{
+  position:absolute; left:0; top:0; bottom:0; width:100%;
+  background: linear-gradient(90deg, #ffc107, #fd7e14);
+  transition: width .35s ease;
+}
+
+/* Móvil */
+@media (max-width: 575.98px){
+  .gv-timer{ border-left-width:5px; padding:12px 12px 9px; }
+  .gv-timer-icon{ width:42px; height:42px; font-size:20px; }
+  .gv-timer-title{ font-size:1rem; }
+  .gv-timer-remaining{ font-size:1.05rem; }
+}
+
+/* Modales/inputs mobile tweaks */
 @media (max-width: 767.98px) {
   .modal-body { padding: 1rem; }
   .modal-header, .modal-footer { padding: .75rem 1rem; }
   .btn { min-height: 42px; }
   .card .card-title { font-size: 1.05rem; }
 }
-/* Segmented buttons active state */
+
+/* Segmented buttons active */
 .pickup-tabs .btn.active{
   background-color:#0d6efd!important;
   border-color:#0d6efd!important;
@@ -512,327 +580,221 @@
 @endpush
 
 @push('scripts')
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Confirmar reserva
-      const reservaForm = document.getElementById('confirm-reserva-form');
-      if(reservaForm){
-        reservaForm.addEventListener('submit', function(e){
-          e.preventDefault();
-          Swal.fire({
-            title: @json(__('adminlte::adminlte.confirmReservationTitle')),
-            text: @json(__('adminlte::adminlte.confirmReservationText')),
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#198754',
-            cancelButtonColor: '#d33',
-            confirmButtonText: @json(__('adminlte::adminlte.confirmReservationConfirm')),
-            cancelButtonText: @json(__('adminlte::adminlte.confirmReservationCancel'))
-          }).then((result) => { if(result.isConfirmed){ reservaForm.submit(); } });
-        });
-      }
-
-      // Eliminar item
-      document.querySelectorAll('.delete-item-form').forEach(form => {
-        form.addEventListener('submit', function(e){
-          e.preventDefault();
-          Swal.fire({
-            title: @json(__('adminlte::adminlte.deleteItemTitle')),
-            text: @json(__('adminlte::adminlte.deleteItemText')),
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: @json(__('adminlte::adminlte.deleteItemConfirm')),
-            cancelButtonText: @json(__('adminlte::adminlte.deleteItemCancel'))
-          }).then((result) => { if(result.isConfirmed){ form.submit(); } });
-        });
-      });
-
-      // ====== UI dinámica de Meeting Point ======
-      const pickupLabel = (document.getElementById('mp-config')?.dataset?.pickupLabel) || 'Pick-up';
-
-      const updateMpInfo = (selectEl) => {
-        if (!selectEl) return;
-        let mplist = [];
-        try {
-          const raw = selectEl.getAttribute('data-mplist') || '[]';
-          mplist = JSON.parse(raw);
-        } catch (e) {
-          mplist = [];
-        }
-        const targetSel = selectEl.getAttribute('data-target');
-        const box = targetSel ? document.querySelector(targetSel) : null;
-        if (!box) return;
-
-        const id = selectEl.value ? Number(selectEl.value) : null;
-        const found = id ? mplist.find(m => Number(m.id) === id) : null;
-
-        const nameEl = box.querySelector('.mp-name');
-        const timeEl = box.querySelector('.mp-time');
-        const addrEl = box.querySelector('.mp-addr');
-        const linkEl = box.querySelector('.mp-link');
-
-        if (found) {
-          box.style.display = 'block';
-          if (nameEl) nameEl.textContent = found.name || '';
-          if (timeEl) timeEl.textContent = found.pickup_time ? (pickupLabel + ': ' + found.pickup_time) : '';
-          if (addrEl) addrEl.innerHTML = found.address ? ('<i class="fas fa-map-marker-alt me-1"></i>' + found.address) : '';
-          if (linkEl) {
-            if (found.map_url) {
-              linkEl.href = found.map_url;
-              linkEl.style.display = 'inline-block';
-            } else {
-              linkEl.style.display = 'none';
-            }
-          }
-        } else {
-          box.style.display = 'none';
-        }
-      };
-
-      document.querySelectorAll('.meetingpoint-select').forEach(sel => {
-        updateMpInfo(sel); // estado inicial
-        sel.addEventListener('change', () => updateMpInfo(sel));
-      });
-
-      // Anti doble submit (modales)
-      document.querySelectorAll('.edit-item-form').forEach(f => {
-        f.addEventListener('submit', (e) => {
-          const btn = f.querySelector('button[type="submit"]');
-          if (btn) {
-            btn.disabled = true;
-            btn.innerHTML =
-              '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>' +
-              (btn.dataset.loadingText || @json(__('adminlte::adminlte.saving') ?? 'Guardando...'));
-          }
-        });
-      });
-
-      // ======= PROMO CODE =======
-      const applyBtn    = document.getElementById('apply-promo');
-      const codeInput   = document.getElementById('promo-code');
-      const msgBox      = document.getElementById('promo-message');
-      const totalEl     = document.getElementById('cart-total');
-      const codeHidden  = document.getElementById('promo_code_hidden');
-
-      const getUniqueItemElements = () => {
-        const els = Array.from(document.querySelectorAll('.cart-item-row, .cart-item-card'));
-        const seen = new Set();
-        return els.filter(el => {
-          const id = el.dataset.itemId || '';
-          if (!id || seen.has(id)) return false;
-          seen.add(id);
-          return true;
-        });
-      };
-
-      const getBaseCartTotal = () => {
-        const els = getUniqueItemElements();
-        let sum = 0;
-        els.forEach(el => {
-          const v = parseFloat(el.dataset.subtotal || '0');
-          if (!isNaN(v)) sum += v;
-        });
-        return Math.round(sum * 100) / 100;
-      };
-
-      const renderOk = (data) => {
-        if (Array.isArray(data.items_result)) {
-          totalEl.textContent = Number(data.cart_new_total).toFixed(2);
-          const applied = data.applied_items ?? 0;
-          const discTot = data.cart_discount_total ?? 0;
-
-          msgBox.classList.remove('text-danger');
-          msgBox.classList.add('text-success');
-          msgBox.innerHTML = `
-            <i class="fas fa-check-circle me-1"></i>
-            Cupón <strong>${data.code}</strong> aplicado a <strong>${applied}</strong> ítem(s).
-            Descuento total: <strong>$${Number(discTot).toFixed(2)}</strong>.
-            Nuevo total: <strong>$${Number(data.cart_new_total).toFixed(2)}</strong>.
-          `;
-          if (codeHidden) codeHidden.value = data.code;
-        } else {
-          const base = getBaseCartTotal();
-          const newT = typeof data.new_total === 'number' ? data.new_total : base;
-          totalEl.textContent = Number(newT).toFixed(2);
-
-          msgBox.classList.remove('text-danger');
-          msgBox.classList.add('text-success');
-          msgBox.innerHTML = `
-            <i class="fas fa-check-circle me-1"></i>
-            Cupón <strong>${data.code}</strong> aplicado.
-            Nuevo total: <strong>$${Number(newT).toFixed(2)}</strong>.
-          `;
-          if (codeHidden) codeHidden.value = data.code;
-        }
-      };
-
-      const renderError = (message) => {
-        msgBox.classList.remove('text-success');
-        msgBox.classList.add('text-danger');
-        msgBox.innerHTML = `<i class="fas fa-times-circle me-1"></i>${message}`;
-        totalEl.textContent = getBaseCartTotal().toFixed(2);
-        if (codeHidden) codeHidden.value = '';
-      };
-
-      if (applyBtn && codeInput && totalEl) {
-        applyBtn.addEventListener('click', async () => {
-          const code = (codeInput.value || '').trim();
-          if (!code) return renderError('Ingrese un código.');
-
-          const els   = getUniqueItemElements();
-          const items = els.map(el => ({ total: parseFloat(el.dataset.subtotal || '0') || 0 }));
-
-          const payload = {
-            code,
-            preview: true,
-            ...(items.length > 0 ? { items } : { total: getBaseCartTotal() }),
-          };
-
-          try {
-            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-            const res = await fetch(@json(route('promo.apply')), {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': token,
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify(payload)
-            });
-
-            const data = await res.json();
-            if (data.success && data.valid) {
-              renderOk(data);
-            } else {
-              renderError(data.message || 'Código inválido o sin vigencia/usos.');
-            }
-          } catch (e) {
-            renderError('No se pudo aplicar el cupón. Intente de nuevo.');
-          }
-        });
-      }
-
-      /* =========================================================
-         PICKUP segmented logic (exclusividad y required)
-         ========================================================= */
-      function setPaneState(itemId, mode){
-        const hiddenOther = document.getElementById(`is-other-hidden-${itemId}`);
-
-        // Panes
-        const paneHotel = document.getElementById(`pane-hotel-${itemId}`);
-        const paneCustom = document.getElementById(`pane-custom-${itemId}`);
-        const paneMp = document.getElementById(`pane-mp-${itemId}`);
-
-        // Controles
-        const hotelSelect = document.getElementById(`hotel-select-${itemId}`);
-        const customInput = document.getElementById(`custom-hotel-input-${itemId}`);
-        const mpSelect    = document.getElementById(`meetingpoint-select-${itemId}`);
-
-        // Mostrar/ocultar
-        paneHotel.style.display = (mode === 'hotel') ? 'block' : 'none';
-        paneCustom.style.display = (mode === 'custom') ? 'block' : 'none';
-        paneMp.style.display = (mode === 'mp') ? 'block' : 'none';
-
-        // Required + disabled
-        if (hotelSelect){
-          hotelSelect.required = (mode === 'hotel');
-          hotelSelect.disabled = !(mode === 'hotel');
-          if (mode !== 'hotel') hotelSelect.value = '';
-        }
-        if (customInput){
-          customInput.required = (mode === 'custom');
-          customInput.disabled = !(mode === 'custom');
-          if (mode !== 'custom') customInput.value = '';
-        }
-        if (mpSelect){
-          mpSelect.required = (mode === 'mp');
-          mpSelect.disabled = !(mode === 'mp');
-          if (mode !== 'mp'){ mpSelect.value = ''; updateMpInfo(mpSelect); }
-        }
-
-        if (hiddenOther) hiddenOther.value = (mode === 'custom') ? 1 : 0;
-
-        // Botones activos
-        document.querySelectorAll(`.pickup-tabs[data-item="${itemId}"] .btn`).forEach(b => {
-          b.classList.toggle('active', b.getAttribute('data-pickup-tab') === mode);
-        });
-      }
-
-      document.querySelectorAll('.pickup-tabs').forEach(group => {
-        const itemId = group.getAttribute('data-item');
-        const init   = group.getAttribute('data-init') || 'hotel';
-
-        // Estado inicial
-        setPaneState(itemId, init);
-
-        group.querySelectorAll('[data-pickup-tab]').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const mode = btn.getAttribute('data-pickup-tab');
-            setPaneState(itemId, mode);
-          });
-        });
-      });
-
-      /* =========================================================
-         LOCALIZAR MENSAJES DE VALIDACIÓN (globos amarillos)
-         ========================================================= */
-      const V = {
-        required:        @json(__('adminlte::adminlte.fillThisField')   ?? 'Please fill out this field.'),
-        selectFromList:  @json(__('adminlte::adminlte.selectFromList')  ?? 'Select an item from the list.'),
-        emailInvalid:    @json(__('adminlte::adminlte.emailInvalid')     ?? 'Enter a valid email address.'),
-        tooShort:        @json(__('adminlte::adminlte.tooShort')         ?? 'Value is too short.'),
-        tooLong:         @json(__('adminlte::adminlte.tooLong')          ?? 'Value is too long.'),
-        rangeUnderflow:  @json(__('adminlte::adminlte.rangeUnderflow')   ?? 'Value is too small.'),
-        rangeOverflow:   @json(__('adminlte::adminlte.rangeOverflow')    ?? 'Value is too large.'),
-        stepMismatch:    @json(__('adminlte::adminlte.stepMismatch')     ?? 'Please match the requested step.'),
-        patternMismatch: @json(__('adminlte::adminlte.patternMismatch')  ?? 'Please match the requested format.')
-      };
-
-      function localizeValidity(el){
-        el.setCustomValidity('');
-        const v = el.validity;
-        if (v.valueMissing) {
-          el.setCustomValidity(el.tagName === 'SELECT' ? V.selectFromList : V.required);
-        } else if (v.typeMismatch && el.type === 'email') {
-          el.setCustomValidity(V.emailInvalid);
-        } else if (v.tooShort) {
-          el.setCustomValidity(V.tooShort);
-        } else if (v.tooLong) {
-          el.setCustomValidity(V.tooLong);
-        } else if (v.rangeUnderflow) {
-          el.setCustomValidity(V.rangeUnderflow);
-        } else if (v.rangeOverflow) {
-          el.setCustomValidity(V.rangeOverflow);
-        } else if (v.stepMismatch) {
-          el.setCustomValidity(V.stepMismatch);
-        } else if (v.patternMismatch) {
-          el.setCustomValidity(V.patternMismatch);
-        }
-      }
-
-      document.querySelectorAll('.edit-item-form').forEach(form => {
-        // form.setAttribute('novalidate','novalidate'); // <- si quieres desactivar totalmente los nativos
-        form.addEventListener('submit', (e) => {
-          if (!form.checkValidity()) {
-            e.preventDefault();
-            const firstInvalid = form.querySelector(':invalid');
-            if (firstInvalid) {
-              localizeValidity(firstInvalid);
-              firstInvalid.reportValidity();
-              firstInvalid.focus({ preventScroll: true });
-            }
-          }
-        });
-        form.querySelectorAll('input, select, textarea').forEach(el => {
-          el.addEventListener('invalid', () => localizeValidity(el));
-          el.addEventListener('input',  () => el.setCustomValidity(''));
-          el.addEventListener('change', () => el.setCustomValidity(''));
-        });
-      });
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  /* ===== Confirmar reserva ===== */
+  const reservaForm = document.getElementById('confirm-reserva-form');
+  if(reservaForm){
+    reservaForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      Swal.fire({
+        title: @json(__('adminlte::adminlte.confirmReservationTitle')),
+        text: @json(__('adminlte::adminlte.confirmReservationText')),
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#198754',
+        cancelButtonColor: '#d33',
+        confirmButtonText: @json(__('adminlte::adminlte.confirmReservationConfirm')),
+        cancelButtonText: @json(__('adminlte::adminlte.confirmReservationCancel'))
+      }).then((r) => { if(r.isConfirmed){ reservaForm.submit(); } });
     });
-  </script>
+  }
+
+  /* ===== Eliminar item ===== */
+  document.querySelectorAll('.delete-item-form').forEach(form => {
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      Swal.fire({
+        title: @json(__('adminlte::adminlte.deleteItemTitle')),
+        text: @json(__('adminlte::adminlte.deleteItemText')),
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: @json(__('adminlte::adminlte.deleteItemConfirm')),
+        cancelButtonText: @json(__('adminlte::adminlte.deleteItemCancel'))
+      }).then((r) => { if(r.isConfirmed){ form.submit(); } });
+    });
+  });
+
+  /* ===== Meeting Point UI ===== */
+  const pickupLabel = (document.getElementById('mp-config')?.dataset?.pickupLabel) || 'Pick-up';
+  const updateMpInfo = (selectEl) => {
+    if (!selectEl) return;
+    let mplist = [];
+    try { mplist = JSON.parse(selectEl.getAttribute('data-mplist') || '[]'); } catch (_) { mplist = []; }
+    const box = document.querySelector(selectEl.getAttribute('data-target'));
+    if (!box) return;
+
+    const id = selectEl.value ? Number(selectEl.value) : null;
+    const found = id ? mplist.find(m => Number(m.id) === id) : null;
+
+    const nameEl = box.querySelector('.mp-name');
+    const timeEl = box.querySelector('.mp-time');
+    const addrEl = box.querySelector('.mp-addr');
+    const linkEl = box.querySelector('.mp-link');
+
+    if (found) {
+      box.style.display = 'block';
+      if (nameEl) nameEl.textContent = found.name || '';
+      if (timeEl) timeEl.textContent = found.pickup_time ? (pickupLabel + ': ' + found.pickup_time) : '';
+      if (addrEl) addrEl.innerHTML = found.address ? ('<i class="fas fa-map-marker-alt me-1"></i>' + found.address) : '';
+      if (linkEl) {
+        if (found.map_url) { linkEl.href = found.map_url; linkEl.style.display = 'inline-block'; }
+        else { linkEl.style.display = 'none'; }
+      }
+    } else {
+      box.style.display = 'none';
+    }
+  };
+  document.querySelectorAll('.meetingpoint-select').forEach(sel => {
+    updateMpInfo(sel);
+    sel.addEventListener('change', () => updateMpInfo(sel));
+  });
+
+  /* ===== Anti doble submit en modales ===== */
+  document.querySelectorAll('.edit-item-form').forEach(f => {
+    f.addEventListener('submit', () => {
+      const btn = f.querySelector('button[type="submit"]');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>' +
+          (@json(__('adminlte::adminlte.saving') ?? 'Guardando...'));
+      }
+    });
+  });
+
+  /* ===== Promo code (preview cliente) ===== */
+  const applyBtn    = document.getElementById('apply-promo');
+  const codeInput   = document.getElementById('promo-code');
+  const msgBox      = document.getElementById('promo-message');
+  const totalEl     = document.getElementById('cart-total');
+  const codeHidden  = document.getElementById('promo_code_hidden');
+
+  const uniqEls = () => {
+    const els = Array.from(document.querySelectorAll('.cart-item-row, .cart-item-card'));
+    const seen = new Set();
+    return els.filter(el => {
+      const id = el.dataset.itemId || '';
+      if (!id || seen.has(id)) return false; seen.add(id); return true;
+    });
+  };
+  const baseTotal = () => {
+    let sum = 0; uniqEls().forEach(el => {
+      const v = parseFloat(el.dataset.subtotal || '0'); if (!isNaN(v)) sum += v;
+    });
+    return Math.round(sum * 100) / 100;
+  };
+  const renderOk = (data) => {
+    if (Array.isArray(data.items_result)) {
+      totalEl.textContent = Number(data.cart_new_total).toFixed(2);
+      const applied = data.applied_items ?? 0;
+      const discTot = data.cart_discount_total ?? 0;
+      msgBox.classList.remove('text-danger'); msgBox.classList.add('text-success');
+      msgBox.innerHTML =
+        `<i class="fas fa-check-circle me-1"></i> Cupón <strong>${data.code}</strong> aplicado a <strong>${applied}</strong> ítem(s). ` +
+        `Descuento total: <strong>$${Number(discTot).toFixed(2)}</strong>. ` +
+        `Nuevo total: <strong>$${Number(data.cart_new_total).toFixed(2)}</strong>.`;
+      if (codeHidden) codeHidden.value = data.code;
+    } else {
+      const n = typeof data.new_total === 'number' ? data.new_total : baseTotal();
+      totalEl.textContent = Number(n).toFixed(2);
+      msgBox.classList.remove('text-danger'); msgBox.classList.add('text-success');
+      msgBox.innerHTML =
+        `<i class="fas fa-check-circle me-1"></i> Cupón <strong>${data.code}</strong> aplicado. ` +
+        `Nuevo total: <strong>$${Number(n).toFixed(2)}</strong>.`;
+      if (codeHidden) codeHidden.value = data.code;
+    }
+  };
+  const renderError = (message) => {
+    msgBox.classList.remove('text-success'); msgBox.classList.add('text-danger');
+    msgBox.innerHTML = `<i class="fas fa-times-circle me-1"></i>${message}`;
+    totalEl.textContent = baseTotal().toFixed(2);
+    if (codeHidden) codeHidden.value = '';
+  };
+  if (applyBtn && codeInput && totalEl) {
+    applyBtn.addEventListener('click', async () => {
+      const code = (codeInput.value || '').trim();
+      if (!code) return renderError('Ingrese un código.');
+      const items = uniqEls().map(el => ({ total: parseFloat(el.dataset.subtotal || '0') || 0 }));
+      const payload = { code, preview: true, ...(items.length > 0 ? { items } : { total: baseTotal() }) };
+      try {
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        const res = await fetch(@json(route('promo.apply')), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success && data.valid) renderOk(data);
+        else renderError(data.message || 'Código inválido o sin vigencia/usos.');
+      } catch { renderError('No se pudo aplicar el cupón. Intente de nuevo.'); }
+    });
+  }
+
+  /* ===== Timer countdown + progreso ===== */
+  (function(){
+    const box = document.getElementById('cart-timer');
+    if (!box) return;
+
+    const csrf            = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const remainingEl     = document.getElementById('cart-timer-remaining');
+    const barEl           = document.getElementById('cart-timer-bar');
+    const btnRefresh      = document.getElementById('cart-timer-refresh');
+    const expireEndpoint  = box.getAttribute('data-expire-endpoint');
+    const refreshEndpoint = box.getAttribute('data-refresh-endpoint');
+
+    const totalSecondsCfg = Number(box.getAttribute('data-total-minutes') || '15') * 60;
+    let serverExpires = new Date(box.getAttribute('data-expires-at')).getTime();
+    let rafId = null;
+
+    const fmt = (sec) => {
+      const s = Math.max(0, sec|0);
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      return String(m).padStart(2,'0') + ':' + String(r).padStart(2,'0');
+    };
+    const setBar = (remainingSec) => {
+      const frac = Math.max(0, Math.min(1, remainingSec / totalSecondsCfg));
+      if (barEl) barEl.style.width = (frac * 100).toFixed(2) + '%';
+    };
+
+    const tick = () => {
+      const now = Date.now();
+      const remainingSec = Math.ceil((serverExpires - now) / 1000);
+      if (remainingEl) remainingEl.textContent = fmt(remainingSec);
+      setBar(remainingSec);
+      if (remainingSec <= 0) { cancelAnimationFrame(rafId); return handleExpire(); }
+      rafId = requestAnimationFrame(tick);
+    };
+
+    const handleExpire = async () => {
+      try {
+        await fetch(expireEndpoint, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' } });
+      } catch {}
+      location.reload();
+    };
+
+    const handleRefresh = async (e) => {
+      e?.preventDefault?.();
+      try {
+        const res = await fetch(refreshEndpoint, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' } });
+        const data = await res.json();
+        if (data?.ok && data?.expires_at) {
+          serverExpires = new Date(data.expires_at).getTime();
+          if (rafId) cancelAnimationFrame(rafId);
+          tick();
+        } else {
+          location.reload();
+        }
+      } catch { location.reload(); }
+    };
+
+    if (btnRefresh) btnRefresh.addEventListener('click', handleRefresh);
+    tick();
+  })();
+});
+</script>
 @endpush
