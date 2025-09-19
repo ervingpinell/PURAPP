@@ -9,7 +9,12 @@
 
   <div class="footer-main-content">
     <div class="footer-brand">
-      <img src="{{ asset('images/logoCompanyWhite.png') }}" alt="Green Vacations CR" />
+<img
+  src="{{ asset('images/logoCompanyWhite.png') }}"
+  alt="Green Vacations"
+  decoding="async"
+  fetchpriority="low"
+/>
       <p>{{ __('adminlte::adminlte.footer_text') }}</p>
     </div>
 
@@ -18,7 +23,7 @@
       <ul>
         <li><a href="{{ url('/') }}">{{ __('adminlte::adminlte.home') }}</a></li>
         <li><a href="{{ url('/tours') }}">{{ __('adminlte::adminlte.tours') }}</a></li>
-        <li><a href="{{ url('/reviews') }}">{{ __('adminlte::adminlte.reviews') }}</a></li>
+<li><a href="{{ route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a></li>
         <li>
           <a target="_blank" rel="noopener"
              href="https://www.tripadvisor.com/Attraction_Review-g309226-d6817241-Reviews-Green_Vacations_Costa_Rica-La_Fortuna_de_San_Carlos_Arenal_Volcano_National_Park_.html">

@@ -1,0 +1,108 @@
+/* resources/css/reviews-embed.css */
+:root{
+  --green:#1A5229; --warn:#d33;
+  --fs-author:1.05rem;
+  --fs-stars:1.1rem;
+  --fs-rating:.9rem;
+  --fs-label:.95rem;
+  --fs-body:.9rem;
+}
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; overflow:hidden; } /* sin scroll interno */
+body{
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  color:#222; background:#fff;
+}
+.wrap{ padding:.5rem; }
+
+/* Card */
+.hero-card{
+  position:relative; display:flex; flex-direction:column;
+  background:#fff; border-radius:12px; padding:1rem;
+  max-width:600px; width:100%; margin:0 auto;
+  min-height:360px;
+  overflow:visible;
+  box-shadow:0 10px 22px rgba(0,0,0,.06);
+
+  /* ⬇️ Anti-overlap vars (rellenadas por JS; con fallbacks) */
+  --title-left:auto;      /* desde dónde empieza el título */
+  --title-lines:2;        /* nº de líneas visibles */
+  --title-h:2rem;         /* alto reservado del título */
+}
+.hero-card.pad-title{
+  /* reservar altura real del título (dinámica) */
+  padding-top: calc(.7rem + var(--title-h, 2rem));
+}
+
+.tour-title-abs{
+  position:absolute; top:.5rem; right:.5rem;
+  left: var(--title-left, auto);        /* ⬅️ evita pisar al autor */
+  max-width:62%;
+  text-align:right; line-height:1.2; margin:0;
+  color:var(--green); font-size:.94rem;
+  display:-webkit-box; -webkit-box-orient:vertical;
+  -webkit-line-clamp: var(--title-lines, 2);
+  overflow:hidden;
+  word-break:break-word;
+}
+.tour-title-abs a{ color:var(--green); text-decoration:underline; }
+
+/* Fade-in al contenido del iframe cuando avisa READY/RESIZE */
+.review-embed { opacity: 0; transition: opacity .2s ease; }
+.review-embed[data-ready="1"] { opacity: 1; }
+
+/* El skeleton se desvanece en vez de “teletransportarse” */
+.iframe-skeleton { transition: opacity .2s ease, visibility .2s ease; }
+.iframe-skeleton.is-hidden { opacity: 0; visibility: hidden; }
+
+/* Cabecera */
+.review-head{ display:flex; align-items:center; gap:.75rem; padding-top:.25rem; margin-bottom:.25rem; }
+.avatar{ width:56px; height:56px; border-radius:50%; overflow:hidden; background:#e9ecef; flex:0 0 56px; }
+.avatar img{ width:100%; height:100%; object-fit:cover; }
+.who-when{ min-width:0; }                 /* permite wraps largos */
+.who-when .who{ font-weight:700; font-size:var(--fs-author); overflow-wrap:anywhere; }
+.who-when .when{ color:#6c757d; font-size:.9rem; }
+
+/* Estrellas */
+.stars-row.under-date{ margin:.15rem 0 .5rem 72px; }
+.review-stars{ color:#ffc107; font-size:var(--fs-stars); }
+.rating-number{ font-size:var(--fs-rating); color:#555; margin-left:.4rem; }
+
+/* Título del review */
+.review-label{
+  display:block; width:100%;
+  background:var(--warn); color:#fff;
+  padding:.55rem 1rem; border-radius:999px; font-weight:700; font-size:var(--fs-label);
+  margin:.6rem 0 .9rem 0; text-align:center;
+}
+
+/* Texto + botón */
+.review-textwrap{ position:relative; }
+.review-content{ line-height:1.5; text-align:left; padding:0 .25rem; word-break:break-word; font-size:var(--fs-body); }
+.review-content.clamp{ display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden; } /* 5 líneas */
+.review-content.expanded{ display:block; -webkit-line-clamp:unset; }
+
+.review-toggle{
+  position:absolute; right:.25rem; bottom:.1rem;
+  display:none; /* visible solo si hay overflow */
+  background:#fff; border:none; padding-left:.65rem;
+  color:#256D1B; font-weight:700; cursor:pointer; line-height:1.2;
+}
+.review-toggle::before{
+  content:''; position:absolute; left:-22px; top:0; bottom:0; width:22px;
+  background:linear-gradient(90deg, rgba(255,255,255,0), #fff 60%); pointer-events:none;
+}
+.review-toggle:hover{ text-decoration:underline; }
+
+.powered-by{ margin-top:auto; text-align:center; font-size:.8rem; color:#777; padding-top:.75rem; }
+
+@media(max-width:768px){
+  .hero-card{ max-width:95%!important; width:95%!important; padding:.75rem; --title-h:2.2rem; }
+  .tour-title-abs{ font-size:.88rem; max-width:64%; }
+  .avatar{ width:44px; height:44px; flex-basis:44px; }
+  .stars-row.under-date{ margin:.2rem 0 .45rem 0; }
+  .review-stars{ font-size:var(--fs-stars); }
+  .rating-number{ font-size:var(--fs-rating); }
+  .review-label{ font-size:var(--fs-label); padding:.45rem .8rem; }
+  .review-content.clamp{ -webkit-line-clamp:4; } /* 4 líneas en móvil */
+}

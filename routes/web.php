@@ -13,7 +13,6 @@ use App\Http\Controllers\ProfileController;
 // Admin
 use App\Http\Controllers\Admin\Users\UserRegisterController;
 use App\Http\Controllers\Admin\Users\RoleController;
-use App\Http\Controllers\ReviewEmbedController;
 use App\Http\Controllers\Admin\Languages\TourLanguageController;
 use App\Http\Controllers\Admin\Tours\TourController;
 use App\Http\Controllers\Admin\Tours\TourScheduleController;
@@ -35,6 +34,8 @@ use App\Http\Controllers\Admin\PolicySectionController;
 use App\Http\Controllers\Admin\TourImageController;
 use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
 use App\Http\Controllers\Admin\MeetingPointSimpleController;
+use App\Http\Controllers\Reviews\ReviewsController;
+
 
 // Auth
 use App\Http\Controllers\Auth\UnlockAccountController;
@@ -43,39 +44,60 @@ use App\Http\Controllers\Auth\UnlockAccountController;
 use App\Models\Tour;
 
 Route::middleware([SetLocale::class])->group(function () {
-
     /**
      * =======================
-     * Públicas
+     * Públicas (GET)
      * =======================
      */
-    Route::get('/', [HomeController::class, 'index'])->name('home');
-    Route::get('/language/{language}', [DashBoardController::class, 'switchLanguage'])->name('switch.language');
 
-    Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
-    Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
-    Route::get('/tour/{id}', [HomeController::class, 'showTour'])->name('tours.show');
+    // Home – depende de idioma => cache privado del navegador
+    Route::get('/', [HomeController::class, 'index'])
+        ->name('home');
 
-    Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+    // Cambiar idioma – NO cachear (modifica sesión/locale)
+    Route::get('/language/{language}', [DashBoardController::class, 'switchLanguage'])
+        ->name('switch.language');
+
+    // FAQ – si tiene traducciones, también privado
+    Route::get('/faq', [FaqController::class, 'index'])
+        ->name('faq.index');
+
+    // Listado de tours – suele ser estable; depende de idioma => privado
+    Route::get('/tours', [HomeController::class, 'allTours'])
+        ->name('tours.index');
+
+    // Detalle del tour – estable; depende de idioma => privado
+    Route::get('/tour/{id}', [HomeController::class, 'showTour'])
+        ->name('tours.show');
+
+    // Contacto (GET) – incluye CSRF/form. Mejor NO cachearlo para evitar líos de token
+    Route::get('/contact', [HomeController::class, 'contact'])
+        ->name('contact');
+
+    // Contacto (POST) – nunca cachear
     Route::post('/contact', [HomeController::class, 'sendContact'])
         ->middleware('throttle:6,1')
         ->name('contact.send');
 
-    // Reviews públicas (Viator)
-    Route::get('/reviews', function () {
-        $tours = Tour::whereNotNull('viator_code')
-            ->active()
-            ->select('tour_id', 'name', 'viator_code')
-            ->with(['translations' => function ($q) {
-                $q->select('id', 'tour_id', 'locale', 'name', 'overview');
-            }])->get();
+    // =======================
+    // Reviews
+    // =======================
 
-        return view('public.reviews', compact('tours'));
-    })->name('reviews');
+    // Página pública de reviews (índice) – depende de idioma => privado
+    Route::get('/reviews', [ReviewsController::class, 'index'])
+        ->name('reviews.index');
 
-Route::get('/embed/reviews/{tour}', [ReviewEmbedController::class, 'show'])
-    ->middleware('noindex')
-    ->name('embed.reviews.show');
+    // Reviews por tour – idem
+    Route::get('/tours/{tour}/reviews', [ReviewsController::class, 'tour'])
+        ->name('reviews.tour');
+
+    // Crear reseña nativa (POST) – nunca cachear
+    Route::post('/reviews', [ReviewsController::class, 'store'])
+        ->name('reviews.store');
+
+    // Iframe no-index por proveedor – respuesta rápida; 15 min es razonable
+    Route::get('/reviews/embed/{provider}', [ReviewsController::class, 'embed'])
+        ->name('reviews.embed');
 
     // Políticas públicas
     Route::get('/politicas', [\App\Http\Controllers\PoliciesController::class, 'index'])->name('policies.index');

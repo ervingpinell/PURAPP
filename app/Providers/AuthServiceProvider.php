@@ -13,6 +13,10 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
     \App\Models\Tour::class => \App\Policies\TourPolicy::class,
+    \App\Models\Review::class          => \App\Policies\ReviewPolicy::class,
+    \App\Models\ReviewReply::class     => \App\Policies\ReviewReplyPolicy::class,
+    \App\Models\ReviewProvider::class  => \App\Policies\ReviewProviderPolicy::class,
+    \App\Models\ReviewRequest::class   => \App\Policies\ReviewRequestPolicy::class,
     ];
 
     public function boot(): void

@@ -32,6 +32,7 @@
   align-items: center;
   text-align: center;
   height: 100%;
+  min-width: 0; /* ⬅️ permite wraps internos */
 }
 
 .review-header {
@@ -39,9 +40,14 @@
   flex-direction: column;
   gap: 0.25rem;
   margin-bottom: 0.5rem;
+  min-width: 0; /* ⬅️ evita que el nombre “empuje” */
 }
 .review-header strong {
   font-weight: bold;
+  overflow-wrap: anywhere;  /* ⬅️ corta nombres largos */
+  word-break: break-word;
+  line-height: 1.2;
+  text-align: center;
 }
 .review-header small {
   font-size: 0.85rem;
@@ -49,12 +55,12 @@
 }
 
 .powered-by {
-  text-align: center;      /* centra horizontalmente */
+  text-align: center;
 }
 .powered-by small {
-  display: inline-block;   /* asegura que respete el centrado */
+  display: inline-block;
   font-size: 0.9rem;
-  color: #555;             /* opcional: gris sutil */
+  color: #555;
 }
 
 .review-stars {
@@ -141,10 +147,10 @@
     max-width: 95%;
     height: 340px;
   }
-.review-content {
-  max-height: 4.5rem; /* antes: 5.2rem */
-  line-height: 1.4rem;
-}
+  .review-content {
+    max-height: 4.5rem; /* antes: 5.2rem */
+    line-height: 1.4rem;
+  }
   .carousel-nav {
     font-size: 1.5rem;
     padding: 0 0.75rem;
