@@ -85,4 +85,5 @@
     @include('partials.bookmodal')
   </div>
 </section>
+
 @endsection

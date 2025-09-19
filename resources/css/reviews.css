@@ -60,9 +60,20 @@
 }
 
 /* Autor / fecha */
-.review-header{ display:flex; align-items:center; justify-content:center; margin-top:.25rem; }
-.review-meta{ display:flex; flex-direction:column; align-items:center; gap:.2rem; }
-.review-author{ font-weight:800; font-size:1.08rem; color:#1f2937; }
+.review-header{
+  display:flex; align-items:center; justify-content:center; margin-top:.25rem;
+  gap:.5rem;
+}
+.review-meta{
+  display:flex; flex-direction:column; align-items:center; gap:.2rem;
+  min-width:0;             /* ⬅️ permite truncar/wrap interno */
+}
+.review-author{
+  font-weight:800; font-size:1.08rem; color:#1f2937;
+  overflow-wrap:anywhere;  /* ⬅️ evita overlap con textos largos */
+  word-break:break-word;
+  text-align:center;
+}
 .review-date{ font-size:.9rem; color:var(--gv-muted); line-height:1.15; }
 
 /* Estrellas (más pequeñas que el autor) */
@@ -92,6 +103,14 @@
   -webkit-line-clamp:unset;
   max-height:1200px;
 }
+
+/* Fade-in al contenido del iframe cuando avisa READY/RESIZE */
+.review-embed { opacity: 0; transition: opacity .2s ease; }
+.review-embed[data-ready="1"] { opacity: 1; }
+
+/* El skeleton se desvanece en vez de “teletransportarse” */
+.iframe-skeleton { transition: opacity .2s ease, visibility .2s ease; }
+.iframe-skeleton.is-hidden { opacity: 0; visibility: hidden; }
 
 /* Botón Ver más/menos */
 .review-toggle{

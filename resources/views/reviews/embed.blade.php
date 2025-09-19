@@ -20,59 +20,23 @@
   ];
   $origin = $map[strtolower($provider)] ?? ucfirst($provider);
 
-  // Altura base (el padre puede sobreescribir con ?base=)
+  // Altura base / uid llegan por querystring (no los fijamos en body para cache)
   $baseDefault = $layout === 'card' ? 500 : 460;
   $baseHeight  = max(200, (int) request('base', $baseDefault));
   $uid         = request('uid');
 
-  // ---> Mostrar/ocultar "powered by"
-  // Si viene show_powered en query, lo respetamos.
-  // Si no viene, por defecto se oculta en card+site (index) y se muestra en el resto.
+  // Mostrar/ocultar "powered by"
   $showPowered = request()->has('show_powered')
       ? request()->boolean('show_powered')
       : !($layout === 'card' && $theme === 'site');
 
-  // Datos del padre
-  $tourIdParam   = (int) request('tour_id', 0);
-  $tourNameParam = trim((string) request('tname', ''));
-  $tourUrlParam  = trim((string) request('turl', ''));
+  // Selección final
+  $reviews = collect($reviews ?? []);
+  $r       = $reviews->first();
 
-  /** @var \Illuminate\Support\Collection $reviews */
-  $reviews = ($reviews ?? collect())->map(function ($it) use ($tourIdParam) {
-      if ($tourIdParam) $it['tour_id'] = $tourIdParam;
-      return $it;
-  });
-
-  // Completa tour_name desde BD cuando haya tour_id
-  if ($reviews->isNotEmpty()) {
-      $ids = $reviews->pluck('tour_id')->filter()->unique()->values();
-      if ($ids->isNotEmpty()) {
-          $loc = app()->getLocale(); $fb = config('app.fallback_locale', 'es');
-          $tours = Tour::with('translations')->whereIn('tour_id', $ids)->get()->keyBy('tour_id');
-          $reviews = $reviews->map(function ($it) use ($tours, $loc, $fb) {
-              if (empty($it['tour_name']) && !empty($it['tour_id'])) {
-                  $t = $tours->get((int) $it['tour_id']);
-                  if ($t) {
-                      $tr = ($t->translations ?? collect())->firstWhere('locale', $loc)
-                          ?: ($t->translations ?? collect())->firstWhere('locale', $fb);
-                      $it['tour_name'] = $tr->name ?? $t->name ?? '';
-                  }
-              }
-              return $it;
-          });
-      }
-  }
-
-  // NTH con wrap-around
-  $nth   = max(1, (int) request('nth', 1));
-  $count = max(1, $reviews->count());
-  $idx   = ($nth - 1) % $count;
-  $r     = $reviews->slice($idx, 1)->first();
-
-  // Fallbacks finales
-  $tourId   = (int)($r['tour_id'] ?? $tourIdParam);
-  $tourName = trim((string)($r['tour_name'] ?? $tourNameParam));
-  $tourUrl  = $tourUrlParam ?: ($tourId ? route('tours.show', ['id'=>$tourId]) : '');
+  $tourId   = (int)($r['tour_id'] ?? request('tour_id', 0));
+  $tourName = trim((string)($r['tour_name'] ?? request('tname', '')));
+  $tourUrl  = request('turl') ?: ($tourId ? route('tours.show', ['id'=>$tourId]) : '');
 
   $rating = max(0, min(5, (int) data_get($r, 'rating', 5)));
   $title  = trim((string) data_get($r, 'title', ''));
@@ -81,9 +45,8 @@
   $dateV  = data_get($r, 'date');
   $date   = $dateV ? Carbon::parse($dateV)->isoFormat('ll') : '';
 
-  // i18n para JS (y fallback duro si falta la key)
   $TXT_MORE = __('reviews.see_more'); if (str_starts_with($TXT_MORE,'reviews.')) $TXT_MORE = 'Ver más';
-  $TXT_LESS = __('reviews.see_less'); if (str_starts_with($TXT_LESS,'reviews.')) $TXT_LESS = 'Ver menos';
+  $TXT_LESS = __('reviews.see_less'); if (str_starts_with($TXT_LESS,'reviews.')) $TXT_LESS = 'Mostrar menos';
 @endphp
 
 <!doctype html>
@@ -105,8 +68,6 @@
 <body
   data-more="{{ $TXT_MORE }}"
   data-less="{{ $TXT_LESS }}"
-  data-base="{{ (int)$baseHeight }}"
-  @if($uid) data-uid="{{ $uid }}" @endif
   style="margin:0;padding:0;background:transparent;"
 >
 @if($r)
@@ -138,12 +99,14 @@
 
         <div class="review-head">
           <span class="avatar">
-            <img
-              src="{{ data_get($r,'avatar_url', asset('images/avatar-default.png')) }}"
-              alt=""
-              referrerpolicy="no-referrer"
-              onerror="this.onerror=null;this.src='{{ asset('images/avatar-default.png') }}';"
-            >
+<img
+  src="{{ data_get($r,'avatar_url', asset('images/avatar-default.png')) }}"
+  alt=""
+  width="56" height="56"
+  referrerpolicy="no-referrer"
+  onerror="this.onerror=null;this.src='{{ asset('images/avatar-default.png') }}';"
+/>
+
           </span>
           <div class="who-when">
             <div class="who">{{ $author }}</div>
@@ -162,12 +125,13 @@
 
         @if($body !== '')
           <div class="review-textwrap">
+            {{-- Importante: clamp para que el JS decida si mostrar "ver más" --}}
             <div class="review-content clamp">{!! nl2br(e($body)) !!}</div>
+            {{-- El botón se inyecta si no existe --}}
             <button type="button" class="review-toggle">{{ $TXT_MORE }}</button>
           </div>
         @endif
 
-        {{-- En HERO lo dejamos visible por defecto (o respeta show_powered si lo pasas) --}}
         @if($showPowered)
           <div class="powered-by">{{ __('reviews.powered_by') }} {{ $origin }}</div>
         @endif
@@ -176,6 +140,7 @@
   @endif
 @endif
 
+{{-- Pasamos uid/base por querystring → cache del HTML no se invalida --}}
 @vite('resources/js/reviews-embed.js')
 </body>
 </html>

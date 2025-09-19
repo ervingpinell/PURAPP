@@ -5,6 +5,7 @@
    - Ajuste de altura vía postMessage desde el embed
    - Truncado/expandido del texto (respeta clamp-5/clamp-8/clamp)
    - Validación de origen en postMessage
+   - Ajuste anti-overlap del título del tour (para tarjetas locales)
 */
 (function () {
   "use strict";
@@ -12,10 +13,7 @@
   const G = (typeof window !== "undefined" && window) || {};
   const I18N = G.REVIEWS_I18N || {};
 
-  function toInt(v, def) {
-    const n = parseInt(v, 10);
-    return Number.isFinite(n) ? n : def;
-  }
+  function toInt(v, def) { const n = parseInt(v, 10); return Number.isFinite(n) ? n : def; }
 
   function getBaseHeight(root) {
     if (root.dataset.base) return toInt(root.dataset.base, 460);
@@ -26,9 +24,7 @@
 
   function getClampClass(el) {
     if (!el) return null;
-    const cls = Array.from(el.classList).find(
-      (c) => c === "clamp" || c.startsWith("clamp-")
-    );
+    const cls = Array.from(el.classList).find((c) => c === "clamp" || c.startsWith("clamp-"));
     return cls || null;
   }
 
@@ -36,7 +32,6 @@
     if (!el) return false;
     const clampClass = getClampClass(el);
     if (clampClass && !el.classList.contains("expanded")) el.classList.add(clampClass);
-
     const clone = el.cloneNode(true);
     clone.style.visibility = "hidden";
     clone.style.position = "absolute";
@@ -55,14 +50,40 @@
 
   function getTXT(root) {
     return {
-      more:       root.dataset.more       || I18N.more      || "Leer más",
-      less:       root.dataset.less       || I18N.less      || "Mostrar menos",
-      by:                             I18N.by        || "Proporcionado por",
-      openTitle:  root.dataset.openTitle || I18N.swalTitle  || "Abrir tour",
-      openPre:    root.dataset.openPre   || I18N.swalText   || "¿Quieres ir a la página del tour seleccionado?",
-      openConfirm:root.dataset.openConfirm|| I18N.swalOK    || "Sí, abrir el tour",
-      openCancel: root.dataset.openCancel || I18N.swalCancel|| "Cancelar",
+      more:        root.dataset.more        || I18N.more      || "Leer más",
+      less:        root.dataset.less        || I18N.less      || "Mostrar menos",
+      by:          root.dataset.by          || I18N.by        || "Proporcionado por",
+      openTitle:   root.dataset.openTitle   || I18N.swalTitle || "Abrir tour",
+      openPre:     root.dataset.openPre     || I18N.swalText  || "¿Quieres ir a la página del tour seleccionado?",
+      openConfirm: root.dataset.openConfirm || I18N.swalOK    || "Sí, abrir el tour",
+      openCancel:  root.dataset.openCancel  || I18N.swalCancel|| "Cancelar",
     };
+  }
+
+  /* ---------- Ajuste anti-overlap del título para tarjetas locales ---------- */
+  function adjustTitleLayoutFor(card) {
+    if (!card) return;
+    const title = card.querySelector(".tour-title-abs");
+    if (!title) return;
+    const who = card.querySelector(".who-when") || card.querySelector(".review-head") || card.querySelector(".review-meta");
+
+    const cb = card.getBoundingClientRect();
+    const wb = who ? who.getBoundingClientRect() : { right: cb.left + cb.width * 0.32 };
+
+    let left = (wb.right - cb.left) + 8;
+    left = Math.max(left, cb.width * 0.34);
+    left = Math.min(left, cb.width * 0.70);
+
+    const vw = window.innerWidth || document.documentElement.clientWidth || 1024;
+    const lines = (vw <= 420) ? 4 : (vw < 768 ? 3 : 2);
+
+    card.style.setProperty("--title-left",  left + "px");
+    card.style.setProperty("--title-lines", lines);
+
+    requestAnimationFrame(() => {
+      const h = title.scrollHeight;
+      card.style.setProperty("--title-h", (h + 6) + "px");
+    });
   }
 
   function setupCard(card, TXT_MORE, TXT_LESS) {
@@ -72,7 +93,7 @@
     const btn   = card.querySelector(".review-toggle");
 
     if (title) card.classList.add("pad-title");
-    if (!(wrap && text && btn)) return;
+    if (!(wrap && text && btn)) { if (title) adjustTitleLayoutFor(card); return; }
 
     const clampClass = getClampClass(text);
     if (clampClass) btn.dataset.clampClass = clampClass;
@@ -82,6 +103,7 @@
       btn.style.display = needsTruncate(text) ? "inline-block" : "none";
       btn.textContent   = TXT_MORE;
       btn.style.position = "absolute";
+      adjustTitleLayoutFor(card);
     };
 
     updateBtn();
@@ -98,6 +120,7 @@
         btn.style.position = "absolute";
         updateBtn();
       }
+      adjustTitleLayoutFor(card);
     };
   }
 
@@ -110,17 +133,13 @@
         btn.textContent = TXT_MORE;
         btn.style.position = "absolute";
       }
+      adjustTitleLayoutFor(card);
     });
   }
 
   function pingVisibleIframes(root, targetOrigin) {
     root.querySelectorAll("iframe.review-embed[data-uid]").forEach((ifr) => {
-      try {
-        ifr.contentWindow?.postMessage(
-          { type: "PING_HEIGHT", uid: ifr.dataset.uid },
-          targetOrigin || "*"
-        );
-      } catch (_) {}
+      try { ifr.contentWindow?.postMessage({ type: "PING_HEIGHT", uid: ifr.dataset.uid }, targetOrigin || "*"); } catch (_) {}
     });
   }
 
@@ -138,11 +157,7 @@
     const item  = ifr?.closest(".carousel-item");
     const inner = ifr?.closest(".carousel-inner");
 
-    [ifr, shell, card, item, inner].forEach((el) => {
-      if (!el) return;
-      el.style.maxHeight = "none";
-      el.style.overflow = "visible";
-    });
+    [ifr, shell, card, item, inner].forEach((el) => { if (!el) return; el.style.maxHeight = "none"; el.style.overflow = "visible"; });
 
     if (ifr) ifr.style.height = base + "px";
     if (shell) { shell.style.height = base + "px"; shell.style.minHeight = base + "px"; }
@@ -155,14 +170,11 @@
     const TXT  = getTXT(root);
     const BASE = getBaseHeight(root);
 
-    // Orígenes permitidos
     const allowedOrigins = new Set([location.origin]);
     const targetOrigin   = location.origin;
 
-    // 1) Setup tarjetas
-    root.querySelectorAll(".hero-card").forEach((card) =>
-      setupCard(card, TXT.more, TXT.less)
-    );
+    // 1) Setup tarjetas locales
+    root.querySelectorAll(".hero-card").forEach((card) => setupCard(card, TXT.more, TXT.less));
 
     // 2) Redimensionar / refrescar
     const onResize = () => refreshCards(root, TXT.more);
@@ -170,89 +182,73 @@
     root.addEventListener("slid.bs.carousel", onResize);
 
     // 3) postMessage (validando origen)
-    window.addEventListener(
-      "message",
-      (e) => {
-        if (!e || !e.origin || !allowedOrigins.has(e.origin)) return;
-        const d = e?.data || {};
-        const uid = d.uid;
-        if (!uid) return;
+    window.addEventListener("message", (e) => {
+      if (!e || !e.origin || !allowedOrigins.has(e.origin)) return;
+      const d = e?.data || {};
+      const uid = d.uid;
+      if (!uid) return;
 
-        const ifr = root.querySelector('iframe.review-embed[data-uid="' + uid + '"]');
-        if (!ifr) return;
-        const shell = ifr.parentElement;
+      const ifr = root.querySelector('iframe.review-embed[data-uid="' + uid + '"]');
+      if (!ifr) return;
+      const shell = ifr.parentElement;
 
-        if (d.type === "REVIEW_IFRAME_READY") {
-          relaxHeightsFor(ifr, BASE);
-          const sk = ifr.previousElementSibling;
-          if (sk && sk.classList.contains("iframe-skeleton")) sk.remove();
-          return;
+      if (d.type === "REVIEW_IFRAME_READY") {
+        relaxHeightsFor(ifr, BASE);
+        const sk = ifr.previousElementSibling;
+        if (sk && sk.classList.contains("iframe-skeleton")) sk.classList.add("is-hidden");
+        ifr.setAttribute("data-ready","1");
+        return;
+      }
+
+      if (d.type === "REVIEW_IFRAME_RESIZE") {
+        const h = Math.max(BASE, Math.min(2000, parseInt(d.height, 10) || 0));
+        relaxHeightsFor(ifr, BASE);
+        ifr.style.height = h + "px";
+        if (shell && shell.classList.contains("iframe-shell")) {
+          shell.style.minHeight = h + "px";
+          shell.style.height = h + "px";
         }
+        const sk = ifr.previousElementSibling;
+        if (sk && sk.classList.contains("iframe-skeleton")) sk.classList.add("is-hidden");
+        ifr.setAttribute("data-ready","1");
+        return;
+      }
 
-        if (d.type === "REVIEW_IFRAME_RESIZE") {
-          const h = Math.max(BASE, Math.min(2000, parseInt(d.height, 10) || 0));
-          relaxHeightsFor(ifr, BASE);
-          ifr.style.height = h + "px";
-          if (shell && shell.classList.contains("iframe-shell")) {
-            shell.style.minHeight = h + "px";
-            shell.style.height = h + "px";
-          }
-          const sk = ifr.previousElementSibling;
-          if (sk && sk.classList.contains("iframe-skeleton")) sk.remove();
-          return;
-        }
+      if (d.type === "OPEN_TOUR") {
+        const href = d.href;
+        const name = d.name || "";
+        if (!href) return;
+        const title   = TXT.openTitle;
+        const pre     = TXT.openPre;
+        const confirm = TXT.openConfirm;
+        const cancel  = TXT.openCancel;
 
-        if (d.type === "OPEN_TOUR") {
-          const href = d.href;
-          const name = d.name || "";
-          if (!href) return;
-
-          const title   = TXT.openTitle;
-          const pre     = TXT.openPre;
-          const confirm = TXT.openConfirm;
-          const cancel  = TXT.openCancel;
-
-          if (G.Swal?.fire) {
-            G.Swal.fire({
-              icon: "question",
-              title: title,
-              html: pre + (name ? " <strong>" + name + "</strong>." : ""),
-              showCancelButton: true,
-              confirmButtonText: confirm,
-              cancelButtonText: cancel,
-              focusConfirm: true,
-            }).then((res) => { if (res.isConfirmed) G.location.assign(href); });
-          } else {
-            if (G.confirm(title + "\n\n" + pre + (name ? ' "' + name + '"' : "") + ".")) {
-              G.location.assign(href);
-            }
+        if (G.Swal?.fire) {
+          G.Swal.fire({
+            icon: "question",
+            title: title,
+            html: pre + (name ? " <strong>" + name + "</strong>." : ""),
+            showCancelButton: true,
+            confirmButtonText: confirm,
+            cancelButtonText: cancel,
+            focusConfirm: true,
+          }).then((res) => { if (res.isConfirmed) G.location.assign(href); });
+        } else {
+          if (G.confirm(title + "\n\n" + pre + (name ? ' "' + name + '"' : "") + ".")) {
+            G.location.assign(href);
           }
         }
-      },
-      false
-    );
-
+      }
+    }, false);
 
     // 4) Lazy load de iframes
-    const lazyIframes = new Set(
-      Array.from(root.querySelectorAll("iframe.review-embed[data-src]"))
-    );
-    const io =
-      "IntersectionObserver" in window
-        ? new IntersectionObserver(
-            (entries) => {
-              entries.forEach((entry) => {
-                if (entry.isIntersecting) loadIframe(entry.target, lazyIframes);
-              });
-            },
-            { root: null, rootMargin: "200px 0px", threshold: 0.2 }
-          )
-        : null;
+    const lazyIframes = new Set(Array.from(root.querySelectorAll("iframe.review-embed[data-src]")));
+    const io = "IntersectionObserver" in window
+      ? new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) loadIframe(entry.target, lazyIframes); }),
+                                 { root: null, rootMargin: "200px 0px", threshold: 0.2 })
+      : null;
 
-    lazyIframes.forEach((ifr) => {
-      io?.observe(ifr);
-      relaxHeightsFor(ifr, BASE);
-    });
+    lazyIframes.forEach((ifr) => { io?.observe(ifr); relaxHeightsFor(ifr, BASE); });
 
     // 5) Pre-carga de la siguiente slide + ping
     root.addEventListener("slide.bs.carousel", (ev) => {
@@ -261,43 +257,34 @@
       [items[to], items[(to + 1) % items.length]].forEach((slide) => {
         const ifr = slide?.querySelector('iframe.review-embed[data-src]');
         if (ifr) loadIframe(ifr, lazyIframes);
+        slide?.querySelectorAll?.(".hero-card").forEach(adjustTitleLayoutFor);
       });
       setTimeout(() => pingVisibleIframes(root, targetOrigin), 120);
     });
 
-    // 6) Arranque: carga perezosa diferida y primer ping
-    setTimeout(() => {
-      lazyIframes.forEach((ifr) => loadIframe(ifr, lazyIframes));
-      pingVisibleIframes(root, targetOrigin);
-    }, 2500);
+    // 6) Arranque
+    setTimeout(() => { lazyIframes.forEach((ifr) => loadIframe(ifr, lazyIframes)); pingVisibleIframes(root, targetOrigin); }, 2500);
     pingVisibleIframes(root, targetOrigin);
+    // Ajuste inicial de títulos locales
+    root.querySelectorAll(".hero-card").forEach(adjustTitleLayoutFor);
+    if (document.fonts?.ready) document.fonts.ready.then(() => root.querySelectorAll(".hero-card").forEach(adjustTitleLayoutFor));
   }
 
-  function initAll() {
-    document.querySelectorAll(".reviews-block, .home-hero").forEach(initOne);
-  }
+  function initAll() { document.querySelectorAll(".reviews-block, .home-hero").forEach(initOne); }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initAll);
-  } else {
-    initAll();
-  }
+  if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", initAll); } else { initAll(); }
 
   // Reinit si se inyecta HTML dinámicamente
   if ("MutationObserver" in window) {
     const mo = new MutationObserver((muts) => {
       muts.forEach((m) => {
-        m.addedNodes &&
-          Array.from(m.addedNodes).forEach((n) => {
-            if (!(n instanceof HTMLElement)) return;
-            if (n.matches?.(".reviews-block, .home-hero")) initOne(n);
-            n.querySelectorAll?.(".reviews-block, .home-hero").forEach(initOne);
-          });
+        m.addedNodes && Array.from(m.addedNodes).forEach((n) => {
+          if (!(n instanceof HTMLElement)) return;
+          if (n.matches?.(".reviews-block, .home-hero")) initOne(n);
+          n.querySelectorAll?.(".reviews-block, .home-hero").forEach(initOne);
+        });
       });
     });
-    mo.observe(document.documentElement || document.body, {
-      childList: true,
-      subtree: true,
-    });
+    mo.observe(document.documentElement || document.body, { childList: true, subtree: true });
   }
 })();

@@ -9,7 +9,12 @@
 
   <div class="footer-main-content">
     <div class="footer-brand">
-      <img src="{{ asset('images/logoCompanyWhite.png') }}" alt="Green Vacations CR" />
+<img
+  src="{{ asset('images/logoCompanyWhite.png') }}"
+  alt="Green Vacations"
+  decoding="async"
+  fetchpriority="low"
+/>
       <p>{{ __('adminlte::adminlte.footer_text') }}</p>
     </div>
 

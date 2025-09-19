@@ -9,7 +9,9 @@
 
         <div class="navbar-logo">
             <a href="{{ route('home') }}">
-                <img src="{{ asset('images/logoCompanyWhite.png') }}" alt="Green Vacations">
+<img src="{{ asset('images/logoCompanyWhite.png') }}"
+     alt="Green Vacations"
+     decoding="async" fetchpriority="high">
             </a>
         </div>
 

@@ -4,6 +4,7 @@
  * - Truncado robusto (-webkit-line-clamp compatible)
  * - Notifica altura al padre (READY/RESIZE) y responde a PING_HEIGHT
  * - OPEN_TOUR hacia el padre
+ * - Ajuste anti-overlap del título del tour (mobile/resize/fonts)
  */
 (function () {
   "use strict";
@@ -15,10 +16,12 @@
   const root = qs(".hero-card") || qs(".review-item");
   if (!root) return;
 
+  // --- parámetros desde URL (cache-friendly)
+  const params   = new URLSearchParams(location.search);
   const TXT_MORE = body.dataset.more || "Ver más";
-  const TXT_LESS = body.dataset.less || "Ver menos";
-  const BASE     = parseInt(body.dataset.base || "460", 10);
-  const UID      = body.dataset.uid || "";
+  const TXT_LESS = body.dataset.less || "Mostrar menos";
+  const BASE     = parseInt(params.get("base") || body.dataset.base || "460", 10);
+  const UID      = params.get("uid") || body.dataset.uid || "";
 
   const rAF = (fn) => window.requestAnimationFrame ? requestAnimationFrame(fn) : setTimeout(fn, 0);
 
@@ -51,7 +54,7 @@
     clone.style.fontSize      = cs.fontSize;
     clone.style.width         = textEl.clientWidth + "px";
     clone.classList.remove("expanded");
-    if (clampClass) clone.classList.remove(clampClass);
+    const cc = getClampClass(clone); if (cc) clone.classList.remove(cc);
     document.body.appendChild(clone);
     const full = clone.scrollHeight;
     document.body.removeChild(clone);
@@ -66,6 +69,35 @@
 
   function postReady()  { try { window.parent?.postMessage({ type: "REVIEW_IFRAME_READY",  uid: UID }, "*"); } catch (_) {} }
   function postResize() { try { window.parent?.postMessage({ type: "REVIEW_IFRAME_RESIZE", uid: UID, height: currentHeight() }, "*"); } catch (_) {} }
+
+  /* ---------- Ajuste anti-overlap del título ---------- */
+  function adjustTitleLayout() {
+    const card  = qs(".hero-card", root) || root;
+    const title = qs(".tour-title-abs", card);
+    const who   = qs(".who-when", card) || qs(".review-head", card);
+    if (!(card && title)) return;
+
+    const cb = card.getBoundingClientRect();
+    const wb = who ? who.getBoundingClientRect() : { right: cb.left + cb.width * 0.32 };
+
+    // Borde izquierdo del título: justo después del bloque del autor (+8px)
+    let left = (wb.right - cb.left) + 8;
+    left = Math.max(left, cb.width * 0.34);   // deja mínimo ~34% para autor/avatar
+    left = Math.min(left, cb.width * 0.70);   // nunca invadas demasiado
+
+    // Nº de líneas según viewport
+    const lines = (window.innerWidth <= 420) ? 4 : (window.innerWidth < 768 ? 3 : 2);
+
+    card.style.setProperty("--title-left",  left + "px");
+    card.style.setProperty("--title-lines", lines);
+
+    // Tras aplicar clamp, medimos altura real y la reservamos
+    rAF(() => {
+      const h = title.scrollHeight;
+      card.style.setProperty("--title-h", (h + 6) + "px");
+      postResize(); // puede cambiar la altura del iframe
+    });
+  }
 
   function setupCard() {
     const isHero = !!qs(".review-textwrap", root); // sólo existe en HERO
@@ -90,17 +122,15 @@
       const show = needsTruncate(text);
       btn.style.display = show ? "inline-block" : "none";
       btn.textContent = TXT_MORE;
-      // En HERO lo queríamos absoluto; en CARD/SITE, flujo normal
       btn.style.position = isHero ? "absolute" : "static";
     };
 
     updateBtn();
+    adjustTitleLayout();
 
     btn.onclick = () => {
       const expanded = text.classList.toggle("expanded");
-      // La clase puede no tener efecto en CARD/SITE, pero no estorba
       root.classList.toggle("expanded-card", expanded);
-
       if (expanded) {
         if (btn.dataset.clampClass) text.classList.remove(btn.dataset.clampClass);
         btn.textContent = TXT_LESS;
@@ -111,18 +141,17 @@
         btn.style.position = isHero ? "absolute" : "static";
         updateBtn();
       }
-      rAF(postResize);
+      rAF(() => { adjustTitleLayout(); postResize(); });
     };
 
-    // Recalcular en resize/cambios de layout
-    window.addEventListener("resize", () => { updateBtn(); postResize(); }, { passive: true });
+    window.addEventListener("resize", () => { updateBtn(); adjustTitleLayout(); postResize(); }, { passive: true });
 
     if ("ResizeObserver" in window) {
-      const ro = new ResizeObserver(() => { updateBtn(); postResize(); });
+      const ro = new ResizeObserver(() => { updateBtn(); adjustTitleLayout(); postResize(); });
       ro.observe(text);
     }
     if (document.fonts?.ready) {
-      document.fonts.ready.then(() => { updateBtn(); postResize(); });
+      document.fonts.ready.then(() => { updateBtn(); adjustTitleLayout(); postResize(); });
     }
   }
 
@@ -150,7 +179,8 @@
     setupCard();
     postReady();
     postResize();
+    setTimeout(() => { adjustTitleLayout(); postResize(); }, 150);
     setTimeout(postResize, 250);
-    window.addEventListener("load", postResize);
+    window.addEventListener("load", () => { adjustTitleLayout(); postResize(); });
   });
 })();

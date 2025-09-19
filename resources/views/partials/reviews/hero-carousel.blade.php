@@ -80,9 +80,11 @@
 <img
   src="{{ $avatarUrl ?: asset('images/avatar-default.png') }}"
   alt=""
+  width="56" height="56"
   referrerpolicy="no-referrer"
   onerror="this.onerror=null;this.src='{{ asset('images/avatar-default.png') }}';"
 />
+
               </span>
               <div class="who-when">
                 <div class="who">{{ $author }}</div>

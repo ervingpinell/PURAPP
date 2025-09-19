@@ -1,5 +1,5 @@
 /* =========================
-   REVIEWS â€“ TOUR PAGE
+   REVIEWS – TOUR PAGE
    Estructura del blade:
    .reviews-block > .carousel-inner > .carousel-item > .slide-wrap > (hero-card | iframe-shell)
    Usa --provider-base (px) para alturas base: el blade la inyecta inline.
@@ -54,24 +54,30 @@
   min-height: var(--provider-base, 320px);
   overflow: hidden;
   box-shadow: 0 10px 22px rgba(0,0,0,.06);
+
+  /* ⬇️ Anti-overlap vars */
+  --title-left:auto;
+  --title-lines:2;
+  --title-h:2rem;
 }
 .reviews-block .hero-card.pad-title{
-  padding-top: 2.4rem;
+  padding-top: calc( .7rem + var(--title-h, 2rem) );
 }
 
-/* TÃ­tulo del tour arriba a la derecha */
+/* Título del tour arriba a la derecha */
 .reviews-block .tour-title-abs{
   position: absolute;
   top: .5rem;
   right: .5rem;
-  max-width: 60%;
+  left: var(--title-left, auto);
+  max-width: 62%;
   text-align: right;
   line-height: 1.2;
   margin: 0;
   color: #1A5229;
   font-size: .94rem;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: var(--title-lines, 2);
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
@@ -102,7 +108,8 @@
   height: 100%;
   object-fit: cover;
 }
-.reviews-block .who-when .who{ font-weight: 700; }
+.reviews-block .who-when{ min-width:0; }
+.reviews-block .who-when .who{ font-weight: 700; overflow-wrap:anywhere; }
 .reviews-block .who-when .when{ color:#6c757d; font-size:.9rem; }
 
 /* Estrellas + rating */
@@ -110,7 +117,7 @@
 .reviews-block .review-stars{ color:#ffc107; font-size:1.1rem; }
 .reviews-block .rating-number{ font-size:.9rem; color:#555; margin-left:.4rem; }
 
-/* TÃ­tulo del comentario (pill) */
+/* Título del comentario (pill) */
 .reviews-block .review-label{
   display: block;
   width: 100%;
@@ -124,7 +131,7 @@
   text-align: center;
 }
 
-/* Texto + botÃ³n */
+/* Texto + botón */
 .reviews-block .review-textwrap{ position: relative; }
 .reviews-block .review-content{
   line-height: 1.5;
@@ -177,7 +184,7 @@
   padding-top: .75rem;
 }
 
-/* === Iframe + skeleton (altura base fija; expansiÃ³n con RESIZE) === */
+/* === Iframe + skeleton (altura base fija; expansión con RESIZE) === */
 .reviews-block .iframe-shell{
   position: relative;
   max-width: 600px;
@@ -224,6 +231,7 @@
     width: 2rem;
     height: 2rem;
   }
-  .reviews-block .hero-card.pad-title{ padding-top: 2.8rem; }
-  .reviews-block .tour-title-abs{ font-size: .88rem; max-width: 62%; }
+  .reviews-block .hero-card{ --title-h:2.2rem; }
+  .reviews-block .hero-card.pad-title{ padding-top: calc(.7rem + var(--title-h, 2.2rem)); }
+  .reviews-block .tour-title-abs{ font-size: .88rem; max-width: 64%; }
 }

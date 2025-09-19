@@ -32,9 +32,10 @@
 
   {{-- Vite: CSS y JS base --}}
   @vite([
-    'resources/js/public.js',
+    'resources/js/app.js',
     'resources/css/gv.css',
     'resources/css/home.css',
+    'resources/css/app.css',
   ])
 
   {{-- Estilos adicionales (por vista) --}}

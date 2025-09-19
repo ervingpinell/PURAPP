@@ -3,13 +3,13 @@
 
   const root = document.getElementById("reviews-page") || document.body;
   const TXT = {
-    more: root?.dataset.more || "Ver más",
-    less: root?.dataset.less || "Ver menos",
-    by: root?.dataset.by || "Proporcionado por",
-    swalTitle: root?.dataset.swalTitle || "¿Abrir tour?",
-    swalText: root?.dataset.swalText || "Estás a punto de abrir la página del tour",
-    swalOK: root?.dataset.swalOk || "Abrir ahora",
-    swalCancel: root?.dataset.swalCancel || "Cancelar",
+    more:       root?.dataset.more      || "Ver más",
+    less:       root?.dataset.less      || "Ver menos",
+    by:         root?.dataset.by        || "Proporcionado por",
+    swalTitle:  root?.dataset.swalTitle || "¿Abrir tour?",
+    swalText:   root?.dataset.swalText  || "Estás a punto de abrir la página del tour",
+    swalOK:     root?.dataset.swalOk    || "Abrir ahora",
+    swalCancel: root?.dataset.swalCancel|| "Cancelar",
   };
 
   /* -------- Títulos iguales -------- */
@@ -22,21 +22,26 @@
     titles.forEach((t) => (t.style.height = max + "px"));
   }
   function runEqualizeOnceReady() {
-    if (document.fonts?.ready) document.fonts.ready.then(() => requestAnimationFrame(equalizeReviewTitles));
-    else window.addEventListener("load", () => requestAnimationFrame(equalizeReviewTitles), { once: true });
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(() => requestAnimationFrame(equalizeReviewTitles));
+    } else {
+      window.addEventListener("load", () => requestAnimationFrame(equalizeReviewTitles), { once: true });
+    }
   }
   let _resizeTimer;
-  window.addEventListener("resize", () => { clearTimeout(_resizeTimer); _resizeTimer = setTimeout(equalizeReviewTitles, 150); });
+  window.addEventListener("resize", () => {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(() => { equalizeReviewTitles(); adjustAllTitles(); }, 150);
+  });
 
   /* -------- Utils -------- */
   function getProvLabelFromSlide(slide) {
     return slide.getAttribute("data-provider-label") || slide.getAttribute("data-prov-label") || "—";
   }
 
-  // Mide si hay más texto que el visible (funciona con -webkit-line-clamp)
+  // clamp helper
   function needsTruncate(textEl) {
     if (!textEl) return false;
-
     const clone = textEl.cloneNode(true);
     const cs = getComputedStyle(textEl);
     clone.style.visibility = "hidden";
@@ -46,17 +51,15 @@
     clone.style.maxHeight = "none";
     clone.style.webkitLineClamp = "unset";
     clone.style.overflow = "visible";
-    clone.style.display = "block";               // anula -webkit-box
+    clone.style.display = "block";
     clone.style.whiteSpace = cs.whiteSpace;
     clone.style.lineHeight = cs.lineHeight;
     clone.style.fontSize = cs.fontSize;
     clone.style.width = textEl.clientWidth + "px";
     clone.classList.remove("expanded");
-
     document.body.appendChild(clone);
     const full = clone.scrollHeight;
     document.body.removeChild(clone);
-
     const visible = textEl.clientHeight;
     return full > visible + 1;
   }
@@ -82,6 +85,7 @@
           const card = slideEl.closest(".review-card");
           if (card) card.classList.toggle("expanded-card", expanded);
           btn.textContent = expanded ? TXT.less : TXT.more;
+          adjustTitleLayoutFor(card || slideEl);
         });
       }
     } else {
@@ -92,7 +96,36 @@
     }
   }
 
-  /* -------- Iframes (igual que tenías) -------- */
+  /* -------- Ajuste anti-overlap para tarjetas locales -------- */
+  function adjustTitleLayoutFor(scope) {
+    const card  = (scope && (scope.closest?.(".hero-card") || scope)) || document;
+    const title = card.querySelector?.(".tour-title-abs");
+    if (!title) return;
+    const who = card.querySelector?.(".who-when") || card.querySelector?.(".review-head") || card.querySelector?.(".review-meta");
+
+    const cb = card.getBoundingClientRect();
+    const wb = who ? who.getBoundingClientRect() : { right: cb.left + cb.width * 0.32 };
+    let left = (wb.right - cb.left) + 8;
+    left = Math.max(left, cb.width * 0.34);
+    left = Math.min(left, cb.width * 0.70);
+
+    const vw = window.innerWidth || document.documentElement.clientWidth || 1024;
+    const lines = (vw <= 420) ? 4 : (vw < 768 ? 3 : 2);
+
+    card.style.setProperty("--title-left",  left + "px");
+    card.style.setProperty("--title-lines", lines);
+
+    requestAnimationFrame(() => {
+      const h = title.scrollHeight;
+      card.style.setProperty("--title-h", (h + 6) + "px");
+    });
+  }
+
+  function adjustAllTitles() {
+    document.querySelectorAll(".hero-card, .review-item").forEach(adjustTitleLayoutFor);
+  }
+
+  /* -------- Iframes -------- */
   function _setShellAndIframeHeight(ifr, shell, px) {
     const newH = Math.max(120, Number(px) || 0);
     const curH = Number(ifr.style.height?.replace("px", "")) || 0;
@@ -100,6 +133,7 @@
     if (shell) shell.style.setProperty("--h", newH + "px");
     ifr.style.height = newH + "px";
   }
+
   function mountIframe(ifr) {
     if (!ifr || ifr.dataset.mounted === "1") return;
     const rawAttr = (ifr.getAttribute("data-src") || "").trim();
@@ -107,38 +141,58 @@
     if (src) ifr.src = src;
     ifr.dataset.mounted = "1";
     if (!ifr.dataset.uid) ifr.dataset.uid = "u" + Math.random().toString(36).slice(2, 10);
+    if (!ifr.classList.contains("review-embed")) ifr.classList.add("review-embed");
+
     const shell = ifr.closest(".iframe-shell");
     const skeleton = shell ? shell.querySelector(".iframe-skeleton") : null;
+
     ifr.addEventListener("load", function(){
-      if (skeleton) skeleton.style.display = "none";
+      if (skeleton) skeleton.classList.add("is-hidden");
+      ifr.setAttribute("data-ready","1");
       try { ifr.contentWindow?.postMessage({ type:"PING_HEIGHT", uid:ifr.dataset.uid }, "*"); } catch(e){}
       setTimeout(() => { try { ifr.contentWindow?.postMessage({ type:"PING_HEIGHT", uid:ifr.dataset.uid }, "*"); } catch(e){} }, 250);
     }, { once:true });
   }
+
   function observeAndMount() {
     const iframes = document.querySelectorAll("iframe.review-iframe");
     if (!iframes.length) return;
     const vh = window.innerHeight || document.documentElement.clientHeight;
+
     iframes.forEach((ifr) => {
       const rect = ifr.getBoundingClientRect();
       const inView = rect.top < vh && rect.bottom > 0 && getComputedStyle(ifr).display !== "none";
       if (inView) mountIframe(ifr);
     });
+
     if (!("IntersectionObserver" in window)) { iframes.forEach(mountIframe); return; }
     const io = new IntersectionObserver((entries) => {
       entries.forEach((entry) => { if (entry.isIntersecting) { mountIframe(entry.target); io.unobserve(entry.target); } });
     }, { root:null, rootMargin:"200px", threshold:0.01 });
     iframes.forEach((ifr) => io.observe(ifr));
   }
+
   window.addEventListener("message", function onMessage(e){
     const d = e.data || {};
     if (!d) return;
+
     const ifr = Array.from(document.querySelectorAll("iframe.review-iframe"))
       .find(el => { try { return el.contentWindow === e.source; } catch(_) { return false; } });
     if (!ifr) return;
+
     const shell = ifr.closest(".iframe-shell");
+
     if (d.type === "REVIEW_IFRAME_RESIZE" && typeof d.height === "number") {
       _setShellAndIframeHeight(ifr, shell, d.height);
+      const sk = shell ? shell.querySelector(".iframe-skeleton") : null;
+      if (sk) sk.classList.add("is-hidden");
+      ifr.setAttribute("data-ready","1");
+    }
+
+    if (d.type === "REVIEW_IFRAME_READY") {
+      const sk = shell ? shell.querySelector(".iframe-skeleton") : null;
+      if (sk) sk.classList.add("is-hidden");
+      ifr.setAttribute("data-ready","1");
     }
   }, false);
 
@@ -161,7 +215,7 @@
     mountIframe(ifr);
   }
 
-  /* -------- Carrusel -------- */
+  /* -------- Carrusel simple (grid por tour) -------- */
   function initCarousel(carousel) {
     const slidesWrap = carousel.querySelector(".js-slides");
     if (!slidesWrap) return;
@@ -182,6 +236,7 @@
       const visible = slides[idx] || slides[0];
       setPoweredFromSlide(visible);
       ensureReadMore(visible);
+      adjustTitleLayoutFor(visible);
       const ifr = visible.querySelector("iframe.review-iframe");
       if (ifr) mountIframe(ifr);
     }
@@ -201,16 +256,16 @@
       else { const ifr = slides[0].querySelector("iframe.review-iframe"); if (ifr) advanceIframe(ifr, +1); }
     });
 
-    // Recalcular por resize (fuentes, wrapping, etc.)
     window.addEventListener("resize", () => {
       const visible = slides[idx] || slides[0];
       ensureReadMore(visible);
+      adjustTitleLayoutFor(visible);
     });
 
-    // Recalcular cuando cargan las fuentes
     if (document.fonts?.ready) document.fonts.ready.then(() => {
       const visible = slides[idx] || slides[0];
       ensureReadMore(visible);
+      adjustTitleLayoutFor(visible);
     });
   }
 
@@ -219,6 +274,7 @@
     document.querySelectorAll(".js-carousel").forEach(initCarousel);
     observeAndMount();
     runEqualizeOnceReady();
+    adjustAllTitles();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 

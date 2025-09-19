@@ -1,1224 +1,420 @@
+/* =========================
+   HOME.CSS — estilos propios de la Home
+   (sin reglas del header/navbar para evitar duplicidad)
+   ========================= */
+
 :root {
-    --primary-color: #60a862;
-    --primary-dark: #256d1b;
-    --primary-light: #8bc34a;
-    --text-dark: #333;
-    --text-light: #e0e0e0;
-    --white: #fff;
-    --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    --transition: all 0.3s ease;
-    --border-radius: 15px;
-}
-main {
-    padding-top: 80px; /* ajusta según la altura real de tu navbar */
-}
-.bg-green-dark {
-  background-color: #0f2419;
+  --primary-color: #60a862;
+  --primary-dark: #256d1b;
+  --primary-light: #8bc34a;
+  --text-dark: #333;
+  --text-light: #e0e0e0;
+  --white: #fff;
+  --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+  --border-radius: 15px;
 }
 
-/* Si decides mostrar el nombre: que no crezca y se recorte */
-.user-name {
-  max-width: 140px;           /* Ajusta a tu gusto */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+/* -------------------------
+   HERO
+   ------------------------- */
+.hero h1 { font-size: 4rem; }
+.hero p  { font-size: 1.75rem; }
+
+/* -------------------------
+   BOTÓN PRIMARIO
+   ------------------------- */
+.btn-primary{
+  background-color: var(--primary-color);
+  color: var(--white);
+  padding: 12px 30px;
+  border-radius: 30px;
+  font-weight: 600;
+  border: none;
+  text-decoration: none;
+  transition: var(--transition);
+}
+.btn-primary:hover{
+  background-color:#4d8c4f;
+  transform: translateY(-3px);
 }
 
-
-.navbar-custom {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background-color: #0f2419;
-    color: #fff;
-    z-index: 999;
-}
-/* Badge del contador */
-.cart-count-badge {
-  position: absolute;
-  top: -6px;
-  background-color: #dc3545; /* rojo Bootstrap */
-  color: white;
-  font-size: 0.90Crem;
-  padding: 2px 6px;
-  border-radius: 50%;
-  font-weight: bold;
-  line-height: 1;
-  z-index: 10;
-  display: none; /* se muestra solo si count > 0 */
-  transition: all 0.3s ease;
-}
-
-/* Animación al actualizar */
-.cart-count-badge.flash {
-  animation: flashBadge 0.6s ease;
-}
-
-@keyframes flashBadge {
-  0% { transform: scale(1); background-color: #dc3545; }
-  50% { transform: scale(1.3); background-color: #ff6b6b; }
-  100% { transform: scale(1); background-color: #dc3545; }
-}
-
-/* Hover sobre ícono del carrito */
-.cart-icon-wrapper:hover i {
-  color: #ffc107; /* amarillo Bootstrap */
-  transform: scale(1.1);
-  transition: all 0.2s ease;
-}
-.navbar-actions-fixed .nav-link:hover .fa-user-circle,
-.navbar-actions-fixed .nav-link:hover .user-name {
-    color: #ffc107; /* Amarillo dorado */
-      transform: scale(1.1);
-  transition: all 0.2s ease;
-}
-
-.nav-link:hover .fa-user-circle,
-.nav-link:hover .user-name {
-    color: #ffc107; /* Amarillo dorado */
-      transform: scale(1.1);
-  transition: all 0.2s ease;
-}
-
-
-.navbar-container {
-    max-width: 1440px; /* 🚩 Límite adaptable */
-    width: 100%; /* 🚩 Se ajusta a cualquier tamaño menor */
-    margin: 0 auto; /* 🚩 Centrado */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 1rem; /* 🚩 Márgenes internos compactos */
-    gap: 1.5rem; /* 🚩 Espacio entre logo, links, acciones */
-}
-.navbar-left {
-    display: flex;
-    align-items: center;
-    gap: 1rem; /* 🔑 Asegura separación en la hamburguesa mobile */
-}
-
-.navbar-logo {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start; /* ⬅️ Asegura alineación a la izquierda */
-    flex: 0 0 auto;
-}
-
-.navbar-logo img {
-    height: 100px;
-    width: auto;
-    margin: 0; /* ✅ Elimina margen horizontal del logo */
-}
-
-.navbar-links {
-    display: flex;
-    flex: 1; /* 🔴 Esto obliga a los links a ocupar TODO el espacio restante */
-    justify-content: center;
-    gap: 2rem;
-}
-
-.navbar-links a {
-    color: #fff;
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.brand-name {
-    margin-left: 10px;
-}
-
-.navbar-toggle {
-    display: none;
-    background: none;
-    border: none;
-    color: var(--white);
-    font-size: 1.5rem;
-    cursor: pointer;
-    margin-right: 1rem;
-}
-
-.navbar-links .mt-3 {
-    width: 100%;
-    padding: 0.5rem 1rem;
-    box-sizing: border-box;
-}
-
-.navbar-links .dropdown-menu {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-}
-
-.navbar-links.show {
-    max-height: 500px;
-}
-
-.navbar-links a:hover {
-    color: var(--primary-light);
-}
-
-.navbar-actions {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem; /* 🔑 Aumenta separación interna de íconos */
-}
-
-.navbar-actions i {
-    font-size: 1.2rem;
-    cursor: pointer;
-}
-
-.navbar-actions i:hover {
-    transform: scale(1.1);
-    filter: drop-shadow(0 0 5px rgba(96, 168, 98, 0.8));
-}
-
-body {
-    background: #fff; /* FONDO BLANCO UNIFICADO */
-    padding-top: 50px; /* navbar fijo */
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    color: var(--text-dark);
-    margin: 0;
-}
-
-/* HERO DESKTOP */
-.hero h1 {
-    font-size: 4rem;
-}
-.hero p {
-    font-size: 1.75rem;
-}
-
-/* BOTÓN PRINCIPAL */
-.btn-primary {
-    background-color: var(--primary-color);
-    color: var(--white);
-    padding: 12px 30px;
-    border-radius: 30px;
-    font-weight: 600;
-    border: none;
-    text-decoration: none;
-    transition: var(--transition);
-}
-
-.btn-primary:hover {
-    background-color: #4d8c4f;
-    transform: translateY(-3px);
-}
-
-/* SECCIÓN TOURS */
-.tours-section {
+/* -------------------------
+   SECCIÓN TOURS / CARDS
+   ------------------------- */
+.tours-section{
   background: var(--white);
   text-align: center;
   padding: 3rem 1rem 0;
 }
 
-.tour-cards {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1.5rem;
-    padding-bottom: 3rem;
+.tour-cards{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:1.5rem;
+  padding-bottom:3rem;
 }
-.tour-card {
-    flex: 1 0 48%;
-    max-width: 340px;
-    padding: 0.7rem;
-    margin: 0.4rem 0.1rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-    display: flex;
-    flex-direction: column;
-    background: #fff;
-    text-align: center;
+.tour-card{
+  flex:1 0 48%;
+  max-width:340px;
+  padding:.7rem;
+  margin:.4rem .1rem;
+  border-radius:.75rem;
+  box-shadow:0 2px 6px rgba(0,0,0,.12);
+  display:flex;
+  flex-direction:column;
+  background:#fff;
+  text-align:center;
 }
-.tour-card .card-body {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    justify-content: space-between;
-    min-height: 220px; /* 🧱 Forzamos igual altura útil interna */
+.tour-card .card-body{
+  display:flex;
+  flex-direction:column;
+  flex:1;
+  justify-content:space-between;
+  min-height:220px; /* igual altura útil interna */
 }
-.tour-card .card-text {
-    font-size: 0.9rem;
-    line-height: 1.3;
-    overflow: hidden;
-margin-top: 0.8rem;
+.tour-card .card-text{
+  font-size:.9rem;
+  line-height:1.3;
+  overflow:hidden;
+  margin-top:.8rem;
 }
-.tour-card .card-text.small {
-    font-size: 0.9rem;
-    line-height: 1.4em;
-    margin-bottom: 0.8rem;
-    overflow: visible;
-    display: block;
+.tour-card .card-text.small{
+  font-size:.9rem;
+  line-height:1.4em;
+  margin-bottom:.8rem;
+  overflow:visible;
+  display:block;
 }
-
-.tour-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+.tour-card:hover{
+  transform:translateY(-5px);
+  box-shadow:0 8px 25px rgba(0,0,0,.15);
 }
-
-.tour-card img {
-    width: 100%;
-    height: 160px;
-    object-fit: cover;
-    border-radius: var(--border-radius);
-    margin-bottom: 1rem;
+.tour-card img{
+  width:100%;
+  height:160px;
+  object-fit:cover;
+  border-radius:var(--border-radius);
+  margin-bottom:1rem;
 }
-
-.tour-card h3 {
-    margin: 0.5rem 0 0.8rem;
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: var(--primary-dark);
-    line-height: 1.3em;
-    max-height: 2.6em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+.tour-card h3{
+  margin:.5rem 0 .8rem;
+  font-size:1.1rem;
+  font-weight:700;
+  color:var(--primary-dark);
+  line-height:1.3em;
+  max-height:2.6em;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
 }
-
-.btn-ver-tour {
-
-    color: var(--white);
-    border: none;
-    padding: 0.7rem 1.2rem;
-    border-radius: 25px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: var(--transition);
-    width: 100%;
-    margin-top: auto;
+.btn-ver-tour{
+  color:var(--white);
+  border:none;
+  padding:.7rem 1.2rem;
+  border-radius:25px;
+  cursor:pointer;
+  font-weight:500;
+  transition:var(--transition);
+  width:100%;
+  margin-top:auto;
 }
-
-.btn-ver-tour:hover {
-    background-color: #1c5413;
-    transform: scale(1.05);
-}
+.btn-ver-tour:hover{ background-color:#1c5413; transform:scale(1.05); }
 
 /* Tarjetas dentro del modal */
-.tour-modal-card {
-    background: #fff;
-    border-radius: 0.75rem;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    padding: 0.75rem;
-    height: 100%;
-    transition: transform 0.2s ease;
-    text-align: center;
+.tour-modal-card{
+  background:#fff;
+  border-radius:.75rem;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+  display:flex;
+  flex-direction:column;
+  padding:.75rem;
+  height:100%;
+  transition:transform .2s ease;
+  text-align:center;
 }
-
-.tour-modal-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+.tour-modal-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 6px 18px rgba(0,0,0,.12);
 }
-
-.tour-modal-card img {
-    width: 100%;
-    height: 140px;
-    object-fit: cover;
-    border-radius: 0.5rem;
-    margin-bottom: 0.6rem;
+.tour-modal-card img{
+  width:100%;
+  height:140px;
+  object-fit:cover;
+  border-radius:.5rem;
+  margin-bottom:.6rem;
 }
-
-.tour-modal-card .card-title {
-    font-size: 1rem;
-    font-weight: bold;
-    margin-bottom: 0.4rem;
-    color: white;
-    line-height: 1.3;
-    min-height: 2.6em; /* Alinea títulos aunque unos tengan salto de línea */
+.tour-modal-card .card-title{
+  font-size:1rem;
+  font-weight:700;
+  margin-bottom:.4rem;
+  color:white;
+  line-height:1.3;
+  min-height:2.6em;
 }
-
-.tour-modal-card .card-body {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-}
-
+.tour-modal-card .card-body{ display:flex; flex-direction:column; flex:1; }
 .tour-modal-card p,
 .tour-modal-card span,
-.tour-modal-card strong {
-    font-size: 0.85rem;
-    margin-bottom: 0.3rem;
-    line-height: 1.4;
+.tour-modal-card strong{
+  font-size:.85rem;
+  margin-bottom:.3rem;
+  line-height:1.4;
+}
+.tour-modal-card .prices{ margin-top:auto; margin-bottom:.5rem; }
+.tour-modal-card .btn{
+  margin-top:auto;
+  font-size:.85rem;
+  padding:.5rem .75rem;
+  border-radius:.4rem;
+  white-space:nowrap;
 }
 
-.tour-modal-card .prices {
-    margin-top: auto;
-    margin-bottom: 0.5rem;
+/* -------------------------
+   OVERVIEW (leer más/menos)
+   ------------------------- */
+.overview{
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  transition:max-height .3s ease;
+  max-height:4.5em;
+}
+.overview.expanded{ -webkit-line-clamp:unset; max-height:1000px; }
+.toggle-overview-link{
+  display:inline-block;
+  margin-top:.25em;
+  color:#007bff;
+  text-decoration:underline;
+  cursor:pointer;
 }
 
-.tour-modal-card .btn {
-    margin-top: auto;
-    font-size: 0.85rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.4rem;
-    white-space: nowrap;
+/* -------------------------
+   TIPOGRAFÍA / TITULARES
+   ------------------------- */
+.big-title{
+  font-size:2.5rem;
+  color:#256d1b;
+  margin-bottom:2rem;
+  font-weight:700;
 }
+.rating{ color:#ffd700; font-size:1.2rem; margin-bottom:1rem; }
+.quote{ font-style:italic; color:#555; margin-bottom:1rem; }
+.guest-name{ color:#60a862; font-weight:600; }
 
+/* -------------------------
+   ANIMACIONES HERO
+   ------------------------- */
+.hero-title, .hero-subtext, .hero-buttons{
+  opacity:0; transform:translateY(30px);
+}
+.hero-title{ animation:fadeInUp 1s ease-out forwards; animation-delay:.5s; }
+.hero-subtext{ animation:fadeInUp 1s ease-out forwards; animation-delay:1s; }
+.hero-buttons{ animation:fadeInUp 1s ease-out forwards; animation-delay:1.5s; }
+@keyframes fadeInUp{ to{ opacity:1; transform:translateY(0); } }
 
-/* OVERVIEW */
+/* -------------------------
+   WHATSAPP (widget/panel)
+   ------------------------- */
+.whatsapp-panel{
+  position:fixed;
+  bottom:6rem;
+  right:1.5rem;
+  width:300px;
+  background:#fff;
+  border:1px solid #e2e2e2;
+  border-radius:1rem;
+  box-shadow:0 8px 20px rgba(0,0,0,.15);
+  overflow:hidden;
+  z-index:1050;
+}
+.whatsapp-header{
+  background:linear-gradient(to right, #0d4740, #083d3a);
+  color:#fff;
+  padding:1rem;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-top-left-radius:1rem;
+  border-top-right-radius:1rem;
+}
+.whatsapp-icon-circle{
+  width:40px; height:40px;
+  background-color:rgba(255,255,255,.2);
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+}
+.whatsapp-greeting{
+  background:#f8f9fa; padding:.75rem; border-radius:.5rem; margin-bottom:1rem;
+}
+.whatsapp-footer-note{ font-size:11px; }
 
-.overview {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  transition: max-height 0.3s ease;
-  max-height: 4.5em; /* corresponde a ~3 líneas */
+.whatsapp-float-btn{
+  position:fixed;
+  bottom:1.5rem; right:1.5rem;
+  width:60px; height:60px;
+  background:linear-gradient(to right, #0d4740, #083d3a);
+  color:#fff; border-radius:50%;
+  box-shadow:0 4px 15px rgba(0,0,0,.25);
+  border:none; display:flex; align-items:center; justify-content:center;
+  transition:all .3s ease;
+  z-index:1040;
 }
-.overview.expanded {
-  -webkit-line-clamp: unset;
-  max-height: 1000px;
-}
+.whatsapp-float-btn:hover{ transform:scale(1.05); background:linear-gradient(to right, #14665e, #052a28); }
+@keyframes pulse-grow{ 0%{transform:scale(1);} 50%{transform:scale(1.15);} 100%{transform:scale(1);} }
+.animate-pulse-grow{ animation:pulse-grow 1.2s ease-in-out infinite; }
 
-.toggle-overview-link {
-    display: inline-block;
-    margin-top: 0.25em;
-    color: #007bff;
-    text-decoration: underline;
-    cursor: pointer;
+/* -------------------------
+   FOOTER
+   ------------------------- */
+.footer-nature{
+  background:#0f2419; color:#fff;
+  padding:3.5rem 2rem;
+  font-size:16px;
+  font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
-
-.big-title {
-    font-size: 2.5rem;
-    color: #256d1b;
-    margin-bottom: 2rem;
-    font-weight: 700;
+.footer-nature .footer-main-content{
+  display:flex; flex-wrap:wrap; justify-content:space-between;
+  gap:2rem; max-width:1200px; margin:auto;
 }
-
-
-.rating {
-    color: #ffd700;
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-}
-.quote {
-    font-style: italic;
-    color: #555;
-    margin-bottom: 1rem;
-}
-.guest-name {
-    color: #60a862;
-    font-weight: 600;
-}
-
-/* HERO ANIMATIONS */
-.hero-title,
-.hero-subtext,
-.hero-buttons {
-    opacity: 0;
-    transform: translateY(30px);
-}
-
-.hero-title {
-    animation: fadeInUp 1s ease-out forwards;
-    animation-delay: 0.5s;
-}
-.hero-subtext {
-    animation: fadeInUp 1s ease-out forwards;
-    animation-delay: 1s;
-}
-.hero-buttons {
-    animation: fadeInUp 1s ease-out forwards;
-    animation-delay: 1.5s;
-}
-
-@keyframes fadeInUp {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* WHATSAPP FLOAT */
-.whatsapp-widget {
-    position: relative;
-    z-index: 9999;
-}
-
-/* WhatsApp Widget */
-.whatsapp-widget {
-    position: relative;
-    z-index: 9999;
-}
-
-.whatsapp-panel {
-    position: fixed;
-    bottom: 6rem;
-    right: 1.5rem;
-    width: 300px;
-    background-color: #fff;
-    border: 1px solid #e2e2e2;
-    border-radius: 1rem;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-    z-index: 1050;
-}
-
-.whatsapp-header {
-    background: linear-gradient(to right, #0d4740, #083d3a);
-    color: white;
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-top-left-radius: 1rem;
-    border-top-right-radius: 1rem;
-}
-
-.whatsapp-icon-circle {
-    width: 40px;
-    height: 40px;
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.whatsapp-greeting {
-    background-color: #f8f9fa;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.whatsapp-footer-note {
-    font-size: 11px;
-}
-
-.whatsapp-float-btn {
-    position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(to right, #0d4740, #083d3a);
-    color: white;
-    border-radius: 50%;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    z-index: 1040;
-}
-
-.whatsapp-float-btn:hover {
-    transform: scale(1.05);
-    background: linear-gradient(to right, #14665e, #052a28);
-}
-@keyframes pulse-grow {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.15); }
-  100% { transform: scale(1); }
-}
-
-.animate-pulse-grow {
-  animation: pulse-grow 1.2s ease-in-out infinite;
-}
-
-/* Estilo base del switcher */
-.language-switcher {
-    position: relative;
-}
-
-.language-switcher-toggle {
-    background: transparent;
-    border: 1px solid #fff;
-    color: #fff;
-    padding: 0.3rem 0.5rem; /* Reducido pero equilibrado */
-    border-radius: 4px;
-    display: inline-flex; /* Para no forzar ancho extra */
-    align-items: center;
-    gap: 0.3rem; /* Gap más pequeño */
-    cursor: pointer;
-    font-size: 0.85rem; /* Tamaño legible */
-    line-height: 1; /* Evita espacio vertical extra */
-}
-
-.language-switcher-toggle img {
-    width: 18px; /* Bandera un poco más pequeña pero clara */
-    height: auto;
-    border-radius: 2px;
-    display: inline-block;
-}
-
-.language-switcher-menu {
-    background: #fff;
-    border: 1px solid #ccc;
-    min-width: 140px; /* Un poco más estrecho */
-}
-
-.language-switcher-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #333;
-    padding: 0.4rem 0.8rem; /* Más compacto */
-    text-decoration: none;
-    font-size: 0.9rem; /* Consistencia */
-}
-
-.language-switcher-item:hover {
-    background: #f0f0f0;
-    color: #000;
-}
-
-.language-switcher-item img {
-    width: 18px;
-    height: auto;
-    border-radius: 2px;
-}
-
-.footer-nature {
-    background: #0f2419;
-    color: white;
-    padding: 3.5rem 2rem;
-    font-size: 16px;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.footer-nature .footer-main-content {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 2rem;
-    max-width: 1200px;
-    margin: auto;
-}
-
-.footer-nature .footer-brand img {
-    width: 190px;
-    margin-bottom: 1rem;
-}
-
-.footer-nature .footer-brand p {
-    font-size: 15px;
-    line-height: 1.6;
-    color: #f0f0f0;
-}
+.footer-nature .footer-brand img{ width:190px; margin-bottom:1rem; }
+.footer-nature .footer-brand p{ font-size:15px; line-height:1.6; color:#f0f0f0; }
 
 .footer-nature .footer-links,
-.footer-nature .contact-info {
-    flex: 1;
-    min-width: 220px;
-}
+.footer-nature .contact-info{ flex:1; min-width:220px; }
 
 .footer-nature .footer-links h4,
-.footer-nature .contact-info h4 {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    color: #ffffff;
-    text-transform: uppercase;
+.footer-nature .contact-info h4{
+  font-size:18px; font-weight:700; margin-bottom:1rem; color:#fff; text-transform:uppercase;
+}
+.footer-nature .footer-links ul{ list-style:none; padding:0; margin:0; }
+.footer-nature .footer-links li{ margin-bottom:10px; }
+.footer-nature .footer-links a{
+  color:#e0e0e0; text-decoration:none; font-size:15px; transition:color .3s;
+}
+.footer-nature .footer-links a:hover{ color:#a7f3d0; }
+.footer-nature .contact-info p{ font-size:15px; margin-bottom:.5rem; color:#f0f0f0; }
+
+.footer-nature .footer-bottom{
+  text-align:center; margin-top:2rem; font-size:14px; color:#ccc;
 }
 
-.footer-nature .footer-links ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+.footer-tours{ flex:1; min-width:220px; }
+.footer-tours h4{
+  font-size:18px; font-weight:700; margin-bottom:1rem; color:#fff; text-transform:uppercase;
+}
+.footer-tours ul{ list-style:none; padding:0; margin:0; }
+.footer-tours li{ margin-bottom:10px; }
+.footer-tours a{
+  color:#e0e0e0; font-size:15px; text-decoration:none; transition:color .3s ease;
+}
+.footer-tours a:hover{ color:#a7f3d0; text-decoration:underline; }
+.footer-tours i{ min-width:20px; }
+
+.footer-platforms h4{ font-size:18px; font-weight:700; color:#fff; text-transform:uppercase; }
+.footer-platforms a{ font-size:15px; color:#e0e0e0; transition:color .3s ease; }
+.footer-platforms a:hover{ color:#a7f3d0; text-decoration:underline; }
+.footer-platforms{ flex:1; min-width:220px; }
+
+.card-title{
+  background-color:#F92526; color:#fff;
+  padding:.5em; border-radius:var(--border-radius);
+  font-size:1rem; text-align:center;
 }
 
-.footer-nature .footer-links li {
-    margin-bottom: 10px;
+/* =========================
+   RESPONSIVE
+   ========================= */
+@media (max-width:768px){
+  .big-title{
+    font-size:1.8rem; color:#256d1b; margin-bottom:2rem; font-weight:700;
+  }
+
+  .tour-cards{
+    display:flex; flex-wrap:wrap; justify-content:center;
+    gap:.5rem; padding:0 .3rem;
+  }
+  .tour-card{
+    flex:1 0 48%;
+    max-width:340px;
+    padding:.7rem; margin:.4rem .1rem;
+    border-radius:.75rem; box-shadow:0 2px 6px rgba(0,0,0,.12);
+    display:flex; flex-direction:column; justify-content:space-between;
+    background:#fff; text-align:center;
+  }
+  .tour-card img{ height:160px; width:100%; object-fit:cover; border-radius:.5rem; margin-bottom:.4rem; }
+  .tour-card .card-title{
+    font-size:.85rem; margin-bottom:.4rem; padding:.25rem .5rem;
+    background:#F92526; color:#fff; border-radius:.4rem; display:inline-block;
+  }
+  .tour-card p, .tour-card span, .tour-card strong{
+    font-size:.8rem; margin-bottom:.2rem; line-height:1.2;
+  }
+  .tour-card .btn{ margin-top:.3rem; padding:.4rem .8rem; font-size:.75rem; border-radius:.3rem; white-space:nowrap; color:#fff; }
+
+  .tour-modal-card{
+    padding:.5rem; border-radius:.75rem; box-shadow:0 2px 4px rgba(0,0,0,.1);
+    display:flex; flex-direction:column; justify-content:space-between;
+    height:100% !important; background:#fff; text-align:center;
+    max-width:160px !important; flex:1 0 48%;
+  }
+  .tour-modal-card img{ height:100px; object-fit:cover; border-radius:.5rem; margin-bottom:.4rem; }
+  .tour-modal-card .card-title{
+    background:#F92526; color:#fff; font-size:.74rem;
+    padding:.25rem .25rem; margin-bottom:.3rem; border-radius:.4rem;
+    overflow:hidden; text-overflow:ellipsis; line-height:1.18; word-break:break-word; white-space:normal;
+  }
+  .tour-modal-card p, .tour-modal-card span, .tour-modal-card strong{ font-size:.7rem; margin-bottom:.2rem; }
+  .tour-modal-card .btn{ margin-top:.3rem; padding:.3rem .6rem; font-size:.7rem; border-radius:.3rem; white-space:nowrap; }
+
+  /* Footer compacto en móvil */
+  .footer-nature{ padding:2rem 1rem; font-size:14px; }
+  .footer-nature .footer-brand{ text-align:center; width:100%; }
+  .footer-nature .footer-main-content{ flex-direction:column; align-items:center; gap:1.5rem; }
+  .footer-nature .footer-brand img{ width:150px; margin-bottom:.5rem; }
+  .footer-nature .footer-links,
+  .footer-nature .contact-info,
+  .footer-tours,
+  .footer-platforms{ min-width:unset; width:100%; text-align:center; }
+  .footer-tours ul{ padding-left:0; }
+  .footer-tours li{ justify-content:center; display:flex; align-items:center; }
+  .footer-nature .footer-links h4,
+  .footer-nature .contact-info h4,
+  .footer-tours h4,
+  .footer-platforms h4{ font-size:16px; margin-bottom:.5rem; }
+  .footer-nature .footer-links a,
+  .footer-tours a,
+  .footer-platforms a,
+  .footer-nature .contact-info p{ font-size:14px; }
+  .footer-nature .footer-bottom{ margin-top:1.5rem; font-size:13px; }
 }
 
-.footer-nature .footer-links a {
-    color: #e0e0e0;
-    text-decoration: none;
-    font-size: 15px;
-    transition: color 0.3s;
-}
-
-.footer-nature .footer-links a:hover {
-    color: #a7f3d0;
-}
-
-.footer-nature .contact-info p {
-    font-size: 15px;
-    margin-bottom: 0.5rem;
-    color: #f0f0f0;
-}
-
-.footer-nature .footer-bottom {
-    text-align: center;
-    margin-top: 2rem;
-    font-size: 14px;
-    color: #ccc;
-}
-
-.footer-tours {
-    flex: 1;
-    min-width: 220px;
-}
-
-.footer-tours h4 {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    color: #ffffff;
-    text-transform: uppercase;
-}
-
-.footer-tours ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.footer-tours li {
-    margin-bottom: 10px;
-}
-
-.footer-tours a {
-    color: #e0e0e0;
-    font-size: 15px;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.footer-tours a:hover {
-    color: #a7f3d0;
-    text-decoration: underline;
-}
-
-.footer-tours i {
-    min-width: 20px;
-}
-
-.footer-platforms h4 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #ffffff;
-    text-transform: uppercase;
-}
-
-.footer-platforms a {
-    font-size: 15px;
-    color: #e0e0e0;
-    transition: color 0.3s ease;
-}
-
-.footer-platforms a:hover {
-    color: #a7f3d0;
-    text-decoration: underline;
-}
-.footer-platforms {
-    flex: 1;
-    min-width: 220px;
-}
-    .card-title {
-        background-color: #F92526;
-        color: white;
-        padding: 0.5em;
-        border-radius: var(--border-radius);
-        font-size: 1rem;
-        text-align: center;
-    }
-
-/*Version mobile */
-
-    @media (max-width: 768px) {
-
-        .big-title {
-    font-size: 1.8rem;
-    color: #256d1b;
-    margin-bottom: 2rem;
-    font-weight: 700;
-}
-  .tour-cards {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0 0.3rem;
+@media (max-width:424px){
+  .tour-cards{ gap:.4rem; padding:0 .2rem; }
+  .tour-card{
+    flex:1 0 100%;
+    max-width:320px;
+    padding:.6rem; margin:.4rem .1rem;
+    border-radius:.7rem; box-shadow:0 2px 6px rgba(0,0,0,.1);
+    display:flex; flex-direction:column; justify-content:space-between;
+    background:#fff; text-align:center;
   }
+  .tour-card img{ height:140px; width:100%; object-fit:cover; border-radius:.5rem; margin-bottom:.3rem; }
+  .tour-card .card-title{ font-size:.75rem; margin-bottom:.3rem; padding:.2rem .4rem; background:#F92526; color:#fff; border-radius:.35rem; display:inline-block; }
+  .tour-card .card-text,
+  .tour-card .card-text.small{ font-size:.8rem; margin-bottom:.2rem; line-height:1.1; }
+  .tour-card p, .tour-card span, .tour-card strong{ font-size:.7rem; margin-bottom:.15rem; line-height:1.1; }
+  .tour-card .btn{ margin-top:.3rem; padding:.3rem .6rem; font-size:.7rem; border-radius:.25rem; white-space:nowrap; color:#fff; }
 
-  .tour-card {
-    flex: 1 0 48%;
-    max-width: 340px;
-    padding: 0.7rem;
-    margin: 0.4rem 0.1rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    background: #fff;
-    text-align: center;
+  .tour-modal-card{ flex:1 0 48%; max-width:180px !important; height:auto; padding:.6rem; margin:.4rem .1rem; border-radius:.75rem; box-shadow:0 2px 5px rgba(0,0,0,.12); }
+  .tour-modal-card img{ height:100px; border-radius:.5rem; margin-bottom:.4rem; width:100%; }
+  .tour-modal-card .card-title{
+    font-size:.67rem; background:#F92526; color:#fff; padding:.2rem .25rem; border-radius:.4rem; margin-bottom:.3rem;
+    line-height:1.15; word-break:break-word; white-space:normal; width:100%;
   }
-
-  .tour-card img {
-    height: 160px;
-    width: 100%;
-    object-fit: cover;
-    border-radius: 0.5rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .tour-card .card-title {
-    font-size: 0.85rem;
-    margin-bottom: 0.4rem;
-    padding: 0.25rem 0.5rem;
-    background-color: #F92526;
-    color: white;
-    border-radius: 0.4rem;
-    display: inline-block;
-  }
-
-
-  .tour-card p,
-  .tour-card span,
-  .tour-card strong {
-    font-size: 0.8rem;
-    margin-bottom: 0.2rem;
-    line-height: 1.2;
-  }
-
-
-  .tour-card .btn {
-    margin-top: 0.3rem;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.75rem;
-    border-radius: 0.3rem;
-    white-space: nowrap;
-    color: white;
-  }
-
-
-  .tour-modal-card {
-    padding: 0.5rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100% !important;
-    background: #fff;
-    text-align: center;
-    max-width: 160px !important;
-    flex: 1 0 48%;
-  }
-
-
-  .tour-modal-card img {
-    height: 100px;
-    object-fit: cover;
-    border-radius: 0.5rem;
-    margin-bottom: 0.4rem;
-  }
-
-.tour-modal-card .card-title {
-    background-color: #F92526;
-    color: white;
-    font-size: 0.74rem;
-    padding: 0.25rem 0.25rem;
-    margin-bottom: 0.3rem;
-    border-radius: 0.4rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.18;
-    word-break: break-word;
-    white-space: normal;
-}
-.tour-modal-card p,
-  .tour-modal-card span,
-  .tour-modal-card strong {
-    font-size: 0.7rem;
-    margin-bottom: 0.2rem;
-  }
-
-
-  .tour-modal-card .btn {
-    margin-top: 0.3rem;
-    padding: 0.3rem 0.6rem;
-    font-size: 0.7rem;
-    border-radius: 0.3rem;
-    white-space: nowrap;
-  }
-
-    .navbar-custom {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background-color: #0f2419;
-        z-index: 999;
-    }
-
-    .navbar-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between; /* 🟢 Flex perfecto */
-        padding: 0.4rem 0.5rem;
-        box-sizing: border-box;
-    }
-    .navbar-left {
-        display: flex;
-        align-items: center;
-        flex: 0 0 auto;
-        gap: 0;
-    }
-    .navbar-toggle {
-        display: block;
-        min-width: 30px;
-    }
-
-    .navbar-logo {
-        flex: 1; /* 🟢 Lo hace crecer y encoger */
-        text-align: center;
-        max-width: 60px; /* Controla ancho máximo */
-    }
-
-    .navbar-logo img {
-        max-height: 60px;
-        width: auto;
-    }
-
-    .navbar-actions {
-        display: flex;
-        align-items: center;
-        flex: 0 0 auto;
-        gap: 0.3rem;
-    }
-
-    .navbar-links {
-        display: flex;
-        justify-content: center;
-        gap: 2rem;
-    }
-  .navbar-logo {
-    flex: 1;
-    max-width:100px;          /* Logo más estrecho */
-    text-align: center;       /* Centrado */
-    margin: 0 auto;           /* Centrado horizontal */
-  }
-
-  .navbar-logo img {
-    max-height: 65px;         /* Logo más bajo para XS */
-    width: auto;
-  }
-
-  .navbar-actions {
-    display: flex;
-    align-items: center;
-    flex: 0 0 auto;
-    gap: 1rem;
-  }
-
-    .navbar-links a {
-        color: #fff;
-        text-decoration: none;
-        font-weight: 500;
-    }
-
-    .navbar-links a:hover {
-        color: #8bc34a; /* tu color primario claro */
-    }
-
-    /* MOBILE menú desplegable */
-    .navbar-links.d-md-none {
-        display: none;
-        flex-direction: column;
-        background: #0f2419;
-        padding: 1rem 2rem;
-    }
-
-    .navbar-links.d-md-none.show {
-        display: flex;
-    }
-
-    .navbar-links.d-md-none a {
-        font-size: 0.95rem;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .language-switcher {
-        display: inline-block;
-        position: relative;
-    }
-.navbar-links.d-md-none.show {
-  display: flex;
-  gap: 0.7rem;
-  padding: 0.7rem;
-}
-
-.navbar-links.d-md-none a {
-  font-size: 0.90rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid rgba(255,255,255,0.2);
-}
-
-    .navbar-links .language-switcher-menu {
-        transform: translateX(12px);
-    }
-
-    .navbar-links .language-switcher-toggle img {
-        min-width: 28px;
-        height: auto;
-        border-radius: 2px;
-        display: inline-block;
-    }
-
-    .navbar-links .language-switcher-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #333;
-        padding: 0.4rem 1rem;
-        text-decoration: none;
-        font-size: 0.9rem;
-    }
-
-    .navbar-links .language-switcher-item:hover {
-        color: #999999 !important;
-    }
-
-    .navbar-links .language-switcher-item img {
-        width: 25px;
-        height: auto;
-        border-radius: 2px;
-        flex-shrink: 0;
-    }
-    .navbar-links .admin-link-wrapper {
-        width: 100%;
-        display: flex;
-        justify-content: flex-start; /* ⬅️ Alinea a la izquierda */
-        padding: 0.5rem 0;
-    }
-
-    .navbar-links .admin-link-wrapper a {
-        width: auto; /* No estires el botón */
-        display: inline-flex;
-    }
-
-    .footer-nature {
-        padding: 2rem 1rem; /* Reduce espacio general */
-        font-size: 14px; /* Texto más pequeño */
-    }
-
-    .footer-nature .footer-brand {
-        text-align: center;
-        width: 100%;
-    }
-
-    .footer-nature .footer-main-content {
-        flex-direction: column; /* Apila secciones */
-        align-items: center;
-        gap: 1.5rem; /* Menor separación */
-    }
-
-    .footer-nature .footer-brand img {
-        width: 150px; /* Logo más pequeño */
-        margin-bottom: 0.5rem;
-    }
-
-    .footer-nature .footer-links,
-    .footer-nature .contact-info,
-    .footer-tours,
-    .footer-platforms {
-        min-width: unset; /* Quita ancho mínimo */
-        width: 100%; /* Ocupa ancho completo */
-        text-align: center; /* Centra contenido */
-    }
-
-    .footer-tours ul {
-        padding-left: 0; /* Quita indentación */
-    }
-
-    .footer-tours li {
-        justify-content: center; /* Centra contenido horizontal */
-        display: flex;
-        align-items: center;
-    }
-    .footer-nature .footer-links h4,
-    .footer-nature .contact-info h4,
-    .footer-tours h4,
-    .footer-platforms h4 {
-        font-size: 16px;
-        margin-bottom: 0.5rem;
-    }
-
-    .footer-nature .footer-links a,
-    .footer-tours a,
-    .footer-platforms a,
-    .footer-nature .contact-info p {
-        font-size: 14px;
-    }
-
-    .footer-nature .footer-bottom {
-        margin-top: 1.5rem;
-        font-size: 13px;
-    }
-}
-@media (max-width: 424px) {
- .tour-cards {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.4rem; /* 🔽 más compacto */
-    padding: 0 0.2rem;
-  }
-
-  .tour-card {
-    flex: 1 0 100%;
-    max-width: 320px;
-    padding: 0.6rem;
-    margin: 0.4rem 0.1rem;
-    border-radius: 0.7rem;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    background: #fff;
-    text-align: center;
-  }
-
-  .tour-card img {
-    height: 140px; /* 🔽 ligeramente menor */
-    width: 100%;
-    object-fit: cover;
-    border-radius: 0.5rem;
-    margin-bottom: 0.3rem;
-  }
-
-  .tour-card .card-title {
-    font-size: 0.75rem; /* 🔽 menor */
-    margin-bottom: 0.3rem;
-    padding: 0.2rem 0.4rem;
-    background-color: #F92526;
-    color: white;
-    border-radius: 0.35rem;
-    display: inline-block;
-  }
-   .tour-card .card-text {
-    font-size: 0.8rem;
-    margin-bottom: 0.2rem;
-    line-height: 1.1;
-  }
-
-   .tour-card .card-text.small {
-    font-size: 0.8rem;
-    margin-bottom: 0.2rem;
-    line-height: 1.1;
-  }
-  .tour-card p,
-  .tour-card span,
-  .tour-card strong {
-    font-size: 0.7rem; /* 🔽 más pequeño */
-    margin-bottom: 0.15rem;
-    line-height: 1.1;
-  }
-
-  .tour-card .btn {
-    margin-top: 0.3rem;
-    padding: 0.3rem 0.6rem;
-    font-size: 0.7rem;
-    border-radius: 0.25rem;
-    white-space: nowrap;
-    color: white;
-  }
-
-
-  .tour-modal-card {
-    flex: 1 0 48%;
-    max-width: 180px !important;
-    height: auto;
-    padding: 0.6rem;
-    margin: 0.4rem 0.1rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    background: #fff;
-    text-align: center;
-  }
-
-  .tour-modal-card img {
-    height: 100px;
-    object-fit: cover;
-    border-radius: 0.5rem;
-    margin-bottom: 0.4rem;
-    width: 100%;
-  }
-
-  .tour-modal-card .card-title {
-    font-size: 0.67rem; /* 🔽 reducido para móviles más pequeños */
-    background-color: #F92526;
-    color: white;
-    padding: 0.2rem 0.25rem;
-    border-radius: 0.4rem;
-    margin-bottom: 0.3rem;
-    line-height: 1.15;
-    word-break: break-word;
-    white-space: normal;
-    width: 100%;
-  }
-
-  .tour-modal-card p,
-  .tour-modal-card span,
-  .tour-modal-card strong {
-    font-size: 0.65rem;  /* 🔽 más pequeño */
-    margin-bottom: 0.2rem;
-    line-height: 1.1;
-  }
-
-  .tour-modal-card .btn {
-    margin-top: 0.3rem;
-    padding: 0.3rem 0.6rem;
-    font-size: 0.65rem;  /* 🔽 más pequeño */
-    border-radius: 0.3rem;
-    white-space: nowrap;
-    color: white;
-  }
-
-  .navbar-container {
-    max-width: 100%;
-    padding: 0.3rem 0.5rem;
-    box-sizing: border-box;
-  }
-
-  .navbar-left {
-    flex: 0 0 auto;
-    margin-left: 0;
-  }
-
-  .navbar-toggle {
-    min-width: 30px;
-    font-size: 1.2rem;
-  }
-
-  .navbar-logo {
-    flex: 1;
-    max-width: 90px;
-    text-align: center;
-    margin: 0 auto;
-  }
-
-  .navbar-logo img {
-    max-height: 50px;
-    width: auto;
-  }
-
-  .navbar-actions {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 0.2rem;
-    margin-right: 0;
-  }
-
-  .navbar-actions i {
-    font-size: 1.1rem;
-  }
+  .tour-modal-card p, .tour-modal-card span, .tour-modal-card strong{ font-size:.65rem; margin-bottom:.2rem; line-height:1.1; }
+  .tour-modal-card .btn{ margin-top:.3rem; padding:.3rem .6rem; font-size:.65rem; border-radius:.3rem; white-space:nowrap; color:#fff; }
 }

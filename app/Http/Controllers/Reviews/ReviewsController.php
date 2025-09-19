@@ -205,107 +205,115 @@ class ReviewsController extends Controller
         return view('reviews.tour', compact('items', 'tourId'));
     }
 
-    /**
-     * Iframe de proveedor (embed) – sin cambios relevantes a tu versión.
-     * Respeta layout=card|hero, theme=site|embed, limit/nth, tour_id, show_powered.
-     */
-    public function embed(Request $request, ReviewAggregator $agg, string $provider)
-    {
-        $lang     = app()->getLocale();
-        $provider = strtolower(trim($provider)) ?: 'viator';
+   public function embed(Request $request, ReviewAggregator $agg, string $provider)
+{
+    $lang     = app()->getLocale();
+    $provider = strtolower(trim($provider)) ?: 'viator';
 
-        $limit  = max(1, (int) $request->query('limit', 12));
-        $tourId = $request->query('tour_id');
+    // --- parámetros saneados
+    $limit  = min(60, max(1, (int) $request->query('limit', 12)));
+    $tourId = $request->query('tour_id');
 
-        $ttlMin = (int) $request->query('ttl', 60 * 24);
-        $ttl    = max(60, $ttlMin) * 60;
-        $force  = (bool) $request->boolean('refresh', false);
-        $nth    = max(1, (int) $request->query('nth', 1));
+    $ttlMin = (int) $request->query('ttl', 60 * 24);
+    $ttl    = max(60, $ttlMin) * 60;
+    $force  = (bool) $request->boolean('refresh', false);
+    $nth    = max(1, (int) $request->query('nth', 1));
 
-        $layout = (string) $request->query('layout', 'hero'); // hero|card
-        $theme  = (string) $request->query('theme', $layout === 'card' ? 'site' : 'embed');
-        $base   = (int) $request->query('base', $layout === 'card' ? 500 : 460);
-        $uid    = (string) $request->query('uid', 'u' . substr(sha1(uniqid('', true)), 0, 10));
+    $layout = (string) $request->query('layout', 'hero'); // hero|card
+    $theme  = (string) $request->query('theme', $layout === 'card' ? 'site' : 'embed');
+    $base   = (int) $request->query('base', $layout === 'card' ? 500 : 460);
+    $uid    = (string) $request->query('uid', 'u' . substr(sha1(uniqid('', true)), 0, 10));
 
-        // Pool principal por provider (+ tour si viene)
-        $cacheKey = CacheKey::make('reviews:iframe', [
-            'p'    => $provider,
-            'tour' => $tourId ?: 'all',
-            'loc'  => 'all',
-            'lim'  => $limit,
+    // --- pool por provider (+tour si aplica)
+    $cacheKey = CacheKey::make('reviews:iframe', [
+        'p'    => $provider,
+        'tour' => $tourId ?: 'all',
+        'loc'  => 'all',
+        'lim'  => $limit,
+    ], 2);
+
+    $loader = fn () =>
+        $agg->aggregate([
+            'provider' => $provider,
+            'limit'    => max(50, $limit * 5),
+            'tour_id'  => $tourId,
+            'language' => $lang,
+        ])->values();
+
+    /** @var \Illuminate\Support\Collection $reviews */
+    $reviews = $this->rememberSafe($cacheKey, $ttl, $loader, $force);
+
+    // Fallbacks (mismo provider sin tour, luego cualquiera)
+    if ($reviews->isEmpty() && !empty($tourId)) {
+        $fallbackKey = CacheKey::make('reviews:iframe', [
+            'p'    => $provider, 'tour' => 'all', 'loc' => 'all', 'lim' => $limit, 'fb' => 1,
         ], 2);
 
-        $loader = fn () =>
-            $agg->aggregate([
+        $reviews = $this->rememberSafe($fallbackKey, $ttl, function () use ($agg, $provider, $limit, $lang) {
+            return $agg->aggregate([
                 'provider' => $provider,
                 'limit'    => max(50, $limit * 5),
-                'tour_id'  => $tourId,     // el driver usará settings.product_map[tour_id]
                 'language' => $lang,
             ])->values();
-
-        /** @var \Illuminate\Support\Collection $reviews */
-        $reviews = $this->rememberSafe($cacheKey, $ttl, $loader, $force);
-
-        // Fallbacks (mismo provider sin tour, luego cualquiera)
-        if ($reviews->isEmpty() && !empty($tourId)) {
-            $fallbackKey = CacheKey::make('reviews:iframe', [
-                'p'    => $provider, 'tour' => 'all', 'loc' => 'all', 'lim' => $limit, 'fb' => 1,
-            ], 2);
-
-            $reviews = $this->rememberSafe($fallbackKey, $ttl, function () use ($agg, $provider, $limit, $lang) {
-                return $agg->aggregate([
-                    'provider' => $provider,
-                    'limit'    => max(50, $limit * 5),
-                    'language' => $lang,
-                ])->values();
-            }, $force)->map(function ($r) use ($tourId) { $r['tour_id'] = $tourId; return $r; });
-        }
-
-        if ($reviews->isEmpty()) {
-            $anyKey = CacheKey::make('reviews:iframe', [
-                'p' => 'any', 'loc' => 'all', 'lim' => $limit, 'fb' => 2,
-            ], 2);
-
-            $reviews = $this->rememberSafe($anyKey, $ttl, function () use ($agg, $limit, $lang) {
-                return $agg->aggregate([
-                    'limit'    => max(50, $limit * 5),
-                    'language' => $lang,
-                ])->values();
-            }, $force)->map(function ($r) use ($tourId) { if ($tourId) $r['tour_id'] = $tourId; return $r; });
-        }
-
-        // completar tour_name
-        $reviews = $this->attachTourNames($reviews, $lang, config('app.fallback_locale', 'es'), $tourId);
-
-        // Elegir el n-ésimo
-        $count = $reviews->count();
-        if ($count > 0) {
-            $idx = ($nth - 1) % $count;
-            $reviews = collect([$reviews->values()->get($idx)]);
-        } else {
-            $reviews = collect();
-        }
-
-        if ($request->boolean('debug')) {
-            return response()->json([
-                'provider' => $provider,
-                'tour_id'  => $tourId,
-                'layout'   => $layout,
-                'theme'    => $theme,
-                'count'    => $count,
-                'selected' => $reviews->first(),
-            ]);
-        }
-
-        return view('reviews.embed', [
-            'reviews'  => $reviews,
-            'provider' => $provider,
-            'base'     => $base,
-            'uid'      => $uid,
-            'layout'   => $layout,
-            'theme'    => $theme,
-        ]);
+        }, $force)->map(function ($r) use ($tourId) { $r['tour_id'] = $tourId; return $r; });
     }
+
+    if ($reviews->isEmpty()) {
+        $anyKey = CacheKey::make('reviews:iframe', [
+            'p' => 'any', 'loc' => 'all', 'lim' => $limit, 'fb' => 2,
+        ], 2);
+
+        $reviews = $this->rememberSafe($anyKey, $ttl, function () use ($agg, $limit, $lang) {
+            return $agg->aggregate([
+                'limit'    => max(50, $limit * 5),
+                'language' => $lang,
+            ])->values();
+        }, $force)->map(function ($r) use ($tourId) { if ($tourId) $r['tour_id'] = $tourId; return $r; });
+    }
+
+    // Completar nombres de tour
+    $reviews = $this->attachTourNames($reviews, $lang, config('app.fallback_locale', 'es'), $tourId);
+
+    // Elegir n-ésimo
+    $count = $reviews->count();
+    if ($count > 0) {
+        $idx = ($nth - 1) % $count;
+        $reviews = collect([$reviews->values()->get($idx)]);
+    } else {
+        $reviews = collect();
+    }
+
+    // ===== HTTP caching (ETag + Cache-Control) =====
+    $hashOfSelected = $reviews->isNotEmpty() ? sha1(json_encode($reviews->first())) : 'empty';
+    $etag = sprintf('rev:%s|tour:%s|nth:%s|loc:%s|layout:%s|theme:%s|h:%s',
+        $provider,
+        $tourId ?: 'all',
+        $nth,
+        $lang,
+        $layout, $theme,
+        $hashOfSelected
+    );
+
+    $response = response()->view('reviews.embed', [
+        'reviews'  => $reviews,
+        'provider' => $provider,
+        'base'     => $base,
+        'uid'      => $uid,
+        'layout'   => $layout,
+        'theme'    => $theme,
+    ]);
+
+    $response->setEtag($etag)
+        ->header('Cache-Control', 'public, max-age=900, s-maxage=900, stale-while-revalidate=300, stale-if-error=86400')
+        ->header('Vary', 'Accept-Language');
+
+    if ($response->isNotModified($request)) {
+        return $response;
+    }
+
+    return $response;
+}
+
 
     /** Guardar reseña local */
     public function store(StoreReviewRequest $request)

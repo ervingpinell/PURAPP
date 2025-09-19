@@ -85,9 +85,11 @@
 <img
   src="{{ $avatarUrl ?: asset('images/avatar-default.png') }}"
   alt=""
+  width="56" height="56"   {{-- coincide con el CSS desktop; en móvil se escala --}}
   referrerpolicy="no-referrer"
   onerror="this.onerror=null;this.src='{{ asset('images/avatar-default.png') }}';"
 />
+
 
                   </span>
                   <div class="who-when">
