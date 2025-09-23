@@ -67,54 +67,43 @@ class AppServiceProvider extends ServiceProvider
      * - Marca is_system = true (para bloquear eliminación/edición sensible).
      * - Ajusta driver = 'local' (o el que definas en config).
      */
-    protected function ensureLocalReviewProvider(): void
-    {
-        if (! Schema::hasTable('review_providers')) {
+protected function ensureLocalReviewProvider(): void
+{
+    if (! Schema::hasTable('review_providers')) return;
+
+    ReviewProvider::withoutEvents(function () {
+        $p = ReviewProvider::firstOrNew(['slug' => 'local']);
+
+        $table = $p->getTable();
+
+        // Si es nuevo, setea TODO antes del primer save (evita NOT NULL violations)
+        if (! $p->exists) {
+            if (Schema::hasColumn($table, 'name'))          $p->name = $p->name ?? 'Local';
+            if (Schema::hasColumn($table, 'driver'))        $p->driver = 'local';
+            if (Schema::hasColumn($table, 'is_active'))     $p->is_active = true;
+            if (Schema::hasColumn($table, 'is_system'))     $p->is_system = true;
+            if (Schema::hasColumn($table, 'indexable') && $p->indexable === null) $p->indexable = true;
+            if (Schema::hasColumn($table, 'cache_ttl_sec') && empty($p->cache_ttl_sec)) $p->cache_ttl_sec = 3600;
+            if (Schema::hasColumn($table, 'settings')) {
+                $settings = is_array($p->settings) ? $p->settings : [];
+                $settings['min_stars'] = $settings['min_stars'] ?? 0;
+                $p->settings = $settings;
+            }
+            $p->save();
             return;
         }
 
-        $slug   = config('reviews.local.slug', 'local');
-        $name   = config('reviews.local.name', 'Local');
-        // Puedes usar una clase si así manejas drivers: config('reviews.local.driver_class')
-        // Aquí dejamos un string sencillo:
-        $driver = 'local';
+        // Si ya existe, normaliza por si alguien lo tocó
+        $dirty = false;
+        if (Schema::hasColumn($table, 'driver')     && $p->driver !== 'local') { $p->driver = 'local'; $dirty = true; }
+        if (Schema::hasColumn($table, 'is_active')  && ! $p->is_active)        { $p->is_active = true; $dirty = true; }
+        if (Schema::hasColumn($table, 'is_system')  && ! $p->is_system)        { $p->is_system = true; $dirty = true; }
+        if (Schema::hasColumn($table, 'settings')) {
+            $settings = is_array($p->settings) ? $p->settings : [];
+            if (! array_key_exists('min_stars', $settings)) { $settings['min_stars'] = 0; $p->settings = $settings; $dirty = true; }
+        }
+        if ($dirty) $p->save();
+    });
+}
 
-        ReviewProvider::withoutEvents(function () use ($slug, $name, $driver) {
-            // Crea si no existe (con mínimos seguros)
-            $provider = ReviewProvider::firstOrCreate(
-                ['slug' => $slug],
-                ['name' => $name]
-            );
-
-            $dirty = false;
-            $table = $provider->getTable();
-
-            // Sincroniza campos relevantes SOLO si existen en la tabla
-            if (Schema::hasColumn($table, 'name') && $provider->name !== $name) {
-                $provider->name = $name;
-                $dirty = true;
-            }
-            if (Schema::hasColumn($table, 'driver') && $provider->driver !== $driver) {
-                $provider->driver = $driver;
-                $dirty = true;
-            }
-            if (Schema::hasColumn($table, 'is_active') && ! $provider->is_active) {
-                $provider->is_active = true;
-                $dirty = true;
-            }
-            if (Schema::hasColumn($table, 'is_system') && ! $provider->is_system) {
-                $provider->is_system = true;
-                $dirty = true;
-            }
-            if (Schema::hasColumn($table, 'settings') && empty($provider->settings)) {
-                // Mantén arreglo vacío (evita JSON null si está casteado)
-                $provider->settings = [];
-                $dirty = true;
-            }
-
-            if ($dirty) {
-                $provider->save();
-            }
-        });
-    }
 }
