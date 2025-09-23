@@ -27,6 +27,7 @@ use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse as Succ
 use Laravel\Fortify\Fortify;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -120,13 +121,36 @@ class FortifyServiceProvider extends ServiceProvider
                 ]);
             }
 
-            // Verificación y estado
-            if (is_null($user->email_verified_at)) {
+            // === VERIFICACIÓN DE EMAIL ===
+            // Si NO está verificado, enviamos el correo de verificación SOLO cuando intenta iniciar sesión
+            // (y también cuando lo solicita explícitamente via route('verification.send')).
+            /** @var \App\Models\User $user */
+            if ($user instanceof MustVerifyEmailContract && ! $user->hasVerifiedEmail()) {
+                $resendKey = 'verify:mail:'.$user->getKey();
+
+                // 1 reenvío cada 10 minutos por usuario
+                if (! RateLimiter::tooManyAttempts($resendKey, 1)) {
+                    RateLimiter::hit($resendKey, 10 * 60);
+                    try {
+                        $user->sendEmailVerificationNotification();
+                        Log::info('Verification email sent on login attempt', [
+                            'uid' => $user->getKey(),
+                            'to'  => $user->email,
+                        ]);
+                    } catch (\Throwable $e) {
+                        Log::error('Failed sending verification email on login attempt', [
+                            'uid'  => $user->getKey(),
+                            'err'  => $e->getMessage(),
+                        ]);
+                    }
+                }
+
                 throw ValidationException::withMessages([
                     'email' => __('adminlte::auth.verify.message'),
                 ]);
             }
 
+            // === ESTADO INACTIVO ===
             if (isset($user->status) && ! $user->status) {
                 throw ValidationException::withMessages([
                     'email' => __('adminlte::validation.invalid_credentials'),
