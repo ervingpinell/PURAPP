@@ -18,48 +18,50 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class HomeController extends Controller
 {
     use RemembersSafely;
 
-    /** ===========================
-     *  HOME (seccionado)
-     *  ===========================*/
-    public function index(ReviewAggregator $agg)
-    {
-        $currentLocale  = app()->getLocale();
-        $fallbackLocale = config('app.fallback_locale', 'es');
+public function index(ReviewAggregator $agg)
+{
+    $currentLocale  = app()->getLocale();
+    $fallbackLocale = config('app.fallback_locale', 'es');
 
-        try {
-            // 1) Meta de tipos + Tours (usando helpers)
-            $typeMeta   = $this->loadTypeMeta($currentLocale, $fallbackLocale);
-            $tours      = $this->loadActiveToursWithTranslations($currentLocale, $fallbackLocale);
+    try {
+        // 1) Meta de tipos + Tours
+        $typeMeta = $this->loadTypeMeta($currentLocale, $fallbackLocale);
+        $tours    = $this->loadActiveToursWithTranslations($currentLocale, $fallbackLocale);
 
-            $toursByType = $tours
-                ->sortBy('tour_type_id_group', SORT_NATURAL | SORT_FLAG_CASE)
-                ->groupBy(fn ($tour) => $tour->tour_type_id_group);
+        $toursByType = $tours
+            ->sortBy('tour_type_id_group', SORT_NATURAL | SORT_FLAG_CASE)
+            ->groupBy(fn ($tour) => $tour->tour_type_id_group);
 
-            // 2) REVIEWS HOME – reparto por tour (2 o 3 por tour)
-            $cacheTtl     = 60 * 60 * 24;
-            $forceRefresh = (bool) request()->boolean('refresh', false);
+        // 2) REVIEWS HOME – reparto por tour (3 por tour, proveedores distintos)
+        $cacheTtl     = 60 * 60 * 24;
+        $forceRefresh = (bool) request()->boolean('refresh', false);
 
-            // Ajusta a tu gusto:
-            $TARGET_TOTAL  = 24; // límite global
-            $PER_TOUR_GOAL = 2;  // 2 o 3 por tour
+        $TARGET_TOTAL  = 24; // límite global
+        $PER_TOUR_GOAL = 3;  // 3 por tour
 
-            $cacheKey = CacheKey::make('home_reviews2', [
-                'loc'    => 'all',
-                'target' => $TARGET_TOTAL,
-                'per'    => $PER_TOUR_GOAL,
-            ], 2); // bump version
+        // ⬇️ cache-busting automático con el “rev” del Observer
+        $reviewsRev = Cache::get('reviews.rev', 1);
 
-            if ($forceRefresh) Cache::forget($cacheKey);
+        $cacheKey = CacheKey::make('home_reviews2', [
+            'loc'    => 'all',
+            'target' => $TARGET_TOTAL,
+            'per'    => $PER_TOUR_GOAL,
+            'rev'    => $reviewsRev, // <- clave
+        ], 2); // bump version
 
-            $homeReviews = Cache::remember($cacheKey, $cacheTtl, function () use (
-                $agg, $tours, $currentLocale, $fallbackLocale, $TARGET_TOTAL, $PER_TOUR_GOAL
-            ) {
+        if ($forceRefresh) Cache::forget($cacheKey);
+
+        $homeReviews = Cache::remember(
+            $cacheKey,
+            $cacheTtl,
+            function () use ($agg, $tours, $currentLocale, $fallbackLocale, $TARGET_TOTAL, $PER_TOUR_GOAL) {
                 return $this->buildHomeReviews(
                     $agg,
                     $tours,
@@ -68,30 +70,32 @@ class HomeController extends Controller
                     $TARGET_TOTAL,
                     $PER_TOUR_GOAL
                 );
-            });
+            }
+        );
 
-            // 3) Meeting Points
-            $meetingPoints = MeetingPoint::active()
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get(['id','name','pickup_time']);
+        // 3) Meeting Points
+        $meetingPoints = MeetingPoint::active()
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get(['id','name','pickup_time']);
 
-            return view('public.home', compact('toursByType', 'typeMeta', 'homeReviews', 'meetingPoints'));
-        } catch (Throwable $e) {
-            Log::error('home.index.error', [
-                'msg'  => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-            ]);
+        return view('public.home', compact('toursByType', 'typeMeta', 'homeReviews', 'meetingPoints'));
+    } catch (Throwable $e) {
+        Log::error('home.index.error', [
+            'msg'  => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile(),
+        ]);
 
-            $toursByType   = collect();
-            $typeMeta      = collect();
-            $homeReviews   = collect();
-            $meetingPoints = collect();
+        $toursByType   = collect();
+        $typeMeta      = collect();
+        $homeReviews   = collect();
+        $meetingPoints = collect();
 
-            return view('public.home', compact('toursByType', 'typeMeta', 'homeReviews', 'meetingPoints'));
-        }
+        return view('public.home', compact('toursByType', 'typeMeta', 'homeReviews', 'meetingPoints'));
     }
+}
+
 
     /** ===========================
      *  SHOW TOUR (seccionado)
@@ -166,134 +170,156 @@ class HomeController extends Controller
                 return $tour;
             });
     }
+private function buildHomeReviews(
+    ReviewAggregator $agg,
+    Collection $tours,
+    string $locale,
+    string $fallback,
+    int $TARGET_TOTAL = 24,
+    int $PER_TOUR_GOAL = 3 // ⬅️ 3 por tour
+): Collection {
+    $MIN_RATING = 4;
 
-    /**
-     * Construye colección de reseñas del home con reparto por tour:
-     * - Prioriza indexables por tour.
-     * - Si faltan para llegar a $PER_TOUR_GOAL, rellena con iframes (proveedores no indexables).
-     */
-    private function buildHomeReviews(
-        ReviewAggregator $agg,
-        Collection $tours,
-        string $locale,
-        string $fallback,
-        int $TARGET_TOTAL = 24,
-        int $PER_TOUR_GOAL = 2
-    ): Collection {
-        // 1) Traer ancho, dedupe
-        $all = $agg->aggregate(['limit' => 2000]);
-        $all = $all->unique(function ($r) {
-            return md5(
-                mb_strtolower(trim((string)($r['body'] ?? ''))) . '|' .
-                mb_strtolower(trim((string)($r['author_name'] ?? ''))) . '|' .
-                trim((string)($r['date'] ?? ''))
-            );
-        })->values();
+    // Trae ancho (si el aggregator soporta min_rating, mejor)
+    $all = $agg->aggregate(['limit' => 2000, 'min_rating' => $MIN_RATING]);
+    // Filtra por seguridad
+    $all = $all->filter(fn ($r) => (int)($r['rating'] ?? 0) >= $MIN_RATING)->values();
 
-        // 2) Índices útiles
-        $activeTourIds = $tours->pluck('tour_id')->filter()->values();
-        $providersPref = ['local', 'viator', 'tripadvisor', 'google', 'gyg', 'getyourguide'];
-        $byTour        = $all->groupBy(fn ($r) => (int) ($r['tour_id'] ?? 0));
+    // Dedupe por contenido/autor/fecha
+    $all = $all->unique(function ($r) {
+        return md5(
+            mb_strtolower(trim((string)($r['body'] ?? ''))) . '|' .
+            mb_strtolower(trim((string)($r['author_name'] ?? ''))) . '|' .
+            trim((string)($r['date'] ?? ''))
+        );
+    })->values();
 
-        $picked    = collect();
-        $seenKeys  = [];
-        $nthCursor = []; // "prov:tour" => nth
+    // Solo remotos activos (por ejemplo, si dejaste solo Viator en el CRUD, quedará ['viator'])
+    $remoteProviders = $this->getRemoteProviderSlugs();        // p.ej. ['viator']
+    $providersPref   = array_merge(['local'], $remoteProviders);
 
-        $makeSeenKey = function (array $r): string {
-            $base = ($r['provider'] ?? 'p') . '#' . ($r['provider_review_id'] ?? '');
-            if (!empty($r['provider_review_id'])) return $base;
-            return $base . '#' . md5(
-                mb_strtolower(trim((string)($r['body'] ?? ''))) . '|' .
-                mb_strtolower(trim((string)($r['author_name'] ?? ''))) . '|' .
-                trim((string)($r['date'] ?? ''))
-            );
-        };
+    $activeTourIds = $tours->pluck('tour_id')->filter()->values();
+    $byTour        = $all->groupBy(fn ($r) => (int) ($r['tour_id'] ?? 0));
 
-        $pushIframe = function (int $tourId, string $prov) use (&$picked, &$nthCursor) {
-            $cursorKey = strtolower($prov) . ':' . $tourId;
-            $nth       = ($nthCursor[$cursorKey] ?? 0) + 1;
-            $nthCursor[$cursorKey] = $nth;
+    $picked    = collect();
+    $seenKeys  = [];            // dedupe global
+    $nthCursor = [];            // "prov:tour" => nth para iframes
 
-            $picked->push([
-                'provider'     => strtolower($prov),
-                'indexable'    => false,
-                'iframe_limit' => 1,
-                'tour_id'      => $tourId,
-                'nth'          => $nth,
-            ]);
-        };
+    $makeSeenKey = function (array $r): string {
+        $prov = strtolower((string)($r['provider'] ?? 'p'));
+        if (!empty($r['provider_review_id'])) {
+            return $prov . '#' . (string)$r['provider_review_id'];
+        }
+        // indexables sin id → por contenido
+        return $prov . '#' . md5(
+            mb_strtolower(trim((string)($r['body'] ?? ''))) . '|' .
+            mb_strtolower(trim((string)($r['author_name'] ?? ''))) . '|' .
+            trim((string)($r['date'] ?? ''))
+        );
+    };
 
-        $addIndexableFromBuckets = function (Collection $indexables, int $tourId, int $need) use (
-            &$picked, &$seenKeys, $providersPref, $makeSeenKey
-        ): int {
-            if ($need <= 0) return 0;
-            $buckets = $indexables->groupBy(fn($r) => strtolower((string)($r['provider'] ?? 'local')));
-            $added   = 0; $i = 0;
-            while ($added < $need && $buckets->isNotEmpty() && $i < 1000) {
-                foreach ($providersPref as $pv) {
-                    if ($added >= $need) break;
-                    $bucket = $buckets->get($pv);
-                    if (!$bucket || $bucket->isEmpty()) continue;
-                    $item = $bucket->shift();
-                    $key  = $makeSeenKey($item);
-                    if (!isset($seenKeys[$key])) {
-                        $seenKeys[$key] = true;
-                        $picked->push($item);
-                        $added++;
-                    }
-                    if ($bucket->isEmpty()) $buckets->forget($pv);
-                    else $buckets->put($pv, $bucket);
-                }
-                $i++;
+    $pushIframe = function (int $tourId, string $prov) use (&$picked, &$nthCursor, &$seenKeys, $MIN_RATING) {
+        $prov = strtolower($prov);
+        $keyBase = $prov . ':' . $tourId;
+        $nth = ($nthCursor[$keyBase] ?? 0) + 1;
+        $nthCursor[$keyBase] = $nth;
+
+        // Clave única para el placeholder remoto
+        $placeholderKey = 'remote#' . $prov . '#' . $tourId . '#' . $nth;
+        if (isset($seenKeys[$placeholderKey])) return false;
+        $seenKeys[$placeholderKey] = true;
+
+        $picked->push([
+            'provider'     => $prov,
+            'indexable'    => false,
+            'iframe_limit' => 1,
+            'tour_id'      => $tourId,
+            'nth'          => $nth,
+            'min_rating'   => $MIN_RATING, // el embed ya lo respeta
+        ]);
+        return true;
+    };
+
+    $takeIndexableOneFromProv = function (Collection $group, string $prov, array &$usedProv, array &$seenKeys) use (&$picked, $makeSeenKey) {
+        $bucket = $group->where('indexable', true)
+                        ->where(fn ($r) => strtolower((string)($r['provider'] ?? 'local')) === strtolower($prov))
+                        ->values();
+        if ($bucket->isEmpty()) return false;
+
+        // tomar el primero no visto
+        foreach ($bucket as $item) {
+            $k = $makeSeenKey($item);
+            if (!isset($seenKeys[$k])) {
+                $seenKeys[$k] = true;
+                $picked->push($item);
+                $usedProv[strtolower($prov)] = true;
+                return true;
             }
-            return $added;
-        };
+        }
+        return false;
+    };
 
-        // 3) Reparto por tour
-        $tourOrder = $activeTourIds->shuffle()->values();
-        foreach ($tourOrder as $tourId) {
-            if ($picked->count() >= $TARGET_TOTAL) break;
+    $tourOrder = $activeTourIds->shuffle()->values();
 
-            $goal  = $PER_TOUR_GOAL;
-            $group = ($byTour->get((int)$tourId) ?? collect());
+    foreach ($tourOrder as $tourId) {
+        if ($picked->count() >= $TARGET_TOTAL) break;
 
-            // 3.1 Indexables primero
-            $added = $addIndexableFromBuckets(
-                $group->where('indexable', true)->values(),
-                (int)$tourId,
-                $goal
-            );
-            $goal -= $added;
+        $group = ($byTour->get((int)$tourId) ?? collect());
+        $usedProv = []; // para diversidad por tour
+        $added = 0;
 
-            // 3.2 Relleno con iframes (rota proveedores no locales)
-            if ($goal > 0) {
-                foreach ($providersPref as $prov) {
-                    if ($prov === 'local') continue;
-                    if ($goal <= 0) break;
-                    $pushIframe((int)$tourId, $prov);
-                    $goal--;
+        // 1) Intenta 1 indexable de cada proveedor en el orden preferido (local primero)
+        foreach ($providersPref as $prov) {
+            if ($added >= $PER_TOUR_GOAL) break;
+            if ($prov !== 'local') continue; // solo el local suele ser indexable
+            if ($thisTour = $takeIndexableOneFromProv($group, $prov, $usedProv, $seenKeys)) {
+                $added++;
+            }
+        }
+
+        // 2) Completa con remotos (uno por proveedor distinto)
+        foreach ($remoteProviders as $prov) {
+            if ($added >= $PER_TOUR_GOAL) break;
+            if (!isset($usedProv[strtolower($prov)])) {
+                if ($pushIframe((int)$tourId, $prov)) {
+                    $usedProv[strtolower($prov)] = true;
+                    $added++;
                 }
             }
         }
 
-        // 4) Completar global con indexables sueltos
-        if ($picked->count() < $TARGET_TOTAL) {
-            foreach ($all->where('indexable', true)->shuffle() as $it) {
-                if ($picked->count() >= $TARGET_TOTAL) break;
-                $key = $makeSeenKey($it);
-                if (!isset($seenKeys[$key])) {
-                    $seenKeys[$key] = true;
-                    $picked->push($it);
+        // 3) Si aún faltan para llegar a 3, intenta más indexables (aunque repita proveedor)
+        if ($added < $PER_TOUR_GOAL) {
+            $rest = $group->where('indexable', true)->values();
+            foreach ($rest as $item) {
+                if ($added >= $PER_TOUR_GOAL) break;
+                $k = $makeSeenKey($item);
+                if (!isset($seenKeys[$k])) {
+                    $seenKeys[$k] = true;
+                    $picked->push($item);
+                    $added++;
                 }
             }
         }
 
-        // 5) Adjuntar nombres de tour
-        $picked = $this->attachTourNames($picked, $locale, $fallback);
-
-        // Mezcla final
-        return $picked->shuffle()->take($TARGET_TOTAL)->values();
+        // 4) Si todavía faltan, mete más remotos (aunque repita proveedor)
+        if ($added < $PER_TOUR_GOAL) {
+            foreach ($remoteProviders as $prov) {
+                if ($added >= $PER_TOUR_GOAL) break;
+                if ($pushIframe((int)$tourId, $prov)) {
+                    $added++;
+                }
+            }
+        }
     }
+
+    // Adjunta nombres de tour y recorta al total global
+    $picked = $this->attachTourNames($picked, $locale, $fallback);
+
+    return $picked->take($TARGET_TOTAL)->values();
+}
+
+
 
     /* ===========================
        PRIVADOS — SHOW TOUR
@@ -444,6 +470,30 @@ class HomeController extends Controller
         });
     }
 
+private function getRemoteProviderSlugs(): array
+{
+    try {
+        $slugs = DB::table('review_providers')
+            ->where('is_active', true)
+            ->where('indexable', false)
+            ->orderBy('id')
+            ->pluck('slug')
+            ->map(fn ($s) => strtolower(trim($s)))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        return !empty($slugs) ? $slugs : ['viator'];
+    } catch (\Throwable $e) {
+        Log::warning('home.remoteProviders.fail', ['err' => $e->getMessage()]);
+        return ['viator'];
+    }
+}
+
+
+
+
     /* ===========================
        Contacto
        ===========================*/
@@ -505,61 +555,72 @@ class HomeController extends Controller
         }
     }
 
-    /** ===========================
-     *  Reviews para página de tour (25 mezclando locales + iframes)
-     *  Puedes mantener tu implementación existente si ya la tenías.
-     *  Lo dejo aquí como recordatorio de que se llama desde showTour()
-     *  ===========================*/
-    private function buildTourReviews(ReviewAggregator $agg, int $tourId): Collection
-    {
-        $ttl       = 60 * 60 * 24;
-        $targetTot = 25;
+/**
+ * Reviews para página de tour (25 mezclando locales + iframes), filtradas por rating mínimo.
+ */
+private function buildTourReviews(ReviewAggregator $agg, int $tourId, int $min = 4): Collection
+{
+    $ttl       = 60 * 60 * 24;
+    $targetTot = 25;
 
-        $cacheKey = CacheKey::make('tour_reviews', [
-            'tour' => $tourId,
-            'loc'  => 'all',
-            'lim'  => 500,
-        ], 1);
+    // ⬇️ lee el rev por tour (y usa global como fallback por si acaso)
+    $tourRev = Cache::get("reviews.rev.tour.$tourId",
+               Cache::get('reviews.rev', 1));
 
-        return Cache::remember($cacheKey, $ttl, function () use ($agg, $tourId, $targetTot) {
-            $all = $agg->aggregate(['tour_id' => $tourId, 'limit' => 500]);
+    $cacheKey = CacheKey::make('tour_reviews', [
+        'tour' => $tourId,
+        'loc'  => 'all',
+        'lim'  => 500,
+        'min'  => $min,
+        'rev'  => $tourRev,
+    ], 2);
 
-            $indexable = $all->where('indexable', true)->values();
-            $nonIndex  = $all->where('indexable', false)->values();
+    return Cache::remember($cacheKey, $ttl, function () use ($agg, $tourId, $targetTot, $min) {
+        $all = $agg->aggregate([
+            'tour_id'    => $tourId,
+            'limit'      => 500,
+            'min_rating' => $min,
+        ])->filter(fn ($r) => (int)($r['rating'] ?? 0) >= $min)->values();
 
-            $takeIndexable = min($targetTot, $indexable->count());
-            $picked = $indexable->shuffle()->take($takeIndexable)->values();
+        $indexable = $all->where('indexable', true)->values();
+        $nonIndex  = $all->where('indexable', false)->values();
 
-            $remaining = $targetTot - $picked->count();
-            if ($remaining > 0) {
-                $byProvider = $nonIndex
-                    ->groupBy(fn ($r) => strtolower((string)($r['provider'] ?? 'viator')))
-                    ->sortByDesc(fn ($g) => $g->count());
+        $takeIndexable = min($targetTot, $indexable->count());
+        $picked = $indexable->shuffle()->take($takeIndexable)->values();
 
-                $provKeys = $byProvider->keys()->values();
-                $nthCursor = [];
-                $pi = 0;
+        $remaining = $targetTot - $picked->count();
+        if ($remaining > 0) {
+            $byProvider = $nonIndex
+                ->groupBy(fn ($r) => strtolower((string)($r['provider'] ?? 'viator')))
+                ->sortByDesc(fn ($g) => $g->count());
 
-                while ($remaining > 0 && $provKeys->isNotEmpty()) {
-                    $prov = $provKeys[$pi % $provKeys->count()];
-                    $key  = $prov . ':' . $tourId;
-                    $nth  = ($nthCursor[$key] ?? 0) + 1;
-                    $nthCursor[$key] = $nth;
+            $provKeys  = $byProvider->keys()->values();
+            $nthCursor = [];
+            $pi = 0;
 
-                    $picked->push([
-                        'provider'     => $prov,
-                        'indexable'    => false,
-                        'iframe_limit' => 1,
-                        'tour_id'      => $tourId,
-                        'nth'          => $nth,
-                    ]);
+            while ($remaining > 0 && $provKeys->isNotEmpty()) {
+                $prov = $provKeys[$pi % $provKeys->count()];
+                $key  = $prov . ':' . $tourId;
+                $nth  = ($nthCursor[$key] ?? 0) + 1;
+                $nthCursor[$key] = $nth;
 
-                    $remaining--;
-                    $pi++;
-                }
+                $picked->push([
+                    'provider'     => $prov,
+                    'indexable'    => false,
+                    'iframe_limit' => 1,
+                    'tour_id'      => $tourId,
+                    'nth'          => $nth,
+                    'min_rating'   => $min,
+                ]);
+
+                $remaining--;
+                $pi++;
             }
+        }
 
-            return $picked->shuffle()->values();
-        });
-    }
+        return $picked->shuffle()->values();
+    });
+}
+
+
 }

@@ -11,6 +11,7 @@
     'resources/css/reviews.css',
     'resources/css/homereviews.css',
     'resources/css/tour.css',
+    'resources/css/app.css'
   ])
 @endpush
 

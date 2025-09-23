@@ -1,0 +1,346 @@
+<?php
+
+namespace App\Http\Controllers\Admin\Reviews;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\Rule;
+use App\Models\Review;
+use App\Models\ReviewProvider;
+use App\Models\Booking; // <-- import para chequear columnas y relación
+
+class ReviewAdminController extends Controller
+{
+    use AuthorizesRequests;
+
+    /**
+     * Listado + filtros.
+     */
+// app/Http/Controllers/Admin/Reviews/ReviewAdminController.php
+
+public function index(Request $request)
+{
+    $this->authorize('viewAny', Review::class);
+
+    $reviewsTable  = (new Review())->getTable();
+    $bookingsTable = (new \App\Models\Booking())->getTable();
+
+    $hasReviewBkId    = Schema::hasColumn($reviewsTable, 'booking_id');
+    $hasBookingRefCol = Schema::hasColumn($bookingsTable, 'booking_reference');
+
+    // Eager-load dinámico para evitar N+1
+    $with = ['user:user_id,full_name,email'];
+    if ($hasReviewBkId) {
+        $with['booking'] = function ($q) use ($hasBookingRefCol) {
+            $cols = ['booking_id'];
+            if ($hasBookingRefCol) $cols[] = 'booking_reference';
+            $q->select($cols);
+        };
+    }
+
+    $q = Review::query()
+        ->where('provider', 'local')           // <- SOLO locales
+        ->with($with)
+        ->withCount('replies')                 // cuántas respuestas
+        ->withMax('replies', 'created_at');    // fecha de última respuesta
+
+    // Filtros (para locales)
+    if ($st  = $request->get('status'))  $q->where('status', $st);
+    if ($tid = $request->get('tour_id')) $q->where('tour_id', (int) $tid);
+    if ($stars = $request->get('stars')) $q->where('rating', (int) $stars);
+
+    // Búsqueda libre (incluye booking_reference si existe)
+    if ($qstr = trim((string) $request->get('q'))) {
+        $q->where(function ($w) use ($qstr, $hasReviewBkId, $hasBookingRefCol) {
+            $w->where('title', 'ilike', "%{$qstr}%")
+              ->orWhere('body', 'ilike', "%{$qstr}%")
+              ->orWhere('author_name', 'ilike', "%{$qstr}%");
+
+            if ($hasReviewBkId && $hasBookingRefCol) {
+                $w->orWhereHas('booking', function ($bq) use ($qstr) {
+                    $bq->where('booking_reference', 'ilike', "%{$qstr}%");
+                });
+            }
+        });
+    }
+
+    // Filtro: respondido (yes/no)
+    if ($request->filled('responded')) {
+        $resp = $request->get('responded');
+        if ($resp === 'yes')      $q->has('replies');
+        elseif ($resp === 'no')   $q->doesntHave('replies');
+    }
+
+    $reviews = $q->orderByDesc('id')->paginate(25)->withQueryString();
+
+    // Nota: ya no pasamos $providers al Blade
+    return view('admin.reviews.index', compact('reviews'));
+}
+
+
+    /**
+     * Form crear.
+     */
+    public function create()
+    {
+        $this->authorize('create', Review::class);
+
+        $review = new Review();
+        // Defaults amigables
+        $review->provider  = 'local';
+        $review->rating    = 5;
+        $review->status    = 'pending';
+        $review->is_public = false;
+
+        return view('admin.reviews.form', compact('review'));
+    }
+
+    /**
+     * Guardar nueva (por defecto NO pública y en pending).
+     */
+    public function store(Request $request)
+    {
+        $this->authorize('create', Review::class);
+
+        $validated = $request->validate([
+            'tour_id'     => ['required','integer','min:1'],
+            'rating'      => ['required','integer','min:1','max:5'],
+            'title'       => ['nullable','string','max:150'],
+            'body'        => ['required','string','min:5','max:5000'],
+            'author_name' => ['nullable','string','max:100'],
+            'language'    => ['nullable','string','max:10'],
+            'status'      => ['nullable', Rule::in(['pending','published','hidden','flagged'])],
+            'is_public'   => ['nullable','boolean'],
+        ]);
+
+        $data = [
+            'provider'    => 'local',
+            'tour_id'     => (int) $validated['tour_id'],
+            'rating'      => (int) $validated['rating'],
+            'title'       => $validated['title'] ?? null,
+            'body'        => $validated['body'],
+            'author_name' => $validated['author_name'] ?? null,
+        ];
+
+        if (Schema::hasColumn('reviews', 'language'))  $data['language']  = $validated['language'] ?? null;
+        if (Schema::hasColumn('reviews', 'status'))    $data['status']    = 'pending';
+        if (Schema::hasColumn('reviews', 'is_public')) $data['is_public'] = false;
+        if (Schema::hasColumn('reviews', 'indexable')) $data['indexable'] = true;
+
+        $review = Review::create($data);
+
+        $this->touchReviewsRevision();
+
+        return redirect()
+            ->route('admin.reviews.index')
+            ->with('ok', __('reviews.admin.messages.created'));
+    }
+
+    /**
+     * Form editar.
+     */
+    public function edit(Review $review)
+    {
+        $this->authorize('update', $review);
+
+        return view('admin.reviews.form', compact('review'));
+    }
+
+    /**
+     * Actualizar (tour_id suele venir disabled en el form).
+     */
+    public function update(Request $request, Review $review)
+    {
+        $this->authorize('update', $review);
+
+        $validated = $request->validate([
+            'rating'      => ['required','integer','min:1','max:5'],
+            'title'       => ['nullable','string','max:150'],
+            'body'        => ['required','string','min:5','max:5000'],
+            'author_name' => ['nullable','string','max:100'],
+            'language'    => ['nullable','string','max:10'],
+            'status'      => ['nullable', Rule::in(['pending','published','hidden','flagged'])],
+            'is_public'   => ['nullable','boolean'],
+        ]);
+
+        $payload = [
+            'rating'      => (int) $validated['rating'],
+            'title'       => $validated['title'] ?? null,
+            'body'        => $validated['body'],
+            'author_name' => $validated['author_name'] ?? null,
+        ];
+
+        if (Schema::hasColumn($review->getTable(), 'language')) $payload['language'] = $validated['language'] ?? $review->language;
+        if (Schema::hasColumn($review->getTable(), 'status'))   $payload['status']   = $validated['status'] ?? $review->status ?? 'pending';
+        if (Schema::hasColumn($review->getTable(), 'is_public')) {
+            $payload['is_public'] = array_key_exists('is_public', $validated)
+                ? (bool) $validated['is_public']
+                : (bool) $review->is_public;
+
+            if (($payload['status'] ?? $review->status) !== 'published') {
+                $payload['is_public'] = false;
+            }
+        }
+
+        $review->update($payload);
+
+        $this->touchReviewsRevision();
+
+        return redirect()
+            ->route('admin.reviews.index')
+            ->with('ok', __('reviews.admin.messages.updated'));
+    }
+
+    /**
+     * Eliminar.
+     */
+    public function destroy(Review $review)
+    {
+        $this->authorize('delete', $review);
+
+        $review->delete();
+
+        $this->touchReviewsRevision();
+
+        return back()->with('ok', __('reviews.admin.messages.deleted'));
+    }
+
+    /**
+     * Publicar (status=published, is_public=true).
+     */
+public function publish(Review $review)
+{
+    $this->authorize('update', $review);
+
+    $min = (int) config('reviews.min_public_rating', 1);
+    if ($min > 1 && (int) $review->rating < $min) {
+        return back()->with('error', __('reviews.admin.messages.publish_min_rating', [
+            'rating' => $review->rating,
+            'min'    => $min,
+        ]));
+    }
+
+    if (Schema::hasColumn($review->getTable(), 'status'))   $review->status   = 'published';
+    if (Schema::hasColumn($review->getTable(), 'is_public')) $review->is_public = true;
+
+    $review->save();
+    $this->touchReviewsRevision();
+
+    return back()->with('ok', __('reviews.admin.messages.published'));
+}
+
+
+    /**
+     * Ocultar (status=hidden, is_public=false).
+     */
+    public function hide(Review $review)
+    {
+        $this->authorize('update', $review);
+
+        if (Schema::hasColumn($review->getTable(), 'status'))   $review->status   = 'hidden';
+        if (Schema::hasColumn($review->getTable(), 'is_public')) $review->is_public = false;
+
+        $review->save();
+
+        $this->touchReviewsRevision();
+
+        return back()->with('ok', __('reviews.admin.messages.hidden'));
+    }
+
+    /**
+     * Flag/Marcar sospechosa (status=flagged, is_public=false).
+     */
+    public function flag(Review $review, Request $request)
+    {
+        $this->authorize('update', $review);
+
+        if (Schema::hasColumn($review->getTable(), 'status'))   $review->status   = 'flagged';
+        if (Schema::hasColumn($review->getTable(), 'is_public')) $review->is_public = false;
+        if (Schema::hasColumn($review->getTable(), 'flag_reason')) {
+            $reason = (string) $request->input('reason', '');
+            $review->flag_reason = $reason !== '' ? $reason : null;
+        }
+
+        $review->save();
+
+        $this->touchReviewsRevision();
+
+        return back()->with('ok', __('reviews.admin.messages.flagged'));
+    }
+
+    /**
+     * Acciones masivas: publish | hide | flag | delete
+     */
+    public function bulk(Request $request)
+    {
+        $this->authorize('update', Review::class);
+
+        $request->validate([
+            'action' => ['required', Rule::in(['publish','hide','flag','delete'])],
+            'ids'    => ['required','array','min:1'],
+            'ids.*'  => ['integer'],
+        ]);
+
+        $ids    = array_map('intval', (array) $request->input('ids', []));
+        $action = (string) $request->input('action');
+
+        $items = Review::whereIn('id', $ids)->where('provider','local')->get();
+        $count = 0;
+
+        foreach ($items as $r) {
+            $this->authorize('update', $r);
+
+            switch ($action) {
+                case 'publish':
+                    if (Schema::hasColumn($r->getTable(), 'status'))    $r->status    = 'published';
+                    if (Schema::hasColumn($r->getTable(), 'is_public')) $r->is_public = true;
+                    $r->save(); $count++; break;
+
+                case 'hide':
+                    if (Schema::hasColumn($r->getTable(), 'status'))    $r->status    = 'hidden';
+                    if (Schema::hasColumn($r->getTable(), 'is_public')) $r->is_public = false;
+                    $r->save(); $count++; break;
+
+                case 'flag':
+                    if (Schema::hasColumn($r->getTable(), 'status'))    $r->status    = 'flagged';
+                    if (Schema::hasColumn($r->getTable(), 'is_public')) $r->is_public = false;
+                    $r->save(); $count++; break;
+
+                case 'delete':
+                    $this->authorize('delete', $r);
+                    $r->delete(); $count++; break;
+            }
+        }
+
+        $this->touchReviewsRevision();
+
+        $msg = match ($action) {
+            'publish' => __('reviews.admin.messages.bulk_published', ['n' => $count]),
+            'hide'    => __('reviews.admin.messages.bulk_hidden',    ['n' => $count]),
+            'flag'    => __('reviews.admin.messages.bulk_flagged',   ['n' => $count]),
+            'delete'  => __('reviews.admin.messages.bulk_deleted',   ['n' => $count]),
+        };
+
+        return back()->with('ok', $msg);
+    }
+
+    /**
+     * Sube el "revisión" global para invalidar cachés de reviews.
+     */
+    private function touchReviewsRevision(): void
+    {
+        try {
+            if (! Cache::has('reviews.rev')) {
+                Cache::put('reviews.rev', 1, now()->addYears(5));
+            } else {
+                Cache::increment('reviews.rev');
+            }
+        } catch (\Throwable $e) {
+            $v = (int) Cache::get('reviews.rev', 0) + 1;
+            Cache::put('reviews.rev', $v, now()->addYears(5));
+        }
+    }
+}

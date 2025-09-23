@@ -4,14 +4,31 @@ namespace App\Policies;
 
 use App\Models\ReviewRequest;
 use App\Models\User;
-use App\Policies\Concerns\ChecksAdmin;
 
 class ReviewRequestPolicy
 {
-    use ChecksAdmin;
+    public function viewAny(User $user): bool
+    {
+        return $user->canDo('manage-review-requests') || $user->canDo('manage-reviews');
+    }
 
-    public function viewAny(User $user): bool { return $this->isAdmin($user); }
-    public function create(User $user): bool  { return $this->isAdmin($user); }
-    public function update(User $user, ReviewRequest $r): bool { return $this->isAdmin($user); }
-    public function delete(User $user, ReviewRequest $r): bool { return $this->isAdmin($user); }
+    public function view(User $user, ReviewRequest $request): bool
+    {
+        return $user->canDo('manage-review-requests') || $user->canDo('manage-reviews');
+    }
+
+    public function create(User $user): bool
+    {
+        return $user->canDo('manage-review-requests');
+    }
+
+    public function update(User $user, ReviewRequest $request): bool
+    {
+        return $user->canDo('manage-review-requests');
+    }
+
+    public function delete(User $user, ReviewRequest $request): bool
+    {
+        return $user->canDo('manage-review-requests');
+    }
 }

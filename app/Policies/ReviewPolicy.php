@@ -4,45 +4,41 @@ namespace App\Policies;
 
 use App\Models\Review;
 use App\Models\User;
-use App\Policies\Concerns\ChecksAdmin;
 
 class ReviewPolicy
 {
-    use ChecksAdmin;
-
-    public function viewAny(?User $user): bool
+    public function viewAny(User $user): bool
     {
-        return true; // listado público (filtrado por published/is_public)
+        return $user->canDo('manage-reviews');
     }
 
-    public function view(?User $user, Review $review): bool
+    public function view(User $user, Review $review): bool
     {
-        return $review->status === 'published' && $review->is_public;
+        return $user->canDo('manage-reviews');
     }
 
-    public function create(?User $user): bool
+    public function create(User $user): bool
     {
-        // clientes (con/sin login) pueden crear; protege con captcha/throttle en FormRequest/Controller
-        return true;
+        return $user->canDo('manage-reviews');
     }
 
     public function update(User $user, Review $review): bool
     {
-        return $this->isAdmin($user);
+        return $user->canDo('manage-reviews');
     }
 
     public function delete(User $user, Review $review): bool
     {
-        return $this->isAdmin($user);
+        return $user->canDo('manage-reviews');
     }
 
-    public function moderate(User $user, Review $review): bool
+    public function restore(User $user, Review $review): bool
     {
-        return $this->isAdmin($user);
+        return $user->canDo('manage-reviews');
     }
 
-    public function reply(User $user, Review $review): bool
+    public function forceDelete(User $user, Review $review): bool
     {
-        return $this->isAdmin($user);
+        return $user->canDo('manage-reviews');
     }
 }

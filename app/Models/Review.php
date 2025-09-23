@@ -21,7 +21,11 @@ class Review extends Model
     ];
 
     public function tour()    { return $this->belongsTo(\App\Models\Tour::class); }
-    public function booking() { return $this->belongsTo(\App\Models\Booking::class); }
+
+public function booking()
+{
+    return $this->belongsTo(\App\Models\Booking::class, 'booking_id', 'booking_id');
+}
     public function user()    { return $this->belongsTo(\App\Models\User::class); }
     public function replies() { return $this->hasMany(ReviewReply::class); }
 }

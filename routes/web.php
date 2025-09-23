@@ -36,12 +36,16 @@ use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
 use App\Http\Controllers\Admin\MeetingPointSimpleController;
 use App\Http\Controllers\Reviews\ReviewsController;
 
+use App\Http\Controllers\Admin\Reviews\ReviewAdminController;
+use App\Http\Controllers\Admin\Reviews\ReviewProviderController;
+use App\Http\Controllers\Admin\Reviews\ReviewReplyController;
+use App\Http\Controllers\Admin\Reviews\ReviewRequestAdminController;
+
+// Public review request
+use App\Http\Controllers\Reviews\PublicReviewController;
 
 // Auth
 use App\Http\Controllers\Auth\UnlockAccountController;
-
-// Models
-use App\Models\Tour;
 
 Route::middleware([SetLocale::class])->group(function () {
     /**
@@ -49,55 +53,27 @@ Route::middleware([SetLocale::class])->group(function () {
      * Públicas (GET)
      * =======================
      */
+    Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::get('/language/{language}', [DashBoardController::class, 'switchLanguage'])->name('switch.language');
+    Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
+    Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
+    Route::get('/tour/{id}', [HomeController::class, 'showTour'])->name('tours.show');
 
-    // Home – depende de idioma => cache privado del navegador
-    Route::get('/', [HomeController::class, 'index'])
-        ->name('home');
+    Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+    Route::post('/contact', [HomeController::class, 'sendContact'])->middleware('throttle:6,1')->name('contact.send');
 
-    // Cambiar idioma – NO cachear (modifica sesión/locale)
-    Route::get('/language/{language}', [DashBoardController::class, 'switchLanguage'])
-        ->name('switch.language');
-
-    // FAQ – si tiene traducciones, también privado
-    Route::get('/faq', [FaqController::class, 'index'])
-        ->name('faq.index');
-
-    // Listado de tours – suele ser estable; depende de idioma => privado
-    Route::get('/tours', [HomeController::class, 'allTours'])
-        ->name('tours.index');
-
-    // Detalle del tour – estable; depende de idioma => privado
-    Route::get('/tour/{id}', [HomeController::class, 'showTour'])
-        ->name('tours.show');
-
-    // Contacto (GET) – incluye CSRF/form. Mejor NO cachearlo para evitar líos de token
-    Route::get('/contact', [HomeController::class, 'contact'])
-        ->name('contact');
-
-    // Contacto (POST) – nunca cachear
-    Route::post('/contact', [HomeController::class, 'sendContact'])
-        ->middleware('throttle:6,1')
-        ->name('contact.send');
-
-    // =======================
-    // Reviews
-    // =======================
-
-    // Página pública de reviews (índice) – depende de idioma => privado
-    Route::get('/reviews', [ReviewsController::class, 'index'])
-        ->name('reviews.index');
-
-    // Reviews por tour – idem
-    Route::get('/tours/{tour}/reviews', [ReviewsController::class, 'tour'])
-        ->name('reviews.tour');
-
-    // Crear reseña nativa (POST) – nunca cachear
-    Route::post('/reviews', [ReviewsController::class, 'store'])
-        ->name('reviews.store');
-
-    // Iframe no-index por proveedor – respuesta rápida; 15 min es razonable
+    // Reviews (público)
+    Route::get('/reviews', [ReviewsController::class, 'index'])->name('reviews.index');
+    Route::get('/tours/{tour}/reviews', [ReviewsController::class, 'tour'])->name('reviews.tour');
+    Route::post('/reviews', [ReviewsController::class, 'store'])->name('reviews.store');
     Route::get('/reviews/embed/{provider}', [ReviewsController::class, 'embed'])
+        ->where('provider', '[A-Za-z0-9_-]+')
         ->name('reviews.embed');
+
+    // Link público para solicitar y enviar reseña
+    Route::get('/r/{token}', [PublicReviewController::class, 'show'])->name('reviews.request.show');
+    Route::post('/r/{token}', [PublicReviewController::class, 'submit'])->name('reviews.request.submit');
+    Route::view('/reviews/thanks', 'reviews.thanks')->name('reviews.thanks');
 
     // Políticas públicas
     Route::get('/politicas', [\App\Http\Controllers\PoliciesController::class, 'index'])->name('policies.index');
@@ -123,24 +99,13 @@ Route::middleware([SetLocale::class])->group(function () {
      * =======================
      * Auth (Fortify)
      * =======================
-     * Fortify registra automáticamente /login, /register, /forgot-password,
-     * /reset-password/{token}, /email/verify, /two-factor-challenge, etc.
      */
-    Route::view('/account/locked', 'auth.account-locked')->name('account.locked'); // opcional
-
-    // Vista de enfriamiento (429 throttle)
+    Route::view('/account/locked', 'auth.account-locked')->name('account.locked');
     Route::get('/auth/throttled', fn () => response()->view('errors.429'))->name('auth.throttled');
 
-    // Self-service unlock (opcional para usuarios finales)
     Route::get('/unlock-account', [UnlockAccountController::class, 'form'])->name('unlock.form');
-    Route::post('/unlock-account', [UnlockAccountController::class, 'send'])
-        ->middleware('throttle:3,1')
-        ->name('unlock.send');
-
-    // Enlace firmado para desbloqueo de cuenta (desde el email)
-    Route::get('/unlock-account/{user}/{hash}', [UnlockAccountController::class, 'process'])
-        ->middleware('signed')
-        ->name('unlock.process');
+    Route::post('/unlock-account', [UnlockAccountController::class, 'send'])->middleware('throttle:3,1')->name('unlock.send');
+    Route::get('/unlock-account/{user}/{hash}', [UnlockAccountController::class, 'process'])->middleware('signed')->name('unlock.process');
 
     /**
      * =======================
@@ -155,7 +120,7 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::get('/my-reservations', [BookingController::class, 'myReservations'])->name('my-reservations');
         Route::get('/my-reservations/{booking}/receipt', [BookingController::class, 'showReceipt'])->name('my-reservations.receipt');
 
-        // Carrito (dos alias, nombres distintos)
+        // Carrito (dos alias)
         Route::get('/my-cart',    [CartController::class, 'index'])->name('public.cart.index');
         Route::get('/mi-carrito', [CartController::class, 'index'])->name('public.cart.index.es');
 
@@ -169,16 +134,13 @@ Route::middleware([SetLocale::class])->group(function () {
      * =======================
      * Admin
      * =======================
-     * - Requiere auth + verified + can:access-admin
-     * - Perfil admin SIN 2FA obligatorio (se usa para activar 2FA)
-     * - Resto del panel CON 2FA obligatorio
      */
     Route::middleware(['auth', 'verified', 'can:access-admin'])
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
 
-            // Perfil admin (sin 2FA obligatorio)
+            // Perfil admin
             Route::get('/profile',       [ProfileController::class, 'adminShow'])->name('profile.show');
             Route::get('/profile/edit',  [ProfileController::class, 'adminEdit'])->name('profile.edit');
             Route::post('/profile/edit', [ProfileController::class, 'adminUpdate'])->name('profile.update');
@@ -324,6 +286,53 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::patch('carritos/{cart}/toggle', [CartController::class, 'toggleActive'])->name('cart.toggle');
                 Route::post('carrito/apply-promo',  [CartController::class, 'applyPromoAdmin'])->name('cart.applyPromo');
                 Route::delete('carrito/remove-promo', [CartController::class, 'removePromoAdmin'])->name('cart.removePromo');
+
+                /**
+                 * =======================
+                 * REVIEWS (solo roles con manage-reviews)
+                 * =======================
+                 */
+                Route::middleware(['can:manage-reviews'])->group(function () {
+
+                    // PROVEEDORES
+                    Route::resource('review-providers', ReviewProviderController::class)
+                        ->except(['show'])
+                        ->parameters(['review-providers' => 'provider'])
+                        ->names('review-providers');
+
+                    Route::post('review-providers/{provider}/toggle',      [ReviewProviderController::class, 'toggle'])->name('review-providers.toggle');
+                    Route::post('review-providers/{provider}/test',        [ReviewProviderController::class, 'test'])->name('review-providers.test');
+                    Route::post('review-providers/{provider}/cache/flush', [ReviewProviderController::class, 'flushCache'])->name('review-providers.flush');
+
+                    // RESEÑAS (moderación + CRUD local)
+                    Route::get(   'reviews',               [ReviewAdminController::class, 'index'])->name('reviews.index');
+                    Route::get(   'reviews/create',        [ReviewAdminController::class, 'create'])->name('reviews.create');
+                    Route::post(  'reviews',               [ReviewAdminController::class, 'store'])->name('reviews.store');
+                    Route::get(   'reviews/{review}/edit', [ReviewAdminController::class, 'edit'])->name('reviews.edit');
+                    Route::put(   'reviews/{review}',      [ReviewAdminController::class, 'update'])->name('reviews.update');
+                    Route::delete('reviews/{review}',      [ReviewAdminController::class, 'destroy'])->name('reviews.destroy');
+
+                    // Acciones de moderación
+                    Route::post('reviews/{review}/publish', [ReviewAdminController::class, 'publish'])->name('reviews.publish');
+                    Route::post('reviews/{review}/hide',    [ReviewAdminController::class, 'hide'])->name('reviews.hide');
+                    Route::post('reviews/{review}/flag',    [ReviewAdminController::class, 'flag'])->name('reviews.flag');
+                    Route::post('reviews/bulk',             [ReviewAdminController::class, 'bulk'])->name('reviews.bulk');
+
+                    // Respuestas de admin a reseñas
+                    Route::get(   'reviews/{review}/replies/create', [ReviewReplyController::class, 'create'])->name('reviews.replies.create');
+                    Route::post(  'reviews/{review}/replies',        [ReviewReplyController::class, 'store'])->name('reviews.replies.store');
+                    Route::delete('reviews/{review}/replies/{reply}',[ReviewReplyController::class, 'destroy'])->name('reviews.replies.destroy');
+                    Route::post(  'reviews/{review}/replies/{reply}/toggle', [ReviewReplyController::class, 'toggle'])->name('reviews.replies.toggle');
+
+                    // Hilo (thread) de una reseña
+                    Route::get('reviews/{review}/thread', [ReviewReplyController::class, 'thread'])->name('reviews.replies.thread');
+
+                    // Solicitudes post-compra
+                    Route::get(   'review-requests',                [ReviewRequestAdminController::class, 'index'])->name('review-requests.index');
+                    Route::post(  'review-requests/{booking}/send', [ReviewRequestAdminController::class, 'send'])->name('review-requests.send');
+                    Route::post(  'review-requests/{rr}/resend',    [ReviewRequestAdminController::class, 'resend'])->name('review-requests.resend');
+                    Route::delete('review-requests/{rr}',           [ReviewRequestAdminController::class, 'destroy'])->name('review-requests.destroy');
+                });
             });
         });
 });

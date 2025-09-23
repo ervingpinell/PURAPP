@@ -457,7 +457,7 @@ return [
             ],
             [
                 'text'  => 'Meeting Points',
-                'route' => 'admin.meetingpoints.index', // si tu resource está bajo prefix admin
+                'route' => 'admin.meetingpoints.index',
                 'icon'  => 'fas fa-map-marker-alt',
             ],
 
@@ -483,6 +483,31 @@ return [
             ],
         ],
     ],
+// ✅ RESEÑAS
+[
+    'text'    => 'Reseñas',
+    'icon'    => 'fas fa-star',
+    'can'     => 'manage-reviews',
+    'submenu' => [
+        [
+            'text'  => 'Todos los Reviews',
+            'route' => 'admin.reviews.index',
+            'icon'  => 'fas fa-star',
+        ],
+
+        [
+            'text'  => 'Proveedores',
+            'route' => 'admin.review-providers.index',
+            'icon'  => 'fas fa-plug',
+        ],
+        [
+            'text'  => 'Solicitar Reviews',
+            'route' => 'admin.review-requests.index',
+            'icon'  => 'fas fa-envelope-open-text',
+        ],
+    ],
+],
+
 [
     'text'         => '🌐',
     'icon'         => false,

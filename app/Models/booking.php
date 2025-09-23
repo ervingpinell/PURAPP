@@ -42,6 +42,11 @@ class Booking extends Model
     {
         $this->attributes['status'] = strtolower($value);
     }
+
+    public function getReferenceAttribute()
+{
+    return $this->booking_reference;
+}
     public function details()
     {
         return $this->hasMany(BookingDetail::class, 'booking_id', 'booking_id');
@@ -71,5 +76,7 @@ class Booking extends Model
     {
         return $this->redemption?->promoCode;
     }
-
+public function reviews() { return $this->hasMany(\App\Models\Review::class, 'tour_id','tour_id')
+                                   ->whereColumn('user_id', 'bookings.user_id'); }
+public function reviewRequests() { return $this->hasMany(\App\Models\ReviewRequest::class, 'booking_id','booking_id'); }
 }

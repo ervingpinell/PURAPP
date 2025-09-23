@@ -16,6 +16,7 @@ class ReviewProvider extends Model
 
     protected $casts = [
         'indexable'     => 'boolean',
+        'is_system'     => 'boolean',
         'is_active'     => 'boolean',
         'cache_ttl_sec' => 'integer',
         'settings'      => 'array',
@@ -27,6 +28,48 @@ class ReviewProvider extends Model
     public const SECRET_KEYS = [
         'api_key', 'api_secret', 'client_secret', 'access_token', 'refresh_token',
     ];
+
+public const LOCAL_SLUG = 'local';
+       private const LOCAL_ALLOWED_SETTINGS = ['min_stars', 'auto_publish'];
+
+        protected static function booted(): void
+    {
+        // Saneo / invariantes ANTES de guardar
+        static::saving(function (ReviewProvider $m) {
+            // ¿Es el local o es de sistema?
+            if (($m->slug === self::LOCAL_SLUG) || ($m->is_system ?? false)) {
+                // Fuerza invariantes
+                $m->slug      = self::LOCAL_SLUG;
+                $m->driver    = 'local';
+                $m->is_system = true;
+                $m->is_active = true;
+
+                // Sanea settings: solo min_stars (+ auto_publish si lo usas)
+                $s = (array) ($m->settings ?? []);
+
+                // Normaliza min_stars 0..5
+                $min = (int) data_get($s, 'min_stars', 0);
+                $min = max(0, min(5, $min));
+
+                // (Opcional) conservar auto_publish si lo usas en tu flujo
+                $auto = (bool) data_get($s, 'auto_publish', data_get($m->attributes, 'auto_publish', true));
+
+                $sanitized = ['min_stars' => $min];
+                if (array_key_exists('auto_publish', $s)) {
+                    $sanitized['auto_publish'] = $auto;
+                }
+
+                $m->settings = $sanitized; // re-dispara mutator y cifra secretos si los hubiera
+            }
+        });
+
+        // Bloquea eliminar el local
+        static::deleting(function (ReviewProvider $m) {
+            if ($m->slug === self::LOCAL_SLUG || ($m->is_system ?? false)) {
+                throw new \RuntimeException("El proveedor 'local' es de sistema y no puede eliminarse.");
+            }
+        });
+    }
 
     /**
      * Mutator: cifra llaves sensibles que lleguen en claro en settings.* y

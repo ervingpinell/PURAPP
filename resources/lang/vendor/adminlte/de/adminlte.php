@@ -439,5 +439,6 @@ return [
         'reference' => 'Referenz',
         'date'      => 'Datum',
     ],
+        'pickup'      => 'Abholort',
 
 ];

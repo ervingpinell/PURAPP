@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 // Notificaciones nativas (sin colas)
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -110,7 +111,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function adminlte_profile_url()
     {
-        return in_array((int) $this->role_id, [1, 2], true)
+        return $this->canDo('access-admin')
             ? route('admin.profile.edit')
             : route('profile.edit');
     }
@@ -152,7 +153,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected function phone(): Attribute
     {
-        return Attribute::make(
+        return Attribute::Make(
             set: function ($value) {
                 if ($value === null || $value === '') return null;
                 $digits = preg_replace('/\D+/', '', (string) $value);
@@ -271,10 +272,76 @@ class User extends Authenticatable implements MustVerifyEmail
             'user_id' => $this->getKey(),
             'email'   => $this->email,
         ]);
-
     }
 
-    public function isAdmin(): bool { return (int)$this->role_id === 1; }
-public function isStaff(): bool { return in_array((int)$this->role_id, [1,2], true); }
+    /* ============================================================
+     | Backwards-compat (si aún se usa en vistas/old code)
+     * ============================================================*/
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
+    }
 
+    public function isStaff(): bool
+    {
+        // Roles que consideras “staff” para UI antiguas
+        return $this->hasAnyRole(['admin', 'supervisor', 'editor']);
+    }
+
+    /* ============================================================
+     | RBAC helpers (sin depender de IDs)
+     * ============================================================*/
+
+    /**
+     * Slug de rol estable:
+     * 1) usa $this->role->key si existe,
+     * 2) usa config('acl.roles_by_id')[role_id],
+     * 3) slug del role_name como último recurso,
+     * 4) 'guest' si no hay nada.
+     */
+    public function roleSlug(): string
+    {
+        // 1) si la relación ya viene cargada y tiene 'key'
+        if ($this->relationLoaded('role') && $this->role && isset($this->role->key)) {
+            return (string) $this->role->key;
+        }
+        // 1b) intenta cargar perezosamente
+        if ($this->role && isset($this->role->key)) {
+            return (string) $this->role->key;
+        }
+
+        // 2) mapa de config
+        $map = (array) config('acl.roles_by_id', []);
+        if ($this->role_id !== null && array_key_exists((int) $this->role_id, $map)) {
+            return (string) $map[(int) $this->role_id];
+        }
+
+        // 3) slug del nombre del rol
+        if ($this->relationLoaded('role') && $this->role && isset($this->role->role_name)) {
+            return Str::slug((string) $this->role->role_name);
+        }
+
+        return 'guest';
+    }
+
+    public function hasRole(string|array $roles): bool
+    {
+        $roles = array_map('strval', (array) $roles);
+        return in_array($this->roleSlug(), $roles, true);
+    }
+
+    public function hasAnyRole(array $roles): bool
+    {
+        return $this->hasRole($roles);
+    }
+
+    /**
+     * ¿Puede ejercer una “ability” declarada en config/acl.php?
+     */
+    public function canDo(string $ability): bool
+    {
+        $matrix  = (array) config('acl.abilities', []);
+        $allowed = (array) ($matrix[$ability] ?? []);
+        return $this->hasAnyRole($allowed);
+    }
 }
