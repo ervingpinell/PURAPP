@@ -6,10 +6,13 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL; // ⬅️ NUEVO
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
+
 use App\Services\Contracts\TranslatorInterface;
 use App\Services\DeepLTranslator;
+
 use App\Observers\ReviewObserver;
 use App\Models\Review;
 use App\Models\ReviewProvider;
@@ -25,13 +28,27 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Observers
-        Review::observe(ReviewObserver::class);
+        // 1) Forzar host y esquema a partir de APP_URL
+        if ($root = config('app.url')) {
+            URL::forceRootUrl($root);
+            if (str_starts_with($root, 'https://')) {
+                URL::forceScheme('https');
+            }
+        }
 
-        // Asegura que exista el proveedor 'local' y quede bloqueado como de sistema
-        $this->ensureLocalReviewProvider();
+        // 2) Generar SIEMPRE el enlace de verificación con la raíz forzada
+        VerifyEmail::createUrlUsing(function ($notifiable) {
+            return URL::temporarySignedRoute(
+                'verification.verify',
+                now()->addMinutes(config('auth.verification.expire', 60)),
+                [
+                    'id'   => $notifiable->getKey(), // en tu User es user_id; getKey() ya lo resuelve
+                    'hash' => sha1($notifiable->getEmailForVerification()),
+                ]
+            );
+        });
 
-        // Email de verificación personalizado
+        // 3) Email de verificación personalizado (usa la URL ya generada arriba)
         VerifyEmail::toMailUsing(function ($notifiable, string $url) {
             return (new MailMessage)
                 ->subject(__('adminlte::auth.verify.subject'))
@@ -40,6 +57,12 @@ class AppServiceProvider extends ServiceProvider
                 ->action(__('adminlte::auth.verify.action'), $url)
                 ->line(__('adminlte::auth.verify.outro'));
         });
+
+        // Observers
+        Review::observe(ReviewObserver::class);
+
+        // Asegura que exista el proveedor 'local' y quede bloqueado como de sistema
+        $this->ensureLocalReviewProvider();
 
         // Compatibilidad longitud índices
         Schema::defaultStringLength(191);
@@ -67,43 +90,42 @@ class AppServiceProvider extends ServiceProvider
      * - Marca is_system = true (para bloquear eliminación/edición sensible).
      * - Ajusta driver = 'local' (o el que definas en config).
      */
-protected function ensureLocalReviewProvider(): void
-{
-    if (! Schema::hasTable('review_providers')) return;
+    protected function ensureLocalReviewProvider(): void
+    {
+        if (! Schema::hasTable('review_providers')) return;
 
-    ReviewProvider::withoutEvents(function () {
-        $p = ReviewProvider::firstOrNew(['slug' => 'local']);
+        ReviewProvider::withoutEvents(function () {
+            $p = ReviewProvider::firstOrNew(['slug' => 'local']);
 
-        $table = $p->getTable();
+            $table = $p->getTable();
 
-        // Si es nuevo, setea TODO antes del primer save (evita NOT NULL violations)
-        if (! $p->exists) {
-            if (Schema::hasColumn($table, 'name'))          $p->name = $p->name ?? 'Local';
-            if (Schema::hasColumn($table, 'driver'))        $p->driver = 'local';
-            if (Schema::hasColumn($table, 'is_active'))     $p->is_active = true;
-            if (Schema::hasColumn($table, 'is_system'))     $p->is_system = true;
-            if (Schema::hasColumn($table, 'indexable') && $p->indexable === null) $p->indexable = true;
-            if (Schema::hasColumn($table, 'cache_ttl_sec') && empty($p->cache_ttl_sec)) $p->cache_ttl_sec = 3600;
+            // Si es nuevo, setea TODO antes del primer save (evita NOT NULL violations)
+            if (! $p->exists) {
+                if (Schema::hasColumn($table, 'name'))          $p->name = $p->name ?? 'Local';
+                if (Schema::hasColumn($table, 'driver'))        $p->driver = 'local';
+                if (Schema::hasColumn($table, 'is_active'))     $p->is_active = true;
+                if (Schema::hasColumn($table, 'is_system'))     $p->is_system = true;
+                if (Schema::hasColumn($table, 'indexable') && $p->indexable === null) $p->indexable = true;
+                if (Schema::hasColumn($table, 'cache_ttl_sec') && empty($p->cache_ttl_sec)) $p->cache_ttl_sec = 3600;
+                if (Schema::hasColumn($table, 'settings')) {
+                    $settings = is_array($p->settings) ? $p->settings : [];
+                    $settings['min_stars'] = $settings['min_stars'] ?? 0;
+                    $p->settings = $settings;
+                }
+                $p->save();
+                return;
+            }
+
+            // Si ya existe, normaliza por si alguien lo tocó
+            $dirty = false;
+            if (Schema::hasColumn($table, 'driver')     && $p->driver !== 'local') { $p->driver = 'local'; $dirty = true; }
+            if (Schema::hasColumn($table, 'is_active')  && ! $p->is_active)        { $p->is_active = true; $dirty = true; }
+            if (Schema::hasColumn($table, 'is_system')  && ! $p->is_system)        { $p->is_system = true; $dirty = true; }
             if (Schema::hasColumn($table, 'settings')) {
                 $settings = is_array($p->settings) ? $p->settings : [];
-                $settings['min_stars'] = $settings['min_stars'] ?? 0;
-                $p->settings = $settings;
+                if (! array_key_exists('min_stars', $settings)) { $settings['min_stars'] = 0; $p->settings = $settings; $dirty = true; }
             }
-            $p->save();
-            return;
-        }
-
-        // Si ya existe, normaliza por si alguien lo tocó
-        $dirty = false;
-        if (Schema::hasColumn($table, 'driver')     && $p->driver !== 'local') { $p->driver = 'local'; $dirty = true; }
-        if (Schema::hasColumn($table, 'is_active')  && ! $p->is_active)        { $p->is_active = true; $dirty = true; }
-        if (Schema::hasColumn($table, 'is_system')  && ! $p->is_system)        { $p->is_system = true; $dirty = true; }
-        if (Schema::hasColumn($table, 'settings')) {
-            $settings = is_array($p->settings) ? $p->settings : [];
-            if (! array_key_exists('min_stars', $settings)) { $settings['min_stars'] = 0; $p->settings = $settings; $dirty = true; }
-        }
-        if ($dirty) $p->save();
-    });
-}
-
+            if ($dirty) $p->save();
+        });
+    }
 }
