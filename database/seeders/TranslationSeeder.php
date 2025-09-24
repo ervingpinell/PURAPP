@@ -15,12 +15,13 @@ use App\Models\ItineraryTranslation;
 use App\Models\ItineraryItemTranslation;
 use App\Models\AmenityTranslation;
 use App\Models\FaqTranslation;
-use App\Models\TourTypeTranslation;
 
 use App\Models\Policy;
 use App\Models\PolicyTranslation;
 use App\Models\PolicySection;
 use App\Models\PolicySectionTranslation;
+use App\Models\TourTypeTranslation;
+
 
 use App\Services\Contracts\TranslatorInterface;
 
@@ -63,6 +64,9 @@ class TranslationSeeder extends Seeder
         $this->command?->warn('🧹 Previous translations removed (policies ES preserved).');
     }
 
+    /**
+     * POLICIES: usar 'name' (no 'title')
+     */
     protected function translatePolicies(TranslatorInterface $translator): void
     {
         $policies = Policy::where('is_active', true)->cursor();
@@ -77,24 +81,27 @@ class TranslationSeeder extends Seeder
                 continue;
             }
 
-            $titleSrc   = (string) ($src->title ?? '');
+            $nameSrc    = (string) ($src->name ?? '');
             $contentSrc = (string) ($src->content ?? '');
 
             foreach (array_diff($this->locales, ['es']) as $locale) {
-                $titleTr   = $translator->translate($titleSrc, $locale);
+                $nameTr    = $translator->translate($nameSrc, $locale);
                 $contentTr = $translator->translate($contentSrc, $locale);
 
                 PolicyTranslation::updateOrCreate(
                     ['policy_id' => $policy->getKey(), 'locale' => $locale],
-                    ['title' => $titleTr, 'content' => $contentTr]
+                    ['name' => $nameTr, 'content' => $contentTr]
                 );
-                // usleep(150000); // opcional throttle
+                // usleep(150000);
             }
         }
 
         $this->command?->info('📑 Policies translated (kept ES as source).');
     }
 
+    /**
+     * POLICY SECTIONS: usar 'name' (no 'title')
+     */
     protected function translatePolicySections(TranslatorInterface $translator): void
     {
         $sections = PolicySection::with('translations')->get();
@@ -106,15 +113,18 @@ class TranslationSeeder extends Seeder
                 continue;
             }
 
+            $nameSrc    = (string) ($src->name ?? '');
+            $contentSrc = (string) ($src->content ?? '');
+
             foreach (array_diff($this->locales, ['es']) as $locale) {
-                $titleTr   = $translator->translate($src->title, $locale);
-                $contentTr = $translator->translate($src->content, $locale);
+                $nameTr    = $translator->translate($nameSrc, $locale);
+                $contentTr = $translator->translate($contentSrc, $locale);
 
                 PolicySectionTranslation::updateOrCreate(
                     ['section_id' => $section->section_id, 'locale' => $locale],
-                    ['title' => $titleTr, 'content' => $contentTr]
+                    ['name' => $nameTr, 'content' => $contentTr]
                 );
-                // usleep(150000); // opcional throttle
+                // usleep(150000);
             }
         }
 
@@ -169,6 +179,7 @@ class TranslationSeeder extends Seeder
 
     protected function translateItineraryItems(TranslatorInterface $translator): void
     {
+        // OJO: aquí tu tabla de traducciones de items usa 'title' (no la tocamos)
         $this->translateCollection(
             ItineraryItem::where('is_active', true)->cursor(),
             ['title', 'description'],
