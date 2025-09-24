@@ -62,4 +62,10 @@ return [
         'locked'   => 'Votre compte est verrouillé. Vérifiez vos e-mails pour le déverrouiller.',
         'unlocked' => 'Votre compte a été déverrouillé. Vous pouvez maintenant vous connecter.',
     ],
+'verify' => [
+    'already'  => 'Vous avez déjà vérifié votre e-mail,',
+    'verified' => 'Votre e-mail a été vérifié.',
+],
+
+
 ];

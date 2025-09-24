@@ -62,4 +62,9 @@ return [
         'locked'   => 'Ihr Konto ist gesperrt. Überprüfen Sie Ihre E-Mails, um es zu entsperren.',
         'unlocked' => 'Ihr Konto wurde entsperrt. Sie können sich jetzt anmelden.',
     ],
+'verify' => [
+    'already'  => 'Du hast deine E-Mail bereits bestätigt,',
+    'verified' => 'Deine E-Mail wurde bestätigt.',
+],
+
 ];

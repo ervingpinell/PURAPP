@@ -62,4 +62,10 @@ return [
         'locked'   => 'Sua conta está bloqueada. Verifique seu e-mail para desbloqueá-la.',
         'unlocked' => 'Sua conta foi desbloqueada. Agora você pode fazer login.',
     ],
+'verify' => [
+    'already'  => 'Você já verificou seu e-mail,',
+    'verified' => 'Seu e-mail foi verificado.',
+],
+
+
 ];

@@ -6,7 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\URL; // ⬅️ NUEVO
+use Illuminate\Support\Facades\URL;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
 
@@ -21,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // Traductor
         $this->app->singleton(TranslatorInterface::class, function () {
             return new DeepLTranslator();
         });
@@ -28,7 +29,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // 1) Forzar host y esquema a partir de APP_URL
+        // =========================
+        // URLs: fuerza host/esquema desde APP_URL
+        // =========================
         if ($root = config('app.url')) {
             URL::forceRootUrl($root);
             if (str_starts_with($root, 'https://')) {
@@ -36,19 +39,21 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
-        // 2) Generar SIEMPRE el enlace de verificación con la raíz forzada
+        // =========================
+        // Email de verificación: generar SIEMPRE contra la ruta pública firmada
+        // =========================
         VerifyEmail::createUrlUsing(function ($notifiable) {
             return URL::temporarySignedRoute(
-                'verification.verify',
-                now()->addMinutes(config('auth.verification.expire', 60)),
+                'verification.public', // <- definida en routes/web.php
+                now()->addMinutes((int) config('auth.verification.expire', 60)),
                 [
-                    'id'   => $notifiable->getKey(), // en tu User es user_id; getKey() ya lo resuelve
+                    'id'   => $notifiable->getKey(), // en tu User la PK es user_id; getKey() lo resuelve
                     'hash' => sha1($notifiable->getEmailForVerification()),
                 ]
             );
         });
 
-        // 3) Email de verificación personalizado (usa la URL ya generada arriba)
+        // Contenido del email de verificación (usa la URL ya construida arriba)
         VerifyEmail::toMailUsing(function ($notifiable, string $url) {
             return (new MailMessage)
                 ->subject(__('adminlte::auth.verify.subject'))
@@ -58,7 +63,9 @@ class AppServiceProvider extends ServiceProvider
                 ->line(__('adminlte::auth.verify.outro'));
         });
 
+        // =========================
         // Observers
+        // =========================
         Review::observe(ReviewObserver::class);
 
         // Asegura que exista el proveedor 'local' y quede bloqueado como de sistema
@@ -67,7 +74,9 @@ class AppServiceProvider extends ServiceProvider
         // Compatibilidad longitud índices
         Schema::defaultStringLength(191);
 
+        // =========================
         // Cart items para todas las vistas
+        // =========================
         View::composer('*', function ($view) {
             $cartItemCount = 0;
 
@@ -123,7 +132,11 @@ class AppServiceProvider extends ServiceProvider
             if (Schema::hasColumn($table, 'is_system')  && ! $p->is_system)        { $p->is_system = true; $dirty = true; }
             if (Schema::hasColumn($table, 'settings')) {
                 $settings = is_array($p->settings) ? $p->settings : [];
-                if (! array_key_exists('min_stars', $settings)) { $settings['min_stars'] = 0; $p->settings = $settings; $dirty = true; }
+                if (! array_key_exists('min_stars', $settings)) {
+                    $settings['min_stars'] = 0;
+                    $p->settings = $settings;
+                    $dirty = true;
+                }
             }
             if ($dirty) $p->save();
         });

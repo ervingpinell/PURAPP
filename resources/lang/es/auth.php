@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Auth\Events\Verified;
+
 use function Livewire\Volt\title;
 
 return [
@@ -63,5 +65,11 @@ return [
      'account' => [
         'locked'   => 'Tu cuenta está bloqueada. Revisa tu correo para desbloquearla.',
         'unlocked' => 'Tu cuenta ha sido desbloqueada. Ya puedes iniciar sesión.',
+    ],
+    'verify.verified' => 'Tu correo ha sido verificado. Ya puedes iniciar sesión.',
+
+    'verify' => [
+        'already'     => 'Ya verificaste tu correo,',
+        'verified'        => 'Tu correo ha sido verificado.',
     ],
 ];

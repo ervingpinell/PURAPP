@@ -9,6 +9,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashBoardController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\PublicEmailVerificationController;
 
 // Admin
 use App\Http\Controllers\Admin\Users\UserRegisterController;
@@ -106,6 +107,29 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::get('/unlock-account', [UnlockAccountController::class, 'form'])->name('unlock.form');
     Route::post('/unlock-account', [UnlockAccountController::class, 'send'])->middleware('throttle:3,1')->name('unlock.send');
     Route::get('/unlock-account/{user}/{hash}', [UnlockAccountController::class, 'process'])->middleware('signed')->name('unlock.process');
+
+    // === Verificación de email PÚBLICA (sin login) ===
+    Route::get('/email/verify/public/{id}/{hash}', PublicEmailVerificationController::class)
+        ->middleware(['signed','throttle:6,1'])
+        ->name('verification.public');
+
+    // Reenviar verificación PÚBLICO (desde login) — anti-enumeración
+    Route::post('/email/verify/public/resend', function (\Illuminate\Http\Request $request) {
+        $request->validate(['email' => ['required','email']]);
+
+        /** @var \App\Models\User|null $u */
+        $u = \App\Models\User::where('email', mb_strtolower(trim($request->email)))->first();
+
+        if ($u && $u instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $u->hasVerifiedEmail()) {
+            $key = 'verify:mail:'.$u->getKey();
+            if (! \Illuminate\Support\Facades\RateLimiter::tooManyAttempts($key, 1)) {
+                \Illuminate\Support\Facades\RateLimiter::hit($key, 10 * 60);
+                try { $u->sendEmailVerificationNotification(); } catch (\Throwable $e) { logger()->error('Resend verify fail', ['e'=>$e->getMessage()]); }
+            }
+        }
+
+        return back()->with('status', __('adminlte::auth.verify.resent_link_if_exists'));
+    })->middleware('throttle:3,1')->name('verification.public.resend');
 
     /**
      * =======================
