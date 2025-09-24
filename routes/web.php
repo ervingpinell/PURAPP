@@ -152,6 +152,9 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::post('/reservas/from-cart', [BookingController::class, 'storeFromCart'])->name('public.reservas.storeFromCart');
         Route::delete('/cart/{item}', [CartController::class, 'destroy'])->name('public.cart.destroy');
         Route::put('/cart/{item}', [CartController::class, 'update'])->name('public.cart.update');
+        Route::post('/cart/expire', [CartController::class, 'expire'])->name('public.cart.expire');
+        Route::post('/cart/refresh-expiry', [CartController::class, 'refreshExpiry'])->name('public.cart.refreshExpiry');
+
     });
 
     /**

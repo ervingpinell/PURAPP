@@ -24,8 +24,10 @@ class CartController extends Controller
 
         // VISTA PÚBLICA DEL CARRITO
         if ($request->routeIs('public.cart.index')) {
+            // [TIMER] Obtener o crear carrito activo del usuario (más reciente)
             $cart = $user->cart()
                 ->where('is_active', true)
+                ->orderByDesc('cart_id')
                 ->with([
                     'items.tour.schedules',   // horarios
                     'items.tour.languages',   // idiomas
@@ -36,12 +38,43 @@ class CartController extends Controller
                 ])
                 ->first();
 
+            // [TIMER] Si no existe carrito activo, crear uno y arrancar expiración
+            if (!$cart) {
+                $cart = Cart::create([
+                    'user_id'   => $user->user_id,
+                    'is_active' => true,
+                ]);
+                $cart->refreshExpiry(15); // 15 min iniciales
+            } else {
+                // [TIMER] Si ya expiró, limpiar y avisar
+                if ($cart->isExpired()) {
+                    $this->expireCart($cart); // limpia items y deja inactivo
+                    session()->flash('error', __('Tu carrito expiró por inactividad.'));
+                    // Crear uno nuevo limpio
+                    $cart = Cart::create([
+                        'user_id'   => $user->user_id,
+                        'is_active' => true,
+                    ]);
+                    $cart->refreshExpiry(15);
+                } else {
+                    // [TIMER] Si no tiene expiración activa o está a 0, renueva
+                    if (!$cart->expires_at || $cart->remainingSeconds() <= 0) {
+                        $cart->refreshExpiry(15);
+                    }
+                }
+            }
+
             $hotels = HotelList::where('is_active', true)->orderBy('name')->get();
 
+            // [TIMER] Pasar fecha ISO al front para el contador
+            $expiresAtIso = optional($cart->expires_at)->toIso8601String();
+
             return view('public.cart', [
-                'cart'   => $cart,
-                'client' => $user,
-                'hotels' => $hotels,
+                'cart'         => $cart,
+                'client'       => $user,
+                'hotels'       => $hotels,
+                // [TIMER] agregado
+                'expiresAtIso' => $expiresAtIso,
             ]);
         }
 
@@ -49,7 +82,11 @@ class CartController extends Controller
         $languages = TourLanguage::all();
         $hotels    = HotelList::where('is_active', true)->orderBy('name')->get();
 
-        $cart = $user->cart()->where('is_active', true)->first();
+        // Tomar carrito activo más reciente
+        $cart = $user->cart()
+            ->where('is_active', true)
+            ->orderByDesc('cart_id')
+            ->first();
 
         if (!$cart) {
             $emptyCart = new \stdClass;
@@ -129,9 +166,25 @@ class CartController extends Controller
         ]);
 
         $user = Auth::user();
-        $cart = $user->cart()->where('is_active', true)->first();
+
+        // Tomar el carrito activo más reciente
+        $cart = $user->cart()
+            ->where('is_active', true)
+            ->orderByDesc('cart_id')
+            ->first();
+
         if (!$cart) {
             $cart = Cart::create(['user_id' => $user->user_id, 'is_active' => true]);
+            // [TIMER]
+            $cart->refreshExpiry(15);
+        } else {
+            // [TIMER] si expiró, límpialo y arranca nuevo
+            if ($cart->isExpired()) {
+                $this->expireCart($cart);
+                $cart = Cart::create(['user_id' => $user->user_id, 'is_active' => true]);
+            }
+            // [TIMER] renueva por actividad
+            $cart->refreshExpiry(15);
         }
 
         $tour = Tour::findOrFail($request->tour_id);
@@ -207,6 +260,9 @@ class CartController extends Controller
             'meeting_point_address'     => $mp?->address,
             'meeting_point_map_url'     => $mp?->map_url,
         ]);
+
+        // [TIMER] actividad => renueva
+        $cart->refreshExpiry(15);
 
         return $request->ajax()
             ? response()->json(['message' => __('adminlte::adminlte.cartItemAdded')])
@@ -336,6 +392,17 @@ class CartController extends Controller
 
         $item->save();
 
+        // [TIMER] actividad => renueva expiración del carrito
+        $cart = $item->cart;
+        if ($cart && $cart->is_active) {
+            // si estaba expirado, lo limpiamos
+            if ($cart->isExpired()) {
+                $this->expireCart($cart);
+            } else {
+                $cart->refreshExpiry(15);
+            }
+        }
+
         return back()->with('success', __('adminlte::adminlte.itemUpdated'));
     }
 
@@ -349,7 +416,14 @@ class CartController extends Controller
         ]);
 
         if (!$request->has('is_active')) {
+            $cart = $item->cart; // [TIMER] obtener antes de borrar
             $item->delete();
+
+            // [TIMER] actividad => renueva (si existe carrito y no expiró)
+            if ($cart && $cart->is_active && !$cart->isExpired()) {
+                $cart->refreshExpiry(15);
+            }
+
             return back()->with('success', __('adminlte::adminlte.cartItemDeleted'));
         }
 
@@ -361,12 +435,29 @@ class CartController extends Controller
             'is_active'       => true,
         ]);
 
+        // [TIMER] actividad => renueva
+        $cart = $item->cart;
+        if ($cart && $cart->is_active) {
+            if ($cart->isExpired()) {
+                $this->expireCart($cart);
+            } else {
+                $cart->refreshExpiry(15);
+            }
+        }
+
         return back()->with('success', __('adminlte::adminlte.itemUpdated'));
     }
 
     public function destroy(CartItem $item)
     {
+        $cart = $item->cart; // [TIMER] obtener antes de borrar
         $item->delete();
+
+        // [TIMER] actividad => renueva si sigue activo y no expiró
+        if ($cart && $cart->is_active && !$cart->isExpired()) {
+            $cart->refreshExpiry(15);
+        }
+
         return back()->with('success', __('adminlte::adminlte.cartItemDeleted'));
     }
 
@@ -396,8 +487,11 @@ class CartController extends Controller
         $request->validate(['code' => ['required','string','max:50']]);
 
         $user = Auth::user();
-        $cart = $user->cart()->where('is_active', true)
-            ->with('items.tour')->first();
+        $cart = $user->cart()
+            ->where('is_active', true)
+            ->orderByDesc('cart_id')
+            ->with('items.tour')
+            ->first();
 
         if (!$cart || !$cart->items->count()) {
             return response()->json(['ok' => false, 'message' => 'No hay ítems en el carrito.'], 422);
@@ -438,6 +532,11 @@ class CartController extends Controller
         if ($discountFixed > 0) $parts[] = '$'.number_format($discountFixed, 2);
         if ($discountPerc  > 0) $parts[] = $discountPerc.'%';
         $label = implode(' + ', $parts);
+
+        // [TIMER] actividad administrativa (opcional)
+        if ($cart && $cart->is_active && !$cart->isExpired()) {
+            $cart->refreshExpiry(15);
+        }
 
         return response()->json([
             'ok'        => true,
@@ -492,7 +591,6 @@ class CartController extends Controller
             });
         }
 
-        // Ajusta esta vista si tu plantilla se llama distinto
         return view('admin.Cart.general', compact('carritos'));
     }
 
@@ -507,8 +605,88 @@ class CartController extends Controller
         if (!auth()->check()) {
             return response()->json(['count' => 0]);
         }
-        $cart  = auth()->user()->cart;
+
+        $cart = auth()->user()
+            ->cart()
+            ->where('is_active', true)
+            ->orderByDesc('cart_id')
+            ->first();
+
         $count = $cart ? $cart->items()->where('is_active', true)->count() : 0;
         return response()->json(['count' => $count]);
+    }
+
+    // =========================
+    // [TIMER] Endpoint para expirar carrito desde el front
+    // =========================
+    public function expire(Request $request)
+    {
+        $user = $request->user();
+        $cart = $user?->cart()
+            ->where('is_active', true)
+            ->orderByDesc('cart_id')
+            ->first();
+
+        if (!$cart) {
+            return response()->json(['ok' => true, 'message' => 'No active cart'], 200);
+        }
+
+        if ($cart->isExpired() || now()->greaterThanOrEqualTo($cart->expires_at)) {
+            $this->expireCart($cart);
+            return response()->json(['ok' => true, 'expired' => true]);
+        }
+
+        return response()->json([
+            'ok'        => true,
+            'expired'   => false,
+            'remaining' => $cart->remainingSeconds(),
+        ]);
+    }
+
+    // =========================
+    // [TIMER] Limpieza de carrito expirado
+    // =========================
+    private function expireCart(?Cart $cart): void
+    {
+        if (!$cart) return;
+
+        DB::transaction(function () use ($cart) {
+            $cart->items()->delete();
+
+            // IMPORTANTE: que no siga como activo
+            $cart->forceFill([
+                'is_active'  => false,
+                'expires_at' => now(),
+            ])->save();
+        });
+    }
+
+    // =========================
+    // [TIMER] Extender expiración (AJAX)
+    // =========================
+    public function refreshExpiry(Request $request)
+    {
+        $user = $request->user();
+        $cart = $user?->cart()
+            ->where('is_active', true)
+            ->orderByDesc('cart_id')
+            ->first();
+
+        if (!$cart) {
+            $cart = \App\Models\Cart::create(['user_id' => $user->user_id, 'is_active' => true]);
+        } else {
+            if ($cart->isExpired()) {
+                $this->expireCart($cart);
+                $cart = \App\Models\Cart::create(['user_id' => $user->user_id, 'is_active' => true]);
+            }
+        }
+
+        $cart->refreshExpiry(config('cart.expiry_minutes', 15));
+
+        return response()->json([
+            'ok'         => true,
+            'expires_at' => $cart->expires_at->toIso8601String(),
+            'remaining'  => $cart->remainingSeconds(),
+        ]);
     }
 }
