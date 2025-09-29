@@ -1,9 +1,42 @@
 /* =========================================================
    APP.JS — HEADER OFFSET + MENÚ MOBILE + UTILIDADES PÚBLICAS
-   (fusión de tu public.js + mejoras de nav fijo)
+   Localized URLs aware (respeta /{locale})
    ========================================================= */
 (function () {
   const $doc = document;
+
+  /* ---------- helpers de localización ---------- */
+  const SUPPORTED = ['es','en','fr','de','pt'];
+
+  function detectCurrentLocale() {
+    // 1) por primer segmento de la URL
+    const seg0 = (location.pathname.replace(/^\/+/, '').split('/', 1)[0] || '').toLowerCase();
+    if (SUPPORTED.includes(seg0)) return seg0;
+    // 2) por <html lang="xx-XX">
+    const htmlLang = (document.documentElement.lang || '').slice(0,2).toLowerCase();
+    if (SUPPORTED.includes(htmlLang)) return htmlLang;
+    // 3) fallback a config por defecto (ajusta si quieres)
+    return 'es';
+  }
+  const CUR_LOCALE = detectCurrentLocale();
+
+  // Asegura prefijo /{locale} para rutas absolutas del sitio (no aplica a http(s):// ni #)
+  function withLocale(path) {
+    if (!path) return '/' + CUR_LOCALE + '/';
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('#')) return path;
+
+    // Normaliza slashes
+    let p = path.startsWith('/') ? path : '/' + path;
+    // Evita duplicar si ya trae el locale
+    const first = p.replace(/^\/+/, '').split('/', 1)[0].toLowerCase();
+    if (SUPPORTED.includes(first)) return p;
+    return '/' + CUR_LOCALE + p;
+  }
+
+  function isHomeWithLocale() {
+    const p = location.pathname.replace(/\/+$/, ''); // quita slash final
+    return p === '/' + CUR_LOCALE || p === '/' + CUR_LOCALE.replace(/\/+$/,'');
+  }
 
   /* -----------------------------
    * 1) HEADER FIJO: medir altura
@@ -100,32 +133,27 @@
     });
   });
 
-  // Botones “Tours” (mantiene tu comportamiento original)
+  // Botones “Tours” (respetando locale actual)
   $doc.querySelectorAll('.scroll-to-tours').forEach(link => {
     link.addEventListener('click', function (e) {
       e.preventDefault();
-      const isHome = window.location.pathname === '/';
-      if (isHome) {
+      if (isHomeWithLocale()) {
         const target = document.getElementById('tours') || document.querySelector('[data-anchor="tours"]');
         if (target) smoothScrollTo(target);
         closeMenu();
       } else {
-        // lleva el hash para que al cargar el home haga scroll
-        window.location.href = '/#tours';
+        // Lleva al home del locale actual con hash
+        window.location.href = withLocale('/') + '#tours';
       }
     });
   });
 
-  // Si llegamos con #tours, hacer scroll (con tu lógica de referrer)
+  // Si llegamos con #tours, hacer scroll
   if (window.location.hash === '#tours') {
-    const referrer = document.referrer;
-    const cameFromOtherPage = referrer && !referrer.includes(window.location.origin + '/');
-    if (!cameFromOtherPage) {
-      setTimeout(() => {
-        const target = document.getElementById('tours') || document.querySelector('[data-anchor="tours"]');
-        if (target) smoothScrollTo(target);
-      }, 200);
-    }
+    setTimeout(() => {
+      const target = document.getElementById('tours') || document.querySelector('[data-anchor="tours"]');
+      if (target) smoothScrollTo(target);
+    }, 200);
   }
 
   /* ---------------------------------
@@ -159,7 +187,8 @@
    * 6) Cart item counter (fetch)
    * --------------------------------- */
   function updateCartCount() {
-    fetch('/cart/count')
+    // ⬇️ usa la ruta localizada
+    fetch(withLocale('/cart/count'))
       .then(res => res.ok ? res.json() : Promise.reject(`HTTP ${res.status}`))
       .then(data => {
         if (typeof window.setCartCount === 'function') {
@@ -304,6 +333,7 @@
       }
 
       try {
+        // Si tu endpoint es localizado, usa withLocale('/api/get-reserved')
         const res = await fetch(`/api/get-reserved?tour_id=${tourId}&schedule_id=${scheduleId}&tour_date=${encodeURIComponent(tourDate)}`);
         const data = await res.json();
         const reserved = parseInt(data.reserved) || 0;

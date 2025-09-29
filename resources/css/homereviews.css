@@ -23,7 +23,7 @@
 .home-hero .tour-title-abs{
   position:absolute;top:.5rem;right:.5rem;left:var(--title-left, auto);
   max-width:62%;
-  text-align:right;line-height:1.2;font-size:.94rem;margin:0;
+  text-align:right;line-height:1.2;font-size:.88rem;margin:0;
   display:-webkit-box;-webkit-line-clamp:var(--title-lines, 2);-webkit-box-orient:vertical;overflow:hidden;word-break:break-word
 }
 .home-hero .tour-title-abs a{color:#1A5229;text-decoration:underline}

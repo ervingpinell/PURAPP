@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class TourTranslation extends Model
 {
@@ -14,7 +15,20 @@ class TourTranslation extends Model
         'locale',
         'name',
         'overview',
+        'slug',      // <-- NUEVO
     ];
+
+    protected static function booted()
+    {
+        static::saving(function (TourTranslation $tr) {
+            if (empty($tr->slug)) {
+                $source = $tr->name ?: ('tour-'.$tr->tour_id.'-'.$tr->locale);
+                $tr->slug = Str::slug($source);
+            } else {
+                $tr->slug = Str::slug($tr->slug);
+            }
+        });
+    }
 
     public function tour()
     {

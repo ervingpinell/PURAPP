@@ -15,6 +15,7 @@ use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class DashBoardController extends Controller
 {
@@ -24,41 +25,33 @@ class DashBoardController extends Controller
     }
 
     /**
-     * Normalize and switch the app locale, then return to the previous page.
+     * Cambia el primer segmento (locale) de la URL actual y redirige.
+     * No usa sesión.
      */
-    public function switchLanguage(string $language): RedirectResponse
+    public function switchLanguage(Request $request, string $language): RedirectResponse
     {
-        $normalized = str_replace('-', '_', strtolower($language));
-
-        $localeMap = [
-            'es'    => 'es',
-            'es_cr' => 'es',
-            'pt'    => 'pt',
-            'pt_br' => 'pt',
-            'en'    => 'en',
-            'fr'    => 'fr',
-            'de'    => 'de',
-        ];
-
-        if (isset($localeMap[$normalized])) {
-            $targetLocale = $localeMap[$normalized];
-            session(['locale' => $targetLocale]);
-            app()->setLocale($targetLocale);
+        $supported = (array) config('app.supported_locales', ['es','en','fr','de','pt']);
+        $lang = strtolower(substr(str_replace('-', '_', $language), 0, 2));
+        if (!in_array($lang, $supported, true)) {
+            $lang = config('app.locale', 'es');
         }
 
-        $previousUrl = url()->previous() ?: route('home');
-        $path        = parse_url($previousUrl, PHP_URL_PATH) ?? '';
-
-        // Avoid redirecting back into /login
-        if (str_starts_with($path, '/login')) {
-            return redirect()->route('login');
+        $segments = $request->segments(); // sin slash
+        if (count($segments) === 0) {
+            return redirect()->to(url("/{$lang}"));
         }
 
-        return redirect()->to($previousUrl);
+        // Sustituye el primer segmento por el nuevo locale
+        $segments[0] = $lang;
+        $newUrl = url(implode('/', $segments));
+        if ($query = $request->getQueryString()) {
+            $newUrl .= '?'.$query;
+        }
+        return redirect()->to($newUrl);
     }
 
     /**
-     * Admin dashboard (roles 1 or 2).
+     * Admin dashboard (roles 1 o 2).
      */
     public function dashboard(): View|RedirectResponse
     {
