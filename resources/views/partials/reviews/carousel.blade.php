@@ -1,20 +1,13 @@
 {{-- resources/views/partials/reviews/carousel.blade.php --}}
 @php
   $items = collect($items ?? []);
+  $items = $items->take(25);
 
-  // Dedupe SOLO indexables (SEO)
-  $indexables = $items->where('indexable', true)
-    ->unique(fn($r) => md5(
-      mb_strtolower(trim((string)($r['body'] ?? ''))) . '|' .
-      mb_strtolower(trim((string)($r['author_name'] ?? ''))) . '|' .
-      trim((string)($r['date'] ?? ''))
-    ))->values();
-
-  $embeds = $items->where('indexable', false)->values();
-  $items  = $indexables->merge($embeds)->take(25);
-
-  $providerHeight = (int)($providerHeight ?? 320); // compacto en página de tour
+  $providerHeight = (int)($providerHeight ?? 320);
   $carouselId     = 'tourReviewsCarousel_'.uniqid();
+
+  // Detectar si estamos en la página de un tour específico
+  $isSpecificTourPage = request()->route()->getName() === 'tours.show';
 
   $TXT_MORE = __('reviews.read_more');  if (str_starts_with($TXT_MORE,'reviews.')) $TXT_MORE = 'Leer más';
   $TXT_LESS = __('reviews.read_less');  if (str_starts_with($TXT_LESS,'reviews.')) $TXT_LESS = 'Mostrar menos';
@@ -29,7 +22,7 @@
     'getyourguide' => 'GetYourGuide',
   ];
 
-  $initialLoad = 2;
+  $initialLoad = 3;
 @endphp
 
 @once
@@ -67,85 +60,54 @@
           $tourName = trim((string)($r['tour_name'] ?? ''));
           $avatarUrl= $r['avatar_url'] ?? null;
 
-          $uid = 'r_'.substr(sha1(($r['provider'] ?? 'p').'|'.($r['tour_id'] ?? '0').'|'.($r['nth'] ?? $i).'|'.uniqid()),0,10);
+          $reviewId = $r['provider_review_id'] ?? $i;
+          $uid = 'r_'.substr(sha1($provKey.'|'.$reviewId.'|'.uniqid()),0,10);
         @endphp
 
         <div class="carousel-item {{ $isActive }}">
           <div class="slide-wrap">
-            @if(!empty($r['indexable']))
-              <article class="hero-card">
-                @if($tourName !== '')
-                  <h3 class="tour-title-abs">
-                    <a href="{{ $tourUrl }}" class="tour-link" data-id="{{ $tourId ?? '' }}" data-name="{{ $tourName }}">{{ $tourName }}</a>
-                  </h3>
-                @endif
+            <article class="hero-card">
+              {{-- Solo mostrar título si NO estamos en página de tour específico --}}
+              @if(!$isSpecificTourPage && $tourName !== '')
+                <h3 class="tour-title-abs">
+                  <a href="{{ $tourUrl }}" class="tour-link" data-id="{{ $tourId ?? '' }}" data-name="{{ $tourName }}">{{ $tourName }}</a>
+                </h3>
+              @endif
 
-                <div class="review-head">
-                  <span class="avatar">
-<img
-  src="{{ $avatarUrl ?: asset('images/avatar-default.png') }}"
-  alt=""
-  width="56" height="56"   {{-- coincide con el CSS desktop; en móvil se escala --}}
-  referrerpolicy="no-referrer"
-  onerror="this.onerror=null;this.src='{{ asset('images/avatar-default.png') }}';"
-/>
-
-
-                  </span>
-                  <div class="who-when">
-                    <div class="who">{{ $author }}</div>
-                    @if($date)<div class="when">{{ $date }}</div>@endif
-                  </div>
-                </div>
-
-                <div class="stars-row under-date">
-                  <span class="review-stars">{!! str_repeat('★', $rating) !!}{!! str_repeat('☆', 5 - $rating) !!}</span>
-                  <span class="rating-number">({{ $rating }}/5)</span>
-                </div>
-
-                @if($title !== '')
-                  <div class="review-label">{{ $title }}</div>
-                @endif
-
-                @if($body !== '')
-                  <div class="review-textwrap">
-                    <div class="review-content clamp-8">{!! nl2br(e($body)) !!}</div>
-                    <button type="button" class="review-toggle">{{ $TXT_MORE }}</button>
-                  </div>
-                @endif
-
-                <div class="powered-by">{{ __('reviews.powered_by') }} {{ $origin }}</div>
-              </article>
-
-            @else
-              @php
-                $limit   = max(1, (int)($r['iframe_limit'] ?? 1));
-                $nth     = (int)($r['nth'] ?? 1);
-                $src     = route('reviews.embed', $provKey)
-                          . '?layout=hero'
-                          . '&limit='  . urlencode($limit)
-                          . '&nth='    . urlencode($nth)
-                          . ($tourId ? ('&tour_id=' . urlencode($tourId)) : '')
-                          . '&base='   . urlencode($providerHeight)
-                          . '&uid='    . urlencode($uid);
-                $eager   = $i < $initialLoad;
-              @endphp
-
-              <article class="hero-card p-0" style="box-shadow:none;background:transparent">
-                <div class="iframe-shell">
-                  <div class="iframe-skeleton" aria-hidden="true"></div>
-                  <iframe
-                    class="review-embed"
-                    title="Review {{ $origin }}"
-                    data-uid="{{ $uid }}"
-                    @if($eager) src="{{ $src }}" @else data-src="{{ $src }}" @endif
-                    loading="lazy"
+              <div class="review-head">
+                <span class="avatar">
+                  <img
+                    src="{{ $avatarUrl ?: asset('images/avatar-default.png') }}"
+                    alt=""
+                    width="56" height="56"
                     referrerpolicy="no-referrer"
-                    sandbox="allow-scripts allow-same-origin">
-                  </iframe>
+                    onerror="this.onerror=null;this.src='{{ asset('images/avatar-default.png') }}';"
+                  />
+                </span>
+                <div class="who-when">
+                  <div class="who">{{ $author }}</div>
+                  @if($date)<div class="when">{{ $date }}</div>@endif
                 </div>
-              </article>
-            @endif
+              </div>
+
+              <div class="stars-row under-date">
+                <span class="review-stars">{!! str_repeat('★', $rating) !!}{!! str_repeat('☆', 5 - $rating) !!}</span>
+                <span class="rating-number">({{ $rating }}/5)</span>
+              </div>
+
+              @if($title !== '')
+                <div class="review-label">{{ $title }}</div>
+              @endif
+
+              @if($body !== '')
+                <div class="review-textwrap">
+                  <div class="review-content clamp-8">{!! nl2br(e($body)) !!}</div>
+                  <button type="button" class="review-toggle">{{ $TXT_MORE }}</button>
+                </div>
+              @endif
+
+              <div class="powered-by">{{ __('reviews.powered_by') }} {{ $origin }}</div>
+            </article>
           </div>
         </div>
       @endforeach
@@ -177,4 +139,3 @@
   };
 </script>
 @endpush
-

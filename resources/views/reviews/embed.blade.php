@@ -3,8 +3,8 @@
   use Illuminate\Support\Carbon;
 
   // === Parámetros ===
-  $layout   = request('layout', 'hero');                         // hero | card
-  $theme    = request('theme', $layout === 'card' ? 'site' : 'embed'); // site | embed
+  $layout   = request('layout', 'hero');
+  $theme    = request('theme', $layout === 'card' ? 'site' : 'embed');
   $limit    = (int) request('limit', 1);
   $provider = $provider ?? 'viator';
 
@@ -20,12 +20,10 @@
   ];
   $origin = $map[strtolower($provider)] ?? ucfirst($provider);
 
-  // Altura base / uid llegan por querystring (no los fijamos en body para cache)
   $baseDefault = $layout === 'card' ? 500 : 460;
   $baseHeight  = max(200, (int) request('base', $baseDefault));
   $uid         = request('uid');
 
-  // Mostrar/ocultar "powered by"
   $showPowered = request()->has('show_powered')
       ? request()->boolean('show_powered')
       : !($layout === 'card' && $theme === 'site');
@@ -34,9 +32,23 @@
   $reviews = collect($reviews ?? []);
   $r       = $reviews->first();
 
+  // ✅ PRIORIDAD: 1) Review, 2) Query params, 3) DB
   $tourId   = (int)($r['tour_id'] ?? request('tour_id', 0));
   $tourName = trim((string)($r['tour_name'] ?? request('tname', '')));
-  $tourUrl  = request('turl') ?: ($tourId ? route('tours.show', ['id'=>$tourId]) : '');
+
+  // Si aún no hay nombre pero hay ID, consultar DB
+  if ($tourId && !$tourName) {
+      $tour = Tour::with('translations')->find($tourId);
+      if ($tour) {
+          $locale = app()->getLocale();
+          $fallback = config('app.fallback_locale', 'es');
+          $tr = ($tour->translations ?? collect())->firstWhere('locale', $locale)
+              ?: ($tour->translations ?? collect())->firstWhere('locale', $fallback);
+          $tourName = $tr->name ?? $tour->name ?? '';
+      }
+  }
+
+  $tourUrl = request('turl') ?: ($tourId ? route('tours.show', ['id'=>$tourId]) : '');
 
   $rating = max(0, min(5, (int) data_get($r, 'rating', 5)));
   $title  = trim((string) data_get($r, 'title', ''));
@@ -56,12 +68,11 @@
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  {{-- CSS según theme --}}
   @if ($theme === 'site')
-    @vite('resources/css/reviews.css')        {{-- el mismo CSS del index --}}
+    @vite('resources/css/reviews.css')
     <style>html,body{background:transparent;margin:0;padding:0}</style>
   @else
-    @vite('resources/css/reviews-embed.css')  {{-- CSS del hero (home/show-tour) --}}
+    @vite('resources/css/reviews-embed.css')
   @endif
 </head>
 
@@ -72,7 +83,6 @@
 >
 @if($r)
   @if ($layout === 'card' && $theme === 'site')
-    {{-- CARD con el mismo marcado que el index (usa reviews.css) --}}
     @include('partials.reviews.card', ['r' => $r, 'active' => true])
 
     @if($showPowered)
@@ -82,14 +92,13 @@
     @endif
 
   @else
-    {{-- HERO (home / tour-show) usando reviews-embed.css --}}
     <div class="wrap">
       <article class="hero-card">
         @if($tourName || $tourUrl)
           <h3 class="tour-title-abs">
             @if($tourUrl)
               <a href="{{ $tourUrl }}" class="open-parent-modal" data-name="{{ $tourName }}" rel="nofollow noopener">
-                {{ $tourName ?: __('reviews.view_tour') }}
+                {{ $tourName }}
               </a>
             @else
               {{ $tourName }}
@@ -99,14 +108,13 @@
 
         <div class="review-head">
           <span class="avatar">
-<img
-  src="{{ data_get($r,'avatar_url', asset('images/avatar-default.png')) }}"
-  alt=""
-  width="56" height="56"
-  referrerpolicy="no-referrer"
-  onerror="this.onerror=null;this.src='{{ asset('images/avatar-default.png') }}';"
-/>
-
+            <img
+              src="{{ data_get($r,'avatar_url', asset('images/avatar-default.png')) }}"
+              alt=""
+              width="56" height="56"
+              referrerpolicy="no-referrer"
+              onerror="this.onerror=null;this.src='{{ asset('images/avatar-default.png') }}';"
+            />
           </span>
           <div class="who-when">
             <div class="who">{{ $author }}</div>
@@ -125,9 +133,7 @@
 
         @if($body !== '')
           <div class="review-textwrap">
-            {{-- Importante: clamp para que el JS decida si mostrar "ver más" --}}
             <div class="review-content clamp">{!! nl2br(e($body)) !!}</div>
-            {{-- El botón se inyecta si no existe --}}
             <button type="button" class="review-toggle">{{ $TXT_MORE }}</button>
           </div>
         @endif
@@ -140,7 +146,6 @@
   @endif
 @endif
 
-{{-- Pasamos uid/base por querystring → cache del HTML no se invalida --}}
 @vite('resources/js/reviews-embed.js')
 </body>
 </html>
