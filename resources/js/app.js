@@ -106,6 +106,39 @@
     });
   }
 
+/* ✅ HELPER: Obtener locale actual desde meta tag o URL */
+  function getCurrentLocale() {
+    // 1) Leer del meta tag (más confiable para rutas sin prefijo)
+    const metaLocale = document.querySelector('meta[name="locale"]');
+    if (metaLocale) {
+      const locale = metaLocale.getAttribute('content');
+      if (locale) return locale;
+    }
+
+    // 2) Intentar detectar de la URL
+    const path = window.location.pathname;
+    const pathParts = path.split('/').filter(Boolean);
+    const supportedLocales = ['es', 'en', 'fr', 'de', 'pt'];
+
+    if (pathParts.length > 0 && supportedLocales.includes(pathParts[0])) {
+      return pathParts[0];
+    }
+
+    // 3) Fallback: español por defecto
+    return 'es';
+  }
+
+  /* ✅ HELPER: Detectar si estamos en home */
+  function isHomePage() {
+    const path = window.location.pathname;
+    const pathParts = path.split('/').filter(Boolean);
+    const supportedLocales = ['es', 'en', 'fr', 'de', 'pt'];
+
+    // Home si: "/" o "/es" o "/en" etc.
+    return pathParts.length === 0 ||
+           (pathParts.length === 1 && supportedLocales.includes(pathParts[0]));
+  }
+
   // Enlaces a anclas (#id)
   $doc.querySelectorAll('a[href^="#"]').forEach((a) => {
     a.addEventListener('click', (ev) => {
@@ -120,24 +153,23 @@
     });
   });
 
-  // ✅ BOTONES "TOURS" CON ZOOM ANIMADO EN TODAS LAS CARDS
+  // ✅ BOTONES "TOURS" CON DETECCIÓN AUTOMÁTICA DE LOCALE
   $doc.querySelectorAll('.scroll-to-tours').forEach(link => {
     link.addEventListener('click', function (e) {
       e.preventDefault();
       closeMenu();
 
-      const currentPath = window.location.pathname;
-      const pathParts = currentPath.split('/').filter(Boolean);
-      const currentLocale = pathParts[0] || 'es';
-      const isHome = pathParts.length <= 1 || (pathParts.length === 1 && ['es','en','fr','de','pt'].includes(pathParts[0]));
-
-      if (isHome) {
-        const target = document.getElementById('tours') || document.querySelector('[data-anchor="tours"]');
+      if (isHomePage()) {
+        // Estamos en home: hacer scroll
+        const target = document.getElementById('tours') ||
+                      document.querySelector('[data-anchor="tours"]');
         if (target) {
           smoothScrollTo(target);
           setTimeout(animateTourCards, 400);
         }
       } else {
+        // No estamos en home: redirigir con locale actual
+        const currentLocale = getCurrentLocale();
         window.location.href = `/${currentLocale}#tours`;
       }
     });
@@ -145,12 +177,9 @@
 
   // Si llegamos con #tours, hacer scroll y animar
   if (window.location.hash === '#tours') {
-    const referrer = document.referrer;
-    const currentOrigin = window.location.origin;
-    const cameFromSameSite = referrer && referrer.startsWith(currentOrigin);
-
     setTimeout(() => {
-      const target = document.getElementById('tours') || document.querySelector('[data-anchor="tours"]');
+      const target = document.getElementById('tours') ||
+                    document.querySelector('[data-anchor="tours"]');
       if (target) {
         smoothScrollTo(target);
         setTimeout(animateTourCards, 400);

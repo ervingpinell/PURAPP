@@ -1,7 +1,7 @@
 <nav class="navbar-custom">
     <div class="navbar-container">
         <div class="navbar-left d-md-none">
-            <button class="navbar-toggle" id="navbar-toggle">
+            <button class="navbar-toggle" id="navbar-toggle" aria-label="{{ __('adminlte::adminlte.toggle_navigation') }}">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
@@ -16,26 +16,26 @@
             <x-cart.dropdown variant="mobile" />
             @auth
                 <div class="dropdown">
-                    <a href="#" class="nav-link dropdown-toggle text-white" id="userDropdownMobile" role="button" data-bs-toggle="dropdown">
+                    <a href="#" class="nav-link dropdown-toggle text-white" id="userDropdownMobile" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-user-circle"></i>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownMobile">
                         <a class="dropdown-item d-flex align-items-center" href="{{ route('my-reservations') }}">
-                            <i class="fas fa-calendar-check me-2 text-success"></i> {{ __('My Reservations') }}
+                            <i class="fas fa-calendar-check me-2 text-success"></i> {{ __('adminlte::adminlte.my_reservations') }}
                         </a>
                         <a class="dropdown-item d-flex align-items-center" href="{{ route('profile.edit') }}">
-                            <i class="fas fa-id-card-alt me-2 text-primary"></i> {{ __('Profile') }}
+                            <i class="fas fa-id-card-alt me-2 text-primary"></i> {{ __('adminlte::adminlte.profile') }}
                         </a>
                         <form id="logout-form-mobile" action="{{ route('logout') }}" method="POST" class="d-inline w-100">
                             @csrf
                             <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
-                                <i class="fas fa-sign-out-alt me-2"></i> {{ __('Logout') }}
+                                <i class="fas fa-sign-out-alt me-2"></i> {{ __('adminlte::adminlte.log_out') }}
                             </button>
                         </form>
                     </div>
                 </div>
             @else
-                <a href="{{ route('login') }}" class="text-white">
+                <a href="{{ route('login') }}" class="text-white" aria-label="{{ __('adminlte::adminlte.login') }}">
                     <i class="fas fa-user"></i>
                 </a>
             @endauth
@@ -54,7 +54,7 @@
             <x-cart.dropdown variant="desktop" />
             @auth
                 <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdownDesktop" role="button" data-bs-toggle="dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdownDesktop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-user-circle"></i>
                         <span class="user-name d-none d-xl-inline ms-1">{{ Auth::user()->full_name }}</span>
                     </a>
@@ -84,11 +84,11 @@
 
                 @if(in_array(Auth::user()->role_id, [1, 2]))
                     <a href="{{ route('admin.home') }}" class="btn btn-outline-light btn-sm d-flex align-items-center">
-                        <i class="fas fa-toolbox"></i> Admin
+                        <i class="fas fa-toolbox me-1"></i> <span class="d-none d-xl-inline">Admin</span>
                     </a>
                 @endif
             @else
-                <a href="{{ route('login') }}" class="text-white">
+                <a href="{{ route('login') }}" class="text-white" aria-label="{{ __('adminlte::adminlte.login') }}">
                     <i class="fas fa-user"></i>
                 </a>
             @endauth
@@ -109,8 +109,8 @@
         @auth
             @if(in_array(Auth::user()->role_id, [1, 2]))
                 <div class="admin-link-wrapper">
-                    <a href="{{ route('admin.home') }}" class="btn btn-outline-light btn-sm d-flex align-items-center">
-                        <i class="fas fa-toolbox"></i> Admin
+                    <a href="{{ route('admin.home') }}" class="btn btn-outline-light btn-sm d-flex align-items-center justify-content-center">
+                        <i class="fas fa-toolbox me-2"></i> Admin
                     </a>
                 </div>
             @endif
