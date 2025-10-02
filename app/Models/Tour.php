@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Tour extends Model
 {
@@ -20,6 +21,7 @@ class Tour extends Model
 
     protected $fillable = [
         'name',
+        'slug',
         'overview',
         'adult_price',
         'kid_price',
@@ -30,7 +32,7 @@ class Tour extends Model
         'itinerary_id',
         'color',
         'viator_code',
-        'cutoff_hour', 
+        'cutoff_hour',
         'lead_days',
     ];
 
@@ -41,6 +43,82 @@ class Tour extends Model
         'max_capacity' => 'int',
         'is_active'    => 'bool',
     ];
+
+    /**
+     * Boot del modelo para generar slug automáticamente
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($tour) {
+            if (empty($tour->slug)) {
+                $tour->slug = static::generateUniqueSlug($tour->name);
+            }
+        });
+
+        static::updating(function ($tour) {
+            // Solo regenerar si el nombre cambió Y el usuario no proveyó un slug personalizado
+            if ($tour->isDirty('name') && !$tour->isDirty('slug')) {
+                $tour->slug = static::generateUniqueSlug($tour->name, $tour->tour_id);
+            }
+        });
+    }
+
+    /**
+     * Genera un slug único basado en el nombre
+     */
+    public static function generateUniqueSlug(string $name, ?int $ignoreId = null): string
+    {
+        $slug = Str::slug($name);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        while (static::slugExists($slug, $ignoreId)) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Verifica si un slug ya existe (excepto para el tour actual)
+     */
+    protected static function slugExists(string $slug, ?int $ignoreId = null): bool
+    {
+        $query = static::where('slug', $slug);
+
+        if ($ignoreId) {
+            $query->where('tour_id', '!=', $ignoreId);
+        }
+
+        return $query->exists();
+    }
+
+    /**
+     * Laravel usará slug en lugar de ID para route model binding
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
+    /**
+     * Resolver ruta por slug o ID (backward compatibility)
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        // Intentar por slug primero
+        $tour = $this->where('slug', $value)->first();
+
+        // Si no existe y es numérico, intentar por ID (backward compatibility)
+        if (!$tour && is_numeric($value)) {
+            $tour = $this->where('tour_id', $value)->first();
+        }
+
+        return $tour;
+    }
 
     public function scopeActive($query)
     {
@@ -96,6 +174,7 @@ class Tour extends Model
             ->withPivot(['is_active', 'cutoff_hour', 'lead_days'])
             ->withTimestamps();
     }
+
     public function activeSchedules()
     {
         return $this->belongsToMany(
@@ -156,7 +235,6 @@ class Tour extends Model
             }
         }
 
-
         if (!in_array('es', $candidates, true)) {
             $candidates[] = 'es';
         }
@@ -169,7 +247,6 @@ class Tour extends Model
             return null;
         }
 
-
         $byExact = [];
         $byLang  = [];
         foreach ($translations as $tr) {
@@ -181,7 +258,6 @@ class Tour extends Model
                 $byLang[$lang] = $tr;
             }
         }
-
 
         foreach ($candidates as $cand) {
             if (isset($byExact[$cand])) {
@@ -207,7 +283,6 @@ class Tour extends Model
         $tr = $this->translate($preferredLocale);
         return ($tr?->overview) ?? ($this->overview ?? '');
     }
-
 
     public function getImagesAttribute(): array
     {
@@ -243,7 +318,6 @@ class Tour extends Model
         return $this->hasOne(TourImage::class, 'tour_id', 'tour_id')->where('is_cover', true);
     }
 
-
     public function coverUrl(): string
     {
         if ($this->relationLoaded('coverImage') ? $this->coverImage : $this->coverImage()->first()) {
@@ -259,8 +333,8 @@ class Tour extends Model
         if ($imgs->isNotEmpty()) return $imgs->map->url()->all();
 
         $folder = "tours/{$this->tour_id}/gallery";
-        if (\Storage::disk('public')->exists($folder)) {
-            return collect(\Storage::disk('public')->files($folder))
+        if (Storage::disk('public')->exists($folder)) {
+            return collect(Storage::disk('public')->files($folder))
                 ->filter(fn($p) => in_array(strtolower(pathinfo($p, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'webp']))
                 ->sort(fn($a, $b) => strnatcasecmp($a, $b))
                 ->map(fn($p) => asset('storage/' . $p))

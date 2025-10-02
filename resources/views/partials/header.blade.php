@@ -1,4 +1,3 @@
-<!-- Mobile -->
 <nav class="navbar-custom">
     <div class="navbar-container">
         <div class="navbar-left d-md-none">
@@ -8,20 +7,16 @@
         </div>
 
         <div class="navbar-logo">
-            <a href="{{ route('home') }}">
-<img src="{{ asset('images/logoCompanyWhite.png') }}"
-     alt="Green Vacations"
-     decoding="async" fetchpriority="high">
+            <a href="{{ localized_route('home') }}">
+                <img src="{{ asset('images/logoCompanyWhite.png') }}" alt="Green Vacations" decoding="async" fetchpriority="high">
             </a>
         </div>
-
 
         <div class="navbar-actions d-md-none">
             <x-cart.dropdown variant="mobile" />
             @auth
                 <div class="dropdown">
-                    <a href="#" class="nav-link dropdown-toggle text-white" id="userDropdownMobile" role="button"
-                        data-bs-toggle="dropdown">
+                    <a href="#" class="nav-link dropdown-toggle text-white" id="userDropdownMobile" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-user-circle"></i>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownMobile">
@@ -46,21 +41,20 @@
             @endauth
         </div>
 
-        <!-- Desktop -->
         <div class="navbar-links d-none d-md-flex">
-            <a href="{{ route('home') }}">{{ __('adminlte::adminlte.home') }}</a>
-            <a href="#" class="nav-link scroll-to-tours">{{ __('adminlte::adminlte.tours') }}</a>
-<a href="{{ route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a>
-            <a href="{{ route('faq.index') }}">{{ __('adminlte::adminlte.faq') }}</a>
-            <a href="{{ route('contact') }}">{{ __('adminlte::adminlte.contact_us') }}</a>
+            <a href="{{ localized_route('home') }}">{{ __('adminlte::adminlte.home') }}</a>
+            <a href="#" class="scroll-to-tours">{{ __('adminlte::adminlte.tours') }}</a>
+            <a href="{{ localized_route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a>
+            <a href="{{ localized_route('faq.index') }}">{{ __('adminlte::adminlte.faq') }}</a>
+            <a href="{{ localized_route('contact') }}">{{ __('adminlte::adminlte.contact_us') }}</a>
         </div>
+
         <div class="navbar-actions d-none d-md-flex">
             @include('partials.language-switcher')
             <x-cart.dropdown variant="desktop" />
             @auth
                 <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdownDesktop" role="button"
-                        data-bs-toggle="dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdownDesktop" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-user-circle"></i>
                         <span class="user-name d-none d-xl-inline ms-1">{{ Auth::user()->full_name }}</span>
                     </a>
@@ -76,12 +70,9 @@
                                 <i class="fas fa-id-card-alt me-2 text-primary"></i> {{ __('adminlte::adminlte.profile') }}
                             </a>
                         </li>
+                        <li><hr class="dropdown-divider"></li>
                         <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                            <form id="logout-form-desktop" action="{{ route('logout') }}" method="POST"
-                                class="d-inline w-100">
+                            <form id="logout-form-desktop" action="{{ route('logout') }}" method="POST" class="d-inline w-100">
                                 @csrf
                                 <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
                                     <i class="fas fa-sign-out-alt me-2"></i> {{ __('adminlte::adminlte.log_out') }}
@@ -104,13 +95,12 @@
         </div>
     </div>
 
-    <!-- MOBILE MENU  -->
     <div class="navbar-links d-md-none" id="navbar-links">
-        <a href="{{ route('home') }}">{{ __('adminlte::adminlte.home') }}</a>
-        <a href="#" class="nav-link scroll-to-tours">{{ __('adminlte::adminlte.tours') }}</a>
-<a href="{{ route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a>
-        <a href="{{ route('faq.index') }}">{{ __('adminlte::adminlte.faq') }}</a>
-        <a href="{{ route('contact') }}">{{ __('adminlte::adminlte.contact_us') }}</a>
+        <a href="{{ localized_route('home') }}">{{ __('adminlte::adminlte.home') }}</a>
+        <a href="#" class="scroll-to-tours">{{ __('adminlte::adminlte.tours') }}</a>
+        <a href="{{ localized_route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a>
+        <a href="{{ localized_route('faq.index') }}">{{ __('adminlte::adminlte.faq') }}</a>
+        <a href="{{ localized_route('contact') }}">{{ __('adminlte::adminlte.contact_us') }}</a>
 
         <div class="language-switcher-wrapper">
             @include('partials.language-switcher')

@@ -51,6 +51,13 @@ class StoreTourRequest extends FormRequest
     {
         return [
             'name'                         => ['required','string','max:255'],
+            'slug'                         => [
+                'nullable',
+                'string',
+                'max:255',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                'unique:tours,slug'
+            ],
             'overview'                     => ['nullable','string'],
             'adult_price'                  => ['required','numeric','min:0'],
             'kid_price'                    => ['nullable','numeric','min:0'],
@@ -86,6 +93,8 @@ class StoreTourRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'slug.regex' => 'El slug solo puede contener letras minúsculas, números y guiones.',
+            'slug.unique' => 'Este slug ya está en uso por otro tour.',
             'languages.required' => 'Debes seleccionar al menos un idioma.',
             'languages.min'      => 'Debes seleccionar al menos un idioma.',
         ];
@@ -112,9 +121,6 @@ class StoreTourRequest extends FormRequest
         parent::failedValidation($validator);
     }
 
-    /**
-     * Normaliza varios formatos comunes a 'H:i'.
-     */
     private static function parseTimeTo24h(?string $rawTime): ?string
     {
         if (!$rawTime) {
@@ -131,7 +137,6 @@ class StoreTourRequest extends FormRequest
             }
         }
 
-        // Soporta "13:00 h"
         if (preg_match('/^\d{1,2}:\d{2}\s*h$/', $timeLower)) {
             $dateTime = \DateTime::createFromFormat('H:i \h', $timeLower);
             return $dateTime ? $dateTime->format('H:i') : null;

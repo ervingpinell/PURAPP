@@ -48,7 +48,7 @@
       }
   }
 
-  $tourUrl = request('turl') ?: ($tourId ? route('tours.show', ['id'=>$tourId]) : '');
+$tourUrl = request('turl') ?: ($tourId ? localized_route('tours.show', ['tour'=>$tourId]) : '');
 
   $rating = max(0, min(5, (int) data_get($r, 'rating', 5)));
   $title  = trim((string) data_get($r, 'title', ''));

@@ -6,8 +6,9 @@
   $providerHeight = (int)($providerHeight ?? 320);
   $carouselId     = 'tourReviewsCarousel_'.uniqid();
 
-  // Detectar si estamos en la página de un tour específico
-  $isSpecificTourPage = request()->route()->getName() === 'tours.show';
+  // Detectar si estamos en la página de un tour específico (con rutas localizadas)
+  $routeName = request()->route()->getName();
+  $isSpecificTourPage = $routeName && str_ends_with($routeName, '.tours.show');
 
   $TXT_MORE = __('reviews.read_more');  if (str_starts_with($TXT_MORE,'reviews.')) $TXT_MORE = 'Leer más';
   $TXT_LESS = __('reviews.read_less');  if (str_starts_with($TXT_LESS,'reviews.')) $TXT_LESS = 'Mostrar menos';
@@ -56,7 +57,7 @@
           $title    = trim((string)($r['title'] ?? ''));
           $body     = trim((string)($r['body'] ?? ''));
           $tourId   = $r['tour_id'] ?? null;
-          $tourUrl  = $tourId ? route('tours.show', ['id' => $tourId]) : '#';
+$tourUrl  = $tourId ? localized_route('tours.show', ['tour' => $tourId]) : '#';
           $tourName = trim((string)($r['tour_name'] ?? ''));
           $avatarUrl= $r['avatar_url'] ?? null;
 

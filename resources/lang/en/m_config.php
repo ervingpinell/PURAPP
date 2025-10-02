@@ -257,6 +257,13 @@ return [
         'validation_errors'     => 'There are validation errors',
         'updated_success'       => 'Translation updated successfully.',
         'unexpected_error'      => 'Could not update the translation.',
+                'editing'         => 'Editing',
+        'policy_name'     => 'Policy title',
+        'policy_content'  => 'Content',
+        'policy_sections' => 'Policy sections',
+        'section'         => 'Section',
+        'section_name'    => 'Section name',
+        'section_content' => 'Section content',
 
         // Language selector (screen and helpers)
         'choose_locale_title'   => 'Select language',

@@ -23,43 +23,105 @@ class DashBoardController extends Controller
         return view('index');
     }
 
-    /**
-     * Normalize and switch the app locale, then return to the previous page.
-     */
     public function switchLanguage(string $language): RedirectResponse
     {
-        $normalized = str_replace('-', '_', strtolower($language));
+        $locales     = array_keys(config('routes.locales', []));
+        $normalized  = strtolower(str_replace(['-', '_'], '', $language));
 
         $localeMap = [
-            'es'    => 'es',
-            'es_cr' => 'es',
-            'pt'    => 'pt',
-            'pt_br' => 'pt',
-            'en'    => 'en',
-            'fr'    => 'fr',
-            'de'    => 'de',
+            'es'   => 'es',
+            'escr' => 'es',
+            'pt'   => 'pt',
+            'ptbr' => 'pt',
+            'ptpt' => 'pt',
+            'en'   => 'en',
+            'enus' => 'en',
+            'engb' => 'en',
+            'fr'   => 'fr',
+            'frfr' => 'fr',
+            'de'   => 'de',
+            'dede' => 'de',
         ];
 
-        if (isset($localeMap[$normalized])) {
-            $targetLocale = $localeMap[$normalized];
+        $targetLocale = $localeMap[$normalized] ?? null;
+
+        if ($targetLocale && in_array($targetLocale, $locales, true)) {
+            $previous = url()->previous();
+
+            // Detectar si estamos en la página de edición de traducción
+            $isTranslationEdit = str_contains($previous, '/admin/translations/') &&
+                                 str_contains($previous, '/edit');
+
+            if ($isTranslationEdit) {
+                // En página de edición: solo cambiar locale de interfaz
+                session(['locale' => $targetLocale]);
+                app()->setLocale($targetLocale);
+
+                // Recargar la misma URL sin tocar el parámetro de edición
+                return redirect($previous);
+            }
+
+            // Resto: cambiar UI locale y redirigir manteniendo contexto
             session(['locale' => $targetLocale]);
             app()->setLocale($targetLocale);
+
+            $isAdmin = $this->isAdminUrl($previous);
+
+            if ($isAdmin) {
+                return redirect($previous);
+            } else {
+                $newUrl = $this->replaceLocaleInUrl($previous, $targetLocale);
+                return redirect($newUrl);
+            }
         }
 
-        $previousUrl = url()->previous() ?: route('home');
-        $path        = parse_url($previousUrl, PHP_URL_PATH) ?? '';
-
-        // Avoid redirecting back into /login
-        if (str_starts_with($path, '/login')) {
-            return redirect()->route('login');
-        }
-
-        return redirect()->to($previousUrl);
+        return back();
     }
 
-    /**
-     * Admin dashboard (roles 1 or 2).
-     */
+    private function isAdminUrl(string $url): bool
+    {
+        $parsed = parse_url($url);
+        $path   = $parsed['path'] ?? '/';
+
+        $adminPrefixes = [
+            '/admin',
+            '/profile',
+            '/my-reservations',
+            '/my-cart',
+            '/mi-carrito',
+        ];
+
+        foreach ($adminPrefixes as $prefix) {
+            if (str_starts_with($path, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function replaceLocaleInUrl(string $url, string $newLocale): string
+    {
+        $locales = array_keys(config('routes.locales', []));
+        $parsed  = parse_url($url);
+        $path    = $parsed['path'] ?? '/';
+        $query   = isset($parsed['query']) ? '?' . $parsed['query'] : '';
+
+        foreach ($locales as $locale) {
+            if (str_starts_with($path, "/{$locale}/")) {
+                $path = substr($path, strlen("/{$locale}"));
+                break;
+            } elseif ($path === "/{$locale}") {
+                $path = '/';
+                break;
+            }
+        }
+
+        $newPath = "/{$newLocale}" . $path;
+
+        return rtrim(config('app.url'), '/') . $newPath . $query;
+    }
+
     public function dashboard(): View|RedirectResponse
     {
         $user = Auth::user();
@@ -69,7 +131,6 @@ class DashBoardController extends Controller
                 ->with('error', __('adminlte::adminlte.access_denied'));
         }
 
-        // KPI counters
         $totalUsers          = User::count();
         $totalTours          = Tour::count();
         $totalRoles          = Role::count();
@@ -80,7 +141,6 @@ class DashBoardController extends Controller
         $totalItineraryItems = ItineraryItem::count();
         $totalBookings       = Booking::count();
 
-        // Extra data
         $itineraries = Itinerary::with('items')->get();
 
         $upcomingBookings = Booking::with(['user', 'detail.tour'])

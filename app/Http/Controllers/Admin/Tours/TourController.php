@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Tours;
 use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 use App\Models\Tour;
 use App\Models\TourType;
@@ -105,8 +106,14 @@ class TourController extends Controller
 
         try {
             DB::transaction(function () use ($validatedData, $request, $translator) {
+                // Generar slug si no viene
+                $slug = !empty($validatedData['slug'])
+                    ? Str::slug($validatedData['slug'])
+                    : Tour::generateUniqueSlug($validatedData['name']);
+
                 $tour = Tour::create([
                     'name'         => trim($validatedData['name']),
+                    'slug'         => $slug,
                     'overview'     => $validatedData['overview'] ?? '',
                     'adult_price'  => $validatedData['adult_price'],
                     'kid_price'    => $validatedData['kid_price'] ?? 0,
@@ -198,6 +205,13 @@ class TourController extends Controller
 
         try {
             DB::transaction(function () use ($tour, $validatedData, $request) {
+                // Manejar slug personalizado o regenerar
+                if (!empty($validatedData['slug'])) {
+                    $tour->slug = Str::slug($validatedData['slug']);
+                } elseif ($request->has('regenerate_slug')) {
+                    $tour->slug = Tour::generateUniqueSlug($tour->name, $tour->tour_id);
+                }
+
                 $tour->update([
                     'name'         => trim($validatedData['name']),
                     'overview'     => $validatedData['overview'] ?? '',
@@ -277,7 +291,6 @@ class TourController extends Controller
         }
     }
 
-    /** Toggle de estado activo (no toca relaciones). */
     public function toggle(ToggleTourRequest $request, Tour $tour)
     {
         try {

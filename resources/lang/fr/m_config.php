@@ -258,6 +258,13 @@ return [
         'validation_errors'     => 'Erreurs de validation',
         'updated_success'       => 'Traduction mise à jour avec succès.',
         'unexpected_error'      => 'Impossible de mettre à jour la traduction.',
+                'editing'         => 'Édition',
+        'policy_name'     => 'Titre de la politique',
+        'policy_content'  => 'Contenu',
+        'policy_sections' => 'Sections de la politique',
+        'section'         => 'Section',
+        'section_name'    => 'Nom de la section',
+        'section_content' => 'Contenu de la section',
 
         // Sélecteur de langue
         'choose_locale_title'   => 'Sélectionner la langue',

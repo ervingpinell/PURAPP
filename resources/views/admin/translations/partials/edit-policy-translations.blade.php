@@ -1,158 +1,63 @@
 @php
-    /** @var \App\Models\Policy $item */
-    // Variables esperadas: $type, $item, $locale
-    $tableId = 'sections-table-' . $item->policy_id;
+  /** @var \App\Models\Policy $item */
+  $targetLocale = $locale ?? 'en';
+  $sections     = $item->sections ?? collect();
 @endphp
 
-@if ($type === 'policies' && $item instanceof \App\Models\Policy)
-  <div class="card mb-4 border-info">
+@if($sections->count())
+  <div class="card mb-3">
     <div class="card-header bg-info text-white">
-      <strong>
-        <i class="fas fa-layer-group me-2"></i>
-        {{ __('policies.sections_title', ['policy' => ($item->translation()?->name ?? $item->name)]) }}
-      </strong>
-      <span class="badge bg-dark ms-2">{{ strtoupper($locale) }}</span>
+      <h5 class="mb-0">
+        <i class="fas fa-list-alt mr-2"></i> {{ __('m_config.translations.policy_sections') }}
+        <span class="badge bg-dark ml-2">{{ strtoupper($targetLocale) }}</span>
+      </h5>
     </div>
 
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table id="{{ $tableId }}" class="table align-middle mb-0">
-          <thead class="table-dark">
-            <tr>
-              <th style="width: 90px;">{{ __('policies.id') }}</th>
-              <th>{{ __('policies.name_base') }}</th>
-              <th>{{ __('policies.translation_name') }}</th>
-              <th>{{ __('policies.translation_content') }}</th>
-              <th style="width: 80px;" class="text-center">{{ __('policies.actions') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse ($item->sections as $index => $section)
-              @php
-                $translatedSection = $section->translation($locale) ?? $section->translation('es');
-                $collapseId = "sec-edit-{$section->section_id}";
-              @endphp
+    <div class="card-body">
+      @foreach($sections as $sIndex => $section)
+        @php
+          $secTr      = method_exists($section, 'translate') ? $section->translate($targetLocale) : null;
+          $sectionId  = $section->section_id ?? $section->getKey();
+          $nameInput  = "section_translations.{$sectionId}.name";
+          $contInput  = "section_translations.{$sectionId}.content";
+          $nameId     = "section_name_{$sectionId}";
+          $contentId  = "section_content_{$sectionId}";
+        @endphp
 
-              {{-- Fila resumen --}}
-              <tr>
-                <td>#{{ $section->section_id }}</td>
-                <td class="text-break">
-                  <span class="badge bg-success">{{ $section->name ?: __('policies.untitled') }}</span>
-                </td>
-                <td class="text-break">
-                  {{ $translatedSection?->name ?: __('policies.section') . ' #' . ($index+1) }}
-                </td>
-                <td class="text-break">
-                  <div class="small">
-                    {!! nl2br(e(\Illuminate\Support\Str::limit($translatedSection?->content ?? __('policies.no_content'), 160))) !!}
-                  </div>
-                </td>
-                <td class="text-center">
-                  <button
-                    class="btn btn-sm btn-primary"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#{{ $collapseId }}"
-                    aria-expanded="false"
-                    aria-controls="{{ $collapseId }}"
-                    title="{{ __('policies.edit') }}"
-                  >
-                    <i class="fas fa-edit"></i>
-                  </button>
-                </td>
-              </tr>
+        <div class="card mb-2">
+          <div class="card-header bg-light">
+            <strong>{{ __('m_config.translations.section') }} {{ $sIndex + 1 }}</strong>
+          </div>
+          <div class="card-body">
+            <div class="form-group mb-3">
+              <label for="{{ $nameId }}">
+                <i class="far fa-edit mr-1"></i>
+                {{ __('m_config.translations.section_name') }} ({{ strtoupper($targetLocale) }})
+              </label>
+              <input
+                type="text"
+                id="{{ $nameId }}"
+                class="form-control"
+                name="section_translations[{{ $sectionId }}][name]"
+                value="{{ old($nameInput, $secTr->name ?? $section->name ?? '') }}"
+              >
+            </div>
 
-              {{-- Fila de edición (collapse en DIV dentro del TD) --}}
-              <tr>
-                <td colspan="5" class="bg-light">
-                  <div id="{{ $collapseId }}" class="collapse" data-bs-parent="#{{ $tableId }}">
-                    <div class="p-3 border rounded">
-                      <div class="d-flex align-items-center mb-3">
-                        <span class="badge bg-dark me-2">#{{ $section->section_id }}</span>
-                        <span class="text-muted">
-                          {{ __('policies.name_base') }}:
-                          <strong>{{ $section->name ?: '—' }}</strong>
-                        </span>
-                        <span class="ms-auto small text-muted">
-                          {{ __('policies.editing_locale') ?? __('m_config.translations.select_language_title') }}:
-                          <strong>{{ strtoupper($locale) }}</strong>
-                        </span>
-                      </div>
-
-                      <div class="row g-3">
-                        <div class="col-md-6">
-                          <label class="form-label">{{ __('policies.translation_name') }}</label>
-                          <input
-                            type="text"
-                            class="form-control"
-                            name="section_translations[{{ $section->section_id }}][name]"
-                            value="{{ old("section_translations.{$section->section_id}.name", $translatedSection?->name) }}"
-                          >
-                        </div>
-                        <div class="col-12">
-                          <label class="form-label">{{ __('policies.translation_content') }}</label>
-                          <textarea
-                            class="form-control"
-                            rows="4"
-                            name="section_translations[{{ $section->section_id }}][content]"
-                          >{{ old("section_translations.{$section->section_id}.content", $translatedSection?->content) }}</textarea>
-                        </div>
-                      </div>
-
-                      <div class="text-end mt-3">
-                        <button
-                          class="btn btn-sm btn-secondary js-collapse-close"
-                          type="button"
-                          data-collapse-target="#{{ $collapseId }}"
-                        >
-                          <i class="fas fa-chevron-up me-1"></i> {{ __('policies.close') }}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="5" class="text-center text-muted">
-                  {{ __('policies.no_sections') }}
-                </td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
-      </div>
-
-      <div class="p-3 text-muted small">
-        <i class="fas fa-info-circle me-1"></i>
-        {{ __('policies.bulk_edit_hint') }}
-      </div>
+            <div class="form-group mb-0">
+              <label for="{{ $contentId }}">
+                <i class="far fa-edit mr-1"></i>
+                {{ __('m_config.translations.section_content') }} ({{ strtoupper($targetLocale) }})
+              </label>
+              <textarea
+                id="{{ $contentId }}"
+                name="section_translations[{{ $sectionId }}][content]"
+                class="form-control"
+                rows="4"
+              >{{ old($contInput, $secTr->content ?? $section->content ?? '') }}</textarea>
+            </div>
+          </div>
+        </div>
+      @endforeach
     </div>
   </div>
-
-  {{-- JS: cierre garantizado del collapse --}}
-  <script>
-    (function () {
-      if (window.__policySectionCollapseInit) return;
-      window.__policySectionCollapseInit = true;
-
-      document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.js-collapse-close');
-        if (!btn) return;
-
-        const targetSel = btn.getAttribute('data-collapse-target');
-        if (!targetSel) return;
-
-        const el = document.querySelector(targetSel);
-        if (!el) return;
-
-        try {
-          const instance = bootstrap.Collapse.getOrCreateInstance(el, { toggle: false });
-          instance.hide();
-        } catch (err) {
-          el.classList.remove('show');
-        }
-      });
-    })();
-  </script>
 @endif

@@ -24,19 +24,15 @@ $coverFromFolder = function (?int $tourId): string {
 <div class="tour-cards">
 @foreach ($typeMeta as $key => $meta)
   @php
-      // $key es el tour_type_id que usaste como índice
-      /** @var \Illuminate\Support\Collection $group */
       $group = $toursByType[$key] ?? collect();
       if ($group->isEmpty()) continue;
 
       $first = $group->first();
 
-      // Textos
       $translatedTitle       = $meta['title']       ?? '';
       $translatedDuration    = $meta['duration']    ?? '';
       $translatedDescription = $meta['description'] ?? '';
 
-      // 👇 primero el cover de la categoría; si no, cae a la del primer tour / folder
       $typeCover  = $meta['cover_url'] ?? null;
       $firstCover = $typeCover
           ?: (optional($first->coverImage)->url
@@ -120,7 +116,7 @@ $coverFromFolder = function (?int $tourId): string {
                         </div>
                       </div>
 
-                      <a href="{{ route('tours.show', $tour->tour_id) }}" class="btn btn-success w-100 mt-2">
+<a href="{{ localized_route('tours.show', $tour) }}" class="btn btn-success w-100 mt-2">
                         {{ __('adminlte::adminlte.see_tour') }}
                       </a>
                     </div>

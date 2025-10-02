@@ -34,7 +34,7 @@
 
       <div class="review-card" id="tour-card-{{ $tour->tour_id }}">
         <h3 class="review-title">
-          <a href="{{ route('tours.show', ['id' => $tour->tour_id]) }}"
+          <a href="{{ localized_route('tours.show', $tour) }}"
              class="text-light d-inline-block tour-link"
              style="text-decoration: underline;">
             {{ $tour->display_name }}

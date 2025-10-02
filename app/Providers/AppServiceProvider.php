@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Facades\App;
 
 use App\Services\Contracts\TranslatorInterface;
 use App\Services\DeepLTranslator;
@@ -40,6 +41,13 @@ class AppServiceProvider extends ServiceProvider
         }
 
         // =========================
+        // Si usamos prefijo {locale} en rutas públicas, propagar por defecto
+        // =========================
+        if (request()->route() && request()->route()->parameter('locale') !== null) {
+            URL::defaults(['locale' => App::getLocale()]);
+        }
+
+        // =========================
         // Email de verificación: generar SIEMPRE contra la ruta pública firmada
         // =========================
         VerifyEmail::createUrlUsing(function ($notifiable) {
@@ -47,7 +55,7 @@ class AppServiceProvider extends ServiceProvider
                 'verification.public', // <- definida en routes/web.php
                 now()->addMinutes((int) config('auth.verification.expire', 60)),
                 [
-                    'id'   => $notifiable->getKey(), // en tu User la PK es user_id; getKey() lo resuelve
+                    'id'   => $notifiable->getKey(),
                     'hash' => sha1($notifiable->getEmailForVerification()),
                 ]
             );

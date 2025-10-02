@@ -25,7 +25,6 @@
     {{ __('reviews.what_visitors_say') }}
   </h2>
 
-  {{-- Carrusel unificado con look “hero” --}}
   @include('partials.reviews.hero-carousel', [
     'items'      => $homeReviews ?? collect(),
     'carouselId' => 'homeReviewsHero'

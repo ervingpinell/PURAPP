@@ -1,6 +1,5 @@
 {{-- resources/views/admin/tours/create.blade.php --}}
 @php
-    // útil para mostrar preview de itinerario
     $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {
         return [
             'description' => $it->description,
@@ -26,7 +25,7 @@
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title">{{ __('m_tours.tour.ui.create_title') }}</h5> {{-- i18n: agregar create_title --}}
+        <h5 class="modal-title">{{ __('m_tours.tour.ui.create_title') }}</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
@@ -36,12 +35,42 @@
 
           <div class="row g-4">
             <div class="col-lg-7">
-              {{-- Datos principales --}}
+              {{-- Nombre --}}
               <x-adminlte-input name="name" :label="__('m_tours.tour.fields.name')" value="{{ old('name') }}" required />
 
+              {{-- ✅ SLUG (nuevo campo) --}}
+              <div class="form-group">
+                <label for="slug-create">
+                  URL Amigable (Slug)
+                  <small class="text-muted">{{ __('m_tours.tour.ui.slug_help') ?? 'Deja vacío para generar automáticamente desde el nombre' }}</small>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text">/tours/</span>
+                  <input type="text"
+                         class="form-control @error('slug') is-invalid @enderror"
+                         id="slug-create"
+                         name="slug"
+                         value="{{ old('slug') }}"
+                         placeholder="minicombo-1">
+                  <button type="button"
+                          class="btn btn-outline-secondary"
+                          onclick="generateSlugFromName()"
+                          title="{{ __('m_tours.tour.ui.generate_auto') ?? 'Generar automáticamente' }}">
+                    <i class="fas fa-sync"></i>
+                  </button>
+                </div>
+                @error('slug')
+                  <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+                <small class="form-text text-muted">
+                  Vista previa: <code id="slug-preview-create">{{ app()->getLocale() }}/tours/</code>
+                </small>
+              </div>
+
+              {{-- Color / Viator / Duración --}}
               <div class="row">
                 <div class="col-md-4">
-                  <label class="form-label">{{ __('m_tours.tour.ui.color') }}</label> {{-- i18n: agregar ui.color --}}
+                  <label class="form-label">{{ __('m_tours.tour.ui.color') }}</label>
                   <input type="color" name="color" class="form-control form-control-color"
                          value="{{ old('color', '#5cb85c') }}">
                 </div>
@@ -64,13 +93,13 @@
                   <x-adminlte-input name="kid_price" :label="__('m_tours.tour.fields.kid_price')" type="number" step="0.01" value="{{ old('kid_price') }}" />
                 </div>
                 <div class="col-md-4">
-                  <label class="form-label">{{ __('m_tours.tour.ui.default_capacity') }}</label> {{-- i18n: agregar ui.default_capacity --}}
+                  <label class="form-label">{{ __('m_tours.tour.ui.default_capacity') }}</label>
                   <input type="number" name="max_capacity" class="form-control" value="{{ old('max_capacity', 12) }}" min="1" required>
                 </div>
               </div>
 
               <x-adminlte-select name="tour_type_id" :label="__('m_tours.tour.fields.type')" required>
-                <option value="">{{ __('m_tours.tour.ui.select_type') }}</option> {{-- i18n: agregar ui.select_type --}}
+                <option value="">{{ __('m_tours.tour.ui.select_type') }}</option>
                 @foreach($tourtypes as $type)
                   <option value="{{ $type->tour_type_id }}" @selected(old('tour_type_id') == $type->tour_type_id)>
                     {{ $type->name }}
@@ -79,7 +108,7 @@
               </x-adminlte-select>
 
               <div class="mb-3">
-                <label>{{ __('m_tours.tour.ui.available_languages') }}</label> {{-- i18n: agregar ui.available_languages --}}
+                <label>{{ __('m_tours.tour.ui.available_languages') }}</label>
                 <br>
                 @foreach($languages as $lang)
                   <div class="form-check form-check-inline">
@@ -91,7 +120,7 @@
               </div>
 
               <div class="mb-3">
-                <label>{{ __('m_tours.tour.ui.amenities_included') }}</label> {{-- i18n: agregar ui.amenities_included --}}
+                <label>{{ __('m_tours.tour.ui.amenities_included') }}</label>
                 <br>
                 @foreach($amenities as $am)
                   <div class="form-check form-check-inline">
@@ -103,7 +132,7 @@
               </div>
 
               <div class="mb-3">
-                <label class="form-label text-danger">{{ __('m_tours.tour.ui.amenities_excluded') }}</label> {{-- i18n: agregar ui.amenities_excluded --}}
+                <label class="form-label text-danger">{{ __('m_tours.tour.ui.amenities_excluded') }}</label>
                 <br>
                 @foreach($amenities as $am)
                   <div class="form-check form-check-inline">
@@ -116,12 +145,12 @@
             </div>
 
             <div class="col-lg-5">
-              {{-- Itinerario (solo asignar) --}}
+              {{-- Itinerario --}}
               <div class="card mb-3 shadow-sm">
                 <div class="card-header bg-light fw-bold">{{ __('m_tours.itinerary.fields.name') }}</div>
                 <div class="card-body">
                   <select name="itinerary_id" id="select-itinerary" class="form-select" required>
-                    <option value="">{{ __('m_tours.tour.ui.choose_itinerary') }}</option> {{-- i18n: agregar ui.choose_itinerary --}}
+                    <option value="">{{ __('m_tours.tour.ui.choose_itinerary') }}</option>
                     @foreach($itineraries as $it)
                       <option value="{{ $it->itinerary_id }}" @selected(old('itinerary_id') == $it->itinerary_id)>
                         {{ $it->name }}
@@ -139,11 +168,11 @@
               {{-- Horarios --}}
               <div class="card shadow-sm">
                 <div class="card-header bg-light fw-bold d-flex align-items-center justify-content-between">
-                  <span>{{ __('m_tours.tour.ui.schedules_title') }}</span> {{-- i18n: agregar ui.schedules_title --}}
+                  <span>{{ __('m_tours.tour.ui.schedules_title') }}</span>
                 </div>
                 <div class="card-body">
                   <div class="mb-3">
-                    <label class="form-label">{{ __('m_tours.tour.ui.use_existing_schedules') }}</label> {{-- i18n: agregar ui.use_existing_schedules --}}
+                    <label class="form-label">{{ __('m_tours.tour.ui.use_existing_schedules') }}</label>
                     <select name="schedules_existing[]" class="form-select" multiple size="6">
                       @foreach($allSchedules as $sc)
                         @php
@@ -156,12 +185,12 @@
                         </option>
                       @endforeach
                     </select>
-                    <div class="form-text">{{ __('m_tours.tour.ui.multiple_hint_ctrl_cmd') }}</div> {{-- i18n: agregar ui.multiple_hint_ctrl_cmd --}}
+                    <div class="form-text">{{ __('m_tours.tour.ui.multiple_hint_ctrl_cmd') }}</div>
                   </div>
 
                   <hr>
 
-                  <label class="form-label">{{ __('m_tours.tour.ui.create_new_schedules') }}</label> {{-- i18n: agregar ui.create_new_schedules --}}
+                  <label class="form-label">{{ __('m_tours.tour.ui.create_new_schedules') }}</label>
                   <div id="schedules-new-container">
                     <div class="row g-2 schedule-new mb-2">
                       <div class="col-4">
@@ -175,15 +204,15 @@
                       </div>
                       <div class="col-6 mt-2">
                         <input type="number" name="schedules_new[0][max_capacity]" class="form-control"
-                               placeholder="{{ __('m_tours.schedule.fields.max_capacity') }} ({{ __('m_tours.tour.ui.empty_means_default') }})"> {{-- i18n: agregar ui.empty_means_default --}}
+                               placeholder="{{ __('m_tours.schedule.fields.max_capacity') }} ({{ __('m_tours.tour.ui.empty_means_default') }})">
                       </div>
                       <div class="col-6 mt-2 text-end">
-                        <button type="button" class="btn btn-outline-danger btn-sm btn-remove-sched">{{ __('m_tours.tour.ui.remove') }}</button> {{-- i18n: agregar ui.remove --}}
+                        <button type="button" class="btn btn-outline-danger btn-sm btn-remove-sched">{{ __('m_tours.tour.ui.remove') }}</button>
                       </div>
                     </div>
                   </div>
 
-                  <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-add-sched">+ {{ __('m_tours.tour.ui.add_schedule') }}</button> {{-- i18n: agregar ui.add_schedule --}}
+                  <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-add-sched">+ {{ __('m_tours.tour.ui.add_schedule') }}</button>
                 </div>
               </div>
             </div>
@@ -193,7 +222,7 @@
 
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.tour.ui.cancel') }}</button>
-          <button type="submit" class="btn btn-primary">{{ __('m_tours.tour.ui.save') }}</button> {{-- i18n: agregar ui.save --}}
+          <button type="submit" class="btn btn-primary">{{ __('m_tours.tour.ui.save') }}</button>
         </div>
       </form>
     </div>
@@ -202,8 +231,39 @@
 
 @push('js')
 <script>
+// ✅ Función para generar slug desde el nombre
+function generateSlugFromName() {
+  const nameInput = document.querySelector('#modalRegistrar input[name="name"]');
+  const slugInput = document.getElementById('slug-create');
+
+  if (nameInput && slugInput) {
+    const slug = nameInput.value
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quita acentos
+      .replace(/[^\w\s-]/g, '') // solo alfanuméricos, espacios y guiones
+      .trim()
+      .replace(/\s+/g, '-') // espacios a guiones
+      .replace(/-+/g, '-'); // múltiples guiones a uno
+
+    slugInput.value = slug;
+    updateSlugPreviewCreate();
+  }
+}
+
+// ✅ Actualizar preview
+function updateSlugPreviewCreate() {
+  const slugInput = document.getElementById('slug-create');
+  const preview = document.getElementById('slug-preview-create');
+  const locale = '{{ app()->getLocale() }}';
+
+  if (slugInput && preview) {
+    const slug = slugInput.value || '[auto]';
+    preview.textContent = `/${locale}/tours/${slug}`;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
-  // ==== Preview de itinerario seleccionado ====
+  // Preview de itinerario
   const itineraryData = @json($itineraryJson);
   const selIt = document.getElementById('select-itinerary');
   const prevBox = document.getElementById('itinerary-preview');
@@ -225,12 +285,19 @@ document.addEventListener('DOMContentLoaded', function () {
       : `<li class="list-group-item text-muted">{{ __('m_tours.itinerary.ui.no_items_assigned') }}</li>`;
     prevBox.style.display = 'block';
   }
+
   if (selIt) {
     selIt.addEventListener('change', refreshItineraryPreview);
     refreshItineraryPreview();
   }
 
-  // ==== Horarios nuevos: añadir/eliminar filas ====
+  // Preview slug al escribir
+  const slugInput = document.getElementById('slug-create');
+  if (slugInput) {
+    slugInput.addEventListener('input', updateSlugPreviewCreate);
+  }
+
+  // Horarios: añadir/eliminar
   const container = document.getElementById('schedules-new-container');
   const addBtn = document.getElementById('btn-add-sched');
 

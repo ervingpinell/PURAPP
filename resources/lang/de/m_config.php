@@ -257,6 +257,13 @@ return [
         'validation_errors'     => 'Validierungsfehler',
         'updated_success'       => 'Übersetzung erfolgreich aktualisiert.',
         'unexpected_error'      => 'Übersetzung konnte nicht aktualisiert werden.',
+                'editing'         => 'Bearbeiten',
+        'policy_name'     => 'Richtlinientitel',
+        'policy_content'  => 'Inhalt',
+        'policy_sections' => 'Richtlinienabschnitte',
+        'section'         => 'Abschnitt',
+        'section_name'    => 'Abschnittsname',
+        'section_content' => 'Abschnittsinhalt',
 
         // Sprachwahl
         'choose_locale_title'   => 'Sprache auswählen',

@@ -6,8 +6,8 @@
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header bg-warning text-white">
-        <h5 class="modal-title" id="modalEditarLabel{{ $tour->tour_id }}">{{ __('m_tours.tour.ui.edit_title') }} #{{ $tour->tour_id }}</h5> {{-- i18n: agregar ui.edit_title --}}
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('m_tours.tour.ui.close') }}"></button> {{-- i18n: agregar ui.close --}}
+        <h5 class="modal-title" id="modalEditarLabel{{ $tour->tour_id }}">{{ __('m_tours.tour.ui.edit_title') }} #{{ $tour->tour_id }}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('m_tours.tour.ui.close') }}"></button>
       </div>
 
       <form action="{{ route('admin.tours.update', $tour->tour_id) }}" method="POST">
@@ -16,7 +16,6 @@
 
         <div class="modal-body">
 
-          {{-- Validaciones sólo si este modal fue el que falló --}}
           @if($errors->any() && session('showEditModal') == $tour->tour_id)
             <div class="alert alert-danger">
               <ul class="mb-0">
@@ -28,11 +27,39 @@
           @endif
 
           <div class="row g-4">
-            {{-- ===== Columna izquierda (igual que create) ===== --}}
             <div class="col-lg-7">
 
               {{-- Nombre --}}
               <x-adminlte-input name="name" :label="__('m_tours.tour.fields.name')" value="{{ old('name', $tour->name) }}" required />
+
+              {{-- ✅ SLUG (nuevo campo) --}}
+              <div class="form-group">
+                <label for="slug-{{ $tour->tour_id }}">
+                  URL Amigable (Slug)
+                  <small class="text-muted">{{ __('m_tours.tour.ui.slug_help') ?? 'Deja vacío para generar automáticamente desde el nombre' }}</small>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text">/tours/</span>
+                  <input type="text"
+                         class="form-control @error('slug') is-invalid @enderror"
+                         id="slug-{{ $tour->tour_id }}"
+                         name="slug"
+                         value="{{ old('slug', $tour->slug) }}"
+                         placeholder="minicombo-1">
+                  <button type="button"
+                          class="btn btn-outline-secondary btn-slug-auto"
+                          data-tour-id="{{ $tour->tour_id }}"
+                          title="{{ __('m_tours.tour.ui.generate_auto') ?? 'Generar automáticamente' }}">
+                    <i class="fas fa-sync"></i>
+                  </button>
+                </div>
+                @error('slug')
+                  <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+                <small class="form-text text-muted">
+                  Vista previa: <code id="slug-preview-{{ $tour->tour_id }}">{{ localized_route('tours.show', $tour->slug ?: $tour->tour_id) }}</code>
+                </small>
+              </div>
 
               {{-- Color / Viator / Duración --}}
               <div class="row">
@@ -127,7 +154,7 @@
               </div>
             </div>
 
-            {{-- ===== Columna derecha (igual que create) ===== --}}
+            {{-- Columna derecha --}}
             <div class="col-lg-5">
 
               {{-- Itinerario --}}
@@ -158,7 +185,6 @@
                   <span>{{ __('m_tours.tour.ui.schedules_title') }}</span>
                 </div>
                 <div class="card-body">
-                  {{-- existentes --}}
                   <div class="mb-3">
                     <label class="form-label">{{ __('m_tours.tour.ui.use_existing_schedules') }}</label>
                     @php
@@ -183,10 +209,8 @@
 
                   <hr>
 
-                  {{-- nuevos --}}
                   <label class="form-label">{{ __('m_tours.tour.ui.create_new_schedules') }}</label>
                   <div id="edit-new-schedules-{{ $tour->tour_id }}">
-                    {{-- Fila plantilla (clonada por scripts.blade) --}}
                     <div class="schedule-row border-bottom pb-3 mb-3 d-none" id="edit-row-template-{{ $tour->tour_id }}">
                       <div class="row g-2 align-items-end">
                         <div class="col-4">
@@ -211,7 +235,6 @@
                       </div>
                     </div>
 
-                    {{-- Si viene con old(), las pintamos --}}
                     @php $oldRows = old('schedules_new', []); @endphp
                     @foreach($oldRows as $i => $r)
                       <div class="schedule-row border-bottom pb-3 mb-3">
@@ -260,10 +283,57 @@
 
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.tour.ui.cancel') }}</button>
-          <button type="submit" class="btn btn-warning">{{ __('m_tours.tour.ui.update') }}</button> {{-- i18n: agregar ui.update --}}
+          <button type="submit" class="btn btn-warning">{{ __('m_tours.tour.ui.update') }}</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 @endforeach
+
+@push('js')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // ✅ Auto-generar slug desde el nombre
+  document.querySelectorAll('.btn-slug-auto').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tourId = btn.dataset.tourId;
+      const nameInput = document.querySelector(`#modalEditar${tourId} input[name="name"]`);
+      const slugInput = document.querySelector(`#slug-${tourId}`);
+
+      if (nameInput && slugInput) {
+        const slug = nameInput.value
+          .toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quita acentos
+          .replace(/[^\w\s-]/g, '') // solo alfanuméricos, espacios y guiones
+          .trim()
+          .replace(/\s+/g, '-') // espacios a guiones
+          .replace(/-+/g, '-'); // múltiples guiones a uno
+
+        slugInput.value = slug;
+        updateSlugPreview(tourId);
+      }
+    });
+  });
+
+  // ✅ Actualizar preview del slug
+  function updateSlugPreview(tourId) {
+    const slugInput = document.querySelector(`#slug-${tourId}`);
+    const preview = document.querySelector(`#slug-preview-${tourId}`);
+    const locale = '{{ app()->getLocale() }}';
+
+    if (slugInput && preview) {
+      const slug = slugInput.value || tourId;
+      preview.textContent = `/${locale}/tours/${slug}`;
+    }
+  }
+
+  document.querySelectorAll('[id^="slug-"]').forEach(input => {
+    if (input.id.startsWith('slug-')) {
+      const tourId = input.id.replace('slug-', '');
+      input.addEventListener('input', () => updateSlugPreview(tourId));
+    }
+  });
+});
+</script>
+@endpush

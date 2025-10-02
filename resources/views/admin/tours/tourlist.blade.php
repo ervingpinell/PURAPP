@@ -1,11 +1,30 @@
-{{-- Estilos compactos + controles de fuente --}}
+{{-- resources/views/admin/tours/tourlist.blade.php --}}
 <style>
-    .table-sm td, .table-sm th { padding: .3rem; font-size: var(--tbl-font-size, 1rem); }
+    .table-sm td, .table-sm th {
+        padding: .3rem;
+        font-size: var(--tbl-font-size, 0.9rem);
+        vertical-align: middle;
+    }
     td.overview-cell, td.amenities-cell, td.not-included-amenities-cell, td.itinerary-cell {
         max-width: 300px; min-width: 150px; white-space: normal; word-break: break-word;
     }
+    td.slug-cell {
+        max-width: 180px;
+        font-family: 'Courier New', monospace;
+    }
+    td.name-cell {
+        max-width: 140px;
+        font-weight: 500;
+        line-height: 1.3;
+    }
+    td.amenities-cell .badge,
+    td.not-included-amenities-cell .badge {
+        padding: 0.2rem 0.35rem;
+        margin-bottom: 0.15rem;
+    }
     @media (max-width: 768px){
         td.overview-cell, td.amenities-cell, td.itinerary-cell { max-width: 200px; }
+        td.slug-cell { max-width: 120px; }
     }
     .overview-preview{
         display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
@@ -13,10 +32,28 @@
         word-break: break-word;
     }
     .overview-expanded{ -webkit-line-clamp: unset; max-height: none; }
-    .badge-truncate{ display:inline-block; max-width:100px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:middle; font-size:.75rem; }
+    .badge-truncate{
+        display:inline-block;
+        max-width: 85px;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        vertical-align:middle;
+    }
     .font-toolbar{ display:flex; gap:.5rem; align-items:center; margin:.5rem 0 1rem; }
     .font-toolbar .btn{ line-height:1; padding:.25rem .5rem; }
     .font-toolbar .size-indicator{ min-width:3.5rem; text-align:center; font-variant-numeric: tabular-nums; }
+    .slug-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 </style>
 
 @include('admin.Cart.cartmodal')
@@ -24,7 +61,7 @@
 {{-- Toolbar de tamaño de fuente --}}
 <div class="font-toolbar">
     <button class="btn btn-outline-secondary btn-sm" id="fontSmaller" type="button" title="{{ __('m_tours.tour.ui.font_decrease_title') }}">A−</button>
-    <div class="size-indicator" id="fontIndicator">115%</div>
+    <div class="size-indicator" id="fontIndicator">90%</div>
     <button class="btn btn-outline-secondary btn-sm" id="fontBigger" type="button" title="{{ __('m_tours.tour.ui.font_increase_title') }}">A+</button>
 </div>
 
@@ -33,11 +70,11 @@
         <tr>
             <th>{{ __('m_tours.tour.table.id') }}</th>
             <th>{{ __('m_tours.tour.table.name') }}</th>
+            <th>{{ __('m_tours.tour.table.slug') ?? 'Slug' }}</th>
             <th style="width: 200px;">{{ __('m_tours.tour.table.overview') }}</th>
             <th style="width: 100px;">{{ __('m_tours.tour.table.amenities') }}</th>
             <th style="width: 100px;">{{ __('m_tours.tour.table.exclusions') }}</th>
             <th style="width: 180px;">{{ __('m_tours.tour.table.itinerary') }}</th>
-            <th class="d-none d-md-table-cell">{{ __('m_tours.tour.table.languages') }}</th>
             <th>{{ __('m_tours.tour.table.schedules') }}</th>
             <th>{{ __('m_tours.tour.table.adult_price') }}</th>
             <th class="d-none d-md-table-cell">{{ __('m_tours.tour.table.kid_price') }}</th>
@@ -53,7 +90,16 @@
         @foreach($tours as $tour)
             <tr>
                 <td>{{ $tour->tour_id }}</td>
-                <td class="text-truncate" style="max-width: 140px;" title="{{ $tour->name }}">{{ $tour->name }}</td>
+                <td class="name-cell">{{ $tour->name }}</td>
+
+                {{-- Slug --}}
+                <td class="slug-cell">
+                    @if($tour->slug)
+                        <span class="slug-badge" title="{{ $tour->slug }}">{{ $tour->slug }}</span>
+                    @else
+                        <span class="text-muted">—</span>
+                    @endif
+                </td>
 
                 {{-- Overview --}}
                 <td class="overview-cell">
@@ -68,7 +114,7 @@
                 {{-- Amenidades incluidas --}}
                 <td class="amenities-cell">
                     @forelse($tour->amenities as $am)
-                        <span class="badge bg-info mb-1 badge-truncate" title="{{ $am->name }}">{{ $am->name }}</span>
+                        <span class="badge bg-info badge-truncate" title="{{ $am->name }}">{{ $am->name }}</span>
                     @empty
                         <span class="text-muted">{{ __('m_tours.tour.ui.none.amenities') }}</span>
                     @endforelse
@@ -77,7 +123,7 @@
                 {{-- Amenidades NO incluidas --}}
                 <td class="not-included-amenities-cell">
                     @forelse ($tour->excludedAmenities as $amenity)
-                        <span class="badge bg-danger mb-1 badge-truncate" title="{{ $amenity->name }}">{{ $amenity->name }}</span>
+                        <span class="badge bg-danger badge-truncate" title="{{ $amenity->name }}">{{ $amenity->name }}</span>
                     @empty
                         <span class="text-muted">{{ __('m_tours.tour.ui.none.exclusions') }}</span>
                     @endforelse
@@ -90,20 +136,11 @@
                         @forelse($tour->itinerary->items as $item)
                             <span class="badge bg-info mb-1 badge-truncate" title="{{ $item->title }}">{{ $item->title }}</span>
                         @empty
-                            <small class="text-muted">{{ __('m_tours.tour.ui.none.itinerary_items') }}</small>
+                            <span class="text-muted">{{ __('m_tours.tour.ui.none.itinerary_items') }}</span>
                         @endforelse
                     @else
                         <span class="text-muted">{{ __('m_tours.tour.ui.none.itinerary') }}</span>
                     @endif
-                </td>
-
-                {{-- Idiomas --}}
-                <td class="d-none d-md-table-cell">
-                    @forelse($tour->languages as $lang)
-                        <span class="badge bg-secondary">{{ $lang->name }}</span>
-                    @empty
-                        <span class="text-muted">{{ __('m_tours.tour.ui.none.languages') }}</span>
-                    @endforelse
                 </td>
 
                 {{-- Horarios --}}
@@ -120,9 +157,9 @@
                     @endforelse
                 </td>
 
-                <td>{{ number_format($tour->adult_price, 2) }}</td>
-                <td class="d-none d-md-table-cell">{{ number_format($tour->kid_price, 2) }}</td>
-                <td class="d-none d-md-table-cell">{{ $tour->length }}</td>
+                <td>${{ number_format($tour->adult_price, 2) }}</td>
+                <td class="d-none d-md-table-cell">${{ number_format($tour->kid_price, 2) }}</td>
+                <td class="d-none d-md-table-cell">{{ $tour->length }}h</td>
                 <td class="d-none d-md-table-cell">{{ $tour->max_capacity }}</td>
                 <td>{{ $tour->tourType->name }}</td>
                 <td class="d-none d-md-table-cell">{{ $tour->viator_code ?? '—' }}</td>
@@ -136,30 +173,39 @@
 
                 {{-- Acciones --}}
                 <td>
-                    {{-- Carrito --}}
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalCart{{ $tour->tour_id }}">
-                        <i class="fas fa-cart-plus"></i>
-                    </button>
-
-                    <a href="#" class="btn btn-edit btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $tour->tour_id }}">
-                        <i class="fas fa-edit"></i>
-                    </a>
-
-                    {{-- Toggle con SweetAlert --}}
-                    <form action="{{ route('admin.tours.toggle', $tour->tour_id) }}"
-                        method="POST"
-                        class="d-inline js-toggle-form"
-                        data-question="{{ $tour->is_active ? __('m_tours.tour.ui.toggle_off_title') : __('m_tours.tour.ui.toggle_on_title') }}"
-                        data-confirm="{{ $tour->is_active ? __('m_tours.tour.ui.toggle_off_button') : __('m_tours.tour.ui.toggle_on_button') }}">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit"
-                                class="btn btn-sm btn-toggle"
-                                title="{{ $tour->is_active ? __('m_tours.tour.ui.toggle_off') : __('m_tours.tour.ui.toggle_on') }}">
-                            <i class="fas fa-toggle-{{ $tour->is_active ? 'on' : 'off' }}"></i>
+                    <div class="d-flex flex-wrap gap-1">
+                        {{-- Carrito --}}
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalCart{{ $tour->tour_id }}" title="{{ __('m_tours.tour.ui.add_to_cart') ?? 'Añadir al carrito' }}">
+                            <i class="fas fa-cart-plus"></i>
                         </button>
-                    </form>
 
+                        {{-- Editar --}}
+                        <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ $tour->tour_id }}" title="{{ __('m_tours.tour.ui.edit') ?? 'Editar' }}">
+                            <i class="fas fa-edit"></i>
+                        </a>
+
+                        {{-- Toggle activo/inactivo --}}
+                        <form action="{{ route('admin.tours.toggle', $tour->tour_id) }}"
+                            method="POST"
+                            class="d-inline js-toggle-form"
+                            data-question="{{ $tour->is_active ? __('m_tours.tour.ui.toggle_off_title') : __('m_tours.tour.ui.toggle_on_title') }}"
+                            data-confirm="{{ $tour->is_active ? __('m_tours.tour.ui.toggle_off_button') : __('m_tours.tour.ui.toggle_on_button') }}">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit"
+                                    class="btn btn-sm btn-{{ $tour->is_active ? 'success' : 'secondary' }}"
+                                    title="{{ $tour->is_active ? __('m_tours.tour.ui.toggle_off') : __('m_tours.tour.ui.toggle_on') }}">
+                                <i class="fas fa-toggle-{{ $tour->is_active ? 'on' : 'off' }}"></i>
+                            </button>
+                        </form>
+
+                        {{-- Gestionar imágenes --}}
+                        <a href="{{ route('admin.tours.images.index', $tour->tour_id) }}"
+                           class="btn btn-info btn-sm"
+                           title="{{ __('m_tours.tour.ui.manage_images') ?? 'Gestionar imágenes' }}">
+                            <i class="fas fa-images"></i>
+                        </a>
+                    </div>
                 </td>
             </tr>
         @endforeach
@@ -191,7 +237,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // ========= SweetAlert en Toggle =========
     document.querySelectorAll('.js-toggle-form').forEach(form => {
         form.addEventListener('submit', function(ev){
             ev.preventDefault();
@@ -206,32 +251,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ========= Controles de tamaño de fuente =========
     const root = document.documentElement;
     const indicator = document.getElementById('fontIndicator');
     const LS_KEY = 'toursTableFontPct';
 
     function setPct(pct){
-        pct = Math.max(100, Math.min(150, pct));
+        pct = Math.max(80, Math.min(150, pct));
         const rem = (pct/100).toFixed(3) + 'rem';
         root.style.setProperty('--tbl-font-size', rem);
         indicator.textContent = pct + '%';
         localStorage.setItem(LS_KEY, String(pct));
     }
 
-    const saved = parseInt(localStorage.getItem(LS_KEY) || '115', 10);
+    const saved = parseInt(localStorage.getItem(LS_KEY) || '90', 10);
     setPct(saved);
 
     document.getElementById('fontSmaller').addEventListener('click', () => {
-        const current = parseInt(localStorage.getItem(LS_KEY) || '115', 10);
+        const current = parseInt(localStorage.getItem(LS_KEY) || '90', 10);
         setPct(current - 5);
     });
     document.getElementById('fontBigger').addEventListener('click', () => {
-        const current = parseInt(localStorage.getItem(LS_KEY) || '115', 10);
+        const current = parseInt(localStorage.getItem(LS_KEY) || '90', 10);
         setPct(current + 5);
     });
 
-    // ========= Scroll infinito =========
     const anchor = document.getElementById('infinite-anchor');
     const tbody = document.getElementById('toursTbody');
     const pagLinks = document.getElementById('paginationLinks');
@@ -280,7 +323,6 @@ document.addEventListener('DOMContentLoaded', () => {
         io.observe(anchor);
     }
 
-    // ========= SweetAlerts de feedback (sesión) =========
     @if(session('success'))
         Swal.fire({ icon:'success', title:@json(session('success')), timer:2000, showConfirmButton:false });
     @endif

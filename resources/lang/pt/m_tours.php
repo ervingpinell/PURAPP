@@ -471,6 +471,7 @@ return [
         'viator_code'   => 'Código Viator',
         'status'        => 'Status',
         'actions'       => 'Ações',
+        'slug'          => 'url',
     ],
 
     'table' => [

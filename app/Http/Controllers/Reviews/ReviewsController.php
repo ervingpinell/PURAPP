@@ -35,13 +35,13 @@ class ReviewsController extends Controller
         $fallback = config('app.fallback_locale', 'es');
         $ttl      = $this->defaultTtl;
 
-        // 1) Tours activos
+        // 1) Tours activos CON SLUG
         $q = Tour::with('translations')->where('is_active', true);
         if (Schema::hasColumn('tours', 'sort_order')) {
             $q->orderByRaw('sort_order IS NULL, sort_order ASC');
         }
         $q->orderBy('name');
-        $tours = $q->get(['tour_id', 'name']);
+        $tours = $q->get(['tour_id', 'name', 'slug']); // ✅ AGREGADO 'slug'
 
         // 2) Traducir nombres
         $tours = $tours->map(function ($t) use ($locale, $fallback) {
@@ -116,23 +116,20 @@ class ReviewsController extends Controller
      * Reviews de un tour específico (mínimo 12-15, sin repetir)
      */
     public function tour(
-        int|string $tourId,
+        Tour $tour, // ✅ CAMBIADO: recibe el modelo directamente
         ReviewAggregator $agg,
         Request $request
     ) {
         $locale = app()->getLocale();
         $fallback = config('app.fallback_locale', 'es');
 
-        // Cargar el tour para obtener su nombre traducido
-        $tour = Tour::with('translations')->find($tourId);
-
-        if (!$tour) {
-            abort(404);
-        }
+        // Ya no necesitas find(), Laravel resolvió el tour
+        $tour->load('translations');
 
         $tr = ($tour->translations ?? collect())->firstWhere('locale', $locale)
             ?: ($tour->translations ?? collect())->firstWhere('locale', $fallback);
         $tourName = $tr->name ?? $tour->name ?? '';
+        $tourId = $tour->tour_id;
 
         $target = 15; // Objetivo: 15 reviews
 
@@ -201,82 +198,122 @@ class ReviewsController extends Controller
     /**
      * Embed para iframes
      */
-    public function embed(Request $request, ReviewAggregator $agg, string $provider)
-    {
-        $lang     = app()->getLocale();
-        $provider = strtolower(trim($provider)) ?: 'viator';
+/**
+ * Embed para iframes
+ */
+public function embed(Request $request, ReviewAggregator $agg, string $provider)
+{
+    $lang     = app()->getLocale();
+    $provider = strtolower(trim($provider)) ?: 'viator';
 
-        $limit   = min(60, max(1, (int) $request->query('limit', 12)));
-        $tourId  = $request->query('tour_id');
-        $nth     = max(1, (int) $request->query('nth', 1));
-        $ttlMin  = (int) $request->query('ttl', 60 * 24);
-        $ttl     = max(60, $ttlMin) * 60;
+    $limit   = min(60, max(1, (int) $request->query('limit', 12)));
+    $tourId  = $request->query('tour_id');
+    $nth     = max(1, (int) $request->query('nth', 1));
+    $ttlMin  = (int) $request->query('ttl', 60 * 24);
+    $ttl     = max(60, $ttlMin) * 60;
 
-        $layout  = (string) $request->query('layout', 'hero');
-        $theme   = (string) $request->query('theme', $layout === 'card' ? 'site' : 'embed');
-        $base    = (int) $request->query('base', $layout === 'card' ? 500 : 460);
-        $uid     = (string) $request->query('uid', 'u' . substr(sha1(uniqid('', true)), 0, 10));
+    $layout  = (string) $request->query('layout', 'hero');
+    $theme   = (string) $request->query('theme', $layout === 'card' ? 'site' : 'embed');
+    $base    = (int) $request->query('base', $layout === 'card' ? 500 : 460);
+    $uid     = (string) $request->query('uid', 'u' . substr(sha1(uniqid('', true)), 0, 10));
 
-        // Cache key
-        $cacheKey = 'reviews:embed:' . md5(json_encode([
-            'p' => $provider, 'tour' => $tourId, 'lim' => $limit
-        ]));
+    // Cache key (no necesita incluir tname; lo aplicamos post-procesado)
+    $cacheKey = 'reviews:embed:' . md5(json_encode([
+        'p' => $provider, 'tour' => $tourId, 'lim' => $limit
+    ]));
 
-        $reviews = Cache::remember($cacheKey, $ttl, function () use ($agg, $provider, $limit, $tourId) {
-            return $agg->aggregate([
-                'provider' => $provider,
-                'limit'    => $limit * 2,
-                'tour_id'  => $tourId,
-            ]);
-        });
-
-        // Deduplicar
-        $reviews = $reviews->unique(function($r) {
-            $provider = strtolower($r['provider'] ?? 'p');
-            if (!empty($r['provider_review_id'])) {
-                return $provider . '#' . $r['provider_review_id'];
-            }
-            return $provider . '#' . md5(
-                mb_strtolower(trim($r['body'] ?? '')) . '|' .
-                mb_strtolower(trim($r['author_name'] ?? '')) . '|' .
-                trim($r['date'] ?? '')
-            );
-        })->values();
-
-        // Elegir n-ésimo
-        $count = $reviews->count();
-        if ($count > 0) {
-            $idx = ($nth - 1) % $count;
-            $reviews = collect([$reviews->get($idx)]);
-        } else {
-            $reviews = collect();
-        }
-
-        // HTTP caching
-        $hashOfSelected = $reviews->isNotEmpty() ? sha1(json_encode($reviews->first())) : 'empty';
-        $etag = sprintf('rev:%s|tour:%s|nth:%s|h:%s',
-            $provider, $tourId ?: 'all', $nth, $hashOfSelected
-        );
-
-        $response = response()->view('reviews.embed', [
-            'reviews'  => $reviews,
+    $reviews = Cache::remember($cacheKey, $ttl, function () use ($agg, $provider, $limit, $tourId) {
+        return $agg->aggregate([
             'provider' => $provider,
-            'base'     => $base,
-            'uid'      => $uid,
-            'layout'   => $layout,
-            'theme'    => $theme,
+            'limit'    => $limit * 2,
+            'tour_id'  => $tourId,
         ]);
+    });
 
-        $response->setEtag($etag)
-            ->header('Cache-Control', 'public, max-age=900, s-maxage=900, stale-while-revalidate=300')
-            ->header('Vary', 'Accept-Language');
-
-        if ($response->isNotModified($request)) {
-            return $response;
+    // Deduplicar
+    $reviews = $reviews->unique(function($r) {
+        $prov = strtolower($r['provider'] ?? 'p');
+        if (!empty($r['provider_review_id'])) {
+            return $prov . '#' . $r['provider_review_id'];
         }
+        return $prov . '#' . md5(
+            mb_strtolower(trim($r['body'] ?? '')) . '|' .
+            mb_strtolower(trim($r['author_name'] ?? '')) . '|' .
+            trim($r['date'] ?? '')
+        );
+    })->values();
 
+    // Elegir n-ésimo
+    $count = $reviews->count();
+    if ($count > 0) {
+        $idx = ($nth - 1) % $count;
+        $reviews = collect([$reviews->get($idx)]);
+    } else {
+        $reviews = collect();
+    }
+
+    // ===========================
+    // ⬇️ INYECCIÓN DE NOMBRE TRADUCIDO
+    // ===========================
+    $reqTname   = trim((string) $request->query('tname', ''));
+    $fallback   = config('app.fallback_locale', 'es');
+
+    if ($reviews->isNotEmpty()) {
+        $reviews = $reviews->map(function ($r) use ($reqTname, $tourId, $lang, $fallback) {
+            // 1) Si viene tname en la URL, SIEMPRE gana
+            if ($reqTname !== '') {
+                $r['tour_name'] = $reqTname;
+                return $r;
+            }
+
+            // 2) Si no hay tname pero sí tour_id, resolver desde DB con el locale actual
+            $id = (int)($r['tour_id'] ?? $tourId ?? 0);
+            if ($id > 0) {
+                $tour = \App\Models\Tour::with('translations')->find($id);
+                if ($tour) {
+                    $tr = ($tour->translations ?? collect())->firstWhere('locale', $lang)
+                        ?: ($tour->translations ?? collect())->firstWhere('locale', $fallback);
+                    $resolved = $tr->name ?? $tour->name ?? null;
+                    if ($resolved) {
+                        $r['tour_name'] = $resolved;
+                        // Asegura tour_id coherente
+                        $r['tour_id']   = $id;
+                        return $r;
+                    }
+                }
+            }
+
+            // 3) Fallback final: deja el que venga en el review (si existe)
+            return $r;
+        });
+    }
+
+    // HTTP caching (después de inyectar el nombre final)
+    $hashOfSelected = $reviews->isNotEmpty() ? sha1(json_encode($reviews->first())) : 'empty';
+    $etag = sprintf('rev:%s|tour:%s|nth:%s|h:%s',
+        $provider, $tourId ?: 'all', $nth, $hashOfSelected
+    );
+
+    $response = response()->view('reviews.embed', [
+        'reviews'  => $reviews,
+        'provider' => $provider,
+        'base'     => $base,
+        'uid'      => $uid,
+        'layout'   => $layout,
+        'theme'    => $theme,
+    ]);
+
+    $response->setEtag($etag)
+        ->header('Cache-Control', 'public, max-age=900, s-maxage=900, stale-while-revalidate=300')
+        ->header('Vary', 'Accept-Language');
+
+    if ($response->isNotModified($request)) {
         return $response;
     }
+
+    return $response;
+}
+
 
     /**
      * Guardar reseña local

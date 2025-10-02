@@ -262,6 +262,14 @@ return [
         'updated_success'       => 'Traducción actualizada correctamente.',
         'unexpected_error'      => 'No se pudo actualizar la traducción.',
 
+        'editing'            => 'Editando',
+        'policy_name'        => 'Nombre de la política',
+        'policy_content'     => 'Contenido',
+        'policy_sections'    => 'Secciones de la política',
+        'section'            => 'Sección',
+        'section_name'       => 'Nombre de la sección',
+        'section_content'    => 'Contenido de la sección',
+
         // Selector de idioma (pantalla y helpers)
         'choose_locale_title'   => 'Seleccionar idioma',
         'choose_locale_hint'    => 'Selecciona el idioma al que deseas traducir este elemento.',

@@ -1,29 +1,42 @@
 @extends('adminlte::page')
 
+@php
+  /** @var \App\Models\Tour|\App\Models\Policy|\Illuminate\Database\Eloquent\Model $item */
+  $targetLocale = $locale; // idioma de EDICIÓN
+  $availableEditLocales = ['es' => 'Español', 'en' => 'English', 'fr' => 'Français', 'pt' => 'Português', 'de' => 'Deutsch'];
+@endphp
+
 @section('title', __('m_config.translations.edit_title'))
 
 @section('content_header')
-  <h1 class="mb-2">
-    <i class="fas fa-language"></i>
-    {{ __('m_config.translations.edit_title') }}
-    <span class="badge bg-dark ms-2">{{ strtoupper($locale) }}</span>
-  </h1>
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h1 class="mb-0">
+      <i class="fas fa-language"></i>
+      {{ __('m_config.translations.edit_title') }}
+      <span class="badge bg-dark ml-2" id="current-editing-locale">{{ strtoupper($targetLocale) }}</span>
+    </h1>
+
+    {{-- Selector de idioma de edición vía AJAX --}}
+    <div class="dropdown">
+      <button class="btn btn-outline-primary dropdown-toggle" type="button" id="editLocaleDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-globe mr-1"></i>
+        <span id="editing-locale-label">{{ __('m_config.translations.editing') }}: {{ $availableEditLocales[$targetLocale] ?? strtoupper($targetLocale) }}</span>
+      </button>
+      <div class="dropdown-menu dropdown-menu-right" aria-labelledby="editLocaleDropdown">
+        @foreach($availableEditLocales as $code => $name)
+          <a class="dropdown-item change-editing-locale {{ $code === $targetLocale ? 'active' : '' }}"
+             href="#"
+             data-locale="{{ $code }}"
+             data-name="{{ $name }}">
+            {{ $name }}
+          </a>
+        @endforeach
+      </div>
+    </div>
+  </div>
 @stop
 
 @section('content')
-@php
-  $entityLabel = match ($type) {
-      'tours'           => __('m_config.translations.entities.tours'),
-      'itineraries'     => __('m_config.translations.entities.itineraries'),
-      'itinerary_items' => __('m_config.translations.entities.itinerary_items'),
-      'amenities'       => __('m_config.translations.entities.amenities'),
-      'faqs'            => __('m_config.translations.entities.faqs'),
-      'policies'        => __('m_config.translations.entities.policies'),
-      'tour_types'      => __('m_config.translations.entities.tour_types'),
-      default           => __('m_config.translations.select'),
-  };
-@endphp
-
 <noscript>
   @if (session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
@@ -45,149 +58,96 @@
 
 <form action="{{ route('admin.translations.update', [$type, $item->getKey()]) }}" method="POST">
   @csrf
-  <input type="hidden" name="locale" value="{{ $locale }}">
+  <input type="hidden" name="locale" value="{{ $targetLocale }}">
 
+  {{-- ======= Tarjeta principal ======= --}}
   <div class="card mb-4 border-primary">
     <div class="card-header bg-primary text-white">
       <strong>
-        <i class="fas fa-info-circle me-2"></i>
+        <i class="fas fa-info-circle mr-2"></i>
         {{ __('m_config.translations.main_information') }}
-        <span class="ms-2 badge bg-dark">{{ strtoupper($locale) }}</span>
+        <span class="ml-2 badge bg-dark">{{ strtoupper($targetLocale) }}</span>
       </strong>
     </div>
 
     <div class="card-body">
       @foreach ($fields as $field)
         @php
-          $labelKey = 'm_config.translations.' . $field;
-          $resolved = __($labelKey);
-          $label    = ($resolved !== $labelKey) ? $resolved : ucfirst($field);
-          $rows     = in_array($field, ['content','overview','description']) ? 6 : 3;
+          // Etiquetas personalizadas para policies
+          if ($type === 'policies') {
+              if ($field === 'title') {
+                  $label = __('m_config.translations.policy_name');     // Título de la política
+              } elseif ($field === 'content') {
+                  $label = __('m_config.translations.policy_content');  // Contenido
+              } else {
+                  $label = ucfirst($field);
+              }
+          } else {
+              $labelKey = 'm_config.translations.' . $field;
+              $resolved = __($labelKey);
+              $label    = ($resolved !== $labelKey) ? $resolved : ucfirst($field);
+          }
+
+          $rows  = in_array($field, ['content','overview','description']) ? 6 : 3;
+
+          // Valor por defecto; para policies:title hacemos fallback al name base si viene vacío
+          if ($type === 'policies' && $field === 'title') {
+              $value = old(
+                  "translations.$field",
+                  ($translations[$field] ?? '') !== '' ? $translations[$field] : ($item->name ?? '')
+              );
+          } else {
+              $value = old("translations.$field", $translations[$field] ?? '');
+          }
         @endphp
+
         <div class="form-group mb-3">
           <label for="{{ $field }}">
-            <i class="far fa-edit me-1"></i> {{ $label }} ({{ strtoupper($locale) }})
+            <i class="far fa-edit mr-1"></i>
+            {{ $label }} ({{ strtoupper($targetLocale) }})
           </label>
-          <textarea
-            name="translations[{{ $field }}]"
-            class="form-control"
-            rows="{{ $rows }}"
-          >{{ old("translations.$field", $translations[$field] ?? '') }}</textarea>
+
+          {{-- Para policies: title como <input>, el resto como <textarea> --}}
+          @if($type === 'policies' && $field === 'title')
+            <input
+              type="text"
+              name="translations[{{ $field }}]"
+              id="{{ $field }}"
+              class="form-control"
+              value="{{ $value }}"
+            >
+          @else
+            <textarea
+              name="translations[{{ $field }}]"
+              id="{{ $field }}"
+              class="form-control"
+              rows="{{ $rows }}"
+            >{{ $value }}</textarea>
+          @endif
         </div>
       @endforeach
     </div>
   </div>
 
-  {{-- Extra para Tours --}}
+  {{-- Itinerario / Ítems (solo tours) --}}
   @includeWhen($type === 'tours', 'admin.translations.partials.edit-tour-translations', [
       'item'   => $item,
-      'locale' => $locale,
+      'locale' => $targetLocale,
   ])
 
-  {{-- Extra para Policies (secciones) --}}
+  {{-- Secciones de políticas (solo policies) --}}
   @includeWhen($type === 'policies', 'admin.translations.partials.edit-policy-translations', [
       'item'   => $item,
-      'locale' => $locale,
+      'locale' => $targetLocale,
       'type'   => $type,
   ])
 
-  <div class="text-end mt-4">
+  <div class="text-right mt-4">
     <button type="submit" class="btn btn-success">
-      <i class="fas fa-save me-1"></i> {{ __('m_config.translations.save') }}
+      <i class="fas fa-save mr-1"></i> {{ __('m_config.translations.save') }}
     </button>
   </div>
 </form>
-
-{{-- ==== PARCIAL INLINE: Edición de Itinerario e Ítems de un Tour ==== --}}
-@if($item->itinerary)
-    <!-- Itinerario -->
-    <div class="card mb-3">
-        <div
-          class="card-header bg-info text-white"
-          data-bs-toggle="collapse"
-          data-bs-target="#collapseItinerary"
-          aria-expanded="true"
-          aria-controls="collapseItinerary"
-          style="cursor: pointer;"
-        >
-            <h5 class="mb-0">
-                <i class="fas fa-route me-2"></i> {{ __('m_config.translations.itinerary') }}
-            </h5>
-        </div>
-        <div id="collapseItinerary" class="collapse show">
-            <div class="card-body">
-                <div class="form-group mb-3">
-                    <label for="itinerary_name">
-                      <i class="far fa-file-alt me-1"></i>
-                      {{ __('m_config.translations.itinerary_name') }} ({{ strtoupper($locale) }})
-                    </label>
-                    <textarea
-                      name="itinerary_translations[name]"
-                      class="form-control"
-                      rows="2"
-                    >{{ old('itinerary_translations.name', $item->itinerary->translate($locale)?->name ?? '') }}</textarea>
-                </div>
-                <div class="form-group mb-3">
-                    <label for="itinerary_description">
-                      <i class="far fa-file-alt me-1"></i>
-                      {{ __('m_config.translations.itinerary_description') }} ({{ strtoupper($locale) }})
-                    </label>
-                    <textarea
-                      name="itinerary_translations[description]"
-                      class="form-control"
-                      rows="4"
-                    >{{ old('itinerary_translations.description', $item->itinerary->translate($locale)?->description ?? '') }}</textarea>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Ítems del Itinerario -->
-    @foreach ($item->itinerary->items as $index => $it)
-        @php $collapseId = "collapseItem{$it->id}"; @endphp
-        <div class="card mb-2">
-            <div
-              class="card-header bg-secondary text-white"
-              data-bs-toggle="collapse"
-              data-bs-target="#{{ $collapseId }}"
-              aria-expanded="false"
-              aria-controls="{{ $collapseId }}"
-              style="cursor: pointer;"
-            >
-                <h6 class="mb-0">
-                    <i class="fas fa-map-marker-alt me-2"></i>
-                    {{ __('m_config.translations.item') }} {{ $index + 1 }}: {{ $it->title }}
-                </h6>
-            </div>
-            <div id="{{ $collapseId }}" class="collapse">
-                <div class="card-body">
-                    <div class="form-group mb-3">
-                        <label for="item_title_{{ $it->id }}">
-                          <i class="far fa-edit me-1"></i>
-                          {{ __('m_config.translations.item_title') }} ({{ strtoupper($locale) }})
-                        </label>
-                        <textarea
-                          name="item_translations[{{ $it->id }}][title]"
-                          class="form-control"
-                          rows="2"
-                        >{{ old("item_translations.$it->id.title", $it->translate($locale)?->title ?? '') }}</textarea>
-                    </div>
-                    <div class="form-group mb-3">
-                        <label for="item_description_{{ $it->id }}">
-                          <i class="far fa-edit me-1"></i>
-                          {{ __('m_config.translations.item_description') }} ({{ strtoupper($locale) }})
-                        </label>
-                        <textarea
-                          name="item_translations[{{ $it->id }}][description]"
-                          class="form-control"
-                          rows="3"
-                        >{{ old("item_translations.$it->id.description", $it->translate($locale)?->description ?? '') }}</textarea>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endforeach
-@endif
 @stop
 
 @section('js')
@@ -213,6 +173,26 @@
         confirmButtonText: @json(__('m_config.translations.ok')),
       });
     }
+
+    // Cambiar locale de edición vía AJAX
+    document.querySelectorAll('.change-editing-locale').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const newLocale = this.dataset.locale;
+
+        fetch('{{ route("admin.translations.change-editing-locale") }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+          },
+          body: JSON.stringify({ locale: newLocale })
+        })
+        .then(r => r.json())
+        .then(data => { if (data.success) window.location.reload(); })
+        .catch(() => Swal.fire({ icon:'error', title:'Error', text:'No se pudo cambiar el idioma.' }));
+      });
+    });
   });
   </script>
 @stop

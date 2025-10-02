@@ -510,6 +510,7 @@ return [
             'viator_code'   => 'Código Viator',
             'status'        => 'Estado',
             'actions'       => 'Acciones',
+            'slug'      => 'url',
         ],
 
         'status' => [
