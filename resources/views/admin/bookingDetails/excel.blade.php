@@ -23,6 +23,8 @@
                 <th>Adultos</th>
                 <th>Niños</th>
                 <th>Precio Total</th>
+                <th>Cupón</th>
+                <th>Ajuste</th> {{-- + o − --}}
             </tr>
         </thead>
         <tbody>
@@ -39,12 +41,35 @@
                     $hotel    = $detalle->hotel ?? null;
                     $schedule = $detalle->schedule ?? null;
 
-                    $adultos = $detalle->adults_quantity ?? 0;
-                    $ninos   = $detalle->kids_quantity ?? 0;
+                    $adultos = (int)($detalle->adults_quantity ?? 0);
+                    $ninos   = (int)($detalle->kids_quantity ?? 0);
 
                     $totalAdultos += $adultos;
                     $totalNinos   += $ninos;
-                    $totalDinero  += $reserva->total;
+                    $totalDinero  += (float)$reserva->total;
+
+                    // Subtotal para calcular ajuste
+                    $aPrice = $tour->adult_price ?? 0;
+                    $kPrice = $tour->kid_price ?? 0;
+                    $subtotal = ($aPrice * $adultos) + ($kPrice * $ninos);
+
+                    // Cupón (directo o redención)
+                    $promo = $reserva->promoCode ?? optional($reserva->redemption)->promoCode;
+                    $op    = $promo ? ($promo->operation === 'add' ? 'add' : 'subtract') : null;
+
+                    $delta = 0.0;
+                    if ($promo) {
+                        if ($promo->discount_percent) {
+                            $delta = round($subtotal * ((float)$promo->discount_percent / 100), 2);
+                        } elseif ($promo->discount_amount) {
+                            $delta = (float)$promo->discount_amount;
+                        }
+                    }
+
+                    $ajusteTexto = $promo && $delta > 0
+                        ? (($op === 'add' ? '+' : '-') . '$' . number_format($delta, 2))
+                        : '—';
+                    $couponCode = $promo->code ?? '—';
                 @endphp
                 <tr>
                     <td>{{ $reserva->booking_id }}</td>
@@ -62,15 +87,17 @@
                     <td>{{ $adultos }}</td>
                     <td>{{ $ninos }}</td>
                     <td>{{ number_format($reserva->total, 2) }}</td>
+                    <td>{{ $couponCode }}</td>
+                    <td>{{ $ajusteTexto }}</td>
                 </tr>
             @endforeach
 
-            {{-- ✅ Fila con totales --}}
             <tr style="font-weight: bold; background-color: #f2f2f2;">
                 <td colspan="12" style="text-align: right;">Totales:</td>
                 <td>{{ $totalAdultos }}</td>
                 <td>{{ $totalNinos }}</td>
                 <td>${{ number_format($totalDinero, 2) }}</td>
+                <td colspan="2"></td>
             </tr>
         </tbody>
     </table>
