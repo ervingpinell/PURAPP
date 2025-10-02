@@ -84,7 +84,7 @@ Route::middleware([SetLocale::class])->group(function () {
 
         // Tours
         Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
-Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tours.show');
+        Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tours.show');
 
         // Contact
         Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
@@ -95,15 +95,15 @@ Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tou
         // FAQ
         Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
 
-        // Políticas
+        // Políticas (con slug en inglés estándar)
         Route::get('/policies', [\App\Http\Controllers\PoliciesController::class, 'index'])
             ->name('policies.index');
-        Route::get('/policies/{policy}', [\App\Http\Controllers\PoliciesController::class, 'show'])
+        Route::get('/policies/{policy:slug}', [\App\Http\Controllers\PoliciesController::class, 'show'])
             ->name('policies.show');
 
         // Reviews (localizadas para traducir nombres de tours)
         Route::get('/reviews', [ReviewsController::class, 'index'])->name('reviews.index');
-        Route::get('/reviews/tours/{tour}', [ReviewsController::class, 'tour'])->name('reviews.tour');
+        Route::get('/reviews/tours/{tour:slug}', [ReviewsController::class, 'tour'])->name('reviews.tour');
     });
 
     // ============================================
@@ -231,12 +231,12 @@ Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tou
                 Route::patch('users/{user}/mark-verified', [UserRegisterController::class, 'markVerified'])->name('users.markVerified');
 
                 // Traducciones
-Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
-Route::get('translations/{type}/select', [TranslationController::class, 'select'])->name('translations.select');
-Route::get('translations/{type}/{id}/locale', [TranslationController::class, 'selectLocale'])->name('translations.locale');
-Route::get('translations/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('translations.edit');
-Route::post('translations/{type}/{id}/update', [TranslationController::class, 'update'])->name('translations.update');
-Route::post('translations/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('translations.change-editing-locale');
+                Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
+                Route::get('translations/{type}/select', [TranslationController::class, 'select'])->name('translations.select');
+                Route::get('translations/{type}/{id}/locale', [TranslationController::class, 'selectLocale'])->name('translations.locale');
+                Route::get('translations/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('translations.edit');
+                Route::post('translations/{type}/{id}/update', [TranslationController::class, 'update'])->name('translations.update');
+                Route::post('translations/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('translations.change-editing-locale');
 
                 // FAQs
                 Route::resource('faqs', AdminFaqController::class)->except(['show']);
@@ -274,18 +274,18 @@ Route::post('translations/change-editing-locale', [TranslationController::class,
                     Route::put('images/{tourType}', [TourTypeCoverPickerController::class, 'updateCover'])->name('images.update');
                 });
 
-                // Policies & Sections
+                // Policies & Sections (admin usa policy_id)
                 Route::get('policies', [PolicyController::class, 'index'])->name('policies.index');
                 Route::post('policies', [PolicyController::class, 'store'])->name('policies.store');
-                Route::put('policies/{policy}', [PolicyController::class, 'update'])->name('policies.update');
-                Route::post('policies/{policy}/toggle', [PolicyController::class, 'toggle'])->name('policies.toggle');
-                Route::delete('policies/{policy}', [PolicyController::class, 'destroy'])->name('policies.destroy');
+                Route::put('policies/{policy:policy_id}', [PolicyController::class, 'update'])->name('policies.update');
+                Route::post('policies/{policy:policy_id}/toggle', [PolicyController::class, 'toggle'])->name('policies.toggle');
+                Route::delete('policies/{policy:policy_id}', [PolicyController::class, 'destroy'])->name('policies.destroy');
 
-                Route::get('policies/{policy}/sections', [PolicySectionController::class, 'index'])->name('policies.sections.index');
-                Route::post('policies/{policy}/sections', [PolicySectionController::class, 'store'])->name('policies.sections.store');
-                Route::put('policies/{policy}/sections/{section}', [PolicySectionController::class, 'update'])->name('policies.sections.update');
-                Route::post('policies/{policy}/sections/{section}/toggle', [PolicySectionController::class, 'toggle'])->name('policies.sections.toggle');
-                Route::delete('policies/{policy}/sections/{section}', [PolicySectionController::class, 'destroy'])->name('policies.sections.destroy');
+                Route::get('policies/{policy:policy_id}/sections', [PolicySectionController::class, 'index'])->name('policies.sections.index');
+                Route::post('policies/{policy:policy_id}/sections', [PolicySectionController::class, 'store'])->name('policies.sections.store');
+                Route::put('policies/{policy:policy_id}/sections/{section}', [PolicySectionController::class, 'update'])->name('policies.sections.update');
+                Route::post('policies/{policy:policy_id}/sections/{section}/toggle', [PolicySectionController::class, 'toggle'])->name('policies.sections.toggle');
+                Route::delete('policies/{policy:policy_id}/sections/{section}', [PolicySectionController::class, 'destroy'])->name('policies.sections.destroy');
 
                 // Promo Codes
                 Route::get('promoCode', [PromoCodeController::class, 'index'])->name('promoCode.index');

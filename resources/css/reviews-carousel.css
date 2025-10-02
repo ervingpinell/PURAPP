@@ -1,15 +1,25 @@
-/* =========================
-   REVIEWS – TOUR PAGE
+/* ================================
+   REVIEWS – TOUR PAGE (unificado con embed/home)
    Estructura del blade:
    .reviews-block > .carousel-inner > .carousel-item > .slide-wrap > (hero-card | iframe-shell)
-   Usa --provider-base (px) para alturas base: el blade la inyecta inline.
-   ========================= */
+   Usa --provider-base (px) para alturas base (lo inyecta el blade).
+   ================================ */
 
+/* === PATCH tipográfico global y escalas === */
+.reviews-block .tour-title-abs{ font-size: clamp(.88rem, 1.2vw, .94rem); }
+.reviews-block .who-when .when,
+.reviews-block .rating-number{ font-size: var(--fs-sm); }
+.reviews-block .review-label{ font-size: var(--fs-sm); }
+.reviews-block .review-content{ font-size: var(--fs-body); }
+@media (max-width:768px){
+  .reviews-block .tour-title-abs{ font-size:.88rem; }
+}
+
+/* === Wrapper general === */
 .reviews-block {
   padding: 1.5rem 0 2.5rem;
   overflow: visible;
 }
-
 .reviews-block .slide-wrap {
   max-width: 620px;
   width: 100%;
@@ -40,7 +50,7 @@
   background-color: #60A862;
 }
 
-/* === Card indexable (misma base visual que el embed) === */
+/* === Card indexable (alineada al embed) === */
 .reviews-block .hero-card{
   position: relative;
   display: flex;
@@ -51,8 +61,8 @@
   max-width: 600px;
   width: 100%;
   margin: 0 auto;
-  min-height: var(--provider-base, 320px);
-  overflow: hidden;
+  min-height: var(--provider-base, 360px);
+  overflow: visible;
   box-shadow: 0 10px 22px rgba(0,0,0,.06);
 
   /* ⬇️ Anti-overlap vars */
@@ -61,10 +71,10 @@
   --title-h:2rem;
 }
 .reviews-block .hero-card.pad-title{
-  padding-top: calc( .7rem + var(--title-h, 2rem) );
+  padding-top: calc(.7rem + var(--title-h, 2rem));
 }
 
-/* Título del tour arriba a la derecha */
+/* Título del tour */
 .reviews-block .tour-title-abs{
   position: absolute;
   top: .5rem;
@@ -103,46 +113,34 @@
   background: #e9ecef;
   flex: 0 0 56px;
 }
-.reviews-block .avatar img{
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.reviews-block .avatar img{ width: 100%; height: 100%; object-fit: cover; }
 .reviews-block .who-when{ min-width:0; }
 .reviews-block .who-when .who{ font-weight: 700; overflow-wrap:anywhere; }
-.reviews-block .who-when .when{ color:#6c757d; font-size:.9rem; }
+.reviews-block .who-when .when{ color:#6c757d; }
 
 /* Estrellas + rating */
-.reviews-block .stars-row.under-date{ margin:.15rem 0 .5rem 72px; }
+.reviews-block .stars-row.under-date{ margin:.2rem 0 .5rem 72px; }
 .reviews-block .review-stars{ color:#ffc107; font-size:1.1rem; }
-.reviews-block .rating-number{ font-size:.9rem; color:#555; margin-left:.4rem; }
+.reviews-block .rating-number{ color:#555; margin-left:.4rem; }
 
 /* Título del comentario (pill) */
 .reviews-block .review-label{
-  display: block;
-  width: 100%;
-  background: #d33;
-  color: #fff;
-  padding: .55rem 1rem;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: .95rem;
-  margin: .6rem 0 .9rem 0;
-  text-align: center;
+  display: inline-block;
+  background:#d33; color:#fff;
+  padding:.4rem .9rem; border-radius:20px;
+  font-weight:700; margin:.6rem 0 .9rem;
+  text-align:center;
 }
 
 /* Texto + botón */
 .reviews-block .review-textwrap{ position: relative; }
 .reviews-block .review-content{
-  line-height: 1.5;
-  text-align: left;
-  padding: 0 .25rem;
-  word-break: break-word;
-  font-size: .9rem;
+  text-align:center; line-height:1.45; color:#222;
+  padding:0 .25rem; word-break:break-word; font-size: var(--fs-body, .9rem);
 }
 .reviews-block .review-content.clamp-8{
   display: -webkit-box;
-  -webkit-line-clamp: 8;
+  -webkit-line-clamp: 5;              /* 5 como en embed/home */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -151,87 +149,79 @@
   -webkit-line-clamp: unset;
 }
 
+/* Toggle (se muestra via JS si hay overflow) */
 .reviews-block .review-toggle{
-  position: absolute;
-  right: .25rem;
-  bottom: .1rem;
-  display: none;            /* JS decide si aparece */
-  background: #fff;
-  border: none;
-  padding-left: .65rem;
-  color: #256D1B;
-  font-weight: 700;
-  cursor: pointer;
-  line-height: 1.2;
+  position:absolute; right:.25rem; bottom:.1rem; display:none;
+  background:#fff; border:none; padding-left:.65rem;
+  color:#256D1B; font-weight:700; cursor:pointer; line-height:1.2;
+  font-size: var(--fs-sm, .85rem);
 }
 .reviews-block .review-toggle::before{
-  content:'';
-  position: absolute;
-  left: -22px;
-  top: 0;
-  bottom: 0;
-  width: 22px;
-  background: linear-gradient(90deg, rgba(255,255,255,0), #fff 60%);
-  pointer-events: none;
+  content:''; position:absolute; left:-22px; top:0; bottom:0; width:22px;
+  background:linear-gradient(90deg, rgba(255,255,255,0), #fff 60%); pointer-events:none;
 }
+.reviews-block .review-toggle:hover{ text-decoration:underline; }
 
-/* Powered by al fondo */
+/* Powered by */
 .reviews-block .powered-by{
-  margin-top: auto;
-  text-align: center;
-  font-size: .8rem;
-  color: #777;
-  padding-top: .75rem;
+  margin-top:auto; text-align:center; font-size:.8rem; color:#777; padding-top:.75rem;
 }
 
-/* === Iframe + skeleton (altura base fija; expansión con RESIZE) === */
+/* === Iframe + skeleton (fade como embed) === */
 .reviews-block .iframe-shell{
-  position: relative;
-  max-width: 600px;
-  width: 100%;
-  margin: 0 auto;
-  min-height: var(--provider-base, 320px);
-  height: var(--provider-base, 320px);
-  border-radius: 12px;
-  overflow: visible;
-  background: #fff;
-  transition: height .25s ease, min-height .25s ease;
+  position:relative; max-width:600px; width:100%; margin:0 auto;
+  min-height: var(--provider-base, 360px);
+  height: var(--provider-base, 360px);
+  border-radius:12px; overflow:visible; background:#fff;
+  transition:height .25s ease, min-height .25s ease;
 }
 .reviews-block .iframe-skeleton{
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg,#f3f3f3 0%,#eaeaea 20%,#f3f3f3 40%);
-  background-size: 200% 100%;
-  animation: shimmer 1.2s infinite linear;
+  position:absolute; inset:0;
+  background:linear-gradient(90deg,#f3f3f3 0%,#eaeaea 20%,#f3f3f3 40%);
+  background-size:200% 100%; animation:shimmer 1.2s infinite linear;
+  transition: opacity .2s ease, visibility .2s ease;   /* fade out */
 }
-@keyframes shimmer {
-  0%{ background-position: 200% 0; }
-  100%{ background-position: -200% 0; }
-}
+.reviews-block .iframe-skeleton.is-hidden{ opacity:0; visibility:hidden; }
+@keyframes shimmer{ 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 .reviews-block iframe.review-embed{
-  max-width: 600px;
-  width: 100%;
-  border: 0;
-  border-radius: 12px;
-  overflow: hidden;
-  display: block;
-  background: #fff;
-  height: var(--provider-base, 320px);
-  transition: height .25s ease;
+  max-width:600px; width:100%; border:0; border-radius:12px; overflow:hidden; display:block; background:#fff;
+  height: var(--provider-base, 360px); transition:height .25s ease;
 }
 
-/* === Responsive === */
-@media (max-width:768px){
+/* ===== FIX OVERLAP (mobile) — igual que embed/home ===== */
+@media (max-width: 576.98px){
+  /* Mueve el título bajo la cabecera para evitar solapes */
+  .reviews-block .tour-title-abs{
+    position: static;
+    max-width: 100%;
+    text-align: center;
+    margin: .25rem 0 0;
+    -webkit-line-clamp: 2;
+  }
+  .reviews-block .hero-card.pad-title{ padding-top: .75rem; }
+
+  .reviews-block .who-when{
+    display:flex; flex-direction:column; align-items:flex-start; gap:.15rem;
+  }
+  .reviews-block .who-when .who{ font-size: var(--fs-sm, .85rem); line-height:1.2; }
+  .reviews-block .who-when .when{ font-size: var(--fs-xs, .75rem); }
+
+  .reviews-block .review-stars{ font-size: 1rem; }
+  .reviews-block .rating-number{ font-size: var(--fs-xs, .75rem); }
+
+  /* Controles más compactos */
   .reviews-block .carousel-control-prev,
   .reviews-block .carousel-control-next{
-    width: 2.5rem;
+    width: 2rem; height: 2rem;
   }
   .reviews-block .carousel-control-prev-icon,
   .reviews-block .carousel-control-next-icon{
-    width: 2rem;
-    height: 2rem;
+    width: 2rem; height: 2rem;
   }
-  .reviews-block .hero-card{ --title-h:2.2rem; }
-  .reviews-block .hero-card.pad-title{ padding-top: calc(.7rem + var(--title-h, 2.2rem)); }
-  .reviews-block .tour-title-abs{ font-size: .88rem; max-width: 64%; }
+}
+
+/* Tablet */
+@media (max-width:768px){
+  .reviews-block .hero-card{ max-width:95%!important; width:95%!important; padding:.75rem; --title-h:2.2rem; }
+  .reviews-block .tour-title-abs{ font-size:.88rem; max-width:64%; }
 }

@@ -39,6 +39,7 @@
             <tr class="text-center">
               <th>{{ __('m_config.policies.id') }}</th>
               <th class="text-center">{{ __('m_config.policies.title_current_locale') }}</th>
+              <th class="text-center">{{ __('m_config.policies.slug') }}</th>
               <th>{{ __('m_config.policies.validity_range') }}</th>
               <th>{{ __('m_config.policies.status') }}</th>
               <th>{{ __('m_config.policies.sections') }}</th>
@@ -55,6 +56,9 @@
               <tr class="text-center">
                 <td>{{ $p->policy_id }}</td>
                 <td class="text-center">{{ $t?->name ?? '—' }}</td>
+                <td class="text-center">
+                  <code class="text-muted">{{ $p->slug }}</code>
+                </td>
                 <td>
                   @if($from || $to)
                     {{ $from ?? '—' }} &rarr; {{ $to ?? '—' }}
@@ -112,7 +116,7 @@
                 </td>
               </tr>
             @empty
-              <tr><td colspan="6" class="text-center text-muted p-4">{{ __('m_config.policies.no_categories') }}</td></tr>
+              <tr><td colspan="7" class="text-center text-muted p-4">{{ __('m_config.policies.no_categories') }}</td></tr>
             @endforelse
           </tbody>
         </table>
@@ -156,6 +160,16 @@
             <input type="text" name="name" class="form-control" required>
             <small class="text-muted">{{ __('m_config.policies.lang_autodetect_hint') }}</small>
           </div>
+
+          <div class="mb-3">
+            <label class="form-label">
+              {{ __('m_config.policies.slug') }}
+              <span class="text-muted small">({{ __('m_config.policies.slug_hint') }})</span>
+            </label>
+            <input type="text" name="slug" class="form-control" placeholder="se-genera-automaticamente">
+            <small class="text-muted">{{ __('m_config.policies.slug_auto_hint') }}</small>
+          </div>
+
           <div class="mb-3">
             <label class="form-label">{{ __('m_config.policies.description_label') }}</label>
             <textarea name="content" class="form-control" rows="8" required></textarea>
@@ -216,6 +230,20 @@
               <label class="form-label">{{ __('m_config.policies.name') }}</label>
               <input type="text" name="name" class="form-control"
                      value="{{ old('name', $t?->name ?? $p->name) }}">
+            </div>
+
+            {{-- SLUG editable --}}
+            <div class="mb-3">
+              <label class="form-label">
+                {{ __('m_config.policies.slug') }}
+                <span class="text-muted small">({{ __('m_config.policies.slug_hint') }})</span>
+              </label>
+              <input type="text" name="slug" class="form-control"
+                     value="{{ old('slug', $p->slug) }}"
+                     placeholder="terminos-y-condiciones">
+              <small class="text-muted">
+                <i class="fas fa-info-circle"></i> {{ __('m_config.policies.slug_edit_hint') }}
+              </small>
             </div>
 
             {{-- CONTENIDO traducido del locale actual --}}

@@ -44,7 +44,9 @@
                 <i class="fas fa-plus icon-plus"></i>
                 <i class="fas fa-minus icon-minus"></i>
               </span>
-              {{ $translatedPolicy?->name ?? $policy->name ?? __('policies.untitled') }}
+              <a href="{{ localized_route('policies.show', ['policy' => $policy->slug]) }}" class="text-decoration-none text-dark">
+                {{ $translatedPolicy?->name ?? $policy->name ?? __('policies.untitled') }}
+              </a>
             </button>
           </h2>
 
@@ -90,6 +92,12 @@
                   @endforeach
                 </div>
               @endif
+
+              <div class="mt-3">
+                <a href="{{ localized_route('policies.show', ['policy' => $policy->slug]) }}" class="btn btn-sm btn-outline-primary">
+                  {{ __('policies.view_full') }}
+                </a>
+              </div>
 
             </div>
           </div>

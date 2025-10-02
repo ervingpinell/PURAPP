@@ -26,7 +26,7 @@ export default defineConfig({
                 'resources/css/homereviews.css',
                 'resources/css/reviews.css',
                 'resources/css/reviews-embed.css',
-                'resources/css/tour-review.css',
+                'resources/css/contact.css',
                 'resources/js/app.js',
                 'resources/js/cart/promo-code.js',
                 'resources/js/reviews-embed.js',

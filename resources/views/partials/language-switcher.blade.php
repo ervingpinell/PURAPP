@@ -15,12 +15,12 @@
     $label = strtoupper($currentLocale);
   @endphp
 
-  <button class="language-switcher-toggle btn btn-outline-secondary dropdown-toggle"
+  <button class="language-switcher-toggle"
           type="button"
           id="languageDropdown"
           data-bs-toggle="dropdown"
           aria-expanded="false">
-    <img src="{{ asset('svg/flags/' . $flag) }}" alt="Current language" width="20" class="me-1">
+    <img src="{{ asset('svg/flags/' . $flag) }}" alt="Current language" width="20" height="14" class="me-1">
     {{ $label }}
   </button>
 
@@ -32,7 +32,7 @@
       <li>
         <a class="dropdown-item language-switcher-item"
            href="{{ route('switch.language', $code) }}">
-          <img src="{{ asset('svg/flags/' . $flagFile) }}" width="20" class="me-1">
+          <img src="{{ asset('svg/flags/' . $flagFile) }}" width="20" height="14" class="me-1">
           {{ $config['name'] }}
         </a>
       </li>
@@ -42,9 +42,6 @@
 
 @push('css')
 <style>
-.login-card-body, .register-card-body, .card, .card-body {
-  overflow: visible !important;
-}
 .language-switcher {
   position: relative;
   z-index: 1060;

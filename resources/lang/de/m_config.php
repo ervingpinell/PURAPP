@@ -31,6 +31,13 @@ return [
         'actions'                 => 'Aktionen',
         'active'                  => 'Aktiv',
         'inactive'                => 'Inaktiv',
+        'slug'                    => 'URL',
+        'slug_hint'               => 'optional',
+        'slug_auto_hint'          => 'Wird automatisch aus dem Namen generiert, wenn es leer gelassen wird',
+        'slug_edit_hint'          => 'Ändert die URL der Richtlinie. Verwenden Sie nur Kleinbuchstaben, Zahlen und Bindestriche.',
+        'updated'                  => 'Richtlinie erfolgreich aktualisiert.',
+
+
 
         // Kategorienliste: Aktionen
         'new_category'            => 'Neue Kategorie',

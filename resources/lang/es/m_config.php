@@ -34,6 +34,12 @@ return [
         'actions'                 => 'Acciones',
         'active'                  => 'Activo',
         'inactive'                => 'Inactivo',
+        'slug'                    => 'URL',
+        'slug_hint'               => 'opcional',
+        'slug_auto_hint'          => 'Se generará automáticamente del nombre si se deja vacío',
+        'slug_edit_hint'          => 'Cambia la URL de la política. Usa solo letras minúsculas, números y guiones.',
+        'updated'                  => 'Política actualizada con éxito.',
+
 
         // Lista de categorías: acciones
         'new_category'            => 'Nueva categoría',

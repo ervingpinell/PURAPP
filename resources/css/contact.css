@@ -1,0 +1,178 @@
+/* =========================
+   CONTACT.CSS — Sección contacto
+   ========================= */
+
+:root{
+  /* Si tienes variables globales en app.css, se usan; si no, fallback */
+  --contact-body:   var(--fs-body, 15px);
+  --contact-sm:     var(--fs-sm,   13.5px);
+  --contact-xs:     var(--fs-xs,   12px);
+  --contact-h5:     var(--fs-h5,   17px);
+  --contact-h6:     var(--fs-h6,   15px);
+
+  --contact-green:      var(--primary-dark, #256d1b);
+  --contact-green-600:  #256d1b;
+  --contact-green-700:  #1a5a18;
+  --contact-green-soft: #eaf4ea;
+
+  --contact-border: #dcdcdc;
+  --contact-muted:  #6b7280;
+
+  --contact-radius: 12px;
+  --contact-shadow: 0 8px 20px rgba(0,0,0,.06);
+}
+
+/* Sección (no cambiamos look, solo espaciados) */
+.contact-section{
+  padding-top: clamp(24px, 2.2vw, 40px);
+  padding-bottom: clamp(24px, 2.2vw, 40px);
+}
+
+/* Cards */
+.contact-section .card{
+  border-radius: var(--contact-radius);
+  box-shadow: var(--contact-shadow);
+  border: 1px solid var(--contact-border);
+  overflow: hidden;
+}
+
+.contact-section .card-header{
+  background: var(--contact-green);
+  color: #fff;
+  padding: .6rem .9rem;
+}
+.contact-section .card-header h4{
+  margin: 0;
+  font-size: var(--contact-h6);
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+/* Tipografía general compacta */
+.contact-section .card-body{
+  font-size: var(--contact-body);
+}
+.contact-section .card-body h4,
+.contact-section .card-body h5{
+  font-size: var(--contact-h6);
+  line-height: 1.25;
+  margin-bottom: .6rem;
+}
+.contact-section .card-body p,
+.contact-section .card-body li{
+  font-size: var(--contact-body);
+  line-height: 1.45;
+  margin-bottom: .4rem;
+}
+.contact-section .card-body .text-success{ color: var(--contact-green-600) !important; }
+
+/* Labels compactos */
+.contact-section .form-label{
+  font-size: var(--contact-sm);
+  font-weight: 600;
+  margin-bottom: .35rem;
+}
+
+/* Inputs: forzamos los .form-control-lg a tamaño normal/compacto */
+.contact-section .form-control{
+  font-size: var(--contact-body);
+  padding: .55rem .8rem;
+  border-radius: .5rem;
+  border: 1px solid var(--contact-border);
+}
+.contact-section .form-control.form-control-lg{
+  font-size: var(--contact-body);
+  padding: .55rem .8rem;
+  height: auto;
+}
+.contact-section textarea.form-control{
+  min-height: 140px;
+  line-height: 1.45;
+}
+
+/* Estados */
+.contact-section .form-control:focus{
+  border-color: var(--contact-green-600);
+  box-shadow: 0 0 0 .2rem rgba(26, 77, 46, .18);
+}
+.contact-section .is-invalid{
+  border-color: #dc3545;
+  box-shadow: none;
+}
+.contact-section .invalid-feedback{
+  font-size: var(--contact-xs);
+  margin-top: .25rem;
+}
+
+/* Botón principal */
+.contact-section .btn-success.bg-green-dark{
+  background: var(--contact-green);
+  border-color: var(--contact-green);
+}
+.contact-section .btn-success{
+  font-size: var(--contact-sm);
+  font-weight: 700;
+  padding: .55rem .9rem;
+  border-radius: .5rem;
+}
+.contact-section .btn-success:hover{
+  background: var(--contact-green-700);
+  border-color: var(--contact-green-700);
+  transform: translateY(-1px);
+}
+
+/* Tarjeta de info lateral */
+.contact-section .card.bg-light{
+  background: #f7faf7 !important;
+  border-color: var(--contact-border) !important;
+}
+.contact-section .card.bg-light .badge.bg-success{
+  background: var(--contact-green) !important;
+  font-size: var(--contact-sm) !important;
+  padding: .35rem .6rem;
+  border-radius: .45rem;
+}
+
+/* Íconos + enlaces más sutiles */
+.contact-section .card.bg-light i{ opacity: .9; }
+.contact-section .card.bg-light a{
+  color: var(--contact-green-600);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-size: var(--contact-body);
+}
+
+/* Mapa */
+.contact-section .ratio{ border-radius: .75rem; overflow: hidden; }
+.contact-section .card-body.p-2{ padding: .6rem !important; }
+@media (min-width: 576px){
+  .contact-section .card-body.p-sm-3{ padding: .9rem !important; }
+}
+
+/* Widget de WhatsApp inline (si existe) */
+.contact-section .btn.btn-outline-success{
+  --bs-btn-color: var(--contact-green-600);
+  --bs-btn-border-color: var(--contact-green-600);
+  --bs-btn-hover-bg: var(--contact-green-600);
+  --bs-btn-hover-border-color: var(--contact-green-600);
+  font-size: var(--contact-sm);
+  padding: .45rem .75rem;
+  border-radius: .5rem;
+}
+
+/* Pequeños ajustes responsive */
+@media (max-width: 991.98px){
+  .contact-section .card{ border-radius: 10px; }
+}
+@media (max-width: 575.98px){
+  .contact-section .card-header{ padding: .5rem .75rem; }
+  .contact-section .card-header h4{ font-size: var(--contact-body); }
+  .contact-section .form-label{ font-size: var(--contact-sm); }
+  .contact-section .form-control{ font-size: var(--contact-sm); padding: .5rem .75rem; }
+  .contact-section textarea.form-control{ min-height: 120px; }
+  .contact-section .btn-success{ font-size: var(--contact-sm); padding: .5rem .8rem; }
+  .contact-section .card.bg-light .badge.bg-success{ font-size: var(--contact-xs) !important; padding: .3rem .55rem; }
+}
+
+/* (Opcional) Utilidad por si no existiera en tu CSS global */
+.bg-green-dark{ background: var(--contact-green) !important; }

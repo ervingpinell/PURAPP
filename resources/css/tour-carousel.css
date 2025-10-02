@@ -1,51 +1,72 @@
-:root {
-  --tour-h: 360px;
-  --thumb-size: 110px;
-  --brand: #198754;
+/* =========================
+   TOUR-CAROUSEL.CSS — carrusel principal + lightbox
+   (compacto, accesible y 100% responsive)
+   ========================= */
+
+/* Thumbnails columna (desktop) */
+#tourCarousel .thumb-box img{
+  width:92px; height:92px; object-fit:cover; border-radius:.5rem;
+  border:2px solid transparent; cursor:pointer; transition:border-color .2s;
+}
+#tourCarousel .thumb-box img.active{ border-color:#198754; }
+#tourCarousel .thumb-box{ max-height:462px; overflow:auto; }
+
+/* Contenedor principal (altura viene de --carousel-h en tour.css) */
+#tourCarousel{
+  border-radius:.75rem; overflow:hidden;
+}
+#tourCarousel .carousel-inner{ border-radius:.75rem; }
+#tourCarousel .carousel-item > img{
+  width:100%; height:100%; object-fit:cover; cursor:zoom-in;
 }
 
-/* Imagen principal */
-#tourCarousel .carousel-item img {
-  object-fit: cover;
-}
-
-/*—— MINIATURAS desktop ——*/
-.thumb-box img {
-  width: var(--thumb-size);
-  height: var(--thumb-size);
-  object-fit: cover;
-  border-radius: .45rem;
-  border: 2px solid transparent;
-  transition: border-color .25s;
-  box-shadow: 0 0 4px rgba(0,0,0,.12);
-}
-.thumb-box img:hover,
-.thumb-box img.active {
-  border-color: var(--brand);
-}
-
-/*—— CONTROLES ——*/
+/* Controles */
 #tourCarousel .carousel-control-prev,
-#tourCarousel .carousel-control-next {
-  opacity: 0;
-  transition: opacity .2s;
+#tourCarousel .carousel-control-next{
+  width:3rem; opacity:1;
 }
-#tourCarousel:hover .carousel-control-prev,
-#tourCarousel:hover .carousel-control-next {
-  opacity: 1;
+#tourCarousel .carousel-control-prev-icon,
+#tourCarousel .carousel-control-next-icon{
+  background-color:#256D1B; border-radius:50%;
+  width:2.6rem; height:2.6rem; background-size:1.35rem 1.35rem;
+  box-shadow:0 4px 10px rgba(0,0,0,.25);
+}
+#tourCarousel .carousel-control-prev:hover .carousel-control-prev-icon,
+#tourCarousel .carousel-control-next:hover .carousel-control-next-icon{
+  background-color:#60A862;
 }
 
-/*—— INDICADORES móvil (usando Bootstrap nativo) ——*/
-.carousel-indicators.d-md-none button {
-  width: 10px;
-  height: 10px;
-  margin: 0 4px;
-  background: #adb5bd;
-  border-radius: 50%;
-  opacity: .6;
-  border: none;
+/* Indicadores (solo móvil en blade) */
+#tourCarousel .carousel-indicators [data-bs-target]{
+  width:.6rem; height:.6rem; border-radius:50%;
 }
-.carousel-indicators.d-md-none .active {
-  background: var(--brand);
-  opacity: 1;
+
+/* Lightbox */
+#tourLightbox .modal-dialog{ max-width:min(1100px, 95vw); }
+#tourLightbox .modal-body{ padding:0; background:#000; }
+#tourLightbox .carousel-item img{
+  width:100%; max-height:82vh; object-fit:contain; background:#000;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+@media (max-width:992px){
+  #tourCarousel .thumb-box img{ width:86px; height:86px; }
+}
+
+@media (max-width:768px){
+  /* Sin thumbs en CSS, ya se ocultan en el blade/CSS principal */
+  #tourCarousel .carousel-control-prev,
+  #tourCarousel .carousel-control-next{ width:2.3rem; }
+  #tourCarousel .carousel-control-prev-icon,
+  #tourCarousel .carousel-control-next-icon{ width:2.2rem; height:2.2rem; background-size:1.1rem 1.1rem; }
+}
+
+@media (max-width:576px){
+  #tourCarousel .carousel-control-prev,
+  #tourCarousel .carousel-control-next{ width:2rem; }
+  #tourCarousel .carousel-control-prev-icon,
+  #tourCarousel .carousel-control-next-icon{ width:2rem; height:2rem; background-size:1rem 1rem; }
+  #tourCarousel .carousel-indicators{ margin-bottom:.35rem; }
 }

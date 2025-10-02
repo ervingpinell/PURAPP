@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class Policy extends Model
 {
@@ -19,6 +20,7 @@ class Policy extends Model
 
     protected $fillable = [
         'name',
+        'slug',
         'content',
         'is_default',
         'is_active',
@@ -35,15 +37,42 @@ class Policy extends Model
 
     public function getRouteKeyName(): string
     {
-        return 'policy_id';
+        return 'slug';
     }
 
     /* ===================== BOOT & AUTO-TRADUCCIONES ===================== */
 
     protected static function booted()
     {
+        // ✅ Generar slug automáticamente al crear
+        static::creating(function (self $policy) {
+            if (empty($policy->slug) && !empty($policy->name)) {
+                $policy->slug = $policy->generateUniqueSlug($policy->name);
+            }
+        });
+
         static::created(function (self $policy) {
             $policy->seedMissingTranslations();
+        });
+
+        // ✅ CORREGIDO: Permitir actualización manual del slug
+        static::updating(function (self $policy) {
+            // Si el slug está vacío pero hay nombre, regenerarlo
+            if (empty($policy->slug) && !empty($policy->name)) {
+                $policy->slug = $policy->generateUniqueSlug($policy->name);
+            }
+
+            // Si el slug cambió manualmente, validar que sea único
+            if ($policy->isDirty('slug') && !empty($policy->slug)) {
+                $exists = static::where('slug', $policy->slug)
+                    ->where('policy_id', '!=', $policy->policy_id)
+                    ->exists();
+
+                if ($exists) {
+                    // Agregar sufijo para hacerlo único
+                    $policy->slug = $policy->generateUniqueSlug($policy->slug);
+                }
+            }
         });
 
         static::updated(function (self $policy) {
@@ -51,6 +80,38 @@ class Policy extends Model
                 $policy->syncNameIntoTranslations();
             }
         });
+    }
+
+    /* ===================== SLUG GENERATION ===================== */
+
+    /**
+     * Genera un slug único basado en el nombre
+     */
+    public function generateUniqueSlug(string $name): string
+    {
+        $slug = Str::slug($name);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        // Verificar que sea único
+        while (static::where('slug', $slug)
+            ->where('policy_id', '!=', $this->policy_id ?? 0)
+            ->exists()) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Regenerar slug manualmente (útil para admin)
+     */
+    public function regenerateSlug(?string $baseName = null): self
+    {
+        $this->slug = $this->generateUniqueSlug($baseName ?? $this->name);
+        $this->save();
+        return $this;
     }
 
     /**
@@ -170,7 +231,6 @@ class Policy extends Model
 
     public function getTitleTranslatedAttribute(): ?string
     {
-        // Compatibilidad con código legado que esperaba "title"
         return optional($this->translation())?->name ?? $this->name;
     }
 

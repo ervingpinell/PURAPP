@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Cache;
 
 use App\Services\Contracts\TranslatorInterface;
 use App\Services\DeepLTranslator;
@@ -17,6 +18,8 @@ use App\Services\DeepLTranslator;
 use App\Observers\ReviewObserver;
 use App\Models\Review;
 use App\Models\ReviewProvider;
+use App\Models\Tour;
+use App\Models\TourType;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -52,7 +55,7 @@ class AppServiceProvider extends ServiceProvider
         // =========================
         VerifyEmail::createUrlUsing(function ($notifiable) {
             return URL::temporarySignedRoute(
-                'verification.public', // <- definida en routes/web.php
+                'verification.public',
                 now()->addMinutes((int) config('auth.verification.expire', 60)),
                 [
                     'id'   => $notifiable->getKey(),
@@ -61,7 +64,6 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
-        // Contenido del email de verificación (usa la URL ya construida arriba)
         VerifyEmail::toMailUsing(function ($notifiable, string $url) {
             return (new MailMessage)
                 ->subject(__('adminlte::auth.verify.subject'))
@@ -98,14 +100,67 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('cartItemCount', $cartItemCount);
         });
+
+        // =========================
+        // Tours para el footer (typeMeta + toursByType)
+        // =========================
+        if (! $this->app->runningInConsole()) {
+            View::composer(['partials.footer', 'footer', 'components.footer'], function ($view) {
+                $loc = app()->getLocale();
+                $fb  = config('app.fallback_locale', 'es');
+                $ttl = 60 * 60 * 12; // 12 horas
+
+                // Cache de tipos
+                $typeMeta = Cache::remember("footer:typeMeta:{$loc}", $ttl, function () use ($loc, $fb) {
+                    return TourType::active()
+                        ->with('translations')
+                        ->orderBy('name')
+                        ->get(['tour_type_id', 'name'])
+                        ->mapWithKeys(function ($type) use ($loc, $fb) {
+                            $tr = optional($type->translations)->firstWhere('locale', $loc)
+                                ?? optional($type->translations)->firstWhere('locale', $fb);
+
+                            return [
+                                $type->tour_type_id => [
+                                    'id'    => $type->tour_type_id,
+                                    'title' => $tr->name ?? $type->name,
+                                ],
+                            ];
+                        });
+                });
+
+                // Cache de tours agrupados
+                $toursByType = Cache::remember("footer:toursByType:{$loc}", $ttl, function () use ($loc, $fb) {
+                    $tours = Tour::with(['tourType.translations', 'translations'])
+                        ->where('is_active', true)
+                        ->orderBy('name')
+                        ->get([
+                            'tour_id',
+                            'name',
+                            'slug',
+                            'tour_type_id',
+                        ])
+                        ->map(function ($tour) use ($loc, $fb) {
+                            $trTour = optional($tour->translations)->firstWhere('locale', $loc)
+                                ?? optional($tour->translations)->firstWhere('locale', $fb);
+
+                            $tour->translated_name    = $trTour->name ?? $tour->name;
+                            $tour->tour_type_id_group = optional($tour->tourType)->tour_type_id ?? 'uncategorized';
+
+                            return $tour;
+                        });
+
+                    return $tours->groupBy(fn ($t) => $t->tour_type_id_group);
+                });
+
+                $view->with('typeMeta', $typeMeta);
+                $view->with('toursByType', $toursByType);
+            });
+        }
     }
 
     /**
      * Garantiza que el proveedor 'local' exista y esté bloqueado como de sistema.
-     * - Crea si no existe.
-     * - Activa is_active.
-     * - Marca is_system = true (para bloquear eliminación/edición sensible).
-     * - Ajusta driver = 'local' (o el que definas en config).
      */
     protected function ensureLocalReviewProvider(): void
     {
@@ -113,10 +168,8 @@ class AppServiceProvider extends ServiceProvider
 
         ReviewProvider::withoutEvents(function () {
             $p = ReviewProvider::firstOrNew(['slug' => 'local']);
-
             $table = $p->getTable();
 
-            // Si es nuevo, setea TODO antes del primer save (evita NOT NULL violations)
             if (! $p->exists) {
                 if (Schema::hasColumn($table, 'name'))          $p->name = $p->name ?? 'Local';
                 if (Schema::hasColumn($table, 'driver'))        $p->driver = 'local';
@@ -133,7 +186,6 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
-            // Si ya existe, normaliza por si alguien lo tocó
             $dirty = false;
             if (Schema::hasColumn($table, 'driver')     && $p->driver !== 'local') { $p->driver = 'local'; $dirty = true; }
             if (Schema::hasColumn($table, 'is_active')  && ! $p->is_active)        { $p->is_active = true; $dirty = true; }

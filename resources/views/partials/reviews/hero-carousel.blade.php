@@ -54,11 +54,10 @@
         $author      = $r['author_name'] ?? __('reviews.anonymous_guest');
         $date        = !empty($r['date']) ? \Illuminate\Support\Carbon::parse($r['date'])->isoFormat('ll') : '';
         $isIndexable = !empty($r['indexable']);
-
-        // ✅ TOUR NAME: usar el traducido que ya viene en la review
-        $tourName    = trim((string)($r['tour_name'] ?? ''));
-        $tourId      = !empty($r['tour_id']) ? (int)$r['tour_id'] : null;
-        $tourUrl     = $tourId ? localized_route('tours.show', ['tour' => $tourId]) : '#';
+$tourName    = trim((string)($r['tour_name'] ?? ''));
+$tourId      = !empty($r['tour_id']) ? (int)$r['tour_id'] : null;
+$tourSlug    = trim((string)($r['tour_slug'] ?? ''));
+$tourUrl     = ($tourId && $tourSlug) ? localized_route('tours.show', ['tour' => $tourSlug]) : '#';
 
         $avatarUrl   = $r['avatar_url'] ?? null;
 

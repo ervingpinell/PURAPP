@@ -2,41 +2,26 @@
 
 @section('title', __('adminlte::adminlte.contact_us'))
 
+@push('styles')
+  @vite([
+    'resources/css/contact.css',
+  ])
+@endpush
 @section('content')
 <section class="contact-section py-5 text-white">
   <div class="container">
     <div class="row gy-4 justify-content-center align-items-stretch flex-wrap">
       <div class="col-lg-8 col-md-12 d-flex">
-        @if(session('success'))
-          <script>
-            Swal.fire({
-              icon: 'success',
-              title: '{{ __('adminlte::adminlte.message_sent') }}',
-              html: `{!! session('success') !!}`,
-              confirmButtonText: 'OK'
-            });
-          </script>
-        @endif
-
-        @if ($errors->any())
-          <div class="alert alert-danger w-100">
-            <ul class="mb-0">
-              @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-              @endforeach
-            </ul>
-          </div>
-        @endif
-
         <div class="card shadow-sm border flex-fill w-100">
           <div class="card-header bg-green-dark text-white">
             <h4 class="mb-0">{{ __('adminlte::adminlte.contact_us') }}</h4>
           </div>
 
           <div class="card-body">
-            <form action="{{ localized_route('contact.send') }}" method="POST" novalidate>
+            <form action="{{ localized_route('contact.send') }}" method="POST" id="contactForm">
               @csrf
 
+              {{-- Honeypot --}}
               <div style="position:absolute; left:-9999px; top:-9999px;">
                 <label for="website">Website</label>
                 <input type="text" name="website" id="website" tabindex="-1" autocomplete="off">
@@ -46,28 +31,44 @@
                 <label for="name" class="form-label">{{ __('adminlte::adminlte.name') }}</label>
                 <input type="text" class="form-control form-control-lg @error('name') is-invalid @enderror"
                   name="name" id="name" required value="{{ old('name') }}" autocomplete="name">
-                @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                @error('name')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @else
+                  <div class="invalid-feedback">{{ __('adminlte::adminlte.field_required') }}</div>
+                @enderror
               </div>
 
               <div class="mb-3">
                 <label for="email" class="form-label">{{ __('adminlte::adminlte.email') }}</label>
                 <input type="email" class="form-control form-control-lg @error('email') is-invalid @enderror"
                   name="email" id="email" required value="{{ old('email') }}" autocomplete="email" inputmode="email">
-                @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                @error('email')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @else
+                  <div class="invalid-feedback">{{ __('adminlte::adminlte.email_invalid') }}</div>
+                @enderror
               </div>
 
               <div class="mb-3">
                 <label for="subject" class="form-label">{{ __('adminlte::adminlte.subject') }}</label>
                 <input type="text" class="form-control form-control-lg @error('subject') is-invalid @enderror"
                   name="subject" id="subject" required value="{{ old('subject') }}">
-                @error('subject') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                @error('subject')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @else
+                  <div class="invalid-feedback">{{ __('adminlte::adminlte.field_required') }}</div>
+                @enderror
               </div>
 
               <div class="mb-3">
                 <label for="message" class="form-label">{{ __('adminlte::adminlte.message') }}</label>
                 <textarea class="form-control form-control-lg @error('message') is-invalid @enderror"
                   name="message" id="message" rows="6" required>{{ old('message') }}</textarea>
-                @error('message') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                @error('message')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @else
+                  <div class="invalid-feedback">{{ __('adminlte::adminlte.field_required') }}</div>
+                @enderror
               </div>
 
               <button type="submit" class="btn btn-success bg-green-dark w-100">
@@ -132,3 +133,47 @@
   </div>
 </section>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('contactForm');
+
+  // Mostrar SweetAlert si hay éxito
+  @if(session('success'))
+    Swal.fire({
+      icon: 'success',
+      title: '{{ __('adminlte::adminlte.message_sent') }}',
+      html: `{!! session('success') !!}`,
+      confirmButtonText: 'OK'
+    });
+  @endif
+
+  // Mostrar SweetAlert si hay errores de validación del servidor
+  @if ($errors->any())
+    Swal.fire({
+      icon: 'error',
+      title: '{{ __('adminlte::adminlte.validation_error') }}',
+      html: `
+        <ul class="text-start">
+          @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+      `,
+      confirmButtonText: 'OK'
+    });
+  @endif
+
+  // Validación HTML5 con Bootstrap styling
+  form.addEventListener('submit', function(event) {
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    form.classList.add('was-validated');
+  });
+});
+</script>
+@endpush

@@ -1,0 +1,97 @@
+/* =========================
+   FAQS.CSS — Página de Preguntas Frecuentes
+   ========================= */
+
+:root {
+  --faq-primary: #256d1b;
+  --faq-accent: #60a862;
+  --faq-muted: #6b7280;
+  --border-radius: 10px;
+  --shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* ====== CONTENEDOR GENERAL ====== */
+.faq-section {
+  padding: 3rem 0;
+  background: #fff;
+}
+
+.faq-section .big-title {
+  font-size: var(--fs-h2);
+  font-weight: 800;
+  color: var(--faq-primary);
+  margin-bottom: 2rem;
+}
+
+/* ====== ACCORDION ====== */
+.accordion-item {
+  border: 1px solid #e5e7eb;
+  border-radius: var(--border-radius);
+  margin-bottom: .75rem;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.accordion-button {
+  background: #fff !important;
+  color: #222;
+  font-weight: 600;
+  font-size: var(--fs-body);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.accordion-button i {
+  color: var(--faq-primary);
+  font-size: 1rem;
+}
+
+.accordion-button:not(.collapsed) {
+  background: var(--faq-accent) !important;
+  color: #fff;
+  box-shadow: none;
+}
+
+.accordion-button:focus {
+  box-shadow: none;
+}
+
+.accordion-body {
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  padding: 1rem 1.25rem;
+  color: #444;
+}
+
+.accordion-body span.text-success {
+  color: var(--faq-primary) !important;
+  font-weight: bold;
+}
+
+/* ====== TEXTO MUTED ====== */
+.text-muted {
+  font-size: var(--fs-body);
+  color: var(--faq-muted) !important;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+/* Tablets */
+@media (max-width: 768px) {
+  .faq-section { padding: 2rem 0; }
+  .faq-section .big-title { font-size: var(--fs-h3); }
+  .accordion-button { font-size: var(--fs-sm); padding: .85rem 1rem; }
+  .accordion-body { font-size: var(--fs-sm); padding: .85rem 1rem; }
+}
+
+/* Móviles pequeños (≤ 576px) */
+@media (max-width: 576px) {
+  .faq-section { padding: 1.5rem 0; }
+  .faq-section .big-title { font-size: var(--fs-h4); margin-bottom: 1.25rem; }
+  .accordion-button { font-size: var(--fs-xs); padding: .75rem 1rem; }
+  .accordion-body { font-size: var(--fs-xs); line-height: 1.35; padding: .75rem 1rem; }
+}

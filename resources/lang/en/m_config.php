@@ -31,6 +31,12 @@ return [
         'actions'                 => 'Actions',
         'active'                  => 'Active',
         'inactive'                => 'Inactive',
+        'slug'                    => 'URL',
+        'slug_hint'               => 'optional',
+        'slug_auto_hint'          => 'Will be automatically generated from the name if left blank',
+        'slug_edit_hint'          => 'Changes the policy URL. Use only lowercase letters, numbers, and hyphens.',
+        'updated'                  => 'Policy updated successfully.',
+
 
         // Category list: actions
         'new_category'            => 'New category',

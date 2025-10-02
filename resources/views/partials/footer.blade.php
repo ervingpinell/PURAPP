@@ -8,8 +8,11 @@
   @endphp
 
   <div class="footer-main-content">
-    <div class="footer-brand">
-      <img src="{{ asset('images/logoCompanyWhite.png') }}" alt="Green Vacations" decoding="async" fetchpriority="low" />
+    <div class="footer-brand d-none d-md-block">
+      <img src="{{ asset('images/logoCompanyWhite.png') }}"
+           alt="Green Vacations"
+           decoding="async"
+           fetchpriority="low" />
       <p>{{ __('adminlte::adminlte.footer_text') }}</p>
     </div>
 
@@ -17,8 +20,8 @@
       <h4>{{ __('adminlte::adminlte.quick_links') }}</h4>
       <ul>
         <li><a href="{{ localized_route('home') }}">{{ __('adminlte::adminlte.home') }}</a></li>
-        <li><a href="{{ localized_route('tours.index') }}">{{ __('adminlte::adminlte.tours') }}</a></li>
-<li><a href="{{ localized_route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a></li>
+        <li><a href="#" class="scroll-to-tours">{{ __('adminlte::adminlte.tours') }}</a></li>
+        <li><a href="{{ localized_route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a></li>
 
         <li>
           <a target="_blank" rel="noopener"
@@ -38,14 +41,24 @@
     <div class="footer-tours">
       <h4><i class="fas fa-map-signs me-2"></i>{{ __('adminlte::adminlte.our_tours') }}</h4>
       <ul>
-<li class="d-flex align-items-center mb-2">
-  <i class="fas fa-sun me-2"></i>
-  <a href="#" class="scroll-to-tours">{{ __('adminlte::adminlte.half_day') }}</a>
-</li>
-<li class="d-flex align-items-center mb-2">
-  <i class="fas fa-mountain me-2"></i>
-  <a href="#" class="scroll-to-tours">{{ __('adminlte::adminlte.full_day') }}</a>
-</li>
+        @foreach ($typeMeta ?? [] as $key => $meta)
+          @php
+            $group = ($toursByType[$key] ?? collect());
+            if ($group->isEmpty()) continue;
+
+            $translatedTitle = $meta['title'] ?? '';
+            $modalId = 'modal-' . \Illuminate\Support\Str::slug((string)$key);
+          @endphp
+          <li class="d-flex align-items-center mb-2">
+            <i class="fas fa-{{ $key == 1 ? 'sun' : 'mountain' }} me-2"></i>
+            <a href="#"
+               class="open-tour-modal"
+               data-tour-modal="{{ $modalId }}"
+               data-scroll-first="true">
+              {{ $translatedTitle }}
+            </a>
+          </li>
+        @endforeach
       </ul>
 
       <h4 class="mt-3">
@@ -55,7 +68,7 @@
         @if($terms)
           <li class="d-flex align-items-center mb-2">
             <i class="fas fa-balance-scale me-2"></i>
-            <a href="{{ localized_route('policies.show', $terms) }}">
+            <a href="{{ localized_route('policies.show', ['policy' => $terms->slug]) }}">
               {{ __('adminlte::adminlte.terms_and_conditions') }}
             </a>
           </li>
@@ -64,7 +77,7 @@
         @if($privacy)
           <li class="d-flex align-items-center mb-2">
             <i class="fas fa-shield-alt me-2"></i>
-            <a href="{{ localized_route('policies.show', $privacy) }}">
+            <a href="{{ localized_route('policies.show', ['policy' => $privacy->slug]) }}">
               {{ __('adminlte::adminlte.privacy_policy') }}
             </a>
           </li>
@@ -99,3 +112,62 @@
     &copy; {{ date('Y') }} Green Vacations Costa Rica. {{ __('adminlte::adminlte.rights_reserved') }}
   </div>
 </footer>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Abrir modales desde el footer
+  document.querySelectorAll('.open-tour-modal').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+
+      const modalId = this.getAttribute('data-tour-modal');
+      const shouldScroll = this.getAttribute('data-scroll-first') === 'true';
+
+      // Si estamos fuera del home, redirigir con hash
+      if (!document.getElementById(modalId)) {
+        window.location.href = '{{ localized_route("home") }}#' + modalId;
+        return;
+      }
+
+      // Si estamos en el home, hacer scroll y abrir modal
+      if (shouldScroll) {
+        const toursSection = document.getElementById('tours');
+        if (toursSection) {
+          toursSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+
+      // Abrir modal después de un pequeño delay si hay scroll
+      setTimeout(() => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+          const bsModal = new bootstrap.Modal(modal);
+          bsModal.show();
+        }
+      }, shouldScroll ? 600 : 0);
+    });
+  });
+
+  // Si llegamos con hash en la URL, abrir el modal correspondiente
+  if (window.location.hash && window.location.hash.startsWith('#modal-')) {
+    const modalId = window.location.hash.substring(1);
+    const modal = document.getElementById(modalId);
+
+    if (modal) {
+      // Scroll a la sección de tours primero
+      const toursSection = document.getElementById('tours');
+      if (toursSection) {
+        toursSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      // Abrir modal después del scroll
+      setTimeout(() => {
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+      }, 600);
+    }
+  }
+});
+</script>
+@endpush

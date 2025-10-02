@@ -7,8 +7,8 @@
 
 @push('styles')
   @vite([
-    'resources/css/reviews.css',
     'resources/css/tour.css',
+    'resources/css/tour-carousel.css',
   ])
 @endpush
 

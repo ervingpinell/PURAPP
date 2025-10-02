@@ -56,9 +56,10 @@
           $date     = !empty($r['date']) ? \Illuminate\Support\Carbon::parse($r['date'])->isoFormat('ll') : '';
           $title    = trim((string)($r['title'] ?? ''));
           $body     = trim((string)($r['body'] ?? ''));
-          $tourId   = $r['tour_id'] ?? null;
-$tourUrl  = $tourId ? localized_route('tours.show', ['tour' => $tourId]) : '#';
-          $tourName = trim((string)($r['tour_name'] ?? ''));
+$tourId   = $r['tour_id'] ?? null;
+$tourSlug = trim((string)($r['tour_slug'] ?? '')); // ✅ OBTENER SLUG
+$tourUrl  = ($tourId && $tourSlug) ? localized_route('tours.show', ['tour' => $tourSlug]) : '#'; // ✅ USAR SLUG
+$tourName = trim((string)($r['tour_name'] ?? ''));
           $avatarUrl= $r['avatar_url'] ?? null;
 
           $reviewId = $r['provider_review_id'] ?? $i;

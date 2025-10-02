@@ -18,8 +18,15 @@
 /* -------------------------
    HERO
    ------------------------- */
-.hero h1 { font-size: 4rem; }
-.hero p  { font-size: 1.75rem; }
+.hero h1 {
+  font-size: var(--fs-h1);
+  line-height: var(--lh-tight);
+  font-weight: 800;
+}
+.hero p  {
+  font-size: clamp(16px, 0.6vw + 14px, 22px);
+  line-height: var(--lh-normal);
+}
 
 /* -------------------------
    BOTÓN PRIMARIO
@@ -33,6 +40,7 @@
   border: none;
   text-decoration: none;
   transition: var(--transition);
+  font-size: var(--fs-body);
 }
 .btn-primary:hover{
   background-color:#4d8c4f;
@@ -55,6 +63,7 @@
   gap:1.5rem;
   padding-bottom:3rem;
 }
+
 .tour-card{
   flex:1 0 48%;
   max-width:340px;
@@ -66,31 +75,13 @@
   flex-direction:column;
   background:#fff;
   text-align:center;
-}
-.tour-card .card-body{
-  display:flex;
-  flex-direction:column;
-  flex:1;
-  justify-content:space-between;
-  min-height:220px; /* igual altura útil interna */
-}
-.tour-card .card-text{
-  font-size:.9rem;
-  line-height:1.3;
-  overflow:hidden;
-  margin-top:.8rem;
-}
-.tour-card .card-text.small{
-  font-size:.9rem;
-  line-height:1.4em;
-  margin-bottom:.8rem;
-  overflow:visible;
-  display:block;
+  transition: transform .15s ease, box-shadow .15s ease;
 }
 .tour-card:hover{
   transform:translateY(-5px);
   box-shadow:0 8px 25px rgba(0,0,0,.15);
 }
+
 .tour-card img{
   width:100%;
   height:160px;
@@ -98,19 +89,49 @@
   border-radius:var(--border-radius);
   margin-bottom:1rem;
 }
+
+/* Fondo rojo conservado */
 .tour-card h3{
   margin:.5rem 0 .8rem;
-  font-size:1.1rem;
+  font-size: var(--fs-h6);
   font-weight:700;
-  color:var(--primary-dark);
-  line-height:1.3em;
+  color: var(--white);
+  line-height:1.3;
   max-height:2.6em;
   overflow:hidden;
   text-overflow:ellipsis;
   display:-webkit-box;
   -webkit-line-clamp:2;
   -webkit-box-orient:vertical;
+
+  background-color:#F92526;
+  padding:.5em;
+  border-radius:var(--border-radius);
+  text-align:center;
 }
+
+.tour-card .card-body{
+  display:flex;
+  flex-direction:column;
+  flex:1;
+  justify-content:space-between;
+  min-height:220px;
+}
+
+.tour-card .card-text{
+  font-size: var(--fs-body);
+  line-height:1.35;
+  overflow:hidden;
+  margin-top:.8rem;
+}
+.tour-card .card-text.small{
+  font-size: var(--fs-sm);
+  line-height:1.4;
+  margin-bottom:.8rem;
+  overflow:visible;
+  display:block;
+}
+
 .btn-ver-tour{
   color:var(--white);
   border:none;
@@ -121,10 +142,14 @@
   transition:var(--transition);
   width:100%;
   margin-top:auto;
+  font-size: var(--fs-sm);
+  background-color: var(--primary-dark);
 }
 .btn-ver-tour:hover{ background-color:#1c5413; transform:scale(1.05); }
 
-/* Tarjetas dentro del modal */
+/* -------------------------
+   TARJETAS DENTRO DEL MODAL
+   ------------------------- */
 .tour-modal-card{
   background:#fff;
   border-radius:.75rem;
@@ -133,7 +158,7 @@
   flex-direction:column;
   padding:.75rem;
   height:100%;
-  transition:transform .2s ease;
+  transition:transform .2s ease, box-shadow .2s ease;
   text-align:center;
 }
 .tour-modal-card:hover{
@@ -147,30 +172,41 @@
   border-radius:.5rem;
   margin-bottom:.6rem;
 }
+
+/* Conserva el fondo rojo en el título dentro del modal */
 .tour-modal-card .card-title{
-  font-size:1rem;
+  font-size: var(--fs-h6);
   font-weight:700;
   margin-bottom:.4rem;
-  color:white;
+  color:#fff;
   line-height:1.3;
   min-height:2.6em;
+
+  background:#F92526;
+  padding:.4rem .5rem;
+  border-radius:.4rem;
 }
 .tour-modal-card .card-body{ display:flex; flex-direction:column; flex:1; }
 .tour-modal-card p,
 .tour-modal-card span,
 .tour-modal-card strong{
-  font-size:.85rem;
+  font-size: var(--fs-body);
   margin-bottom:.3rem;
-  line-height:1.4;
+  line-height:1.45;
 }
 .tour-modal-card .prices{ margin-top:auto; margin-bottom:.5rem; }
 .tour-modal-card .btn{
   margin-top:auto;
-  font-size:.85rem;
+  font-size: var(--fs-sm);
   padding:.5rem .75rem;
   border-radius:.4rem;
   white-space:nowrap;
 }
+
+/* ===== Helpers de layout para el GRID del modal ===== */
+.modal .tour-grid > .col { display:flex; }                 /* columnas flex para igualar alturas */
+.modal .tour-grid { justify-content:center; }              /* centrado del conjunto */
+.modal .modal-body{ padding-top:1rem; padding-bottom:1rem; }
 
 /* -------------------------
    OVERVIEW (leer más/menos)
@@ -190,16 +226,18 @@
   color:#007bff;
   text-decoration:underline;
   cursor:pointer;
+  font-size: var(--fs-sm);
 }
 
 /* -------------------------
    TIPOGRAFÍA / TITULARES
    ------------------------- */
 .big-title{
-  font-size:2.5rem;
+  font-size: var(--fs-h2);
   color:#256d1b;
   margin-bottom:2rem;
   font-weight:700;
+  text-align:center;
 }
 .rating{ color:#ffd700; font-size:1.2rem; margin-bottom:1rem; }
 .quote{ font-style:italic; color:#555; margin-bottom:1rem; }
@@ -208,72 +246,44 @@
 /* -------------------------
    ANIMACIONES HERO
    ------------------------- */
-.hero-title, .hero-subtext, .hero-buttons{
-  opacity:0; transform:translateY(30px);
-}
+.hero-title, .hero-subtext, .hero-buttons{ opacity:0; transform:translateY(30px); }
 .hero-title{ animation:fadeInUp 1s ease-out forwards; animation-delay:.5s; }
 .hero-subtext{ animation:fadeInUp 1s ease-out forwards; animation-delay:1s; }
 .hero-buttons{ animation:fadeInUp 1s ease-out forwards; animation-delay:1.5s; }
 @keyframes fadeInUp{ to{ opacity:1; transform:translateY(0); } }
 
 /* -------------------------
-   WHATSAPP (widget/panel)
+   WHATSAPP (widget/panel) — conserva gradientes
    ------------------------- */
 .whatsapp-panel{
-  position:fixed;
-  bottom:6rem;
-  right:1.5rem;
-  width:300px;
-  background:#fff;
-  border:1px solid #e2e2e2;
-  border-radius:1rem;
-  box-shadow:0 8px 20px rgba(0,0,0,.15);
-  overflow:hidden;
-  z-index:1050;
+  position:fixed; bottom:6rem; right:1.5rem; width:300px;
+  background:#fff; border:1px solid #e2e2e2; border-radius:1rem;
+  box-shadow:0 8px 20px rgba(0,0,0,.15); overflow:hidden; z-index:1050;
 }
 .whatsapp-header{
   background:linear-gradient(to right, #0d4740, #083d3a);
-  color:#fff;
-  padding:1rem;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  border-top-left-radius:1rem;
-  border-top-right-radius:1rem;
+  color:#fff; padding:1rem; display:flex; justify-content:space-between; align-items:center;
+  border-top-left-radius:1rem; border-top-right-radius:1rem;
 }
-.whatsapp-icon-circle{
-  width:40px; height:40px;
-  background-color:rgba(255,255,255,.2);
-  border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
-}
-.whatsapp-greeting{
-  background:#f8f9fa; padding:.75rem; border-radius:.5rem; margin-bottom:1rem;
-}
+.whatsapp-icon-circle{ width:40px; height:40px; background-color:rgba(255,255,255,.2);
+  border-radius:50%; display:flex; align-items:center; justify-content:center; }
+.whatsapp-greeting{ background:#f8f9fa; padding:.75rem; border-radius:.5rem; margin-bottom:1rem; }
 .whatsapp-footer-note{ font-size:11px; }
-
 .whatsapp-float-btn{
-  position:fixed;
-  bottom:1.5rem; right:1.5rem;
-  width:60px; height:60px;
+  position:fixed; bottom:1.5rem; right:1.5rem; width:60px; height:60px;
   background:linear-gradient(to right, #0d4740, #083d3a);
-  color:#fff; border-radius:50%;
-  box-shadow:0 4px 15px rgba(0,0,0,.25);
-  border:none; display:flex; align-items:center; justify-content:center;
-  transition:all .3s ease;
-  z-index:1040;
+  color:#fff; border-radius:50%; box-shadow:0 4px 15px rgba(0,0,0,.25);
+  border:none; display:flex; align-items:center; justify-content:center; transition:all .3s ease; z-index:1040;
 }
 .whatsapp-float-btn:hover{ transform:scale(1.05); background:linear-gradient(to right, #14665e, #052a28); }
 @keyframes pulse-grow{ 0%{transform:scale(1);} 50%{transform:scale(1.15);} 100%{transform:scale(1);} }
 .animate-pulse-grow{ animation:pulse-grow 1.2s ease-in-out infinite; }
 
 /* -------------------------
-   FOOTER
+   FOOTER — mantiene fondo y jerarquía
    ------------------------- */
 .footer-nature{
-  background:#0f2419; color:#fff;
-  padding:3.5rem 2rem;
-  font-size:16px;
+  background:#0f2419; color:#fff; padding:3.5rem 2rem;
   font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 .footer-nature .footer-main-content{
@@ -281,48 +291,43 @@
   gap:2rem; max-width:1200px; margin:auto;
 }
 .footer-nature .footer-brand img{ width:190px; margin-bottom:1rem; }
-.footer-nature .footer-brand p{ font-size:15px; line-height:1.6; color:#f0f0f0; }
+.footer-nature .footer-brand p{ font-size: var(--fs-body); line-height:1.6; color:#f0f0f0; }
 
 .footer-nature .footer-links,
 .footer-nature .contact-info{ flex:1; min-width:220px; }
 
 .footer-nature .footer-links h4,
 .footer-nature .contact-info h4{
-  font-size:18px; font-weight:700; margin-bottom:1rem; color:#fff; text-transform:uppercase;
+  font-size: var(--fs-h6); font-weight:700; margin-bottom:1rem; color:#fff; text-transform:uppercase;
 }
 .footer-nature .footer-links ul{ list-style:none; padding:0; margin:0; }
 .footer-nature .footer-links li{ margin-bottom:10px; }
 .footer-nature .footer-links a{
-  color:#e0e0e0; text-decoration:none; font-size:15px; transition:color .3s;
+  color:#e0e0e0; text-decoration:none; font-size: var(--fs-body); transition:color .3s;
 }
 .footer-nature .footer-links a:hover{ color:#a7f3d0; }
-.footer-nature .contact-info p{ font-size:15px; margin-bottom:.5rem; color:#f0f0f0; }
+.footer-nature .contact-info p{ font-size: var(--fs-body); margin-bottom:.5rem; color:#f0f0f0; }
 
-.footer-nature .footer-bottom{
-  text-align:center; margin-top:2rem; font-size:14px; color:#ccc;
-}
+.footer-nature .footer-bottom{ text-align:center; margin-top:2rem; font-size: var(--fs-sm); color:#ccc; }
 
 .footer-tours{ flex:1; min-width:220px; }
-.footer-tours h4{
-  font-size:18px; font-weight:700; margin-bottom:1rem; color:#fff; text-transform:uppercase;
-}
+.footer-tours h4{ font-size: var(--fs-h6); font-weight:700; margin-bottom:1rem; color:#fff; text-transform:uppercase; }
 .footer-tours ul{ list-style:none; padding:0; margin:0; }
 .footer-tours li{ margin-bottom:10px; }
-.footer-tours a{
-  color:#e0e0e0; font-size:15px; text-decoration:none; transition:color .3s ease;
-}
+.footer-tours a{ color:#e0e0e0; font-size: var(--fs-body); text-decoration:none; transition:color .3s ease; }
 .footer-tours a:hover{ color:#a7f3d0; text-decoration:underline; }
 .footer-tours i{ min-width:20px; }
 
-.footer-platforms h4{ font-size:18px; font-weight:700; color:#fff; text-transform:uppercase; }
-.footer-platforms a{ font-size:15px; color:#e0e0e0; transition:color .3s ease; }
+.footer-platforms h4{ font-size: var(--fs-h6); font-weight:700; color:#fff; text-transform:uppercase; }
+.footer-platforms a{ font-size: var(--fs-body); color:#e0e0e0; transition:color .3s ease; }
 .footer-platforms a:hover{ color:#a7f3d0; text-decoration:underline; }
 .footer-platforms{ flex:1; min-width:220px; }
 
+/* Conserva el fondo rojo del título genérico */
 .card-title{
   background-color:#F92526; color:#fff;
   padding:.5em; border-radius:var(--border-radius);
-  font-size:1rem; text-align:center;
+  font-size: var(--fs-h6); text-align:center;
 }
 
 /* =========================
@@ -330,91 +335,74 @@
    ========================= */
 @media (max-width:768px){
   .big-title{
-    font-size:1.8rem; color:#256d1b; margin-bottom:2rem; font-weight:700;
+    font-size: var(--fs-h3);
+    color:#256d1b; margin-bottom:2rem; font-weight:700;
   }
 
-  .tour-cards{
-    display:flex; flex-wrap:wrap; justify-content:center;
-    gap:.5rem; padding:0 .3rem;
-  }
-  .tour-card{
-    flex:1 0 48%;
-    max-width:340px;
-    padding:.7rem; margin:.4rem .1rem;
-    border-radius:.75rem; box-shadow:0 2px 6px rgba(0,0,0,.12);
-    display:flex; flex-direction:column; justify-content:space-between;
-    background:#fff; text-align:center;
-  }
+  .tour-cards{ gap:.5rem; padding:0 .3rem; }
+  .tour-card{ flex:1 0 48%; max-width:340px; padding:.7rem; margin:.4rem .1rem; border-radius:.75rem; }
   .tour-card img{ height:160px; width:100%; object-fit:cover; border-radius:.5rem; margin-bottom:.4rem; }
+
   .tour-card .card-title{
-    font-size:.85rem; margin-bottom:.4rem; padding:.25rem .5rem;
+    font-size: var(--fs-h6);
+    margin-bottom:.4rem; padding:.25rem .5rem;
     background:#F92526; color:#fff; border-radius:.4rem; display:inline-block;
   }
-  .tour-card p, .tour-card span, .tour-card strong{
-    font-size:.8rem; margin-bottom:.2rem; line-height:1.2;
-  }
-  .tour-card .btn{ margin-top:.3rem; padding:.4rem .8rem; font-size:.75rem; border-radius:.3rem; white-space:nowrap; color:#fff; }
 
-  .tour-modal-card{
-    padding:.5rem; border-radius:.75rem; box-shadow:0 2px 4px rgba(0,0,0,.1);
-    display:flex; flex-direction:column; justify-content:space-between;
-    height:100% !important; background:#fff; text-align:center;
-    max-width:160px !important; flex:1 0 48%;
+  .tour-card p, .tour-card span, .tour-card strong{
+    font-size: var(--fs-sm); margin-bottom:.2rem; line-height:1.25;
   }
-  .tour-modal-card img{ height:100px; object-fit:cover; border-radius:.5rem; margin-bottom:.4rem; }
+  .tour-card .btn{ margin-top:.3rem; padding:.4rem .8rem; font-size: var(--fs-sm); border-radius:.3rem; white-space:nowrap; color:#fff; }
+
+  /* ===== AJUSTE CLAVE: cards del modal ocupan todo el ancho en móvil */
+  .modal .tour-grid { margin-left:-4px; margin-right:-4px; }
+  .modal .tour-grid > .col { padding-left:4px; padding-right:4px; }
+  .tour-modal-card{
+    padding:.5rem;
+    border-radius:.75rem;
+    box-shadow:0 2px 4px rgba(0,0,0,.1);
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    height:100% !important;
+    background:#fff;
+    text-align:center;
+    flex:1 0 100%;
+    max-width:100% !important;
+    margin:0 auto;
+  }
+  .tour-modal-card img{ height:140px; object-fit:cover; border-radius:.5rem; margin-bottom:.4rem; }
+
   .tour-modal-card .card-title{
-    background:#F92526; color:#fff; font-size:.74rem;
-    padding:.25rem .25rem; margin-bottom:.3rem; border-radius:.4rem;
+    background:#F92526; color:#fff; font-size: var(--fs-sm);
+    padding:.25rem .35rem; margin-bottom:.35rem; border-radius:.4rem;
     overflow:hidden; text-overflow:ellipsis; line-height:1.18; word-break:break-word; white-space:normal;
   }
-  .tour-modal-card p, .tour-modal-card span, .tour-modal-card strong{ font-size:.7rem; margin-bottom:.2rem; }
-  .tour-modal-card .btn{ margin-top:.3rem; padding:.3rem .6rem; font-size:.7rem; border-radius:.3rem; white-space:nowrap; }
-
-  /* Footer compacto en móvil */
-  .footer-nature{ padding:2rem 1rem; font-size:14px; }
-  .footer-nature .footer-brand{ text-align:center; width:100%; }
-  .footer-nature .footer-main-content{ flex-direction:column; align-items:center; gap:1.5rem; }
-  .footer-nature .footer-brand img{ width:150px; margin-bottom:.5rem; }
-  .footer-nature .footer-links,
-  .footer-nature .contact-info,
-  .footer-tours,
-  .footer-platforms{ min-width:unset; width:100%; text-align:center; }
-  .footer-tours ul{ padding-left:0; }
-  .footer-tours li{ justify-content:center; display:flex; align-items:center; }
-  .footer-nature .footer-links h4,
-  .footer-nature .contact-info h4,
-  .footer-tours h4,
-  .footer-platforms h4{ font-size:16px; margin-bottom:.5rem; }
-  .footer-nature .footer-links a,
-  .footer-tours a,
-  .footer-platforms a,
-  .footer-nature .contact-info p{ font-size:14px; }
-  .footer-nature .footer-bottom{ margin-top:1.5rem; font-size:13px; }
+  .tour-modal-card p, .tour-modal-card span, .tour-modal-card strong{ font-size: var(--fs-sm); margin-bottom:.2rem; }
+  .tour-modal-card .btn{ margin-top:.35rem; padding:.35rem .65rem; font-size: var(--fs-sm); border-radius:.3rem; white-space:nowrap; }
 }
 
 @media (max-width:424px){
   .tour-cards{ gap:.4rem; padding:0 .2rem; }
-  .tour-card{
-    flex:1 0 100%;
-    max-width:320px;
-    padding:.6rem; margin:.4rem .1rem;
-    border-radius:.7rem; box-shadow:0 2px 6px rgba(0,0,0,.1);
-    display:flex; flex-direction:column; justify-content:space-between;
-    background:#fff; text-align:center;
-  }
+  .tour-card{ flex:1 0 100%; max-width:320px; padding:.6rem; margin:.4rem .1rem; border-radius:.7rem; }
   .tour-card img{ height:140px; width:100%; object-fit:cover; border-radius:.5rem; margin-bottom:.3rem; }
-  .tour-card .card-title{ font-size:.75rem; margin-bottom:.3rem; padding:.2rem .4rem; background:#F92526; color:#fff; border-radius:.35rem; display:inline-block; }
-  .tour-card .card-text,
-  .tour-card .card-text.small{ font-size:.8rem; margin-bottom:.2rem; line-height:1.1; }
-  .tour-card p, .tour-card span, .tour-card strong{ font-size:.7rem; margin-bottom:.15rem; line-height:1.1; }
-  .tour-card .btn{ margin-top:.3rem; padding:.3rem .6rem; font-size:.7rem; border-radius:.25rem; white-space:nowrap; color:#fff; }
 
-  .tour-modal-card{ flex:1 0 48%; max-width:180px !important; height:auto; padding:.6rem; margin:.4rem .1rem; border-radius:.75rem; box-shadow:0 2px 5px rgba(0,0,0,.12); }
-  .tour-modal-card img{ height:100px; border-radius:.5rem; margin-bottom:.4rem; width:100%; }
-  .tour-modal-card .card-title{
-    font-size:.67rem; background:#F92526; color:#fff; padding:.2rem .25rem; border-radius:.4rem; margin-bottom:.3rem;
-    line-height:1.15; word-break:break-word; white-space:normal; width:100%;
+  .tour-card .card-title{
+    font-size: var(--fs-xs);
+    margin-bottom:.3rem; padding:.2rem .4rem; background:#F92526; color:#fff; border-radius:.35rem; display:inline-block;
   }
-  .tour-modal-card p, .tour-modal-card span, .tour-modal-card strong{ font-size:.65rem; margin-bottom:.2rem; line-height:1.1; }
-  .tour-modal-card .btn{ margin-top:.3rem; padding:.3rem .6rem; font-size:.65rem; border-radius:.3rem; white-space:nowrap; color:#fff; }
+  .tour-card .card-text,
+  .tour-card .card-text.small{ font-size: var(--fs-sm); margin-bottom:.2rem; line-height:1.15; }
+  .tour-card p, .tour-card span, .tour-card strong{ font-size: var(--fs-xs); margin-bottom:.15rem; line-height:1.12; }
+  .tour-card .btn{ margin-top:.3rem; padding:.3rem .6rem; font-size: var(--fs-xs); border-radius:.25rem; white-space:nowrap; color:#fff; }
+
+  /* XS: cards del modal mantienen 100% ancho y bajamos imagen */
+  .tour-modal-card{
+    flex:1 0 100%;
+    max-width:100% !important;
+    padding:.6rem;
+  }
+  .tour-modal-card img{ height:120px; }
+  .tour-modal-card .card-title{ font-size: var(--fs-xs); }
+  .tour-modal-card .btn{ font-size: var(--fs-xs); padding:.3rem .5rem; }
 }
