@@ -16,6 +16,9 @@
 @endpush
 
 @section('content')
+<h2 class="big-title text-center" style="color: var(--primary-dark);">
+  {{ __('adminlte::adminlte.our_tours') }}
+</h2>
 <section class="tours-section" id="tours">
   @include('partials.tours', ['toursByType' => $toursByType, 'typeMeta' => $typeMeta])
 </section>

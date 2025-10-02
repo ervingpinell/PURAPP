@@ -17,10 +17,6 @@ $coverFromFolder = function (?int $tourId): string {
 };
 @endphp
 
-<h2 class="big-title text-center" style="color: var(--primary-dark);">
-  {{ __('adminlte::adminlte.our_tours') }}
-</h2>
-
 <div class="tour-cards">
 @foreach ($typeMeta as $key => $meta)
   @php
