@@ -185,7 +185,7 @@ return [
     'pickupRequiredTitle' => 'Prise en charge requise',
     'pickupRequiredBody'  => 'Vous devez sélectionner un hôtel ou un point de rendez-vous pour continuer.',
     'ok'                  => 'OK',
-    
+
     'pickup_time' => 'Heure de prise en charge',
     'pickupTime'  => 'Heure de prise en charge',
 
@@ -443,5 +443,5 @@ return [
         'reference' => 'Référence',
         'date'      => 'Date',
     ],
-
+        'pickup'      => 'Lieu de prise en charge',
 ];

@@ -262,6 +262,14 @@ return [
         'updated_success'       => 'Traducción actualizada correctamente.',
         'unexpected_error'      => 'No se pudo actualizar la traducción.',
 
+        'editing'            => 'Editando',
+        'policy_name'        => 'Nombre de la política',
+        'policy_content'     => 'Contenido',
+        'policy_sections'    => 'Secciones de la política',
+        'section'            => 'Sección',
+        'section_name'       => 'Nombre de la sección',
+        'section_content'    => 'Contenido de la sección',
+
         // Selector de idioma (pantalla y helpers)
         'choose_locale_title'   => 'Seleccionar idioma',
         'choose_locale_hint'    => 'Selecciona el idioma al que deseas traducir este elemento.',
@@ -371,6 +379,7 @@ return [
         'code'        => 'Código',
         'discount'    => 'Descuento',
         'type'        => 'Tipo',
+        'operation'   => 'Operación', 
         'valid_from'  => 'Válido desde',
         'valid_until' => 'Válido hasta',
         'usage_limit' => 'Límite de usos',
@@ -389,6 +398,7 @@ return [
     'table' => [
         'code'         => 'Código',
         'discount'     => 'Descuento',
+        'operation'    => 'Operación',
         'validity'     => 'Vigencia',
         'date_status'  => 'Estado (fecha)',
         'usage'        => 'Usos',
@@ -410,6 +420,7 @@ return [
     'actions' => [
         'generate' => 'Generar',
         'delete'   => 'Eliminar',
+        'toggle_operation' => 'Cambiar entre Sumar/Restar',
     ],
 
     'labels' => [
@@ -430,7 +441,16 @@ return [
         'invalid_or_used'         => 'Código inválido o ya usado.',
         'valid'                   => 'Código válido.',
         'server_error'            => 'Error del servidor, inténtalo de nuevo.',
+        'operation_updated'       => 'Operación actualizada correctamente.',
     ],
+    
+        'operations' => [
+        'add'            => 'Sumar',
+        'subtract'       => 'Restar',
+        'make_add'       => 'Cambiar a “Sumar”',
+        'make_subtract'  => 'Cambiar a “Restar”',
+    ],
+
 ],
 
 // =========================================================

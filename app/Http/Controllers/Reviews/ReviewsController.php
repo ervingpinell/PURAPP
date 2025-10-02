@@ -7,24 +7,18 @@ use App\Http\Requests\Reviews\StoreReviewRequest;
 use App\Models\Review;
 use App\Models\Tour;
 use App\Services\Reviews\ReviewAggregator;
-use App\Support\CacheKey;
-use App\Support\Traits\RemembersSafely;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class ReviewsController extends Controller
 {
-    use RemembersSafely;
-
-    /** TTL por defecto: 24h (segundos) */
-    private int $defaultTtl = 60 * 60 * 24;
+    private int $defaultTtl = 60 * 60 * 24; // 24h
 
     public function __construct()
     {
@@ -33,26 +27,23 @@ class ReviewsController extends Controller
     }
 
     /**
-     * =========================
-     * Página global (grid por tour)
-     * =========================
+     * Índice de reviews agrupadas por tour
      */
-    public function index(Request $request, ReviewAggregator $agg)
+    public function index(Request $request)
     {
         $locale   = app()->getLocale();
         $fallback = config('app.fallback_locale', 'es');
         $ttl      = $this->defaultTtl;
-        $force    = (bool) $request->boolean('refresh', false);
 
-        // 1) Tours activos (sin columnas de proveedores)
+        // 1) Tours activos CON SLUG
         $q = Tour::with('translations')->where('is_active', true);
         if (Schema::hasColumn('tours', 'sort_order')) {
             $q->orderByRaw('sort_order IS NULL, sort_order ASC');
         }
         $q->orderBy('name');
-        $tours = $q->get(['tour_id', 'name']);
+        $tours = $q->get(['tour_id', 'name', 'slug']); // ✅ AGREGADO 'slug'
 
-        // Nombre traducido
+        // 2) Traducir nombres
         $tours = $tours->map(function ($t) use ($locale, $fallback) {
             $tr = ($t->translations ?? collect())->firstWhere('locale', $locale)
                 ?: ($t->translations ?? collect())->firstWhere('locale', $fallback);
@@ -60,238 +51,247 @@ class ReviewsController extends Controller
             return $t;
         });
 
-        // 2) Parámetros
-        $WANT        = (int) $request->integer('per_tour', 5);   // 5 por tour
-        $LOCAL_POOL  = max($WANT, 12);                           // pool locales
-        $REMOTE_POOL = (int) $request->integer('pool_limit', 30); // pool remoto para nth
+        // 3) Traer reviews y preparar slides (~5-6 por tour, sin repetir)
+        $tours = $tours->map(function ($tour) use ($ttl) {
+            $cacheKey = "reviews:tour:{$tour->tour_id}:index";
 
-        // 3) Proveedores activos (modular)
-        $providers = $this->getActiveProviders(); // keyed por slug, con ->settings (array)
-        $remoteOrder = array_keys($providers->where('indexable', false)->all()); // ej. ['viator','gyg','tripadvisor','google']
-        if (empty($remoteOrder)) {
-            // si no hay remotos definidos, aún así deja algo por defecto
-            $remoteOrder = ['viator'];
-        }
+            $reviews = Cache::remember($cacheKey, $ttl, function () use ($tour) {
+                return app(ReviewAggregator::class)->aggregate([
+                    'tour_id' => $tour->tour_id,
+                    'limit'   => 10, // Pool más grande
+                ]);
+            });
 
-        // 4) Traer locales (indexables) por tour
-        $tours = $tours->map(function ($t) use ($agg, $locale, $fallback, $LOCAL_POOL, $ttl, $force) {
-            $cacheKey = CacheKey::make('reviews:idx:tour', [
-                'tour'  => $t->tour_id,
-                'loc'   => $locale,
-                'limit' => $LOCAL_POOL,
-            ], 1);
-
-            $loader = fn() => $agg->aggregate([
-                'tour_id'        => $t->tour_id,
-                'limit'          => $LOCAL_POOL,
-                'only_indexable' => true, // locales + cualquier provider marcado indexable
-                'language'       => $locale,
-            ])->values();
-
-            /** @var \Illuminate\Support\Collection $items */
-            $items = $this->rememberSafe($cacheKey, $ttl, $loader, $force);
-
-            // completar tour_name
-            $items = $this->attachTourNames($items, $locale, $fallback, $t->tour_id, $t->display_name);
-
-            $t->indexable_reviews = $items;
-            return $t;
-        });
-
-        // 5) Dedupe global por contenido
-        $seen = [];
-        $tours = $tours->map(function ($t) use (&$seen) {
-            $items = collect($t->indexable_reviews ?? []);
-            $items = $items->filter(function ($r) use (&$seen) {
-                $key = strtolower((string)($r['provider'] ?? 'p')) . '#' . md5(
-                    mb_strtolower(trim((string)($r['body'] ?? ''))) . '|' .
-                    mb_strtolower(trim((string)($r['author_name'] ?? ''))) . '|' .
-                    trim((string)($r['date'] ?? ''))
+            // Deduplicar reviews
+            $reviews = $reviews->unique(function($r) {
+                $provider = strtolower($r['provider'] ?? 'p');
+                if (!empty($r['provider_review_id'])) {
+                    return $provider . '#' . $r['provider_review_id'];
+                }
+                return $provider . '#' . md5(
+                    mb_strtolower(trim($r['body'] ?? '')) . '|' .
+                    mb_strtolower(trim($r['author_name'] ?? '')) . '|' .
+                    trim($r['date'] ?? '')
                 );
-                if (isset($seen[$key])) return false;
-                $seen[$key] = true;
-                return true;
             })->values();
 
-            $t->indexable_reviews = $items;
-            return $t;
-        });
+            // Separar indexables vs no-indexables (tomar hasta 6 total)
+            $indexables = $reviews->where('indexable', true)->take(4);
+            $nonIndexables = $reviews->where('indexable', false)->take(6 - $indexables->count());
 
-        // 6) Construir slides por tour: mezcla locales + remotos
-        $tours = $tours->map(function ($t) use ($WANT, $REMOTE_POOL, $providers, $remoteOrder) {
+            // Construir slides (mezcla local + remoto)
+            $slides = collect();
 
-            $locals = collect($t->indexable_reviews ?? [])->take($WANT)->values();
-            $localCount = $locals->count();
-            $need = max(0, $WANT - $localCount);
+            // Añadir indexables como slides locales
+            foreach ($indexables as $r) {
+                $slides->push(['type' => 'local', 'data' => $r]);
+            }
 
-            // proveedor “mejor” para este tour (según product_map)
-            $mainProv = $this->pickProviderForTourByBinding($t->tour_id, $providers, $remoteOrder);
-
-            // si faltan, armamos remotos del mainProv (rotables por nth)
-            $remoteSlides = [];
-            if ($need > 0) {
-                $seed = ($t->tour_id % $REMOTE_POOL) + 1; // semilla estable por tour
-                for ($k = 0; $k < $need; $k++) {
-                    $nth = (($seed - 1 + $k) % $REMOTE_POOL) + 1;
-                    $remoteSlides[] = [
+            // Añadir remotos como iframes (agrupados por proveedor)
+            $providersBySlug = $nonIndexables->groupBy('provider');
+            foreach ($providersBySlug as $provSlug => $items) {
+                foreach ($items as $i => $r) {
+                    $slides->push([
                         'type'     => 'remote',
-                        'provider' => $mainProv,
-                        'nth'      => $nth,
-                        'limit'    => $REMOTE_POOL,
-                    ];
+                        'provider' => $provSlug,
+                        'nth'      => $i + 1,
+                    ]);
                 }
             }
 
-            // alternar L/R empezando por local si hay
-            $slides = [];
-            $li = 0; $ri = 0;
-            for ($i = 0; $i < $WANT; $i++) {
-                $pickLocal = ($li < $localCount) && ( ($i % 2 === 0) || ($ri >= count($remoteSlides)) );
-                if ($pickLocal) {
-                    $slides[] = ['type' => 'local', 'data' => $locals[$li]];
-                    $li++;
-                } elseif ($ri < count($remoteSlides)) {
-                    $slides[] = $remoteSlides[$ri];
-                    $ri++;
-                }
-            }
+            // Propiedades para el blade
+            $tour->indexable_reviews = $indexables;
+            $tour->slides = $slides->take(6); // Máximo 6 slides
+            $tour->needs_iframe = $nonIndexables->isNotEmpty();
+            $tour->iframe_slug = $nonIndexables->first()['provider'] ?? 'viator';
+            $tour->pool_limit = 30;
 
-            $t->slides       = collect($slides);
-            $t->needs_iframe = count($remoteSlides) > 0;
-            return $t;
+            return $tour;
         });
 
         return view('reviews.index', compact('tours'));
     }
 
     /**
-     * Página específica del tour (sin cambios funcionales).
+     * Reviews de un tour específico (mínimo 12-15, sin repetir)
      */
-    public function tour(int|string $tourId, ReviewAggregator $agg, Request $request)
-    {
-        $lang   = app()->getLocale();
-        $ttl    = $this->defaultTtl;
-        $force  = (bool) $request->boolean('refresh', false);
+    public function tour(
+        Tour $tour, // ✅ CAMBIADO: recibe el modelo directamente
+        ReviewAggregator $agg,
+        Request $request
+    ) {
+        $locale = app()->getLocale();
+        $fallback = config('app.fallback_locale', 'es');
 
-        $cacheKey = CacheKey::make('reviews:idx:tourpage', [
-            'tour'  => $tourId,
-            'loc'   => 'all',
-            'limit' => 200,
-        ], 1);
+        // Ya no necesitas find(), Laravel resolvió el tour
+        $tour->load('translations');
 
-        $loader = fn () =>
-            $agg->aggregate([
-                'tour_id'        => $tourId,
-                'limit'          => 200,
-                'only_indexable' => true,
-            ])->values();
+        $tr = ($tour->translations ?? collect())->firstWhere('locale', $locale)
+            ?: ($tour->translations ?? collect())->firstWhere('locale', $fallback);
+        $tourName = $tr->name ?? $tour->name ?? '';
+        $tourId = $tour->tour_id;
 
-        /** @var \Illuminate\Support\Collection $locals */
-        $locals = $this->rememberSafe($cacheKey, $ttl, $loader, $force);
-        $locals = $this->attachTourNames($locals, $lang, config('app.fallback_locale', 'es'));
+        $target = 15; // Objetivo: 15 reviews
 
-        $need  = max(0, 20 - $locals->count());
-        $items = $locals->values();
+        // 1) Traer reviews del tour (pedir más para tener pool)
+        $ownReviews = $agg->aggregate([
+            'tour_id' => $tourId,
+            'limit'   => 50, // Pool grande
+        ]);
 
-        if ($need > 0) {
-            $items->push([
-                'provider'     => 'viator',
-                'indexable'    => false,
-                'iframe_limit' => $need,
-                'tour_id'      => $tourId,
-            ]);
+        // Deduplicar estrictamente
+        $ownReviews = $ownReviews->unique(function($r) {
+            $provider = strtolower($r['provider'] ?? 'p');
+
+            if (!empty($r['provider_review_id'])) {
+                return $provider . '#' . $r['provider_review_id'];
+            }
+
+            return $provider . '#' . md5(
+                mb_strtolower(trim($r['body'] ?? '')) . '|' .
+                mb_strtolower(trim($r['author_name'] ?? '')) . '|' .
+                trim($r['date'] ?? '')
+            );
+        })->values();
+
+        // 2) Si no hay suficientes, traer de otros tours
+        if ($ownReviews->count() < $target) {
+            $needed = $target - $ownReviews->count();
+
+            $othersReviews = $agg->aggregate([
+                'limit' => $needed * 3, // Pool más grande
+            ])->filter(fn($r) => ($r['tour_id'] ?? null) != $tourId)
+              ->unique(function($r) {
+                  $provider = strtolower($r['provider'] ?? 'p');
+
+                  if (!empty($r['provider_review_id'])) {
+                      return $provider . '#' . $r['provider_review_id'];
+                  }
+
+                  return $provider . '#' . md5(
+                      mb_strtolower(trim($r['body'] ?? '')) . '|' .
+                      mb_strtolower(trim($r['author_name'] ?? '')) . '|' .
+                      trim($r['date'] ?? '')
+                  );
+              })->take($needed);
+
+            $ownReviews = $ownReviews->merge($othersReviews);
         }
 
-        return view('reviews.tour', compact('items', 'tourId'));
+        // 3) Tomar hasta el objetivo (sin repetir)
+        $reviews = $ownReviews->take($target)->values();
+
+        // 4) Adjuntar nombre del tour a TODAS las reviews
+        $reviews = $reviews->map(function ($r) use ($tourName, $tourId) {
+            if (empty($r['tour_name'])) {
+                $r['tour_name'] = $tourName;
+            }
+            if (empty($r['tour_id'])) {
+                $r['tour_id'] = $tourId;
+            }
+            return $r;
+        });
+
+        return view('reviews.tour', compact('reviews', 'tourId', 'tourName'));
     }
 
-   public function embed(Request $request, ReviewAggregator $agg, string $provider)
+    /**
+     * Embed para iframes
+     */
+/**
+ * Embed para iframes
+ */
+public function embed(Request $request, ReviewAggregator $agg, string $provider)
 {
     $lang     = app()->getLocale();
     $provider = strtolower(trim($provider)) ?: 'viator';
 
-    // --- parámetros saneados
-    $limit  = min(60, max(1, (int) $request->query('limit', 12)));
-    $tourId = $request->query('tour_id');
+    $limit   = min(60, max(1, (int) $request->query('limit', 12)));
+    $tourId  = $request->query('tour_id');
+    $nth     = max(1, (int) $request->query('nth', 1));
+    $ttlMin  = (int) $request->query('ttl', 60 * 24);
+    $ttl     = max(60, $ttlMin) * 60;
 
-    $ttlMin = (int) $request->query('ttl', 60 * 24);
-    $ttl    = max(60, $ttlMin) * 60;
-    $force  = (bool) $request->boolean('refresh', false);
-    $nth    = max(1, (int) $request->query('nth', 1));
+    $layout  = (string) $request->query('layout', 'hero');
+    $theme   = (string) $request->query('theme', $layout === 'card' ? 'site' : 'embed');
+    $base    = (int) $request->query('base', $layout === 'card' ? 500 : 460);
+    $uid     = (string) $request->query('uid', 'u' . substr(sha1(uniqid('', true)), 0, 10));
 
-    $layout = (string) $request->query('layout', 'hero'); // hero|card
-    $theme  = (string) $request->query('theme', $layout === 'card' ? 'site' : 'embed');
-    $base   = (int) $request->query('base', $layout === 'card' ? 500 : 460);
-    $uid    = (string) $request->query('uid', 'u' . substr(sha1(uniqid('', true)), 0, 10));
+    // Cache key (no necesita incluir tname; lo aplicamos post-procesado)
+    $cacheKey = 'reviews:embed:' . md5(json_encode([
+        'p' => $provider, 'tour' => $tourId, 'lim' => $limit
+    ]));
 
-    // --- pool por provider (+tour si aplica)
-    $cacheKey = CacheKey::make('reviews:iframe', [
-        'p'    => $provider,
-        'tour' => $tourId ?: 'all',
-        'loc'  => 'all',
-        'lim'  => $limit,
-    ], 2);
-
-    $loader = fn () =>
-        $agg->aggregate([
+    $reviews = Cache::remember($cacheKey, $ttl, function () use ($agg, $provider, $limit, $tourId) {
+        return $agg->aggregate([
             'provider' => $provider,
-            'limit'    => max(50, $limit * 5),
+            'limit'    => $limit * 2,
             'tour_id'  => $tourId,
-            'language' => $lang,
-        ])->values();
+        ]);
+    });
 
-    /** @var \Illuminate\Support\Collection $reviews */
-    $reviews = $this->rememberSafe($cacheKey, $ttl, $loader, $force);
-
-    // Fallbacks (mismo provider sin tour, luego cualquiera)
-    if ($reviews->isEmpty() && !empty($tourId)) {
-        $fallbackKey = CacheKey::make('reviews:iframe', [
-            'p'    => $provider, 'tour' => 'all', 'loc' => 'all', 'lim' => $limit, 'fb' => 1,
-        ], 2);
-
-        $reviews = $this->rememberSafe($fallbackKey, $ttl, function () use ($agg, $provider, $limit, $lang) {
-            return $agg->aggregate([
-                'provider' => $provider,
-                'limit'    => max(50, $limit * 5),
-                'language' => $lang,
-            ])->values();
-        }, $force)->map(function ($r) use ($tourId) { $r['tour_id'] = $tourId; return $r; });
-    }
-
-    if ($reviews->isEmpty()) {
-        $anyKey = CacheKey::make('reviews:iframe', [
-            'p' => 'any', 'loc' => 'all', 'lim' => $limit, 'fb' => 2,
-        ], 2);
-
-        $reviews = $this->rememberSafe($anyKey, $ttl, function () use ($agg, $limit, $lang) {
-            return $agg->aggregate([
-                'limit'    => max(50, $limit * 5),
-                'language' => $lang,
-            ])->values();
-        }, $force)->map(function ($r) use ($tourId) { if ($tourId) $r['tour_id'] = $tourId; return $r; });
-    }
-
-    // Completar nombres de tour
-    $reviews = $this->attachTourNames($reviews, $lang, config('app.fallback_locale', 'es'), $tourId);
+    // Deduplicar
+    $reviews = $reviews->unique(function($r) {
+        $prov = strtolower($r['provider'] ?? 'p');
+        if (!empty($r['provider_review_id'])) {
+            return $prov . '#' . $r['provider_review_id'];
+        }
+        return $prov . '#' . md5(
+            mb_strtolower(trim($r['body'] ?? '')) . '|' .
+            mb_strtolower(trim($r['author_name'] ?? '')) . '|' .
+            trim($r['date'] ?? '')
+        );
+    })->values();
 
     // Elegir n-ésimo
     $count = $reviews->count();
     if ($count > 0) {
         $idx = ($nth - 1) % $count;
-        $reviews = collect([$reviews->values()->get($idx)]);
+        $reviews = collect([$reviews->get($idx)]);
     } else {
         $reviews = collect();
     }
 
-    // ===== HTTP caching (ETag + Cache-Control) =====
+    // ===========================
+    // ⬇️ INYECCIÓN DE NOMBRE TRADUCIDO
+    // ===========================
+    $reqTname   = trim((string) $request->query('tname', ''));
+    $fallback   = config('app.fallback_locale', 'es');
+
+    if ($reviews->isNotEmpty()) {
+        $reviews = $reviews->map(function ($r) use ($reqTname, $tourId, $lang, $fallback) {
+            // 1) Si viene tname en la URL, SIEMPRE gana
+            if ($reqTname !== '') {
+                $r['tour_name'] = $reqTname;
+                return $r;
+            }
+
+            // 2) Si no hay tname pero sí tour_id, resolver desde DB con el locale actual
+            $id = (int)($r['tour_id'] ?? $tourId ?? 0);
+            if ($id > 0) {
+                $tour = \App\Models\Tour::with('translations')->find($id);
+                if ($tour) {
+                    $tr = ($tour->translations ?? collect())->firstWhere('locale', $lang)
+                        ?: ($tour->translations ?? collect())->firstWhere('locale', $fallback);
+                    $resolved = $tr->name ?? $tour->name ?? null;
+                    if ($resolved) {
+                        $r['tour_name'] = $resolved;
+                        // Asegura tour_id coherente
+                        $r['tour_id']   = $id;
+                        return $r;
+                    }
+                }
+            }
+
+            // 3) Fallback final: deja el que venga en el review (si existe)
+            return $r;
+        });
+    }
+
+    // HTTP caching (después de inyectar el nombre final)
     $hashOfSelected = $reviews->isNotEmpty() ? sha1(json_encode($reviews->first())) : 'empty';
-    $etag = sprintf('rev:%s|tour:%s|nth:%s|loc:%s|layout:%s|theme:%s|h:%s',
-        $provider,
-        $tourId ?: 'all',
-        $nth,
-        $lang,
-        $layout, $theme,
-        $hashOfSelected
+    $etag = sprintf('rev:%s|tour:%s|nth:%s|h:%s',
+        $provider, $tourId ?: 'all', $nth, $hashOfSelected
     );
 
     $response = response()->view('reviews.embed', [
@@ -304,7 +304,7 @@ class ReviewsController extends Controller
     ]);
 
     $response->setEtag($etag)
-        ->header('Cache-Control', 'public, max-age=900, s-maxage=900, stale-while-revalidate=300, stale-if-error=86400')
+        ->header('Cache-Control', 'public, max-age=900, s-maxage=900, stale-while-revalidate=300')
         ->header('Vary', 'Accept-Language');
 
     if ($response->isNotModified($request)) {
@@ -315,7 +315,9 @@ class ReviewsController extends Controller
 }
 
 
-    /** Guardar reseña local */
+    /**
+     * Guardar reseña local
+     */
     public function store(StoreReviewRequest $request)
     {
         $key = sprintf('review:%s:%s', $request->ip(), (string) $request->input('tour_id'));
@@ -323,7 +325,7 @@ class ReviewsController extends Controller
         if (RateLimiter::tooManyAttempts($key, 3)) {
             $seconds = RateLimiter::availableIn($key);
             throw ValidationException::withMessages([
-                'body' => [__('Demasiadas reseñas seguidas. Intenta de nuevo en :s segundos.', ['s' => $seconds])],
+                'body' => [__('reviews.public.too_many', ['s' => $seconds])],
             ]);
         }
 
@@ -337,106 +339,11 @@ class ReviewsController extends Controller
             Review::create($data);
             RateLimiter::hit($key, 600);
 
-            return back()->with('success', __('¡Gracias! Tu reseña fue recibida y será revisada.'));
+            return back()->with('success', __('reviews.public.thanks'));
         } catch (Throwable $e) {
             Log::error('review.store.failed', ['msg' => $e->getMessage()]);
             return back()->withInput()
-                ->withErrors(['body' => __('No pudimos registrar tu reseña en este momento. Intenta de nuevo.')]);
+                ->withErrors(['body' => __('reviews.public.fail')]);
         }
-    }
-
-    /* ================= Helpers ================= */
-
-    /**
-     * Proveedores activos desde review_providers (keyed por slug),
-     * con ->settings ya decodificado a array.
-     */
-    private function getActiveProviders(): \Illuminate\Support\Collection
-    {
-        $rows = DB::table('review_providers')
-            ->where('is_active', true)
-            ->orderBy('id')
-            ->get();
-
-        return $rows->map(function ($r) {
-            $r->settings = $this->decodeJsonSafe($r->settings);
-            $r->indexable = (bool) $r->indexable;
-            return $r;
-        })->keyBy('slug');
-    }
-
-    private function decodeJsonSafe($raw)
-    {
-        if (is_array($raw)) return $raw;
-        if (!is_string($raw) || $raw === '') return [];
-        try { return json_decode($raw, true, 512, JSON_THROW_ON_ERROR); }
-        catch (\Throwable $e) { return []; }
-    }
-
-    /**
-     * Elige el mejor proveedor remoto para un tour:
-     * - si algún provider tiene settings.product_map[tour_id] => prioridad
-     * - si no, primer remoto activo por orden de aparición
-     */
-    private function pickProviderForTourByBinding(int $tourId, \Illuminate\Support\Collection $providers, array $remoteOrder): string
-    {
-        foreach ($remoteOrder as $slug) {
-            $prov = $providers->get($slug);
-            if (!$prov) continue;
-            $map = (array) data_get($prov->settings, 'product_map', []);
-            if (array_key_exists((string)$tourId, $map) || array_key_exists((int)$tourId, $map)) {
-                return $slug;
-            }
-        }
-        // fallback: primero de la lista remota
-        return $remoteOrder[0] ?? 'viator';
-    }
-
-    /**
-     * Enriquecer colección con tour_name usando locale/fallback.
-     */
-    private function attachTourNames(
-        Collection $items,
-        string $locale,
-        string $fallback,
-        int|string|null $forceTourId = null,
-        ?string $forceTourName = null
-    ): Collection {
-        $ids = $items->pluck('tour_id')->filter()->unique()->values();
-        if ($forceTourId) $ids = $ids->push((int) $forceTourId)->unique()->values();
-
-        if ($ids->isEmpty()) {
-            if ($forceTourName) {
-                return $items->map(function ($r) use ($forceTourName, $forceTourId) {
-                    if (empty($r['tour_name'])) $r['tour_name'] = $forceTourName;
-                    if ($forceTourId && empty($r['tour_id'])) $r['tour_id'] = $forceTourId;
-                    return $r;
-                });
-            }
-            return $items;
-        }
-
-        $tours = Tour::with('translations')->whereIn('tour_id', $ids)->get()->keyBy('tour_id');
-
-        return $items->map(function ($r) use ($tours, $locale, $fallback, $forceTourId, $forceTourName) {
-            $tid = $r['tour_id'] ?? $forceTourId ?? null;
-
-            if (!empty($tid) && empty($r['tour_name'])) {
-                $t = $tours->get((int) $tid);
-                if ($t) {
-                    $tr = ($t->translations ?? collect())->firstWhere('locale', $locale)
-                        ?: ($t->translations ?? collect())->firstWhere('locale', $fallback);
-                    $r['tour_name'] = $tr->name ?? $t->name ?? '';
-                } elseif ($forceTourName) {
-                    $r['tour_name'] = $forceTourName;
-                }
-            } elseif (empty($r['tour_name']) && $forceTourName) {
-                $r['tour_name'] = $forceTourName;
-            }
-
-            if ($forceTourId && empty($r['tour_id'])) $r['tour_id'] = $forceTourId;
-
-            return $r;
-        });
     }
 }

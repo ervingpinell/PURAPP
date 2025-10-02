@@ -5,6 +5,7 @@ namespace App\Http\Requests\Tour\Tour;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use App\Services\LoggerHelper;
+use Illuminate\Validation\Rule;
 
 class UpdateTourRequest extends FormRequest
 {
@@ -49,8 +50,17 @@ class UpdateTourRequest extends FormRequest
 
     public function rules(): array
     {
+        $tourId = $this->route('tour'); // Obtener el ID del tour actual
+
         return [
             'name'                         => ['required','string','max:255'],
+            'slug'                         => [
+                'nullable',
+                'string',
+                'max:255',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                Rule::unique('tours', 'slug')->ignore($tourId, 'tour_id')
+            ],
             'overview'                     => ['nullable','string'],
             'adult_price'                  => ['required','numeric','min:0'],
             'kid_price'                    => ['nullable','numeric','min:0'],
@@ -80,6 +90,16 @@ class UpdateTourRequest extends FormRequest
 
             'viator_code'                  => ['nullable','string','max:255'],
             'color'                        => ['nullable','string','max:16'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'slug.regex' => 'El slug solo puede contener letras minúsculas, números y guiones.',
+            'slug.unique' => 'Este slug ya está en uso por otro tour.',
+            'languages.required' => 'Debes seleccionar al menos un idioma.',
+            'languages.min'      => 'Debes seleccionar al menos un idioma.',
         ];
     }
 

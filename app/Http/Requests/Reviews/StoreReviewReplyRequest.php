@@ -6,14 +6,23 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreReviewReplyRequest extends FormRequest
 {
-    public function authorize(): bool { return auth()->check(); }
+    public function authorize(): bool
+    {
+        return $this->user()?->can('manage-reviews') ?? false;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'public' => filter_var($this->input('public', true), FILTER_VALIDATE_BOOLEAN),
+        ]);
+    }
 
     public function rules(): array
     {
         return [
-            'review_id' => ['required','exists:reviews,id'],
-            'body'      => ['required','string','min:3','max:2000'],
-            'public'    => ['nullable','boolean'],
+            'body'   => ['required', 'string', 'max:3000'],
+            'public' => ['required', 'boolean'],
         ];
     }
 }

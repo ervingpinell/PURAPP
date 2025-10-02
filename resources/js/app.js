@@ -1,6 +1,5 @@
 /* =========================================================
-   APP.JS — HEADER OFFSET + MENÚ MOBILE + UTILIDADES PÚBLICAS
-   (fusión de tu public.js + mejoras de nav fijo)
+   APP.JS — HEADER OFFSET + MENÚ MOBILE + SCROLL TO TOURS
    ========================================================= */
 (function () {
   const $doc = document;
@@ -33,7 +32,7 @@
   window.addEventListener('resize', () => debounce(setNavH, 120), { passive: true });
   window.addEventListener('orientationchange', () => setTimeout(setNavH, 200), { passive: true });
   window.addEventListener('load', () => setTimeout(setNavH, 100));
-  window.addEventListener('pageshow', () => setTimeout(setNavH, 60)); // bfcache
+  window.addEventListener('pageshow', () => setTimeout(setNavH, 60));
 
   if (document.fonts?.ready) document.fonts.ready.then(setNavH);
   if (header) {
@@ -78,12 +77,66 @@
     const n = parseInt(v, 10);
     return Number.isFinite(n) ? n : 0;
   }
+
   function smoothScrollTo(target) {
     if (!target) return;
     const rect = target.getBoundingClientRect();
     const absoluteY = window.pageYOffset + rect.top;
     const offset = getNavOffset();
-    window.scrollTo({ top: absoluteY - offset - 8, behavior: 'smooth' });
+    window.scrollTo({ top: absoluteY - offset - 16, behavior: 'smooth' });
+  }
+
+  function animateTourCards() {
+    const cards = document.querySelectorAll('.tour-card');
+    if (!cards.length) return;
+
+    // Resetear y preparar todas las tarjetas
+    cards.forEach((card) => {
+      card.style.opacity = '0';
+      card.style.transform = 'scale(0.85) translateY(20px)';
+      card.style.transition = 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    });
+
+    // Animar todas con delays escalonados
+    cards.forEach((card, idx) => {
+      setTimeout(() => {
+        card.style.opacity = '1';
+        card.style.transform = 'scale(1) translateY(0)';
+      }, idx * 120); // 120ms entre cada card
+    });
+  }
+
+/* ✅ HELPER: Obtener locale actual desde meta tag o URL */
+  function getCurrentLocale() {
+    // 1) Leer del meta tag (más confiable para rutas sin prefijo)
+    const metaLocale = document.querySelector('meta[name="locale"]');
+    if (metaLocale) {
+      const locale = metaLocale.getAttribute('content');
+      if (locale) return locale;
+    }
+
+    // 2) Intentar detectar de la URL
+    const path = window.location.pathname;
+    const pathParts = path.split('/').filter(Boolean);
+    const supportedLocales = ['es', 'en', 'fr', 'de', 'pt'];
+
+    if (pathParts.length > 0 && supportedLocales.includes(pathParts[0])) {
+      return pathParts[0];
+    }
+
+    // 3) Fallback: español por defecto
+    return 'es';
+  }
+
+  /* ✅ HELPER: Detectar si estamos en home */
+  function isHomePage() {
+    const path = window.location.pathname;
+    const pathParts = path.split('/').filter(Boolean);
+    const supportedLocales = ['es', 'en', 'fr', 'de', 'pt'];
+
+    // Home si: "/" o "/es" o "/en" etc.
+    return pathParts.length === 0 ||
+           (pathParts.length === 1 && supportedLocales.includes(pathParts[0]));
   }
 
   // Enlaces a anclas (#id)
@@ -100,32 +153,38 @@
     });
   });
 
-  // Botones “Tours” (mantiene tu comportamiento original)
+  // ✅ BOTONES "TOURS" CON DETECCIÓN AUTOMÁTICA DE LOCALE
   $doc.querySelectorAll('.scroll-to-tours').forEach(link => {
     link.addEventListener('click', function (e) {
       e.preventDefault();
-      const isHome = window.location.pathname === '/';
-      if (isHome) {
-        const target = document.getElementById('tours') || document.querySelector('[data-anchor="tours"]');
-        if (target) smoothScrollTo(target);
-        closeMenu();
+      closeMenu();
+
+      if (isHomePage()) {
+        // Estamos en home: hacer scroll
+        const target = document.getElementById('tours') ||
+                      document.querySelector('[data-anchor="tours"]');
+        if (target) {
+          smoothScrollTo(target);
+          setTimeout(animateTourCards, 400);
+        }
       } else {
-        // lleva el hash para que al cargar el home haga scroll
-        window.location.href = '/#tours';
+        // No estamos en home: redirigir con locale actual
+        const currentLocale = getCurrentLocale();
+        window.location.href = `/${currentLocale}#tours`;
       }
     });
   });
 
-  // Si llegamos con #tours, hacer scroll (con tu lógica de referrer)
+  // Si llegamos con #tours, hacer scroll y animar
   if (window.location.hash === '#tours') {
-    const referrer = document.referrer;
-    const cameFromOtherPage = referrer && !referrer.includes(window.location.origin + '/');
-    if (!cameFromOtherPage) {
-      setTimeout(() => {
-        const target = document.getElementById('tours') || document.querySelector('[data-anchor="tours"]');
-        if (target) smoothScrollTo(target);
-      }, 200);
-    }
+    setTimeout(() => {
+      const target = document.getElementById('tours') ||
+                    document.querySelector('[data-anchor="tours"]');
+      if (target) {
+        smoothScrollTo(target);
+        setTimeout(animateTourCards, 400);
+      }
+    }, 200);
   }
 
   /* ---------------------------------
@@ -166,7 +225,6 @@
           window.setCartCount(data.count);
           return;
         }
-        // Fallback si no existe setCartCount
         const badgeEls = document.querySelectorAll('.cart-count-badge');
         badgeEls.forEach(el => {
           el.textContent = data.count;
@@ -179,7 +237,7 @@
   updateCartCount();
 
   /* ----------------------------------------------------
-   * 7) Precios: modal + resumen (si existen en la vista)
+   * 7) Precios: modal + resumen
    * ---------------------------------------------------- */
   const modalTotalPrice = document.getElementById('modal-total-price');
   const reservationTotalPrice = document.getElementById('reservation-total-price');
@@ -212,7 +270,6 @@
     if (reservationTotalPrice) reservationTotalPrice.textContent = `$${total.toFixed(2)}`;
   }
 
-  // Contadores (+ / -)
   const plusBtns  = document.querySelectorAll('.traveler-btn[data-action="increase"]');
   const minusBtns = document.querySelectorAll('.traveler-btn[data-action="decrease"]');
   const adultCountEl = document.getElementById('adult-count');
@@ -284,7 +341,6 @@
     addToCartForm.addEventListener('submit', async function (e) {
       e.preventDefault();
 
-      // Saneo hotel_id: entero o vacío
       const hotelIdInput = document.getElementById('selectedPickupPoint');
       if (hotelIdInput) {
         const v = (hotelIdInput.value || '').trim();
@@ -326,11 +382,11 @@
   /* ----------------------------------
    * 9) Pickup (autocompletar simple)
    * ---------------------------------- */
-  const pickupInput         = document.getElementById('pickupInput');        // visible
-  const pickupList          = document.getElementById('pickupList');         // UL/LI
+  const pickupInput         = document.getElementById('pickupInput');
+  const pickupList          = document.getElementById('pickupList');
   const pickupValidMsg      = document.getElementById('pickupValidMsg');
   const pickupInvalidMsg    = document.getElementById('pickupInvalidMsg');
-  const selectedPickupPoint = document.getElementById('selectedPickupPoint'); // hidden (hotel_id)
+  const selectedPickupPoint = document.getElementById('selectedPickupPoint');
 
   if (pickupInput && pickupList && selectedPickupPoint) {
     pickupInput.addEventListener('input', () => {
@@ -349,7 +405,7 @@
       if (pickupValidMsg)   pickupValidMsg.classList.add('d-none');
       if (pickupInvalidMsg) pickupInvalidMsg.classList.toggle('d-none', found || filter === '');
 
-      selectedPickupPoint.value = ''; // si el usuario escribe, resetea id
+      selectedPickupPoint.value = '';
     });
 
     pickupInput.addEventListener('focus', () => {

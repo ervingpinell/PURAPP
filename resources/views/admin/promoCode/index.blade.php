@@ -48,13 +48,23 @@ Swal.fire({
         @error('discount') <small class="text-danger">{{ $message }}</small> @enderror
       </div>
 
-      <div class="col-md-3">
+      <div class="col-md-2">
         <label for="type" class="form-label">{{ __('m_config.promocode.fields.type') }}</label>
         <select name="type" id="type" class="form-control" required>
           <option value="percent" @selected(old('type')==='percent')>{{ __('m_config.promocode.types.percent') }}</option>
           <option value="amount"  @selected(old('type')==='amount')>{{ __('m_config.promocode.types.amount') }}</option>
         </select>
         @error('type') <small class="text-danger">{{ $message }}</small> @enderror
+      </div>
+
+      {{-- NUEVO: Operación (Sumar/Restar) --}}
+      <div class="col-md-3">
+        <label for="operation" class="form-label">{{ __('m_config.promocode.fields.operation') }}</label>
+        <select name="operation" id="operation" class="form-control" required>
+          <option value="subtract" @selected(old('operation','subtract')==='subtract')>{{ __('m_config.promocode.operations.subtract') }}</option>
+          <option value="add"      @selected(old('operation')==='add')>{{ __('m_config.promocode.operations.add') }}</option>
+        </select>
+        @error('operation') <small class="text-danger">{{ $message }}</small> @enderror
       </div>
     </div>
 
@@ -101,11 +111,13 @@ Swal.fire({
       <tr>
         <th style="width: 14rem;">{{ __('m_config.promocode.table.code') }}</th>
         <th style="width: 12rem;">{{ __('m_config.promocode.table.discount') }}</th>
+        {{-- NUEVO: Columna Operación --}}
+        <th style="width: 12rem;">{{ __('m_config.promocode.table.operation') }}</th>
         <th style="width: 16rem;">{{ __('m_config.promocode.table.validity') }}</th>
         <th style="width: 10rem;">{{ __('m_config.promocode.table.date_status') }}</th>
         <th style="width: 14rem;">{{ __('m_config.promocode.table.usage') }}</th>
         <th style="width: 10rem;">{{ __('m_config.promocode.table.usage_status') }}</th>
-        <th style="width: 10rem;">{{ __('m_config.promocode.table.actions') }}</th>
+        <th style="width: 14rem;">{{ __('m_config.promocode.table.actions') }}</th>
       </tr>
     </thead>
     <tbody>
@@ -137,6 +149,10 @@ Swal.fire({
 
           $usageClass  = $isExhausted ? 'bg-danger' : 'bg-success';
           $usageStatus = $isExhausted ? __('m_config.promocode.status.used') : __('m_config.promocode.status.available');
+
+          // Operación actual
+          $op = ($promo->operation ?? 'subtract') === 'add' ? 'add' : 'subtract';
+          $opClass = $op === 'add' ? 'bg-warning text-dark' : 'bg-primary';
         @endphp
 
         <tr>
@@ -150,6 +166,13 @@ Swal.fire({
             @else
               —
             @endif
+          </td>
+
+          {{-- NUEVO: Badge de Operación --}}
+          <td>
+            <span class="badge {{ $opClass }}">
+              {{ $op === 'add' ? __('m_config.promocode.operations.add') : __('m_config.promocode.operations.subtract') }}
+            </span>
           </td>
 
           <td>
@@ -182,9 +205,27 @@ Swal.fire({
             <span class="badge {{ $usageClass }}">{{ $usageStatus }}</span>
           </td>
 
-          <td>
+          <td class="text-nowrap">
+            {{-- NUEVO: Botón Toggle Sumar/Restar --}}
+            <form action="{{ route('admin.promoCode.updateOperation', $promo) }}"
+                  method="POST"
+                  class="d-inline">
+              @csrf
+              @method('PATCH')
+              <input type="hidden" name="toggle" value="1">
+              <button class="btn btn-outline-warning btn-sm" title="{{ __('m_config.promocode.actions.toggle_operation') }}">
+                @if($op === 'add')
+                  {{ __('m_config.promocode.operations.make_subtract') }}
+                @else
+                  {{ __('m_config.promocode.operations.make_add') }}
+                @endif
+              </button>
+            </form>
+
+            {{-- Botón Eliminar (igual que ya lo tenías) --}}
             <form action="{{ route('admin.promoCode.destroy', $promo) }}"
                   method="POST"
+                  class="d-inline"
                   onsubmit="return confirm(@json(__('m_config.promocode.confirm_delete')))">
               @csrf
               @method('DELETE')
@@ -194,7 +235,7 @@ Swal.fire({
         </tr>
       @empty
         <tr>
-          <td colspan="7" class="text-center">{{ __('m_config.promocode.empty') }}</td>
+          <td colspan="8" class="text-center">{{ __('m_config.promocode.empty') }}</td>
         </tr>
       @endforelse
     </tbody>

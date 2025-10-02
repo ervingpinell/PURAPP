@@ -441,5 +441,6 @@ return [
         'reference' => 'Referencia',
         'date'      => 'Fecha',
     ],
+        'pickup'      => 'Lugar Recogida',
 
 ];

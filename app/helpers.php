@@ -3,19 +3,11 @@
 use Illuminate\Support\Str;
 
 if (!function_exists('supported_locales')) {
-    /**
-     * Devuelve los locales soportados desde config('i18n.supported_locales').
-     * Siempre retorna un array NO vacío. Si la config no existe o está vacía,
-     * cae a [config('app.locale', 'es')].
-     *
-     * @return array<string>
-     */
     function supported_locales(): array
     {
         $arr = config('i18n.supported_locales');
 
         if (is_array($arr) && !empty($arr)) {
-            // Normaliza: trim + lowercase + únicos
             $arr = array_map(fn($l) => strtolower(trim((string) $l)), $arr);
             $arr = array_values(array_unique(array_filter($arr)));
             return $arr ?: [strtolower(config('app.locale', 'es'))];
@@ -25,17 +17,38 @@ if (!function_exists('supported_locales')) {
     }
 }
 
-if (!function_exists('viator_product_url')) {
+if (!function_exists('localized_route')) {
     /**
-     * Construye la URL pública de Viator para un producto.
-     *
-     * @param  string      $code         Código de producto (p.ej., 12732P10)
-     * @param  int         $destId       ID de destino de Viator (p.ej., 821 = La Fortuna)
-     * @param  string      $citySlug     Slug de ciudad (p.ej., 'La-Fortuna')
-     * @param  string|null $productSlug  Slug del producto (en inglés). Si viene null, se intenta generar.
-     * @param  string|null $fallbackName Nombre a usar para generar slug si no se pasa $productSlug
-     * @return string
+     * Genera una ruta con prefijo de locale
      */
+    function localized_route(string $name, $parameters = [], ?string $locale = null): string
+    {
+        $locale = $locale ?? app()->getLocale();
+        $locales = array_keys(config('routes.locales', []));
+
+        if (!in_array($locale, $locales, true)) {
+            $locale = config('routes.default_locale', 'es');
+        }
+
+        // Agregar prefijo de locale al nombre de la ruta
+        return route("{$locale}.{$name}", $parameters);
+    }
+}
+
+if (!function_exists('current_locale_prefix')) {
+    /**
+     * Obtiene el prefijo del locale actual
+     */
+    function current_locale_prefix(): string
+    {
+        $locale = app()->getLocale();
+        $locales = config('routes.locales', []);
+
+        return $locales[$locale]['prefix'] ?? $locale;
+    }
+}
+
+if (!function_exists('viator_product_url')) {
     function viator_product_url(
         string $code,
         int $destId = 821,

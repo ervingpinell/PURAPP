@@ -257,6 +257,13 @@ return [
         'validation_errors'     => 'There are validation errors',
         'updated_success'       => 'Translation updated successfully.',
         'unexpected_error'      => 'Could not update the translation.',
+                'editing'         => 'Editing',
+        'policy_name'     => 'Policy title',
+        'policy_content'  => 'Content',
+        'policy_sections' => 'Policy sections',
+        'section'         => 'Section',
+        'section_name'    => 'Section name',
+        'section_content' => 'Section content',
 
         // Language selector (screen and helpers)
         'choose_locale_title'   => 'Select language',
@@ -352,7 +359,7 @@ return [
     // ==== PROMOCODE ==========================================
     // =========================================================
     'promocode' => [
-        'title'        => 'Promotional Codes',
+        'title'        => 'Promo Codes',
         'create_title' => 'Generate new promo code',
         'list_title'   => 'Existing promo codes',
 
@@ -363,6 +370,7 @@ return [
             'code'        => 'Code',
             'discount'    => 'Discount',
             'type'        => 'Type',
+            'operation'   => 'Operation',
             'valid_from'  => 'Valid from',
             'valid_until' => 'Valid until',
             'usage_limit' => 'Usage limit',
@@ -381,10 +389,11 @@ return [
         'table' => [
             'code'         => 'Code',
             'discount'     => 'Discount',
+            'operation'    => 'Operation',
             'validity'     => 'Validity',
-            'date_status'  => 'Status (date)',
-            'usage'        => 'Usage',
-            'usage_status' => 'Status (usage)',
+            'date_status'  => 'Date status',
+            'usage'        => 'Uses',
+            'usage_status' => 'Usage status',
             'actions'      => 'Actions',
         ],
 
@@ -400,13 +409,14 @@ return [
         ],
 
         'actions' => [
-            'generate' => 'Generate',
-            'delete'   => 'Delete',
+            'generate'         => 'Generate',
+            'delete'           => 'Delete',
+            'toggle_operation' => 'Switch Add/Subtract',
         ],
 
         'labels' => [
             'unlimited_placeholder' => 'Empty = unlimited',
-            'unlimited_hint'        => 'Leave empty for unlimited uses. Set 1 for single use.',
+            'unlimited_hint'        => 'Leave empty for unlimited uses. Set 1 for single-use.',
             'no_limit'              => '(no limit)',
             'remaining'             => 'remaining',
         ],
@@ -415,15 +425,24 @@ return [
         'empty'          => 'No promo codes available.',
 
         'messages' => [
-            'created_success'         => 'Promo code created successfully.',
-            'deleted_success'         => 'Promo code deleted successfully.',
-            'percent_over_100'        => 'Percentage cannot be greater than 100.',
-            'code_exists_normalized'  => 'This code (ignoring spaces and case) already exists.',
-            'invalid_or_used'         => 'Invalid or already used code.',
-            'valid'                   => 'Valid code.',
-            'server_error'            => 'Server error, please try again.',
+            'created_success'        => 'Promo code created successfully.',
+            'deleted_success'        => 'Promo code deleted successfully.',
+            'percent_over_100'       => 'Percentage cannot be greater than 100.',
+            'code_exists_normalized' => 'This code (ignoring spaces and case) already exists.',
+            'invalid_or_used'        => 'Invalid or already used code.',
+            'valid'                  => 'Valid code.',
+            'server_error'           => 'Server error, please try again.',
+            'operation_updated'      => 'Operation updated successfully.',
+        ],
+
+        'operations' => [
+            'add'           => 'Add',
+            'subtract'      => 'Subtract',
+            'make_add'      => 'Switch to “Add”',
+            'make_subtract' => 'Switch to “Subtract”',
         ],
     ],
+
 
     // =========================================================
     // ==== CUTOFF =============================================

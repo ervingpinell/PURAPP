@@ -5,31 +5,38 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use App\Services\Reviews\ReviewAggregator;
 use App\Services\Reviews\Drivers\LocalReviewSource;
-use App\Services\Reviews\Drivers\ViatorReviewSource;
+use App\Services\Reviews\Drivers\HttpJsonReviewSource;
+use App\Models\ReviewProvider;
 
 class ReviewsServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        // Instancia única para toda la app
         $this->app->singleton(ReviewAggregator::class, function ($app) {
-            return new ReviewAggregator([
-                'local'  => $app->make(LocalReviewSource::class),
-                'viator' => $app->make(ViatorReviewSource::class),
-                // 'google' => $app->make(...),
-            ]);
-        });
+            $sources = [];
 
-        // (Opcional) patrón con "tags" por si luego agregas más drivers dinámicamente:
-        /*
-        $this->app->tag(
-            [LocalReviewSource::class, ViatorReviewSource::class],
-            'review.sources'
-        );
-        $this->app->singleton(ReviewAggregator::class, function ($app) {
-            return new ReviewAggregator($app->tagged('review.sources'));
+            // Local (BD)
+            $sources['local'] = new LocalReviewSource();
+
+            // Proveedores remotos activos
+            $rows = ReviewProvider::where('is_active', true)->orderBy('id')->get();
+            foreach ($rows as $prov) {
+                $slug = strtolower($prov->slug);
+                if ($slug === 'local') {
+                    continue; // ya cubierto
+                }
+
+                $driver = $prov->driver ?: 'http_json';
+                switch ($driver) {
+                    case 'http_json':
+                    default:
+                        $sources[$slug] = new HttpJsonReviewSource($prov);
+                        break;
+                }
+            }
+
+            return new ReviewAggregator($sources);
         });
-        */
     }
 
     public function boot(): void

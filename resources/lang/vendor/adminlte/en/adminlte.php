@@ -55,7 +55,7 @@ return [
     'booking_updated_success' => 'Booking updated successfully.',
     'two_factor_authentication' => 'Two-Factor Authentication (2FA)',
     'enable_2fa_to_continue' => 'Activa la autenticación en dos pasos (2FA) para continuar',
-    
+
 
     // 2. HOTELS
     'hotel_name_required' => 'Hotel name is required.',
@@ -446,5 +446,5 @@ return [
         'reference' => 'Reference',
         'date'      => 'Date',
     ],
-
+        'pickup'      => 'Pickup location',
 ];

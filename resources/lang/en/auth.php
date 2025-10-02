@@ -62,4 +62,11 @@ return [
         'locked'   => 'Your account is locked. Check your email to unlock it.',
         'unlocked' => 'Your account has been unlocked. You can now log in.',
     ],
+
+'verify' => [
+    'already'  => 'You have already verified your email,',
+    'verified' => 'Your email has been verified.',
+],
+
+
 ];

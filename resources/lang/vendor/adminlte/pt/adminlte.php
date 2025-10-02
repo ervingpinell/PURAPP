@@ -185,7 +185,7 @@ return [
     'pickupRequiredTitle' => 'Pickup obrigatório',
     'pickupRequiredBody'  => 'Você deve selecionar um hotel ou um ponto de encontro para continuar.',
     'ok'                  => 'OK',
-    
+
     'pickup_time' => 'Horário de coleta',
     'pickupTime'  => 'Horário de coleta',
 
@@ -443,5 +443,5 @@ return [
         'reference' => 'Referência',
         'date'      => 'Data',
     ],
-
+'pickup' => 'Local de coleta'
 ];

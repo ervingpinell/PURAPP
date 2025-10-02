@@ -490,6 +490,7 @@ return [
         'viator_code'   => 'Code Viator',
         'status'        => 'Statut',
         'actions'       => 'Actions',
+        'slug'          => 'url',
     ],
 
     'status' => [

@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
+use Illuminate\Auth\Events\Registered; // ⬅️ necesario para disparar el correo
 
 class CreateNewUser implements CreatesNewUsers
 {
@@ -23,14 +24,12 @@ class CreateNewUser implements CreatesNewUsers
                 'phone'        => ['required', 'string', function ($attr, $value, $fail) {
                     $digits = preg_replace('/\D+/', '', (string) $value);
                     if (strlen($digits) < 6 || strlen($digits) > 20) {
-                        // Mensaje genérico de Laravel con atributo localizado
                         $fail(__('validation.regex', ['attribute' => __('adminlte::validation.attributes.phone')]));
                     }
                 }],
                 'password'     => ['required', 'confirmed', 'min:8', "regex:$passwordRegex"],
             ],
             [
-                // Tus claves
                 'full_name.required' => __('adminlte::validation.required_full_name'),
                 'email.required'     => __('adminlte::validation.required_email'),
                 'password.required'  => __('adminlte::validation.required_password'),
@@ -42,7 +41,8 @@ class CreateNewUser implements CreatesNewUsers
             ]
         )->validate();
 
-        return User::create([
+        // ⬇️ Creamos el usuario y disparamos el evento Registered
+        $user = User::create([
             'full_name'    => trim($input['full_name']),
             'email'        => mb_strtolower(trim($input['email'])),
             'country_code' => $input['country_code'], // mutator normaliza a +NNNN
@@ -52,5 +52,9 @@ class CreateNewUser implements CreatesNewUsers
             'role_id'      => 3,   // cliente
             'is_locked'    => false,
         ]);
+
+        event(new Registered($user)); // ⬅️ envía el correo de verificación
+
+        return $user;
     }
 }

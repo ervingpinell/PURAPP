@@ -5,7 +5,7 @@
 /* Card */
 .home-hero .hero-card{
   position:relative;background:#fff;border-radius:12px;padding:1rem;
-  max-width:600px;width:100%;margin:0 auto;min-height:400px;
+  max-width:600px;width:100%;margin:0 auto;min-height:360px;
   overflow:visible; /* <- sin max-height; permite expandir */
   box-shadow:0 10px 22px rgba(0,0,0,.06);display:flex;flex-direction:column;
 
@@ -23,7 +23,7 @@
 .home-hero .tour-title-abs{
   position:absolute;top:.5rem;right:.5rem;left:var(--title-left, auto);
   max-width:62%;
-  text-align:right;line-height:1.2;font-size:.95rem;margin:0;
+  text-align:right;line-height:1.2;font-size:.94rem;margin:0;
   display:-webkit-box;-webkit-line-clamp:var(--title-lines, 2);-webkit-box-orient:vertical;overflow:hidden;word-break:break-word
 }
 .home-hero .tour-title-abs a{color:#1A5229;text-decoration:underline}
@@ -51,6 +51,8 @@
 .home-hero .review-content{text-align:center;line-height:1.45;color:#222;font-size:.9rem;padding:0 .25rem;word-break:break-word}
 .home-hero .review-content.clamp-5{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
 .home-hero .review-content.expanded{display:block;-webkit-line-clamp:unset}
+
+/* Botón: oculto por defecto; el JS lo muestra si excede líneas */
 .home-hero .review-toggle{
   position:absolute;right:.25rem;bottom:.1rem;display:none;background:#fff;border:none;padding-left:.65rem;color:#256D1B;font-weight:700;cursor:pointer;line-height:1.2
 }
@@ -100,7 +102,7 @@
   .home-hero .review-label{font-size:.9rem;padding:.3rem .6rem;border-radius:18px}
   .home-hero .review-content{font-size:.86rem;line-height:1.45}
   .home-hero .review-content.clamp-5{-webkit-line-clamp:4}
-  .home-hero .review-toggle{font-size:.9rem}
+  .home-hero .review-toggle{font-size:.8rem}
   .home-hero .powered-by{font-size:.85rem;padding-top:.75rem}
   .home-hero .carousel-control-prev{left:.5rem}
   .home-hero .carousel-control-next{right:.5rem}

@@ -1,12 +1,3 @@
-/* Reviews carousel (home & tour pages)
-   - Soporta múltiples carruseles por página (.reviews-block y .home-hero)
-   - i18n: lee primero data-* del root; si faltan, usa window.REVIEWS_I18N; luego defaults
-   - Lazy load de iframes (data-src)
-   - Ajuste de altura vía postMessage desde el embed
-   - Truncado/expandido del texto (respeta clamp-5/clamp-8/clamp)
-   - Validación de origen en postMessage
-   - Ajuste anti-overlap del título del tour (para tarjetas locales)
-*/
 (function () {
   "use strict";
 
@@ -28,25 +19,43 @@
     return cls || null;
   }
 
-  function needsTruncate(el) {
-    if (!el) return false;
-    const clampClass = getClampClass(el);
-    if (clampClass && !el.classList.contains("expanded")) el.classList.add(clampClass);
-    const clone = el.cloneNode(true);
-    clone.style.visibility = "hidden";
-    clone.style.position = "absolute";
-    clone.style.pointerEvents = "none";
-    clone.style.height = "auto";
-    clone.style.maxHeight = "none";
-    clone.style.webkitLineClamp = "unset";
-    clone.classList.remove("expanded");
-    if (clampClass) clone.classList.remove(clampClass);
-    document.body.appendChild(clone);
-    const full = clone.scrollHeight;
-    const visible = el.clientHeight;
-    document.body.removeChild(clone);
-    return full > visible + 1;
+  /* === Nueva lógica robusta: contar líneas reales y comparar con el umbral (4/5) === */
+  function getLineHeightPx(el){
+    const cs = getComputedStyle(el);
+    const lh = cs.lineHeight;
+    if (lh && lh !== "normal") return parseFloat(lh);
+    const fs = parseFloat(cs.fontSize) || 16;
+    return fs * 1.2; // aprox para 'normal'
   }
+
+  function naturalLineCount(el){
+    if (!el) return 0;
+    const clampClass = getClampClass(el);
+    const hadClamp   = clampClass && el.classList.contains(clampClass);
+    const wasExp     = el.classList.contains("expanded");
+
+    // Quitar clamp/expanded para medir líneas naturales
+    if (wasExp) el.classList.remove("expanded");
+    if (hadClamp) el.classList.remove(clampClass);
+
+    // Forzar reflow
+    const lh = getLineHeightPx(el);
+    const lines = Math.round(el.scrollHeight / Math.max(1, lh));
+
+    // Restaurar estado
+    if (hadClamp) el.classList.add(clampClass);
+    if (wasExp) el.classList.add("expanded");
+
+    return lines;
+  }
+
+  function exceedsMaxLines(el){
+    const isMobile = window.matchMedia("(max-width:768px)").matches;
+    const maxLines = isMobile ? 4 : 5;
+    const lines = naturalLineCount(el);
+    return lines > maxLines;
+  }
+  /* ====================================================================== */
 
   function getTXT(root) {
     return {
@@ -96,11 +105,14 @@
     if (!(wrap && text && btn)) { if (title) adjustTitleLayoutFor(card); return; }
 
     const clampClass = getClampClass(text);
+    if (clampClass && !text.classList.contains("expanded")) {
+      text.classList.add(clampClass); // nos aseguramos de que el clamp esté activo visualmente
+    }
     if (clampClass) btn.dataset.clampClass = clampClass;
 
     const updateBtn = () => {
       if (text.classList.contains("expanded")) return;
-      btn.style.display = needsTruncate(text) ? "inline-block" : "none";
+      btn.style.display = exceedsMaxLines(text) ? "inline-block" : "none";
       btn.textContent   = TXT_MORE;
       btn.style.position = "absolute";
       adjustTitleLayoutFor(card);
@@ -118,7 +130,7 @@
         if (btn.dataset.clampClass) text.classList.add(btn.dataset.clampClass);
         btn.textContent = TXT_MORE;
         btn.style.position = "absolute";
-        updateBtn();
+        btn.style.display = exceedsMaxLines(text) ? "inline-block" : "none";
       }
       adjustTitleLayoutFor(card);
     };
@@ -129,7 +141,7 @@
       const text = card.querySelector(".review-content");
       const btn  = card.querySelector(".review-toggle");
       if (text && btn && !text.classList.contains("expanded")) {
-        btn.style.display = needsTruncate(text) ? "inline-block" : "none";
+        btn.style.display = exceedsMaxLines(text) ? "inline-block" : "none";
         btn.textContent = TXT_MORE;
         btn.style.position = "absolute";
       }

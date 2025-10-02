@@ -27,6 +27,7 @@ use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse as Succ
 use Laravel\Fortify\Fortify;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -67,20 +68,23 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         /**
-         * BLOQUEO POR FALLOS (sin ventana):
-         * - Máximo 6 fallos acumulados.
-         * - En el 6º fallo: is_locked=true + email con enlace firmado (60 min).
-         * - En fallos 1..5: "te quedan N intentos".
-         * - Si el usuario YA ESTÁ BLOQUEADO: reenvía el mail con cooldown de 10 min.
+         * BLOQUEO POR FALLOS + verificación por email (login permitido SOLO si está verificado):
+         *  1) usuario existe
+         *  2) si está bloqueado → manejar y cortar
+         *  3) validar contraseña; si es incorrecta → contar fallos/bloquear
+         *  4) estado inactivo
+         *  5) si NO verificó email (password CORRECTA) → (re)enviar verificación con cooldown y CORTAR login
+         *  6) login ok
          */
         Fortify::authenticateUsing(function (Request $request) {
-            $email      = mb_strtolower(trim((string) $request->input('email')));
-            $password   = (string) $request->input('password');
+            $email    = mb_strtolower(trim((string) $request->input('email')));
+            $password = (string) $request->input('password');
 
-            $maxFails   = 6;   // umbral de bloqueos
-            $unlockTTL  = 60;  // minutos de validez del link
-            $resendTTL  = 10;  // cooldown (min) para reenvío si ya está bloqueado
+            $maxFails  = 6;   // umbral de bloqueos
+            $unlockTTL = 60;  // minutos de validez del link
+            $resendTTL = 10;  // cooldown (min) para reenvío (lock/verify)
 
+            /** @var \App\Models\User|null $user */
             $user = User::where('email', $email)->first();
 
             if (! $user) {
@@ -93,7 +97,6 @@ class FortifyServiceProvider extends ServiceProvider
             if (!empty($user->is_locked)) {
                 $resendKey = 'unlock:mail:'.$user->getKey();
 
-                // Reenvía si no está en cooldown
                 if (! RateLimiter::tooManyAttempts($resendKey, 1)) {
                     RateLimiter::hit($resendKey, $resendTTL * 60);
 
@@ -120,20 +123,7 @@ class FortifyServiceProvider extends ServiceProvider
                 ]);
             }
 
-            // Verificación y estado
-            if (is_null($user->email_verified_at)) {
-                throw ValidationException::withMessages([
-                    'email' => __('adminlte::auth.verify.message'),
-                ]);
-            }
-
-            if (isset($user->status) && ! $user->status) {
-                throw ValidationException::withMessages([
-                    'email' => __('adminlte::validation.invalid_credentials'),
-                ]);
-            }
-
-            // === PASSWORD INCORRECTO ===
+            // === PASSWORD INCORRECTO === (NO disparamos verificación en este caso)
             if (! Hash::check($password, (string) $user->password)) {
                 $failKey = 'auth:fail:'.$user->getKey();
 
@@ -147,7 +137,6 @@ class FortifyServiceProvider extends ServiceProvider
                     $user->is_locked = true;
                     $user->save();
 
-                    // Golpea el cooldown para no reenviar inmediato en la siguiente petición
                     RateLimiter::hit('unlock:mail:'.$user->getKey(), 10 * 60);
 
                     // Enviar mail de bloqueo
@@ -183,9 +172,43 @@ class FortifyServiceProvider extends ServiceProvider
                 ]);
             }
 
-            // === LOGIN OK ===
+            // === PASSWORD CORRECTO A PARTIR DE AQUÍ ===
             Cache::forget('auth:fail:'.$user->getKey());
 
+            // Estado inactivo
+            if (isset($user->status) && ! $user->status) {
+                throw ValidationException::withMessages([
+                    'email' => __('adminlte::validation.invalid_credentials'),
+                ]);
+            }
+
+            // Email NO verificado → reenvía (con cooldown) y CORTA el login
+            if ($user instanceof MustVerifyEmailContract && ! $user->hasVerifiedEmail()) {
+                $resendKey = 'verify:mail:'.$user->getKey();
+
+                if (! RateLimiter::tooManyAttempts($resendKey, 1)) {
+                    RateLimiter::hit($resendKey, $resendTTL * 60);
+                    try {
+                        $user->sendEmailVerificationNotification();
+                        Log::info('Verification email sent on login attempt (blocked login)', [
+                            'uid' => $user->getKey(),
+                            'to'  => $user->email,
+                        ]);
+                    } catch (\Throwable $e) {
+                        Log::error('Failed sending verification email on login attempt', [
+                            'uid' => $user->getKey(),
+                            'err' => $e->getMessage(),
+                        ]);
+                    }
+                }
+
+                // Importante: NO permitimos el login si no está verificado
+                throw ValidationException::withMessages([
+                    'email' => __('adminlte::auth.verify.message'),
+                ]);
+            }
+
+            // === LOGIN OK ===
             return $user;
         });
     }

@@ -9,21 +9,17 @@
 
   <div class="footer-main-content">
     <div class="footer-brand">
-<img
-  src="{{ asset('images/logoCompanyWhite.png') }}"
-  alt="Green Vacations"
-  decoding="async"
-  fetchpriority="low"
-/>
+      <img src="{{ asset('images/logoCompanyWhite.png') }}" alt="Green Vacations" decoding="async" fetchpriority="low" />
       <p>{{ __('adminlte::adminlte.footer_text') }}</p>
     </div>
 
     <div class="footer-links">
       <h4>{{ __('adminlte::adminlte.quick_links') }}</h4>
       <ul>
-        <li><a href="{{ url('/') }}">{{ __('adminlte::adminlte.home') }}</a></li>
-        <li><a href="{{ url('/tours') }}">{{ __('adminlte::adminlte.tours') }}</a></li>
-<li><a href="{{ route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a></li>
+        <li><a href="{{ localized_route('home') }}">{{ __('adminlte::adminlte.home') }}</a></li>
+        <li><a href="{{ localized_route('tours.index') }}">{{ __('adminlte::adminlte.tours') }}</a></li>
+<li><a href="{{ localized_route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a></li>
+
         <li>
           <a target="_blank" rel="noopener"
              href="https://www.tripadvisor.com/Attraction_Review-g309226-d6817241-Reviews-Green_Vacations_Costa_Rica-La_Fortuna_de_San_Carlos_Arenal_Volcano_National_Park_.html">
@@ -42,14 +38,14 @@
     <div class="footer-tours">
       <h4><i class="fas fa-map-signs me-2"></i>{{ __('adminlte::adminlte.our_tours') }}</h4>
       <ul>
-        <li class="d-flex align-items-center mb-2">
-          <i class="fas fa-sun me-2"></i>
-          <a href="#" class="nav-link scroll-to-tours">{{ __('adminlte::adminlte.half_day') }}</a>
-        </li>
-        <li class="d-flex align-items-center mb-2">
-          <i class="fas fa-mountain me-2"></i>
-          <a href="#" class="nav-link scroll-to-tours">{{ __('adminlte::adminlte.full_day') }}</a>
-        </li>
+<li class="d-flex align-items-center mb-2">
+  <i class="fas fa-sun me-2"></i>
+  <a href="#" class="scroll-to-tours">{{ __('adminlte::adminlte.half_day') }}</a>
+</li>
+<li class="d-flex align-items-center mb-2">
+  <i class="fas fa-mountain me-2"></i>
+  <a href="#" class="scroll-to-tours">{{ __('adminlte::adminlte.full_day') }}</a>
+</li>
       </ul>
 
       <h4 class="mt-3">
@@ -59,7 +55,7 @@
         @if($terms)
           <li class="d-flex align-items-center mb-2">
             <i class="fas fa-balance-scale me-2"></i>
-            <a href="{{ route('policies.show', $terms) }}">
+            <a href="{{ localized_route('policies.show', $terms) }}">
               {{ __('adminlte::adminlte.terms_and_conditions') }}
             </a>
           </li>
@@ -68,7 +64,7 @@
         @if($privacy)
           <li class="d-flex align-items-center mb-2">
             <i class="fas fa-shield-alt me-2"></i>
-            <a href="{{ route('policies.show', $privacy) }}">
+            <a href="{{ localized_route('policies.show', $privacy) }}">
               {{ __('adminlte::adminlte.privacy_policy') }}
             </a>
           </li>
@@ -76,7 +72,7 @@
 
         <li class="d-flex align-items-center mb-2">
           <i class="fas fa-list me-2"></i>
-          <a href="{{ route('policies.index') }}">
+          <a href="{{ localized_route('policies.index') }}">
             {{ __('adminlte::adminlte.all_policies') }}
           </a>
         </li>

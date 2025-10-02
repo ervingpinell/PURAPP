@@ -258,6 +258,13 @@ return [
         'validation_errors'     => 'Há erros de validação',
         'updated_success'       => 'Tradução atualizada com sucesso.',
         'unexpected_error'      => 'Não foi possível atualizar a tradução.',
+                'editing'         => 'Editando',
+        'policy_name'     => 'Título da política',
+        'policy_content'  => 'Conteúdo',
+        'policy_sections' => 'Seções da política',
+        'section'         => 'Seção',
+        'section_name'    => 'Nome da seção',
+        'section_content' => 'Conteúdo da seção',
 
         // Selector de idioma (pantalla y helpers)
         'choose_locale_title'   => 'Selecionar idioma',
@@ -365,6 +372,7 @@ return [
             'code'        => 'Código',
             'discount'    => 'Desconto',
             'type'        => 'Tipo',
+            'operation'   => 'Operação',
             'valid_from'  => 'Válido de',
             'valid_until' => 'Válido até',
             'usage_limit' => 'Limite de usos',
@@ -372,21 +380,22 @@ return [
 
         'types' => [
             'percent' => '%',
-            'amount'  => '$',
+            'amount'  => 'R$',
         ],
 
         'symbols' => [
             'percent'  => '%',
-            'currency' => '$',
+            'currency' => 'R$',
         ],
 
         'table' => [
             'code'         => 'Código',
             'discount'     => 'Desconto',
-            'validity'     => 'Validade',
-            'date_status'  => 'Status (data)',
+            'operation'    => 'Operação',
+            'validity'     => 'Vigência',
+            'date_status'  => 'Estado (data)',
             'usage'        => 'Usos',
-            'usage_status' => 'Status (uso)',
+            'usage_status' => 'Estado (uso)',
             'actions'      => 'Ações',
         ],
 
@@ -397,18 +406,19 @@ return [
 
         'date_status' => [
             'scheduled' => 'Programado',
-            'active'    => 'Em vigor',
+            'active'    => 'Ativo',
             'expired'   => 'Expirado',
         ],
 
         'actions' => [
-            'generate' => 'Gerar',
-            'delete'   => 'Excluir',
+            'generate'         => 'Gerar',
+            'delete'           => 'Excluir',
+            'toggle_operation' => 'Alternar Somar/Subtrair',
         ],
 
         'labels' => [
             'unlimited_placeholder' => 'Vazio = ilimitado',
-            'unlimited_hint'        => 'Deixe vazio para usos ilimitados. Coloque 1 para uso único.',
+            'unlimited_hint'        => 'Deixe em branco para usos ilimitados. Coloque 1 para uso único.',
             'no_limit'              => '(sem limite)',
             'remaining'             => 'restantes',
         ],
@@ -417,15 +427,24 @@ return [
         'empty'          => 'Não há códigos promocionais disponíveis.',
 
         'messages' => [
-            'created_success'         => 'Código promocional criado com sucesso.',
-            'deleted_success'         => 'Código promocional excluído com sucesso.',
-            'percent_over_100'        => 'A porcentagem não pode ser maior que 100.',
-            'code_exists_normalized'  => 'Este código (ignorando espaços e maiúsculas) já existe.',
-            'invalid_or_used'         => 'Código inválido ou já utilizado.',
-            'valid'                   => 'Código válido.',
-            'server_error'            => 'Erro no servidor, tente novamente.',
+            'created_success'        => 'Código promocional criado com sucesso.',
+            'deleted_success'        => 'Código promocional excluído com sucesso.',
+            'percent_over_100'       => 'A porcentagem não pode ser maior que 100.',
+            'code_exists_normalized' => 'Este código (ignorando espaços e maiúsculas/minúsculas) já existe.',
+            'invalid_or_used'        => 'Código inválido ou já utilizado.',
+            'valid'                  => 'Código válido.',
+            'server_error'           => 'Erro no servidor. Tente novamente.',
+            'operation_updated'      => 'Operação atualizada com sucesso.',
+        ],
+
+        'operations' => [
+            'add'           => 'Somar',
+            'subtract'      => 'Subtrair',
+            'make_add'      => 'Mudar para “Somar”',
+            'make_subtract' => 'Mudar para “Subtrair”',
         ],
     ],
+
 
     // =========================================================
     // ==== CUTOFF =============================================

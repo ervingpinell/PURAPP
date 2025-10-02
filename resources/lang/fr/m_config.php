@@ -258,6 +258,13 @@ return [
         'validation_errors'     => 'Erreurs de validation',
         'updated_success'       => 'Traduction mise à jour avec succès.',
         'unexpected_error'      => 'Impossible de mettre à jour la traduction.',
+                'editing'         => 'Édition',
+        'policy_name'     => 'Titre de la politique',
+        'policy_content'  => 'Contenu',
+        'policy_sections' => 'Sections de la politique',
+        'section'         => 'Section',
+        'section_name'    => 'Nom de la section',
+        'section_content' => 'Contenu de la section',
 
         // Sélecteur de langue
         'choose_locale_title'   => 'Sélectionner la langue',
@@ -354,7 +361,7 @@ return [
     'promocode' => [
         'title'        => 'Codes promotionnels',
         'create_title' => 'Générer un nouveau code promo',
-        'list_title'   => 'Codes promo existants',
+        'list_title'   => 'Codes promotionnels existants',
 
         'success_title' => 'Succès',
         'error_title'   => 'Erreur',
@@ -363,6 +370,7 @@ return [
             'code'        => 'Code',
             'discount'    => 'Remise',
             'type'        => 'Type',
+            'operation'   => 'Opération',
             'valid_from'  => 'Valable à partir du',
             'valid_until' => 'Valable jusqu’au',
             'usage_limit' => 'Limite d’utilisations',
@@ -370,18 +378,19 @@ return [
 
         'types' => [
             'percent' => '%',
-            'amount'  => '$',
+            'amount'  => '€',
         ],
 
         'symbols' => [
             'percent'  => '%',
-            'currency' => '$',
+            'currency' => '€',
         ],
 
         'table' => [
             'code'         => 'Code',
             'discount'     => 'Remise',
-            'validity'     => 'Validité',
+            'operation'    => 'Opération',
+            'validity'     => 'Période de validité',
             'date_status'  => 'Statut (date)',
             'usage'        => 'Utilisations',
             'usage_status' => 'Statut (usage)',
@@ -400,30 +409,40 @@ return [
         ],
 
         'actions' => [
-            'generate' => 'Générer',
-            'delete'   => 'Supprimer',
+            'generate'         => 'Générer',
+            'delete'           => 'Supprimer',
+            'toggle_operation' => 'Basculer Ajouter/Soustraire',
         ],
 
         'labels' => [
             'unlimited_placeholder' => 'Vide = illimité',
-            'unlimited_hint'        => 'Laissez vide pour illimité. Mettez 1 pour un seul usage.',
+            'unlimited_hint'        => 'Laisser vide pour des utilisations illimitées. Mettre 1 pour un usage unique.',
             'no_limit'              => '(sans limite)',
             'remaining'             => 'restants',
         ],
 
-        'confirm_delete' => 'Voulez-vous supprimer ce code ?',
-        'empty'          => 'Aucun code promo disponible.',
+        'confirm_delete' => 'Voulez-vous vraiment supprimer ce code ?',
+        'empty'          => 'Aucun code promotionnel disponible.',
 
         'messages' => [
-            'created_success'         => 'Code promo créé avec succès.',
-            'deleted_success'         => 'Code promo supprimé avec succès.',
-            'percent_over_100'        => 'Le pourcentage ne peut pas dépasser 100.',
-            'code_exists_normalized'  => 'Ce code (espaces et casse ignorés) existe déjà.',
-            'invalid_or_used'         => 'Code invalide ou déjà utilisé.',
-            'valid'                   => 'Code valide.',
-            'server_error'            => 'Erreur serveur, réessayez.',
+            'created_success'        => 'Code promotionnel créé avec succès.',
+            'deleted_success'        => 'Code promotionnel supprimé avec succès.',
+            'percent_over_100'       => 'Le pourcentage ne peut pas dépasser 100.',
+            'code_exists_normalized' => 'Ce code (espaces et casse ignorés) existe déjà.',
+            'invalid_or_used'        => 'Code invalide ou déjà utilisé.',
+            'valid'                  => 'Code valide.',
+            'server_error'           => 'Erreur serveur, veuillez réessayer.',
+            'operation_updated'      => 'Opération mise à jour avec succès.',
+        ],
+
+        'operations' => [
+            'add'           => 'Ajouter',
+            'subtract'      => 'Soustraire',
+            'make_add'      => 'Passer à « Ajouter »',
+            'make_subtract' => 'Passer à « Soustraire »',
         ],
     ],
+
 
     // =========================================================
     // ==== CUTOFF =============================================

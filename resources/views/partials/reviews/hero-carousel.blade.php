@@ -28,10 +28,8 @@
     'getyourguide' => 'GetYourGuide',
   ];
 
-  // Más compacto en home
   $initialLoad      = 3;
   $baseIframeHeight = 460;
-
   $seqByProvider = [];
 @endphp
 
@@ -56,9 +54,12 @@
         $author      = $r['author_name'] ?? __('reviews.anonymous_guest');
         $date        = !empty($r['date']) ? \Illuminate\Support\Carbon::parse($r['date'])->isoFormat('ll') : '';
         $isIndexable = !empty($r['indexable']);
+
+        // ✅ TOUR NAME: usar el traducido que ya viene en la review
         $tourName    = trim((string)($r['tour_name'] ?? ''));
         $tourId      = !empty($r['tour_id']) ? (int)$r['tour_id'] : null;
-        $tourUrl     = $tourId ? route('tours.show', ['id' => $tourId]) : null;
+        $tourUrl     = $tourId ? localized_route('tours.show', ['tour' => $tourId]) : '#';
+
         $avatarUrl   = $r['avatar_url'] ?? null;
 
         $uid = 'h_'.substr(sha1(($r['provider'] ?? 'p').'|'.($r['tour_id'] ?? '0').'|'.($r['nth'] ?? $idx).'|'.uniqid()),0,10);
@@ -77,14 +78,13 @@
 
             <div class="review-head">
               <span class="avatar">
-<img
-  src="{{ $avatarUrl ?: asset('images/avatar-default.png') }}"
-  alt=""
-  width="56" height="56"
-  referrerpolicy="no-referrer"
-  onerror="this.onerror=null;this.src='{{ asset('images/avatar-default.png') }}';"
-/>
-
+                <img
+                  src="{{ $avatarUrl ?: asset('images/avatar-default.png') }}"
+                  alt=""
+                  width="56" height="56"
+                  referrerpolicy="no-referrer"
+                  onerror="this.onerror=null;this.src='{{ asset('images/avatar-default.png') }}';"
+                />
               </span>
               <div class="who-when">
                 <div class="who">{{ $author }}</div>
@@ -118,7 +118,7 @@
                      . '&limit=' . urlencode($limit)
                      . '&nth='   . urlencode($nth)
                      . ($tourId      ? '&tour_id=' . urlencode($tourId)      : '')
-                     . ($tourName    ? '&tname='   . urlencode($tourName)    : '')
+                     . ($tourName    ? '&tname='   . urlencode($tourName)    : '') // ✅ Pasar nombre traducido
                      . ($tourUrl     ? '&turl='    . urlencode($tourUrl)     : '')
                      . '&base=' . urlencode($baseIframeHeight)
                      . '&uid='  . urlencode($uid);
@@ -169,4 +169,3 @@
   };
 </script>
 @endpush
-

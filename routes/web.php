@@ -9,6 +9,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashBoardController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\PublicEmailVerificationController;
 
 // Admin
 use App\Http\Controllers\Admin\Users\UserRegisterController;
@@ -35,75 +36,138 @@ use App\Http\Controllers\Admin\TourImageController;
 use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
 use App\Http\Controllers\Admin\MeetingPointSimpleController;
 use App\Http\Controllers\Reviews\ReviewsController;
-
-
-// Auth
+use App\Http\Controllers\Admin\Reviews\ReviewAdminController;
+use App\Http\Controllers\Admin\Reviews\ReviewProviderController;
+use App\Http\Controllers\Admin\Reviews\ReviewReplyController;
+use App\Http\Controllers\Admin\Reviews\ReviewRequestAdminController;
+use App\Http\Controllers\Reviews\PublicReviewController;
 use App\Http\Controllers\Auth\UnlockAccountController;
 
-// Models
-use App\Models\Tour;
+// Helper para rutas localizadas
+if (!function_exists('localizedRoutes')) {
+    function localizedRoutes(Closure $callback) {
+        $locales = array_keys(config('routes.locales', ['es' => []]));
 
+        foreach ($locales as $locale) {
+            Route::prefix($locale)
+                ->name("{$locale}.")
+                ->group($callback);
+        }
+    }
+}
+
+// ============================================
+// REDIRECCIÓN RAÍZ
+// ============================================
+Route::get('/', function () {
+    $locale = session('locale', config('routes.default_locale', 'es'));
+    return redirect("/{$locale}");
+});
+
+// ============================================
+// APLICAR MIDDLEWARE GLOBAL
+// ============================================
 Route::middleware([SetLocale::class])->group(function () {
-    /**
-     * =======================
-     * Públicas (GET)
-     * =======================
-     */
 
-    // Home – depende de idioma => cache privado del navegador
-    Route::get('/', [HomeController::class, 'index'])
-        ->name('home');
-
-    // Cambiar idioma – NO cachear (modifica sesión/locale)
+    // ============================================
+    // CAMBIO DE IDIOMA (sin prefijo)
+    // ============================================
     Route::get('/language/{language}', [DashBoardController::class, 'switchLanguage'])
         ->name('switch.language');
 
-    // FAQ – si tiene traducciones, también privado
-    Route::get('/faq', [FaqController::class, 'index'])
-        ->name('faq.index');
+    // ============================================
+    // RUTAS PÚBLICAS LOCALIZADAS
+    // ============================================
+    localizedRoutes(function () {
+        // Home
+        Route::get('/', [HomeController::class, 'index'])->name('home');
 
-    // Listado de tours – suele ser estable; depende de idioma => privado
-    Route::get('/tours', [HomeController::class, 'allTours'])
-        ->name('tours.index');
+        // Tours
+        Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
+Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tours.show');
 
-    // Detalle del tour – estable; depende de idioma => privado
-    Route::get('/tour/{id}', [HomeController::class, 'showTour'])
-        ->name('tours.show');
+        // Contact
+        Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+        Route::post('/contact', [HomeController::class, 'sendContact'])
+            ->middleware('throttle:6,1')
+            ->name('contact.send');
 
-    // Contacto (GET) – incluye CSRF/form. Mejor NO cachearlo para evitar líos de token
-    Route::get('/contact', [HomeController::class, 'contact'])
-        ->name('contact');
+        // FAQ
+        Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
 
-    // Contacto (POST) – nunca cachear
-    Route::post('/contact', [HomeController::class, 'sendContact'])
-        ->middleware('throttle:6,1')
-        ->name('contact.send');
+        // Políticas
+        Route::get('/policies', [\App\Http\Controllers\PoliciesController::class, 'index'])
+            ->name('policies.index');
+        Route::get('/policies/{policy}', [\App\Http\Controllers\PoliciesController::class, 'show'])
+            ->name('policies.show');
 
-    // =======================
-    // Reviews
-    // =======================
+        // Reviews (localizadas para traducir nombres de tours)
+        Route::get('/reviews', [ReviewsController::class, 'index'])->name('reviews.index');
+        Route::get('/reviews/tours/{tour}', [ReviewsController::class, 'tour'])->name('reviews.tour');
+    });
 
-    // Página pública de reviews (índice) – depende de idioma => privado
-    Route::get('/reviews', [ReviewsController::class, 'index'])
-        ->name('reviews.index');
-
-    // Reviews por tour – idem
-    Route::get('/tours/{tour}/reviews', [ReviewsController::class, 'tour'])
-        ->name('reviews.tour');
-
-    // Crear reseña nativa (POST) – nunca cachear
-    Route::post('/reviews', [ReviewsController::class, 'store'])
-        ->name('reviews.store');
-
-    // Iframe no-index por proveedor – respuesta rápida; 15 min es razonable
+    // ============================================
+    // REVIEWS - Rutas sin prefijo (funcionales)
+    // ============================================
+    Route::post('/reviews', [ReviewsController::class, 'store'])->name('reviews.store');
     Route::get('/reviews/embed/{provider}', [ReviewsController::class, 'embed'])
+        ->where('provider', '[A-Za-z0-9_-]+')
         ->name('reviews.embed');
 
-    // Políticas públicas
-    Route::get('/politicas', [\App\Http\Controllers\PoliciesController::class, 'index'])->name('policies.index');
-    Route::get('/politicas/{policy}', [\App\Http\Controllers\PoliciesController::class, 'show'])->name('policies.show');
+    // Review requests públicos (sin prefijo)
+    Route::get('/r/{token}', [PublicReviewController::class, 'show'])->name('reviews.request.show');
+    Route::post('/r/{token}', [PublicReviewController::class, 'submit'])->name('reviews.request.submit');
+    Route::view('/reviews/thanks', 'reviews.thanks')->name('reviews.thanks');
 
-    // Test correo (dev)
+    // ============================================
+    // CARRITO & PROMO (sin prefijo)
+    // ============================================
+    Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count.public');
+    Route::post('/api/apply-promo', [PromoCodeController::class, 'apply'])->name('api.promo.apply');
+    Route::post('/apply-promo', [PromoCodeController::class, 'apply'])->name('promo.apply');
+
+    // ============================================
+    // AUTH & VERIFICACIÓN (sin prefijo)
+    // ============================================
+    Route::view('/account/locked', 'auth.account-locked')->name('account.locked');
+    Route::get('/auth/throttled', fn () => response()->view('errors.429'))->name('auth.throttled');
+
+    Route::get('/unlock-account', [UnlockAccountController::class, 'form'])->name('unlock.form');
+    Route::post('/unlock-account', [UnlockAccountController::class, 'send'])
+        ->middleware('throttle:3,1')
+        ->name('unlock.send');
+    Route::get('/unlock-account/{user}/{hash}', [UnlockAccountController::class, 'process'])
+        ->middleware('signed')
+        ->name('unlock.process');
+
+    // Verificación de email pública
+    Route::get('/email/verify/public/{id}/{hash}', PublicEmailVerificationController::class)
+        ->middleware(['signed','throttle:6,1'])
+        ->name('verification.public');
+
+    Route::post('/email/verify/public/resend', function (\Illuminate\Http\Request $request) {
+        $request->validate(['email' => ['required','email']]);
+
+        $u = \App\Models\User::where('email', mb_strtolower(trim($request->email)))->first();
+
+        if ($u && $u instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $u->hasVerifiedEmail()) {
+            $key = 'verify:mail:'.$u->getKey();
+            if (! \Illuminate\Support\Facades\RateLimiter::tooManyAttempts($key, 1)) {
+                \Illuminate\Support\Facades\RateLimiter::hit($key, 10 * 60);
+                try {
+                    $u->sendEmailVerificationNotification();
+                } catch (\Throwable $e) {
+                    logger()->error('Resend verify fail', ['e'=>$e->getMessage()]);
+                }
+            }
+        }
+
+        return back()->with('status', __('adminlte::auth.verify.resent_link_if_exists'));
+    })->middleware('throttle:3,1')->name('verification.public.resend');
+
+    // ============================================
+    // TEST EMAIL (dev - sin prefijo)
+    // ============================================
     Route::get('/send-test-email', function () {
         $booking = \App\Models\Booking::latest()->with(['user', 'detail', 'tour'])->first();
         if ($booking) {
@@ -112,78 +176,48 @@ Route::middleware([SetLocale::class])->group(function () {
         return 'Correo enviado!';
     });
 
-    // Contador del carrito (JS público)
-    Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count.public');
-
-    // Promo Codes (público o semi-público)
-    Route::post('/api/apply-promo', [PromoCodeController::class, 'apply'])->name('api.promo.apply');
-    Route::post('/apply-promo',     [PromoCodeController::class, 'apply'])->name('promo.apply');
-
-    /**
-     * =======================
-     * Auth (Fortify)
-     * =======================
-     * Fortify registra automáticamente /login, /register, /forgot-password,
-     * /reset-password/{token}, /email/verify, /two-factor-challenge, etc.
-     */
-    Route::view('/account/locked', 'auth.account-locked')->name('account.locked'); // opcional
-
-    // Vista de enfriamiento (429 throttle)
-    Route::get('/auth/throttled', fn () => response()->view('errors.429'))->name('auth.throttled');
-
-    // Self-service unlock (opcional para usuarios finales)
-    Route::get('/unlock-account', [UnlockAccountController::class, 'form'])->name('unlock.form');
-    Route::post('/unlock-account', [UnlockAccountController::class, 'send'])
-        ->middleware('throttle:3,1')
-        ->name('unlock.send');
-
-    // Enlace firmado para desbloqueo de cuenta (desde el email)
-    Route::get('/unlock-account/{user}/{hash}', [UnlockAccountController::class, 'process'])
-        ->middleware('signed')
-        ->name('unlock.process');
-
-    /**
-     * =======================
-     * Perfil + Carrito (Privado)
-     * =======================
-     */
+    // ============================================
+    // PERFIL & CARRITO (Privado - sin prefijo)
+    // ============================================
     Route::middleware(['auth', 'verified'])->group(function () {
-        Route::get('/profile',       [ProfileController::class, 'show'])->name('profile.show');
-        Route::get('/profile/edit',  [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+        Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::post('/profile/edit', [ProfileController::class, 'update'])->name('profile.update');
 
-        Route::get('/my-reservations', [BookingController::class, 'myReservations'])->name('my-reservations');
-        Route::get('/my-reservations/{booking}/receipt', [BookingController::class, 'showReceipt'])->name('my-reservations.receipt');
+        Route::get('/my-reservations', [BookingController::class, 'myReservations'])
+            ->name('my-reservations');
+        Route::get('/my-reservations/{booking}/receipt', [BookingController::class, 'showReceipt'])
+            ->name('my-reservations.receipt');
 
-        // Carrito (dos alias, nombres distintos)
-        Route::get('/my-cart',    [CartController::class, 'index'])->name('public.cart.index');
+        // Carrito
+        Route::get('/my-cart', [CartController::class, 'index'])->name('public.cart.index');
         Route::get('/mi-carrito', [CartController::class, 'index'])->name('public.cart.index.es');
 
-        Route::post('/carrito/agregar/{tour}', [CartController::class, 'store'])->name('carrito.agregar');
-        Route::post('/reservas/from-cart', [BookingController::class, 'storeFromCart'])->name('public.reservas.storeFromCart');
-        Route::delete('/cart/{item}', [CartController::class, 'destroy'])->name('public.cart.destroy');
-        Route::put('/cart/{item}', [CartController::class, 'update'])->name('public.cart.update');
-        Route::post('/cart/expire', [CartController::class, 'expire'])->name('public.cart.expire');
-        Route::post('/cart/refresh-expiry', [CartController::class, 'refreshExpiry'])->name('public.cart.refreshExpiry');
-
+        Route::post('/carrito/agregar/{tour}', [CartController::class, 'store'])
+            ->name('carrito.agregar');
+        Route::post('/reservas/from-cart', [BookingController::class, 'storeFromCart'])
+            ->name('public.reservas.storeFromCart');
+        Route::delete('/cart/{item}', [CartController::class, 'destroy'])
+            ->name('public.cart.destroy');
+        Route::put('/cart/{item}', [CartController::class, 'update'])
+            ->name('public.cart.update');
+        Route::post('/cart/expire', [CartController::class, 'expire'])
+            ->name('public.cart.expire');
+        Route::post('/cart/refresh-expiry', [CartController::class, 'refreshExpiry'])
+            ->name('public.cart.refreshExpiry');
     });
 
-    /**
-     * =======================
-     * Admin
-     * =======================
-     * - Requiere auth + verified + can:access-admin
-     * - Perfil admin SIN 2FA obligatorio (se usa para activar 2FA)
-     * - Resto del panel CON 2FA obligatorio
-     */
+    // ============================================
+    // ADMIN (sin prefijo)
+    // ============================================
     Route::middleware(['auth', 'verified', 'can:access-admin'])
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
 
-            // Perfil admin (sin 2FA obligatorio)
-            Route::get('/profile',       [ProfileController::class, 'adminShow'])->name('profile.show');
-            Route::get('/profile/edit',  [ProfileController::class, 'adminEdit'])->name('profile.edit');
+            // Perfil admin
+            Route::get('/profile', [ProfileController::class, 'adminShow'])->name('profile.show');
+            Route::get('/profile/edit', [ProfileController::class, 'adminEdit'])->name('profile.edit');
             Route::post('/profile/edit', [ProfileController::class, 'adminUpdate'])->name('profile.update');
 
             // Resto del panel (2FA obligatorio)
@@ -192,8 +226,8 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('/', [DashBoardController::class, 'dashboard'])->name('home');
 
                 // Acciones sensibles de usuario
-                Route::patch('users/{user}/lock',          [UserRegisterController::class, 'lock'])->name('users.lock');
-                Route::patch('users/{user}/unlock',        [UserRegisterController::class, 'unlock'])->name('users.unlock');
+                Route::patch('users/{user}/lock', [UserRegisterController::class, 'lock'])->name('users.lock');
+                Route::patch('users/{user}/unlock', [UserRegisterController::class, 'unlock'])->name('users.unlock');
                 Route::patch('users/{user}/mark-verified', [UserRegisterController::class, 'markVerified'])->name('users.markVerified');
 
                 // Traducciones
@@ -202,6 +236,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('translations/{type}/{id}/locale', [TranslationController::class, 'selectLocale'])->name('translations.locale');
                 Route::get('translations/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('translations.edit');
                 Route::post('translations/{type}/{id}/update', [TranslationController::class, 'update'])->name('translations.update');
+                Route::post('translations/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('translations.change-editing-locale');
 
                 // FAQs
                 Route::resource('faqs', AdminFaqController::class)->except(['show']);
@@ -210,9 +245,9 @@ Route::middleware([SetLocale::class])->group(function () {
                 // Cut-off (booking)
                 Route::prefix('tours')->name('tours.')->group(function () {
                     Route::prefix('cutoff')->name('cutoff.')->group(function () {
-                        Route::get('/',         [CutOffController::class, 'edit'])->name('edit');
-                        Route::put('/',         [CutOffController::class, 'update'])->name('update');
-                        Route::put('/tour',     [CutOffController::class, 'updateTourOverrides'])->name('tour.update');
+                        Route::get('/', [CutOffController::class, 'edit'])->name('edit');
+                        Route::put('/', [CutOffController::class, 'update'])->name('update');
+                        Route::put('/tour', [CutOffController::class, 'updateTourOverrides'])->name('tour.update');
                         Route::put('/schedule', [CutOffController::class, 'updateScheduleOverrides'])->name('schedule.update');
                     });
                 });
@@ -220,19 +255,19 @@ Route::middleware([SetLocale::class])->group(function () {
                 // Selector de imágenes de tours
                 Route::get('tours/images', [TourImageController::class, 'pick'])->name('tours.images.pick');
                 Route::prefix('tours/{tour}/images')->name('tours.images.')->group(function () {
-                    Route::get('/',              [TourImageController::class, 'index'])->name('index');
-                    Route::post('/',             [TourImageController::class, 'store'])->name('store');
-                    Route::patch('{image}',      [TourImageController::class, 'update'])->name('update');
-                    Route::delete('{image}',     [TourImageController::class, 'destroy'])->name('destroy');
+                    Route::get('/', [TourImageController::class, 'index'])->name('index');
+                    Route::post('/', [TourImageController::class, 'store'])->name('store');
+                    Route::patch('{image}', [TourImageController::class, 'update'])->name('update');
+                    Route::delete('{image}', [TourImageController::class, 'destroy'])->name('destroy');
                     Route::post('{image}/cover', [TourImageController::class, 'setCover'])->name('cover');
-                    Route::post('reorder',       [TourImageController::class, 'reorder'])->name('reorder');
+                    Route::post('reorder', [TourImageController::class, 'reorder'])->name('reorder');
                 });
 
-                // Meeting Points (simple)
+                // Meeting Points
                 Route::resource('meetingpoints', MeetingPointSimpleController::class)->except(['show', 'create', 'edit']);
                 Route::patch('meetingpoints/{meetingpoint}/toggle', [MeetingPointSimpleController::class, 'toggle'])->name('meetingpoints.toggle');
 
-                // Tour Type covers (picker)
+                // Tour Type covers
                 Route::prefix('types')->name('types.')->group(function () {
                     Route::get('images', [TourTypeCoverPickerController::class, 'pick'])->name('images.pick');
                     Route::get('images/{tourType}/edit', [TourTypeCoverPickerController::class, 'edit'])->name('images.edit');
@@ -256,7 +291,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('promoCode', [PromoCodeController::class, 'index'])->name('promoCode.index');
                 Route::post('promoCode', [PromoCodeController::class, 'store'])->name('promoCode.store');
                 Route::delete('promoCode/{promo}', [PromoCodeController::class, 'destroy'])->name('promoCode.destroy');
-
+                Route::patch('promoCode/{promo}/operation', [PromoCodeController::class, 'updateOperation'])->name('promoCode.updateOperation');
                 // Tours
                 Route::resource('tours', TourController::class)->except(['create', 'edit', 'show', 'destroy']);
                 Route::patch('tours/{tour:tour_id}/toggle', [TourController::class, 'toggle'])->name('tours.toggle');
@@ -325,8 +360,50 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('carritos-todos', [CartController::class, 'allCarts'])->name('cart.general');
                 Route::delete('carritos/{cart}', [CartController::class, 'destroyCart'])->name('cart.destroy');
                 Route::patch('carritos/{cart}/toggle', [CartController::class, 'toggleActive'])->name('cart.toggle');
-                Route::post('carrito/apply-promo',  [CartController::class, 'applyPromoAdmin'])->name('cart.applyPromo');
+                Route::post('carrito/apply-promo', [CartController::class, 'applyPromoAdmin'])->name('cart.applyPromo');
                 Route::delete('carrito/remove-promo', [CartController::class, 'removePromoAdmin'])->name('cart.removePromo');
+
+                // REVIEWS (solo roles con manage-reviews)
+                Route::middleware(['can:manage-reviews'])->group(function () {
+                    // PROVEEDORES
+                    Route::resource('review-providers', ReviewProviderController::class)
+                        ->except(['show'])
+                        ->parameters(['review-providers' => 'provider'])
+                        ->names('review-providers');
+
+                    Route::post('review-providers/{provider}/toggle', [ReviewProviderController::class, 'toggle'])->name('review-providers.toggle');
+                    Route::post('review-providers/{provider}/test', [ReviewProviderController::class, 'test'])->name('review-providers.test');
+                    Route::post('review-providers/{provider}/cache/flush', [ReviewProviderController::class, 'flushCache'])->name('review-providers.flush');
+
+                    // RESEÑAS (moderación + CRUD local)
+                    Route::get('reviews', [ReviewAdminController::class, 'index'])->name('reviews.index');
+                    Route::get('reviews/create', [ReviewAdminController::class, 'create'])->name('reviews.create');
+                    Route::post('reviews', [ReviewAdminController::class, 'store'])->name('reviews.store');
+                    Route::get('reviews/{review}/edit', [ReviewAdminController::class, 'edit'])->name('reviews.edit');
+                    Route::put('reviews/{review}', [ReviewAdminController::class, 'update'])->name('reviews.update');
+                    Route::delete('reviews/{review}', [ReviewAdminController::class, 'destroy'])->name('reviews.destroy');
+
+                    // Acciones de moderación
+                    Route::post('reviews/{review}/publish', [ReviewAdminController::class, 'publish'])->name('reviews.publish');
+                    Route::post('reviews/{review}/hide', [ReviewAdminController::class, 'hide'])->name('reviews.hide');
+                    Route::post('reviews/{review}/flag', [ReviewAdminController::class, 'flag'])->name('reviews.flag');
+                    Route::post('reviews/bulk', [ReviewAdminController::class, 'bulk'])->name('reviews.bulk');
+
+                    // Respuestas de admin a reseñas
+                    Route::get('reviews/{review}/replies/create', [ReviewReplyController::class, 'create'])->name('reviews.replies.create');
+                    Route::post('reviews/{review}/replies', [ReviewReplyController::class, 'store'])->name('reviews.replies.store');
+                    Route::delete('reviews/{review}/replies/{reply}', [ReviewReplyController::class, 'destroy'])->name('reviews.replies.destroy');
+                    Route::post('reviews/{review}/replies/{reply}/toggle', [ReviewReplyController::class, 'toggle'])->name('reviews.replies.toggle');
+
+                    // Hilo (thread) de una reseña
+                    Route::get('reviews/{review}/thread', [ReviewReplyController::class, 'thread'])->name('reviews.replies.thread');
+
+                    // Solicitudes post-compra
+                    Route::get('review-requests', [ReviewRequestAdminController::class, 'index'])->name('review-requests.index');
+                    Route::post('review-requests/{booking}/send', [ReviewRequestAdminController::class, 'send'])->name('review-requests.send');
+                    Route::post('review-requests/{rr}/resend', [ReviewRequestAdminController::class, 'resend'])->name('review-requests.resend');
+                    Route::delete('review-requests/{rr}', [ReviewRequestAdminController::class, 'destroy'])->name('review-requests.destroy');
+                });
             });
         });
 });

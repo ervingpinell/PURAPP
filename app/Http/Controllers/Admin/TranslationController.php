@@ -27,13 +27,11 @@ use App\Models\PolicySectionTranslation;
 
 class TranslationController extends Controller
 {
-    /** Página de inicio del módulo de traducciones */
     public function index()
     {
         return view('admin.translations.index');
     }
 
-    /** Listado para elegir la entidad a traducir */
     public function select(string $type)
     {
         $entitySingular = __('m_config.translations.entities_singular.' . $type);
@@ -62,7 +60,6 @@ class TranslationController extends Controller
         ]);
     }
 
-    /** Selector de idioma para la entidad elegida */
     public function selectLocale(string $type, int $id)
     {
         $entity = match ($type) {
@@ -82,12 +79,36 @@ class TranslationController extends Controller
         ]);
     }
 
-    /** Formulario de edición de traducciones por entidad e idioma */
+    /**
+     * Cambia el idioma de edición (NO el de la UI).
+     */
+    public function changeEditingLocale(Request $request)
+    {
+        $validated = $request->validate([
+            'locale' => 'required|in:es,en,fr,pt,de'
+        ]);
+
+        session(['translation_editing_locale' => $validated['locale']]);
+
+        return response()->json(['success' => true]);
+    }
+
     public function edit(string $type, int $id)
     {
         $availableLocales = ['es', 'en', 'fr', 'pt', 'de'];
-        $localeParam      = (string) request('locale', 'en');
-        $currentLocale    = in_array($localeParam, $availableLocales, true) ? $localeParam : 'en';
+
+        // Si viene edit_locale en URL, guardarlo SOLO en sesión de edición
+        if ($requestedLocale = request('edit_locale')) {
+            if (in_array($requestedLocale, $availableLocales, true)) {
+                session(['translation_editing_locale' => $requestedLocale]);
+            }
+        }
+
+        // Idioma objetivo para la EDICIÓN
+        $targetLocale = session('translation_editing_locale', app()->getLocale());
+        if (!in_array($targetLocale, $availableLocales, true)) {
+            $targetLocale = 'en';
+        }
 
         $entity             = null;
         $translationModel   = null;
@@ -132,10 +153,9 @@ class TranslationController extends Controller
                 break;
 
             case 'policies':
-                $entity             = Policy::findOrFail($id);
+                $entity             = Policy::with('sections')->findOrFail($id);
                 $translationModel   = PolicyTranslation::class;
                 $foreignKey         = 'policy_id';
-                // IMPORTANTE: la tabla policy_translations tiene 'title', no 'name'
                 $translatableFields = ['title', 'content'];
                 break;
 
@@ -150,40 +170,50 @@ class TranslationController extends Controller
                 abort(404, 'Invalid translation type.');
         }
 
+        // Construir traducciones con fallback también cuando el campo existe pero está vacío
         foreach ($availableLocales as $lang) {
             $existing = $translationModel::where($foreignKey, $entity->getKey())
                 ->where('locale', $lang)
                 ->first();
 
             foreach ($translatableFields as $field) {
-                // fallback desde el modelo base cuando no existe traducción aún
+                $val = '';
                 if ($existing) {
-                    $allTranslations[$lang][$field] = $existing->{$field} ?? '';
+                    $val = (string) ($existing->{$field} ?? '');
+                    if ($val === '') {
+                        // Fallback si la fila existe pero el campo está vacío
+                        if ($type === 'policies' && $field === 'title') {
+                            $val = (string) ($entity->name ?? '');
+                        } else {
+                            $val = (string) ($entity->{$field} ?? '');
+                        }
+                    }
                 } else {
-                    // mapping para policies: title ← name base
                     if ($type === 'policies' && $field === 'title') {
-                        $allTranslations[$lang][$field] = (string) ($entity->name ?? '');
+                        $val = (string) ($entity->name ?? '');
                     } else {
-                        $allTranslations[$lang][$field] = (string) ($entity->{$field} ?? '');
+                        $val = (string) ($entity->{$field} ?? '');
                     }
                 }
+                $allTranslations[$lang][$field] = $val;
             }
         }
 
         return view('admin.translations.edit', [
-            'type'         => $type,
-            'item'         => $entity,
-            'locale'       => $currentLocale,
-            'fields'       => $translatableFields,
-            'translations' => $allTranslations[$currentLocale] ?? [],
+            'type'           => $type,
+            'item'           => $entity,
+            'locale'         => $targetLocale, // idioma de EDICIÓN
+            'fields'         => $translatableFields,
+            'translations'   => $allTranslations[$targetLocale] ?? [],
+            'uiLocale'       => app()->getLocale(), // idioma de INTERFAZ
+            'editingLocale'  => $targetLocale,      // idioma de EDICIÓN
         ]);
     }
 
-    /** Persistencia de traducciones (entidad principal + opcionales) */
     public function update(Request $request, string $type, int $id)
     {
         $validated = $request->validate([
-            'locale'                 => 'required|in:es,en,fr,pt,de',
+            'locale'                 => 'required|in:es,en,fr,pt,de',  // idioma de EDICIÓN
             'translations'           => 'nullable|array',
             'itinerary_translations' => 'nullable|array',
             'item_translations'      => 'nullable|array',
@@ -242,7 +272,6 @@ class TranslationController extends Controller
                     $entity             = Policy::with('sections')->findOrFail($id);
                     $translationModel   = PolicyTranslation::class;
                     $foreignKey         = 'policy_id';
-                    // IMPORTANTE: usar 'title' en lugar de 'name'
                     $translatableFields = ['title', 'content'];
                     break;
 
@@ -257,7 +286,6 @@ class TranslationController extends Controller
                     abort(404, 'Invalid translation type.');
             }
 
-            // Upsert de traducción principal
             $translation = $translationModel::firstOrNew([
                 $foreignKey => $entity->getKey(),
                 'locale'    => $locale,
@@ -265,10 +293,8 @@ class TranslationController extends Controller
 
             foreach ($translatableFields as $field) {
                 if (array_key_exists($field, $mainFieldValues)) {
-                    // Valor enviado desde el form
                     $translation->{$field} = (string) $mainFieldValues[$field];
                 } elseif (!$translation->exists) {
-                    // Fallback inicial desde el modelo base
                     if ($type === 'policies' && $field === 'title') {
                         $translation->title = (string) ($entity->name ?? '');
                     } else {
@@ -278,7 +304,6 @@ class TranslationController extends Controller
             }
             $translation->save();
 
-            // Soporte adicional: itinerary + items (solo para tours)
             if ($type === 'tours' && $entity->itinerary) {
                 if (!empty($itineraryFieldValues)) {
                     $itTr = ItineraryTranslation::firstOrNew([
@@ -332,7 +357,6 @@ class TranslationController extends Controller
                 }
             }
 
-            // Secciones de policies (opcional)
             if ($type === 'policies' && !empty($sectionFieldValuesById) && $entity->relationLoaded('sections')) {
                 foreach ($entity->sections as $section) {
                     $sectionId = $section->section_id;
@@ -364,7 +388,7 @@ class TranslationController extends Controller
             }
 
             return redirect()
-                ->route('admin.translations.select', ['type' => $type])
+                ->route('admin.translations.edit', ['type' => $type, 'id' => $id])
                 ->with('success', __('m_config.translations.updated_success'));
 
         } catch (Exception $e) {

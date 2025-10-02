@@ -6,10 +6,27 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReviewReply extends Model
 {
-    protected $fillable = ['review_id','admin_user_id','body','public'];
+    protected $table = 'review_replies';
+    protected $primaryKey = 'id';
 
-    protected $casts = ['public' => 'boolean'];
+    protected $fillable = [
+        'review_id',
+        'admin_user_id',
+        'body',
+        'public',          // <- coincide con la migración
+    ];
 
-    public function review() { return $this->belongsTo(Review::class); }
-    public function admin()  { return $this->belongsTo(\App\Models\User::class,'admin_user_id'); }
+    protected $casts = [
+        'public' => 'boolean',
+    ];
+
+    public function review()
+    {
+        return $this->belongsTo(Review::class, 'review_id');
+    }
+
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'admin_user_id', 'user_id');
+    }
 }
