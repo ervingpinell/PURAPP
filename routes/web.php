@@ -231,12 +231,12 @@ Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tou
                 Route::patch('users/{user}/mark-verified', [UserRegisterController::class, 'markVerified'])->name('users.markVerified');
 
                 // Traducciones
-Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
-Route::get('translations/{type}/select', [TranslationController::class, 'select'])->name('translations.select');
-Route::get('translations/{type}/{id}/locale', [TranslationController::class, 'selectLocale'])->name('translations.locale');
-Route::get('translations/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('translations.edit');
-Route::post('translations/{type}/{id}/update', [TranslationController::class, 'update'])->name('translations.update');
-Route::post('translations/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('translations.change-editing-locale');
+                Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
+                Route::get('translations/{type}/select', [TranslationController::class, 'select'])->name('translations.select');
+                Route::get('translations/{type}/{id}/locale', [TranslationController::class, 'selectLocale'])->name('translations.locale');
+                Route::get('translations/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('translations.edit');
+                Route::post('translations/{type}/{id}/update', [TranslationController::class, 'update'])->name('translations.update');
+                Route::post('translations/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('translations.change-editing-locale');
 
                 // FAQs
                 Route::resource('faqs', AdminFaqController::class)->except(['show']);
@@ -291,7 +291,7 @@ Route::post('translations/change-editing-locale', [TranslationController::class,
                 Route::get('promoCode', [PromoCodeController::class, 'index'])->name('promoCode.index');
                 Route::post('promoCode', [PromoCodeController::class, 'store'])->name('promoCode.store');
                 Route::delete('promoCode/{promo}', [PromoCodeController::class, 'destroy'])->name('promoCode.destroy');
-
+                Route::patch('promoCode/{promo}/operation', [PromoCodeController::class, 'updateOperation'])->name('promoCode.updateOperation');
                 // Tours
                 Route::resource('tours', TourController::class)->except(['create', 'edit', 'show', 'destroy']);
                 Route::patch('tours/{tour:tour_id}/toggle', [TourController::class, 'toggle'])->name('tours.toggle');

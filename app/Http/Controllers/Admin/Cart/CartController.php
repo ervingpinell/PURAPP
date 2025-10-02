@@ -513,15 +513,22 @@ class CartController extends Controller
         $discountPerc     = max(0.0, (float)($promo->discount_percent ?? 0));
         $discountFromPerc = round($subtotal * ($discountPerc / 100), 2);
 
-        $discount = min($subtotal, round($discountFixed + $discountFromPerc, 2));
-        $newTotal = max(0, round($subtotal - $discount, 2));
+        $adjustment = round($discountFixed + $discountFromPerc, 2); // monto positivo
+        // === CLAVE: usar operation ===
+        $operation = $promo->operation === 'add' ? 'add' : 'subtract';
+        $sign      = $operation === 'add' ? +1 : -1;
+
+        // si restar => subtotal - ajuste ; si sumar => subtotal + ajuste
+        $newTotal = round($subtotal + ($sign * $adjustment), 2);
+        $newTotal = max(0, $newTotal);
 
         session([
             'admin_cart_promo' => [
                 'code'       => $promo->code,
+                'operation'  => $operation,     // guardamos operación
                 'amount'     => $discountFixed,
                 'percent'    => $discountPerc,
-                'discount'   => $discount,
+                'adjustment' => $adjustment,    // monto calculado (positivo)
                 'subtotal'   => $subtotal,
                 'new_total'  => $newTotal,
                 'applied_at' => now()->toISOString(),
@@ -531,7 +538,7 @@ class CartController extends Controller
         $parts = [];
         if ($discountFixed > 0) $parts[] = '$'.number_format($discountFixed, 2);
         if ($discountPerc  > 0) $parts[] = $discountPerc.'%';
-        $label = implode(' + ', $parts);
+        $label = implode(' + ', $parts) ?: ($operation === 'add' ? 'Recargo' : 'Descuento');
 
         // [TIMER] actividad administrativa (opcional)
         if ($cart && $cart->is_active && !$cart->isExpired()) {
@@ -540,14 +547,16 @@ class CartController extends Controller
 
         return response()->json([
             'ok'        => true,
-            'message'   => 'Código aplicado.',
+            'message'   => $operation === 'add' ? 'Código aplicado (recargo).' : 'Código aplicado (descuento).',
             'code'      => $promo->code,
-            'label'     => $label ?: 'Descuento',
-            'discount'  => number_format($discount, 2),
+            'operation' => $operation,
+            'label'     => $label,
+            'adjustment'=> number_format($adjustment, 2), // monto positivo mostrado
             'subtotal'  => number_format($subtotal, 2),
             'new_total' => number_format($newTotal, 2),
         ]);
     }
+
 
     public function removePromoAdmin(Request $request)
     {

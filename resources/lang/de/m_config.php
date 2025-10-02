@@ -358,9 +358,9 @@ return [
     // ==== PROMOCODE ==========================================
     // =========================================================
     'promocode' => [
-        'title'        => 'Promo-Codes',
-        'create_title' => 'Neuen Promo-Code erstellen',
-        'list_title'   => 'Vorhandene Promo-Codes',
+        'title'        => 'Gutscheincodes',
+        'create_title' => 'Neuen Gutscheincode erstellen',
+        'list_title'   => 'Vorhandene Gutscheincodes',
 
         'success_title' => 'Erfolg',
         'error_title'   => 'Fehler',
@@ -369,27 +369,29 @@ return [
             'code'        => 'Code',
             'discount'    => 'Rabatt',
             'type'        => 'Typ',
+            'operation'   => 'Operation',
             'valid_from'  => 'Gültig ab',
             'valid_until' => 'Gültig bis',
-            'usage_limit' => 'Nutzungsbegrenzung',
+            'usage_limit' => 'Nutzungsgrenze',
         ],
 
         'types' => [
             'percent' => '%',
-            'amount'  => '$',
+            'amount'  => '€',
         ],
 
         'symbols' => [
             'percent'  => '%',
-            'currency' => '$',
+            'currency' => '€',
         ],
 
         'table' => [
             'code'         => 'Code',
             'discount'     => 'Rabatt',
+            'operation'    => 'Operation',
             'validity'     => 'Gültigkeit',
             'date_status'  => 'Status (Datum)',
-            'usage'        => 'Nutzung',
+            'usage'        => 'Nutzungen',
             'usage_status' => 'Status (Nutzung)',
             'actions'      => 'Aktionen',
         ],
@@ -406,30 +408,40 @@ return [
         ],
 
         'actions' => [
-            'generate' => 'Erstellen',
-            'delete'   => 'Löschen',
+            'generate'         => 'Erstellen',
+            'delete'           => 'Löschen',
+            'toggle_operation' => 'Zwischen Add/Subtract wechseln',
         ],
 
         'labels' => [
             'unlimited_placeholder' => 'Leer = unbegrenzt',
-            'unlimited_hint'        => 'Leer lassen für unbegrenzt. 1 = einmalige Nutzung.',
-            'no_limit'              => '(kein Limit)',
+            'unlimited_hint'        => 'Leer lassen für unbegrenzte Nutzung. 1 = einmalige Nutzung.',
+            'no_limit'              => '(ohne Limit)',
             'remaining'             => 'verbleibend',
         ],
 
         'confirm_delete' => 'Diesen Code wirklich löschen?',
-        'empty'          => 'Keine Promo-Codes verfügbar.',
+        'empty'          => 'Keine Gutscheincodes verfügbar.',
 
         'messages' => [
-            'created_success'         => 'Promo-Code erfolgreich erstellt.',
-            'deleted_success'         => 'Promo-Code erfolgreich gelöscht.',
-            'percent_over_100'        => 'Prozentsatz darf 100 nicht überschreiten.',
-            'code_exists_normalized'  => 'Dieser Code (ohne Leerzeichen und Groß-/Kleinschreibung) existiert bereits.',
-            'invalid_or_used'         => 'Ungültiger oder bereits verwendeter Code.',
-            'valid'                   => 'Gültiger Code.',
-            'server_error'            => 'Serverfehler, bitte erneut versuchen.',
+            'created_success'        => 'Gutscheincode erfolgreich erstellt.',
+            'deleted_success'        => 'Gutscheincode erfolgreich gelöscht.',
+            'percent_over_100'       => 'Prozentsatz darf 100 nicht überschreiten.',
+            'code_exists_normalized' => 'Dieser Code (ohne Leerzeichen und Groß-/Kleinschreibung) existiert bereits.',
+            'invalid_or_used'        => 'Ungültiger oder bereits verwendeter Code.',
+            'valid'                  => 'Gültiger Code.',
+            'server_error'           => 'Serverfehler. Bitte erneut versuchen.',
+            'operation_updated'      => 'Operation erfolgreich aktualisiert.',
+        ],
+
+        'operations' => [
+            'add'           => 'Addieren',
+            'subtract'      => 'Subtrahieren',
+            'make_add'      => 'Zu „Addieren“ wechseln',
+            'make_subtract' => 'Zu „Subtrahieren“ wechseln',
         ],
     ],
+
 
     // =========================================================
     // ==== CUTOFF =============================================
