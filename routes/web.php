@@ -42,6 +42,7 @@ use App\Http\Controllers\Admin\Reviews\ReviewReplyController;
 use App\Http\Controllers\Admin\Reviews\ReviewRequestAdminController;
 use App\Http\Controllers\Reviews\PublicReviewController;
 use App\Http\Controllers\Auth\UnlockAccountController;
+use App\Http\Controllers\Admin\Reports\ReportsController;
 
 // Helper para rutas localizadas
 if (!function_exists('localizedRoutes')) {
@@ -362,6 +363,14 @@ Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tou
                 Route::patch('carritos/{cart}/toggle', [CartController::class, 'toggleActive'])->name('cart.toggle');
                 Route::post('carrito/apply-promo', [CartController::class, 'applyPromoAdmin'])->name('cart.applyPromo');
                 Route::delete('carrito/remove-promo', [CartController::class, 'removePromoAdmin'])->name('cart.removePromo');
+
+                // REPORTS (solo roles con access-reports)
+                // REPORTS (solo roles con access-reports)
+                Route::prefix('reports')->name('reports.')->group(function () {
+                    Route::get('/', [ReportsController::class, 'index'])->name('index');
+                    Route::get('/chart/monthly-sales', [ReportsController::class, 'chartMonthlySales'])->name('chart.monthly');
+                    Route::get('/chart/by-language',   [ReportsController::class, 'chartByLanguage'])->name('chart.language');
+                });
 
                 // REVIEWS (solo roles con manage-reviews)
                 Route::middleware(['can:manage-reviews'])->group(function () {

@@ -376,6 +376,7 @@ return [
                 'route' => 'admin.tours.cutoff.edit',
                 'icon'  => 'fas fa-clock',
             ],
+            
         ],
     ],
 
@@ -459,6 +460,11 @@ return [
                 'text'  => 'Meeting Points',
                 'route' => 'admin.meetingpoints.index',
                 'icon'  => 'fas fa-map-marker-alt',
+            ],
+            [
+                'text' => 'Reportes',
+                'url'  => 'admin/reports',
+                'icon' => 'fas fa-chart-line',
             ],
 
         ],
