@@ -42,6 +42,7 @@ use App\Http\Controllers\Admin\Reviews\ReviewReplyController;
 use App\Http\Controllers\Admin\Reviews\ReviewRequestAdminController;
 use App\Http\Controllers\Reviews\PublicReviewController;
 use App\Http\Controllers\Auth\UnlockAccountController;
+use App\Http\Controllers\Admin\Reports\ReportsController;
 
 // Helper para rutas localizadas
 if (!function_exists('localizedRoutes')) {
@@ -291,7 +292,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('promoCode', [PromoCodeController::class, 'index'])->name('promoCode.index');
                 Route::post('promoCode', [PromoCodeController::class, 'store'])->name('promoCode.store');
                 Route::delete('promoCode/{promo}', [PromoCodeController::class, 'destroy'])->name('promoCode.destroy');
-
+                Route::patch('promoCode/{promo}/operation', [PromoCodeController::class, 'updateOperation'])->name('promoCode.updateOperation');
                 // Tours
                 Route::resource('tours', TourController::class)->except(['create', 'edit', 'show', 'destroy']);
                 Route::patch('tours/{tour:tour_id}/toggle', [TourController::class, 'toggle'])->name('tours.toggle');
@@ -362,6 +363,14 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::patch('carritos/{cart}/toggle', [CartController::class, 'toggleActive'])->name('cart.toggle');
                 Route::post('carrito/apply-promo', [CartController::class, 'applyPromoAdmin'])->name('cart.applyPromo');
                 Route::delete('carrito/remove-promo', [CartController::class, 'removePromoAdmin'])->name('cart.removePromo');
+
+                // REPORTS (solo roles con access-reports)
+                // REPORTS (solo roles con access-reports)
+                Route::prefix('reports')->name('reports.')->group(function () {
+                    Route::get('/', [ReportsController::class, 'index'])->name('index');
+                    Route::get('/chart/monthly-sales', [ReportsController::class, 'chartMonthlySales'])->name('chart.monthly');
+                    Route::get('/chart/by-language',   [ReportsController::class, 'chartByLanguage'])->name('chart.language');
+                });
 
                 // REVIEWS (solo roles con manage-reviews)
                 Route::middleware(['can:manage-reviews'])->group(function () {
