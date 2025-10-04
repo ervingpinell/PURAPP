@@ -219,6 +219,7 @@ body.has-fixed-navbar{ padding-top: var(--nav-h); }
   .navbar-custom .cart-count-badge {
     transform: translate(-50%, -42%) !important;
   }
+}
 
 /* =========================
    LANGUAGE SWITCHER
@@ -247,7 +248,7 @@ body.has-fixed-navbar{ padding-top: var(--nav-h); }
   border-radius: 2px;
 }
 
-/* Dropdown del switcher */
+/* Dropdown del switcher (no afecta otros menús) */
 .language-switcher .dropdown-menu {
   background: #0f2419;
   border: 1px solid rgba(255,255,255,.15);
@@ -286,4 +287,23 @@ body.has-fixed-navbar{ padding-top: var(--nav-h); }
   }
 }
 
+/* =========================
+   GAP BAJO NAVBAR FIJO (primer elemento + notch safe)
+   ========================= */
+:root{
+  /* separación inicial debajo del header fijo */
+  --content-top-gap: clamp(12px, 2.5vh, 28px);
+}
+
+body.has-fixed-navbar .page-first,
+body.has-fixed-navbar main > .big-title:first-child,
+body.has-fixed-navbar .content > .big-title:first-child,
+body.has-fixed-navbar .container > .big-title:first-child {
+  margin-top: calc(var(--content-top-gap) + env(safe-area-inset-top, 0px));
+}
+
+@media (max-width: 576.98px){
+  :root{
+    --content-top-gap: clamp(10px, 2vh, 20px);
+  }
 }

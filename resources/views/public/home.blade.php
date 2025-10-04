@@ -16,9 +16,10 @@
 @endpush
 
 @section('content')
-<h2 class="big-title text-center" style="color: var(--primary-dark);">
+<h2 class="big-title text-center page-first" style="color: var(--primary-dark);">
   {{ __('adminlte::adminlte.our_tours') }}
 </h2>
+
 <section class="tours-section" id="tours">
   @include('partials.tours', ['toursByType' => $toursByType, 'typeMeta' => $typeMeta])
 </section>
@@ -37,9 +38,8 @@
 <section class="ws-section">
   @include('partials.ws-widget')
 </section>
-
 @endsection
 
 @push('scripts')
-    @vite('resources/js/reviews-carousel.js')
+  @vite('resources/js/reviews-carousel.js')
 @endpush

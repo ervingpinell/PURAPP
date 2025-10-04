@@ -77,6 +77,7 @@ $tourUrl = request('turl') ?: ($tourId ? localized_route('tours.show', ['tour'=>
 </head>
 
 <body
+  data-embed="1"
   data-more="{{ $TXT_MORE }}"
   data-less="{{ $TXT_LESS }}"
   style="margin:0;padding:0;background:transparent;"
