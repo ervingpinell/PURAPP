@@ -65,7 +65,7 @@ $tourUrl = request('turl') ?: ($tourId ? localized_route('tours.show', ['tour'=>
 <html lang="{{ str_replace('_','-',app()->getLocale()) }}">
 <head>
   <meta charset="utf-8">
-  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <meta name="robots" content="X-Robots-Tag', noindex, nofollow, noarchive, nosnippet">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   @if ($theme === 'site')

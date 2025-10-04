@@ -53,15 +53,17 @@
     'recovery-codes-generated'            => 'auth.two_factor.recovery_codes_generated',
   ];
 
-  // Resuelve logo e inicio (ajusta según tu config)
+  // Logo e inicio PÚBLICO (usa route('home') si existe; fallback a '/')
   $logoUrl = asset(config('adminlte.logo_img', 'images/logo.png'));
-  $homeUrl = route('home');
+  $homeUrl = \Illuminate\Support\Facades\Route::has('home')
+            ? route('home')
+            : url('/');
 @endphp
 
 <div class="d-flex justify-content-center">
   <div class="col-md-7 col-lg-6">
 
-    {{-- LOGO (solo la imagen es clickeable) --}}
+    {{-- LOGO (linkea al HOME PÚBLICO) --}}
     <div class="profile-brand">
       <a href="{{ $homeUrl }}" class="brand-link-inline" aria-label="{{ config('app.name') }} home">
         <img src="{{ $logoUrl }}" alt="{{ config('app.name') }} logo" class="brand-img">

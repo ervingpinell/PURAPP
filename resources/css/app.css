@@ -234,13 +234,13 @@ body.has-fixed-navbar{ padding-top: var(--nav-h); }
   border-radius: .35rem;
   padding: .35rem .65rem;
   font-size: var(--fs-sm);
-  font-weight: 600;
+  font-weight: 550;
   cursor: pointer;
   transition: all .25s ease;
 }
 .language-switcher-toggle:hover {
   background: rgba(255,255,255,.1);  /* leve fondo al hover */
-  border-color: #8bc34a;
+  border-color: #256D1B;
   color: #fff !important;
 }
 .language-switcher-toggle img {
@@ -271,7 +271,7 @@ body.has-fixed-navbar{ padding-top: var(--nav-h); }
 }
 .language-switcher .dropdown-item:hover,
 .language-switcher .dropdown-item:focus {
-  background: #8bc34a;
+  background: #256D1B;
   color: #fff !important;
 }
 

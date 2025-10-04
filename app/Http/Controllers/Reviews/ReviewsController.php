@@ -195,9 +195,6 @@ class ReviewsController extends Controller
         return view('reviews.tour', compact('reviews', 'tourId', 'tourName'));
     }
 
-    /**
-     * Embed para iframes
-     */
 /**
  * Embed para iframes
  */
@@ -217,7 +214,6 @@ public function embed(Request $request, ReviewAggregator $agg, string $provider)
     $base    = (int) $request->query('base', $layout === 'card' ? 500 : 460);
     $uid     = (string) $request->query('uid', 'u' . substr(sha1(uniqid('', true)), 0, 10));
 
-    // Cache key (no necesita incluir tname; lo aplicamos post-procesado)
     $cacheKey = 'reviews:embed:' . md5(json_encode([
         'p' => $provider, 'tour' => $tourId, 'lim' => $limit
     ]));
@@ -230,7 +226,6 @@ public function embed(Request $request, ReviewAggregator $agg, string $provider)
         ]);
     });
 
-    // Deduplicar
     $reviews = $reviews->unique(function($r) {
         $prov = strtolower($r['provider'] ?? 'p');
         if (!empty($r['provider_review_id'])) {
@@ -243,7 +238,6 @@ public function embed(Request $request, ReviewAggregator $agg, string $provider)
         );
     })->values();
 
-    // Elegir n-ésimo
     $count = $reviews->count();
     if ($count > 0) {
         $idx = ($nth - 1) % $count;
@@ -252,21 +246,16 @@ public function embed(Request $request, ReviewAggregator $agg, string $provider)
         $reviews = collect();
     }
 
-    // ===========================
-    // ⬇️ INYECCIÓN DE NOMBRE TRADUCIDO
-    // ===========================
-    $reqTname   = trim((string) $request->query('tname', ''));
-    $fallback   = config('app.fallback_locale', 'es');
+    $reqTname = trim((string) $request->query('tname', ''));
+    $fallback = config('app.fallback_locale', 'es');
 
     if ($reviews->isNotEmpty()) {
         $reviews = $reviews->map(function ($r) use ($reqTname, $tourId, $lang, $fallback) {
-            // 1) Si viene tname en la URL, SIEMPRE gana
             if ($reqTname !== '') {
                 $r['tour_name'] = $reqTname;
                 return $r;
             }
 
-            // 2) Si no hay tname pero sí tour_id, resolver desde DB con el locale actual
             $id = (int)($r['tour_id'] ?? $tourId ?? 0);
             if ($id > 0) {
                 $tour = \App\Models\Tour::with('translations')->find($id);
@@ -276,19 +265,16 @@ public function embed(Request $request, ReviewAggregator $agg, string $provider)
                     $resolved = $tr->name ?? $tour->name ?? null;
                     if ($resolved) {
                         $r['tour_name'] = $resolved;
-                        // Asegura tour_id coherente
                         $r['tour_id']   = $id;
                         return $r;
                     }
                 }
             }
 
-            // 3) Fallback final: deja el que venga en el review (si existe)
             return $r;
         });
     }
 
-    // HTTP caching (después de inyectar el nombre final)
     $hashOfSelected = $reviews->isNotEmpty() ? sha1(json_encode($reviews->first())) : 'empty';
     $etag = sprintf('rev:%s|tour:%s|nth:%s|h:%s',
         $provider, $tourId ?: 'all', $nth, $hashOfSelected
@@ -305,7 +291,8 @@ public function embed(Request $request, ReviewAggregator $agg, string $provider)
 
     $response->setEtag($etag)
         ->header('Cache-Control', 'public, max-age=900, s-maxage=900, stale-while-revalidate=300')
-        ->header('Vary', 'Accept-Language');
+        ->header('Vary', 'Accept-Language')
+        ->header('X-Robots-Tag', 'noindex, nofollow, noarchive'); // 🚫 evita indexación total
 
     if ($response->isNotModified($request)) {
         return $response;

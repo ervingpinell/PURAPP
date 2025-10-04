@@ -214,27 +214,37 @@
     });
   });
 
-  /* ---------------------------------
-   * 6) Cart item counter (fetch)
-   * --------------------------------- */
-  function updateCartCount() {
-    fetch('/cart/count')
-      .then(res => res.ok ? res.json() : Promise.reject(`HTTP ${res.status}`))
-      .then(data => {
-        if (typeof window.setCartCount === 'function') {
-          window.setCartCount(data.count);
-          return;
-        }
-        const badgeEls = document.querySelectorAll('.cart-count-badge');
-        badgeEls.forEach(el => {
-          el.textContent = data.count;
-          el.style.display = data.count > 0 ? 'inline-block' : 'none';
+/* 6) Cart item counter (fetch) */
+function updateCartCount() {
+  fetch('/cart/count', { headers: { 'Accept': 'application/json' }})
+    .then(res => res.ok ? res.json() : Promise.reject(`HTTP ${res.status}`))
+    .then(data => {
+      const n = Number(data.count || 0);
+      if (typeof window.setCartCount === 'function') {
+        window.setCartCount(n);
+      } else {
+        document.querySelectorAll('.cart-count-badge').forEach(el => {
+          el.textContent = n;
+          el.style.display = n > 0 ? 'inline-block' : 'none';
           el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
         });
-      })
-      .catch(err => console.error('❌ Error al obtener la cantidad del carrito:', err));
-  }
-  updateCartCount();
+      }
+    })
+    .catch(err => console.error('❌ Error al obtener la cantidad del carrito:', err));
+}
+updateCartCount();
+
+// ✅ Refresca al volver a la pestaña
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) updateCartCount();
+});
+
+// ✅ Polling ligero cada 30s
+setInterval(updateCartCount, 30000);
+
+// ✅ Ganchito global para otros módulos
+window.addEventListener('cart:changed', updateCartCount);
+
 
   /* ----------------------------------------------------
    * 7) Precios: modal + resumen

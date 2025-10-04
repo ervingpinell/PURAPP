@@ -609,21 +609,38 @@ class CartController extends Controller
         return back()->with('success', 'Estado del carrito actualizado correctamente.');
     }
 
-    public function count()
-    {
-        if (!auth()->check()) {
-            return response()->json(['count' => 0]);
-        }
-
-        $cart = auth()->user()
-            ->cart()
-            ->where('is_active', true)
-            ->orderByDesc('cart_id')
-            ->first();
-
-        $count = $cart ? $cart->items()->where('is_active', true)->count() : 0;
-        return response()->json(['count' => $count]);
+// CartController.php
+public function count()
+{
+    if (!auth()->check()) {
+        return response()->json(['count' => 0]);
     }
+
+    $cart = auth()->user()
+        ->cart()
+        ->where('is_active', true)
+        ->orderByDesc('cart_id')
+        ->first();
+
+    if (!$cart) {
+        return response()->json(['count' => 0, 'expired' => false]);
+    }
+
+    // ✅ Auto-expirar si corresponde
+    if ($cart->isExpired()) {
+        $this->expireCart($cart);
+        return response()->json(['count' => 0, 'expired' => true]);
+    }
+
+    $count = $cart->items()->where('is_active', true)->count();
+
+    return response()->json([
+        'count'     => $count,
+        'expired'   => false,
+        'remaining' => $cart->remainingSeconds(),
+    ]);
+}
+
 
     // =========================
     // [TIMER] Endpoint para expirar carrito desde el front
