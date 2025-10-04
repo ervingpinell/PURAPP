@@ -68,7 +68,7 @@
 
 /* Rating */
 .home-hero .review-stars{ color:#ffc107; font-size:var(--fs-stars); }
-.home-hero .rating-number{ font-size:var(--fs-rating); color:#555; margin-left:.4rem; }
+.home-hero .rating-number{ font-size:var(--fs-rating); color: var(--gv-green-600); margin-left:.4rem; }
 
 /* Label */
 .home-hero .review-label{

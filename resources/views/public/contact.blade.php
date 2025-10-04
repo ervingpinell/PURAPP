@@ -13,7 +13,7 @@
     <div class="row gy-4 justify-content-center align-items-stretch flex-wrap">
       <div class="col-lg-8 col-md-12 d-flex">
         <div class="card shadow-sm border flex-fill w-100">
-          <div class="card-header bg-green-dark text-white">
+          <div class="card-header text-white">
             <h4 class="mb-0">{{ __('adminlte::adminlte.contact_us') }}</h4>
           </div>
 

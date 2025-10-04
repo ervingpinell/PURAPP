@@ -1,0 +1,194 @@
+/* POLICIES — página de políticas */
+:root{
+  /* se apoya en variables globales ya definidas en tu tema */
+  --p-heading: var(--gv-green, #1A5229);
+  --p-muted:   var(--gv-muted, #6b7280);
+  --p-border:  var(--gv-border, #d9d9d9);
+  --p-shadow:  var(--gv-shadow, 0 6px 24px rgba(0,0,0,.06));
+  --p-bg:      #fff;
+}
+
+.policies-page{
+  background: #fff;
+}
+
+.policies-wrap{
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+.policies-title{
+  color: var(--p-heading);
+  font-weight: 800;
+  letter-spacing: .2px;
+  text-align: center;
+  margin: .25rem 0 1.5rem;
+}
+
+.policies-intro{
+  color: var(--p-muted);
+  text-align: center;
+  max-width: 780px;
+  margin: 0 auto 1.25rem;
+  font-size: .95rem;
+}
+
+/* Accordion raíz */
+.policies-accordion .accordion-item{
+  border: 1px solid var(--p-border);
+  border-radius: 12px;
+  background: var(--p-bg);
+  margin-bottom: .9rem;
+  overflow: hidden;
+  transition: box-shadow .2s ease, transform .12s ease;
+}
+.policies-accordion .accordion-item:has(.accordion-collapse.show){
+  box-shadow: var(--p-shadow);
+  transform: translateY(-1px);
+}
+.policies-accordion .accordion-button{
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: 1rem 1rem 1rem 0;
+  background: transparent;
+  box-shadow: none !important;
+  color: #1f2937;
+  font-weight: 700;
+}
+.policies-accordion .accordion-button:hover{
+  background: #f9fafb;
+}
+.policies-accordion .accordion-button:focus{
+  outline: 0;
+  box-shadow: none;
+}
+
+/* quitamos caret default de BS */
+.policies-accordion .accordion-button::after{ display: none; }
+
+/* íconos +/− */
+.policies-accordion .icon-wrap{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--p-border);
+  color: var(--gv-green, #1A5229);
+  background: #fff;
+  flex: 0 0 28px;
+}
+.policies-accordion .accordion-button[aria-expanded="true"] .fa-plus{ display:none; }
+.policies-accordion .accordion-button[aria-expanded="false"] .fa-minus{ display:none; }
+
+/* títulos tipo link dentro del botón */
+.policies-accordion .accordion-button .policy-link{
+  color: inherit;
+  text-decoration: none;
+}
+.policies-accordion .accordion-button .policy-link:hover{
+  text-decoration: underline;
+}
+
+/* cuerpo */
+.policies-accordion .accordion-body{
+  padding: .25rem 1rem 1rem 3rem;
+  color: #374151;
+  line-height: 1.6;
+}
+.policies-accordion .accordion-body p{ margin-bottom: .75rem; }
+
+/* Sub-acordeón (secciones) */
+.policy-sections.accordion .accordion-item{
+  border: 0;
+  border-top: 1px dashed var(--p-border);
+  border-radius: 0;
+  margin: 0;
+}
+.policy-sections .accordion-button{
+  padding-left: 0;
+  padding-right: 0;
+  background: transparent;
+  font-weight: 700;
+}
+.policy-sections .accordion-button:hover{
+  background:#fff;
+}
+.policy-sections .accordion-body{
+  padding-left: 2rem;
+  padding-right: 0;
+}
+
+/* utilidades */
+.policy-meta{
+  color: var(--p-muted);
+  font-size: .9rem;
+  margin: 0 0 1rem;
+  text-align:center;
+}
+/* --- Show: bloque de contenido principal --- */
+.policy-content{
+  background: var(--p-bg, #fff);
+  border: 1px solid var(--p-border, #d9d9d9);
+  border-radius: 12px;
+  padding: 1.25rem 1.25rem 1rem;
+  color: #374151;
+  line-height: 1.65;
+  margin-bottom: 1.25rem;
+}
+.policy-content p{ margin-bottom: .9rem; }
+
+/* --- Show: acordeón de secciones (mismo look del index) --- */
+.policy-sections.accordion .accordion-item{
+  border: 1px solid var(--p-border, #d9d9d9);
+  border-radius: 12px;
+  margin-bottom: .9rem;
+  background: var(--p-bg, #fff);
+  overflow: hidden;
+  transition: box-shadow .2s ease, transform .12s ease;
+}
+.policy-sections.accordion .accordion-item:has(.accordion-collapse.show){
+  box-shadow: var(--p-shadow, 0 6px 24px rgba(0,0,0,.06));
+  transform: translateY(-1px);
+}
+
+/* botón, iconos y caret fuera */
+.policy-sections .accordion-button{
+  display:flex; align-items:center; gap:.5rem;
+  padding: 1rem 1rem 1rem .75rem;
+  background: transparent;
+  box-shadow: none !important;
+  color:#1f2937; font-weight:700;
+}
+.policy-sections .accordion-button:hover{ background:#f9fafb; }
+.policy-sections .accordion-button:focus{ outline:0; box-shadow:none; }
+.policy-sections .accordion-button::after{ display:none; }
+
+.policy-sections .icon-wrap{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:28px; height:28px; flex:0 0 28px;
+  border-radius:999px; border:1px solid var(--p-border,#d9d9d9);
+  color: var(--gv-green,#1A5229); background:#fff;
+}
+.policy-sections .accordion-button[aria-expanded="true"]  .fa-plus{ display:none; }
+.policy-sections .accordion-button[aria-expanded="false"] .fa-minus{ display:none; }
+
+.policy-sections .accordion-body{
+  padding: .5rem 1rem 1rem 3rem;
+  color:#374151; line-height:1.6;
+  border-top:1px dashed var(--p-border,#d9d9d9);
+}
+
+/* responsive */
+@media (max-width: 768px){
+  .policy-sections .accordion-body{ padding: .5rem 1rem 1rem 2rem; }
+}
+
+/* responsive */
+@media (max-width: 768px){
+  .policies-wrap{ padding: 1.25rem 1rem 2.25rem; }
+  .policies-accordion .accordion-body{ padding: .25rem 1rem 1rem 2.25rem; }
+  .policy-sections .accordion-body{ padding-left: 1.5rem; }
+}

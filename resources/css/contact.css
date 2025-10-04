@@ -10,8 +10,8 @@
   --contact-h5:     var(--fs-h5,   17px);
   --contact-h6:     var(--fs-h6,   15px);
 
-  --contact-green:      var(--primary-dark, #256d1b);
-  --contact-green-600:  #256d1b;
+  --contact-green:     linear-gradient(to right, #0d4740, #083d3a);
+  --contact-green-600:  #0d4740;
   --contact-green-700:  #1a5a18;
   --contact-green-soft: #eaf4ea;
 
