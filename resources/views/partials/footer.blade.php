@@ -5,6 +5,8 @@
 
     if ($terms)   { $terms->loadMissing('translations'); }
     if ($privacy) { $privacy->loadMissing('translations'); }
+
+    $mapUrl = 'https://www.google.com/maps?ll=10.455662,-84.653203&z=16&t=m&hl=en&gl=US&mapclient=embed&cid=8940439748623688530';
   @endphp
 
   <div class="footer-main-content">
@@ -94,7 +96,13 @@
 
     <div class="contact-info">
       <h4>{{ __('adminlte::adminlte.contact_us') }}</h4>
-      <p><i class="fas fa-map-marker-alt me-2"></i> La Fortuna, San Carlos, Costa Rica</p>
+      <p class="mb-2">
+        <i class="fas fa-map-marker-alt me-2"></i>
+        <a href="{{ $mapUrl }}" target="_blank" rel="noopener"
+           class="text-white text-decoration-none">
+          La Fortuna, San Carlos, Costa Rica
+        </a>
+      </p>
       <p>
         <i class="fas fa-phone me-2"></i>
         <a href="tel:+50624791471" class="text-white text-decoration-none">(+506) 2479 1471</a>
@@ -116,29 +124,22 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Abrir modales desde el footer
   document.querySelectorAll('.open-tour-modal').forEach(link => {
     link.addEventListener('click', function(e) {
       e.preventDefault();
-
       const modalId = this.getAttribute('data-tour-modal');
       const shouldScroll = this.getAttribute('data-scroll-first') === 'true';
 
-      // Si estamos fuera del home, redirigir con hash
       if (!document.getElementById(modalId)) {
         window.location.href = '{{ localized_route("home") }}#' + modalId;
         return;
       }
 
-      // Si estamos en el home, hacer scroll y abrir modal
       if (shouldScroll) {
         const toursSection = document.getElementById('tours');
-        if (toursSection) {
-          toursSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        if (toursSection) toursSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
 
-      // Abrir modal después de un pequeño delay si hay scroll
       setTimeout(() => {
         const modal = document.getElementById(modalId);
         if (modal) {
@@ -149,19 +150,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Si llegamos con hash en la URL, abrir el modal correspondiente
   if (window.location.hash && window.location.hash.startsWith('#modal-')) {
     const modalId = window.location.hash.substring(1);
     const modal = document.getElementById(modalId);
 
     if (modal) {
-      // Scroll a la sección de tours primero
       const toursSection = document.getElementById('tours');
-      if (toursSection) {
-        toursSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-
-      // Abrir modal después del scroll
+      if (toursSection) toursSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
       setTimeout(() => {
         const bsModal = new bootstrap.Modal(modal);
         bsModal.show();

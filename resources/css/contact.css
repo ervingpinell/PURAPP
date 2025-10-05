@@ -10,8 +10,8 @@
   --contact-h5:     var(--fs-h5,   17px);
   --contact-h6:     var(--fs-h6,   15px);
 
-  --contact-green:     linear-gradient(to right, #0d4740, #083d3a);
-  --contact-green-600:  #0d4740;
+  --contact-green:     #1A5229;
+  --contact-green-600:  #2c6e49;
   --contact-green-700:  #1a5a18;
   --contact-green-soft: #eaf4ea;
 
@@ -153,7 +153,7 @@
 .contact-section .btn.btn-outline-success{
   --bs-btn-color: var(--contact-green-600);
   --bs-btn-border-color: var(--contact-green-600);
-  --bs-btn-hover-bg: var(--contact-green-600);
+  --bs-btn-hover-bg: var(--contact-green);
   --bs-btn-hover-border-color: var(--contact-green-600);
   font-size: var(--contact-sm);
   padding: .45rem .75rem;
