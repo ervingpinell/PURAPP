@@ -9,25 +9,23 @@ use App\Models\ItineraryItem;
 use App\Models\Amenity;
 use App\Models\Faq;
 use App\Models\TourType;
+use App\Models\Policy;
+use App\Models\PolicySection;
 
 use App\Models\TourTranslation;
 use App\Models\ItineraryTranslation;
 use App\Models\ItineraryItemTranslation;
 use App\Models\AmenityTranslation;
 use App\Models\FaqTranslation;
-
-use App\Models\Policy;
-use App\Models\PolicyTranslation;
-use App\Models\PolicySection;
-use App\Models\PolicySectionTranslation;
 use App\Models\TourTypeTranslation;
-
+use App\Models\PolicyTranslation;
+use App\Models\PolicySectionTranslation;
 
 use App\Services\Contracts\TranslatorInterface;
 
 class TranslationSeeder extends Seeder
 {
-    protected array $locales = ['es', 'en', 'fr', 'pt', 'de'];
+    protected array $locales = ['es', 'en', 'fr', 'pt_BR', 'de'];
 
     public function run(): void
     {
@@ -38,7 +36,6 @@ class TranslationSeeder extends Seeder
         $this->translateTourTypes($translator);
         $this->translatePolicies($translator);
         $this->translatePolicySections($translator);
-
         $this->translateTours($translator);
         $this->translateItineraries($translator);
         $this->translateItineraryItems($translator);
@@ -57,7 +54,7 @@ class TranslationSeeder extends Seeder
         AmenityTranslation::truncate();
         FaqTranslation::truncate();
 
-        // Preservar ES como fuente
+        // Preservar ES como fuente para policies
         PolicyTranslation::where('locale', '!=', 'es')->delete();
         PolicySectionTranslation::where('locale', '!=', 'es')->delete();
 
@@ -69,31 +66,37 @@ class TranslationSeeder extends Seeder
      */
     protected function translatePolicies(TranslatorInterface $translator): void
     {
-        $policies = Policy::where('is_active', true)->cursor();
+        $policies = Policy::where('is_active', true)->with('translations')->get();
 
         foreach ($policies as $policy) {
-            $src = PolicyTranslation::where('policy_id', $policy->getKey())
-                ->where('locale', 'es')
-                ->first();
+            $src = $policy->translations->firstWhere('locale', 'es');
 
             if (!$src) {
-                $this->command?->warn("⚠️ Policy {$policy->policy_id} has no ES source. Skipping.");
+                $this->command?->warn("⚠️ Policy {$policy->policy_id} ({$policy->name}) has no ES source. Skipping.");
                 continue;
             }
 
-            $nameSrc    = (string) ($src->name ?? '');
+            $nameSrc    = (string) ($src->name ?? $policy->name ?? '');
             $contentSrc = (string) ($src->content ?? '');
 
-            foreach (array_diff($this->locales, ['es']) as $locale) {
-                $nameTr    = $translator->translate($nameSrc, $locale);
-                $contentTr = $translator->translate($contentSrc, $locale);
+            foreach ($this->locales as $locale) {
+                if ($locale === 'es') {
+                    // Ya existe, no traducir
+                    continue;
+                }
+
+                $targetLocale = $this->normalizeLocaleForTranslation($locale);
+
+                $nameTr    = $translator->translate($nameSrc, $targetLocale);
+                $contentTr = $translator->translate($contentSrc, $targetLocale);
 
                 PolicyTranslation::updateOrCreate(
-                    ['policy_id' => $policy->getKey(), 'locale' => $locale],
+                    ['policy_id' => $policy->policy_id, 'locale' => $locale],
                     ['name' => $nameTr, 'content' => $contentTr]
                 );
-                // usleep(150000);
             }
+
+            $this->command?->info("📄 Policy '{$policy->name}' translated");
         }
 
         $this->command?->info('📑 Policies translated (kept ES as source).');
@@ -108,23 +111,29 @@ class TranslationSeeder extends Seeder
 
         foreach ($sections as $section) {
             $src = $section->translations->firstWhere('locale', 'es');
+
             if (!$src) {
-                $this->command?->warn("⚠️ Section {$section->section_id} has no ES source. Skipping.");
+                $this->command?->warn("⚠️ Section {$section->section_id} ({$section->name}) has no ES source. Skipping.");
                 continue;
             }
 
-            $nameSrc    = (string) ($src->name ?? '');
+            $nameSrc    = (string) ($src->name ?? $section->name ?? '');
             $contentSrc = (string) ($src->content ?? '');
 
-            foreach (array_diff($this->locales, ['es']) as $locale) {
-                $nameTr    = $translator->translate($nameSrc, $locale);
-                $contentTr = $translator->translate($contentSrc, $locale);
+            foreach ($this->locales as $locale) {
+                if ($locale === 'es') {
+                    continue;
+                }
+
+                $targetLocale = $this->normalizeLocaleForTranslation($locale);
+
+                $nameTr    = $translator->translate($nameSrc, $targetLocale);
+                $contentTr = $translator->translate($contentSrc, $targetLocale);
 
                 PolicySectionTranslation::updateOrCreate(
                     ['section_id' => $section->section_id, 'locale' => $locale],
                     ['name' => $nameTr, 'content' => $contentTr]
                 );
-                // usleep(150000);
             }
         }
 
@@ -134,7 +143,7 @@ class TranslationSeeder extends Seeder
     protected function translateTourTypes(TranslatorInterface $translator): void
     {
         $this->translateCollection(
-            TourType::where('is_active', true)->cursor(),
+            TourType::where('is_active', true)->get(),
             ['name', 'description', 'duration'],
             TourTypeTranslation::class,
             'tour_type_id',
@@ -145,21 +154,26 @@ class TranslationSeeder extends Seeder
 
     protected function translateTours(TranslatorInterface $translator): void
     {
-        $collection = Tour::where('is_active', true)->cursor();
+        $tours = Tour::where('is_active', true)->get();
 
-        foreach ($collection as $tour) {
+        foreach ($tours as $tour) {
             $origName = (string) ($tour->name ?? '');
             $origOverview = (string) ($tour->overview ?? '');
 
             foreach ($this->locales as $locale) {
-                $name     = $translator->translatePreserveOutsideParentheses($origName, $locale);
-                $overview = $translator->translate($origOverview, $locale);
+                $targetLocale = $this->normalizeLocaleForTranslation($locale);
+
+                // Usar método especial para nombres que preserva paréntesis
+                $name     = $translator->translatePreserveOutsideParentheses($origName, $targetLocale);
+                $overview = $translator->translate($origOverview, $targetLocale);
 
                 TourTranslation::updateOrCreate(
-                    ['tour_id' => $tour->getKey(), 'locale' => $locale],
+                    ['tour_id' => $tour->tour_id, 'locale' => $locale],
                     ['name' => $name, 'overview' => $overview]
                 );
             }
+
+            $this->command?->info("🎯 Tour '{$tour->name}' translated");
         }
 
         $this->command?->info('🎯 Tours translated (name preserves parentheses).');
@@ -168,7 +182,7 @@ class TranslationSeeder extends Seeder
     protected function translateItineraries(TranslatorInterface $translator): void
     {
         $this->translateCollection(
-            Itinerary::where('is_active', true)->cursor(),
+            Itinerary::where('is_active', true)->get(),
             ['name', 'description'],
             ItineraryTranslation::class,
             'itinerary_id',
@@ -179,9 +193,8 @@ class TranslationSeeder extends Seeder
 
     protected function translateItineraryItems(TranslatorInterface $translator): void
     {
-        // OJO: aquí tu tabla de traducciones de items usa 'title' (no la tocamos)
         $this->translateCollection(
-            ItineraryItem::where('is_active', true)->cursor(),
+            ItineraryItem::where('is_active', true)->get(),
             ['title', 'description'],
             ItineraryItemTranslation::class,
             'item_id',
@@ -193,19 +206,19 @@ class TranslationSeeder extends Seeder
     protected function translateAmenities(TranslatorInterface $translator): void
     {
         $this->translateCollection(
-            Amenity::where('is_active', true)->cursor(),
+            Amenity::where('is_active', true)->get(),
             ['name'],
             AmenityTranslation::class,
             'amenity_id',
             $translator
         );
-        $this->command?->info('💠 Amenities translated.');
+        $this->command?->info('💎 Amenities translated.');
     }
 
     protected function translateFaqs(TranslatorInterface $translator): void
     {
         $this->translateCollection(
-            Faq::where('is_active', true)->cursor(),
+            Faq::where('is_active', true)->get(),
             ['question', 'answer'],
             FaqTranslation::class,
             'faq_id',
@@ -214,23 +227,34 @@ class TranslationSeeder extends Seeder
         $this->command?->info('❓ FAQs translated.');
     }
 
+    /**
+     * Método genérico para traducir colecciones
+     */
     protected function translateCollection($collection, array $fields, string $translationModel, string $foreignKey, TranslatorInterface $translator): void
     {
         foreach ($collection as $model) {
             $fieldTranslations = [];
+
+            // Pre-traducir todos los campos a todos los idiomas
             foreach ($fields as $field) {
                 $original = (string) ($model->{$field} ?? '');
-                $fieldTranslations[$field] = $translator->translateAll($original);
+                $fieldTranslations[$field] = [];
+
+                foreach ($this->locales as $locale) {
+                    $targetLocale = $this->normalizeLocaleForTranslation($locale);
+                    $fieldTranslations[$field][$locale] = $translator->translate($original, $targetLocale);
+                }
             }
 
+            // Guardar traducciones
             foreach ($this->locales as $locale) {
                 $payload = [
                     $foreignKey => $model->getKey(),
                     'locale'    => $locale,
                 ];
+
                 foreach ($fields as $field) {
-                    $original = (string) ($model->{$field} ?? '');
-                    $payload[$field] = $fieldTranslations[$field][$locale] ?? $original;
+                    $payload[$field] = $fieldTranslations[$field][$locale] ?? (string) ($model->{$field} ?? '');
                 }
 
                 $translationModel::updateOrCreate(
@@ -239,5 +263,17 @@ class TranslationSeeder extends Seeder
                 );
             }
         }
+    }
+
+    /**
+     * Normaliza el locale para el servicio de traducción
+     * pt_BR -> pt, etc.
+     */
+    protected function normalizeLocaleForTranslation(string $locale): string
+    {
+        return match($locale) {
+            'pt_BR' => 'pt',
+            default => $locale,
+        };
     }
 }

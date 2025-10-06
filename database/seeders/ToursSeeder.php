@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
+use App\Models\Tour;
 
 class ToursSeeder extends Seeder
 {
@@ -12,7 +13,7 @@ class ToursSeeder extends Seeder
     {
         $now = Carbon::now();
 
-        // ---------- helper para obtener/crear horario y devolver ID ----------
+        // Helper para obtener/crear horario y devolver ID
         $scheduleId = function (string $start, string $end, ?string $label = null) use ($now): int {
             DB::table('schedules')->updateOrInsert(
                 ['start_time' => $start, 'end_time' => $end],
@@ -25,7 +26,7 @@ class ToursSeeder extends Seeder
                 ->value('schedule_id');
         };
 
-        // === HORARIOS COMPARTIDOS (GLOBAL) ===
+        // === HORARIOS COMPARTIDOS ===
         $sharedAmId  = $scheduleId('07:30', '11:30', 'AM');
         $sharedPmId  = $scheduleId('13:00', '16:30', 'PM');
         $sharedMidId = $scheduleId('07:30', '13:30', 'AM');
@@ -39,7 +40,7 @@ Observa las plantas y formaciones distintivas que cubren las laderas del volcán
 • Descubre las diversas especies que habitan en los bosques y campos de lava.
 • Grupo pequeño para garantizar una experiencia personalizada.';
 
-        $volcano = DB::table('tours')->insertGetId([
+        $volcano = Tour::create([
             'name'         => 'Caminata al Volcán Arenal',
             'overview'     => $volcanoOverview,
             'adult_price'  => 75,
@@ -48,36 +49,29 @@ Observa las plantas y formaciones distintivas que cubren las laderas del volcán
             'tour_type_id' => 2,
             'color'        => '#ABABAB',
             'is_active'    => true,
-            'created_at'   => $now,
-            'updated_at'   => $now,
-        ], 'tour_id');
+        ]);
+        // El slug se genera automáticamente en el modelo
 
         DB::table('schedule_tour')->insert([
-            ['tour_id' => $volcano, 'schedule_id' => $sharedAmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
-            ['tour_id' => $volcano, 'schedule_id' => $sharedPmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $volcano->tour_id, 'schedule_id' => $sharedAmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $volcano->tour_id, 'schedule_id' => $sharedPmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         DB::table('tour_language_tour')->insert([
-            ['tour_id' => $volcano, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
-            ['tour_id' => $volcano, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $volcano->tour_id, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $volcano->tour_id, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         foreach ([1, 2, 3, 4] as $a) {
             DB::table('amenity_tour')->insert([
-                'tour_id'    => $volcano,
-                'amenity_id' => $a,
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tour_id' => $volcano->tour_id, 'amenity_id' => $a, 'is_active' => true,
+                'created_at' => $now, 'updated_at' => $now,
             ]);
         }
         foreach ([5, 6, 7, 8, 9] as $a) {
             DB::table('excluded_amenity_tour')->insert([
-                'tour_id'    => $volcano,
-                'amenity_id' => $a,
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tour_id' => $volcano->tour_id, 'amenity_id' => $a, 'is_active' => true,
+                'created_at' => $now, 'updated_at' => $now,
             ]);
         }
 
@@ -89,7 +83,7 @@ Incluye transporte de ida y vuelta desde hoteles seleccionados. Ideal para toda 
 Grupo pequeño para garantizar un servicio personalizado.
 Recogida y regreso al hotel gratuitos. Guía informativo, amable y profesional.';
 
-        $safari = DB::table('tours')->insertGetId([
+        $safari = Tour::create([
             'name'         => 'Safari Flotante',
             'overview'     => $safariOverview,
             'adult_price'  => 60,
@@ -98,36 +92,28 @@ Recogida y regreso al hotel gratuitos. Guía informativo, amable y profesional.'
             'tour_type_id' => 2,
             'color'        => '#4F8BD8',
             'is_active'    => true,
-            'created_at'   => $now,
-            'updated_at'   => $now,
-        ], 'tour_id');
+        ]);
 
         DB::table('schedule_tour')->insert([
-            ['tour_id' => $safari, 'schedule_id' => $sharedAmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
-            ['tour_id' => $safari, 'schedule_id' => $sharedPmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $safari->tour_id, 'schedule_id' => $sharedAmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $safari->tour_id, 'schedule_id' => $sharedPmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         DB::table('tour_language_tour')->insert([
-            ['tour_id' => $safari, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
-            ['tour_id' => $safari, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $safari->tour_id, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $safari->tour_id, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         foreach ([1, 2, 3, 4, 6] as $a) {
             DB::table('amenity_tour')->insert([
-                'tour_id'    => $safari,
-                'amenity_id' => $a,
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tour_id' => $safari->tour_id, 'amenity_id' => $a, 'is_active' => true,
+                'created_at' => $now, 'updated_at' => $now,
             ]);
         }
         foreach ([5, 7, 8, 9] as $a) {
             DB::table('excluded_amenity_tour')->insert([
-                'tour_id'    => $safari,
-                'amenity_id' => $a,
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tour_id' => $safari->tour_id, 'amenity_id' => $a, 'is_active' => true,
+                'created_at' => $now, 'updated_at' => $now,
             ]);
         }
 
@@ -138,7 +124,7 @@ Adéntrate en el corazón de la selva tropical en un circuito de 3,2 km (2 milla
 • Observa colibríes y tucanes en su hábitat natural.
 • ¡Una excelente opción para familias!';
 
-        $hanging = DB::table('tours')->insertGetId([
+        $hanging = Tour::create([
             'name'         => 'Puentes Colgantes',
             'overview'     => $hangingOverview,
             'adult_price'  => 82,
@@ -147,36 +133,28 @@ Adéntrate en el corazón de la selva tropical en un circuito de 3,2 km (2 milla
             'tour_type_id' => 2,
             'color'        => '#56D454',
             'is_active'    => true,
-            'created_at'   => $now,
-            'updated_at'   => $now,
-        ], 'tour_id');
+        ]);
 
         DB::table('schedule_tour')->insert([
-            ['tour_id' => $hanging, 'schedule_id' => $sharedAmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
-            ['tour_id' => $hanging, 'schedule_id' => $sharedPmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $hanging->tour_id, 'schedule_id' => $sharedAmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $hanging->tour_id, 'schedule_id' => $sharedPmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         DB::table('tour_language_tour')->insert([
-            ['tour_id' => $hanging, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
-            ['tour_id' => $hanging, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $hanging->tour_id, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $hanging->tour_id, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         foreach ([1, 2, 3, 4] as $a) {
             DB::table('amenity_tour')->insert([
-                'tour_id'    => $hanging,
-                'amenity_id' => $a,
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tour_id' => $hanging->tour_id, 'amenity_id' => $a, 'is_active' => true,
+                'created_at' => $now, 'updated_at' => $now,
             ]);
         }
         foreach ([5, 6, 7, 8, 9] as $a) {
             DB::table('excluded_amenity_tour')->insert([
-                'tour_id'    => $hanging,
-                'amenity_id' => $a,
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tour_id' => $hanging->tour_id, 'amenity_id' => $a, 'is_active' => true,
+                'created_at' => $now, 'updated_at' => $now,
             ]);
         }
 
@@ -189,7 +167,7 @@ Incluye recogida y regreso al hotel.
 • Cruza 16 puentes colgantes en la selva tropical.
 • Experiencia personalizada: tour en grupo pequeño limitado a 12 personas.';
 
-        $nature = DB::table('tours')->insertGetId([
+        $nature = Tour::create([
             'name'         => 'Nature Lover Combo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo + Caminata al Volcán Arenal)',
             'overview'     => $natureOverview,
             'adult_price'  => 154,
@@ -198,35 +176,27 @@ Incluye recogida y regreso al hotel.
             'tour_type_id' => 1,
             'color'        => '#DC626D',
             'is_active'    => true,
-            'created_at'   => $now,
-            'updated_at'   => $now,
-        ], 'tour_id');
+        ]);
 
         DB::table('schedule_tour')->insert([
-            ['tour_id' => $nature, 'schedule_id' => $nlc, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $nature->tour_id, 'schedule_id' => $nlc, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         DB::table('tour_language_tour')->insert([
-            ['tour_id' => $nature, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
-            ['tour_id' => $nature, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $nature->tour_id, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $nature->tour_id, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         foreach ([1, 2, 3, 4, 5] as $a) {
             DB::table('amenity_tour')->insert([
-                'tour_id'    => $nature,
-                'amenity_id' => $a,
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tour_id' => $nature->tour_id, 'amenity_id' => $a, 'is_active' => true,
+                'created_at' => $now, 'updated_at' => $now,
             ]);
         }
         foreach ([6, 7, 8, 9] as $a) {
             DB::table('excluded_amenity_tour')->insert([
-                'tour_id'    => $nature,
-                'amenity_id' => $a,
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tour_id' => $nature->tour_id, 'amenity_id' => $a, 'is_active' => true,
+                'created_at' => $now, 'updated_at' => $now,
             ]);
         }
 
@@ -238,7 +208,7 @@ Perfecto para toda la familia y para quienes cuentan con poco tiempo, el recorri
 • Disfruta la oportunidad de nadar en las aguas cristalinas de la catarata.
 • El tour finaliza con un almuerzo típico de la cocina costarricense.';
 
-        $minicombo1 = DB::table('tours')->insertGetId([
+        $minicombo1 = Tour::create([
             'name'         => 'Minicombo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo)',
             'overview'     => $minicombo1Overview,
             'adult_price'  => 136,
@@ -247,35 +217,27 @@ Perfecto para toda la familia y para quienes cuentan con poco tiempo, el recorri
             'tour_type_id' => 1,
             'color'        => '#DC626D',
             'is_active'    => true,
-            'created_at'   => $now,
-            'updated_at'   => $now,
-        ], 'tour_id');
+        ]);
 
         DB::table('schedule_tour')->insert([
-            ['tour_id' => $minicombo1, 'schedule_id' => $sharedMidId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $minicombo1->tour_id, 'schedule_id' => $sharedMidId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         DB::table('tour_language_tour')->insert([
-            ['tour_id' => $minicombo1, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
-            ['tour_id' => $minicombo1, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $minicombo1->tour_id, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $minicombo1->tour_id, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         foreach ([1, 2, 3, 4, 5] as $a) {
             DB::table('amenity_tour')->insert([
-                'tour_id'    => $minicombo1,
-                'amenity_id' => $a,
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tour_id' => $minicombo1->tour_id, 'amenity_id' => $a, 'is_active' => true,
+                'created_at' => $now, 'updated_at' => $now,
             ]);
         }
         foreach ([6, 7, 8, 9] as $a) {
             DB::table('excluded_amenity_tour')->insert([
-                'tour_id'    => $minicombo1,
-                'amenity_id' => $a,
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tour_id' => $minicombo1->tour_id, 'amenity_id' => $a, 'is_active' => true,
+                'created_at' => $now, 'updated_at' => $now,
             ]);
         }
 
@@ -288,7 +250,7 @@ Luego, visitarás la Catarata La Fortuna, donde podrás refrescarte en su reluci
 • Evita los buses calurosos y viaja con la comodidad del aire acondicionado. Usa zapatos cómodos y prepárate para caminar hasta el mirador y la catarata.
 • Incluye recogida en la zona del centro de La Fortuna.';
 
-        $minicombo2 = DB::table('tours')->insertGetId([
+        $minicombo2 = Tour::create([
             'name'         => 'Minicombo 2 (Caminata al Volcán Arenal + Catarata de La Fortuna + Almuerzo)',
             'overview'     => $minicombo2Overview,
             'adult_price'  => 136,
@@ -297,35 +259,27 @@ Luego, visitarás la Catarata La Fortuna, donde podrás refrescarte en su reluci
             'tour_type_id' => 1,
             'color'        => '#DC626D',
             'is_active'    => true,
-            'created_at'   => $now,
-            'updated_at'   => $now,
-        ], 'tour_id');
+        ]);
 
         DB::table('schedule_tour')->insert([
-            ['tour_id' => $minicombo2, 'schedule_id' => $sharedMidId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $minicombo2->tour_id, 'schedule_id' => $sharedMidId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         DB::table('tour_language_tour')->insert([
-            ['tour_id' => $minicombo2, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
-            ['tour_id' => $minicombo2, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $minicombo2->tour_id, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $minicombo2->tour_id, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         foreach ([1, 2, 3, 4, 5] as $a) {
             DB::table('amenity_tour')->insert([
-                'tour_id'    => $minicombo2,
-                'amenity_id' => $a,
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tour_id' => $minicombo2->tour_id, 'amenity_id' => $a, 'is_active' => true,
+                'created_at' => $now, 'updated_at' => $now,
             ]);
         }
         foreach ([6, 7, 8, 9] as $a) {
             DB::table('excluded_amenity_tour')->insert([
-                'tour_id'    => $minicombo2,
-                'amenity_id' => $a,
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tour_id' => $minicombo2->tour_id, 'amenity_id' => $a, 'is_active' => true,
+                'created_at' => $now, 'updated_at' => $now,
             ]);
         }
 
@@ -338,7 +292,7 @@ En el camino, mantente atento para avistar aves exóticas, monos aulladores y pe
 • Recogida y regreso sin complicaciones en tu hotel en La Fortuna.
 • Tour íntimo en grupo pequeño, con un máximo de 12 personas (6 por balsa).';
 
-        $minicombo3 = DB::table('tours')->insertGetId([
+        $minicombo3 = Tour::create([
             'name'         => 'Minicombo 3 (Safari Flotante + Catarata de La Fortuna + Almuerzo)',
             'overview'     => $minicombo3Overview,
             'adult_price'  => 136,
@@ -347,36 +301,30 @@ En el camino, mantente atento para avistar aves exóticas, monos aulladores y pe
             'tour_type_id' => 1,
             'color'        => '#DC626D',
             'is_active'    => true,
-            'created_at'   => $now,
-            'updated_at'   => $now,
-        ], 'tour_id');
+        ]);
 
         DB::table('schedule_tour')->insert([
-            ['tour_id' => $minicombo3, 'schedule_id' => $sharedMidId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $minicombo3->tour_id, 'schedule_id' => $sharedMidId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         DB::table('tour_language_tour')->insert([
-            ['tour_id' => $minicombo3, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
-            ['tour_id' => $minicombo3, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $minicombo3->tour_id, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $minicombo3->tour_id, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         foreach ([1, 2, 3, 4, 5, 6] as $a) {
             DB::table('amenity_tour')->insert([
-                'tour_id'    => $minicombo3,
-                'amenity_id' => $a,
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tour_id' => $minicombo3->tour_id, 'amenity_id' => $a, 'is_active' => true,
+                'created_at' => $now, 'updated_at' => $now,
             ]);
         }
         foreach ([7, 8, 9] as $a) {
             DB::table('excluded_amenity_tour')->insert([
-                'tour_id'    => $minicombo3,
-                'amenity_id' => $a,
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tour_id' => $minicombo3->tour_id, 'amenity_id' => $a, 'is_active' => true,
+                'created_at' => $now, 'updated_at' => $now,
             ]);
         }
+
+        $this->command->info('✅ Tours seeded successfully with auto-generated slugs');
     }
 }

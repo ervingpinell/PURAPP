@@ -9,24 +9,26 @@ class AssignViatorCodesSeeder extends Seeder
 {
     public function run(): void
     {
-        $codes = [
-            1 => '12732P1',
-            2 => '12732P3',
-            3 => '12732P2',
-            4 => '12732P5',
-            5 => '12732P11',
-            6 => '12732P10',
-            7 => '12732P9',
+        // Mapeo de nombres de tours a códigos Viator
+        $tourCodes = [
+            'Caminata al Volcán Arenal' => '12732P1',
+            'Safari Flotante' => '12732P3',
+            'Puentes Colgantes' => '12732P2',
+            'Nature Lover Combo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo + Caminata al Volcán Arenal)' => '12732P5',
+            'Minicombo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo)' => '12732P11',
+            'Minicombo 2 (Caminata al Volcán Arenal + Catarata de La Fortuna + Almuerzo)' => '12732P10',
+            'Minicombo 3 (Safari Flotante + Catarata de La Fortuna + Almuerzo)' => '12732P9',
         ];
 
-        foreach ($codes as $id => $code) {
-            $tour = Tour::find($id);
+        foreach ($tourCodes as $tourName => $code) {
+            $tour = Tour::where('name', $tourName)->first();
+
             if ($tour) {
                 $tour->viator_code = $code;
                 $tour->save();
-                $this->command->info("✔️ Tour ID {$id} actualizado con código Viator: {$code}");
+                $this->command->info("✔️ Tour '{$tourName}' actualizado con código Viator: {$code}");
             } else {
-                $this->command->warn("⚠️ Tour ID {$id} no encontrado.");
+                $this->command->warn("⚠️ Tour '{$tourName}' no encontrado.");
             }
         }
 

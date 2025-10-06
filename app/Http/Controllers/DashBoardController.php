@@ -15,6 +15,8 @@ use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+
 
 class DashBoardController extends Controller
 {
@@ -23,60 +25,53 @@ class DashBoardController extends Controller
         return view('index');
     }
 
-    public function switchLanguage(string $language): RedirectResponse
-    {
-        $locales     = array_keys(config('routes.locales', []));
-        $normalized  = strtolower(str_replace(['-', '_'], '', $language));
+public function switchLanguage(Request $request, string $language)
+{
+    $supported = array_keys(config('routes.locales', ['es' => []]));
+    $default   = config('routes.default_locale', 'es');
 
-        $localeMap = [
-            'es'   => 'es',
-            'escr' => 'es',
-            'pt'   => 'pt',
-            'ptbr' => 'pt',
-            'ptpt' => 'pt',
-            'en'   => 'en',
-            'enus' => 'en',
-            'engb' => 'en',
-            'fr'   => 'fr',
-            'frfr' => 'fr',
-            'de'   => 'de',
-            'dede' => 'de',
-        ];
-
-        $targetLocale = $localeMap[$normalized] ?? null;
-
-        if ($targetLocale && in_array($targetLocale, $locales, true)) {
-            $previous = url()->previous();
-
-            // Detectar si estamos en la página de edición de traducción
-            $isTranslationEdit = str_contains($previous, '/admin/translations/') &&
-                                 str_contains($previous, '/edit');
-
-            if ($isTranslationEdit) {
-                // En página de edición: solo cambiar locale de interfaz
-                session(['locale' => $targetLocale]);
-                app()->setLocale($targetLocale);
-
-                // Recargar la misma URL sin tocar el parámetro de edición
-                return redirect($previous);
-            }
-
-            // Resto: cambiar UI locale y redirigir manteniendo contexto
-            session(['locale' => $targetLocale]);
-            app()->setLocale($targetLocale);
-
-            $isAdmin = $this->isAdminUrl($previous);
-
-            if ($isAdmin) {
-                return redirect($previous);
-            } else {
-                $newUrl = $this->replaceLocaleInUrl($previous, $targetLocale);
-                return redirect($newUrl);
-            }
-        }
-
-        return back();
+    if (! in_array($language, $supported, true)) {
+        $language = $default;
     }
+
+    session(['locale' => $language]);
+    app()->setLocale($language);
+
+    $prev = url()->previous();                       // p.ej. http://127.0.0.1:8000/es/tours
+    $path = parse_url($prev, PHP_URL_PATH) ?? '/';   // p.ej. /es/tours
+
+    // Quita locale actual si viene con prefijo
+    $segments = array_values(array_filter(explode('/', $path)));
+    $pathNoLocale = $path;
+
+    if (!empty($segments) && in_array($segments[0], $supported, true)) {
+        // /{locale}/resto -> /resto
+        $pathNoLocale = '/' . implode('/', array_slice($segments, 1));
+        if ($pathNoLocale === '/') { $pathNoLocale = ''; } // home
+    }
+
+    // Rutas que NO están localizadas
+    $unlocalized = [
+        'login', 'register', 'password', 'account', 'unlock-account',
+        'email', 'auth', 'admin' // admin tampoco lo localizas
+    ];
+
+    $first = ltrim($pathNoLocale, '/');
+    $first = strtok($first, '/'); // primer segmento
+
+    // Si es una ruta no localizada -> volver sin prefijo
+    if ($first !== false && in_array($first, $unlocalized, true)) {
+        return redirect($pathNoLocale === '' ? '/' : $pathNoLocale);
+    }
+
+    // Si es raíz
+    if ($pathNoLocale === '' || $pathNoLocale === '/') {
+        return redirect('/' . $language);
+    }
+
+    // Resto: aplicar nuevo prefijo de idioma
+    return redirect('/' . $language . $pathNoLocale);
+}
 
     private function isAdminUrl(string $url): bool
     {

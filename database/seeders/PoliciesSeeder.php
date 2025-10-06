@@ -21,13 +21,17 @@ class PoliciesSeeder extends Seeder
              * 1) TÉRMINOS Y CONDICIONES (Categoría + Secciones)
              */
             $terms = Policy::updateOrCreate(
-                ['name' => 'Términos y Condiciones'],
+                ['slug' => 'terminos-y-condiciones'], // Buscar por slug
                 [
+                    'name'           => 'Términos y Condiciones',
                     'is_active'      => true,
                     'effective_from' => $today,
                     'effective_to'   => null,
                 ]
             );
+
+            // El modelo generará el slug automáticamente si no existe
+            // y sembrará traducciones automáticamente via boot()
 
             $termsDescription = <<<'TXT'
 Bienvenidos a Green Vacations Costa Rica
@@ -48,7 +52,7 @@ TXT;
 
             // Sección: Cookies
             $cookies = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'cookies'], // 'name' actúa como key/slug
+                ['policy_id' => $terms->policy_id, 'name' => 'cookies'],
                 ['sort_order' => 1, 'is_active' => true]
             );
 
@@ -211,8 +215,9 @@ TXT;
              * 2) CANCELACIÓN
              */
             $cancel = Policy::updateOrCreate(
-                ['name' => 'Política de Cancelación'],
+                ['slug' => 'politica-de-cancelacion'],
                 [
+                    'name'           => 'Política de Cancelación',
                     'is_active'      => true,
                     'effective_from' => $today,
                     'effective_to'   => null,
@@ -231,8 +236,9 @@ TXT;
              * 3) REEMBOLSOS
              */
             $refund = Policy::updateOrCreate(
-                ['name' => 'Política de Reembolsos'],
+                ['slug' => 'politica-de-reembolsos'],
                 [
+                    'name'           => 'Política de Reembolsos',
                     'is_active'      => true,
                     'effective_from' => $today,
                     'effective_to'   => null,
@@ -251,8 +257,9 @@ TXT;
              * 4) PRIVACIDAD
              */
             $privacy = Policy::updateOrCreate(
-                ['name' => 'Política de Privacidad'],
+                ['slug' => 'politica-de-privacidad'],
                 [
+                    'name'           => 'Política de Privacidad',
                     'is_active'      => true,
                     'effective_from' => $today,
                     'effective_to'   => null,
@@ -267,5 +274,7 @@ TXT;
                 ]
             );
         });
+
+        $this->command->info('✅ Policies seeded successfully with auto-generated slugs and translations');
     }
 }
