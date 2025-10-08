@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Tours;
 
 use App\Http\Controllers\Controller;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -28,55 +29,77 @@ class TourController extends Controller
 {
     protected string $controller = 'TourController';
 
+    /** =========================================================
+     *  INDEX: lista con filtros (active | inactive | archived | all)
+     *  ========================================================= */
     public function index()
     {
-        $toursWithRelations = Tour::with([
-            'tourType',
-            'languages' => function ($relationQuery) {
-                $relationQuery->wherePivot('is_active', true)
-                              ->where('tour_languages.is_active', true);
-            },
-            'amenities' => function ($relationQuery) {
-                $relationQuery->wherePivot('is_active', true)
-                              ->where('amenities.is_active', true);
-            },
-            'itinerary.items' => function ($relationQuery) {
-                $relationQuery->wherePivot('is_active', true)
-                              ->where('itinerary_items.is_active', true);
-            },
-            'schedules' => function ($relationQuery) {
-                $relationQuery->where('schedules.is_active', true)
-                              ->wherePivot('is_active', true)
-                              ->orderBy('schedules.start_time');
-            },
-        ])->orderBy('tour_id')->get();
+        $status = request('status', 'active'); // active | inactive | archived | all
 
-        $tourTypeOptions          = TourType::where('is_active', true)->orderBy('name')->get();
-        $itineraryOptions         = Itinerary::where('is_active', true)->orderBy('name')->get();
-        $languageOptions          = TourLanguage::where('is_active', true)->orderBy('name')->get();
-        $amenityOptions           = Amenity::where('is_active', true)->orderBy('name')->get();
-        $availableItineraryItems  = collect((new ItineraryService)->getAvailableItems())
-                                        ->where('is_active', true)
-                                        ->values();
-        $hotelOptions             = HotelList::where('is_active', true)->orderBy('name')->get();
+        $base = Tour::query()
+            ->with([
+                'tourType',
+                'languages' => function ($q) {
+                    $q->wherePivot('is_active', true)
+                      ->where('tour_languages.is_active', true);
+                },
+                'amenities' => function ($q) {
+                    $q->wherePivot('is_active', true)
+                      ->where('amenities.is_active', true);
+                },
+                'itinerary.items' => function ($q) {
+                    $q->wherePivot('is_active', true)
+                      ->where('itinerary_items.is_active', true);
+                },
+                'schedules' => function ($q) {
+                    $q->where('schedules.is_active', true)
+                      ->wherePivot('is_active', true)
+                      ->orderBy('schedules.start_time');
+                },
+            ]);
 
-        $scheduleCatalog = Schedule::where('is_active', true)
-            ->orderBy('start_time')
-            ->orderBy('label')
-            ->get();
+        // withCount(bookings) solo si existe la relación
+        if (method_exists(Tour::class, 'bookings')) {
+            $base->withCount('bookings');
+        }
+
+        // Filtros por estado
+        if ($status === 'archived') {
+            $base->onlyTrashed();
+        } elseif ($status === 'all') {
+            $base->withTrashed();
+        } elseif ($status === 'inactive') {
+            $base->where('is_active', false);
+        } else { // active (default)
+            $base->where('is_active', true);
+        }
+
+        $toursWithRelations = $base->orderBy('tour_id')->get();
+
+        $tourTypeOptions         = TourType::where('is_active', true)->orderBy('name')->get();
+        $itineraryOptions        = Itinerary::where('is_active', true)->orderBy('name')->get();
+        $languageOptions         = TourLanguage::where('is_active', true)->orderBy('name')->get();
+        $amenityOptions          = Amenity::where('is_active', true)->orderBy('name')->get();
+        $availableItineraryItems = collect((new ItineraryService)->getAvailableItems())->where('is_active', true)->values();
+        $hotelOptions            = HotelList::where('is_active', true)->orderBy('name')->get();
+        $scheduleCatalog         = Schedule::where('is_active', true)->orderBy('start_time')->orderBy('label')->get();
 
         return view('admin.tours.index', [
-            'tours'         => $toursWithRelations,
-            'tourtypes'     => $tourTypeOptions,
-            'itineraries'   => $itineraryOptions,
-            'languages'     => $languageOptions,
-            'amenities'     => $amenityOptions,
-            'availableItems'=> $availableItineraryItems,
-            'hotels'        => $hotelOptions,
-            'allSchedules'  => $scheduleCatalog,
+            'tours'          => $toursWithRelations,
+            'tourtypes'      => $tourTypeOptions,
+            'itineraries'    => $itineraryOptions,
+            'languages'      => $languageOptions,
+            'amenities'      => $amenityOptions,
+            'availableItems' => $availableItineraryItems,
+            'hotels'         => $hotelOptions,
+            'allSchedules'   => $scheduleCatalog,
+            'status'         => $status,
         ]);
     }
 
+    /** =========================================================
+     *  EDIT
+     *  ========================================================= */
     public function edit(Tour $tour)
     {
         $tourTypeOptions  = TourType::where('is_active', true)->orderBy('name')->get();
@@ -100,6 +123,9 @@ class TourController extends Controller
         ]);
     }
 
+    /** =========================================================
+     *  STORE
+     *  ========================================================= */
     public function store(StoreTourRequest $request, TranslatorInterface $translator)
     {
         $validatedData = $request->validated();
@@ -199,6 +225,9 @@ class TourController extends Controller
         }
     }
 
+    /** =========================================================
+     *  UPDATE
+     *  ========================================================= */
     public function update(UpdateTourRequest $request, Tour $tour)
     {
         $validatedData = $request->validated();
@@ -291,6 +320,9 @@ class TourController extends Controller
         }
     }
 
+    /** =========================================================
+     *  TOGGLE (activar/inactivar)
+     *  ========================================================= */
     public function toggle(ToggleTourRequest $request, Tour $tour)
     {
         try {
@@ -314,6 +346,85 @@ class TourController extends Controller
             ]);
 
             return back()->with('error', __('m_tours.tour.error.toggle'));
+        }
+    }
+
+    /** =========================================================
+     *  NUEVOS MÉTODOS: Eliminar (soft), Restaurar y Purgar
+     *  ========================================================= */
+
+    /** Eliminar (soft delete) => se mueve a "Eliminados" */
+    public function destroy(Request $request, Tour $tour)
+    {
+        try {
+            $tour->delete();
+
+            LoggerHelper::mutated($this->controller, 'destroy(soft)', 'tour', $tour->tour_id, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return redirect()
+                ->route('admin.tours.index', ['status' => 'archived'])
+                ->with('success', __('m_tours.tour.success.archived'));
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'destroy(soft)', 'tour', $tour->tour_id, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+            return back()->with('error', __('m_tours.tour.error.delete'));
+        }
+    }
+
+    /** Restaurar desde "Eliminados" */
+    public function restore(Request $request, $tourId)
+    {
+        try {
+            $tour = Tour::withTrashed()->findOrFail($tourId);
+            $tour->restore();
+
+            LoggerHelper::mutated($this->controller, 'restore', 'tour', $tour->tour_id, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return redirect()
+                ->route('admin.tours.index')
+                ->with('success', __('m_tours.tour.success.restored'));
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'restore', 'tour', $tourId, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+            return back()->with('error', __('m_tours.tour.error.restore'));
+        }
+    }
+
+    /** Eliminar definitivamente (purge) — bloquea si hay reservas */
+    public function purge(Request $request, $tourId)
+    {
+        try {
+            $tour = Tour::onlyTrashed()->findOrFail($tourId);
+
+            // Protección: si tiene reservas, no permitir hard delete
+            $hasBookings = method_exists($tour, 'bookings')
+                ? $tour->bookings()->exists()
+                : false;
+
+            if ($hasBookings) {
+                return back()->with('error', __('m_tours.tour.error.purge_has_bookings'));
+            }
+
+            $tour->forceDelete();
+
+            LoggerHelper::mutated($this->controller, 'purge(hard)', 'tour', $tourId, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return redirect()
+                ->route('admin.tours.index')
+                ->with('success', __('m_tours.tour.success.purged'));
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'purge(hard)', 'tour', $tourId, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+            return back()->with('error', __('m_tours.tour.error.purge'));
         }
     }
 }

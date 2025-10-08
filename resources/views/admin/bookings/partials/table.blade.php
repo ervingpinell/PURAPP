@@ -24,7 +24,25 @@
   </thead>
   <tbody>
 @foreach ($bookings as $booking)
-  @php $detail = $booking->detail; @endphp
+  @php
+      $detail = $booking->detail;
+
+      // Nombre del tour (soporta tours soft-deleted)
+      $tourLiveName = optional($detail->tour)->name; // si la relación existe y no está borrado
+      $tourTrashedName = null;
+
+      if (!$tourLiveName && $detail?->tour_id) {
+          // intenta recuperar el nombre incluyendo los eliminados (soft delete)
+          $tourTrashedName = \App\Models\Tour::withTrashed()
+              ->where('tour_id', $detail->tour_id)
+              ->value('name');
+      }
+
+      // Texto final para la celda
+      $tourCellText = $tourLiveName
+          ? $tourLiveName
+          : ($tourTrashedName ? "Tour eliminado ({$tourTrashedName})" : "Tour eliminado");
+  @endphp
   <tr>
     <td>{{ $booking->booking_id }}</td>
     <td>
@@ -40,8 +58,11 @@
     <td>{{ $booking->user->full_name ?? '-' }}</td>
     <td>{{ $booking->user->email ?? '-' }}</td>
     <td>{{ $booking->user->phone ?? '-' }}</td>
-    <td>{{ $detail->tour->name ?? '-' }}</td>
-    <td>{{ $detail->tourLanguage->name ?? '-' }}</td>
+
+    {{-- 🟠 Tour: soporta "eliminado (nombre)" --}}
+    <td>{{ $tourCellText }}</td>
+
+    <td>{{ optional($detail->tourLanguage)->name ?? '-' }}</td>
     <td>{{ optional($detail)->tour_date?->format('Y-m-d') ?? '-' }}</td>
     <td>{{ $detail->hotel->name ?? $detail->other_hotel_name ?? '-' }}</td>
 

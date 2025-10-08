@@ -85,7 +85,7 @@ Route::middleware([SetLocale::class])->group(function () {
 
         // Tours
         Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
-Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tours.show');
+        Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tours.show');
 
         // Contact
         Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
@@ -293,9 +293,15 @@ Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tou
                 Route::post('promoCode', [PromoCodeController::class, 'store'])->name('promoCode.store');
                 Route::delete('promoCode/{promo}', [PromoCodeController::class, 'destroy'])->name('promoCode.destroy');
                 Route::patch('promoCode/{promo}/operation', [PromoCodeController::class, 'updateOperation'])->name('promoCode.updateOperation');
+
                 // Tours
                 Route::resource('tours', TourController::class)->except(['create', 'edit', 'show', 'destroy']);
                 Route::patch('tours/{tour:tour_id}/toggle', [TourController::class, 'toggle'])->name('tours.toggle');
+
+                // >>> RUTAS AGREGADAS (archivar/restaurar/purgar) <<<
+                Route::delete('tours/{tour}', [TourController::class, 'destroy'])->name('tours.destroy');     // Soft delete
+                Route::post('tours/{tour}/restore', [TourController::class, 'restore'])->name('tours.restore'); // Restaurar
+                Route::delete('tours/{tour}/purge', [TourController::class, 'purge'])->name('tours.purge');     // Hard delete protegido
 
                 Route::prefix('tours')->name('tours.')->group(function () {
                     Route::resource('schedule', TourScheduleController::class)->except(['create','edit','show']);
@@ -364,7 +370,6 @@ Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tou
                 Route::post('carrito/apply-promo', [CartController::class, 'applyPromoAdmin'])->name('cart.applyPromo');
                 Route::delete('carrito/remove-promo', [CartController::class, 'removePromoAdmin'])->name('cart.removePromo');
 
-                // REPORTS (solo roles con access-reports)
                 // REPORTS (solo roles con access-reports)
                 Route::prefix('reports')->name('reports.')->group(function () {
                     Route::get('/', [ReportsController::class, 'index'])->name('index');

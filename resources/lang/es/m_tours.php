@@ -282,102 +282,102 @@ return [
         ],
     ],
 
-// =========================================================
-// [05] ITINERARY
-// =========================================================
-'itinerary' => [
-    'fields' => [
-        'name'                 => 'Nombre del itinerario',
-        'description'          => 'Descripción',
-        'description_optional' => 'Descripción (opcional)',
-    ],
-
-    'status' => [
-        'active'   => 'Activo',
-        'inactive' => 'Inactivo',
-    ],
-
-    'ui' => [
-        'page_title'    => 'Itinerarios y Ítems',
-        'page_heading'  => 'Itinerarios y Gestión de Ítems',
-        'new_itinerary' => 'Nuevo Itinerario',
-
-        'assign'        => 'Asignar',
-        'edit'          => 'Editar',
-        'save'          => 'Guardar',
-        'cancel'        => 'Cancelar',
-        'close'         => 'Cerrar',
-        'create_title'  => 'Crear nuevo itinerario',
-        'create_button' => 'Crear',
-
-        'toggle_on'  => 'Activar itinerario',
-        'toggle_off' => 'Desactivar itinerario',
-        'toggle_confirm_on_title'  => '¿Activar itinerario?',
-        'toggle_confirm_off_title' => '¿Desactivar itinerario?',
-        'toggle_confirm_on_html'   => 'El itinerario <b>:label</b> quedará <b>activo</b>.',
-        'toggle_confirm_off_html'  => 'El itinerario <b>:label</b> quedará <b>inactivo</b>.',
-        'yes_continue' => 'Sí, continuar',
-
-        'assign_title'          => 'Asignar ítems a :name',
-        'drag_hint'             => 'Arrastra y suelta los ítems para definir el orden.',
-        'drag_handle'           => 'Arrastrar para reordenar',
-        'select_one_title'      => 'Debes seleccionar al menos un ítem',
-        'select_one_text'       => 'Por favor, selecciona al menos un ítem para continuar.',
-        'assign_confirm_title'  => '¿Asignar ítems seleccionados?',
-        'assign_confirm_button' => 'Sí, asignar',
-        'assigning'             => 'Asignando...',
-
-        'no_items_assigned'       => 'No hay ítems asignados a este itinerario.',
-        'itinerary_this'          => 'este itinerario',
-        'processing'              => 'Procesando...',
-        'saving'                  => 'Guardando...',
-        'activating'              => 'Activando...',
-        'deactivating'            => 'Desactivando...',
-        'applying'                => 'Aplicando...',
-        'deleting'                => 'Eliminando...',
-        'flash_success_title'     => 'Éxito',
-        'flash_error_title'       => 'Error',
-        'validation_failed_title' => 'No se pudo procesar',
-    ],
-
-    'success' => [
-        'created'        => 'Itinerario creado correctamente.',
-        'updated'        => 'Itinerario actualizado correctamente.',
-        'activated'      => 'Itinerario activado correctamente.',
-        'deactivated'    => 'Itinerario desactivado correctamente.',
-        'deleted'        => 'Itinerario eliminado definitivamente.',
-        'items_assigned' => 'Ítems asignados correctamente.',
-    ],
-
-    'error' => [
-        'create'  => 'No se pudo crear el itinerario.',
-        'update'  => 'No se pudo actualizar el itinerario.',
-        'toggle'  => 'No se pudo cambiar el estado del itinerario.',
-        'delete'  => 'No se pudo eliminar el itinerario.',
-        'assign'  => 'No se pudieron asignar los ítems.',
-    ],
-
-    'validation' => [
-        'name' => [
-            'required' => 'El nombre del itinerario es obligatorio.',
-            'string'   => 'El nombre debe ser texto.',
-            'max'      => 'El nombre no puede exceder 255 caracteres.',
-            'unique'   => 'Ya existe un itinerario con ese nombre.',
+    // =========================================================
+    // [05] ITINERARY
+    // =========================================================
+    'itinerary' => [
+        'fields' => [
+            'name'                 => 'Nombre del itinerario',
+            'description'          => 'Descripción',
+            'description_optional' => 'Descripción (opcional)',
         ],
-        'description' => [
-            'string' => 'La descripción debe ser texto.',
-            'max'    => 'La descripción no puede exceder 1000 caracteres.',
+
+        'status' => [
+            'active'   => 'Activo',
+            'inactive' => 'Inactivo',
         ],
-        'items' => [
-            'required'      => 'Debes seleccionar al menos un ítem.',
-            'array'         => 'El formato de los ítems no es válido.',
-            'min'           => 'Debes seleccionar al menos un ítem.',
-            'order_integer' => 'El orden debe ser un número entero.',
-            'order_min'     => 'El orden no puede ser negativo.',
-            'order_max'     => 'El orden no puede exceder 9999.',
+
+        'ui' => [
+            'page_title'    => 'Itinerarios y Ítems',
+            'page_heading'  => 'Itinerarios y Gestión de Ítems',
+            'new_itinerary' => 'Nuevo Itinerario',
+
+            'assign'        => 'Asignar',
+            'edit'          => 'Editar',
+            'save'          => 'Guardar',
+            'cancel'        => 'Cancelar',
+            'close'         => 'Cerrar',
+            'create_title'  => 'Crear nuevo itinerario',
+            'create_button' => 'Crear',
+
+            'toggle_on'  => 'Activar itinerario',
+            'toggle_off' => 'Desactivar itinerario',
+            'toggle_confirm_on_title'  => '¿Activar itinerario?',
+            'toggle_confirm_off_title' => '¿Desactivar itinerario?',
+            'toggle_confirm_on_html'   => 'El itinerario <b>:label</b> quedará <b>activo</b>.',
+            'toggle_confirm_off_html'  => 'El itinerario <b>:label</b> quedará <b>inactivo</b>.',
+            'yes_continue' => 'Sí, continuar',
+
+            'assign_title'          => 'Asignar ítems a :name',
+            'drag_hint'             => 'Arrastra y suelta los ítems para definir el orden.',
+            'drag_handle'           => 'Arrastrar para reordenar',
+            'select_one_title'      => 'Debes seleccionar al menos un ítem',
+            'select_one_text'       => 'Por favor, selecciona al menos un ítem para continuar.',
+            'assign_confirm_title'  => '¿Asignar ítems seleccionados?',
+            'assign_confirm_button' => 'Sí, asignar',
+            'assigning'             => 'Asignando...',
+
+            'no_items_assigned'       => 'No hay ítems asignados a este itinerario.',
+            'itinerary_this'          => 'este itinerario',
+            'processing'              => 'Procesando...',
+            'saving'                  => 'Guardando...',
+            'activating'              => 'Activando...',
+            'deactivating'            => 'Desactivando...',
+            'applying'                => 'Aplicando...',
+            'deleting'                => 'Eliminando...',
+            'flash_success_title'     => 'Éxito',
+            'flash_error_title'       => 'Error',
+            'validation_failed_title' => 'No se pudo procesar',
+        ],
+
+        'success' => [
+            'created'        => 'Itinerario creado correctamente.',
+            'updated'        => 'Itinerario actualizado correctamente.',
+            'activated'      => 'Itinerario activado correctamente.',
+            'deactivated'    => 'Itinerario desactivado correctamente.',
+            'deleted'        => 'Itinerario eliminado definitivamente.',
+            'items_assigned' => 'Ítems asignados correctamente.',
+        ],
+
+        'error' => [
+            'create'  => 'No se pudo crear el itinerario.',
+            'update'  => 'No se pudo actualizar el itinerario.',
+            'toggle'  => 'No se pudo cambiar el estado del itinerario.',
+            'delete'  => 'No se pudo eliminar el itinerario.',
+            'assign'  => 'No se pudieron asignar los ítems.',
+        ],
+
+        'validation' => [
+            'name' => [
+                'required' => 'El nombre del itinerario es obligatorio.',
+                'string'   => 'El nombre debe ser texto.',
+                'max'      => 'El nombre no puede exceder 255 caracteres.',
+                'unique'   => 'Ya existe un itinerario con ese nombre.',
+            ],
+            'description' => [
+                'string' => 'La descripción debe ser texto.',
+                'max'    => 'La descripción no puede exceder 1000 caracteres.',
+            ],
+            'items' => [
+                'required'      => 'Debes seleccionar al menos un ítem.',
+                'array'         => 'El formato de los ítems no es válido.',
+                'min'           => 'Debes seleccionar al menos un ítem.',
+                'order_integer' => 'El orden debe ser un número entero.',
+                'order_min'     => 'El orden no puede ser negativo.',
+                'order_max'     => 'El orden no puede exceder 9999.',
+            ],
         ],
     ],
-],
 
     // =========================================================
     // [06] LANGUAGE
@@ -468,6 +468,7 @@ return [
             ],
         ],
     ],
+
     // =========================================================
     // [07] TOUR
     // =========================================================
@@ -510,12 +511,13 @@ return [
             'viator_code'   => 'Código Viator',
             'status'        => 'Estado',
             'actions'       => 'Acciones',
-            'slug'      => 'url',
+            'slug'          => 'url',
         ],
 
         'status' => [
             'active'   => 'Activo',
             'inactive' => 'Inactivo',
+            'archived' => 'Archivado',
         ],
 
         'success' => [
@@ -523,9 +525,12 @@ return [
             'updated'     => 'El tour fue actualizado correctamente.',
             'deleted'     => 'El tour fue eliminado.',
             'toggled'     => 'El estado del tour fue actualizado.',
-            // claves usadas por el controlador:
             'activated'   => 'Tour activado correctamente.',
             'deactivated' => 'Tour desactivado correctamente.',
+            // nuevos
+            'archived'    => 'Tour archivado correctamente.',
+            'restored'    => 'Tour restaurado correctamente.',
+            'purged'      => 'Tour eliminado permanentemente.',
         ],
 
         'error' => [
@@ -534,6 +539,10 @@ return [
             'delete'    => 'No se pudo eliminar el tour.',
             'toggle'    => 'No se pudo cambiar el estado del tour.',
             'not_found' => 'El tour no existe.',
+            // nuevos
+            'restore'            => 'No se pudo restaurar el tour.',
+            'purge'              => 'No se pudo eliminar permanentemente el tour.',
+            'purge_has_bookings' => 'No se puede eliminar permanentemente: el tour tiene reservas.',
         ],
 
         'ui' => [
@@ -568,7 +577,7 @@ return [
             'view_cart'        => 'Ver Carrito',
             'add_to_cart'      => 'Añadir al Carrito',
 
-            // claves extra de UI
+            // claves extra de UI (ya usadas en el Blade)
             'available_languages'    => 'Idiomas disponibles',
             'default_capacity'       => 'Cupo por defecto',
             'create_new_schedules'   => 'Crear horarios nuevos',
@@ -592,69 +601,91 @@ return [
                 'languages'       => 'Sin idiomas',
                 'schedules'       => 'Sin horarios',
             ],
+
+            // NUEVO: acciones de archivado/restauración/purga
+            'archive' => 'Archivar',
+            'restore' => 'Restaurar',
+            'purge'   => 'Eliminar definitivamente',
+
+            'confirm_archive_title' => '¿Archivar tour?',
+            'confirm_archive_text'  => 'El tour quedará inhabilitado para nuevas reservas, pero las reservas existentes se conservan.',
+            'confirm_purge_title'   => 'Eliminar definitivamente',
+            'confirm_purge_text'    => 'Esta acción es irreversible y solo se permite si el tour nunca tuvo reservas.',
+
+            // Filtros de estado
+            'filters' => [
+                'active'   => 'Activos',
+                'inactive' => 'Inactivos',
+                'archived' => 'Archivados',
+                'all'      => 'Todos',
+            ],
+
+            // Toolbar de fuente (usado en tourlist.blade.php)
+            'font_decrease_title' => 'Disminuir tamaño de fuente',
+            'font_increase_title' => 'Aumentar tamaño de fuente',
         ],
     ],
 
-// =========================================================
-// [08] IMAGES
-// =========================================================
-'image' => [
+    // =========================================================
+    // [08] IMAGES
+    // =========================================================
+    'image' => [
 
-    'limit_reached_title' => 'Límite alcanzado',
-    'limit_reached_text'  => 'Se alcanzó el límite de imágenes para este tour.',
-    'upload_success'      => 'Imágenes subidas correctamente.',
-    'upload_none'         => 'No se subieron imágenes.',
-    'upload_truncated'    => 'Algunos archivos se omitieron por el límite por tour.',
-    'done'                => 'Listo',
-    'notice'              => 'Aviso',
-    'saved'               => 'Guardar',
-    'caption_updated'     => 'Leyenda actualizada correctamente.',
-    'deleted'             => 'Eliminado',
-    'image_removed'       => 'Imagen eliminada correctamente.',
-    'invalid_order'       => 'Carga de orden inválida.',
-    'nothing_to_reorder'  => 'Nada que reordenar.',
-    'order_saved'         => 'Orden guardado.',
-    'cover_updated_title' => 'Actualizar portada',
-    'cover_updated_text'  => 'Esta imagen ahora es la portada.',
-    'deleting'            => 'Eliminando...',
+        'limit_reached_title' => 'Límite alcanzado',
+        'limit_reached_text'  => 'Se alcanzó el límite de imágenes para este tour.',
+        'upload_success'      => 'Imágenes subidas correctamente.',
+        'upload_none'         => 'No se subieron imágenes.',
+        'upload_truncated'    => 'Algunos archivos se omitieron por el límite por tour.',
+        'done'                => 'Listo',
+        'notice'              => 'Aviso',
+        'saved'               => 'Guardar',
+        'caption_updated'     => 'Leyenda actualizada correctamente.',
+        'deleted'             => 'Eliminado',
+        'image_removed'       => 'Imagen eliminada correctamente.',
+        'invalid_order'       => 'Carga de orden inválida.',
+        'nothing_to_reorder'  => 'Nada que reordenar.',
+        'order_saved'         => 'Orden guardado.',
+        'cover_updated_title' => 'Actualizar portada',
+        'cover_updated_text'  => 'Esta imagen ahora es la portada.',
+        'deleting'            => 'Eliminando...',
 
-    'ui' => [
-        'page_title_pick'     => 'Imágenes de Tours',
-        'page_heading'        => 'Imágenes de Tours',
-        'choose_tour'         => 'Elegir tour',
-        'search_placeholder'  => 'Buscar por ID o nombre…',
-        'search_button'       => 'Buscar',
-        'no_results'          => 'No se encontraron tours.',
-        'manage_images'       => 'Administrar imágenes',
-        'cover_alt'           => 'Portada',
-        'images_label'        => 'imágenes',
-        'upload_btn'          => 'Subir',
-        'caption_placeholder' => 'Leyenda (opcional)',
-        'set_cover_btn'       => 'Elige la imagen que quieres como portada',
-        'no_images'           => 'Aún no hay imágenes para este tour.',
-        'delete_btn'          => 'Eliminar',
-        'show_btn'            => 'Mostrar',
-        'close_btn'           => 'Cerrar',
-        'preview_title'      => 'Vista previa de la imagen',
+        'ui' => [
+            'page_title_pick'     => 'Imágenes de Tours',
+            'page_heading'        => 'Imágenes de Tours',
+            'choose_tour'         => 'Elegir tour',
+            'search_placeholder'  => 'Buscar por ID o nombre…',
+            'search_button'       => 'Buscar',
+            'no_results'          => 'No se encontraron tours.',
+            'manage_images'       => 'Administrar imágenes',
+            'cover_alt'           => 'Portada',
+            'images_label'        => 'imágenes',
+            'upload_btn'          => 'Subir',
+            'caption_placeholder' => 'Leyenda (opcional)',
+            'set_cover_btn'       => 'Elige la imagen que quieres como portada',
+            'no_images'           => 'Aún no hay imágenes para este tour.',
+            'delete_btn'          => 'Eliminar',
+            'show_btn'            => 'Mostrar',
+            'close_btn'           => 'Cerrar',
+            'preview_title'       => 'Vista previa de la imagen',
 
-        'error_title'         => 'Error',
-        'warning_title'       => 'Atención',
-        'success_title'       => 'Éxito',
-        'cancel_btn'          => 'Cancelar',
-        'confirm_delete_title'=> '¿Eliminar esta imagen?',
-        'confirm_delete_text' => 'Esta acción no se puede deshacer.',
+            'error_title'         => 'Error',
+            'warning_title'       => 'Atención',
+            'success_title'       => 'Éxito',
+            'cancel_btn'          => 'Cancelar',
+            'confirm_delete_title'=> '¿Eliminar esta imagen?',
+            'confirm_delete_text' => 'Esta acción no se puede deshacer.',
+        ],
+
+        'errors' => [
+            'validation'     => 'Los datos enviados no son válidos.',
+            'upload_generic' => 'No se pudieron subir algunas imágenes.',
+            'update_caption' => 'No se pudo actualizar la leyenda.',
+            'delete'         => 'No se pudo eliminar la imagen.',
+            'reorder'        => 'No se pudo guardar el orden.',
+            'set_cover'      => 'No se pudo establecer la portada.',
+            'load_list'      => 'No se pudo cargar el listado.',
+            'too_large'      => 'El archivo supera el tamaño máximo permitido. Intenta con una imagen más liviana.',
+        ],
     ],
-
-    'errors' => [
-        'validation'     => 'Los datos enviados no son válidos.',
-        'upload_generic' => 'No se pudieron subir algunas imágenes.',
-        'update_caption' => 'No se pudo actualizar la leyenda.',
-        'delete'         => 'No se pudo eliminar la imagen.',
-        'reorder'        => 'No se pudo guardar el orden.',
-        'set_cover'      => 'No se pudo establecer la portada.',
-        'load_list'      => 'No se pudo cargar el listado.',
-        'too_large'      => 'El archivo supera el tamaño máximo permitido. Intenta con una imagen más liviana.',
-    ],
-],
 
 ];

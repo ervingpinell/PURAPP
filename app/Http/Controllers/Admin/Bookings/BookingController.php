@@ -51,6 +51,7 @@ class BookingController extends Controller
             'detail.schedule',
             'detail.meetingPoint',
             'redemption.promoCode',
+            'tour' => fn ($q) => $q->withTrashed()->with('schedules'),
         ])
             ->join('users', 'bookings.user_id', '=', 'users.user_id')
             ->select('bookings.*');
@@ -112,6 +113,7 @@ class BookingController extends Controller
             'tours'
         ));
     }
+
 
     /** Crear reserva desde formulario manual */
     public function store(Request $request)
