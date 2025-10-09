@@ -28,12 +28,15 @@ use Laravel\Fortify\Fortify;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
+use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
+
 
 class FortifyServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         $this->app->singleton(LoginResponseContract::class,    \App\Http\Responses\LoginResponse::class);
+        $this->app->singleton(TwoFactorLoginResponseContract::class, \App\Http\Responses\LoginResponse::class);
         $this->app->singleton(LogoutResponseContract::class,   \App\Http\Responses\LogoutResponse::class);
         $this->app->singleton(RegisterResponseContract::class, \App\Http\Responses\RegisterResponse::class);
 
@@ -80,7 +83,7 @@ class FortifyServiceProvider extends ServiceProvider
             $email    = mb_strtolower(trim((string) $request->input('email')));
             $password = (string) $request->input('password');
 
-            $maxFails  = 6;   // umbral de bloqueos
+            $maxFails  = 5;   // umbral de bloqueos
             $unlockTTL = 60;  // minutos de validez del link
             $resendTTL = 10;  // cooldown (min) para reenvío (lock/verify)
 

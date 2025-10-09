@@ -2,52 +2,101 @@
 
 namespace App\Http\Responses;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\RateLimiter;
+use Laravel\Fortify\Features;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 
 class LoginResponse implements LoginResponseContract
 {
     public function toResponse($request)
     {
+        /** @var \App\Models\User|null $user */
         $user   = $request->user();
         $roleId = (int) ($user->role_id ?? 0);
 
-        // Limpia contador de fallos por usuario
-        Cache::forget('auth:fail:'.$user->getKey());
+        // Limpia contadores/limiter por usuario
+        if ($user) {
+            Cache::forget('auth:fail:' . $user->getKey());
+            RateLimiter::clear('unlock:mail:' . $user->getKey());
+        }
 
-        // Limpia limiter 2FA (si quedó algo colgado)
-        $twoFaKey = (string) $request->session()->get('login.id', $request->ip());
-        RateLimiter::clear('2fa|'.$twoFaKey);
-
-        // Sanitiza intended para evitar bucles
-        $intended     = session('url.intended'); // puede ser null
-        $intendedPath = $intended ? (string) parse_url($intended, PHP_URL_PATH) : null;
-
-        $deny = [
-            '/login', '/register',
-            '/forgot-password', '/reset-password',
-            '/email/verify', '/email/verification-notification',
-            '/two-factor-challenge',
-            '/admin/profile', '/admin/profile/edit',
-        ];
-
-        if ($intendedPath && in_array($intendedPath, $deny, true)) {
+        // Sanitiza intended para evitar loops (login/2fa/verify/etc.)
+        $intended     = (string) (session('url.intended') ?? '');
+        $intendedPath = parse_url($intended, PHP_URL_PATH) ?: '';
+        if ($intendedPath && preg_match('#^/(login|two-factor-challenge|email/verify|password|register)#', $intendedPath)) {
             $intended = null;
             session()->forget('url.intended');
         }
 
         $isAdmin = in_array($roleId, [1, 2], true);
 
+        // Construye el redirect primero
         if ($isAdmin) {
-            return $intended ? redirect()->to($intended) : redirect()->intended('/admin');
+            $response = $intended ? redirect()->to($intended) : redirect()->intended('/admin');
+        } else {
+            if ($intendedPath && str_starts_with($intendedPath, '/admin')) {
+                $intended = null;
+                session()->forget('url.intended');
+            }
+            $response = $intended ? redirect()->to($intended) : redirect()->intended('/');
         }
 
-        if ($intendedPath && str_starts_with($intendedPath, '/admin')) {
-            $intended = null;
-            session()->forget('url.intended');
+        // Adjunta el cookie "recordar dispositivo" del 2FA si corresponde
+        if ($cookie = $this->makeTwoFactorRememberCookieIfNeeded($request)) {
+            $response = $response->withCookie($cookie);
         }
 
-        return $intended ? redirect()->to($intended) : redirect()->intended('/');
+        return $response;
+    }
+
+    /**
+     * Crea el cookie "two_factor_remember" si:
+     *  - 2FA está activo,
+     *  - es el POST de two-factor-challenge,
+     *  - y el checkbox 'remember' viene marcado.
+     */
+    private function makeTwoFactorRememberCookieIfNeeded(Request $request)
+    {
+        if (! Features::enabled(Features::twoFactorAuthentication())) {
+            return null;
+        }
+        if (! $request->boolean('remember')) {
+            return null;
+        }
+
+        $isTwoFactorPost = $request->routeIs('two-factor.login') || $request->is('two-factor-challenge');
+        if (! $isTwoFactorPost) {
+            return null;
+        }
+
+        /** @var \App\Models\User|null $user */
+        $user = $request->user();
+        if (! $user) {
+            return null;
+        }
+
+        $name     = 'two_factor_remember';
+        $minutes  = 60 * 24 * 365 * 5;                      // 5 años (ajústalo si quieres)
+        $domain   = config('session.domain');               // null en local
+        $secure   = (bool) config('session.secure', false); // true en prod con HTTPS
+        $sameSite = config('session.same_site', 'lax');
+
+        // ✅ Formato que Fortify reconoce, y SIN encrypt() manual
+        $payload = (string) $user->getAuthIdentifier();
+
+        return Cookie::make(
+            $name,
+            $payload,  // <- sin encrypt(): EncryptCookies ya lo cifrará
+            $minutes,
+            '/',
+            $domain,
+            $secure,
+            true,   // httpOnly
+            false,  // raw
+            $sameSite
+        );
     }
 }
