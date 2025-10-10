@@ -68,3 +68,15 @@ if (!function_exists('viator_product_url')) {
         return "https://www.viator.com/tours/{$citySlug}/{$productSlug}/d{$destId}-" . rawurlencode($code);
     }
 }
+
+if (!function_exists('cookies_accepted')) {
+    /**
+     * True si el usuario aceptó cookies. La fuente de la verdad es la cookie "gv_cookie_consent".
+     */
+    function cookies_accepted(): bool
+    {
+        $cookie = request()->cookie('gv_cookie_consent');
+        return (string) $cookie === '1';
+    }
+
+}

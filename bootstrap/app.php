@@ -12,21 +12,17 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__ . '/../routes/api.php',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Usa el stack web por defecto de Laravel (EncryptCookies, AddQueuedCookiesToResponse,
-        // StartSession, ShareErrorsFromSession, VerifyCsrfToken, SubstituteBindings, etc.)
-        // No declares tu propio VerifyCsrfToken de App\... (¡no es necesario en L11!).
-
-        // Si usas Sanctum con SPA/API stateful:
+        // Stack web por defecto (EncryptCookies, AddQueuedCookiesToResponse, StartSession, etc.)
         $middleware->statefulApi();
 
-        // CSRF del core con exclusiones:
+        // CSRF del core con exclusiones
         $middleware->validateCsrfTokens(except: [
             'api/reviews',
             'api/reviews/batch',
             'api/apply-promo',
         ]);
 
-        // Aliases de middleware (solo los que realmente uses en rutas)
+        // Aliases
         $middleware->alias([
             'noindex'         => \App\Http\Middleware\NoIndex::class,
             'verified'        => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
@@ -37,15 +33,19 @@ return Application::configure(basePath: dirname(__DIR__))
             '2fa.admin'       => \App\Http\Middleware\RequireTwoFactorForAdmins::class,
         ]);
 
-        // Globales (se agregan al final de la pila global; no reemplazan el stack web nativo)
+        // Globales (corren antes del grupo web)
         $middleware->append([
             \App\Http\Middleware\NormalizeEmail::class,
             \App\Http\Middleware\LogContext::class,
             \App\Http\Middleware\SetLocale::class,
 
-            // ⇩⇩ NUEVO: recordar email en el login Fortify
+            // Recordar email en el login Fortify (no requiere sesión)
             \App\Http\Middleware\RememberEmail::class,
+            // ⛔️ Quitamos aquí SyncCookieConsent (no debe ir global)
         ]);
+
+        // ✅ SyncCookieConsent debe ir en el GRUPO WEB (después de StartSession)
+        $middleware->appendToGroup('web', \App\Http\Middleware\SyncCookieConsent::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 

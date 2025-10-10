@@ -52,7 +52,11 @@ return [
     'site_key' => env('TURNSTILE_SITE_KEY', ''),
     'secret'   => env('TURNSTILE_SECRET', ''),
 ],
-
-
+'google' => [
+    'analytics_id' => env('GOOGLE_ANALYTICS_ID', null),
+],
+'meta' => [
+    'pixel_id' => env('META_PIXEL_ID', null),
+],
 
 ];

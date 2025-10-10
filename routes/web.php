@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Middleware\SetLocale;
@@ -47,6 +48,7 @@ use App\Http\Controllers\Reviews\PublicReviewController;
 use App\Http\Controllers\Auth\UnlockAccountController;
 use App\Http\Controllers\Admin\Reports\ReportsController;
 use App\Services\Reviews\ReviewAggregator;
+use App\Http\Controllers\CookieConsentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -149,10 +151,10 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::post('/reviews', [ReviewsController::class, 'store'])->name('reviews.store');
 
     // Embed con NOINDEX
-Route::get('/reviews/embed/{provider}', function (Request $request, ReviewAggregator $agg, string $provider) {
-    $response = app(ReviewsController::class)->embed($request, $agg, $provider);
-    return $response->header('X-Robots-Tag', 'noindex, nofollow');
-})->where('provider', '[A-Za-z0-9_-]+')->name('reviews.embed');
+    Route::get('/reviews/embed/{provider}', function (Request $request, ReviewAggregator $agg, string $provider) {
+        $response = app(ReviewsController::class)->embed($request, $agg, $provider);
+        return $response->header('X-Robots-Tag', 'noindex, nofollow');
+    })->where('provider', '[A-Za-z0-9_-]+')->name('reviews.embed');
 
     Route::get('/r/{token}', [PublicReviewController::class, 'show'])->name('reviews.request.show');
     Route::post('/r/{token}', [PublicReviewController::class, 'submit'])->name('reviews.request.submit');
@@ -416,4 +418,16 @@ Route::get('/reviews/embed/{provider}', function (Request $request, ReviewAggreg
                 });
             });
         });
+
+    // ============================
+    // COOKIES (consent)
+    // ============================
+Route::post('/cookies/accept', [CookieConsentController::class, 'accept'])
+    ->name('cookies.accept')
+    ->middleware('throttle:10,1');
+
+Route::post('/cookies/reject', [CookieConsentController::class, 'reject'])
+    ->name('cookies.reject')
+    ->middleware('throttle:10,1');
+
 });

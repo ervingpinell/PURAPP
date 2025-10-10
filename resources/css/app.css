@@ -302,6 +302,66 @@ body.has-fixed-navbar .container > .big-title:first-child {
   margin-top: calc(var(--content-top-gap) + env(safe-area-inset-top, 0px));
 }
 
+.cookie-banner {
+  position: fixed;
+  z-index: 2147483000; /* por encima de casi todo */
+  left: 0; right: 0; bottom: 0;
+  background: #0f5132; /* verde oscuro (tema) */
+  color: #fff;
+  padding: 14px 16px;
+  box-shadow: 0 -6px 24px rgba(0,0,0,.18);
+  font-size: 0.95rem;
+}
+.cookie-banner a { color: #fff; text-decoration: underline; }
+.cookie-banner .container {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+}
+.cookie-banner .copy { flex: 1 1 420px; }
+.cookie-banner .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Botones */
+.cookie-banner .btn {
+  cursor: pointer;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: 2px solid transparent;                /* <- borde controlado */
+  background-clip: padding-box;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.cookie-accept { background: #34c759; color: #0b2e13; }
+.cookie-reject { background: #6c757d; color: #fff; }
+.cookie-more   { background: transparent; color: #fff; text-decoration: underline; padding: 0 4px; }
+
+/* Hover/Focus: resaltar borde sin alterar color de fondo */
+.cookie-banner .btn:hover,
+.cookie-banner .btn:focus-visible {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.35) inset;
+  opacity: 1;            /* neutraliza reglas externas que atenúen */
+  filter: none;          /* neutraliza posibles filtros de hover */
+}
+
+/* Mantener colores originales en hover */
+.cookie-accept:hover { background: #34c759; color: #0b2e13; }
+.cookie-reject:hover { background: #6c757d; color: #ffffff; }
+.cookie-more:hover   { background: transparent; color: #ffffff; text-decoration: underline; }
+
+/* Focus accesible */
+.cookie-banner .btn:focus-visible,
+.cookie-banner a:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* Animación de entrada */
+@media (prefers-reduced-motion: no-preference) {
+  .cookie-banner { animation: slideUp .25s ease-out; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+}
+
+
 @media (max-width: 576.98px){
   :root{
     --content-top-gap: clamp(10px, 2vh, 20px);
