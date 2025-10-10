@@ -174,7 +174,7 @@
                 {{-- Acciones --}}
                 <td>
                 @php
-                    $isArchived = !is_null($tour->deleted_at ?? null);
+                    $isArchived  = !is_null($tour->deleted_at ?? null);
                     $hasBookings = (int) ($tour->bookings_count ?? 0);
                 @endphp
 
@@ -191,11 +191,11 @@
 
                     {{-- Toggle activo/inactivo (solo si NO está eliminado/soft) --}}
                     @unless($isArchived)
-                        <form action="{{ route('admin.tours.toggle', $tour->tour_id) }}"
-                                method="POST"
-                                class="d-inline js-toggle-form"
-                                data-question="{{ $tour->is_active ? __('m_tours.tour.ui.toggle_off_title') : __('m_tours.tour.ui.toggle_on_title') }}"
-                                data-confirm="{{ $tour->is_active ? __('m_tours.tour.ui.toggle_off_button') : __('m_tours.tour.ui.toggle_on_button') }}">
+                        <form action="{{ route('admin.tours.toggle', ['tour' => $tour->tour_id]) }}"
+                              method="POST"
+                              class="d-inline js-toggle-form"
+                              data-question="{{ $tour->is_active ? __('m_tours.tour.ui.toggle_off_title') : __('m_tours.tour.ui.toggle_on_title') }}"
+                              data-confirm="{{ $tour->is_active ? __('m_tours.tour.ui.toggle_off_button') : __('m_tours.tour.ui.toggle_on_button') }}">
                             @csrf
                             @method('PATCH')
                             <button type="submit"
@@ -207,7 +207,7 @@
                     @endunless
 
                     {{-- Gestionar imágenes --}}
-                    <a href="{{ route('admin.tours.images.index', $tour->tour_id) }}"
+                    <a href="{{ route('admin.tours.images.index', ['tour' => $tour->tour_id]) }}"
                        class="btn btn-info btn-sm"
                        title="{{ __('m_tours.tour.ui.manage_images') ?? 'Gestionar imágenes' }}">
                         <i class="fas fa-images"></i>
@@ -215,9 +215,16 @@
 
                     {{-- Eliminar (soft delete) --}}
                     @unless($isArchived)
-                        <form id="delete-form-{{ $tour->tour_id }}" action="{{ route('admin.tours.destroy', $tour) }}" method="POST" class="d-inline">
-                            @csrf @method('DELETE')
-                            <button type="button" class="btn btn-danger btn-sm" title="Eliminar" onclick="confirmDelete({{ $tour->tour_id }})">
+                        <form id="delete-form-{{ $tour->tour_id }}"
+                              action="{{ route('admin.tours.destroy', ['tour' => $tour->tour_id]) }}"
+                              method="POST"
+                              class="d-inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="button"
+                                    class="btn btn-danger btn-sm"
+                                    title="Eliminar"
+                                    onclick="confirmDelete({{ $tour->tour_id }})">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </form>
@@ -225,19 +232,32 @@
 
                     {{-- Restaurar (si está en Eliminados) --}}
                     @if($isArchived)
-                        <form id="restore-form-{{ $tour->tour_id }}" action="{{ route('admin.tours.restore', $tour->tour_id) }}" method="POST" class="d-inline">
+                        <form id="restore-form-{{ $tour->tour_id }}"
+                              action="{{ route('admin.tours.restore', ['tour' => $tour->tour_id]) }}"
+                              method="POST"
+                              class="d-inline">
                             @csrf
-                            <button type="submit" class="btn btn-success btn-sm" title="Restaurar">
+                            <button type="submit"
+                                    class="btn btn-success btn-sm"
+                                    title="Restaurar">
                                 <i class="fas fa-undo"></i>
                             </button>
                         </form>
                     @endif
 
-                    {{-- Eliminar definitivamente: solo si está en Eliminados y SIN reservas --}}
-                    @if($isArchived && $hasBookings === 0)
-                        <form id="purge-form-{{ $tour->tour_id }}" action="{{ route('admin.tours.purge', $tour->tour_id) }}" method="POST" class="d-inline">
-                            @csrf @method('DELETE')
-                            <button type="button" class="btn btn-outline-danger btn-sm" title="Eliminar definitivamente" onclick="confirmPurge({{ $tour->tour_id }})">
+                    {{-- 🔧 cambio: Eliminar definitivamente visible siempre que esté en Eliminados (sin importar reservas) --}}
+                    @if($isArchived) {{-- antes: $isArchived && $hasBookings === 0 --}}
+                        <form id="purge-form-{{ $tour->tour_id }}"
+                              action="{{ route('admin.tours.purge', ['tour' => $tour->tour_id]) }}"
+                              method="POST"
+                              class="d-inline"
+                              data-has-bookings="{{ $hasBookings }}">
+                            @csrf
+                            @method('DELETE')
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-sm"
+                                    title="Eliminar definitivamente"
+                                    onclick="confirmPurge({{ $tour->tour_id }}, {{ $hasBookings }})">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </form>
@@ -373,7 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function confirmDelete(id) {
     Swal.fire({
       title: '¿Eliminar tour?',
-      html: 'El tour pasará a la sección <b>“Eliminados”</b>. No se permitirán nuevas reservas, pero podrás <b>restaurarlo</b> desde allí.',
+      html: 'El tour pasará a la sección <b>"Eliminados"</b>. No se permitirán nuevas reservas, pero podrás <b>restaurarlo</b> desde allí.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, eliminar',
@@ -385,10 +405,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function confirmPurge(id) {
+  // 🔧 cambio: texto actualizado, y acepta flag de reservas para informar (opcional)
+  function confirmPurge(id, hasBookings = 0) {
+    const extra = (parseInt(hasBookings, 10) > 0)
+      ? `<div class="mt-2 text-start">Este tour tiene <b>${hasBookings}</b> reservas relacionadas. Al continuar, se eliminarán las reservas y vínculos asociados.</div>`
+      : '';
+
     Swal.fire({
       title: 'Eliminar definitivamente',
-      html: 'Esta acción es <b>irreversible</b>. Solo se permite si el tour <b>nunca</b> tuvo reservas.',
+      html: 'Esta acción es <b>irreversible</b> y borrará el tour y sus asociaciones.' + extra,
       icon: 'error',
       showCancelButton: true,
       confirmButtonText: 'Sí, eliminar',

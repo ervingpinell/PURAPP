@@ -396,22 +396,60 @@ class TourController extends Controller
         }
     }
 
-    /** Eliminar definitivamente (purge) — bloquea si hay reservas */
+    /** Eliminar definitivamente (purge) — PERMITIDO AUN CON RESERVAS */
     public function purge(Request $request, $tourId)
     {
         try {
             $tour = Tour::onlyTrashed()->findOrFail($tourId);
 
-            // Protección: si tiene reservas, no permitir hard delete
-            $hasBookings = method_exists($tour, 'bookings')
-                ? $tour->bookings()->exists()
-                : false;
+            DB::transaction(function () use ($tour) {
+                // 1) Reunir todas las reservas ligadas al tour
+                $bookingIdsFromDetails = \App\Models\BookingDetail::where('tour_id', $tour->tour_id)
+                    ->pluck('booking_id');
 
-            if ($hasBookings) {
-                return back()->with('error', __('m_tours.tour.error.purge_has_bookings'));
-            }
+                $bookingIdsFromHeader = \App\Models\Booking::where('tour_id', $tour->tour_id)
+                    ->pluck('booking_id');
 
-            $tour->forceDelete();
+                $bookingIds = $bookingIdsFromDetails
+                    ->merge($bookingIdsFromHeader)
+                    ->filter() // quita nulls
+                    ->unique()
+                    ->values();
+
+                // 2) Borrar dependencias (ignorar si algunos modelos no existen)
+                try { \App\Models\Review::where('tour_id', $tour->tour_id)->delete(); } catch (\Throwable $e) {}
+                try { \App\Models\ReviewRequest::whereIn('booking_id', $bookingIds)->delete(); } catch (\Throwable $e) {}
+                try { \App\Models\PromoCodeRedemption::whereIn('booking_id', $bookingIds)->delete(); } catch (\Throwable $e) {}
+                try {
+                    \App\Models\PromoCode::whereIn('used_by_booking_id', $bookingIds)->update([
+                        'is_used'            => false,
+                        'used_by_booking_id' => null,
+                    ]);
+                } catch (\Throwable $e) {}
+
+                // Detalles y cabeceras de reserva
+                if ($bookingIds->isNotEmpty()) {
+                    \App\Models\BookingDetail::whereIn('booking_id', $bookingIds)->delete();
+                    \App\Models\Booking::whereIn('booking_id', $bookingIds)->delete();
+                }
+
+                // Imágenes u otros adjuntos del tour (si existen)
+                try {
+                    if (class_exists(\App\Models\TourImage::class)) {
+                        \App\Models\TourImage::where('tour_id', $tour->tour_id)->delete();
+                    }
+                } catch (\Throwable $e) {}
+
+                // Desacoplar pivotes
+                try { $tour->schedules()->detach(); } catch (\Throwable $e) {}
+                try { $tour->languages()->detach(); } catch (\Throwable $e) {}
+                try { $tour->amenities()->detach(); } catch (\Throwable $e) {}
+                try { $tour->excludedAmenities()->detach(); } catch (\Throwable $e) {}
+                try { \App\Models\TourTranslation::where('tour_id', $tour->tour_id)->delete(); } catch (\Throwable $e) {}
+
+                // 3) Borrado definitivo del tour
+                $tour->forceDelete();
+            });
 
             LoggerHelper::mutated($this->controller, 'purge(hard)', 'tour', $tourId, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),

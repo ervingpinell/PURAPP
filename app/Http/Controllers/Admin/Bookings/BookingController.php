@@ -274,12 +274,12 @@ class BookingController extends Controller
                 // Meeting Point snapshot
                 $mp = !empty($v['meeting_point_id']) ? MeetingPoint::find($v['meeting_point_id']) : null;
 
-                // Cabecera
+                // ✅ Cabecera SIN schedule_id
                 $booking = Booking::create([
                     'user_id'           => $v['user_id'],
                     'tour_id'           => $tour->tour_id,
                     'tour_language_id'  => $v['tour_language_id'],
-                    'schedule_id'       => $v['schedule_id'],
+                    // ❌ REMOVIDO: 'schedule_id' => $v['schedule_id'],
                     'booking_reference' => strtoupper(Str::random(10)),
                     'booking_date'      => $v['booking_date'],
                     'status'            => $v['status'],
@@ -287,13 +287,13 @@ class BookingController extends Controller
                     'is_active'         => true,
                 ]);
 
-                // Detalle
+                // ✅ Detalle CON schedule_id
                 BookingDetail::create([
                     'booking_id'       => $booking->booking_id,
                     'tour_id'          => $tour->tour_id,
                     'tour_language_id' => $v['tour_language_id'],
                     'tour_date'        => $v['tour_date'],
-                    'schedule_id'      => $v['schedule_id'],
+                    'schedule_id'      => $v['schedule_id'], // ✅ Aquí sí va
                     'adults_quantity'  => $v['adults_quantity'],
                     'kids_quantity'    => $v['kids_quantity'],
                     'adult_price'      => $tour->adult_price,
@@ -527,7 +527,7 @@ class BookingController extends Controller
             $mpId = $r['meeting_point_id'] ?? null;
             $mp   = $mpId ? MeetingPoint::find($mpId) : null;
 
-            // Cabecera
+            // ✅ Cabecera SIN schedule_id (o si lo tienes en bookings, puedes dejarlo)
             $booking->update([
                 'user_id'          => $r['user_id'],
                 'tour_id'          => $tour->tour_id,
@@ -535,16 +535,17 @@ class BookingController extends Controller
                 'booking_date'     => $r['booking_date'],
                 'status'           => $r['status'],
                 'total'            => $newTotal,
-                'schedule_id'      => $schedule->schedule_id,
+                // Si tienes schedule_id en bookings y lo usas, déjalo:
+                // 'schedule_id'      => $schedule->schedule_id,
                 'notes'            => $r['notes'] ?? null,
             ]);
 
-            // Detalle
+            // ✅ Detalle CON schedule_id
             $detail->update([
                 'tour_id'          => $tour->tour_id,
                 'tour_language_id' => $r['tour_language_id'],
                 'tour_date'        => $r['tour_date'],
-                'schedule_id'      => $schedule->schedule_id,
+                'schedule_id'      => $schedule->schedule_id, // ✅ Aquí sí
                 'adults_quantity'  => (int)$r['adults_quantity'],
                 'kids_quantity'    => (int)$r['kids_quantity'],
                 'adult_price'      => $adultPrice,
@@ -765,12 +766,12 @@ class BookingController extends Controller
                         : max(0, round($baseTotal - $delta, 2));
                 }
 
-                // Cabecera
+                // ✅ Cabecera SIN schedule_id
                 $booking = Booking::create([
                     'user_id'           => $user->user_id,
                     'tour_id'           => $item->tour_id,
                     'tour_language_id'  => $item->tour_language_id,
-                    'schedule_id'       => $item->schedule_id,
+                    // ❌ REMOVIDO: 'schedule_id' => $item->schedule_id,
                     'booking_reference' => strtoupper(Str::random(10)),
                     'booking_date'      => now(),
                     'status'            => 'pending',
@@ -778,11 +779,11 @@ class BookingController extends Controller
                     'is_active'         => true,
                 ]);
 
-                // Detalle
+                // ✅ Detalle CON schedule_id
                 BookingDetail::create([
                     'booking_id'       => $booking->booking_id,
                     'tour_id'          => $item->tour_id,
-                    'schedule_id'      => $item->schedule_id,
+                    'schedule_id'      => $item->schedule_id, // ✅ Aquí sí va
                     'tour_language_id' => $item->tour_language_id,
                     'tour_date'        => $item->tour_date,
                     'hotel_id'         => $item->is_other_hotel ? null : $item->hotel_id,

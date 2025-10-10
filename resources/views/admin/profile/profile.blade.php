@@ -55,7 +55,7 @@
 
   // Resuelve logo e inicio (ajusta según tu config)
   $logoUrl = asset(config('adminlte.logo_img', 'images/logo.png'));
-  $homeUrl = route('home');
+  $homeUrl = route('admin.home');
 @endphp
 
 <div class="d-flex justify-content-center">
