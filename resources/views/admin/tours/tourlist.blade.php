@@ -245,8 +245,8 @@
                         </form>
                     @endif
 
-                    {{-- 🔧 cambio: Eliminar definitivamente visible siempre que esté en Eliminados (sin importar reservas) --}}
-                    @if($isArchived) {{-- antes: $isArchived && $hasBookings === 0 --}}
+                    {{-- Eliminar definitivamente: visible siempre que esté en Eliminados --}}
+                    @if($isArchived)
                         <form id="purge-form-{{ $tour->tour_id }}"
                               action="{{ route('admin.tours.purge', ['tour' => $tour->tour_id]) }}"
                               method="POST"
@@ -405,15 +405,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 🔧 cambio: texto actualizado, y acepta flag de reservas para informar (opcional)
+  // ✅ Ahora refleja que las reservas NO se eliminan; se conservarán y quedarán desasociadas
   function confirmPurge(id, hasBookings = 0) {
-    const extra = (parseInt(hasBookings, 10) > 0)
-      ? `<div class="mt-2 text-start">Este tour tiene <b>${hasBookings}</b> reservas relacionadas. Al continuar, se eliminarán las reservas y vínculos asociados.</div>`
+    const n = parseInt(hasBookings, 10) || 0;
+    const extra = (n > 0)
+      ? `<div class="mt-2 text-start">
+           Este tour tiene <b>${n}</b> reserva(s) relacionada(s).
+           <br>Al continuar:
+           <ul class="text-start" style="margin: .5rem 0 0 1rem;">
+             <li>El <b>tour</b> se eliminará <u>definitivamente</u>.</li>
+             <li>Las <b>reservas NO se eliminarán</b>; se <b>conservarán</b> y aparecerán como <i>"Tour eliminado"</i>.</li>
+           </ul>
+         </div>`
       : '';
 
     Swal.fire({
       title: 'Eliminar definitivamente',
-      html: 'Esta acción es <b>irreversible</b> y borrará el tour y sus asociaciones.' + extra,
+      html: 'Esta acción es <b>irreversible</b>. Se borrará el tour y sus asociaciones (imágenes, pivotes, traducciones). ' +
+            'Las reservas existentes <b>no se borrarán</b> y quedarán desasociadas del tour.' + extra,
       icon: 'error',
       showCancelButton: true,
       confirmButtonText: 'Sí, eliminar',

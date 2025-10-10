@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 use App\Models\Tour;
 use App\Models\TourType;
@@ -16,6 +17,9 @@ use App\Models\Amenity;
 use App\Models\HotelList;
 use App\Models\Schedule;
 use App\Models\TourTranslation;
+
+use App\Models\Booking;
+use App\Models\BookingDetail;
 
 use App\Services\ItineraryService;
 use App\Services\Contracts\TranslatorInterface;
@@ -396,58 +400,50 @@ class TourController extends Controller
         }
     }
 
-    /** Eliminar definitivamente (purge) — PERMITIDO AUN CON RESERVAS */
+    /** Eliminar definitivamente (purge) — CONSERVANDO reservas */
     public function purge(Request $request, $tourId)
     {
         try {
             $tour = Tour::onlyTrashed()->findOrFail($tourId);
 
             DB::transaction(function () use ($tour) {
-                // 1) Reunir todas las reservas ligadas al tour
-                $bookingIdsFromDetails = \App\Models\BookingDetail::where('tour_id', $tour->tour_id)
-                    ->pluck('booking_id');
+                // 0) Snapshot del nombre del tour en bookings y booking_details (si no estuviera ya)
+                DB::table('bookings')
+                    ->where('tour_id', $tour->tour_id)
+                    ->whereNull('tour_name_snapshot')
+                    ->update(['tour_name_snapshot' => $tour->name]);
 
-                $bookingIdsFromHeader = \App\Models\Booking::where('tour_id', $tour->tour_id)
-                    ->pluck('booking_id');
+                DB::table('booking_details')
+                    ->where('tour_id', $tour->tour_id)
+                    ->whereNull('tour_name_snapshot')
+                    ->update(['tour_name_snapshot' => $tour->name]);
 
-                $bookingIds = $bookingIdsFromDetails
-                    ->merge($bookingIdsFromHeader)
-                    ->filter() // quita nulls
-                    ->unique()
-                    ->values();
+                // 1) Reunir todas las reservas vinculadas al tour (por si necesitas usarlas)
+                $bookingIdsFromDetails = BookingDetail::where('tour_id', $tour->tour_id)->pluck('booking_id');
+                $bookingIdsFromHeader  = Booking::where('tour_id', $tour->tour_id)->pluck('booking_id');
+                $bookingIds = $bookingIdsFromDetails->merge($bookingIdsFromHeader)->filter()->unique()->values();
 
-                // 2) Borrar dependencias (ignorar si algunos modelos no existen)
-                try { \App\Models\Review::where('tour_id', $tour->tour_id)->delete(); } catch (\Throwable $e) {}
-                try { \App\Models\ReviewRequest::whereIn('booking_id', $bookingIds)->delete(); } catch (\Throwable $e) {}
-                try { \App\Models\PromoCodeRedemption::whereIn('booking_id', $bookingIds)->delete(); } catch (\Throwable $e) {}
+                // 2) Desasociar el tour de reservas (NO borrar reservas ni redenciones/promos)
+                BookingDetail::where('tour_id', $tour->tour_id)->update(['tour_id' => null]);
+                Booking::where('tour_id', $tour->tour_id)->update(['tour_id' => null]);
+
+                // 3) Opcional: limpiar reviews estrictamente ligadas al tour (si tu FK no permite null)
                 try {
-                    \App\Models\PromoCode::whereIn('used_by_booking_id', $bookingIds)->update([
-                        'is_used'            => false,
-                        'used_by_booking_id' => null,
-                    ]);
-                } catch (\Throwable $e) {}
-
-                // Detalles y cabeceras de reserva
-                if ($bookingIds->isNotEmpty()) {
-                    \App\Models\BookingDetail::whereIn('booking_id', $bookingIds)->delete();
-                    \App\Models\Booking::whereIn('booking_id', $bookingIds)->delete();
-                }
-
-                // Imágenes u otros adjuntos del tour (si existen)
-                try {
-                    if (class_exists(\App\Models\TourImage::class)) {
-                        \App\Models\TourImage::where('tour_id', $tour->tour_id)->delete();
+                    if (Schema::hasTable('reviews') && Schema::hasColumn('reviews', 'tour_id')) {
+                        // Si la FK no admite null podrías borrar; si admite null, mejor setear a null.
+                        // \App\Models\Review::where('tour_id', $tour->tour_id)->delete();
                     }
                 } catch (\Throwable $e) {}
 
-                // Desacoplar pivotes
+                // 4) Imágenes / traducciones / pivotes
+                try { if (class_exists(\App\Models\TourImage::class)) { \App\Models\TourImage::where('tour_id', $tour->tour_id)->delete(); } } catch (\Throwable $e) {}
                 try { $tour->schedules()->detach(); } catch (\Throwable $e) {}
                 try { $tour->languages()->detach(); } catch (\Throwable $e) {}
                 try { $tour->amenities()->detach(); } catch (\Throwable $e) {}
                 try { $tour->excludedAmenities()->detach(); } catch (\Throwable $e) {}
-                try { \App\Models\TourTranslation::where('tour_id', $tour->tour_id)->delete(); } catch (\Throwable $e) {}
+                try { TourTranslation::where('tour_id', $tour->tour_id)->delete(); } catch (\Throwable $e) {}
 
-                // 3) Borrado definitivo del tour
+                // 5) Borrado definitivo del tour
                 $tour->forceDelete();
             });
 
