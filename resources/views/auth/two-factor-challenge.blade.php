@@ -2,25 +2,38 @@
 @extends('adminlte::auth.auth-page', ['authType' => 'login'])
 
 @php
-  // Helper con fallback para evitar ver "auth.xyz" cuando falte la key
+  // Helper de traducción con fallback
   $t = fn($key, $fallback) => __($key) !== $key ? __($key) : $fallback;
 
+  // Textos (si quieres forzar EN, cambia los fallbacks a inglés)
   $pageTitle   = $t('auth.two_factor.title', 'Two-Factor Challenge');
-  $pageHeader  = $t('auth.two_factor.header', 'Verificación en dos pasos');
+  $pageHeader  = $t('auth.two_factor.header', 'Two-Factor Verification');
 
-  $labelCode      = $t('auth.two_factor.code', 'Código de autenticación');
-  $phCode         = $t('auth.two_factor.enter_code', 'Introduce el código de 6 dígitos');
-  $labelRecovery  = $t('auth.two_factor.recovery_code', 'Código de recuperación');
-  $useRecoveryTxt = $t('auth.two_factor.use_recovery', 'Usar un código de recuperación');
-  $btnConfirm     = $t('auth.two_factor.confirm', 'Confirmar');
+  $labelCode      = $t('auth.two_factor.code', 'Authentication code');
+  $phCode         = $t('auth.two_factor.enter_code', 'Enter the 6-digit code');
+  $labelRecovery  = $t('auth.two_factor.recovery_code', 'Recovery code');
+  $useRecoveryTxt = $t('auth.two_factor.use_recovery', 'Use a recovery code');
+  $btnConfirm     = $t('auth.two_factor.confirm', 'Confirm');
 
-  // Mapear los status que Fortify setea en session('status')
+  // Mensajes Fortify (status)
   $statusMap = [
-    'two-factor-authentication-enabled'   => $t('auth.two_factor.enabled', 'Autenticación en dos pasos activada.'),
-    'two-factor-authentication-confirmed' => $t('auth.two_factor.confirmed', 'Autenticación en dos pasos confirmada.'),
-    'two-factor-authentication-disabled'  => $t('auth.two_factor.disabled', 'Autenticación en dos pasos desactivada.'),
-    'recovery-codes-generated'            => $t('auth.two_factor.recovery_codes_generated', 'Se generaron nuevos códigos de recuperación.'),
+    'two-factor-authentication-enabled'   => $t('auth.two_factor.enabled', 'Two-factor authentication enabled.'),
+    'two-factor-authentication-confirmed' => $t('auth.two_factor.confirmed', 'Two-factor authentication confirmed.'),
+    'two-factor-authentication-disabled'  => $t('auth.two_factor.disabled', 'Two-factor authentication disabled.'),
+    'recovery-codes-generated'            => $t('auth.two_factor.recovery_codes_generated', 'New recovery codes generated.'),
   ];
+
+  // Datos para el language switcher en el footer
+  $currentLocale = app()->getLocale();
+  $locales = config('routes.locales', []);
+  $flags = [
+    'es' => 'es.svg',
+    'en' => 'en.svg',
+    'fr' => 'fr.svg',
+    'pt' => 'pt.svg',
+    'de' => 'de.svg',
+  ];
+  $flag = $flags[$currentLocale] ?? 'en.svg';
 @endphp
 
 @section('title', $pageTitle)
@@ -33,6 +46,16 @@
   .login-logo img { display:block; margin:0 auto; max-height:64px; width:auto; object-fit:contain; }
   .input-group .input-group-text { min-width: 42px; justify-content: center; }
   .card { border-radius: .75rem; }
+
+  /* Estilos ligeros para el <details> del selector (footer) */
+  .lang-switcher { position: relative; display:inline-block; }
+  .lang-switcher > summary { list-style: none; cursor: pointer; }
+  .lang-switcher > summary::-webkit-details-marker { display: none; }
+  .lang-switcher .btn-lang { gap:.35rem; letter-spacing:.3px; }
+  .lang-switcher[open] .lang-menu { display: block; }
+  .lang-menu { display: none; position:absolute; right:0; bottom:110%; min-width: 180px; z-index:1060; }
+  .lang-menu a { color: inherit; text-decoration: none; display:flex; align-items:center; padding:.25rem .5rem; border-radius:.35rem; }
+  .lang-menu a:hover { text-decoration: underline; }
 </style>
 @endpush
 
@@ -98,7 +121,6 @@
       @enderror
     </div>
 
-
     <button type="submit" class="btn btn-primary w-100">
       <i class="fas fa-shield-alt me-1"></i> {{ $btnConfirm }}
     </button>
@@ -106,5 +128,27 @@
 @endsection
 
 @section('auth_footer')
-  @include('partials.language-switcher')
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    {{-- Botón volver al sitio --}}
+    <a href="{{ url('/') }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i> {{ $t('adminlte::adminlte.back', 'Back') }}
+    </a>
+
+    {{-- Language switcher (en footer) --}}
+    <details class="lang-switcher">
+      <summary class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center btn-lang">
+        <img src="{{ asset('svg/flags/' . $flag) }}" alt="{{ strtoupper($currentLocale) }}" width="18" height="12">
+        <span>{{ strtoupper($currentLocale) }}</span>
+      </summary>
+      <div class="lang-menu card p-2">
+        @foreach($locales as $code => $cfg)
+          @php $f = $flags[$code] ?? ($code . '.svg'); @endphp
+          <a href="{{ route('switch.language', $code) }}">
+            <img src="{{ asset('svg/flags/' . $f) }}" width="18" height="12" class="me-2" alt="{{ strtoupper($code) }}">
+            <span>{{ $cfg['name'] ?? strtoupper($code) }}</span>
+          </a>
+        @endforeach
+      </div>
+    </details>
+  </div>
 @endsection

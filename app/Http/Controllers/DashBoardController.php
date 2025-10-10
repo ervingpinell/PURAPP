@@ -34,43 +34,50 @@ public function switchLanguage(Request $request, string $language)
         $language = $default;
     }
 
+    // Guarda idioma en sesión y contexto de app
     session(['locale' => $language]);
     app()->setLocale($language);
 
-    $prev = url()->previous();                       // p.ej. http://127.0.0.1:8000/es/tours
-    $path = parse_url($prev, PHP_URL_PATH) ?? '/';   // p.ej. /es/tours
+    // --- Determinar desde dónde venimos (robusto en 2FA/login) ---
+    // 1) referer, 2) previous(), 3) URL actual
+    $prev = (string) ($request->headers->get('referer') ?: url()->previous() ?: $request->fullUrl());
 
-    // Quita locale actual si viene con prefijo
+    // Parsear path y query
+    $parsed = parse_url($prev) ?: [];
+    $path   = $parsed['path'] ?? '/';
+    $query  = isset($parsed['query']) ? ('?'.$parsed['query']) : '';
+
+    // Quitar prefijo de locale si existe: /{locale}/foo -> /foo
     $segments = array_values(array_filter(explode('/', $path)));
     $pathNoLocale = $path;
-
     if (!empty($segments) && in_array($segments[0], $supported, true)) {
-        // /{locale}/resto -> /resto
         $pathNoLocale = '/' . implode('/', array_slice($segments, 1));
-        if ($pathNoLocale === '/') { $pathNoLocale = ''; } // home
+        if ($pathNoLocale === '/') { $pathNoLocale = ''; } // home puro
     }
 
-    // Rutas que NO están localizadas
+    // Rutas NO localizadas (no deben llevar /{locale} al frente)
+    // Incluye 2FA y auth varias.
     $unlocalized = [
-        'login', 'register', 'password', 'account', 'unlock-account',
-        'email', 'auth', 'admin' // admin tampoco lo localizas
+        'login', 'register', 'password', 'password-reset', 'email', 'verify',
+        'auth', 'two-factor-challenge', 'two-factor', 'unlock-account', 'account',
+        'admin', // admin no está localizado
     ];
 
     $first = ltrim($pathNoLocale, '/');
-    $first = strtok($first, '/'); // primer segmento
+    $first = $first !== '' ? strtok($first, '/') : '';
 
-    // Si es una ruta no localizada -> volver sin prefijo
-    if ($first !== false && in_array($first, $unlocalized, true)) {
-        return redirect($pathNoLocale === '' ? '/' : $pathNoLocale);
+    // Si la primera parte coincide con una no localizada → redirige tal cual (sin prefijo)
+    if ($first !== '' && in_array($first, $unlocalized, true)) {
+        return redirect()->to(($pathNoLocale === '' ? '/' : $pathNoLocale) . $query);
     }
 
-    // Si es raíz
+    // Si es raíz → manda al home del idioma
     if ($pathNoLocale === '' || $pathNoLocale === '/') {
-        return redirect('/' . $language);
+        return redirect()->to('/' . $language);
     }
 
-    // Resto: aplicar nuevo prefijo de idioma
-    return redirect('/' . $language . $pathNoLocale);
+    // Para el resto, anteponer el nuevo prefijo de idioma
+    return redirect()->to('/' . $language . $pathNoLocale . $query);
 }
 
     private function isAdminUrl(string $url): bool

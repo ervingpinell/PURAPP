@@ -1,3 +1,4 @@
+{{-- resources/views/auth/login.blade.php --}}
 @extends('adminlte::auth.auth-page', ['authType' => 'login'])
 
 @section('dashboard_url', '/')
@@ -20,49 +21,27 @@
         $registerUrl  = $registerUrl  ? url($registerUrl)    : '';
     }
 
+    // tiny helper: translation with English fallback
     $t = function ($key, $fallback) { $val = __($key); return $val !== $key ? $val : $fallback; };
 
-    $lblRememberEmail  = $t('auth.remember_me', 'Recordar mi correo en este equipo');
-    $turnstileSiteKey  = config('services.turnstile.site_key', '');
+    $lblRememberEmail = $t('auth.remember_me', 'Remember my email on this device');
+    $turnstileSiteKey = config('services.turnstile.site_key', '');
 
     $captchaFlag = (bool) session('login.captcha');
-    $appDebug    = (bool) config('app.debug');
-    $dbg         = session('login.debug') ?? [];
 @endphp
 
-@section('auth_header', __('adminlte::auth.login_message'))
+@section('auth_header', $t('adminlte::auth.login_message', 'Sign in to start your session'))
 
 @section('auth_body')
 
-    {{-- === PANEL DE DEBUG (APP_DEBUG=true) ===
-    @if($appDebug)
-        <div class="alert alert-secondary" style="font-size:.9rem">
-            <strong>DEBUG CAPTCHA</strong><br>
-            captchaFlag: <code>{{ $captchaFlag ? 'TRUE' : 'FALSE' }}</code><br>
-            siteKey presente: <code>{{ !empty($turnstileSiteKey) ? 'TRUE' : 'FALSE' }}</code>
-            @if(!empty($turnstileSiteKey))
-                &nbsp;|&nbsp; prefix: <code>{{ substr($turnstileSiteKey,0,8) }}…</code>
-            @endif
-            <br>
-            route(login): <code>{{ $loginUrl }}</code> &nbsp;|&nbsp; env(APP_ENV): <code>{{ app()->environment() }}</code>
-            @if(!empty($dbg))
-                <hr class="my-2">
-                <div>counters:</div>
-                <pre class="mb-0">{{ json_encode($dbg, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES) }}</pre>
-            @endif
-        </div>
-    @endif --}}
-
-
-
-    {{-- Mensajes --}}
+    {{-- Flash messages --}}
     @if (session('status'))
       <div class="alert alert-success"><i class="fas fa-check-circle me-1"></i>{{ session('status') }}</div>
     @endif
     @if(session('success')) <div class="alert alert-success alert-dismissible">{{ session('success') }}</div> @endif
     @if(session('error'))   <div class="alert alert-danger alert-dismissible">{{ session('error') }}</div>   @endif
 
-    {{-- Errores --}}
+    {{-- Errors --}}
     @if($errors->has('email'))
         <div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-1"></i>{{ $errors->first('email') }}</div>
     @endif
@@ -81,14 +60,14 @@
                 id="email"
                 class="form-control @error('email') is-invalid @enderror"
                 value="{{ old('email', request()->cookie('remembered_email')) }}"
-                placeholder="{{ $t('adminlte::adminlte.email', 'Correo electrónico') }}"
+                placeholder="{{ $t('adminlte::adminlte.email', 'Email') }}"
                 required
                 autocomplete="username"
                 autocapitalize="none"
                 autocorrect="off"
                 spellcheck="false"
                 pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
-                title="{{ $t('validation.email', 'Ingresa un correo válido') }}"
+                title="{{ $t('validation.email', 'Enter a valid email address') }}"
             >
             <div class="input-group-append">
                 <div class="input-group-text">
@@ -107,13 +86,13 @@
                 name="password"
                 id="password"
                 class="form-control @error('password') is-invalid @enderror"
-                placeholder="{{ $t('adminlte::adminlte.password', 'Contraseña') }}"
+                placeholder="{{ $t('adminlte::adminlte.password', 'Password') }}"
                 required
                 autocomplete="current-password"
             >
             <div class="input-group-append">
                 <div class="input-group-text">
-                    <a href="#" class="text-reset toggle-password" data-target="password" aria-label="Mostrar u ocultar contraseña">
+                    <a href="#" class="text-reset toggle-password" data-target="password" aria-label="Show or hide password">
                         <i class="fas fa-eye"></i>
                     </a>
                 </div>
@@ -123,7 +102,7 @@
             @enderror
         </div>
 
-        {{-- Recordar correo --}}
+        {{-- Remember email --}}
         <div class="row mb-3">
             <div class="col-12">
                 <div class="icheck-primary">
@@ -134,33 +113,37 @@
             </div>
         </div>
 
-        {{-- CAPTCHA (Turnstile) si hay flag y key --}}
+        {{-- CAPTCHA (Turnstile) if flagged and key present --}}
         @if ($captchaFlag)
             @if (!empty($turnstileSiteKey))
                 <div class="mb-3">
-                    <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey }}"></div>
+                    {{-- Force English here --}}
+                    <div class="cf-turnstile"
+                         data-sitekey="{{ $turnstileSiteKey }}"
+                         data-language="en"></div>
                     @error('captcha')
                         <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
                     @enderror
                 </div>
             @else
                 <div class="alert alert-warning">
-                    Turnstile activo pero falta <code>TURNSTILE_SITE_KEY</code>. Configura la key y ejecuta <code>php artisan config:clear</code>.
+                    Turnstile is enabled but <code>TURNSTILE_SITE_KEY</code> is missing.
+                    Set the key and run <code>php artisan config:clear</code>.
                 </div>
             @endif
         @endif
 
-        {{-- Olvidé mi contraseña --}}
+        {{-- Forgot password --}}
         <p class="mb-1">
-            <a href="{{ $passResetUrl }}">{{ $t('adminlte::auth.i_forgot_my_password', '¿Olvidaste tu contraseña?') }}</a>
+            <a href="{{ $passResetUrl }}">{{ $t('adminlte::auth.i_forgot_my_password', 'I forgot my password') }}</a>
         </p>
 
-        {{-- Botón --}}
+        {{-- Submit --}}
         <div class="row">
             <div class="col-12">
                 <button type="submit" class="btn w-100 text-nowrap {{ config('adminlte.classes_auth_btn', 'btn-flat btn-primary') }}">
                     <span class="fas fa-sign-in-alt me-2"></span>
-                    {{ $t('adminlte::auth.sign_in', 'Ingresar') }}
+                    {{ $t('adminlte::auth.sign_in', 'Sign in') }}
                 </button>
             </div>
         </div>
@@ -173,32 +156,34 @@
             @if($registerUrl)
                 <p class="mb-0">
                     <a href="{{ $registerUrl }}" class="btn btn-success">
-                        <i class="fas fa-user-plus me-1"></i> {{ $t('adminlte::auth.register', 'Crear cuenta') }}
+                        <i class="fas fa-user-plus me-1"></i> {{ $t('adminlte::auth.register', 'Register') }}
                     </a>
                 </p>
             @endif
         </div>
+        {{-- Puedes quitar el switcher si quieres forzar 100% inglés en la página --}}
         <div>@include('partials.language-switcher')</div>
     </div>
 
     <div class="mt-3 text-center">
         <a href="{{ url('/') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left mr-1"></i> {{ $t('adminlte::adminlte.back', 'Volver') }}
+            <i class="fas fa-arrow-left mr-1"></i> {{ $t('adminlte::adminlte.back', 'Back') }}
         </a>
     </div>
 @stop
 
 @section('adminlte_js')
     @if ($captchaFlag && !empty($turnstileSiteKey))
-        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+        {{-- Load Turnstile with English language --}}
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?hl=en" async defer></script>
     @endif
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Toggle password
+        // Toggle password visibility
         document.querySelectorAll('.toggle-password').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
-                const input    = document.getElementById(this.dataset.target);
+                const input = document.getElementById(this.dataset.target);
                 if (!input) return;
                 const icon = this.querySelector('i');
                 if (input.type === 'password') {
@@ -211,15 +196,16 @@
             });
         });
 
-        // Mensaje de validación bonito para email
+        // Nice validation message for email
         const email = document.getElementById('email');
         if (email) {
-            const msg = "{{ $t('validation.email', 'Ingresa un correo válido') }}";
+            const msgInvalid = "{{ $t('validation.email', 'Enter a valid email address') }}";
+            const msgRequired = "{{ $t('validation.required', 'This field is required') }}";
             email.addEventListener('invalid', function () {
                 if (email.validity.valueMissing) {
-                    email.setCustomValidity("{{ $t('validation.required', 'Este campo es obligatorio') }}");
+                    email.setCustomValidity(msgRequired);
                 } else if (email.validity.typeMismatch || email.validity.patternMismatch) {
-                    email.setCustomValidity(msg);
+                    email.setCustomValidity(msgInvalid);
                 }
             });
             email.addEventListener('input', function () { email.setCustomValidity(''); });

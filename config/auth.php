@@ -111,6 +111,8 @@ return [
     */
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+    'strict_login' => env('AUTH_STRICT_LOGIN', true),
+
 
     /*
     |--------------------------------------------------------------------------
