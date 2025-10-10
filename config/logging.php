@@ -89,5 +89,13 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
+
+        'security' => [
+    'driver' => 'daily',
+    'path'   => storage_path('logs/security.log'),
+    'level'  => env('LOG_SECURITY_LEVEL', 'info'), // en prod: info o notice
+    'days'   => env('LOG_DAILY_DAYS', 14),
+    'replace_placeholders' => true,
+],
     ],
 ];

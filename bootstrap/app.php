@@ -42,6 +42,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\NormalizeEmail::class,
             \App\Http\Middleware\LogContext::class,
             \App\Http\Middleware\SetLocale::class,
+
+            // ⇩⇩ NUEVO: recordar email en el login Fortify
+            \App\Http\Middleware\RememberEmail::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

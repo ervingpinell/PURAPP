@@ -2,17 +2,17 @@
 @extends('adminlte::auth.auth-page', ['authType' => 'login'])
 
 @php
-  // Helpers de fallback para evitar ver "auth.xyz" si falta la key
+  // Helper con fallback para evitar ver "auth.xyz" cuando falte la key
   $t = fn($key, $fallback) => __($key) !== $key ? __($key) : $fallback;
 
-  $pageTitle = $t('auth.two_factor.title', 'Two-Factor Challenge');
-  $pageHeader = $t('auth.two_factor.header', 'Verificación en dos pasos');
+  $pageTitle   = $t('auth.two_factor.title', 'Two-Factor Challenge');
+  $pageHeader  = $t('auth.two_factor.header', 'Verificación en dos pasos');
 
-  $labelCode        = $t('auth.two_factor.code', 'Código de autenticación');
-  $phCode           = $t('auth.two_factor.enter_code', 'Introduce el código de 6 dígitos');
-  $labelRecovery    = $t('auth.two_factor.recovery_code', 'Código de recuperación');
-  $labelRememberDev = $t('auth.two_factor.remember_device', 'Recordar este dispositivo');
-  $btnConfirm       = $t('auth.two_factor.confirm', 'Confirmar');
+  $labelCode      = $t('auth.two_factor.code', 'Código de autenticación');
+  $phCode         = $t('auth.two_factor.enter_code', 'Introduce el código de 6 dígitos');
+  $labelRecovery  = $t('auth.two_factor.recovery_code', 'Código de recuperación');
+  $useRecoveryTxt = $t('auth.two_factor.use_recovery', 'Usar un código de recuperación');
+  $btnConfirm     = $t('auth.two_factor.confirm', 'Confirmar');
 
   // Mapear los status que Fortify setea en session('status')
   $statusMap = [
@@ -28,26 +28,10 @@
 
 @push('css')
 <style>
-  /* Compactar la tarjeta y centrar todo */
-  .login-box, .register-box {
-    width: 420px;
-    max-width: 94%;
-  }
-  /* Logo más pulido */
-  .login-logo {
-    text-align: center !important;
-    margin-bottom: .75rem !important;
-  }
-  .login-logo img {
-    display: block;
-    margin: 0 auto;
-    max-height: 64px;
-    width: auto;
-    object-fit: contain;
-  }
-  /* Íconos alineados y del mismo ancho */
+  .login-box, .register-box { width: 420px; max-width: 94%; }
+  .login-logo { text-align: center !important; margin-bottom: .75rem !important; }
+  .login-logo img { display:block; margin:0 auto; max-height:64px; width:auto; object-fit:contain; }
   .input-group .input-group-text { min-width: 42px; justify-content: center; }
-  /* Bordes y aspecto sutil */
   .card { border-radius: .75rem; }
 </style>
 @endpush
@@ -69,7 +53,7 @@
     </div>
   @endif
 
-  <form method="POST" action="{{ route('two-factor.login') }}">
+  <form method="POST" action="{{ route('two-factor.login') }}" novalidate>
     @csrf
 
     {{-- Código TOTP --}}
@@ -82,16 +66,19 @@
         pattern="[0-9]*"
         maxlength="6"
         autocomplete="one-time-code"
-        class="form-control"
+        class="form-control @error('code') is-invalid @enderror"
         placeholder="{{ $phCode }}"
         autofocus
       >
       <div class="input-group-append">
         <div class="input-group-text"><span class="fas fa-key"></span></div>
       </div>
+      @error('code')
+        <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+      @enderror
     </div>
 
-    <div class="text-center text-muted mb-2">— {{ $t('auth.two_factor.use_recovery', 'Usar un código de recuperación') }} —</div>
+    <div class="text-center text-muted mb-2">— {{ $useRecoveryTxt }} —</div>
 
     {{-- Código de recuperación --}}
     <div class="mb-1 small text-muted">{{ $labelRecovery }}</div>
@@ -99,21 +86,18 @@
       <input
         type="text"
         name="recovery_code"
-        class="form-control"
+        class="form-control @error('recovery_code') is-invalid @enderror"
+        autocomplete="one-time-code"
         placeholder="{{ $labelRecovery }}"
       >
       <div class="input-group-append">
         <div class="input-group-text"><span class="fas fa-life-ring"></span></div>
       </div>
+      @error('recovery_code')
+        <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+      @enderror
     </div>
 
-    {{-- Recordar este dispositivo --}}
-    <div class="form-check mb-3">
-      <input class="form-check-input" type="checkbox" name="remember" id="remember">
-      <label class="form-check-label" for="remember">
-        {{ $labelRememberDev }}
-      </label>
-    </div>
 
     <button type="submit" class="btn btn-primary w-100">
       <i class="fas fa-shield-alt me-1"></i> {{ $btnConfirm }}

@@ -12,4 +12,8 @@ class EventServiceProvider extends ServiceProvider
             \App\Listeners\LogNotificationFailure::class,
         ],
     ];
+
+        protected $subscribe = [
+        \App\Listeners\AuthAuditSubscriber::class,
+    ];
 }

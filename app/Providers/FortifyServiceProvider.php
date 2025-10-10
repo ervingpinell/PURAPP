@@ -6,40 +6,42 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
-
 use App\Models\User;
 use App\Notifications\AccountLockedNotification;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rules\Password;
-use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse as FailedPwdLinkContract;
-use Laravel\Fortify\Contracts\FailedPasswordResetResponse as FailedPwdResetContract;
-use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
-use Laravel\Fortify\Contracts\LogoutResponse as LogoutResponseContract;
-use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
-use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse as SuccessPwdLinkContract;
+use Laravel\Fortify\Contracts\{
+    FailedPasswordResetLinkRequestResponse as FailedPwdLinkContract,
+    FailedPasswordResetResponse as FailedPwdResetContract,
+    LoginResponse as LoginResponseContract,
+    LogoutResponse as LogoutResponseContract,
+    RegisterResponse as RegisterResponseContract,
+    SuccessfulPasswordResetLinkRequestResponse as SuccessPwdLinkContract
+};
 use Laravel\Fortify\Fortify;
 use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
-use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
-
 
 class FortifyServiceProvider extends ServiceProvider
 {
+    private int $maxFails          = 5;     // bloquea usuario tras 5 fallos
+    private int $ipWindowMin       = 5;     // ventana temporal para IP (minutos)
+    private int $captchaAfterFails = 3;     // muestra CAPTCHA desde 3 fallos
+    private int $backoffMaxMs      = 1200;  // retraso progresivo
+
     public function register(): void
     {
         $this->app->singleton(LoginResponseContract::class,    \App\Http\Responses\LoginResponse::class);
-        $this->app->singleton(TwoFactorLoginResponseContract::class, \App\Http\Responses\LoginResponse::class);
         $this->app->singleton(LogoutResponseContract::class,   \App\Http\Responses\LogoutResponse::class);
         $this->app->singleton(RegisterResponseContract::class, \App\Http\Responses\RegisterResponse::class);
-
         $this->app->singleton(FailedPwdLinkContract::class,  \App\Http\Responses\PasswordResetLinkFailedResponse::class);
         $this->app->singleton(SuccessPwdLinkContract::class, \App\Http\Responses\PasswordResetLinkSentResponse::class);
         $this->app->singleton(FailedPwdResetContract::class, \App\Http\Responses\PasswordResetFailedResponse::class);
@@ -52,121 +54,113 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
 
-        Fortify::loginView(fn () => view('auth.login'));
-        Fortify::registerView(fn () => view('auth.register'));
-        Fortify::requestPasswordResetLinkView(fn () => view('auth.forgot-password'));
-        Fortify::resetPasswordView(fn ($request) => view('auth.reset-password', ['request' => $request]));
-        Fortify::confirmPasswordView(fn () => view('auth.confirm-password'));
-        Fortify::twoFactorChallengeView(fn () => view('auth.two-factor-challenge'));
+        Fortify::loginView(fn() => view('auth.login'));
+        Fortify::registerView(fn() => view('auth.register'));
+        Fortify::requestPasswordResetLinkView(fn() => view('auth.forgot-password'));
+        Fortify::resetPasswordView(fn($request) => view('auth.reset-password', ['request' => $request]));
+        Fortify::confirmPasswordView(fn() => view('auth.confirm-password'));
+        Fortify::twoFactorChallengeView(fn() => view('auth.two-factor-challenge'));
         if (method_exists(Fortify::class, 'verifyEmailView')) {
-            Fortify::verifyEmailView(fn () => view('auth.verify-email'));
+            Fortify::verifyEmailView(fn() => view('auth.verify-email'));
         }
 
-        Password::defaults(fn () => Password::min(8)->uncompromised());
+        Password::defaults(fn() => Password::min(8)->uncompromised());
 
-        // RateLimiter solo para 2FA
         RateLimiter::for('two-factor', function (Request $request) {
             $key = (string) $request->session()->get('login.id', $request->ip());
             return [ Limit::perMinute(5)->by('2fa|'.$key) ];
         });
 
-        /**
-         * BLOQUEO POR FALLOS + verificación por email (login permitido SOLO si está verificado):
-         *  1) usuario existe
-         *  2) si está bloqueado → manejar y cortar
-         *  3) validar contraseña; si es incorrecta → contar fallos/bloquear
-         *  4) estado inactivo
-         *  5) si NO verificó email (password CORRECTA) → (re)enviar verificación con cooldown y CORTAR login
-         *  6) login ok
-         */
         Fortify::authenticateUsing(function (Request $request) {
-            $email    = mb_strtolower(trim((string) $request->input('email')));
-            $password = (string) $request->input('password');
+            $env = config('app.env');
 
-            $maxFails  = 5;   // umbral de bloqueos
-            $unlockTTL = 60;  // minutos de validez del link
-            $resendTTL = 10;  // cooldown (min) para reenvío (lock/verify)
-
-            /** @var \App\Models\User|null $user */
-            $user = User::where('email', $email)->first();
-
-            if (! $user) {
+            // 🔹 Si no es producción, permitir login sin restricciones
+            if ($env !== 'production') {
+                $user = User::where('email', $request->input('email'))->first();
+                if ($user && Hash::check($request->input('password'), (string) $user->password)) {
+                    return $user;
+                }
                 throw ValidationException::withMessages([
                     'email' => __('adminlte::validation.invalid_credentials'),
                 ]);
             }
 
-            // === YA BLOQUEADO ===
-            if (!empty($user->is_locked)) {
-                $resendKey = 'unlock:mail:'.$user->getKey();
+            // 🔹 Producción: seguridad completa
+            if (! $request->filled('email')) {
+                throw ValidationException::withMessages([
+                    'email' => __('validation.required', ['attribute' => 'email']),
+                ]);
+            }
 
-                if (! RateLimiter::tooManyAttempts($resendKey, 1)) {
-                    RateLimiter::hit($resendKey, $resendTTL * 60);
+            $emailRaw = (string) $request->input('email');
+            if (! filter_var($emailRaw, FILTER_VALIDATE_EMAIL)) {
+                throw ValidationException::withMessages([
+                    'email' => __('validation.email', ['attribute' => 'email']),
+                ]);
+            }
 
-                    try {
-                        $unlockUrl = URL::temporarySignedRoute(
-                            'unlock.process',
-                            now()->addMinutes($unlockTTL),
-                            ['user' => $user->getKey(), 'hash' => sha1($user->email)]
-                        );
+            $email    = mb_strtolower(trim($emailRaw));
+            $password = (string) $request->input('password');
+            $ip       = $request->ip();
 
-                        $user->notify(new AccountLockedNotification($unlockUrl));
-                        Log::info('Reenvío de desbloqueo (usuario ya bloqueado)', [
-                            'uid' => $user->getKey(), 'to' => $user->email
-                        ]);
-                    } catch (\Throwable $e) {
-                        Log::error('Fallo reenvío desbloqueo (locked)', [
-                            'uid' => $user->getKey(), 'err' => $e->getMessage()
-                        ]);
-                    }
+            $maxFails     = $this->maxFails;
+            $captchaAfter = $this->captchaAfterFails;
+
+            /** @var \App\Models\User|null $user */
+            $user = User::where('email', $email)->first();
+
+            // CAPTCHA si aplica
+            if ($this->shouldRequireCaptcha($user, $ip)) {
+                if (! $this->verifyTurnstile($request)) {
+                    session()->put('login.captcha', true);
+                    throw ValidationException::withMessages([
+                        'email' => __('auth.captcha_failed') ?: __('adminlte::validation.invalid_credentials'),
+                    ]);
+                }
+            }
+
+            // Usuario inexistente → penaliza IP
+            if (! $user) {
+                $ipFails = $this->bumpIpFails($ip);
+                $this->sleepBackoff($ipFails);
+
+                if ($ipFails >= $captchaAfter) {
+                    session()->put('login.captcha', true);
                 }
 
+                throw ValidationException::withMessages([
+                    'email' => __('adminlte::validation.invalid_credentials'),
+                ]);
+            }
+
+            // Usuario bloqueado
+            if (!empty($user->is_locked)) {
+                $this->triggerUnlockEmailOnce($user, 60, 10);
                 throw ValidationException::withMessages([
                     'email' => __('adminlte::auth.account.locked'),
                 ]);
             }
 
-            // === PASSWORD INCORRECTO === (NO disparamos verificación en este caso)
+            // Contraseña incorrecta → penaliza IP y usuario
             if (! Hash::check($password, (string) $user->password)) {
-                $failKey = 'auth:fail:'.$user->getKey();
+                $userFails = $this->bumpUserFails($user->getKey());
+                $ipFails   = $this->bumpIpFails($ip);
+                $this->sleepBackoff(max($userFails, $ipFails));
 
-                if (! Cache::has($failKey)) {
-                    Cache::forever($failKey, 0);
+                if (max($userFails, $ipFails) >= $captchaAfter) {
+                    session()->put('login.captcha', true);
                 }
-                $fails = (int) Cache::increment($failKey); // 1..N, persistente
 
-                if ($fails >= $maxFails) {
-                    // Bloquear
+                if ($userFails >= $maxFails) {
                     $user->is_locked = true;
                     $user->save();
-
-                    RateLimiter::hit('unlock:mail:'.$user->getKey(), 10 * 60);
-
-                    // Enviar mail de bloqueo
-                    try {
-                        $unlockUrl = URL::temporarySignedRoute(
-                            'unlock.process',
-                            now()->addMinutes($unlockTTL),
-                            ['user' => $user->getKey(), 'hash' => sha1($user->email)]
-                        );
-
-                        $user->notify(new AccountLockedNotification($unlockUrl));
-                        Log::info('Notificación de bloqueo enviada', [
-                            'uid' => $user->getKey(), 'to' => $user->email
-                        ]);
-                    } catch (\Throwable $e) {
-                        Log::error('Fallo enviando notificación de bloqueo', [
-                            'uid' => $user->getKey(), 'err' => $e->getMessage()
-                        ]);
-                    }
-
+                    $this->sendUnlockEmail($user, 60);
                     throw ValidationException::withMessages([
                         'email' => __('adminlte::auth.account.locked'),
                     ]);
                 }
 
-                // Intentos restantes (1..5)
-                $remaining = max(0, $maxFails - $fails);
+                $remaining = max(0, $maxFails - $userFails);
                 $msg = trans_choice('auth.login.remaining_attempts', $remaining, ['count' => $remaining])
                     ?: __('adminlte::validation.invalid_credentials');
 
@@ -175,44 +169,133 @@ class FortifyServiceProvider extends ServiceProvider
                 ]);
             }
 
-            // === PASSWORD CORRECTO A PARTIR DE AQUÍ ===
-            Cache::forget('auth:fail:'.$user->getKey());
+            // ✅ Login exitoso
+            Cache::forget($this->failKeyUser($user->getKey()));
+            Cache::forget($this->ipKey($ip));
+            session()->forget('login.captcha');
 
-            // Estado inactivo
             if (isset($user->status) && ! $user->status) {
                 throw ValidationException::withMessages([
                     'email' => __('adminlte::validation.invalid_credentials'),
                 ]);
             }
 
-            // Email NO verificado → reenvía (con cooldown) y CORTA el login
             if ($user instanceof MustVerifyEmailContract && ! $user->hasVerifiedEmail()) {
-                $resendKey = 'verify:mail:'.$user->getKey();
-
-                if (! RateLimiter::tooManyAttempts($resendKey, 1)) {
-                    RateLimiter::hit($resendKey, $resendTTL * 60);
-                    try {
-                        $user->sendEmailVerificationNotification();
-                        Log::info('Verification email sent on login attempt (blocked login)', [
-                            'uid' => $user->getKey(),
-                            'to'  => $user->email,
-                        ]);
-                    } catch (\Throwable $e) {
-                        Log::error('Failed sending verification email on login attempt', [
-                            'uid' => $user->getKey(),
-                            'err' => $e->getMessage(),
-                        ]);
-                    }
-                }
-
-                // Importante: NO permitimos el login si no está verificado
+                $this->maybeSendVerificationEmail($user, 10);
                 throw ValidationException::withMessages([
                     'email' => __('adminlte::auth.verify.message'),
                 ]);
             }
 
-            // === LOGIN OK ===
             return $user;
         });
+    }
+
+    /* === Keys === */
+    private function failKeyUser(int|string $userId): string { return 'auth:fail:' . $userId; }
+    private function ipKey(string $ip): string { return 'auth:ip:' . sha1($ip); }
+
+    /* === Counters === */
+    private function bumpUserFails(int|string $userId): int
+    {
+        $key = $this->failKeyUser($userId);
+        if (! Cache::has($key)) Cache::forever($key, 0);
+        return (int) Cache::increment($key);
+    }
+
+    private function bumpIpFails(string $ip): int
+    {
+        $key = $this->ipKey($ip);
+        if (! Cache::has($key)) Cache::put($key, 0, now()->addMinutes($this->ipWindowMin));
+        return (int) Cache::increment($key);
+    }
+
+    /* === Logic === */
+    private function sleepBackoff(int $fails): void
+    {
+        $base = 150;
+        $ms = min($this->backoffMaxMs, $base * (2 ** max(0, $fails - 1)));
+        usleep($ms * 1000);
+    }
+
+    private function shouldRequireCaptcha(?User $user, string $ip): bool
+    {
+        if ((bool) session('login.captcha')) return true;
+        $userFails = $user ? (int) (Cache::get($this->failKeyUser($user->getKey())) ?? 0) : 0;
+        $ipFails   = (int) (Cache::get($this->ipKey($ip)) ?? 0);
+        return max($userFails, $ipFails) >= $this->captchaAfterFails;
+    }
+
+    private function verifyTurnstile(Request $request): bool
+    {
+        $secret = (string) config('services.turnstile.secret');
+        if ($secret === '') return true;
+        $token = $request->input('cf-turnstile-response');
+        if (! $token) return false;
+
+        try {
+            $resp = Http::asForm()->timeout(5)->post(
+                'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+                [
+                    'secret'   => $secret,
+                    'response' => $token,
+                    'remoteip' => $request->ip(),
+                ]
+            );
+            if (! $resp->ok()) return false;
+            $data = $resp->json();
+            return isset($data['success']) && $data['success'] === true;
+        } catch (\Throwable $e) {
+            Log::warning('Turnstile verify error', ['err' => $e->getMessage()]);
+            return false;
+        }
+    }
+
+    /* === Unlock & Verify === */
+    private function triggerUnlockEmailOnce(User $user, int $ttlMinutes, int $cooldownMinutes): void
+    {
+        $resendKey = 'unlock:mail:' . $user->getKey();
+        if (! RateLimiter::tooManyAttempts($resendKey, 1)) {
+            RateLimiter::hit($resendKey, $cooldownMinutes * 60);
+            $this->sendUnlockEmail($user, $ttlMinutes);
+        }
+    }
+
+    private function sendUnlockEmail(User $user, int $ttlMinutes): void
+    {
+        try {
+            $unlockUrl = URL::temporarySignedRoute(
+                'unlock.process',
+                now()->addMinutes($ttlMinutes),
+                ['user' => $user->getKey(), 'hash' => sha1($user->email)]
+            );
+            $user->notify(new AccountLockedNotification($unlockUrl));
+            Log::info('Notificación de bloqueo enviada', ['uid' => $user->getKey(), 'to' => $user->email]);
+        } catch (\Throwable $e) {
+            Log::error('Fallo enviando notificación de bloqueo', [
+                'uid' => $user->getKey(),
+                'err' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function maybeSendVerificationEmail(User $user, int $cooldownMinutes): void
+    {
+        $resendKey = 'verify:mail:' . $user->getKey();
+        if (! RateLimiter::tooManyAttempts($resendKey, 1)) {
+            RateLimiter::hit($resendKey, $cooldownMinutes * 60);
+            try {
+                $user->sendEmailVerificationNotification();
+                Log::info('Verification email sent on login attempt (blocked login)', [
+                    'uid' => $user->getKey(),
+                    'to'  => $user->email,
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('Failed sending verification email on login attempt', [
+                    'uid' => $user->getKey(),
+                    'err' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 }
