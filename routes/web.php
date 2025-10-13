@@ -1,20 +1,8 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Cookie;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use App\Http\Middleware\SetLocale;
-use App\Http\Controllers\SitemapController;
-
 use App\Http\Controllers\Auth\PublicEmailVerificationController;
 use App\Http\Controllers\Auth\UnlockAccountController;
-use app\Http\Controllers\CookieConsentController;
+use App\Http\Controllers\CookieConsentController;
 use App\Http\Controllers\DashBoardController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\HomeController;
@@ -37,11 +25,30 @@ use App\Http\Controllers\Admin\Reviews\ReviewAdminController;
 use App\Http\Controllers\Admin\Reviews\ReviewProviderController;
 use App\Http\Controllers\Admin\Reviews\ReviewReplyController;
 use App\Http\Controllers\Admin\Reviews\ReviewRequestAdminController;
-use App\Http\Controllers\Reviews\PublicReviewController;
-use App\Http\Controllers\Auth\UnlockAccountController;
-use App\Http\Controllers\Admin\Reports\ReportsController;
+use App\Http\Controllers\Admin\TourImageController;
+use App\Http\Controllers\Admin\Tours\AmenityController;
+use App\Http\Controllers\Admin\Tours\CutOffController;
+use App\Http\Controllers\Admin\Tours\ItineraryController;
+use App\Http\Controllers\Admin\Tours\ItineraryItemController;
+use App\Http\Controllers\Admin\Tours\TourAvailabilityController;
+use App\Http\Controllers\Admin\Tours\TourController;
+use App\Http\Controllers\Admin\Tours\TourExcludedDateController;
+use App\Http\Controllers\Admin\Tours\TourScheduleController;
+use App\Http\Controllers\Admin\Tours\TourTypeController;
+use App\Http\Controllers\Admin\Tours\TourTypeCoverPickerController;
+use App\Http\Controllers\Admin\Users\RoleController;
+use App\Http\Controllers\Admin\Users\UserRegisterController;
+use App\Http\Controllers\Admin\MeetingPointSimpleController;
+use App\Http\Controllers\Admin\TranslationController;
+
+use App\Http\Middleware\SetLocale;
+
 use App\Services\Reviews\ReviewAggregator;
-use App\Http\Controllers\CookieConsentController;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -118,23 +125,25 @@ Route::middleware([SetLocale::class])->group(function () {
     // RUTAS PÚBLICAS LOCALIZADAS
     // ============================
     localizedRoutes(function () {
+        // Home & Tours
         Route::get('/', [HomeController::class, 'index'])->name('home');
         Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
         Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tours.show');
-        Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tours.show');
 
+        // Contacto
         Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
         Route::post('/contact', [HomeController::class, 'sendContact'])
             ->middleware('throttle:6,1')
             ->name('contact.send');
 
+        // FAQ
         Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
 
-        Route::get('/policies', [\App\Http\Controllers\PoliciesController::class, 'index'])
-            ->name('policies.index');
-        Route::get('/policies/{policy:slug}', [\App\Http\Controllers\PoliciesController::class, 'show'])
-            ->name('policies.show');
+        // Policies
+        Route::get('/policies', [PoliciesController::class, 'index'])->name('policies.index');
+        Route::get('/policies/{policy:slug}', [PoliciesController::class, 'show'])->name('policies.show');
 
+        // Reviews públicas
         Route::get('/reviews', [ReviewsController::class, 'index'])->name('reviews.index');
         Route::get('/reviews/tours/{tour:slug}', [ReviewsController::class, 'tour'])->name('reviews.tour');
     });
@@ -219,9 +228,11 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::post('/profile/edit', [ProfileController::class, 'update'])->name('profile.update');
 
+        // Mis reservas
         Route::get('/my-reservations', [BookingController::class, 'myReservations'])->name('my-reservations');
         Route::get('/my-reservations/{booking}/receipt', [BookingController::class, 'showReceipt'])->name('my-reservations.receipt');
 
+        // Carrito (front)
         Route::get('/my-cart', [CartController::class, 'index'])->name('public.cart.index');
         Route::get('/mi-carrito', [CartController::class, 'index'])->name('public.cart.index.es');
 
@@ -241,13 +252,19 @@ Route::middleware([SetLocale::class])->group(function () {
         ->name('admin.')
         ->group(function () {
 
+            // Perfil admin
             Route::get('/profile', [ProfileController::class, 'adminShow'])->name('profile.show');
             Route::get('/profile/edit', [ProfileController::class, 'adminEdit'])->name('profile.edit');
             Route::post('/profile/edit', [ProfileController::class, 'adminUpdate'])->name('profile.update');
 
+            // 2FA requerido dentro del panel
             Route::middleware('2fa.admin')->group(function () {
+
+                // Dashboard
                 Route::get('/', [DashBoardController::class, 'dashboard'])->name('home');
 
+                // Usuarios & Roles
+                Route::resource('users', UserRegisterController::class)->except(['show']);
                 Route::patch('users/{user}/lock', [UserRegisterController::class, 'lock'])->name('users.lock');
                 Route::patch('users/{user}/unlock', [UserRegisterController::class, 'unlock'])->name('users.unlock');
                 Route::patch('users/{user}/mark-verified', [UserRegisterController::class, 'markVerified'])->name('users.markVerified');
@@ -255,6 +272,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::resource('roles', RoleController::class)->except(['show', 'create']);
                 Route::patch('roles/{role}/toggle', [RoleController::class, 'toggle'])->name('roles.toggle');
 
+                // Traducciones
                 Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
                 Route::get('translations/{type}/select', [TranslationController::class, 'select'])->name('translations.select');
                 Route::get('translations/{type}/{id}/locale', [TranslationController::class, 'selectLocale'])->name('translations.locale');
@@ -262,9 +280,11 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::post('translations/{type}/{id}/update', [TranslationController::class, 'update'])->name('translations.update');
                 Route::post('translations/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('translations.change-editing-locale');
 
+                // FAQs
                 Route::resource('faqs', AdminFaqController::class)->except(['show']);
                 Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
 
+                // Tours: Cutoff
                 Route::prefix('tours')->name('tours.')->group(function () {
                     Route::prefix('cutoff')->name('cutoff.')->group(function () {
                         Route::get('/', [CutOffController::class, 'edit'])->name('edit');
@@ -274,6 +294,7 @@ Route::middleware([SetLocale::class])->group(function () {
                     });
                 });
 
+                // Tours: Imágenes
                 Route::get('tours/images', [TourImageController::class, 'pick'])->name('tours.images.pick');
                 Route::prefix('tours/{tour}/images')->name('tours.images.')->group(function () {
                     Route::get('/', [TourImageController::class, 'index'])->name('index');
@@ -284,15 +305,18 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::post('reorder', [TourImageController::class, 'reorder'])->name('reorder');
                 });
 
+                // Meeting points
                 Route::resource('meetingpoints', MeetingPointSimpleController::class)->except(['show', 'create', 'edit']);
                 Route::patch('meetingpoints/{meetingpoint}/toggle', [MeetingPointSimpleController::class, 'toggle'])->name('meetingpoints.toggle');
 
+                // Tour Types: covers
                 Route::prefix('types')->name('types.')->group(function () {
                     Route::get('images', [TourTypeCoverPickerController::class, 'pick'])->name('images.pick');
                     Route::get('images/{tourType}/edit', [TourTypeCoverPickerController::class, 'edit'])->name('images.edit');
                     Route::put('images/{tourType}', [TourTypeCoverPickerController::class, 'updateCover'])->name('images.update');
                 });
 
+                // Policies
                 Route::get('policies', [PolicyController::class, 'index'])->name('policies.index');
                 Route::post('policies', [PolicyController::class, 'store'])->name('policies.store');
                 Route::put('policies/{policy:policy_id}', [PolicyController::class, 'update'])->name('policies.update');
@@ -305,13 +329,18 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::post('policies/{policy:policy_id}/sections/{section}/toggle', [PolicySectionController::class, 'toggle'])->name('policies.sections.toggle');
                 Route::delete('policies/{policy:policy_id}/sections/{section}', [PolicySectionController::class, 'destroy'])->name('policies.sections.destroy');
 
+                // Promo Codes
                 Route::get('promoCode', [PromoCodeController::class, 'index'])->name('promoCode.index');
                 Route::post('promoCode', [PromoCodeController::class, 'store'])->name('promoCode.store');
                 Route::delete('promoCode/{promo}', [PromoCodeController::class, 'destroy'])->name('promoCode.destroy');
                 Route::patch('promoCode/{promo}/operation', [PromoCodeController::class, 'updateOperation'])->name('promoCode.updateOperation');
 
+                // Tours (CRUD + archivado/restauración/purga)
                 Route::resource('tours', TourController::class)->except(['create', 'edit', 'show', 'destroy']);
                 Route::patch('tours/{tour:tour_id}/toggle', [TourController::class, 'toggle'])->name('tours.toggle');
+                Route::delete('tours/{tour}', [TourController::class, 'destroy'])->name('tours.destroy');          // Soft delete
+                Route::post('tours/{tour}/restore', [TourController::class, 'restore'])->name('tours.restore');     // Restore
+                Route::delete('tours/{tour}/purge', [TourController::class, 'purge'])->name('tours.purge');         // Hard delete
 
                 // Submódulos Tours
                 Route::prefix('tours')->name('tours.')->group(function () {
@@ -347,6 +376,7 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])->name('amenities.toggle');
                 });
 
+                // Reservas
                 Route::get('reservas/excel', [BookingController::class, 'generarExcel'])->name('reservas.excel');
                 Route::get('reservas/pdf', [BookingController::class, 'generarPDF'])->name('reservas.pdf');
                 Route::get('reservas/{reserva}/comprobante', [BookingController::class, 'generarComprobante'])->name('reservas.comprobante');
@@ -356,13 +386,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('reservas/calendar', [BookingController::class, 'calendar'])->name('reservas.calendar');
                 Route::post('reservas/from-cart', [BookingController::class, 'storeFromCart'])->name('reservas.storeFromCart');
 
-                Route::resource('users', UserRegisterController::class)->except(['show']);
-                Route::resource('roles', RoleController::class)->except(['show', 'create']);
-                Route::patch('roles/{role}/toggle', [RoleController::class, 'toggle'])->name('roles.toggle');
-
-                Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);
-                Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
-
+                // Idiomas, Hoteles
                 Route::resource('languages', TourLanguageController::class, ['parameters' => ['languages' => 'language']])->except(['show']);
                 Route::patch('languages/{language}/toggle', [TourLanguageController::class, 'toggle'])->name('languages.toggle');
 
@@ -370,6 +394,11 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::post('hotels/sort', [HotelListController::class, 'sort'])->name('hotels.sort');
                 Route::patch('hotels/{hotel}/toggle', [HotelListController::class, 'toggle'])->name('hotels.toggle');
 
+                // Tipos de tour
+                Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);
+                Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
+
+                // Carrito (admin)
                 Route::get('carrito', [CartController::class, 'index'])->name('cart.index');
                 Route::post('carrito', [CartController::class, 'store'])->name('cart.store');
                 Route::patch('carrito/{item}', [CartController::class, 'update'])->name('cart.update');
@@ -381,13 +410,16 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::post('carrito/apply-promo', [CartController::class, 'applyPromoAdmin'])->name('cart.applyPromo');
                 Route::delete('carrito/remove-promo', [CartController::class, 'removePromoAdmin'])->name('cart.removePromo');
 
+                // Reports
                 Route::prefix('reports')->name('reports.')->group(function () {
                     Route::get('/', [ReportsController::class, 'index'])->name('index');
                     Route::get('/chart/monthly-sales', [ReportsController::class, 'chartMonthlySales'])->name('chart.monthly');
                     Route::get('/chart/by-language',   [ReportsController::class, 'chartByLanguage'])->name('chart.language');
                 });
 
+                // Gestión de Reviews (permiso manage-reviews)
                 Route::middleware(['can:manage-reviews'])->group(function () {
+                    // Proveedores
                     Route::resource('review-providers', ReviewProviderController::class)
                         ->except(['show'])
                         ->parameters(['review-providers' => 'provider'])
@@ -396,6 +428,7 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::post('review-providers/{provider}/test', [ReviewProviderController::class, 'test'])->name('review-providers.test');
                     Route::post('review-providers/{provider}/cache/flush', [ReviewProviderController::class, 'flushCache'])->name('review-providers.flush');
 
+                    // Reviews
                     Route::get('reviews', [ReviewAdminController::class, 'index'])->name('reviews.index');
                     Route::get('reviews/create', [ReviewAdminController::class, 'create'])->name('reviews.create');
                     Route::post('reviews', [ReviewAdminController::class, 'store'])->name('reviews.store');
@@ -408,13 +441,14 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::post('reviews/{review}/flag', [ReviewAdminController::class, 'flag'])->name('reviews.flag');
                     Route::post('reviews/bulk', [ReviewAdminController::class, 'bulk'])->name('reviews.bulk');
 
+                    // Replies & Threads
                     Route::get('reviews/{review}/replies/create', [ReviewReplyController::class, 'create'])->name('reviews.replies.create');
                     Route::post('reviews/{review}/replies', [ReviewReplyController::class, 'store'])->name('reviews.replies.store');
                     Route::delete('reviews/{review}/replies/{reply}', [ReviewReplyController::class, 'destroy'])->name('reviews.replies.destroy');
                     Route::post('reviews/{review}/replies/{reply}/toggle', [ReviewReplyController::class, 'toggle'])->name('reviews.replies.toggle');
-
                     Route::get('reviews/{review}/thread', [ReviewReplyController::class, 'thread'])->name('reviews.replies.thread');
 
+                    // Review Requests
                     Route::get('review-requests', [ReviewRequestAdminController::class, 'index'])->name('review-requests.index');
                     Route::post('review-requests/{booking}/send', [ReviewRequestAdminController::class, 'send'])->name('review-requests.send');
                     Route::post('review-requests/{rr}/resend', [ReviewRequestAdminController::class, 'resend'])->name('review-requests.resend');
@@ -426,12 +460,12 @@ Route::middleware([SetLocale::class])->group(function () {
     // ============================
     // COOKIES (consent)
     // ============================
-Route::post('/cookies/accept', [CookieConsentController::class, 'accept'])
-    ->name('cookies.accept')
-    ->middleware('throttle:10,1');
+    Route::post('/cookies/accept', [CookieConsentController::class, 'accept'])
+        ->name('cookies.accept')
+        ->middleware('throttle:10,1');
 
-Route::post('/cookies/reject', [CookieConsentController::class, 'reject'])
-    ->name('cookies.reject')
-    ->middleware('throttle:10,1');
+    Route::post('/cookies/reject', [CookieConsentController::class, 'reject'])
+        ->name('cookies.reject')
+        ->middleware('throttle:10,1');
 
 });
