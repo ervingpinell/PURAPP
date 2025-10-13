@@ -19,13 +19,12 @@
     return cls || null;
   }
 
-  /* === Nueva lógica robusta: contar líneas reales y comparar con el umbral (4/5) === */
   function getLineHeightPx(el){
     const cs = getComputedStyle(el);
     const lh = cs.lineHeight;
     if (lh && lh !== "normal") return parseFloat(lh);
     const fs = parseFloat(cs.fontSize) || 16;
-    return fs * 1.2; // aprox para 'normal'
+    return fs * 1.2;
   }
 
   function naturalLineCount(el){
@@ -34,15 +33,12 @@
     const hadClamp   = clampClass && el.classList.contains(clampClass);
     const wasExp     = el.classList.contains("expanded");
 
-    // Quitar clamp/expanded para medir líneas naturales
     if (wasExp) el.classList.remove("expanded");
     if (hadClamp) el.classList.remove(clampClass);
 
-    // Forzar reflow
     const lh = getLineHeightPx(el);
     const lines = Math.round(el.scrollHeight / Math.max(1, lh));
 
-    // Restaurar estado
     if (hadClamp) el.classList.add(clampClass);
     if (wasExp) el.classList.add("expanded");
 
@@ -55,7 +51,6 @@
     const lines = naturalLineCount(el);
     return lines > maxLines;
   }
-  /* ====================================================================== */
 
   function getTXT(root) {
     return {
@@ -69,7 +64,7 @@
     };
   }
 
-  /* ---------- Ajuste anti-overlap del título para tarjetas locales ---------- */
+  /* ---------- Ajuste anti-overlap del título ---------- */
   function adjustTitleLayoutFor(card) {
     if (!card) return;
     const title = card.querySelector(".tour-title-abs");
@@ -106,7 +101,7 @@
 
     const clampClass = getClampClass(text);
     if (clampClass && !text.classList.contains("expanded")) {
-      text.classList.add(clampClass); // nos aseguramos de que el clamp esté activo visualmente
+      text.classList.add(clampClass);
     }
     if (clampClass) btn.dataset.clampClass = clampClass;
 
@@ -175,6 +170,93 @@
     if (shell) { shell.style.height = base + "px"; shell.style.minHeight = base + "px"; }
   }
 
+  /* =========================================================
+   * NUEVO: Indicador segmentado debajo del carrusel (clicable)
+   * ========================================================= */
+  function setupCarouselSegments(root) {
+    const items = root.querySelectorAll(".carousel-item");
+    const total = items.length;
+    if (total <= 1) return;
+
+    // contenedor
+    const bar = document.createElement("div");
+    bar.className = "carousel-segments";
+
+    // crear segmentos
+    const segs = [];
+    for (let i = 0; i < total; i++) {
+      const s = document.createElement("button");
+      s.type = "button";
+      s.className = "carousel-segment";
+      s.setAttribute("aria-label", `Slide ${i + 1} de ${total}`);
+      s.dataset.index = String(i);
+      bar.appendChild(s);
+      segs.push(s);
+    }
+
+    // Insertar justo DESPUÉS del .carousel-inner y ANTES de los controles
+    const inner = root.querySelector(".carousel-inner");
+    const firstControl = root.querySelector(".carousel-control-prev, .carousel-control-next");
+    if (inner && firstControl && firstControl.parentElement === root) {
+      root.insertBefore(bar, firstControl);
+    } else {
+      root.appendChild(bar);
+    }
+
+    // Estado inicial
+    let current = Math.max(0, Array.from(items).findIndex(it => it.classList.contains("active")));
+    if (current === -1) current = 0;
+
+    function render() {
+      segs.forEach((el, idx) => {
+        el.classList.toggle("is-active", idx === current);
+      });
+      // Accesibilidad
+      bar.setAttribute("aria-live", "polite");
+      bar.setAttribute("aria-label", `${current + 1} / ${total}`);
+    }
+    render();
+
+    // Click -> ir al slide
+    bar.addEventListener("click", (e) => {
+      const btn = e.target.closest(".carousel-segment");
+      if (!btn) return;
+      const to = parseInt(btn.dataset.index, 10) || 0;
+
+      // API Bootstrap: trigger slide
+      const ev = new CustomEvent("slide.bs.carousel", { detail: {}, bubbles: true });
+      // No es necesario despachar manual; usamos data attributes de Bootstrap:
+      // buscamos el índice actual y usamos root.querySelectorAll para movernos.
+      // Forma canónica: $(root).carousel(to) — pero sin jQuery:
+      const bsCarousel = root && G.bootstrap && G.bootstrap.Carousel
+        ? G.bootstrap.Carousel.getInstance(root) || new G.bootstrap.Carousel(root)
+        : null;
+      if (bsCarousel && Number.isFinite(to)) {
+        bsCarousel.to(to);
+      } else {
+        // fallback: mover active class (no ideal, pero evita no-op si no está bootstrap)
+        const list = root.querySelectorAll(".carousel-item");
+        list.forEach(n => n.classList.remove("active"));
+        list[to]?.classList.add("active");
+        current = to;
+        render();
+      }
+    });
+
+    // Sync con Bootstrap
+    root.addEventListener("slide.bs.carousel", (e) => {
+      // e.to existe en Bootstrap >=5 cuando se usa events
+      if (typeof e.to === "number") current = e.to;
+      render();
+    });
+    root.addEventListener("slid.bs.carousel", (e) => {
+      if (typeof e.to === "number") current = e.to;
+      render();
+    });
+  }
+
+  /* ========================================================= */
+
   function initOne(root) {
     if (!root || root.__reviewsInit) return;
     root.__reviewsInit = true;
@@ -185,15 +267,17 @@
     const allowedOrigins = new Set([location.origin]);
     const targetOrigin   = location.origin;
 
-    // 1) Setup tarjetas locales
+    // Local cards
     root.querySelectorAll(".hero-card").forEach((card) => setupCard(card, TXT.more, TXT.less));
 
-    // 2) Redimensionar / refrescar
     const onResize = () => refreshCards(root, TXT.more);
     window.addEventListener("resize", onResize, { passive: true });
     root.addEventListener("slid.bs.carousel", onResize);
 
-    // 3) postMessage (validando origen)
+    // Indicador segmentado
+    setupCarouselSegments(root);
+
+    // postMessage desde iframes
     window.addEventListener("message", (e) => {
       if (!e || !e.origin || !allowedOrigins.has(e.origin)) return;
       const d = e?.data || {};
@@ -253,7 +337,7 @@
       }
     }, false);
 
-    // 4) Lazy load de iframes
+    // Lazy iframes
     const lazyIframes = new Set(Array.from(root.querySelectorAll("iframe.review-embed[data-src]")));
     const io = "IntersectionObserver" in window
       ? new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) loadIframe(entry.target, lazyIframes); }),
@@ -262,7 +346,7 @@
 
     lazyIframes.forEach((ifr) => { io?.observe(ifr); relaxHeightsFor(ifr, BASE); });
 
-    // 5) Pre-carga de la siguiente slide + ping
+    // Precarga del siguiente + ajustes
     root.addEventListener("slide.bs.carousel", (ev) => {
       const to = ev.to ?? 0;
       const items = root.querySelectorAll(".carousel-item");
@@ -274,10 +358,9 @@
       setTimeout(() => pingVisibleIframes(root, targetOrigin), 120);
     });
 
-    // 6) Arranque
+    // Arranque
     setTimeout(() => { lazyIframes.forEach((ifr) => loadIframe(ifr, lazyIframes)); pingVisibleIframes(root, targetOrigin); }, 2500);
     pingVisibleIframes(root, targetOrigin);
-    // Ajuste inicial de títulos locales
     root.querySelectorAll(".hero-card").forEach(adjustTitleLayoutFor);
     if (document.fonts?.ready) document.fonts.ready.then(() => root.querySelectorAll(".hero-card").forEach(adjustTitleLayoutFor));
   }

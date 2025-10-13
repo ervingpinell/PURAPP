@@ -3,92 +3,126 @@
 @section('title', $title)
 
 @section('content_header')
-  <h1 class="mb-0">
-    <i class="fas fa-language mr-2"></i>{{ $title }}
-  </h1>
+  <h1><i class="fas fa-language me-2"></i>{{ $title }}</h1>
 @stop
 
 @section('content')
 @php
   use Illuminate\Support\Str;
+
+  // Asegura Collection por si llega array
+  $items = collect($items ?? []);
+
+  // Idioma de EDICIÓN elegido (se usa solo para pasar al edit y mostrar badge, NO para traducir el listado)
+  $editLocale = request('edit_locale');
+
   $labelPlural   = __('m_config.translations.entities.' . $type);
   $labelSingular = __('m_config.translations.entities_singular.' . $type);
 @endphp
 
-  <noscript>
-    @if (session('success'))
-      <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    @if (session('error'))
-      <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
-    @if ($errors->any())
-      <div class="alert alert-warning">
-        <strong>{{ __('m_config.translations.validation_errors') }}</strong>
-        <ul class="mb-0 mt-1">
-          @foreach ($errors->all() as $error)
-            <li>{{ $error }}</li>
-          @endforeach
-        </ul>
-      </div>
-    @endif
-  </noscript>
+<noscript>
+  @if (session('success'))
+    <div class="alert alert-success">{{ session('success') }}</div>
+  @endif
+  @if (session('error'))
+    <div class="alert alert-danger">{{ session('error') }}</div>
+  @endif
+  @if ($errors->any())
+    <div class="alert alert-warning">
+      <strong>{{ __('m_config.translations.validation_errors') }}</strong>
+      <ul class="mb-0 mt-1">
+        @foreach ($errors->all() as $error)
+          <li>{{ $error }}</li>
+        @endforeach
+      </ul>
+    </div>
+  @endif
+</noscript>
 
-  <div class="card">
-    <div class="card-header">
-      <strong>{{ $labelPlural }}</strong>
-    </div>
-    <div class="card-body">
-      @if (!count($items))
-        <p class="text-muted mb-0">{{ __('m_config.translations.no_items', ['entity' => Str::lower($labelPlural)]) }}</p>
-      @else
-        <ul class="list-group">
-          @foreach ($items as $item)
-            @php
-              $itemId = $item->getKey();
-              $displayText = match($type) {
-                'tours'            => $item->name ?? '—',
-                'itineraries'      => $item->name ?? '—',
-                'itinerary_items'  => $item->title ?? '—',
-                'amenities'        => $item->name ?? '—',
-                'faqs'             => Str::limit($item->question ?? '—', 60),
-                'policies'         => $item->name ?? '—',
-                'tour_types'       => $item->name ?? '—',
-                default            => $item->name ?? $item->title ?? ('#'.$itemId),
-              };
-            @endphp
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <div>
-                <div class="fw-bold">{{ $displayText }}</div>
-                <small class="text-muted">{{ $labelSingular }} · ID: {{ $itemId }}</small>
-              </div>
-              <div>
-                <a class="btn btn-sm btn-outline-primary"
-                   href="{{ route('admin.translations.select-locale', [$type, $itemId]) }}">
-                  <i class="fas fa-language mr-1"></i> {{ __('m_config.translations.translate') }}
-                </a>
-              </div>
-            </li>
-          @endforeach
-        </ul>
-      @endif
-    </div>
+{{-- Aviso si falta el edit_locale (por acceso directo) --}}
+@if (empty($editLocale))
+  <div class="alert alert-info">
+    <i class="fas fa-info-circle mr-1"></i>
+    {{ __('m_config.translations.choose_locale_hint') }}
+    <a href="{{ route('admin.translations.choose-locale', ['type' => $type]) }}" class="alert-link">
+      {{ __('m_config.translations.choose_locale_title') }}
+    </a>
   </div>
+@endif
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    @if ($items->isEmpty())
+      <p class="text-muted mb-0">
+        {{ __('m_config.translations.no_items', ['entity' => Str::lower($labelPlural)]) }}
+      </p>
+    @else
+      <ul class="list-group">
+        @foreach ($items as $item)
+          @php
+            $itemId = $item->getKey();
+            $hasId  = !empty($itemId);
+
+            // Mostrar SIEMPRE en idioma de la UI (no aplicar edit_locale aquí)
+            $displayText = match($type) {
+              'tours'            => $item->name ?? '—',
+              'itineraries'      => $item->name ?? '—',
+              'itinerary_items'  => $item->title ?? '—',
+              'amenities'        => $item->name ?? '—',
+              'faqs'             => Str::limit($item->question ?? '—', 60),
+              'policies'         => $item->name ?? '—',
+              'tour_types'       => $item->name ?? '—',
+              default            => $item->name ?? $item->title ?? ('#'.$itemId),
+            };
+          @endphp
+
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span class="text-truncate">
+              {{ $displayText }}
+              @if($editLocale)
+                <span class="badge bg-light text-dark border ml-2">{{ strtoupper($editLocale) }}</span>
+              @endif
+            </span>
+
+            @if ($hasId)
+              {{-- Ir a EDIT con el idioma seleccionado --}}
+              <a href="{{ route('admin.translations.edit', ['type' => $type, 'id' => $itemId, 'edit_locale' => $editLocale]) }}"
+                 class="btn btn-sm btn-primary">
+                <i class="fas fa-chevron-right"></i> {{ __('m_config.translations.select') }}
+              </a>
+            @else
+              <span class="badge bg-secondary">{{ __('m_config.translations.id_unavailable') }}</span>
+            @endif
+          </li>
+        @endforeach
+      </ul>
+    @endif
+  </div>
+</div>
 @stop
 
 @section('js')
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const ok = @json(__('m_config.translations.ok'));
-    const s  = @json(session('success'));
-    const e  = @json(session('error'));
-    const ve = @json($errors->any() ? $errors->all() : []);
-    if (s) Swal.fire({icon:'success',title:s,confirmButtonText:ok});
-    if (e) Swal.fire({icon:'error',title:e,confirmButtonText:ok});
-    if (ve && ve.length) {
-      const html = '<ul class="text-start mb-0">' + ve.map(x=>`<li>${x}</li>`).join('') + '</ul>';
-      Swal.fire({icon:'warning',title:@json(__('m_config.translations.validation_errors')),html,confirmButtonText:ok});
+    const flashSuccess = @json(session('success'));
+    const flashError   = @json(session('error'));
+    const valErrors    = @json($errors->any() ? $errors->all() : []);
+
+    if (flashSuccess) {
+      Swal.fire({ icon: 'success', title: flashSuccess, confirmButtonText: @json(__('m_config.translations.ok')) });
+    }
+    if (flashError) {
+      Swal.fire({ icon: 'error', title: flashError, confirmButtonText: @json(__('m_config.translations.ok')) });
+    }
+    if (valErrors && valErrors.length) {
+      const list = '<ul class="text-start mb-0">' + valErrors.map(e => `<li>${e}</li>`).join('') + '</ul>';
+      Swal.fire({
+        icon: 'warning',
+        title: @json(__('m_config.translations.validation_errors')),
+        html: list,
+        confirmButtonText: @json(__('m_config.translations.ok')),
+      });
     }
   });
   </script>

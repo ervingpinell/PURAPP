@@ -1,12 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', __('m_config.translations.index_title'))
+@section('title', __('m_config.translations.title'))
 
 @section('content_header')
-  <h1 class="mb-0">
-    <i class="fas fa-language mr-2"></i>
-    {{ __('m_config.translations.index_title') }}
-  </h1>
+  <h1><i class="fas fa-language"></i> {{ __('m_config.translations.title') }}</h1>
 @stop
 
 @section('content')
@@ -21,30 +18,15 @@
 
   <div class="row">
     @php
-      $keys = [
-        'tours'           => 'm_config.translations.entities.tours',
-        'itineraries'     => 'm_config.translations.entities.itineraries',
-        'itinerary_items' => 'm_config.translations.entities.itinerary_items',
-        'amenities'       => 'm_config.translations.entities.amenities',
-        'faqs'            => 'm_config.translations.entities.faqs',
-        'policies'        => 'm_config.translations.entities.policies',
-        'tour_types'      => 'm_config.translations.entities.tour_types',
-      ];
+      $keys = ['tours','itineraries','itinerary_items','amenities','faqs','policies','tour_types'];
     @endphp
 
-    @foreach($keys as $type => $labelKey)
-      <div class="col-md-6 col-lg-4">
-        <div class="card mb-3">
-          <div class="card-body d-flex align-items-center justify-content-between">
-            <div>
-              <h5 class="card-title mb-1">{{ __($labelKey) }}</h5>
-              <small class="text-muted">{{ __('m_config.translations.click_to_continue') }}</small>
-            </div>
-            <a href="{{ route('admin.translations.select', $type) }}" class="btn btn-primary">
-              <i class="fas fa-arrow-right"></i>
-            </a>
-          </div>
-        </div>
+    @foreach ($keys as $key)
+      <div class="col-md-4 mb-3">
+        {{-- Ahora dirigimos al paso de elegir idioma de edición (choose-locale) --}}
+        <a href="{{ route('admin.translations.choose-locale', ['type' => $key]) }}" class="btn btn-primary w-100 py-3">
+          <i class="fas fa-globe me-2"></i> {{ __('m_config.translations.entities.' . $key) }}
+        </a>
       </div>
     @endforeach
   </div>
@@ -54,11 +36,15 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const ok = @json(__('m_config.translations.ok'));
-    const s  = @json(session('success'));
-    const e  = @json(session('error'));
-    if (s) Swal.fire({icon:'success',title:s,confirmButtonText:ok});
-    if (e) Swal.fire({icon:'error',title:e,confirmButtonText:ok});
+    const flashSuccess = @json(session('success'));
+    const flashError   = @json(session('error'));
+
+    if (flashSuccess) {
+      Swal.fire({ icon: 'success', title: flashSuccess, confirmButtonText: @json(__('m_config.translations.ok')) });
+    }
+    if (flashError) {
+      Swal.fire({ icon: 'error', title: flashError, confirmButtonText: @json(__('m_config.translations.ok')) });
+    }
   });
   </script>
 @stop

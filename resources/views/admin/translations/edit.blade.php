@@ -2,7 +2,10 @@
 
 @php
   /** @var \App\Models\Tour|\App\Models\Policy|\Illuminate\Database\Eloquent\Model $item */
-  $targetLocale = $locale; // idioma de EDICIÓN
+  // idioma de CONTENIDO a editar:
+  $targetLocale = $locale;
+
+  // idioma de la UI (labels, títulos) se mantiene en app()->getLocale()
   $availableEditLocales = ['es' => 'Español', 'en' => 'English', 'fr' => 'Français', 'pt' => 'Português', 'de' => 'Deutsch'];
 @endphp
 
@@ -73,12 +76,12 @@
     <div class="card-body">
       @foreach ($fields as $field)
         @php
-          // Etiquetas personalizadas para policies
+          // Etiquetas (UI) en idioma de la interfaz
           if ($type === 'policies') {
               if ($field === 'title') {
-                  $label = __('m_config.translations.policy_name');     // Título de la política
+                  $label = __('m_config.translations.policy_name');
               } elseif ($field === 'content') {
-                  $label = __('m_config.translations.policy_content');  // Contenido
+                  $label = __('m_config.translations.policy_content');
               } else {
                   $label = ucfirst($field);
               }
@@ -90,7 +93,7 @@
 
           $rows  = in_array($field, ['content','overview','description']) ? 6 : 3;
 
-          // Valor por defecto; para policies:title hacemos fallback al name base si viene vacío
+          // Contenido (valores) en idioma objetivo de EDICIÓN
           if ($type === 'policies' && $field === 'title') {
               $value = old(
                   "translations.$field",
@@ -174,7 +177,7 @@
       });
     }
 
-    // Cambiar locale de edición vía AJAX
+    // Cambiar locale de edición vía AJAX (sin tocar el UI locale)
     document.querySelectorAll('.change-editing-locale').forEach(link => {
       link.addEventListener('click', function(e) {
         e.preventDefault();

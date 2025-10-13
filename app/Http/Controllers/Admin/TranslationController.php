@@ -29,16 +29,45 @@ class TranslationController extends Controller
 {
     public function index()
     {
+        // UI en locale actual
         return view('admin.translations.index');
     }
 
-    public function select(string $type)
+    /**
+     * Paso 2: elegir idioma de edición para un tipo (no afecta el UI-locale).
+     */
+    public function chooseLocale(string $type)
     {
         $entitySingular = __('m_config.translations.entities_singular.' . $type);
         if ($entitySingular === 'm_config.translations.entities_singular.' . $type) {
             abort(404, 'Invalid translation type.');
         }
 
+        return view('admin.translations.choose-locale', [
+            'type' => $type,
+        ]);
+    }
+
+    /**
+     * Paso 3: listar ítems del tipo.
+     * Muestra SIEMPRE los ítems en el idioma de la UI.
+     * Guarda edit_locale en sesión para usarlo en edit().
+     */
+    public function select(Request $request, string $type)
+    {
+        $entitySingular = __('m_config.translations.entities_singular.' . $type);
+        if ($entitySingular === 'm_config.translations.entities_singular.' . $type) {
+            abort(404, 'Invalid translation type.');
+        }
+
+        // Guardar edit_locale (idioma de EDICIÓN) sin tocar el UI
+        $editLocale = $request->query('edit_locale');
+        $availableLocales = ['es','en','fr','pt','de'];
+        if ($editLocale && in_array($editLocale, $availableLocales, true)) {
+            session(['translation_editing_locale' => $editLocale]);
+        }
+
+        // Cargar ítems (sin aplicar edit_locale)
         $items = match ($type) {
             'tours'           => Tour::orderBy('tour_id')->get(),
             'itineraries'     => Itinerary::orderBy('itinerary_id')->get(),
@@ -50,6 +79,10 @@ class TranslationController extends Controller
             default           => collect(),
         };
 
+        // ✅ Aplicar traducciones al idioma de la UI (títulos del listado en el locale actual)
+        $uiLocale = app()->getLocale();
+        $items = $this->applyLocaleOnItems($items, $type, $uiLocale);
+
         $pageTitle = __('m_config.translations.select_entity_title', ['entity' => $entitySingular]);
 
         return view('admin.translations.select', [
@@ -60,27 +93,8 @@ class TranslationController extends Controller
         ]);
     }
 
-    public function selectLocale(string $type, int $id)
-    {
-        $entity = match ($type) {
-            'tours'           => Tour::findOrFail($id),
-            'itineraries'     => Itinerary::findOrFail($id),
-            'itinerary_items' => ItineraryItem::findOrFail($id),
-            'amenities'       => Amenity::findOrFail($id),
-            'faqs'            => Faq::findOrFail($id),
-            'policies'        => Policy::findOrFail($id),
-            'tour_types'      => TourType::findOrFail($id),
-            default           => abort(404, 'Invalid translation type.'),
-        };
-
-        return view('admin.translations.choose-locale', [
-            'type' => $type,
-            'item' => $entity,
-        ]);
-    }
-
     /**
-     * Cambia el idioma de edición (NO el de la UI).
+     * Cambia el idioma de EDICIÓN (NO el de la UI) vía AJAX.
      */
     public function changeEditingLocale(Request $request)
     {
@@ -93,18 +107,22 @@ class TranslationController extends Controller
         return response()->json(['success' => true]);
     }
 
+    /**
+     * Paso 4: editar el contenido en el idioma de EDICIÓN elegido.
+     * Las etiquetas de la UI van en el locale actual; el contenido en $targetLocale.
+     */
     public function edit(string $type, int $id)
     {
         $availableLocales = ['es', 'en', 'fr', 'pt', 'de'];
 
-        // Si viene edit_locale en URL, guardarlo SOLO en sesión de edición
+        // Si viene edit_locale, guardarlo solo para edición (no toca UI)
         if ($requestedLocale = request('edit_locale')) {
             if (in_array($requestedLocale, $availableLocales, true)) {
                 session(['translation_editing_locale' => $requestedLocale]);
             }
         }
 
-        // Idioma objetivo para la EDICIÓN
+        // Idioma objetivo para la EDICIÓN (contenido)
         $targetLocale = session('translation_editing_locale', app()->getLocale());
         if (!in_array($targetLocale, $availableLocales, true)) {
             $targetLocale = 'en';
@@ -170,7 +188,7 @@ class TranslationController extends Controller
                 abort(404, 'Invalid translation type.');
         }
 
-        // Construir traducciones con fallback también cuando el campo existe pero está vacío
+        // Construir traducciones con fallback cuando el campo existe pero está vacío
         foreach ($availableLocales as $lang) {
             $existing = $translationModel::where($foreignKey, $entity->getKey())
                 ->where('locale', $lang)
@@ -181,7 +199,6 @@ class TranslationController extends Controller
                 if ($existing) {
                     $val = (string) ($existing->{$field} ?? '');
                     if ($val === '') {
-                        // Fallback si la fila existe pero el campo está vacío
                         if ($type === 'policies' && $field === 'title') {
                             $val = (string) ($entity->name ?? '');
                         } else {
@@ -202,18 +219,18 @@ class TranslationController extends Controller
         return view('admin.translations.edit', [
             'type'           => $type,
             'item'           => $entity,
-            'locale'         => $targetLocale, // idioma de EDICIÓN
+            'locale'         => $targetLocale, // idioma de EDICIÓN (contenido)
             'fields'         => $translatableFields,
             'translations'   => $allTranslations[$targetLocale] ?? [],
-            'uiLocale'       => app()->getLocale(), // idioma de INTERFAZ
-            'editingLocale'  => $targetLocale,      // idioma de EDICIÓN
+            'uiLocale'       => app()->getLocale(), // idioma de la UI
+            'editingLocale'  => $targetLocale,
         ]);
     }
 
     public function update(Request $request, string $type, int $id)
     {
         $validated = $request->validate([
-            'locale'                 => 'required|in:es,en,fr,pt,de',  // idioma de EDICIÓN
+            'locale'                 => 'required|in:es,en,fr,pt,de',  // idioma de EDICIÓN (contenido)
             'translations'           => 'nullable|array',
             'itinerary_translations' => 'nullable|array',
             'item_translations'      => 'nullable|array',
@@ -221,7 +238,7 @@ class TranslationController extends Controller
         ]);
 
         try {
-            $locale                 = (string) $validated['locale'];
+            $locale                 = (string) $validated['locale']; // mantener al volver
             $mainFieldValues        = $validated['translations'] ?? [];
             $itineraryFieldValues   = $validated['itinerary_translations'] ?? [];
             $itemFieldValuesById    = $validated['item_translations'] ?? [];
@@ -387,8 +404,13 @@ class TranslationController extends Controller
                 }
             }
 
+            // Mantener el idioma de edición al volver al edit
             return redirect()
-                ->route('admin.translations.edit', ['type' => $type, 'id' => $id])
+                ->route('admin.translations.edit', [
+                    'type'        => $type,
+                    'id'          => $id,
+                    'edit_locale' => $locale,
+                ])
                 ->with('success', __('m_config.translations.updated_success'));
 
         } catch (Exception $e) {
@@ -396,5 +418,88 @@ class TranslationController extends Controller
                 ->withInput()
                 ->with('error', __('m_config.translations.unexpected_error'));
         }
+    }
+
+    /**
+     * Aplica valores traducidos del $locale a los ítems para que el listado se vea en ese idioma.
+     */
+    private function applyLocaleOnItems($items, string $type, string $locale)
+    {
+        if (method_exists($items, 'isEmpty') && $items->isEmpty()) return $items;
+
+        switch ($type) {
+            case 'tours':
+                $map = TourTranslation::whereIn('tour_id', $items->pluck('tour_id'))
+                    ->where('locale', $locale)->get()->keyBy('tour_id');
+                foreach ($items as $it) {
+                    $tr = $map[$it->tour_id] ?? null;
+                    if ($tr && ($tr->name ?? '') !== '')       $it->name = $tr->name;
+                    if ($tr && ($tr->overview ?? '') !== '')   $it->overview = $tr->overview;
+                }
+                break;
+
+            case 'itineraries':
+                $map = ItineraryTranslation::whereIn('itinerary_id', $items->pluck('itinerary_id'))
+                    ->where('locale', $locale)->get()->keyBy('itinerary_id');
+                foreach ($items as $it) {
+                    $tr = $map[$it->itinerary_id] ?? null;
+                    if ($tr && ($tr->name ?? '') !== '')         $it->name = $tr->name;
+                    if ($tr && ($tr->description ?? '') !== '')  $it->description = $tr->description;
+                }
+                break;
+
+            case 'itinerary_items':
+                $map = ItineraryItemTranslation::whereIn('item_id', $items->pluck('item_id'))
+                    ->where('locale', $locale)->get()->keyBy('item_id');
+                foreach ($items as $it) {
+                    $tr = $map[$it->item_id] ?? null;
+                    if ($tr && ($tr->title ?? '') !== '')        $it->title = $tr->title;
+                    if ($tr && ($tr->description ?? '') !== '')  $it->description = $tr->description;
+                }
+                break;
+
+            case 'amenities':
+                $map = AmenityTranslation::whereIn('amenity_id', $items->pluck('amenity_id'))
+                    ->where('locale', $locale)->get()->keyBy('amenity_id');
+                foreach ($items as $it) {
+                    $tr = $map[$it->amenity_id] ?? null;
+                    if ($tr && ($tr->name ?? '') !== '') $it->name = $tr->name;
+                }
+                break;
+
+            case 'faqs':
+                $map = FaqTranslation::whereIn('faq_id', $items->pluck('faq_id'))
+                    ->where('locale', $locale)->get()->keyBy('faq_id');
+                foreach ($items as $it) {
+                    $tr = $map[$it->faq_id] ?? null;
+                    if ($tr && ($tr->question ?? '') !== '') $it->question  = $tr->question;
+                    if ($tr && ($tr->answer ?? '')   !== '') $it->answer    = $tr->answer;
+                }
+                break;
+
+            case 'policies':
+                $map = PolicyTranslation::whereIn('policy_id', $items->pluck('policy_id'))
+                    ->where('locale', $locale)->get()->keyBy('policy_id');
+                foreach ($items as $it) {
+                    $tr = $map[$it->policy_id] ?? null;
+                    // En listado, usamos title traducido como "name" si existe
+                    if ($tr && ($tr->title ?? '') !== '')   $it->name    = $tr->title;
+                    if ($tr && ($tr->content ?? '') !== '') $it->content = $tr->content;
+                }
+                break;
+
+            case 'tour_types':
+                $map = TourTypeTranslation::whereIn('tour_type_id', $items->pluck('tour_type_id'))
+                    ->where('locale', $locale)->get()->keyBy('tour_type_id');
+                foreach ($items as $it) {
+                    $tr = $map[$it->tour_type_id] ?? null;
+                    if ($tr && ($tr->name ?? '') !== '')        $it->name        = $tr->name;
+                    if ($tr && ($tr->description ?? '') !== '') $it->description = $tr->description;
+                    if ($tr && ($tr->duration ?? '') !== '')    $it->duration    = $tr->duration;
+                }
+                break;
+        }
+
+        return $items;
     }
 }

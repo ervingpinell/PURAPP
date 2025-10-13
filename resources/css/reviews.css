@@ -30,6 +30,20 @@
   gap:2rem;
 }
 
+/* Indicador segmentado para tarjetas del index */
+.review-card .carousel-segments{
+  display:flex; gap:8px; justify-content:center; align-items:center;
+  margin:12px auto 0; width:100%;
+}
+.review-card .carousel-segment{
+  appearance:none; border:0; padding:0; cursor:pointer;
+  height:6px; flex:1 1 0; border-radius:4px;
+  background:rgba(0,0,0,.12);
+  transition:transform .15s ease, background-color .2s ease;
+}
+.review-card .carousel-segment:hover{ transform:translateY(-1px); }
+.review-card .carousel-segment.is-active{ background:var(--gv-green); }
+
 /* Título del tour */
 .review-title{
   display:flex; align-items:center; justify-content:center;

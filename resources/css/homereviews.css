@@ -1,3 +1,22 @@
+/* Contenedor de segmentos (debajo del carrusel) */
+.home-hero .carousel-segments,
+.reviews-block .carousel-segments{
+  display:flex; gap:8px; justify-content:center; align-items:center;
+  margin:14px auto 0; width:min(620px, 92%);
+}
+
+/* Cada segmento (rectángulo corto) */
+.carousel-segment{
+  appearance:none; border:0; padding:0; cursor:pointer;
+  height:6px; flex:1 1 0; border-radius:4px;
+  background:rgba(0,0,0,.12);
+  transition:transform .15s ease, background-color .2s ease;
+}
+.carousel-segment:hover{ transform:translateY(-1px); }
+.carousel-segment.is-active{
+  background:#1A5229; /* tu --green */
+}
+
 /* ================================
    HOME REVIEWS HERO (alineado a EMBED)
    ================================ */

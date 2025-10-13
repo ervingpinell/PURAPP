@@ -273,12 +273,12 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::patch('roles/{role}/toggle', [RoleController::class, 'toggle'])->name('roles.toggle');
 
                 // Traducciones
-                Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
-                Route::get('translations/{type}/select', [TranslationController::class, 'select'])->name('translations.select');
-                Route::get('translations/{type}/{id}/locale', [TranslationController::class, 'selectLocale'])->name('translations.locale');
-                Route::get('translations/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('translations.edit');
-                Route::post('translations/{type}/{id}/update', [TranslationController::class, 'update'])->name('translations.update');
-                Route::post('translations/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('translations.change-editing-locale');
+Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
+Route::get('translations/{type}/choose-locale', [TranslationController::class, 'chooseLocale'])->name('translations.choose-locale'); // NUEVA
+Route::get('translations/{type}/select', [TranslationController::class, 'select'])->name('translations.select');
+Route::get('translations/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('translations.edit');
+Route::post('translations/{type}/{id}/update', [TranslationController::class, 'update'])->name('translations.update');
+Route::post('translations/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('translations.change-editing-locale');
 
                 // FAQs
                 Route::resource('faqs', AdminFaqController::class)->except(['show']);

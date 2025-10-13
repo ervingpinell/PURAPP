@@ -225,3 +225,43 @@
   .reviews-block .hero-card{ max-width:95%!important; width:95%!important; padding:.75rem; --title-h:2.2rem; }
   .reviews-block .tour-title-abs{ font-size:.88rem; max-width:64%; }
 }
+
+/* === Indicador segmentado (debajo del carrusel) === */
+.reviews-block .carousel-segments{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  align-items:center;
+  width:min(620px, 95%);
+  margin:.9rem auto 0;          /* queda pegado al carrusel */
+  padding:0 .5rem;
+}
+
+.reviews-block .carousel-segment{
+  appearance:none;
+  border:0;
+  padding:0;
+  cursor:pointer;
+  height:6px;
+  flex:1 1 0;                    /* cada segmento ocupa el mismo ancho */
+  border-radius:4px;
+  background:rgba(0,0,0,.12);
+  transition:transform .15s ease, background-color .2s ease;
+}
+.reviews-block .carousel-segment:hover{ transform:translateY(-1px); }
+.reviews-block .carousel-segment.is-active{
+  background: var(--gv-green, #1A5229);   /* usa tu verde si está definido */
+}
+
+/* Accesibilidad (tecla TAB) */
+.reviews-block .carousel-segment:focus-visible{
+  outline:2px solid color-mix(in srgb, var(--gv-green, #1A5229) 60%, #ffffff);
+  outline-offset:2px;
+  box-shadow:0 0 0 2px #fff;
+}
+
+/* Compacto en móvil */
+@media (max-width:576.98px){
+  .reviews-block .carousel-segments{ gap:6px; margin:.6rem auto 0; }
+  .reviews-block .carousel-segment{ height:5px; }
+}

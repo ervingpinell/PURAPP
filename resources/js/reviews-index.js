@@ -4,7 +4,7 @@
   const root = document.getElementById("reviews-page") || document.body;
   const TXT = {
     more:       root?.dataset.more      || "Ver más",
-    less:       root?.dataset.less      || "Ver menos",
+    less:       root?.dataset.less      || "Mostrar menos",
     by:         root?.dataset.by        || "Proporcionado por",
     swalTitle:  root?.dataset.swalTitle || "¿Abrir tour?",
     swalText:   root?.dataset.swalText  || "Estás a punto de abrir la página del tour",
@@ -215,6 +215,48 @@
     mountIframe(ifr);
   }
 
+  /* ======== Indicador segmentado por tarjeta ======== */
+  function buildSegments(host, total, onJump) {
+    // evita duplicar
+    let bar = host.querySelector(":scope > .carousel-segments");
+    if (bar) return { bar, setActive: (i)=>{ bar.querySelectorAll(".carousel-segment").forEach((s,idx)=>s.classList.toggle("is-active", idx===i)); } };
+
+    bar = document.createElement("div");
+    bar.className = "carousel-segments";
+    bar.setAttribute("role", "tablist");
+    bar.setAttribute("aria-label", "Indicador de reseñas");
+
+    const segs = [];
+    for (let i = 0; i < total; i++) {
+      const s = document.createElement("button");
+      s.type = "button";
+      s.className = "carousel-segment";
+      s.dataset.index = String(i);
+      s.setAttribute("role", "tab");
+      s.setAttribute("aria-label", `Slide ${i + 1} de ${total}`);
+      s.addEventListener("click", () => onJump(i));
+      bar.appendChild(s);
+      segs.push(s);
+    }
+
+    // Insertarlo tras .js-slides y antes de .carousel-buttons-row si existe
+    const slidesWrap = host.querySelector(".js-slides");
+    const controls = host.querySelector(".carousel-buttons-row");
+    if (slidesWrap && controls && controls.parentElement === host) {
+      host.insertBefore(bar, controls);
+    } else {
+      host.appendChild(bar);
+    }
+
+    return {
+      bar,
+      setActive(i){
+        segs.forEach((s,idx)=>s.classList.toggle("is-active", idx===i));
+        bar.setAttribute("data-current", `${i+1}/${total}`);
+      }
+    };
+  }
+
   /* -------- Carrusel simple (grid por tour) -------- */
   function initCarousel(carousel) {
     const slidesWrap = carousel.querySelector(".js-slides");
@@ -223,22 +265,63 @@
     if (!slides.length) return;
 
     const poweredEl = carousel.querySelector(".js-powered");
+
+    // ¿modo "múltiples slides" o "un iframe que rota nth"?
+    const multipleSlides = slides.length > 1;
     let idx = slides.findIndex(el => el.style.display !== "none");
     if (idx < 0) idx = 0;
+
+    // Para iframe-only
+    let iframeInfo = null;
+    if (!multipleSlides) {
+      const ifr = slides[0].querySelector("iframe.review-iframe");
+      const limit = Math.max(1, parseInt(ifr?.dataset.limit || "8", 10) || 8);
+      let nth = Math.max(1, parseInt(ifr?.dataset.nth || "1", 10) || 1);
+      iframeInfo = { ifr, limit, nth };
+    }
+
+    // Segments
+    const totalSegments = multipleSlides ? slides.length : (iframeInfo?.limit || 1);
+    const { setActive } = buildSegments(carousel, totalSegments, (to) => {
+      if (multipleSlides) {
+        idx = to;
+        render();
+      } else if (iframeInfo) {
+        iframeInfo.nth = to + 1;
+        if (iframeInfo.ifr) {
+          iframeInfo.ifr.dataset.nth = String(iframeInfo.nth);
+          advanceIframe(iframeInfo.ifr, 0);
+        }
+        renderSegmentsOnly();
+      }
+    });
 
     function setPoweredFromSlide(slide) {
       if (!poweredEl || !slide) return;
       poweredEl.textContent = `${TXT.by} ${getProvLabelFromSlide(slide)}`;
     }
 
+    function renderSegmentsOnly() {
+      // actualizar segmento activo
+      const activeIndex = multipleSlides ? idx : ((iframeInfo?.nth || 1) - 1);
+      setActive(activeIndex);
+    }
+
     function render() {
-      slides.forEach((el, i) => (el.style.display = i === idx ? "" : "none"));
-      const visible = slides[idx] || slides[0];
-      setPoweredFromSlide(visible);
-      ensureReadMore(visible);
-      adjustTitleLayoutFor(visible);
-      const ifr = visible.querySelector("iframe.review-iframe");
-      if (ifr) mountIframe(ifr);
+      if (multipleSlides) {
+        slides.forEach((el, i) => (el.style.display = i === idx ? "" : "none"));
+        const visible = slides[idx] || slides[0];
+        setPoweredFromSlide(visible);
+        ensureReadMore(visible);
+        adjustTitleLayoutFor(visible);
+        const ifr = visible.querySelector("iframe.review-iframe");
+        if (ifr) mountIframe(ifr);
+      } else {
+        // solo iframe: asegurar montaje
+        const ifr = iframeInfo?.ifr;
+        if (ifr) mountIframe(ifr);
+      }
+      renderSegmentsOnly();
     }
     render();
 
@@ -247,23 +330,41 @@
     const next = document.querySelector(`.carousel-next[data-tour="${tourId}"]`);
 
     if (prev) prev.addEventListener("click", () => {
-      if (slides.length > 1) { idx = (idx - 1 + slides.length) % slides.length; render(); }
-      else { const ifr = slides[0].querySelector("iframe.review-iframe"); if (ifr) advanceIframe(ifr, -1); }
+      if (multipleSlides) {
+        idx = (idx - 1 + slides.length) % slides.length;
+        render();
+      } else if (iframeInfo) {
+        iframeInfo.nth = ((iframeInfo.nth - 2 + iframeInfo.limit) % iframeInfo.limit) + 1;
+        if (iframeInfo.ifr) {
+          iframeInfo.ifr.dataset.nth = String(iframeInfo.nth);
+          advanceIframe(iframeInfo.ifr, 0);
+        }
+        renderSegmentsOnly();
+      }
     });
 
     if (next) next.addEventListener("click", () => {
-      if (slides.length > 1) { idx = (idx + 1) % slides.length; render(); }
-      else { const ifr = slides[0].querySelector("iframe.review-iframe"); if (ifr) advanceIframe(ifr, +1); }
+      if (multipleSlides) {
+        idx = (idx + 1) % slides.length;
+        render();
+      } else if (iframeInfo) {
+        iframeInfo.nth = (iframeInfo.nth % iframeInfo.limit) + 1;
+        if (iframeInfo.ifr) {
+          iframeInfo.ifr.dataset.nth = String(iframeInfo.nth);
+          advanceIframe(iframeInfo.ifr, 0);
+        }
+        renderSegmentsOnly();
+      }
     });
 
     window.addEventListener("resize", () => {
-      const visible = slides[idx] || slides[0];
+      const visible = multipleSlides ? (slides[idx] || slides[0]) : slides[0];
       ensureReadMore(visible);
       adjustTitleLayoutFor(visible);
     });
 
     if (document.fonts?.ready) document.fonts.ready.then(() => {
-      const visible = slides[idx] || slides[0];
+      const visible = multipleSlides ? (slides[idx] || slides[0]) : slides[0];
       ensureReadMore(visible);
       adjustTitleLayoutFor(visible);
     });
