@@ -23,66 +23,86 @@
     </tr>
   </thead>
   <tbody>
-@foreach ($bookings as $booking)
-  @php $detail = $booking->detail; @endphp
-  <tr>
-    <td>{{ $booking->booking_id }}</td>
-    <td>
-      <span class="badge
-        {{ $booking->status === 'pending' ? 'bg-warning' : '' }}
-        {{ $booking->status === 'confirmed' ? 'bg-success' : '' }}
-        {{ $booking->status === 'cancelled' ? 'bg-danger' : '' }}">
-        {{ ucfirst($booking->status) }}
-      </span>
-    </td>
-    <td>{{ $booking->booking_date }}</td>
-    <td>{{ $booking->booking_reference }}</td>
-    <td>{{ $booking->user->full_name ?? '-' }}</td>
-    <td>{{ $booking->user->email ?? '-' }}</td>
-    <td>{{ $booking->user->phone ?? '-' }}</td>
-    <td>{{ $detail->tour->name ?? '-' }}</td>
-    <td>{{ $detail->tourLanguage->name ?? '-' }}</td>
-    <td>{{ optional($detail)->tour_date?->format('Y-m-d') ?? '-' }}</td>
-    <td>{{ $detail->hotel->name ?? $detail->other_hotel_name ?? '-' }}</td>
+  @foreach ($bookings as $booking)
+    @php
+        $detail   = $booking->detail;
 
-    {{-- SOLO nombre del punto de encuentro --}}
-    <td>{{ optional($detail->meetingPoint ?? null)->name ?? '—' }}</td>
+        // 1) Nombre desde la relación (activo o soft-deleted si el eager load tiene withTrashed)
+        $liveName = optional($detail->tour)->name;
 
-    <td>{{ $detail->schedule->start_time ?? '' }} - {{ $detail->schedule->end_time ?? '' }}</td>
-    <td>{{ optional($detail->tour->tourType ?? null)->name ?? '—' }}</td>
-    <td>{{ $detail->adults_quantity }}</td>
-    <td>{{ $detail->kids_quantity }}</td>
-    <td>{{ $booking->promoCode->code ?? '—' }}</td>
-    <td>${{ number_format($booking->total, 2) }}</td>
-    <td class="text-nowrap">
-      {{-- Descargar comprobante --}}
-      <a href="{{ route('admin.reservas.comprobante', $booking->booking_id) }}"
-         class="btn btn-primary btn-sm" title="Descargar comprobante">
-        <i class="fas fa-file-download"></i>
-      </a>
+        // 2) Si se purgó el tour (FK quedó NULL), toma snapshot (detail primero, luego cabecera)
+        $snapName = $detail->tour_name_snapshot ?: ($booking->tour_name_snapshot ?? null);
 
-      {{-- Editar --}}
-      <button class="btn btn-sm btn-edit"
-              data-bs-toggle="modal"
-              data-bs-target="#modalEditar{{ $booking->booking_id }}"
-              title="Editar">
-        <i class="fas fa-edit"></i>
-      </button>
+        // 3) Texto final de la celda
+        $tourCellText = $liveName
+            ?? ($snapName ? "Tour Eliminado ({$snapName})" : "Tour eliminado");
+    @endphp
 
-      {{-- Eliminar --}}
-      <form action="{{ route('admin.reservas.destroy', $booking->booking_id) }}"
-            method="POST" class="d-inline">
-        @csrf
-        @method('DELETE')
-        <button class="btn btn-sm btn-delete"
-                onclick="return confirm('¿Estás seguro de eliminar esta reserva?')"
-                title="Eliminar">
-          <i class="fas fa-trash-alt"></i>
+    <tr>
+      <td>{{ $booking->booking_id }}</td>
+      <td>
+        <span class="badge
+          {{ $booking->status === 'pending' ? 'bg-warning' : '' }}
+          {{ $booking->status === 'confirmed' ? 'bg-success' : '' }}
+          {{ $booking->status === 'cancelled' ? 'bg-danger' : '' }}">
+          {{ ucfirst($booking->status) }}
+        </span>
+      </td>
+      <td>{{ $booking->booking_date }}</td>
+      <td>{{ $booking->booking_reference }}</td>
+      <td>{{ $booking->user->full_name ?? '-' }}</td>
+      <td>{{ $booking->user->email ?? '-' }}</td>
+      <td>{{ $booking->user->phone ?? '-' }}</td>
+
+      {{-- Tour (usa snapshot si fue purgado) --}}
+      <td>{{ $tourCellText }}</td>
+
+      <td>{{ optional($detail->tourLanguage)->name ?? '-' }}</td>
+      <td>{{ optional($detail)->tour_date?->format('Y-m-d') ?? '-' }}</td>
+      <td>{{ $detail->hotel->name ?? $detail->other_hotel_name ?? '-' }}</td>
+
+      <td>{{ optional($detail->meetingPoint ?? null)->name ?? '—' }}</td>
+
+      <td>
+        @if($detail->schedule)
+          {{ $detail->schedule->start_time }} - {{ $detail->schedule->end_time }}
+        @else
+          —
+        @endif
+      </td>
+
+      <td>{{ optional($detail->tour->tourType ?? null)->name ?? '—' }}</td>
+      <td>{{ $detail->adults_quantity }}</td>
+      <td>{{ $detail->kids_quantity }}</td>
+      <td>{{ $booking->promoCode->code ?? '—' }}</td>
+      <td>${{ number_format($booking->total, 2) }}</td>
+
+      <td class="text-nowrap">
+        <a href="{{ route('admin.reservas.comprobante', $booking->booking_id) }}"
+           class="btn btn-primary btn-sm" title="Descargar comprobante">
+          <i class="fas fa-file-download"></i>
+        </a>
+
+        <button class="btn btn-sm btn-edit"
+                data-bs-toggle="modal"
+                data-bs-target="#modalEditar{{ $booking->booking_id }}"
+                title="Editar">
+          <i class="fas fa-edit"></i>
         </button>
-      </form>
-    </td>
-  </tr>
-@endforeach
+
+        <form action="{{ route('admin.reservas.destroy', $booking->booking_id) }}"
+              method="POST" class="d-inline">
+          @csrf
+          @method('DELETE')
+          <button class="btn btn-sm btn-delete"
+                  onclick="return confirm('¿Estás seguro de eliminar esta reserva?')"
+                  title="Eliminar">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </form>
+      </td>
+    </tr>
+  @endforeach
   </tbody>
 </table>
 

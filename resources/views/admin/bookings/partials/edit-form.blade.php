@@ -1,7 +1,7 @@
 {{-- resources/views/admin/bookings/partials/edit-form.blade.php --}}
 @php
-  $tz      = config('app.timezone', 'America/Costa_Rica');
-  $today   = \Carbon\Carbon::today($tz)->toDateString();
+  $tz       = config('app.timezone', 'America/Costa_Rica');
+  $today    = \Carbon\Carbon::today($tz)->toDateString();
   $detailDt = optional($booking->detail)->tour_date;
   $calcPast = $detailDt ? \Carbon\Carbon::parse($detailDt, $tz)->lt(\Carbon\Carbon::parse($today, $tz)) : false;
   $isPast   = isset($isPast) ? (bool)$isPast : $calcPast;
@@ -9,7 +9,7 @@
   // Mostrar errores solo si pertenecen a este modal
   $showMyErrors = (session('showEditModal') == $booking->booking_id) || (old('_modal') === 'edit:'.$booking->booking_id);
 
-  $bookingDateVal = old('booking_date', \Carbon\Carbon::parse($booking->booking_date)->format('Y-m-d'));
+  $bookingDateVal   = old('booking_date', \Carbon\Carbon::parse($booking->booking_date)->format('Y-m-d'));
   $bookingDateHuman = \Carbon\Carbon::parse($bookingDateVal)->locale('es')->translatedFormat('d \\de F \\de Y');
 @endphp
 
@@ -24,7 +24,7 @@
 
 <fieldset @if($isPast) disabled @endif>
 
-      {{-- 📌 Fecha de origen de la reserva (solo texto, NO editable) --}}
+  {{-- 📌 Fecha de origen de la reserva (solo texto, NO editable) --}}
   <div class="mb-3">
     <label class="form-label">Fecha de Reserva (origen)</label>
     <div class="form-control-text">{{ $bookingDateHuman }}</div>
@@ -50,40 +50,52 @@
     <input type="email" class="form-control" value="{{ $booking->user->email ?? '' }}" readonly>
   </div>
 
-  {{-- Tour --}}
+  {{-- Tour (incluye archivados para no romper reservas antiguas) --}}
   <div class="mb-3">
     <label class="form-label">Tour</label>
     <select name="tour_id" class="form-control {{ $showMyErrors && $errors->has('tour_id') ? 'is-invalid':'' }}" required>
-      @foreach(\App\Models\Tour::with('schedules')->orderBy('name')->get() as $tour)
+      @foreach(\App\Models\Tour::withTrashed()->with('schedules')->orderBy('name')->get() as $tour)
         @php
           $sched = $tour->schedules->map(fn($s)=>[
-            'schedule_id'=>$s->schedule_id,
-            'start_time'=>\Carbon\Carbon::parse($s->start_time)->format('g:i A'),
-            'end_time'=>\Carbon\Carbon::parse($s->end_time)->format('g:i A'),
-            'max_capacity'=>$s->max_capacity,
+            'schedule_id'  => $s->schedule_id,
+            'start_time'   => \Carbon\Carbon::parse($s->start_time)->format('g:i A'),
+            'end_time'     => \Carbon\Carbon::parse($s->end_time)->format('g:i A'),
+            'max_capacity' => $s->max_capacity,
           ])->values();
         @endphp
         <option value="{{ $tour->tour_id }}"
                 data-schedules='@json($sched, JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_AMP|JSON_HEX_QUOT)'
                 {{ old('tour_id', $booking->tour_id) == $tour->tour_id ? 'selected' : '' }}>
-          {{ $tour->name }}
+          {{ $tour->name }}@if($tour->trashed()) (archivado)@endif
         </option>
       @endforeach
     </select>
     @if($showMyErrors) @error('tour_id') <div class="invalid-feedback">{{ $message }}</div> @enderror @endif
   </div>
 
-  {{-- Horario --}}
+  {{-- Horario (seguro si el tour está archivado) --}}
   <div class="mb-3">
     <label class="form-label">Horario</label>
-    <select name="schedule_id" class="form-control {{ $showMyErrors && $errors->has('schedule_id') ? 'is-invalid':'' }}" required>
-      <option value="">Seleccione horario</option>
-      @foreach($booking->tour->schedules as $s)
-        <option value="{{ $s->schedule_id }}" {{ old('schedule_id', $booking->detail->schedule_id) == $s->schedule_id ? 'selected' : '' }}>
-          {{ \Carbon\Carbon::parse($s->start_time)->format('g:i A') }} – {{ \Carbon\Carbon::parse($s->end_time)->format('g:i A') }}
-        </option>
-      @endforeach
-    </select>
+    @php $tourForSchedule = $booking->tour; @endphp
+
+    @if($tourForSchedule)
+      <select name="schedule_id" class="form-control {{ $showMyErrors && $errors->has('schedule_id') ? 'is-invalid':'' }}" required>
+        <option value="">Seleccione horario</option>
+        @foreach($tourForSchedule->schedules as $s)
+          <option value="{{ $s->schedule_id }}" {{ old('schedule_id', $booking->detail->schedule_id) == $s->schedule_id ? 'selected' : '' }}>
+            {{ \Carbon\Carbon::parse($s->start_time)->format('g:i A') }} – {{ \Carbon\Carbon::parse($s->end_time)->format('g:i A') }}
+          </option>
+        @endforeach
+      </select>
+    @else
+      <div class="alert alert-warning mb-2">
+        El tour de esta reserva fue eliminado/archivado y no se pudo cargar. Selecciona un tour para ver sus horarios.
+      </div>
+      <select name="schedule_id" class="form-control" disabled>
+        <option value="">Sin horarios disponibles</option>
+      </select>
+    @endif
+
     @if($showMyErrors) @error('schedule_id') <div class="invalid-feedback">{{ $message }}</div> @enderror @endif
   </div>
 
@@ -99,8 +111,6 @@
     </select>
     @if($showMyErrors) @error('tour_language_id') <div class="invalid-feedback">{{ $message }}</div> @enderror @endif
   </div>
-
-
 
   {{-- Fecha del Tour (min = hoy) --}}
   <div class="mb-3">
@@ -189,7 +199,7 @@
 
 {{-- Botones de acción --}}
 <div class="mt-3 d-flex justify-content-end">
-    <button type="submit" class="btn btn-primary" @if($isPast) disabled @endif>
-        <i class="fas fa-check-circle"></i> Confirmar cambios
-    </button>
+  <button type="submit" class="btn btn-primary" @if($isPast) disabled @endif>
+    <i class="fas fa-check-circle"></i> Confirmar cambios
+  </button>
 </div>

@@ -15,16 +15,23 @@
 @stop
 
 @section('content')
+    <div class="btn-group mb-2" role="group">
+        <a href="{{ route('admin.tours.index', ['status' => 'active']) }}" class="btn btn-outline-primary {{ ($status ?? '')==='active' ? 'active' : '' }}">Activos</a>
+        <a href="{{ route('admin.tours.index', ['status' => 'inactive']) }}" class="btn btn-outline-primary {{ ($status ?? '')==='inactive' ? 'active' : '' }}">Inactivos</a>
+        <a href="{{ route('admin.tours.index', ['status' => 'archived']) }}" class="btn btn-outline-primary {{ ($status ?? '')==='archived' ? 'active' : '' }}">Eliminados</a>
+        <a href="{{ route('admin.tours.index', ['status' => 'all']) }}" class="btn btn-outline-secondary {{ ($status ?? '')==='all' ? 'active' : '' }}">Todos</a>
+    </div>
+
     <div class="p-3 table-responsive">
 
         {{-- Botón para registrar un nuevo tour --}}
         <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-            <i class="fas fa-plus"></i> {{ __('m_tours.tour.ui.add_tour') }} {{-- i18n: agregar ui.add_tour --}}
+            <i class="fas fa-plus"></i> {{ __('m_tours.tour.ui.add_tour') }}
         </a>
 
         {{-- Botón para ver el carrito (si aplica) --}}
         <a href="{{ route('admin.cart.index') }}" class="btn btn-primary mb-3">
-            <i class="fas fa-shopping-cart"></i> {{ __('m_tours.tour.ui.view_cart') }} {{-- i18n: agregar ui.view_cart --}}
+            <i class="fas fa-shopping-cart"></i> {{ __('m_tours.tour.ui.view_cart') }}
         </a>
 
         {{-- Tabla de tours --}}

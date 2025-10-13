@@ -1,5 +1,9 @@
 <?php
 
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cookie;
@@ -8,38 +12,27 @@ use Illuminate\Http\Response;
 use App\Http\Middleware\SetLocale;
 use App\Http\Controllers\SitemapController;
 
-// Públicos & Panel (no-auth)
-use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Auth\PublicEmailVerificationController;
+use App\Http\Controllers\Auth\UnlockAccountController;
+use app\Http\Controllers\CookieConsentController;
 use App\Http\Controllers\DashBoardController;
 use App\Http\Controllers\FaqController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PoliciesController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Auth\PublicEmailVerificationController;
+use App\Http\Controllers\Reviews\PublicReviewController;
+use App\Http\Controllers\Reviews\ReviewsController;
+use App\Http\Controllers\SitemapController;
 
-// Admin
-use App\Http\Controllers\Admin\Users\UserRegisterController;
-use App\Http\Controllers\Admin\Users\RoleController;
-use App\Http\Controllers\Admin\Languages\TourLanguageController;
-use App\Http\Controllers\Admin\Tours\TourController;
-use App\Http\Controllers\Admin\Tours\TourScheduleController;
-use App\Http\Controllers\Admin\Tours\TourAvailabilityController;
-use App\Http\Controllers\Admin\Tours\AmenityController;
-use App\Http\Controllers\Admin\Tours\ItineraryItemController;
-use App\Http\Controllers\Admin\Tours\ItineraryController;
-use App\Http\Controllers\Admin\Tours\TourTypeController;
-use App\Http\Controllers\Admin\Tours\TourExcludedDateController;
-use App\Http\Controllers\Admin\Tours\CutOffController;
-use App\Http\Controllers\Admin\Tours\TourTypeCoverPickerController;
 use App\Http\Controllers\Admin\Bookings\BookingController;
 use App\Http\Controllers\Admin\Bookings\HotelListController;
 use App\Http\Controllers\Admin\Cart\CartController;
 use App\Http\Controllers\Admin\FaqController as AdminFaqController;
-use App\Http\Controllers\Admin\TranslationController;
+use App\Http\Controllers\Admin\Languages\TourLanguageController;
 use App\Http\Controllers\Admin\PolicyController;
 use App\Http\Controllers\Admin\PolicySectionController;
-use App\Http\Controllers\Admin\TourImageController;
 use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
-use App\Http\Controllers\Admin\MeetingPointSimpleController;
-use App\Http\Controllers\Reviews\ReviewsController;
+use App\Http\Controllers\Admin\Reports\ReportsController;
 use App\Http\Controllers\Admin\Reviews\ReviewAdminController;
 use App\Http\Controllers\Admin\Reviews\ReviewProviderController;
 use App\Http\Controllers\Admin\Reviews\ReviewReplyController;
@@ -127,6 +120,7 @@ Route::middleware([SetLocale::class])->group(function () {
     localizedRoutes(function () {
         Route::get('/', [HomeController::class, 'index'])->name('home');
         Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
+        Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tours.show');
         Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tours.show');
 
         Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
@@ -220,6 +214,7 @@ Route::middleware([SetLocale::class])->group(function () {
     // Perfil & carrito (privado)
     // ------------------------------
     Route::middleware(['auth', 'verified'])->group(function () {
+        // Perfil
         Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
         Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::post('/profile/edit', [ProfileController::class, 'update'])->name('profile.update');
@@ -256,6 +251,9 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::patch('users/{user}/lock', [UserRegisterController::class, 'lock'])->name('users.lock');
                 Route::patch('users/{user}/unlock', [UserRegisterController::class, 'unlock'])->name('users.unlock');
                 Route::patch('users/{user}/mark-verified', [UserRegisterController::class, 'markVerified'])->name('users.markVerified');
+
+                Route::resource('roles', RoleController::class)->except(['show', 'create']);
+                Route::patch('roles/{role}/toggle', [RoleController::class, 'toggle'])->name('roles.toggle');
 
                 Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
                 Route::get('translations/{type}/select', [TranslationController::class, 'select'])->name('translations.select');
@@ -315,22 +313,28 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::resource('tours', TourController::class)->except(['create', 'edit', 'show', 'destroy']);
                 Route::patch('tours/{tour:tour_id}/toggle', [TourController::class, 'toggle'])->name('tours.toggle');
 
+                // Submódulos Tours
                 Route::prefix('tours')->name('tours.')->group(function () {
+                    // Schedule
                     Route::resource('schedule', TourScheduleController::class)->except(['create','edit','show']);
                     Route::put('schedule/{schedule}/toggle', [TourScheduleController::class, 'toggle'])->name('schedule.toggle');
                     Route::post('schedule/{tour}/attach', [TourScheduleController::class, 'attach'])->name('schedule.attach');
                     Route::delete('schedule/{tour}/{schedule}/detach', [TourScheduleController::class, 'detach'])->name('schedule.detach');
                     Route::patch('schedule/{tour}/{schedule}/assignment-toggle', [TourScheduleController::class, 'toggleAssignment'])->name('schedule.assignment.toggle');
 
+                    // Itinerary
                     Route::resource('itinerary', ItineraryController::class)->except(['show']);
                     Route::patch('itineraries/{itinerary}/toggle', [ItineraryController::class, 'toggle'])->name('itinerary.toggle');
                     Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');
 
+                    // Itinerary Items
                     Route::resource('itinerary_items', ItineraryItemController::class)->except(['show', 'create', 'edit']);
                     Route::patch('itinerary_items/{itinerary_item}/toggle', [ItineraryItemController::class, 'toggle'])->name('itinerary_items.toggle');
 
+                    // Availability
                     Route::resource('availability', TourAvailabilityController::class)->except(['show']);
 
+                    // Excluded Dates
                     Route::get('excluded_dates', [TourExcludedDateController::class, 'index'])->name('excluded_dates.index');
                     Route::resource('excluded_dates', TourExcludedDateController::class)->except(['show','index']);
                     Route::post('excluded_dates/toggle', [TourExcludedDateController::class, 'toggle'])->name('excluded_dates.toggle');
@@ -338,6 +342,7 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::post('excluded_dates/block-all', [TourExcludedDateController::class, 'blockAll'])->name('excluded_dates.blockAll');
                     Route::get('excluded_dates/blocked', [TourExcludedDateController::class, 'blocked'])->name('excluded_dates.blocked');
 
+                    // Amenities
                     Route::resource('amenities', AmenityController::class)->except(['show']);
                     Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])->name('amenities.toggle');
                 });
@@ -387,7 +392,6 @@ Route::middleware([SetLocale::class])->group(function () {
                         ->except(['show'])
                         ->parameters(['review-providers' => 'provider'])
                         ->names('review-providers');
-
                     Route::post('review-providers/{provider}/toggle', [ReviewProviderController::class, 'toggle'])->name('review-providers.toggle');
                     Route::post('review-providers/{provider}/test', [ReviewProviderController::class, 'test'])->name('review-providers.test');
                     Route::post('review-providers/{provider}/cache/flush', [ReviewProviderController::class, 'flushCache'])->name('review-providers.flush');

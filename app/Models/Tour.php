@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Tour extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'tours';
     protected $primaryKey = 'tour_id';
@@ -208,6 +210,12 @@ class Tour extends Model
     public function translations()
     {
         return $this->hasMany(TourTranslation::class, 'tour_id', 'tour_id');
+    }
+
+    /** Relación con reservas, usada para proteger purgas */
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'tour_id', 'tour_id');
     }
 
     public function translate(?string $locale = null)

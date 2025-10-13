@@ -51,6 +51,7 @@ class BookingController extends Controller
             'detail.schedule',
             'detail.meetingPoint',
             'redemption.promoCode',
+            'tour' => fn ($q) => $q->withTrashed()->with('schedules'),
         ])
             ->join('users', 'bookings.user_id', '=', 'users.user_id')
             ->select('bookings.*');
@@ -112,6 +113,7 @@ class BookingController extends Controller
             'tours'
         ));
     }
+
 
     /** Crear reserva desde formulario manual */
     public function store(Request $request)
@@ -241,7 +243,7 @@ class BookingController extends Controller
                     ]);
                 }
 
-                // ======= TOTAL + PROMO (respeta operation add/subtract) =======
+                // ======= TOTAL + PROMO =======
                 $baseTotal = ($tour->adult_price * $v['adults_quantity']) + ($tour->kid_price * $v['kids_quantity']);
                 $total     = $baseTotal;
 
@@ -267,25 +269,24 @@ class BookingController extends Controller
                         ? round($baseTotal + $delta, 2)
                         : max(0, round($baseTotal - $delta, 2));
                 }
-                // ===============================================================
 
                 // Meeting Point snapshot
                 $mp = !empty($v['meeting_point_id']) ? MeetingPoint::find($v['meeting_point_id']) : null;
 
-                // Cabecera
+                // ✅ Cabecera SIN schedule_id + snapshot
                 $booking = Booking::create([
                     'user_id'           => $v['user_id'],
                     'tour_id'           => $tour->tour_id,
                     'tour_language_id'  => $v['tour_language_id'],
-                    'schedule_id'       => $v['schedule_id'],
                     'booking_reference' => strtoupper(Str::random(10)),
                     'booking_date'      => $v['booking_date'],
                     'status'            => $v['status'],
                     'total'             => $total,
                     'is_active'         => true,
+                    'tour_name_snapshot'=> $tour->name, // 👈 snapshot
                 ]);
 
-                // Detalle
+                // ✅ Detalle CON schedule_id + snapshot
                 BookingDetail::create([
                     'booking_id'       => $booking->booking_id,
                     'tour_id'          => $tour->tour_id,
@@ -307,6 +308,8 @@ class BookingController extends Controller
                     'meeting_point_pickup_time' => $mp?->pickup_time,
                     'meeting_point_address'     => $mp?->address,
                     'meeting_point_map_url'     => $mp?->map_url,
+
+                    'tour_name_snapshot'        => $tour->name, // 👈 snapshot
                 ]);
 
                 if ($promoCode) {
@@ -525,38 +528,40 @@ class BookingController extends Controller
             $mpId = $r['meeting_point_id'] ?? null;
             $mp   = $mpId ? MeetingPoint::find($mpId) : null;
 
-            // Cabecera
+            // ✅ Cabecera SIN schedule_id + snapshot
             $booking->update([
-                'user_id'          => $r['user_id'],
-                'tour_id'          => $tour->tour_id,
-                'tour_language_id' => $r['tour_language_id'],
-                'booking_date'     => $r['booking_date'],
-                'status'           => $r['status'],
-                'total'            => $newTotal,
-                'schedule_id'      => $schedule->schedule_id,
-                'notes'            => $r['notes'] ?? null,
+                'user_id'            => $r['user_id'],
+                'tour_id'            => $tour->tour_id,
+                'tour_language_id'   => $r['tour_language_id'],
+                'booking_date'       => $r['booking_date'],
+                'status'             => $r['status'],
+                'total'              => $newTotal,
+                'notes'              => $r['notes'] ?? null,
+                'tour_name_snapshot' => $tour->name, // 👈 refrescar snapshot
             ]);
 
-            // Detalle
+            // ✅ Detalle CON schedule_id + snapshot
             $detail->update([
-                'tour_id'          => $tour->tour_id,
-                'tour_language_id' => $r['tour_language_id'],
-                'tour_date'        => $r['tour_date'],
-                'schedule_id'      => $schedule->schedule_id,
-                'adults_quantity'  => (int)$r['adults_quantity'],
-                'kids_quantity'    => (int)$r['kids_quantity'],
-                'adult_price'      => $adultPrice,
-                'kid_price'        => $kidPrice,
-                'total'            => $newTotal,
-                'hotel_id'         => $r['is_other_hotel'] ? null : $r['hotel_id'],
-                'is_other_hotel'   => (bool)$r['is_other_hotel'],
-                'other_hotel_name' => $r['is_other_hotel'] ? ($r['other_hotel_name'] ?? null) : null,
+                'tour_id'              => $tour->tour_id,
+                'tour_language_id'     => $r['tour_language_id'],
+                'tour_date'            => $r['tour_date'],
+                'schedule_id'          => $schedule->schedule_id,
+                'adults_quantity'      => (int)$r['adults_quantity'],
+                'kids_quantity'        => (int)$r['kids_quantity'],
+                'adult_price'          => $adultPrice,
+                'kid_price'            => $kidPrice,
+                'total'                => $newTotal,
+                'hotel_id'             => $r['is_other_hotel'] ? null : $r['hotel_id'],
+                'is_other_hotel'       => (bool)$r['is_other_hotel'],
+                'other_hotel_name'     => $r['is_other_hotel'] ? ($r['other_hotel_name'] ?? null) : null,
 
                 'meeting_point_id'          => $mp?->id,
                 'meeting_point_name'        => $mp?->name,
                 'meeting_point_pickup_time' => $mp?->pickup_time,
                 'meeting_point_address'     => $mp?->address,
                 'meeting_point_map_url'     => $mp?->map_url,
+
+                'tour_name_snapshot'        => $tour->name, // 👈 refrescar snapshot
             ]);
         });
 
@@ -763,20 +768,20 @@ class BookingController extends Controller
                         : max(0, round($baseTotal - $delta, 2));
                 }
 
-                // Cabecera
+                // ✅ Cabecera SIN schedule_id + snapshot
                 $booking = Booking::create([
-                    'user_id'           => $user->user_id,
-                    'tour_id'           => $item->tour_id,
-                    'tour_language_id'  => $item->tour_language_id,
-                    'schedule_id'       => $item->schedule_id,
-                    'booking_reference' => strtoupper(Str::random(10)),
-                    'booking_date'      => now(),
-                    'status'            => 'pending',
-                    'total'             => $total,
-                    'is_active'         => true,
+                    'user_id'            => $user->user_id,
+                    'tour_id'            => $item->tour_id,
+                    'tour_language_id'   => $item->tour_language_id,
+                    'booking_reference'  => strtoupper(Str::random(10)),
+                    'booking_date'       => now(),
+                    'status'             => 'pending',
+                    'total'              => $total,
+                    'is_active'          => true,
+                    'tour_name_snapshot' => $tour->name, // 👈 snapshot
                 ]);
 
-                // Detalle
+                // ✅ Detalle CON schedule_id + snapshot
                 BookingDetail::create([
                     'booking_id'       => $booking->booking_id,
                     'tour_id'          => $item->tour_id,
@@ -798,6 +803,8 @@ class BookingController extends Controller
                     'meeting_point_pickup_time' => $item->meeting_point_pickup_time,
                     'meeting_point_address'     => $item->meeting_point_address,
                     'meeting_point_map_url'     => $item->meeting_point_map_url,
+
+                    'tour_name_snapshot'        => $tour->name, // 👈 snapshot
                 ]);
 
                 if ($promoCode && !$promoApplied) {
