@@ -47,22 +47,29 @@
           @endphp
 
           @if($hasMixed)
-            {{-- ===== Mezcla local + remoto (hasta 5) ===== --}}
+            {{-- ===== Mezcla local + remoto (hasta 6) ===== --}}
             <div class="js-slides">
               @foreach($tour->slides as $i => $slide)
                 @if(($slide['type'] ?? '') === 'local')
                   @include('partials.reviews.card', ['r' => $slide['data'], 'active' => $i === 0])
                 @else
                   @php
-                    // Si por cualquier razón no hay proveedor, usar fallback
+                    // 1 iframe por proveedor; nth fijo en 1
                     $slug = $provSlug ?: 'viator';
                     $uid  = 'u'.substr(bin2hex(random_bytes(6)), 0, 8);
+
+                    // Si el controlador nos pasó pool real del proveedor, úsalo como limit
+                    $poolFromProvider = (int)($slide['pool'] ?? 0);
+                    $limitForIframe   = $poolFromProvider > 0
+                        ? $poolFromProvider
+                        : (int)($tour->pool_limit ?? 30);
+
                     $src  = route('reviews.embed', ['provider' => $slug]) . '?' . http_build_query([
                       'layout'        => 'card',
                       'theme'         => 'site',
                       'tour_id'       => $tour->tour_id,
-                      'limit'         => (int)($tour->pool_limit ?? 30),
-                      'nth'           => (int)($slide['nth'] ?? 1),
+                      'limit'         => $limitForIframe, // usa pool real si existe
+                      'nth'           => 1,                // siempre 1
                       'base'          => 400,
                       'show_powered'  => 0,
                       'uid'           => $uid,
@@ -81,8 +88,8 @@
                           loading="lazy"
                           referrerpolicy="no-referrer"
                           scrolling="no"
-                          data-limit="{{ (int)($tour->pool_limit ?? 30) }}"
-                          data-nth="{{ (int)($slide['nth'] ?? 1) }}"
+                          data-limit="{{ $limitForIframe }}"
+                          data-nth="1"
                           data-src="{{ $src }}"></iframe>
                         <div class="iframe-skeleton"></div>
                       </div>

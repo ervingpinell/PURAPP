@@ -29,93 +29,93 @@ class ReviewsController extends Controller
     /**
      * Índice de reviews agrupadas por tour
      */
-    public function index(Request $request)
-    {
-        $locale   = app()->getLocale();
-        $fallback = config('app.fallback_locale', 'es');
-        $ttl      = $this->defaultTtl;
+public function index(Request $request)
+{
+    $locale   = app()->getLocale();
+    $fallback = config('app.fallback_locale', 'es');
+    $ttl      = $this->defaultTtl;
 
-        // 1) Tours activos CON SLUG
-        $q = Tour::with('translations')->where('is_active', true);
-        if (Schema::hasColumn('tours', 'sort_order')) {
-            $q->orderByRaw('sort_order IS NULL, sort_order ASC');
-        }
-        $q->orderBy('name');
-        $tours = $q->get(['tour_id', 'name', 'slug']); // ✅ AGREGADO 'slug'
-
-        // 2) Traducir nombres
-        $tours = $tours->map(function ($t) use ($locale, $fallback) {
-            $tr = ($t->translations ?? collect())->firstWhere('locale', $locale)
-                ?: ($t->translations ?? collect())->firstWhere('locale', $fallback);
-            $t->display_name = $tr->name ?? $t->name ?? '';
-            return $t;
-        });
-
-        // 3) Traer reviews y preparar slides (~5-6 por tour, sin repetir)
-        $tours = $tours->map(function ($tour) use ($ttl) {
-            $cacheKey = "reviews:tour:{$tour->tour_id}:index";
-
-            $reviews = Cache::remember($cacheKey, $ttl, function () use ($tour) {
-                return app(ReviewAggregator::class)->aggregate([
-                    'tour_id' => $tour->tour_id,
-                    'limit'   => 10, // Pool más grande
-                ]);
-            });
-
-            // Deduplicar reviews
-            $reviews = $reviews->unique(function($r) {
-                $provider = strtolower($r['provider'] ?? 'p');
-                if (!empty($r['provider_review_id'])) {
-                    return $provider . '#' . $r['provider_review_id'];
-                }
-                return $provider . '#' . md5(
-                    mb_strtolower(trim($r['body'] ?? '')) . '|' .
-                    mb_strtolower(trim($r['author_name'] ?? '')) . '|' .
-                    trim($r['date'] ?? '')
-                );
-            })->values();
-
-            // Separar indexables vs no-indexables (tomar hasta 6 total)
-            $indexables = $reviews->where('indexable', true)->take(4);
-            $nonIndexables = $reviews->where('indexable', false)->take(6 - $indexables->count());
-
-            // Construir slides (mezcla local + remoto)
-            $slides = collect();
-
-            // Añadir indexables como slides locales
-            foreach ($indexables as $r) {
-                $slides->push(['type' => 'local', 'data' => $r]);
-            }
-
-            // Añadir remotos como iframes (agrupados por proveedor)
-            $providersBySlug = $nonIndexables->groupBy('provider');
-            foreach ($providersBySlug as $provSlug => $items) {
-                foreach ($items as $i => $r) {
-                    $slides->push([
-                        'type'     => 'remote',
-                        'provider' => $provSlug,
-                        'nth'      => $i + 1,
-                    ]);
-                }
-            }
-
-            // Propiedades para el blade
-            $tour->indexable_reviews = $indexables;
-            $tour->slides = $slides->take(6); // Máximo 6 slides
-            $tour->needs_iframe = $nonIndexables->isNotEmpty();
-            $tour->iframe_slug = $nonIndexables->first()['provider'] ?? 'viator';
-            $tour->pool_limit = 30;
-
-            return $tour;
-        });
-
-        return view('reviews.index', compact('tours'));
+    // 1) Tours activos CON SLUG
+    $q = Tour::with('translations')->where('is_active', true);
+    if (Schema::hasColumn('tours', 'sort_order')) {
+        $q->orderByRaw('sort_order IS NULL, sort_order ASC');
     }
+    $q->orderBy('name');
+    $tours = $q->get(['tour_id', 'name', 'slug']);
 
-    /**
-     * Reviews de un tour específico (mínimo 12-15, sin repetir)
-     */
-    public function tour(
+    // 2) Traducir nombres
+    $tours = $tours->map(function ($t) use ($locale, $fallback) {
+        $tr = ($t->translations ?? collect())->firstWhere('locale', $locale)
+            ?: ($t->translations ?? collect())->firstWhere('locale', $fallback);
+        $t->display_name = $tr->name ?? $t->name ?? '';
+        return $t;
+    });
+
+    // 3) Traer reviews y preparar slides (~5-6 por tour, sin repetir)
+    $tours = $tours->map(function ($tour) use ($ttl) {
+        $cacheKey = "reviews:tour:{$tour->tour_id}:index";
+
+        $reviews = Cache::remember($cacheKey, $ttl, function () use ($tour) {
+            return app(ReviewAggregator::class)->aggregate([
+                'tour_id' => $tour->tour_id,
+                'limit'   => 10, // Pool más grande
+            ]);
+        });
+
+        // Deduplicar reviews (proveedor+ID o hash por contenido)
+        $reviews = $reviews->unique(function($r) {
+            $provider = strtolower($r['provider'] ?? 'p');
+            if (!empty($r['provider_review_id'])) {
+                return $provider . '#' . $r['provider_review_id'];
+            }
+            return $provider . '#' . md5(
+                mb_strtolower(trim($r['body'] ?? '')) . '|' .
+                mb_strtolower(trim($r['author_name'] ?? '')) . '|' .
+                trim($r['date'] ?? '')
+            );
+        })->values();
+
+        // Separar indexables vs no-indexables
+        $indexables    = $reviews->where('indexable', true)->take(4)->values();
+        $nonIndexables = $reviews->where('indexable', false)->values();
+
+        // Construir slides (mezcla local + remoto)
+        $slides = collect();
+
+        // 1) Añadir indexables como slides locales
+        foreach ($indexables as $r) {
+            $slides->push(['type' => 'local', 'data' => $r]);
+        }
+
+        // 2) Añadir remotos: **1 slide por proveedor**, no una por cada review
+        //    (evita duplicar la misma reseña cuando el proveedor sólo tiene 1 review)
+        $providersBySlug = $nonIndexables->groupBy('provider');
+        foreach ($providersBySlug as $provSlug => $items) {
+            $slides->push([
+                'type'     => 'remote',
+                'provider' => $provSlug,
+                'nth'      => 1,                 // siempre arrancamos en 1
+                'pool'     => $items->count(),   // cuántas reviews reales tenemos de ese proveedor
+            ]);
+        }
+
+        // Propiedades para el blade
+        $tour->indexable_reviews = $indexables;
+        $tour->slides            = $slides->take(6); // Máximo 6 slides mixtas
+        $tour->needs_iframe      = $providersBySlug->isNotEmpty();
+        $tour->iframe_slug       = $providersBySlug->keys()->first() ?? 'viator';
+        $tour->pool_limit        = 30; // fallback (para iframes cuando no tengamos pool real)
+
+        return $tour;
+    });
+
+    return view('reviews.index', compact('tours'));
+}
+
+/**
+ * Reviews de un tour específico (mínimo 12-15, sin repetir)
+ */
+public function tour(
         Tour $tour, // ✅ CAMBIADO: recibe el modelo directamente
         ReviewAggregator $agg,
         Request $request
