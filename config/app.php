@@ -80,7 +80,7 @@ return [
 
 'locale' => 'es',
 'fallback_locale' => 'en',
-'supported_locales' => ['es','en','fr','de','pt_BR'],
+'supported_locales' => ['es','en','fr','de','pt'],
 'faker_locale' => 'es_CR',
 
 

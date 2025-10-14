@@ -3,6 +3,10 @@
 use Illuminate\Support\Str;
 
 if (!function_exists('supported_locales')) {
+    /**
+     * Locales soportados (para UI / selectores).
+     * Lee de config('i18n.supported_locales') y normaliza a minúsculas.
+     */
     function supported_locales(): array
     {
         $arr = config('i18n.supported_locales');
@@ -17,36 +21,113 @@ if (!function_exists('supported_locales')) {
     }
 }
 
+/* =========================
+   Mapeos de locale/prefijo
+   ========================= */
+
+if (!function_exists('locale_to_prefix')) {
+    /**
+     * Convierte un locale interno (ej. 'pt' o 'pt_BR') al prefijo de rutas (2 letras).
+     * E.g. 'pt_BR' -> 'pt'
+     */
+    function locale_to_prefix(string $locale): string
+    {
+        $s = strtolower(str_replace('-', '_', trim($locale)));
+        return substr($s, 0, 2);
+    }
+}
+
+if (!function_exists('prefix_to_locale')) {
+    /**
+     * Convierte el prefijo de rutas a un locale interno de Laravel.
+     * Para simplificar, devolvemos el mismo prefijo (ej. 'pt' -> 'pt').
+     */
+    function prefix_to_locale(string $prefix): string
+    {
+        return strtolower(trim($prefix));
+    }
+}
+
 if (!function_exists('localized_route')) {
     /**
-     * Genera una ruta con prefijo de locale
+     * Genera una ruta con prefijo de locale.
+     * - Usa el prefijo (2 letras) incluso si el locale interno fuera 'pt_BR'.
      */
     function localized_route(string $name, $parameters = [], ?string $locale = null): string
     {
-        $locale = $locale ?? app()->getLocale();
-        $locales = array_keys(config('routes.locales', []));
+        $internal = $locale ?? app()->getLocale();   // p.ej. 'pt' ó 'pt_BR'
+        $prefix   = locale_to_prefix($internal);     // 'pt'
+        $locales  = array_keys(config('routes.locales', [])); // ['es','en','fr','de','pt']
 
-        if (!in_array($locale, $locales, true)) {
-            $locale = config('routes.default_locale', 'es');
+        if (!in_array($prefix, $locales, true)) {
+            $prefix = config('routes.default_locale', 'es');
         }
 
-        // Agregar prefijo de locale al nombre de la ruta
-        return route("{$locale}.{$name}", $parameters);
+        return route("{$prefix}.{$name}", $parameters);
     }
 }
 
 if (!function_exists('current_locale_prefix')) {
     /**
-     * Obtiene el prefijo del locale actual
+     * Obtiene el prefijo del locale actual (2 letras), usando config('routes.locales').
      */
     function current_locale_prefix(): string
     {
-        $locale = app()->getLocale();
-        $locales = config('routes.locales', []);
+        $internal      = app()->getLocale();            // 'pt' o 'pt_BR'
+        $prefix        = locale_to_prefix($internal);   // 'pt'
+        $routesLocales = (array) config('routes.locales', []);
 
-        return $locales[$locale]['prefix'] ?? $locale;
+        return $routesLocales[$prefix]['prefix'] ?? $prefix;
     }
 }
+
+/* =========================
+   Fallback de traducciones DB
+   ========================= */
+
+if (!function_exists('pick_db_translation')) {
+    /**
+     * Busca una traducción en una relación/colección Eloquent con fallback:
+     * 1) exacto por locale (ej. 'pt' o 'pt_BR')
+     * 2) si el locale es 'pt', prueba alias 'pt_BR' si no existía exacto
+     * 3) fallback global
+     *
+     * @param \Illuminate\Support\Collection|array|null $translations
+     * @param string $locale   Locale actual (p.ej. 'pt')
+     * @param string $fallback Locale fallback (p.ej. 'es')
+     * @return mixed|null      Modelo/array de traducción o null
+     */
+    function pick_db_translation($translations, string $locale, string $fallback)
+    {
+        $col = $translations ?? collect();
+        if (is_array($col)) $col = collect($col);
+
+        $norm = strtolower(str_replace('-', '_', $locale));
+        $short = substr($norm, 0, 2);
+
+        // 1) exacto (pt o pt_BR)
+        $hit = $col->firstWhere('locale', $norm)
+            ?: $col->firstWhere('locale', $short);
+
+        // 2) alias pt_BR si el short es 'pt'
+        if (!$hit && $short === 'pt') {
+            $hit = $col->firstWhere('locale', 'pt_BR')
+                ?: $col->firstWhere('locale', 'pt-br');
+        }
+
+        // 3) fallback estándar
+        if (!$hit) {
+            $hit = $col->firstWhere('locale', strtolower(str_replace('-', '_', $fallback)))
+                ?: $col->firstWhere('locale', substr(strtolower($fallback), 0, 2));
+        }
+
+        return $hit;
+    }
+}
+
+/* =========================
+   Otros helpers ya existentes
+   ========================= */
 
 if (!function_exists('viator_product_url')) {
     function viator_product_url(
@@ -78,5 +159,4 @@ if (!function_exists('cookies_accepted')) {
         $cookie = request()->cookie('gv_cookie_consent');
         return (string) $cookie === '1';
     }
-
 }

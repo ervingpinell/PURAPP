@@ -46,13 +46,32 @@ class DeepLTranslator implements TranslatorInterface
             ?? env('DEEPL_AUTH_KEY');
 
         $this->enabled   = (bool) (config('services.deepl.enabled', env('DEEPL_ENABLED', true)));
-        $this->formality = (string) config('services.deepl.formality', 'default');         // default|less|more
-        $this->enVariant = strtolower((string) config('services.deepl.en_variant', 'en-US'));// en-US|en-GB
+        $this->formality = (string) config('services.deepl.formality', 'default');            // default|less|more
+        $this->enVariant = strtolower((string) config('services.deepl.en_variant', 'en-US')); // en-US|en-GB
         $this->ptVariant = strtolower((string) config('services.deepl.pt_variant', 'pt-BR')); // pt-BR|pt-PT
 
         if ($this->enabled && !empty($this->apiKey)) {
             $this->client = new DeepL($this->apiKey);
         }
+    }
+
+    /**
+     * Normaliza cualquier variante a la etiqueta corta que usaremos en DB/UI.
+     * pt, pt-br, pt_BR => pt
+     */
+    public static function normalizeLocaleCode(string $locale): string
+    {
+        $l = strtolower(trim($locale));
+        $l = str_replace('-', '_', $l);
+
+        return match ($l) {
+            'pt', 'pt_br', 'pt-pt', 'pt_pt' => 'pt',
+            'en', 'en_us', 'en-gb', 'en_gb' => 'en',
+            'fr', 'fr_fr'                    => 'fr',
+            'de', 'de_de'                    => 'de',
+            'es', 'es_es', 'es_cr'           => 'es',
+            default                          => substr($l, 0, 2),
+        };
     }
 
     public function detect(string $text): ?string
@@ -66,10 +85,10 @@ class DeepLTranslator implements TranslatorInterface
                 try {
                     $result = $this->client->detectLanguage($text);
                     $code   = strtoupper($result->language);  // EN, EN-US, PT-BR, etc.
-                    return self::BASE_LANG[$code] ?? strtolower(substr($code, 0, 2));
+                    $base   = self::BASE_LANG[$code] ?? strtolower(substr($code, 0, 2));
+                    return self::normalizeLocaleCode($base);
                 } catch (TooManyRequestsException|DeepLException $e) {
                     if (++$attempt >= $this->maxAttempts) throw $e;
-
                 }
             }
         } catch (\Throwable $e) {
@@ -83,6 +102,7 @@ class DeepLTranslator implements TranslatorInterface
         $text = (string) $text;
         if ($text === '' || !$this->client) return $text;
 
+        // Mapeamos a un objetivo DeepL, pero nuestra etiqueta **resultante** será 'pt' si es portugués
         $target = $this->mapTarget($targetLocale);
 
         $attempt = 0;
@@ -91,7 +111,6 @@ class DeepLTranslator implements TranslatorInterface
                 $res = $this->client->translateText($text, null, $target, [
                     'formality' => $this->formality,
                 ]);
-
 
                 if (is_array($res)) {
                     $first = $res[0]->text ?? null;
@@ -106,7 +125,6 @@ class DeepLTranslator implements TranslatorInterface
                     ]);
                     return $text;
                 }
-
             } catch (\Throwable $e) {
                 Log::error('DeepL translate unexpected error', ['msg' => $e->getMessage()]);
                 return $text;
@@ -114,10 +132,10 @@ class DeepLTranslator implements TranslatorInterface
         }
     }
 
-
     public function translateAll(string $text): array
     {
         $text = (string) $text;
+        // 💡 Siempre devolvemos claves cortas: es,en,fr,pt,de
         $locales = ['es','en','fr','pt','de'];
 
         $out = [];
@@ -126,7 +144,6 @@ class DeepLTranslator implements TranslatorInterface
         }
         return $out;
     }
-
 
     public function translatePreserveOutsideParentheses(string $text, string $targetLocale): string
     {
@@ -153,6 +170,10 @@ class DeepLTranslator implements TranslatorInterface
         return $out;
     }
 
+    /**
+     * DeepL target: usamos variantes para mejor calidad,
+     * pero nuestras claves/DB quedan en corto (pt).
+     */
     private function mapTarget(string $locale): string
     {
         $key = strtolower(str_replace('_', '-', $locale));

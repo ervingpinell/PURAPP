@@ -11,87 +11,82 @@ class SetLocale
 {
     public function handle($request, Closure $next)
     {
-        $locales   = config('routes.locales', []); // ['es' => ..., 'en' => ...]
-        $supported = array_keys($locales);
-        $default   = config('routes.default_locale', 'es');
+        $routesLocales      = (array) config('routes.locales', []);   // ['es'=>..,'en'=>..,'pt'=>..]
+        $supportedPrefixes  = array_keys($routesLocales);             // ['es','en','fr','de','pt']
+        $defaultPrefix      = (string) config('routes.default_locale', 'es');
 
-        // 1) Detectar locale desde el prefijo de la ruta
-        $segments    = $request->segments();
-        $routeLocale = null;
-        if (!empty($segments[0]) && in_array($segments[0], $supported, true)) {
-            $routeLocale = $segments[0];
-        }
+        // 1) Prefijo en URL
+        $segments  = $request->segments();
+        $urlPrefix = (!empty($segments[0]) && in_array($segments[0], $supportedPrefixes, true))
+            ? $segments[0]
+            : null;
 
-        // Determina si estamos en páginas de traducciones
         $isTranslationPath = $this->isTranslationEditPath($request->path());
 
-        // 2) Si hay locale en la URL (prefijo), usarlo
-        if ($routeLocale) {
-            $locale = $routeLocale;
-            Session::put('locale', $locale);
-        }
-        // 3) Si hay query param ?lang= (SOLO para UI)
-        elseif ($candidate = $request->query('lang')) {
-            $candidate = $this->normalizeLocale($candidate);
-            if (in_array($candidate, $supported, true)) {
-                $locale = $candidate;
-                Session::put('locale', $locale);
+        // 2) Resolver prefijo (orden: URL > ?lang > ?locale > sesión > navegador > default)
+        if ($urlPrefix) {
+            $prefix = $urlPrefix;
+            Session::put('locale_prefix', $prefix);
+        } elseif ($candidate = $request->query('lang')) {
+            $prefix = $this->toPrefix($candidate, $supportedPrefixes, $defaultPrefix);
+            Session::put('locale_prefix', $prefix);
+        } elseif (($candidate = $request->query('locale')) && !$isTranslationPath) {
+            $prefix = $this->toPrefix($candidate, $supportedPrefixes, $defaultPrefix);
+            Session::put('locale_prefix', $prefix);
+        } elseif (Session::has('locale_prefix')) {
+            $prefix = (string) Session::get('locale_prefix');
+            if (!in_array($prefix, $supportedPrefixes, true)) {
+                $prefix = $defaultPrefix;
+                Session::put('locale_prefix', $prefix);
             }
-        }
-        // 4) Si hay query param ?locale= y NO estamos en pantallas de traducción, trátalo como alias de ?lang
-        elseif (($candidate = $request->query('locale')) && !$isTranslationPath) {
-            $candidate = $this->normalizeLocale($candidate);
-            if (in_array($candidate, $supported, true)) {
-                $locale = $candidate;
-                Session::put('locale', $locale);
-            }
-        }
-        // 5) Si hay locale en sesión (UI)
-        elseif (Session::has('locale')) {
-            $locale = Session::get('locale');
-        }
-        // 6) Detectar del navegador
-        else {
-            $pref   = $request->getPreferredLanguage($supported);
-            $locale = $pref ?: $default;
-            Session::put('locale', $locale);
+        } else {
+            $pref   = $request->getPreferredLanguage($supportedPrefixes);
+            $prefix = $pref ?: $defaultPrefix;
+            Session::put('locale_prefix', $prefix);
         }
 
-        // Aplicar a framework y helpers de fecha/número
-        App::setLocale($locale);
-        Carbon::setLocale($locale);
-        $this->applyPhpSetLocale($locale);
+        // 3) Mapeo prefijo -> locale interno de Laravel (siempre 'pt', NO pt_BR)
+        $internal = $this->toInternalLocale($prefix); // 'pt'
+
+        Session::put('locale', $internal);
+        App::setLocale($internal);
+        Carbon::setLocale($internal);
+
+        // 4) setlocale de PHP para formatos: forzamos targets de Brasil si es 'pt'
+        $this->applyPhpSetLocale($internal);
 
         return $next($request);
     }
 
-    private function normalizeLocale(string $locale): string
+    /** Normaliza entrada variada -> prefijo soportado */
+    private function toPrefix(string $raw, array $supportedPrefixes, string $fallback): string
     {
-        $locale = str_replace('-', '_', strtolower(trim($locale)));
-
-        // Mapeo de variantes
+        $s = strtolower(str_replace('-', '_', trim($raw)));
         $map = [
-            'es_cr' => 'es',
-            'es_es' => 'es',
-            'pt_br' => 'pt',
-            'pt_pt' => 'pt',
-            'en_us' => 'en',
-            'en_gb' => 'en',
-            'fr_fr' => 'fr',
-            'de_de' => 'de',
+            'es' => 'es', 'es_cr' => 'es', 'es_es' => 'es',
+            'en' => 'en', 'en_us' => 'en', 'en_gb' => 'en',
+            'fr' => 'fr', 'fr_fr' => 'fr',
+            'de' => 'de', 'de_de' => 'de',
+            'pt' => 'pt', 'pt_br' => 'pt', 'pt-pt' => 'pt', 'pt_pt' => 'pt', 'pt-br' => 'pt',
         ];
+        $prefix = $map[$s] ?? substr($s, 0, 2);
+        return in_array($prefix, $supportedPrefixes, true) ? $prefix : $fallback;
+    }
 
-        return $map[$locale] ?? substr($locale, 0, 2);
+    /** Prefijo -> locale interno (siempre 'pt' para simplificar) */
+    private function toInternalLocale(string $prefix): string
+    {
+        return $prefix === 'pt' ? 'pt' : $prefix;
     }
 
     private function isTranslationEditPath(string $path): bool
     {
-        // Ajusta si cambias tu prefijo/rutas
         return str_contains($path, 'admin/translations/');
     }
 
-    private function applyPhpSetLocale(string $locale): void
+    private function applyPhpSetLocale(string $internal): void
     {
+        // aunque App::setLocale('pt'), usamos targets de Brasil para formatos
         $map = [
             'es' => ['es_ES.UTF-8', 'es_ES', 'es'],
             'en' => ['en_US.UTF-8', 'en_US', 'en'],
@@ -100,7 +95,7 @@ class SetLocale
             'pt' => ['pt_BR.UTF-8', 'pt_BR', 'pt'],
         ];
 
-        $targets = $map[$locale] ?? [$locale . '.UTF-8', $locale];
+        $targets = $map[$internal] ?? [$internal . '.UTF-8', $internal];
         @setlocale(LC_TIME, ...$targets);
         @setlocale(LC_MONETARY, ...$targets);
         @setlocale(LC_NUMERIC, ...$targets);
