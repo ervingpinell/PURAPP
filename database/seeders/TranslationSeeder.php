@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+
+// Base models
 use App\Models\Tour;
 use App\Models\Itinerary;
 use App\Models\ItineraryItem;
@@ -12,6 +14,7 @@ use App\Models\TourType;
 use App\Models\Policy;
 use App\Models\PolicySection;
 
+// Translation models
 use App\Models\TourTranslation;
 use App\Models\ItineraryTranslation;
 use App\Models\ItineraryItemTranslation;
@@ -25,12 +28,18 @@ use App\Services\Contracts\TranslatorInterface;
 
 class TranslationSeeder extends Seeder
 {
-    protected array $locales = ['es', 'en', 'fr', 'pt_BR', 'de'];
+    /**
+     * Trabajamos SIEMPRE con locales cortos en DB.
+     * Si en algún sitio aún existiera pt_BR, este seeder lo ignora y
+     * reescribe/crea usando 'pt'.
+     */
+    protected array $locales = ['es', 'en', 'fr', 'pt', 'de'];
 
     public function run(): void
     {
         $this->clearTranslations();
 
+        /** @var TranslatorInterface $translator */
         $translator = app(TranslatorInterface::class);
 
         $this->translateTourTypes($translator);
@@ -42,11 +51,12 @@ class TranslationSeeder extends Seeder
         $this->translateAmenities($translator);
         $this->translateFaqs($translator);
 
-        $this->command?->info('✅ All translations regenerated successfully.');
+        $this->command?->info('✅ All translations regenerated successfully (locales: es,en,fr,pt,de).');
     }
 
     protected function clearTranslations(): void
     {
+        // Limpieza completa de tablas regulares
         TourTypeTranslation::truncate();
         TourTranslation::truncate();
         ItineraryTranslation::truncate();
@@ -54,7 +64,7 @@ class TranslationSeeder extends Seeder
         AmenityTranslation::truncate();
         FaqTranslation::truncate();
 
-        // Preservar ES como fuente para policies
+        // Policies/Sections: preserva ES como fuente
         PolicyTranslation::where('locale', '!=', 'es')->delete();
         PolicySectionTranslation::where('locale', '!=', 'es')->delete();
 
@@ -80,13 +90,11 @@ class TranslationSeeder extends Seeder
             $contentSrc = (string) ($src->content ?? '');
 
             foreach ($this->locales as $locale) {
-                if ($locale === 'es') {
-                    // Ya existe, no traducir
+                if ($locale === 'es') { // ES ya existe, no traducir
                     continue;
                 }
 
                 $targetLocale = $this->normalizeLocaleForTranslation($locale);
-
                 $nameTr    = $translator->translate($nameSrc, $targetLocale);
                 $contentTr = $translator->translate($contentSrc, $targetLocale);
 
@@ -121,12 +129,9 @@ class TranslationSeeder extends Seeder
             $contentSrc = (string) ($src->content ?? '');
 
             foreach ($this->locales as $locale) {
-                if ($locale === 'es') {
-                    continue;
-                }
+                if ($locale === 'es') continue;
 
                 $targetLocale = $this->normalizeLocaleForTranslation($locale);
-
                 $nameTr    = $translator->translate($nameSrc, $targetLocale);
                 $contentTr = $translator->translate($contentSrc, $targetLocale);
 
@@ -157,13 +162,13 @@ class TranslationSeeder extends Seeder
         $tours = Tour::where('is_active', true)->get();
 
         foreach ($tours as $tour) {
-            $origName = (string) ($tour->name ?? '');
+            $origName     = (string) ($tour->name ?? '');
             $origOverview = (string) ($tour->overview ?? '');
 
             foreach ($this->locales as $locale) {
                 $targetLocale = $this->normalizeLocaleForTranslation($locale);
 
-                // Usar método especial para nombres que preserva paréntesis
+                // preserva texto fuera de paréntesis para nombres
                 $name     = $translator->translatePreserveOutsideParentheses($origName, $targetLocale);
                 $overview = $translator->translate($origOverview, $targetLocale);
 
@@ -246,7 +251,7 @@ class TranslationSeeder extends Seeder
                 }
             }
 
-            // Guardar traducciones
+            // Guardar traducciones en locales cortos
             foreach ($this->locales as $locale) {
                 $payload = [
                     $foreignKey => $model->getKey(),
@@ -266,14 +271,13 @@ class TranslationSeeder extends Seeder
     }
 
     /**
-     * Normaliza el locale para el servicio de traducción
-     * pt_BR -> pt, etc.
+     * Normaliza el locale para el servicio de traducción (no para DB).
+     * – DB siempre usa 'pt'
+     * – DeepL: le pasamos 'pt' (tu DeepLTranslator ya decide pt-BR o pt-PT).
      */
     protected function normalizeLocaleForTranslation(string $locale): string
     {
-        return match($locale) {
-            'pt_BR' => 'pt',
-            default => $locale,
-        };
+        // El seeder siempre pide 'pt' al traductor para portugués
+        return $locale === 'pt' ? 'pt' : $locale;
     }
 }
