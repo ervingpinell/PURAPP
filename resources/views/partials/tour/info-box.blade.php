@@ -1,13 +1,11 @@
-<div class="languages-schedules-box p-3 shadow-sm rounded bg-white border" style="min-height: 280px;">
-  <h3 class="mb-3 fw-bold border-bottom pb-1 d-inline-block" style="color:#f92526; font-size: 1.2rem;">
-    {{ __('adminlte::adminlte.tour_information') }}
-  </h3>
+<div class="languages-schedules-box p-3 shadow-sm rounded bg-white border">
+  <h3 class="section-subtitle mb-3">{{ __('adminlte::adminlte.tour_information') }}</h3>
 
   <h4 class="mt-3">{{ __('adminlte::adminlte.duration') }}</h4>
   <p>{{ $tour->length }} {{ __('adminlte::adminlte.hours') }}</p>
 
   <h4 class="mt-3">{{ __('adminlte::adminlte.group_size') }}</h4>
-  <p>{{ $tour->max_capacity }}</p>
+  <p>{{ $tour->max_capacity }} max</p>
 
   <h4 class="mt-3">{{ __('adminlte::adminlte.languages_available') }}</h4>
   <p class="badges-group">
@@ -28,4 +26,4 @@
       <span class="text-muted">—</span>
     @endforelse
   </p>
-
+</div>

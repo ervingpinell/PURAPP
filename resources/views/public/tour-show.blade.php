@@ -13,18 +13,22 @@
 @endpush
 
 @section('content')
-<section class="tour-section py-5">
+<section class="tour-section">
   <div class="container">
     <div class="row g-4 align-items-start">
-      {{-- ✅ Columna Izquierda --}}
+      {{-- ✅ Columna izquierda --}}
       <div class="col-md-7">
         @include('partials.tour.feedback')
+
+        {{-- Carrusel --}}
         @include('partials.tour.carousel', ['tour' => $tour])
+
+        {{-- Encabezado del tour + resumen --}}
         @include('partials.tour.overview', ['tour' => $tour])
       </div>
 
-      {{-- ✅ Columna Derecha --}}
-      <div class="col-md-5 d-flex flex-column justify-content-between" style="min-height: 360px;">
+      {{-- ✅ Columna derecha --}}
+      <div class="col-md-5 d-flex flex-column justify-content-between tour-right-col">
         <div class="flex-grow-1 mb-3">
           @include('partials.tour.reservation-box', [
             'tour'               => $tour,
@@ -34,6 +38,7 @@
             'fullyBlockedDates'  => $fullyBlockedDates ?? [],
           ])
         </div>
+
         <div>
           @include('partials.tour.info-box', ['tour' => $tour])
         </div>
@@ -42,20 +47,17 @@
 
     {{-- 🔽 ACCORDIONS --}}
     <div class="row mt-5">
-      <div class="col-md-12">
+      <div class="col-12">
         @include('partials.tour.accordions', ['tour' => $tour, 'hotels' => $hotels])
       </div>
     </div>
 
-    {{-- 🌟 TOUR REVIEWS (25, locales indexables + proveedores via iframe) --}}
+    {{-- 🌟 Reviews --}}
     <div class="row mt-5">
       <div class="col-12 text-center mb-3">
-        <h2 class="fw-bold mb-1" style="color: var(--primary-dark);">
-          {{ __('reviews.reviews_title') }}
-        </h2>
+        <h2 class="fw-bold">{{ __('reviews.reviews_title') }}</h2>
       </div>
-
-      <div class="col-md-12">
+      <div class="col-12">
         @include('partials.reviews.carousel', [
           'items' => $tourReviews ?? collect(),
           'providerHeight' => 320
@@ -63,7 +65,7 @@
       </div>
     </div>
 
-    {{-- Variables globales JS usadas por el box de reserva / calendario --}}
+    {{-- JS globals para el box/calendario --}}
     @php
       $tourJsData = [
         'id'   => $tour->tour_id,
@@ -85,5 +87,4 @@
     @include('partials.bookmodal')
   </div>
 </section>
-
 @endsection

@@ -1,5 +1,5 @@
 /* =========================================================
-   APP.JS — HEADER OFFSET + MENÚ MOBILE + SCROLL TO TOURS
+   APP.JS — HEADER OFFSET + MENÚ MOBILE + SCROLL + UTILIDADES
    ========================================================= */
 (function () {
   const $doc = document;
@@ -25,7 +25,7 @@
   const debounce = (fn, ms) => { clearTimeout(t); t = setTimeout(fn, ms); };
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setNavH);
+    document.addEventListener('DOMContentLoaded', setNavH, { once:true });
   } else {
     setNavH();
   }
@@ -44,29 +44,69 @@
   /* -------------------------------------------------
    * 2) NAVBAR TOGGLE (mobile) + bloqueo del scroll
    * ------------------------------------------------- */
-  const toggleBtn   = $doc.getElementById('navbar-toggle');
-  const mobileLinks = $doc.getElementById('navbar-links');
+  function initMobileMenu(){
+    const toggleBtn   = $doc.getElementById('navbar-toggle');
+    const mobileLinks = $doc.getElementById('navbar-links');
 
-  function closeMenu() {
-    if (!mobileLinks) return;
-    mobileLinks.classList.remove('show');
-    document.body.classList.remove('menu-open');
-    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
-  }
-  function openMenu() {
-    if (!mobileLinks) return;
-    mobileLinks.classList.add('show');
-    document.body.classList.add('menu-open');
-    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
-  }
+    function closeMenu() {
+      if (!mobileLinks) return;
+      mobileLinks.classList.remove('show');
+      document.body.classList.remove('menu-open');
+      if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+    }
+    function openMenu() {
+      if (!mobileLinks) return;
+      mobileLinks.classList.add('show');
+      document.body.classList.add('menu-open');
+      if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+    }
 
-  if (toggleBtn && mobileLinks) {
-    toggleBtn.addEventListener('click', () => {
-      mobileLinks.classList.contains('show') ? closeMenu() : openMenu();
-    });
-    mobileLinks.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => closeMenu());
-    });
+    if (toggleBtn && mobileLinks) {
+      toggleBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        mobileLinks.classList.contains('show') ? closeMenu() : openMenu();
+      });
+
+      // No propagar clics dentro del menú
+      mobileLinks.addEventListener('click', (e) => e.stopPropagation());
+
+      // Cerrar al pulsar un enlace (y navegar o hacer scroll)
+      mobileLinks.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', (e) => {
+          const href = link.getAttribute('href') || '';
+          const isHash = href.startsWith('#') && href.length > 1;
+
+          e.preventDefault();
+          e.stopPropagation();
+
+          setTimeout(() => {
+            closeMenu();
+
+            if (isHash) {
+              const target = document.querySelector(href);
+              if (target) {
+                const v = getComputedStyle(document.documentElement).getPropertyValue('--nav-h');
+                const offset = parseInt(v, 10) || 0;
+                const rect = target.getBoundingClientRect();
+                const absoluteY = window.pageYOffset + rect.top;
+                window.scrollTo({ top: absoluteY - offset - 16, behavior: 'smooth' });
+              }
+            } else if (href && href !== '#') {
+              window.location.href = href;
+            }
+          }, 50);
+        });
+      });
+
+      // Cerrar si se clickea fuera
+      document.addEventListener('click', closeMenu);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMobileMenu, { once:true });
+  } else {
+    initMobileMenu();
   }
 
   /* --------------------------------------------
@@ -89,42 +129,30 @@
   function animateTourCards() {
     const cards = document.querySelectorAll('.tour-card');
     if (!cards.length) return;
-
-    // Resetear y preparar todas las tarjetas
     cards.forEach((card) => {
       card.style.opacity = '0';
       card.style.transform = 'scale(0.85) translateY(20px)';
       card.style.transition = 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
     });
-
-    // Animar todas con delays escalonados
     cards.forEach((card, idx) => {
       setTimeout(() => {
         card.style.opacity = '1';
         card.style.transform = 'scale(1) translateY(0)';
-      }, idx * 120); // 120ms entre cada card
+      }, idx * 120);
     });
   }
 
-/* ✅ HELPER: Obtener locale actual desde meta tag o URL */
+  /* ✅ HELPER: Obtener locale actual desde meta tag o URL */
   function getCurrentLocale() {
-    // 1) Leer del meta tag (más confiable para rutas sin prefijo)
     const metaLocale = document.querySelector('meta[name="locale"]');
     if (metaLocale) {
       const locale = metaLocale.getAttribute('content');
       if (locale) return locale;
     }
-
-    // 2) Intentar detectar de la URL
     const path = window.location.pathname;
     const pathParts = path.split('/').filter(Boolean);
-    const supportedLocales = ['es', 'en', 'fr', 'de', 'pt'];
-
-    if (pathParts.length > 0 && supportedLocales.includes(pathParts[0])) {
-      return pathParts[0];
-    }
-
-    // 3) Fallback: español por defecto
+    const supported = ['es', 'en', 'fr', 'de', 'pt'];
+    if (pathParts.length > 0 && supported.includes(pathParts[0])) return pathParts[0];
     return 'es';
   }
 
@@ -132,46 +160,44 @@
   function isHomePage() {
     const path = window.location.pathname;
     const pathParts = path.split('/').filter(Boolean);
-    const supportedLocales = ['es', 'en', 'fr', 'de', 'pt'];
-
-    // Home si: "/" o "/es" o "/en" etc.
-    return pathParts.length === 0 ||
-           (pathParts.length === 1 && supportedLocales.includes(pathParts[0]));
+    const supported = ['es', 'en', 'fr', 'de', 'pt'];
+    return pathParts.length === 0 || (pathParts.length === 1 && supported.includes(pathParts[0]));
   }
 
-  // Enlaces a anclas (#id)
+  // Enlaces a anclas (#id) fuera del menú móvil
   $doc.querySelectorAll('a[href^="#"]').forEach((a) => {
     a.addEventListener('click', (ev) => {
+      // Si el enlace está dentro del dropdown móvil, lo gestiona el handler del menú
+      if (a.closest('#navbar-links')) return;
       const hash = a.getAttribute('href');
       if (!hash || hash === '#') return;
       const el = $doc.querySelector(hash);
       if (el) {
         ev.preventDefault();
-        closeMenu();
         smoothScrollTo(el);
       }
     });
   });
 
-  // ✅ BOTONES "TOURS" CON DETECCIÓN AUTOMÁTICA DE LOCALE
+  // ✅ BOTONES "TOURS" (evita ghost click)
   $doc.querySelectorAll('.scroll-to-tours').forEach(link => {
     link.addEventListener('click', function (e) {
       e.preventDefault();
-      closeMenu();
+      e.stopPropagation();
 
-      if (isHomePage()) {
-        // Estamos en home: hacer scroll
-        const target = document.getElementById('tours') ||
-                      document.querySelector('[data-anchor="tours"]');
-        if (target) {
-          smoothScrollTo(target);
-          setTimeout(animateTourCards, 400);
+      setTimeout(() => {
+        if (isHomePage()) {
+          const target = document.getElementById('tours') ||
+                         document.querySelector('[data-anchor="tours"]');
+          if (target) {
+            smoothScrollTo(target);
+            setTimeout(animateTourCards, 400);
+          }
+        } else {
+          const currentLocale = getCurrentLocale();
+          window.location.href = `/${currentLocale}#tours`;
         }
-      } else {
-        // No estamos en home: redirigir con locale actual
-        const currentLocale = getCurrentLocale();
-        window.location.href = `/${currentLocale}#tours`;
-      }
+      }, 50);
     });
   });
 
@@ -214,37 +240,36 @@
     });
   });
 
-/* 6) Cart item counter (fetch) */
-function updateCartCount() {
-  fetch('/cart/count', { headers: { 'Accept': 'application/json' }})
-    .then(res => res.ok ? res.json() : Promise.reject(`HTTP ${res.status}`))
-    .then(data => {
-      const n = Number(data.count || 0);
-      if (typeof window.setCartCount === 'function') {
-        window.setCartCount(n);
-      } else {
-        document.querySelectorAll('.cart-count-badge').forEach(el => {
-          el.textContent = n;
-          el.style.display = n > 0 ? 'inline-block' : 'none';
-          el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
-        });
-      }
-    })
-    .catch(err => console.error('❌ Error al obtener la cantidad del carrito:', err));
-}
-updateCartCount();
+  /* 6) Cart item counter (fetch) */
+  function updateCartCount() {
+    fetch('/cart/count', { headers: { 'Accept': 'application/json' }})
+      .then(res => res.ok ? res.json() : Promise.reject(`HTTP ${res.status}`))
+      .then(data => {
+        const n = Number(data.count || 0);
+        if (typeof window.setCartCount === 'function') {
+          window.setCartCount(n);
+        } else {
+          document.querySelectorAll('.cart-count-badge').forEach(el => {
+            el.textContent = n;
+            el.style.display = n > 0 ? 'inline-block' : 'none';
+            el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+          });
+        }
+      })
+      .catch(err => console.error('❌ Error al obtener la cantidad del carrito:', err));
+  }
+  updateCartCount();
 
-// ✅ Refresca al volver a la pestaña
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) updateCartCount();
-});
+  // Refresca al volver a la pestaña
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) updateCartCount();
+  });
 
-// ✅ Polling ligero cada 30s
-setInterval(updateCartCount, 30000);
+  // Polling ligero cada 30s
+  setInterval(updateCartCount, 30000);
 
-// ✅ Ganchito global para otros módulos
-window.addEventListener('cart:changed', updateCartCount);
-
+  // Ganchito global para otros módulos
+  window.addEventListener('cart:changed', updateCartCount);
 
   /* ----------------------------------------------------
    * 7) Precios: modal + resumen

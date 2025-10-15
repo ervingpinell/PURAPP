@@ -95,8 +95,8 @@ $coverFromFolder = function (?int $tourId): string {
                       <h5 class="card-title card-title-text mb-2">{{ $tour->getTranslatedName() }}</h5>
 
                       @if(!empty($tour->length))
-                        <p class="text-muted small mb-2">
-                          <strong>{{ $durLabel }}:</strong> {{ $tour->length }} {{ $unitLabel }}
+                        <p class="text small mb-2">
+                          <strong class="muted">{{ $durLabel }}:</strong> {{ $tour->length }} {{ $unitLabel }}
                         </p>
                       @endif
 

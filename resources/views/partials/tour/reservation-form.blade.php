@@ -15,8 +15,8 @@
       [$hh,$mm] = array_pad(explode(':', $cutoff, 2), 2, '00');
       $cutoffToday = Carbon::create($now->year, $now->month, $now->day, (int)$hh, (int)$mm, 0, $tz);
 
-      $passed = $now->gte($cutoffToday);                  // ¿ya pasó el cutoff hoy?
-      $days   = max(0, (int)$lead) + ($passed ? 1 : 0);   // empuja 1 día si pasó
+      $passed = $now->gte($cutoffToday);
+      $days   = max(0, (int)$lead) + ($passed ? 1 : 0);
       return [
         'cutoff'       => sprintf('%02d:%02d', (int)$hh, (int)$mm),
         'lead_days'    => (int)$lead,
@@ -77,7 +77,9 @@
       </div>
     @endguest
 
-    <h3 class="fw-bold fs-5 mb-2">{{ __('adminlte::adminlte.price') }}</h3>
+    {{-- Título menos pesado (se estiliza en tour.css) --}}
+    <h4 class="mb-2">{{ __('adminlte::adminlte.price') }}</h4>
+
     <div class="price-breakdown mb-3">
       <span class="fw-bold">{{ __('adminlte::adminlte.adult') }}:</span>
       <span class="price-adult fw-bold text-danger">${{ number_format($tour->adult_price, 2) }}</span> |
@@ -95,7 +97,7 @@
   <div class="form-body position-relative">
     <fieldset @guest disabled aria-disabled="true" @endguest>
 
-      {{-- ===== Travelers ===== --}}
+      {{-- Travelers --}}
       <div class="mb-2">
         <button type="button"
           class="btn traveler-button w-100 d-flex align-items-center justify-content-between"
@@ -105,13 +107,13 @@
         </button>
       </div>
 
-      {{-- ===== Date ===== --}}
+      {{-- Date --}}
       <label class="form-label">{{ __('adminlte::adminlte.select_date') }}</label>
       <input id="tourDateInput" type="text" name="tour_date" class="form-control mb-1"
              placeholder="dd/mm/yyyy" required>
       <div class="form-text" id="cutoffHint"></div>
 
-      {{-- ===== Schedule ===== --}}
+      {{-- Schedule --}}
       <label class="form-label mt-2">{{ __('adminlte::adminlte.select_time') }}</label>
       <select name="schedule_id" class="form-select mb-1" id="scheduleSelect" required>
         <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
@@ -123,7 +125,7 @@
       </select>
       <div id="noSlotsHelp" class="form-text text-danger mb-3" style="display:none;"></div>
 
-      {{-- ===== Language ===== --}}
+      {{-- Language --}}
       <label class="form-label">{{ __('adminlte::adminlte.select_language') }}</label>
       <select name="tour_language_id" class="form-select mb-3" id="languageSelect" required>
         <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
@@ -132,7 +134,7 @@
         @endforeach
       </select>
 
-      {{-- ===== Hotel ===== --}}
+      {{-- Hotel --}}
       <label class="form-label">{{ __('adminlte::adminlte.select_hotel') }}</label>
       <select class="form-select mb-3" id="hotelSelect" name="hotel_id">
         <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
@@ -153,7 +155,7 @@
         </div>
       </div>
 
-      {{-- ===== Meeting Point (Choices para que se vea igual) ===== --}}
+      {{-- Meeting Point --}}
       <label class="form-label d-flex align-items-center gap-2">
         <i class="fas fa-map-marker-alt"></i> <span>{{ __('adminlte::adminlte.meetingPoint') ?? 'Meeting Point' }}</span>
       </label>
@@ -188,36 +190,6 @@
   @endauth
 </form>
 
-{{-- ======== ESTILO UNIFICADO (verde) ======== --}}
-<style>
-  .reservation-box{ --brand:#2E8B57; --brand-600:#256f47; --brand-50:#eaf5ef; }
-  .reservation-box .form-control:focus,
-  .reservation-box .form-select:focus{
-    border-color: var(--brand) !important;
-    box-shadow: 0 0 0 .2rem rgba(46,139,87,.25) !important;
-  }
-  .reservation-box .gv-cta{
-    background: var(--brand) !important;
-    border-color: var(--brand) !important;
-  }
-  .reservation-box .gv-cta:hover{ background: var(--brand-600) !important; border-color: var(--brand-600) !important; }
-  .reservation-box .choices__inner{
-    border-color:#ced4da; border-radius:.375rem; padding:.45rem .75rem !important; min-height: 42px; background:#fff;
-  }
-  .reservation-box .choices.is-open .choices__inner{ border-color: var(--brand); box-shadow: 0 0 0 .2rem rgba(46,139,87,.12); }
-  .reservation-box .choices__list--dropdown{ border-color: var(--brand); }
-  .reservation-box .choices__list--dropdown .choices__item--selectable.is-highlighted{ background: var(--brand-50); color:#111; }
-  .reservation-box .choices[data-type*="select-one"]::after{ border-color: var(--brand) transparent transparent transparent; }
-  .reservation-box .choices[data-type*="select-one"].is-open::after{ border-color: transparent transparent var(--brand) transparent; }
-  .reservation-box .flatpickr-day.selected,
-  .reservation-box .flatpickr-day.startRange,
-  .reservation-box .flatpickr-day.endRange{ background: var(--brand) !important; border-color: var(--brand) !important; }
-  .reservation-box .flatpickr-day.today{ border-color: var(--brand) !important; }
-  .reservation-box .flatpickr-day:hover{ background: var(--brand-50); }
-  .gv-ui .form-control, .gv-ui .form-select, .gv-ui .choices__inner { background-color: #fff !important; }
-  .form-body { position: relative; }
-</style>
-
 @once
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -231,7 +203,6 @@
 (function(){
   const RULES = @json($rulesPayload);
 
-  // === Traducciones para JS / validaciones ===
   const T = {
     selectFromList: @json(__('adminlte::adminlte.selectFromList')),
     fillThisField:  @json(__('adminlte::adminlte.fillThisField')),
@@ -242,8 +213,7 @@
   };
 
   const formEl = document.querySelector('form.reservation-box');
-  if (!formEl) return;
-  if (formEl.dataset.bound === '1') return;
+  if (!formEl || formEl.dataset.bound === '1') return;
   formEl.dataset.bound = '1';
 
   formEl.addEventListener('submit', (e) => e.preventDefault());
@@ -272,7 +242,7 @@
     return;
   }
 
-  // Choices para todos los selects
+  /* Choices */
   const scheduleChoices = new Choices(scheduleSel, { searchEnabled:false, shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- ' + T.selectOption + ' --' });
   const langChoices     = new Choices(langSelect,  { searchEnabled:false, shouldSort:false, itemSelectText:'' });
   const hotelChoices    = new Choices(hotelSelect, { searchEnabled:true,  shouldSort:false, itemSelectText:'' });
@@ -281,14 +251,9 @@
   const BASE_CHOICES = scheduleChoices._store.choices.filter(c => c.value !== '').map(c => ({ value:String(c.value), label:c.label }));
   const SCHEDULE_IDS = BASE_CHOICES.map(o => o.value);
 
-  // Utils
   const isoFromDate = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-
   const ruleForSchedule = (sid) => RULES.schedules[String(sid)] || RULES.tour;
-  const minAcrossAll = () => {
-    const mins = [RULES.tour.min, ...Object.values(RULES.schedules).map(r => r.min)];
-    return mins.sort()[0];
-  };
+  const minAcrossAll = () => [RULES.tour.min, ...Object.values(RULES.schedules).map(r => r.min)].sort()[0];
 
   const canUseScheduleOnDate = (iso, sid) => {
     if (!iso) return false;
@@ -323,17 +288,11 @@
     scheduleChoices.setChoices(ph.concat(allowed), 'value', 'label', true);
 
     const hasEnabled = allowed.some(c => !c.disabled);
-    if (hasEnabled) {
-      scheduleChoices.enable();
-      helpMsg.style.display = 'none';
-    } else {
-      scheduleChoices.disable();
-      helpMsg.textContent = 'No hay horarios disponibles para esa fecha.';
-      helpMsg.style.display = '';
-    }
+    if (hasEnabled) { scheduleChoices.enable(); helpMsg.style.display = 'none'; }
+    else { scheduleChoices.disable(); helpMsg.textContent = 'No hay horarios disponibles para esa fecha.'; helpMsg.style.display = ''; }
   }
 
-  // Datepicker
+  /* Flatpickr */
   let fp;
   const setupFlatpickr = () => {
     const initialMin = RULES.initialMin || minAcrossAll();
@@ -367,7 +326,7 @@
   };
   setupFlatpickr();
 
-  // Cuando cambias de HORARIO, ajusta minDate
+  /* Cambio de horario -> minDate */
   scheduleSel.addEventListener('change', () => {
     const sid = scheduleSel.value;
     const rule = sid ? ruleForSchedule(sid) : RULES.tour;
@@ -379,7 +338,7 @@
     rebuildScheduleChoices(iso);
   });
 
-  // ======= Hotel "otro" =======
+  /* Hotel "otro" */
   const otherWrap = document.getElementById('otherHotelWrapper');
   const isOtherH  = document.getElementById('isOtherHotel');
   const otherInp  = document.getElementById('otherHotelInput');
@@ -395,43 +354,30 @@
   hotelSelect.addEventListener('change', toggleOther);
   toggleOther();
 
-  // ======= Meeting point -> hidden para enviar el id seleccionado =======
+  /* Meeting point -> hidden */
   const hiddenMP = document.getElementById('selectedMeetingPoint');
-  meetingSel.addEventListener('change', () => {
-    if (hiddenMP) hiddenMP.value = meetingChoices.getValue(true) || '';
-  });
+  meetingSel.addEventListener('change', () => { if (hiddenMP) hiddenMP.value = meetingChoices.getValue(true) || ''; });
 
-  // ======= Validación: solo uno entre Hotel y Meeting Point =======
+  /* Mutua exclusión hotel/meeting */
   function validateHotelMeetingPoint() {
     const hotelValue = hotelChoices.getValue(true);
     const meetingValue = meetingChoices.getValue(true);
 
     if (hotelValue && hotelValue !== '') {
-      meetingChoices.disable();
-      meetingSel.value = '';
-      if (hiddenMP) hiddenMP.value = '';
-    } else {
-      meetingChoices.enable();
-    }
+      meetingChoices.disable(); meetingSel.value = ''; if (hiddenMP) hiddenMP.value = '';
+    } else { meetingChoices.enable(); }
 
     if (meetingValue && meetingValue !== '') {
-      hotelChoices.disable();
-      hotelSelect.value = '';
-      toggleOther();
-      if (isOtherH) isOtherH.value = 0;
-    } else {
-      hotelChoices.enable();
-    }
+      hotelChoices.disable(); hotelSelect.value = ''; toggleOther(); if (isOtherH) isOtherH.value = 0;
+    } else { hotelChoices.enable(); }
   }
-
   hotelSelect.addEventListener('change', validateHotelMeetingPoint);
   meetingSel.addEventListener('change', validateHotelMeetingPoint);
   validateHotelMeetingPoint();
 
-  // ======= Mensajes nativos de validación en TU idioma =======
+  /* Mensajes nativos traducidos */
   const setSelectValidity = (el) => el.setCustomValidity(T.selectFromList || '');
   const setInputValidity  = (el) => el.setCustomValidity(T.fillThisField || '');
-
   [scheduleSel, langSelect, meetingSel, hotelSelect].forEach(el => {
     if (!el) return;
     el.addEventListener('invalid', () => setSelectValidity(el));
@@ -444,7 +390,7 @@
     dateInput.addEventListener('change',  () => dateInput.setCustomValidity(''));
   }
 
-  // ======= AJAX Add to cart =======
+  /* AJAX Add to cart */
   const addBtn = document.getElementById('addToCartBtn');
   if (!addBtn) return;
 
@@ -452,13 +398,8 @@
   addBtn.addEventListener('click', async () => {
     if (submitting) return;
 
-    // Validar HTML5 primero (para mostrar mensajes traducidos)
-    if (!formEl.checkValidity()) {
-      formEl.reportValidity();
-      return;
-    }
-    
-    // VALIDACIÓN: debe escoger hotel/otro hotel o meeting point
+    if (!formEl.checkValidity()) { formEl.reportValidity(); return; }
+
     const hotelValue = hotelChoices.getValue(true);
     const isOtherHotel = isOtherH && isOtherH.value === '1';
     const otherHotelName = otherInp && otherInp.value.trim();
@@ -468,18 +409,11 @@
     const hasMeeting = (meetingValue && meetingValue !== '');
 
     if (!hasHotel && !hasMeeting) {
-      await Swal.fire({
-        icon: 'warning',
-        title: T.pickupRequiredTitle,
-        text:  T.pickupRequiredBody,
-        confirmButtonColor: '#198754',
-        confirmButtonText: T.ok
-      });
+      await Swal.fire({ icon: 'warning', title: T.pickupRequiredTitle, text: T.pickupRequiredBody, confirmButtonColor: '#198754', confirmButtonText: T.ok });
       return;
     }
 
     submitting = true;
-
     const prevHTML = addBtn.innerHTML;
     addBtn.disabled = true;
     addBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>{{ __('adminlte::adminlte.add_to_cart') }}';
@@ -490,25 +424,19 @@
     try {
       const res = await fetch(formEl.action, {
         method: 'POST',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': csrf,
-        },
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
         body: fd
       });
 
-      let data = {};
-      try { data = await res.json(); } catch (_) {}
+      let data = {}; try { data = await res.json(); } catch(_) {}
 
       if (!res.ok) {
         const msg = (data && data.message) ? data.message : 'No se pudo agregar el tour. Intenta de nuevo.';
-        await Swal.fire({ icon: 'error', title: 'Error', text: msg });
-        return;
+        await Swal.fire({ icon:'error', title:'Error', text:msg }); return;
       }
 
       const okMsg = (data && data.message) ? data.message : 'Tour añadido al carrito.';
-      await Swal.fire({ icon: 'success', title: 'Success', text: okMsg, confirmButtonColor: '#198754', confirmButtonText: T.ok });
+      await Swal.fire({ icon:'success', title:'Success', text:okMsg, confirmButtonColor:'#198754', confirmButtonText:T.ok });
 
       if (typeof data.count !== 'undefined' && window.setCartCount) {
         window.setCartCount(data.count);
@@ -517,13 +445,13 @@
           const cRes = await fetch(window.CART_COUNT_URL, { headers: { 'Accept': 'application/json' }});
           const cData = await cRes.json();
           window.setCartCount(cData.count || 0);
-        } catch (_) {}
+        } catch(_) {}
       }
 
       window.location.reload();
 
     } catch (err) {
-      await Swal.fire({ icon: 'error', title: 'Error', text: 'Error de red. Intenta nuevamente.', confirmButtonText: T.ok });
+      await Swal.fire({ icon:'error', title:'Error', text:'Error de red. Intenta nuevamente.', confirmButtonText:T.ok });
     } finally {
       addBtn.disabled = false;
       addBtn.innerHTML = prevHTML;
