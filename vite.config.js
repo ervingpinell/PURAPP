@@ -21,6 +21,7 @@ export default defineConfig({
                 'resources/css/home.css',
                 'resources/css/gv.css',
                 'resources/css/tour.css',
+                'resources/css/faqs.css',
                 'resources/css/tour-carousel.css',
                 'resources/css/reviews-carousel.css',
                 'resources/css/homereviews.css',
