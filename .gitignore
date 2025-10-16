@@ -1,4 +1,6 @@
+# ===========================================
 # Laravel
+# ===========================================
 /vendor
 /node_modules
 .env
@@ -20,7 +22,18 @@ Homestead.yaml
 /storage/logs/*
 /bootstrap/cache/*
 
+# --- Allow placeholder .gitignore files inside ignored dirs ---
+!/storage/app/.gitignore
+!/storage/framework/.gitignore
+!/storage/framework/cache/.gitignore
+!/storage/framework/sessions/.gitignore
+!/storage/framework/views/.gitignore
+!/storage/logs/.gitignore
+!/bootstrap/cache/.gitignore
+
+# ===========================================
 # IDEs y editores
+# ===========================================
 /.idea
 /.vscode
 /.fleet
@@ -28,9 +41,13 @@ Homestead.yaml
 /.nova
 .phpactor.json
 
+# ===========================================
 # Logs y errores
+# ===========================================
 npm-debug.log
 yarn-error.log
 
+# ===========================================
 # Otros
+# ===========================================
 /auth.json
