@@ -7,7 +7,7 @@
 @endpush
 
 @push('styles')
-  @vite('resources/css/reviews.css')
+  @vite(entrypoints: 'resources/css/reviews.css')
 @endpush
 
 @section('content')

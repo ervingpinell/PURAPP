@@ -3,7 +3,7 @@
 @section('title', __('adminlte::adminlte.faqpage'))
 
 @push('styles')
-  @vite(['resources/css/faqs.css'])
+  @vite(entrypoints: 'resources/css/faqs.css')
 @endpush
 
 @section('content')
