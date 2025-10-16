@@ -11,36 +11,50 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id('user_id');
-            $table->string('full_name', 100);
-            $table->string('email', 200)->unique();
-            $table->string('password', 255);
-            $table->boolean('status')->default(true);
-            $table->unsignedBigInteger('role_id');
-            $table->string('phone',20)->nullable();
-             $table->boolean('is_active')->default(true);
-             
-            $table->timestamps();
+        // USERS
+        if (! Schema::hasTable('users')) {
+            Schema::create('users', function (Blueprint $table) {
+                $table->id('user_id');
+                $table->string('full_name', 100);
+                $table->string('email', 200)->unique();
+                $table->string('password', 255);
+                $table->boolean('status')->default(true);
+                $table->unsignedBigInteger('role_id');
+                $table->string('phone', 20)->nullable();
+                $table->boolean('is_active')->default(true);
 
-            $table->foreign('role_id')->references('role_id')->on('roles');
-        });
+                $table->timestamps();
 
+                // Asegúrate de que la tabla roles exista en una migración previa
+                $table->foreign('role_id')
+                    ->references('role_id')->on('roles')
+                    ->cascadeOnUpdate()
+                    ->restrictOnDelete(); // ajusta a cascadeOnDelete() si así lo necesitas
+            });
+        }
 
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
-        });
+        // PASSWORD RESET TOKENS
+        if (! Schema::hasTable('password_reset_tokens')) {
+            Schema::create('password_reset_tokens', function (Blueprint $table) {
+                $table->string('email')->primary();
+                $table->string('token');
+                $table->timestamp('created_at')->nullable();
+            });
+        }
 
-        Schema::create('sessions', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
-            $table->string('ip_address', 45)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
-        });
+        // SESSIONS
+        if (! Schema::hasTable('sessions')) {
+            Schema::create('sessions', function (Blueprint $table) {
+                $table->string('id')->primary();
+                // si usas PK 'user_id' en users, foreignId()->constrained('users','user_id') funcionará
+                $table->foreignId('user_id')->nullable()->index();
+                $table->string('ip_address', 45)->nullable();
+                $table->text('user_agent')->nullable();
+                // en PG puedes usar text; en MySQL largo también es seguro
+                $table->longText('payload');
+                $table->integer('last_activity')->index();
+            });
+        }
     }
 
     /**
@@ -48,8 +62,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
+        // Dropear en orden inverso para evitar conflictos de FK
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+
+        // users al final por posibles FKs hacia ella
+        Schema::dropIfExists('users');
     }
 };
