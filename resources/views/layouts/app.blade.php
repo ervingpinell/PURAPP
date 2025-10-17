@@ -13,9 +13,12 @@
       $metaDesc   = $__env->yieldContent('meta_description')
                   ?? 'Descubre los mejores tours sostenibles en La Fortuna y Arenal con Green Vacations Costa Rica. Reserva tu aventura con responsabilidad ecológica.';
 
-      $isProd    = app()->environment('production');
-      $cookiesOk = (request()->cookie('gv_cookie_consent') === '1')
-                   || (bool) session('cookies.accepted', false);
+      $isProd = app()->environment('production');
+
+      // ⚠️ Nuevo: separar "hay decisión" de "aceptado"
+      $consentCookie = request()->cookie('gv_cookie_consent'); // null | '0' | '1'
+      $hasConsent    = !is_null($consentCookie);               // decidió o no
+      $cookiesOk     = ($consentCookie === '1') || (bool) session('cookies.accepted', false); // aceptado
 
       $gaId    = config('services.google.analytics_id');
       $pixelId = config('services.meta.pixel_id');
@@ -96,6 +99,7 @@
 
   @stack('styles')
 
+  {{-- ✅ Inyectar analítica SOLO si aceptó --}}
   @if ($isProd && $cookiesOk)
       @if (!empty($gaId))
           <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
@@ -211,7 +215,8 @@
     </script>
   @endif
 
-  @if (! $cookiesOk)
+  {{-- ✅ Mostrar banner SOLO si NO hay decisión aún --}}
+  @if (! $hasConsent)
       @include('partials.cookie-consent')
   @endif
 </body>

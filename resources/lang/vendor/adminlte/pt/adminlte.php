@@ -156,7 +156,7 @@ return [
     // 8. HOTELS (DETAIL)
     'hotels' => 'Hotéis',
     'hotel' => 'Hotel',
-    'select_hotel' => 'Hotel ou ponto de embarque',
+    'select_hotel' => 'Hotel',
     'hotel_other' => 'Outro (especificar manualmente)',
     'hotel_name' => 'Nome do hotel',
     'other_hotel' => 'Outro hotel (especificar)',
@@ -189,6 +189,7 @@ return [
 
     'pickup_time' => 'Horário de coleta',
     'pickupTime'  => 'Horário de coleta',
+    'meeting_time' => 'Horário de encontro',
 
     'open_map' => 'Abrir mapa',
     'openMap'  => 'Abrir mapa',

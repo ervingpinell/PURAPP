@@ -17,6 +17,7 @@
   --thumb-size:110px;
 }
 
+
 /* =========================
    SECCIÓN PRINCIPAL
    ========================= */
@@ -62,7 +63,7 @@
   background:#fff; padding:1rem; box-shadow:var(--shadow);
 }
 
-/* Título “Preço”: sin bold excesivo y color armonizado */
+/* Título “Precio”: sin bold excesivo y color armonizado */
 .tour-section .reservation-box .form-header h3,
 .tour-section .reservation-box .form-header h4{
   font-weight:600 !important;
@@ -79,14 +80,163 @@
 .price-adult,.price-kid{ color:var(--primary-red) !important; }
 .totalprice{ font-size:calc(var(--fs-body) - 0.90px); color:var(--primary-red); }
 
-.reservation-box .traveler-button{
-  display:flex; align-items:center; justify-content:space-between; gap:.4rem;
-  font-size:var(--fs-sm); padding:.4rem .75rem; border:1px solid #d1d5db; border-radius:8px;
-  background:#fff; cursor:pointer;
+/* === Unificación de alturas/tipografías (inputs, flatpickr, choices) === */
+.reservation-box{
+  --gv-field-h: 44px;
+  --gv-field-pad-y: .5rem;
+  --gv-field-pad-x: .75rem;
+  --gv-radius: .6rem;
 }
-.reservation-box .traveler-button:hover{ background:#f8fafb; }
 
-/* CTA y foco con el verde del tour */
+/* Inputs/Selects mismo alto */
+.reservation-box .form-control,
+.reservation-box .flatpickr-input,
+.reservation-box .choices__inner{
+  min-height: var(--gv-field-h);
+  height: var(--gv-field-h);
+  padding: var(--gv-field-pad-y) var(--gv-field-pad-x);
+  font-size: var(--fs-body);
+  border-radius: var(--gv-radius);
+}
+
+/* Flatpickr input alterno */
+.reservation-box .flatpickr-input[readonly]{ background-color:#fff; }
+
+/* Choices: borde y caret alineados con Bootstrap */
+.reservation-box .choices__inner{
+  display:flex; align-items:center;
+  border:1px solid #ced4da; box-shadow:none; background:#fff;
+}
+.reservation-box .choices__list--single .choices__item{
+  line-height:1.5; font-size: var(--fs-body);
+}
+.reservation-box .choices[data-type*="select-one"] .choices__input{ display:none; }
+.reservation-box .choices[data-type*="select-one"]::after{ right:.75rem; }
+
+/* Fila viajeros (ancho de input base) */
+.gv-trav-row .btn{ min-width:2rem; }
+.gv-trav-row input[type="number"]{ max-width:84px; }
+
+/* =========================
+   GRID fecha/hora
+   ========================= */
+@media (min-width: 576px){
+  .gv-grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap:.75rem; }
+}
+
+/* =========================
+   TOTAL inline
+   ========================= */
+.gv-total-inline{
+  background:#f8fafb; border:1px dashed #e2e8f0; border-radius:.5rem; padding:.5rem .75rem;
+}
+.gv-total-inline strong{ font-weight:700; color:var(--primary-red) }
+
+/* =========================
+   MEETING POINT card
+   ========================= */
+.meeting-info .mp-desc { white-space: pre-line; }
+.meeting-info .mp-link { text-decoration: underline; }
+.meeting-info.card{ padding:.5rem .75rem; }
+
+/* =========================
+   MODO COMPACTO (−1 nivel tipográfico)
+   ========================= */
+.reservation-box.is-compact{
+  --gv-field-h: 40px;             /* antes 44px */
+  --gv-field-pad-y: .45rem;       /* leve ajuste vertical */
+  --gv-field-pad-x: .65rem;       /* leve ajuste horizontal */
+}
+
+/* Labels y textos */
+.reservation-box.is-compact .form-label{
+  font-size: calc(var(--fs-sm) - 1px);
+  margin-bottom: .2rem;
+}
+.reservation-box.is-compact .price-breakdown{
+  font-size: calc(var(--fs-body) - 2px);
+}
+
+/* Inputs / selects / Choices / Flatpickr */
+.reservation-box.is-compact .form-control,
+.reservation-box.is-compact .form-select,
+.reservation-box.is-compact .flatpickr-input,
+.reservation-box.is-compact .choices__inner,
+.reservation-box.is-compact .choices__list--single .choices__item{
+  font-size: calc(var(--fs-body) - 1px);
+  min-height: var(--gv-field-h);
+  height: var(--gv-field-h);
+  padding: var(--gv-field-pad-y) var(--gv-field-pad-x);
+}
+
+/* Títulos internos del box */
+.reservation-box.is-compact .form-header h3,
+.reservation-box.is-compact .form-header h4{
+  font-size: var(--fs-h6);
+  margin-bottom: .25rem;
+}
+
+/* Secciones (Language / Meeting point) */
+.reservation-box.is-compact .section-title span{
+  font-size: calc(var(--fs-body) - 1px);
+}
+.reservation-box.is-compact .section-title i{
+  font-size: .95em;
+}
+
+/* =========================
+   TRAVELERS — control fino por variables
+   ========================= */
+.gv-travelers{
+  /* Valores por defecto (puedes sobreescribir inline o en .reservation-box) */
+  --trav-row-font: var(--fs-body);
+  --trav-label-font: calc(var(--fs-body) - 1px);
+  --trav-btn-font: .9rem;
+  --trav-input-w: 72px;
+}
+.gv-travelers .gv-trav-row{
+  font-size: var(--trav-row-font);
+}
+.gv-travelers .gv-trav-row .fw-semibold{
+  font-size: var(--trav-label-font);
+}
+.gv-travelers .gv-trav-row input[type="number"]{
+  max-width: var(--trav-input-w);
+  font-size: var(--trav-row-font);
+}
+.gv-travelers .gv-trav-row .btn{
+  font-size: var(--trav-btn-font);
+}
+
+/* Travelers en modo compacto: heredan reducción */
+.reservation-box.is-compact .gv-travelers{
+  --trav-row-font: calc(var(--fs-body) - 1px);
+  --trav-label-font: calc(var(--fs-body) - 2px);
+  --trav-btn-font: .85rem;
+  --trav-input-w: 68px;
+}
+
+/* Mensajes/help y total */
+.reservation-box.is-compact #noSlotsHelp,
+.reservation-box.is-compact .gv-total-inline{
+  font-size: calc(var(--fs-body) - 2px);
+}
+
+/* Tarjeta de meeting point compacta */
+.reservation-box.is-compact .meeting-info.card{
+  padding: .45rem .6rem;
+}
+.reservation-box.is-compact #mpDesc,
+.reservation-box.is-compact #mpTime{
+  font-size: calc(var(--fs-body) - 1px);
+}
+.reservation-box.is-compact #mpLink{
+  font-size: .85rem;
+}
+
+/* =========================
+   CTA y foco con el verde del tour
+   ========================= */
 .tour-section .reservation-box{
   --brand: var(--tour-primary);
   --brand-600: var(--primary-dark);
@@ -107,10 +257,7 @@
   box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--brand) 25%, transparent) !important;
 }
 
-/* Choices */
-.tour-section .reservation-box .choices__inner{
-  border-color:#ced4da; border-radius:.6rem; padding:.45rem .75rem !important; min-height:42px; background:#fff;
-}
+/* Choices estado */
 .tour-section .reservation-box .choices.is-open .choices__inner{
   border-color: var(--brand);
   box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--brand) 18%, transparent);
@@ -126,7 +273,7 @@
   border-color: transparent transparent var(--brand) transparent;
 }
 
-/* Flatpickr */
+/* Flatpickr calendario */
 .tour-section .reservation-box .flatpickr-day.selected,
 .tour-section .reservation-box .flatpickr-day.startRange,
 .tour-section .reservation-box .flatpickr-day.endRange{ background: var(--brand) !important; border-color: var(--brand) !important; }

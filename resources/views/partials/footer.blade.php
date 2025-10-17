@@ -2,12 +2,33 @@
   @php
     use App\Models\Policy;
 
-    // Buscar por slug (según nos indicaste)
-    $terms   = Policy::where('slug', 'terms-and-conditions')->first();
-    $privacy = Policy::where('slug', 'privacy-policy')->first();
+    // IDs "matriculados"
+    $POLICY_IDS = [
+      'terms'   => 1, // Términos y condiciones
+      'privacy' => 4, // Políticas de privacidad
+    ];
 
-    if ($terms)   { $terms->loadMissing('translations'); }
-    if ($privacy) { $privacy->loadMissing('translations'); }
+    // Fallbacks por slug (solo para terms/privacy)
+    $LEGACY_SLUGS = [
+      'terms'   => ['terms-and-conditions', 'terminos-y-condiciones'],
+      'privacy' => ['privacy-policy', 'politicas-de-privacidad'],
+    ];
+
+    // Helper: devuelve Policy o null, prioriza ID
+    $getPolicy = function(string $key) use ($POLICY_IDS, $LEGACY_SLUGS){
+      $p = Policy::find($POLICY_IDS[$key] ?? null);
+      if (!$p && !empty($LEGACY_SLUGS[$key])) {
+        $p = Policy::whereIn('slug', $LEGACY_SLUGS[$key])->first();
+      }
+      if ($p) $p->loadMissing('translations');
+      return $p;
+    };
+
+    $terms   = $getPolicy('terms');
+    $privacy = $getPolicy('privacy');
+
+    // URL estable por ID (redirige al slug actual)
+    $policy_url = fn(App\Models\Policy $p) => localized_route('policies.show.id', ['policy' => $p->getKey()]);
 
     $mapUrl = 'https://www.google.com/maps?ll=10.455662,-84.653203&z=16&t=m&hl=en&gl=US&mapclient=embed&cid=8940439748623688530';
   @endphp
@@ -27,18 +48,13 @@
         <li><a href="{{ localized_route('home') }}">{{ __('adminlte::adminlte.home') }}</a></li>
         <li><a href="#" class="scroll-to-tours">{{ __('adminlte::adminlte.tours') }}</a></li>
         <li><a href="{{ localized_route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a></li>
-
         <li>
           <a target="_blank" rel="noopener"
-             href="https://www.tripadvisor.com/Attraction_Review-g309226-d6817241-Reviews-Green_Vacations_Costa_Rica-La_Fortuna_de_San_Carlos_Arenal_Volcano_National_Park_.html">
-            TripAdvisor
-          </a>
+             href="https://www.tripadvisor.com/Attraction_Review-g309226-d6817241-Reviews-Green_Vacations_Costa_Rica-La_Fortuna_de_San_Carlos_Arenal_Volcano_National_Park_.html">TripAdvisor</a>
         </li>
         <li>
           <a target="_blank" rel="noopener"
-             href="https://www.getyourguide.es/green-vacations-costa-rica-s26615/">
-            GetYourGuide
-          </a>
+             href="https://www.getyourguide.es/green-vacations-costa-rica-s26615/">GetYourGuide</a>
         </li>
       </ul>
     </div>
@@ -50,7 +66,6 @@
           @php
             $group = ($toursByType[$key] ?? collect());
             if ($group->isEmpty()) continue;
-
             $translatedTitle = $meta['title'] ?? '';
             $modalId = 'modal-' . \Illuminate\Support\Str::slug((string)$key);
           @endphp
@@ -59,40 +74,30 @@
             <a href="#"
                class="open-tour-modal"
                data-tour-modal="{{ $modalId }}"
-               data-scroll-first="true">
-              {{ $translatedTitle }}
-            </a>
+               data-scroll-first="true">{{ $translatedTitle }}</a>
           </li>
         @endforeach
       </ul>
 
-      <h4 class="mt-3">
-        <i class="fas fa-file-contract me-2"></i>{{ __('adminlte::adminlte.policies') }}
-      </h4>
+      <h4 class="mt-3"><i class="fas fa-file-contract me-2"></i>{{ __('adminlte::adminlte.policies') }}</h4>
       <ul>
         @if($terms)
           <li class="d-flex align-items-center mb-2">
             <i class="fas fa-balance-scale me-2"></i>
-            <a href="{{ localized_route('policies.show', ['policy' => $terms->slug]) }}">
-              {{ __('adminlte::adminlte.terms_and_conditions') }}
-            </a>
+            <a href="{{ $policy_url($terms) }}">{{ __('adminlte::adminlte.terms_and_conditions') }}</a>
           </li>
         @endif
 
         @if($privacy)
           <li class="d-flex align-items-center mb-2">
             <i class="fas fa-shield-alt me-2"></i>
-            <a href="{{ localized_route('policies.show', ['policy' => $privacy->slug]) }}">
-              {{ __('adminlte::adminlte.privacy_policy') }}
-            </a>
+            <a href="{{ $policy_url($privacy) }}">{{ __('adminlte::adminlte.privacy_policy') }}</a>
           </li>
         @endif
 
         <li class="d-flex align-items-center mb-2">
           <i class="fas fa-list me-2"></i>
-          <a href="{{ localized_route('policies.index') }}">
-            {{ __('adminlte::adminlte.all_policies') }}
-          </a>
+          <a href="{{ localized_route('policies.index') }}">{{ __('adminlte::adminlte.all_policies') }}</a>
         </li>
       </ul>
     </div>
@@ -101,8 +106,7 @@
       <h4>{{ __('adminlte::adminlte.contact_us') }}</h4>
       <p class="mb-2">
         <i class="fas fa-map-marker-alt me-2"></i>
-        <a href="{{ $mapUrl }}" target="_blank" rel="noopener"
-           class="text-white text-decoration-none">
+        <a href="{{ $mapUrl }}" target="_blank" rel="noopener" class="text-white text-decoration-none">
           La Fortuna, San Carlos, Costa Rica
         </a>
       </p>

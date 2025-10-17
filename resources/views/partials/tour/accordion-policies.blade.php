@@ -2,53 +2,77 @@
   use App\Models\Policy;
   use Illuminate\Support\Str;
 
-  $prefix  = $prefix ?? ('pol-' . ($tour->tour_id ?? Str::uuid()));
-  $locale  = app()->getLocale();
+  // Prefijo consistente con el resto
+  $prefix = $prefix ?? ('pol-' . ($tour->tour_id ?? Str::uuid()));
+  $locale = app()->getLocale();
 
-  $cancel  = $cancel ?? Policy::byType('cancelacion');
-  $refund  = $refund ?? Policy::byType('reembolso');
+  // Lookup robusto: primero IDs “matriculados”, luego type, luego slugs legacy
+  $POLICY_IDS = ['cancellation' => 2, 'refund' => 3];
+  $LEGACY = [
+    'cancellation' => ['cancellation-policy', 'politicas-de-cancelacion'],
+    'refund'       => ['refund-policy', 'politicas-de-reembolso'],
+  ];
+
+  $cancel = $cancelPolicy
+         ?? Policy::find($POLICY_IDS['cancellation'])
+         ?? (method_exists(Policy::class, 'byType') ? Policy::byType('cancelacion') : null)
+         ?? Policy::whereIn('slug', $LEGACY['cancellation'])->first();
+
+  $refund = $refundPolicy
+         ?? Policy::find($POLICY_IDS['refund'])
+         ?? (method_exists(Policy::class, 'byType') ? Policy::byType('reembolso') : null)
+         ?? Policy::whereIn('slug', $LEGACY['refund'])->first();
 
   $tCancel = $cancel?->translation($locale) ?? $cancel?->translation('es');
   $tRefund = $refund?->translation($locale) ?? $refund?->translation('es');
 @endphp
 
+{{-- Acordeón "Policies" (contiene Cancellation y Refund) --}}
 <div class="accordion-item border-0 border-bottom">
-  <h2 class="accordion-header" id="{{ $prefix }}-cancel-heading">
-    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $prefix }}-cancel" aria-expanded="false" aria-controls="{{ $prefix }}-cancel">
-      <i class="fas fa-undo me-2"></i>
-      {{ $tCancel?->name ?? __('policies.cancellation_policy') }}
+  <h2 class="accordion-header" id="{{ $prefix }}-policies-heading">
+    <button
+      class="accordion-button bg-white px-0 shadow-none collapsed"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#{{ $prefix }}-policies"
+      aria-expanded="false"
+      aria-controls="{{ $prefix }}-policies"
+    >
+      <span class="me-2 d-inline-flex align-items-center" aria-hidden="true">
+        <i class="fas fa-plus icon-plus"></i>
+        <i class="fas fa-minus icon-minus"></i>
+      </span>
+      {{ __('adminlte::adminlte.policies') }}
     </button>
   </h2>
-  <div id="{{ $prefix }}-cancel" class="accordion-collapse collapse" aria-labelledby="{{ $prefix }}-cancel-heading">
-    <div class="accordion-body">
+
+  <div id="{{ $prefix }}-policies"
+       class="accordion-collapse collapse"
+       aria-labelledby="{{ $prefix }}-policies-heading"
+       data-bs-parent="#tourDetailsAccordion">
+    <div class="accordion-body px-0">
+
+      {{-- Cancellation --}}
       @if($tCancel && filled($tCancel->content))
-        {!! nl2br(e($tCancel->content)) !!}
-      @else
-        <span class="text-muted">{{ __('policies.no_content') }}</span>
+        <h6 class="fw-semibold mb-2">
+          <i class="fas fa-ban me-2"></i>
+          {{ $tCancel->name ?? __('policies.cancellation_policy') }}
+        </h6>
+        <div class="mb-3">{!! nl2br(e($tCancel->content)) !!}</div>
       @endif
-    </div>
-  </div>
-</div>
 
-<div class="accordion-item border-0 border-bottom">
-  <h2 class="accordion-header" id="{{ $prefix }}-refund-heading">
-    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $prefix }}-refund" aria-expanded="false" aria-controls="{{ $prefix }}-refund">
-      <i class="fas fa-hand-holding-usd me-2"></i>
-      {{ $tRefund?->name ?? __('policies.refund_policy') }}
-    </button>
-  </h2>
-  <div id="{{ $prefix }}-refund" class="accordion-collapse collapse" aria-labelledby="{{ $prefix }}-refund-heading">
-    <div class="accordion-body">
+      {{-- Refund --}}
       @if($tRefund && filled($tRefund->content))
-        {!! nl2br(e($tRefund->content)) !!}
-      @else
-        <span class="text-muted">{{ __('policies.no_content') }}</span>
+        <h6 class="fw-semibold mb-2">
+          <i class="fas fa-hand-holding-usd me-2"></i>
+          {{ $tRefund->name ?? __('policies.refund_policy') }}
+        </h6>
+        <div>{!! nl2br(e($tRefund->content)) !!}</div>
       @endif
 
-      @if((!$cancel || !$tCancel || blank($tCancel->content)) && (!$refund || !$tRefund || blank($tRefund->content)))
-        <div class="small text-muted mt-3">
-          <em>{{ __('policies.no_policies') }}</em>
-        </div>
+      {{-- Vacío --}}
+      @if(!( $tCancel && filled($tCancel->content)) && !( $tRefund && filled($tRefund->content)))
+        <span class="text-muted">{{ __('policies.no_policies') }}</span>
       @endif
     </div>
   </div>

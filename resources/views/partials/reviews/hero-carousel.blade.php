@@ -29,7 +29,7 @@
   ];
 
   $initialLoad      = 3;
-  $baseIframeHeight = 460;
+  $baseIframeHeight = (int)($baseIframeHeight ?? 460);
   $seqByProvider = [];
 @endphp
 
@@ -54,10 +54,11 @@
         $author      = $r['author_name'] ?? __('reviews.anonymous_guest');
         $date        = !empty($r['date']) ? \Illuminate\Support\Carbon::parse($r['date'])->isoFormat('ll') : '';
         $isIndexable = !empty($r['indexable']);
-$tourName    = trim((string)($r['tour_name'] ?? ''));
-$tourId      = !empty($r['tour_id']) ? (int)$r['tour_id'] : null;
-$tourSlug    = trim((string)($r['tour_slug'] ?? ''));
-$tourUrl     = ($tourId && $tourSlug) ? localized_route('tours.show', ['tour' => $tourSlug]) : '#';
+
+        $tourName    = trim((string)($r['tour_name'] ?? ''));
+        $tourId      = !empty($r['tour_id']) ? (int)$r['tour_id'] : null;
+        $tourSlug    = trim((string)($r['tour_slug'] ?? ''));
+        $tourUrl     = ($tourId && $tourSlug) ? localized_route('tours.show', ['tour' => $tourSlug]) : '#';
 
         $avatarUrl   = $r['avatar_url'] ?? null;
 
@@ -117,7 +118,7 @@ $tourUrl     = ($tourId && $tourSlug) ? localized_route('tours.show', ['tour' =>
                      . '&limit=' . urlencode($limit)
                      . '&nth='   . urlencode($nth)
                      . ($tourId      ? '&tour_id=' . urlencode($tourId)      : '')
-                     . ($tourName    ? '&tname='   . urlencode($tourName)    : '') // ✅ Pasar nombre traducido
+                     . ($tourName    ? '&tname='   . urlencode($tourName)    : '')
                      . ($tourUrl     ? '&turl='    . urlencode($tourUrl)     : '')
                      . '&base=' . urlencode($baseIframeHeight)
                      . '&uid='  . urlencode($uid);
@@ -125,7 +126,7 @@ $tourUrl     = ($tourId && $tourSlug) ? localized_route('tours.show', ['tour' =>
           @endphp
 
           <article class="hero-card p-0" style="box-shadow:none;background:transparent">
-            <div class="iframe-shell">
+            <div class="iframe-shell" style="--embed-h: {{ (int)$baseIframeHeight }}px;">
               <div class="iframe-skeleton" aria-hidden="true"></div>
               <iframe
                 title="Reviews {{ $origin }}"
@@ -133,8 +134,9 @@ $tourUrl     = ($tourId && $tourSlug) ? localized_route('tours.show', ['tour' =>
                 data-uid="{{ $uid }}"
                 @if($shouldEager) src="{{ $src }}" @else data-src="{{ $src }}" @endif
                 referrerpolicy="no-referrer"
-                sandbox="allow-scripts allow-same-origin">
-              </iframe>
+                sandbox="allow-scripts allow-same-origin"
+                style="--embed-h: {{ (int)$baseIframeHeight }}px;"
+              ></iframe>
             </div>
           </article>
         @endif

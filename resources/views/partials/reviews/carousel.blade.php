@@ -1,12 +1,10 @@
 {{-- resources/views/partials/reviews/carousel.blade.php --}}
 @php
-  $items = collect($items ?? []);
-  $items = $items->take(25);
+  $items = collect($items ?? [])->take(25);
 
   $providerHeight = (int)($providerHeight ?? 320);
   $carouselId     = 'tourReviewsCarousel_'.uniqid();
 
-  // Detectar si estamos en la página de un tour específico (con rutas localizadas)
   $routeName = request()->route()->getName();
   $isSpecificTourPage = $routeName && str_ends_with($routeName, '.tours.show');
 
@@ -56,12 +54,13 @@
           $date     = !empty($r['date']) ? \Illuminate\Support\Carbon::parse($r['date'])->isoFormat('ll') : '';
           $title    = trim((string)($r['title'] ?? ''));
           $body     = trim((string)($r['body'] ?? ''));
-$tourId   = $r['tour_id'] ?? null;
-$tourSlug = trim((string)($r['tour_slug'] ?? '')); // ✅ OBTENER SLUG
-$tourUrl  = ($tourId && $tourSlug) ? localized_route('tours.show', ['tour' => $tourSlug]) : '#'; // ✅ USAR SLUG
-$tourName = trim((string)($r['tour_name'] ?? ''));
-          $avatarUrl= $r['avatar_url'] ?? null;
 
+          $tourId   = $r['tour_id'] ?? null;
+          $tourSlug = trim((string)($r['tour_slug'] ?? ''));
+          $tourUrl  = ($tourId && $tourSlug) ? localized_route('tours.show', ['tour' => $tourSlug]) : '#';
+          $tourName = trim((string)($r['tour_name'] ?? ''));
+
+          $avatarUrl= $r['avatar_url'] ?? null;
           $reviewId = $r['provider_review_id'] ?? $i;
           $uid = 'r_'.substr(sha1($provKey.'|'.$reviewId.'|'.uniqid()),0,10);
         @endphp
@@ -69,7 +68,6 @@ $tourName = trim((string)($r['tour_name'] ?? ''));
         <div class="carousel-item {{ $isActive }}">
           <div class="slide-wrap">
             <article class="hero-card">
-              {{-- Solo mostrar título si NO estamos en página de tour específico --}}
               @if(!$isSpecificTourPage && $tourName !== '')
                 <h3 class="tour-title-abs">
                   <a href="{{ $tourUrl }}" class="tour-link" data-id="{{ $tourId ?? '' }}" data-name="{{ $tourName }}">{{ $tourName }}</a>

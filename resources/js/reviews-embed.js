@@ -63,7 +63,11 @@
   }
 
   function currentHeight() {
-    const h = Math.max(BASE, root.scrollHeight || root.offsetHeight || BASE);
+    // Medición robusta sobre el documento completo para evitar picos por clones temporales
+    const docEl = document.documentElement;
+    const b = document.body;
+    const raw = Math.max(b.scrollHeight, b.offsetHeight, docEl.clientHeight, docEl.scrollHeight, docEl.offsetHeight);
+    const h = Math.max(BASE, raw);
     return Math.min(1800, h);
   }
 

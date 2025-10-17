@@ -87,10 +87,7 @@
       <span class="price-kid fw-bold text-danger">${{ number_format($tour->kid_price, 2) }}</span>
     </div>
 
-    <p class="fw-bold mb-3 gv-total">
-      {{ __('adminlte::adminlte.total') }}:
-      <span id="reservation-total-price" class="totalprice">$0.00</span>
-    </p>
+    {{-- (Se quitó el total del header; ahora vive debajo del selector de personas) --}}
   </div>
 
   {{-- ===== BODY ===== --}}
@@ -102,9 +99,34 @@
         <button type="button"
           class="btn traveler-button w-100 d-flex align-items-center justify-content-between"
           data-bs-toggle="modal" data-bs-target="#travelerModal">
-          <span><i class="fas fa-user me-2"></i> <span id="traveler-summary">2</span></span>
+          <span class="d-flex align-items-center gap-2">
+            <i class="fas fa-user me-1"></i>
+
+            {{-- Contador legacy (oculto) --}}
+            <span id="traveler-summary" class="d-none">2</span>
+
+            {{-- Píldoras separadas Adultos / Niños --}}
+            <span class="trav-pill">
+              <i class="fas fa-male me-1"></i>
+              <span id="adult-count">2</span>
+            </span>
+            <span class="trav-sep">|</span>
+            <span class="trav-pill kids d-none">
+              <i class="fas fa-child me-1"></i>
+              <span id="kid-count">0</span>
+            </span>
+          </span>
           <i class="fas fa-chevron-down"></i>
         </button>
+
+        {{-- Total + desglose debajo del selector de personas --}}
+        <div class="gv-total-inline small mt-2">
+          <div class="d-flex justify-content-between">
+            <span>{{ __('adminlte::adminlte.total') }}:</span>
+            <strong id="reservation-total-price-inline">$0.00</strong>
+          </div>
+          <div class="text-muted" id="traveler-breakdown">2× {{ __('adminlte::adminlte.adult') }}</div>
+        </div>
       </div>
 
       {{-- Date --}}
@@ -198,6 +220,23 @@
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 @endonce
 
+@push('styles')
+<style>
+  .trav-pill{
+    display:inline-flex; align-items:center; gap:.25rem;
+    padding:.125rem .5rem; border:1px solid #e5e7eb; border-radius:999px;
+    font-weight:600; line-height:1;
+  }
+  .trav-pill i{ opacity:.9; }
+  .trav-sep{ opacity:.5; }
+
+  .gv-total-inline{
+    background:#f8fafb; border:1px dashed #e2e8f0; border-radius:.5rem; padding:.5rem .75rem;
+  }
+  .gv-total-inline strong{ font-weight:700; }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 (function(){
@@ -216,6 +255,71 @@
   if (!formEl || formEl.dataset.bound === '1') return;
   formEl.dataset.bound = '1';
 
+  /* ========= PRECIOS, CANTIDADES Y TOTAL (se ejecuta SIEMPRE, incluso guest) ========= */
+  const adultPrice = Number(formEl?.dataset?.adultPrice || 0);
+  const kidPrice   = Number(formEl?.dataset?.kidPrice   || 0);
+
+  const inAdults = document.getElementById('adults_quantity');
+  const inKids   = document.getElementById('kids_quantity');
+
+  const totalInlineEl = document.getElementById('reservation-total-price-inline');
+  const brkEl         = document.getElementById('traveler-breakdown');
+  const adtCntEl      = document.getElementById('adult-count');
+  const kidCntEl      = document.getElementById('kid-count');
+  const kidsPill      = document.querySelector('.trav-pill.kids');
+  const sepEl         = document.querySelector('.trav-sep');
+
+  const fmt = (n) => {
+    try { return (new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' })).format(n); }
+    catch { return `$${Number(n).toFixed(2)}`; }
+  };
+
+  function updateTravelerPills(a, k){
+    if (adtCntEl) adtCntEl.textContent = a;
+    if (kidCntEl) kidCntEl.textContent = k;
+    const showKids = Number(k) > 0;
+    if (kidsPill)  kidsPill.classList.toggle('d-none', !showKids);
+    if (sepEl)     sepEl.classList.toggle('d-none', !showKids);
+  }
+
+  function updateBreakdown(a, k){
+    if (!brkEl) return;
+    const parts = [];
+    if (Number(a) > 0) parts.push(`${a}× {{ __('adminlte::adminlte.adult') }}`);
+    if (Number(k) > 0) parts.push(`${k}× {{ __('adminlte::adminlte.kid') }}`);
+    brkEl.textContent = parts.join(' | ') || `0× {{ __('adminlte::adminlte.adult') }}`;
+  }
+
+  function updateTotals(){
+    const a = Number(inAdults?.value || 0);
+    const k = Number(inKids?.value   || 0);
+    const total = (a * adultPrice) + (k * kidPrice);
+    if (totalInlineEl) totalInlineEl.textContent = fmt(total);
+    updateTravelerPills(a, k);
+    updateBreakdown(a, k);
+  }
+
+  // Inicializa una vez
+  updateTotals();
+
+  // Escucha cambios de los hidden (los actualiza el modal de viajeros)
+  ['change','input'].forEach(evt => {
+    inAdults?.addEventListener(evt, updateTotals);
+    inKids?.addEventListener(evt, updateTotals);
+  });
+
+  // Si el modal lanza este evento personalizado:
+  window.addEventListener('traveler:updated', updateTotals);
+
+  // Observa el legacy #traveler-summary, por si otro script lo toca
+  const legacySum = document.getElementById('traveler-summary');
+  if (legacySum) {
+    new MutationObserver(() => updateTotals()).observe(legacySum, { childList:true, subtree:true, characterData:true });
+  }
+
+  /* ========= HASTA AQUÍ: total y desglose disponibles también para invitados ========= */
+
+  // Bloqueo de envío normal
   formEl.addEventListener('submit', (e) => e.preventDefault());
 
   window.isAuthenticated = @json(Auth::check());
@@ -233,27 +337,28 @@
   const hotelSelect = document.getElementById('hotelSelect');
   const meetingSel  = document.getElementById('meetingPointSelect');
 
+  // Si NO está autenticado: deshabilita campos pero conserva el total mostrado
   if (!window.isAuthenticated) {
     if (dateInput) { dateInput.setAttribute('disabled','disabled'); dateInput.setAttribute('readonly','readonly'); }
     scheduleSel && scheduleSel.setAttribute('disabled','disabled');
     langSelect  && langSelect.setAttribute('disabled','disabled');
     hotelSelect && hotelSelect.setAttribute('disabled','disabled');
     meetingSel  && meetingSel.setAttribute('disabled','disabled');
-    return;
+    return; // No seguimos con flatpickr/choices/etc. para invitados
   }
 
-  /* Choices */
-  const scheduleChoices = new Choices(scheduleSel, { searchEnabled:false, shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- ' + T.selectOption + ' --' });
-  const langChoices     = new Choices(langSelect,  { searchEnabled:false, shouldSort:false, itemSelectText:'' });
-  const hotelChoices    = new Choices(hotelSelect, { searchEnabled:true,  shouldSort:false, itemSelectText:'' });
-  const meetingChoices  = new Choices(meetingSel,  { searchEnabled:true,  shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- ' + T.selectOption + ' --' });
-
-  const BASE_CHOICES = scheduleChoices._store.choices.filter(c => c.value !== '').map(c => ({ value:String(c.value), label:c.label }));
-  const SCHEDULE_IDS = BASE_CHOICES.map(o => o.value);
-
+  /* ============= Helpers de reglas/fechas ============= */
   const isoFromDate = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const ruleForSchedule = (sid) => RULES.schedules[String(sid)] || RULES.tour;
   const minAcrossAll = () => [RULES.tour.min, ...Object.values(RULES.schedules).map(r => r.min)].sort()[0];
+
+  function setHint(rule){
+    if (!hintEl || !rule) return;
+    const lead = Number(rule.lead_days || 0);
+    const co   = rule.cutoff || '--:--';
+    const after= rule.after_cutoff ? ' (aplica día siguiente tras cutoff)' : '';
+    hintEl.textContent = `Anticipación mínima: ${lead} día(s). Hora de corte: ${co}${after}. Fecha mínima: ${rule.min}.`;
+  }
 
   const canUseScheduleOnDate = (iso, sid) => {
     if (!iso) return false;
@@ -264,13 +369,22 @@
     return !(iso < r.min);
   };
 
-  const anyScheduleAvailable = (iso) => SCHEDULE_IDS.some((sid) => canUseScheduleOnDate(iso, sid));
+  const anyScheduleAvailable = (iso) => BASE_IDS.some((sid) => canUseScheduleOnDate(iso, sid));
   const isDayFullyBlocked = (iso) => {
     if (!iso) return true;
     if (fullyBlockedDates.includes(iso)) return true;
     if (blockedGeneral.includes(iso))    return true;
     return !anyScheduleAvailable(iso);
   };
+
+  /* ============= Choices ============= */
+  const scheduleChoices = new Choices(scheduleSel, { searchEnabled:false, shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- ' + T.selectOption + ' --' });
+  const langChoices     = new Choices(langSelect,  { searchEnabled:false, shouldSort:false, itemSelectText:'' });
+  const hotelChoices    = new Choices(hotelSelect, { searchEnabled:true,  shouldSort:false, itemSelectText:'' });
+  const meetingChoices  = new Choices(meetingSel,  { searchEnabled:true,  shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- ' + T.selectOption + ' --' });
+
+  const BASE_CHOICES = scheduleChoices._store.choices.filter(c => c.value !== '').map(c => ({ value:String(c.value), label:c.label }));
+  const BASE_IDS = BASE_CHOICES.map(o => o.value);
 
   function rebuildScheduleChoices(iso){
     const ph = [{ value:'', label:'-- ' + T.selectOption + ' --', disabled:true, selected:true }];
@@ -292,7 +406,7 @@
     else { scheduleChoices.disable(); helpMsg.textContent = 'No hay horarios disponibles para esa fecha.'; helpMsg.style.display = ''; }
   }
 
-  /* Flatpickr */
+  /* ============= Flatpickr ============= */
   let fp;
   const setupFlatpickr = () => {
     const initialMin = RULES.initialMin || minAcrossAll();
@@ -326,14 +440,14 @@
   };
   setupFlatpickr();
 
-  /* Cambio de horario -> minDate */
+  /* Cambio de horario -> minDate/hint */
   scheduleSel.addEventListener('change', () => {
     const sid = scheduleSel.value;
     const rule = sid ? ruleForSchedule(sid) : RULES.tour;
     if (fp) fp.set('minDate', sid ? rule.min : minAcrossAll());
     setHint(rule);
     const current = dateInput.value;
-    if (current && sid && current < rule.min) fp.setDate(rule.min, true);
+    if (current && sid && current < rule.min && fp) fp.setDate(rule.min, true);
     const iso = dateInput.value || (fp ? fp.input.value : null);
     rebuildScheduleChoices(iso);
   });
@@ -400,10 +514,16 @@
 
     if (!formEl.checkValidity()) { formEl.reportValidity(); return; }
 
-    const hotelValue = hotelChoices.getValue(true);
+    const hotelChoicesObj = hotelChoices;
+    const meetingChoicesObj = meetingChoices;
+
+    const isOtherH = document.getElementById('isOtherHotel');
+    const otherInp = document.getElementById('otherHotelInput');
+
+    const hotelValue = hotelChoicesObj.getValue(true);
     const isOtherHotel = isOtherH && isOtherH.value === '1';
     const otherHotelName = otherInp && otherInp.value.trim();
-    const meetingValue = meetingChoices.getValue(true);
+    const meetingValue = meetingChoicesObj.getValue(true);
 
     const hasHotel = (hotelValue && hotelValue !== '' && hotelValue !== 'other') || (isOtherHotel && otherHotelName);
     const hasMeeting = (meetingValue && meetingValue !== '');

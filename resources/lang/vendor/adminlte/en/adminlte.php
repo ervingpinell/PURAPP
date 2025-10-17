@@ -159,7 +159,7 @@ return [
     // 8. HOTELS (DETAIL)
     'hotels' => 'Hotels',
     'hotel' => 'Hotel',
-    'select_hotel' => 'Hotel or pickup point',
+    'select_hotel' => 'Hotel',
     'hotel_other' => 'Other (specify manually)',
     'hotel_name' => 'Hotel name',
     'other_hotel' => 'Other hotel (specify)',
@@ -192,7 +192,7 @@ return [
 
     'pickup_time' => 'Pickup time',
     'pickupTime'  => 'Pickup time',
-
+    'meeting_time' => 'Meeting time',
     'open_map' => 'Open map',
     'openMap'  => 'Open map',
 

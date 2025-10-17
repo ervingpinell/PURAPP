@@ -4,6 +4,14 @@
   const G = (typeof window !== "undefined" && window) || {};
   const I18N = G.REVIEWS_I18N || {};
 
+  // ====== NUEVO: estado/umbrales para alturas ======
+  const EMBED_STATE = new Map(); // uid -> última altura aplicada
+  const MIN_H = 260;             // altura mínima aceptada
+  const MAX_H = 1100;            // altura máxima aceptada
+  const MAX_STEP = 220;          // salto máximo permitido entre mediciones
+
+  const rAF = (fn) => (G.requestAnimationFrame || ((f) => setTimeout(f, 0)))(fn);
+
   function toInt(v, def) { const n = parseInt(v, 10); return Number.isFinite(n) ? n : def; }
 
   function getBaseHeight(root) {
@@ -11,6 +19,29 @@
     const cssVal = getComputedStyle(root).getPropertyValue("--provider-base");
     if (cssVal) return toInt(cssVal, 460);
     return 460;
+  }
+
+  // Altura base para un iframe concreto (lee data-base o var inline)
+  function getBaseForIframe(ifr) {
+    const fromAttr = ifr.closest("[data-base]")?.getAttribute("data-base");
+    const fromCss  = ifr.style.getPropertyValue("--embed-h") || getComputedStyle(ifr).getPropertyValue("--embed-h");
+    const v = toInt(fromAttr || fromCss, 460);
+    return Number.isFinite(v) ? v : 460;
+  }
+
+  // Aplica altura de forma consistente usando CSS var y propiedades directas
+  function applyEmbedHeight(ifr, h) {
+    const shell = ifr?.closest(".iframe-shell");
+    if (!ifr || !shell) return;
+    const px = `${h}px`;
+    shell.style.setProperty("--embed-h", px);
+    ifr.style.setProperty("--embed-h", px);
+
+    // Refuerzo para navegadores que tardan con CSS variables
+    shell.style.height = px;
+    shell.style.minHeight = px;
+    ifr.style.height = px;
+    ifr.style.minHeight = px;
   }
 
   function getClampClass(el) {
@@ -158,31 +189,24 @@
     }
   }
 
-  function relaxHeightsFor(ifr, base) {
-    const shell = ifr?.parentElement;
-    const card  = ifr?.closest(".hero-card");
-    const item  = ifr?.closest(".carousel-item");
-    const inner = ifr?.closest(".carousel-inner");
-
-    [ifr, shell, card, item, inner].forEach((el) => { if (!el) return; el.style.maxHeight = "none"; el.style.overflow = "visible"; });
-
-    if (ifr) ifr.style.height = base + "px";
-    if (shell) { shell.style.height = base + "px"; shell.style.minHeight = base + "px"; }
+  // Antes: relaxHeightsFor hacía overflow visible en varios contenedores
+  // Ahora: solo fijamos la altura base de shell/iframe (sin relajar contenedores)
+  function primeBaseHeight(ifr, base) {
+    if (!ifr) return;
+    applyEmbedHeight(ifr, Math.max(MIN_H, base));
   }
 
   /* =========================================================
-   * NUEVO: Indicador segmentado debajo del carrusel (clicable)
+   * Indicador segmentado debajo del carrusel (clicable)
    * ========================================================= */
   function setupCarouselSegments(root) {
     const items = root.querySelectorAll(".carousel-item");
     const total = items.length;
     if (total <= 1) return;
 
-    // contenedor
     const bar = document.createElement("div");
     bar.className = "carousel-segments";
 
-    // crear segmentos
     const segs = [];
     for (let i = 0; i < total; i++) {
       const s = document.createElement("button");
@@ -194,7 +218,6 @@
       segs.push(s);
     }
 
-    // Insertar justo DESPUÉS del .carousel-inner y ANTES de los controles
     const inner = root.querySelector(".carousel-inner");
     const firstControl = root.querySelector(".carousel-control-prev, .carousel-control-next");
     if (inner && firstControl && firstControl.parentElement === root) {
@@ -203,38 +226,26 @@
       root.appendChild(bar);
     }
 
-    // Estado inicial
     let current = Math.max(0, Array.from(items).findIndex(it => it.classList.contains("active")));
     if (current === -1) current = 0;
 
     function render() {
-      segs.forEach((el, idx) => {
-        el.classList.toggle("is-active", idx === current);
-      });
-      // Accesibilidad
+      segs.forEach((el, idx) => el.classList.toggle("is-active", idx === current));
       bar.setAttribute("aria-live", "polite");
       bar.setAttribute("aria-label", `${current + 1} / ${total}`);
     }
     render();
 
-    // Click -> ir al slide
     bar.addEventListener("click", (e) => {
       const btn = e.target.closest(".carousel-segment");
       if (!btn) return;
       const to = parseInt(btn.dataset.index, 10) || 0;
-
-      // API Bootstrap: trigger slide
-      const ev = new CustomEvent("slide.bs.carousel", { detail: {}, bubbles: true });
-      // No es necesario despachar manual; usamos data attributes de Bootstrap:
-      // buscamos el índice actual y usamos root.querySelectorAll para movernos.
-      // Forma canónica: $(root).carousel(to) — pero sin jQuery:
       const bsCarousel = root && G.bootstrap && G.bootstrap.Carousel
         ? G.bootstrap.Carousel.getInstance(root) || new G.bootstrap.Carousel(root)
         : null;
       if (bsCarousel && Number.isFinite(to)) {
         bsCarousel.to(to);
       } else {
-        // fallback: mover active class (no ideal, pero evita no-op si no está bootstrap)
         const list = root.querySelectorAll(".carousel-item");
         list.forEach(n => n.classList.remove("active"));
         list[to]?.classList.add("active");
@@ -243,9 +254,7 @@
       }
     });
 
-    // Sync con Bootstrap
     root.addEventListener("slide.bs.carousel", (e) => {
-      // e.to existe en Bootstrap >=5 cuando se usa events
       if (typeof e.to === "number") current = e.to;
       render();
     });
@@ -277,7 +286,7 @@
     // Indicador segmentado
     setupCarouselSegments(root);
 
-    // postMessage desde iframes
+    // ====== postMessage desde iframes (con clamps/estado) ======
     window.addEventListener("message", (e) => {
       if (!e || !e.origin || !allowedOrigins.has(e.origin)) return;
       const d = e?.data || {};
@@ -286,10 +295,14 @@
 
       const ifr = root.querySelector('iframe.review-embed[data-uid="' + uid + '"]');
       if (!ifr) return;
-      const shell = ifr.parentElement;
+
+      // Si su slide no está activo, guarda estado y no apliques (evita empuje)
+      const item = ifr.closest(".carousel-item");
+      const isActive = !item || item.classList.contains("active");
 
       if (d.type === "REVIEW_IFRAME_READY") {
-        relaxHeightsFor(ifr, BASE);
+        const b = getBaseForIframe(ifr) || BASE;
+        primeBaseHeight(ifr, b);
         const sk = ifr.previousElementSibling;
         if (sk && sk.classList.contains("iframe-skeleton")) sk.classList.add("is-hidden");
         ifr.setAttribute("data-ready","1");
@@ -297,16 +310,27 @@
       }
 
       if (d.type === "REVIEW_IFRAME_RESIZE") {
-        const h = Math.max(BASE, Math.min(2000, parseInt(d.height, 10) || 0));
-        relaxHeightsFor(ifr, BASE);
-        ifr.style.height = h + "px";
-        if (shell && shell.classList.contains("iframe-shell")) {
-          shell.style.minHeight = h + "px";
-          shell.style.height = h + "px";
+        const base = getBaseForIframe(ifr) || BASE;
+        let next = toInt(d.height, base);
+        if (!Number.isFinite(next)) return;
+
+        // Clamp absoluto
+        next = Math.max(MIN_H, Math.min(MAX_H, next));
+
+        // Amortiguación: no crecer de golpe más de MAX_STEP
+        const prev = EMBED_STATE.get(uid) ?? base;
+        if (next - prev > MAX_STEP) next = prev + MAX_STEP;
+
+        // Guarda estado siempre
+        EMBED_STATE.set(uid, next);
+
+        // Aplica solo si el slide está activo
+        if (isActive) {
+          rAF(() => applyEmbedHeight(ifr, next));
+          const sk = ifr.previousElementSibling;
+          if (sk && sk.classList.contains("iframe-skeleton")) sk.classList.add("is-hidden");
+          ifr.setAttribute("data-ready","1");
         }
-        const sk = ifr.previousElementSibling;
-        if (sk && sk.classList.contains("iframe-skeleton")) sk.classList.add("is-hidden");
-        ifr.setAttribute("data-ready","1");
         return;
       }
 
@@ -337,16 +361,21 @@
       }
     }, false);
 
-    // Lazy iframes
+    // ====== Lazy iframes ======
     const lazyIframes = new Set(Array.from(root.querySelectorAll("iframe.review-embed[data-src]")));
     const io = "IntersectionObserver" in window
-      ? new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) loadIframe(entry.target, lazyIframes); }),
-                                 { root: null, rootMargin: "200px 0px", threshold: 0.2 })
+      ? new IntersectionObserver((entries) => entries.forEach((entry) => {
+          if (entry.isIntersecting) loadIframe(entry.target, lazyIframes);
+        }), { root: null, rootMargin: "200px 0px", threshold: 0.2 })
       : null;
 
-    lazyIframes.forEach((ifr) => { io?.observe(ifr); relaxHeightsFor(ifr, BASE); });
+    // Fijar base inmediatamente (sin relajar contenedores) y observar
+    lazyIframes.forEach((ifr) => {
+      primeBaseHeight(ifr, getBaseForIframe(ifr) || BASE);
+      io?.observe(ifr);
+    });
 
-    // Precarga del siguiente + ajustes
+    // Precarga del siguiente + ajustes de título
     root.addEventListener("slide.bs.carousel", (ev) => {
       const to = ev.to ?? 0;
       const items = root.querySelectorAll(".carousel-item");
@@ -358,9 +387,24 @@
       setTimeout(() => pingVisibleIframes(root, targetOrigin), 120);
     });
 
+    // Al terminar el slide, si el iframe del slide activo tiene altura guardada, aplicarla
+    root.addEventListener("slid.bs.carousel", (ev) => {
+      const active = root.querySelector(".carousel-item.active iframe.review-embed[data-uid]");
+      if (!active) return;
+      const uid = active.dataset.uid;
+      const base = getBaseForIframe(active) || BASE;
+      const h = EMBED_STATE.get(uid) || base;
+      applyEmbedHeight(active, Math.max(MIN_H, Math.min(MAX_H, h)));
+    });
+
     // Arranque
-    setTimeout(() => { lazyIframes.forEach((ifr) => loadIframe(ifr, lazyIframes)); pingVisibleIframes(root, targetOrigin); }, 2500);
+    setTimeout(() => {
+      lazyIframes.forEach((ifr) => loadIframe(ifr, lazyIframes));
+      pingVisibleIframes(root, targetOrigin);
+    }, 2500);
     pingVisibleIframes(root, targetOrigin);
+
+    // Ajustes iniciales
     root.querySelectorAll(".hero-card").forEach(adjustTitleLayoutFor);
     if (document.fonts?.ready) document.fonts.ready.then(() => root.querySelectorAll(".hero-card").forEach(adjustTitleLayoutFor));
   }

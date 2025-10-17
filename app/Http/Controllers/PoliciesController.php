@@ -38,4 +38,14 @@ class PoliciesController extends Controller
 
         return view('policies.show', compact('policy'));
     }
+
+
+public function showById(Policy $policy)
+{
+    $policy->loadMissing('translations'); // opcional, por consistencia
+    return redirect()->to(
+        localized_route('policies.show', ['policy' => $policy->slug]),
+        301
+    );
+}
 }

@@ -142,6 +142,8 @@ Route::middleware([SetLocale::class])->group(function () {
         // Policies
         Route::get('/policies', [PoliciesController::class, 'index'])->name('policies.index');
         Route::get('/policies/{policy:slug}', [PoliciesController::class, 'show'])->name('policies.show');
+                Route::get('/policies/id/{policy:policy_id}', [PoliciesController::class, 'showById'])
+    ->name('policies.show.id');
 
         // Reviews públicas
         Route::get('/reviews', [ReviewsController::class, 'index'])->name('reviews.index');

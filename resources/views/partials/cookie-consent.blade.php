@@ -1,5 +1,8 @@
 {{-- resources/views/partials/cookie-consent.blade.php --}}
 @php
+    // Si ya hay decisión (cookie presente), no mostrar el banner (doble guard por si se incluye directo)
+    $hasConsent = !is_null(request()->cookie('gv_cookie_consent'));
+
     // URL a "todas las políticas"
     $policiesIndexUrl = function_exists('localized_route')
         ? localized_route('policies.index')
@@ -12,6 +15,7 @@
     };
 @endphp
 
+@if (! $hasConsent)
 <style>
   .cookie-banner {
       position: fixed;
@@ -95,7 +99,7 @@
         <strong>{{ $t('cookies.title', 'Usamos cookies') }}</strong>
         <div class="mt-1">
           {{ $t('cookies.noscript', 'Para gestionar tu consentimiento habilita JavaScript. Puedes revisar nuestras políticas aquí:') }}
-          <a href="{{ $policiesIndexUrl }}">{{ $t('cookies.more_info', 'Más información') }}</a>
+          <a href="{{ $policiesIndexUrl }}">{{ $t('cookies.learn_more', 'Más información') }}</a>
         </div>
       </div>
     </div>
@@ -136,9 +140,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // Sincroniza con el servidor (setea gv_cookie_consent)
       await postConsent(url);
 
-      // Recarga para que el layout deje de inyectar (o inyecte) GA/Pixel según consentimiento
-      setTimeout(() => window.location.reload(), 150);
+      // ✅ Recarga SOLO si se aceptó (para inyectar GA/Pixel en el layout)
+      if (action === 'accept') {
+        setTimeout(() => window.location.reload(), 120);
+      }
     });
   });
 });
 </script>
+@endif

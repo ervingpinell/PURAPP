@@ -46,7 +46,7 @@
   /* Botones anclados al card */
   --card-w: min(600px, 95vw);
   --card-half: calc(var(--card-w) / 2);
-  --btn-gap: .9rem;          /* ← más espacio */
+  --btn-gap: .9rem;
   --btn-size: 2.5rem;
   --btn-size-sm: 2rem;
 }
@@ -119,17 +119,36 @@
 /* Powered by */
 .home-hero .powered-by{ margin-top:auto; text-align:center; font-size:var(--fs-xs); color:#777; padding-top:.75rem; }
 
-/* Iframe */
+/* Iframe (fijamos altura estable) */
 .home-hero .iframe-shell{
   position:relative; max-width:600px; width:100%; margin:0 auto;
-  min-height:460px; height:460px; border-radius:12px; overflow:visible;
-  background:#fff; transition:height .25s ease, min-height .25s ease;
+  /* valor por defecto, se sobrescribe inline con --embed-h */
+  --embed-h: 460px;
+  height: var(--embed-h);
+  min-height: var(--embed-h);
+  border-radius:12px; overflow:hidden;
+  background:#fff;
+  transition: height .15s ease, min-height .15s ease;
 }
+
 .home-hero iframe.review-embed,
 .home-hero iframe.review-iframe{
-  max-width:600px; width:100%; border:0; border-radius:12px; overflow:hidden; display:block;
-  background:#fff; height:460px; transition:height .25s ease;
+  display:block;
+  max-width:600px; width:100%;
+  height: var(--embed-h);
+  min-height: var(--embed-h);
+  border:0; border-radius:12px; overflow:hidden; background:#fff;
+  transition: height .15s ease, min-height .15s ease;
 }
+
+/* No dejar que los slides no activos afecten la altura del carrusel */
+.home-hero .carousel-item:not(.active) .iframe-shell,
+.home-hero .carousel-item:not(.active) iframe.review-embed{
+  height: var(--embed-h) !important;
+  min-height: var(--embed-h) !important;
+}
+
+.home-hero .iframe-skeleton{ height: var(--embed-h); }
 
 /* === Controles del carrusel pegados al card === */
 .home-hero .carousel-control-prev,
@@ -138,8 +157,6 @@
   z-index:10; width:var(--btn-size); height:var(--btn-size);
   padding:0; display:flex; align-items:center; justify-content:center;
 }
-
-/* Anclaje calculado al borde del card centrado */
 .home-hero .carousel-control-prev{ left: max(.5rem, calc(50% - var(--card-half) - var(--btn-gap))); }
 .home-hero .carousel-control-next{ right:max(.5rem, calc(50% - var(--card-half) - var(--btn-gap))); }
 
@@ -158,7 +175,7 @@
 /* Responsive */
 @media (max-width:576.98px){
   .home-hero{
-    --btn-gap:.6rem;        /* ← un poco más también en mobile */
+    --btn-gap:.6rem;
     --btn-size:var(--btn-size-sm);
   }
   .home-hero .tour-title-abs{ position:static; max-width:100%; text-align:center; margin:.25rem 0 0; -webkit-line-clamp:2; }
@@ -173,8 +190,8 @@
   .home-hero .review-stars{ font-size:1rem; }
   .home-hero .rating-number{ font-size:var(--fs-xs); }
   .home-hero .review-label{ font-size:var(--fs-label); padding:.35rem .7rem; border-radius:18px; }
-  .home-hero .review-content{ font-size:.9rem; } /* mismo que --fs-body */
-  .home-hero .review-content.clamp-5{ -webkit-line-clamp:4; }
+  .home-hero .review-content{ font-size:.9rem; }
+  .home-hero .home-hero .review-content.clamp-5{ -webkit-line-clamp:4; }
   .home-hero .review-toggle{ font-size:.8rem; }
 }
 

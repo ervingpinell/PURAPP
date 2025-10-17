@@ -71,6 +71,8 @@ return [
     'selectHotelHelp' => 'Wählen Sie Ihr Hotel aus der Liste.',
     'pickup_time' => 'Abholzeit',
     'pickupTime'  => 'Abholzeit',
+    'meeting_time' => 'Treffzeit',
+    'meetingTime'  => 'Treffzeit',
     'open_map' => 'Karte öffnen',
     'openMap'  => 'Karte öffnen',
 
@@ -166,7 +168,7 @@ return [
     // 8. HOTELS (DETAIL)
     'hotels' => 'Hotels',
     'hotel' => 'Hotel',
-    'select_hotel' => 'Hotel oder Abholpunkt',
+    'select_hotel' => 'Hotel',
     'hotel_other' => 'Andere (manuell angeben)',
     'hotel_name' => 'Hotelname',
     'other_hotel' => 'Anderes Hotel (angeben)',

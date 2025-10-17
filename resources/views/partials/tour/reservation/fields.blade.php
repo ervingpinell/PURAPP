@@ -1,0 +1,114 @@
+{{-- ===== Date & Time ===== --}}
+@push('css')
+<style>
+  .gv-label-icon{
+    display:flex; align-items:center; gap:.4rem;
+    font-weight:700; /* mantiene estilo actual del label */
+  }
+  .gv-label-icon i{ color:#30363c; line-height:1; }
+</style>
+@endpush
+
+<div class="gv-grid-2">
+  {{-- Date --}}
+  <div>
+    <label class="form-label gv-label-icon">
+      <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+      <span>{{ __('adminlte::adminlte.select_date') }}</span>
+    </label>
+    <input
+      id="tourDateInput"
+      type="text"
+      name="tour_date"
+      class="form-control"
+      placeholder="dd/mm/yyyy"
+      required
+    >
+  </div>
+
+  {{-- Schedule --}}
+  <div>
+    <label class="form-label gv-label-icon">
+      <i class="fas fa-clock" aria-hidden="true"></i>
+      <span>{{ __('adminlte::adminlte.select_time') }}</span>
+    </label>
+    <select name="schedule_id" class="form-select" id="scheduleSelect" required>
+      <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
+      @foreach($tour->schedules->sortBy('start_time') as $schedule)
+        <option value="{{ $schedule->schedule_id }}">
+          {{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}
+        </option>
+      @endforeach
+    </select>
+  </div>
+</div>
+
+<div id="noSlotsHelp" class="form-text text-danger mb-2" style="display:none;"></div>
+
+{{-- ===== Language ===== --}}
+<div class="section-title mt-3">
+  <i class="fas fa-language"></i>
+  <span>{{ __('adminlte::adminlte.select_language') }}</span>
+</div>
+<select name="tour_language_id" class="form-select mb-2" id="languageSelect" required>
+  <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
+  @foreach($tour->languages as $lang)
+    <option value="{{ $lang->tour_language_id }}">{{ $lang->name }}</option>
+  @endforeach
+</select>
+
+{{-- ===== Pickup (Hotel) ===== --}}
+<div class="section-title mt-3">
+  <i class="fas fa-hotel"></i>
+  <span>{{ __('adminlte::adminlte.select_hotel') ?? 'Hotel o punto de recogida' }}</span>
+</div>
+<label for="hotelSelect" class="visually-hidden">
+  {{ __('adminlte::adminlte.select_hotel') ?? 'Hotel o punto de recogida' }}
+</label>
+<select class="form-select mb-2" id="hotelSelect" name="hotel_id">
+  <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
+  @foreach($hotels as $hotel)
+    <option value="{{ $hotel->hotel_id }}">{{ $hotel->name }}</option>
+  @endforeach
+  <option value="other">{{ __('adminlte::adminlte.hotel_other') }}</option>
+</select>
+
+{{-- Campo “otro hotel” --}}
+<div class="mb-2 d-none" id="otherHotelWrapper">
+  <label for="otherHotelInput" class="form-label">{{ __('adminlte::adminlte.hotel_name') }}</label>
+  <input type="text" class="form-control" name="other_hotel_name" id="otherHotelInput"
+         placeholder="{{ __('adminlte::adminlte.hotel_name') }}">
+  <div class="form-text text-danger mt-1" id="outsideAreaMessage" style="display:none;">
+    {{ __('adminlte::adminlte.outside_area')
+        ?: 'Has ingresado un hotel personalizado. Contáctanos para confirmar si podemos ofrecer transporte desde ese lugar.' }}
+  </div>
+</div>
+
+{{-- ===== Meeting Point (opcional / alternativo) ===== --}}
+<div class="section-title mt-3">
+  <i class="fas fa-map-marker-alt"></i>
+  <span>{{ __('adminlte::adminlte.meetingPoint') ?? 'Punto de encuentro' }}</span>
+</div>
+<select class="form-select" name="selected_meeting_point" id="meetingPointSelect">
+  <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
+  @foreach($meetingPoints as $mp)
+    <option
+      value="{{ $mp->id }}"
+      data-desc="{{ e($mp->description ?? '') }}"
+      data-time="{{ $mp->pickup_time ?? '' }}"
+      data-url="{{ $mp->map_url ?? $mp->url ?? '' }}"
+    >
+      {{ $mp->name }}{{ $mp->pickup_time ? ' — '.$mp->pickup_time : '' }}
+    </option>
+  @endforeach
+</select>
+
+
+{{-- Info dinámica del meeting point --}}
+<div id="meetingPointInfo" class="meeting-info card card-body bg-light border rounded small d-none mt-2">
+  <div id="mpDesc" class="mp-desc mb-1"></div>
+  <div id="mpTime" class="mp-time"></div>
+  <a id="mpLink" class="btn btn-sm btn-outline-success d-none mt-2" href="#" target="_blank" rel="noopener">
+    <i class="fas fa-map me-1"></i> {{ __('adminlte::adminlte.open_map') ?: 'View location' }}
+  </a>
+</div>

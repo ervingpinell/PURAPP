@@ -1,4 +1,4 @@
-@include('partials.tour.reservation-form', [
+@include('partials.tour.reservation.form', [
   'tour'              => $tour,
   'hotels'            => $hotels,
   'meetingPoints'     => $meetingPoints,
