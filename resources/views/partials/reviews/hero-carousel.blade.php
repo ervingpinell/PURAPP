@@ -34,7 +34,7 @@
 @endphp
 
 @if($items->isEmpty())
-  <div class="text-center text-muted py-4">{{ __('reviews.no_reviews_yet') }}</div>
+  <div class="text-center text-muted py-4">{{ __('reviews.front.no_reviews') }}</div>
 @else
 <div id="{{ $carouselId }}"
      class="carousel slide home-hero"

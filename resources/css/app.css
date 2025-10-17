@@ -510,7 +510,7 @@ body.has-fixed-navbar .container > .big-title:first-child{
   display:inline-block; background:#e74c3c; color:#fff; font-weight:700;
   line-height:1.25; padding:.48rem .9rem; border-radius:999px;
   max-width:100%; white-space:normal; overflow:visible;
-  word-break:break-word; hyphens:auto; text-align:center; margin:0 auto .5rem;
+  word-break:break-word; hyphens:auto; text-align:center;
 }
 
 /* Evitar que el body de la card recorte el título */

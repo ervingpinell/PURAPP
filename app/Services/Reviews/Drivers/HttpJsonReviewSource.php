@@ -70,10 +70,13 @@ class HttpJsonReviewSource implements ReviewSource
         }
 
         // === Resolver tokens {env:VAR} y {config:path} recursivamente en url/headers/query/payload
-        $this->url     = $this->resolveDynamicString($this->url);
-        $this->headers = $this->resolveDynamicTokens($this->headers);
-        $this->query   = $this->resolveDynamicTokens($this->query);
-        $this->payload = $this->resolveDynamicTokens($this->payload);
+        $this->url       = $this->resolveDynamicString($this->url);
+        $this->headers   = $this->resolveDynamicTokens($this->headers);
+        $this->query     = $this->resolveDynamicTokens($this->query);
+        $this->payload   = $this->resolveDynamicTokens($this->payload);
+        $this->map       = $this->resolveDynamicTokens($this->map);
+        $this->extrasMap = $this->resolveDynamicTokens($this->extrasMap);
+        $this->filters   = $this->resolveDynamicTokens($this->filters);
 
         // Reemplaza {api_key} si aparece en headers
         if (!empty($this->apiKey)) {
