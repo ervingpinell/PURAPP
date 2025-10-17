@@ -1,4 +1,3 @@
-{{-- resources/views/partials/tour/assets.blade.php --}}
 @once
   {{-- Flatpickr --}}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -309,6 +308,7 @@
 
   /* =======================
    *   TRAVELER INLINE — mínimo total = 2
+   *   + Máximo niños = 2 (botón + bloquea al llegar)
    * ======================= */
   {
     const adultMinusBtn = document.getElementById('adultMinusBtn');
@@ -324,9 +324,9 @@
     const MIN_ADULTS    = Number(formEl?.dataset?.minAdults ?? 1);
     const MIN_TOTAL     = Number(formEl?.dataset?.minTotal  ?? 2);
     const MAX_TRAVELERS = Number(formEl?.dataset?.maxTravelers ?? 12);
-    const MAX_KIDS      = Number(formEl?.dataset?.maxKids ?? 4);
-    const MIN_KIDS      = 0;
+    const MAX_KIDS = Math.min(2, Number(formEl?.dataset?.maxKids ?? 2));
 
+    const MIN_KIDS      = 0;
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
     function capByRules(a, k){
@@ -366,8 +366,12 @@
       updateTotals();
       window.dispatchEvent(new CustomEvent('traveler:updated'));
 
+      // bloquear “–” si rompería el mínimo total
       if (adultMinusBtn) adultMinusBtn.disabled = ((a - 1) < MIN_ADULTS) || ((a - 1) + k < MIN_TOTAL);
       if (kidMinusBtn)   kidMinusBtn.disabled   = ((k - 1) < MIN_KIDS)   || (a + (k - 1) < MIN_TOTAL);
+
+      // bloquear “+” niños al alcanzar tope (2 por reserva)
+      if (kidPlusBtn)    kidPlusBtn.disabled    = (k >= MAX_KIDS) || (a + k >= MAX_TRAVELERS);
     }
 
     // Inicial desde hidden y normaliza

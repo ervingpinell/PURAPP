@@ -3,8 +3,6 @@
   use App\Models\AppSetting;
 
   $tz     = config('app.timezone', 'America/Costa_Rica');
-  $today  = Carbon::today($tz)->toDateString();
-
   $gCutoff = (string) AppSetting::get('booking.cutoff_hour', config('booking.cutoff_hour', '18:00'));
   $gLead   = (int)    AppSetting::get('booking.lead_days', (int) config('booking.lead_days', 1));
 
@@ -12,7 +10,6 @@
       $now = Carbon::now($tz);
       [$hh,$mm] = array_pad(explode(':', $cutoff, 2), 2, '00');
       $cutoffToday = Carbon::create($now->year, $now->month, $now->day, (int)$hh, (int)$mm, 0, $tz);
-
       $passed = $now->gte($cutoffToday);
       $days   = max(0, (int)$lead) + ($passed ? 1 : 0);
       return [
@@ -54,7 +51,7 @@
   data-kid-price="{{ $tour->kid_price }}"
   data-min-adults="1"
   data-max-travelers="{{ max(1, (int)($tour->max_capacity ?? 12)) }}"
-  data-max-kids="{{ max(0, (int)($tour->max_kids ?? 4)) }}"
+  data-max-kids="2"  {{-- Máximo 2 niños por reserva (regla global) --}}
   data-min-total="2"
 >
   @csrf

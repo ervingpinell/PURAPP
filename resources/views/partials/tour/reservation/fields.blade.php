@@ -2,16 +2,22 @@
 @push('css')
 <style>
   .gv-label-icon{
-    display:flex; align-items:center; gap:.4rem;
-    font-weight:700; /* mantiene estilo actual del label */
+    display:flex; align-items:center; gap:.5rem; font-weight:700;
   }
   .gv-label-icon i{ color:#30363c; line-height:1; }
+  /* Evita que el texto del label se corte en 2 líneas */
+  .gv-label-icon span{ white-space:nowrap; }
+
+  /* Choices ocupa 100% del ancho y no rompe el layout */
+  .reservation-box .choices{ width:100%; }
+  .reservation-box .choices__inner{ width:100%; }
+  .reservation-box .choices__list--dropdown{ width:100%; }
 </style>
 @endpush
 
-<div class="gv-grid-2">
+<div class="row g-2">
   {{-- Date --}}
-  <div>
+  <div class="col-12 col-sm-6">
     <label class="form-label gv-label-icon">
       <i class="fas fa-calendar-alt" aria-hidden="true"></i>
       <span>{{ __('adminlte::adminlte.select_date') }}</span>
@@ -20,19 +26,19 @@
       id="tourDateInput"
       type="text"
       name="tour_date"
-      class="form-control"
+      class="form-control w-100"
       placeholder="dd/mm/yyyy"
       required
     >
   </div>
 
   {{-- Schedule --}}
-  <div>
+  <div class="col-12 col-sm-6">
     <label class="form-label gv-label-icon">
       <i class="fas fa-clock" aria-hidden="true"></i>
       <span>{{ __('adminlte::adminlte.select_time') }}</span>
     </label>
-    <select name="schedule_id" class="form-select" id="scheduleSelect" required>
+    <select name="schedule_id" class="form-select w-100" id="scheduleSelect" required>
       <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
       @foreach($tour->schedules->sortBy('start_time') as $schedule)
         <option value="{{ $schedule->schedule_id }}">
@@ -46,11 +52,12 @@
 <div id="noSlotsHelp" class="form-text text-danger mb-2" style="display:none;"></div>
 
 {{-- ===== Language ===== --}}
-<div class="section-title mt-3">
-  <i class="fas fa-language"></i>
+<div class="section-title mt-3 d-flex align-items-center gap-2">
+  <i class="fas fa-language" aria-hidden="true"></i>
   <span>{{ __('adminlte::adminlte.select_language') }}</span>
 </div>
-<select name="tour_language_id" class="form-select mb-2" id="languageSelect" required>
+<label for="languageSelect" class="visually-hidden">{{ __('adminlte::adminlte.select_language') }}</label>
+<select name="tour_language_id" class="form-select mb-2 w-100" id="languageSelect" required>
   <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
   @foreach($tour->languages as $lang)
     <option value="{{ $lang->tour_language_id }}">{{ $lang->name }}</option>
@@ -58,14 +65,14 @@
 </select>
 
 {{-- ===== Pickup (Hotel) ===== --}}
-<div class="section-title mt-3">
-  <i class="fas fa-hotel"></i>
+<div class="section-title mt-3 d-flex align-items-center gap-2">
+  <i class="fas fa-hotel" aria-hidden="true"></i>
   <span>{{ __('adminlte::adminlte.select_hotel') ?? 'Hotel o punto de recogida' }}</span>
 </div>
 <label for="hotelSelect" class="visually-hidden">
   {{ __('adminlte::adminlte.select_hotel') ?? 'Hotel o punto de recogida' }}
 </label>
-<select class="form-select mb-2" id="hotelSelect" name="hotel_id">
+<select class="form-select mb-2 w-100" id="hotelSelect" name="hotel_id">
   <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
   @foreach($hotels as $hotel)
     <option value="{{ $hotel->hotel_id }}">{{ $hotel->name }}</option>
@@ -85,11 +92,12 @@
 </div>
 
 {{-- ===== Meeting Point (opcional / alternativo) ===== --}}
-<div class="section-title mt-3">
-  <i class="fas fa-map-marker-alt"></i>
+<div class="section-title mt-3 d-flex align-items-center gap-2">
+  <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
   <span>{{ __('adminlte::adminlte.meetingPoint') ?? 'Punto de encuentro' }}</span>
 </div>
-<select class="form-select" name="selected_meeting_point" id="meetingPointSelect">
+<label for="meetingPointSelect" class="visually-hidden">{{ __('adminlte::adminlte.meetingPoint') ?? 'Punto de encuentro' }}</label>
+<select class="form-select w-100" name="selected_meeting_point" id="meetingPointSelect">
   <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
   @foreach($meetingPoints as $mp)
     <option
@@ -102,7 +110,6 @@
     </option>
   @endforeach
 </select>
-
 
 {{-- Info dinámica del meeting point --}}
 <div id="meetingPointInfo" class="meeting-info card card-body bg-light border rounded small d-none mt-2">

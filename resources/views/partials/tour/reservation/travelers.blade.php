@@ -27,7 +27,7 @@
       </div>
     </div>
 
-    {{-- NIÑOS --}}
+    {{-- NIÑOS (máx. 2) --}}
     <div class="gv-trav-row d-flex align-items-center justify-content-between py-2 border rounded px-2">
       <div class="d-flex align-items-center gap-2">
         <i class="fas fa-child" aria-hidden="true"></i>
@@ -42,7 +42,7 @@
         <input id="kidInput"
                class="form-control form-control-sm text-center"
                type="number" inputmode="numeric" pattern="[0-9]*"
-               min="0" step="1" value="0"
+               min="0" max="2" step="1" value="0"
                aria-label="{{ __('adminlte::adminlte.kids_quantity') ?? 'Cantidad de niños' }}">
 
         <button type="button"
