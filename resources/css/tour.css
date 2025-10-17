@@ -115,7 +115,7 @@
 
 /* Fila viajeros (ancho de input base) */
 .gv-trav-row .btn{ min-width:2rem; }
-.gv-trav-row input[type="number"]{ max-width:84px; }
+.gv-trav-row input[type="number"]{ max-width:84px; text-align:center; }
 
 /* =========================
    GRID fecha/hora
@@ -194,19 +194,13 @@
   --trav-btn-font: .9rem;
   --trav-input-w: 72px;
 }
-.gv-travelers .gv-trav-row{
-  font-size: var(--trav-row-font);
-}
-.gv-travelers .gv-trav-row .fw-semibold{
-  font-size: var(--trav-label-font);
-}
+.gv-travelers .gv-trav-row{ font-size: var(--trav-row-font); }
+.gv-travelers .gv-trav-row .fw-semibold{ font-size: var(--trav-label-font); }
 .gv-travelers .gv-trav-row input[type="number"]{
   max-width: var(--trav-input-w);
   font-size: var(--trav-row-font);
 }
-.gv-travelers .gv-trav-row .btn{
-  font-size: var(--trav-btn-font);
-}
+.gv-travelers .gv-trav-row .btn{ font-size: var(--trav-btn-font); }
 
 /* Travelers en modo compacto: heredan reducción */
 .reservation-box.is-compact .gv-travelers{
@@ -216,6 +210,55 @@
   --trav-input-w: 68px;
 }
 
+/* ===== FIX: TRAVELERS — controles sin salto + tamaños adaptativos ===== */
+
+/* Nunca rompas los 3 controles a otra línea */
+.gv-travelers .gv-trav-row > .d-flex:last-child{
+  flex-wrap: nowrap !important;
+  gap: .5rem;
+}
+.gv-travelers .gv-trav-row > .d-flex:last-child > *{
+  flex: 0 0 auto;
+}
+
+/* El bloque etiqueta no fuerza ancho */
+.gv-travelers .gv-trav-row > .d-flex:first-child{ min-width: 0; }
+
+/* Alinear input y tamaño por variable */
+.gv-travelers .gv-trav-row input[type="number"]{
+  text-align: center;
+  width: var(--trav-input-w);
+  max-width: var(--trav-input-w);
+}
+
+/* Botones compactos sin encogerse */
+.gv-travelers .gv-trav-row .btn{
+  min-width: 2rem;
+  padding: .25rem .5rem;
+}
+
+/* iPad/tablets y abajo: un poco más compacto */
+@media (max-width: 1024px){
+  .gv-travelers{ --trav-input-w: 64px; }
+}
+
+/* Phones <= 420px: grid (etiqueta | controles) */
+@media (max-width: 420px){
+  .gv-travelers .gv-trav-row{
+    display: grid !important;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: .5rem;
+  }
+  .gv-travelers{ --trav-input-w: 60px; }
+}
+
+/* Phones muy pequeños */
+@media (max-width: 360px){
+  .gv-travelers{ --trav-input-w: 54px; }
+  .reservation-box{ --gv-field-h: 38px; }
+}
+
 /* Mensajes/help y total */
 .reservation-box.is-compact #noSlotsHelp,
 .reservation-box.is-compact .gv-total-inline{
@@ -223,16 +266,10 @@
 }
 
 /* Tarjeta de meeting point compacta */
-.reservation-box.is-compact .meeting-info.card{
-  padding: .45rem .6rem;
-}
+.reservation-box.is-compact .meeting-info.card{ padding: .45rem .6rem; }
 .reservation-box.is-compact #mpDesc,
-.reservation-box.is-compact #mpTime{
-  font-size: calc(var(--fs-body) - 1px);
-}
-.reservation-box.is-compact #mpLink{
-  font-size: .85rem;
-}
+.reservation-box.is-compact #mpTime{ font-size: calc(var(--fs-body) - 1px); }
+.reservation-box.is-compact #mpLink{ font-size: .85rem; }
 
 /* =========================
    CTA y foco con el verde del tour

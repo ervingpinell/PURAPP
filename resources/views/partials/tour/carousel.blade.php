@@ -46,17 +46,76 @@
 @endphp
 
 <style>
-  #tourCarousel .thumb-box img {
-    width: 92px; height: 92px; object-fit: cover; border-radius: .5rem;
-    border: 2px solid transparent; cursor: pointer;
+/* ===== Lightbox centrado en cualquier dispositivo ===== */
+#tourLightbox .modal-dialog{
+  /* ancho controlado, sin empujarlo hacia abajo por márgenes */
+  margin: 0 auto;
+  width: auto;
+  max-width: min(1100px, 96vw);
+}
+
+#tourLightbox .modal-content{
+  background: #000;
+  border: 0;
+}
+
+/* Centrado vertical robusto con viewport dinámico (iOS/Android barras) */
+#tourLightbox.show .modal-dialog{
+  display: flex;
+  align-items: center;
+  min-height: 100dvh;               /* ✅ clave para iPad/iOS */
+}
+
+@supports not (height: 100dvh){
+  /* fallback para navegadores muy viejos */
+  #tourLightbox.show .modal-dialog{ min-height: 100vh; }
+}
+
+/* Cuerpo sin padding, centrado perfecto del carrusel */
+#tourLightbox .modal-body{
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* respiración en safe-areas (notch) */
+  padding-top: max(0px, env(safe-area-inset-top));
+  padding-bottom: max(0px, env(safe-area-inset-bottom));
+}
+
+/* Imagen grande: contener sin recortes y sin salirse del viewport */
+#tourLightbox .carousel-item img{
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  /* 100dvh menos un pequeño margen visual y safe areas */
+  max-height: calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  object-fit: contain;
+  background: #000;
+}
+
+@supports not (height: 100dvh){
+  #tourLightbox .carousel-item img{
+    max-height: calc(100vh - 24px);
   }
-  #tourCarousel .thumb-box img.active { border-color: #198754; }
-  #tourCarousel .thumb-box { max-height: 462px; overflow: auto; }
-  #tourLightbox .modal-dialog { max-width: min(1100px, 95vw); }
-  #tourLightbox .modal-body { padding: 0; background: #000; }
-  #tourLightbox .carousel-item img {
-    width: 100%; max-height: 82vh; object-fit: contain; background: #000;
+}
+
+/* Botón de cierre siempre visible en la esquina segura */
+#tourLightbox .modal-body > .btn,
+#tourLightbox .modal-body .btn-close{
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top));
+  right: max(8px, env(safe-area-inset-right));
+  z-index: 5;
+}
+
+/* Opcional: en móviles muy pequeños, usa casi pantalla completa */
+@media (max-width: 576.98px){
+  #tourLightbox .modal-dialog{
+    max-width: 100vw;
   }
+}
+
 </style>
 
 <div id="tourCarousel"
@@ -133,7 +192,7 @@
 
 {{-- Lightbox (Modal) --}}
 <div class="modal fade" id="tourLightbox" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-xl">
+  <div class="modal-dialog modal-xl">
     <div class="modal-content bg-black">
       <div class="modal-body position-relative">
         <button type="button" class="btn btn-light position-absolute top-0 end-0 m-2"
