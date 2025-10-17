@@ -22,72 +22,71 @@ use Throwable;
 
 class HomeController extends Controller
 {
-    public function index(ReviewDistributor $distributor, ReviewsCacheManager $cacheManager)
-    {
-        $currentLocale  = app()->getLocale();
-        $fallbackLocale = config('app.fallback_locale', 'es');
+public function index(ReviewDistributor $distributor, ReviewsCacheManager $cacheManager)
+{
+    $currentLocale  = app()->getLocale();
+    $fallbackLocale = config('app.fallback_locale', 'es');
 
-        try {
-            // 1) Meta de tipos + Tours
-            $typeMeta = $this->loadTypeMeta($currentLocale, $fallbackLocale);
+    try {
+        // 1) Meta de tipos + Tours
+        $typeMeta = $this->loadTypeMeta($currentLocale, $fallbackLocale);
 
-            // 2) Cargar tours activos con traducciones
-            $tours = $this->loadActiveToursWithTranslations($currentLocale, $fallbackLocale)
-                ->map(function ($tour) use ($currentLocale, $fallbackLocale) {
-                    $tr = $this->pickTranslation($tour->translations, $currentLocale, $fallbackLocale);
-                    $tour->translated_name = $tr->name ?? $tour->name;
-                    return $tour;
-                });
-
-            $toursByType = $tours
-                ->sortBy('tour_type_id_group', SORT_NATURAL | SORT_FLAG_CASE)
-                ->groupBy(fn ($tour) => $tour->tour_type_id_group);
-
-            // 3) Reviews para HOME
-            $cacheKey = 'home_reviews:' . $currentLocale . ':' . $cacheManager->getRevision();
-            $homeReviews = Cache::remember($cacheKey, 86400, function () use ($distributor, $tours) {
-                return $distributor->forHome($tours, perTour: 3, maxTotal: 24);
+        // 2) Cargar tours activos con traducciones (YA VIENEN ORDENADOS)
+        $tours = $this->loadActiveToursWithTranslations($currentLocale, $fallbackLocale)
+            ->map(function ($tour) use ($currentLocale, $fallbackLocale) {
+                $tr = $this->pickTranslation($tour->translations, $currentLocale, $fallbackLocale);
+                $tour->translated_name = $tr->name ?? $tour->name;
+                return $tour;
             });
 
-            // 4) Asegurar nombre traducido y slug en cada review
-            $homeReviews = $homeReviews->map(function ($review) use ($tours, $currentLocale, $fallbackLocale) {
-                $tourId = (int)($review['tour_id'] ?? 0);
-                if ($tourId) {
-                    $tour = $tours->firstWhere('tour_id', $tourId);
-                    if ($tour) {
-                        if (empty($tour->translated_name)) {
-                            $tr = $this->pickTranslation($tour->translations, $currentLocale, $fallbackLocale);
-                            $tour->translated_name = $tr->name ?? $tour->name;
-                        }
-                        $review['tour_name'] = $tour->translated_name ?? $tour->name;
-                        $review['tour_slug'] = $tour->slug;
+        // Agrupa conservando el orden que ya trae cada categoría
+        $toursByType = $tours->groupBy(fn ($tour) => $tour->tour_type_id_group);
+
+        // 3) Reviews para HOME
+        $cacheKey = 'home_reviews:' . $currentLocale . ':' . $cacheManager->getRevision();
+        $homeReviews = Cache::remember($cacheKey, 86400, function () use ($distributor, $tours) {
+            return $distributor->forHome($tours, perTour: 3, maxTotal: 24);
+        });
+
+        // 4) Asegurar nombre traducido y slug en cada review
+        $homeReviews = $homeReviews->map(function ($review) use ($tours, $currentLocale, $fallbackLocale) {
+            $tourId = (int)($review['tour_id'] ?? 0);
+            if ($tourId) {
+                $tour = $tours->firstWhere('tour_id', $tourId);
+                if ($tour) {
+                    if (empty($tour->translated_name)) {
+                        $tr = $this->pickTranslation($tour->translations, $currentLocale, $fallbackLocale);
+                        $tour->translated_name = $tr->name ?? $tour->name;
                     }
+                    $review['tour_name'] = $tour->translated_name ?? $tour->name;
+                    $review['tour_slug'] = $tour->slug;
                 }
-                return $review;
-            });
+            }
+            return $review;
+        });
 
-            // 5) Meeting Points
-            $meetingPoints = MeetingPoint::active()
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get(['id','name','pickup_time','description','map_url']);
+        // 5) Meeting Points
+        $meetingPoints = MeetingPoint::active()
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get(['id','name','pickup_time','description','map_url']);
 
-            return view('public.home', compact('toursByType', 'typeMeta', 'homeReviews', 'meetingPoints'));
-        } catch (Throwable $e) {
-            Log::error('home.index.error', [
-                'msg'  => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-            ]);
+        return view('public.home', compact('toursByType', 'typeMeta', 'homeReviews', 'meetingPoints'));
+    } catch (Throwable $e) {
+        Log::error('home.index.error', [
+            'msg'  => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile(),
+        ]);
 
-            return view('public.home', [
-                'toursByType'   => collect(),
-                'typeMeta'      => collect(),
-                'homeReviews'   => collect(),
-                'meetingPoints' => collect(),
-            ]);
-        }
+        return view('public.home', [
+            'toursByType'   => collect(),
+            'typeMeta'      => collect(),
+            'homeReviews'   => collect(),
+            'meetingPoints' => collect(),
+        ]);
     }
+}
 
     public function showTour(Tour $tour, ReviewAggregator $agg, ReviewsCacheManager $cacheManager)
     {
@@ -209,20 +208,37 @@ class HomeController extends Controller
             });
     }
 
-    private function loadActiveToursWithTranslations(string $loc, string $fb): Collection
-    {
-        return Tour::with(['tourType.translations','translations','coverImage'])
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get(['tour_id','name','slug','tour_type_id','adult_price','kid_price','length'])
-            ->map(function ($tour) use ($loc, $fb) {
-                $tr = $this->pickTranslation($tour->translations, $loc, $fb);
-                $tour->translated_name     = $tr->name ?? $tour->name;
-                $tour->translated_overview = $tr->overview ?? $tour->overview;
-                $tour->tour_type_id_group  = optional($tour->tourType)->tour_type_id ?? 'uncategorized';
-                return $tour;
-            });
-    }
+private function loadActiveToursWithTranslations(string $loc, string $fb): Collection
+{
+    return Tour::query()
+        ->with(['tourType:tour_type_id,name', 'tourType.translations', 'translations', 'coverImage'])
+        ->leftJoin('tour_type_tour_order as o', function ($join) {
+            $join->on('o.tour_id', '=', 'tours.tour_id')
+                 ->on('o.tour_type_id', '=', 'tours.tour_type_id');
+        })
+        ->where('tours.is_active', true)
+        // === Orden asegurado por categoría y posición ===
+        ->orderBy('tours.tour_type_id')                                // agrupa por categoría
+        ->orderByRaw('CASE WHEN o.position IS NULL THEN 1 ELSE 0 END') // con posición primero
+        ->orderBy('o.position')                                        // orden definido (drag & drop)
+        ->orderBy('tours.name')                                        // desempate estable
+        ->get([
+            'tours.tour_id',
+            'tours.name',
+            'tours.slug',
+            'tours.tour_type_id',
+            'tours.adult_price',
+            'tours.kid_price',
+            'tours.length',
+        ])
+        ->map(function ($tour) use ($loc, $fb) {
+            $tr = $this->pickTranslation($tour->translations, $loc, $fb);
+            $tour->translated_name     = $tr->name ?? $tour->name;
+            $tour->translated_overview = $tr->overview ?? $tour->overview;
+            $tour->tour_type_id_group  = optional($tour->tourType)->tour_type_id ?? 'uncategorized';
+            return $tour;
+        });
+}
 
     private function computeTourBlocks(Tour $tour): array
     {

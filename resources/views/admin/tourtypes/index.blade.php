@@ -8,9 +8,16 @@
 
 @section('content')
 <div class="p-3 table-responsive">
-    <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-        <i class="fas fa-plus"></i> {{ __('m_config.tourtypes.new') }}
-    </a>
+    <div class="d-flex flex-wrap gap-2 mb-3">
+        <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
+            <i class="fas fa-plus"></i> {{ __('m_config.tourtypes.new') }}
+        </a>
+
+        {{-- Botón global para ordenar tours (abre la vista de orden sin categoría preseleccionada) --}}
+        <a href="{{ route('admin.tours.order.index') }}" class="btn btn-outline-primary">
+            <i class="fas fa-sort-amount-down"></i> Ordenar tours
+        </a>
+    </div>
 
     <table class="table table-bordered table-striped table-hover">
         <thead class="bg-primary text-white">
@@ -46,6 +53,13 @@
                        data-bs-target="#modalEditar{{ $tourtype->tour_type_id }}"
                        title="{{ __('m_config.tourtypes.edit') }}">
                         <i class="fas fa-edit"></i>
+                    </a>
+
+                    {{-- Ordenar tours de esta categoría (preselecciona tour_type_id en la vista de orden) --}}
+                    <a href="{{ route('admin.tours.order.index', ['tour_type_id' => $tourtype->tour_type_id]) }}"
+                       class="btn btn-sm btn-outline-primary me-1"
+                       title="Ordenar tours de «{{ $tourtype->name }}»">
+                        <i class="fas fa-sort-amount-down"></i>
                     </a>
 
                     {{-- Activar/Desactivar (SweetAlert) --}}

@@ -36,6 +36,7 @@ use App\Http\Controllers\Admin\Tours\TourExcludedDateController;
 use App\Http\Controllers\Admin\Tours\TourScheduleController;
 use App\Http\Controllers\Admin\Tours\TourTypeController;
 use App\Http\Controllers\Admin\Tours\TourTypeCoverPickerController;
+use App\Http\Controllers\Admin\Tours\TourOrderController;
 use App\Http\Controllers\Admin\Users\RoleController;
 use App\Http\Controllers\Admin\Users\UserRegisterController;
 use App\Http\Controllers\Admin\MeetingPointSimpleController;
@@ -275,12 +276,12 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::patch('roles/{role}/toggle', [RoleController::class, 'toggle'])->name('roles.toggle');
 
                 // Traducciones
-Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
-Route::get('translations/{type}/choose-locale', [TranslationController::class, 'chooseLocale'])->name('translations.choose-locale'); // NUEVA
-Route::get('translations/{type}/select', [TranslationController::class, 'select'])->name('translations.select');
-Route::get('translations/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('translations.edit');
-Route::post('translations/{type}/{id}/update', [TranslationController::class, 'update'])->name('translations.update');
-Route::post('translations/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('translations.change-editing-locale');
+                Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
+                Route::get('translations/{type}/choose-locale', [TranslationController::class, 'chooseLocale'])->name('translations.choose-locale'); // NUEVA
+                Route::get('translations/{type}/select', [TranslationController::class, 'select'])->name('translations.select');
+                Route::get('translations/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('translations.edit');
+                Route::post('translations/{type}/{id}/update', [TranslationController::class, 'update'])->name('translations.update');
+                Route::post('translations/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('translations.change-editing-locale');
 
                 // FAQs
                 Route::resource('faqs', AdminFaqController::class)->except(['show']);
@@ -343,6 +344,8 @@ Route::post('translations/change-editing-locale', [TranslationController::class,
                 Route::delete('tours/{tour}', [TourController::class, 'destroy'])->name('tours.destroy');          // Soft delete
                 Route::post('tours/{tour}/restore', [TourController::class, 'restore'])->name('tours.restore');     // Restore
                 Route::delete('tours/{tour}/purge', [TourController::class, 'purge'])->name('tours.purge');         // Hard delete
+                Route::get('tour-order', [TourOrderController::class, 'index'])->name('tours.order.index');
+                Route::post('tour-order/{tourType}/save', [TourOrderController::class, 'save'])->name('tours.order.save');
 
                 // Submódulos Tours
                 Route::prefix('tours')->name('tours.')->group(function () {

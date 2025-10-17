@@ -350,4 +350,14 @@ class Tour extends Model
         }
         return [asset('images/volcano.png')];
     }
+
+    public function typeOrders()
+{
+    return $this->belongsToMany(
+        TourType::class,
+        'tour_type_tour_order',
+        'tour_id',
+        'tour_type_id'
+    )->withPivot('position');
+}
 }

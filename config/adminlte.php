@@ -446,6 +446,15 @@ return [
                 'route' => 'admin.tours.index',
                 'icon'  => 'fas fa-map-marked-alt',
             ],
+
+            [
+            'text'  => 'Ordenar Tours',
+            'route' => 'admin.tours.order.index',
+            'icon'  => 'fas fa-sort-amount-down',
+            // opcional si usas gates/roles:
+            // 'can'   => 'manage-tours',
+        ],
+
             [
                 'text'  => 'Imágenes de Tours',
                 'route' => 'admin.tours.images.pick',

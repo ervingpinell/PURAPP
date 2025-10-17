@@ -90,4 +90,15 @@ class TourType extends Model
     {
         return 'tour_type_id';
     }
+
+public function orderedTours()
+{
+    return $this->belongsToMany(
+        Tour::class,
+        'tour_type_tour_order',
+        'tour_type_id',
+        'tour_id'
+    )->withPivot('position')
+     ->orderBy('tour_type_tour_order.position', 'asc');
+}
 }
