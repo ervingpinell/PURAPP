@@ -1,7 +1,10 @@
 <footer class="footer-nature">
   @php
-    $terms   = \App\Models\Policy::byType('terminos');
-    $privacy = \App\Models\Policy::byType('privacidad');
+    use App\Models\Policy;
+
+    // Buscar por slug (según nos indicaste)
+    $terms   = Policy::where('slug', 'terms-and-conditions')->first();
+    $privacy = Policy::where('slug', 'privacy-policy')->first();
 
     if ($terms)   { $terms->loadMissing('translations'); }
     if ($privacy) { $privacy->loadMissing('translations'); }
@@ -116,8 +119,14 @@
     </div>
   </div>
 
-  <div class="footer-bottom">
+  <div class="footer-bottom text-center">
     &copy; {{ date('Y') }} Green Vacations Costa Rica. {{ __('adminlte::adminlte.rights_reserved') }}
+    <div class="small opacity-75 mt-1">
+      Developed by
+      <a href="https://github.com/ervingpinell" target="_blank" rel="noopener" class="text-white text-decoration-underline">Erving Pinell</a>
+      &amp;
+      <a href="https://github.com/AxlPaniagua" target="_blank" rel="noopener" class="text-white text-decoration-underline">Axel Paniagua</a>.
+    </div>
   </div>
 </footer>
 
