@@ -174,6 +174,7 @@ return [
     'no_pickup_available' => 'No pickup points available.',
     'pickup_not_found' => 'Hotel not found.',
     'meeting_points' => 'Meeting points',
+    'meeting_point_details' => 'Meeting point details',
     'select_meeting' => 'Select a meeting point',
     'meeting_not_found' => 'Meeting point not found.',
     'main_street_entrance' => 'Main street entrance',

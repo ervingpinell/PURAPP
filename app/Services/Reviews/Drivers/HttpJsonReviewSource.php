@@ -36,6 +36,7 @@ class HttpJsonReviewSource implements ReviewSource
         'date'               => 'date',
         'provider_review_id' => 'id',
         'product_code'       => 'productCode',
+        // opcional: 'language' => 'language'
     ];
 
     protected array $extrasMap = [];
@@ -62,35 +63,23 @@ class HttpJsonReviewSource implements ReviewSource
         $this->extrasMap  = (array) ($this->settings['extras'] ?? []);
         $this->filters    = (array) ($this->settings['filters'] ?? []);
 
+        // === Cargar api_key si está en settings (soporta {env:..} y {config:..})
         $this->apiKey = $provider?->getSetting('api_key');
-
-        // ✅ Nuevo: Resolver formato {env:VAR_NAME} en api_key
-        if (is_string($this->apiKey) && str_starts_with($this->apiKey, '{env:')) {
-            $envKey = trim($this->apiKey, '{}'); // "{env:VIATOR_API_KEY}" → "env:VIATOR_API_KEY"
-            $envVar = substr($envKey, 4);        // → "VIATOR_API_KEY"
-            $this->apiKey = env($envVar);
+        if (is_string($this->apiKey)) {
+            $this->apiKey = $this->resolveDynamicString($this->apiKey);
         }
 
-        // ✅ Nuevo: Resolver también {env:VAR_NAME} en URL y headers
-        if (is_string($this->url) && str_starts_with($this->url, '{env:')) {
-            $envKey = trim($this->url, '{}');
-            $envVar = substr($envKey, 4);
-            $this->url = env($envVar, '');
-        }
-
-        foreach ($this->headers as $k => $v) {
-            if (is_string($v) && str_starts_with($v, '{env:')) {
-                $envKey = trim($v, '{}');
-                $envVar = substr($envKey, 4);
-                $this->headers[$k] = env($envVar, '');
-            }
-        }
+        // === Resolver tokens {env:VAR} y {config:path} recursivamente en url/headers/query/payload
+        $this->url     = $this->resolveDynamicString($this->url);
+        $this->headers = $this->resolveDynamicTokens($this->headers);
+        $this->query   = $this->resolveDynamicTokens($this->query);
+        $this->payload = $this->resolveDynamicTokens($this->payload);
 
         // Reemplaza {api_key} si aparece en headers
         if (!empty($this->apiKey)) {
             foreach ($this->headers as $k => $v) {
                 if (is_string($v)) {
-                    $this->headers[$k] = str_replace('{api_key}', $this->apiKey, $v);
+                    $this->headers[$k] = str_replace('{api_key}', (string) $this->apiKey, $v);
                 }
             }
         }
@@ -126,7 +115,7 @@ class HttpJsonReviewSource implements ReviewSource
 
         foreach ($codes as $code) {
             [$url, $query, $json] = $this->buildRequestParts($code, $lang, $limit, $start);
-            $cacheKey = 'reviews:httpjson:' . $this->slug . ':' . sha1(json_encode([$this->method, $url, $query, $json]));
+            $cacheKey = 'reviews:httpjson:'.$this->slug.':'.sha1(json_encode([$this->method, $url, $query, $json]));
 
             $rows = Cache::remember($cacheKey, $this->ttl, function () use ($client, $url, $query, $json) {
                 try {
@@ -293,8 +282,9 @@ class HttpJsonReviewSource implements ReviewSource
                 $out[$k] = $this->deepReplace($v, $repl);
             } elseif (is_string($v)) {
                 $val = strtr($v, $repl);
+                // Coerción simple
                 if (preg_match('/^-?\d+$/', $val)) {
-                    $out[$k] = (int)$val;
+                    $out[$k] = (int) $val;
                 } else {
                     $out[$k] = $val;
                 }
@@ -310,7 +300,7 @@ class HttpJsonReviewSource implements ReviewSource
         if ($raw === null || $raw === '') return null;
         if (is_numeric($raw)) {
             $ts = (int)$raw;
-            if ($ts > 9999999999) $ts = (int)round($ts / 1000);
+            if ($ts > 9999999999) $ts = (int) round($ts / 1000);
             try { return now()->setTimestamp($ts)->toIso8601String(); } catch (\Throwable) { return null; }
         }
         try { return \Carbon\Carbon::parse($raw)->toIso8601String(); } catch (\Throwable) { return null; }
@@ -320,7 +310,46 @@ class HttpJsonReviewSource implements ReviewSource
     {
         if (is_array($raw)) return $raw;
         if (!is_string($raw) || $raw === '') return [];
-        try { return (array)json_decode($raw, true, 512, JSON_THROW_ON_ERROR); }
+        try { return (array) json_decode($raw, true, 512, JSON_THROW_ON_ERROR); }
         catch (\Throwable) { return []; }
+    }
+
+    /* ====== Token resolvers ====== */
+
+    /** Reemplaza strings tipo "{env:FOO}" o "{config:services.x.y}" por su valor. */
+    protected function resolveDynamicString(?string $v): ?string
+    {
+        if (!is_string($v) || $v === '') return $v;
+
+        // {env:VAR}
+        if (str_starts_with($v, '{env:') && str_ends_with($v, '}')) {
+            $key = substr($v, 5, -1); // quita "{env:" y "}"
+            return env($key, '');
+        }
+
+        // {config:path}
+        if (str_starts_with($v, '{config:') && str_ends_with($v, '}')) {
+            $path = substr($v, 8, -1); // quita "{config:" y "}"
+            $val = config($path, '');
+            return is_scalar($val) ? (string) $val : '';
+        }
+
+        return $v;
+    }
+
+    /** Aplica resolveDynamicString() recursivamente a arrays (url/headers/query/payload). */
+    protected function resolveDynamicTokens(array $arr): array
+    {
+        $out = [];
+        foreach ($arr as $k => $v) {
+            if (is_array($v)) {
+                $out[$k] = $this->resolveDynamicTokens($v);
+            } elseif (is_string($v)) {
+                $out[$k] = $this->resolveDynamicString($v);
+            } else {
+                $out[$k] = $v;
+            }
+        }
+        return $out;
     }
 }

@@ -72,7 +72,7 @@
         </div>
 
         {{-- =======================
-             📍 MEETING POINT (igual al hotel)
+             📍 MEETING POINTS
            ======================= --}}
         <div class="col-md-6">
           <h6 class="mb-1">
@@ -97,7 +97,9 @@
             @foreach($meetingPoints as $mp)
               <li class="list-group-item list-group-item-action meeting-option"
                   data-id="{{ $mp->id }}"
-                  data-name="{{ $mp->name }}">
+                  data-name="{{ $mp->name }}"
+                  data-description="{{ $mp->description }}"
+                  data-url="{{ $mp->map_url }}">
                 <i class="fas fa-location-dot me-2 text-success"></i>
                 <div class="d-inline">
                   <strong>{{ $mp->name }}</strong>
@@ -109,7 +111,23 @@
             @endforeach
           </ul>
 
-          {{-- Mensajes (ocultos hasta que el usuario elija) --}}
+          {{-- 🔍 Detalles del punto seleccionado --}}
+          <div id="meetingDetails" class="meeting-details-card d-none mt-3">
+            <div class="d-flex align-items-start gap-2">
+              <div class="icon bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;">
+                <i class="fas fa-map-marker-alt"></i>
+              </div>
+              <div>
+                <p class="fw-bold mb-1">{{ __('adminlte::adminlte.meeting_point_details') }}</p>
+                <p class="small text-muted mb-2" id="meetingDesc"></p>
+                <a href="#" id="meetingMapLink" target="_blank" class="btn btn-sm btn-outline-success d-none">
+                  <i class="fas fa-map me-1"></i> {{ __('adminlte::adminlte.open_map') }}
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {{-- Mensajes de validación --}}
           <div id="meetingValidMsg" class="text-success small mt-2 d-none">
             ✔️ {{ __('adminlte::adminlte.meeting_valid') }}
           </div>
@@ -126,17 +144,11 @@
   </div>
 </div>
 
-{{-- ======= JS: mismo comportamiento/estética que hoteles ======= --}}
+{{-- ======= JS: interacción dinámica ======= --}}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  /* ---------- Helpers ---------- */
-  const clickOutside = (elem, cb) => {
-    document.addEventListener('click', (e) => {
-      if (!elem.contains(e.target)) cb();
-    });
-  };
 
-  /* ---------- PICKUP (hoteles) ---------- */
+  /* ---------- PICKUP (Hoteles) ---------- */
   const pickupInput = document.getElementById('pickupInput');
   const pickupList  = document.getElementById('pickupList');
   const pickupItems = pickupList ? pickupList.querySelectorAll('.pickup-option') : [];
@@ -144,108 +156,110 @@ document.addEventListener('DOMContentLoaded', () => {
   const pickupErr   = document.getElementById('pickupInvalidMsg');
   const pickupHidden= document.getElementById('selectedPickupPoint');
 
-  function showPickupList(){ pickupList && pickupList.classList.remove('d-none'); }
-  function hidePickupList(){ pickupList && pickupList.classList.add('d-none'); }
+  const showPickupList = () => pickupList?.classList.remove('d-none');
+  const hidePickupList = () => pickupList?.classList.add('d-none');
 
-  function filterPickup(q){
-    if (!pickupList) return;
+  const filterPickup = (q) => {
     const term = (q || '').toLowerCase();
-    let any = false;
     pickupItems.forEach(li => {
       const name = (li.dataset.name || '').toLowerCase();
-      const show = !term || name.includes(term);
-      li.classList.toggle('d-none', !show);
-      if (show) any = true;
+      li.classList.toggle('d-none', term && !name.includes(term));
     });
-  }
+  };
 
-  function selectPickup(id, label){
-    if (pickupHidden) pickupHidden.value = id || '';
-    if (pickupInput && label) pickupInput.value = label;
-    // Visual feedback (solo cuando hay selección real)
-    if (id) {
-      pickupOK && pickupOK.classList.remove('d-none');
-      pickupErr && pickupErr.classList.add('d-none');
-    } else {
-      pickupOK && pickupOK.classList.add('d-none');
-      pickupErr && pickupErr.classList.add('d-none');
-    }
-  }
+  const selectPickup = (id, name) => {
+    pickupHidden.value = id || '';
+    pickupInput.value = name || '';
+    pickupOK.classList.toggle('d-none', !id);
+    pickupErr.classList.add('d-none');
+  };
 
   pickupInput?.addEventListener('focus', () => { showPickupList(); filterPickup(pickupInput.value); });
   pickupInput?.addEventListener('input', () => { showPickupList(); filterPickup(pickupInput.value); });
+  pickupItems.forEach(li => li.addEventListener('click', () => { selectPickup(li.dataset.id, li.dataset.name); hidePickupList(); }));
+  document.addEventListener('click', e => { if (!pickupList.contains(e.target) && e.target !== pickupInput) hidePickupList(); });
 
-  pickupItems.forEach(li => {
-    li.addEventListener('click', () => {
-      selectPickup(li.dataset.id, li.dataset.name);
-      hidePickupList();
-    });
-  });
-
-  pickupInput && clickOutside(pickupList.parentElement, hidePickupList);
-
-  // Estado inicial: nada seleccionado (ocultar mensajes)
-  selectPickup('', '');
-
-  /* ---------- MEETING (igual al hotel) ---------- */
+  /* ---------- MEETING POINT ---------- */
   const meetingInput = document.getElementById('meetingInput');
   const meetingList  = document.getElementById('meetingList');
   const meetingItems = meetingList ? meetingList.querySelectorAll('.meeting-option') : [];
   const meetingOK    = document.getElementById('meetingValidMsg');
   const meetingErr   = document.getElementById('meetingInvalidMsg');
   const meetingHidden= document.getElementById('selectedMeetingPoint');
+  const detailsBox   = document.getElementById('meetingDetails');
+  const descEl       = document.getElementById('meetingDesc');
+  const mapLink      = document.getElementById('meetingMapLink');
 
-  function showMeetingList(){ meetingList && meetingList.classList.remove('d-none'); }
-  function hideMeetingList(){ meetingList && meetingList.classList.add('d-none'); }
+  const showMeetingList = () => meetingList?.classList.remove('d-none');
+  const hideMeetingList = () => meetingList?.classList.add('d-none');
 
-  function filterMeeting(q){
-    if (!meetingList) return;
+  const filterMeeting = (q) => {
     const term = (q || '').toLowerCase();
-    let any = false;
     meetingItems.forEach(li => {
       const name = (li.dataset.name || '').toLowerCase();
-      const show = !term || name.includes(term) || li.dataset.id === 'other';
-      li.classList.toggle('d-none', !show);
-      if (show) any = true;
+      li.classList.toggle('d-none', term && !name.includes(term));
     });
-  }
+  };
 
-  function selectMeeting(id, label){
-    if (meetingHidden) meetingHidden.value = id || '';
-    if (meetingInput && label) meetingInput.value = label;
+  const selectMeeting = (id, name, desc = '', url = '') => {
+    meetingHidden.value = id || '';
+    meetingInput.value = name || '';
 
-    // Mensajes: igual que en “otro hotel”
-    if (!id) {
-      meetingOK && meetingOK.classList.add('d-none');
-      meetingErr && meetingErr.classList.add('d-none');
-      return;
-    }
-    if (id === 'other') {
-      meetingOK && meetingOK.classList.add('d-none');
-      meetingErr && meetingErr.classList.remove('d-none');
+    // Mostrar detalles si existen
+    if (desc) {
+      descEl.textContent = desc;
+      detailsBox.classList.remove('d-none');
+      if (url) {
+        mapLink.href = url;
+        mapLink.classList.remove('d-none');
+      } else {
+        mapLink.classList.add('d-none');
+      }
     } else {
-      meetingErr && meetingErr.classList.add('d-none');
-      meetingOK && meetingOK.classList.remove('d-none');
+      detailsBox.classList.add('d-none');
     }
-  }
+
+    // Mostrar mensajes
+    if (!id || id === 'other') {
+      meetingOK.classList.add('d-none');
+      meetingErr.classList.remove('d-none');
+    } else {
+      meetingOK.classList.remove('d-none');
+      meetingErr.classList.add('d-none');
+    }
+  };
 
   meetingInput?.addEventListener('focus', () => { showMeetingList(); filterMeeting(meetingInput.value); });
   meetingInput?.addEventListener('input', () => { showMeetingList(); filterMeeting(meetingInput.value); });
 
-  meetingItems.forEach(li => {
-    li.addEventListener('click', () => {
-      const id    = li.dataset.id || '';
-      const label = (id === 'other')
-        ? ( '{{ __('adminlte::adminlte.meeting_point_other') ?? 'Other meeting point' }}' )
-        : (li.dataset.name || '');
-      selectMeeting(id, label);
-      hideMeetingList();
-    });
-  });
+  meetingItems.forEach(li => li.addEventListener('click', () => {
+    selectMeeting(li.dataset.id, li.dataset.name, li.dataset.description, li.dataset.url);
+    hideMeetingList();
+  }));
 
-  meetingInput && clickOutside(meetingList.parentElement, hideMeetingList);
-
-  // Estado inicial: nada seleccionado ni mensajes
-  selectMeeting('', '');
+  document.addEventListener('click', e => { if (!meetingList.contains(e.target) && e.target !== meetingInput) hideMeetingList(); });
 });
 </script>
+
+@push('css')
+<style>
+  .meeting-details-card {
+    background-color: #f9fdf9;
+    border: 1px solid rgba(0,0,0,.08);
+    border-left: 4px solid var(--primary-color, #60a862);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,.05);
+    transition: all .2s ease-in-out;
+  }
+  .meeting-details-card:hover {
+    box-shadow: 0 5px 14px rgba(0,0,0,.1);
+    transform: translateY(-2px);
+  }
+  .meeting-details-card .icon {
+    background: #eaf8eb;
+    color: #2e7d32;
+    font-size: 1.1rem;
+  }
+</style>
+@endpush

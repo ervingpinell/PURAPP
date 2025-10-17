@@ -306,7 +306,7 @@ class BookingController extends Controller
                     'meeting_point_id'          => $mp?->id,
                     'meeting_point_name'        => $mp?->name,
                     'meeting_point_pickup_time' => $mp?->pickup_time,
-                    'meeting_point_address'     => $mp?->address,
+                    'meeting_point_description'     => $mp?->description,
                     'meeting_point_map_url'     => $mp?->map_url,
 
                     'tour_name_snapshot'        => $tour->name, // 👈 snapshot
@@ -558,7 +558,7 @@ class BookingController extends Controller
                 'meeting_point_id'          => $mp?->id,
                 'meeting_point_name'        => $mp?->name,
                 'meeting_point_pickup_time' => $mp?->pickup_time,
-                'meeting_point_address'     => $mp?->address,
+                'meeting_point_description' => $mp?->description,
                 'meeting_point_map_url'     => $mp?->map_url,
 
                 'tour_name_snapshot'        => $tour->name, // 👈 refrescar snapshot
@@ -801,7 +801,7 @@ class BookingController extends Controller
                     'meeting_point_id'          => $item->meeting_point_id,
                     'meeting_point_name'        => $item->meeting_point_name,
                     'meeting_point_pickup_time' => $item->meeting_point_pickup_time,
-                    'meeting_point_address'     => $item->meeting_point_address,
+                    'meeting_point_description' => $item->meeting_point_description,
                     'meeting_point_map_url'     => $item->meeting_point_map_url,
 
                     'tour_name_snapshot'        => $tour->name, // 👈 snapshot

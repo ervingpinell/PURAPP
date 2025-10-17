@@ -181,7 +181,7 @@
   color:#fff;
   line-height:1.3;
   min-height:2.6em;
-  background:#F92526;
+  background:var(--primary-red);
   padding:.4rem .5rem;
   border-radius:.4rem;
 }

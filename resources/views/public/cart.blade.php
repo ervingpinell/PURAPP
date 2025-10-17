@@ -17,7 +17,7 @@
           'id'          => $mp->id,
           'name'        => $mp->name,
           'pickup_time' => $mp->pickup_time,
-          'address'     => $mp->address,
+          'description'     => $mp->description,
           'map_url'     => $mp->map_url,
       ])->values()->toJson();
 
@@ -179,9 +179,9 @@
                         {{ __('adminlte::adminlte.pickupTime') ?? 'Pick-up' }}: {{ $item->meeting_point_pickup_time }}
                       </div>
                     @endif
-                    @if($item->meeting_point_address)
+                    @if($item->meeting_point_description)
                       <div class="small text-muted">
-                        <i class="fas fa-map-marker-alt me-1"></i>{{ $item->meeting_point_address }}
+                        <i class="fas fa-map-marker-alt me-1"></i>{{ $item->meeting_point_description }}
                       </div>
                     @endif
                     @if($item->meeting_point_map_url)
@@ -268,8 +268,8 @@
                     {{ __('adminlte::adminlte.pickupTime') ?? 'Pick-up' }}: {{ $item->meeting_point_pickup_time }}
                   </div>
                 @endif
-                @if($item->meeting_point_address)
-                  <div class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i>{{ $item->meeting_point_address }}</div>
+                @if($item->meeting_point_description)
+                  <div class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i>{{ $item->meeting_point_description }}</div>
                 @endif
                 @if($item->meeting_point_map_url)
                   <a href="{{ $item->meeting_point_map_url }}" class="small" target="_blank">
@@ -639,7 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
       box.style.display = 'block';
       if (nameEl) nameEl.textContent = found.name || '';
       if (timeEl) timeEl.textContent = found.pickup_time ? (pickupLabel + ': ' + found.pickup_time) : '';
-      if (addrEl) addrEl.innerHTML = found.address ? ('<i class="fas fa-map-marker-alt me-1"></i>' + found.address) : '';
+      if (addrEl) addrEl.innerHTML = found.description ? ('<i class="fas fa-map-marker-alt me-1"></i>' + found.description) : '';
       if (linkEl) {
         if (found.map_url) { linkEl.href = found.map_url; linkEl.style.display = 'inline-block'; }
         else { linkEl.style.display = 'none'; }

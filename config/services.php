@@ -2,18 +2,6 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Third Party Services
-    |--------------------------------------------------------------------------
-    |
-    | This file is for storing the credentials for third party services such
-    | as Mailgun, Postmark, AWS and more. This file provides the de facto
-    | location for this type of information, allowing packages to have
-    | a conventional file to locate the various service credentials.
-    |
-    */
-
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],
@@ -35,28 +23,68 @@ return [
         ],
     ],
 
-'viator' => [
-    'key'          => env('VIATOR_API_KEY'),
-    'reviews_base' => env('VIATOR_REVIEWS_BASE', 'https://api.sandbox.viator.com/partner/reviews/product'),
-],
+    // === Reviews / Partners ===
 
-'deepl' => [
-    'auth_key'  => env('DEEPL_AUTH_KEY'),
-    'formality'  => env('DEEPL_FORMALITY', 'default'),
-    'en_variant' => env('DEEPL_EN_VARIANT', 'en-US'),
-    'pt_variant' => env('DEEPL_PT_VARIANT', 'pt-BR'),
-],
+    'viator' => [
+        'url'        => env('VIATOR_API_URL', ''),
+        'key'        => env('VIATOR_API_KEY', ''),
+        'key_header' => env('VIATOR_API_KEY_HEADER', 'exp-api-key'),
+    ],
 
+    // Google Places (Reviews por Place Details API; ojo con ToS y uso/caching)
+    'google_places' => [
+        'url' => env('GOOGLE_PLACES_DETAILS_URL', 'https://maps.googleapis.com/maps/api/place/details/json'),
+        'key' => env('GOOGLE_PLACES_API_KEY', ''),
+        // campo que enviarás como product_code en tu app (normalmente el place_id)
+        'product_field' => env('GOOGLE_PLACES_PRODUCT_FIELD', 'place_id'),
+    ],
 
-'turnstile' => [
-    'site_key' => env('TURNSTILE_SITE_KEY', ''),
-    'secret'   => env('TURNSTILE_SECRET', ''),
-],
-'google' => [
-    'analytics_id' => env('GOOGLE_ANALYTICS_ID', null),
-],
-'meta' => [
-    'pixel_id' => env('META_PIXEL_ID', null),
-],
+    // GetYourGuide (requiere partner API; reemplaza URL/headers según tu contrato)
+    'gyg' => [
+        'url'        => env('GYG_API_URL', ''),
+        'key'        => env('GYG_API_KEY', ''),
+        'key_header' => env('GYG_API_KEY_HEADER', 'X-API-KEY'),
+    ],
 
+    // Expedia Group (no hay endpoint público estándar de reviews; usa tu contrato)
+    'expedia' => [
+        'url'        => env('EXPEDIA_API_URL', ''),
+        'key'        => env('EXPEDIA_API_KEY', ''),
+        'key_header' => env('EXPEDIA_API_KEY_HEADER', 'Authorization'),
+    ],
+
+    // Booking.com (normalmente no expone reviews públicamente; usa tu integración)
+    'booking' => [
+        'url'        => env('BOOKING_API_URL', ''),
+        'key'        => env('BOOKING_API_KEY', ''),
+        'key_header' => env('BOOKING_API_KEY_HEADER', 'Authorization'),
+    ],
+
+    // TripAdvisor (API oficial suele ir vía RapidAPI/partners; ajusta según contrato)
+    'tripadvisor' => [
+        'url'        => env('TRIPADVISOR_API_URL', ''),
+        'key'        => env('TRIPADVISOR_API_KEY', ''),
+        'key_header' => env('TRIPADVISOR_API_KEY_HEADER', 'X-API-KEY'),
+    ],
+
+    // === Otros servicios ya presentes ===
+    'deepl' => [
+        'auth_key'   => env('DEEPL_AUTH_KEY'),
+        'formality'  => env('DEEPL_FORMALITY', 'default'),
+        'en_variant' => env('DEEPL_EN_VARIANT', 'en-US'),
+        'pt_variant' => env('DEEPL_PT_VARIANT', 'pt-BR'),
+    ],
+
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY', ''),
+        'secret'   => env('TURNSTILE_SECRET', ''),
+    ],
+
+    'google' => [
+        'analytics_id' => env('GOOGLE_ANALYTICS_ID', null),
+    ],
+
+    'meta' => [
+        'pixel_id' => env('META_PIXEL_ID', null),
+    ],
 ];

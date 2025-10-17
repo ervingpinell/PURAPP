@@ -33,7 +33,7 @@ class BookingDetail extends Model
         'meeting_point_id',
         'meeting_point_name',
         'meeting_point_pickup_time',
-        'meeting_point_address',
+        'meeting_point_description',
         'meeting_point_map_url',
     ];
 

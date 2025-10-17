@@ -173,6 +173,7 @@ return [
     'pickup_not_found' => 'Hotel no encontrado.',
     'meeting_points' => 'Puntos de encuentro',
     'select_meeting' => 'Selecciona un punto de encuentro',
+    'meeting_point_details' => 'Detalles del punto de encuentro',
     'meeting_not_found' => 'Punto de encuentro no encontrado.',
     'main_street_entrance' => 'Entrada calle principal',
     'example_address' => 'Dirección de ejemplo 123',

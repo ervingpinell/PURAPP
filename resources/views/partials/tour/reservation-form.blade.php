@@ -89,7 +89,7 @@
 
     <p class="fw-bold mb-3 gv-total">
       {{ __('adminlte::adminlte.total') }}:
-      <span id="reservation-total-price" class="text-danger">$0.00</span>
+      <span id="reservation-total-price" class="totalprice">$0.00</span>
     </p>
   </div>
 

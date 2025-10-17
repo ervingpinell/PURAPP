@@ -70,7 +70,7 @@
                   value="{{ $mp->id }}"
                   data-name="{{ $mp->name }}"
                   data-time="{{ $mp->pickup_time }}"
-                  data-address="{{ $mp->address }}"
+                  data-description="{{ $mp->description }}"
                   data-map="{{ $mp->map_url }}"
                   {{ (string)old('meeting_point_id') === (string)$mp->id ? 'selected' : '' }}
                 >
@@ -256,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     const time = opt.getAttribute('data-time') || '';
-    const addr = opt.getAttribute('data-address') || '';
+    const addr = opt.getAttribute('data-description') || '';
     const map  = opt.getAttribute('data-map') || '';
     let html = '';
     if (time) html += `<div><i class="far fa-clock me-1"></i><strong>Hora:</strong> ${time}</div>`;

@@ -2,7 +2,7 @@
 <html lang="{{ app()->getLocale() }}">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <meta name="locale" content="{{ app()->getLocale() }}">
 
@@ -19,6 +19,14 @@
 
       $gaId    = config('services.google.analytics_id');
       $pixelId = config('services.meta.pixel_id');
+
+      // Color de tinte por defecto (usa el verde del footer)
+      $themeColor = '#0f2419';
+      // Si quieres un color distinto por página, puedes setear $themeColor vía @section('theme_color', '#xxxxxx')
+      $themeColor = $__env->yieldContent('theme_color') ?: $themeColor;
+
+      // Detecta si es la Home para activar fondo sólido y evitar “flash” blanco
+      $isHome = request()->routeIs('home');
   @endphp
 
   <title>{{ $fullTitle }}</title>
@@ -58,7 +66,21 @@
   <link rel="icon" type="image/png" sizes="96x96" href="{{ $ASSET_ROOT }}/favicon-96x96.png">
   <link rel="apple-touch-icon" sizes="180x180" href="{{ $ASSET_ROOT }}/apple-touch-icon.png">
   <link rel="manifest" href="{{ $ASSET_ROOT }}/site.webmanifest">
-  <meta name="theme-color" content="#0f5132">
+
+  {{-- iOS/Safari: tinte de la barra y PWA status bar --}}
+  <meta id="themeColorMeta" name="theme-color" content="{{ $themeColor }}">
+  <meta name="theme-color" content="#0b2e13" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  {{-- CSS críticos mínimos para evitar flash blanco en iOS en la Home --}}
+  @if ($isHome)
+  <style>
+    html { background-color: {{ $themeColor }}; }
+    @@supports (padding: max(0px)) {
+      body { padding-bottom: max(0px, env(safe-area-inset-bottom)); }
+    }
+  </style>
+  @endif
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -127,7 +149,8 @@
   </script>
 </head>
 
-<body class="d-flex flex-column min-vh-100">
+{{-- Añadimos clase is-home para estilos específicos si estás en la Home --}}
+<body class="d-flex flex-column min-vh-100 {{ $isHome ? 'is-home' : '' }}">
   @include('partials.header')
 
   <main class="flex-grow-1">
@@ -152,6 +175,27 @@
         el.style.display = n > 0 ? 'inline-block' : 'none';
       });
     };
+
+    // (Opcional) Cambiar theme-color cuando te acercas al footer (para evitar contraste raro)
+    (function(){
+      const meta = document.querySelector('#themeColorMeta');
+      if(!meta) return;
+
+      const TOP_COLOR = '{{ $themeColor }}';
+      const FOOTER_COLOR = '{{ $themeColor }}'; // mismo verde; cambia si tu footer difiere
+
+      const footer = document.querySelector('.footer-nature');
+      if(!footer) return;
+
+      const onScroll = () => {
+        const rect = footer.getBoundingClientRect();
+        const nearFooter = rect.top < (window.innerHeight * 1.2);
+        meta.setAttribute('content', nearFooter ? FOOTER_COLOR : TOP_COLOR);
+      };
+
+      document.addEventListener('scroll', onScroll, {passive:true});
+      onScroll();
+    })();
   </script>
 
   @stack('scripts')

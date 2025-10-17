@@ -12,7 +12,7 @@ class MeetingPoint extends Model
     protected $fillable = [
         'name',
         'pickup_time',
-        'address',
+        'description',
         'map_url',
         'sort_order',
         'is_active',

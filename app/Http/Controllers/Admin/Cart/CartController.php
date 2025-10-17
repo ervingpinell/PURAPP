@@ -257,7 +257,7 @@ class CartController extends Controller
             'meeting_point_id'          => $mp?->id,
             'meeting_point_name'        => $mp?->name,
             'meeting_point_pickup_time' => $mp?->pickup_time,
-            'meeting_point_address'     => $mp?->address,
+            'meeting_point_description' => $mp?->description,
             'meeting_point_map_url'     => $mp?->map_url,
         ]);
 
@@ -386,7 +386,7 @@ class CartController extends Controller
             $item->meeting_point_id          = $mp?->id;
             $item->meeting_point_name        = $mp?->name;
             $item->meeting_point_pickup_time = $mp?->pickup_time;
-            $item->meeting_point_address     = $mp?->address;
+            $item->meeting_point_description  = $mp?->description;
             $item->meeting_point_map_url     = $mp?->map_url;
         }
 

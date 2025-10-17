@@ -66,6 +66,8 @@ return [
     'meeting_valid' => 'Der ausgewählte Treffpunkt ist gültig! Sobald Sie Ihre Buchung bestätigt haben, senden wir Ihnen die Anweisungen und die genaue Treffzeit.',
     'meeting_point' => 'Treffpunkt',
     'meetingPoint'  => 'Treffpunkt',
+    'meeting_point_details' => 'Details zum Treffpunkt',
+    'selectMeetingHelp' => 'Wählen Sie einen Treffpunkt aus der Liste.',
     'selectHotelHelp' => 'Wählen Sie Ihr Hotel aus der Liste.',
     'pickup_time' => 'Abholzeit',
     'pickupTime'  => 'Abholzeit',

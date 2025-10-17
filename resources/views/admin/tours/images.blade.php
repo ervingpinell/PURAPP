@@ -7,7 +7,7 @@
   /* Tarjeta flexible con footer abajo */
   .image-card { display:flex; flex-direction:column; height:100%; }
   .image-card .caption-header {
-    padding:.5rem; background:#2f3640; /* ajusta si usas tema claro */
+    padding:.5rem; background:#2f3640;
     border-bottom:1px solid rgba(0,0,0,.1);
   }
   .image-card .caption-header .form-control { height: 34px; }
@@ -27,9 +27,7 @@
 @php
   use Illuminate\Support\Facades\Route;
   $backText = (__('common.back') !== 'common.back') ? __('common.back') : 'Volver';
-  $fallback = Route::has('admin.tours.index') ? route('admin.tours.index') : url('/admin');
-  $backUrl  = url()->previous();
-  if (empty($backUrl) || $backUrl === url()->current()) { $backUrl = $fallback; }
+  $backUrl  = route('admin.tours.images.pick'); // panel de selección de tours con imágenes
 @endphp
 
 @section('content_header')
@@ -56,19 +54,32 @@
   <h3 class="mb-1">{{ __('m_tours.image.ui.manage_images') }}: {{ $tour->getTranslatedName() }}</h3>
   <p class="text-muted mb-3">{{ $countRel }} / {{ $max }} {{ __('m_tours.image.ui.images_label') }}</p>
 
-  <form action="{{ route('admin.tours.images.store', $tour) }}" method="POST" enctype="multipart/form-data" class="mb-4">
+  {{-- === Formulario de carga con control de peso === --}}
+  <form action="{{ route('admin.tours.images.store', $tour) }}" method="POST" enctype="multipart/form-data" class="mb-4" id="imageUploadForm">
     @csrf
-    <input type="file" name="files[]" class="form-control @error('files') is-invalid @enderror" multiple accept="image/png,image/jpeg,image/webp">
-    @error('files') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    <input
+      type="file"
+      name="files[]"
+      id="imageFiles"
+      class="form-control @error('files') is-invalid @enderror"
+      multiple
+      accept="image/png,image/jpeg,image/webp">
+    @error('files')
+      <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
 
-    <button class="btn btn-success mt-2" {{ $isFull ? 'disabled' : '' }}>
+    <div id="uploadInfo" class="small text-muted mt-1"></div>
+
+    <button id="uploadBtn" class="btn btn-success mt-2" {{ $isFull ? 'disabled' : '' }}>
       <i class="fas fa-upload me-1"></i> {{ __('m_tours.image.ui.upload_btn') }}
     </button>
+
     @if($isFull)
       <small class="text-danger ms-2">{{ __('m_tours.image.limit_reached_text') }}</small>
     @endif
   </form>
 
+  {{-- === Grid de imágenes === --}}
   <div class="row g-3" id="grid" data-reorder-url="{{ route('admin.tours.images.reorder', $tour) }}">
     @forelse($imagesRel as $image)
       <div class="col-6 col-sm-4 col-md-3 col-xl-2" data-id="{{ $image->id }}">
@@ -124,7 +135,6 @@
               </form>
             </div>
           </div>
-
         </div>
       </div>
     @empty
@@ -135,6 +145,7 @@
   </div>
 </div>
 
+{{-- === Modal de previsualización === --}}
 <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-xl">
     <div class="modal-content bg-dark text-white">
@@ -157,6 +168,9 @@
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+  /* =========================
+     PREVISUALIZAR IMAGEN
+     ========================= */
   function openImagePreview(btn){
     const url = btn.getAttribute('data-img');
     const caption = btn.getAttribute('data-caption') || '';
@@ -164,6 +178,9 @@
     document.getElementById('previewModalCaption').textContent = caption;
   }
 
+  /* =========================
+     CONFIRMAR ELIMINAR IMAGEN
+     ========================= */
   function confirmAdminImageDelete(e, formEl) {
     e.preventDefault(); e.stopPropagation();
     Swal.fire({
@@ -184,7 +201,9 @@
     return false;
   }
 
-  // Auto-guardar leyenda (igual que tenías)
+  /* =========================
+     AUTO-GUARDAR LEYENDA
+     ========================= */
   document.addEventListener('DOMContentLoaded', () => {
     const csrfToken = @json(csrf_token());
     function saveCaption(inputEl) {
@@ -216,6 +235,54 @@
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => saveCaption(el), 1200);
       });
+    });
+  });
+
+  /* =========================
+     PREVISUALIZADOR DE CARGA (100 MB máx)
+     ========================= */
+  document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('imageFiles');
+    const info  = document.getElementById('uploadInfo');
+    const btn   = document.getElementById('uploadBtn');
+    const MAX_TOTAL_MB = 100;
+    const MB = 1024 * 1024;
+
+    if (!input || !info || !btn) return;
+
+    input.addEventListener('change', () => {
+      const files = Array.from(input.files || []);
+      if (!files.length) {
+        info.textContent = '';
+        btn.disabled = false;
+        return;
+      }
+
+      // Calcular tamaño total
+      const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
+      const totalMB = totalBytes / MB;
+
+      // Mostrar resumen
+      info.textContent = `${files.length} archivos seleccionados (${totalMB.toFixed(2)} MB / ${MAX_TOTAL_MB} MB máx)`;
+
+      // Validar límite
+      if (totalMB > MAX_TOTAL_MB) {
+        info.innerHTML = `<span class="text-danger fw-bold">
+          ⚠️ Excede el límite de ${MAX_TOTAL_MB} MB. Elimina algunos archivos antes de continuar.
+        </span>`;
+        btn.disabled = true;
+
+        // SweetAlert visual
+        Swal.fire({
+          icon: 'warning',
+          title: 'Demasiado grande',
+          text: `Has seleccionado ${totalMB.toFixed(2)} MB. El máximo permitido es ${MAX_TOTAL_MB} MB.`,
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#d33',
+        });
+      } else {
+        btn.disabled = false;
+      }
     });
   });
 </script>

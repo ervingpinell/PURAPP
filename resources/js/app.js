@@ -1,8 +1,58 @@
 /* =========================================================
    APP.JS — HEADER OFFSET + MENÚ MOBILE + SCROLL + UTILIDADES
+   (con tinte dinámico iOS/Safari: theme-color)
    ========================================================= */
 (function () {
   const $doc = document;
+
+  /* -----------------------------
+   * 0) iOS/Safari Theme-Color helpers
+   * ----------------------------- */
+  function ensureThemeMeta() {
+    let meta = $doc.querySelector('#themeColorMeta[name="theme-color"]');
+    if (!meta) {
+      meta = $doc.createElement('meta');
+      meta.setAttribute('name', 'theme-color');
+      meta.id = 'themeColorMeta';
+      // color por defecto (verde principal)
+      meta.setAttribute('content', '#0f2419');
+      $doc.head.appendChild(meta);
+    }
+    return meta;
+  }
+  const themeMeta = ensureThemeMeta();
+
+  // Lee color actual de meta o usa verde por defecto
+  const TOP_COLOR_DEFAULT = themeMeta.getAttribute('content') || '#0f2419';
+  // Si tu footer usa otro verde, cámbialo aquí:
+  const FOOTER_COLOR = TOP_COLOR_DEFAULT;
+
+  // Cambia el theme-color de forma segura
+  function setThemeColor(c) {
+    if (!themeMeta) return;
+    if (themeMeta.getAttribute('content') !== c) {
+      themeMeta.setAttribute('content', c);
+    }
+  }
+
+  // Detectar si estamos cerca del footer (para ajustar tinte)
+  function nearFooter() {
+    const footer = $doc.querySelector('.footer-nature');
+    if (!footer) return false;
+    const rect = footer.getBoundingClientRect();
+    return rect.top < (window.innerHeight * 1.2);
+  }
+
+  // Actualizar theme-color según contexto (scroll, menú, etc.)
+  function refreshThemeColor(forceTop = false) {
+    // Si el menú está abierto, forzamos el TOP_COLOR para evitar parpadeos
+    const menuOpen = document.body.classList.contains('menu-open');
+    if (forceTop || menuOpen) {
+      setThemeColor(TOP_COLOR_DEFAULT);
+      return;
+    }
+    setThemeColor(nearFooter() ? FOOTER_COLOR : TOP_COLOR_DEFAULT);
+  }
 
   /* -----------------------------
    * 1) HEADER FIJO: medir altura
@@ -29,15 +79,16 @@
   } else {
     setNavH();
   }
-  window.addEventListener('resize', () => debounce(setNavH, 120), { passive: true });
-  window.addEventListener('orientationchange', () => setTimeout(setNavH, 200), { passive: true });
-  window.addEventListener('load', () => setTimeout(setNavH, 100));
-  window.addEventListener('pageshow', () => setTimeout(setNavH, 60));
+  window.addEventListener('resize', () => { debounce(setNavH, 120); refreshThemeColor(); }, { passive: true });
+  window.addEventListener('orientationchange', () => setTimeout(() => { setNavH(); refreshThemeColor(true); }, 200), { passive: true });
+  window.addEventListener('load', () => setTimeout(() => { setNavH(); refreshThemeColor(); }, 100));
+  window.addEventListener('pageshow', () => setTimeout(() => { setNavH(); refreshThemeColor(); }, 60));
+  window.addEventListener('scroll', () => refreshThemeColor(), { passive:true });
 
-  if (document.fonts?.ready) document.fonts.ready.then(setNavH);
+  if (document.fonts?.ready) document.fonts.ready.then(() => { setNavH(); refreshThemeColor(); });
   if (header) {
     header.querySelectorAll('img').forEach((img) => {
-      if (!img.complete) img.addEventListener('load', setNavH, { once: true });
+      if (!img.complete) img.addEventListener('load', () => { setNavH(); refreshThemeColor(); }, { once: true });
     });
   }
 
@@ -53,12 +104,14 @@
       mobileLinks.classList.remove('show');
       document.body.classList.remove('menu-open');
       if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+      refreshThemeColor(true); // al cerrar, vuelve al top color
     }
     function openMenu() {
       if (!mobileLinks) return;
       mobileLinks.classList.add('show');
       document.body.classList.add('menu-open');
       if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+      refreshThemeColor(true); // con menú abierto, usamos top color
     }
 
     if (toggleBtn && mobileLinks) {
@@ -262,11 +315,17 @@
 
   // Refresca al volver a la pestaña
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) updateCartCount();
+    if (!document.hidden) {
+      updateCartCount();
+      refreshThemeColor();
+    }
   });
 
   // Polling ligero cada 30s
-  setInterval(updateCartCount, 30000);
+  setInterval(() => {
+    updateCartCount();
+    refreshThemeColor();
+  }, 30000);
 
   // Ganchito global para otros módulos
   window.addEventListener('cart:changed', updateCartCount);
@@ -474,4 +533,7 @@
    * ------------------------------------------- */
   document.querySelectorAll('.carousel, .carousel-inner, .carousel-item')
     .forEach(el => el.style.transform = 'translateZ(0)');
+
+  // Primera sincronización del theme-color
+  refreshThemeColor(true);
 })();

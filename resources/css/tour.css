@@ -6,7 +6,7 @@
 /* === VARIABLES locales (apoyadas en app.css) === */
 :root{
   --tour-primary:#2c6e49;   /* mantener colores */
-  --tour-accent:#f92526;
+  --tour-accent:var(--primary-red);
   --tour-muted:#6b7280;
 
   --border-radius:12px;
@@ -76,7 +76,8 @@
 .reservation-box .form-control,
 .reservation-box .form-select{ font-size:var(--fs-body); border-radius:.6rem; }
 .reservation-box .price-breakdown{ font-size:calc(var(--fs-body) - 1px); color:var(--text-dark); }
-.price-adult,.price-kid{ color:var(--tour-accent); }
+.price-adult,.price-kid{ color:var(--primary-red) !important; }
+.totalprice{ font-size:calc(var(--fs-body) - 0.90px); color:var(--primary-red); }
 
 .reservation-box .traveler-button{
   display:flex; align-items:center; justify-content:space-between; gap:.4rem;

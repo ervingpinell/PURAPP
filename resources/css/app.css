@@ -31,6 +31,11 @@
 
   /* separación inicial debajo del header fijo */
   --content-top-gap: clamp(12px, 2.5vh, 28px);
+
+  /* Tamaños objetivo del modal de escritorio (look primera captura) */
+  --modal-desktop-max-w: 1120px;           /* ancho contenido ~1100px */
+  --modal-desktop-side-gap: 48px;          /* respiración lateral */
+  --modal-desktop-bottom-gap: 24px;        /* no cubrir hasta abajo */
 }
 
 /* ---- Reset y fixes globales ---- */
@@ -55,7 +60,7 @@ h4{ font-size: var(--fs-h4); line-height: var(--lh-tight); font-weight:700; marg
 h5{ font-size: var(--fs-h5); line-height: var(--lh-tight); font-weight:700; margin:0 0 .5em; }
 h6{ font-size: var(--fs-h6); line-height: var(--lh-tight); font-weight:700; margin:0 0 .5em; }
 
-/* Modales */
+/* Modales (tipografía) */
 .modal .modal-title{ font-size: var(--fs-h4); line-height: var(--lh-tight); font-weight: 700; }
 .modal .modal-body{ font-size: var(--fs-body); }
 .modal .modal-footer .btn{ font-size: var(--fs-sm); }
@@ -111,9 +116,18 @@ body.has-fixed-navbar{ padding-top: var(--nav-h); }
 .navbar-links{ display:flex; justify-content:center; gap:1.25rem; min-width:0; }
 .navbar-links a{ color:#fff; text-decoration:none; font-weight:600; font-size: var(--fs-body); }
 .navbar-links a:hover{ color:#8bc34a; }
-.navbar-actions{ display:flex; align-items:center; gap:.6rem; justify-self:end; }
+
+/* Bloque de acciones (icons, etc.) */
+.navbar-actions{
+  position: relative;            /* ancla dropdowns al bloque */
+  display:flex; align-items:center; gap:.6rem; justify-self:end;
+}
 .navbar-actions i{ font-size:1.2rem; cursor:pointer; }
 .navbar-actions i:hover{ transform:scale(1.1); filter:drop-shadow(0 0 5px rgba(96,168,98,.8)); }
+/* Mejorar área táctil sin agrandar visualmente */
+.navbar-actions .nav-link,
+.navbar-actions i{ padding:.25rem; }
+
 .user-name{ max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 /* Menú mobile (estructura base del dropdown) — usa d-lg-none */
@@ -148,7 +162,7 @@ body.has-fixed-navbar{ padding-top: var(--nav-h); }
   }
 
   .navbar-toggle{ display:block; min-width:30px; }
-  .navbar-logo img{ max-height:56px; height:auto; }
+  .navbar-logo img{ max-height:56px; height:auto;}
 
   /* Oculta los links horizontales de escritorio, no el dropdown móvil */
   .navbar-links:not(.d-lg-none){ display: none !important; }
@@ -175,9 +189,16 @@ body.has-fixed-navbar{ padding-top: var(--nav-h); }
     transform: translateY(0);
   }
 
-  .navbar-actions{ gap:.5rem; }
+  /* >>> Ajustes mobile: tamaño y separación de íconos */
+  .navbar-actions{ gap:.8rem; }
   .navbar-actions .nav-link,
-  .navbar-actions i { font-size:1.05rem; line-height:1; }
+  .navbar-actions i { font-size:1.10rem; line-height:1; }
+
+  /* Separación adicional entre íconos adyacentes (RTL-safe) */
+  .navbar-actions .nav-link + .nav-link,
+  .navbar-actions i + i,
+  .navbar-actions .nav-link + i,
+  .navbar-actions i + .nav-link{ margin-inline-start:.25rem; }
 }
 
 /* Evitar scroll de fondo cuando el menú mobile está abierto */
@@ -197,25 +218,97 @@ body.menu-open{
 /* =========================
    MODALES sobre navbar fijo
    ========================= */
+
+/* Backdrops por encima del navbar fijo */
 .modal-backdrop { z-index: 2100 !important; }
 .modal           { z-index: 2110 !important; }
+
+/* Diálogo con margen bajo el navbar fijo por defecto */
 .modal-dialog-centered{ margin-top: max(12px, calc(var(--nav-h) + 12px)) !important; }
 
-.modal.modal-fix-top .modal-dialog{ margin-top: calc(var(--nav-h) + 12px) !important; margin-bottom: 12px !important; }
-.modal.modal-fix-top .modal-content{ display:flex; flex-direction:column; }
+/* ---- Modal fix-top: base (común a todos los viewports) ---- */
+.modal.modal-fix-top .modal-dialog{
+  margin: calc(var(--nav-h) + 12px) auto var(--modal-desktop-bottom-gap) !important;
+  width: auto;
+  max-width: 100%;
+}
+.modal.modal-fix-top .modal-content{
+  display:flex;
+  flex-direction:column;
+}
 .modal.modal-fix-top .modal-header,
 .modal.modal-fix-top .modal-footer{ flex:0 0 auto; }
-.modal.modal-fix-top .modal-body{ flex:1 1 auto; overflow:auto; }
+.modal.modal-fix-top .modal-body{
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* ---- Escritorio (>=992px): look primera captura ---- */
+@media (min-width: 992px){
+  .modal.modal-fix-top .modal-dialog{
+    /* ancho contenido, con respiración lateral */
+    max-width: min(var(--modal-desktop-max-w), calc(100vw - var(--modal-desktop-side-gap)));
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* si además usas .modal-xl, forzar el mismo ancho contenido */
+  .modal.modal-fix-top .modal-dialog.modal-xl{
+    max-width: min(var(--modal-desktop-max-w), calc(100vw - var(--modal-desktop-side-gap)));
+  }
+
+  .modal.modal-fix-top .modal-content{
+    /* no cubrir hasta abajo; scroll interno en body */
+    max-height: 85vh;
+    border-radius: .75rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  }
+
+  /* con .modal-dialog-centered, alinear al top (no al centro) */
+  .modal.modal-fix-top .modal-dialog.modal-dialog-centered{
+    align-items:flex-start;
+    margin-top: calc(var(--nav-h) + 12px) !important;
+    margin-bottom: var(--modal-desktop-bottom-gap) !important;
+  }
+}
+
+/* ---- Compatibilidad con modal-dialog-scrollable ---- */
 @supports (height: 100dvh){
-  .modal.modal-fix-top .modal-dialog.modal-dialog-scrollable .modal-content{ max-height: calc(100dvh - (var(--nav-h) + 24px)); }
+  .modal.modal-fix-top .modal-dialog.modal-dialog-scrollable .modal-content{
+    max-height: calc(100dvh - (var(--nav-h) + 24px));
+  }
 }
 @supports not (height: 100dvh){
-  .modal.modal-fix-top .modal-dialog.modal-dialog-scrollable .modal-content{ max-height: calc(100vh - (var(--nav-h) + 24px)); }
+  .modal.modal-fix-top .modal-dialog.modal-dialog-scrollable .modal-content{
+    max-height: calc(100vh - (var(--nav-h) + 24px));
+  }
 }
+
+/* ---- Fullscreen controlado en móviles pequeños (conserva versión móvil) ---- */
 @media (max-width: 576.98px){
-  .modal.modal-fix-top .modal-dialog.modal-fullscreen-sm-down .modal-content{ height: 100dvh; max-height: 100dvh; }
+  .modal.modal-fix-top .modal-dialog{
+    margin: 0 !important;
+    width: 100%;
+    max-width: 100%;
+  }
+  .modal.modal-fix-top .modal-content{
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  .modal.modal-fix-top .modal-header{ padding:.75rem 1rem; }
+  .modal.modal-fix-top .modal-body{ padding:.85rem 1rem; }
+  .modal.modal-fix-top .modal-footer{ padding:.6rem 1rem; }
 }
-.modal.modal-fix-top .modal-dialog.modal-dialog-centered{ align-items: flex-start; }
+
+/* iOS notch / safe-area */
+@supports (padding: max(0px)){
+  .modal.modal-fix-top .modal-content{
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+}
 
 /* Modal confirmación */
 #confirmTourModal .modal-title{ font-size: var(--fs-h5); }
@@ -232,11 +325,66 @@ body.menu-open{
 .navbar-custom .dropdown-item{ font-size: var(--fs-sm); padding: .45rem .85rem; line-height: 1.15; }
 .navbar-custom .dropdown-item .fa,
 .navbar-custom .dropdown-item i { font-size: .95em; }
+
 @media (max-width: 576.98px){
+  /* >>> Phones pequeños: un pelín más grandes y más aire */
+  .navbar-actions{ gap:.9rem; }
   .navbar-actions .nav-link,
-  .navbar-actions i { font-size: .95rem; }
+  .navbar-actions i { font-size: 1.15rem; }
   .navbar-links.d-lg-none a{ font-size: var(--fs-sm); padding: .45rem 0; }
   .navbar-toggle { font-size: 1.35rem; }
+
+  .navbar-actions .nav-link + .nav-link,
+  .navbar-actions i + i,
+  .navbar-actions .nav-link + i,
+  .navbar-actions i + .nav-link{ margin-inline-start:.3rem; }
+}
+
+/* =========================
+   CART DROPDOWN — alineado a la derecha + dimensiones seguras
+   ========================= */
+.navbar-custom .navbar-actions .dropdown-menu{
+  position: absolute !important;
+  top: calc(100% + 0.25rem) !important;   /* separa del header */
+  right: .5rem !important;                /* pegado al borde derecho */
+  left: auto !important;
+  margin-top: 0 !important;
+  transform: none !important;
+  transform-origin: top right;
+  z-index: 2105 !important;               /* por encima del header */
+  width: min(92vw, 360px);
+  max-width: 92vw;
+  max-height: min(70vh, 560px);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: .6rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,.25);
+}
+/* Reforzar si usas clase específica del carrito */
+.navbar-custom .navbar-actions .dropdown-menu.cart-dropdown{
+  right: .5rem !important;
+  left: auto !important;
+}
+/* Perfil con .dropdown-menu-end de Bootstrap: forzar a la derecha */
+.navbar-custom .navbar-actions .dropdown-menu.dropdown-menu-end{
+  right: .5rem !important;
+  left: auto !important;
+  transform: none !important;
+  transform-origin: top right;
+}
+
+@media (min-width: 992px){
+  .navbar-custom .navbar-actions .dropdown-menu{
+    width: min(420px, 42vw);
+    max-width: 420px;
+    max-height: 70vh;
+  }
+}
+/* Evita cortes si el contenido usa utilidades tipo .p-4 .small */
+.navbar-custom .navbar-actions .dropdown-menu .dropdown-body,
+.navbar-custom .navbar-actions .dropdown-menu > .p-4{
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 /* =========================
@@ -286,38 +434,26 @@ body.menu-open{
 
   /* Botón compacto del switcher, alineado a la altura de los iconos */
   .navbar-left .language-switcher-toggle{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    height:28px;                /* ≈ altura visual de los iconos */
-    padding:.18rem .38rem;      /* compacto */
-    gap:.3rem;
-    border-width:1.25px;
-    border-radius:.35rem;
-    font-size:10px;             /* no se muestra porque ocultamos el texto abajo */
-    line-height:1;
+    display:inline-flex; align-items:center; justify-content:center;
+    height:28px; padding:.18rem .38rem; gap:.3rem;
+    border-width:1.25px; border-radius:.35rem;
+    font-size:10px; line-height:1;
   }
 
   /* Mostrar solo la bandera; ocultar código/label para ahorrar ancho */
   .navbar-left .language-switcher-toggle .label,
   .navbar-left .language-switcher-toggle .code,
   .navbar-left .language-switcher-toggle .text,
-  .navbar-left .language-switcher-toggle span{
-    display:none !important;
-  }
+  .navbar-left .language-switcher-toggle span{ display:none !important; }
 
   /* Tamaño de bandera proporcional al botón compacto */
   .navbar-left .language-switcher-toggle img{
-    width:18px;
-    height:12px;
-    display:block;
-    border-radius:2px;
+    width:18px; height:12px; display:block; border-radius:2px;
   }
 
   /* Dropdown del switcher sobre el header */
   .navbar-custom .language-switcher .dropdown-menu{
-    z-index:2105;
-    min-width:140px;
+    z-index:2105; min-width:140px;
   }
 }
 
@@ -371,20 +507,10 @@ body.has-fixed-navbar .container > .big-title:first-child{
    FIX: Título “chip” de tour que se cortaba en móviles
    ====================================================== */
 .tour-card .card-title{
-  display:inline-block;
-  background:#e74c3c;
-  color:#fff;
-  font-weight:700;
-  line-height:1.25;
-  padding:.48rem .9rem;
-  border-radius:999px;
-  max-width:100%;
-  white-space:normal;
-  overflow:visible;
-  word-break:break-word;
-  hyphens:auto;
-  text-align:center;
-  margin:0 auto .5rem;
+  display:inline-block; background:#e74c3c; color:#fff; font-weight:700;
+  line-height:1.25; padding:.48rem .9rem; border-radius:999px;
+  max-width:100%; white-space:normal; overflow:visible;
+  word-break:break-word; hyphens:auto; text-align:center; margin:0 auto .5rem;
 }
 
 /* Evitar que el body de la card recorte el título */
@@ -392,18 +518,13 @@ body.has-fixed-navbar .container > .big-title:first-child{
 
 /* Ajuste del título de modal largo (centrado y multilinea) */
 .modal .modal-header .modal-title{
-  white-space:normal;
-  line-height:1.3;
-  text-align:center;
-  width:100%;
+  white-space:normal; line-height:1.3; text-align:center; width:100%;
 }
 
 /* Afinar chip en pantallas muy pequeñas */
 @media (max-width: 420px){
   .tour-card .card-title{
-    font-size: var(--fs-sm);
-    padding:.42rem .8rem;
-    line-height:1.28;
+    font-size: var(--fs-sm); padding:.42rem .8rem; line-height:1.28;
   }
 }
 
@@ -417,14 +538,9 @@ body.has-fixed-navbar .container > .big-title:first-child{
 }
 @media (max-width: 380px){
   .tour-card .card-title{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    font-size: clamp(13px, 3.3vw, 15px);
-    line-height:1.35;
-    padding:.42rem .78rem;
-    margin: 0 auto .65rem;
-    overflow-wrap:anywhere;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size: clamp(13px, 3.3vw, 15px); line-height:1.35;
+    padding:.42rem .78rem; margin: 0 auto .65rem; overflow-wrap:anywhere;
   }
   .tour-card .card-body{ padding-top:.85rem; }
 }

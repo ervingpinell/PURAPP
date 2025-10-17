@@ -31,11 +31,11 @@ class HomeController extends Controller
             // 1) Meta de tipos + Tours
             $typeMeta = $this->loadTypeMeta($currentLocale, $fallbackLocale);
 
-            // 2) Cargar tours activos con traducciones y precios (adult/kid/length)
+            // 2) Cargar tours activos con traducciones
             $tours = $this->loadActiveToursWithTranslations($currentLocale, $fallbackLocale)
                 ->map(function ($tour) use ($currentLocale, $fallbackLocale) {
                     $tr = $this->pickTranslation($tour->translations, $currentLocale, $fallbackLocale);
-                    $tour->translated_name = $tr->name ?? $tour->name; // nombre traducido para el home
+                    $tour->translated_name = $tr->name ?? $tour->name;
                     return $tour;
                 });
 
@@ -43,9 +43,8 @@ class HomeController extends Controller
                 ->sortBy('tour_type_id_group', SORT_NATURAL | SORT_FLAG_CASE)
                 ->groupBy(fn ($tour) => $tour->tour_type_id_group);
 
-            // 3) Reviews para HOME - pasar tours con traducciones YA aplicadas
+            // 3) Reviews para HOME
             $cacheKey = 'home_reviews:' . $currentLocale . ':' . $cacheManager->getRevision();
-
             $homeReviews = Cache::remember($cacheKey, 86400, function () use ($distributor, $tours) {
                 return $distributor->forHome($tours, perTour: 3, maxTotal: 24);
             });
@@ -71,7 +70,7 @@ class HomeController extends Controller
             $meetingPoints = MeetingPoint::active()
                 ->orderBy('sort_order')
                 ->orderBy('name')
-                ->get(['id','name','pickup_time']);
+                ->get(['id','name','pickup_time','description','map_url']);
 
             return view('public.home', compact('toursByType', 'typeMeta', 'homeReviews', 'meetingPoints'));
         } catch (Throwable $e) {
@@ -144,7 +143,7 @@ class HomeController extends Controller
 
             // Reviews con caché
             $tourName = $tour->translated_name;
-            $tourId = $tour->tour_id;
+            $tourId   = $tour->tour_id;
             $cacheKey = "tour_reviews_pool:{$tourId}:" . $cacheManager->getRevision("tour.{$tourId}");
 
             $tourReviews = Cache::remember($cacheKey, 86400, function () use ($agg, $tourId, $tourName) {
@@ -210,28 +209,12 @@ class HomeController extends Controller
             });
     }
 
-    /**
-     * Carga tours activos con traducciones y **precios** necesarios para el home.
-     * Nota: incluye length (lo usas en el modal) y coverImage (para la portada).
-     */
     private function loadActiveToursWithTranslations(string $loc, string $fb): Collection
     {
-        return Tour::with([
-                'tourType.translations',
-                'translations',
-                'coverImage',
-            ])
+        return Tour::with(['tourType.translations','translations','coverImage'])
             ->where('is_active', true)
             ->orderBy('name')
-            ->get([
-                'tour_id',
-                'name',
-                'slug',
-                'tour_type_id',
-                'adult_price',   // <-- necesarios para el Blade
-                'kid_price',     // <--
-                'length',        // <-- usado en el modal
-            ])
+            ->get(['tour_id','name','slug','tour_type_id','adult_price','kid_price','length'])
             ->map(function ($tour) use ($loc, $fb) {
                 $tr = $this->pickTranslation($tour->translations, $loc, $fb);
                 $tour->translated_name     = $tr->name ?? $tour->name;
@@ -244,19 +227,18 @@ class HomeController extends Controller
     private function computeTourBlocks(Tour $tour): array
     {
         $visibleScheduleIds = $tour->schedules->pluck('schedule_id')->map(fn($sid) => (int)$sid)->all();
-
         $blockedRows = TourExcludedDate::where('tour_id', $tour->tour_id)
             ->where(function ($q) use ($visibleScheduleIds) {
                 $q->whereNull('schedule_id');
                 if (!empty($visibleScheduleIds)) $q->orWhereIn('schedule_id', $visibleScheduleIds);
             })
-            ->get(['schedule_id', 'start_date', 'end_date']);
+            ->get(['schedule_id','start_date','end_date']);
 
         $blockedGeneral = [];
         foreach ($blockedRows->whereNull('schedule_id') as $row) {
-            $startDate = Carbon::parse($row->start_date)->toDateString();
-            $endDate   = $row->end_date ? Carbon::parse($row->end_date)->toDateString() : $startDate;
-            foreach (CarbonPeriod::create($startDate, $endDate) as $date) {
+            $start = Carbon::parse($row->start_date)->toDateString();
+            $end   = $row->end_date ? Carbon::parse($row->end_date)->toDateString() : $start;
+            foreach (CarbonPeriod::create($start, $end) as $date) {
                 $blockedGeneral[] = $date->toDateString();
             }
         }
@@ -265,9 +247,9 @@ class HomeController extends Controller
         $blockedBySchedule = [];
         foreach ($blockedRows->whereNotNull('schedule_id') as $row) {
             $scheduleKey = (string)$row->schedule_id;
-            $startDate   = Carbon::parse($row->start_date)->toDateString();
-            $endDate     = $row->end_date ? Carbon::parse($row->end_date)->toDateString() : $startDate;
-            foreach (CarbonPeriod::create($startDate, $endDate) as $date) {
+            $start = Carbon::parse($row->start_date)->toDateString();
+            $end   = $row->end_date ? Carbon::parse($row->end_date)->toDateString() : $start;
+            foreach (CarbonPeriod::create($start, $end) as $date) {
                 $blockedBySchedule[$scheduleKey][] = $date->toDateString();
             }
         }
@@ -290,18 +272,17 @@ class HomeController extends Controller
             foreach ($blocksPerDay as $date => $count) {
                 if ($count >= $visibleCount) $fullyBlockedDates[] = $date;
             }
-            $fullyBlockedDates = array_values(array_unique($fullyBlockedDates));
         }
 
-        return [$blockedGeneral, $blockedBySchedule, $fullyBlockedDates];
+        return [$blockedGeneral, $blockedBySchedule, array_values(array_unique($fullyBlockedDates))];
     }
 
     private function loadMeetingPoints(bool $full = false): Collection
     {
         $base = MeetingPoint::active()->orderBy('sort_order')->orderBy('name');
         return $full
-            ? $base->get(['id','name','pickup_time','address','map_url'])
-            : $base->get(['id','name','pickup_time']);
+            ? $base->get(['id','name','pickup_time','description','map_url'])
+            : $base->get(['id','name','pickup_time','description']);
     }
 
     private function pickTranslation($translations, string $locale, string $fallback)
@@ -325,7 +306,7 @@ class HomeController extends Controller
                 'pt' => 'pt', 'pt-PT' => 'pt', 'pt-BR' => 'pt-BR',
                 'de' => 'de', 'de-DE' => 'de',
                 'it' => 'it', 'nl' => 'nl', 'ru' => 'ru', 'ja' => 'ja',
-                'zh' => 'zh-CN', 'zh-CN' => 'zh-CN', 'zh-TW' => 'zh-TW',
+                'zh' => 'zh-CN', 'zh-TW' => 'zh-TW',
             ];
 
             $mapLang = $localeMap[app()->getLocale()] ?? 'en';
@@ -353,7 +334,6 @@ class HomeController extends Controller
                 'website' => 'nullable|string|max:50',
             ]);
 
-            // Honeypot
             if (!empty($validated['website'])) {
                 return back()->with('success', 'Your message has been sent.');
             }
