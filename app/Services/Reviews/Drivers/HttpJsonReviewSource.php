@@ -339,20 +339,28 @@ class HttpJsonReviewSource implements ReviewSource
 
         return $v;
     }
-
-    /** Aplica resolveDynamicString() recursivamente a arrays (url/headers/query/payload). */
-    protected function resolveDynamicTokens(array $arr): array
-    {
-        $out = [];
-        foreach ($arr as $k => $v) {
-            if (is_array($v)) {
-                $out[$k] = $this->resolveDynamicTokens($v);
-            } elseif (is_string($v)) {
-                $out[$k] = $this->resolveDynamicString($v);
-            } else {
-                $out[$k] = $v;
-            }
+/** Aplica resolveDynamicString() recursivamente a arrays (resuelve claves y valores). */
+protected function resolveDynamicTokens(array $arr): array
+{
+    $out = [];
+    foreach ($arr as $k => $v) {
+        // Resolver la clave si viene con tokens {env:...} o {config:...}
+        $newKey = is_string($k) ? $this->resolveDynamicString($k) : $k;
+        if ($newKey === '' || $newKey === null) {
+            // Evita claves vacías/nulas; conserva la original como fallback
+            $newKey = $k;
         }
-        return $out;
+
+        // Resolver el valor (recursivo si es array)
+        if (is_array($v)) {
+            $out[$newKey] = $this->resolveDynamicTokens($v);
+        } elseif (is_string($v)) {
+            $out[$newKey] = $this->resolveDynamicString($v);
+        } else {
+            $out[$newKey] = $v;
+        }
     }
+    return $out;
+}
+
 }
