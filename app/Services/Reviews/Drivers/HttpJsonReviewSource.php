@@ -32,16 +32,15 @@ class HttpJsonReviewSource implements ReviewSource
         'rating'             => 'rating',
         'title'              => 'title',
         'body'               => 'text',
-        'author_name'        => 'author.name', // puede ser array de rutas
+        'author_name'        => 'author.name',
         'date'               => 'date',
         'provider_review_id' => 'id',
         'product_code'       => 'productCode',
-        // opcional: 'language' => 'language'
     ];
 
-    protected array $extrasMap = [];   // settings.extras.{key} => path
-    protected array $productMap = [];  // tour_id => product_code
-    protected array $filters    = [];  // settings.filters (min_rating, provider.include, etc.)
+    protected array $extrasMap = [];
+    protected array $productMap = [];
+    protected array $filters    = [];
 
     public function __construct(?ReviewProvider $provider = null)
     {
@@ -64,6 +63,28 @@ class HttpJsonReviewSource implements ReviewSource
         $this->filters    = (array) ($this->settings['filters'] ?? []);
 
         $this->apiKey = $provider?->getSetting('api_key');
+
+        // ✅ Nuevo: Resolver formato {env:VAR_NAME} en api_key
+        if (is_string($this->apiKey) && str_starts_with($this->apiKey, '{env:')) {
+            $envKey = trim($this->apiKey, '{}'); // "{env:VIATOR_API_KEY}" → "env:VIATOR_API_KEY"
+            $envVar = substr($envKey, 4);        // → "VIATOR_API_KEY"
+            $this->apiKey = env($envVar);
+        }
+
+        // ✅ Nuevo: Resolver también {env:VAR_NAME} en URL y headers
+        if (is_string($this->url) && str_starts_with($this->url, '{env:')) {
+            $envKey = trim($this->url, '{}');
+            $envVar = substr($envKey, 4);
+            $this->url = env($envVar, '');
+        }
+
+        foreach ($this->headers as $k => $v) {
+            if (is_string($v) && str_starts_with($v, '{env:')) {
+                $envKey = trim($v, '{}');
+                $envVar = substr($envKey, 4);
+                $this->headers[$k] = env($envVar, '');
+            }
+        }
 
         // Reemplaza {api_key} si aparece en headers
         if (!empty($this->apiKey)) {
@@ -92,7 +113,7 @@ class HttpJsonReviewSource implements ReviewSource
         $minRating = max(0, (int) ($opts['min_rating'] ?? ($this->filters['min_rating'] ?? ($this->settings['min_rating'] ?? 0))));
 
         $codes = $this->codesFor($opts['tour_id'] ?? null);
-        if (empty($codes)) $codes = [null]; // endpoint no requiere product_code
+        if (empty($codes)) $codes = [null];
 
         $client = new Client([
             'timeout'     => 12.0,
@@ -104,11 +125,9 @@ class HttpJsonReviewSource implements ReviewSource
         $seen = [];
 
         foreach ($codes as $code) {
-            // Construye URL/query/json con placeholders
             [$url, $query, $json] = $this->buildRequestParts($code, $lang, $limit, $start);
+            $cacheKey = 'reviews:httpjson:' . $this->slug . ':' . sha1(json_encode([$this->method, $url, $query, $json]));
 
-            // Cache de la request materializada
-            $cacheKey = 'reviews:httpjson:'.$this->slug.':'.sha1(json_encode([$this->method, $url, $query, $json]));
             $rows = Cache::remember($cacheKey, $this->ttl, function () use ($client, $url, $query, $json) {
                 try {
                     $opts = [];
@@ -140,21 +159,13 @@ class HttpJsonReviewSource implements ReviewSource
                 }
             });
 
-            // Normaliza + filtra
             foreach ($rows as $r) {
                 $norm = $this->mapRow($r, $code);
 
-                // Filtro por rating mínimo (si se pide)
-                if ($minRating > 0 && (int)($norm['rating'] ?? 0) < $minRating) {
-                    continue;
-                }
+                if ($minRating > 0 && (int)($norm['rating'] ?? 0) < $minRating) continue;
+                if (!$this->passesProviderFilter($r)) continue;
 
-                // Filtro por proveedor (si se configura)
-                if (!$this->passesProviderFilter($r)) {
-                    continue;
-                }
-
-                $rid  = (string) ($norm['provider_review_id'] ?? md5(json_encode($norm)));
+                $rid = (string)($norm['provider_review_id'] ?? md5(json_encode($norm)));
                 if (isset($seen[$rid])) continue;
                 $seen[$rid] = true;
 
@@ -171,11 +182,11 @@ class HttpJsonReviewSource implements ReviewSource
     protected function buildRequestParts(?string $code, string $lang, int $limit, int $start): array
     {
         $repl = [
-            '{product_code}' => (string) ($code ?? ''),
-            '{language}'     => (string) $lang,
-            '{api_key}'      => (string) ($this->apiKey ?? ''),
-            '{limit}'        => (string) $limit,
-            '{start}'        => (string) $start,
+            '{product_code}' => (string)($code ?? ''),
+            '{language}'     => (string)$lang,
+            '{api_key}'      => (string)($this->apiKey ?? ''),
+            '{limit}'        => (string)$limit,
+            '{start}'        => (string)$start,
         ];
 
         $url   = strtr($this->url, $repl);
@@ -187,35 +198,32 @@ class HttpJsonReviewSource implements ReviewSource
 
     protected function mapRow(array $row, ?string $code): array
     {
-        $get = fn (string $path, $default = null) => Arr::get($row, $path, $default);
+        $get = fn(string $path, $default = null) => Arr::get($row, $path, $default);
 
         $rating = (int) round((float) ($get($this->map['rating'], 0)));
         $rating = max(0, min(5, $rating));
 
-        // author_name puede ser array de rutas; usa la primera no vacía
         $author = null;
         $authorPath = $this->map['author_name'] ?? null;
         if (is_array($authorPath)) {
             foreach ($authorPath as $p) {
-                $val = trim((string) ($get($p) ?? ''));
+                $val = trim((string)($get($p) ?? ''));
                 if ($val !== '') { $author = $val; break; }
             }
         } else {
-            $author = trim((string) ($get((string)$authorPath) ?? ''));
+            $author = trim((string)($get((string)$authorPath) ?? ''));
         }
 
-        $title  = trim((string) ($get($this->map['title']) ?? ''));
-        $body   = trim((string) ($get($this->map['body']) ?? ''));
+        $title  = trim((string)($get($this->map['title']) ?? ''));
+        $body   = trim((string)($get($this->map['body']) ?? ''));
         $date   = $this->normalizeIso($get($this->map['date']) ?? null);
+        $rid    = (string)($get($this->map['provider_review_id']) ?? md5(json_encode($row)));
+        $pcode  = (string)($get($this->map['product_code']) ?? ($code ?? ''));
 
-        $rid    = (string) ($get($this->map['provider_review_id']) ?? md5(json_encode($row)));
-        $pcode  = (string) ($get($this->map['product_code']) ?? ($code ?? ''));
-
-        // reverse-map product_code -> tour_id si existe
         $tourId = null;
         if ($pcode !== '' && !empty($this->productMap)) {
             $rev = array_flip($this->productMap);
-            if (isset($rev[$pcode])) $tourId = (int) $rev[$pcode];
+            if (isset($rev[$pcode])) $tourId = (int)$rev[$pcode];
         }
 
         $lang = null;
@@ -235,7 +243,6 @@ class HttpJsonReviewSource implements ReviewSource
             'language'           => $lang,
         ];
 
-        // Extras (flatten en top-level)
         foreach ($this->extrasMap as $key => $path) {
             $norm[$key] = Arr::get($row, $path);
         }
@@ -245,21 +252,19 @@ class HttpJsonReviewSource implements ReviewSource
 
     protected function passesProviderFilter(array $rawRow): bool
     {
-        // filters.provider: { path?: 'provider', include?: ['Viator', 'VIATOR'] }
-        $provFilter = (array) ($this->filters['provider'] ?? []);
+        $provFilter = (array)($this->filters['provider'] ?? []);
         if (empty($provFilter)) return true;
 
-        $path    = (string) ($provFilter['path'] ?? 'provider');
-        $include = array_map('strval', (array) ($provFilter['include'] ?? []));
-
+        $path = (string)($provFilter['path'] ?? 'provider');
+        $include = array_map('strval', (array)($provFilter['include'] ?? []));
         if (empty($include)) return true;
 
         $val = Arr::get($rawRow, $path);
         if ($val === null) return false;
 
-        $v = mb_strtolower(trim((string) $val));
+        $v = mb_strtolower(trim((string)$val));
         foreach ($include as $acc) {
-            if ($v === mb_strtolower(trim((string) $acc))) return true;
+            if ($v === mb_strtolower(trim((string)$acc))) return true;
         }
         return false;
     }
@@ -267,9 +272,9 @@ class HttpJsonReviewSource implements ReviewSource
     protected function codesFor($tourId): array
     {
         if (!empty($tourId)) {
-            $key = (string) $tourId;
+            $key = (string)$tourId;
             if (!empty($this->productMap[$key])) {
-                return [(string) $this->productMap[$key]];
+                return [(string)$this->productMap[$key]];
             }
         }
 
@@ -288,9 +293,8 @@ class HttpJsonReviewSource implements ReviewSource
                 $out[$k] = $this->deepReplace($v, $repl);
             } elseif (is_string($v)) {
                 $val = strtr($v, $repl);
-                // Coerce simple: números "123" -> 123
                 if (preg_match('/^-?\d+$/', $val)) {
-                    $out[$k] = (int) $val;
+                    $out[$k] = (int)$val;
                 } else {
                     $out[$k] = $val;
                 }
@@ -305,8 +309,8 @@ class HttpJsonReviewSource implements ReviewSource
     {
         if ($raw === null || $raw === '') return null;
         if (is_numeric($raw)) {
-            $ts = (int) $raw;
-            if ($ts > 9999999999) $ts = (int) round($ts / 1000);
+            $ts = (int)$raw;
+            if ($ts > 9999999999) $ts = (int)round($ts / 1000);
             try { return now()->setTimestamp($ts)->toIso8601String(); } catch (\Throwable) { return null; }
         }
         try { return \Carbon\Carbon::parse($raw)->toIso8601String(); } catch (\Throwable) { return null; }
@@ -316,7 +320,7 @@ class HttpJsonReviewSource implements ReviewSource
     {
         if (is_array($raw)) return $raw;
         if (!is_string($raw) || $raw === '') return [];
-        try { return (array) json_decode($raw, true, 512, JSON_THROW_ON_ERROR); }
+        try { return (array)json_decode($raw, true, 512, JSON_THROW_ON_ERROR); }
         catch (\Throwable) { return []; }
     }
 }
