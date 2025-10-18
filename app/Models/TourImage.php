@@ -37,6 +37,10 @@ class TourImage extends Model
     {
         $path = ltrim((string) $this->path, '/');
 
+        if ($path === '') {
+            return asset('images/volcano.png');
+        }
+
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
             return $path;
         }
@@ -44,6 +48,7 @@ class TourImage extends Model
         if (str_starts_with($path, 'storage/')) {
             return asset($path);
         }
+
         return asset('storage/'.$path);
     }
 }

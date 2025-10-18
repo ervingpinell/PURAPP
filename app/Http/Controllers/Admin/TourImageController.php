@@ -14,6 +14,10 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Throwable;
 
+// === WebP (Intervention Image) ===
+use Intervention\Image\Laravel\Facades\Image as Img;
+use Intervention\Image\Encoders\WebpEncoder;
+
 class TourImageController extends Controller
 {
     /** List images for a tour. */
@@ -41,12 +45,15 @@ class TourImageController extends Controller
         }
     }
 
-    /** Upload images for a tour (respecting per-tour limit). */
+    /** Upload images for a tour (respecting per-tour limit) and convert to WebP. */
     public function store(Request $request, Tour $tour)
     {
         try {
             $maxImageKb        = (int) config('tours.max_image_kb', 30720); // 30MB/file
             $maxImagesPerTour  = (int) config('tours.max_images_per_tour', 20);
+            $webpCfg           = (array) config('tours.webp', []);
+            $quality           = (int) ($webpCfg['quality'] ?? 82);
+            $maxSide           = (int) ($webpCfg['max_side'] ?? 2560);
 
             $validated = $request->validate([
                 'files'   => ['required', 'array'],
@@ -55,7 +62,6 @@ class TourImageController extends Controller
 
             $currentCount = (int) $tour->images()->count();
             $remainingCap = max(0, $maxImagesPerTour - $currentCount);
-
             $uploadedFiles = $request->file('files', []);
 
             if ($remainingCap <= 0) {
@@ -86,27 +92,66 @@ class TourImageController extends Controller
             $newImageRecords = [];
 
             foreach ($uploadedFiles as $uploaded) {
-                $extension = strtolower((string) $uploaded->getClientOriginalExtension());
-                if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+                $inputExt = strtolower((string) $uploaded->getClientOriginalExtension());
+                if (!in_array($inputExt, ['jpg', 'jpeg', 'png', 'webp'], true)) {
                     Log::warning('Skipped file due to invalid extension', [
-                        'tour_id'  => $tour->tour_id,
-                        'file'     => $uploaded->getClientOriginalName(),
-                        'ext'      => $extension,
-                        'user_id'  => optional(Auth::user())->id,
+                        'tour_id' => $tour->tour_id,
+                        'file'    => $uploaded->getClientOriginalName(),
+                        'ext'     => $inputExt,
+                        'user_id' => optional(Auth::user())->id,
                     ]);
                     continue;
                 }
 
                 $basename = pathinfo($uploaded->getClientOriginalName(), PATHINFO_FILENAME);
                 $basename = Str::slug($basename) ?: 'image';
+                $stamp    = now()->format('YmdHis').'-'.Str::random(6);
 
-                $filename = $basename.'-'.now()->format('YmdHis').'-'.Str::random(6).'.'.$extension;
+                $finalPath = null;
 
-                Storage::disk('public')->putFileAs($storageFolder, $uploaded, $filename);
+                // Intentar convertir a WebP; si falla, guardar original
+                try {
+                    // Leer y orientar
+                    $img = Img::read($uploaded->getRealPath())->orient();
+
+                    // Limitar lado mayor
+                    if ($maxSide > 0) {
+                        $img->scaleDown($maxSide);
+                    }
+
+                    // Codificar a WebP - CORRECCIÓN AQUÍ
+                    $webpName = "{$basename}-{$stamp}.webp";
+                    $webpPath = "{$storageFolder}/{$webpName}";
+
+                    // La forma correcta de codificar y guardar
+                    $encoded = $img->encode(new WebpEncoder(quality: $quality));
+                    Storage::disk('public')->put($webpPath, (string) $encoded);
+
+                    $finalPath = $webpPath;
+
+                    Log::info('Image converted to WebP successfully', [
+                        'tour_id' => $tour->tour_id,
+                        'original_file' => $uploaded->getClientOriginalName(),
+                        'webp_path' => $webpPath,
+                    ]);
+
+                } catch (\Throwable $e) {
+                    // Fallback: guardar el archivo tal cual (sin conversión)
+                    Log::error('WebP encode failed, falling back to original', [
+                        'tour_id' => $tour->tour_id,
+                        'file'    => $uploaded->getClientOriginalName(),
+                        'error'   => $e->getMessage(),
+                        'trace'   => $e->getTraceAsString(),
+                    ]);
+
+                    $origName = "{$basename}-{$stamp}.{$inputExt}";
+                    Storage::disk('public')->putFileAs($storageFolder, $uploaded, $origName);
+                    $finalPath = "{$storageFolder}/{$origName}";
+                }
 
                 $image = TourImage::create([
                     'tour_id'  => $tour->tour_id,
-                    'path'     => $storageFolder.'/'.$filename,
+                    'path'     => $finalPath,
                     'caption'  => null,
                     'position' => ++$nextPosition,
                     'is_cover' => false,
@@ -116,7 +161,6 @@ class TourImageController extends Controller
                 $createdCount++;
             }
 
-            // If there is no cover yet, mark the first newly created as cover
             if (!$tour->coverImage && isset($newImageRecords[0])) {
                 $newImageRecords[0]->update(['is_cover' => true]);
             }
@@ -134,26 +178,26 @@ class TourImageController extends Controller
                 'title' => $createdCount > 0 ? __('m_tours.image.done') : __('m_tours.image.notice'),
                 'text'  => $feedback,
             ]);
+
         } catch (ValidationException $e) {
             Log::warning('Image upload validation failed', [
                 'tour_id' => $tour->tour_id ?? null,
                 'user_id' => optional(Auth::user())->id,
                 'errors'  => $e->errors(),
             ]);
-
             $firstMsg = collect($e->errors())->flatten()->first() ?? __('m_tours.image.errors.validation');
             return back()->with('swal', [
                 'icon'  => 'warning',
                 'title' => __('m_tours.image.ui.warning_title'),
                 'text'  => $firstMsg,
             ])->withInput();
-        } catch (Throwable $e) {
+
+        } catch (\Throwable $e) {
             Log::error('Image upload failed', [
                 'tour_id' => $tour->tour_id ?? null,
                 'user_id' => optional(Auth::user())->id,
                 'error'   => $e->getMessage(),
             ]);
-
             return back()->with('swal', [
                 'icon'  => 'error',
                 'title' => __('m_tours.image.ui.error_title'),
@@ -161,6 +205,7 @@ class TourImageController extends Controller
             ])->withInput();
         }
     }
+
 
     /** Update an image (caption only for now). */
     public function update(Request $request, Tour $tour, TourImage $image)
