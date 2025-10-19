@@ -93,7 +93,6 @@
   @vite([
     'resources/js/app.js',
     'resources/css/gv.css',
-    'resources/css/home.css',
     'resources/css/app.css',
   ])
 

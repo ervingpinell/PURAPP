@@ -9,6 +9,7 @@
   /* Colores base */
   --primary-color:#60a862;
   --primary-dark:#256d1b;
+  --primary-header:#0f2419;
   --primary-red:#e74c3c;
   --text-dark:#333;
   --white:#fff;
@@ -32,10 +33,13 @@
   /* separación inicial debajo del header fijo */
   --content-top-gap: clamp(12px, 2.5vh, 28px);
 
-  /* Tamaños objetivo del modal de escritorio (look primera captura) */
-  --modal-desktop-max-w: 1120px;           /* ancho contenido ~1100px */
-  --modal-desktop-side-gap: 48px;          /* respiración lateral */
-  --modal-desktop-bottom-gap: 24px;        /* no cubrir hasta abajo */
+  /* Tamaños objetivo del modal de escritorio */
+  --modal-desktop-max-w: 1120px;
+  --modal-desktop-side-gap: 48px;
+  --modal-desktop-bottom-gap: 24px;
+
+  /* Utilidades globales */
+  --border-radius: 15px;
 }
 
 /* ---- Reset y fixes globales ---- */
@@ -60,21 +64,10 @@ h4{ font-size: var(--fs-h4); line-height: var(--lh-tight); font-weight:700; marg
 h5{ font-size: var(--fs-h5); line-height: var(--lh-tight); font-weight:700; margin:0 0 .5em; }
 h6{ font-size: var(--fs-h6); line-height: var(--lh-tight); font-weight:700; margin:0 0 .5em; }
 
-/* Modales (tipografía) */
+/* Modales (tipografía mínima, sin tocar cards) */
 .modal .modal-title{ font-size: var(--fs-h4); line-height: var(--lh-tight); font-weight: 700; }
 .modal .modal-body{ font-size: var(--fs-body); }
 .modal .modal-footer .btn{ font-size: var(--fs-sm); }
-
-/* Cards: solo tipografía base, sin colores/fondos */
-.card .card-title,
-.tour-modal-card .card-title-text{
-  font-size: var(--fs-body);
-  line-height: var(--lh-tight);
-  font-weight: 700;
-}
-.card .card-text,
-.tour-modal-card .card-body{ font-size: var(--fs-body); }
-.small{ font-size: var(--fs-sm); line-height: var(--lh-relaxed); }
 
 /* Botones */
 .btn, .btn-sm, .btn-lg{ line-height: 1.1; }
@@ -86,8 +79,6 @@ h6{ font-size: var(--fs-h6); line-height: var(--lh-tight); font-weight:700; marg
 /* Ajustes mobile tipográficos */
 @media (max-width: 575.98px){
   .modal .modal-title{ font-size: var(--fs-h5); }
-  .card .card-title,
-  .tour-modal-card .card-title-text{ font-size: var(--fs-h6); }
   .modal .modal-footer .btn{ font-size: var(--fs-sm); }
 }
 
@@ -117,20 +108,19 @@ body.has-fixed-navbar{ padding-top: var(--nav-h); }
 .navbar-links a{ color:#fff; text-decoration:none; font-weight:600; font-size: var(--fs-body); }
 .navbar-links a:hover{ color:#8bc34a; }
 
-/* Bloque de acciones (icons, etc.) */
+/* Bloque de acciones */
 .navbar-actions{
-  position: relative;            /* ancla dropdowns al bloque */
+  position: relative;
   display:flex; align-items:center; gap:.6rem; justify-self:end;
 }
 .navbar-actions i{ font-size:1.2rem; cursor:pointer; }
 .navbar-actions i:hover{ transform:scale(1.1); filter:drop-shadow(0 0 5px rgba(96,168,98,.8)); }
-/* Mejorar área táctil sin agrandar visualmente */
 .navbar-actions .nav-link,
 .navbar-actions i{ padding:.25rem; }
 
 .user-name{ max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-/* Menú mobile (estructura base del dropdown) — usa d-lg-none */
+/* Menú mobile */
 .navbar-toggle{ display:none; background:none; border:0; color:#fff; font-size:1.5rem; cursor:pointer; }
 .navbar-links.d-lg-none{
   display:none;
@@ -151,7 +141,7 @@ body.has-fixed-navbar{ padding-top: var(--nav-h); }
   white-space:normal;
 }
 
-/* ====== Header compacto para tablets y abajo (<=991.98px) ====== */
+/* ====== Header compacto (<=991.98px) ====== */
 @media (max-width: 991.98px){
   :root{ --nav-h: 56px; }
 
@@ -164,10 +154,10 @@ body.has-fixed-navbar{ padding-top: var(--nav-h); }
   .navbar-toggle{ display:block; min-width:30px; }
   .navbar-logo img{ max-height:56px; height:auto;}
 
-  /* Oculta los links horizontales de escritorio, no el dropdown móvil */
+  /* Oculta links horizontales de escritorio */
   .navbar-links:not(.d-lg-none){ display: none !important; }
 
-  /* Dropdown móvil/tablet: ancho completo, animación y antighost click */
+  /* Dropdown móvil/tablet */
   .navbar-links.d-lg-none{
     position:absolute;
     top:100%;
@@ -189,26 +179,24 @@ body.has-fixed-navbar{ padding-top: var(--nav-h); }
     transform: translateY(0);
   }
 
-  /* >>> Ajustes mobile: tamaño y separación de íconos */
   .navbar-actions{ gap:.8rem; }
   .navbar-actions .nav-link,
   .navbar-actions i { font-size:1.10rem; line-height:1; }
 
-  /* Separación adicional entre íconos adyacentes (RTL-safe) */
   .navbar-actions .nav-link + .nav-link,
   .navbar-actions i + i,
   .navbar-actions .nav-link + i,
   .navbar-actions i + .nav-link{ margin-inline-start:.25rem; }
 }
 
-/* Evitar scroll de fondo cuando el menú mobile está abierto */
+/* Evitar scroll de fondo con menú abierto */
 body.menu-open{
   overflow:hidden;
   overscroll-behavior: contain;
   touch-action: manipulation;
 }
 
-/* ====== Escritorio (>= 992px): header completo ====== */
+/* ====== Escritorio (>= 992px) ====== */
 @media (min-width: 992px){
   .navbar-logo{ justify-self:start; }
   .navbar-links{ display:flex; justify-self:center; }
@@ -219,14 +207,12 @@ body.menu-open{
    MODALES sobre navbar fijo
    ========================= */
 
-/* Backdrops por encima del navbar fijo */
 .modal-backdrop { z-index: 2100 !important; }
 .modal           { z-index: 2110 !important; }
 
-/* Diálogo con margen bajo el navbar fijo por defecto */
 .modal-dialog-centered{ margin-top: max(12px, calc(var(--nav-h) + 12px)) !important; }
 
-/* ---- Modal fix-top: base (común a todos los viewports) ---- */
+/* ---- Modal fix-top base ---- */
 .modal.modal-fix-top .modal-dialog{
   margin: calc(var(--nav-h) + 12px) auto var(--modal-desktop-bottom-gap) !important;
   width: auto;
@@ -245,28 +231,21 @@ body.menu-open{
   -webkit-overflow-scrolling:touch;
 }
 
-/* ---- Escritorio (>=992px): look primera captura ---- */
+/* ---- Escritorio (>=992px) ---- */
 @media (min-width: 992px){
   .modal.modal-fix-top .modal-dialog{
-    /* ancho contenido, con respiración lateral */
     max-width: min(var(--modal-desktop-max-w), calc(100vw - var(--modal-desktop-side-gap)));
     margin-left: auto !important;
     margin-right: auto !important;
   }
-
-  /* si además usas .modal-xl, forzar el mismo ancho contenido */
   .modal.modal-fix-top .modal-dialog.modal-xl{
     max-width: min(var(--modal-desktop-max-w), calc(100vw - var(--modal-desktop-side-gap)));
   }
-
   .modal.modal-fix-top .modal-content{
-    /* no cubrir hasta abajo; scroll interno en body */
     max-height: 85vh;
     border-radius: .75rem;
     box-shadow: 0 10px 30px rgba(0,0,0,.25);
   }
-
-  /* con .modal-dialog-centered, alinear al top (no al centro) */
   .modal.modal-fix-top .modal-dialog.modal-dialog-centered{
     align-items:flex-start;
     margin-top: calc(var(--nav-h) + 12px) !important;
@@ -274,7 +253,7 @@ body.menu-open{
   }
 }
 
-/* ---- Compatibilidad con modal-dialog-scrollable ---- */
+/* ---- Compatibilidad scrollable ---- */
 @supports (height: 100dvh){
   .modal.modal-fix-top .modal-dialog.modal-dialog-scrollable .modal-content{
     max-height: calc(100dvh - (var(--nav-h) + 24px));
@@ -286,7 +265,7 @@ body.menu-open{
   }
 }
 
-/* ---- Fullscreen controlado en móviles pequeños (conserva versión móvil) ---- */
+/* ---- Mobile fullscreen (<=576.98px) ---- */
 @media (max-width: 576.98px){
   .modal.modal-fix-top .modal-dialog{
     margin: 0 !important;
@@ -327,7 +306,6 @@ body.menu-open{
 .navbar-custom .dropdown-item i { font-size: .95em; }
 
 @media (max-width: 576.98px){
-  /* >>> Phones pequeños: un pelín más grandes y más aire */
   .navbar-actions{ gap:.9rem; }
   .navbar-actions .nav-link,
   .navbar-actions i { font-size: 1.15rem; }
@@ -341,17 +319,17 @@ body.menu-open{
 }
 
 /* =========================
-   CART DROPDOWN — alineado a la derecha + dimensiones seguras
+   CART DROPDOWN
    ========================= */
 .navbar-custom .navbar-actions .dropdown-menu{
   position: absolute !important;
-  top: calc(100% + 0.25rem) !important;   /* separa del header */
-  right: .5rem !important;                /* pegado al borde derecho */
+  top: calc(100% + 0.25rem) !important;
+  right: .5rem !important;
   left: auto !important;
   margin-top: 0 !important;
   transform: none !important;
   transform-origin: top right;
-  z-index: 2105 !important;               /* por encima del header */
+  z-index: 2105 !important;
   width: min(92vw, 360px);
   max-width: 92vw;
   max-height: min(70vh, 560px);
@@ -360,19 +338,16 @@ body.menu-open{
   border-radius: .6rem;
   box-shadow: 0 6px 20px rgba(0,0,0,.25);
 }
-/* Reforzar si usas clase específica del carrito */
 .navbar-custom .navbar-actions .dropdown-menu.cart-dropdown{
   right: .5rem !important;
   left: auto !important;
 }
-/* Perfil con .dropdown-menu-end de Bootstrap: forzar a la derecha */
 .navbar-custom .navbar-actions .dropdown-menu.dropdown-menu-end{
   right: .5rem !important;
   left: auto !important;
   transform: none !important;
   transform-origin: top right;
 }
-
 @media (min-width: 992px){
   .navbar-custom .navbar-actions .dropdown-menu{
     width: min(420px, 42vw);
@@ -380,7 +355,6 @@ body.menu-open{
     max-height: 70vh;
   }
 }
-/* Evita cortes si el contenido usa utilidades tipo .p-4 .small */
 .navbar-custom .navbar-actions .dropdown-menu .dropdown-body,
 .navbar-custom .navbar-actions .dropdown-menu > .p-4{
   max-width: 100%;
@@ -428,33 +402,23 @@ body.menu-open{
   .language-switcher .dropdown-item{ font-size:var(--fs-xs); padding:.35rem .75rem; }
 }
 
-/* ===== Language switcher compacto al lado del hamburguer (solo mobile) ===== */
+/* ===== Language switcher compacto (solo mobile) ===== */
 @media (max-width: 991.98px){
   .navbar-left{ gap:.45rem; }
-
-  /* Botón compacto del switcher, alineado a la altura de los iconos */
   .navbar-left .language-switcher-toggle{
     display:inline-flex; align-items:center; justify-content:center;
     height:28px; padding:.18rem .38rem; gap:.3rem;
     border-width:1.25px; border-radius:.35rem;
     font-size:10px; line-height:1;
   }
-
-  /* Mostrar solo la bandera; ocultar código/label para ahorrar ancho */
   .navbar-left .language-switcher-toggle .label,
   .navbar-left .language-switcher-toggle .code,
   .navbar-left .language-switcher-toggle .text,
   .navbar-left .language-switcher-toggle span{ display:none !important; }
-
-  /* Tamaño de bandera proporcional al botón compacto */
   .navbar-left .language-switcher-toggle img{
     width:18px; height:12px; display:block; border-radius:2px;
   }
-
-  /* Dropdown del switcher sobre el header */
-  .navbar-custom .language-switcher .dropdown-menu{
-    z-index:2105; min-width:140px;
-  }
+  .navbar-custom .language-switcher .dropdown-menu{ z-index:2105; min-width:140px; }
 }
 
 /* =========================
@@ -489,12 +453,7 @@ body.has-fixed-navbar .container > .big-title:first-child{
 .cookie-reject{ background:#6c757d; color:#fff; }
 .cookie-more{ background:transparent; color:#fff; text-decoration:underline; padding:0 4px; }
 .cookie-banner .btn:hover,
-.cookie-banner .btn:focus-visible{ border-color:#ffffff; box-shadow:0 0 0 2px rgba(255,255,255,.35) inset; opacity:1; filter:none; }
-.cookie-accept:hover{ background:#34c759; color:#0b2e13; }
-.cookie-reject:hover{ background:#6c757d; color:#ffffff; }
-.cookie-more:hover{ background:transparent; color:#ffffff; text-decoration:underline; }
-.cookie-banner .btn:focus-visible,
-.cookie-banner a:focus-visible{ outline:2px solid #ffffff; outline-offset:2px; }
+.cookie-banner .btn:focus-visible{ border-color:#ffffff; box-shadow:0 0 0 2px rgba(255,255,255,.35) inset; }
 @media (prefers-reduced-motion: no-preference){
   .cookie-banner{ animation:slideUp .25s ease-out; }
   @keyframes slideUp{ from{ transform:translateY(100%); } to{ transform:translateY(0); } }
@@ -503,44 +462,170 @@ body.has-fixed-navbar .container > .big-title:first-child{
   :root{ --content-top-gap: clamp(10px, 2vh, 20px); }
 }
 
-/* ======================================================
-   FIX: Título “chip” de tour que se cortaba en móviles
-   ====================================================== */
-.tour-card .card-title{
-  display:inline-block; background:#e74c3c; color:#fff; font-weight:700;
-  line-height:1.25; padding:.48rem .9rem; border-radius:999px;
-  max-width:100%; white-space:normal; overflow:visible;
-  word-break:break-word; hyphens:auto; text-align:center;
-}
-
-/* Evitar que el body de la card recorte el título */
-.tour-card .card-body{ overflow:visible; }
-
-/* Ajuste del título de modal largo (centrado y multilinea) */
+/* -------------------------
+   Genéricos de modal
+   ------------------------- */
 .modal .modal-header .modal-title{
   white-space:normal; line-height:1.3; text-align:center; width:100%;
 }
 
-/* Afinar chip en pantallas muy pequeñas */
-@media (max-width: 420px){
-  .tour-card .card-title{
-    font-size: var(--fs-sm); padding:.42rem .8rem; line-height:1.28;
+/* =========================
+   FOOTER GLOBAL — (trasladado desde home.css)
+   ========================= */
+.footer-nature{
+  background:#0f2419;
+  color:#fff;
+  padding:3.5rem 2rem;
+  font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+.footer-nature .footer-main-content{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  gap:2rem;
+  max-width:1200px;
+  margin:auto;
+}
+.footer-nature .footer-brand img{
+  width:190px;
+  margin-bottom:1rem;
+}
+.footer-nature .footer-brand p{
+  font-size:var(--fs-body);
+  line-height:1.6;
+  color:#f0f0f0;
+}
+.footer-nature .footer-links,
+.footer-nature .contact-info{
+  flex:1;
+  min-width:220px;
+}
+.footer-nature .footer-links h4,
+.footer-nature .contact-info h4{
+  font-size:var(--fs-h6);
+  font-weight:700;
+  margin-bottom:1rem;
+  color:#fff;
+  text-transform:uppercase;
+}
+.footer-nature .footer-links ul{
+  list-style:none;
+  padding:0;
+  margin:0;
+}
+.footer-nature .footer-links li{
+  margin-bottom:10px;
+}
+.footer-nature .footer-links a{
+  color:#e0e0e0;
+  text-decoration:none;
+  font-size:var(--fs-body);
+  transition:color .3s;
+}
+.footer-nature .footer-links a:hover{
+  color:#a7f3d0;
+}
+.footer-nature .contact-info p{
+  font-size:var(--fs-body);
+  margin-bottom:.5rem;
+  color:#f0f0f0;
+}
+.footer-nature .footer-bottom{
+  text-align:center;
+  margin-top:2rem;
+  font-size:var(--fs-sm);
+  color:#ccc;
+}
+.footer-tours{
+  flex:1;
+  min-width:220px;
+}
+.footer-tours h4{
+  font-size:var(--fs-h6);
+  font-weight:700;
+  margin-bottom:1rem;
+  color:#fff;
+  text-transform:uppercase;
+}
+.footer-tours ul{
+  list-style:none;
+  padding:0;
+  margin:0;
+}
+.footer-tours li{
+  margin-bottom:10px;
+}
+.footer-tours a{
+  color:#e0e0e0;
+  font-size:var(--fs-body);
+  text-decoration:none;
+  transition:color .3s ease;
+}
+.footer-tours a:hover{
+  color:#a7f3d0;
+  text-decoration:underline;
+}
+.footer-tours i{
+  min-width:20px;
+}
+
+/* Responsive footer */
+@media (max-width: 767.98px){
+  .footer-nature{
+    padding:2.5rem 1.5rem;
+  }
+  .footer-nature .footer-main-content{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:2rem;
+  }
+  .footer-nature .footer-brand{
+    text-align:center;
+    width:100%;
+  }
+  .footer-nature .footer-brand img{
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .footer-nature .footer-bottom{
+    margin-top:1.5rem;
+    font-size:var(--fs-xs);
   }
 }
 
-/* ======================================================
-   FIX ESPECÍFICO MOBILE S (≤ 380px) — chip sin recorte
-   ====================================================== */
-.tour-card .card-title{
-  transform: translateZ(0);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+/* Modo oscuro opcional para el footer (respetando tu paleta) */
+@media (prefers-color-scheme: dark){
+  .footer-nature{ background:#0c1b14; }
+  .footer-nature .footer-brand p,
+  .footer-nature .contact-info p{ color:#e6eee9; }
+  .footer-nature .footer-links a,
+  .footer-tours a{ color:#d7e6dc; }
+  .footer-nature .footer-links a:hover,
+  .footer-tours a:hover{ color:#b6f0cf; }
+  .footer-nature .footer-bottom{ color:#bbbbbb; }
 }
-@media (max-width: 380px){
-  .tour-card .card-title{
-    display:inline-flex; align-items:center; justify-content:center;
-    font-size: clamp(13px, 3.3vw, 15px); line-height:1.35;
-    padding:.42rem .78rem; margin: 0 auto .65rem; overflow-wrap:anywhere;
-  }
-  .tour-card .card-body{ padding-top:.85rem; }
+
+/* ---------- WHATSAPP (widget/panel) ---------- */
+.whatsapp-panel{
+  position:fixed; bottom:6rem; right:1.5rem; width:300px;
+  background:#fff; border:1px solid #e2e2e2; border-radius:1rem;
+  box-shadow:0 8px 20px rgba(0,0,0,.15); overflow:hidden; z-index:1050;
 }
+.whatsapp-header{
+  background:linear-gradient(to right, #0d4740, #083d3a);
+  color:#fff; padding:1rem; display:flex; justify-content:space-between; align-items:center;
+  border-top-left-radius:1rem; border-top-right-radius:1rem;
+}
+.whatsapp-icon-circle{ width:40px; height:40px; background-color:rgba(255,255,255,.2);
+  border-radius:50%; display:flex; align-items:center; justify-content:center; }
+.whatsapp-greeting{ background:#f8f9fa; padding:.75rem; border-radius:.5rem; margin-bottom:1rem; }
+.whatsapp-footer-note{ font-size:11px; }
+.whatsapp-float-btn{
+  position:fixed; bottom:1.5rem; right:1.5rem; width:60px; height:60px;
+  background:linear-gradient(to right, #0d4740, #083d3a);
+  color:#fff; border-radius:50%; box-shadow:0 4px 15px rgba(0,0,0,.25);
+  border:none; display:flex; align-items:center; justify-content:center; transition:all .3s ease; z-index:1040;
+}
+.whatsapp-float-btn:hover{ transform:scale(1.05); background:linear-gradient(to right, #14665e, #052a28); }
+@keyframes pulse-grow{ 0%{transform:scale(1);} 50%{transform:scale(1.15);} 100%{transform:scale(1);} }
+.animate-pulse-grow{ animation:pulse-grow 1.2s ease-in-out infinite; }

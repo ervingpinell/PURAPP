@@ -10,13 +10,14 @@
   @vite([
     'resources/css/reviews.css',
     'resources/css/homereviews.css',
+    'resources/css/home.css',
     'resources/css/tour.css',
     'resources/css/app.css'
   ])
 @endpush
 
 @section('content')
-<h2 class="big-title text-center page-first" style="color: var(--primary-dark);">
+<h2 class="big-title text-center page-first mt-5 mb-0" style="color: var(--primary-dark);">
   {{ __('adminlte::adminlte.our_tours') }}
 </h2>
 
@@ -41,5 +42,8 @@
 @endsection
 
 @push('scripts')
-  @vite('resources/js/reviews-carousel.js')
+  @vite([
+    'resources/js/reviews-carousel.js',
+    'resources/js/home.js'
+  ])
 @endpush

@@ -1,9 +1,12 @@
 /* =========================================================
-   APP.JS — HEADER OFFSET + MENÚ MOBILE + SCROLL + UTILIDADES
+   APP-CORE.JS — HEADER OFFSET + MENÚ MOBILE + SCROLL + UTILIDADES GLOBALES
    (con tinte dinámico iOS/Safari: theme-color)
    ========================================================= */
 (function () {
   const $doc = document;
+
+  // Exponer un namespace liviano para helpers compartidos
+  const App = (window.App = window.App || {});
 
   /* -----------------------------
    * 0) iOS/Safari Theme-Color helpers
@@ -14,43 +17,29 @@
       meta = $doc.createElement('meta');
       meta.setAttribute('name', 'theme-color');
       meta.id = 'themeColorMeta';
-      // color por defecto (verde principal)
-      meta.setAttribute('content', '#0f2419');
+      meta.setAttribute('content', '#0f2419'); // color por defecto
       $doc.head.appendChild(meta);
     }
     return meta;
   }
   const themeMeta = ensureThemeMeta();
-
-  // Lee color actual de meta o usa verde por defecto
   const TOP_COLOR_DEFAULT = themeMeta.getAttribute('content') || '#0f2419';
-  // Si tu footer usa otro verde, cámbialo aquí:
   const FOOTER_COLOR = TOP_COLOR_DEFAULT;
 
-  // Cambia el theme-color de forma segura
   function setThemeColor(c) {
-    if (!themeMeta) return;
-    if (themeMeta.getAttribute('content') !== c) {
+    if (themeMeta && themeMeta.getAttribute('content') !== c) {
       themeMeta.setAttribute('content', c);
     }
   }
-
-  // Detectar si estamos cerca del footer (para ajustar tinte)
   function nearFooter() {
     const footer = $doc.querySelector('.footer-nature');
     if (!footer) return false;
     const rect = footer.getBoundingClientRect();
-    return rect.top < (window.innerHeight * 1.2);
+    return rect.top < window.innerHeight * 1.2;
   }
-
-  // Actualizar theme-color según contexto (scroll, menú, etc.)
   function refreshThemeColor(forceTop = false) {
-    // Si el menú está abierto, forzamos el TOP_COLOR para evitar parpadeos
     const menuOpen = document.body.classList.contains('menu-open');
-    if (forceTop || menuOpen) {
-      setThemeColor(TOP_COLOR_DEFAULT);
-      return;
-    }
+    if (forceTop || menuOpen) { setThemeColor(TOP_COLOR_DEFAULT); return; }
     setThemeColor(nearFooter() ? FOOTER_COLOR : TOP_COLOR_DEFAULT);
   }
 
@@ -70,25 +59,21 @@
       document.body.classList.add('has-fixed-navbar');
     }
   }
-
   let t;
   const debounce = (fn, ms) => { clearTimeout(t); t = setTimeout(fn, ms); };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', setNavH, { once:true });
-  } else {
-    setNavH();
-  }
-  window.addEventListener('resize', () => { debounce(setNavH, 120); refreshThemeColor(); }, { passive: true });
-  window.addEventListener('orientationchange', () => setTimeout(() => { setNavH(); refreshThemeColor(true); }, 200), { passive: true });
+  } else { setNavH(); }
+  window.addEventListener('resize', () => { debounce(setNavH, 120); refreshThemeColor(); }, { passive:true });
+  window.addEventListener('orientationchange', () => setTimeout(() => { setNavH(); refreshThemeColor(true); }, 200), { passive:true });
   window.addEventListener('load', () => setTimeout(() => { setNavH(); refreshThemeColor(); }, 100));
   window.addEventListener('pageshow', () => setTimeout(() => { setNavH(); refreshThemeColor(); }, 60));
   window.addEventListener('scroll', () => refreshThemeColor(), { passive:true });
-
   if (document.fonts?.ready) document.fonts.ready.then(() => { setNavH(); refreshThemeColor(); });
   if (header) {
     header.querySelectorAll('img').forEach((img) => {
-      if (!img.complete) img.addEventListener('load', () => { setNavH(); refreshThemeColor(); }, { once: true });
+      if (!img.complete) img.addEventListener('load', () => { setNavH(); refreshThemeColor(); }, { once:true });
     });
   }
 
@@ -104,38 +89,29 @@
       mobileLinks.classList.remove('show');
       document.body.classList.remove('menu-open');
       if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
-      refreshThemeColor(true); // al cerrar, vuelve al top color
+      refreshThemeColor(true);
     }
     function openMenu() {
       if (!mobileLinks) return;
       mobileLinks.classList.add('show');
       document.body.classList.add('menu-open');
       if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
-      refreshThemeColor(true); // con menú abierto, usamos top color
+      refreshThemeColor(true);
     }
 
     if (toggleBtn && mobileLinks) {
       toggleBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+        e.preventDefault(); e.stopPropagation();
         mobileLinks.classList.contains('show') ? closeMenu() : openMenu();
       });
-
-      // No propagar clics dentro del menú
       mobileLinks.addEventListener('click', (e) => e.stopPropagation());
-
-      // Cerrar al pulsar un enlace (y navegar o hacer scroll)
       mobileLinks.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', (e) => {
           const href = link.getAttribute('href') || '';
           const isHash = href.startsWith('#') && href.length > 1;
-
-          e.preventDefault();
-          e.stopPropagation();
-
+          e.preventDefault(); e.stopPropagation();
           setTimeout(() => {
             closeMenu();
-
             if (isHash) {
               const target = document.querySelector(href);
               if (target) {
@@ -151,16 +127,12 @@
           }, 50);
         });
       });
-
-      // Cerrar si se clickea fuera
       document.addEventListener('click', closeMenu);
     }
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initMobileMenu, { once:true });
-  } else {
-    initMobileMenu();
-  }
+  } else { initMobileMenu(); }
 
   /* --------------------------------------------
    * 3) SCROLL SUAVE respetando altura del header
@@ -170,7 +142,6 @@
     const n = parseInt(v, 10);
     return Number.isFinite(n) ? n : 0;
   }
-
   function smoothScrollTo(target) {
     if (!target) return;
     const rect = target.getBoundingClientRect();
@@ -178,25 +149,19 @@
     const offset = getNavOffset();
     window.scrollTo({ top: absoluteY - offset - 16, behavior: 'smooth' });
   }
-
-  function animateTourCards() {
-    const cards = document.querySelectorAll('.tour-card');
-    if (!cards.length) return;
-    cards.forEach((card) => {
-      card.style.opacity = '0';
-      card.style.transform = 'scale(0.85) translateY(20px)';
-      card.style.transition = 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+  // Enlaces a anclas (#id) fuera del menú móvil
+  $doc.querySelectorAll('a[href^="#"]').forEach((a) => {
+    a.addEventListener('click', (ev) => {
+      if (a.closest('#navbar-links')) return;
+      const hash = a.getAttribute('href');
+      if (!hash || hash === '#') return;
+      const el = $doc.querySelector(hash);
+      if (el) { ev.preventDefault(); smoothScrollTo(el); }
     });
-    cards.forEach((card, idx) => {
-      setTimeout(() => {
-        card.style.opacity = '1';
-        card.style.transform = 'scale(1) translateY(0)';
-      }, idx * 120);
-    });
-  }
+  });
 
-  /* ✅ HELPER: Obtener locale actual desde meta tag o URL */
-  function getCurrentLocale() {
+  /* 4) Helpers globales expuestos */
+  App.getCurrentLocale = function getCurrentLocale() {
     const metaLocale = document.querySelector('meta[name="locale"]');
     if (metaLocale) {
       const locale = metaLocale.getAttribute('content');
@@ -207,93 +172,15 @@
     const supported = ['es', 'en', 'fr', 'de', 'pt'];
     if (pathParts.length > 0 && supported.includes(pathParts[0])) return pathParts[0];
     return 'es';
-  }
-
-  /* ✅ HELPER: Detectar si estamos en home */
-  function isHomePage() {
+  };
+  App.isHomePage = function isHomePage() {
     const path = window.location.pathname;
-    const pathParts = path.split('/').filter(Boolean);
+    const parts = path.split('/').filter(Boolean);
     const supported = ['es', 'en', 'fr', 'de', 'pt'];
-    return pathParts.length === 0 || (pathParts.length === 1 && supported.includes(pathParts[0]));
-  }
+    return parts.length === 0 || (parts.length === 1 && supported.includes(parts[0]));
+  };
 
-  // Enlaces a anclas (#id) fuera del menú móvil
-  $doc.querySelectorAll('a[href^="#"]').forEach((a) => {
-    a.addEventListener('click', (ev) => {
-      // Si el enlace está dentro del dropdown móvil, lo gestiona el handler del menú
-      if (a.closest('#navbar-links')) return;
-      const hash = a.getAttribute('href');
-      if (!hash || hash === '#') return;
-      const el = $doc.querySelector(hash);
-      if (el) {
-        ev.preventDefault();
-        smoothScrollTo(el);
-      }
-    });
-  });
-
-  // ✅ BOTONES "TOURS" (evita ghost click)
-  $doc.querySelectorAll('.scroll-to-tours').forEach(link => {
-    link.addEventListener('click', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      setTimeout(() => {
-        if (isHomePage()) {
-          const target = document.getElementById('tours') ||
-                         document.querySelector('[data-anchor="tours"]');
-          if (target) {
-            smoothScrollTo(target);
-            setTimeout(animateTourCards, 400);
-          }
-        } else {
-          const currentLocale = getCurrentLocale();
-          window.location.href = `/${currentLocale}#tours`;
-        }
-      }, 50);
-    });
-  });
-
-  // Si llegamos con #tours, hacer scroll y animar
-  if (window.location.hash === '#tours') {
-    setTimeout(() => {
-      const target = document.getElementById('tours') ||
-                    document.querySelector('[data-anchor="tours"]');
-      if (target) {
-        smoothScrollTo(target);
-        setTimeout(animateTourCards, 400);
-      }
-    }, 200);
-  }
-
-  /* ---------------------------------
-   * 4) LEER MÁS / LEER MENOS (home)
-   * --------------------------------- */
-  $doc.querySelectorAll('.toggle-overview-link').forEach(link => {
-    link.addEventListener('click', function () {
-      const overview = document.getElementById(this.dataset.target);
-      if (!overview) return;
-      const textMore = this.dataset.textMore || 'Leer más';
-      const textLess = this.dataset.textLess || 'Leer menos';
-      overview.classList.toggle('expanded');
-      this.textContent = overview.classList.contains('expanded') ? textLess : textMore;
-    });
-  });
-
-  /* ---------------------------------
-   * 5) Accordion toggle icons (FAQ)
-   * --------------------------------- */
-  $doc.querySelectorAll('.accordion-button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const icon = btn.querySelector('.toggle-icon');
-      if (icon) {
-        icon.classList.toggle('fa-minus');
-        icon.classList.toggle('fa-plus');
-      }
-    });
-  });
-
-  /* 6) Cart item counter (fetch) */
+  /* 5) Carrito (global) */
   function updateCartCount() {
     fetch('/cart/count', { headers: { 'Accept': 'application/json' }})
       .then(res => res.ok ? res.json() : Promise.reject(`HTTP ${res.status}`))
@@ -312,225 +199,11 @@
       .catch(err => console.error('❌ Error al obtener la cantidad del carrito:', err));
   }
   updateCartCount();
-
-  // Refresca al volver a la pestaña
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      updateCartCount();
-      refreshThemeColor();
-    }
-  });
-
-  // Polling ligero cada 30s
-  setInterval(() => {
-    updateCartCount();
-    refreshThemeColor();
-  }, 30000);
-
-  // Ganchito global para otros módulos
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { updateCartCount(); refreshThemeColor(); } });
+  setInterval(() => { updateCartCount(); refreshThemeColor(); }, 30000);
   window.addEventListener('cart:changed', updateCartCount);
 
-  /* ----------------------------------------------------
-   * 7) Precios: modal + resumen
-   * ---------------------------------------------------- */
-  const modalTotalPrice = document.getElementById('modal-total-price');
-  const reservationTotalPrice = document.getElementById('reservation-total-price');
-  const summarySpan = document.getElementById('traveler-summary');
-
-  const adultPrice = parseFloat(document.querySelector('.reservation-box')?.dataset.adultPrice || 0);
-  const kidPrice   = parseFloat(document.querySelector('.reservation-box')?.dataset.kidPrice   || 0);
-  const maxTotal = 12;
-  const minTotal = 2;
-  const maxKids  = 2;
-
-  function updateModalTotal() {
-    const adultCount = parseInt(document.getElementById('adult-count')?.textContent || 0);
-    const kidCount   = parseInt(document.getElementById('kid-count')?.textContent   || 0);
-    const total = (adultCount * adultPrice) + (kidCount * kidPrice);
-    if (modalTotalPrice) modalTotalPrice.textContent = `Total: $${total.toFixed(2)}`;
-  }
-
-  function updateReservationTotal() {
-    const adultCount = parseInt(document.getElementById('adult-count')?.textContent || 0);
-    const kidCount   = parseInt(document.getElementById('kid-count')?.textContent   || 0);
-
-    const adultsQtyInput = document.getElementById('adults_quantity');
-    const kidsQtyInput   = document.getElementById('kids_quantity');
-
-    if (adultsQtyInput) adultsQtyInput.value = adultCount;
-    if (kidsQtyInput)   kidsQtyInput.value   = kidCount;
-
-    const total = (adultCount * adultPrice) + (kidCount * kidPrice);
-    if (reservationTotalPrice) reservationTotalPrice.textContent = `$${total.toFixed(2)}`;
-  }
-
-  const plusBtns  = document.querySelectorAll('.traveler-btn[data-action="increase"]');
-  const minusBtns = document.querySelectorAll('.traveler-btn[data-action="decrease"]');
-  const adultCountEl = document.getElementById('adult-count');
-  const kidCountEl   = document.getElementById('kid-count');
-
-  if (adultCountEl && kidCountEl) {
-    if (!adultCountEl.textContent) adultCountEl.textContent = '2';
-    if (!kidCountEl.textContent)   kidCountEl.textContent   = '0';
-    updateModalTotal();
-    updateReservationTotal();
-  }
-
-  plusBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const type = btn.dataset.type;
-      let adults = parseInt(adultCountEl?.textContent || 0);
-      let kids   = parseInt(kidCountEl?.textContent   || 0);
-      const total = adults + kids;
-
-      if (type === 'adult' && total < maxTotal) adults++;
-      if (type === 'kid'   && kids  < maxKids && total < maxTotal) kids++;
-      if (adults + kids < minTotal) adults = minTotal - kids;
-
-      if (adultCountEl) adultCountEl.textContent = adults;
-      if (kidCountEl)   kidCountEl.textContent   = kids;
-
-      updateModalTotal();
-    });
-  });
-
-  minusBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const type = btn.dataset.type;
-      let adults = parseInt(adultCountEl?.textContent || 0);
-      let kids   = parseInt(kidCountEl?.textContent   || 0);
-
-      if (type === 'adult' && adults > 0) adults--;
-      if (type === 'kid'   && kids > 0)   kids--;
-
-      if (adults + kids < minTotal) {
-        kids = 0;
-        adults = minTotal;
-      }
-
-      if (adultCountEl) adultCountEl.textContent = adults;
-      if (kidCountEl)   kidCountEl.textContent   = kids;
-
-      updateModalTotal();
-    });
-  });
-
-  document.querySelector('#travelerModal .btn-success')?.addEventListener('click', () => {
-    const adultCount = parseInt(adultCountEl?.textContent || 0);
-    const kidCount   = parseInt(kidCountEl?.textContent   || 0);
-    if (summarySpan) summarySpan.textContent = adultCount + kidCount;
-    updateReservationTotal();
-  });
-
-  /* ----------------------------------
-   * 8) Validación de capacidad (API)
-   * ---------------------------------- */
-  const addToCartForm = document.querySelector('.reservation-box');
-  if (addToCartForm) {
-    const tourId        = window.tourId;
-    const maxCapacity   = window.maxCapacity;
-    const tourDateInput = addToCartForm.querySelector('[name="tour_date"]');
-    const scheduleSelect= addToCartForm.querySelector('[name="schedule_id"]');
-
-    addToCartForm.addEventListener('submit', async function (e) {
-      e.preventDefault();
-
-      const hotelIdInput = document.getElementById('selectedPickupPoint');
-      if (hotelIdInput) {
-        const v = (hotelIdInput.value || '').trim();
-        hotelIdInput.value = /^\d+$/.test(v) ? v : '';
-      }
-
-      const adults    = parseInt(document.getElementById('adults_quantity')?.value || 0);
-      const kids      = parseInt(document.getElementById('kids_quantity')?.value   || 0);
-      const requested = adults + kids;
-
-      const tourDate  = tourDateInput?.value;
-      const scheduleId= scheduleSelect?.value;
-
-      if (!tourDate || !scheduleId) {
-        Swal.fire('Error', 'Selecciona una fecha y un horario válido.', 'error');
-        return;
-      }
-
-      try {
-        const res = await fetch(`/api/get-reserved?tour_id=${tourId}&schedule_id=${scheduleId}&tour_date=${encodeURIComponent(tourDate)}`);
-        const data = await res.json();
-        const reserved = parseInt(data.reserved) || 0;
-
-        if (reserved + requested > maxCapacity) {
-          const spotsLeft = Math.max(maxCapacity - reserved, 0);
-          Swal.fire('Cupo no disponible', `Solo quedan ${spotsLeft} espacios para este horario.`, 'error');
-          return;
-        }
-
-        addToCartForm.submit();
-        updateCartCount();
-      } catch (err) {
-        console.error(err);
-        Swal.fire('Error', 'No se pudo validar el cupo disponible.', 'error');
-      }
-    });
-  }
-
-  /* ----------------------------------
-   * 9) Pickup (autocompletar simple)
-   * ---------------------------------- */
-  const pickupInput         = document.getElementById('pickupInput');
-  const pickupList          = document.getElementById('pickupList');
-  const pickupValidMsg      = document.getElementById('pickupValidMsg');
-  const pickupInvalidMsg    = document.getElementById('pickupInvalidMsg');
-  const selectedPickupPoint = document.getElementById('selectedPickupPoint');
-
-  if (pickupInput && pickupList && selectedPickupPoint) {
-    pickupInput.addEventListener('input', () => {
-      const filter = pickupInput.value.toLowerCase().trim();
-      let found = false;
-
-      pickupList.querySelectorAll('li').forEach(li => {
-        const name = li.textContent.toLowerCase();
-        const match = name.includes(filter);
-        li.classList.toggle('d-none', !match);
-        if (match) found = true;
-      });
-
-      pickupList.classList.remove('d-none');
-
-      if (pickupValidMsg)   pickupValidMsg.classList.add('d-none');
-      if (pickupInvalidMsg) pickupInvalidMsg.classList.toggle('d-none', found || filter === '');
-
-      selectedPickupPoint.value = '';
-    });
-
-    pickupInput.addEventListener('focus', () => {
-      pickupList.classList.remove('d-none');
-    });
-
-    pickupList.addEventListener('click', (e) => {
-      const li = e.target.closest('.pickup-option');
-      if (li) {
-        const hotelName = li.textContent.trim();
-        const hotelId   = li.dataset.id;
-
-        pickupInput.value = hotelName;
-        selectedPickupPoint.value = /^\d+$/.test(String(hotelId)) ? hotelId : '';
-
-        if (pickupValidMsg)   pickupValidMsg.classList.remove('d-none');
-        if (pickupInvalidMsg) pickupInvalidMsg.classList.add('d-none');
-        pickupList.classList.add('d-none');
-      }
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!pickupList.contains(e.target) && e.target !== pickupInput) {
-        pickupList.classList.add('d-none');
-      }
-    });
-  }
-
-  /* -------------------------------------------
-   * 10) Hardening para carousels/iframes móviles
-   * ------------------------------------------- */
+  /* 6) Hardening para carousels/iframes móviles */
   document.querySelectorAll('.carousel, .carousel-inner, .carousel-item')
     .forEach(el => el.style.transform = 'translateZ(0)');
 

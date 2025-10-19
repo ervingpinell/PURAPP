@@ -76,7 +76,7 @@
       <div class="mt-1">
         {{ $t('cookies.message', 'Este sitio utiliza cookies propias y de terceros para mejorar tu experiencia, analizar el tráfico y fines de medición. Puedes aceptar o rechazar el uso no esencial. Consulta más información en nuestras políticas.') }}
         <a href="{{ $policiesIndexUrl }}" class="cookie-more-link">
-          {{ $t('cookies.more_info', 'Más información') }}
+          {{ $t('cookies.learn_more', 'Más información') }}
         </a>
       </div>
     </div>
@@ -99,7 +99,7 @@
         <strong>{{ $t('cookies.title', 'Usamos cookies') }}</strong>
         <div class="mt-1">
           {{ $t('cookies.noscript', 'Para gestionar tu consentimiento habilita JavaScript. Puedes revisar nuestras políticas aquí:') }}
-          <a href="{{ $policiesIndexUrl }}">{{ $t('cookies.learn_more', 'Más información') }}</a>
+          <a href="{{ $policiesIndexUrl }}">{{ $t('cookies.learn_more', 'Read more') }}</a>
         </div>
       </div>
     </div>

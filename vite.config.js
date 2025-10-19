@@ -33,7 +33,8 @@ export default defineConfig({
                 'resources/js/cart/promo-code.js',
                 'resources/js/reviews-embed.js',
                 'resources/js/reviews-carousel.js',
-                'resources/js/reviews-index.js'
+                'resources/js/reviews-index.js',
+                'resources/js/home.js',
             ],
             refresh: true,
         }),

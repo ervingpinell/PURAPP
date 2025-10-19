@@ -3,10 +3,14 @@
 @section('title', __('adminlte::adminlte.contact_us'))
 
 @push('styles')
-  @vite([
-    'resources/css/contact.css',
-  ])
+  @vite(['resources/css/contact.css'])
+  <style>
+    /* Oculta el widget flotante (botón + panel) solo en esta página */
+    .whatsapp-widget,
+    .whatsapp-float-btn { display:none !important; }
+  </style>
 @endpush
+
 @section('content')
 <section class="contact-section py-5 text-white">
   <div class="container">

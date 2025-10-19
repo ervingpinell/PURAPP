@@ -1,23 +1,8 @@
 /* =========================
    HOME.CSS — estilos propios de la Home
-   (sin reglas del header/navbar para evitar duplicidad)
    ========================= */
 
-:root {
-  --primary-color: #60a862;
-  --primary-dark: #256d1b;
-  --primary-light: #8bc34a;
-  --text-dark: #333;
-  --text-light: #e0e0e0;
-  --white: #fff;
-  --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  --transition: all 0.3s ease;
-  --border-radius: 15px;
-}
-
-/* -------------------------
-   HERO
-   ------------------------- */
+/* ---------- HERO ---------- */
 .hero h1{
   font-size: var(--fs-h1);
   line-height: var(--lh-tight);
@@ -28,9 +13,7 @@
   line-height: var(--lh-normal);
 }
 
-/* -------------------------
-   BOTÓN PRIMARIO
-   ------------------------- */
+/* ---------- BOTÓN PRIMARIO ---------- */
 .btn-primary{
   background-color: var(--primary-color);
   color: var(--white);
@@ -39,7 +22,7 @@
   font-weight: 600;
   border: none;
   text-decoration: none;
-  transition: var(--transition);
+  transition: all 0.3s ease;
   font-size: var(--fs-body);
 }
 .btn-primary:hover{
@@ -47,9 +30,7 @@
   transform: translateY(-3px);
 }
 
-/* -------------------------
-   SECCIÓN TOURS / CARDS
-   ------------------------- */
+/* ---------- SECCIÓN TOURS / CARDS ---------- */
 .tours-section{
   background: var(--white);
   text-align: center;
@@ -91,23 +72,36 @@
   margin-bottom:1rem;
 }
 
-/* Título de tour (scopeado) */
+/* ====== TÍTULO CARD (sin clamp ni ellipsis) ====== */
 .tour-card .card-title{
   margin:.5rem 0 .8rem;
-  font-size: var(--fs-h6);
+  font-size: var(--fs-h6);  /* Desktop por defecto */
   font-weight:700;
-  color: var(--white);
+  color:#fff;
   line-height:1.3;
-  max-height:2.6em;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  -webkit-box-orient:vertical;
-  background-color:#F92526;
-  padding:.5em;
+  width:100%;
+  box-sizing:border-box;
+  background-color:var(--primary-red);
+  padding:.5em .9em;
   border-radius:var(--border-radius);
   text-align:center;
+  white-space:normal;
+  word-break:break-word;
+}
+
+/* cuando el JS iguala altura, centramos el contenido */
+.tour-card .card-title.equalized{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* pill más delgado a partir de 415px */
+@media (min-width:415px){
+  .tour-card .card-title{
+    padding:.35rem .8rem;
+    border-radius:24px;
+  }
 }
 
 .tour-card .card-body{
@@ -118,20 +112,20 @@
   min-height:220px;
 }
 
+/* textos */
 .tour-card .card-text{
   font-size: var(--fs-body);
   line-height:1.35;
-  overflow:hidden;
   margin-top:.8rem;
 }
 .tour-card .card-text.small{
   font-size: var(--fs-sm);
   line-height:1.4;
   margin-bottom:.8rem;
-  overflow:visible;
   display:block;
 }
 
+/* botón */
 .btn-ver-tour{
   color:var(--white);
   border:none;
@@ -139,7 +133,7 @@
   border-radius:25px;
   cursor:pointer;
   font-weight:500;
-  transition:var(--transition);
+  transition:all .3s ease;
   width:100%;
   margin-top:auto;
   font-size: var(--fs-sm);
@@ -147,9 +141,7 @@
 }
 .btn-ver-tour:hover{ background-color:#1c5413; transform:scale(1.05); }
 
-/* -------------------------
-   TARJETAS DENTRO DEL MODAL (scopeado)
-   ------------------------- */
+/* ---------- TARJETAS DENTRO DEL MODAL ---------- */
 .tour-modal-card{
   background:#fff;
   border-radius:.75rem;
@@ -173,18 +165,27 @@
   margin-bottom:.6rem;
 }
 
-/* Conserva fondo rojo solo en el contexto del modal */
+/* título en modal (sin clamp ni ellipsis) */
 .tour-modal-card .card-title{
-  font-size: var(--fs-h6);
+  font-size: var(--fs-h6); /* Desktop por defecto */
   font-weight:700;
   margin-bottom:.4rem;
   color:#fff;
   line-height:1.3;
-  min-height:2.6em;
   background:var(--primary-red);
   padding:.4rem .5rem;
   border-radius:.4rem;
+  white-space:normal;
+  word-break:break-word;
 }
+
+/* centrado cuando JS iguala altura */
+.tour-modal-card .card-title.equalized{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
 .tour-modal-card .card-body{ display:flex; flex-direction:column; flex:1; }
 .tour-modal-card p, .tour-modal-card span, .tour-modal-card strong{
   font-size: var(--fs-xs);
@@ -205,9 +206,7 @@
 .modal .tour-grid { justify-content:center; }
 .modal .modal-body{ padding-top:1rem; padding-bottom:1rem; }
 
-/* -------------------------
-   OVERVIEW (leer más/menos)
-   ------------------------- */
+/* ---------- OVERVIEW (leer más/menos) ---------- */
 .overview{
   display:-webkit-box;
   -webkit-line-clamp:3;
@@ -226,9 +225,7 @@
   font-size: var(--fs-sm);
 }
 
-/* -------------------------
-   TIPOGRAFÍA / TITULARES
-   ------------------------- */
+/* ---------- TIPOGRAFÍA / TITULARES ---------- */
 .big-title{
   font-size: var(--fs-h2);
   color:#256d1b;
@@ -236,49 +233,8 @@
   font-weight:700;
   text-align:center;
 }
-.rating{ color:#ffd700; font-size:1.2rem; margin-bottom:1rem; }
-.quote{ font-style:italic; color:#555; margin-bottom:1rem; }
-.guest-name{ color:#60a862; font-weight:600; }
 
-/* -------------------------
-   ANIMACIONES HERO
-   ------------------------- */
-.hero-title, .hero-subtext, .hero-buttons{ opacity:0; transform:translateY(30px); }
-.hero-title{ animation:fadeInUp 1s ease-out forwards; animation-delay:.5s; }
-.hero-subtext{ animation:fadeInUp 1s ease-out forwards; animation-delay:1s; }
-.hero-buttons{ animation:fadeInUp 1s ease-out forwards; animation-delay:1.5s; }
-@keyframes fadeInUp{ to{ opacity:1; transform:translateY(0); } }
-
-/* -------------------------
-   WHATSAPP (widget/panel)
-   ------------------------- */
-.whatsapp-panel{
-  position:fixed; bottom:6rem; right:1.5rem; width:300px;
-  background:#fff; border:1px solid #e2e2e2; border-radius:1rem;
-  box-shadow:0 8px 20px rgba(0,0,0,.15); overflow:hidden; z-index:1050;
-}
-.whatsapp-header{
-  background:linear-gradient(to right, #0d4740, #083d3a);
-  color:#fff; padding:1rem; display:flex; justify-content:space-between; align-items:center;
-  border-top-left-radius:1rem; border-top-right-radius:1rem;
-}
-.whatsapp-icon-circle{ width:40px; height:40px; background-color:rgba(255,255,255,.2);
-  border-radius:50%; display:flex; align-items:center; justify-content:center; }
-.whatsapp-greeting{ background:#f8f9fa; padding:.75rem; border-radius:.5rem; margin-bottom:1rem; }
-.whatsapp-footer-note{ font-size:11px; }
-.whatsapp-float-btn{
-  position:fixed; bottom:1.5rem; right:1.5rem; width:60px; height:60px;
-  background:linear-gradient(to right, #0d4740, #083d3a);
-  color:#fff; border-radius:50%; box-shadow:0 4px 15px rgba(0,0,0,.25);
-  border:none; display:flex; align-items:center; justify-content:center; transition:all .3s ease; z-index:1040;
-}
-.whatsapp-float-btn:hover{ transform:scale(1.05); background:linear-gradient(to right, #14665e, #052a28); }
-@keyframes pulse-grow{ 0%{transform:scale(1);} 50%{transform:scale(1.15);} 100%{transform:scale(1);} }
-.animate-pulse-grow{ animation:pulse-grow 1.2s ease-in-out infinite; }
-
-/* -------------------------
-   FOOTER — mantiene fondo y jerarquía
-   ------------------------- */
+/* ---------- FOOTER ---------- */
 .footer-nature{
   background:#0f2419; color:#fff; padding:3.5rem 2rem;
   font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -289,10 +245,8 @@
 }
 .footer-nature .footer-brand img{ width:190px; margin-bottom:1rem; }
 .footer-nature .footer-brand p{ font-size: var(--fs-body); line-height:1.6; color:#f0f0f0; }
-
 .footer-nature .footer-links,
 .footer-nature .contact-info{ flex:1; min-width:220px; }
-
 .footer-nature .footer-links h4,
 .footer-nature .contact-info h4{
   font-size: var(--fs-h6); font-weight:700; margin-bottom:1rem; color:#fff; text-transform:uppercase;
@@ -302,9 +256,7 @@
 .footer-nature .footer-links a{ color:#e0e0e0; text-decoration:none; font-size: var(--fs-body); transition:color .3s; }
 .footer-nature .footer-links a:hover{ color:#a7f3d0; }
 .footer-nature .contact-info p{ font-size: var(--fs-body); margin-bottom:.5rem; color:#f0f0f0; }
-
 .footer-nature .footer-bottom{ text-align:center; margin-top:2rem; font-size: var(--fs-sm); color:#ccc; }
-
 .footer-tours{ flex:1; min-width:220px; }
 .footer-tours h4{ font-size: var(--fs-h6); font-weight:700; margin-bottom:1rem; color:#fff; text-transform:uppercase; }
 .footer-tours ul{ list-style:none; padding:0; margin:0; }
@@ -317,8 +269,47 @@
    RESPONSIVE
    ========================= */
 
-/* Tablet (576–991.98): forzar 2 columnas limpias con Grid */
-@media (min-width:576px) and (max-width:991.98px){
+/* ===== 1 columna SOLO por debajo de 320px ===== */
+@media (max-width:319.98px){
+  .tour-cards{ display:block !important; }
+  .tour-card{ max-width:320px; margin:.45rem auto; }
+  .tour-card img{ height:140px; }
+  .tour-card .card-title{ font-size: var(--fs-xs) !important; }
+}
+
+/* ===== 2 columnas desde 320px hasta 767.98px ===== */
+@media (min-width:320px) and (max-width:767.98px){
+  .tour-cards{
+    display:grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap:.9rem .7rem;
+    padding-left:.25rem;
+    padding-right:.25rem;
+  }
+  .tour-card{
+    max-width:unset !important;
+    width:100%;
+    margin:0;
+  }
+  .tour-card img{ height:150px; }
+  .tour-card .card-title{
+    font-size: var(--fs-sm) !important;
+    padding:.32rem .7rem;
+    border-radius:22px;
+    line-height:1.25;
+    margin:.45rem 0 .6rem;
+  }
+  .tour-card .card-body{ min-height:210px; }
+
+  .tour-modal-card .card-title{
+    font-size: var(--fs-sm) !important;
+    padding:.3rem .55rem;
+    line-height:1.22;
+  }
+}
+
+/* ===== 2 columnas desde 768px hasta 991.98px (tablet) ===== */
+@media (min-width:768px) and (max-width:991.98px){
   .big-title{
     font-size: var(--fs-h3);
     color:#256d1b;
@@ -326,41 +317,27 @@
     margin-bottom:2rem;
     font-weight:700;
   }
-
   .tour-cards{
     display:grid !important;
-    grid-template-columns: repeat(2, minmax(280px, 1fr));
+    grid-template-columns: repeat(2, minmax(300px, 1fr));
     gap: 1rem 1.25rem;
     padding-left:.5rem;
     padding-right:.5rem;
   }
-
   .tour-card{
     max-width:unset !important;
     width:100%;
     margin:0;
-    padding:.7rem;
-    border-radius:.75rem;
   }
-
   .tour-card img{ height:170px; }
-
   .tour-card .card-title{
     font-size: var(--fs-h6);
     margin-bottom:.4rem;
     padding:.35rem .6rem;
-    border-radius:.45rem;
-    display:block;
+    border-radius:24px;
   }
 
-  .tour-card p,
-  .tour-card span,
-  .tour-card strong{
-    font-size: var(--fs-sm);
-    line-height:1.35;
-  }
-
-  /* helpers del modal idénticos */
+  /* Modal en tablet */
   .modal .tour-grid { margin-left:-4px; margin-right:-4px; }
   .modal .tour-grid > .col { padding-left:4px; padding-right:4px; }
 
@@ -377,42 +354,34 @@
   }
   .tour-modal-card img{ height:150px; }
   .tour-modal-card .card-title{
-    background:#F92526;
+    background:var(--primary-red);
     color:#fff;
     font-size: var(--fs-sm);
     padding:.3rem .5rem;
     margin-bottom:.35rem;
     border-radius:.4rem;
-    overflow:hidden;
-    text-overflow:ellipsis;
     line-height:1.18;
-    word-break:break-word;
-    white-space:normal;
   }
 }
 
-/* Mobile M (321–575.98px): 2 columnas compactas */
-@media (min-width:321px) and (max-width:575.98px){
-  .tour-cards{
-    display:grid !important;
-    grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
-    gap:.8rem .6rem;
-    padding-left:.25rem;
-    padding-right:.25rem;
+/* === Modales: mejorar legibilidad en móviles girados (landscape bajo) === */
+@media (max-height: 480px) and (orientation: landscape){
+  .modal.modal-fix-top .modal-dialog{
+    margin:0 !important;
+    width:100% !important;
+    max-width:100% !important;
   }
-  .tour-card{
-    max-width:unset !important;
-    width:100%;
-    margin:0;
+  .modal.modal-fix-top .modal-content{
+    height:100dvh;
+    max-height:100dvh;
+    border-radius:0;
   }
-  .tour-card img{ height:150px; }
-  .tour-card .card-title{ font-size: var(--fs-sm); }
+  .modal.modal-fix-top .modal-header{ padding:.6rem .8rem; }
+  .modal.modal-fix-top .modal-body{ padding:.6rem .8rem; }
+  .modal.modal-fix-top .modal-footer{ padding:.5rem .8rem; }
+
+  .modal .modal-title{ font-size: var(--fs-h5); }
+  .tour-modal-card img{ height:120px; }
+  .tour-modal-card .card-title{ font-size: var(--fs-sm); }
 }
 
-/* Mobile S (≤320px): 1 columna (lista) */
-@media (max-width:320px){
-  .tour-cards{ display:block !important; }
-  .tour-card{ max-width:320px; margin:.45rem auto; }
-  .tour-card img{ height:140px; }
-  .tour-card .card-title{ font-size: var(--fs-xs); }
-}

@@ -8,7 +8,7 @@
   $containerClass = $containerClass ?? '';
   $widgetId       = $widgetId       ?? 'wsw_'.Str::random(6);
 
-  $startsOpen = $variant === 'inline';
+  $startsOpen = $variant === 'false';
 @endphp
 
 <div
