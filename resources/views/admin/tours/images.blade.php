@@ -1,289 +1,496 @@
 @extends('adminlte::page')
 
-@section('title', __('m_tours.image.ui.manage_images'))
+@section('title', 'Gestión de Imágenes')
 
 @push('css')
 <style>
-  /* Tarjeta flexible con footer abajo */
-  .image-card { display:flex; flex-direction:column; height:100%; }
-  .image-card .caption-header {
-    padding:.5rem; background:#2f3640;
-    border-bottom:1px solid rgba(0,0,0,.1);
+  :root{
+    --card-radius:.5rem;
+    --space-1:.25rem;
+    --space-2:.5rem;
+    --space-3:.75rem;
+    --space-4:1rem;
+    --border:#e9ecef;
+    --wrap-max: 1200px;
+    --brand:#0d6efd;
   }
-  .image-card .caption-header .form-control { height: 34px; }
-  .image-card .caption-header .status {
-    font-size: .75rem; opacity:.8; margin-top:.25rem; min-height: 1rem;
+
+  /* ====== Tarjeta ====== */
+  .image-card{
+    display:flex; flex-direction:column; height:100%; position:relative;
+    border:1px solid var(--border); border-radius:var(--card-radius);
+    overflow:hidden; background:#fff;
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
   }
-  .image-card .ratio { border-bottom: 1px solid rgba(0,0,0,.06); }
-  .image-card .card-body { flex:1 1 auto; display:flex; flex-direction:column; padding:.5rem; }
-  .image-card .meta-zone { min-height: 28px; }
-  .image-card .card-footer { margin-top:auto; padding:.9rem; background:transparent; border-top:0; }
-  .image-card .actions-stack { display:flex; flex-direction:column; gap: 1rem; }
-  .image-card .actions-stack .btn { width:100%; }
-  .image-card .actions-stack form { margin:0; }
+  .image-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 14px rgba(0,0,0,.08);
+    border-color:#dee2e6;
+  }
+  /* Resaltado cuando está seleccionada */
+  .image-card.selected{
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(13,110,253,.12), 0 8px 16px rgba(13,110,253,.12);
+  }
+  .image-card.selected .image-zone::after{
+    content:'';
+    position:absolute; inset:0; pointer-events:none;
+    box-shadow: inset 0 0 0 3px rgba(13,110,253,.15);
+    border-radius: inherit;
+  }
+
+  /* ====== Selector nuevo (chip) ====== */
+  .image-select{
+    position:absolute; top:.45rem; left:.45rem; z-index:15;
+  }
+  /* ocultamos el checkbox nativo pero accesible */
+  .image-select input[type="checkbox"]{
+    position:absolute; opacity:0; width:0; height:0; pointer-events:none;
+  }
+  /* el control visible */
+  .image-check-label{
+    width:32px; height:32px; border-radius:50%;
+    background:rgba(0,0,0,.55);
+    border:2px solid #fff;
+    display:inline-flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:700; font-size:16px; line-height:1;
+    cursor:pointer; user-select:none;
+    box-shadow:0 2px 6px rgba(0,0,0,.25);
+    transition:transform .12s ease, background .15s ease, box-shadow .15s ease;
+  }
+  .image-check-label:hover{ transform:scale(1.05); }
+  /* estado: checked */
+  .image-select input[type="checkbox"]:checked + .image-check-label{
+    background:var(--brand);
+    box-shadow:0 0 0 3px rgba(13,110,253,.25);
+  }
+  .image-select input[type="checkbox"]:checked + .image-check-label::after{
+    content:'✓';
+  }
+
+  /* Badge portada */
+  .cover-badge{ position:absolute; top:.45rem; right:.45rem; z-index:10; }
+
+  /* Zona de imagen */
+  .image-zone{ position:relative; background:#f7f7f8; cursor:pointer; }
+  .image-zone img{ width:100%; height:clamp(120px, 26vw, 180px); object-fit:cover; display:block; }
+
+  /* Caption */
+  .caption-zone{ padding:var(--space-2) var(--space-3); background:#fff; border-top:1px solid var(--border); }
+  .caption-input{
+    border:1px solid #dde1e5; border-radius:.4rem; padding:.4rem .5rem; font-size:.85rem; width:100%;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .caption-input:focus{ border-color:#86b7fe; outline:0; box-shadow:0 0 0 .15rem rgba(13,110,253,.15); }
+  .caption-status{ font-size:.75rem; color:#6c757d; min-height:1rem; margin-top:.15rem; }
+
+  /* Acciones por tarjeta */
+  .card-actions{
+    padding:var(--space-2) var(--space-3);
+    display:flex; gap:.4rem; flex-wrap:wrap; background:#fff; border-top:1px solid var(--border);
+    margin-top:auto;
+  }
+  .btn-compact.btn{ padding:.3rem .55rem; font-size:.82rem; }
+
+  /* ====== Centrado ====== */
+  .wrap-center{ max-width:var(--wrap-max); margin-inline:auto; }
+
+  /* ====== Stats ====== */
+  .stats-bar{
+    display:flex; gap:.6rem; align-items:center; flex-wrap:wrap; margin-bottom:var(--space-3);
+  }
+  .stat-item{
+    display:flex; align-items:center; gap:.5rem; padding:.35rem .6rem;
+    background:#f8f9fa; border:1px solid var(--border); border-radius:.45rem;
+  }
+  .stat-item i{ color:var(--brand); font-size:.95rem; }
+  .stat-value{ font-weight:600; color:#495057; line-height:1; }
+
+  /* ====== Upload grande y centrado ====== */
+  .upload-zone{
+    background:#fff; border:1px dashed var(--border); border-radius:.75rem;
+    padding:1.25rem; margin-bottom:var(--space-3); transition:border-color .2s, background .2s, box-shadow .2s;
+    min-height: 230px; display:flex; align-items:center; justify-content:center; text-align:center;
+  }
+  .upload-inner{ width:100%; max-width:900px; margin-inline:auto; }
+  .upload-zone:hover{ border-color:#0d6efd33; background:#fafbff; box-shadow:0 4px 12px rgba(13,110,253,.05); }
+  .upload-zone.dragover{ border-color:#28a74566; background:#e9f7ef; }
+  .upload-title{ font-weight:600; margin-bottom:.25rem; }
+  .upload-help{ font-size:.95rem; color:#6c757d; margin-bottom:.75rem; }
+
+  /* ====== Toolbar pequeña y centrada ====== */
+  .toolbar{
+    background:#fff; border:1px solid var(--border); border-radius:.6rem;
+    padding:.6rem; margin-bottom:var(--space-3);
+    box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .toolbar .btn{ padding:.3rem .6rem; font-size:.84rem; }
+  .toolbar .actions-center{ display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap; }
+
+  .row.g-3{ --bs-gutter-x: .75rem; --bs-gutter-y: .75rem; }
+  @media (max-width: 576px){
+    .image-zone img{ height:clamp(110px, 38vw, 150px); }
+    .toolbar, .upload-zone{ padding:.6rem; }
+    .card-actions{ gap:.35rem; }
+    .upload-zone{ min-height: 200px; }
+  }
 </style>
 @endpush
 
-@php
-  use Illuminate\Support\Facades\Route;
-  $backText = (__('common.back') !== 'common.back') ? __('common.back') : 'Volver';
-  $backUrl  = route('admin.tours.images.pick'); // panel de selección de tours con imágenes
-@endphp
-
 @section('content_header')
-  <div class="d-flex align-items-center justify-content-between">
-    <h1 class="mb-0">
-      {{ __('m_tours.image.ui.manage_images') }}
-      <small class="text-muted">— {{ $tour->getTranslatedName() }}</small>
-    </h1>
-
-    <a href="{{ $backUrl }}" class="btn btn-warning">
-      <i class="fas fa-arrow-left me-1"></i> {{ $backText }}
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 wrap-center">
+    <div>
+      <h1 class="mb-1" style="font-size:clamp(1.05rem, 2.2vw, 1.4rem)">Gestión de Imágenes</h1>
+      <p class="text-muted mb-0" style="font-size:.9rem">{{ $tour->name }}</p>
+    </div>
+    <a href="{{ route('admin.tours.images.pick') }}" class="btn btn-warning btn-sm">
+      <i class="fas fa-arrow-left me-1"></i> Volver
     </a>
   </div>
 @stop
 
 @section('content')
 @php
-    $imagesRel = $tour->getRelation('images') ?? collect();
-    $countRel  = $imagesRel->count();
-    $isFull    = $countRel >= $max;
+    $images = $tour->getRelation('images') ?? $tour->images()->orderBy('position')->get();
+    $count = $images->count();
+    $isFull = $count >= $max;
 @endphp
 
-<div class="container py-3">
-  <h3 class="mb-1">{{ __('m_tours.image.ui.manage_images') }}: {{ $tour->getTranslatedName() }}</h3>
-  <p class="text-muted mb-3">{{ $countRel }} / {{ $max }} {{ __('m_tours.image.ui.images_label') }}</p>
+<div class="container-fluid py-3 wrap-center">
 
-  {{-- === Formulario de carga con control de peso === --}}
-  <form action="{{ route('admin.tours.images.store', $tour) }}" method="POST" enctype="multipart/form-data" class="mb-4" id="imageUploadForm">
-    @csrf
-    <input
-      type="file"
-      name="files[]"
-      id="imageFiles"
-      class="form-control @error('files') is-invalid @enderror"
-      multiple
-      accept="image/png,image/jpeg,image/webp">
-    @error('files')
-      <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
+  {{-- Stats --}}
+  <div class="stats-bar">
+    <div class="stat-item">
+      <i class="fas fa-images"></i>
+      <div><div class="stat-value">{{ $count }} / {{ $max }}</div><small class="text-muted">Imágenes</small></div>
+    </div>
+    <div class="stat-item">
+      <i class="fas fa-star"></i>
+      <div><div class="stat-value">{{ $tour->coverImage ? '1' : '0' }}</div><small class="text-muted">Portada</small></div>
+    </div>
+    <div class="stat-item">
+      <i class="fas fa-check-circle"></i>
+      <div><div class="stat-value" id="selectedCount">0</div><small class="text-muted">Seleccionadas</small></div>
+    </div>
+  </div>
 
-    <div id="uploadInfo" class="small text-muted mt-1"></div>
+  {{-- Upload --}}
+  <div class="upload-zone" id="uploadZone">
+    <form action="{{ route('admin.tours.images.store', $tour) }}" method="POST" enctype="multipart/form-data" id="uploadForm" class="upload-inner">
+      @csrf
+      <div class="mb-2">
+        <i class="fas fa-cloud-upload-alt fa-2x text-primary mb-2"></i>
+        <div class="upload-title">Arrastra archivos aquí o haz clic para seleccionar</div>
+        <div class="upload-help">JPG, PNG o WebP. Máx 100 MB en total por subida.</div>
+      </div>
 
-    <button id="uploadBtn" class="btn btn-success mt-2" {{ $isFull ? 'disabled' : '' }}>
-      <i class="fas fa-upload me-1"></i> {{ __('m_tours.image.ui.upload_btn') }}
-    </button>
+      <input type="file" name="files[]" id="imageFiles" class="d-none" multiple accept="image/*">
 
-    @if($isFull)
-      <small class="text-danger ms-2">{{ __('m_tours.image.limit_reached_text') }}</small>
-    @endif
-  </form>
+      <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('imageFiles').click()" {{ $isFull ? 'disabled' : '' }}>
+        <i class="fas fa-folder-open me-1"></i> Seleccionar
+      </button>
 
-  {{-- === Grid de imágenes === --}}
-  <div class="row g-3" id="grid" data-reorder-url="{{ route('admin.tours.images.reorder', $tour) }}">
-    @forelse($imagesRel as $image)
-      <div class="col-6 col-sm-4 col-md-3 col-xl-2" data-id="{{ $image->id }}">
+      @if($isFull)
+        <div class="alert alert-warning py-1 px-2 d-inline-flex align-items-center ms-2 mb-0" style="font-size:.85rem;">
+          <i class="fas fa-exclamation-triangle me-1"></i> Límite {{ $max }}
+        </div>
+      @endif
+
+      <div id="filePreview" class="mt-3" style="font-size:.92rem;"></div>
+
+      <button type="submit" id="uploadBtn" class="btn btn-success btn-sm mt-2" style="display:none;">
+        <i class="fas fa-upload me-1"></i> Subir
+      </button>
+    </form>
+  </div>
+
+  {{-- Toolbar --}}
+  @if($count > 0)
+  <div class="toolbar">
+    <div class="row align-items-center g-2">
+      <div class="col-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start">
+        <div class="form-check mb-0">
+          <input class="form-check-input" type="checkbox" id="selectAll">
+          <label class="form-check-label fw-semibold" for="selectAll">Seleccionar todas</label>
+        </div>
+      </div>
+      <div class="col-12 col-md-7">
+        <div class="actions-center">
+          <button type="button" id="bulkDeleteBtn" class="btn btn-danger btn-sm" disabled>
+            <i class="fas fa-trash me-1"></i> Eliminar seleccionadas
+          </button>
+          <button type="button" id="deleteAllBtn" class="btn btn-outline-danger btn-sm">
+            <i class="fas fa-trash-alt me-1"></i> Eliminar todas
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  @endif
+
+  {{-- Grid --}}
+  <div class="row g-3">
+    @forelse($images as $image)
+      @php $chkId = 'imgsel-'.$image->id; @endphp
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
         <div class="card shadow-sm image-card">
-          <div class="caption-header">
-            <input type="text"
-                   class="form-control form-control-sm js-caption-input"
-                   placeholder="{{ __('m_tours.image.ui.caption_placeholder') }}"
-                   value="{{ old("caption.{$image->id}", $image->caption) }}"
-                   data-update-url="{{ route('admin.tours.images.update', [$tour, $image]) }}">
-            <div class="status text-muted js-caption-status"></div>
+
+          {{-- Nuevo selector visible --}}
+          <div class="image-select" title="Seleccionar imagen">
+            <input id="{{ $chkId }}" type="checkbox" class="img-check" value="{{ $image->id }}" aria-label="Seleccionar imagen {{ $image->id }}">
+            <label for="{{ $chkId }}" class="image-check-label"></label>
           </div>
 
-          <div class="ratio ratio-1x1">
-            <img src="{{ $image->getAttribute('url') }}" alt="img {{ $image->id }}" class="card-img-top" style="object-fit:cover;">
-          </div>
-
-          <div class="card-body">
-            <div class="meta-zone">
-              @if($image->is_cover)
-                <span class="badge bg-success">{{ __('m_tours.image.ui.cover_alt') }}</span>
-              @endif
+          @if($image->is_cover)
+            <div class="cover-badge">
+              <span class="badge bg-success"><i class="fas fa-star me-1"></i>Portada</span>
             </div>
+          @endif
+
+          <div class="image-zone" onclick="preview('{{ $image->url }}', '{{ e($image->caption) }}')">
+            <img src="{{ $image->url }}" alt="img-{{ $image->id }}" loading="lazy">
           </div>
 
-          <div class="card-footer">
-            <div class="actions-stack">
-              <button type="button"
-                      class="btn btn-secondary btn-sm"
-                      data-img="{{ $image->getAttribute('url') }}"
-                      data-caption="{{ e($image->caption) }}"
-                      data-bs-toggle="modal"
-                      data-bs-target="#imagePreviewModal"
-                      onclick="openImagePreview(this)">
-                {{ __('m_tours.image.ui.show_btn') }}
+          <div class="caption-zone">
+            <input type="text" class="caption-input" placeholder="Descripción..." value="{{ $image->caption }}"
+                   data-id="{{ $image->id }}" data-url="{{ route('admin.tours.images.update', [$tour, $image]) }}">
+            <div class="caption-status"></div>
+          </div>
+
+          <div class="card-actions">
+            <button type="button" class="btn btn-outline-primary btn-compact w-auto flex-grow-1"
+                    onclick="preview('{{ $image->url }}', '{{ e($image->caption) }}')">
+              <i class="fas fa-eye me-1"></i> Ver
+            </button>
+            @unless($image->is_cover)
+              <button type="button" class="btn btn-success btn-compact w-auto flex-grow-1 set-cover"
+                      data-url="{{ route('admin.tours.images.cover', [$tour, $image]) }}">
+                <i class="fas fa-star me-1"></i> Portada
               </button>
-
-              @unless($image->is_cover)
-                <form action="{{ route('admin.tours.images.cover', [$tour, $image]) }}" method="POST">
-                  @csrf
-                  <button class="btn btn-success btn-sm">
-                    <i class="fas fa-star me-1"></i> {{ __('m_tours.image.ui.set_cover_btn') }}
-                  </button>
-                </form>
-              @endunless
-
-              <form action="{{ route('admin.tours.images.destroy', [$tour, $image]) }}" method="POST"
-                    onsubmit="return confirmAdminImageDelete(event, this);">
-                @csrf @method('DELETE')
-                <button class="btn btn-danger btn-sm">
-                  <i class="fas fa-trash me-1"></i> {{ __('m_tours.image.ui.delete_btn') }}
-                </button>
-              </form>
-            </div>
+            @endunless
+            <button type="button" class="btn btn-danger btn-compact w-auto flex-grow-1 delete-img"
+                    data-url="{{ route('admin.tours.images.destroy', [$tour, $image]) }}">
+              <i class="fas fa-trash me-1"></i> Eliminar
+            </button>
           </div>
         </div>
       </div>
     @empty
       <div class="col-12">
-        <div class="alert alert-info mb-0">{{ __('m_tours.image.ui.no_images') }}</div>
+        <div class="alert alert-info text-center">
+          <i class="fas fa-info-circle me-2"></i> No hay imágenes. Sube algunas usando el formulario de arriba.
+        </div>
       </div>
     @endforelse
   </div>
+
 </div>
 
-{{-- === Modal de previsualización === --}}
-<div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+{{-- Modal Preview --}}
+<div class="modal fade" id="previewModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-xl">
     <div class="modal-content bg-dark text-white">
       <div class="modal-header border-0">
-        <h5 class="modal-title">{{ __('m_tours.image.ui.preview_title') }}</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('m_tours.image.ui.close_btn') }}"></button>
+        <h5 class="modal-title">Vista previa</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body p-0">
-        <img id="previewModalImg" src="" alt="preview" class="img-fluid w-100" style="max-height:80vh; object-fit:contain;">
+      <div class="modal-body p-0 text-center">
+        <img id="previewImg" src="" alt="" class="img-fluid" style="max-height:80vh;object-fit:contain;">
       </div>
       <div class="modal-footer border-0">
-        <span class="me-auto small" id="previewModalCaption"></span>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.image.ui.close_btn') }}</button>
+        <p class="text-muted mb-0 me-auto" id="previewCaption"></p>
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
 </div>
+
+{{-- Forms --}}
+<form id="setCoverForm" method="POST" style="display:none;">@csrf</form>
+<form id="deleteForm" method="POST" style="display:none;">@csrf @method('DELETE')</form>
+<form id="bulkDeleteForm" action="{{ route('admin.tours.images.bulk-destroy', $tour) }}" method="POST" style="display:none;">
+  @csrf @method('DELETE')
+  <input type="hidden" name="ids" id="bulkIds">
+</form>
+<form id="deleteAllForm" action="{{ route('admin.tours.images.destroyAll', $tour) }}" method="POST" style="display:none;">
+  @csrf @method('DELETE')
+</form>
+
 @endsection
 
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  /* =========================
-     PREVISUALIZAR IMAGEN
-     ========================= */
-  function openImagePreview(btn){
-    const url = btn.getAttribute('data-img');
-    const caption = btn.getAttribute('data-caption') || '';
-    document.getElementById('previewModalImg').src = url;
-    document.getElementById('previewModalCaption').textContent = caption;
-  }
+const toast = (icon, title) => Swal.fire({ toast:true, position:'top-end', icon, title, showConfirmButton:false, timer:3000 });
+const confirm = (title, text) => Swal.fire({ title, text, icon:'warning', showCancelButton:true, confirmButtonText:'Sí', cancelButtonText:'Cancelar', confirmButtonColor:'#dc3545' });
 
-  /* =========================
-     CONFIRMAR ELIMINAR IMAGEN
-     ========================= */
-  function confirmAdminImageDelete(e, formEl) {
-    e.preventDefault(); e.stopPropagation();
-    Swal.fire({
-      title: @json(__('m_tours.image.ui.confirm_delete_title')),
-      text:  @json(__('m_tours.image.ui.confirm_delete_text')),
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: @json(__('m_tours.image.ui.delete_btn')),
-      cancelButtonText:  @json(__('m_tours.image.ui.cancel_btn')),
-      confirmButtonColor: '#dc3545'
-    }).then(res => {
-      if (res.isConfirmed) {
-        const btn = formEl.querySelector('button[type="submit"]');
-        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> ' + @json(__('m_tours.image.deleting')); }
-        formEl.submit();
-      }
+let previewModal;
+document.addEventListener('DOMContentLoaded', () => {
+  previewModal = new bootstrap.Modal('#previewModal');
+  initUpload();
+  initCaptions();
+  initSelection();
+  initActions();
+});
+
+function preview(url, caption) {
+  document.getElementById('previewImg').src = url;
+  document.getElementById('previewCaption').textContent = caption || 'Sin descripción';
+  previewModal.show();
+}
+
+// Upload
+function initUpload() {
+  const zone = document.getElementById('uploadZone');
+  const input = document.getElementById('imageFiles');
+  const preview = document.getElementById('filePreview');
+  const btn = document.getElementById('uploadBtn');
+  const MAX_MB = 100;
+
+  ['dragenter','dragover','dragleave','drop'].forEach(e => {
+    zone.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }, false);
+  });
+  ['dragenter','dragover'].forEach(e => zone.addEventListener(e, () => zone.classList.add('dragover')));
+  ['dragleave','drop'].forEach(e => zone.addEventListener(e, () => zone.classList.remove('dragover')));
+
+  zone.addEventListener('drop', e => {
+    input.files = e.dataTransfer.files;
+    handleFiles(input.files);
+  });
+  input.addEventListener('change', e => handleFiles(e.target.files));
+
+  function handleFiles(files) {
+    if (!files.length) { preview.innerHTML = ''; btn?.style && (btn.style.display = 'none'); return; }
+    const arr = Array.from(files);
+    const totalMB = (arr.reduce((s,f) => s + f.size, 0) / 1024 / 1024).toFixed(2);
+    const over = totalMB > MAX_MB;
+
+    preview.innerHTML = `<div class="alert alert-${over?'danger':'light'} py-2 px-3 mb-0 border">
+      <i class="fas fa-${over?'exclamation-triangle text-danger':'images text-secondary'} me-2"></i>
+      <strong>${arr.length}</strong> archivos (<strong>${totalMB} MB</strong> / ${MAX_MB} MB)
+      ${over ? '<br><strong>⚠️ Excede el límite</strong>' : ''}
+    </div>`;
+    if(btn) btn.style.display = over ? 'none' : 'inline-block';
+  }
+}
+
+// Auto-save captions
+function initCaptions() {
+  let timer;
+  document.querySelectorAll('.caption-input').forEach(input => {
+    const status = input.nextElementSibling;
+    const url = input.dataset.url;
+
+    input.addEventListener('input', () => {
+      clearTimeout(timer);
+      status.innerHTML = '<i class="fas fa-clock text-muted"></i> Guardando...';
+      timer = setTimeout(() => saveCaption(input, url, status), 900);
     });
-    return false;
+    input.addEventListener('blur', () => {
+      clearTimeout(timer);
+      saveCaption(input, url, status);
+    });
+  });
+
+  function saveCaption(input, url, status) {
+    const fd = new FormData();
+    fd.append('_token', '{{ csrf_token() }}');
+    fd.append('_method', 'PATCH');
+    fd.append('caption', input.value);
+
+    fetch(url, { method:'POST', body:fd })
+      .then(r => r.ok ? r.json().catch(()=>({})) : Promise.reject())
+      .then(() => {
+        status.innerHTML = '<i class="fas fa-check text-success"></i> Guardado';
+        setTimeout(() => status.innerHTML = '', 1600);
+      })
+      .catch(() => {
+        status.innerHTML = '<i class="fas fa-times text-danger"></i> Error';
+        toast('error', 'Error al guardar');
+      });
   }
+}
 
-  /* =========================
-     AUTO-GUARDAR LEYENDA
-     ========================= */
-  document.addEventListener('DOMContentLoaded', () => {
-    const csrfToken = @json(csrf_token());
-    function saveCaption(inputEl) {
-      const url = inputEl.dataset.updateUrl;
-      const statusEl = inputEl.closest('.caption-header').querySelector('.js-caption-status');
-      const formData = new FormData();
-      formData.append('_token', csrfToken);
-      formData.append('_method', 'PATCH');
-      formData.append('caption', inputEl.value || '');
+// Selection
+function initSelection() {
+  const all = document.getElementById('selectAll');
+  const checks = document.querySelectorAll('.img-check');
+  const counter = document.getElementById('selectedCount');
+  const bulkBtn = document.getElementById('bulkDeleteBtn');
 
-      statusEl.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>';
-      inputEl.disabled = true;
+  function update() {
+    const selected = Array.from(checks).filter(c => c.checked);
+    counter.textContent = selected.length;
+    if(bulkBtn) bulkBtn.disabled = selected.length === 0;
 
-      fetch(url, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' }})
-        .then(res => { if (!res.ok) throw new Error('HTTP '+res.status); return res.json().catch(() => ({})); })
-        .then(() => { statusEl.textContent = @json(__('m_tours.image.saved')); })
-        .catch(() => {
-          statusEl.textContent = '';
-          Swal.fire({ icon:'error', title:@json(__('m_tours.image.ui.error_title')), text:@json(__('m_tours.image.errors.update_caption')) });
-        })
-        .finally(() => { inputEl.disabled = false; });
+    // Resalta tarjeta seleccionada
+    checks.forEach(c => {
+      const card = c.closest('.image-card');
+      if(!card) return;
+      card.classList.toggle('selected', c.checked);
+    });
+
+    if(all) {
+      if(selected.length === 0) { all.checked = false; all.indeterminate = false; }
+      else if(selected.length === checks.length) { all.checked = true; all.indeterminate = false; }
+      else { all.checked = false; all.indeterminate = true; }
     }
+  }
+  all?.addEventListener('change', () => { checks.forEach(c => c.checked = all.checked); update(); });
+  checks.forEach(c => c.addEventListener('change', update));
+  update();
+}
 
-    let debounceTimer = null;
-    document.querySelectorAll('.js-caption-input').forEach(el => {
-      el.addEventListener('change', () => saveCaption(el));
-      el.addEventListener('blur',   () => saveCaption(el));
-      el.addEventListener('input',  () => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => saveCaption(el), 1200);
+// Actions
+function initActions() {
+  // Set cover
+  document.querySelectorAll('.set-cover').forEach(btn => {
+    btn.addEventListener('click', function() {
+      confirm('¿Establecer como portada?', 'Esta imagen será la principal del tour').then(r => {
+        if(r.isConfirmed) {
+          document.getElementById('setCoverForm').action = this.dataset.url;
+          document.getElementById('setCoverForm').submit();
+        }
       });
     });
   });
 
-  /* =========================
-     PREVISUALIZADOR DE CARGA (100 MB máx)
-     ========================= */
-  document.addEventListener('DOMContentLoaded', () => {
-    const input = document.getElementById('imageFiles');
-    const info  = document.getElementById('uploadInfo');
-    const btn   = document.getElementById('uploadBtn');
-    const MAX_TOTAL_MB = 100;
-    const MB = 1024 * 1024;
+  // Delete individual
+  document.querySelectorAll('.delete-img').forEach(btn => {
+    btn.addEventListener('click', function() {
+      confirm('¿Eliminar imagen?', 'Esta acción no se puede deshacer').then(r => {
+        if(r.isConfirmed) {
+          document.getElementById('deleteForm').action = this.dataset.url;
+          document.getElementById('deleteForm').submit();
+        }
+      });
+    });
+  });
 
-    if (!input || !info || !btn) return;
-
-    input.addEventListener('change', () => {
-      const files = Array.from(input.files || []);
-      if (!files.length) {
-        info.textContent = '';
-        btn.disabled = false;
-        return;
-      }
-
-      // Calcular tamaño total
-      const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
-      const totalMB = totalBytes / MB;
-
-      // Mostrar resumen
-      info.textContent = `${files.length} archivos seleccionados (${totalMB.toFixed(2)} MB / ${MAX_TOTAL_MB} MB máx)`;
-
-      // Validar límite
-      if (totalMB > MAX_TOTAL_MB) {
-        info.innerHTML = `<span class="text-danger fw-bold">
-          ⚠️ Excede el límite de ${MAX_TOTAL_MB} MB. Elimina algunos archivos antes de continuar.
-        </span>`;
-        btn.disabled = true;
-
-        // SweetAlert visual
-        Swal.fire({
-          icon: 'warning',
-          title: 'Demasiado grande',
-          text: `Has seleccionado ${totalMB.toFixed(2)} MB. El máximo permitido es ${MAX_TOTAL_MB} MB.`,
-          confirmButtonText: 'Entendido',
-          confirmButtonColor: '#d33',
-        });
-      } else {
-        btn.disabled = false;
+  // Bulk delete
+  document.getElementById('bulkDeleteBtn')?.addEventListener('click', () => {
+    const selected = Array.from(document.querySelectorAll('.img-check:checked'));
+    confirm('¿Eliminar seleccionadas?', `Se eliminarán ${selected.length} imágenes`).then(r => {
+      if(r.isConfirmed) {
+        document.getElementById('bulkIds').value = selected.map(c => c.value).join(',');
+        document.getElementById('bulkDeleteForm').submit();
       }
     });
   });
+
+  // Delete all
+  document.getElementById('deleteAllBtn')?.addEventListener('click', () => {
+    confirm('¿Eliminar TODAS?', 'Se eliminarán todas las imágenes del tour').then(r => {
+      if(r.isConfirmed) document.getElementById('deleteAllForm').submit();
+    });
+  });
+}
+
+// Flash
+@if(session('success')) toast('success', @json(session('success'))); @endif
+@if(session('error')) toast('error', @json(session('error'))); @endif
+@if($errors->any())
+  Swal.fire({ icon:'error', title:'Errores', html:'<ul style="text-align:left;">@foreach($errors->all() as $e)<li>{{$e}}</li>@endforeach</ul>' });
+@endif
 </script>
 @endpush
