@@ -143,8 +143,8 @@ Route::middleware([SetLocale::class])->group(function () {
         // Policies
         Route::get('/policies', [PoliciesController::class, 'index'])->name('policies.index');
         Route::get('/policies/{policy:slug}', [PoliciesController::class, 'show'])->name('policies.show');
-                Route::get('/policies/id/{policy:policy_id}', [PoliciesController::class, 'showById'])
-    ->name('policies.show.id');
+        Route::get('/policies/id/{policy:policy_id}', [PoliciesController::class, 'showById'])
+            ->name('policies.show.id');
 
         // Reviews públicas
         Route::get('/reviews', [ReviewsController::class, 'index'])->name('reviews.index');
@@ -285,7 +285,7 @@ Route::middleware([SetLocale::class])->group(function () {
 
                 // FAQs
                 Route::resource('faqs', AdminFaqController::class)->except(['show']);
-                Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
+                Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggle'])->name('faqs.toggleStatus');
 
                 // Tours: Cutoff
                 Route::prefix('tours')->name('tours.')->group(function () {
@@ -302,10 +302,16 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::prefix('tours/{tour}/images')->name('tours.images.')->group(function () {
                     Route::get('/', [TourImageController::class, 'index'])->name('index');
                     Route::post('/', [TourImageController::class, 'store'])->name('store');
+                    /* === NUEVAS RUTAS PARA ELIMINACIÓN MASIVA === */
+                    Route::delete('/', [TourImageController::class, 'bulkDestroy'])->name('bulk-destroy'); // eliminar seleccionadas
+                    Route::delete('/all', [TourImageController::class, 'destroyAll'])->name('destroyAll');  // eliminar todas
+                
                     Route::patch('{image}', [TourImageController::class, 'update'])->name('update');
                     Route::delete('{image}', [TourImageController::class, 'destroy'])->name('destroy');
                     Route::post('{image}/cover', [TourImageController::class, 'setCover'])->name('cover');
                     Route::post('reorder', [TourImageController::class, 'reorder'])->name('reorder');
+
+                    
                 });
 
                 // Meeting points

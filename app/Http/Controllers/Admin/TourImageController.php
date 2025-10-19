@@ -453,4 +453,117 @@ class TourImageController extends Controller
             return asset('images/volcano.png');
         }
     }
+
+    /* =========================================================
+     *           👇👇  MÉTODOS NUEVOS A PARTIR DE AQUÍ  👇👇
+     * ========================================================= */
+
+    /**
+     * Convierte /storage/... a ruta relativa del disco 'public'
+     * p.ej. /storage/tours/1/gallery/img.webp -> tours/1/gallery/img.webp
+     */
+    private function pathFromUrl(?string $url): ?string
+    {
+        if (!$url) return null;
+        $path = parse_url($url, PHP_URL_PATH) ?? $url;
+        return ltrim(str_replace('/storage/', '', $path), '/');
+    }
+
+    /**
+     * DELETE admin.tours.images.bulk-destroy
+     * Recibe "ids" como string "1,2,3" o como array ["1","2","3"]
+     */
+    public function bulkDestroy(Request $request, Tour $tour)
+    {
+        $ids = $request->input('ids');
+
+        // Permitir array o string
+        if (is_string($ids)) {
+            $ids = collect(explode(',', $ids))->map('trim')->filter()->values();
+        } else {
+            $ids = collect((array)$ids)->map('trim')->filter()->values();
+        }
+
+        if ($ids->isEmpty()) {
+            return back()->with('swal', [
+                'icon'  => 'warning',
+                'title' => __('m_tours.image.notice'),
+                'text'  => __('No hay imágenes seleccionadas.'),
+            ]);
+        }
+
+        // Solo imágenes del tour actual
+        $images = TourImage::query()
+            ->where('tour_id', $tour->getKey())
+            ->whereIn('id', $ids->all())
+            ->get();
+
+        if ($images->isEmpty()) {
+            return back()->with('swal', [
+                'icon'  => 'info',
+                'title' => __('m_tours.image.notice'),
+                'text'  => __('No se encontraron imágenes válidas para eliminar.'),
+            ]);
+        }
+
+        DB::transaction(function () use ($images) {
+            // Borrar archivos físicos
+            $paths = $images->map(function ($img) {
+                // Si tu modelo ya guarda path relativo, usa $img->path directamente
+                return $img->path ?: $this->pathFromUrl($img->url ?? null);
+            })->filter()->values()->all();
+
+            if (!empty($paths)) {
+                Storage::disk('public')->delete($paths);
+            }
+
+            // Borrar registros
+            TourImage::whereIn('id', $images->pluck('id'))->delete();
+        });
+
+        return back()->with('swal', [
+            'icon'  => 'success',
+            'title' => __('m_tours.image.deleted'),
+            'text'  => __('Se eliminaron :n imágenes seleccionadas.', ['n' => $images->count()]),
+        ]);
+    }
+
+    /**
+     * DELETE admin.tours.images.destroyAll
+     * Elimina TODAS las imágenes del tour.
+     */
+    public function destroyAll(Request $request, Tour $tour)
+    {
+        $images = TourImage::query()
+            ->where('tour_id', $tour->getKey())
+            ->get();
+
+        if ($images->isEmpty()) {
+            return back()->with('swal', [
+                'icon'  => 'info',
+                'title' => __('m_tours.image.notice'),
+                'text'  => __('Este tour no tiene imágenes para eliminar.'),
+            ]);
+        }
+
+        DB::transaction(function () use ($images, $tour) {
+            // Borrar archivos físicos
+            $paths = $images->map(function ($img) {
+                return $img->path ?: $this->pathFromUrl($img->url ?? null);
+            })->filter()->values()->all();
+
+            if (!empty($paths)) {
+                Storage::disk('public')->delete($paths);
+            }
+
+            // Borrar registros
+            TourImage::where('tour_id', $tour->getKey())->delete();
+        });
+
+        return back()->with('swal', [
+            'icon'  => 'success',
+            'title' => __('m_tours.image.deleted'),
+            'text'  => __('Se eliminaron todas las imágenes del tour.'),
+        ]);
+    }
 }
