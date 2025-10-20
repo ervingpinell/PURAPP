@@ -3,59 +3,65 @@
 @section('title', __('m_tours.schedule.ui.page_title'))
 
 @section('content_header')
-  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-    <h1 class="mb-0">{{ __('m_tours.schedule.ui.page_heading') }}</h1>
-  </div>
+  <h1>{{ __('m_tours.schedule.ui.page_heading') }}</h1>
   {{-- Patrón para construir la URL de update (se reemplaza ___ID___ en JS) --}}
   <meta name="schedule-update-url" content="{{ route('admin.tours.schedule.update', ['schedule' => '___ID___']) }}">
 @stop
 
 @push('css')
 <style>
-  /* ==== Layout general ==== */
-  .card { border-radius: .5rem; }
-  .card-header { font-weight: 600; }
-  table { width: 100%; }
+  /* ===== Tabla ORIGINAL (intacta) ===== */
+  .table-responsive{ overflow-x:auto; }
+  .table thead th{ white-space:nowrap; }
 
-  /* ==== Tabla responsive sin romper estructura ==== */
-  .table-responsive { overflow-x: auto; }
-  table thead th { white-space: nowrap; }
+  /* ===== Botones & badges ===== */
+  .btn{ border-radius:.35rem; }
+  .btn-edit{ background:#00a65a; color:#fff; border:none; }
+  .btn-view{ background:#3c8dbc; color:#fff; border:none; }
+  .btn-delete{ background:#dd4b39; color:#fff; border:none; }
+  .btn-toggle{ background:#f39c12; color:#fff; border:none; }
+  .btn:hover,.btn:focus{ opacity:.9; }
+  .btn i{ pointer-events:none; }
 
-  /* ==== Botones y badges ==== */
-  .btn { border-radius: .35rem; }
-  .btn-edit { background-color: #00a65a; color: #fff; border: none; }
-  .btn-view { background-color: #3c8dbc; color: #fff; border: none; }
-  .btn-delete { background-color: #dd4b39; color: #fff; border: none; }
-  .btn-toggle { background-color: #f39c12; color: #fff; border: none; }
-  .btn:hover, .btn:focus { opacity: .88; }
+  .badge.bg-success{ background:#00a65a !important; }
+  .badge.bg-danger{ background:#dd4b39 !important; }
+  .badge.bg-secondary{ background:#6c757d !important; }
 
-  .badge.bg-success { background-color: #00a65a !important; }
-  .badge.bg-danger { background-color: #dd4b39 !important; }
-  .badge.bg-secondary { background-color: #6c757d !important; }
+  /* ===== Cards ===== */
+  .card{ border-radius:.5rem; }
+  .card-header{ font-weight:600; }
+  /* Compactar separaciones entre cards en mobile */
+  .mb-4{ margin-bottom:1.25rem !important; }
 
-  /* ==== Tours Cards ==== */
+  /* ===== Encabezado de cada tour ===== */
   .tour-header{
-    display:flex; align-items:center; justify-content:space-between;
-    flex-wrap:wrap; gap:.5rem;
+    display:flex; align-items:center; gap:.5rem; justify-content:space-between; flex-wrap:wrap;
   }
   .tour-title{
-    flex:1 1 auto; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    flex:1 1 auto; min-width:0;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  .tour-actions{ display:flex; flex-wrap:wrap; gap:.4rem; justify-content:flex-end; }
-  @media (max-width: 768px){ .tour-actions{ justify-content:center; } }
+  .tour-actions{ flex:0 0 auto; display:flex; gap:.5rem; flex-wrap:wrap; justify-content:flex-end; }
 
-  /* ==== Schedule Row ==== */
+  /* ===== Fila de horario por tour ===== */
   .schedule-row{
-    display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
-    border:1px solid rgba(255,255,255,0.1); background:#222d32; color:#fff;
-    border-radius:.4rem; padding:.75rem; margin-bottom:.75rem;
+    display:flex; align-items:flex-start; gap:.5rem; justify-content:space-between; flex-wrap:wrap;
+    border:1px solid rgba(255,255,255,.1); background:#222d32; color:#fff;
+    border-radius:.5rem; padding:.75rem; margin-bottom:.75rem;
+    overflow-wrap:break-word;
   }
-  .schedule-row .schedule-info{ flex:1 1 auto; min-width:0; }
-  .schedule-row .tour-actions{ display:flex; gap:.4rem; flex-wrap:nowrap; align-items:center; }
+  .schedule-row .schedule-info{ flex:1 1 auto; min-width:0; } /* evita texto vertical */
+  .schedule-row .text-truncate{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .schedule-row .tour-actions{ flex:0 0 auto; display:flex; gap:.5rem; flex-wrap:nowrap; }
 
+  /* ===== Responsive ===== */
   @media (max-width: 768px){
+    .tour-actions{ width:100%; justify-content:center; }
     .schedule-row{ flex-direction:column; align-items:stretch; }
-    .schedule-row .tour-actions{ justify-content:center; margin-top:.5rem; }
+    .schedule-row .tour-actions{ justify-content:center; flex-wrap:wrap; margin-top:.5rem; }
+  }
+  @media (max-width:576px){
+    .btn, .form-select, input.form-control{ min-height:40px; }
   }
 </style>
 @endpush
@@ -63,12 +69,12 @@
 @section('content')
 <div class="p-3">
 
-  {{-- ===================== HORARIOS GENERALES ===================== --}}
+  {{-- ===================== HORARIOS GENERALES (tabla original) ===================== --}}
   <div class="card mb-4 shadow-sm">
-    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0">{{ __('m_tours.schedule.ui.general_title') }}</h5>
-      <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoHorarioGeneral">
-        <i class="fas fa-plus me-1"></i> {{ __('m_tours.schedule.ui.new_schedule') }}
+      <button class="btn btn-edit btn-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoHorarioGeneral">
+        <i class="fas fa-plus"></i> {{ __('m_tours.schedule.ui.new_schedule') }}
       </button>
     </div>
 
@@ -77,17 +83,17 @@
         <table class="table table-striped table-hover align-middle mb-0">
           <thead class="bg-primary text-white">
             <tr>
-              <th>{{ __('m_tours.schedule.ui.time_range') }}</th>
+              <th class="text-nowrap">{{ __('m_tours.schedule.ui.time_range') }}</th>
               <th>{{ __('m_tours.schedule.fields.label') }}</th>
               <th class="text-center">{{ __('m_tours.schedule.fields.max_capacity') }}</th>
               <th class="text-center">{{ __('m_tours.schedule.ui.state') }}</th>
-              <th class="text-center">{{ __('m_tours.schedule.ui.actions') }}</th>
+              <th class="text-center" style="width:260px">{{ __('m_tours.schedule.ui.actions') }}</th>
             </tr>
           </thead>
           <tbody>
             @forelse($generalSchedules as $s)
               <tr>
-                <td>
+                <td class="text-nowrap fw-semibold">
                   {{ \Carbon\Carbon::createFromTimeString($s->start_time)->format('g:i A') }}
                   –
                   {{ \Carbon\Carbon::createFromTimeString($s->end_time)->format('g:i A') }}
@@ -100,46 +106,45 @@
                   </span>
                 </td>
                 <td class="text-center">
-                  <div class="d-flex justify-content-center flex-wrap gap-1">
-                    {{-- Editar (modal único) --}}
-                    <button class="btn btn-edit btn-sm"
-                      data-bs-toggle="modal"
-                      data-bs-target="#modalEditarHorarioGeneral"
-                      data-id="{{ $s->schedule_id }}"
-                      data-start="{{ $s->start_time }}"
-                      data-end="{{ $s->end_time }}"
-                      data-label="{{ $s->label }}"
-                      data-capacity="{{ $s->max_capacity }}"
-                      data-active="{{ $s->is_active ? 1 : 0 }}">
-                      <i class="fas fa-edit"></i>
+                  {{-- Editar (modal único) --}}
+                  <button class="btn btn-edit btn-sm"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalEditarHorarioGeneral"
+                          data-id="{{ $s->schedule_id }}"
+                          data-start="{{ $s->start_time }}"
+                          data-end="{{ $s->end_time }}"
+                          data-label="{{ $s->label }}"
+                          data-capacity="{{ $s->max_capacity }}"
+                          data-active="{{ $s->is_active ? 1 : 0 }}"
+                          title="{{ __('m_tours.schedule.ui.edit_global') }}">
+                    <i class="fas fa-edit"></i>
+                  </button>
+
+                  {{-- Toggle GLOBAL --}}
+                  <form action="{{ route('admin.tours.schedule.toggle', $s->schedule_id) }}"
+                        method="POST" class="d-inline form-toggle-global"
+                        data-label="{{ $s->label ?: ( \Carbon\Carbon::createFromTimeString($s->start_time)->format('g:i A') . ' - ' . \Carbon\Carbon::createFromTimeString($s->end_time)->format('g:i A') ) }}"
+                        data-active="{{ $s->is_active ? 1 : 0 }}">
+                    @csrf @method('PUT')
+                    <button type="submit" class="btn btn-sm {{ $s->is_active ? 'btn-toggle' : 'btn-secondary' }}" title="{{ __('m_tours.schedule.ui.toggle_global_title') }}">
+                      <i class="fas fa-toggle-{{ $s->is_active ? 'on' : 'off' }}"></i>
                     </button>
+                  </form>
 
-                    {{-- Toggle GLOBAL --}}
-                    <form action="{{ route('admin.tours.schedule.toggle', $s->schedule_id) }}"
-                          method="POST" class="d-inline form-toggle-global"
-                          data-label="{{ $s->label ?: 'Horario' }}"
-                          data-active="{{ $s->is_active ? 1 : 0 }}">
-                      @csrf @method('PUT')
-                      <button type="submit" class="btn btn-toggle btn-sm" title="{{ __('m_tours.schedule.ui.toggle_global_title') }}">
-                        <i class="fas fa-toggle-{{ $s->is_active ? 'on' : 'off' }}"></i>
-                      </button>
-                    </form>
-
-                    {{-- Eliminar GLOBAL --}}
-                    <form action="{{ route('admin.tours.schedule.destroy', $s->schedule_id) }}"
-                          method="POST" class="d-inline form-delete"
-                          data-label="{{ $s->label ?: 'Horario' }}">
-                      @csrf @method('DELETE')
-                      <button type="submit" class="btn btn-delete btn-sm" title="{{ __('m_tours.schedule.ui.delete_forever') }}">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </form>
-                  </div>
+                  {{-- Eliminar GLOBAL --}}
+                  <form action="{{ route('admin.tours.schedule.destroy', $s->schedule_id) }}"
+                        method="POST" class="d-inline form-delete"
+                        data-label="{{ $s->label ?: ( \Carbon\Carbon::createFromTimeString($s->start_time)->format('g:i A') . ' - ' . \Carbon\Carbon::createFromTimeString($s->end_time)->format('g:i A') ) }}">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn-delete btn-sm" title="{{ __('m_tours.schedule.ui.delete_forever') }}">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
                 </td>
               </tr>
             @empty
               <tr>
-                <td colspan="5" class="text-center text-muted py-3">{{ __('m_tours.schedule.ui.no_general') }}</td>
+                <td colspan="5" class="text-center text-muted py-4">{{ __('m_tours.schedule.ui.no_general') }}</td>
               </tr>
             @endforelse
           </tbody>
@@ -151,50 +156,59 @@
   {{-- ===================== TOURS Y SUS HORARIOS ===================== --}}
   <div class="row">
     @foreach($tours as $tour)
-      <div class="col-lg-6 col-md-12 mb-4">
-        <div class="card shadow-sm h-100">
+      <div class="col-md-6 mb-4">
+        <!-- OJO: sin h-100 para evitar huecos -->
+        <div class="card shadow-sm">
           <div class="card-header bg-dark text-white tour-header">
-            <h5 class="mb-0 tour-title" title="{{ $tour->name }}">{{ $tour->name }}</h5>
+            <h5 class="mb-0 tour-title text-truncate" title="{{ $tour->name }}">
+              {{ $tour->name }}
+            </h5>
             <div class="tour-actions">
               {{-- Asignar existente --}}
               <button class="btn btn-view btn-sm"
                       data-bs-toggle="modal"
                       data-bs-target="#modalAsignarExistente{{ $tour->tour_id }}">
-                <i class="fas fa-link me-1"></i>{{ __('m_tours.schedule.ui.assign_existing') }}
+                <i class="fas fa-link"></i> {{ __('m_tours.schedule.ui.assign_existing') }}
               </button>
               {{-- Crear nuevo para este tour --}}
               <button class="btn btn-edit btn-sm"
                       data-bs-toggle="modal"
                       data-bs-target="#modalCrearParaTour{{ $tour->tour_id }}">
-                <i class="fas fa-plus me-1"></i>{{ __('m_tours.schedule.ui.new') }}
+                <i class="fas fa-plus"></i> {{ __('m_tours.schedule.ui.new') }}
               </button>
             </div>
           </div>
 
-          <div class="card-body">
+          <div class="card-body pt-3 pb-2">
             @forelse($tour->schedules as $bloque)
               @php $assignActive = (bool) ($bloque->pivot->is_active ?? true); @endphp
 
               <div class="schedule-row">
                 <div class="schedule-info">
-                  <div class="fw-semibold">
-                    🕒
-                    {{ \Carbon\Carbon::createFromTimeString($bloque->start_time)->format('g:i A') }}
-                    – {{ \Carbon\Carbon::createFromTimeString($bloque->end_time)->format('g:i A') }}
+                  <div class="fw-semibold text-truncate">
+                    🕒 {{ \Carbon\Carbon::createFromTimeString($bloque->start_time)->format('g:i A') }} –
+                    {{ \Carbon\Carbon::createFromTimeString($bloque->end_time)->format('g:i A') }}
                   </div>
-                  <div class="small text-muted">
-                    {{ $bloque->label ?: __('m_tours.schedule.ui.no_label') }}
-                    · {{ __('m_tours.schedule.fields.max_capacity') }}: {{ $bloque->max_capacity ?? '—' }}
+                  <div class="text-muted small text-truncate">
+                    {{ $bloque->label ?: __('m_tours.schedule.ui.no_label') }} · {{ __('m_tours.schedule.fields.max_capacity') }}: {{ $bloque->max_capacity ?? '—' }}
                   </div>
 
                   <div class="small mt-1">
-                    <strong>{{ __('m_tours.schedule.ui.schedule_state') }}:</strong>
-                    <span class="badge {{ $bloque->is_active ? 'bg-success' : 'bg-danger' }}">
-                      {{ $bloque->is_active ? __('m_tours.schedule.status.active') : __('m_tours.schedule.status.inactive') }}
+                    <span class="me-3">
+                      <strong>{{ __('m_tours.schedule.ui.schedule_state') }}:</strong>
+                      @if ($bloque->is_active)
+                        <span class="badge bg-success">{{ __('m_tours.schedule.status.active') }}</span>
+                      @else
+                        <span class="badge bg-danger">{{ __('m_tours.schedule.status.inactive') }}</span>
+                      @endif
                     </span>
-                    <strong class="ms-2">{{ __('m_tours.schedule.ui.assignment_state') }}:</strong>
-                    <span class="badge {{ $assignActive ? 'bg-success' : 'bg-danger' }}">
-                      {{ $assignActive ? __('m_tours.schedule.status.active') : __('m_tours.schedule.status.inactive') }}
+                    <span>
+                      <strong>{{ __('m_tours.schedule.ui.assignment_state') }}:</strong>
+                      @if ($assignActive)
+                        <span class="badge bg-success">{{ __('m_tours.schedule.status.active') }}</span>
+                      @else
+                        <span class="badge bg-danger">{{ __('m_tours.schedule.status.inactive') }}</span>
+                      @endif
                     </span>
                   </div>
                 </div>
@@ -209,7 +223,8 @@
                           data-end="{{ $bloque->end_time }}"
                           data-label="{{ $bloque->label }}"
                           data-capacity="{{ $bloque->max_capacity }}"
-                          data-active="{{ $bloque->is_active ? 1 : 0 }}">
+                          data-active="{{ $bloque->is_active ? 1 : 0 }}"
+                          title="{{ __('m_tours.schedule.ui.edit_global') }}">
                     <i class="fas fa-edit"></i>
                   </button>
 
@@ -218,7 +233,8 @@
                         method="POST" class="d-inline form-assignment-toggle"
                         data-tour="{{ $tour->name }}" data-active="{{ $assignActive ? 1 : 0 }}">
                     @csrf @method('PATCH')
-                    <button type="submit" class="btn btn-toggle btn-sm"
+                    <button type="submit"
+                            class="btn btn-toggle btn-sm"
                             title="{{ $assignActive ? __('m_tours.schedule.ui.toggle_off_tour') : __('m_tours.schedule.ui.toggle_on_tour') }}">
                       <i class="fas fa-toggle-{{ $assignActive ? 'on' : 'off' }}"></i>
                     </button>
@@ -239,13 +255,14 @@
             @endforelse
           </div>
 
-          <div class="card-footer text-muted small">
-            {{ $tour->schedules->count() }} {{ __('m_tours.schedule.ui.assigned_count') }}
+          <div class="card-footer text-muted pt-2 pb-2">
+            @php $asignados = $tour->schedules->count(); @endphp
+            {{ $asignados }} {{ __('m_tours.schedule.ui.assigned_count') }}
           </div>
         </div>
       </div>
 
-      {{-- ===== Modal: ASIGNAR EXISTENTE (por tour) ===== --}}
+      {{-- Modal: ASIGNAR EXISTENTE --}}
       <div class="modal fade" id="modalAsignarExistente{{ $tour->tour_id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
           <form action="{{ route('admin.tours.schedule.attach', $tour->tour_id) }}"
@@ -253,7 +270,7 @@
             @csrf
             <div class="modal-header">
               <h5 class="modal-title">{{ __('m_tours.schedule.ui.assign_to_tour', ['tour' => $tour->name]) }}</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
               <div class="mb-3">
@@ -261,26 +278,25 @@
                 <select name="schedule_id" class="form-select" required>
                   <option value="" disabled selected>— {{ __('m_tours.schedule.ui.choose') }} —</option>
                   @foreach($generalSchedules as $opt)
-                    @php
-                      $oStart = \Carbon\Carbon::createFromTimeString($opt->start_time)->format('g:i A');
-                      $oEnd   = \Carbon\Carbon::createFromTimeString($opt->end_time)->format('g:i A');
-                    @endphp
                     <option value="{{ $opt->schedule_id }}">
-                      {{ $oStart }} – {{ $oEnd }}{{ $opt->label ? ' · '.$opt->label : '' }}
+                      {{ \Carbon\Carbon::createFromTimeString($opt->start_time)->format('g:i A') }}
+                      –
+                      {{ \Carbon\Carbon::createFromTimeString($opt->end_time)->format('g:i A') }}
+                      {{ $opt->label ? ' · '.$opt->label : '' }}
                     </option>
                   @endforeach
                 </select>
               </div>
             </div>
-            <div class="modal-footer flex-wrap gap-2">
-              <button class="btn btn-view"><i class="fas fa-link me-1"></i>{{ __('m_tours.schedule.ui.assign') }}</button>
+            <div class="modal-footer">
+              <button class="btn btn-view">{{ __('m_tours.schedule.ui.assign') }}</button>
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.schedule.ui.cancel') }}</button>
             </div>
           </form>
         </div>
       </div>
 
-      {{-- ===== Modal: CREAR PARA ESTE TOUR (por tour) ===== --}}
+      {{-- Modal: CREAR PARA ESTE TOUR --}}
       <div class="modal fade" id="modalCrearParaTour{{ $tour->tour_id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
           <form action="{{ route('admin.tours.schedule.store') }}" method="POST" class="modal-content" autocomplete="off">
@@ -288,7 +304,7 @@
             <input type="hidden" name="tour_id" value="{{ $tour->tour_id }}">
             <div class="modal-header">
               <h5 class="modal-title">{{ __('m_tours.schedule.ui.new_for_tour_title', ['tour' => $tour->name]) }}</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
               <div class="row g-2">
@@ -316,8 +332,8 @@
                 <label class="form-check-label" for="active-{{ $tour->tour_id }}">{{ __('m_tours.schedule.fields.active') }}</label>
               </div>
             </div>
-            <div class="modal-footer flex-wrap gap-2">
-              <button class="btn btn-edit"><i class="fas fa-save me-1"></i> {{ __('m_tours.schedule.ui.save') }}</button>
+            <div class="modal-footer">
+              <button class="btn btn-edit"><i class="fas fa-save"></i> {{ __('m_tours.schedule.ui.save') }}</button>
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.schedule.ui.cancel') }}</button>
             </div>
           </form>
@@ -334,7 +350,7 @@
       @csrf
       <div class="modal-header">
         <h5 class="modal-title">{{ __('m_tours.schedule.ui.new_general_title') }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div class="row g-2">
@@ -362,8 +378,8 @@
           <label class="form-check-label" for="active-general">{{ __('m_tours.schedule.fields.active') }}</label>
         </div>
       </div>
-      <div class="modal-footer flex-wrap gap-2">
-        <button class="btn btn-edit"><i class="fas fa-save me-1"></i> {{ __('m_tours.schedule.ui.save') }}</button>
+      <div class="modal-footer">
+        <button class="btn btn-edit"><i class="fas fa-save"></i> {{ __('m_tours.schedule.ui.save') }}</button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.schedule.ui.cancel') }}</button>
       </div>
     </form>
@@ -377,7 +393,7 @@
       @csrf @method('PUT')
       <div class="modal-header">
         <h5 class="modal-title">{{ __('m_tours.schedule.ui.edit_schedule') }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div class="row g-2">
@@ -407,8 +423,8 @@
           <label class="form-check-label" for="edit-active">{{ __('m_tours.schedule.fields.active') }}</label>
         </div>
       </div>
-      <div class="modal-footer flex-wrap gap-2">
-        <button class="btn btn-edit" type="submit"><i class="fas fa-save me-1"></i> {{ __('m_tours.schedule.ui.save_changes') }}</button>
+      <div class="modal-footer">
+        <button class="btn btn-edit" type="submit"><i class="fas fa-save"></i> {{ __('m_tours.schedule.ui.save_changes') }}</button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.schedule.ui.cancel') }}</button>
       </div>
     </form>
@@ -426,34 +442,25 @@ function timeToHHMM(t) {
   return m ? `${m[1]}:${m[2]}` : t;
 }
 
-// ===== Spinner + lock (solo botones; NO deshabilita inputs) =====
+// ===== Spinner + lock (solo botones) =====
 function lockAndSubmit(form, opts = {}) {
   const loadingText = opts.loadingText || @json(__('m_tours.schedule.ui.processing'));
-
   if (!form.checkValidity()) {
     if (typeof form.reportValidity === 'function') form.reportValidity();
     return;
   }
-
   const buttons = form.querySelectorAll('button');
-  let submitBtn =
+  const submitBtn =
     form.querySelector('button[type="submit"]') ||
     form.querySelector('.btn-edit, .btn-primary, .btn-success');
-
-  buttons.forEach(btn => {
-    if (submitBtn && btn === submitBtn) return;
-    btn.disabled = true;
-  });
-
+  buttons.forEach(btn => { if (submitBtn && btn === submitBtn) return; btn.disabled = true; });
   if (submitBtn) {
     if (!submitBtn.dataset.originalHtml) submitBtn.dataset.originalHtml = submitBtn.innerHTML;
     submitBtn.innerHTML =
-      '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
-      loadingText;
+      '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + loadingText;
     submitBtn.classList.add('disabled');
     submitBtn.disabled = true;
   }
-
   form.querySelectorAll('input, select, textarea').forEach(el => { if (el.disabled) el.disabled = false; });
   form.submit();
 }
@@ -461,7 +468,6 @@ function lockAndSubmit(form, opts = {}) {
 // ===== Rellenar modal de edición =====
 document.getElementById('modalEditarHorarioGeneral')?.addEventListener('show.bs.modal', function (ev) {
   const btn = ev.relatedTarget; if (!btn) return;
-
   const id     = btn.getAttribute('data-id');
   const start  = timeToHHMM(btn.getAttribute('data-start') || '');
   const end    = timeToHHMM(btn.getAttribute('data-end')   || '');
@@ -480,9 +486,7 @@ document.getElementById('modalEditarHorarioGeneral')?.addEventListener('show.bs.
   document.getElementById('edit-active').checked = active;
 });
 
-// ===== Confirmaciones con SweetAlert + lock/spinner =====
-
-// Toggle GLOBAL
+// ===== Confirmaciones con SweetAlert =====
 document.querySelectorAll('.form-toggle-global').forEach(form => {
   form.addEventListener('submit', function(e) {
     e.preventDefault();
@@ -503,7 +507,6 @@ document.querySelectorAll('.form-toggle-global').forEach(form => {
   });
 });
 
-// Toggle ASIGNACIÓN (pivote por tour)
 document.querySelectorAll('.form-assignment-toggle').forEach(form => {
   form.addEventListener('submit', function(e) {
     e.preventDefault();
@@ -524,7 +527,6 @@ document.querySelectorAll('.form-assignment-toggle').forEach(form => {
   });
 });
 
-// Eliminar GLOBAL
 document.querySelectorAll('.form-delete').forEach(form => {
   form.addEventListener('submit', function(e) {
     e.preventDefault();
@@ -541,7 +543,6 @@ document.querySelectorAll('.form-delete').forEach(form => {
   });
 });
 
-// Quitar del tour (DETACH)
 document.querySelectorAll('.form-detach').forEach(form => {
   form.addEventListener('submit', function(e) {
     e.preventDefault();
