@@ -42,8 +42,5 @@
 @endsection
 
 @push('scripts')
-  @vite([
-    'resources/js/reviews-carousel.js',
-    'resources/js/home.js'
-  ])
+  @vite(['resources/js/reviews-carousel.js'])
 @endpush

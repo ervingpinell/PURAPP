@@ -5,11 +5,12 @@
 (function () {
   const $doc = document;
 
-  // Exponer un namespace liviano para helpers compartidos
+  // Namespace + flags
   const App = (window.App = window.App || {});
+  App._toursBound = App._toursBound || false; // evita bind doble
 
   /* -----------------------------
-   * 0) iOS/Safari Theme-Color helpers
+   * 1) iOS/Safari Theme-Color helpers
    * ----------------------------- */
   function ensureThemeMeta() {
     let meta = $doc.querySelector('#themeColorMeta[name="theme-color"]');
@@ -44,7 +45,7 @@
   }
 
   /* -----------------------------
-   * 1) HEADER FIJO: medir altura
+   * 2) HEADER FIJO: medir altura
    * ----------------------------- */
   const header =
     $doc.querySelector('.navbar-custom') ||
@@ -78,7 +79,7 @@
   }
 
   /* -------------------------------------------------
-   * 2) NAVBAR TOGGLE (mobile) + bloqueo del scroll
+   * 3) NAVBAR TOGGLE (mobile) + bloqueo del scroll
    * ------------------------------------------------- */
   function initMobileMenu(){
     const toggleBtn   = $doc.getElementById('navbar-toggle');
@@ -135,24 +136,81 @@
   } else { initMobileMenu(); }
 
   /* --------------------------------------------
-   * 3) SCROLL SUAVE respetando altura del header
+   * 4) SCROLL SUAVE respetando altura del header (robusto)
    * -------------------------------------------- */
-  function getNavOffset() {
-    const v = getComputedStyle(document.documentElement).getPropertyValue('--nav-h');
-    const n = parseInt(v, 10);
-    return Number.isFinite(n) ? n : 0;
+  function getScrollContainer(el) {
+    let node = el && el.parentElement;
+    while (node && node !== document.body && node !== document.documentElement) {
+      const cs = getComputedStyle(node);
+      const canScrollY = /(auto|scroll)/.test(cs.overflowY || cs.overflow);
+      if (canScrollY && node.scrollHeight > node.clientHeight) return node;
+      node = node.parentElement;
+    }
+    return window;
   }
+
+  function getTopWithinContainer(target, container) {
+    if (container === window) {
+      const rect = target.getBoundingClientRect();
+      return (window.pageYOffset || document.documentElement.scrollTop || 0) + rect.top;
+    }
+    const cRect = container.getBoundingClientRect();
+    const tRect = target.getBoundingClientRect();
+    const cScroll = container.scrollTop;
+    return cScroll + (tRect.top - cRect.top);
+  }
+
+  function getNavOffset() {
+    const cssVal = getComputedStyle(document.documentElement).getPropertyValue('--nav-h');
+    let n = parseInt(cssVal, 10);
+    if (!Number.isFinite(n) || n <= 0) {
+      const hdr =
+        document.querySelector('.navbar-custom') ||
+        document.querySelector('header.site-header') ||
+        document.getElementById('site-header');
+      if (hdr) n = Math.ceil(hdr.getBoundingClientRect().height || 0);
+    }
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  }
+
   function smoothScrollTo(target) {
     if (!target) return;
-    const rect = target.getBoundingClientRect();
-    const absoluteY = window.pageYOffset + rect.top;
+
+    const container = getScrollContainer(target);
     const offset = getNavOffset();
-    window.scrollTo({ top: absoluteY - offset - 16, behavior: 'smooth' });
+    const rawTop = getTopWithinContainer(target, container);
+    let goal = Math.max(0, rawTop - offset - 16);
+
+    const before = container === window
+      ? (window.pageYOffset || document.documentElement.scrollTop || 0)
+      : container.scrollTop;
+
+    if (container === window) {
+      const doc = document.scrollingElement || document.documentElement;
+      const maxScroll = (doc.scrollHeight || 0) - window.innerHeight;
+      goal = Math.min(goal, maxScroll);
+      window.scrollTo({ top: goal, behavior: 'smooth' });
+    } else {
+      const maxScroll = container.scrollHeight - container.clientHeight;
+      goal = Math.min(goal, maxScroll);
+      container.scrollTo({ top: goal, behavior: 'smooth' });
+    }
+
+    // Fallback si no se movió
+    setTimeout(() => {
+      const after = container === window
+        ? (window.pageYOffset || document.documentElement.scrollTop || 0)
+        : container.scrollTop;
+      if (Math.abs(after - before) <= 1) {
+        try { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+      }
+    }, 80);
   }
-  // Enlaces a anclas (#id) fuera del menú móvil
+
+  // Enlaces a anclas (#id) fuera del menú móvil (genérico)
   $doc.querySelectorAll('a[href^="#"]').forEach((a) => {
     a.addEventListener('click', (ev) => {
-      if (a.closest('#navbar-links')) return;
+      if (a.closest('#navbar-links')) return; // el menú móvil ya maneja hash
       const hash = a.getAttribute('href');
       if (!hash || hash === '#') return;
       const el = $doc.querySelector(hash);
@@ -160,7 +218,9 @@
     });
   });
 
-  /* 4) Helpers globales expuestos */
+  /* -----------------------------
+   * 5) Helpers globales expuestos
+   * ----------------------------- */
   App.getCurrentLocale = function getCurrentLocale() {
     const metaLocale = document.querySelector('meta[name="locale"]');
     if (metaLocale) {
@@ -179,8 +239,19 @@
     const supported = ['es', 'en', 'fr', 'de', 'pt'];
     return parts.length === 0 || (parts.length === 1 && supported.includes(parts[0]));
   };
+  App.getHomeUrl = function getHomeUrl() {
+    const logoHome = document.querySelector('.navbar-logo a[href]');
+    if (logoHome && logoHome.href) return logoHome.href;
+    const loc = App.getCurrentLocale();
+    const supported = ['es','en','fr','de','pt'];
+    return supported.includes(loc)
+      ? `${window.location.origin}/${loc}`
+      : `${window.location.origin}/`;
+  };
 
-  /* 5) Carrito (global) */
+  /* -----------------------------
+   * 6) Carrito (global)
+   * ----------------------------- */
   function updateCartCount() {
     fetch('/cart/count', { headers: { 'Accept': 'application/json' }})
       .then(res => res.ok ? res.json() : Promise.reject(`HTTP ${res.status}`))
@@ -203,9 +274,125 @@
   setInterval(() => { updateCartCount(); refreshThemeColor(); }, 30000);
   window.addEventListener('cart:changed', updateCartCount);
 
-  /* 6) Hardening para carousels/iframes móviles */
+  /* -----------------------------
+   * 7) Hardening para carousels/iframes móviles
+   * ----------------------------- */
   document.querySelectorAll('.carousel, .carousel-inner, .carousel-item')
     .forEach(el => el.style.transform = 'translateZ(0)');
+
+  /* =========================================================
+   * 8) HOME — Animación de cards + Ir a #tours + Leer más/menos
+   * ========================================================= */
+  App.animateTourCards = function animateTourCards() {
+    const cards = document.querySelectorAll('.tour-card');
+    if (!cards.length) return;
+
+    cards.forEach((card) => {
+      card.style.opacity = '0';
+      card.style.transform = 'scale(0.85) translateY(20px)';
+      card.style.transition = 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    });
+
+    cards.forEach((card, idx) => {
+      setTimeout(() => {
+        card.style.opacity = '1';
+        card.style.transform = 'scale(1) translateY(0)';
+      }, idx * 120);
+    });
+  };
+
+  function closeMobileMenuIfOpen() {
+    const mobileLinks = document.getElementById('navbar-links');
+    const toggleBtn   = document.getElementById('navbar-toggle');
+    if (mobileLinks && mobileLinks.classList.contains('show')) {
+      mobileLinks.classList.remove('show');
+      document.body.classList.remove('menu-open');
+      if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+      refreshThemeColor(true);
+    }
+  }
+
+  App.initScrollToTours = function initScrollToTours() {
+    if (App._toursBound) return; // evita doble bind
+    App._toursBound = true;
+
+    function targetToursEl() {
+      return document.getElementById('tours') || document.querySelector('[data-anchor="tours"]');
+    }
+
+    // Reintenta N veces por si #tours aparece tarde (Livewire/Alpine/etc.)
+    function scrollToToursAndAnimate({ retries = 4, delay = 120 } = {}) {
+      let target = targetToursEl();
+      if (!target && retries > 0) {
+        setTimeout(() => scrollToToursAndAnimate({ retries: retries - 1, delay }), delay);
+        return;
+      }
+      if (!target) return;
+
+      smoothScrollTo(target);
+      setTimeout(() => App.animateTourCards(), 350);
+    }
+
+    // Click en “Tours” (header + footer + cualquier otro con la clase)
+    document.querySelectorAll('.scroll-to-tours').forEach(link => {
+      link.addEventListener('click', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        closeMobileMenuIfOpen();
+
+        if (App.isHomePage && App.isHomePage()) {
+          // En Home: SIEMPRE scrollea + anima (cada click)
+          setTimeout(() => scrollToToursAndAnimate(), 50);
+          return;
+        }
+
+        // Fuera de Home: redirige a Home con #tours (al llegar SOLO anima)
+        const homeUrl = App.getHomeUrl();
+        window.location.href = homeUrl.replace(/#.*$/, '') + '#tours';
+      }, { passive:false });
+    });
+
+    // Llegaste a Home con #tours => SOLO animación (sin scroll)
+    if ((App.isHomePage && App.isHomePage()) && /#tours/i.test(String(window.location.hash || ''))) {
+      const kickoff = () => setTimeout(() => App.animateTourCards(), 150);
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', kickoff, { once:true });
+      } else {
+        kickoff();
+      }
+      // limpia el hash para que no se re-dispare al usar el historial
+      try { history.replaceState({}, document.title, window.location.pathname + window.location.search); } catch(e){}
+    }
+  };
+
+  App.initOverviewToggles = function initOverviewToggles() {
+    $doc.querySelectorAll('.toggle-overview-link').forEach(link => {
+      link.addEventListener('click', function () {
+        const overview = document.getElementById(this.dataset.target);
+        if (!overview) return;
+        const textMore = this.dataset.textMore || 'Leer más';
+        const textLess = this.dataset.textLess || 'Leer menos';
+        overview.classList.toggle('expanded');
+        this.textContent = overview.classList.contains('expanded') ? textLess : textMore;
+      });
+    });
+  };
+
+  App.initHome = function initHome() {
+    if (!(App.isHomePage && App.isHomePage())) return;
+    // No animamos automáticamente para no interferir con el comportamiento de "Tours".
+    App.initOverviewToggles();
+  };
+
+  /* -------- Lanzadores -------- */
+  // Bind Tours (siempre, desde cualquier página)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', App.initScrollToTours, { once:true });
+  } else { App.initScrollToTours(); }
+
+  // Init de Home (sin animar por defecto)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', App.initHome, { once:true });
+  } else { App.initHome(); }
 
   // Primera sincronización del theme-color
   refreshThemeColor(true);

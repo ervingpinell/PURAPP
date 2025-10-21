@@ -2,6 +2,27 @@
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Estima nº de filas a partir de caracteres por línea.
+ * (Servirá solo para reservar altura mínima; el título SIEMPRE se muestra completo)
+ */
+function estimate_rows(string $text, int $charsPerLine): int {
+    $t = trim(preg_replace('/\s+/u', ' ', $text) ?? '');
+    $len = mb_strlen($t);
+    if ($len <= 0) return 1;
+    return max(1, (int)ceil($len / max(1, $charsPerLine)));
+}
+
+function max_rows_for_group(iterable $items, callable $getTitle, int $charsPerLine, int $min=1, int $max=4): int {
+    $maxRows = 1;
+    foreach ($items as $it) {
+        $title = (string)$getTitle($it);
+        $rows  = estimate_rows($title, $charsPerLine);
+        if ($rows > $maxRows) $maxRows = $rows;
+    }
+    return min($max, max($min, $maxRows));
+}
+
 $coverFromFolder = function (?int $tourId): string {
     if (!$tourId) return asset('images/volcano.png');
     $folder = "tours/{$tourId}/gallery";
@@ -15,9 +36,21 @@ $coverFromFolder = function (?int $tourId): string {
 
     return $first ? asset('storage/'.$first) : asset('images/volcano.png');
 };
+
+/* Filas para los títulos de las cards de HOME (según el más largo) */
+$typeTitles = collect($typeMeta)
+    ->map(fn($m) => (string)($m['title'] ?? ''))
+    ->filter();
+
+$homeRowsXS = min(4, max(1, (int)ceil($typeTitles->map(fn($t)=>estimate_rows($t, 14))->max() ?? 1)));
+$homeRowsSM = min(4, max(1, (int)ceil($typeTitles->map(fn($t)=>estimate_rows($t, 18))->max() ?? 1)));
+$homeRowsMD = min(4, max(1, (int)ceil($typeTitles->map(fn($t)=>estimate_rows($t, 24))->max() ?? 1)));
+$homeRowsLG = min(4, max(1, (int)ceil($typeTitles->map(fn($t)=>estimate_rows($t, 32))->max() ?? 1)));
 @endphp
 
-<div class="tour-cards">
+<div class="tour-cards"
+     style="--title-rows-xs:{{$homeRowsXS}};--title-rows-sm:{{$homeRowsSM}};--title-rows-md:{{$homeRowsMD}};--title-rows-lg:{{$homeRowsLG}};">
+
 @foreach ($typeMeta as $key => $meta)
   @php
       /** @var \Illuminate\Support\Collection $group */
@@ -36,9 +69,15 @@ $coverFromFolder = function (?int $tourId): string {
               ?? $coverFromFolder($first->tour_id ?? $first->id ?? null));
 
       $slugKey = Str::slug((string)$key);
+
+      /* Filas para títulos de cada MODAL (según su lista de tours) */
+      $rowsXS = max_rows_for_group($group, fn($t)=>$t->getTranslatedName(), 14, 1, 4);
+      $rowsSM = max_rows_for_group($group, fn($t)=>$t->getTranslatedName(), 18, 1, 4);
+      $rowsMD = max_rows_for_group($group, fn($t)=>$t->getTranslatedName(), 24, 1, 4);
+      $rowsLG = max_rows_for_group($group, fn($t)=>$t->getTranslatedName(), 32, 1, 4);
   @endphp
 
-  {{-- Tarjeta del tipo --}}
+  {{-- Tarjeta del tipo (HOME) --}}
   <div class="tour-card" style="cursor:pointer"
        data-bs-toggle="modal" data-bs-target="#modal-{{ $slugKey }}">
     <img src="{{ $firstCover }}" class="card-img-top" alt="{{ $translatedTitle }}">
@@ -60,10 +99,10 @@ $coverFromFolder = function (?int $tourId): string {
     </div>
   </div>
 
-  {{-- Modal por tipo --}}
+  {{-- Modal por tipo (sin JS; reserva de altura, sin truncado) --}}
   <div class="modal fade modal-fix-top" id="modal-{{ $slugKey }}" tabindex="-1"
-       aria-labelledby="modalLabel-{{ $slugKey }}" aria-hidden="true">
-    {{-- Fullscreen en sm- y centrado/scrollable en >sm --}}
+       aria-labelledby="modalLabel-{{ $slugKey }}" aria-hidden="true"
+       style="--title-rows-xs:{{$rowsXS}};--title-rows-sm:{{$rowsSM}};--title-rows-md:{{$rowsMD}};--title-rows-lg:{{$rowsLG}};">
     <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header text-white" style="background:#0f2419">
@@ -77,7 +116,6 @@ $coverFromFolder = function (?int $tourId): string {
 
         <div class="modal-body">
           <div class="container-fluid px-2 px-sm-3">
-            {{-- Grid centrado y responsivo: 1 col en móvil, 2 en sm, 3 en lg --}}
             <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 justify-content-center tour-grid">
               @foreach ($group as $tour)
                 @php

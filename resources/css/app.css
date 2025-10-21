@@ -24,7 +24,7 @@
   --fs-h3: clamp(20px, 1.05vw + 12px, 24px);
   --fs-h4: clamp(18px, 0.85vw + 11px, 20px);
   --fs-h5: clamp(16px, 0.65vw + 10px, 18px);
-  --fs-h6: clamp(15px, 0.55vw + 10px, 16px);
+  --fs-h6: clamp(15px, 0.55vw + 10px, 16px); /* mantenemos variable por compatibilidad */
 
   --lh-tight: 1.2;
   --lh-normal: 1.45;
@@ -62,9 +62,10 @@ h2{ font-size: var(--fs-h2); line-height: var(--lh-tight); font-weight:700; marg
 h3{ font-size: var(--fs-h3); line-height: var(--lh-tight); font-weight:700; margin:0 0 .5em; }
 h4{ font-size: var(--fs-h4); line-height: var(--lh-tight); font-weight:700; margin:0 0 .5em; }
 h5{ font-size: var(--fs-h5); line-height: var(--lh-tight); font-weight:700; margin:0 0 .5em; }
-h6{ font-size: var(--fs-h6); line-height: var(--lh-tight); font-weight:700; margin:0 0 .5em; }
+/* Eliminamos efectivamente h6: lo igualamos a xs para evitar saltos en cualquier parte del sitio */
+h6{ font-size: var(--fs-xs); line-height: var(--lh-tight); font-weight:700; margin:0 0 .5em; }
 
-/* Modales (tipografía mínima, sin tocar cards) */
+/* Modales (tipografía mínima, sin tocar títulos de cards del modal) */
 .modal .modal-title{ font-size: var(--fs-h4); line-height: var(--lh-tight); font-weight: 700; }
 .modal .modal-body{ font-size: var(--fs-body); }
 .modal .modal-footer .btn{ font-size: var(--fs-sm); }
@@ -502,7 +503,7 @@ body.has-fixed-navbar .container > .big-title:first-child{
 }
 .footer-nature .footer-links h4,
 .footer-nature .contact-info h4{
-  font-size:var(--fs-h6);
+  font-size: var(--fs-h6);
   font-weight:700;
   margin-bottom:1rem;
   color:#fff;
@@ -519,7 +520,7 @@ body.has-fixed-navbar .container > .big-title:first-child{
 .footer-nature .footer-links a{
   color:#e0e0e0;
   text-decoration:none;
-  font-size:var(--fs-body);
+  font-size: var(--fs-body);
   transition:color .3s;
 }
 .footer-nature .footer-links a:hover{
@@ -541,7 +542,7 @@ body.has-fixed-navbar .container > .big-title:first-child{
   min-width:220px;
 }
 .footer-tours h4{
-  font-size:var(--fs-h6);
+  font-size: var(--fs-h6);
   font-weight:700;
   margin-bottom:1rem;
   color:#fff;
@@ -557,7 +558,7 @@ body.has-fixed-navbar .container > .big-title:first-child{
 }
 .footer-tours a{
   color:#e0e0e0;
-  font-size:var(--fs-body);
+  font-size: var(--fs-body);
   text-decoration:none;
   transition:color .3s ease;
 }
