@@ -382,13 +382,18 @@ return [
 
     // ✅ HOTELES
     [
-        'text'    => 'Hoteles',
+        'text'    => 'Pickups',
         'icon'    => 'fas fa-hotel',
         'submenu' => [
             [
                 'text' => 'Lista de Hoteles',
                 'route' => 'admin.hotels.index',
                 'icon'  => 'fas fa-list',
+            ],
+                        [
+                'text'  => 'Meeting Points',
+                'route' => 'admin.meetingpoints.index',
+                'icon'  => 'fas fa-map-marker-alt',
             ],
         ],
     ],
@@ -455,7 +460,15 @@ return [
             // 'can'   => 'manage-tours',
         ],
 
-            [
+        ],
+
+    ],
+
+    [
+         'text'    => 'Imagenes',
+        'icon'    => 'fas fa-camera',
+        'submenu' => [
+[
                 'text'  => 'Imágenes de Tours',
                 'route' => 'admin.tours.images.pick',
                 'icon'  => 'fas fa-images',
@@ -465,19 +478,8 @@ return [
                 'route' => 'admin.types.images.pick',
                 'icon'  => 'fas fa-image',
             ],
-            [
-                'text'  => 'Meeting Points',
-                'route' => 'admin.meetingpoints.index',
-                'icon'  => 'fas fa-map-marker-alt',
-            ],
-            [
-                'text' => 'Reportes',
-                'url'  => 'admin/reports',
-                'icon' => 'fas fa-chart-line',
-            ],
-
-        ],
     ],
+],
 
     // ✅ USUARIOS
     [
@@ -522,6 +524,13 @@ return [
         ],
     ],
 ],
+
+            [
+                'text' => 'Reportes',
+                'url'  => 'admin/reports',
+                'icon' => 'fas fa-chart-line',
+            ],
+
 
 [
     'text'         => '🌐',
