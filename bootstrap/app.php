@@ -31,6 +31,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'ability'         => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
             'normalize.email' => \App\Http\Middleware\NormalizeEmail::class,
             '2fa.admin'       => \App\Http\Middleware\RequireTwoFactorForAdmins::class,
+            'public.readonly' => \App\Http\Middleware\PublicReadOnly::class,
+
         ]);
 
         // Globales (corren antes del grupo web)

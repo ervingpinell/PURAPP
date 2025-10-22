@@ -167,11 +167,19 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::view('/reviews/thanks', 'reviews.thanks')->name('reviews.thanks');
 
     // ============================
-    // CARRITO & PROMO
+    // CARRITO & PROMO (PÚBLICO, BLOQUEABLE)
     // ============================
-    Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count.public');
-    Route::post('/api/apply-promo', [PromoCodeController::class, 'apply'])->name('api.promo.apply');
-    Route::post('/apply-promo', [PromoCodeController::class, 'apply'])->name('promo.apply');
+    Route::get('/cart/count', [CartController::class, 'count'])
+        ->name('cart.count.public')
+        ->middleware('public.readonly');
+
+    Route::post('/api/apply-promo', [PromoCodeController::class, 'apply'])
+        ->name('api.promo.apply')
+        ->middleware('public.readonly');
+
+    Route::post('/apply-promo', [PromoCodeController::class, 'apply'])
+        ->name('promo.apply')
+        ->middleware('public.readonly');
 
     // ============================
     // AUTH & VERIFICACIÓN
@@ -223,9 +231,9 @@ Route::middleware([SetLocale::class])->group(function () {
     });
 
     // ------------------------------
-    // Perfil & carrito (privado)
+    // Perfil & carrito (privado) — BLOQUEABLE
     // ------------------------------
-    Route::middleware(['auth', 'verified'])->group(function () {
+    Route::middleware(['auth', 'verified', 'public.readonly'])->group(function () {
         // Perfil
         Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
         Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -283,10 +291,6 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::post('translations/{type}/{id}/update', [TranslationController::class, 'update'])->name('translations.update');
                 Route::post('translations/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('translations.change-editing-locale');
 
-                // FAQs
-                Route::resource('faqs', AdminFaqController::class)->except(['show']);
-                Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggle'])->name('faqs.toggleStatus');
-
                 // Tours: Cutoff
                 Route::prefix('tours')->name('tours.')->group(function () {
                     Route::prefix('cutoff')->name('cutoff.')->group(function () {
@@ -305,13 +309,11 @@ Route::middleware([SetLocale::class])->group(function () {
                     /* === NUEVAS RUTAS PARA ELIMINACIÓN MASIVA === */
                     Route::delete('/', [TourImageController::class, 'bulkDestroy'])->name('bulk-destroy'); // eliminar seleccionadas
                     Route::delete('/all', [TourImageController::class, 'destroyAll'])->name('destroyAll');  // eliminar todas
-                
+
                     Route::patch('{image}', [TourImageController::class, 'update'])->name('update');
                     Route::delete('{image}', [TourImageController::class, 'destroy'])->name('destroy');
                     Route::post('{image}/cover', [TourImageController::class, 'setCover'])->name('cover');
                     Route::post('reorder', [TourImageController::class, 'reorder'])->name('reorder');
-
-                    
                 });
 
                 // Meeting points

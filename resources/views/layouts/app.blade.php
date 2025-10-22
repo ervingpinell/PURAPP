@@ -154,6 +154,13 @@
 
 {{-- Añadimos clase is-home para estilos específicos si estás en la Home --}}
 <body class="d-flex flex-column min-vh-100 {{ $isHome ? 'is-home' : '' }}">
+
+    @if(config('gv.public_readonly'))
+  <div class="alert alert-warning text-center mb-0 rounded-0">
+    {{ __('Site is under maintenance. Registration and purchases are temporarily disabled.') }}
+  </div>
+@endif
+
   @include('partials.header')
 
   <main class="flex-grow-1">

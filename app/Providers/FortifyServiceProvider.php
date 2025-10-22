@@ -82,10 +82,20 @@ class FortifyServiceProvider extends ServiceProvider
             // Toggle strict mode from config/auth.php ('strict_login') or .env (AUTH_STRICT_LOGIN)
             $strict = (bool) config('auth.strict_login', true);
 
+            // ── Bandera para bloquear login público ───────────────────────────────
+            // Si está en false, SOLO pueden iniciar sesión usuarios con permiso 'access-admin'
+            $allowPublicLogin = (bool) (config('gv.allow_public_login') ?? env('GV_ALLOW_PUBLIC_LOGIN', false));
+
             // ── Non-strict mode (for local testing) ───────────────────────────────
             if (! $strict) {
                 $user = User::where('email', $request->input('email'))->first();
                 if ($user && Hash::check($request->input('password'), (string) $user->password)) {
+                    if (! $allowPublicLogin && ! $user->can('access-admin')) {
+                        Log::warning('[Auth] Public login disabled (non-strict). User denied.', ['uid' => $user->getKey()]);
+                        throw ValidationException::withMessages([
+                            'email' => __('auth.login_disabled') ?: __('adminlte::validation.invalid_credentials'),
+                        ]);
+                    }
                     Log::info('[Auth] Non-strict mode: login allowed', ['uid' => $user->getKey()]);
                     return $user;
                 }
@@ -202,6 +212,14 @@ class FortifyServiceProvider extends ServiceProvider
 
                 throw ValidationException::withMessages([
                     'email' => $msg,
+                ]);
+            }
+
+            // ── Password OK: verificar si el login público está permitido ─────────
+            if (! $allowPublicLogin && ! $user->can('access-admin')) {
+                Log::warning('[Auth] Public login disabled. User denied.', ['uid' => $user->getKey(), 'email' => $email]);
+                throw ValidationException::withMessages([
+                    'email' => __('auth.login_disabled') ?: __('adminlte::validation.invalid_credentials'),
                 ]);
             }
 
