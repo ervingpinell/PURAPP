@@ -51,3 +51,7 @@ yarn-error.log
 # Otros
 # ===========================================
 /auth.json
+/bootstrap/cache/*.php
+/storage/*.key
+/bootstrap/cache/*.php
+/storage/*.key

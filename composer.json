@@ -3,7 +3,7 @@
   "name": "laravel/livewire-starter-kit",
   "type": "project",
   "description": "The official Laravel starter kit for Livewire.",
-  "keywords": ["laravel","framework"],
+  "keywords": ["laravel", "framework"],
   "license": "MIT",
   "require": {
     "php": "^8.2",
@@ -66,7 +66,6 @@
       "@php artisan route:clear || true"
     ],
     "post-autoload-dump": [
-      "Illuminate\\\\Foundation\\\\ComposerScripts::postAutoloadDump",
       "@php artisan package:discover --ansi"
     ],
     "post-update-cmd": [
