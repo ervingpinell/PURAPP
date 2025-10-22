@@ -10,21 +10,22 @@ class PublicReadOnly
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (config('gv.public_readonly') === true) {
-            // Permite admin y API técnicas si hiciera falta
-            if ($request->is('admin/*')) {
-                return $next($request);
-            }
+        // SIEMPRE permite admin, sin importar el modo readonly
+        if ($request->is('admin/*')) {
+            return $next($request);
+        }
 
+        // Solo si readonly está activo, bloquea rutas públicas
+        if (config('gv.public_readonly') === true) {
             // Bloquea todo intento de compra / carrito / promo / reservas públicas
-            // (ajusta patrones si agregas nuevas rutas)
             $blocked = [
                 'apply-promo',
                 'api/apply-promo',
                 'cart/*',
                 'carrito/*',
                 'reservas/*',
-                'my-cart', 'mi-carrito',
+                'my-cart',
+                'mi-carrito',
                 'my-reservations*',
             ];
 
@@ -32,7 +33,7 @@ class PublicReadOnly
                 if ($request->is($pat)) {
                     return response()
                         ->view('errors.public-readonly', [], 503)
-                        ->header('Retry-After', '3600'); // opcional
+                        ->header('Retry-After', '3600');
                 }
             }
         }

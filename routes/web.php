@@ -291,6 +291,10 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::post('translations/{type}/{id}/update', [TranslationController::class, 'update'])->name('translations.update');
                 Route::post('translations/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('translations.change-editing-locale');
 
+                // FAQs
+                Route::resource('faqs', AdminFaqController::class)->except(['show']);
+                Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggle'])->name('faqs.toggleStatus');
+
                 // Tours: Cutoff
                 Route::prefix('tours')->name('tours.')->group(function () {
                     Route::prefix('cutoff')->name('cutoff.')->group(function () {

@@ -36,18 +36,18 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Globales (corren antes del grupo web)
         $middleware->append([
-            \App\Http\Middleware\ForceCorrectDomain::class,  // ✅ NUEVO: Fuerza dominio correcto
+            \App\Http\Middleware\ForceCorrectDomain::class,
             \App\Http\Middleware\NormalizeEmail::class,
             \App\Http\Middleware\LogContext::class,
             \App\Http\Middleware\SetLocale::class,
-
-            // Recordar email en el login Fortify (no requiere sesión)
             \App\Http\Middleware\RememberEmail::class,
-            // ⛔️ Quitamos aquí SyncCookieConsent (no debe ir global)
         ]);
 
-        // ✅ SyncCookieConsent debe ir en el GRUPO WEB (después de StartSession)
-        $middleware->appendToGroup('web', \App\Http\Middleware\SyncCookieConsent::class);
+        // ✅ Aplica middlewares al grupo WEB (después de StartSession)
+        $middleware->appendToGroup('web', [
+            \App\Http\Middleware\SyncCookieConsent::class,
+            \App\Http\Middleware\PublicReadOnly::class,  // ✅ NUEVO: ReadOnly en web group
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 
