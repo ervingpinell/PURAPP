@@ -85,10 +85,11 @@ return [
     |
     */
 
-    'batching' => [
-        'database' => env('DB_CONNECTION', 'sqlite'),
-        'table' => 'job_batches',
-    ],
+'batching' => [
+    'database' => env('DB_BATCHING_CONNECTION', env('DB_CONNECTION', 'pgsql')),
+    'table' => 'job_batches',
+],
+
 
     /*
     |--------------------------------------------------------------------------
@@ -103,10 +104,10 @@ return [
     |
     */
 
-    'failed' => [
-        'driver' => env('QUEUE_FAILED_DRIVER', 'database-uuids'),
-        'database' => env('DB_CONNECTION', 'sqlite'),
-        'table' => 'failed_jobs',
-    ],
+'failed' => [
+    'driver' => env('QUEUE_FAILED_DRIVER', 'database-uuids'),
+    'database' => env('DB_FAILED_CONNECTION', env('DB_CONNECTION', 'pgsql')),
+    'table' => 'failed_jobs',
+],
 
 ];
