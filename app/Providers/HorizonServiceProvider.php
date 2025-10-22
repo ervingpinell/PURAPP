@@ -20,6 +20,8 @@ public function boot()
         return in_array(optional($request->user())->email, [
             'admin@greenvacationscr.com',
             'dev@greenvacationscr.com',
+            'ervingpinell@gmail.com',
+            'axelpaniaguab54@gmail.com'
         ]);
     });
 }
@@ -35,6 +37,8 @@ protected function gate()
         return in_array($user->email, [
             'admin@greenvacationscr.com',
             'dev@greenvacationscr.com',
+            'ervingpinell@gmail.com',
+            'axelpaniaguab54@gmail.com'
         ]);
     });
 }

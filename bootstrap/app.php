@@ -32,11 +32,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'normalize.email' => \App\Http\Middleware\NormalizeEmail::class,
             '2fa.admin'       => \App\Http\Middleware\RequireTwoFactorForAdmins::class,
             'public.readonly' => \App\Http\Middleware\PublicReadOnly::class,
-
         ]);
 
         // Globales (corren antes del grupo web)
         $middleware->append([
+            \App\Http\Middleware\ForceCorrectDomain::class,  // ✅ NUEVO: Fuerza dominio correcto
             \App\Http\Middleware\NormalizeEmail::class,
             \App\Http\Middleware\LogContext::class,
             \App\Http\Middleware\SetLocale::class,
