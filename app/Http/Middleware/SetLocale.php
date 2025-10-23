@@ -11,9 +11,9 @@ class SetLocale
 {
     public function handle($request, Closure $next)
     {
-        $routesLocales      = (array) config('routes.locales', []);   // ['es'=>..,'en'=>..,'pt'=>..]
-        $supportedPrefixes  = array_keys($routesLocales);             // ['es','en','fr','de','pt']
-        $defaultPrefix      = (string) config('routes.default_locale', 'es');
+        $routesLocales     = (array) config('routes.locales', []);   // ['es'=>..,'en'=>..,'pt'=>..]
+        $supportedPrefixes = array_keys($routesLocales);             // ['es','en','fr','de','pt']
+        $defaultPrefix     = (string) config('routes.default_locale', 'es');
 
         // 1) Prefijo en URL
         $segments  = $request->segments();
@@ -31,34 +31,43 @@ class SetLocale
             $prefix = $this->toPrefix($candidate, $supportedPrefixes, $defaultPrefix);
             Session::put('locale_prefix', $prefix);
         } elseif (($candidate = $request->query('locale')) && !$isTranslationPath) {
+            // Evita que editar traducciones te “secuestren” el idioma
             $prefix = $this->toPrefix($candidate, $supportedPrefixes, $defaultPrefix);
             Session::put('locale_prefix', $prefix);
         } elseif (Session::has('locale_prefix')) {
+            // Fallback si en sesión hay un prefix inválido: intenta con session('locale')
             $prefix = (string) Session::get('locale_prefix');
             if (!in_array($prefix, $supportedPrefixes, true)) {
-                $prefix = $defaultPrefix;
+                $fallback = (string) Session::get('locale', $defaultPrefix);
+                $prefix   = $this->toPrefix($fallback, $supportedPrefixes, $defaultPrefix);
                 Session::put('locale_prefix', $prefix);
             }
+        } elseif (Session::has('locale')) {
+            // Si hay 'locale' pero no 'locale_prefix', deriva el prefijo desde 'locale'
+            $fallback = (string) Session::get('locale', $defaultPrefix);
+            $prefix   = $this->toPrefix($fallback, $supportedPrefixes, $defaultPrefix);
+            Session::put('locale_prefix', $prefix);
         } else {
+            // Detecta del navegador o usa default
             $pref   = $request->getPreferredLanguage($supportedPrefixes);
             $prefix = $pref ?: $defaultPrefix;
             Session::put('locale_prefix', $prefix);
         }
 
-        // 3) Mapeo prefijo -> locale interno de Laravel (siempre 'pt', NO pt_BR)
-        $internal = $this->toInternalLocale($prefix); // 'pt'
+        // 3) Mapeo prefijo -> locale interno de Laravel (ej: siempre 'pt', no 'pt_BR')
+        $internal = $this->toInternalLocale($prefix);
 
         Session::put('locale', $internal);
         App::setLocale($internal);
         Carbon::setLocale($internal);
 
-        // 4) setlocale de PHP para formatos: forzamos targets de Brasil si es 'pt'
+        // 4) setlocale de PHP para formatos (ej: pt -> pt_BR)
         $this->applyPhpSetLocale($internal);
 
         return $next($request);
     }
 
-    /** Normaliza entrada variada -> prefijo soportado */
+    /** Normaliza entrada variada -> prefijo soportado (es, en, fr, de, pt). */
     private function toPrefix(string $raw, array $supportedPrefixes, string $fallback): string
     {
         $s = strtolower(str_replace('-', '_', trim($raw)));
@@ -73,7 +82,7 @@ class SetLocale
         return in_array($prefix, $supportedPrefixes, true) ? $prefix : $fallback;
     }
 
-    /** Prefijo -> locale interno (siempre 'pt' para simplificar) */
+    /** Prefijo -> locale interno (si necesitas simplificar variantes). */
     private function toInternalLocale(string $prefix): string
     {
         return $prefix === 'pt' ? 'pt' : $prefix;
@@ -86,7 +95,7 @@ class SetLocale
 
     private function applyPhpSetLocale(string $internal): void
     {
-        // aunque App::setLocale('pt'), usamos targets de Brasil para formatos
+        // Aunque App::setLocale('pt'), usamos targets de Brasil para formatos
         $map = [
             'es' => ['es_ES.UTF-8', 'es_ES', 'es'],
             'en' => ['en_US.UTF-8', 'en_US', 'en'],
