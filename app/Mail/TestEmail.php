@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
 
 class TestEmail extends Mailable implements ShouldQueue
 {
@@ -15,8 +16,7 @@ class TestEmail extends Mailable implements ShouldQueue
 
     public function build()
     {
-        // Log para confirmar ejecución dentro del Worker
-        Log::info('TestEmail::build ejecutado en cola', [
+        Log::info('TestEmail::build ejecutado en cola', [ // 👈 sin backslash
             'to' => $this->to ?? [],
             'queue' => config('queue.default'),
             'env' => config('app.env'),
