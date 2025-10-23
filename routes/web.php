@@ -283,6 +283,9 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::resource('roles', RoleController::class)->except(['show', 'create']);
                 Route::patch('roles/{role}/toggle', [RoleController::class, 'toggle'])->name('roles.toggle');
 
+                // FAQs (admin)
+                Route::resource('faqs', AdminFaqController::class)->except(['show']);
+                
                 // Traducciones
                 Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
                 Route::get('translations/{type}/choose-locale', [TranslationController::class, 'chooseLocale'])->name('translations.choose-locale'); // NUEVA

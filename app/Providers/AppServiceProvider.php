@@ -25,7 +25,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        // Traductor
+        // Traductor (DeepL) disponible por inyección de dependencias en toda la app
         $this->app->singleton(TranslatorInterface::class, function () {
             return new DeepLTranslator();
         });

@@ -43,6 +43,7 @@ class TourController extends Controller
         $base = Tour::query()
             ->with([
                 'tourType',
+                'translations', // <- para mostrar traducidos en admin si hace falta
                 'languages' => function ($q) {
                     $q->wherePivot('is_active', true)
                       ->where('tour_languages.is_active', true);
@@ -197,6 +198,7 @@ class TourController extends Controller
 
                 $tour->schedules()->sync($pivotAssignments);
 
+                // ===== Traducciones iniciales (DeepL) =====
                 $translatedNames     = $translator->translateAll($validatedData['name'] ?? '');
                 $translatedOverviews = $translator->translateAll($validatedData['overview'] ?? '');
 
@@ -232,12 +234,12 @@ class TourController extends Controller
     /** =========================================================
      *  UPDATE
      *  ========================================================= */
-    public function update(UpdateTourRequest $request, Tour $tour)
+    public function update(UpdateTourRequest $request, Tour $tour, TranslatorInterface $translator)
     {
         $validatedData = $request->validated();
 
         try {
-            DB::transaction(function () use ($tour, $validatedData, $request) {
+            DB::transaction(function () use ($tour, $validatedData, $request, $translator) {
                 // Manejar slug personalizado o regenerar
                 if (!empty($validatedData['slug'])) {
                     $tour->slug = Str::slug($validatedData['slug']);
@@ -299,10 +301,19 @@ class TourController extends Controller
 
                 $tour->schedules()->sync($pivotAssignments);
 
-                TourTranslation::updateOrCreate(
-                    ['tour_id' => $tour->tour_id, 'locale' => 'es'],
-                    ['name' => $validatedData['name'], 'overview' => $validatedData['overview'] ?? '']
-                );
+                // ===== Traducciones (re)generadas en UPDATE =====
+                $translatedNames     = $translator->translateAll($validatedData['name'] ?? '');
+                $translatedOverviews = $translator->translateAll($validatedData['overview'] ?? '');
+
+                foreach (['es', 'en', 'fr', 'pt', 'de'] as $locale) {
+                    TourTranslation::updateOrCreate(
+                        ['tour_id' => $tour->tour_id, 'locale' => $locale],
+                        [
+                            'name'     => $translatedNames[$locale]     ?? ($validatedData['name'] ?? ''),
+                            'overview' => $translatedOverviews[$locale] ?? ($validatedData['overview'] ?? ''),
+                        ]
+                    );
+                }
 
                 LoggerHelper::mutated($this->controller, 'update', 'tour', $tour->tour_id, [
                     'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -430,7 +441,6 @@ class TourController extends Controller
                 // 3) Opcional: limpiar reviews estrictamente ligadas al tour (si tu FK no permite null)
                 try {
                     if (Schema::hasTable('reviews') && Schema::hasColumn('reviews', 'tour_id')) {
-                        // Si la FK no admite null podrías borrar; si admite null, mejor setear a null.
                         // \App\Models\Review::where('tour_id', $tour->tour_id)->delete();
                     }
                 } catch (\Throwable $e) {}
