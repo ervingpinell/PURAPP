@@ -546,7 +546,10 @@ return [
         'toggle_tour'      => 'Ativar/Desativar Tour',
         'view_cart'        => 'Ver Carrinho',
         'add_to_cart'      => 'Adicionar ao Carrinho',
-
+        'slug_help'        => 'Identificador do tour na URL (sem espaços nem acentos)',
+        'generate_auto'       => 'Gerar automaticamente',
+        'slug_preview_label'  => 'Pré-visualização',
+        'saved'               => 'Salvo com sucesso.',
         'available_languages'    => 'Idiomas disponíveis',
         'default_capacity'       => 'Capacidade padrão',
         'create_new_schedules'   => 'Criar novos horários',
@@ -561,6 +564,10 @@ return [
         'choose_itinerary'       => 'Escolher itinerário',
         'select_type'            => 'Selecionar tipo',
         'empty_means_default'    => 'Padrão',
+        'actives'                 => 'Ativos',
+        'inactives'               => 'Inativos',
+        'archived'          => 'Eliminados',
+        'all'          => 'todos',
 
         'none' => [
             'amenities'       => 'Sem amenidades',

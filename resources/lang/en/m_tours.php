@@ -555,7 +555,10 @@ return [
             'toggle_tour'      => 'Activate/Deactivate Tour',
             'view_cart'        => 'View Cart',
             'add_to_cart'      => 'Add to Cart',
-
+            'slug_help'        => 'Unique URL slug for the tour (no spaces or special characters).',
+            'generate_auto'       => 'Generate automatically',
+            'slug_preview_label'  => 'Preview',
+            'saved'               => 'Saved successfully.',
             'available_languages'    => 'Available languages',
             'default_capacity'       => 'Default capacity',
             'create_new_schedules'   => 'Create new schedules',
@@ -570,6 +573,10 @@ return [
             'choose_itinerary'       => 'Choose itinerary',
             'select_type'            => 'Select type',
             'empty_means_default'    => 'Default',
+            'actives'                 => 'Actives',
+            'inactives'               => 'Inactives',
+            'archived'                => 'Trash',
+            'all'                     => 'All',
 
             'none' => [
                 'amenities'       => 'No amenities',

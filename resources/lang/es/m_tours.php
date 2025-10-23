@@ -511,7 +511,7 @@ return [
             'viator_code'   => 'Código Viator',
             'status'        => 'Estado',
             'actions'       => 'Acciones',
-            'slug'          => 'url',
+            'slug'          => 'URL',
         ],
 
         'status' => [
@@ -576,7 +576,10 @@ return [
             'toggle_tour'      => 'Activar/Desactivar Tour',
             'view_cart'        => 'Ver Carrito',
             'add_to_cart'      => 'Añadir al Carrito',
-
+            'slug_help'        => 'Identificador del tour en la URL (sin espacios ni tildes)',
+             'generate_auto'       => 'Generar automáticamente',
+            'slug_preview_label'  => 'Vista previa',
+            'saved'               => 'Guardado',
             // claves extra de UI (ya usadas en el Blade)
             'available_languages'    => 'Idiomas disponibles',
             'default_capacity'       => 'Cupo por defecto',
@@ -592,6 +595,10 @@ return [
             'choose_itinerary'       => 'Elegir itinerario',
             'select_type'            => 'Seleccionar tipo',
             'empty_means_default'    => 'Por defecto',
+            'actives'                 => 'Activos',
+            'inactives'               => 'Inactivos',
+            'archived'                => 'Archivados',
+            'all'                     => 'Todos',
 
             'none' => [
                 'amenities'       => 'Sin amenidades',

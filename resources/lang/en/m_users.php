@@ -4,6 +4,8 @@ return [
     'title' => 'User Management',
     'add_user' => 'Add User',
     'no_role' => 'No role',
+    'user_marked_verified' => 'User marked as verified successfully.',
+
 
     'filters' => [
         'role' => 'Filter by role:',

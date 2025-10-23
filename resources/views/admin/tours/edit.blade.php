@@ -35,8 +35,8 @@
               {{-- ✅ SLUG (nuevo campo) --}}
               <div class="form-group">
                 <label for="slug-{{ $tour->tour_id }}">
-                  URL Amigable (Slug)
-                  <small class="text-muted">{{ __('m_tours.tour.ui.slug_help') ?? 'Deja vacío para generar automáticamente desde el nombre' }}</small>
+                  URL (Slug)
+<small class="text-muted">{{ __('m_tours.tour.ui.slug_help') }}</small>
                 </label>
                 <div class="input-group">
                   <span class="input-group-text">/tours/</span>
@@ -49,7 +49,7 @@
                   <button type="button"
                           class="btn btn-outline-secondary btn-slug-auto"
                           data-tour-id="{{ $tour->tour_id }}"
-                          title="{{ __('m_tours.tour.ui.generate_auto') ?? 'Generar automáticamente' }}">
+        title="{{ __('m_tours.tour.ui.generate_auto') }}">
                     <i class="fas fa-sync"></i>
                   </button>
                 </div>
@@ -57,7 +57,7 @@
                   <div class="invalid-feedback d-block">{{ $message }}</div>
                 @enderror
                 <small class="form-text text-muted">
-                  Vista previa: <code id="slug-preview-{{ $tour->tour_id }}">{{ localized_route('tours.show', $tour->slug ?: $tour->tour_id) }}</code>
+                  {{ __('m_tours.tour.ui.slug_preview_label') }}: <code id="slug-preview-{{ $tour->tour_id }}">{{ localized_route('tours.show', parameters: $tour->slug ?: $tour->tour_id) }}</code>
                 </small>
               </div>
 
