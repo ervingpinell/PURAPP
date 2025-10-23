@@ -7,8 +7,9 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use App\Mail\Concerns\BookingMailHelpers;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class BookingUpdatedMail extends Mailable
+class BookingUpdatedMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels, BookingMailHelpers;
 

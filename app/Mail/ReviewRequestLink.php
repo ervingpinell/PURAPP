@@ -8,8 +8,10 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class ReviewRequestLink extends Mailable
+
+class ReviewRequestLink extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 

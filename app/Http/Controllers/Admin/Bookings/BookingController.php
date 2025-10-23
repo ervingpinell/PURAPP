@@ -327,7 +327,7 @@ class BookingController extends Controller
 
         // 4) Mail
         $booking->load(['detail.hotel', 'tour', 'user', 'tourLanguage', 'detail.tourLanguage']);
-        Mail::to($booking->user->email)->send(new BookingCreatedMail($booking));
+        Mail::to($booking->user->email)->queue(new BookingCreatedMail($booking));
 
         return redirect()->route('admin.reservas.index')
             ->with('success', __('adminlte::adminlte.booking_created_success'));
@@ -569,11 +569,11 @@ class BookingController extends Controller
         $booking->refresh()->load(['detail.hotel', 'tour', 'user', 'tourLanguage', 'detail.tourLanguage']);
 
         if ($r['status'] === 'cancelled') {
-            Mail::to($booking->user->email)->send(new BookingCancelledMail($booking));
+            Mail::to($booking->user->email)->queue(new BookingCancelledMail($booking));
         } elseif ($r['status'] === 'confirmed') {
-            Mail::to($booking->user->email)->send(new BookingConfirmedMail($booking));
+            Mail::to($booking->user->email)->queue(new BookingConfirmedMail($booking));
         } else {
-            Mail::to($booking->user->email)->send(new BookingUpdatedMail($booking));
+            Mail::to($booking->user->email)->queue(new BookingUpdatedMail($booking));
         }
 
         if ($request->ajax()) {
@@ -833,7 +833,7 @@ class BookingController extends Controller
 
             foreach ($byLang as $langId => $langDetails) {
                 $firstBookingForLang = $createdBookings->firstWhere('booking_id', $langDetails->first()->booking_id);
-                Mail::to($user->email)->send(
+                Mail::to($user->email)->queue(
                     new BookingCreatedMail($firstBookingForLang, $langDetails)
                 );
             }

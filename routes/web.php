@@ -225,7 +225,7 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::get('/send-test-email', function () {
         $booking = \App\Models\Booking::latest()->with(['user', 'detail', 'tour'])->first();
         if ($booking) {
-            Mail::to($booking->user->email)->send(new \App\Mail\BookingCreatedMail($booking));
+            Mail::to($booking->user->email)->queue(new \App\Mail\BookingCreatedMail($booking));
         }
         return 'Correo enviado!';
     });
