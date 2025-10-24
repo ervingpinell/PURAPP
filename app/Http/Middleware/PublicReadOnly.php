@@ -23,10 +23,10 @@ class PublicReadOnly
                 'api/apply-promo',
                 'cart/*',
                 'carrito/*',
-                'reservas/*',
+                'bookings/*',
                 'my-cart',
                 'mi-carrito',
-                'my-reservations*',
+                'my-bookings*',
             ];
 
             foreach ($blocked as $pat) {

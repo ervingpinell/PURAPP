@@ -70,7 +70,7 @@
             <div class="d-flex gap-2 p-3 border-bottom position-relative mini-cart-item">
               {{-- Eliminar item --}}
               <form class="mini-cart-remove-form"
-                    action="{{ route('public.cart.destroy', $it->item_id) }}"
+                    action="{{ route('public.carts.destroy', $it->item_id) }}"
                     method="POST"
                     onsubmit="return confirmMiniRemove(event, this);">
                 @csrf @method('DELETE')
@@ -123,10 +123,10 @@
             </span>
           </div>
           <div class="d-grid gap-2">
-            <a class="btn btn-success btn-sm" href="{{ route('public.cart.index') }}">
+            <a class="btn btn-success btn-sm" href="{{ route('public.carts.index') }}">
               {{ __('adminlte::adminlte.view_cart') }}
             </a>
-            <form action="{{ route('public.reservas.storeFromCart') }}" method="POST">
+            <form action="{{ route('public.bookings.storeFromCart') }}" method="POST">
               @csrf
               <button class="btn btn-outline-success btn-sm w-100">
                 {{ __('adminlte::adminlte.confirmBooking') }}

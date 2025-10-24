@@ -1,14 +1,14 @@
 @extends('adminlte::page')
 
-@section('title', 'Reservas')
+@section('title', 'Bookings')
 
 @section('content_header')
-  <h1>Gestión de Reservas</h1>
+  <h1>Bookings Management</h1>
 @stop
 
 @section('content')
 @php
-  $filtrosActivos = request()->hasAny([
+  $activeFilters = request()->hasAny([
     'reference', 'status',
     'booking_date_from', 'booking_date_to',
     'tour_date_from', 'tour_date_to',
@@ -18,31 +18,31 @@
 
 <div class="container-fluid">
 
-  {{-- 🟩 Botones superiores --}}
+  {{-- 🟩 Top buttons --}}
   <div class="mb-3 row align-items-end">
     <div class="col-md-auto mb-2">
-      <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-        <i class="fas fa-plus"></i> Añadir Reserva
+      <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegister">
+        <i class="fas fa-plus"></i> Add Booking
       </a>
     </div>
 
     <div class="col-md-auto mb-2">
-      <a href="{{ route('admin.reservas.pdf') }}" class="btn btn-danger">
-        <i class="fas fa-file-pdf"></i> Descargar PDF
+      <a href="{{ route('admin.bookings.export.pdf') }}" class="btn btn-danger">
+        <i class="fas fa-file-pdf"></i> Download PDF
       </a>
     </div>
 
     <div class="col-md-auto mb-2">
-      <a href="{{ route('admin.reservas.excel', request()->query()) }}" class="btn btn-success">
-        <i class="fas fa-file-excel"></i> Exportar Excel
+      <a href="{{ route('admin.bookings.export.excel', request()->query()) }}" class="btn btn-success">
+        <i class="fas fa-file-excel"></i> Export Excel
       </a>
     </div>
 
-    {{-- 🔍 Filtro rápido de referencia --}}
+    {{-- 🔍 Quick reference filter --}}
     <div class="col-md-3 mb-2">
-      <form method="GET" action="{{ route('admin.reservas.index') }}">
+      <form method="GET" action="{{ route('admin.bookings.index') }}">
         <div class="input-group">
-          <input type="text" name="reference" class="form-control" placeholder="Buscar referencia..." value="{{ request('reference') }}">
+          <input type="text" name="reference" class="form-control" placeholder="Search reference..." value="{{ request('reference') }}">
           <button class="btn btn-outline-secondary" type="submit">
             <i class="fas fa-search"></i>
           </button>
@@ -51,37 +51,37 @@
     </div>
 
     <div class="col-md-auto text-end mb-2">
-      <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosAvanzados" aria-expanded="{{ $filtrosActivos ? 'true' : 'false' }}">
-        <i class="fas fa-filter"></i> Filtros avanzados
+      <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" aria-expanded="{{ $activeFilters ? 'true' : 'false' }}">
+        <i class="fas fa-filter"></i> Advanced filters
       </button>
     </div>
   </div>
 
-  {{-- 🧪 Filtros avanzados --}}
-  @include('admin.bookings.partials.filtros-avanzados')
+  {{-- 🧪 Advanced filters --}}
+  @include('admin.bookings.partials.advanced-filters')
 
-  {{-- 📋 Tabla --}}
+  {{-- 📋 Table --}}
   <div class="table-responsive mt-4">
     @include('admin.bookings.partials.table')
   </div>
 </div>
 
-{{-- ✨ Modales --}}
+{{-- ✨ Modals --}}
 @include('admin.bookings.partials.modal-register')
-@foreach ($bookings as $reserva)
-  @include('admin.bookings.partials.modal-edit', ['reserva' => $reserva])
+@foreach ($bookings as $booking)
+  @include('admin.bookings.partials.modal-edit', ['booking' => $booking])
 @endforeach
 @stop
 
 @push('js')
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    const cerrarBtn = document.getElementById('cerrarFiltrosBtn');
-    const filtros = document.getElementById('filtrosAvanzados');
+    const closeBtn = document.getElementById('closeFiltersBtn');
+    const filters = document.getElementById('advancedFilters');
 
-    if (cerrarBtn && filtros) {
-      cerrarBtn.addEventListener('click', () => {
-        new bootstrap.Collapse(filtros, { toggle: true });
+    if (closeBtn && filters) {
+      closeBtn.addEventListener('click', () => {
+        new bootstrap.Collapse(filters, { toggle: true });
       });
     }
   });
@@ -91,9 +91,9 @@
 <script>
 document.addEventListener('shown.bs.modal', (ev) => {
   const modalEl = ev.target;
-  if (!modalEl.id || !modalEl.id.startsWith('modalEditar')) return;
+  if (!modalEl.id || !modalEl.id.startsWith('modalEdit')) return;
 
-  // --- Tour / Schedule (scoped al modal) ---
+  // --- Tour / Schedule (scoped to modal) ---
   const tourSel = modalEl.querySelector('select[name="tour_id"]');
   const schSel  = modalEl.querySelector('select[name="schedule_id"]');
 
@@ -104,20 +104,20 @@ document.addEventListener('shown.bs.modal', (ev) => {
       const opt = tourSel.options[tourSel.selectedIndex];
       const schedules = JSON.parse(opt?.dataset?.schedules || '[]');
 
-      schSel.innerHTML = '<option value="">Seleccione horario</option>';
+      schSel.innerHTML = '<option value="">Select schedule</option>';
       schedules.forEach(s => {
         const o = document.createElement('option');
         o.value = s.schedule_id;
-        o.textContent = `${s.start_time} – ${s.end_time}`;
+        o.textContent = `${s.start_time} — ${s.end_time}`;
         schSel.appendChild(o);
       });
 
-      // obligar a elegir un horario válido del tour nuevo
+      // force selection of valid schedule for new tour
       schSel.value = '';
     });
   }
 
-  // --- Hotel "Otro…" (scoped al modal) ---
+  // --- Hotel "Other…" (scoped to modal) ---
   const hotelSel       = modalEl.querySelector('select[name="hotel_id"]');
   const otherWrap      = modalEl.querySelector('[data-role="other-hotel-wrapper"]');
   const otherInput     = modalEl.querySelector('input[name="other_hotel_name"]');
@@ -138,7 +138,7 @@ document.addEventListener('shown.bs.modal', (ev) => {
   if (hotelSel && hotelSel.dataset.bound !== '1') {
     hotelSel.dataset.bound = '1';
     hotelSel.addEventListener('change', toggleOther);
-    // Por si el modal abre con "other" seleccionado:
+    // In case modal opens with "other" selected:
     toggleOther();
   }
 });

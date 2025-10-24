@@ -35,7 +35,7 @@
             <i class="fas fa-user-circle"></i>
           </a>
           <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownMobile">
-            <a class="dropdown-item d-flex align-items-center" href="{{ route('my-reservations') }}">
+            <a class="dropdown-item d-flex align-items-center" href="{{ route('my-bookings') }}">
               <i class="fas fa-calendar-check me-2 text-success"></i> {{ __('adminlte::adminlte.my_reservations') }}
             </a>
             <a class="dropdown-item d-flex align-items-center" href="{{ route('profile.edit') }}">
@@ -78,7 +78,7 @@
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownDesktop">
             <li>
-              <a class="dropdown-item d-flex align-items-center" href="{{ route('my-reservations') }}">
+              <a class="dropdown-item d-flex align-items-center" href="{{ route('my-bookings') }}">
                 <i class="fas fa-calendar-check me-2 text-success"></i>
                 {{ __('adminlte::adminlte.my_reservations') }}
               </a>

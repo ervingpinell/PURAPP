@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 
 class Cart extends Model
 {
@@ -21,11 +20,14 @@ class Cart extends Model
 
     protected $casts = [
         'expires_at' => 'datetime',
+        'is_active'  => 'boolean',
     ];
 
-    // =========================
-    // Relaciones
-    // =========================
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
     public function items()
     {
         return $this->hasMany(CartItem::class, 'cart_id');
@@ -36,19 +38,22 @@ class Cart extends Model
         return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
 
-    // =========================
-    // Helpers de expiración
-    // =========================
+    /*
+    |--------------------------------------------------------------------------
+    | Expiration helpers
+    |--------------------------------------------------------------------------
+    */
+
     /**
-     * Verifica si el carrito ya expiró.
+     * Returns true if the cart is expired (now >= expires_at) or expires_at is missing.
      */
     public function isExpired(): bool
     {
-        return $this->expires_at && $this->expires_at->isPast();
+        return !$this->expires_at || now()->greaterThanOrEqualTo($this->expires_at);
     }
 
     /**
-     * Devuelve segundos restantes antes de expirar.
+     * Returns remaining seconds before expiration (0 if expired or no expires_at).
      */
     public function remainingSeconds(): int
     {
@@ -59,13 +64,25 @@ class Cart extends Model
     }
 
     /**
-     * Refresca la expiración (ej. +15 minutos).
+     * Refreshes the expiration timestamp by the given number of minutes.
+     * Defaults to config('cart.expiry_minutes', 15).
      */
-    public function refreshExpiry(?int $minutes = null): void
+    public function refreshExpiry(?int $minutes = null): self
     {
-        $minutes = $minutes ?? config('cart.expiry_minutes', 15);
+        $minutes = $minutes ?? (int) config('cart.expiry_minutes', 15);
         $this->expires_at = now()->addMinutes($minutes);
         $this->save();
+
+        return $this;
     }
 
+    /**
+     * Scope: active and not expired (strictly future expires_at).
+     */
+    public function scopeActiveNotExpired($query)
+    {
+        return $query->where('is_active', true)
+            ->whereNotNull('expires_at')
+            ->where('expires_at', '>', now());
+    }
 }

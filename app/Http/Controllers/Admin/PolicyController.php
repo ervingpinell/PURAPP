@@ -70,8 +70,8 @@ class PolicyController extends Controller
         return back()->with(
             'success',
             $policy->is_active
-                ? 'm_config.policies.activated'
-                : 'm_config.policies.deactivated'
+                ? 'm_config.policies.category_activated'
+                : 'm_config.policies.category_deactivated'
         );
     }
 

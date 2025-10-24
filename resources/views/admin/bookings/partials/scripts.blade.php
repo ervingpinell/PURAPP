@@ -1,12 +1,12 @@
 <script>
-// === Mostrar/Ocultar campo 'Otro hotel' ===
+// === Show/Hide 'Other hotel' field ===
 document.addEventListener('DOMContentLoaded', () => {
-  const modal = document.getElementById('modalRegistrar');
+  const modal = document.getElementById('modalRegister');
 
-  // === Mostrar u ocultar campo otro hotel al seleccionar 'Otro...'
+  // === Show or hide other hotel field when selecting 'Other...'
   const hotelSelect = modal.querySelector('#selectHotel');
-  const otherHotelDiv = modal.querySelector('#otherHotelRegistrarWrapper');
-  const isOtherInput = modal.querySelector('#isOtherHotelRegistrar');
+  const otherHotelDiv = modal.querySelector('#otherHotelRegisterWrapper');
+  const isOtherInput = modal.querySelector('#isOtherHotelRegister');
 
   if (hotelSelect) {
     hotelSelect.addEventListener('change', () => {
@@ -21,88 +21,88 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // === Cálculo del total según cantidad y precio
-  function calcularTotal(modal) {
-    const adultos = parseInt(modal.querySelector('.cantidad-adultos')?.value || 0);
-    const ninos   = parseInt(modal.querySelector('.cantidad-ninos')?.value || 0);
-    const precioA = parseFloat(modal.querySelector('.precio-adulto')?.value || 0);
-    const precioN = parseFloat(modal.querySelector('.precio-nino')?.value || 0);
-    const total   = (adultos * precioA) + (ninos * precioN);
-    const totalInput = modal.querySelector('.total-pago');
+  // === Total calculation based on quantity and price
+  function calculateTotal(modal) {
+    const adults = parseInt(modal.querySelector('.adults-quantity')?.value || 0);
+    const kids   = parseInt(modal.querySelector('.kids-quantity')?.value || 0);
+    const priceA = parseFloat(modal.querySelector('.adult-price')?.value || 0);
+    const priceK = parseFloat(modal.querySelector('.kid-price')?.value || 0);
+    const total   = (adults * priceA) + (kids * priceK);
+    const totalInput = modal.querySelector('.total-payment');
     if (totalInput) totalInput.value = total.toFixed(2);
   }
 
-  modal.addEventListener('input', () => calcularTotal(modal));
+  modal.addEventListener('input', () => calculateTotal(modal));
 
-  // === Llenado dinámico de horarios y precios al cambiar tour
+  // === Dynamic filling of schedules and prices when changing tour
   const selectTour = modal.querySelector('#selectTour');
   const selectSchedule = modal.querySelector('#selectSchedule');
 
   if (selectTour && selectSchedule) {
     selectTour.addEventListener('change', function () {
       const selectedOption = this.options[this.selectedIndex];
-      const precioAdulto = parseFloat(selectedOption.dataset.precioAdulto) || 0;
-      const precioNino   = parseFloat(selectedOption.dataset.precioNino) || 0;
+      const adultPrice = parseFloat(selectedOption.dataset.adultPrice) || 0;
+      const kidPrice   = parseFloat(selectedOption.dataset.kidPrice) || 0;
 
-      modal.querySelector('.precio-adulto').value = precioAdulto.toFixed(2);
-      modal.querySelector('.precio-nino').value   = precioNino.toFixed(2);
-      calcularTotal(modal);
+      modal.querySelector('.adult-price').value = adultPrice.toFixed(2);
+      modal.querySelector('.kid-price').value   = kidPrice.toFixed(2);
+      calculateTotal(modal);
 
       const schedules = JSON.parse(selectedOption.dataset.schedules || '[]');
-      selectSchedule.innerHTML = '<option value="">Seleccione un horario</option>';
+      selectSchedule.innerHTML = '<option value="">Select a schedule</option>';
       schedules.forEach(s => {
         const option = document.createElement('option');
         option.value = s.schedule_id;
-        option.text  = `${s.start_time} – ${s.end_time}`;
+        option.text  = `${s.start_time} — ${s.end_time}`;
         selectSchedule.appendChild(option);
       });
     });
   }
 
-  // === SweetAlert Éxito (si aplica)
+  // === SweetAlert Success (if applicable)
   @if(session('success'))
     Swal.fire({
       icon: 'success',
-      title: 'Éxito',
+      title: 'Success',
       text: '{{ session('success') }}',
       confirmButtonColor: '#3085d6',
       confirmButtonText: 'OK'
     });
   @endif
 
-  // === SweetAlert Error de capacidad (si aplica)
+  // === SweetAlert Capacity Error (if applicable)
   @if($errors->has('capacity'))
     Swal.fire({
       icon: 'error',
-      title: 'Cupo Excedido',
+      title: 'Capacity Exceeded',
       text: @json($errors->first('capacity')),
       confirmButtonColor: '#d33'
     });
   @endif
 
-  // === Mostrar modal de edición si viene de error de validación
+  // === Show edit modal if coming from validation error
   @if(session('showEditModal'))
     const id = '{{ session('showEditModal') }}';
-    const modal = new bootstrap.Modal(document.getElementById('modalEditar' + id));
+    const modal = new bootstrap.Modal(document.getElementById('modalEdit' + id));
     modal.show();
   @endif
 });
 </script>
 
-{{-- Scripts adicionales por cada reserva para llenar horarios en edición --}}
-@foreach($bookings as $reserva)
+{{-- Additional scripts for each booking to fill schedules on edit --}}
+@foreach($bookings as $booking)
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const tourSel = document.getElementById('edit_tour_{{ $reserva->booking_id }}');
-      const schSel  = document.getElementById('edit_schedule_{{ $reserva->booking_id }}');
+      const tourSel = document.getElementById('edit_tour_{{ $booking->booking_id }}');
+      const schSel  = document.getElementById('edit_schedule_{{ $booking->booking_id }}');
       tourSel?.addEventListener('change', () => {
         const opt = tourSel.options[tourSel.selectedIndex];
         const schedules = JSON.parse(opt.dataset.schedules || '[]');
-        schSel.innerHTML = '<option value="">Seleccione horario</option>';
+        schSel.innerHTML = '<option value="">Select schedule</option>';
         schedules.forEach(s => {
           const o = document.createElement('option');
           o.value = s.schedule_id;
-          o.text  = `${s.start_time} – ${s.end_time}`;
+          o.text  = `${s.start_time} — ${s.end_time}`;
           schSel.appendChild(o);
         });
       });

@@ -11,7 +11,7 @@ class PromoCodeController extends Controller
     public function index()
     {
         $promoCodes = PromoCode::latest()->get();
-        return view('admin.promoCode.index', compact('promoCodes'));
+        return view('admin.promoCodes.index', compact('promoCodes'));
     }
 
     public function store(Request $request)
@@ -96,7 +96,7 @@ class PromoCodeController extends Controller
         $promo->save();
 
         return redirect()
-            ->route('admin.promoCode.index')
+            ->route('admin.promoCodes.index')
             ->with('success', __('m_config.promocode.messages.created_success'));
     }
 
@@ -105,7 +105,7 @@ class PromoCodeController extends Controller
         $promo->delete();
 
         return redirect()
-            ->route('admin.promoCode.index')
+            ->route('admin.promoCodes.index')
             ->with('success', __('m_config.promocode.messages.deleted_success'));
     }
 

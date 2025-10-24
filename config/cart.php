@@ -1,9 +1,9 @@
 <?php
 
 return [
-    // duración total del carrito
-    'expiry_minutes' => 30, // o 60 para 1 hora
+    // Minutes to extend/refresh a cart’s expiration
+    'expiry_minutes'   => env('CART_EXPIRY_MINUTES', 15),
 
-    // minutos que añade el botón “Extender”
-    'extend_minutes' => 30, // o 60
+    // Inactive carts older than this (days) will be purged by the command
+    'purge_after_days' => env('CART_PURGE_AFTER_DAYS', 30),
 ];

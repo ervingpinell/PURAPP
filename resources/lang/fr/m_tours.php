@@ -546,7 +546,10 @@ return [
         'toggle_tour'      => 'Activer/Désactiver le tour',
         'view_cart'        => 'Voir le panier',
         'add_to_cart'      => 'Ajouter au panier',
-
+        'slug_help'        => 'Identifiant unique de l’URL pour le tour (sans espaces ni caractères spéciaux)',
+        'generate_auto'       => 'Générer automatiquement',
+        'slug_preview_label'  => 'Aperçu',
+        'saved'               => 'Enregistré avec succès.',
         'available_languages'    => 'Langues disponibles',
         'default_capacity'       => 'Capacité par défaut',
         'create_new_schedules'   => 'Créer de nouveaux horaires',
@@ -561,6 +564,10 @@ return [
         'choose_itinerary'       => 'Choisir un itinéraire',
         'select_type'            => 'Sélectionner un type',
         'empty_means_default'    => 'Par défaut',
+        'actives'                 => 'Actifs',
+        'inactives'               => 'Inactifs',
+        'archived'          => 'Eliminés',
+        'all'          => 'Tous',
 
         'none' => [
             'amenities'       => 'Aucune commodité',

@@ -22,6 +22,7 @@
     selectOption: @json(__('adminlte::adminlte.select_option')),
     meeting_time: @json(__('adminlte::adminlte.meeting_time') ?: 'Meeting time'),
     view_location: @json(__('adminlte::adminlte.open_map') ?: 'View location'),
+    noSlots: @json(__('adminlte::adminlte.no_slots_for_date') ?: 'No hay horarios disponibles para esa fecha.')
   };
 
   const formEl = document.querySelector('form.reservation-box');
@@ -92,7 +93,7 @@
     if (!opt) { mpWrap?.classList.add('d-none'); return; }
 
     const desc = opt.dataset.desc || '';
-    const time = opt.dataset.time || '';
+    const the_time = opt.dataset.time || '';
     const url  = opt.dataset.url  || '';
 
     if (mpDesc) {
@@ -100,8 +101,8 @@
       mpDesc.classList.toggle('d-none', !desc);
     }
     if (mpTime) {
-      mpTime.textContent = time ? `${T.meeting_time}: ${time}` : '';
-      mpTime.classList.toggle('d-none', !time);
+      mpTime.textContent = the_time ? `${T.meeting_time}: ${the_time}` : '';
+      mpTime.classList.toggle('d-none', !the_time);
     }
 
     if (mpLink) {
@@ -161,17 +162,27 @@
     return !(iso < r.min);
   };
 
-  /* ========= Choices ========= */
-  const scheduleChoices = new Choices(scheduleSel, { searchEnabled:false, shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- ' + T.selectOption + ' --' });
+  /* ========= Choices (sin APIs privadas) ========= */
+  const scheduleChoices = new Choices(scheduleSel, {
+    searchEnabled: false,
+    shouldSort: false,
+    itemSelectText: '',
+    // Usamos el <option value=""> del Blade como placeholder
+    placeholder: false
+  });
   const langChoices     = new Choices(langSelect,  { searchEnabled:false, shouldSort:false, itemSelectText:'' });
   const hotelChoices    = new Choices(hotelSelect, { searchEnabled:true,  shouldSort:false, itemSelectText:'' });
   const meetingChoices  = new Choices(meetingSel,  { searchEnabled:true,  shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- ' + T.selectOption + ' --' });
   window.meetingChoices = meetingChoices;
 
-  const BASE_CHOICES = scheduleChoices._store.choices.filter(c => c.value !== '').map(c => ({ value:String(c.value), label:c.label }));
-  const BASE_IDS = BASE_CHOICES.map(o => o.value);
+  // Base desde el <select>, ignorando el option vacío
+  const BASE_CHOICES = Array.from(scheduleSel.options)
+    .filter(o => o.value !== '')
+    .map(o => ({ value: String(o.value), label: o.label }));
 
-  const anyScheduleAvailable = (iso) => BASE_IDS.some((sid) => canUseScheduleOnDate(iso, sid));
+  const anyScheduleAvailable = (iso) =>
+    BASE_CHOICES.some(c => canUseScheduleOnDate(iso, c.value));
+
   const isDayFullyBlocked = (iso) => {
     if (!iso) return true;
     if (fullyBlockedDates.includes(iso)) return true;
@@ -180,23 +191,45 @@
   };
 
   function rebuildScheduleChoices(iso){
-    const ph = [{ value:'', label:'-- ' + T.selectOption + ' --', disabled:true, selected:true }];
-    scheduleChoices.clearStore();
+    // preserva la selección actual (si la había)
+    const prev = scheduleSel.value || '';
+
+    scheduleChoices.clearChoices();
 
     if (!iso || isDayFullyBlocked(iso)) {
-      scheduleChoices.setChoices(ph, 'value', 'label', true);
+      // Sin opciones: dejamos solo el placeholder vía <option value="">
+      scheduleChoices.setChoices([], 'value', 'label', true);
       scheduleChoices.disable();
-      helpMsg.textContent = iso ? 'No hay horarios disponibles para esa fecha.' : '';
+      helpMsg.textContent = iso ? T.noSlots : '';
       helpMsg.style.display = iso ? '' : 'none';
       return;
     }
 
-    const allowed = BASE_CHOICES.map(o => ({ ...o, disabled: !canUseScheduleOnDate(iso, o.value) }));
-    scheduleChoices.setChoices(ph.concat(allowed), 'value', 'label', true);
+    const allowed = BASE_CHOICES.map(o => ({
+      ...o,
+      disabled: !canUseScheduleOnDate(iso, o.value)
+    }));
 
-    const hasEnabled = allowed.some(c => !c.disabled);
-    if (hasEnabled) { scheduleChoices.enable(); helpMsg.style.display = 'none'; }
-    else { scheduleChoices.disable(); helpMsg.textContent = 'No hay horarios disponibles para esa fecha.'; helpMsg.style.display = ''; }
+    scheduleChoices.setChoices(allowed, 'value', 'label', true);
+
+    const enabled = allowed.filter(c => !c.disabled);
+    if (enabled.length > 0) {
+      scheduleChoices.enable();
+      scheduleSel.removeAttribute('disabled');
+      helpMsg.style.display = 'none';
+
+      // si la previa sigue siendo válida, restáurala; si hay solo una, autoseleccionar
+      if (prev && enabled.some(c => String(c.value) === String(prev))) {
+        scheduleChoices.setChoiceByValue(String(prev));
+      } else if (enabled.length === 1) {
+        scheduleChoices.setChoiceByValue(String(enabled[0].value));
+        scheduleSel.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    } else {
+      scheduleChoices.disable();
+      helpMsg.textContent = T.noSlots;
+      helpMsg.style.display = '';
+    }
   }
 
   /* ========= Flatpickr ========= */
@@ -215,14 +248,9 @@
           rebuildScheduleChoices(dateStr);
         },
         onReady: (_sel, dateStr, instance) => {
-          if (!dateStr) {
-            scheduleChoices.disable();
-            helpMsg.style.display = 'none';
-            instance.setDate(initialMin, false);
-            rebuildScheduleChoices(initialMin);
-          } else {
-            rebuildScheduleChoices(dateStr);
-          }
+          const d = dateStr || initialMin;
+          instance.setDate(d, false);
+          rebuildScheduleChoices(d);
         }
       });
     } else if (dateInput) {
@@ -234,7 +262,7 @@
   };
   setupFlatpickr();
 
-  /* Cambio de horario -> minDate (protegido) */
+  /* Cambio de horario -> minDate (sin reconstruir lista) */
   scheduleSel.addEventListener('change', () => {
     const sid  = scheduleSel.value;
     const rule = sid ? ruleForSchedule(sid) : RULES.tour;
@@ -246,8 +274,7 @@
     if (fp && typeof fp.setDate === 'function' && current && sid && current < rule.min) {
       fp.setDate(rule.min, true);
     }
-    const iso = (fp && fp.input ? fp.input.value : dateInput.value) || null;
-    rebuildScheduleChoices(iso);
+    // Importante: no llamar rebuildScheduleChoices aquí para no resetear la selección
   });
 
   /* Hotel "otro" */
@@ -266,7 +293,7 @@
   hotelSelect.addEventListener('change', toggleOther);
   toggleOther();
 
-  /* Meeting point -> hidden + info */
+  /* Meeting point -> hidden + info (si usas hidden) */
   const hiddenMP = document.getElementById('selectedMeetingPoint');
   meetingSel.addEventListener('change', () => {
     if (hiddenMP) hiddenMP.value = meetingChoices.getValue(true) || '';
@@ -307,8 +334,7 @@
   }
 
   /* =======================
-   *   TRAVELER INLINE — mínimo total = 2
-   *   + Máximo niños = 2 (botón + bloquea al llegar)
+   *   TRAVELER INLINE
    * ======================= */
   {
     const adultMinusBtn = document.getElementById('adultMinusBtn');
@@ -366,11 +392,8 @@
       updateTotals();
       window.dispatchEvent(new CustomEvent('traveler:updated'));
 
-      // bloquear “–” si rompería el mínimo total
       if (adultMinusBtn) adultMinusBtn.disabled = ((a - 1) < MIN_ADULTS) || ((a - 1) + k < MIN_TOTAL);
       if (kidMinusBtn)   kidMinusBtn.disabled   = ((k - 1) < MIN_KIDS)   || (a + (k - 1) < MIN_TOTAL);
-
-      // bloquear “+” niños al alcanzar tope (2 por reserva)
       if (kidPlusBtn)    kidPlusBtn.disabled    = (k >= MAX_KIDS) || (a + k >= MAX_TRAVELERS);
     }
 
@@ -453,7 +476,10 @@
 
       if (typeof data.count !== 'undefined' && window.setCartCount) {
         window.setCartCount(data.count);
-      } else if (window.CART_COUNT_URL && window.setCartCount) {
+      }
+
+      // Actualiza el contador si existe endpoint público
+      if (window.CART_COUNT_URL && window.setCartCount && typeof data.count === 'undefined') {
         try {
           const cRes = await fetch(window.CART_COUNT_URL, { headers: { 'Accept': 'application/json' }});
           const cData = await cRes.json();

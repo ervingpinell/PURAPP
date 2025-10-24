@@ -4,6 +4,7 @@ return [
     'title' => 'Benutzerverwaltung',
     'add_user' => 'Benutzer hinzufügen',
     'no_role' => 'Keine Rolle',
+    'user_marked_verified' => 'Benutzer erfolgreich als verifiziert markiert.',
 
     'filters' => [
         'role' => 'Nach Rolle filtern:',

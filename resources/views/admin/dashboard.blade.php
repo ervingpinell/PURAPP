@@ -107,7 +107,7 @@
         icon="fas fa-calendar-check"
         theme="success"
       />
-      <a href="{{ route('admin.reservas.index') }}" class="btn btn-success btn-block mt-2">
+      <a href="{{ route('admin.bookings.index') }}" class="btn btn-success btn-block mt-2">
         {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.bookings') }}
       </a>
     </div>

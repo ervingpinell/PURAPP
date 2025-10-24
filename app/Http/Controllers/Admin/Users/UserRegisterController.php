@@ -232,6 +232,6 @@ class UserRegisterController extends Controller
             $user->forceFill(['email_verified_at' => now()])->save();
         }
 
-        return back()->with('success', __('adminlte::adminlte.user_marked_verified') ?? 'Usuario marcado como verificado.');
+        return back()->with('success', __('m_users.user_marked_verified') ?? 'Usuario marcado como verificado.');
     }
 }

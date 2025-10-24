@@ -16,10 +16,10 @@
 
 @section('content')
     <div class="btn-group mb-2" role="group">
-        <a href="{{ route('admin.tours.index', ['status' => 'active']) }}" class="btn btn-outline-primary {{ ($status ?? '')==='active' ? 'active' : '' }}">Activos</a>
-        <a href="{{ route('admin.tours.index', ['status' => 'inactive']) }}" class="btn btn-outline-primary {{ ($status ?? '')==='inactive' ? 'active' : '' }}">Inactivos</a>
-        <a href="{{ route('admin.tours.index', ['status' => 'archived']) }}" class="btn btn-outline-primary {{ ($status ?? '')==='archived' ? 'active' : '' }}">Eliminados</a>
-        <a href="{{ route('admin.tours.index', ['status' => 'all']) }}" class="btn btn-outline-secondary {{ ($status ?? '')==='all' ? 'active' : '' }}">Todos</a>
+        <a href="{{ route('admin.tours.index', ['status' => 'active']) }}" class="btn btn-outline-primary {{ ($status ?? '')==='active' ? 'active' : '' }}">{{ __('m_tours.tour.ui.actives') }}</a>
+        <a href="{{ route('admin.tours.index', ['status' => 'inactive']) }}" class="btn btn-outline-primary {{ ($status ?? '')==='inactive' ? 'active' : '' }}">{{ __('m_tours.tour.ui.inactives') }}</a>
+        <a href="{{ route('admin.tours.index', ['status' => 'archived']) }}" class="btn btn-outline-primary {{ ($status ?? '')==='archived' ? 'active' : '' }}">{{ __('m_tours.tour.ui.archived') }}</a>
+        <a href="{{ route('admin.tours.index', ['status' => 'all']) }}" class="btn btn-outline-secondary {{ ($status ?? '')==='all' ? 'active' : '' }}">{{ __('m_tours.tour.ui.all') }}</a>
     </div>
 
     <div class="p-3 table-responsive">
@@ -30,7 +30,7 @@
         </a>
 
         {{-- Botón para ver el carrito (si aplica) --}}
-        <a href="{{ route('admin.cart.index') }}" class="btn btn-primary mb-3">
+        <a href="{{ route('admin.carts.index') }}" class="btn btn-primary mb-3">
             <i class="fas fa-shopping-cart"></i> {{ __('m_tours.tour.ui.view_cart') }}
         </a>
 

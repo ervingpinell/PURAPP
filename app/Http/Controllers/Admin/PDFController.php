@@ -9,12 +9,12 @@ use App\Models\Booking;
 
 class PDFController extends Controller
 {
-    public function generarComprobante($id)
+    public function generateReceipt($id)
     {
-        $reserva = Booking::with(['user', 'tour'])->findOrFail($id);
+        $booking = Booking::with(['user', 'tour'])->findOrFail($id);
 
-        $pdf = Pdf::loadView('admin.pdf.comprobante', compact('reserva'));
+        $pdf = Pdf::loadView('admin.pdf.receipt', compact('booking'));
 
-        return $pdf->download('comprobante_reserva_' . $reserva->codigo_reserva . '.pdf');
+        return $pdf->download('booking_receipt_' . $booking->booking_reference . '.pdf');
     }
 }

@@ -4,6 +4,7 @@ return [
     'title' => 'Gerenciamento de Usuários',
     'add_user' => 'Adicionar Usuário',
     'no_role' => 'Sem função',
+    'user_marked_verified' => 'Usuário marcado como verificado com sucesso.',
 
     'filters' => [
         'role' => 'Filtrar por função:',

@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'Calendario de Reservas')
+@section('title', 'Bookings Calendar')
 
 @section('css')
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
@@ -9,54 +9,54 @@
 @stop
 
 @section('content_header')
-  <h1>Calendario de Reservas</h1>
+  <h1>Bookings Calendar</h1>
 @stop
 
 @section('content')
-  {{-- ✅ Filtros --}}
+  {{-- ✅ Filters --}}
   <div class="row mb-3 align-items-end justify-content-center">
     <div class="col-sm-2">
-      <label for="filter-from" class="form-label">Desde</label>
+      <label for="filter-from" class="form-label">From</label>
       <input type="date" id="filter-from" class="form-control">
     </div>
     <div class="col-sm-2">
-      <label for="filter-to" class="form-label">Hasta</label>
+      <label for="filter-to" class="form-label">To</label>
       <input type="date" id="filter-to" class="form-control">
     </div>
     <div class="col-sm-3">
       <label for="filter-tour" class="form-label">Tour</label>
       <select id="filter-tour" class="form-select">
-        <option value="">Todos</option>
+        <option value="">All</option>
         @foreach ($tours as $tour)
           <option value="{{ $tour->tour_id }}">{{ Str::limit($tour->name, 30) }}</option>
         @endforeach
       </select>
     </div>
     <div class="col-sm-2">
-      <button id="btn-apply" class="btn btn-primary w-100">Aplicar filtro</button>
+      <button id="btn-apply" class="btn btn-primary w-100">Apply filter</button>
     </div>
     <div class="col-sm-2">
-      <button id="btn-clear" class="btn btn-secondary w-100">Limpiar filtros</button>
+      <button id="btn-clear" class="btn btn-secondary w-100">Clear filters</button>
     </div>
   </div>
 
-  {{-- ✅ Calendario --}}
+  {{-- ✅ Calendar --}}
   <div id="calendar"></div>
 
-  {{-- ✅ Modal para editar reserva --}}
+  {{-- ✅ Modal to edit booking --}}
   <div class="modal fade" id="bookingModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
       <form id="bookingModalForm" method="POST">
         @csrf @method('PUT')
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Editar Reserva</h5>
+            <h5 class="modal-title">Edit Booking</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body" id="bookingModalContent">
             <div class="text-center p-3">
               <div class="spinner-border"></div>
-              <p class="mt-2">Cargando...</p>
+              <p class="mt-2">Loading...</p>
             </div>
           </div>
         </div>
@@ -98,7 +98,7 @@
           }
         },
         events: {
-          url: '{{ route("admin.reservas.calendarData") }}',
+          url: '{{ route("admin.bookings.calendarData") }}',
           extraParams: () => ({
             from: filterFrom.value || '',
             to: filterTo.value || '',
@@ -121,21 +121,21 @@
             document.getElementById('bookingModalContent').innerHTML = `
               <div class="text-center p-3">
                 <div class="spinner-border"></div>
-                <p class="mt-2">Cargando...</p>
+                <p class="mt-2">Loading...</p>
               </div>
             `;
 
-            fetch(`/admin/reservas/${bookingId}/edit`, {
+            fetch(`/admin/bookings/${bookingId}/edit`, {
               headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
               .then(response => response.text())
               .then(html => {
                 document.getElementById('bookingModalContent').innerHTML = html;
-                document.getElementById('bookingModalForm').action = `/admin/reservas/${bookingId}`;
+                document.getElementById('bookingModalForm').action = `/admin/bookings/${bookingId}`;
               })
               .catch(err => {
                 console.error(err);
-                document.getElementById('bookingModalContent').innerHTML = `<p class="text-danger">Error al cargar el formulario.</p>`;
+                document.getElementById('bookingModalContent').innerHTML = `<p class="text-danger">Error loading form.</p>`;
               });
           }
         },
@@ -147,19 +147,19 @@
           const hotel = arg.event.extendedProps.hotel_name || '';
           const status = arg.event.extendedProps.status || 'pending';
 
-          const estadoEmoji = {
+          const statusEmoji = {
             confirmed: '✅',
             pending: '⚠️',
             cancelled: '❌'
           };
-          const estadoTexto = `${estadoEmoji[status] ?? ''} ${status}`;
+          const statusText = `${statusEmoji[status] ?? ''} ${status}`;
 
           const container = document.createElement('div');
           container.classList.add('fc-event-custom-content');
           container.innerHTML = `
             <div style="display: flex; justify-content: space-between; font-size: 0.75em; margin-bottom: 2px;">
               <div><strong>${paxText}</strong></div>
-              <div><strong>${estadoTexto}</strong></div>
+              <div><strong>${statusText}</strong></div>
             </div>
             <div>${tourName}</div>
             <div>${hotel}</div>
@@ -196,8 +196,8 @@
       }
 
       btnApply.onclick = () => {
-        calendar.removeAllEvents(); // limpia eventos actuales
-        calendar.refetchEvents();   // vuelve a llamar al backend
+        calendar.removeAllEvents(); // clear current events
+        calendar.refetchEvents();   // call backend again
         updateTitle();
       };
 
