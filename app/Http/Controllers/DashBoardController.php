@@ -16,7 +16,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-
+use Carbon\Carbon;
 
 class DashBoardController extends Controller
 {
@@ -85,7 +85,6 @@ class DashBoardController extends Controller
         return redirect()->to('/' . $prefix . $pathNoLocale . $query);
     }
 
-
     private function isAdminUrl(string $url): bool
     {
         $parsed = parse_url($url);
@@ -150,11 +149,17 @@ class DashBoardController extends Controller
 
         $itineraries = Itinerary::with('items')->get();
 
+        // ---- SOLO reservas para MAÑANA (según timezone de la app) ----
+        $tz        = config('app.timezone', 'UTC');
+        $tomorrow  = Carbon::now($tz)->addDay()->toDateString(); // yyyy-mm-dd
+        $tomorrowC = Carbon::now($tz)->addDay();                 // objeto para mostrar en vista
+
         $upcomingBookings = Booking::with(['user', 'detail.tour'])
-            ->whereHas('detail', fn ($query) => $query->where('tour_date', '>=', today()))
+            ->whereHas('detail', function ($query) use ($tomorrow) {
+                $query->whereDate('tour_date', $tomorrow);
+            })
             ->orderBy('booking_date')
-            ->take(5)
-            ->get();
+            ->get(); // sin "take(5)" para listar todas las de mañana
 
         return view('admin.dashboard', compact(
             'totalUsers',
@@ -167,7 +172,8 @@ class DashBoardController extends Controller
             'totalItineraryItems',
             'totalBookings',
             'itineraries',
-            'upcomingBookings'
+            'upcomingBookings',
+            'tomorrowC'
         ));
     }
 }
