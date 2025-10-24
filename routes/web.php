@@ -430,6 +430,8 @@ Route::middleware([SetLocale::class])->group(function () {
                 // CART (ADMIN) — all English
                 // ============================
                 Route::get('carts', [AdminCartController::class, 'index'])->name('carts.index');
+                Route::post('carts', [AdminCartController::class, 'store'])->name('carts.store');
+
                 Route::patch('carts/{item}', [AdminCartController::class, 'update'])->name('carts.update');
                 Route::post('carts/item/{item}/update', [AdminCartController::class, 'updateFromPost'])->name('carts.updateFromPost');
                 Route::delete('carts/item/{item}', [AdminCartController::class, 'destroy'])->name('carts.item.destroy');
