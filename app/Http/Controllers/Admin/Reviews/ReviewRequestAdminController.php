@@ -215,7 +215,7 @@ class ReviewRequestAdminController extends Controller
         ]);
 
         if ($rr->email) {
-            Mail::to($rr->email)->send(new ReviewRequestLink($rr));
+            Mail::to($rr->email)->queue(new ReviewRequestLink($rr));
         }
 
         return back()->with('ok', __('reviews.requests.send_ok'));
@@ -233,7 +233,7 @@ class ReviewRequestAdminController extends Controller
         }
 
         if ($rr->email) {
-            Mail::to($rr->email)->send(new ReviewRequestLink($rr));
+            Mail::to($rr->email)->queue(new ReviewRequestLink($rr));
         }
 
         if (Schema::hasColumn($table, 'sent_at'))  $rr->sent_at = now();
@@ -255,7 +255,7 @@ class ReviewRequestAdminController extends Controller
         }
 
         if ($rr->email) {
-            Mail::to($rr->email)->send(new ReviewRequestLink($rr));
+            Mail::to($rr->email)->queue(new ReviewRequestLink($rr));
         }
 
         if (Schema::hasColumn($table, 'reminded_at')) $rr->reminded_at = now();

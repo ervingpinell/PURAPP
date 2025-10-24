@@ -1,18 +1,20 @@
 <?php
 
 return [
-    'domain' => null, // usa el dominio del site
 
-    'path' => 'horizon', // panel en /horizon
+    'domain' => null,
 
-    'use' => 'default',  // conexión redis por defecto
+    'path' => 'horizon',
+
+    'use' => 'default',
 
     'prefix' => env('HORIZON_PREFIX', 'horizon'),
 
-    'middleware' => ['web'], // usa session/csrf si lo necesitas
+    'middleware' => ['web'],
 
+    // Esperas máximas para métricas
     'waits' => [
-        'redis:default' => 60,
+        'redis:default' => 10, // antes 60
     ],
 
     'trim' => [
@@ -25,7 +27,7 @@ return [
     ],
 
     'metrics' => [
-        'queue' => ['default'], // agrega más colas si las usas
+        'queue' => ['default'],
         'job' => [],
     ],
 
@@ -34,28 +36,33 @@ return [
     'memory_limit' => 128,
 
     'environments' => [
+
         'production' => [
             'supervisor-1' => [
                 'connection' => 'redis',
-                'queue'      => ['default'], // o ['high','default','low']
+                'queue'      => ['default'],
                 'balance'    => 'auto',
+                'minProcesses' => 1,
                 'maxProcesses' => 3,
-                'maxTime'    => 3600,
-                'maxJobs'    => 0,
-                'nice'       => 0,
-                'tries'      => 3,
-                'timeout'    => 60,
+                'balanceCooldown' => 3,   // <–– nuevo (default era 60)
+                'sleep'       => 3,       // <–– nuevo (default era 60)
+                'maxTime'     => 3600,
+                'maxJobs'     => 0,
+                'nice'        => 0,
+                'tries'       => 3,
+                'timeout'     => 60,
             ],
         ],
 
-        // cualquier otro entorno: 1 proceso
         '*' => [
             'supervisor-1' => [
                 'connection' => 'redis',
                 'queue'      => ['default'],
                 'balance'    => 'simple',
+                'minProcesses' => 1,
                 'maxProcesses' => 1,
-                'tries'      => 3,
+                'sleep'       => 3,
+                'tries'       => 3,
             ],
         ],
     ],

@@ -75,7 +75,7 @@ class ReviewReplyController extends Controller
             $tourName  = optional($review->tour)->name ?? optional(optional($review->booking)->tour)->name;
 
             Mail::to(new Address($to, $customerName ?: null))
-                ->send(new ReviewReplyNotification($reply, $adminName, $tourName, $customerName));
+                ->queue(new ReviewReplyNotification($reply, $adminName, $tourName, $customerName));
 
             return redirect()
                 ->route('admin.reviews.replies.thread', $review)

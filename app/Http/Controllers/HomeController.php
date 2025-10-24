@@ -355,7 +355,7 @@ private function loadActiveToursWithTranslations(string $loc, string $fb): Colle
             }
 
             $recipient = config('mail.to.contact', config('mail.from.address', 'info@greenvacationscr.com'));
-            Mail::to($recipient)->send(new ContactMessage($validated));
+            Mail::to($recipient)->queue(new ContactMessage($validated));
 
             return back()->with('success', 'Your message has been sent successfully. We will contact you soon.');
         } catch (Throwable $e) {

@@ -225,7 +225,7 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::get('/send-test-email', function () {
         $booking = \App\Models\Booking::latest()->with(['user', 'detail', 'tour'])->first();
         if ($booking) {
-            Mail::to($booking->user->email)->send(new \App\Mail\BookingCreatedMail($booking));
+            Mail::to($booking->user->email)->queue(new \App\Mail\BookingCreatedMail($booking));
         }
         return 'Correo enviado!';
     });
@@ -293,6 +293,10 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('translations/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('translations.edit');
                 Route::post('translations/{type}/{id}/update', [TranslationController::class, 'update'])->name('translations.update');
                 Route::post('translations/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('translations.change-editing-locale');
+
+                // FAQs
+                Route::resource('faqs', AdminFaqController::class)->except(['show']);
+                Route::post('faqs/{faq}/toggle', [AdminFaqController::class, 'toggle'])->name('faqs.toggleStatus');
 
                 // Tours: Cutoff
                 Route::prefix('tours')->name('tours.')->group(function () {
