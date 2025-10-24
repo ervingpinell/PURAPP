@@ -5,12 +5,10 @@
     display:flex; align-items:center; gap:.5rem; font-weight:700;
   }
   .gv-label-icon i{ color:#30363c; line-height:1; }
-  /* Evita que el texto del label se corte en 2 líneas */
   .gv-label-icon span{ white-space:nowrap; }
 
-  /* Choices ocupa 100% del ancho y no rompe el layout */
-  .reservation-box .choices{ width:100%; }
-  .reservation-box .choices__inner{ width:100%; }
+  .reservation-box .choices,
+  .reservation-box .choices__inner,
   .reservation-box .choices__list--dropdown{ width:100%; }
 </style>
 @endpush
@@ -100,13 +98,18 @@
 <select class="form-select w-100" name="selected_meeting_point" id="meetingPointSelect">
   <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
   @foreach($meetingPoints as $mp)
+    @php
+      // 👇 Usa las traducciones cargadas (con ->with('translations') desde el controller)
+      $mpName = $mp->getTranslated('name');         // usa el locale actual de la app
+      $mpDesc = $mp->getTranslated('description');  // idem
+    @endphp
     <option
       value="{{ $mp->id }}"
-      data-desc="{{ e($mp->description ?? '') }}"
+      data-desc="{{ e($mpDesc ?? '') }}"
       data-time="{{ $mp->pickup_time ?? '' }}"
       data-url="{{ $mp->map_url ?? $mp->url ?? '' }}"
     >
-      {{ $mp->name }}{{ $mp->pickup_time ? ' — '.$mp->pickup_time : '' }}
+      {{ $mpName }}{{ $mp->pickup_time ? ' — '.$mp->pickup_time : '' }}
     </option>
   @endforeach
 </select>

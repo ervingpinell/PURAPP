@@ -114,65 +114,72 @@
   </div>
 
   <!-- Itineraries -->
-  <div class="col-md-12 mb-3">
-    <div class="card">
-      <div class="card-header bg-danger text-white">
-        <h4 class="mb-0">{{ __('adminlte::adminlte.sections.available_itineraries') }}</h4>
-      </div>
-      <div class="card-body">
-        @forelse (($itineraries ?? collect()) as $itinerary)
-          <div class="mb-2">
-            <button class="btn btn-outline-danger w-100 text-start"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#collapse{{ $itinerary->itinerary_id }}">
-              {{ $itinerary->name }} <i class="fas fa-chevron-down float-end"></i>
-            </button>
-            <div id="collapse{{ $itinerary->itinerary_id }}" class="collapse mt-2">
-              @php $items = $itinerary->items ?? collect(); @endphp
-              @if ($items->isEmpty())
-                <p class="text-muted">{{ __('adminlte::adminlte.empty.itinerary_items') }}</p>
-              @else
-                <ul class="list-group">
-                  @foreach ($items->sortBy('order') as $item)
-                    <li class="list-group-item">
-                      <strong>{{ $item->title }}</strong><br>
-                      <span class="text-muted">{{ $item->description }}</span>
-                    </li>
-                  @endforeach
-                </ul>
-              @endif
+  <div class="row">
+    <div class="col-md-12 mb-3">
+      <div class="card">
+        <div class="card-header bg-danger text-white">
+          <h4 class="mb-0">{{ __('adminlte::adminlte.sections.available_itineraries') }}</h4>
+        </div>
+        <div class="card-body">
+          @forelse (($itineraries ?? collect()) as $itinerary)
+            <div class="mb-2">
+              <button class="btn btn-outline-danger btn-block text-center"
+                      data-toggle="collapse"
+                      data-target="#collapse{{ $itinerary->itinerary_id }}"
+                      aria-expanded="false"
+                      aria-controls="collapse{{ $itinerary->itinerary_id }}">
+                {{ $itinerary->name }} 
+                <i class="fas fa-chevron-down ml-2"></i>
+              </button>
+              <div id="collapse{{ $itinerary->itinerary_id }}" class="collapse mt-2">
+                @php $items = $itinerary->items ?? collect(); @endphp
+                @if ($items->isEmpty())
+                  <p class="text-muted text-center">{{ __('adminlte::adminlte.empty.itinerary_items') }}</p>
+                @else
+                  <ul class="list-group">
+                    @foreach ($items->sortBy('order') as $item)
+                      <li class="list-group-item">
+                        <strong>{{ $item->title }}</strong><br>
+                        <span class="text-muted">{{ $item->description }}</span>
+                      </li>
+                    @endforeach
+                  </ul>
+                @endif
+              </div>
             </div>
-          </div>
-        @empty
-          <p class="text-muted">{{ __('adminlte::adminlte.empty.itineraries') }}</p>
-        @endforelse
+          @empty
+            <p class="text-muted text-center">{{ __('adminlte::adminlte.empty.itineraries') }}</p>
+          @endforelse
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Upcoming Bookings -->
-  <div class="col-md-12 mb-3">
-    <div class="card shadow">
-      <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">{{ __('adminlte::adminlte.sections.upcoming_bookings') }}</h5>
-      </div>
-      <div class="card-body">
-        @forelse (($upcomingBookings ?? collect()) as $booking)
-          <div class="mb-2">
-            <strong>{{ $booking->user->full_name ?? '—' }}</strong>
-            – {{ $booking->tour->name ?? optional(optional($booking->detail)->tour)->name ?? '—' }}<br>
-            <small class="text-muted">
-              {{ __('adminlte::adminlte.labels.reference') }}: {{ $booking->booking_reference ?? '—' }}
-            </small><br>
-            <span class="text-muted">
-              {{ __('adminlte::adminlte.labels.date') }}:
-              {{ optional(optional($booking->detail)->tour_date)->format('d/m/Y') ?? '—' }}
-            </span>
-          </div>
-          <hr>
-        @empty
-          <p class="text-muted">{{ __('adminlte::adminlte.empty.upcoming_bookings') }}</p>
-        @endforelse
+  <div class="row">
+    <div class="col-md-12 mb-3">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">{{ __('adminlte::adminlte.sections.upcoming_bookings') }}</h5>
+        </div>
+        <div class="card-body">
+          @forelse (($upcomingBookings ?? collect()) as $booking)
+            <div class="mb-2">
+              <strong>{{ $booking->user->full_name ?? '—' }}</strong>
+              – {{ $booking->tour->name ?? optional(optional($booking->detail)->tour)->name ?? '—' }}<br>
+              <small class="text-muted">
+                {{ __('adminlte::adminlte.labels.reference') }}: {{ $booking->booking_reference ?? '—' }}
+              </small><br>
+              <span class="text-muted">
+                {{ __('adminlte::adminlte.labels.date') }}:
+                {{ optional(optional($booking->detail)->tour_date)->format('d/m/Y') ?? '—' }}
+              </span>
+            </div>
+            <hr>
+          @empty
+            <p class="text-muted text-center">{{ __('adminlte::adminlte.empty.upcoming_bookings') }}</p>
+          @endforelse
+        </div>
       </div>
     </div>
   </div>
