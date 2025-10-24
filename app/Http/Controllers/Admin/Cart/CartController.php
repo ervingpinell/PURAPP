@@ -55,6 +55,164 @@ class CartController extends Controller
         return view('admin.carts.cart', compact('cart', 'languages', 'hotels'));
     }
 
+
+    public function store(Request $request)
+    {
+        // -------------------------
+        // SANEOS PREVIOS AL VALIDADOR
+        // -------------------------
+        $in = $request->all();
+
+        // Normaliza boolean
+        $in['is_other_hotel'] = (bool)($in['is_other_hotel'] ?? false);
+
+        // hotel_id: si llega "other", "__custom__" o cualquier no-entero => null
+        if (array_key_exists('hotel_id', $in)) {
+            $raw = $in['hotel_id'];
+            if ($raw === 'other' || $raw === '__custom__' || (isset($raw) && !ctype_digit((string)$raw))) {
+                // si explícitamente eligió "otro", marcamos el flag
+                if ($raw === 'other' || $raw === '__custom__') {
+                    $in['is_other_hotel'] = true;
+                }
+                $in['hotel_id'] = null;
+            }
+        } else {
+            $in['hotel_id'] = null;
+        }
+
+        // si marcó "otro hotel" y puso nombre, nos aseguramos de que hotel_id sea null
+        if ($in['is_other_hotel'] && !empty($in['other_hotel_name'])) {
+            $in['hotel_id'] = null;
+        }
+
+        $request->replace($in);
+
+        // -------------------------
+        // VALIDACIÓN
+        // -------------------------
+        $request->validate([
+            'tour_id'                 => 'required|exists:tours,tour_id',
+            'tour_date'               => 'required|date|after_or_equal:today',
+            'schedule_id'             => 'required|exists:schedules,schedule_id',
+            'tour_language_id'        => 'required|exists:tour_languages,tour_language_id',
+
+            // bail evita correr exists si falla integer; se excluye si is_other_hotel=1
+            'hotel_id'                => 'bail|nullable|integer|exists:hotels_list,hotel_id|exclude_if:is_other_hotel,1',
+            'is_other_hotel'          => 'boolean',
+            // SOLO si realmente se marcó “otro hotel”
+            'other_hotel_name'        => 'nullable|string|max:255|required_if:is_other_hotel,1',
+
+            'adults_quantity'         => 'required|integer|min:1',
+            'kids_quantity'           => 'nullable|integer|min:0|max:2',
+
+            // Meeting point (desde el form)
+            'selected_meeting_point'  => 'nullable|integer|exists:meeting_points,id',
+        ]);
+
+        $user = Auth::user();
+
+        // Tomar el carrito activo más reciente
+        $cart = $user->cart()
+            ->where('is_active', true)
+            ->orderByDesc('cart_id')
+            ->first();
+
+        if (!$cart) {
+            $cart = Cart::create(['user_id' => $user->user_id, 'is_active' => true]);
+            // [TIMER]
+            $cart->refreshExpiry(15);
+        } else {
+            // [TIMER] si expiró, límpialo y arranca nuevo
+            if ($cart->isExpired()) {
+                $this->expireCart($cart);
+                $cart = Cart::create(['user_id' => $user->user_id, 'is_active' => true]);
+            }
+            // [TIMER] renueva por actividad
+            $cart->refreshExpiry(15);
+        }
+
+        $tour = Tour::findOrFail($request->tour_id);
+
+        // Schedule debe pertenecer al tour y estar activo (y el pivot activo)
+        $schedule = $tour->schedules()
+            ->where('schedules.schedule_id', $request->schedule_id)
+            ->where('schedules.is_active', true)
+            ->wherePivot('is_active', true)
+            ->first();
+
+        if (!$schedule) {
+            return back()->withErrors([
+                'schedule_id' => 'El horario seleccionado no está disponible para este tour (inactivo o no asignado).'
+            ]);
+        }
+
+        // Fecha bloqueada (bloqueo por día completo o por horario específico)
+        $isBlocked = TourExcludedDate::where('tour_id', $tour->tour_id)
+            ->where(function ($q) use ($request) {
+                $q->whereNull('schedule_id')
+                  ->orWhere('schedule_id', $request->schedule_id);
+            })
+            ->where('start_date', '<=', $request->tour_date)
+            ->where(function ($q) use ($request) {
+                $q->where('end_date', '>=', $request->tour_date)->orWhereNull('end_date');
+            })
+            ->exists();
+
+        if ($isBlocked) {
+            return back()->with('error', __('adminlte::adminlte.blocked_date_for_tour', [
+                'date' => $request->tour_date,
+                'tour' => $tour->name,
+            ]));
+        }
+
+        // Capacidad
+        $reserved = DB::table('booking_details')
+            ->where('tour_id', $request->tour_id)
+            ->where('schedule_id', $request->schedule_id)
+            ->where('tour_date', $request->tour_date)
+            ->sum(DB::raw('adults_quantity + kids_quantity'));
+
+        $requested = $request->adults_quantity + ($request->kids_quantity ?? 0);
+
+        if ($reserved + $requested > $schedule->max_capacity) {
+            return back()->with('error', __('adminlte::adminlte.tourCapacityFull'));
+        }
+
+        // --- MEETING POINT (snapshot) ---
+        $mpId = $request->integer('selected_meeting_point') ?: null;
+        $mp   = $mpId ? MeetingPoint::find($mpId) : null;
+
+        CartItem::create([
+            'cart_id'          => $cart->cart_id,
+            'tour_id'          => $request->tour_id,
+            'tour_date'        => $request->tour_date,
+            'schedule_id'      => $request->schedule_id,
+            'tour_language_id' => $request->tour_language_id,
+
+            'hotel_id'         => $request->boolean('is_other_hotel') ? null : $request->hotel_id,
+            'is_other_hotel'   => $request->boolean('is_other_hotel'),
+            'other_hotel_name' => $request->boolean('is_other_hotel') ? $request->other_hotel_name : null,
+
+            'adults_quantity'  => $request->adults_quantity,
+            'kids_quantity'    => $request->kids_quantity ?? 0,
+            'is_active'        => true,
+
+            // Snapshot Meeting Point
+            'meeting_point_id'          => $mp?->id,
+            'meeting_point_name'        => $mp?->name,
+            'meeting_point_pickup_time' => $mp?->pickup_time,
+            'meeting_point_description' => $mp?->description,
+            'meeting_point_map_url'     => $mp?->map_url,
+        ]);
+
+        // [TIMER] actividad => renueva
+        $cart->refreshExpiry(15);
+
+        return $request->ajax()
+            ? response()->json(['message' => __('adminlte::adminlte.cartItemAdded')])
+            : back()->with('success', __('adminlte::adminlte.cartItemAdded'));
+    }
+
     /**
      * Update a cart item (admin).
      */
