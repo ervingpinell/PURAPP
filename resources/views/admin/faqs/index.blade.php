@@ -62,13 +62,17 @@
 
                         <!-- TOGGLE -->
                         <form action="{{ route('admin.faqs.toggleStatus', $faq) }}" method="POST"
-                              class="d-inline js-confirm-toggle" data-active="{{ $faq->is_active ? 1 : 0 }}">
+                            class="d-inline js-confirm-toggle" data-active="{{ $faq->is_active ? 1 : 0 }}">
                             @csrf
-                            <button type="submit" class="btn btn-sm {{ $faq->is_active ? 'btn-toggle' : 'btn-secondary' }}"
-                                    title="{{ $faq->is_active ? __('m_config.faq.deactivate') : __('m_config.faq.activate') }}" data-bs-toggle="tooltip">
+                            @method('PATCH')
+                            <button type="submit"
+                                    class="btn btn-sm {{ $faq->is_active ? 'btn-toggle' : 'btn-secondary' }}"
+                                    title="{{ $faq->is_active ? __('m_config.faq.deactivate') : __('m_config.faq.activate') }}"
+                                    data-bs-toggle="tooltip">
                                 <i class="fas fa-toggle-{{ $faq->is_active ? 'on' : 'off' }}"></i>
                             </button>
                         </form>
+
 
                         <!-- ELIMINAR -->
                         <form action="{{ route('admin.faqs.destroy', $faq) }}" method="POST"

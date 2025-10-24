@@ -45,7 +45,7 @@
   ];
 @endphp
 
-<form action="{{ route('carrito.agregar', $tour->tour_id) }}" method="POST"
+<form action="{{ route('public.carts.add', $tour->tour_id) }}" method="POST"
   class="reservation-box gv-ui is-compact p-3 shadow-sm rounded bg-white mb-4 border"
   data-adult-price="{{ $tour->adult_price }}"
   data-kid-price="{{ $tour->kid_price }}"

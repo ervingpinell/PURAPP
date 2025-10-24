@@ -44,21 +44,21 @@
        role="alert"
        data-expires-at="{{ $expiresAtIso }}"
        data-total-minutes="{{ $expiryMinutes }}"
-       data-expire-endpoint="{{ route('public.cart.expire') }}"
-       data-refresh-endpoint="{{ route('public.cart.refreshExpiry') }}">
+       data-expire-endpoint="{{ route('public.carts.expire') }}"
+       data-refresh-endpoint="{{ route('public.carts.refreshExpiry') }}">
     <div class="gv-timer-head">
       <div class="gv-timer-icon">
         <i class="fas fa-hourglass-half"></i>
       </div>
       <div class="gv-timer-text">
-        <div class="gv-timer-title">{{ __('cart.timer.will_expire') }}</div>
+        <div class="gv-timer-title">{{ __('carts.timer.will_expire') }}</div>
         <div class="gv-timer-sub">
-          {{ __('cart.timer.time_left') }}
+          {{ __('carts.timer.time_left') }}
           <span id="cart-timer-remaining" class="gv-timer-remaining">--:--</span>
         </div>
       </div>
       <button id="cart-timer-refresh" class="btn btn-dark btn-sm gv-timer-btn">
-        {{ trans_choice('cart.timer.extend', $extendMinutes, ['count' => $extendMinutes]) }}
+        {{ trans_choice('carts.timer.extend', $extendMinutes, ['count' => $extendMinutes]) }}
       </button>
     </div>
     <div class="gv-timer-bar">
@@ -206,7 +206,7 @@
                   <i class="fas fa-edit"></i> {{ __('adminlte::adminlte.edit') ?? 'Editar' }}
                 </button>
 
-                <form action="{{ route('public.cart.destroy', $item->item_id) }}"
+                <form action="{{ route('public.carts.destroy', $item->item_id) }}"
                       method="POST"
                       class="d-inline delete-item-form">
                   @csrf @method('DELETE')
@@ -287,7 +287,7 @@
                 <i class="fas fa-edit"></i> {{ __('adminlte::adminlte.edit') ?? 'Editar' }}
               </button>
 
-              <form action="{{ route('public.cart.destroy', $item->item_id) }}"
+              <form action="{{ route('public.carts.destroy', $item->item_id) }}"
                     method="POST"
                     class="delete-item-form">
                 @csrf @method('DELETE')
@@ -327,7 +327,7 @@
     </div>
 
     {{-- Confirmar Reserva --}}
-    <form action="{{ route('public.reservas.storeFromCart') }}" method="POST" id="confirm-reserva-form">
+    <form action="{{ route('public.bookings.storeFromCart') }}" method="POST" id="confirm-reserva-form">
       @csrf
       <input type="hidden" name="promo_code" id="promo_code_hidden" value="">
       <div class="d-grid">
@@ -360,7 +360,7 @@
   <div class="modal fade" id="editItemModal-{{ $item->item_id }}" tabindex="-1" aria-labelledby="editItemLabel-{{ $item->item_id }}" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-sm-down">
       <div class="modal-content">
-        <form action="{{ route('public.cart.update', $item->item_id) }}" method="POST" class="edit-item-form">
+        <form action="{{ route('public.carts.update', $item->item_id) }}" method="POST" class="edit-item-form">
           @csrf @method('PUT')
 
           {{-- Mantener activo al guardar --}}

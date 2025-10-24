@@ -250,29 +250,62 @@
   };
 
   /* -----------------------------
-   * 6) Carrito (global)
+   * 6) Carrito (event-driven, sin polling)
    * ----------------------------- */
-  function updateCartCount() {
-    fetch('/cart/count', { headers: { 'Accept': 'application/json' }})
-      .then(res => res.ok ? res.json() : Promise.reject(`HTTP ${res.status}`))
-      .then(data => {
-        const n = Number(data.count || 0);
-        if (typeof window.setCartCount === 'function') {
-          window.setCartCount(n);
-        } else {
-          document.querySelectorAll('.cart-count-badge').forEach(el => {
-            el.textContent = n;
-            el.style.display = n > 0 ? 'inline-block' : 'none';
-            el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
-          });
+  (function(){
+    const meta = document.querySelector('meta[name="cart-count-url"]');
+    const COUNT_URL = meta?.content || '/cart/count';
+    let inFlightCtrl = null;
+
+    function applyCount(n){
+      // Si existe un setter global, úsalo
+      if (typeof window.setCartCount === 'function' && window.setCartCount !== applyCount) {
+        try { window.setCartCount(n); return; } catch(_){}
+      }
+      // Fallback: pintar badges
+      document.querySelectorAll('.cart-count-badge').forEach(el => {
+        el.textContent = n;
+        el.style.display = n > 0 ? 'inline-block' : 'none';
+        el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+      });
+    }
+
+    async function fetchCartCount(){
+      try {
+        if (inFlightCtrl) inFlightCtrl.abort();
+        inFlightCtrl = new AbortController();
+        const res = await fetch(COUNT_URL, {
+          headers: { 'Accept': 'application/json' },
+          signal: inFlightCtrl.signal
+        });
+        const data = res.ok ? await res.json() : { count: 0 };
+        applyCount(Number(data.count || 0));
+      } catch(e) {
+        if (!(e && e.name === 'AbortError')) {
+          console.error('❌ Error al obtener la cantidad del carrito:', e);
         }
-      })
-      .catch(err => console.error('❌ Error al obtener la cantidad del carrito:', err));
-  }
-  updateCartCount();
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { updateCartCount(); refreshThemeColor(); } });
-  setInterval(() => { updateCartCount(); refreshThemeColor(); }, 30000);
-  window.addEventListener('cart:changed', updateCartCount);
+      } finally {
+        inFlightCtrl = null;
+      }
+    }
+
+    // Helpers globales
+    window.setCartCount = applyCount;        // Asignar directamente el número
+    window.refreshCartCount = fetchCartCount; // Forzar fetch si hace falta
+
+    // 1) Sync inicial (una sola vez)
+    fetchCartCount();
+
+    // 2) Reaccionar SOLO a eventos explícitos
+    window.addEventListener('cart:changed', (e) => {
+      const detail = e?.detail || {};
+      if (typeof detail.count === 'number') {
+        applyCount(detail.count);
+      } else {
+        fetchCartCount();
+      }
+    });
+  })();
 
   /* -----------------------------
    * 7) Hardening para carousels/iframes móviles

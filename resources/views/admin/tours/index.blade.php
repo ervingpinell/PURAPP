@@ -30,7 +30,7 @@
         </a>
 
         {{-- Botón para ver el carrito (si aplica) --}}
-        <a href="{{ route('admin.cart.index') }}" class="btn btn-primary mb-3">
+        <a href="{{ route('admin.carts.index') }}" class="btn btn-primary mb-3">
             <i class="fas fa-shopping-cart"></i> {{ __('m_tours.tour.ui.view_cart') }}
         </a>
 

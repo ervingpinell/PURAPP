@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <meta name="locale" content="{{ app()->getLocale() }}">
+<meta name="cart-count-url" content="{{ route('cart.count.public') }}">
 
   @php
       $ASSET_ROOT = rtrim(asset(''), '/');

@@ -14,7 +14,7 @@
         </a>
 
         {{-- Botón global para ordenar tours (abre la vista de orden sin categoría preseleccionada) --}}
-        <a href="{{ route('admin.tours.order.index') }}" class="btn btn-outline-primary">
+        <a href="{{ route('admin.tours.order.index') }}" class="btn btn-primary">
             <i class="fas fa-sort-amount-down"></i> Ordenar tours
         </a>
     </div>
@@ -57,7 +57,7 @@
 
                     {{-- Ordenar tours de esta categoría (preselecciona tour_type_id en la vista de orden) --}}
                     <a href="{{ route('admin.tours.order.index', ['tour_type_id' => $tourtype->tour_type_id]) }}"
-                       class="btn btn-sm btn-outline-primary me-1"
+                       class="btn btn-sm btn-primary me-1"
                        title="Ordenar tours de «{{ $tourtype->name }}»">
                         <i class="fas fa-sort-amount-down"></i>
                     </a>

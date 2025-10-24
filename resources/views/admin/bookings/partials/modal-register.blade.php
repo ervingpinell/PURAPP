@@ -23,7 +23,7 @@
 
 <div class="modal fade" id="modalRegistrar" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
-    <form id="createBookingForm" action="{{ route('admin.reservas.store') }}" method="POST" novalidate>
+    <form id="createBookingForm" action="{{ route('admin.bookings.store') }}" method="POST" novalidate>
       @csrf
       <input type="hidden" name="_modal" value="register"><!-- 👈 Para reabrir este modal tras errores -->
 

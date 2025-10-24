@@ -1,0 +1,152 @@
+<?php
+
+return [
+    'timer' => [
+        'will_expire' => 'Tu carrito expirará pronto.',
+        'time_left'   => 'Tiempo restante:',
+        'extend'      => 'Extender :count min|Extender :count min',
+    ],
+
+    'title_all' => 'Todos los carritos de clientes',
+    'title_my'  => 'Carrito de reservas',
+
+    'filters.title'   => 'Filtros',
+    'filters.email'   => 'Correo del cliente',
+    'filters.status'  => 'Estado',
+    'filters.all'     => '-- Todos --',
+    'filters.active'  => 'Activo',
+    'filters.inactive'=> 'Inactivo',
+    'filters.search'  => 'Buscar',
+    'filters.clear'   => 'Limpiar',
+
+    'table.customer'     => 'Cliente',
+    'table.email'        => 'Correo',
+    'table.phone'        => 'Teléfono',
+    'table.items'        => 'Artículos',
+    'table.cart_total'   => 'Total del carrito',
+    'table.status'       => 'Estado',
+    'table.last_update'  => 'Última actualización',
+    'table.actions'      => 'Acciones',
+
+    'status.active'   => 'Activo',
+    'status.inactive' => 'Inactivo',
+
+    'actions.view_items'        => 'Ver tours',
+    'actions.toggle_activate'   => 'Activar carrito',
+    'actions.toggle_deactivate' => 'Desactivar carrito',
+    'actions.delete_cart'       => 'Eliminar carrito',
+    'actions.edit'              => 'Editar',
+    'actions.delete'            => 'Eliminar',
+    'actions.save_changes'      => 'Guardar cambios',
+    'actions.cancel'            => 'Cancelar',
+    'actions.filter'            => 'Filtrar',
+
+    'items_modal.title'         => 'Tours del carrito de :name',
+    'items_modal.no_schedule'   => 'Sin horario',
+    'items_modal.no_items'      => 'No hay tours en este carrito.',
+    'items_modal.customer'      => 'Cliente',
+    'items_modal.email'         => 'Correo',
+    'items_modal.phone'         => 'Teléfono',
+    'items_modal.last_update'   => 'Última actualización',
+    'items_modal.cart_total'    => 'Total del carrito',
+    'items_modal.close'         => 'Cerrar',
+
+    'items_modal.headers.tour'       => 'Tour',
+    'items_modal.headers.date'       => 'Fecha',
+    'items_modal.headers.schedule'   => 'Horario',
+    'items_modal.headers.language'   => 'Idioma',
+    'items_modal.headers.adults'     => 'Adultos',
+    'items_modal.headers.kids'       => 'Niños',
+    'items_modal.headers.item_total' => 'Total del ítem',
+    'items_modal.headers.status'     => 'Estado',
+    'items_modal.headers.actions'    => 'Acciones',
+
+    'my.customer_info.title' => 'Información del cliente',
+    'my.customer_info.name'  => 'Nombre',
+    'my.customer_info.email' => 'Correo',
+    'my.customer_info.phone' => 'Teléfono',
+
+    'promo.title'        => 'Código promocional',
+    'promo.placeholder'  => 'Ingresa el código',
+    'promo.apply'        => 'Aplicar',
+    'promo.remove'       => 'Eliminar',
+    'promo.applied'      => ':code aplicado (:label)',
+    'promo.removed'      => 'Cupón eliminado.',
+    'promo.enter_code'   => 'Ingresa un código',
+    'promo.apply_error'  => 'No se pudo aplicar el código.',
+    'promo.remove_error' => 'No se pudo eliminar el código.',
+
+    'totals.subtotal'        => 'Subtotal',
+    'totals.discount'        => 'Descuento',
+    'totals.estimated_total' => 'Total estimado',
+
+    'confirm_send.button' => 'Confirmar y enviar solicitud de reserva',
+
+    'empty.no_records' => 'No hay registros que coincidan con los filtros.',
+    'empty.cart'       => 'Tu carrito está vacío.',
+
+    'swal.validation_errors.title' => 'Errores de validación',
+    'swal.exception.title'         => 'Excepción',
+
+    'swal.delete_item.title'       => '¿Eliminar este ítem?',
+    'swal.delete_item.text'        => 'Esta acción no se puede deshacer.',
+    'swal.delete_item.confirm'     => 'Sí, eliminar',
+    'swal.delete_item.cancel'      => 'Cancelar',
+
+    'swal.delete_cart.title'       => '¿Eliminar este carrito?',
+    'swal.delete_cart.text'        => 'Todos los tours contenidos serán eliminados.',
+    'swal.delete_cart.confirm'     => 'Sí, eliminar',
+    'swal.delete_cart.cancel'      => 'Cancelar',
+
+    'messages.item_updated'          => 'Ítem actualizado correctamente.',
+    'messages.cart_item_deleted'     => 'Ítem del carrito eliminado.',
+    'messages.cart_deleted'          => 'Carrito eliminado correctamente.',
+    'messages.cart_status_updated'   => 'Estado del carrito actualizado correctamente.',
+    'messages.blocked_date_for_tour' => 'La fecha :date está bloqueada para el tour ":tour".',
+    'messages.capacity_full'         => 'El tour está completamente reservado para la fecha/hora seleccionada.',
+
+    'format.datetime' => 'd/m/Y H:i',
+    'format.date'     => 'd/m/Y',
+    'format.time'     => 'H:i',
+
+    'add_modal.title' => 'Agregar al carrito: :name',
+
+    'fields.tour_date' => 'Fecha del tour',
+    'fields.language'  => 'Idioma',
+    'fields.schedule'  => 'Horario',
+    'fields.hotel'     => 'Hotel',
+    'fields.hotel_name'=> 'Nombre del hotel',
+    'fields.adults'    => 'Número de adultos',
+    'fields.kids'      => 'Número de niños',
+
+    'placeholders.select'          => 'Seleccionar',
+    'placeholders.select_schedule' => 'Seleccionar un horario',
+    'placeholders.select_hotel'    => 'Seleccionar un hotel',
+    'placeholders.other_hotel_option' => 'Otro (ingresar nombre)',
+    'placeholders.enter_hotel_name'=> 'Ingresar nombre del hotel',
+
+    'buttons.add_to_cart' => 'Agregar al carrito',
+
+    'alerts.select_tour_date' => 'Selecciona la fecha del tour',
+    'alerts.capacity_exceeded.title' => 'Capacidad excedida',
+    'alerts.capacity_exceeded.text'  => 'Para este tour en :date solo quedan :available espacios.',
+
+    'messages.cart_empty'          => 'El carrito está vacío.',
+    'messages.item_added'          => 'Artículo agregado al carrito.',
+    'messages.item_removed'        => 'Artículo eliminado del carrito.',
+    'messages.cart_expired'        => 'Tu carrito expiró por inactividad.',
+    'messages.cart_refreshed'      => 'Carrito actualizado exitosamente.',
+    'messages.no_active_cart'      => 'No hay un carrito activo.',
+    'messages.invalid_code'        => 'Código inválido.',
+    'messages.code_already_used'   => 'Este código ya fue utilizado.',
+    'messages.code_applied'        => 'Código aplicado correctamente.',
+    'messages.code_removed'        => 'Código eliminado correctamente.',
+    'messages.slot_full'           => 'Este horario está lleno.',
+    'messages.date_blocked'        => 'La fecha seleccionada está bloqueada para este tour.',
+    'messages.schedule_unavailable'=> 'El horario seleccionado no está disponible para este tour.',
+    'messages.validation_failed'   => 'La validación de datos falló.',
+    'messages.cart_expires_in' => 'El carrito expirará en :minutes minutos.',
+    'messages.cart_being_processed' => 'Tu carrito está siendo procesado. Por favor intenta de nuevo en unos segundos.',
+
+
+];

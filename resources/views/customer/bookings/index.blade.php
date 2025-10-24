@@ -150,7 +150,7 @@
 
                                         {{-- Actions --}}
                                         <div class="d-grid">
-                                            <a href="{{ route('my-reservations.receipt', $booking->booking_id) }}" class="btn btn-primary btn-lg mb-2">
+                                            <a href="{{ route('bookings.receipt.download', $booking->booking_id) }}" class="btn btn-primary btn-lg mb-2">
                                                 <i class="fas fa-file-invoice me-2"></i> {{ __('adminlte::adminlte.view_receipt') }}
                                             </a>
                                         </div>

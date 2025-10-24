@@ -1,62 +1,62 @@
 {{-- resources/views/admin/Cart/general.blade.php --}}
 @extends('adminlte::page')
 
-@section('title', 'Carritos de Todos los Clientes')
+@section('title', __('carts.title_all'))
 
 @section('content_header')
-    <h1><i class="fas fa-shopping-cart"></i> Carritos de Todos los Clientes</h1>
+    <h1><i class="fas fa-shopping-cart"></i> {{ __('carts.title_all') }}</h1>
 @stop
 
 @section('content')
-{{-- 🔎 Filtros --}}
+{{-- 🔎 Filters --}}
 <div class="card shadow mb-4">
     <div class="card-header bg-primary text-white">
-        <strong><i class="fas fa-filter"></i> Filtros</strong>
+        <strong><i class="fas fa-filter"></i> {{ __('carts.filters.title') }}</strong>
     </div>
     <div class="card-body">
         <form method="GET" class="row g-3 align-items-end">
             <div class="col-md-4">
-                <label class="form-label">Correo del Cliente</label>
-                <input type="text" name="correo" class="form-control" placeholder="cliente@correo.com" value="{{ request('correo') }}">
+                <label class="form-label">{{ __('carts.filters.email') }}</label>
+                <input type="text" name="email" class="form-control" placeholder="customer@email.com" value="{{ request('email') }}">
             </div>
             <div class="col-md-4">
-                <label class="form-label">Estado</label>
-                <select name="estado" class="form-control">
-                    <option value="">-- Todos --</option>
-                    <option value="1" {{ request('estado') === '1' ? 'selected' : '' }}>Activos</option>
-                    <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Inactivos</option>
+                <label class="form-label">{{ __('carts.filters.status') }}</label>
+                <select name="status" class="form-control">
+                    <option value="">{{ __('carts.filters.all') }}</option>
+                    <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>{{ __('carts.filters.active') }}</option>
+                    <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>{{ __('carts.filters.inactive') }}</option>
                 </select>
             </div>
             <div class="col-md-4 d-flex gap-2">
                 <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-search"></i> Buscar
+                    <i class="fas fa-search"></i> {{ __('carts.filters.search') }}
                 </button>
-                <a href="{{ route('admin.cart.general') }}" class="btn btn-secondary">
-                    <i class="fas fa-undo"></i> Limpiar
+                <a href="{{ route('admin.carts.all') }}" class="btn btn-secondary">
+                    <i class="fas fa-undo"></i> {{ __('carts.filters.clear') }}
                 </a>
             </div>
         </form>
     </div>
 </div>
 
-{{-- 🧺 Tabla: 1 fila = 1 carrito --}}
-@if($carritos->count())
+{{-- 🧺 Table: 1 row = 1 cart --}}
+@if($carts->count())
 <div class="table-responsive">
     <table class="table table-bordered table-hover shadow-sm">
         <thead class="table-dark">
             <tr class="text-center align-middle">
-                <th>Cliente</th>
-                <th>Email</th>
-                <th>Teléfono</th>
-                <th>Ítems</th>
-                <th>Total carrito</th>
-                <th>Estado</th>
-                <th>Última modificación</th>
-                <th style="width: 240px;">Acciones</th>
+                <th>{{ __('carts.table.customer') }}</th>
+                <th>{{ __('carts.table.email') }}</th>
+                <th>{{ __('carts.table.phone') }}</th>
+                <th>{{ __('carts.table.items') }}</th>
+                <th>{{ __('carts.table.cart_total') }}</th>
+                <th>{{ __('carts.table.status') }}</th>
+                <th>{{ __('carts.table.last_update') }}</th>
+                <th style="width: 240px;">{{ __('carts.table.actions') }}</th>
             </tr>
         </thead>
         <tbody>
-        @foreach($carritos as $cart)
+        @foreach($carts as $cart)
             <tr class="text-center align-middle">
                 <td><strong>{{ $cart->user->full_name }}</strong></td>
                 <td>{{ $cart->user->email }}</td>
@@ -65,7 +65,7 @@
                     <button class="btn btn-sm btn-info"
                         data-bs-toggle="modal"
                         data-bs-target="#modalItemsCart{{ $cart->cart_id }}"
-                        title="Ver tours" data-bs-toggle="tooltip">
+                        title="{{ __('carts.actions.view_items') }}" data-bs-toggle="tooltip">
                         <i class="fas fa-list"></i> ({{ $cart->items_count }})
                     </button>
                 </td>
@@ -73,34 +73,34 @@
                 <td>
                     <span class="badge {{ $cart->is_active ? 'bg-success' : 'bg-danger' }}">
                         <i class="fas {{ $cart->is_active ? 'fa-check-circle' : 'fa-times-circle' }}"></i>
-                        {{ $cart->is_active ? 'Activo' : 'Inactivo' }}
+                        {{ $cart->is_active ? __('carts.status.active') : __('carts.status.inactive') }}
                     </span>
                 </td>
-                <td>{{ $cart->updated_at->format('d/m/Y H:i') }}</td>
+                <td>{{ $cart->updated_at->format(__('carts.format.datetime')) }}</td>
 
                 <td class="text-center">
-                    {{-- 👁️ Ver tours --}}
+                    {{-- 👁️ View items --}}
                     <button class="btn btn-info btn-sm me-1"
                         data-bs-toggle="modal"
                         data-bs-target="#modalItemsCart{{ $cart->cart_id }}"
-                        title="Ver tours" data-bs-toggle="tooltip">
+                        title="{{ __('carts.actions.view_items') }}" data-bs-toggle="tooltip">
                         <i class="fas fa-eye"></i>
                     </button>
 
-                    {{-- 🔁 Activar/Desactivar carrito --}}
-                    <form action="{{ route('admin.cart.toggle', $cart->cart_id) }}" method="POST" class="d-inline-block me-1">
+                    {{-- 🔁 Toggle cart --}}
+                    <form action="{{ route('admin.carts.toggle', $cart->cart_id) }}" method="POST" class="d-inline-block me-1">
                         @csrf @method('PATCH')
                         <button class="btn btn-sm {{ $cart->is_active ? 'btn-toggle' : 'btn-secondary' }}"
-                                title="{{ $cart->is_active ? 'Desactivar carrito' : 'Activar carrito' }}"
+                                title="{{ $cart->is_active ? __('carts.actions.toggle_deactivate') : __('carts.actions.toggle_activate') }}"
                                 data-bs-toggle="tooltip">
                             <i class="fas {{ $cart->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                         </button>
                     </form>
 
-                    {{-- 🗑️ Eliminar carrito completo --}}
-                    <form action="{{ route('admin.cart.destroy', $cart->cart_id) }}" method="POST" class="d-inline-block form-eliminar-carrito">
+                    {{-- 🗑️ Delete cart --}}
+                    <form action="{{ route('admin.carts.destroy', $cart->cart_id) }}" method="POST" class="d-inline-block form-delete-cart">
                         @csrf @method('DELETE')
-                        <button class="btn btn-delete btn-sm" title="Eliminar carrito" data-bs-toggle="tooltip">
+                        <button class="btn btn-delete btn-sm" title="{{ __('carts.actions.delete_cart') }}" data-bs-toggle="tooltip">
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
@@ -111,8 +111,8 @@
     </table>
 </div>
 
-{{-- 📦 Modal de tours por carrito --}}
-@foreach($carritos as $cart)
+{{-- 📦 Items per cart modal --}}
+@foreach($carts as $cart)
 <div class="modal fade"
      id="modalItemsCart{{ $cart->cart_id }}"
      tabindex="-1"
@@ -124,7 +124,7 @@
     <div class="modal-content">
       <div class="modal-header bg-info text-white">
         <h5 class="modal-title" id="modalLabelCart{{ $cart->cart_id }}">
-            Tours del carrito de {{ $cart->user->full_name }}
+            {{ __('carts.items_modal.title', ['name' => $cart->user->full_name]) }}
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
@@ -134,15 +134,15 @@
             <table class="table table-sm table-striped mb-0">
                 <thead class="table-dark">
                     <tr class="text-center">
-                        <th>Tour</th>
-                        <th>Fecha</th>
-                        <th>Horario</th>
-                        <th>Idioma</th>
-                        <th>Adultos</th>
-                        <th>Niños</th>
-                        <th>Total ítem</th>
-                        <th>Estado</th>
-                        <th style="width: 120px;">Acciones</th>
+                        <th>{{ __('carts.items_modal.headers.tour') }}</th>
+                        <th>{{ __('carts.items_modal.headers.date') }}</th>
+                        <th>{{ __('carts.items_modal.headers.schedule') }}</th>
+                        <th>{{ __('carts.items_modal.headers.language') }}</th>
+                        <th>{{ __('carts.items_modal.headers.adults') }}</th>
+                        <th>{{ __('carts.items_modal.headers.kids') }}</th>
+                        <th>{{ __('carts.items_modal.headers.item_total') }}</th>
+                        <th>{{ __('carts.items_modal.headers.status') }}</th>
+                        <th style="width: 120px;">{{ __('carts.items_modal.headers.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -165,7 +165,7 @@
                                     {{ \Carbon\Carbon::parse($item->schedule->end_time)->format('g:i A') }}
                                 </span>
                             @else
-                                <span class="text-muted">Sin horario</span>
+                                <span class="text-muted">{{ __('carts.items_modal.no_schedule') }}</span>
                             @endif
                         </td>
                         <td>{{ $item->language->name ?? '—' }}</td>
@@ -175,30 +175,30 @@
                         <td>
                             <span class="badge {{ $item->is_active ? 'bg-success' : 'bg-danger' }}">
                                 <i class="fas {{ $item->is_active ? 'fa-check-circle' : 'fa-times-circle' }}"></i>
-                                {{ $item->is_active ? 'Activo' : 'Inactivo' }}
+                                {{ $item->is_active ? __('carts.status.active') : __('carts.status.inactive') }}
                             </span>
                         </td>
                         <td class="d-flex justify-content-center gap-1">
-                            {{-- ✏️ Editar: cerrar modal del carrito, abrir modal de edición --}}
+                            {{-- ✏️ Edit: close parent modal, open edit modal --}}
                             <button
                                 class="btn btn-sm btn-edit btn-open-edit"
-                                title="Editar" data-bs-toggle="tooltip"
+                                title="{{ __('carts.actions.edit') }}" data-bs-toggle="tooltip"
                                 data-parent="#modalItemsCart{{ $cart->cart_id }}"
                                 data-child="#modalEditar{{ $item->item_id }}">
                                 <i class="fas fa-edit"></i>
                             </button>
 
-                            {{-- 🗑️ Eliminar ítem --}}
-                            <form action="{{ route('admin.cart.item.destroy', $item->item_id) }}" method="POST" class="d-inline-block form-eliminar">
+                            {{-- 🗑️ Delete item --}}
+                            <form action="{{ route('admin.carts.item.destroy', $item->item_id) }}" method="POST" class="d-inline-block form-delete-item">
                                 @csrf @method('DELETE')
-                                <button class="btn btn-sm btn-delete" title="Eliminar" data-bs-toggle="tooltip">
+                                <button class="btn btn-sm btn-delete" title="{{ __('carts.actions.delete') }}" data-bs-toggle="tooltip">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </form>
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="9" class="text-center text-muted py-4">No hay tours en este carrito.</td></tr>
+                    <tr><td colspan="9" class="text-center text-muted py-4">{{ __('carts.items_modal.no_items') }}</td></tr>
                 @endforelse
                 </tbody>
             </table>
@@ -217,86 +217,25 @@
 
       <div class="modal-footer d-flex justify-content-between">
         <div class="text-muted">
-            Cliente: <strong>{{ $cart->user->full_name }}</strong> ·
-            Email: <strong>{{ $cart->user->email }}</strong> ·
-            Tel: <strong>{{ $cart->user->full_phone ?? 'N/A' }}</strong> ·
-            Última modificación: <strong>{{ $cart->updated_at->format('d/m/Y H:i') }}</strong>
+            {{ __('carts.items_modal.customer') }}: <strong>{{ $cart->user->full_name }}</strong> ·
+            {{ __('carts.items_modal.email') }}: <strong>{{ $cart->user->email }}</strong> ·
+            {{ __('carts.items_modal.phone') }}: <strong>{{ $cart->user->full_phone ?? 'N/A' }}</strong> ·
+            {{ __('carts.items_modal.last_update') }}: <strong>{{ $cart->updated_at->format(__('carts.format.datetime')) }}</strong>
         </div>
         <div class="fs-5">
-            Total del carrito: <strong>${{ number_format($cartTotalFooter, 2) }}</strong>
+            {{ __('carts.items_modal.cart_total') }}: <strong>${{ number_format($cartTotalFooter, 2) }}</strong>
         </div>
-        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">{{ __('carts.items_modal.close') }}</button>
       </div>
 
     </div>
   </div>
 </div>
-
-{{-- 🛠️ Modal de edición de ÍTEM (separado, no anidado) --}}
-@foreach($cart->items as $item)
-<div class="modal fade"
-     id="modalEditar{{ $item->item_id }}"
-     tabindex="-1"
-     aria-labelledby="modalLabel{{ $item->item_id }}"
-     aria-hidden="true"
-     data-bs-backdrop="static"
-     data-bs-keyboard="false">
-  <div class="modal-dialog">
-    <form method="POST" action="{{ route('admin.cart.updateFromPost', $item->item_id) }}" class="modal-content">
-      @csrf
-      <div class="modal-header bg-edit text-white">
-        <h5 class="modal-title" id="modalLabel{{ $item->item_id }}">Editar Ítem del Carrito</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body">
-        <div class="mb-3">
-            <label>Fecha del Tour</label>
-            <input type="date" name="tour_date" class="form-control" value="{{ $item->tour_date }}" required>
-        </div>
-
-        <div class="mb-3">
-            <label>Horario</label>
-            <select name="schedule_id" class="form-select">
-                @foreach(($item->tour->schedules ?? []) as $sch)
-                    @php
-                        $label = \Carbon\Carbon::parse($sch->start_time)->format('g:i A').' – '.\Carbon\Carbon::parse($sch->end_time)->format('g:i A');
-                    @endphp
-                    <option value="{{ $sch->schedule_id }}" {{ (int)$item->schedule_id === (int)$sch->schedule_id ? 'selected' : '' }}>
-                        {{ $label }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-
-        <div class="mb-3">
-            <label>Cantidad de Adultos</label>
-            <input type="number" name="adults_quantity" class="form-control" value={{ $item->adults_quantity }} min="1" required>
-        </div>
-        <div class="mb-3">
-            <label>Cantidad de Niños</label>
-            <input type="number" name="kids_quantity" class="form-control" value={{ $item->kids_quantity }} min="0" max="2">
-        </div>
-
-        <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" name="is_active" value="1" id="check{{ $item->item_id }}" {{ $item->is_active ? 'checked' : '' }}>
-            <label class="form-check-label" for="check{{ $item->item_id }}">Reserva activa</label>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cambios</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-      </div>
-    </form>
-  </div>
-</div>
-@endforeach
 @endforeach
 
 @else
 <div class="alert alert-info text-center">
-    <i class="fas fa-info-circle"></i> No hay registros que coincidan con los filtros aplicados.
+    <i class="fas fa-info-circle"></i> {{ __('carts.empty.no_records') }}
 </div>
 @endif
 @stop
@@ -317,13 +256,13 @@
     @endif
 
     <script>
-    // Habilita tooltips
+    // Enable tooltips
     document.addEventListener('DOMContentLoaded', () => {
         const list = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         list.map(el => new bootstrap.Tooltip(el));
     });
 
-    // Evitar "modales anidados"
+    // Avoid nested modals
     document.addEventListener('click', function(e){
       const btn = e.target.closest('.btn-open-edit');
       if (!btn) return;
@@ -345,7 +284,7 @@
       });
     });
 
-    // Limpieza de backdrops sobrantes
+    // Cleanup extra backdrops
     document.addEventListener('hidden.bs.modal', function(){
       const backs = document.querySelectorAll('.modal-backdrop');
       if (backs.length > 1) {
@@ -353,36 +292,36 @@
       }
     });
 
-    // Confirmación eliminar ÍTEM
-    document.querySelectorAll('.form-eliminar').forEach(form => {
+    // Confirm delete ITEM
+    document.querySelectorAll('.form-delete-item').forEach(form => {
       form.addEventListener('submit', function(e) {
         e.preventDefault();
         Swal.fire({
-          title: '¿Eliminar este ítem del carrito?',
-          text: 'Esta acción no se puede deshacer.',
+          title: @json(__('carts.swal.delete_item.title')),
+          text: @json(__('carts.swal.delete_item.text')),
           icon: 'warning',
           showCancelButton: true,
           confirmButtonColor: '#d33',
           cancelButtonColor: '#3085d6',
-          confirmButtonText: 'Sí, eliminar',
-          cancelButtonText: 'Cancelar'
+          confirmButtonText: @json(__('carts.swal.delete_item.confirm')),
+          cancelButtonText: @json(__('carts.swal.delete_item.cancel'))
         }).then((r) => { if (r.isConfirmed) form.submit(); });
       });
     });
 
-    // Confirmación eliminar CARRITO completo
-    document.querySelectorAll('.form-eliminar-carrito').forEach(form => {
+    // Confirm delete CART
+    document.querySelectorAll('.form-delete-cart').forEach(form => {
       form.addEventListener('submit', function(e) {
         e.preventDefault();
         Swal.fire({
-          title: '¿Eliminar este carrito completo?',
-          text: 'Se eliminarán todos los tours contenidos.',
+          title: @json(__('carts.swal.delete_cart.title')),
+          text: @json(__('carts.swal.delete_cart.text')),
           icon: 'warning',
           showCancelButton: true,
           confirmButtonColor: '#d33',
           cancelButtonColor: '#3085d6',
-          confirmButtonText: 'Sí, eliminar',
-          cancelButtonText: 'Cancelar'
+          confirmButtonText: @json(__('carts.swal.delete_cart.confirm')),
+          cancelButtonText: @json(__('carts.swal.delete_cart.cancel'))
         }).then((r) => { if (r.isConfirmed) form.submit(); });
       });
     });

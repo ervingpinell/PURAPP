@@ -25,65 +25,65 @@ class DashBoardController extends Controller
         return view('index');
     }
 
-public function switchLanguage(Request $request, string $language)
-{
-    $supported = array_keys(config('routes.locales', ['es' => []]));
-    $default   = config('routes.default_locale', 'es');
+    public function switchLanguage(Request $request, string $language)
+    {
+        $supported = array_keys(config('routes.locales', ['es' => []]));
+        $default   = config('routes.default_locale', 'es');
 
-    if (! in_array($language, $supported, true)) {
-        $language = $default;
+        if (! in_array($language, $supported, true)) {
+            $language = $default;
+        }
+
+        // Prefix (2 letters) and internal "locale"
+        $prefix   = $language;                 // es, en, pt, ...
+        $internal = $prefix === 'pt' ? 'pt' : $prefix; // map if needed
+
+        // Save BOTH values
+        session([
+            'locale'        => $internal,  // used by views, etc.
+            'locale_prefix' => $prefix,    // used by SetLocale when no /{locale} in URL
+        ]);
+
+        app()->setLocale($internal);
+
+        // Return to where user was, WITHOUT adding prefix to non-localized routes
+        $prev = (string) ($request->headers->get('referer') ?: url()->previous() ?: $request->fullUrl());
+        $parsed = parse_url($prev) ?: [];
+        $path   = $parsed['path'] ?? '/';
+        $query  = isset($parsed['query']) ? ('?'.$parsed['query']) : '';
+
+        // Remove locale prefix if exists
+        $segments = array_values(array_filter(explode('/', $path)));
+        $pathNoLocale = $path;
+        if (!empty($segments) && in_array($segments[0], $supported, true)) {
+            $pathNoLocale = '/' . implode('/', array_slice($segments, 1));
+            if ($pathNoLocale === '/') { $pathNoLocale = ''; }
+        }
+
+        // Routes without localization (don't add /es, /en, ...)
+        $unlocalized = [
+            'login','register','password','password-reset','email','verify',
+            'auth','two-factor-challenge','two-factor','unlock-account','account',
+            'admin', // admin is not localized
+            'profile','my-bookings','my-cart',
+        ];
+
+        $first = ltrim($pathNoLocale, '/');
+        $first = $first !== '' ? strtok($first, '/') : '';
+
+        if ($first !== '' && in_array($first, $unlocalized, true)) {
+            // return as-is, without prefix
+            return redirect()->to(($pathNoLocale === '' ? '/' : $pathNoLocale) . $query);
+        }
+
+        // If public root → redirect to language home
+        if ($pathNoLocale === '' || $pathNoLocale === '/') {
+            return redirect()->to('/' . $prefix);
+        }
+
+        // Localized public routes → prepend chosen language prefix
+        return redirect()->to('/' . $prefix . $pathNoLocale . $query);
     }
-
-    // ⬇️  Prefijo (2 letras) y "locale" interno
-    $prefix   = $language;                 // es, en, pt, ...
-    $internal = $prefix === 'pt' ? 'pt' : $prefix; // aquí mapeas si hiciera falta
-
-    // ⬇️  ¡Clave! guarda AMBAS cosas
-    session([
-        'locale'        => $internal,  // usado por views, etc.
-        'locale_prefix' => $prefix,    // usado por SetLocale cuando NO hay /{locale} en la URL
-    ]);
-
-    app()->setLocale($internal);
-
-    // --- Volver a donde estaba el usuario, SIN meter prefijo en rutas no-localizadas ---
-    $prev = (string) ($request->headers->get('referer') ?: url()->previous() ?: $request->fullUrl());
-    $parsed = parse_url($prev) ?: [];
-    $path   = $parsed['path'] ?? '/';
-    $query  = isset($parsed['query']) ? ('?'.$parsed['query']) : '';
-
-    // Quitar prefijo de locale si existe
-    $segments = array_values(array_filter(explode('/', $path)));
-    $pathNoLocale = $path;
-    if (!empty($segments) && in_array($segments[0], $supported, true)) {
-        $pathNoLocale = '/' . implode('/', array_slice($segments, 1));
-        if ($pathNoLocale === '/') { $pathNoLocale = ''; }
-    }
-
-    // Rutas sin localización (no agregues /es, /en, ...)
-    $unlocalized = [
-        'login','register','password','password-reset','email','verify',
-        'auth','two-factor-challenge','two-factor','unlock-account','account',
-        'admin', // admin no está localizado
-        'profile','my-reservations','my-cart','mi-carrito',
-    ];
-
-    $first = ltrim($pathNoLocale, '/');
-    $first = $first !== '' ? strtok($first, '/') : '';
-
-    if ($first !== '' && in_array($first, $unlocalized, true)) {
-        // vuelve tal cual, sin prefijo
-        return redirect()->to(($pathNoLocale === '' ? '/' : $pathNoLocale) . $query);
-    }
-
-    // Si es raíz pública → manda al home del idioma
-    if ($pathNoLocale === '' || $pathNoLocale === '/') {
-        return redirect()->to('/' . $prefix);
-    }
-
-    // Rutas públicas localizadas → anteponer prefijo del idioma elegido
-    return redirect()->to('/' . $prefix . $pathNoLocale . $query);
-}
 
 
     private function isAdminUrl(string $url): bool
@@ -94,9 +94,8 @@ public function switchLanguage(Request $request, string $language)
         $adminPrefixes = [
             '/admin',
             '/profile',
-            '/my-reservations',
+            '/my-bookings',
             '/my-cart',
-            '/mi-carrito',
         ];
 
         foreach ($adminPrefixes as $prefix) {

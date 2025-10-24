@@ -13,71 +13,71 @@ class BookingsExport implements FromView
 
     public function __construct(array $filters = [], $bookings = null)
     {
-    $this->filters = $filters;
-    $this->bookings = $bookings;
+        $this->filters = $filters;
+        $this->bookings = $bookings;
     }
 
     public function view(): View
     {
-        return view('admin.bookingDetails.excel', [
+        return view('admin.bookings.excel', [
             'bookings' => $this->bookings ?? collect()
         ]);
     }
 
-    public static function generarNombre(array $filters): string
+    public static function generateFileName(array $filters): string
     {
-        $nombre = 'Reporte';
+        $name = 'Report';
 
         if (!empty($filters['tour_id'])) {
             $tour = \App\Models\Tour::find($filters['tour_id']);
             if ($tour) {
-                $nombre .= ' ' . preg_replace('/\s*\([^)]*\)/', '', $tour->name);
+                $name .= ' ' . preg_replace('/\s*\([^)]*\)/', '', $tour->name);
             }
         }
 
         if (!empty($filters['tour_date_from']) || !empty($filters['tour_date_to'])) {
-            $desde = $filters['tour_date_from'] ?? null;
-            $hasta = $filters['tour_date_to'] ?? null;
+            $from = $filters['tour_date_from'] ?? null;
+            $to = $filters['tour_date_to'] ?? null;
 
-            if ($desde && $hasta && $desde === $hasta) {
-                $nombre .= " tours del $desde";
-            } elseif ($desde && $hasta) {
-                $nombre .= " tours del $desde al $hasta";
-            } elseif ($desde) {
-                $nombre .= " tours desde $desde";
-            } elseif ($hasta) {
-                $nombre .= " tours hasta $hasta";
+            if ($from && $to && $from === $to) {
+                $name .= " tours on $from";
+            } elseif ($from && $to) {
+                $name .= " tours from $from to $to";
+            } elseif ($from) {
+                $name .= " tours from $from";
+            } elseif ($to) {
+                $name .= " tours until $to";
             }
         } elseif (!empty($filters['booking_date_from']) || !empty($filters['booking_date_to'])) {
-            $desde = $filters['booking_date_from'] ?? null;
-            $hasta = $filters['booking_date_to'] ?? null;
+            $from = $filters['booking_date_from'] ?? null;
+            $to = $filters['booking_date_to'] ?? null;
 
-            if ($desde && $hasta && $desde === $hasta) {
-                $nombre .= " reservados del $desde";
-            } elseif ($desde && $hasta) {
-                $nombre .= " reservados del $desde al $hasta";
-            } elseif ($desde) {
-                $nombre .= " reservados desde $desde";
-            } elseif ($hasta) {
-                $nombre .= " reservados hasta $hasta";
+            if ($from && $to && $from === $to) {
+                $name .= " booked on $from";
+            } elseif ($from && $to) {
+                $name .= " booked from $from to $to";
+            } elseif ($from) {
+                $name .= " booked from $from";
+            } elseif ($to) {
+                $name .= " booked until $to";
             }
         }
 
         if (!empty($filters['status'])) {
-            $nombre .= " ({$filters['status']})";
+            $name .= " ({$filters['status']})";
         }
 
         if (!empty($filters['schedule_id'])) {
-            $horario = \App\Models\Schedule::find($filters['schedule_id']);
-            if ($horario) {
-                $nombre .= " [" . $horario->start_time . "]";
+            $schedule = \App\Models\Schedule::find($filters['schedule_id']);
+            if ($schedule) {
+                $name .= " [" . $schedule->start_time . "]";
             }
         }
 
         if (!empty($filters['reference'])) {
-            $nombre .= " [ref {$filters['reference']}]";
+            $name .= " [ref {$filters['reference']}]";
         }
 
-        return $nombre . '.xlsx';
+        return $name . '.xlsx';
     }
 }

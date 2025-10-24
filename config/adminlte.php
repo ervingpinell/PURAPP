@@ -330,12 +330,12 @@ return [
         'submenu' => [
             [
                 'text' => 'Mi Carrito',
-                'route' => 'admin.cart.index',
+                'route' => 'admin.carts.index',
                 'icon'  => 'fas fa-shopping-cart',
             ],
             [
                 'text' => 'Carritos Activos',
-                'route' => 'admin.cart.general',
+                'route' => 'admin.carts.all',
                 'icon'  => 'fas fa-list',
             ],
         ],
@@ -358,7 +358,7 @@ return [
             ],
             [
                 'text' => 'Generar Códigos Promocionales',
-                'route' => 'admin.promoCode.index',
+                'route' => 'admin.promoCodes.index',
                 'icon' => 'fas fa-tags',
             ],
             [
@@ -405,12 +405,12 @@ return [
         'submenu' => [
             [
                 'text' => 'Ver Reservas',
-                'route' => 'admin.reservas.index',
+                'route' => 'admin.bookings.index',
                 'icon'  => 'fas fa-calendar-check',
             ],
             [
                 'text' => 'Calendario',
-                'route' => 'admin.reservas.calendar',
+                'route' => 'admin.bookings.calendar',
                 'icon'  => 'fas fa-calendar-alt',
             ],
             [

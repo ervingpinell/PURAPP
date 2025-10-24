@@ -78,7 +78,7 @@
       <td>${{ number_format($booking->total, 2) }}</td>
 
       <td class="text-nowrap">
-        <a href="{{ route('admin.reservas.comprobante', $booking->booking_id) }}"
+        <a href="{{ route('admin.bookings.receipt', $booking->booking_id) }}"
            class="btn btn-primary btn-sm" title="Descargar comprobante">
           <i class="fas fa-file-download"></i>
         </a>
@@ -90,7 +90,7 @@
           <i class="fas fa-edit"></i>
         </button>
 
-        <form action="{{ route('admin.reservas.destroy', $booking->booking_id) }}"
+        <form action="{{ route('admin.bookings.destroy', $booking->booking_id) }}"
               method="POST" class="d-inline">
           @csrf
           @method('DELETE')
