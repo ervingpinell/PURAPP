@@ -1,30 +1,32 @@
+{{-- resources/views/admin/bookings/excel.blade.php --}}
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
-    <title>Bookings Export</title>
+    <title>{{ __('m_bookings.reports.excel_title') }}</title>
 </head>
 <body>
     <table>
         <thead>
             <tr>
-                <th>Booking ID</th>
-                <th>Reference</th>
-                <th>Status</th>
-                <th>Booking Date</th>
-                <th>Client</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Tour</th>
-                <th>Tour Date</th>
-                <th>Hotel</th>
-                <th>Schedule</th>
-                <th>Type</th>
-                <th>Adults</th>
-                <th>Kids</th>
-                <th>Total Price</th>
-                <th>Coupon</th>
-                <th>Adjustment</th> {{-- + or − --}}
+                <th>{{ __('m_bookings.bookings.fields.booking_id') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.reference') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.status') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.booking_date') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.customer') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.email') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.phone') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.tour') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.tour_date') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.hotel') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.schedule') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.type') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.adults') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.children') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.total') }}</th>
+                <th>{{ __('m_bookings.reports.coupon') }}</th>
+                <th>{{ __('m_bookings.reports.adjustment') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -74,7 +76,7 @@
                 <tr>
                     <td>{{ $booking->booking_id }}</td>
                     <td>{{ $booking->booking_reference }}</td>
-                    <td>{{ ucfirst($booking->status) }}</td>
+                    <td>{{ __('m_bookings.bookings.statuses.' . $booking->status) }}</td>
                     <td>{{ $booking->booking_date ?? '—' }}</td>
                     <td>{{ $booking->user->full_name ?? '—' }}</td>
                     <td>{{ $booking->user->email ?? '—' }}</td>
@@ -93,7 +95,7 @@
             @endforeach
 
             <tr style="font-weight: bold; background-color: #f2f2f2;">
-                <td colspan="12" style="text-align: right;">Totals:</td>
+                <td colspan="12" style="text-align: right;">{{ __('m_bookings.reports.totals') }}:</td>
                 <td>{{ $totalAdults }}</td>
                 <td>{{ $totalKids }}</td>
                 <td>${{ number_format($totalMoney, 2) }}</td>

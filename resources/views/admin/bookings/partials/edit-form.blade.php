@@ -6,34 +6,34 @@
   $calcPast = $detailDt ? \Carbon\Carbon::parse($detailDt, $tz)->lt(\Carbon\Carbon::parse($today, $tz)) : false;
   $isPast   = isset($isPast) ? (bool)$isPast : $calcPast;
 
-  // Mostrar errores solo si pertenecen a este modal
+  // Show errors only if they belong to this modal
   $showMyErrors = (session('showEditModal') == $booking->booking_id) || (old('_modal') === 'edit:'.$booking->booking_id);
 
   $bookingDateVal   = old('booking_date', \Carbon\Carbon::parse($booking->booking_date)->format('Y-m-d'));
-  $bookingDateHuman = \Carbon\Carbon::parse($bookingDateVal)->locale('es')->translatedFormat('d \\de F \\de Y');
+  $bookingDateHuman = \Carbon\Carbon::parse($bookingDateVal)->locale('en')->translatedFormat('F d, Y');
 @endphp
 
 @if($isPast)
   <div class="alert alert-warning mb-3">
-    Esta reserva corresponde a una fecha pasada y no puede editarse.
+    {{ __('m_bookings.bookings.messages.past_booking_warning') }}
   </div>
 @endif
 
-{{-- 🔒 Enviar siempre booking_date aunque el fieldset esté disabled --}}
+{{-- 🔒 Always send booking_date even if fieldset is disabled --}}
 <input type="hidden" name="booking_date" value="{{ $bookingDateVal }}">
 
 <fieldset @if($isPast) disabled @endif>
 
-  {{-- 📌 Fecha de origen de la reserva (solo texto, NO editable) --}}
+  {{-- 📌 Booking origin date (text only, NOT editable) --}}
   <div class="mb-3">
-    <label class="form-label">Fecha de Reserva (origen)</label>
-    <div class="form-control-text">{{ $bookingDateHuman }}</div>
+    <label class="form-label fw-semibold">{{ __('m_bookings.bookings.fields.booking_origin') }}</label>
+    <div class="form-control-plaintext border rounded px-3 py-2 bg-light">{{ $bookingDateHuman }}</div>
     @if($showMyErrors) @error('booking_date') <div class="text-danger small mt-1">{{ $message }}</div> @enderror @endif
   </div>
 
-  {{-- Cliente --}}
+  {{-- Customer --}}
   <div class="mb-3">
-    <label class="form-label">Cliente</label>
+    <label class="form-label fw-semibold">{{ __('m_bookings.bookings.fields.customer') }}</label>
     <select name="user_id" class="form-control {{ $showMyErrors && $errors->has('user_id') ? 'is-invalid':'' }}" required>
       @foreach(\App\Models\User::select('user_id','full_name')->orderBy('full_name')->get() as $u)
         <option value="{{ $u->user_id }}" {{ old('user_id', $booking->user_id) == $u->user_id ? 'selected' : '' }}>
@@ -44,15 +44,17 @@
     @if($showMyErrors) @error('user_id') <div class="invalid-feedback">{{ $message }}</div> @enderror @endif
   </div>
 
-  {{-- Correo (solo lectura) --}}
+  {{-- Email (read only) --}}
   <div class="mb-3">
-    <label class="form-label">Correo</label>
-    <input type="email" class="form-control" value="{{ $booking->user->email ?? '' }}" readonly>
+    <label class="form-label fw-semibold">{{ __('m_bookings.bookings.fields.email') }}</label>
+    <input type="email" class="form-control bg-light" value="{{ $booking->user->email ?? '' }}" readonly>
   </div>
 
-  {{-- Tour (incluye archivados para no romper reservas antiguas) --}}
+  <hr class="my-3">
+
+  {{-- Tour (includes archived to not break old bookings) --}}
   <div class="mb-3">
-    <label class="form-label">Tour</label>
+    <label class="form-label fw-semibold">{{ __('m_bookings.bookings.fields.tour') }}</label>
     <select name="tour_id" class="form-control {{ $showMyErrors && $errors->has('tour_id') ? 'is-invalid':'' }}" required>
       @foreach(\App\Models\Tour::withTrashed()->with('schedules')->orderBy('name')->get() as $tour)
         @php
@@ -66,21 +68,21 @@
         <option value="{{ $tour->tour_id }}"
                 data-schedules='@json($sched, JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_AMP|JSON_HEX_QUOT)'
                 {{ old('tour_id', $booking->tour_id) == $tour->tour_id ? 'selected' : '' }}>
-          {{ $tour->name }}@if($tour->trashed()) (archivado)@endif
+          {{ $tour->name }}@if($tour->trashed()) {{ __('m_bookings.bookings.messages.tour_archived') }}@endif
         </option>
       @endforeach
     </select>
     @if($showMyErrors) @error('tour_id') <div class="invalid-feedback">{{ $message }}</div> @enderror @endif
   </div>
 
-  {{-- Horario (seguro si el tour está archivado) --}}
+  {{-- Schedule (safe if tour is archived) --}}
   <div class="mb-3">
-    <label class="form-label">Horario</label>
+    <label class="form-label fw-semibold">{{ __('m_bookings.bookings.fields.schedule') }}</label>
     @php $tourForSchedule = $booking->tour; @endphp
 
     @if($tourForSchedule)
       <select name="schedule_id" class="form-control {{ $showMyErrors && $errors->has('schedule_id') ? 'is-invalid':'' }}" required>
-        <option value="">Seleccione horario</option>
+        <option value="">{{ __('m_bookings.bookings.placeholders.select_schedule') }}</option>
         @foreach($tourForSchedule->schedules as $s)
           <option value="{{ $s->schedule_id }}" {{ old('schedule_id', $booking->detail->schedule_id) == $s->schedule_id ? 'selected' : '' }}>
             {{ \Carbon\Carbon::parse($s->start_time)->format('g:i A') }} – {{ \Carbon\Carbon::parse($s->end_time)->format('g:i A') }}
@@ -89,19 +91,19 @@
       </select>
     @else
       <div class="alert alert-warning mb-2">
-        El tour de esta reserva fue eliminado/archivado y no se pudo cargar. Selecciona un tour para ver sus horarios.
+        {{ __('m_bookings.bookings.messages.tour_archived_warning') }}
       </div>
       <select name="schedule_id" class="form-control" disabled>
-        <option value="">Sin horarios disponibles</option>
+        <option value="">{{ __('m_bookings.bookings.messages.no_schedules') }}</option>
       </select>
     @endif
 
     @if($showMyErrors) @error('schedule_id') <div class="invalid-feedback">{{ $message }}</div> @enderror @endif
   </div>
 
-  {{-- Idioma --}}
+  {{-- Language --}}
   <div class="mb-3">
-    <label class="form-label">Idioma</label>
+    <label class="form-label fw-semibold">{{ __('m_bookings.bookings.fields.language') }}</label>
     <select name="tour_language_id" class="form-control {{ $showMyErrors && $errors->has('tour_language_id') ? 'is-invalid':'' }}" required>
       @foreach(\App\Models\TourLanguage::orderBy('name')->get() as $lang)
         <option value="{{ $lang->tour_language_id }}" {{ old('tour_language_id', $booking->tour_language_id) == $lang->tour_language_id ? 'selected' : '' }}>
@@ -112,9 +114,9 @@
     @if($showMyErrors) @error('tour_language_id') <div class="invalid-feedback">{{ $message }}</div> @enderror @endif
   </div>
 
-  {{-- Fecha del Tour (min = hoy) --}}
+  {{-- Tour Date (min = today) --}}
   <div class="mb-3">
-    <label class="form-label">Fecha del Tour</label>
+    <label class="form-label fw-semibold">{{ __('m_bookings.bookings.fields.tour_date') }}</label>
     <input
       type="date"
       name="tour_date"
@@ -126,30 +128,32 @@
     @if($showMyErrors) @error('tour_date') <div class="invalid-feedback">{{ $message }}</div> @enderror @endif
   </div>
 
+  <hr class="my-3">
+
   {{-- Hotel --}}
   @php
     $hotelOld = old('hotel_id', (!$booking->detail->is_other_hotel ? $booking->detail->hotel_id : 'other'));
   @endphp
   <div class="mb-3">
-    <label class="form-label">Hotel</label>
+    <label class="form-label fw-semibold">{{ __('m_bookings.bookings.fields.hotel') }}</label>
     <select name="hotel_id" class="form-control {{ $showMyErrors && $errors->has('hotel_id') ? 'is-invalid':'' }}" data-role="hotel-select">
-      <option value="">Seleccione hotel</option>
+      <option value="">{{ __('m_bookings.bookings.placeholders.select_hotel') }}</option>
       @foreach(\App\Models\HotelList::where('is_active', true)->orderBy('name')->get() as $h)
         <option value="{{ $h->hotel_id }}" {{ $hotelOld == $h->hotel_id ? 'selected':'' }}>
           {{ $h->name }}
         </option>
       @endforeach
-      <option value="other" {{ $hotelOld === 'other' ? 'selected':'' }}>Otro…</option>
+      <option value="other" {{ $hotelOld === 'other' ? 'selected':'' }}>{{ __('m_bookings.bookings.placeholders.other') }}</option>
     </select>
     @if($showMyErrors) @error('hotel_id') <div class="invalid-feedback">{{ $message }}</div> @enderror @endif
   </div>
 
-  {{-- Otro hotel --}}
+  {{-- Other hotel --}}
   @php
     $isOtherOld = old('is_other_hotel', $booking->detail->is_other_hotel ? 1 : 0);
   @endphp
   <div class="mb-3 {{ $isOtherOld ? '' : 'd-none' }}" data-role="other-hotel-wrapper">
-    <label class="form-label">Nombre de otro hotel</label>
+    <label class="form-label fw-semibold">{{ __('m_bookings.bookings.fields.other_hotel') }}</label>
     <input type="text" name="other_hotel_name"
            class="form-control {{ $showMyErrors && $errors->has('other_hotel_name') ? 'is-invalid':'' }}"
            value="{{ old('other_hotel_name', $booking->detail->other_hotel_name) }}">
@@ -157,34 +161,40 @@
   </div>
   <input type="hidden" name="is_other_hotel" value="{{ $isOtherOld }}" data-role="is-other-hotel">
 
-  {{-- Adultos --}}
+  <hr class="my-3">
+
+  {{-- Adults --}}
   <div class="mb-3">
-    <label class="form-label">Cantidad Adultos</label>
-    <input type="number" name="adults_quantity" min="1" required
+    <label class="form-label fw-semibold">{{ __('m_bookings.bookings.fields.adults_quantity') }}</label>
+    <input type="number" name="adults_quantity" min="0" required
            class="form-control {{ $showMyErrors && $errors->has('adults_quantity') ? 'is-invalid':'' }}"
            value="{{ old('adults_quantity', $booking->detail->adults_quantity) }}">
     @if($showMyErrors) @error('adults_quantity') <div class="invalid-feedback">{{ $message }}</div> @enderror @endif
+    <div class="form-text small">Mínimo 1 adulto o 1 niño por reserva</div>
   </div>
 
-  {{-- Niños --}}
+  {{-- Children --}}
   <div class="mb-3">
-    <label class="form-label">Cantidad Niños</label>
+    <label class="form-label fw-semibold">{{ __('m_bookings.bookings.fields.children_quantity') }}</label>
     <input type="number" name="kids_quantity" min="0" max="2" required
            class="form-control {{ $showMyErrors && $errors->has('kids_quantity') ? 'is-invalid':'' }}"
            value="{{ old('kids_quantity', $booking->detail->kids_quantity) }}">
     @if($showMyErrors) @error('kids_quantity') <div class="invalid-feedback">{{ $message }}</div> @enderror @endif
+    <div class="form-text small">Máximo 2 niños por reserva</div>
   </div>
 
-  {{-- Notas --}}
+  <hr class="my-3">
+
+  {{-- Notes --}}
   <div class="mb-3">
-    <label class="form-label">Notas</label>
-    <textarea name="notes" class="form-control {{ $showMyErrors && $errors->has('notes') ? 'is-invalid':'' }}" rows="2">{{ old('notes', $booking->notes) }}</textarea>
+    <label class="form-label fw-semibold">{{ __('m_bookings.bookings.fields.notes') }}</label>
+    <textarea name="notes" class="form-control {{ $showMyErrors && $errors->has('notes') ? 'is-invalid':'' }}" rows="3">{{ old('notes', $booking->notes) }}</textarea>
     @if($showMyErrors) @error('notes') <div class="invalid-feedback">{{ $message }}</div> @enderror @endif
   </div>
 
-  {{-- Estado --}}
+  {{-- Status --}}
   <div class="mb-3">
-    <label class="form-label">Estado</label>
+    <label class="form-label fw-semibold">{{ __('m_bookings.bookings.fields.status') }}</label>
     <select name="status" class="form-control {{ $showMyErrors && $errors->has('status') ? 'is-invalid':'' }}" required>
       @foreach($statuses as $val => $label)
         <option value="{{ $val }}" {{ old('status', $booking->status) === $val ? 'selected':'' }}>
@@ -197,9 +207,15 @@
 
 </fieldset>
 
-{{-- Botones de acción --}}
-<div class="mt-3 d-flex justify-content-end">
-  <button type="submit" class="btn btn-primary" @if($isPast) disabled @endif>
-    <i class="fas fa-check-circle"></i> Confirmar cambios
+{{-- Action buttons --}}
+<div class="mt-3 d-flex justify-content-end gap-2">
+  <button type="submit" class="btn btn-warning" @if($isPast) disabled @endif>
+    <i class="fas fa-save me-1"></i> {{ __('m_bookings.bookings.buttons.confirm_changes') }}
   </button>
+
+  @if(!$isPast)
+    <button type="button" class="btn btn-outline-secondary" onclick="this.closest('form').reset()">
+      <i class="fas fa-undo me-1"></i> Restore
+    </button>
+  @endif
 </div>

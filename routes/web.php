@@ -12,7 +12,7 @@ use App\Http\Controllers\Reviews\PublicReviewController;
 use App\Http\Controllers\Reviews\ReviewsController;
 use App\Http\Controllers\SitemapController;
 
-// Public cart controller
+    // Public (auth) cart controller
 use App\Http\Controllers\CartController as PublicCartController;
 
 // Admin controllers
@@ -46,11 +46,10 @@ use App\Http\Controllers\Admin\Users\UserRegisterController;
 use App\Http\Controllers\Admin\MeetingPointSimpleController;
 use App\Http\Controllers\Admin\TranslationController;
 
-// Public bookings controller (new, split)
+// Public bookings controller (split)
 use App\Http\Controllers\Bookings\BookingController as PublicBookingController;
 
 use App\Http\Middleware\SetLocale;
-
 use App\Services\Reviews\ReviewAggregator;
 
 use Illuminate\Http\Request;
@@ -174,21 +173,6 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::view('/reviews/thanks', 'reviews.thanks')->name('reviews.thanks');
 
     // ============================
-    // CART & PROMO (PUBLIC, READONLY-BLOCKABLE)
-    // ============================
-    Route::get('/cart/count', [PublicCartController::class, 'count'])
-        ->name('cart.count.public')
-        ->middleware('public.readonly');
-
-    Route::post('/api/apply-promo', [PromoCodeController::class, 'apply'])
-        ->name('api.promo.apply')
-        ->middleware('public.readonly');
-
-    Route::post('/apply-promo', [PromoCodeController::class, 'apply'])
-        ->name('promo.apply')
-        ->middleware('public.readonly');
-
-    // ============================
     // AUTH & VERIFICATION
     // ============================
     Route::view('/account/locked', 'auth.account-locked')->name('account.locked');
@@ -248,20 +232,25 @@ Route::middleware([SetLocale::class])->group(function () {
 
         // My bookings (public controller)
         Route::get('/my-bookings', [PublicBookingController::class, 'myBookings'])->name('my-bookings');
-     Route::get('/my-bookings/{booking}/receipt', [PublicBookingController::class, 'downloadReceiptPdf'])
-    ->name('bookings.receipt.download');
+        Route::get('/my-bookings/{booking}/receipt', [PublicBookingController::class, 'downloadReceiptPdf'])
+            ->name('bookings.receipt.download');
 
-        // Cart (public controller)
+        // Cart (public controller) — SOLO autenticados
         Route::get('/my-cart', [PublicCartController::class, 'index'])->name('public.carts.index');
-        Route::post('/carts/add/{tour}', [PublicCartController::class, 'store'])->name('public.carts.add');
-
-        Route::post('/bookings/from-cart', [PublicBookingController::class, 'storeFromCart'])->name('public.bookings.storeFromCart');
-
+        Route::post('/carts/add', [PublicCartController::class, 'store'])->name('public.carts.add');
         Route::delete('/carts/{item}', [PublicCartController::class, 'destroy'])->name('public.carts.destroy');
         Route::put('/carts/{item}',    [PublicCartController::class, 'update'])->name('public.carts.update');
 
         Route::post('/carts/expire',         [PublicCartController::class, 'expire'])->name('public.carts.expire');
         Route::post('/carts/refresh-expiry', [PublicCartController::class, 'refreshExpiry'])->name('public.carts.refreshExpiry');
+        Route::get('/cart/count', [PublicCartController::class, 'count'])->name('cart.count.public');
+
+        // Promo público (en sesión) desde CartController
+        Route::post('/apply-promo',   [PublicCartController::class, 'applyPromo'])->name('public.carts.applyPromo');
+        Route::delete('/remove-promo',[PublicCartController::class, 'removePromo'])->name('public.carts.removePromo');
+
+        // Checkout desde carrito (público)
+        Route::post('/bookings/from-cart', [PublicBookingController::class, 'storeFromCart'])->name('public.bookings.storeFromCart');
     });
 
     // ------------------------------
@@ -331,7 +320,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::resource('meetingpoints', MeetingPointSimpleController::class)->except(['show', 'create', 'edit']);
                 Route::patch('meetingpoints/{meetingpoint}/toggle', [MeetingPointSimpleController::class, 'toggle'])->name('meetingpoints.toggle');
 
-                // Tour Types: covers
+                // Tour Types (cuidado con el parámetro)
                 Route::prefix('types')->name('types.')->group(function () {
                     Route::get('images', [TourTypeCoverPickerController::class, 'pick'])->name('images.pick');
                     Route::get('images/{tourType}/edit', [TourTypeCoverPickerController::class, 'edit'])->name('images.edit');
@@ -401,20 +390,30 @@ Route::middleware([SetLocale::class])->group(function () {
                 });
 
                 // ============================
-                // BOOKINGS (ADMIN) — all English
+                // BOOKINGS (ADMIN)
                 // ============================
-                Route::get('bookings/export/excel', [AdminBookingController::class, 'exportToExcel'])->name('bookings.export.excel');
-                Route::get('bookings/export/pdf',   [AdminBookingController::class, 'downloadSummaryPdf'])->name('bookings.export.pdf');
-                Route::get('bookings/{booking}/receipt', [AdminBookingController::class, 'downloadReceiptPdf'])->name('bookings.receipt');
+                // Export
+                Route::get('bookings/export/excel', [AdminBookingController::class, 'exportExcel'])->name('bookings.export.excel');
+                Route::get('bookings/export/pdf',   [AdminBookingController::class, 'exportPdf'])->name('bookings.export.pdf');
 
+                // Calendar (restaurado)
                 Route::get('bookings/reserved', [AdminBookingController::class, 'reservedSeats'])->name('bookings.reserved');
                 Route::get('bookings/calendar-data', [AdminBookingController::class, 'calendarData'])->name('bookings.calendarData');
                 Route::get('bookings/calendar', [AdminBookingController::class, 'calendar'])->name('bookings.calendar');
-                Route::post('bookings/from-cart', [AdminBookingController::class, 'storeFromCart'])
-                ->name('bookings.storeFromCart');
-                Route::resource('bookings', AdminBookingController::class)->except(['show']);
 
-                  // Idiomas, Hoteles
+                // API promo verification (admin)
+                Route::get('bookings/verify-promo-code', [AdminBookingController::class, 'verifyPromoCode'])->name('bookings.verify-promo');
+
+                // Receipt + status
+                Route::get('bookings/{booking}/receipt', [AdminBookingController::class, 'generateReceipt'])->name('bookings.receipt');
+                Route::patch('bookings/{booking}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.update-status');
+
+                // CRUD principal
+                Route::resource('bookings', AdminBookingController::class)->except(['show']);
+                Route::post('bookings/from-cart', [AdminBookingController::class, 'storeFromCart'])
+                    ->name('bookings.storeFromCart');
+
+                // Idiomas, Hoteles
                 Route::resource('languages', TourLanguageController::class, ['parameters' => ['languages' => 'language']])->except(['show']);
                 Route::patch('languages/{language}/toggle', [TourLanguageController::class, 'toggle'])->name('languages.toggle');
 
@@ -427,13 +426,11 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
 
                 // ============================
-                // CART (ADMIN) — all English
+                // CART (ADMIN)
                 // ============================
                 Route::get('carts', [AdminCartController::class, 'index'])->name('carts.index');
                 Route::post('carts', [AdminCartController::class, 'store'])->name('carts.store');
-
                 Route::patch('carts/{item}', [AdminCartController::class, 'update'])->name('carts.update');
-                Route::post('carts/item/{item}/update', [AdminCartController::class, 'updateFromPost'])->name('carts.updateFromPost');
                 Route::delete('carts/item/{item}', [AdminCartController::class, 'destroy'])->name('carts.item.destroy');
 
                 Route::get('carts/all', [AdminCartController::class, 'allCarts'])->name('carts.all');

@@ -3,718 +3,615 @@
 namespace App\Http\Controllers\Admin\Bookings;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Validation\ValidationException;
-
-use Barryvdh\DomPDF\Facade\Pdf;
-use Maatwebsite\Excel\Facades\Excel;
-use Carbon\Carbon;
-
 use App\Models\Booking;
 use App\Models\BookingDetail;
-use App\Models\HotelList;
 use App\Models\Schedule;
 use App\Models\Tour;
+use App\Models\TourLanguage;
+use App\Models\User;
+use App\Models\HotelList;
 use App\Models\PromoCode;
 use App\Models\MeetingPoint;
-
-use App\Support\BookingRules;
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\BookingsExport;
-use App\Mail\BookingCreatedMail;
-use App\Mail\BookingUpdatedMail;
-use App\Mail\BookingConfirmedMail;
-use App\Mail\BookingCancelledMail;
+use App\Services\Bookings\BookingCreator;
+use App\Services\Bookings\BookingCapacityService;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
+
+
 
 class BookingController extends Controller
 {
-    /** Admin list */
+    public function __construct(
+        private BookingCreator $creator,
+        private BookingCapacityService $capacity
+    ) {}
+
+    /**
+     * Display a listing of bookings with filters
+     */
     public function index(Request $request)
     {
-        $sort      = $request->get('sort', 'booking_id');
-        $direction = $request->get('direction', 'asc');
-
-        $allowedSorts = ['booking_id', 'booking_date', 'total', 'status', 'user'];
-        if (!in_array($sort, $allowedSorts)) $sort = 'booking_id';
-
         $query = Booking::with([
-                'user',
-                'detail.tour.tourType',
-                'detail.hotel',
-                'detail.schedule',
-                'detail.meetingPoint',
-                'redemption.promoCode',
-                'tour' => fn ($q) => $q->withTrashed()->with('schedules'),
-            ])
-            ->join('users', 'bookings.user_id', '=', 'users.user_id')
-            ->select('bookings.*');
-
-        // Restrict agents (role_id = 3) to their own bookings
-        if (Auth::user()->role_id === 3) {
-            $query->where('bookings.user_id', Auth::id());
-        }
+            'user',
+            'tour',
+            'detail.schedule',
+            'detail.hotel',
+            'detail.tourLanguage',
+            'detail.meetingPoint',
+            'promoCode'
+        ]);
 
         if ($request->filled('reference')) {
-            $query->where('bookings.booking_reference', 'ILIKE', "%{$request->reference}%");
+            $query->where('booking_reference', 'like', '%' . $request->reference . '%');
         }
         if ($request->filled('status')) {
-            $query->where('bookings.status', $request->status);
+            $query->where('status', $request->status);
         }
         if ($request->filled('booking_date_from')) {
-            $query->whereDate('bookings.booking_date', '>=', $request->booking_date_from);
+            $query->whereDate('booking_date', '>=', $request->booking_date_from);
         }
         if ($request->filled('booking_date_to')) {
-            $query->whereDate('bookings.booking_date', '<=', $request->booking_date_to);
+            $query->whereDate('booking_date', '<=', $request->booking_date_to);
         }
-
-        if (
-            $request->filled('tour_date_from') || $request->filled('tour_date_to') ||
-            $request->filled('tour_id') || $request->filled('schedule_id')
-        ) {
+        if ($request->filled('tour_date_from') || $request->filled('tour_date_to')) {
             $query->whereHas('detail', function ($q) use ($request) {
-                if ($request->filled('tour_date_from')) $q->whereDate('tour_date', '>=', $request->tour_date_from);
-                if ($request->filled('tour_date_to'))   $q->whereDate('tour_date', '<=', $request->tour_date_to);
-                if ($request->filled('tour_id'))        $q->where('tour_id', $request->tour_id);
-                if ($request->filled('schedule_id'))    $q->where('schedule_id', $request->schedule_id);
+                if ($request->filled('tour_date_from')) {
+                    $q->whereDate('tour_date', '>=', $request->tour_date_from);
+                }
+                if ($request->filled('tour_date_to')) {
+                    $q->whereDate('tour_date', '<=', $request->tour_date_to);
+                }
+            });
+        }
+        if ($request->filled('tour_id')) {
+            $query->where('tour_id', $request->tour_id);
+        }
+        if ($request->filled('schedule_id')) {
+            $query->whereHas('detail', function ($q) use ($request) {
+                $q->where('schedule_id', $request->schedule_id);
             });
         }
 
-        $bookings = $query
-            ->orderBy($sort === 'user' ? 'users.full_name' : 'bookings.' . $sort, $direction)
-            ->paginate(10)
-            ->appends($request->all());
+        $bookings = $query->orderBy('booking_date', 'desc')->paginate(15);
 
-        $hotels    = HotelList::where('is_active', true)->orderBy('name')->get();
-        $schedules = Schedule::orderBy('start_time')->get();
-        $tours     = Tour::orderBy('name')->get();
+        $tours = Tour::orderBy('name')->get(['tour_id', 'name']);
+        $schedules = Schedule::orderBy('start_time')->get(['schedule_id', 'start_time', 'end_time']);
+        $hotels = HotelList::where('is_active', true)->orderBy('name')->get(['hotel_id', 'name']);
+        $meetingPoints = MeetingPoint::where('is_active', true)
+            ->orderByRaw('sort_order IS NULL, sort_order ASC')
+            ->orderBy('name', 'asc')
+            ->get();
 
-        return view('admin.bookings.index', compact('bookings', 'sort', 'direction', 'hotels', 'schedules', 'tours'));
+        return view('admin.bookings.index', compact('bookings', 'tours', 'schedules', 'hotels', 'meetingPoints'));
     }
 
-    /** Create booking manually (admin) */
-    public function store(Request $request)
-    {
-        // Normalize hotel flags
-        $input = $request->all();
-        $input['is_other_hotel'] = filter_var($input['is_other_hotel'] ?? false, FILTER_VALIDATE_BOOLEAN);
+    /**
+     * Store a newly created booking (admin)
+     */
+public function store(Request $request)
+{
+    $rules = [
+        'user_id'           => ['required','integer','exists:users,user_id'],
+        'tour_language_id'  => ['required','integer','exists:tour_languages,tour_language_id'],
+        'tour_id'           => ['required','integer','exists:tours,tour_id'],
+        'schedule_id'       => ['required','integer','exists:schedules,schedule_id'],
+        'tour_date'         => ['required','date','after_or_equal:today'],
+        'adults_quantity'   => ['required','integer','min:1'],
+        'kids_quantity'     => ['nullable','integer','min:0','max:2'],
+        'pickup_mode'       => ['required','in:hotel,point'],
+        'hotel_id'          => ['nullable','integer','exists:hotels_list,hotel_id','exclude_if:is_other_hotel,1'],
+        'is_other_hotel'    => ['nullable','boolean'],
+        'other_hotel_name'  => ['nullable','string','max:255','required_if:is_other_hotel,1'],
+        'meeting_point_id'  => ['nullable','integer','exists:meeting_points,id'],
+        'promo_code'        => ['nullable','string','max:50'],
+        'status'            => ['nullable','in:pending,confirmed,cancelled'],
+    ];
 
-        if (($input['hotel_id'] ?? null) === 'other' || $input['is_other_hotel'] === true) {
-            $input['hotel_id'] = null;
-        } elseif (isset($input['hotel_id']) && !ctype_digit((string)$input['hotel_id'])) {
-            $input['hotel_id'] = null;
-        }
-        $request->replace($input);
+    try {
+        $data = $request->validate($rules);
+    } catch (\Illuminate\Validation\ValidationException $ve) {
+        return back()
+            ->withErrors($ve->validator)
+            ->withInput()
+            ->with('openModal','register');
+    }
 
-        // Validation
-        try {
-            $tz      = config('app.timezone', 'America/Costa_Rica');
-            $minDate = BookingRules::earliestBookableDate();
+    $isOtherHotel = (bool)($data['is_other_hotel'] ?? false);
+    $hotelId      = $isOtherHotel ? null : ($data['hotel_id'] ?? null);
 
-            $v = $request->validate([
-                'user_id'          => 'required|exists:users,user_id',
-                'tour_id'          => 'required|exists:tours,tour_id',
-                'booking_date'     => 'required|date',
-                'tour_date'        => ['required', 'date', function ($attr, $value, $fail) use ($tz, $minDate) {
-                    $dt = Carbon::parse($value, $tz)->startOfDay();
-                    if ($dt->lt($minDate)) $fail(__('No past dates allowed (min: :min)', ['min' => $minDate->toDateString()]));
-                }],
-                'status'           => 'required|in:pending,confirmed,cancelled',
-                'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
-                'adults_quantity'  => 'required|integer|min:1',
-                'kids_quantity'    => 'required|integer|min:0|max:2',
-                'schedule_id'      => 'required|exists:schedules,schedule_id',
-                'hotel_id'         => 'bail|nullable|integer|exists:hotels_list,hotel_id',
-                'is_other_hotel'   => 'required|boolean',
-                'other_hotel_name' => 'nullable|string|max:255|required_if:is_other_hotel,1',
-                'promo_code'       => 'nullable|string',
-                'meeting_point_id' => 'nullable|integer|exists:meeting_points,id',
-            ], [
-                'other_hotel_name.required_if' => __('Other hotel name is required.'),
-            ]);
-        } catch (ValidationException $e) {
-            return back()->withErrors($e->errors())->with('openModal', 'register')->withInput();
-        }
+    if (($data['pickup_mode'] ?? 'hotel') === 'point') {
+        $isOtherHotel = false;
+        $hotelId = null;
+    } else {
+        $data['meeting_point_id'] = null;
+    }
 
-        // Promo sanity
-        if ($request->filled('promo_code')) {
-            $cleanCode = strtoupper(trim(preg_replace('/\s+/', '', $request->input('promo_code'))));
-            $promoOk = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code, ' ', ''))) = ?", [$cleanCode])
-                ->where('is_used', false)
-                ->exists();
+    $payload = [
+        'user_id'           => (int)$data['user_id'],
+        'tour_id'           => (int)$data['tour_id'],
+        'schedule_id'       => (int)$data['schedule_id'],
+        'tour_language_id'  => (int)$data['tour_language_id'],
+        'tour_date'         => $data['tour_date'],
+        'booking_date'      => now(),
+        'adults_quantity'   => (int)$data['adults_quantity'],
+        'kids_quantity'     => (int)($data['kids_quantity'] ?? 0),
+        'status'            => $data['status'] ?? 'pending',
+        'promo_code'        => $data['promo_code'] ?? null,
+        'meeting_point_id'  => $data['meeting_point_id'] ?? null,
+        'hotel_id'          => $hotelId,
+        'is_other_hotel'    => $isOtherHotel,
+        'other_hotel_name'  => $isOtherHotel ? ($data['other_hotel_name'] ?? null) : null,
+        'notes'             => null,
+    ];
 
-            if (!$promoOk) {
+    try {
+        // Validar capacidad si guardan en "confirmed" (se cuentan confirmed+pending)
+        if ($payload['status'] === 'confirmed') {
+            $tour     = \App\Models\Tour::findOrFail($payload['tour_id']);
+            $schedule = \App\Models\Schedule::findOrFail($payload['schedule_id']);
+
+            $remaining = $this->capacity->remainingCapacity($tour, $schedule, $payload['tour_date'], excludeBookingId: null, countHolds: true);
+            $requested = (int)$payload['adults_quantity'] + (int)$payload['kids_quantity'];
+
+            if ($requested > $remaining) {
                 return back()
-                    ->withErrors(['promo_code' => __('Promo code is invalid or already used.')])
-                    ->with('openModal', 'register')
-                    ->withInput();
+                    ->withErrors(['capacity' => __("m_bookings.messages.limited_seats_available", [
+                        'available' => $remaining,
+                        'tour'      => optional($tour)->name,
+                        'date'      => $payload['tour_date'],
+                    ])])
+                    ->withInput()
+                    ->with('openModal','register');
             }
         }
 
-        // Anti double submit
-        $key = sprintf(
-            'booking:%s:%s:%s:%s',
-            $v['user_id'], $v['tour_id'],
-            Carbon::parse($v['tour_date'])->toDateString(),
-            $v['schedule_id']
-        );
-        if (RateLimiter::tooManyAttempts($key, 1)) {
-            return back()
-                ->withErrors(['too_many' => __('We are already processing this booking. Please retry in a few seconds.')])
-                ->with('openModal', 'register')
-                ->withInput();
-        }
-        RateLimiter::hit($key, 10);
+        $this->creator->create($payload, validateCapacity: false);
 
-        // Transaction
-        try {
-            $booking = DB::transaction(function () use ($request, $v) {
-                $tour = Tour::with('schedules')->findOrFail($v['tour_id']);
+        return redirect()
+            ->route('admin.bookings.index')
+            ->with('success', __('m_bookings.bookings.success.created'));
 
-                $schedule = $tour->schedules()
-                    ->where('schedules.schedule_id', $v['schedule_id'])
-                    ->where('schedules.is_active', true)
-                    ->wherePivot('is_active', true)
-                    ->first();
+    } catch (\Illuminate\Validation\ValidationException $ve) {
+        return back()
+            ->withErrors($ve->validator ?? $ve->errors())
+            ->withInput()
+            ->with('openModal','register');
 
-                if (!$schedule) {
-                    throw ValidationException::withMessages([
-                        'schedule_id' => __('Selected schedule is not available for this tour.'),
-                    ]);
-                }
+    } catch (\Throwable $e) {
+        report($e);
+        return back()
+            ->withErrors(['general' => __('m_bookings.messages.unexpected_error')])
+            ->withInput()
+            ->with('openModal','register');
+    }
+}
 
-                // Blocked date
-                $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
-                    ->where(fn ($q) => $q->whereNull('schedule_id')->orWhere('schedule_id', $v['schedule_id']))
-                    ->where('start_date', '<=', $v['tour_date'])
-                    ->where(fn ($q) => $q->where('end_date', '>=', $v['tour_date'])->orWhereNull('end_date'))
-                    ->exists();
 
-                if ($isBlocked) {
-                    throw ValidationException::withMessages([
-                        'tour_date' => __('Selected date is blocked for this tour.'),
-                    ]);
-                }
+public function storeFromCart(Request $request)
+{
+    $user = Auth::user();
 
-                // Capacity
-                $reserved = BookingDetail::where('tour_id', $tour->tour_id)
-                    ->where('tour_date', $v['tour_date'])
-                    ->where('schedule_id', $v['schedule_id'])
-                    ->sum(DB::raw('adults_quantity + kids_quantity'));
+    $cart = $user->cart()
+        ->where('is_active', true)
+        ->with(['items' => function($q){
+            $q->with(['tour','schedule','language','hotel','meetingPoint']);
+        }])
+        ->first();
 
-                $requested = $v['adults_quantity'] + $v['kids_quantity'];
-                if ($reserved + $requested > $schedule->max_capacity) {
-                    $available = $schedule->max_capacity - $reserved;
-                    throw ValidationException::withMessages([
-                        'capacity' => __('Only :available seats left for that time slot.', ['available' => $available]),
-                    ]);
-                }
-
-                // Totals + promo
-                $baseTotal = ($tour->adult_price * $v['adults_quantity']) + ($tour->kid_price * $v['kids_quantity']);
-                $total = $baseTotal;
-
-                $promoCode = null;
-                if ($request->filled('promo_code')) {
-                    $clean = strtoupper(trim(preg_replace('/\s+/', '', $request->input('promo_code'))));
-                    $promoCode = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code, ' ', ''))) = ?", [$clean])
-                        ->where('is_used', false)
-                        ->first();
-                }
-
-                if ($promoCode) {
-                    $op = $promoCode->operation === 'add' ? 'add' : 'subtract';
-                    $delta = $promoCode->discount_amount
-                        ? (float) $promoCode->discount_amount
-                        : ($promoCode->discount_percent ? round($baseTotal * ($promoCode->discount_percent / 100), 2) : 0);
-                    $total = $op === 'add' ? round($baseTotal + $delta, 2) : max(0, round($baseTotal - $delta, 2));
-                }
-
-                $mp = $request->filled('meeting_point_id') ? MeetingPoint::find($request->meeting_point_id) : null;
-
-                // Header
-                $booking = Booking::create([
-                    'user_id'            => $v['user_id'],
-                    'tour_id'            => $tour->tour_id,
-                    'tour_language_id'   => $v['tour_language_id'],
-                    'booking_reference'  => strtoupper(Str::random(10)),
-                    'booking_date'       => $v['booking_date'],
-                    'status'             => $v['status'],
-                    'total'              => $total,
-                    'is_active'          => true,
-                    'tour_name_snapshot' => $tour->name,
-                ]);
-
-                // Detail
-                BookingDetail::create([
-                    'booking_id'       => $booking->booking_id,
-                    'tour_id'          => $tour->tour_id,
-                    'tour_language_id' => $v['tour_language_id'],
-                    'tour_date'        => $v['tour_date'],
-                    'schedule_id'      => $v['schedule_id'],
-                    'adults_quantity'  => $v['adults_quantity'],
-                    'kids_quantity'    => $v['kids_quantity'],
-                    'adult_price'      => $tour->adult_price,
-                    'kid_price'        => $tour->kid_price,
-                    'total'            => $total,
-                    'hotel_id'         => $v['is_other_hotel'] ? null : $v['hotel_id'],
-                    'is_other_hotel'   => $v['is_other_hotel'],
-                    'other_hotel_name' => $v['is_other_hotel'] ? $v['other_hotel_name'] : null,
-                    'is_active'        => true,
-
-                    'meeting_point_id'             => $mp?->id,
-                    'meeting_point_name'           => $mp?->name,
-                    'meeting_point_pickup_time'    => $mp?->pickup_time,
-                    'meeting_point_description'    => $mp?->description,
-                    'meeting_point_map_url'        => $mp?->map_url,
-
-                    'tour_name_snapshot'           => $tour->name,
-                ]);
-
-                if ($promoCode) {
-                    $promoCode->redeemForBooking($booking->booking_id, optional($request->user())->user_id);
-                }
-
-                return $booking;
-            });
-        } catch (ValidationException $e) {
-            return back()->withErrors($e->errors())->with('openModal', 'register')->withInput();
-        }
-
-        // Email
-        $booking->load(['detail.hotel', 'tour', 'user', 'tourLanguage', 'detail.tourLanguage']);
-        Mail::to($booking->user->email)->queue(new BookingCreatedMail($booking));
-
-        return redirect()->route('admin.bookings.index')
-            ->with('success', __('Booking successfully created.'));
+    if (!$cart || !$cart->items->count()) {
+        return back()->with('error', __('carts.messages.cart_empty'));
+    }
+    if ($cart->isExpired()) {
+        DB::transaction(function() use ($cart){
+            $cart->items()->delete();
+            $cart->forceFill(['is_active'=>false,'expires_at'=>now()])->save();
+        });
+        return back()->with('error', __('carts.messages.cart_expired'));
     }
 
-    /** Update booking (admin) */
-    public function update(Request $request, $id)
-    {
-        // Normalize hotel flags
-        $input = $request->all();
-        $input['is_other_hotel'] = filter_var($input['is_other_hotel'] ?? false, FILTER_VALIDATE_BOOLEAN);
+    // Cupón guardado por el admin en sesión o del hidden
+    $promoCodeValue = session('admin_cart_promo.code') ?: $request->input('promo_code');
+    $promoCodeToApply = null;
+    if ($promoCodeValue) {
+        $clean = strtoupper(trim(preg_replace('/\s+/', '', $promoCodeValue)));
+        $promoCodeToApply = \App\Models\PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$clean])
+            ->where('is_used', false)
+            ->first();
+    }
 
-        if (($input['hotel_id'] ?? null) === 'other' || $input['is_other_hotel'] === true) {
-            $input['hotel_id'] = null;
-        } elseif (isset($input['hotel_id']) && !ctype_digit((string)$input['hotel_id'])) {
-            $input['hotel_id'] = null;
-        }
-        $request->replace($input);
+    // ===== Validación de capacidad por grupo (tour_id + tour_date + schedule_id)
+    $groups = $cart->items->groupBy(fn($i) => $i->tour_id.'_'.$i->tour_date.'_'.$i->schedule_id);
 
-        // Validation
-        try {
-            $tz      = config('app.timezone', 'America/Costa_Rica');
-            $minDate = BookingRules::earliestBookableDate();
+    foreach ($groups as $items) {
+        $first      = $items->first();
+        $tour       = $first->tour;
+        $tourDate   = $first->tour_date;
+        $scheduleId = (int)$first->schedule_id;
 
-            $r = $request->validate([
-                'user_id'          => 'required|exists:users,user_id',
-                'tour_id'          => 'required|exists:tours,tour_id',
-                'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
-                'booking_date'     => 'required|date',
-                'tour_date'        => ['required', 'date', function ($a, $v, $f) use ($tz, $minDate) {
-                    $dt = Carbon::parse($v, $tz)->startOfDay();
-                    if ($dt->lt($minDate)) $f(__('No past dates allowed (min: :min)', ['min' => $minDate->toDateString()]));
-                }],
-                'schedule_id'      => 'required|exists:schedules,schedule_id',
-                'adults_quantity'  => 'required|integer|min:1',
-                'kids_quantity'    => 'required|integer|min:0|max:2',
-                'status'           => 'required|in:pending,confirmed,cancelled',
-                'notes'            => 'nullable|string',
-                'hotel_id'         => 'bail|nullable|integer|exists:hotels_list,hotel_id',
-                'is_other_hotel'   => 'required|boolean',
-                'other_hotel_name' => 'nullable|string|max:255|required_if:is_other_hotel,1',
-                'promo_code'       => 'nullable|string',
-                'remove_promo'     => 'nullable|boolean',
-                'meeting_point_id' => 'nullable|integer|exists:meeting_points,id',
-            ], [
-                'other_hotel_name.required_if' => __('Other hotel name is required.'),
-            ]);
-        } catch (ValidationException $e) {
-            return back()->withErrors($e->errors())->with('showEditModal', $id)->withInput();
-        }
-
-        // Current data
-        $booking      = Booking::with(['detail', 'tour', 'user'])->findOrFail($id);
-        $detail       = $booking->detail()->firstOrFail();
-        $currentPromo = PromoCode::where('used_by_booking_id', $booking->booking_id)->first();
-
-        // Tour / schedule
-        $tour = Tour::with('schedules')->findOrFail($r['tour_id']);
+        // Debe existir un schedule activo en el pivot del tour
         $schedule = $tour->schedules()
-            ->where('schedules.schedule_id', $r['schedule_id'])
+            ->where('schedules.schedule_id', $scheduleId)
             ->where('schedules.is_active', true)
             ->wherePivot('is_active', true)
             ->first();
 
         if (!$schedule) {
-            return back()
-                ->withErrors(['schedule_id' => __('Selected schedule is not available for this tour.')])
-                ->with('showEditModal', $booking->booking_id)
-                ->withInput();
+            return back()->with('error', __('carts.messages.schedule_unavailable'));
         }
 
-        // Blocked date
-        $isBlocked = \App\Models\TourExcludedDate::where('tour_id', $tour->tour_id)
-            ->where(fn ($q) => $q->whereNull('schedule_id')->orWhere('schedule_id', $r['schedule_id']))
-            ->where('start_date', '<=', $r['tour_date'])
-            ->where(fn ($q) => $q->where('end_date', '>=', $r['tour_date'])->orWhereNull('end_date'))
-            ->exists();
+        // Capacidad real: confirmed + pending + holds de carritos
+        $remaining = $this->capacity->remainingCapacity($tour, $schedule, $tourDate, excludeBookingId: null, countHolds: true);
+        $requested = $items->sum(fn($i) => (int)$i->adults_quantity + (int)$i->kids_quantity);
 
-        if ($isBlocked) {
-            return back()
-                ->withErrors(['tour_date' => __('Selected date is blocked for this tour.')])
-                ->with('showEditModal', $booking->booking_id)
-                ->withInput();
+        if ($requested > $remaining) {
+            return back()->with('error', __('m_bookings.messages.limited_seats_available', [
+                'available' => $remaining,
+                'tour'      => $tour->name,
+                'date'      => $tourDate,
+            ]));
         }
-
-        // Capacity (excluding this booking)
-        $reserved = BookingDetail::where('tour_id', $tour->tour_id)
-            ->whereDate('tour_date', $r['tour_date'])
-            ->where('schedule_id', $schedule->schedule_id)
-            ->where('booking_id', '<>', $booking->booking_id)
-            ->sum(DB::raw('adults_quantity + kids_quantity'));
-
-        $requested = (int) $r['adults_quantity'] + (int) $r['kids_quantity'];
-        if ($reserved + $requested > $schedule->max_capacity) {
-            $available = max($schedule->max_capacity - $reserved, 0);
-            return back()
-                ->withErrors(['capacity' => __('Only :n seats left for that time slot.', ['n' => $available])])
-                ->with('showEditModal', $booking->booking_id)
-                ->withInput();
-        }
-
-        // Totals / promo
-        $adultPrice = $tour->adult_price;
-        $kidPrice   = $tour->kid_price;
-        $baseTotal  = ($adultPrice * (int) $r['adults_quantity']) + ($kidPrice * (int) $r['kids_quantity']);
-
-        $removePromo = $request->boolean('remove_promo');
-        $inputCode   = $request->filled('promo_code')
-            ? strtoupper(trim(preg_replace('/\s+/', '', $request->input('promo_code'))))
-            : null;
-
-        $currentCode   = $currentPromo ? strtoupper(trim(preg_replace('/\s+/', '', $currentPromo->code))) : null;
-        $promoToAssign = null;
-        $errorPromo    = null;
-
-        if ($removePromo) {
-            $promoToAssign = null;
-        } else {
-            if ($inputCode) {
-                if ($currentCode && $currentCode === $inputCode) {
-                    $promoToAssign = $currentPromo;
-                } else {
-                    $candidate = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code, ' ', ''))) = ?", [$inputCode])->first();
-                    if (!$candidate) {
-                        $errorPromo = __('Promo code is invalid.');
-                    } elseif ($candidate->is_used && (int) $candidate->used_by_booking_id !== (int) $booking->booking_id) {
-                        $errorPromo = __('Promo code is already used.');
-                    } else {
-                        $promoToAssign = $candidate;
-                    }
-                }
-            } else {
-                $promoToAssign = $currentPromo;
-            }
-        }
-
-        if ($errorPromo) {
-            return back()
-                ->withErrors(['promo_code' => $errorPromo])
-                ->with('showEditModal', $booking->booking_id)
-                ->withInput();
-        }
-
-        $newTotal = $baseTotal;
-        if ($promoToAssign) {
-            $op = $promoToAssign->operation === 'add' ? 'add' : 'subtract';
-            $delta = $promoToAssign->discount_amount
-                ? (float) $promoToAssign->discount_amount
-                : ($promoToAssign->discount_percent ? round($baseTotal * ($promoToAssign->discount_percent / 100), 2) : 0);
-
-            $newTotal = $op === 'add' ? round($baseTotal + $delta, 2) : max(0, round($baseTotal - $delta, 2));
-        }
-
-        // Save
-        DB::transaction(function () use (
-            $booking, $detail, $tour, $schedule, $r,
-            $adultPrice, $kidPrice, $newTotal,
-            $removePromo, $currentPromo, $promoToAssign
-        ) {
-            // Promo updates
-            if ($removePromo) {
-                if ($currentPromo) {
-                    $currentPromo->is_used = false;
-                    $currentPromo->used_by_booking_id = null;
-                    $currentPromo->save();
-                }
-            } else {
-                if ($currentPromo && (!$promoToAssign || $currentPromo->id !== $promoToAssign->id)) {
-                    $currentPromo->is_used = false;
-                    $currentPromo->used_by_booking_id = null;
-                    $currentPromo->save();
-                }
-                if ($promoToAssign) {
-                    $promoToAssign->is_used = true;
-                    $promoToAssign->used_by_booking_id = $booking->booking_id;
-                    $promoToAssign->save();
-                }
-            }
-
-            $mpId = $r['meeting_point_id'] ?? null;
-            $mp   = $mpId ? MeetingPoint::find($mpId) : null;
-
-            // Header
-            $booking->update([
-                'user_id'            => $r['user_id'],
-                'tour_id'            => $tour->tour_id,
-                'tour_language_id'   => $r['tour_language_id'],
-                'booking_date'       => $r['booking_date'],
-                'status'             => $r['status'],
-                'total'              => $newTotal,
-                'notes'              => $r['notes'] ?? null,
-                'tour_name_snapshot' => $tour->name,
-            ]);
-
-            // Detail
-            $detail->update([
-                'tour_id'                       => $tour->tour_id,
-                'tour_language_id'              => $r['tour_language_id'],
-                'tour_date'                     => $r['tour_date'],
-                'schedule_id'                   => $schedule->schedule_id,
-                'adults_quantity'               => (int) $r['adults_quantity'],
-                'kids_quantity'                 => (int) $r['kids_quantity'],
-                'adult_price'                   => $adultPrice,
-                'kid_price'                     => $kidPrice,
-                'total'                         => $newTotal,
-                'hotel_id'                      => $r['is_other_hotel'] ? null : $r['hotel_id'],
-                'is_other_hotel'                => (bool) $r['is_other_hotel'],
-                'other_hotel_name'              => $r['is_other_hotel'] ? ($r['other_hotel_name'] ?? null) : null,
-
-                'meeting_point_id'              => $mp?->id,
-                'meeting_point_name'            => $mp?->name,
-                'meeting_point_pickup_time'     => $mp?->pickup_time,
-                'meeting_point_description'     => $mp?->description,
-                'meeting_point_map_url'         => $mp?->map_url,
-
-                'tour_name_snapshot'            => $tour->name,
-            ]);
-        });
-
-        // Emails
-        $booking->refresh()->load(['detail.hotel', 'tour', 'user', 'tourLanguage', 'detail.tourLanguage']);
-
-        if ($r['status'] === 'cancelled') {
-            Mail::to($booking->user->email)->queue(new BookingCancelledMail($booking));
-        } elseif ($r['status'] === 'confirmed') {
-            Mail::to($booking->user->email)->queue(new BookingConfirmedMail($booking));
-        } else {
-            Mail::to($booking->user->email)->queue(new BookingUpdatedMail($booking));
-        }
-
-        if ($request->ajax()) {
-            return response()->json(['success' => true]);
-        }
-
-        return redirect()->route('admin.bookings.index')
-            ->with('success', __('Booking updated successfully.'));
     }
 
-    /** Edit (modal body) */
-    public function edit($id)
-    {
-        $booking = Booking::with(['detail.tour.schedules', 'detail.hotel'])->findOrFail($id);
+    // ===== Crear 1 booking por ítem
+    $created = [];
+    $promoApplied = false;
 
-        $statuses = [
-            'pending'   => 'Pending',
-            'confirmed' => 'Confirmed',
-            'cancelled' => 'Cancelled',
+    foreach ($cart->items as $it) {
+        $payload = [
+            'user_id'           => (int)$cart->user_id,
+            'tour_id'           => (int)$it->tour_id,
+            'schedule_id'       => (int)$it->schedule_id,
+            'tour_language_id'  => (int)$it->tour_language_id,
+            'tour_date'         => $it->tour_date,
+            'booking_date'      => now(),
+            'adults_quantity'   => (int)$it->adults_quantity,
+            'kids_quantity'     => (int)$it->kids_quantity,
+            'status'            => 'pending', // puedes cambiar a 'confirmed' si así lo decides
+            'promo_code'        => $promoApplied ? null : ($promoCodeToApply?->code), // solo la primera
+            'meeting_point_id'  => $it->meeting_point_id ?: null,
+            'hotel_id'          => $it->is_other_hotel ? null : ($it->hotel_id ?: null),
+            'is_other_hotel'    => (bool)$it->is_other_hotel,
+            'other_hotel_name'  => $it->is_other_hotel ? ($it->other_hotel_name ?? null) : null,
+            'notes'             => null,
         ];
 
-        $tz       = config('app.timezone', 'America/Costa_Rica');
-        $today    = Carbon::today($z = $tz);
-        $detailDt = $booking->detail?->tour_date;
-        $isPast   = $detailDt ? Carbon::parse($detailDt, $tz)->lt($today) : false;
+        // Validación defensiva en el creador (el servicio cuenta confirmed+pending)
+        $booking = $this->creator->create($payload, validateCapacity: true);
+        $created[] = $booking->booking_id;
 
-        return view('admin.bookings.partials.edit-form', compact('booking', 'statuses', 'isPast'))->render();
+        // Marcar cupón usado tras aplicarlo a la primera reserva
+        if (!$promoApplied && $promoCodeToApply) {
+            $promoCodeToApply->redeemForBooking($booking->booking_id, $cart->user_id);
+            $promoApplied = true;
+        }
     }
 
-    /** Delete */
-    public function destroy($id)
+    // Limpia carrito y sesión de promo (admin)
+    DB::transaction(function() use ($cart) {
+        $cart->items()->delete();
+        $cart->forceFill(['is_active'=>false,'expires_at'=>now()])->save();
+    });
+    session()->forget('admin_cart_promo');
+
+    return redirect()
+        ->route('admin.bookings.index')
+        ->with('success', __('m_bookings.bookings.success.created'));
+}
+
+
+    /**
+     * Update the specified booking (admin)
+     */
+public function update(Request $request, \App\Models\Booking $booking)
+{
+    $validated = $request->validate([
+        'user_id'           => 'required|exists:users,user_id',
+        'tour_id'           => 'required|exists:tours,tour_id',
+        'schedule_id'       => 'required|exists:schedules,schedule_id',
+        'tour_language_id'  => 'required|exists:tour_languages,tour_language_id',
+        'tour_date'         => 'required|date',
+        'booking_date'      => 'required|date',
+        'hotel_id'          => 'nullable|exists:hotels_list,hotel_id',
+        'is_other_hotel'    => 'nullable|boolean',
+        'other_hotel_name'  => 'nullable|string|max:255|required_if:is_other_hotel,1',
+        'adults_quantity'   => 'required|integer|min:1',
+        'kids_quantity'     => 'required|integer|min:0|max:2',
+        'status'            => 'required|in:pending,confirmed,cancelled',
+        'meeting_point_id'  => 'nullable|exists:meeting_points,id',
+        'notes'             => 'nullable|string|max:1000',
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+        $tourDate = \Carbon\Carbon::parse($validated['tour_date']);
+        if ($tourDate->lt(\Carbon\Carbon::today())) {
+            DB::rollBack();
+            return back()
+                ->withInput()
+                ->with('showEditModal', $booking->booking_id)
+                ->withErrors(['tour_date' => __('m_bookings.bookings.validation.past_date')]);
+        }
+
+        $tour     = \App\Models\Tour::findOrFail($validated['tour_id']);
+        $schedule = \App\Models\Schedule::findOrFail($validated['schedule_id']);
+
+        // Si pasa a confirmado (o sigue confirmado), validar capacidad real
+        if ($validated['status'] === 'confirmed' && $booking->status !== 'confirmed') {
+            $remaining = $this->capacity->remainingCapacity($tour, $schedule, $validated['tour_date'], excludeBookingId: (int)$booking->booking_id, countHolds: true);
+            $requested = (int)$validated['adults_quantity'] + (int)$validated['kids_quantity'];
+
+            if ($requested > $remaining) {
+                DB::rollBack();
+                return back()
+                    ->withInput()
+                    ->with('showEditModal', $booking->booking_id)
+                    ->withErrors([
+                        'capacity' => __('m_bookings.bookings.errors.insufficient_capacity', [
+                            'tour'      => $tour->name,
+                            'date'      => \Carbon\Carbon::parse($validated['tour_date'])->format('M d, Y'),
+                            'time'      => \Carbon\Carbon::parse($schedule->start_time)->format('g:i A'),
+                            'requested' => $requested,
+                            'available' => $remaining,
+                            'max'       => $this->capacity->resolveMaxCapacity($schedule, $tour),
+                        ])
+                    ]);
+            }
+        }
+
+        // Precios base
+        $adultPrice = (float) $tour->adult_price;
+        $kidPrice   = (float) $tour->kid_price;
+        $baseTotal  = round($adultPrice * (int)$validated['adults_quantity'] + $kidPrice * (int)$validated['kids_quantity'], 2);
+        $total      = $baseTotal;
+
+        // Respetar promo asociada
+        if ($booking->promo_code_id) {
+            $promo = \App\Models\PromoCode::find($booking->promo_code_id);
+            if ($promo) {
+                $discount = 0.0;
+                if ($promo->discount_percent) {
+                    $discount = round($baseTotal * ($promo->discount_percent / 100), 2);
+                } elseif ($promo->discount_amount) {
+                    $discount = (float) $promo->discount_amount;
+                }
+                $total = $promo->operation === 'add'
+                    ? round($baseTotal + $discount, 2)
+                    : max(0, round($baseTotal - $discount, 2));
+            }
+        }
+
+        // Cabecera
+        $booking->update([
+            'user_id'          => (int)$validated['user_id'],
+            'tour_id'          => (int)$validated['tour_id'],
+            'tour_language_id' => (int)$validated['tour_language_id'],
+            'booking_date'     => $validated['booking_date'],
+            'status'           => $validated['status'],
+            'total'            => $total,
+            'notes'            => $validated['notes'] ?? null,
+        ]);
+
+        // Detalle
+        $booking->detail->update([
+            'schedule_id'       => (int)$validated['schedule_id'],
+            'tour_date'         => $validated['tour_date'],
+            'hotel_id'          => !empty($validated['is_other_hotel']) ? null : ($validated['hotel_id'] ?? null),
+            'is_other_hotel'    => (bool)($validated['is_other_hotel'] ?? false),
+            'other_hotel_name'  => $validated['other_hotel_name'] ?? null,
+            'adults_quantity'   => (int)$validated['adults_quantity'],
+            'kids_quantity'     => (int)$validated['kids_quantity'],
+            'meeting_point_id'  => $validated['meeting_point_id'] ?? null,
+        ]);
+
+        DB::commit();
+
+        \Log::info("Booking updated successfully: #{$booking->booking_id} by user ID: " . auth()->id());
+
+        return redirect()->route('admin.bookings.index')
+            ->with('success', __('m_bookings.bookings.success.updated'));
+
+    } catch (\Throwable $e) {
+        DB::rollBack();
+        \Log::error("Error updating booking #{$booking->booking_id}: " . $e->getMessage());
+        \Log::error($e->getTraceAsString());
+
+        return back()
+            ->withInput()
+            ->with('showEditModal', $booking->booking_id)
+            ->with('error', __('m_bookings.bookings.errors.update'));
+    }
+}
+
+    /**
+     * Update booking status with capacity validation (admin)
+     */
+public function updateStatus(Request $request, \App\Models\Booking $booking)
+{
+    $request->validate([
+        'status' => 'required|in:pending,confirmed,cancelled'
+    ]);
+
+    try {
+        $old = $booking->status;
+        $new = $request->status;
+
+        if ($new === 'confirmed' && $old !== 'confirmed') {
+            $detail = $booking->detail;
+            if (!$detail) {
+                return back()->with('error', __('m_bookings.bookings.errors.detail_not_found'));
+            }
+
+            $tour     = $booking->tour;
+            $schedule = \App\Models\Schedule::find((int)$detail->schedule_id);
+            if (!$schedule) {
+                return back()->with('error', __('m_bookings.bookings.errors.schedule_not_found'));
+            }
+
+            $remaining = $this->capacity->remainingCapacity($tour, $schedule, $detail->tour_date, excludeBookingId: (int)$booking->booking_id, countHolds: true);
+            $requested = (int)$detail->adults_quantity + (int)$detail->kids_quantity;
+
+            if ($requested > $remaining) {
+                return back()->with('error', __('m_bookings.bookings.errors.insufficient_capacity', [
+                    'tour'      => optional($tour)->name ?? 'Unknown Tour',
+                    'date'      => \Carbon\Carbon::parse($detail->tour_date)->format('M d, Y'),
+                    'time'      => \Carbon\Carbon::parse($schedule->start_time)->format('g:i A'),
+                    'requested' => $requested,
+                    'available' => $remaining,
+                    'max'       => $this->capacity->resolveMaxCapacity($schedule, $tour),
+                ]));
+            }
+        }
+
+        $booking->status = $new;
+        $booking->save();
+
+        \Log::info("Booking #{$booking->booking_id} status changed from '{$old}' to '{$new}' by user ID: " . auth()->id());
+
+        $messageKey = match($new) {
+            'confirmed' => 'status_confirmed',
+            'cancelled' => 'status_cancelled',
+            'pending'   => 'status_pending',
+            default     => 'status_updated'
+        };
+
+        return back()->with('success', __("m_bookings.bookings.success.{$messageKey}"));
+
+    } catch (\Throwable $e) {
+        \Log::error("Error updating booking status for booking #{$booking->booking_id}: " . $e->getMessage());
+        \Log::error($e->getTraceAsString());
+
+        return back()->with('error', __('m_bookings.bookings.errors.status_update_failed'));
+    }
+}
+
+
+    /**
+     * Remove the specified booking (admin)
+     */
+    public function destroy(Booking $booking)
     {
-        Booking::findOrFail($id)->delete();
-        return redirect()->back()->with('success', __('Booking deleted successfully.'));
+        try {
+            $id = $booking->booking_id;
+
+            DB::beginTransaction();
+            $booking->detail()->delete();
+            $booking->delete();
+            DB::commit();
+
+            Log::info("Booking deleted successfully: #{$id} by user ID: " . auth()->id());
+
+            return redirect()->route('admin.bookings.index')
+                ->with('success', __('m_bookings.bookings.success.deleted'));
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error("Error deleting booking #{$booking->booking_id}: " . $e->getMessage());
+
+            return back()->with('error', __('m_bookings.bookings.errors.delete'));
+        }
     }
 
-    /** Single receipt PDF */
-    public function downloadReceiptPdf(Booking $booking)
+    /**
+     * Generate receipt PDF (admin)
+     */
+    public function generateReceipt(Booking $booking)
     {
-        $booking->load(['detail.schedule', 'user']);
+        $booking->load(['user','tour','detail.schedule','detail.hotel','detail.tourLanguage','detail.meetingPoint','promoCode']);
 
-        $detail       = $booking->detail;
-        $totalAdults  = $detail->adults_quantity;
-        $totalKids    = $detail->kids_quantity;
-        $totalPersons = $totalAdults + $totalKids;
+        $pdf = Pdf::loadView('admin.bookings.receipt', compact('booking'));
 
-        $client = preg_replace('/[^A-Za-z0-9_]/', '_', $booking->user->full_name ?? 'Client');
-        $code   = $booking->booking_reference;
-
-        $pdf = Pdf::loadView('admin.bookings.receipt', compact('booking', 'totalAdults', 'totalKids', 'totalPersons'));
-
-        return $pdf->download("Receipt_{$client}_{$code}.pdf");
+        return $pdf->download("receipt-{$booking->booking_reference}.pdf");
     }
 
-    /** PDF summary (all bookings) */
-    public function downloadSummaryPdf()
+    /**
+     * Export bookings to PDF (admin)
+     */
+    public function exportPdf(Request $request)
     {
-        $bookings = Booking::with(['user', 'tour', 'detail.schedule', 'detail.meetingPoint', 'promoCode', 'redemption.promoCode'])
-            ->orderBy('booking_id')
-            ->get();
+        $query = Booking::with(['user', 'tour', 'detail.schedule', 'detail.hotel', 'detail.tourLanguage', 'promoCode']);
 
-        $totalAdults  = $bookings->sum(fn ($b) => $b->detail->adults_quantity);
-        $totalKids    = $bookings->sum(fn ($b) => $b->detail->kids_quantity);
-        $totalPersons = $totalAdults + $totalKids;
+        if ($request->filled('reference')) {
+            $query->where('booking_reference', 'like', '%' . $request->reference . '%');
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('booking_date_from')) {
+            $query->whereDate('booking_date', '>=', $request->booking_date_from);
+        }
+        if ($request->filled('booking_date_to')) {
+            $query->whereDate('booking_date', '<=', $request->booking_date_to);
+        }
+
+        $bookings = $query->orderBy('booking_date', 'desc')->get();
+
+        $totalAdults = $bookings->sum(fn($b) => (int) optional($b->detail)->adults_quantity);
+        $totalKids   = $bookings->sum(fn($b) => (int) optional($b->detail)->kids_quantity);
+        $totalPersons= $totalAdults + $totalKids;
 
         $pdf = Pdf::loadView('admin.bookings.pdf-summary', compact('bookings', 'totalAdults', 'totalKids', 'totalPersons'));
 
-        return $pdf->download('booking_report.pdf');
+        return $pdf->download('bookings-report-' . now()->format('Y-m-d') . '.pdf');
     }
 
-    /** Calendar view (admin) */
-    public function calendar()
+    /**
+     * Export bookings to Excel (admin)
+     */
+    public function exportExcel(Request $request)
     {
-        $tours = Tour::select('tour_id', 'name')->orderBy('name')->get();
-        return view('admin.bookings.calendar', compact('tours'));
+        return Excel::download(new BookingsExport($request->all()), 'bookings-' . now()->format('Y-m-d') . '.xlsx');
     }
 
-    /** FullCalendar JSON feed */
-    public function calendarFeed(Request $request)
+    /**
+     * Verify promo code via AJAX (admin)
+     */
+    public function verifyPromoCode(Request $request)
     {
-        $query = BookingDetail::with(['booking.user', 'tour', 'schedule', 'hotel', 'meetingPoint']);
+        $codeRaw  = (string) $request->input('code', '');
+        $code     = PromoCode::normalize($codeRaw);
+        $subtotal = (float) $request->input('subtotal', 0);
 
-        if ($request->filled('from'))    $query->where('tour_date', '>=', $request->input('from'));
-        if ($request->filled('to'))      $query->where('tour_date', '<=', $request->input('to'));
-        if ($request->filled('tour_id')) $query->where('tour_id', $request->input('tour_id'));
+        if (!$code || $subtotal <= 0) {
+            return response()->json(['valid' => false, 'message' => 'Datos inválidos']);
+        }
 
-        $events = $query->get()->map(function ($detail) {
-            $schedule  = $detail->schedule;
-            $startTime = $schedule && $schedule->start_time ? Carbon::parse($schedule->start_time)->format('H:i:s') : '08:00:00';
-            $endTime   = $schedule && $schedule->end_time   ? Carbon::parse($schedule->end_time)->format('H:i:s')   : '10:00:00';
+        $promo = PromoCode::where('code', $code)->first();
+        if (!$promo) {
+            return response()->json(['valid' => false, 'message' => 'Código no encontrado']);
+        }
+        if (!$promo->isValidToday()) {
+            return response()->json(['valid' => false, 'message' => 'Este código ha expirado o aún no es válido']);
+        }
+        if (!$promo->hasRemainingUses()) {
+            return response()->json(['valid' => false, 'message' => 'Este código ha alcanzado su límite de usos']);
+        }
 
-            $adults  = $detail->adults_quantity;
-            $kids    = $detail->kids_quantity;
-            $paxText = $adults . ($kids > 0 ? "+{$kids}" : '');
+        $discountAmount = 0.0;
+        if ($promo->discount_percent) {
+            $discountAmount = round($subtotal * ($promo->discount_percent / 100), 2);
+        } elseif ($promo->discount_amount) {
+            $discountAmount = (float) $promo->discount_amount;
+        }
 
-            $tourName  = $detail->tour->name ?? '';
-            $shortName = preg_replace('/\((.*?)\)/', '', $tourName);
-            $shortName = preg_replace('/\b(Tour|Combo|Experience|Adventure|Full Day|Half Day)\b/i', '', $shortName);
-            $shortName = trim(\Illuminate\Support\Str::limit(trim($shortName), 25));
+        $operation = $promo->operation === 'add' ? 'add' : 'subtract';
 
-            return [
-                'id'          => $detail->booking->booking_id,
-                'title'       => '',
-                'start'       => "{$detail->tour_date->toDateString()}T{$startTime}",
-                'end'         => "{$detail->tour_date->toDateString()}T{$endTime}",
-                'backgroundColor' => $detail->tour->color ?? '#5cb85c',
-                'borderColor'     => $detail->tour->color ?? '#5cb85c',
-                'textColor'       => '#000',
-                'status'          => $detail->booking->status,
-                'hotel_name'      => $detail->hotel->name ?? '—',
-                'pax'             => $paxText . ' pax',
-                'short_tour_name' => $shortName,
-                'booking_ref'     => '#' . $detail->booking->booking_reference,
-                'adults'          => $adults,
-                'kids'            => $kids,
-                'total'           => $detail->total,
-                'meeting_point_name'        => $detail->meeting_point_name,
-                'meeting_point_pickup_time' => $detail->meeting_point_pickup_time,
-            ];
-        });
-
-        return response()->json($events);
-    }
-
-    /** Reserved seats count helper (AJAX) */
-    public function getReservedSeatCount(Request $request)
-    {
-        $tz      = config('app.timezone', 'America/Costa_Rica');
-        $minDate = BookingRules::earliestBookableDate();
-
-        $data = $request->validate([
-            'tour_id'     => 'required|exists:tours,tour_id',
-            'schedule_id' => 'required|exists:schedules,schedule_id',
-            'tour_date'   => ['required', 'date', function ($attr, $value, $fail) use ($tz, $minDate) {
-                $dt = Carbon::parse($value, $tz)->startOfDay();
-                if ($dt->lt($minDate)) $fail(__('No past dates allowed (min: :min)', ['min' => $minDate->toDateString()]));
-            }],
+        return response()->json([
+            'valid'            => true,
+            'code'             => $code,
+            'discount_amount'  => $discountAmount,
+            'discount_percent' => $promo->discount_percent,
+            'operation'        => $operation,
+            'message'          => 'Código válido'
         ]);
-
-        $reserved = BookingDetail::where('tour_id', $data['tour_id'])
-            ->where('tour_date', $data['tour_date'])
-            ->where('schedule_id', $data['schedule_id'])
-            ->sum(DB::raw('adults_quantity + kids_quantity'));
-
-        return response()->json(['reserved' => $reserved]);
-    }
-
-    /** Export to Excel */
-    public function exportToExcel(Request $request)
-    {
-        $filters = array_merge([
-            'reference'         => null,
-            'tour_id'           => null,
-            'status'            => null,
-            'tour_date_from'    => null,
-            'tour_date_to'      => null,
-            'booking_date_from' => null,
-            'booking_date_to'   => null,
-            'schedule_id'       => null,
-        ], $request->only([
-            'reference', 'tour_id', 'status', 'tour_date_from', 'tour_date_to',
-            'booking_date_from', 'booking_date_to', 'schedule_id',
-        ]));
-
-        $bookings = $this->filterBookings($filters)->get();
-
-        return Excel::download(
-            new BookingsExport($filters, $bookings),
-            BookingsExport::generateFileName($filters)
-        );
-    }
-
-    /** Shared filter for exports/index */
-    public function filterBookings(array $filters)
-    {
-        return Booking::with([
-                'user',
-                'detail.tour.tourType',
-                'detail.hotel',
-                'detail.schedule',
-                'detail.meetingPoint',
-            ])
-            ->when($filters['reference'] ?? false, fn ($q) => $q->where('booking_reference', 'ILIKE', '%' . $filters['reference'] . '%'))
-            ->when($filters['status'] ?? false, fn ($q) => $q->where('status', $filters['status']))
-            ->when($filters['booking_date_from'] ?? false, fn ($q) => $q->whereDate('booking_date', '>=', $filters['booking_date_from']))
-            ->when($filters['booking_date_to'] ?? false, fn ($q) => $q->whereDate('booking_date', '<=', $filters['booking_date_to']))
-            ->when(
-                ($filters['tour_id'] ?? false) ||
-                ($filters['schedule_id'] ?? false) ||
-                ($filters['tour_date_from'] ?? false) ||
-                ($filters['tour_date_to'] ?? false),
-                function ($q) use ($filters) {
-                    $q->whereHas('detail', function ($q) use ($filters) {
-                        if ($filters['tour_id'] ?? false)         $q->where('tour_id', $filters['tour_id']);
-                        if ($filters['schedule_id'] ?? false)     $q->where('schedule_id', $filters['schedule_id']);
-                        if ($filters['tour_date_from'] ?? false)  $q->whereDate('tour_date', '>=', $filters['tour_date_from']);
-                        if ($filters['tour_date_to'] ?? false)    $q->whereDate('tour_date', '<=', $filters['tour_date_to']);
-                    });
-                }
-            );
     }
 }

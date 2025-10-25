@@ -142,59 +142,100 @@
         </div>
 
         @php
-            // Totals fallback
+            // Subtotal del carrito
             $__subtotal = $cart->items->sum(fn($i) =>
                 ($i->tour->adult_price * $i->adults_quantity) + ($i->tour->kid_price * $i->kids_quantity)
             );
-            $__adminSubtotal = isset($adminSubtotal) ? $adminSubtotal : $__subtotal;
-            $__adminDiscount = isset($adminDiscount) ? $adminDiscount : 0;
-            $__adminTotal    = isset($adminTotal)    ? $adminTotal    : max($__adminSubtotal - $__adminDiscount, 0);
+
+            // Promo desde sesión (inyectada como $adminPromo en el controlador)
+            $hasPromo       = !empty($adminPromo ?? []);
+            $op             = $hasPromo ? ($adminPromo['operation'] ?? 'subtract') : null;
+            $adjustment     = $hasPromo ? (float)($adminPromo['adjustment'] ?? 0) : 0.0;
+
+            $__adminSubtotal = $__subtotal;
+            $__adminDiscount = $adjustment;
+            $__adminTotal    = $hasPromo
+                                ? max(0, $op === 'add'
+                                    ? ($__adminSubtotal + $__adminDiscount)
+                                    : ($__adminSubtotal - $__adminDiscount))
+                                : $__adminSubtotal;
         @endphp
 
-        {{-- Promo Code (ADMIN) --}}
-        <div class="card mt-4 shadow">
-            <div class="card-header bg-secondary text-white">
-                <i class="fas fa-tags"></i> {{ __('carts.promo.title') }}
+{{-- Promo Code (ADMIN) --}}
+<div class="card mt-4 shadow">
+    <div class="card-header bg-secondary text-white">
+        <i class="fas fa-tags"></i> {{ __('carts.promo.title') }}
+    </div>
+
+    <div class="card-body">
+        @php
+            $currentCode = $adminPromo['code'] ?? '';
+            $hasPromo    = !empty($currentCode);
+        @endphp
+
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            {{-- Toggle con 1 solo botón:
+                 - Si envías VACÍO o el MISMO código aplicado -> QUITA
+                 - Si envías un código distinto válido       -> APLICA --}}
+            <form method="POST" action="{{ route('admin.carts.applyPromo') }}" class="d-flex gap-2" id="promo-form">
+                @csrf
+                <input type="text"
+                       name="code"
+                       id="promo-code"
+                       class="form-control w-auto"
+                       placeholder="{{ __('carts.promo.placeholder') }}"
+                       value="{{ $currentCode }}"
+                       autocomplete="off"
+                       data-current-code="{{ $currentCode }}">
+                <button type="submit"
+                        id="promo-toggle-btn"
+                        class="btn {{ $hasPromo ? 'btn-danger' : 'btn-info' }}">
+                    <i class="fas {{ $hasPromo ? 'fa-times' : 'fa-check' }}"></i>
+                    <span class="btn-text">
+                        {{ $hasPromo ? (__('carts.promo.remove') ?: 'Remove')
+                                     : (__('carts.promo.apply')  ?: 'Apply') }}
+                    </span>
+                </button>
+            </form>
+        </div>
+
+        {{-- Mensaje --}}
+        <div id="promo-message" class="small mt-2">
+            @if($hasPromo)
+                <span class="text-success">
+                    {{ __('carts.promo.applied', [
+                        'code'  => $currentCode,
+                        'label' => trim(
+                            ($adminPromo['amount']  ? '$'.number_format($adminPromo['amount'],2) : '')
+                          . ((($adminPromo['amount'] ?? null) && ($adminPromo['percent'] ?? null)) ? ' + ' : '')
+                          . ($adminPromo['percent'] ? $adminPromo['percent'].'%' : '')
+                        )
+                    ]) }}
+                    @if(($adminPromo['operation'] ?? '') === 'add') ({{ __('surcharge') }}) @endif
+                </span>
+            @else
+                <span class="text-muted">
+                    {{ __('carts.promo.hint_toggle') ?? 'Tip: deja el campo vacío o reenvía el mismo código para quitarlo.' }}
+                </span>
+            @endif
+        </div>
+
+        {{-- Totales renderizados en servidor --}}
+        <div class="mt-3">
+            <div><strong>{{ __('carts.totals.subtotal') }}:</strong> ${{ number_format($__adminSubtotal, 2) }}</div>
+            <div>
+                <strong>
+                    {{ ($op === 'add') ? __('carts.totals.surcharge') : __('carts.totals.discount') }}
+                </strong>:
+                ${{ number_format($__adminDiscount, 2) }}
             </div>
-
-            <div class="card-body">
-                <div class="d-flex flex-wrap align-items-center gap-2">
-                    <input type="text" id="promo-code" class="form-control w-auto" placeholder="{{ __('carts.promo.placeholder') }}"
-                        value="{{ $adminPromo['code'] ?? '' }}" />
-                    <button type="button" id="apply-promo" class="btn btn-primary">{{ __('carts.promo.apply') }}</button>
-                    @if(!empty($adminPromo))
-                        <button type="button" id="remove-promo" class="btn btn-outline-danger">{{ __('carts.promo.remove') }}</button>
-                    @endif
-
-                    {{-- Hidden for UI (synced with form below) --}}
-                    <input type="hidden" id="promo_code_hidden_ui" value="{{ $adminPromo['code'] ?? '' }}">
-                </div>
-
-                {{-- Message (single, no duplicates) --}}
-                <div id="promo-message" class="small mt-2">
-                    @if(!empty($adminPromo))
-                        <span class="text-success">
-                            {{ __('carts.promo.applied', [
-                                'code'  => $adminPromo['code'],
-                                'label' => trim(($adminPromo['amount'] ? '$'.number_format($adminPromo['amount'],2) : '')
-                                    . ($adminPromo['amount'] && $adminPromo['percent'] ? ' + ' : '')
-                                    . ($adminPromo['percent'] ? $adminPromo['percent'].'%' : '')
-                                )
-                            ]) }}
-                        </span>
-                    @endif
-                </div>
-
-                {{-- Dynamic totals --}}
-                <div class="mt-3">
-                    <div><strong>{{ __('carts.totals.subtotal') }}:</strong> $<span id="cart-subtotal">{{ number_format($__adminSubtotal, 2) }}</span></div>
-                    <div><strong>{{ __('carts.totals.discount') }}:</strong> $<span id="cart-discount">{{ number_format($__adminDiscount, 2) }}</span></div>
-                    <div class="fs-5">
-                        <strong>{{ __('carts.totals.estimated_total') }}:</strong> $<span id="cart-total">{{ number_format($__adminTotal, 2) }}</span>
-                    </div>
-                </div>
+            <div class="fs-5">
+                <strong>{{ __('carts.totals.estimated_total') }}:</strong> ${{ number_format($__adminTotal, 2) }}
             </div>
         </div>
+    </div>
+</div>
+
 
         {{-- Confirm & Send --}}
         <form method="POST" action="{{ route('admin.bookings.storeFromCart') }}" class="mt-3">
@@ -297,7 +338,6 @@
         </div>
     @endif
 @stop
-
 @section('js')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
@@ -307,11 +347,11 @@
                 e.preventDefault();
                 Swal.fire({
                     title: @json(__('carts.swal.delete_item.title')),
-                    text: @json(__('carts.swal.delete_item.text')),
+                    text:  @json(__('carts.swal.delete_item.text')),
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: @json(__('carts.swal.delete_item.confirm')),
-                    cancelButtonText: @json(__('carts.swal.delete_item.cancel')),
+                    cancelButtonText:  @json(__('carts.swal.delete_item.cancel')),
                     confirmButtonColor: '#d33',
                     cancelButtonColor: '#6c757d'
                 }).then(result => {
@@ -328,123 +368,69 @@
             Swal.fire({ icon: 'error', title: 'Oops!', text: @js(session('error')), confirmButtonText:'Got it' });
         @endif
 
-        // Hotel "Other…" toggle in edit modals
+        // Inicializaciones al cargar el DOM
         document.addEventListener('DOMContentLoaded', () => {
-            @foreach($cart->items as $item)
-                (function(){
-                    const sel    = document.getElementById('edit_hotel_{{ $item->item_id }}'),
-                          cont   = document.getElementById('edit_other_container_{{ $item->item_id }}'),
-                          hid    = document.getElementById('edit_is_other_{{ $item->item_id }}');
+            // ====== Hotel "Other…" toggle en modales de edición ======
+            @if($cart && $cart->items->count())
+                @foreach($cart->items as $item)
+                    (function(){
+                        const sel  = document.getElementById('edit_hotel_{{ $item->item_id }}');
+                        const cont = document.getElementById('edit_other_container_{{ $item->item_id }}');
+                        const hid  = document.getElementById('edit_is_other_{{ $item->item_id }}');
 
-                    sel?.addEventListener('change', () => {
-                        if (sel.value === 'other') {
-                            cont.classList.remove('d-none');
-                            hid.value = 1;
-                        } else {
-                            cont.classList.add('d-none');
-                            const input = cont.querySelector('input');
-                            if (input) input.value = '';
-                            hid.value = 0;
-                        }
-                    });
-                })();
-            @endforeach
+                        sel?.addEventListener('change', () => {
+                            if (sel.value === 'other') {
+                                cont.classList.remove('d-none');
+                                hid.value = 1;
+                            } else {
+                                cont.classList.add('d-none');
+                                const input = cont.querySelector('input');
+                                if (input) input.value = '';
+                                hid.value = 0;
+                            }
+                        });
+                    })();
+                @endforeach
+            @endif
+
+            // ====== Toggle Apply / Remove para Promo Code (btn-info/btn-danger) ======
+            (function(){
+                const input = document.getElementById('promo-code');
+                const btn   = document.getElementById('promo-toggle-btn');
+                if (!input || !btn) return;
+
+                const current = (input.getAttribute('data-current-code') || '').trim();
+                const iconEl  = btn.querySelector('i');
+                const textEl  = btn.querySelector('.btn-text');
+
+                const setApply = () => {
+                    btn.classList.remove('btn-danger');
+                    btn.classList.add('btn-info');
+                    if (iconEl) iconEl.className = 'fas fa-check';
+                    if (textEl) textEl.textContent = {{ json_encode(__('carts.promo.apply') ?: 'Apply') }};
+                };
+
+                const setRemove = () => {
+                    btn.classList.remove('btn-info');
+                    btn.classList.add('btn-danger');
+                    if (iconEl) iconEl.className = 'fas fa-times';
+                    if (textEl) textEl.textContent = {{ json_encode(__('carts.promo.remove') ?: 'Remove') }};
+                };
+
+                const refreshState = () => {
+                    const val = (input.value || '').trim();
+                    // Vacío o igual al aplicado => Remove; distinto y no vacío => Apply
+                    if (val === '' || val.toUpperCase() === current.toUpperCase()) {
+                        setRemove();
+                    } else {
+                        setApply();
+                    }
+                };
+
+                // Estado inicial + cambios en vivo
+                refreshState();
+                input.addEventListener('input', refreshState);
+            })();
         });
-    </script>
-
-    {{-- Promo (ADMIN) --}}
-    <script>
-    (() => {
-      const csrf        = '{{ csrf_token() }}';
-      const routeApply  = '{{ route("admin.carts.applyPromo") }}';
-      const routeRemove = '{{ route("admin.carts.removePromo") }}';
-
-      const $code    = document.getElementById('promo-code');
-      const $apply   = document.getElementById('apply-promo');
-      const $remove  = document.getElementById('remove-promo');
-      const $msg     = document.getElementById('promo-message');
-
-      const $sub     = document.getElementById('cart-subtotal');
-      const $disc    = document.getElementById('cart-discount');
-      const $total   = document.getElementById('cart-total');
-
-      const $hiddenUI   = document.getElementById('promo_code_hidden_ui');
-      const $hiddenForm = document.getElementById('promo_code_hidden_form');
-
-      function syncHidden(value) {
-        if ($hiddenUI)   $hiddenUI.value   = value || '';
-        if ($hiddenForm) $hiddenForm.value = value || '';
-      }
-
-      $apply?.addEventListener('click', async () => {
-        const code = ($code?.value || '').trim();
-        if (!code) return Swal.fire({ icon:'info', title: @json(__('carts.promo.enter_code')) });
-
-        try {
-          const resp = await fetch(routeApply, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-TOKEN': csrf,
-              'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ code })
-          });
-          const data = await resp.json();
-          if (!data.ok) {
-            syncHidden('');
-            $msg.innerHTML = `<span class="text-danger">${data.message ?? @json(__('carts.promo.apply_error'))}</span>`;
-            return;
-          }
-
-          syncHidden(data.code);
-          $msg.innerHTML     = `<span class="text-success">${@json(__('carts.promo.applied', ['code' => '::code', 'label' => '::label']))}`
-                                .replace('::code', data.code)
-                                .replace('::label', data.label)
-                                + `</span>`;
-          $sub.textContent   = data.subtotal;
-          $disc.textContent  = data.adjustment ?? data.discount ?? '0.00';
-          $total.textContent = data.new_total;
-
-          if (!$remove) {
-            const btn = document.createElement('button');
-            btn.id = 'remove-promo';
-            btn.type = 'button';
-            btn.className = 'btn btn-outline-danger ms-2';
-            btn.textContent = @json(__('carts.promo.remove'));
-            $apply.parentElement.appendChild(btn);
-            attachRemove(btn);
-          }
-        } catch (e) {
-          Swal.fire({ icon:'error', title:'Error', text:@json(__('carts.promo.apply_error')) });
-        }
-      });
-
-      function attachRemove(btn){
-        btn.addEventListener('click', async () => {
-          try {
-            const resp = await fetch(routeRemove, {
-              method: 'DELETE',
-              headers: {
-                'X-CSRF-TOKEN': csrf,
-                'X-Requested-With': 'XMLHttpRequest'
-              }
-            });
-            const data = await resp.json();
-            if (data.ok) {
-              syncHidden('');
-              if ($code) $code.value = '';
-              $msg.innerHTML = `<span class="text-muted">${@json(__('carts.promo.removed'))}</span>`;
-              $disc.textContent  = '0.00';
-              $total.textContent = $sub.textContent;
-              btn.remove();
-            }
-          } catch (e) {
-            Swal.fire({ icon:'error', title:'Error', text:@json(__('carts.promo.remove_error')) });
-          }
-        });
-      }
-      if ($remove) attachRemove($remove);
-    })();
     </script>
 @stop

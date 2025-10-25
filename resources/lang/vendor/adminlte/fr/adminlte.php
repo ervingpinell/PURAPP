@@ -227,6 +227,7 @@ return [
     'promoCode' => 'Avez-vous un code promotionnel ?',
     'promoCodePlaceholder' => 'Entrez votre code promotionnel',
     'apply' => 'Appliquer',
+    'remove' => 'Retirer',
     'deleteItemTitle' => 'Supprimer l\'article',
     'deleteItemText' => 'Êtes-vous sûr de vouloir supprimer cet article ? Cette action est irréversible.',
     'deleteItemConfirm' => 'Supprimer',

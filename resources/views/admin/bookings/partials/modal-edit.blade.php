@@ -1,160 +1,97 @@
-{{-- Fallback: if $meetingPoints doesn't come from controller, load it here --}}
+{{-- resources/views/admin/bookings/partials/modal-edit.blade.php --}}
+
+@once
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@endonce
+
 @php
-  /** @var \Illuminate\Support\Collection<int,\App\Models\MeetingPoint> $meetingPoints */
-  $meetingPoints = $meetingPoints
-    ?? \App\Models\MeetingPoint::orderByRaw('sort_order IS NULL, sort_order ASC')
-        ->orderBy('name','asc')
-        ->get();
+  /** @var \App\Models\Booking $booking */
+  $detail = $booking->detail;
+  $reopen = (session('showEditModal') == $booking->booking_id)
+         || (old('_modal') === 'edit:'.$booking->booking_id && $errors->any());
 @endphp
 
-{{-- Edit Modal --}}
 <div class="modal fade" id="modalEdit{{ $booking->booking_id }}" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <form
-      id="editForm-{{ $booking->booking_id }}"
-      class="js-edit-booking-form"
-      action="{{ route('admin.bookings.update', $booking->booking_id) }}"
-      method="POST"
-      novalidate
-      data-booking-id="{{ $booking->booking_id }}">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <form id="editBookingForm-{{ $booking->booking_id }}"
+          action="{{ route('admin.bookings.update', $booking->booking_id) }}"
+          method="POST"
+          novalidate
+          class="needs-validation js-edit-booking-form"
+          data-booking-id="{{ $booking->booking_id }}">
       @csrf
       @method('PUT')
-      <input type="hidden" name="_modal" value="edit:{{ $booking->booking_id }}"><!-- 👈 To reopen this modal -->
+      <input type="hidden" name="_modal" value="edit:{{ $booking->booking_id }}">
+
+      {{-- Asegura booking_date aunque no sea visible en el form --}}
+      <input type="hidden" name="booking_date"
+             value="{{ old('booking_date', optional($booking->booking_date)->format('Y-m-d') ?? now()->toDateString()) }}">
+
+      {{-- Cliente bloqueado: lo enviamos escondido también --}}
+      <input type="hidden" name="user_id" value="{{ $booking->user_id }}">
 
       <div class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header bg-dark text-white">
           <h5 class="modal-title">
-            Booking #{{ $booking->booking_id }} — {{ $booking->user->full_name ?? 'Client' }}
+            <i class="fas fa-edit me-2"></i>
+            {{ __('m_bookings.bookings.ui.edit_booking') }}
+            <span class="text-muted">#{{ $booking->booking_id }}</span>
           </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
         <div class="modal-body">
-          @php
-            $showMyErrors = (session('showEditModal') == $booking->booking_id)
-                            || (old('_modal') === 'edit:'.$booking->booking_id);
-            $detail = $booking->detail;
-          @endphp
-
-          @if ($showMyErrors && $errors->any())
-            <div class="alert alert-danger">
-              <ul class="mb-0">
-                @foreach ($errors->all() as $err)
-                  <li>{{ $err }}</li>
-                @endforeach
-              </ul>
+          {{-- Errores del modal --}}
+          @if ($reopen && (session('error') || $errors->any()))
+            <div class="alert alert-danger mb-3">
+              @if (session('error'))
+                <div class="mb-2">{{ session('error') }}</div>
+              @endif
+              @if ($errors->any())
+                <ul class="mb-0">
+                  @foreach ($errors->all() as $err)
+                    <li>{{ $err }}</li>
+                  @endforeach
+                </ul>
+              @endif
             </div>
           @endif
 
-          {{-- ========== EXISTING MAIN FORM ========== --}}
-          @include('admin.bookings.partials.edit-form', [
-            'booking'  => $booking,
-            'statuses' => [
-              'pending'   => 'Pending',
-              'confirmed' => 'Confirmed',
-              'cancelled' => 'Cancelled',
-            ],
+          {{-- FORM DE EDICIÓN (precargado + cliente bloqueado) --}}
+          @include('admin.bookings.partials.form-edit', [
+            'booking' => $booking,
+            'detail'  => $detail,
           ])
-
-          {{-- ========== MEETING POINT (simple) ========== --}}
-          <hr class="my-3">
-          <div class="mb-2">
-            <label class="form-label"><i class="fas fa-map-marker-alt me-1"></i> Meeting Point</label>
-            <select
-              name="meeting_point_id"
-              class="form-select @error('meeting_point_id') is-invalid @enderror">
-              <option value="">— Select a meeting point —</option>
-              @foreach ($meetingPoints as $mp)
-                <option
-                  value="{{ $mp->id }}"
-                  @selected(old('meeting_point_id', $detail->meeting_point_id ?? null) == $mp->id)>
-                  {{ $mp->name }}
-                </option>
-              @endforeach
-            </select>
-            @error('meeting_point_id')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-            <div class="form-text">
-              Only the <strong>name</strong> of the point is shown in the list.
-            </div>
-          </div>
-          {{-- /MEETING POINT --}}
         </div>
 
         <div class="modal-footer">
-          <button type="submit" class="btn btn-warning">Update</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">
+            <i class="fas fa-save me-1"></i>{{ __('m_bookings.bookings.buttons.update') }}
+          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-1"></i>{{ __('m_bookings.bookings.buttons.cancel') }}
+          </button>
         </div>
       </div>
     </form>
   </div>
 </div>
 
-{{-- Reopen this modal if appropriate --}}
-@if (session('showEditModal') == $booking->booking_id || (old('_modal') === 'edit:'.$booking->booking_id && $errors->any()))
+@if ($reopen)
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const m = document.getElementById('modalEdit{{ $booking->booking_id }}');
-      if (m) new bootstrap.Modal(m).show();
+      const el = document.getElementById('modalEdit{{ $booking->booking_id }}');
+      if (el) bootstrap.Modal.getOrCreateInstance(el).show();
     });
   </script>
 @endif
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('editForm-{{ $booking->booking_id }}');
-  if (!form) return;
-
-  const btnSubmit = form.querySelector('button[type="submit"]');
-
-  // Prevent double submit + spinner
-  form.addEventListener('submit', (e) => {
-    if (form.dataset.submitted === 'true') { e.preventDefault(); return; }
-    form.dataset.submitted = 'true';
-    if (btnSubmit) {
-      btnSubmit.disabled = true;
-      btnSubmit.dataset.originalText = btnSubmit.innerHTML;
-      btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Updating...';
-    }
-  });
-
-  // Toggle "Other hotel" (scoped to modal)
-  const hotelSel      = form.querySelector('select[name="hotel_id"]');
-  const otherWrap     = form.querySelector('[data-role="other-hotel-wrapper"]');
-  const isOtherHidden = form.querySelector('input[name="is_other_hotel"]');
-
-  const toggleOtherHotel = () => {
-    if (!hotelSel || !otherWrap || !isOtherHidden) return;
-    const isOther = hotelSel.value === 'other';
-    otherWrap.classList.toggle('d-none', !isOther);
-    isOtherHidden.value = isOther ? 1 : 0;
-    if (!isOther) {
-      const otherInput = form.querySelector('input[name="other_hotel_name"]');
-      if (otherInput) otherInput.value = '';
-    }
-  };
-  toggleOtherHotel();
-  hotelSel?.addEventListener('change', toggleOtherHotel);
-
-  // Update schedules when tour changes
-  const tourSel  = form.querySelector('select[name="tour_id"]');
-  const schedSel = form.querySelector('select[name="schedule_id"]');
-
-  tourSel?.addEventListener('change', () => {
-    const opt  = tourSel.selectedOptions[0];
-    const json = opt ? opt.getAttribute('data-schedules') : '[]';
-    let list = [];
-    try { list = JSON.parse(json || '[]'); } catch(e) { console.error(e); }
-
-    schedSel.innerHTML = '<option value="">Select schedule</option>';
-    list.forEach(s => {
-      const o = document.createElement('option');
-      o.value = s.schedule_id;
-      o.textContent = `${s.start_time} — ${s.end_time}`;
-      schedSel.appendChild(o);
-    });
-    schedSel.value = '';
-  });
-});
-</script>
+@push('css')
+<style>
+  .modal-xl .modal-body { max-height: 70vh; overflow-y: auto; }
+</style>
+@endpush

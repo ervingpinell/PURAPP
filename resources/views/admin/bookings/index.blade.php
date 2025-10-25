@@ -1,10 +1,77 @@
+{{-- resources/views/admin/bookings/index.blade.php --}}
+
 @extends('adminlte::page')
 
-@section('title', 'Bookings')
+@section('title', __('m_bookings.bookings.ui.page_title'))
 
 @section('content_header')
-  <h1>Bookings Management</h1>
+  <h1>{{ __('m_bookings.bookings.ui.page_heading') }}</h1>
 @stop
+
+@push('css')
+<style>
+  /* Zoom functionality */
+  #bookingsTableContainer {
+    transform-origin: top left;
+    transition: transform 0.3s ease;
+  }
+
+  /* Compact table styling */
+  .table-compact {
+    font-size: 0.875rem;
+  }
+
+  .table-compact td,
+  .table-compact th {
+    padding: 0.5rem;
+    white-space: nowrap;
+  }
+
+  .badge-compact {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  /* Interactive badge styling */
+  .badge-interactive {
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .badge-interactive:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    opacity: 0.9;
+  }
+
+  .badge-interactive:active {
+    transform: scale(0.98);
+  }
+
+  /* Ensure text color for different badge states */
+  .badge.bg-warning.text-dark {
+    color: #000 !important;
+  }
+
+  .badge.bg-success.text-white,
+  .badge.bg-danger.text-white {
+    color: #fff !important;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .table-compact {
+      font-size: 0.75rem;
+    }
+  }
+
+  /* Details button hover effect */
+  .btn-details:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s;
+  }
+</style>
+@endpush
 
 @section('content')
 @php
@@ -18,41 +85,53 @@
 
 <div class="container-fluid">
 
-  {{-- 🟩 Top buttons --}}
-  <div class="mb-3 row align-items-end">
-    <div class="col-md-auto mb-2">
-      <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegister">
-        <i class="fas fa-plus"></i> Add Booking
-      </a>
-    </div>
+  {{-- 🟩 Top buttons - MEJORADO Y ALINEADO --}}
+  <div class="mb-3 d-flex flex-wrap align-items-center gap-2">
+    {{-- Action Buttons --}}
+    <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegister">
+      <i class="fas fa-plus"></i> {{ __('m_bookings.bookings.ui.add_booking') }}
+    </a>
 
-    <div class="col-md-auto mb-2">
-      <a href="{{ route('admin.bookings.export.pdf') }}" class="btn btn-danger">
-        <i class="fas fa-file-pdf"></i> Download PDF
-      </a>
-    </div>
+    <a href="{{ route('admin.bookings.export.pdf') }}" class="btn btn-danger">
+      <i class="fas fa-file-pdf"></i> {{ __('m_bookings.reports.download_pdf') }}
+    </a>
 
-    <div class="col-md-auto mb-2">
-      <a href="{{ route('admin.bookings.export.excel', request()->query()) }}" class="btn btn-success">
-        <i class="fas fa-file-excel"></i> Export Excel
-      </a>
-    </div>
+    <a href="{{ route('admin.bookings.export.excel', request()->query()) }}" class="btn btn-success">
+      <i class="fas fa-file-excel"></i> {{ __('m_bookings.reports.export_excel') }}
+    </a>
 
-    {{-- 🔍 Quick reference filter --}}
-    <div class="col-md-3 mb-2">
-      <form method="GET" action="{{ route('admin.bookings.index') }}">
-        <div class="input-group">
-          <input type="text" name="reference" class="form-control" placeholder="Search reference..." value="{{ request('reference') }}">
-          <button class="btn btn-outline-secondary" type="submit">
-            <i class="fas fa-search"></i>
-          </button>
-        </div>
-      </form>
-    </div>
+    {{-- Spacer --}}
+    <div class="flex-grow-1"></div>
 
-    <div class="col-md-auto text-end mb-2">
-      <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" aria-expanded="{{ $activeFilters ? 'true' : 'false' }}">
-        <i class="fas fa-filter"></i> Advanced filters
+    {{-- 🔍 Quick reference filter - ALINEADO --}}
+    <form method="GET" action="{{ route('admin.bookings.index') }}" class="d-flex">
+      <div class="input-group" style="width: 280px;">
+        <input type="text" name="reference" class="form-control"
+               placeholder="{{ __('m_bookings.filters.search_reference') }}"
+               value="{{ request('reference') }}">
+        <button class="btn btn-outline-secondary" type="submit">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </form>
+
+    {{-- Advanced Filters Button --}}
+    <button class="btn btn-secondary" type="button" data-bs-toggle="collapse"
+            data-bs-target="#advancedFilters"
+            aria-expanded="{{ $activeFilters ? 'true' : 'false' }}">
+      <i class="fas fa-filter"></i> {{ __('m_bookings.filters.advanced_filters') }}
+    </button>
+
+    {{-- Zoom Controls --}}
+    <div class="btn-group" role="group">
+      <button type="button" class="btn btn-outline-secondary" id="zoomOut" title="{{ __('m_bookings.ui.zoom_out') }}">
+        <i class="fas fa-search-minus"></i>
+      </button>
+      <button type="button" class="btn btn-outline-secondary" id="zoomReset" title="{{ __('m_bookings.ui.zoom_reset') }}">
+        <i class="fas fa-compress"></i>
+      </button>
+      <button type="button" class="btn btn-outline-secondary" id="zoomIn" title="{{ __('m_bookings.ui.zoom_in') }}">
+        <i class="fas fa-search-plus"></i>
       </button>
     </div>
   </div>
@@ -60,9 +139,9 @@
   {{-- 🧪 Advanced filters --}}
   @include('admin.bookings.partials.advanced-filters')
 
-  {{-- 📋 Table --}}
-  <div class="table-responsive mt-4">
-    @include('admin.bookings.partials.table')
+  {{-- 📋 Compact Table --}}
+  <div class="table-responsive mt-4" id="bookingsTableContainer">
+    @include('admin.bookings.partials.table-compact')
   </div>
 </div>
 
@@ -70,76 +149,10 @@
 @include('admin.bookings.partials.modal-register')
 @foreach ($bookings as $booking)
   @include('admin.bookings.partials.modal-edit', ['booking' => $booking])
+  @include('admin.bookings.partials.modal-details', ['booking' => $booking])
 @endforeach
-@stop
+@endsection
 
 @push('js')
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const closeBtn = document.getElementById('closeFiltersBtn');
-    const filters = document.getElementById('advancedFilters');
-
-    if (closeBtn && filters) {
-      closeBtn.addEventListener('click', () => {
-        new bootstrap.Collapse(filters, { toggle: true });
-      });
-    }
-  });
-</script>
 @include('admin.bookings.partials.scripts')
 @endpush
-<script>
-document.addEventListener('shown.bs.modal', (ev) => {
-  const modalEl = ev.target;
-  if (!modalEl.id || !modalEl.id.startsWith('modalEdit')) return;
-
-  // --- Tour / Schedule (scoped to modal) ---
-  const tourSel = modalEl.querySelector('select[name="tour_id"]');
-  const schSel  = modalEl.querySelector('select[name="schedule_id"]');
-
-  if (tourSel && schSel && tourSel.dataset.bound !== '1') {
-    tourSel.dataset.bound = '1';
-
-    tourSel.addEventListener('change', () => {
-      const opt = tourSel.options[tourSel.selectedIndex];
-      const schedules = JSON.parse(opt?.dataset?.schedules || '[]');
-
-      schSel.innerHTML = '<option value="">Select schedule</option>';
-      schedules.forEach(s => {
-        const o = document.createElement('option');
-        o.value = s.schedule_id;
-        o.textContent = `${s.start_time} — ${s.end_time}`;
-        schSel.appendChild(o);
-      });
-
-      // force selection of valid schedule for new tour
-      schSel.value = '';
-    });
-  }
-
-  // --- Hotel "Other…" (scoped to modal) ---
-  const hotelSel       = modalEl.querySelector('select[name="hotel_id"]');
-  const otherWrap      = modalEl.querySelector('[data-role="other-hotel-wrapper"]');
-  const otherInput     = modalEl.querySelector('input[name="other_hotel_name"]');
-  const isOtherHidden  = modalEl.querySelector('input[name="is_other_hotel"]');
-
-  const toggleOther = () => {
-    if (!hotelSel) return;
-    if (hotelSel.value === 'other') {
-      otherWrap?.classList.remove('d-none');
-      if (isOtherHidden) isOtherHidden.value = 1;
-    } else {
-      otherWrap?.classList.add('d-none');
-      if (otherInput) otherInput.value = '';
-      if (isOtherHidden) isOtherHidden.value = 0;
-    }
-  };
-
-  if (hotelSel && hotelSel.dataset.bound !== '1') {
-    hotelSel.dataset.bound = '1';
-    hotelSel.addEventListener('change', toggleOther);
-    // In case modal opens with "other" selected:
-    toggleOther();
-  }
-});
-</script>

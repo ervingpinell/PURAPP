@@ -32,7 +32,7 @@ Swal.fire({
   {{-- 🧾 FORMULARIO PARA CREAR CÓDIGO --}}
   <h2 class="mb-4">{{ __('m_config.promocode.create_title') }}</h2>
 
-  <form method="POST" action="{{ route('admin.promoCode.store') }}">
+  <form method="POST" action="{{ route('admin.promoCodes.store') }}">
     @csrf
 
     <div class="row g-3 mb-2">
@@ -152,7 +152,7 @@ Swal.fire({
 
           // Operación actual
           $op = ($promo->operation ?? 'subtract') === 'add' ? 'add' : 'subtract';
-          $opClass = $op === 'add' ? 'bg-warning text-dark' : 'bg-primary';
+          $opClass = $op === 'add' ? 'bg-warning text-gray-dark' : 'bg-primary';
         @endphp
 
         <tr>
@@ -207,7 +207,7 @@ Swal.fire({
 
           <td class="text-nowrap">
             {{-- NUEVO: Botón Toggle Sumar/Restar --}}
-            <form action="{{ route('admin.promoCode.updateOperation', $promo) }}"
+            <form action="{{ route('admin.promoCodes.updateOperation', $promo) }}"
                   method="POST"
                   class="d-inline">
               @csrf
@@ -223,7 +223,7 @@ Swal.fire({
             </form>
 
             {{-- Botón Eliminar (igual que ya lo tenías) --}}
-            <form action="{{ route('admin.promoCode.destroy', $promo) }}"
+            <form action="{{ route('admin.promoCodes.destroy', $promo) }}"
                   method="POST"
                   class="d-inline"
                   onsubmit="return confirm(@json(__('m_config.promocode.confirm_delete')))">

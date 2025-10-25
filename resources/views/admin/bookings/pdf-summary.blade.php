@@ -1,8 +1,10 @@
+{{-- resources/views/admin/bookings/pdf-summary.blade.php --}}
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
-    <title>Bookings Report - Green Vacations CR</title>
+    <title>{{ __('m_bookings.reports.pdf_title') }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Lora:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root{--green-dark:#1A5229;--green-base:#2E8B57;--gray-light:#f0f2f5;--text-color:#333;--font-heading:'Montserrat',sans-serif;--font-body:'Lora',serif;}
@@ -25,7 +27,7 @@
 </head>
 <body>
 <div class="report-container">
-    <h2>General Bookings Report - Green Vacations Costa Rica</h2>
+    <h2>{{ __('m_bookings.reports.general_report_title') }}</h2>
 
     @foreach($bookings as $booking)
         @php
@@ -41,7 +43,7 @@
 
             $schedule = $detail->schedule
                 ? \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') . ' — ' . \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A')
-                : 'No schedule';
+                : __('m_bookings.bookings.messages.no_schedules');
 
             $subtotal = ($adultPrice * $adultsQty) + ($kidPrice * $kidsQty);
 
@@ -58,32 +60,32 @@
                 }
             }
 
-            $labelDiscount = __('receipt.discount_label', [], false) ?: 'Discount';
-            $labelSurcharge = __('receipt.surcharge_label', [], false) ?: 'Surcharge';
+            $labelDiscount = __('m_bookings.reports.discount', [], false) ?: 'Discount';
+            $labelSurcharge = __('m_bookings.reports.surcharge', [], false) ?: 'Surcharge';
             $adjustLabel = $operation === 'add' ? $labelSurcharge : $labelDiscount;
         @endphp
 
         <div class="booking-section">
-            <div class="section-title">Code: {{ $booking->booking_reference }}</div>
+            <div class="section-title">{{ __('m_bookings.bookings.fields.reference') }}: {{ $booking->booking_reference }}</div>
 
-            <div class="data-item"><strong>Client:</strong> <span>{{ optional($booking->user)->full_name }}</span> <small>({{ optional($booking->user)->email }})</small></div>
-            <div class="data-item"><strong>Tour:</strong> <span>{{ $tour->name }}</span></div>
-            <div class="data-item"><strong>Booking Date:</strong> <span>{{ \Carbon\Carbon::parse($booking->booking_date)->format('m/d/Y') }}</span></div>
-            <div class="data-item"><strong>Tour Date:</strong> <span>{{ \Carbon\Carbon::parse($detail->tour_date)->format('m/d/Y') }}</span></div>
-            <div class="data-item"><strong>Schedule:</strong> <span>{{ $schedule }}</span></div>
-            <div class="data-item"><strong>Hotel:</strong> <span>{{ $hotel }}</span></div>
-            <div class="data-item"><strong>Meeting Point:</strong> <span>{{ $meetingPoint }}</span></div>
-            <div class="data-item"><strong>Status:</strong> <span>{{ ucfirst($booking->status) }}</span></div>
-
-            <div class="line-separator"></div>
-
-            <div class="data-item"><strong>Adults (x{{ $adultsQty }}):</strong> <span>${{ number_format($adultPrice * $adultsQty, 2) }}</span></div>
-            <div class="data-item"><strong>Kids (x{{ $kidsQty }}):</strong> <span>${{ number_format($kidPrice * $kidsQty, 2) }}</span></div>
-            <div class="data-item"><strong>People:</strong> <span>{{ $adultsQty + $kidsQty }}</span></div>
+            <div class="data-item"><strong>{{ __('m_bookings.bookings.fields.customer') }}:</strong> <span>{{ optional($booking->user)->full_name }}</span> <small>({{ optional($booking->user)->email }})</small></div>
+            <div class="data-item"><strong>{{ __('m_bookings.bookings.fields.tour') }}:</strong> <span>{{ $tour->name }}</span></div>
+            <div class="data-item"><strong>{{ __('m_bookings.bookings.fields.booking_date') }}:</strong> <span>{{ \Carbon\Carbon::parse($booking->booking_date)->format('m/d/Y') }}</span></div>
+            <div class="data-item"><strong>{{ __('m_bookings.bookings.fields.tour_date') }}:</strong> <span>{{ \Carbon\Carbon::parse($detail->tour_date)->format('m/d/Y') }}</span></div>
+            <div class="data-item"><strong>{{ __('m_bookings.bookings.fields.schedule') }}:</strong> <span>{{ $schedule }}</span></div>
+            <div class="data-item"><strong>{{ __('m_bookings.bookings.fields.hotel') }}:</strong> <span>{{ $hotel }}</span></div>
+            <div class="data-item"><strong>{{ __('m_bookings.bookings.fields.meeting_point') }}:</strong> <span>{{ $meetingPoint }}</span></div>
+            <div class="data-item"><strong>{{ __('m_bookings.bookings.fields.status') }}:</strong> <span>{{ __('m_bookings.bookings.statuses.' . $booking->status) }}</span></div>
 
             <div class="line-separator"></div>
 
-            <div class="data-item"><strong>Subtotal:</strong> <span>${{ number_format($subtotal, 2) }}</span></div>
+            <div class="data-item"><strong>{{ __('m_bookings.reports.adults_qty', ['qty' => $adultsQty]) }}:</strong> <span>${{ number_format($adultPrice * $adultsQty, 2) }}</span></div>
+            <div class="data-item"><strong>{{ __('m_bookings.reports.kids_qty', ['qty' => $kidsQty]) }}:</strong> <span>${{ number_format($kidPrice * $kidsQty, 2) }}</span></div>
+            <div class="data-item"><strong>{{ __('m_bookings.reports.people') }}:</strong> <span>{{ $adultsQty + $kidsQty }}</span></div>
+
+            <div class="line-separator"></div>
+
+            <div class="data-item"><strong>{{ __('m_bookings.reports.subtotal') }}:</strong> <span>${{ number_format($subtotal, 2) }}</span></div>
 
             @if ($promo && $delta > 0)
                 <div class="data-item">
@@ -94,23 +96,23 @@
                     </span>
                 </div>
                 <div class="data-item">
-                    <strong>Original price:</strong>
+                    <strong>{{ __('m_bookings.reports.original_price') }}:</strong>
                     <span style="text-decoration: line-through; color: #999;">
                         ${{ number_format($subtotal, 2) }}
                     </span>
                 </div>
             @endif
 
-            <div class="total">TOTAL: ${{ number_format($booking->total, 2) }}</div>
+            <div class="total">{{ __('m_bookings.bookings.fields.total') }}: ${{ number_format($booking->total, 2) }}</div>
         </div>
     @endforeach
 
     <div class="line-separator"></div>
 
     <div class="summary-general">
-        <div class="data-item"><strong>Total Adults:</strong> <span>{{ $totalAdults }}</span></div>
-        <div class="data-item"><strong>Total Kids:</strong> <span>{{ $totalKids }}</span></div>
-        <div class="data-item"><strong>Total People:</strong> <span>{{ $totalPersons }}</span></div>
+        <div class="data-item"><strong>{{ __('m_bookings.reports.total_adults') }}:</strong> <span>{{ $totalAdults }}</span></div>
+        <div class="data-item"><strong>{{ __('m_bookings.reports.total_kids') }}:</strong> <span>{{ $totalKids }}</span></div>
+        <div class="data-item"><strong>{{ __('m_bookings.reports.total_people') }}:</strong> <span>{{ $totalPersons }}</span></div>
     </div>
 </div>
 </body>
