@@ -229,6 +229,7 @@ return [
     'promoCode' => 'Do you have a promotional code?',
     'promoCodePlaceholder' => 'Enter your promotional code',
     'apply' => 'Apply',
+        'remove' => 'Remove',
     'deleteItemTitle' => 'Delete item',
     'deleteItemText' => 'Are you sure you want to delete this item? This action cannot be undone.',
     'deleteItemConfirm' => 'Delete',

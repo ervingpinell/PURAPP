@@ -408,11 +408,11 @@ return [
                 'route' => 'admin.bookings.index',
                 'icon'  => 'fas fa-calendar-check',
             ],
-            [
-                'text' => 'Calendario',
-                'route' => 'admin.bookings.calendar',
-                'icon'  => 'fas fa-calendar-alt',
-            ],
+            // [
+            //     'text' => 'Calendario',
+            //     'route' => 'admin.bookings.calendar',
+            //     'icon'  => 'fas fa-calendar-alt',
+            // ],
             [
                 'text'  => 'Bloquear Fechas',
                 'route' => 'admin.tours.excluded_dates.index',

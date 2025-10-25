@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', __('m_booking.availability.ui.page_title'))
+@section('title', __('m_bookings.availability.ui.page_title'))
 
 @section('content_header')
-  <h1><i class="fas fa-calendar-check me-2"></i> {{ __('m_booking.availability.ui.page_heading') }}</h1>
+  <h1><i class="fas fa-calendar-check me-2"></i> {{ __('m_bookings.availability.ui.page_heading') }}</h1>
 @stop
 
 @push('css')
@@ -64,7 +64,7 @@
   <div class="card-header bg-dark text-white d-flex flex-wrap align-items-end gap-2 sticky-filters">
     <form id="filtersForm" method="GET" action="{{ route('admin.tours.excluded_dates.index') }}" class="d-flex flex-wrap align-items-end gap-2 mb-0">
       <div>
-        <label class="form-label mb-1">{{ __('m_booking.availability.filters.date') }}</label>
+        <label class="form-label mb-1">{{ __('m_bookings.availability.filters.date') }}</label>
         <input
           type="date"
           name="date"
@@ -75,12 +75,12 @@
         >
       </div>
       <div>
-        <label class="form-label mb-1">{{ __('m_booking.availability.filters.days') }}</label>
+        <label class="form-label mb-1">{{ __('m_bookings.availability.filters.days') }}</label>
         <input type="number" min="1" max="30" name="days" value="{{ $days }}" class="form-control form-control-sm" style="width:100px" id="filterDays">
       </div>
       <div>
-        <label class="form-label mb-1">{{ __('m_booking.availability.filters.product') }}</label>
-        <input type="text" name="q" value="{{ $q }}" placeholder="{{ __('m_booking.availability.filters.search_placeholder') }}" class="form-control form-control-sm search-input" id="filterQ">
+        <label class="form-label mb-1">{{ __('m_bookings.availability.filters.product') }}</label>
+        <input type="text" name="q" value="{{ $q }}" placeholder="{{ __('m_bookings.availability.filters.search_placeholder') }}" class="form-control form-control-sm search-input" id="filterQ">
       </div>
     </form>
 
@@ -89,14 +89,14 @@
       <div class="bulk-dd">
         <div class="btn-group">
           <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            {{ __('m_booking.availability.filters.update_state') }}
+            {{ __('m_bookings.availability.filters.update_state') }}
           </button>
           <div class="dropdown-menu dropdown-menu-right dropdown-menu-end p-2">
             <button type="button" class="btn btn-danger btn-sm w-100" id="bulkBlock">
-              <i class="fas fa-ban me-1"></i> {{ __('m_booking.availability.buttons.block_selected') }}
+              <i class="fas fa-ban me-1"></i> {{ __('m_bookings.availability.buttons.block_selected') }}
             </button>
             <button type="button" class="btn btn-success btn-sm w-100 mt-2" id="bulkUnblock">
-              <i class="fas fa-check me-1"></i> {{ __('m_booking.availability.buttons.unblock_selected') }}
+              <i class="fas fa-check me-1"></i> {{ __('m_bookings.availability.buttons.unblock_selected') }}
             </button>
           </div>
         </div>
@@ -104,11 +104,11 @@
 
       <a class="btn btn-warning btn-sm js-view-blocked ms-3"
          href="{{ route('admin.tours.excluded_dates.blocked', ['date' => $date, 'days' => $days, 'q' => $q]) }}">
-        <i class="fas fa-lock me-1"></i> {{ __('m_booking.availability.filters.view_blocked') }}
+        <i class="fas fa-lock me-1"></i> {{ __('m_bookings.availability.filters.view_blocked') }}
       </a>
 
       <div class="small text-muted d-none d-md-inline ms-2">
-        {{ __('m_booking.availability.filters.tip') }}
+        {{ __('m_bookings.availability.filters.tip') }}
       </div>
     </div>
   </div>
@@ -128,7 +128,7 @@
           <div class="fw-bold">
             {{ ucfirst($fmt($day)) }}
             <span class="ms-2 text-success opacity-75">
-              {{ __('m_booking.availability.ui.tours_count', ['count' => count($buckets['am']) + count($buckets['pm'])]) }}
+              {{ __('m_bookings.availability.ui.tours_count', ['count' => count($buckets['am']) + count($buckets['pm'])]) }}
             </span>
           </div>
           <div class="ms-auto btn-gap">
@@ -136,26 +136,26 @@
                     type="button"
                     data-day="{{ $day }}"
                     onclick="toggleMarkDay(this,'{{ $day }}')">
-              {{ __('m_booking.availability.buttons.mark_all') }}
+              {{ __('m_bookings.availability.buttons.mark_all') }}
             </button>
             <button class="btn btn-danger btn-sm" type="button" onclick="blockAllInDay('{{ $day }}')">
-              {{ __('m_booking.availability.buttons.block_all') }}
+              {{ __('m_bookings.availability.buttons.block_all') }}
             </button>
           </div>
         </div>
 
         {{-- AM --}}
         <div class="al-title bg-dark al-block-title">
-          <span class="fw-bold small mb-0">{{ __('m_booking.availability.blocks.am_tours') }}</span>
+          <span class="fw-bold small mb-0">{{ __('m_bookings.availability.blocks.am_tours') }}</span>
           <div class="ms-auto btn-gap">
             <button type="button"
                     class="btn btn-primary btn-sm js-mark-block"
                     data-day="{{ $day }}" data-bucket="am"
                     onclick="toggleMarkBlock(this,'{{ $day }}','am')">
-              {{ __('m_booking.availability.buttons.mark_all') }}
+              {{ __('m_bookings.availability.buttons.mark_all') }}
             </button>
             <button type="button" class="btn btn-danger btn-sm" onclick="blockAllInBlock('{{ $day }}','am')">
-              {{ __('m_booking.availability.buttons.block_all') }}
+              {{ __('m_bookings.availability.buttons.block_all') }}
             </button>
           </div>
         </div>
@@ -172,40 +172,40 @@
                 <div class="flex-grow-1">
                   <span class="me-2">{{ $it['tour_name'] }} ({{ $it['time'] }})</span>
                   <span class="state {{ $it['is_available'] ? 'text-success' : 'text-danger' }}">
-                    {{ $it['is_available'] ? __('m_booking.availability.states.available') : __('m_booking.availability.states.blocked') }}
+                    {{ $it['is_available'] ? __('m_bookings.availability.states.available') : __('m_bookings.availability.states.blocked') }}
                   </span>
                 </div>
                 <div class="btn-gap">
                   <button type="button" class="btn btn-danger btn-sm btn-block"
                           onclick="confirmToggleOne(this, '{{ $day }}', {{ $it['tour_id'] }}, {{ $it['schedule_id'] }}, 'block')"
                           {{ !$it['is_available'] ? 'disabled' : '' }}>
-                    {{ __('m_booking.availability.buttons.block') }}
+                    {{ __('m_bookings.availability.buttons.block') }}
                   </button>
                   <button type="button" class="btn btn-success btn-sm btn-unblock"
                           onclick="confirmToggleOne(this, '{{ $day }}', {{ $it['tour_id'] }}, {{ $it['schedule_id'] }}, 'unblock')"
                           {{ $it['is_available'] ? 'disabled' : '' }}>
-                    {{ __('m_booking.availability.buttons.unblock') }}
+                    {{ __('m_bookings.availability.buttons.unblock') }}
                   </button>
                 </div>
               </div>
             </div>
           @empty
-            <div class="text-muted al-empty">{{ __('m_booking.availability.blocks.empty_block') }}</div>
+            <div class="text-muted al-empty">{{ __('m_bookings.availability.blocks.empty_block') }}</div>
           @endforelse
         </div>
 
         {{-- PM --}}
         <div class="al-title bg-dark al-block-title mt-3">
-          <span class="fw-bold small mb-0">{{ __('m_booking.availability.blocks.pm_tours') }}</span>
+          <span class="fw-bold small mb-0">{{ __('m_bookings.availability.blocks.pm_tours') }}</span>
           <div class="ms-auto btn-gap">
             <button type="button"
                     class="btn btn-primary btn-sm js-mark-block"
                     data-day="{{ $day }}" data-bucket="pm"
                     onclick="toggleMarkBlock(this,'{{ $day }}','pm')">
-              {{ __('m_booking.availability.buttons.mark_all') }}
+              {{ __('m_bookings.availability.buttons.mark_all') }}
             </button>
             <button type="button" class="btn btn-danger btn-sm" onclick="blockAllInBlock('{{ $day }}','pm')">
-              {{ __('m_booking.availability.buttons.block_all') }}
+              {{ __('m_bookings.availability.buttons.block_all') }}
             </button>
           </div>
         </div>
@@ -222,31 +222,31 @@
                 <div class="flex-grow-1">
                   <span class="me-2">{{ $it['tour_name'] }} ({{ $it['time'] }})</span>
                   <span class="state {{ $it['is_available'] ? 'text-success' : 'text-danger' }}">
-                    {{ $it['is_available'] ? __('m_booking.availability.states.available') : __('m_booking.availability.states.blocked') }}
+                    {{ $it['is_available'] ? __('m_bookings.availability.states.available') : __('m_bookings.availability.states.blocked') }}
                   </span>
                 </div>
                 <div class="btn-gap">
                   <button type="button" class="btn btn-danger btn-sm btn-block"
                           onclick="confirmToggleOne(this, '{{ $day }}', {{ $it['tour_id'] }}, {{ $it['schedule_id'] }}, 'block')"
                           {{ !$it['is_available'] ? 'disabled' : '' }}>
-                    {{ __('m_booking.availability.buttons.block') }}
+                    {{ __('m_bookings.availability.buttons.block') }}
                   </button>
                   <button type="button" class="btn btn-success btn-sm btn-unblock"
                           onclick="confirmToggleOne(this, '{{ $day }}', {{ $it['tour_id'] }}, {{ $it['schedule_id'] }}, 'unblock')"
                           {{ $it['is_available'] ? 'disabled' : '' }}>
-                    {{ __('m_booking.availability.buttons.unblock') }}
+                    {{ __('m_bookings.availability.buttons.unblock') }}
                   </button>
                 </div>
               </div>
             </div>
           @empty
-            <div class="text-muted al-empty">{{ __('m_booking.availability.blocks.empty_block') }}</div>
+            <div class="text-muted al-empty">{{ __('m_bookings.availability.blocks.empty_block') }}</div>
           @endforelse
         </div>
 
       </div>
     @empty
-      <div class="text-muted al-empty">{{ __('m_booking.availability.blocks.no_data') }}</div>
+      <div class="text-muted al-empty">{{ __('m_bookings.availability.blocks.no_data') }}</div>
     @endforelse
 
     <div id="tabla-baja" class="mt-4"></div>
@@ -264,48 +264,48 @@ const CSRF       = @json(csrf_token());
 
 const I18N = {
   filters: {
-    applying: @json(__('m_booking.availability.toasts.applying_filters')),
-    searching: @json(__('m_booking.availability.toasts.searching')),
-    updating: @json(__('m_booking.availability.toasts.updating_range')),
-    invalidTitle: @json(__('m_booking.availability.toasts.invalid_date_title')),
-    invalidText: @json(__('m_booking.availability.toasts.invalid_date_text')),
+    applying: @json(__('m_bookings.availability.toasts.applying_filters')),
+    searching: @json(__('m_bookings.availability.toasts.searching')),
+    updating: @json(__('m_bookings.availability.toasts.updating_range')),
+    invalidTitle: @json(__('m_bookings.availability.toasts.invalid_date_title')),
+    invalidText: @json(__('m_bookings.availability.toasts.invalid_date_text')),
   },
   buttons: {
-    markAll: @json(__('m_booking.availability.buttons.mark_all')),
-    unmarkAll: @json(__('m_booking.availability.buttons.unmark_all')),
-    block: @json(__('m_booking.availability.buttons.block')),
-    unblock: @json(__('m_booking.availability.buttons.unblock')),
+    markAll: @json(__('m_bookings.availability.buttons.mark_all')),
+    unmarkAll: @json(__('m_bookings.availability.buttons.unmark_all')),
+    block: @json(__('m_bookings.availability.buttons.block')),
+    unblock: @json(__('m_bookings.availability.buttons.unblock')),
   },
   states: {
-    available: @json(__('m_booking.availability.states.available')),
-    blocked: @json(__('m_booking.availability.states.blocked')),
+    available: @json(__('m_bookings.availability.states.available')),
+    blocked: @json(__('m_bookings.availability.states.blocked')),
   },
   confirm: {
-    blockTitle: @json(__('m_booking.availability.confirm.block_title')),
-    blockHtml: @json(__('m_booking.availability.confirm.block_html', ['label' => ':label', 'day' => ':day'])),
-    blockBtn: @json(__('m_booking.availability.confirm.block_btn')),
-    unblockTitle: @json(__('m_booking.availability.confirm.unblock_title')),
-    unblockHtml: @json(__('m_booking.availability.confirm.unblock_html', ['label' => ':label', 'day' => ':day'])),
-    unblockBtn: @json(__('m_booking.availability.confirm.unblock_btn')),
-    bulkTitle: @json(__('m_booking.availability.confirm.bulk_title')),
-    bulkItemsHtml: @json(__('m_booking.availability.confirm.bulk_items_html', ['count' => ':count'])),
-    bulkBlockDayHtml: @json(__('m_booking.availability.confirm.bulk_block_day_html', ['day' => ':day'])),
-    bulkBlockBlockHtml: @json(__('m_booking.availability.confirm.bulk_block_block_html', ['block' => ':block', 'day' => ':day'])),
+    blockTitle: @json(__('m_bookings.availability.confirm.block_title')),
+    blockHtml: @json(__('m_bookings.availability.confirm.block_html', ['label' => ':label', 'day' => ':day'])),
+    blockBtn: @json(__('m_bookings.availability.confirm.block_btn')),
+    unblockTitle: @json(__('m_bookings.availability.confirm.unblock_title')),
+    unblockHtml: @json(__('m_bookings.availability.confirm.unblock_html', ['label' => ':label', 'day' => ':day'])),
+    unblockBtn: @json(__('m_bookings.availability.confirm.unblock_btn')),
+    bulkTitle: @json(__('m_bookings.availability.confirm.bulk_title')),
+    bulkItemsHtml: @json(__('m_bookings.availability.confirm.bulk_items_html', ['count' => ':count'])),
+    bulkBlockDayHtml: @json(__('m_bookings.availability.confirm.bulk_block_day_html', ['day' => ':day'])),
+    bulkBlockBlockHtml: @json(__('m_bookings.availability.confirm.bulk_block_block_html', ['block' => ':block', 'day' => ':day'])),
   },
   toasts: {
-    marked: @json(__('m_booking.availability.toasts.marked_n', ['n' => ':n'])),
-    unmarked: @json(__('m_booking.availability.toasts.unmarked_n', ['n' => ':n'])),
-    updated: @json(__('m_booking.availability.toasts.updated')),
-    updatedCount: @json(__('m_booking.availability.toasts.updated_count', ['count' => ':count'])),
-    noSelTitle: @json(__('m_booking.availability.toasts.no_selection_title')),
-    noSelText: @json(__('m_booking.availability.toasts.no_selection_text')),
-    noChangesTitle: @json(__('m_booking.availability.toasts.no_changes_title')),
-    noChangesText: @json(__('m_booking.availability.toasts.no_changes_text')),
-    errorGeneric: @json(__('m_booking.availability.toasts.error_generic')),
-    errorUpdate: @json(__('m_booking.availability.toasts.error_update')),
+    marked: @json(__('m_bookings.availability.toasts.marked_n', ['n' => ':n'])),
+    unmarked: @json(__('m_bookings.availability.toasts.unmarked_n', ['n' => ':n'])),
+    updated: @json(__('m_bookings.availability.toasts.updated')),
+    updatedCount: @json(__('m_bookings.availability.toasts.updated_count', ['count' => ':count'])),
+    noSelTitle: @json(__('m_bookings.availability.toasts.no_selection_title')),
+    noSelText: @json(__('m_bookings.availability.toasts.no_selection_text')),
+    noChangesTitle: @json(__('m_bookings.availability.toasts.no_changes_title')),
+    noChangesText: @json(__('m_bookings.availability.toasts.no_changes_text')),
+    errorGeneric: @json(__('m_bookings.availability.toasts.error_generic')),
+    errorUpdate: @json(__('m_bookings.availability.toasts.error_update')),
   },
   blocks: {
-    emptyBlock: @json(__('m_booking.availability.blocks.empty_block')),
+    emptyBlock: @json(__('m_bookings.availability.blocks.empty_block')),
   }
 };
 
@@ -404,11 +404,11 @@ document.querySelector('.js-view-blocked')?.addEventListener('click', async (e) 
   const url = e.currentTarget.href;
   const res = await Swal.fire({
     icon: 'warning',
-    title: @json(__('m_booking.availability.confirm.view_blocked_title')),
-    text:  @json(__('m_booking.availability.confirm.view_blocked_text')),
+    title: @json(__('m_bookings.availability.confirm.view_blocked_title')),
+    text:  @json(__('m_bookings.availability.confirm.view_blocked_text')),
     showCancelButton: true,
-    confirmButtonText: @json(__('m_booking.availability.buttons.open')),
-    cancelButtonText:  @json(__('m_booking.availability.buttons.cancel'))
+    confirmButtonText: @json(__('m_bookings.availability.buttons.open')),
+    cancelButtonText:  @json(__('m_bookings.availability.buttons.cancel'))
   });
   if(res.isConfirmed){ window.location.href = url; }
 });
@@ -463,7 +463,7 @@ async function confirmToggleOne(el, day, tourId, scheduleId, want){
       .replace(':day', day),
     showCancelButton: true,
     confirmButtonText: isBlock ? I18N.confirm.blockBtn : I18N.confirm.unblockBtn,
-    cancelButtonText:  @json(__('m_booking.availability.buttons.cancel'))
+    cancelButtonText:  @json(__('m_bookings.availability.buttons.cancel'))
   });
   if(res.isConfirmed){
     await toggleOne(el, day, tourId, scheduleId, want);
@@ -490,8 +490,8 @@ document.getElementById('bulkBlock').addEventListener('click', async () => {
     title: I18N.confirm.bulkTitle,
     html: I18N.confirm.bulkItemsHtml.replace(':count', items.length),
     showCancelButton: true,
-    confirmButtonText: @json(__('m_booking.availability.buttons.block')),
-    cancelButtonText:  @json(__('m_booking.availability.buttons.cancel'))
+    confirmButtonText: @json(__('m_bookings.availability.buttons.block')),
+    cancelButtonText:  @json(__('m_bookings.availability.buttons.cancel'))
   });
   if(res.isConfirmed) await bulkToggle(items, 'block');
 });
@@ -504,8 +504,8 @@ document.getElementById('bulkUnblock').addEventListener('click', async () => {
     title: I18N.confirm.bulkTitle,
     html: I18N.confirm.bulkItemsHtml.replace(':count', items.length),
     showCancelButton: true,
-    confirmButtonText: @json(__('m_booking.availability.buttons.unblock')),
-    cancelButtonText:  @json(__('m_booking.availability.buttons.cancel'))
+    confirmButtonText: @json(__('m_bookings.availability.buttons.unblock')),
+    cancelButtonText:  @json(__('m_bookings.availability.buttons.cancel'))
   });
   if(res.isConfirmed) await bulkToggle(items, 'unblock');
 });
@@ -536,8 +536,8 @@ async function confirmBulkFromRows(rows, want, titleHtml){
     title: I18N.confirm.bulkTitle,
     html: `${titleHtml}<br>${I18N.confirm.bulkItemsHtml.replace(':count', items.length)}`,
     showCancelButton: true,
-    confirmButtonText: want === 'block' ? @json(__('m_booking.availability.buttons.block')) : @json(__('m_booking.availability.buttons.unblock')),
-    cancelButtonText:  @json(__('m_booking.availability.buttons.cancel'))
+    confirmButtonText: want === 'block' ? @json(__('m_bookings.availability.buttons.block')) : @json(__('m_bookings.availability.buttons.unblock')),
+    cancelButtonText:  @json(__('m_bookings.availability.buttons.cancel'))
   });
   if(res.isConfirmed){ await bulkToggle(items, want); }
 }

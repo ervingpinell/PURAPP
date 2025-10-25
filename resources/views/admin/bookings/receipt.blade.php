@@ -1,8 +1,10 @@
+{{-- resources/views/admin/bookings/receipts.blade.php --}}
+
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}">
 <head>
   <meta charset="utf-8">
-  <title>{{ __('receipt.title') }}</title>
+  <title>{{ __('m_bookings.receipt.title') }}</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Lora:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root { --green-dark:#1A5229; --green-base:#2E8B57; --gray-light:#f0f2f5; --text-color:#333; --font-heading:'Montserrat',sans-serif; --font-body:'Lora',serif; }
@@ -27,8 +29,8 @@
 </head>
 <body>
   <div class="receipt-container">
-    <h2>{{ mb_strtoupper(__('receipt.title'), 'UTF-8') }}</h2>
-    <h3>{{ config('app.name', __('receipt.company')) }}</h3>
+    <h2>{{ mb_strtoupper(__('m_bookings.receipt.title'), 'UTF-8') }}</h2>
+    <h3>{{ config('app.name', __('m_bookings.receipt.company')) }}</h3>
 
     @php
       use Carbon\Carbon;
@@ -45,11 +47,10 @@
 
       // Meeting Point (name only)
       $meetingPointName  = $detail->meeting_point_name ?? optional($detail->meetingPoint)->name ?? '—';
-      $meetingPointLabel = \Illuminate\Support\Facades\Lang::has('receipt.meeting_point') ? __('receipt.meeting_point') : 'Meeting Point';
 
       $schedule = $detail->schedule
         ? Carbon::parse($detail->schedule->start_time)->isoFormat('LT') . ' — ' . Carbon::parse($detail->schedule->end_time)->isoFormat('LT')
-        : __('receipt.no_schedule');
+        : __('m_bookings.receipt.no_schedule');
 
       $bookingDate = Carbon::parse($booking->booking_date)->isoFormat('L');
       $tourDate    = Carbon::parse($detail->tour_date)->isoFormat('L');
@@ -71,38 +72,37 @@
       }
 
       // Dynamic label
-      $labelDiscount = \Illuminate\Support\Facades\Lang::has('receipt.discount_label') ? __('receipt.discount_label') : __('receipt.discount');
-      $labelSurcharge = \Illuminate\Support\Facades\Lang::has('receipt.surcharge_label') ? __('receipt.surcharge_label') : 'Surcharge';
+      $labelDiscount = __('m_bookings.receipt.discount');
+      $labelSurcharge = __('m_bookings.receipt.surcharge');
       $adjustLabel = $operation === 'add' ? $labelSurcharge : $labelDiscount;
 
       // Translated status
-      $statusKey = 'receipt.statuses.' . strtolower((string)$booking->status);
-      $statusTranslated = trans()->has($statusKey) ? __($statusKey) : ucfirst((string)$booking->status);
+      $statusTranslated = __('m_bookings.bookings.statuses.' . strtolower((string)$booking->status));
     @endphp
 
     <div class="data-grid">
-      <div class="data-item"><strong>{{ __('receipt.code') }}</strong><span>{{ $booking->booking_reference }}</span></div>
-      <div class="data-item"><strong>{{ __('receipt.client') }}</strong><span>{{ optional($booking->user)->full_name }}</span><small>({{ optional($booking->user)->email }})</small></div>
-      <div class="data-item"><strong>{{ __('receipt.tour') }}</strong><span>{{ $tour->name }}</span></div>
-      <div class="data-item"><strong>{{ __('receipt.booking_date') }}</strong><span>{{ $bookingDate }}</span></div>
-      <div class="data-item"><strong>{{ __('receipt.tour_date') }}</strong><span>{{ $tourDate }}</span></div>
-      <div class="data-item"><strong>{{ __('receipt.schedule') }}</strong><span>{{ $schedule }}</span></div>
-      <div class="data-item"><strong>{{ __('receipt.hotel') }}</strong><span>{{ $hotel }}</span></div>
-      <div class="data-item"><strong>{{ $meetingPointLabel }}</strong><span>{{ $meetingPointName }}</span></div>
-      <div class="data-item"><strong>{{ __('receipt.status') }}</strong><span>{{ $statusTranslated }}</span></div>
+      <div class="data-item"><strong>{{ __('m_bookings.receipt.code') }}</strong><span>{{ $booking->booking_reference }}</span></div>
+      <div class="data-item"><strong>{{ __('m_bookings.receipt.client') }}</strong><span>{{ optional($booking->user)->full_name }}</span><small>({{ optional($booking->user)->email }})</small></div>
+      <div class="data-item"><strong>{{ __('m_bookings.receipt.tour') }}</strong><span>{{ $tour->name }}</span></div>
+      <div class="data-item"><strong>{{ __('m_bookings.receipt.booking_date') }}</strong><span>{{ $bookingDate }}</span></div>
+      <div class="data-item"><strong>{{ __('m_bookings.receipt.tour_date') }}</strong><span>{{ $tourDate }}</span></div>
+      <div class="data-item"><strong>{{ __('m_bookings.receipt.schedule') }}</strong><span>{{ $schedule }}</span></div>
+      <div class="data-item"><strong>{{ __('m_bookings.receipt.hotel') }}</strong><span>{{ $hotel }}</span></div>
+      <div class="data-item"><strong>{{ __('m_bookings.receipt.meeting_point') }}</strong><span>{{ $meetingPointName }}</span></div>
+      <div class="data-item"><strong>{{ __('m_bookings.receipt.status') }}</strong><span>{{ $statusTranslated }}</span></div>
     </div>
 
     <div class="line-separator"></div>
 
     <div class="data-grid">
-      <div class="data-item"><strong>{{ str_replace(':count', (string)$adultsQty, __('receipt.adults_x')) }}</strong><span>${{ number_format($adultPrice * $adultsQty, 2) }}</span></div>
-      <div class="data-item"><strong>{{ str_replace(':count', (string)$kidsQty, __('receipt.kids_x')) }}</strong><span>${{ number_format($kidPrice * $kidsQty, 2) }}</span></div>
-      <div class="data-item"><strong>{{ __('receipt.people') }}</strong><span>{{ $adultsQty + $kidsQty }}</span></div>
+      <div class="data-item"><strong>{{ __('m_bookings.receipt.adults_x', ['count' => $adultsQty]) }}</strong><span>${{ number_format($adultPrice * $adultsQty, 2) }}</span></div>
+      <div class="data-item"><strong>{{ __('m_bookings.receipt.kids_x', ['count' => $kidsQty]) }}</strong><span>${{ number_format($kidPrice * $kidsQty, 2) }}</span></div>
+      <div class="data-item"><strong>{{ __('m_bookings.receipt.people') }}</strong><span>{{ $adultsQty + $kidsQty }}</span></div>
     </div>
 
     <div class="total-section">
       <div style="text-align:right;">
-        <div><strong>{{ __('receipt.subtotal') }}:</strong> ${{ number_format($subtotal, 2) }}</div>
+        <div><strong>{{ __('m_bookings.receipt.subtotal') }}:</strong> ${{ number_format($subtotal, 2) }}</div>
 
         @if($promo && $delta > 0)
           <div style="color: {{ $operation === 'add' ? '#b45309' : 'green' }};">
@@ -111,7 +111,7 @@
           </div>
         @endif
 
-        <div class="total mt-2">{{ __('receipt.total') }}: ${{ number_format($booking->total, 2) }}</div>
+        <div class="total mt-2">{{ __('m_bookings.receipt.total') }}: ${{ number_format($booking->total, 2) }}</div>
       </div>
     </div>
 
@@ -123,10 +123,10 @@
         $base64 = $png ? base64_encode($png) : null;
       @endphp
       @if($base64)
-        <img src="data:image/png;base64,{{ $base64 }}" alt="{{ __('receipt.qr_alt') }}" style="width:120px; height:120px;">
+        <img src="data:image/png;base64,{{ $base64 }}" alt="{{ __('m_bookings.receipt.qr_alt') }}" style="width:120px; height:120px;">
       @endif
-      <p class="qr-label">{{ __('receipt.qr_scan') }}</p>
-      <p class="qr-label">{{ __('receipt.thanks', ['company' => config('app.name', __('receipt.company'))]) }}</p>
+      <p class="qr-label">{{ __('m_bookings.receipt.qr_scan') }}</p>
+      <p class="qr-label">{{ __('m_bookings.receipt.thanks', ['company' => config('app.name', __('m_bookings.receipt.company'))]) }}</p>
     </div>
   </div>
 </body>

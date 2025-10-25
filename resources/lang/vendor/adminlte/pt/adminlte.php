@@ -227,6 +227,7 @@ return [
     'promoCode' => 'Você tem um código promocional?',
     'promoCodePlaceholder' => 'Digite seu código promocional',
     'apply' => 'Aplicar',
+    'remove' => 'Remover',
     'deleteItemTitle' => 'Excluir item',
     'deleteItemText' => 'Tem certeza de que deseja excluir este item? Esta ação não pode ser desfeita.',
     'deleteItemConfirm' => 'Excluir',

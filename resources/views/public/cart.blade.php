@@ -17,11 +17,11 @@
           'id'          => $mp->id,
           'name'        => $mp->name,
           'pickup_time' => $mp->pickup_time,
-          'description'     => $mp->description,
+          'description' => $mp->description,
           'map_url'     => $mp->map_url,
       ])->values()->toJson();
 
-  $pickupLabel        = __('adminlte::adminlte.pickupTime') ?? 'Pick-up';
+  $pickupLabel = __('adminlte::adminlte.pickupTime') ?? 'Pick-up';
 
   // Columnas condicionales
   $showHotelColumn = ($cart && $cart->items)
@@ -33,11 +33,14 @@
       : false;
 
   // Config timer
-  $expiryMinutes  = (int) config('cart.expiry_minutes', 15); // duración total
-  $extendMinutes  = (int) config('cart.extend_minutes', 15); // lo que agrega el botón
+  $expiryMinutes  = (int) config('cart.expiry_minutes', 15);
+  $extendMinutes  = (int) config('cart.extend_minutes', 15);
+
+  // Promo en sesión (para estado inicial del botón)
+  $promoSession = session('public_cart_promo');
 @endphp
 
-{{-- ========== TIMER (si viene desde backend) ========== --}}
+{{-- ========== TIMER ========== --}}
 @if(!empty($expiresAtIso))
   <div id="cart-timer"
        class="gv-timer shadow-sm"
@@ -85,7 +88,7 @@
     </div>
   @endif
 
-  {{-- Toasts SweetAlert (éxito/error) --}}
+  {{-- Toasts SweetAlert --}}
   @if (session('success') || session('error'))
     @once
       <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -181,8 +184,7 @@
                     @endif
                     @if($item->meeting_point_description)
                       <div class="small text-muted">
-                        <i class="fas fa-map-marker-alt me-1"></i>{{ $item->meeting_point_description }}
-                      </div>
+                        <i class="fas fa-map-marker-alt me-1"></i>{{ $item->meeting_point_description }}</div>
                     @endif
                     @if($item->meeting_point_map_url)
                       <a href="{{ $item->meeting_point_map_url }}" target="_blank" class="small">
@@ -301,12 +303,17 @@
       @endforeach
     </div>
 
-    {{-- Total + Código Promocional --}}
+    {{-- Total + Código Promocional (minimal) --}}
     @php
       $total = $cart->items->sum(fn($it) =>
         ($it->tour->adult_price * $it->adults_quantity)
         + ($it->tour->kid_price * $it->kids_quantity)
       );
+      // Si hay promo en sesión, calcular el total final para mostrarlo directamente:
+      if ($promoSession) {
+        $op = ($promoSession['operation'] ?? 'subtract') === 'add' ? 1 : -1;
+        $total = max(0, round($total + $op * (float)($promoSession['adjustment'] ?? 0), 2));
+      }
     @endphp
 
     <div class="card shadow-sm mb-4">
@@ -318,18 +325,38 @@
 
         <label for="promo-code" class="form-label fw-semibold">{{ __('adminlte::adminlte.promoCode') }}</label>
         <div class="d-flex flex-column flex-sm-row gap-2">
-          <input type="text" id="promo-code" name="promo_code" class="form-control"
-                 placeholder="{{ __('adminlte::adminlte.promoCodePlaceholder') }}">
-          <button type="button" id="apply-promo" class="btn btn-outline-primary">{{ __('adminlte::adminlte.apply') }}</button>
+          <input
+            type="text"
+            id="promo-code"
+            name="promo_code"
+            class="form-control"
+            placeholder="{{ __('adminlte::adminlte.promoCodePlaceholder') }}"
+            value="{{ $promoSession['code'] ?? '' }}"
+          >
+          <button
+            type="button"
+            id="toggle-promo"
+            class="btn {{ $promoSession ? 'btn-outline-danger' : 'btn-outline-primary' }}"
+            data-state="{{ $promoSession ? 'applied' : 'idle' }}"
+          >
+            {{ $promoSession ? __('adminlte::adminlte.remove') ?? 'Quitar' : __('adminlte::adminlte.apply') }}
+          </button>
         </div>
-        <div id="promo-message" class="mt-2 small text-success"></div>
+        <div
+          id="promo-message"
+          class="mt-2 small {{ $promoSession ? 'text-success' : '' }}"
+        >
+          @if($promoSession)
+            <i class="fas fa-check-circle me-1"></i>{{ __('carts.messages.code_applied') }}.
+          @endif
+        </div>
       </div>
     </div>
 
     {{-- Confirmar Reserva --}}
     <form action="{{ route('public.bookings.storeFromCart') }}" method="POST" id="confirm-reserva-form">
       @csrf
-      <input type="hidden" name="promo_code" id="promo_code_hidden" value="">
+      <input type="hidden" name="promo_code" id="promo_code_hidden" value="{{ $promoSession['code'] ?? '' }}">
       <div class="d-grid">
         <button type="submit" class="btn btn-success btn-lg">
           <i class="fas fa-check"></i> {{ __('adminlte::adminlte.confirmBooking') }}
@@ -437,7 +464,6 @@
                   <i class="fas fa-bus"></i> {{ __('adminlte::adminlte.pickup') ?? 'Pickup' }}
                 </label>
 
-                {{-- Tabs / Segmented --}}
                 <div class="btn-group w-100 mb-2 pickup-tabs" role="group" aria-label="Pickup options"
                      data-item="{{ $item->item_id }}" data-init="{{ $initPickup }}">
                   <button type="button" class="btn btn-outline-secondary flex-fill" data-pickup-tab="hotel">
@@ -451,9 +477,7 @@
                   </button>
                 </div>
 
-                {{-- Panes --}}
                 <div id="pickup-panes-{{ $item->item_id }}">
-                  {{-- Hotel --}}
                   <div class="pickup-pane" id="pane-hotel-{{ $item->item_id }}" style="display:none">
                     <select name="hotel_id" id="hotel-select-{{ $item->item_id }}" class="form-select">
                       <option value="">{{ __('adminlte::adminlte.selectOption') ?? 'Seleccione…' }}</option>
@@ -464,13 +488,11 @@
                     <div class="form-text">{{ __('adminlte::adminlte.selectHotelHelp') ?? 'Elija su hotel de la lista.' }}</div>
                   </div>
 
-                  {{-- Otro hotel --}}
                   <div class="pickup-pane" id="pane-custom-{{ $item->item_id }}" style="display:none">
                     <input type="text" name="other_hotel_name" id="custom-hotel-input-{{ $item->item_id }}" class="form-control" value="{{ $item->other_hotel_name }}" placeholder="{{ __('adminlte::adminlte.customHotelName') ?? 'Nombre del hotel' }}">
                     <div class="form-text">{{ __('adminlte::adminlte.customHotelHelp') ?? 'Escriba el nombre del hotel si no aparece en la lista.' }}</div>
                   </div>
 
-                  {{-- Meeting point --}}
                   <div class="pickup-pane" id="pane-mp-{{ $item->item_id }}" style="display:none">
                     <select name="meeting_point_id"
                             class="form-select meetingpoint-select"
@@ -483,7 +505,6 @@
                       @endforeach
                     </select>
 
-                    {{-- Info dinámica del MP seleccionado --}}
                     <div class="border rounded p-2 mt-2 bg-light small" id="mp-info-{{ $item->item_id }}" style="display:none">
                       <div class="mp-name fw-semibold"></div>
                       <div class="mp-time text-muted"></div>
@@ -494,7 +515,6 @@
                     </div>
                   </div>
                 </div>
-                {{-- /Panes --}}
               </div>
               {{-- ====== /PICKUP ====== --}}
             </div>
@@ -517,7 +537,7 @@
 
 @push('styles')
 <style>
-/* ===== Timer moderno ===== */
+/* ===== Timer minimal ===== */
 .gv-timer{
   background: linear-gradient(90deg, #fff7e6, #fff);
   border: 1px solid #ffe2b9;
@@ -537,24 +557,15 @@
 .gv-timer-title{ font-weight:700; font-size:1.05rem; color:#8a5a00; }
 .gv-timer-sub{ font-size:.95rem; color:#6c4a00; }
 .gv-timer-remaining{
-  display:inline-block;
-  font-variant-numeric: tabular-nums;
-  font-weight:800; font-size:1.15rem; color:#000; letter-spacing:.5px;
-  padding:2px 8px; border-radius:8px; background:#fff; border:1px solid #ffe2b9;
-  margin-left:6px;
+  display:inline-block; font-variant-numeric: tabular-nums; font-weight:800;
+  font-size:1.15rem; color:#000; letter-spacing:.5px; padding:2px 8px;
+  border-radius:8px; background:#fff; border:1px solid #ffe2b9; margin-left:6px;
 }
 .gv-timer-btn{ white-space:nowrap; }
-.gv-timer-bar{
-  position:relative; height:8px; background:#ffe7c4; border-radius:8px;
-  overflow:hidden; margin-top:10px;
-}
-.gv-timer-bar-fill{
-  position:absolute; left:0; top:0; bottom:0; width:100%;
-  background: linear-gradient(90deg, #ffc107, #fd7e14);
-  transition: width .35s ease;
-}
+.gv-timer-bar{ position:relative; height:8px; background:#ffe7c4; border-radius:8px; overflow:hidden; margin-top:10px; }
+.gv-timer-bar-fill{ position:absolute; left:0; top:0; bottom:0; width:100%; background: linear-gradient(90deg, #ffc107, #fd7e14); transition: width .35s ease; }
 
-/* Móvil */
+/* Mobile */
 @media (max-width: 575.98px){
   .gv-timer{ border-left-width:5px; padding:12px 12px 9px; }
   .gv-timer-icon{ width:42px; height:42px; font-size:20px; }
@@ -562,19 +573,11 @@
   .gv-timer-remaining{ font-size:1.05rem; }
 }
 
-/* Modales/inputs mobile tweaks */
+/* Tweaks */
 @media (max-width: 767.98px) {
   .modal-body { padding: 1rem; }
   .modal-header, .modal-footer { padding: .75rem 1rem; }
   .btn { min-height: 42px; }
-  .card .card-title { font-size: 1.05rem; }
-}
-
-/* Segmented buttons active */
-.pickup-tabs .btn.active{
-  background-color:#0d6efd!important;
-  border-color:#0d6efd!important;
-  color:#fff!important;
 }
 </style>
 @endpush
@@ -666,71 +669,96 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  /* ===== Promo code (preview cliente) ===== */
-  const applyBtn    = document.getElementById('apply-promo');
-  const codeInput   = document.getElementById('promo-code');
-  const msgBox      = document.getElementById('promo-message');
-  const totalEl     = document.getElementById('cart-total');
-  const codeHidden  = document.getElementById('promo_code_hidden');
+  /* ===== Promo code: botón único que alterna aplicar/quitar ===== */
+  {
+    const toggleBtn   = document.getElementById('toggle-promo');
+    const codeInput   = document.getElementById('promo-code');
+    const msgBox      = document.getElementById('promo-message');
+    const totalEl     = document.getElementById('cart-total');
+    const hiddenCode  = document.getElementById('promo_code_hidden');
 
-  const uniqEls = () => {
-    const els = Array.from(document.querySelectorAll('.cart-item-row, .cart-item-card'));
-    const seen = new Set();
-    return els.filter(el => {
-      const id = el.dataset.itemId || '';
-      if (!id || seen.has(id)) return false; seen.add(id); return true;
-    });
-  };
-  const baseTotal = () => {
-    let sum = 0; uniqEls().forEach(el => {
-      const v = parseFloat(el.dataset.subtotal || '0'); if (!isNaN(v)) sum += v;
-    });
-    return Math.round(sum * 100) / 100;
-  };
-  const renderOk = (data) => {
-    if (Array.isArray(data.items_result)) {
-      totalEl.textContent = Number(data.cart_new_total).toFixed(2);
-      const applied = data.applied_items ?? 0;
-      const discTot = data.cart_discount_total ?? 0;
-      msgBox.classList.remove('text-danger'); msgBox.classList.add('text-success');
-      msgBox.innerHTML =
-        `<i class="fas fa-check-circle me-1"></i> Cupón <strong>${data.code}</strong> aplicado a <strong>${applied}</strong> ítem(s). ` +
-        `Descuento total: <strong>$${Number(discTot).toFixed(2)}</strong>. ` +
-        `Nuevo total: <strong>$${Number(data.cart_new_total).toFixed(2)}</strong>.`;
-      if (codeHidden) codeHidden.value = data.code;
-    } else {
-      const n = typeof data.new_total === 'number' ? data.new_total : baseTotal();
-      totalEl.textContent = Number(n).toFixed(2);
-      msgBox.classList.remove('text-danger'); msgBox.classList.add('text-success');
-      msgBox.innerHTML =
-        `<i class="fas fa-check-circle me-1"></i> Cupón <strong>${data.code}</strong> aplicado. ` +
-        `Nuevo total: <strong>$${Number(n).toFixed(2)}</strong>.`;
-      if (codeHidden) codeHidden.value = data.code;
-    }
-  };
-  const renderError = (message) => {
-    msgBox.classList.remove('text-success'); msgBox.classList.add('text-danger');
-    msgBox.innerHTML = `<i class="fas fa-times-circle me-1"></i>${message}`;
-    totalEl.textContent = baseTotal().toFixed(2);
-    if (codeHidden) codeHidden.value = '';
-  };
-  if (applyBtn && codeInput && totalEl) {
-    applyBtn.addEventListener('click', async () => {
-      const code = (codeInput.value || '').trim();
-      if (!code) return renderError('Ingrese un código.');
-      const items = uniqEls().map(el => ({ total: parseFloat(el.dataset.subtotal || '0') || 0 }));
-      const payload = { code, preview: true, ...(items.length > 0 ? { items } : { total: baseTotal() }) };
+    const setMsg = (ok, text) => {
+      msgBox.classList.remove('text-success','text-danger');
+      msgBox.classList.add(ok ? 'text-success' : 'text-danger');
+      msgBox.innerHTML = text;
+    };
+
+    const baseTotal = () => {
+      const rows = Array.from(document.querySelectorAll('.cart-item-row, .cart-item-card'));
+      const seen = new Set(); let sum = 0;
+      rows.forEach(el => {
+        const id = el.dataset.itemId || '';
+        if (!id || seen.has(id)) return; seen.add(id);
+        const v = parseFloat(el.dataset.subtotal || '0'); if (!isNaN(v)) sum += v;
+      });
+      return Math.round(sum * 100) / 100;
+    };
+
+    const setState = (applied, code, newTotal) => {
+      toggleBtn.dataset.state = applied ? 'applied' : 'idle';
+      toggleBtn.textContent = applied ? (@json(__('adminlte::adminlte.remove') ?? 'Quitar')) : (@json(__('adminlte::adminlte.apply')));
+      toggleBtn.classList.toggle('btn-outline-danger', applied);
+      toggleBtn.classList.toggle('btn-outline-primary', !applied);
+      hiddenCode.value = applied ? (code || '') : '';
+      if (typeof newTotal === 'number') totalEl.textContent = newTotal.toFixed(2);
+    };
+
+    const applyCode = async (code) => {
+      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      const res = await fetch(@json(route('public.carts.applyPromo')), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
+        body: JSON.stringify({ code })
+      });
+      return res.json();
+    };
+
+    const removeCode = async () => {
+      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      const res = await fetch(@json(route('public.carts.removePromo')), {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
+      });
+      return res.json();
+    };
+
+    toggleBtn?.addEventListener('click', async () => {
+      const state = toggleBtn.dataset.state || 'idle';
+
+      if (state === 'applied') {
+        // Quitar
+        try {
+          const data = await removeCode();
+          setMsg(true, `<i class="fas fa-check-circle me-1"></i>${data?.message || 'Código eliminado.'}`);
+          setState(false, '', baseTotal());
+          // Opcional: recargar si quieres que el backend re-renderice (minimal no lo requiere)
+          // location.reload();
+        } catch {
+          setMsg(false, '<i class="fas fa-times-circle me-1"></i>No se pudo quitar el código.');
+        }
+        return;
+      }
+
+      // Aplicar
+      const code = (codeInput?.value || '').trim();
+      if (!code) {
+        setMsg(false, '<i class="fas fa-times-circle me-1"></i>Ingrese un código.');
+        return;
+      }
+
       try {
-        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-        const res = await fetch(@json(route('promo.apply')), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.success && data.valid) renderOk(data);
-        else renderError(data.message || 'Código inválido o sin vigencia/usos.');
-      } catch { renderError('No se pudo aplicar el cupón. Intente de nuevo.'); }
+        const data = await applyCode(code);
+        if (!data?.ok) {
+          setMsg(false, `<i class="fas fa-times-circle me-1"></i>${data?.message || 'Código inválido o no disponible.'}`);
+          setState(false, '', baseTotal());
+        } else {
+          setMsg(true, `<i class="fas fa-check-circle me-1"></i>${data?.message || 'Código aplicado.'}`);
+          const newTotal = Number(data?.new_total ?? baseTotal());
+          setState(true, data?.code || code, newTotal);
+        }
+      } catch {
+        setMsg(false, '<i class="fas fa-times-circle me-1"></i>No se pudo aplicar el cupón.');
+      }
     });
   }
 

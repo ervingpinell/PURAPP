@@ -1,6 +1,7 @@
 <?php
-
 return [
+    'carts.messages.code_expired_or_not_yet' => 'O código expirou ou ainda não é válido.',
+
     'timer' => [
         'will_expire' => 'Seu carrinho irá expirar em breve.',
         'time_left'   => 'Tempo restante:',

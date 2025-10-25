@@ -227,6 +227,7 @@ return [
     'promoCode' => 'Haben Sie einen Aktionscode?',
     'promoCodePlaceholder' => 'Geben Sie Ihren Aktionscode ein',
     'apply' => 'Anwenden',
+    'remove' => 'Entfernen',
     'deleteItemTitle' => 'Artikel löschen',
     'deleteItemText' => 'Sind Sie sicher, dass Sie diesen Artikel löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
     'deleteItemConfirm' => 'Löschen',
