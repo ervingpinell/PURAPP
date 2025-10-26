@@ -7,11 +7,28 @@ use Illuminate\Database\Eloquent\Model;
 class PromoCodeRedemption extends Model
 {
     protected $table = 'promo_code_redemptions';
-    protected $fillable = ['promo_code_id','booking_id','user_id','used_at'];
+    protected $primaryKey = 'id';
+    public $incrementing = true;
+    protected $keyType = 'int';
+
+    protected $fillable = [
+        'promo_code_id','booking_id','user_id','used_at',
+        'applied_amount','operation_snapshot','percent_snapshot','amount_snapshot',
+    ];
+
+    protected $casts = [
+        'promo_code_id' => 'int',
+        'booking_id'    => 'int',
+        'user_id'       => 'int',
+        'used_at'       => 'datetime',
+        'applied_amount'     => 'float',
+        'percent_snapshot'   => 'float',
+        'amount_snapshot'    => 'float',
+    ];
 
     public function promoCode()
     {
-        return $this->belongsTo(PromoCode::class, 'promo_code_id');
+        return $this->belongsTo(PromoCode::class, 'promo_code_id', 'id');
     }
 
     public function booking()
@@ -19,4 +36,3 @@ class PromoCodeRedemption extends Model
         return $this->belongsTo(Booking::class, 'booking_id', 'booking_id');
     }
 }
-

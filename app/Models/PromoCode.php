@@ -10,6 +10,9 @@ use Carbon\Carbon;
 class PromoCode extends Model
 {
     protected $table = 'promo_codes';
+    protected $primaryKey = 'id'; // PK real según tus migraciones
+    public $incrementing = true;
+    protected $keyType = 'int';
 
     protected $fillable = [
         'code',
@@ -22,7 +25,7 @@ class PromoCode extends Model
         'valid_until',
         'usage_limit',
         'usage_count',
-        'operation', // <<-- importante
+        'operation', // 'add' | 'subtract'
     ];
 
     protected $casts = [
@@ -34,24 +37,29 @@ class PromoCode extends Model
         'valid_until'      => 'date',
         'usage_limit'      => 'integer',
         'usage_count'      => 'integer',
-        'operation'        => 'string', // <<-- para asegurar el tipo
+        'operation'        => 'string',
     ];
 
-    // Para usar $promo->remaining_uses
     protected $appends = ['remaining_uses'];
 
-    public function redemptions()
+    // Compatibilidad: permite $promo->promo_code_id
+    public function getPromoCodeIdAttribute(): int
     {
-        return $this->hasMany(PromoCodeRedemption::class, 'promo_code_id');
+        return (int) $this->attributes['id'];
     }
 
-    /** Normaliza el texto de código (sin espacios, mayúsculas) */
+    // Relaciones
+    public function redemptions()
+    {
+        return $this->hasMany(PromoCodeRedemption::class, 'promo_code_id', 'id');
+    }
+
+    // Utils
     public static function normalize(string $code): string
     {
         return strtoupper(trim(preg_replace('/\s+/', '', $code)));
     }
 
-    /** Vigencia para la fecha actual */
     public function isValidToday(?string $tz = null): bool
     {
         $tz    = $tz ?: config('app.timezone', 'America/Costa_Rica');
@@ -63,13 +71,11 @@ class PromoCode extends Model
         return $startsOk && $endsOk;
     }
 
-    /** ¿Aún tiene usos disponibles? */
     public function hasRemainingUses(): bool
     {
         return is_null($this->usage_limit) || $this->usage_count < $this->usage_limit;
     }
 
-    /** Atributo calculado: usos restantes (null = ∞) */
     public function getRemainingUsesAttribute(): ?int
     {
         return is_null($this->usage_limit)
@@ -100,18 +106,21 @@ class PromoCode extends Model
 
                 $promo->usage_count += 1;
 
-                // Compat: si se agota, márcalo como usado
+                // Si hay límite y se agotó, marca flags
                 if (!is_null($promo->usage_limit) && $promo->usage_count >= $promo->usage_limit) {
                     $promo->is_used = true;
                     $promo->used_at = now();
                 }
+
+                // (opcional) legacy
+                $promo->used_by_booking_id = $bookingId;
 
                 $promo->save();
             }
         });
     }
 
-    /** Revertir uso (al quitar cupón de una reserva) */
+    /** Revertir uso al quitar el cupón de una reserva */
     public function revokeRedemptionForBooking(int $bookingId): void
     {
         DB::transaction(function () use ($bookingId) {

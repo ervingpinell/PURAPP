@@ -428,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const url = '{{ route('admin.bookings.verify-promo') }}?code=' + encodeURIComponent(code) + '&subtotal=' + subtotal;
+      const url = '{{ route('admin.bookings.verifyPromoCode') }}?code=' + encodeURIComponent(code) + '&subtotal=' + subtotal;
       const response = await fetch(url);
       const data = await response.json();
 

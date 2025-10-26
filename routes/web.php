@@ -402,7 +402,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('bookings/calendar', [AdminBookingController::class, 'calendar'])->name('bookings.calendar');
 
                 // API promo verification (admin)
-                Route::get('bookings/verify-promo-code', [AdminBookingController::class, 'verifyPromoCode'])->name('bookings.verify-promo');
+                Route::get('bookings/verify-promo-code', [AdminBookingController::class, 'verifyPromoCode'])->name('bookings.verifyPromoCode');
 
                 // Receipt + status
                 Route::get('bookings/{booking}/receipt', [AdminBookingController::class, 'generateReceipt'])->name('bookings.receipt');
