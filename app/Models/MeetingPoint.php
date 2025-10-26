@@ -19,29 +19,93 @@ class MeetingPoint extends Model
         'is_active',
     ];
 
-    // Scope útil
+    protected $casts = [
+        'is_active'  => 'bool',
+        'sort_order' => 'int',
+    ];
+
+    /* ----------------------------------------
+     | Scopes
+     |-----------------------------------------*/
     public function scopeActive($q)
     {
         return $q->where('is_active', true);
     }
 
-    // Relación con traducciones (type-hint correcto)
-    public function translations(): EloquentHasMany
+    public function scopeOrdered($q)
     {
-        return $this->hasMany(MeetingPointTranslation::class);
+        // Primero los que tienen sort_order definido, luego por nombre
+        return $q->orderByRaw('sort_order IS NULL, sort_order ASC')
+                 ->orderBy('name', 'asc');
     }
 
-    // Helper para obtener un campo traducido con fallback al base
+    /* ----------------------------------------
+     | Relaciones
+     |-----------------------------------------*/
+    public function translations(): EloquentHasMany
+    {
+        // FK por convención: meeting_point_id
+        return $this->hasMany(MeetingPointTranslation::class, 'meeting_point_id');
+    }
+
+    /* ----------------------------------------
+     | Helpers de localización
+     |-----------------------------------------*/
+
+    /**
+     * Devuelve el valor traducido de un campo ('name' o 'description')
+     * para el locale dado (o el actual), con fallback al base.
+     */
     public function getTranslated(string $field, ?string $locale = null): ?string
     {
         $locale = $locale ?: app()->getLocale();
-        $short  = \App\Services\DeepLTranslator::normalizeLocaleCode($locale);
+        $short  = $this->shortLocale($locale);
 
-        // Si ya está eager-loaded, usa la colección; si no, consulta puntual
+        // Si ya viene eager-loaded, usamos la colección para evitar N+1.
         $t = $this->relationLoaded('translations')
             ? $this->translations->firstWhere('locale', $short)
             : $this->translations()->where('locale', $short)->first();
 
         return $t?->{$field} ?? $this->{$field};
+    }
+
+    /**
+     * Accessor: $meetingPoint->name_localized
+     */
+    public function getNameLocalizedAttribute(): string
+    {
+        return (string) $this->getTranslated('name');
+    }
+
+    /**
+     * Accessor: $meetingPoint->description_localized
+     */
+    public function getDescriptionLocalizedAttribute(): ?string
+    {
+        return $this->getTranslated('description');
+    }
+
+    /* ----------------------------------------
+     | Utilidades privadas
+     |-----------------------------------------*/
+
+    /**
+     * Normaliza códigos de locale a la forma corta usada en translations.
+     * Intenta usar tu DeepLTranslator si existe; si no, hace un fallback simple.
+     */
+    private function shortLocale(string $locale): string
+    {
+        // Si tu servicio existe, úsalo
+        if (class_exists(\App\Services\DeepLTranslator::class)
+            && method_exists(\App\Services\DeepLTranslator::class, 'normalizeLocaleCode')) {
+            return \App\Services\DeepLTranslator::normalizeLocaleCode($locale);
+        }
+
+        // Fallback básico: es-CR -> es, pt-BR -> pt, en-US -> en, etc.
+        $locale = str_replace('_', '-', strtolower($locale));
+        $short  = explode('-', $locale)[0] ?? $locale;
+
+        // Aseguramos que sea uno de los que usas
+        return in_array($short, ['es','en','fr','pt','de'], true) ? $short : config('app.fallback_locale', 'es');
     }
 }

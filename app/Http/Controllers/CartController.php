@@ -25,6 +25,7 @@ class CartController extends Controller
         if (!Auth::check()) return redirect()->route('login');
 
         $user = Auth::user();
+
         $cart = $user->cart()
             ->where('is_active', true)
             ->orderByDesc('cart_id')
@@ -34,7 +35,8 @@ class CartController extends Controller
                 'items.schedule',
                 'items.language',
                 'items.hotel',
-                'items.meetingPoint',
+                // 👇 Eager-load translations para que el Blade vea el nombre/descr localizados
+                'items.meetingPoint.translations',
             ])
             ->first();
 
@@ -50,7 +52,9 @@ class CartController extends Controller
             'cart'           => $cart,
             'client'         => $user,
             'hotels'         => HotelList::where('is_active', true)->orderBy('name')->get(),
+            // 👇 También la lista del selector con translations
             'meetingPoints'  => MeetingPoint::where('is_active', true)
+                ->with('translations')
                 ->orderByRaw('sort_order IS NULL, sort_order ASC')
                 ->orderBy('name', 'asc')
                 ->get(),
@@ -416,7 +420,10 @@ class CartController extends Controller
             ->wherePivot('is_active', true)
             ->first();
 
-        if (!$schedule) abort(back()->with('error', __('carts.messages.schedule_unavailable')));
+        if (!$schedule) {
+            // Mantén el mismo flujo de error hacia atrás
+            abort(403, __('carts.messages.schedule_unavailable'));
+        }
 
         return $schedule;
     }
@@ -479,5 +486,5 @@ class CartController extends Controller
         return $request->ajax()
             ? response()->json(['ok' => false, 'message' => $message], 422)
             : back()->withInput()->with('error', $message);
-        }
+    }
 }

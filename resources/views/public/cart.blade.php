@@ -7,23 +7,24 @@
   // --- Fallback Meeting Points if controller didn't send them ---
   $meetingPoints = $meetingPoints
       ?? \App\Models\MeetingPoint::where('is_active', true)
+          ->with('translations') // evitar N+1 y tener traducciones
           ->orderByRaw('sort_order IS NULL, sort_order ASC')
           ->orderBy('name', 'asc')
           ->get();
 
-  // JSON for data-attributes
+  // JSON para data-attributes (ya traducido)
   $mpListJson = ($meetingPoints ?? collect())
       ->map(fn($mp) => [
           'id'          => $mp->id,
-          'name'        => $mp->name,
+          'name'        => $mp->getTranslated('name'),
           'pickup_time' => $mp->pickup_time,
-          'description' => $mp->description,
+          'description' => $mp->getTranslated('description'),
           'map_url'     => $mp->map_url,
       ])->values()->toJson();
 
   $pickupLabel = __('adminlte::adminlte.pickupTime');
 
-  // Conditional columns
+  // Columnas condicionales
   $showHotelColumn = ($cart && $cart->items)
       ? $cart->items->contains(fn($it) => $it->hotel || $it->is_other_hotel || $it->other_hotel_name)
       : false;
@@ -36,7 +37,7 @@
   $expiryMinutes  = (int) config('cart.expiry_minutes', 15);
   $extendMinutes  = (int) config('cart.extend_minutes', 15);
 
-  // Promo in session
+  // Promo en sesión
   $promoSession = session('public_cart_promo');
 @endphp
 
@@ -77,7 +78,7 @@
     {{ __('adminlte::adminlte.myCart') }}
   </h1>
 
-  {{-- Validation errors --}}
+  {{-- Errores de validación --}}
   @if ($errors->any())
     <div class="alert alert-danger">
       <ul class="mb-0">
@@ -119,7 +120,7 @@
 
   @if($cart && $cart->items->count())
 
-    {{-- Desktop table --}}
+    {{-- Tabla (desktop) --}}
     <div class="table-responsive d-none d-md-block mb-4">
       <table class="table table-bordered table-striped table-hover align-middle">
         <thead>
@@ -177,15 +178,16 @@
                 <td class="text-start">
                   @php $mp = $item->meetingPoint; @endphp
                   @if(!$item->hotel && !$item->is_other_hotel && $mp)
-                    <div class="fw-semibold">{{ $mp->name }}</div>
+                    <div class="fw-semibold">{{ $mp->getTranslated('name') }}</div>
                     @if($mp->pickup_time)
                       <div class="small text-muted">
                         {{ __('adminlte::adminlte.pickupTime') }}: {{ $mp->pickup_time }}
                       </div>
                     @endif
-                    @if($mp->description)
+                    @php $mpDesc = $mp->getTranslated('description'); @endphp
+                    @if($mpDesc)
                       <div class="small text-muted">
-                        <i class="fas fa-map-marker-alt me-1"></i>{{ $mp->description }}
+                        <i class="fas fa-map-marker-alt me-1"></i>{{ $mpDesc }}
                       </div>
                     @endif
                     @if($mp->map_url)
@@ -225,7 +227,7 @@
       </table>
     </div>
 
-    {{-- Mobile cards --}}
+    {{-- Tarjetas (móvil) --}}
     <div class="d-block d-md-none">
       @foreach($cart->items as $item)
         @php
@@ -268,14 +270,15 @@
               @php $mp = $item->meetingPoint; @endphp
               @if($mp)
                 <div class="mb-3"><strong>{{ __('adminlte::adminlte.meeting_point') }}:</strong>
-                  <div>{{ $mp->name }}</div>
+                  <div>{{ $mp->getTranslated('name') }}</div>
                   @if($mp->pickup_time)
                     <div class="small text-muted">
                       {{ __('adminlte::adminlte.pickupTime') }}: {{ $mp->pickup_time }}
                     </div>
                   @endif
-                  @if($mp->description)
-                    <div class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i>{{ $mp->description }}</div>
+                  @php $mpDesc = $mp->getTranslated('description'); @endphp
+                  @if($mpDesc)
+                    <div class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i>{{ $mpDesc }}</div>
                   @endif
                   @if($mp->map_url)
                     <a href="{{ $mp->map_url }}" class="small" target="_blank">
@@ -354,7 +357,7 @@
       </div>
     </div>
 
-    {{-- Confirm booking --}}
+    {{-- Confirmar reserva --}}
     <form action="{{ route('public.bookings.storeFromCart') }}" method="POST" id="confirm-reserva-form">
       @csrf
       <input type="hidden" name="promo_code" id="promo_code_hidden" value="{{ $promoSession['code'] ?? '' }}">
@@ -373,7 +376,7 @@
 </div>
 
 {{-- ============================= --}}
-{{-- MODALS: per-item edit        --}}
+{{-- MODALES: edición por item     --}}
 {{-- ============================= --}}
 @foreach(($cart->items ?? collect()) as $item)
   @php
@@ -392,7 +395,6 @@
         <form action="{{ route('public.carts.update', $item->item_id) }}" method="POST" class="edit-item-form">
           @csrf @method('PUT')
 
-          {{-- keep active when saving --}}
           <input type="hidden" name="is_active" value="1" />
           <input type="hidden" name="is_other_hotel" id="is-other-hidden-{{ $item->item_id }}" value="{{ $item->is_other_hotel ? 1 : 0 }}">
 
@@ -406,7 +408,7 @@
 
           <div class="modal-body">
             <div class="row g-3">
-              {{-- Date --}}
+              {{-- Fecha --}}
               <div class="col-12 col-md-6">
                 <label class="form-label fw-semibold">{{ __('adminlte::adminlte.date') }}</label>
                 <input type="date"
@@ -417,7 +419,7 @@
                        required>
               </div>
 
-              {{-- Schedule --}}
+              {{-- Horario --}}
               <div class="col-12 col-md-6">
                 <label class="form-label fw-semibold">{{ __('adminlte::adminlte.schedule') }}</label>
                 <select name="schedule_id" class="form-select">
@@ -432,7 +434,7 @@
                 <div class="form-text">{{ __('adminlte::adminlte.scheduleHelp') }}</div>
               </div>
 
-              {{-- Language --}}
+              {{-- Idioma --}}
               <div class="col-12 col-md-6">
                 <label class="form-label fw-semibold">{{ __('adminlte::adminlte.language') }}</label>
                 <select name="tour_language_id" class="form-select" required>
@@ -450,7 +452,7 @@
                 </select>
               </div>
 
-              {{-- Quantities --}}
+              {{-- Cantidades --}}
               <div class="col-6 col-md-3">
                 <label class="form-label fw-semibold">{{ __('adminlte::adminlte.adults') }}</label>
                 <input type="number" name="adults_quantity" class="form-control" min="1" max="12" value="{{ (int) $item->adults_quantity }}" required>
@@ -460,7 +462,7 @@
                 <input type="number" name="kids_quantity" class="form-control" min="0" max="12" value="{{ (int) $item->kids_quantity }}">
               </div>
 
-              {{-- ====== PICKUP (segmented) ====== --}}
+              {{-- ====== PICKUP (segmentado) ====== --}}
               <div class="col-12">
                 <label class="form-label fw-semibold d-flex align-items-center gap-2">
                   <i class="fas fa-bus"></i> {{ __('adminlte::adminlte.pickup') }}
@@ -503,7 +505,7 @@
                             data-mplist='{!! $mpListJson !!}'>
                       <option value="">{{ __('adminlte::adminlte.selectOption') }}</option>
                       @foreach($meetingPoints as $mp)
-                        <option value="{{ $mp->id }}" @selected($currentMeetingPoint == $mp->id)>{{ $mp->name }}</option>
+                        <option value="{{ $mp->id }}" @selected($currentMeetingPoint == $mp->id)>{{ $mp->getTranslated('name') }}</option>
                       @endforeach
                     </select>
 
@@ -623,7 +625,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  /* ===== Meeting Point preview ===== */
+  /* ===== Meeting Point preview (usa mpListJson ya traducido) ===== */
   const pickupLabel = (document.getElementById('mp-config')?.dataset?.pickupLabel) || 'Pick-up';
   const updateMpInfo = (selectEl) => {
     if (!selectEl) return;
