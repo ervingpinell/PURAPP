@@ -155,6 +155,8 @@ return [
             'deleted_tour_snapshot' => 'Tour Excluído (:name)',
             'tour_archived'         => '(arquivado)',
             'meeting_point_hint'    => 'Apenas o nome do ponto é exibido na lista.',
+            'customer_locked'       => 'O cliente está bloqueado e não pode ser editado.',
+
         ],
 
         'alerts' => [

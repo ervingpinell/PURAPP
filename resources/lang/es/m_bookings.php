@@ -245,6 +245,7 @@ return [
             'deleted_tour_snapshot' => 'Tour Eliminado (:name)',
             'tour_archived'         => '(archivado)',
             'meeting_point_hint'    => 'Solo se muestra el nombre del punto en la lista.',
+            'customer_locked'       => 'El cliente está bloqueado y no puede ser editado.',
         ],
 
         'alerts' => [

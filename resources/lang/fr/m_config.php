@@ -379,6 +379,7 @@ return [
             'valid_from'  => 'Valable à partir du',
             'valid_until' => 'Valable jusqu’au',
             'usage_limit' => 'Limite d’utilisations',
+            'promocode_hint'        => 'Après application, le code promo sera enregistré lors de l’envoi du formulaire et les instantanés de l’historique seront mis à jour.',
         ],
 
         'types' => [
@@ -445,6 +446,8 @@ return [
             'subtract'      => 'Soustraire',
             'make_add'      => 'Passer à « Ajouter »',
             'make_subtract' => 'Passer à « Soustraire »',
+            'surcharge'     => 'Surcharge',
+            'discount'      => 'Remise',
         ],
     ],
 

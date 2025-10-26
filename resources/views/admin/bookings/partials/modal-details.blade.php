@@ -13,11 +13,61 @@
 
       <div class="modal-body">
         @php
+          // ===== Datos base
           $detail = $booking->detail;
-          $tour = $booking->tour;
+          $tour   = $booking->tour;
+
+          // Nombre del tour (live o snapshot)
           $liveName = optional($tour)->name;
-          $snapName = $detail->tour_name_snapshot ?: ($booking->tour_name_snapshot ?? null);
+          $snapName = $detail->tour_name_snapshot ?? ($booking->tour_name_snapshot ?? null);
           $tourName = $liveName ?? ($snapName ? "Deleted Tour ({$snapName})" : "Deleted tour");
+
+          // ===== Snapshots de precios/quantities (preferir detalle)
+          $adultPrice   = (float) ($detail->adult_price ?? $tour->adult_price ?? 0);
+          $kidPrice     = (float) ($detail->kid_price   ?? $tour->kid_price   ?? 0);
+          $adultsQty    = (int)   ($detail->adults_quantity ?? 0);
+          $kidsQty      = (int)   ($detail->kids_quantity   ?? 0);
+
+          // Subtotal snapshot (si el detalle lo trae, úsalo)
+          $subtotalSnap = isset($detail->total)
+            ? (float)$detail->total
+            : round($adultPrice * $adultsQty + $kidPrice * $kidsQty, 2);
+
+          // ===== Promo / ajuste desde pivot con snapshots
+          $booking->loadMissing('redemption.promoCode'); // por si no vino eager
+          $redemption   = $booking->redemption;
+          $promoModel   = optional($redemption)->promoCode ?: $booking->promoCode; // compat legado
+          $promoCode    = $promoModel?->code;
+
+          // Operación aplicada tal cual se guardó (default subtract)
+          $operation    = ($redemption && $redemption->operation_snapshot === 'add') ? 'add' : 'subtract';
+
+          // Monto aplicado (snapshot si existe, de lo contrario calcular para no dejar vacío)
+          $appliedAmount = (float) ($redemption->applied_amount ?? 0.0);
+          if (!$appliedAmount && $promoModel) {
+              if ($promoModel->discount_percent) {
+                  $appliedAmount = round($subtotalSnap * ($promoModel->discount_percent/100), 2);
+              } elseif ($promoModel->discount_amount) {
+                  $appliedAmount = (float)$promoModel->discount_amount;
+              }
+          }
+
+          // Badges de valor (snapshot primero)
+          $percentSnapshot = $redemption->percent_snapshot ?? $promoModel->discount_percent ?? null;
+          $amountSnapshot  = $redemption->amount_snapshot  ?? $promoModel->discount_amount  ?? null;
+
+          // Etiqueta según operación (solo m_config)
+          $adjustLabel = $operation === 'add'
+              ? __('m_config.promocode.operations.surcharge')
+              : __('m_config.promocode.operations.discount');
+
+          // Signo para el display
+          $sign = $operation === 'add' ? '+' : '−';
+
+          // Total (fuente de verdad)
+          $grandTotal = (float) ($booking->total ?? max(0, $operation === 'add'
+                            ? $subtotalSnap + $appliedAmount
+                            : $subtotalSnap - $appliedAmount));
         @endphp
 
         {{-- Status Alert with Actions --}}
@@ -29,19 +79,16 @@
           <div class="btn-group btn-group-sm" role="group">
             @if($booking->status !== 'confirmed')
               <form action="{{ route('admin.bookings.update-status', $booking->booking_id) }}" method="POST" class="d-inline">
-                @csrf
-                @method('PATCH')
+                @csrf @method('PATCH')
                 <input type="hidden" name="status" value="confirmed">
                 <button type="submit" class="btn btn-success btn-sm" title="{{ __('m_bookings.actions.confirm') }}">
                   <i class="fas fa-check-circle"></i> {{ __('m_bookings.actions.confirm') }}
                 </button>
               </form>
             @endif
-
             @if($booking->status !== 'cancelled')
               <form action="{{ route('admin.bookings.update-status', $booking->booking_id) }}" method="POST" class="d-inline">
-                @csrf
-                @method('PATCH')
+                @csrf @method('PATCH')
                 <input type="hidden" name="status" value="cancelled">
                 <button type="submit" class="btn btn-danger btn-sm"
                         onclick="return confirm('{{ __('m_bookings.actions.confirm_cancel') }}')"
@@ -68,10 +115,7 @@
                   <dt class="col-sm-5">{{ __('m_bookings.bookings.fields.booking_date') }}:</dt>
                   <dd class="col-sm-7">{{ \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') }}</dd>
 
-                  @if($booking->promoCode)
-                    <dt class="col-sm-5">{{ __('m_bookings.bookings.fields.promo_code') }}:</dt>
-                    <dd class="col-sm-7"><span class="badge bg-success">{{ $booking->promoCode->code }}</span></dd>
-                  @endif
+                  {{-- (PROMO CODE MOVED TO PRICING SECTION) --}}
                 </dl>
               </div>
             </div>
@@ -131,7 +175,7 @@
               <div class="col-md-6">
                 <dl class="row">
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.hotel') }}:</dt>
-                  <dd class="col-sm-8">{{ $detail->hotel->name ?? $detail->other_hotel_name ?? '-' }}</dd>
+                  <dd class="col-sm-8">{{ $detail->hotel->name ?? $detail->other_hotel_name ?? '—' }}</dd>
 
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.meeting_point') }}:</dt>
                   <dd class="col-sm-8">{{ optional($detail->meetingPoint)->name ?? '—' }}</dd>
@@ -144,7 +188,7 @@
           </div>
         </div>
 
-        {{-- Pricing Information --}}
+        {{-- Pricing Information (con ajuste y código abajo) --}}
         <div class="card mb-3">
           <div class="card-header bg-danger text-white">
             <strong>{{ __('m_bookings.details.pricing_info') }}</strong>
@@ -154,33 +198,46 @@
               <div class="col-md-6">
                 <dl class="row">
                   <dt class="col-sm-6">{{ __('m_bookings.bookings.fields.adults') }}:</dt>
-                  <dd class="col-sm-6">{{ $detail->adults_quantity }} × ${{ number_format($tour->adult_price ?? 0, 2) }}</dd>
+                  <dd class="col-sm-6">{{ $adultsQty }} × ${{ number_format($adultPrice, 2) }}</dd>
 
                   <dt class="col-sm-6">{{ __('m_bookings.bookings.fields.children') }}:</dt>
-                  <dd class="col-sm-6">{{ $detail->kids_quantity }} × ${{ number_format($tour->kid_price ?? 0, 2) }}</dd>
+                  <dd class="col-sm-6">{{ $kidsQty }} × ${{ number_format($kidPrice, 2) }}</dd>
                 </dl>
               </div>
 
               <div class="col-md-6">
                 <dl class="row">
                   <dt class="col-sm-6">{{ __('m_bookings.details.subtotal') }}:</dt>
-                  <dd class="col-sm-6">
-                    ${{ number_format(($detail->adults_quantity * ($tour->adult_price ?? 0)) + ($detail->kids_quantity * ($tour->kid_price ?? 0)), 2) }}
-                  </dd>
+                  <dd class="col-sm-6">${{ number_format($subtotalSnap, 2) }}</dd>
 
-                  @if($booking->promoCode)
-                    <dt class="col-sm-6">{{ __('m_bookings.details.discount') }}:</dt>
-                    <dd class="col-sm-6 text-success">
-                      @if($booking->promoCode->discount_percent)
-                        -{{ $booking->promoCode->discount_percent }}%
-                      @elseif($booking->promoCode->discount_amount)
-                        -${{ number_format($booking->promoCode->discount_amount, 2) }}
-                      @endif
+                  @if($promoCode && $appliedAmount > 0)
+                    <dt class="col-sm-6">
+                      {{ $adjustLabel }}:
+                      <span class="ms-1">
+                        @if(!is_null($percentSnapshot))
+                          <span class="badge bg-secondary">{{ number_format($percentSnapshot,0) }}%</span>
+                        @elseif(!is_null($amountSnapshot))
+                          <span class="badge bg-secondary">${{ number_format($amountSnapshot,2) }}</span>
+                        @endif
+                      </span>
+                    </dt>
+                    <dd class="col-sm-6 {{ $operation === 'add' ? 'text-primary' : 'text-success' }}">
+                      {{ $sign }}${{ number_format($appliedAmount, 2) }}
+                    </dd>
+
+                    {{-- Código promocional (abajo en precios) --}}
+                    <dt class="col-sm-6">{{ __('m_bookings.bookings.fields.promo_code') }}:</dt>
+                    <dd class="col-sm-6">
+                      <span class="badge bg-success">
+                        {{ $promoCode }}
+                      </span>
                     </dd>
                   @endif
 
                   <dt class="col-sm-6"><strong>{{ __('m_bookings.bookings.fields.total') }}:</strong></dt>
-                  <dd class="col-sm-6"><strong class="text-success fs-5">${{ number_format($booking->total, 2) }}</strong></dd>
+                  <dd class="col-sm-6">
+                    <strong class="text-success fs-5">${{ number_format($grandTotal, 2) }}</strong>
+                  </dd>
                 </dl>
               </div>
             </div>

@@ -380,6 +380,7 @@ return [
             'valid_from'  => 'Valid from',
             'valid_until' => 'Valid until',
             'usage_limit' => 'Usage limit',
+            'promocode_hint'        => 'After applying, the coupon will be saved when submitting the form and the history snapshots will be updated.',
         ],
 
         'types' => [
@@ -446,6 +447,8 @@ return [
             'subtract'      => 'Subtract',
             'make_add'      => 'Switch to “Add”',
             'make_subtract' => 'Switch to “Subtract”',
+            'surcharge'     => 'Surcharge',
+            'discount'      => 'Discount',
         ],
     ],
 

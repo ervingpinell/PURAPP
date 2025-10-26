@@ -155,6 +155,8 @@ return [
             'deleted_tour_snapshot' => 'Tour Supprimé (:name)',
             'tour_archived'         => '(archivé)',
             'meeting_point_hint'    => 'Seul le nom du point est affiché dans la liste.',
+            'customer_locked'       => 'Le client est verrouillé et ne peut pas être modifié.',
+
         ],
 
         'alerts' => [

@@ -384,11 +384,13 @@ return [
     'fields' => [
         'code'        => 'Código',
         'discount'    => 'Descuento',
+
         'type'        => 'Tipo',
-        'operation'   => 'Operación', 
+        'operation'   => 'Operación',
         'valid_from'  => 'Válido desde',
         'valid_until' => 'Válido hasta',
         'usage_limit' => 'Límite de usos',
+        'promocode_hint'        => 'Tras aplicar, el cupón se guardará al enviar el formulario y se actualizarán los snapshots del historial.',
     ],
 
     'types' => [
@@ -449,14 +451,15 @@ return [
         'server_error'            => 'Error del servidor, inténtalo de nuevo.',
         'operation_updated'       => 'Operación actualizada correctamente.',
     ],
-    
+
         'operations' => [
         'add'            => 'Sumar',
         'subtract'       => 'Restar',
         'make_add'       => 'Cambiar a “Sumar”',
         'make_subtract'  => 'Cambiar a “Restar”',
+        'surcharge'       => 'Recargo',
+        'discount'        => 'Descuento',
     ],
-
 ],
 
 // =========================================================

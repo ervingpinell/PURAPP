@@ -383,6 +383,7 @@ return [
             'valid_from'  => 'Válido de',
             'valid_until' => 'Válido até',
             'usage_limit' => 'Limite de usos',
+            'promocode_hint'        => 'Após aplicar, o cupom será salvo ao enviar o formulário e os snapshots do histórico serão atualizados.',
         ],
 
         'types' => [
@@ -449,6 +450,8 @@ return [
             'subtract'      => 'Subtrair',
             'make_add'      => 'Mudar para “Somar”',
             'make_subtract' => 'Mudar para “Subtrair”',
+            'surcharge'     => 'Recargo',
+            'discount'      => 'Descuento',
         ],
     ],
 

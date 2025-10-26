@@ -9,7 +9,7 @@
   /** @var \App\Models\Booking $booking */
   /** @var \App\Models\BookingDetail|null $detail */
 
-  // Asegura que la redención esté disponible aunque no venga eager loaded
+  // Garantiza redención disponible
   $booking->loadMissing(['redemption.promoCode']);
 
   // ================== Precarga básica ==================
@@ -43,15 +43,14 @@
                         ? (float) $detail->total
                         : round($snapAdultPrice * $adults + $snapKidPrice * $kids, 2);
 
-  // ================== PROMO: SIEMPRE desde el pivot actual ==================
-  $redemption   = $booking->redemption; // pivot con snapshots
-  $promoModel   = optional($redemption)->promoCode ?: $booking->promoCode; // accessor (compat)
+  // ================== PROMO (desde pivot actual) ==================
+  $redemption   = $booking->redemption;
+  $promoModel   = optional($redemption)->promoCode ?: $booking->promoCode; // compat
   $promoCode    = old('promo_code', $promoModel->code ?? '');
 
-  // Operación/importe EXACTOS tal como se aplicaron
+  // Operación/importe EXACTOS (snapshot)
   $initOperation = ($redemption && ($redemption->operation_snapshot === 'add')) ? 'add' : 'subtract';
 
-  // Primero intenta el snapshot del pivot; si no viene, calcula desde el modelo
   $initDiscount = (float) ($redemption->applied_amount ?? 0.0);
   if (!$initDiscount && $promoModel) {
       if ($promoModel->discount_percent) {
@@ -61,28 +60,17 @@
       }
   }
 
-  // Total guardado en cabecera (fuente de verdad del total)
+  // Valores para badges
+  $promoP = $redemption->percent_snapshot ?? $promoModel->discount_percent ?? null;
+  $promoA = $redemption->amount_snapshot  ?? $promoModel->discount_amount  ?? null;
+
+  // Total guardado en cabecera
   $savedTotal = (float) ($booking->total ?? 0);
 
-  // ===== i18n fallbacks (por si faltan traducciones) =====
-  $tSelectLanguage = __('m_bookings.bookings.placeholders.select_language');
-  if ($tSelectLanguage === 'm_bookings.bookings.placeholders.select_language') $tSelectLanguage = 'Selecciona un idioma';
-  $tSelectTour = __('m_bookings.bookings.placeholders.select_tour');
-  if ($tSelectTour === 'm_bookings.bookings.placeholders.select_tour') $tSelectTour = 'Selecciona un tour';
-  $tSelectSchedule = __('m_bookings.bookings.placeholders.select_schedule');
-  if ($tSelectSchedule === 'm_bookings.bookings.placeholders.select_schedule') $tSelectSchedule = 'Selecciona un horario';
-  $tSelectHotel = __('m_bookings.bookings.placeholders.select_hotel');
-  if ($tSelectHotel === 'm_bookings.bookings.placeholders.select_hotel') $tSelectHotel = 'Selecciona un hotel';
-  $tEnterHotel = __('m_bookings.bookings.placeholders.enter_hotel_name');
-  if ($tEnterHotel === 'm_bookings.bookings.placeholders.enter_hotel_name') $tEnterHotel = 'Escribe el nombre del hotel';
-  $tPromoPlaceholder = __('m_bookings.bookings.placeholders.promo_code');
-  if ($tPromoPlaceholder === 'm_bookings.bookings.placeholders.promo_code') $tPromoPlaceholder = 'Código promocional';
-  $tApply = __('m_bookings.bookings.buttons.apply');
-  if ($tApply === 'm_bookings.bookings.buttons.apply') $tApply = 'Aplicar';
-  $tRemove = __('m_bookings.bookings.buttons.remove');
-  if ($tRemove === 'm_bookings.bookings.buttons.remove') $tRemove = 'Quitar';
-  $tPromoLabel = __('m_bookings.bookings.fields.promo_label');
-  if ($tPromoLabel === 'm_bookings.bookings.fields.promo_label') $tPromoLabel = 'Descuento';
+  // Label dinámico del ajuste (sin fallbacks)
+  $adjustLabel = $initOperation === 'add'
+      ? __('m_config.promocode.operations.surcharge')
+      : __('m_config.promocode.operations.discount');
 @endphp
 
 {{-- ===================== Cliente (solo lectura) ===================== --}}
@@ -116,7 +104,7 @@
         {{ __('m_bookings.bookings.fields.language') }} <span class="text-danger">*</span>
       </label>
       <select name="tour_language_id" id="languageSelect" class="form-select @error('tour_language_id') is-invalid @enderror" required>
-        <option value="">{{ $tSelectLanguage }}</option>
+        <option value="">{{ __('m_bookings.bookings.placeholders.select_language') }}</option>
         @foreach($languages as $lang)
           <option value="{{ $lang->tour_language_id }}" @selected((string)$langId === (string)$lang->tour_language_id)>
             {{ $lang->name }}
@@ -142,7 +130,7 @@
           {{ __('m_bookings.bookings.fields.tour') }} <span class="text-danger">*</span>
         </label>
         <select name="tour_id" id="selectTour" class="form-select @error('tour_id') is-invalid @enderror" required>
-          <option value="">{{ $tSelectTour }}</option>
+          <option value="">{{ __('m_bookings.bookings.placeholders.select_tour') }}</option>
           @foreach($tours as $tour)
             <option value="{{ $tour->tour_id }}"
                     data-adult-price="{{ $tour->adult_price }}"
@@ -168,7 +156,7 @@
           {{ __('m_bookings.bookings.fields.schedule') }} <span class="text-danger">*</span>
         </label>
         <select name="schedule_id" id="selectSchedule" class="form-select @error('schedule_id') is-invalid @enderror" required>
-          <option value="">{{ $tSelectSchedule }}</option>
+          <option value="">{{ __('m_bookings.bookings.placeholders.select_schedule') }}</option>
           @if($currentTour && $currentTour->schedules->count())
             @foreach($currentTour->schedules as $s)
               @php
@@ -249,7 +237,7 @@
         <label class="form-label">{{ __('m_bookings.bookings.fields.hotel') }}</label>
         <select name="hotel_id" id="selectHotel"
                 class="form-select @error('hotel_id') is-invalid @enderror">
-          <option value="">{{ $tSelectHotel }}</option>
+          <option value="">{{ __('m_bookings.bookings.placeholders.select_hotel') }}</option>
           @foreach($hotels as $h)
             <option value="{{ $h->hotel_id ?? $h->id }}"
               @selected($isOtherHotel ? false : (string)$hotelId === (string)($h->hotel_id ?? $h->id))>
@@ -265,7 +253,7 @@
           <input type="text" name="other_hotel_name"
                  class="form-control @error('other_hotel_name') is-invalid @enderror"
                  value="{{ $otherHotelName }}"
-                 placeholder="{{ $tEnterHotel }}">
+                 placeholder="{{ __('m_bookings.bookings.placeholders.enter_hotel_name') }}">
           @error('other_hotel_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
         <input type="hidden" name="is_other_hotel" value="{{ $isOtherHotel }}">
@@ -329,43 +317,81 @@
     </div>
 
     <div class="mt-3">
-      <label class="form-label small mb-1">Subtotal</label>
+      <label class="form-label small mb-1">{{ __('m_bookings.details.subtotal') }}</label>
       <input type="text" class="form-control" id="subtotalDisplay" readonly value="${{ number_format($snapshotSubtotal,2) }}">
     </div>
 
-    {{-- ===== Código Promocional (Aplicar / Quitar con un botón) ===== --}}
-    <div class="mt-3">
-      <label class="form-label">{{ __('m_bookings.bookings.fields.promo_code') }}</label>
-      <div class="row g-2 align-items-end">
-        <div class="col-md-6">
-          <input type="text" name="promo_code" id="promoCodeInput" class="form-control"
-                 value="{{ $promoCode }}"
-                 placeholder="{{ $tPromoPlaceholder }}">
+    {{-- === Cupón (un solo botón que alterna aplicar/quitar) === --}}
+    @php
+      $hasPromo = filled($promoCode);
+      $isAdd    = ($initOperation === 'add');
+      $bid      = $booking->booking_id;
+    @endphp
+
+    <div class="border rounded p-3 mt-4">
+      <div class="d-flex flex-column flex-md-row align-items-md-end gap-2">
+        <div class="flex-grow-1">
+          <label for="promoInput-{{ $bid }}" class="form-label mb-1">
+            {{ __('m_bookings.bookings.fields.promo_code') }}
+          </label>
+          <input type="text"
+                 class="form-control"
+                 id="promoInput-{{ $bid }}"
+                 name="promo_code"
+                 placeholder="{{ __('m_bookings.bookings.placeholders.promo_code') }}"
+                 value="{{ $promoCode }}">
         </div>
-        <div class="col-md-3">
-          <button type="button" class="btn w-100" id="btnTogglePromo">
-            @if($promoCode)
-              <i class="fas fa-times"></i> {{ $tRemove }}
+
+        {{-- ÚNICO BOTÓN: alterna Aplicar / Quitar --}}
+        <div class="d-flex">
+          <button type="button"
+                  class="btn {{ $hasPromo ? 'btn-danger' : 'btn-primary' }}"
+                  id="btnTogglePromo-{{ $bid }}">
+            @if($hasPromo)
+              <i class="fas fa-times me-1"></i>{{ __('m_bookings.bookings.buttons.delete') }}
             @else
-              <i class="fas fa-check"></i> {{ $tApply }}
+              <i class="fas fa-check me-1"></i>{{ __('m_bookings.bookings.buttons.apply') }}
             @endif
           </button>
         </div>
       </div>
 
-      <div class="mt-2" id="promoFeedback" style="display: {{ $promoCode ? 'block' : 'none' }};">
-        @if($promoCode)
-          <div class="alert alert-success mb-0">
-            {{ __('m_bookings.receipt.promo') }} ({{ $promoCode }}):
-            {{ $initOperation === 'add' ? '+' : '-' }}${{ number_format($initDiscount,2) }}
-          </div>
-        @endif
+      {{-- resumen + feedback --}}
+      <div class="d-flex align-items-center mt-2">
+        <div id="promoSummary-{{ $bid }}" class="small me-auto">
+          @if ($hasPromo)
+            <span class="badge bg-info text-dark">
+              <i class="fas fa-ticket-alt me-1"></i>{{ $promoCode }}
+            </span>
+            <span class="badge {{ $isAdd ? 'bg-success' : 'bg-danger' }} ms-1">
+              {{ $isAdd ? __('m_config.promocode.operations.surcharge') : __('m_config.promocode.operations.discount') }}
+            </span>
+            @php
+              $promoP = $promoP ?? null; $promoA = $promoA ?? null;
+            @endphp
+            @if (!is_null($promoP))
+              <span class="badge bg-secondary ms-1">{{ number_format($promoP,0) }}%</span>
+            @elseif (!is_null($promoA))
+              <span class="badge bg-secondary ms-1">${{ number_format($promoA,2) }}</span>
+            @else
+              <span class="badge bg-secondary ms-1">${{ number_format($initDiscount,2) }}</span>
+            @endif
+          @else
+            <span class="text-muted">{{ __('m_bookings.bookings.ui.no_promo_code') }}</span>
+          @endif
+        </div>
+        <div id="promoFeedback-{{ $bid }}" class="small"></div>
       </div>
+
+      <p class="text-muted small mb-0 mt-2">
+        {{ __('m_config.promocode.fields.promocode_hint') }}
+      </p>
     </div>
+    {{-- === /Cupón === --}}
 
     <div class="row mt-3">
       <div class="col-md-6">
-        <label class="form-label">{{ $tPromoLabel }}</label>
+        <label class="form-label" id="promoLabel">{{ $adjustLabel }}</label>
         <input type="text" class="form-control" id="promoDisplay" readonly
                value="{{ $promoCode ? (($initOperation === 'add' ? '+' : '-') . '$' . number_format($initDiscount,2)) : '$0.00' }}">
       </div>
@@ -392,7 +418,7 @@
 {{-- ===================== Scripts: precios, promo y pickup ===================== --}}
 <script>
 (function(){
-  const form       = document.currentScript.closest('form');
+  const form = document.currentScript.closest('form');
   if (!form) return;
 
   const tourSel    = form.querySelector('#selectTour');
@@ -411,10 +437,6 @@
   const hSub       = form.querySelector('#hiddenSubtotal');
   const hTotal     = form.querySelector('#hiddenTotal');
 
-  const promoInput = form.querySelector('#promoCodeInput');
-  const btnToggle  = form.querySelector('#btnTogglePromo');
-  const feedback   = form.querySelector('#promoFeedback');
-
   // Pickup
   const radioHotel   = form.querySelector('#locationHotel');
   const radioPoint   = form.querySelector('#locationMeeting');
@@ -425,32 +447,9 @@
   const mpSelect     = form.querySelector('#meetingPointSelect');
   const mpHelp       = form.querySelector('#meetingPointHelp');
 
+  // ======== Precios ========
   let adultPrice = parseFloat(hAdult?.value || 0);
   let kidPrice   = parseFloat(hKid?.value   || 0);
-
-  // Etiquetas (inyectadas desde Blade)
-  const LABEL_APPLY  = @json($tApply);
-  const LABEL_REMOVE = @json($tRemove);
-
-  // Estado inicial del cupón (desde snapshot del pivot)
-  let promo = {
-    code:      (promoInput?.value || '').trim(),
-    discount:  Number(@json($initDiscount)),
-    operation: (@json($initOperation) === 'add') ? 'add' : 'subtract'
-  };
-
-  function setToggleLabel(){
-    if (!btnToggle) return;
-    if (promo && promo.code) {
-      btnToggle.innerHTML = `<i class="fas fa-times"></i> ${LABEL_REMOVE}`;
-      btnToggle.classList.remove('btn-primary');
-      btnToggle.classList.add('btn-danger');
-    } else {
-      btnToggle.innerHTML = `<i class="fas fa-check"></i> ${LABEL_APPLY}`;
-      btnToggle.classList.remove('btn-danger');
-      btnToggle.classList.add('btn-primary');
-    }
-  }
 
   function money(v){ return '$' + (Number(v||0).toFixed(2)); }
 
@@ -473,7 +472,7 @@
 
     const placeholder = document.createElement('option');
     placeholder.value = '';
-    placeholder.textContent = @json($tSelectSchedule);
+    placeholder.textContent = @json(__('m_bookings.bookings.placeholders.select_schedule'));
 
     const prev = schedSel.value;
     schedSel.innerHTML = '';
@@ -490,40 +489,114 @@
     if (stillExists) schedSel.value = prev;
   }
 
+  // ======== Totales + Promo (estado) ========
+  const bid          = @json($booking->booking_id);
+  const promoInput   = form.querySelector('#promoInput-' + bid);
+  const btnToggle    = form.querySelector('#btnTogglePromo-' + bid);
+  const summaryEl    = form.querySelector('#promoSummary-' + bid);
+  const feedbackEl   = form.querySelector('#promoFeedback-' + bid);
+  const promoLabelEl = form.querySelector('#promoLabel');
+
+  const LABEL_APPLY     = @json(__('m_bookings.bookings.buttons.apply'));
+  const LABEL_REMOVE    = @json(__('m_bookings.bookings.buttons.delete'));
+  const LABEL_SURCHARGE = @json(__('m_config.promocode.operations.surcharge'));
+  const LABEL_DISCOUNT  = @json(__('m_config.promocode.operations.discount'));
+
+  window.__promoCode      = (promoInput?.value || '').trim();
+  window.__promoDiscount  = Number(@json($initDiscount));                          // monto aplicado snapshot
+  window.__promoOperation = @json($initOperation) === 'add' ? 'add' : 'subtract'; // add/subtract
+  window.__promoPercent   = @json($promoP);                                        // snapshot %
+  window.__promoAmount    = @json($promoA);                                        // snapshot $
+
   function recalcTotals(){
     const a = parseInt(adultsInp?.value || 0, 10);
     const k = parseInt(kidsInp?.value   || 0, 10);
 
-    const subtotal = Math.max(0, +(a * adultPrice + k * kidPrice).toFixed(2));
-    let total      = subtotal;
-    let promoText  = '$0.00';
+    // Toma precios desde hidden (actualizados por readTourPrices)
+    const ap = parseFloat(hAdult?.value || adultPrice || 0);
+    const kp = parseFloat(hKid?.value   || kidPrice   || 0);
 
-    if (promo && promo.code) {
-      const delta = Number(promo.discount || 0);
-      if (promo.operation === 'add') {
-        total = subtotal + delta;
-        promoText = '+' + money(delta).replace('$','$');
-      } else {
-        total = Math.max(0, subtotal - delta);
-        promoText = '-' + money(delta).replace('$','$');
+    const subtotal = Math.max(0, +(a * ap + k * kp).toFixed(2));
+    let total = subtotal;
+
+    if (window.__promoCode) {
+      const delta = Number(window.__promoDiscount || 0);
+      total = (window.__promoOperation === 'add')
+                ? subtotal + delta
+                : Math.max(0, subtotal - delta);
+
+      if (promoDisp) {
+        const sign = (window.__promoOperation === 'add') ? '+' : '-';
+        promoDisp.value = sign + '$' + delta.toFixed(2);
       }
+    } else {
+      if (promoDisp) promoDisp.value = '$0.00';
     }
 
     if (subDisp)   subDisp.value   = money(subtotal);
-    if (promoDisp) promoDisp.value = promoText;
     if (totalDisp) totalDisp.value = money(total);
+    if (hSub)      hSub.value      = subtotal.toFixed(2);
+    if (hTotal)    hTotal.value    = total.toFixed(2);
+  }
 
-    if (hSub)   hSub.value   = subtotal.toFixed(2);
-    if (hTotal) hTotal.value = total.toFixed(2);
+  function setToggleLabel(){
+    if (!btnToggle) return;
+    if (window.__promoCode) {
+      btnToggle.classList.remove('btn-primary');
+      btnToggle.classList.add('btn-danger');
+      btnToggle.innerHTML = `<i class="fas fa-times me-1"></i>${LABEL_REMOVE}`;
+    } else {
+      btnToggle.classList.remove('btn-danger');
+      btnToggle.classList.add('btn-primary');
+      btnToggle.innerHTML = `<i class="fas fa-check me-1"></i>${LABEL_APPLY}`;
+    }
+  }
+
+  function renderSummary(){
+    if (!summaryEl) return;
+
+    if (!window.__promoCode) {
+      summaryEl.innerHTML = `<span class="text-muted">${@json(__('m_bookings.bookings.ui.no_promo_code'))}</span>`;
+      return;
+    }
+
+    const opBadgeClass = (window.__promoOperation === 'add') ? 'bg-success' : 'bg-danger';
+    const opLabel = (window.__promoOperation === 'add') ? LABEL_SURCHARGE : LABEL_DISCOUNT;
+
+    let valueBadge = '';
+    if (window.__promoPercent != null) {
+      valueBadge = `<span class="badge bg-secondary ms-1">${Number(window.__promoPercent).toFixed(0)}%</span>`;
+    } else if (window.__promoAmount != null) {
+      valueBadge = `<span class="badge bg-secondary ms-1">$${Number(window.__promoAmount).toFixed(2)}</span>`;
+    } else {
+      valueBadge = `<span class="badge bg-secondary ms-1">$${Number(window.__promoDiscount||0).toFixed(2)}</span>`;
+    }
+
+    summaryEl.innerHTML = `
+      <span class="badge bg-info text-dark">
+        <i class="fas fa-ticket-alt me-1"></i>${window.__promoCode}
+      </span>
+      <span class="badge ${opBadgeClass} ms-1">${opLabel}</span>
+      ${valueBadge}
+    `;
+  }
+
+  function showFeedback(ok, msg){
+    if (!feedbackEl) return;
+    feedbackEl.className = 'small ' + (ok ? 'text-success' : 'text-danger');
+    feedbackEl.textContent = msg || '';
   }
 
   async function applyPromo(){
     const code = (promoInput?.value || '').trim();
     if (!code) return;
 
-    const a = parseInt(adultsInp?.value || 0, 10);
-    const k = parseInt(kidsInp?.value   || 0, 10);
-    const subtotal = Math.max(0, +(a * adultPrice + k * kidPrice).toFixed(2));
+    const a  = parseInt(adultsInp?.value || 0, 10);
+    const k  = parseInt(kidsInp?.value   || 0, 10);
+    const ap = parseFloat(hAdult?.value || adultPrice || 0);
+    const kp = parseFloat(hKid?.value   || kidPrice   || 0);
+
+    const subtotal = Math.max(0, +(a*ap + k*kp).toFixed(2));
 
     try {
       const base = @json(route('admin.bookings.verifyPromoCode'));
@@ -535,62 +608,61 @@
       const data = await res.json();
 
       if (!data || data.valid === false) {
-        promo = { code: '', discount: 0, operation: 'subtract' };
-        if (feedback) {
-          feedback.style.display = 'block';
-          feedback.className = 'alert alert-danger mt-2';
-          feedback.textContent = data?.message || 'Código inválido';
-        }
+        showFeedback(false, data?.message || 'Código inválido');
       } else {
-        promo = {
-          code: code,
-          discount: Number(data.discount_amount || 0),
-          operation: (data.operation === 'add') ? 'add' : 'subtract'
-        };
-        if (feedback) {
-          feedback.style.display = 'block';
-          feedback.className = 'alert alert-success mt-2';
-          feedback.textContent = data?.message || 'Código aplicado';
+        window.__promoCode      = code;
+        window.__promoDiscount  = Number(data.discount_amount || 0);
+        window.__promoOperation = (data.operation === 'add') ? 'add' : 'subtract';
+        window.__promoPercent   = (data.discount_percent ?? null);
+        window.__promoAmount    = (data.discount_percent ? null : Number(data.discount_amount || 0));
+
+        // actualizar label del campo resumen
+        if (promoLabelEl) {
+          promoLabelEl.textContent = (window.__promoOperation === 'add') ? LABEL_SURCHARGE : LABEL_DISCOUNT;
         }
+
+        renderSummary();
+        recalcTotals();
+        setToggleLabel();
+        showFeedback(true, data?.message || 'Código aplicado');
       }
-      setToggleLabel();
-      recalcTotals();
     } catch (e) {
       console.error(e);
+      showFeedback(false, 'Error verificando el cupón');
     }
   }
 
   function removePromo(){
-    promo = { code: '', discount: 0, operation: 'subtract' };
+    window.__promoCode      = '';
+    window.__promoDiscount  = 0;
+    window.__promoOperation = 'subtract';
+    window.__promoPercent   = null;
+    window.__promoAmount    = null;
+
     if (promoInput) promoInput.value = '';
-    if (feedback)   feedback.style.display = 'none';
-    setToggleLabel();
+    if (promoLabelEl) promoLabelEl.textContent = LABEL_DISCOUNT;
+
+    renderSummary();
     recalcTotals();
+    setToggleLabel();
+    showFeedback(true, @json(__('m_bookings.bookings.buttons.delete')));
   }
 
-  // Alterna aplicar/quitar con un solo botón
+  // Botón único: alterna aplicar/quitar
   btnToggle?.addEventListener('click', () => {
-    if (promo && promo.code) {
+    if (window.__promoCode) {
       removePromo();
     } else {
       applyPromo();
     }
   });
 
-  // Pickup
-  function togglePickup(){
-    const useHotel = !!(radioHotel && radioHotel.checked);
-    if (hotelSection) hotelSection.classList.toggle('d-none', !useHotel);
-    if (mpSection)    mpSection.classList.toggle('d-none', useHotel);
-  }
-  function handleHotelSelect(){
-    if (!hotelSelect || !otherWrap) return;
-    const isOther = (hotelSelect.value === 'other');
-    otherWrap.classList.toggle('d-none', !isOther);
-    const hidden = form.querySelector('input[name="is_other_hotel"]');
-    if (hidden) hidden.value = isOther ? 1 : 0;
-  }
-  function updateMeetingPointHelp(){
+  // Eventos varios
+  tourSel?.addEventListener('change', () => { readTourPrices(); rebuildSchedulesOnTourChange(); recalcTotals(); });
+  adultsInp?.addEventListener('input', recalcTotals);
+  kidsInp?.addEventListener('input', recalcTotals);
+
+  mpSelect?.addEventListener('change', () => {
     if (!mpSelect || !mpHelp) return;
     const opt = mpSelect.selectedOptions[0];
     if (!opt) { mpHelp.innerHTML = ''; return; }
@@ -602,22 +674,27 @@
     if (d) html += `<div><i class="fas fa-map-pin me-1"></i>${d}</div>`;
     if (m) html += `<div><a href="${m}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt me-1"></i>Ver mapa</a></div>`;
     mpHelp.innerHTML = html;
-  }
+  });
 
-  // Eventos varios
-  tourSel?.addEventListener('change', () => { readTourPrices(); rebuildSchedulesOnTourChange(); recalcTotals(); });
-  adultsInp?.addEventListener('input', recalcTotals);
-  kidsInp?.addEventListener('input', recalcTotals);
-  mpSelect?.addEventListener('change', updateMeetingPointHelp);
+  function togglePickup(){
+    const useHotel = !!(radioHotel && radioHotel.checked);
+    hotelSection?.classList.toggle('d-none', !useHotel);
+    mpSection?.classList.toggle('d-none', useHotel);
+  }
   radioHotel?.addEventListener('change', togglePickup);
   radioPoint?.addEventListener('change', togglePickup);
-  hotelSelect?.addEventListener('change', handleHotelSelect);
+
+  hotelSelect?.addEventListener('change', () => {
+    if (!hotelSelect || !otherWrap) return;
+    const isOther = (hotelSelect.value === 'other');
+    otherWrap.classList.toggle('d-none', !isOther);
+    const hidden = form.querySelector('input[name="is_other_hotel"]');
+    if (hidden) hidden.value = isOther ? 1 : 0;
+  });
 
   // Init
-  setToggleLabel();
+  renderSummary();
   recalcTotals();
   togglePickup();
-  handleHotelSelect();
-  updateMeetingPointHelp();
 })();
 </script>

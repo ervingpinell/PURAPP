@@ -380,6 +380,8 @@ return [
             'valid_from'  => 'Gültig ab',
             'valid_until' => 'Gültig bis',
             'usage_limit' => 'Nutzungsgrenze',
+            'promocode_hint'        => 'Nach der Anwendung wird der Gutschein beim Absenden des Formulars gespeichert und die Snapshots des Verlaufs aktualisiert.',
+
         ],
 
         'types' => [
@@ -446,6 +448,8 @@ return [
             'subtract'      => 'Subtrahieren',
             'make_add'      => 'Zu „Addieren“ wechseln',
             'make_subtract' => 'Zu „Subtrahieren“ wechseln',
+            'surcharge'     => 'Aufschlag',
+            'discount'      => 'Rabatt',
         ],
     ],
 
