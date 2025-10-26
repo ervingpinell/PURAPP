@@ -494,11 +494,8 @@ class BookingController extends Controller
 
             return redirect()->route('admin.bookings.index')
                 ->with('success', __('m_bookings.bookings.success.deleted'));
-
         } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error("Error deleting booking #{$booking->booking_id}: " . $e->getMessage());
-
+            Log::error("Delete error #{$booking->booking_id}: ".$e->getMessage());
             return back()->with('error', __('m_bookings.bookings.errors.delete'));
         }
     }
@@ -538,15 +535,14 @@ class BookingController extends Controller
         $totalKids    = $bookings->sum(fn($b) => (int) optional($b->detail)->kids_quantity);
         $totalPersons = $totalAdults + $totalKids;
 
-        $pdf = Pdf::loadView('admin.bookings.pdf-summary', compact('bookings', 'totalAdults', 'totalKids', 'totalPersons'));
-
-        return $pdf->download('bookings-report-' . now()->format('Y-m-d') . '.pdf');
+        return Pdf::loadView('admin.bookings.pdf-summary', compact('bookings','totalAdults','totalKids','totalPersons'))
+            ->download('bookings-report-'.now()->format('Y-m-d').'.pdf');
     }
 
     /** Export Excel */
     public function exportExcel(Request $request)
     {
-        return Excel::download(new BookingsExport($request->all()), 'bookings-' . now()->format('Y-m-d') . '.xlsx');
+        return Excel::download(new BookingsExport($r->all()), 'bookings-'.now()->format('Y-m-d').'.xlsx');
     }
 
     /** AJAX verificar cupón */
@@ -577,13 +573,56 @@ class BookingController extends Controller
 
         $operation = $promo->operation === 'add' ? 'add' : 'subtract';
 
-        return response()->json([
-            'valid'            => true,
-            'code'             => $code,
-            'discount_amount'  => $discountAmount,
-            'discount_percent' => $promo->discount_percent,
-            'operation'        => $operation,
-            'message'          => 'Código válido'
-        ]);
+        return response()->json($resp);
+    }
+
+    /* ========= Helpers ========= */
+
+    private function subtotal(Tour $tour, int $adults, int $kids): float
+    {
+        return round(($tour->adult_price * $adults) + ($tour->kid_price * $kids), 2);
+    }
+
+    private function findPromo(string $raw): ?PromoCode
+    {
+        $norm = PromoCode::normalize($raw) ?? strtoupper(trim(preg_replace('/\s+/', '', $raw)));
+        return PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$norm])->first();
+    }
+
+    private function applyPromoCalc(float $base, ?PromoCode $promo): float
+    {
+        if (!$promo) return $base;
+        $disc = 0.0;
+        if (!is_null($promo->discount_percent)) $disc = round($base * ((float)$promo->discount_percent/100), 2);
+        elseif (!is_null($promo->discount_amount)) $disc = (float)$promo->discount_amount;
+        return $promo->operation === 'add' ? round($base + $disc, 2) : max(0, round($base - $disc, 2));
+    }
+
+    private function upsertRedemption(Booking $booking, PromoCode $promo): void
+    {
+        $pk = Schema::hasColumn('promo_codes','promo_code_id') ? 'promo_code_id' : 'id';
+        if (class_exists(\App\Models\PromoCodeRedemption::class)) {
+            \App\Models\PromoCodeRedemption::updateOrCreate(
+                ['booking_id' => $booking->booking_id],
+                ['promo_code_id' => (int)$promo->{$pk}, 'user_id' => $booking->user_id]
+            );
+        }
+        if (property_exists($promo,'is_used')) $promo->is_used = true;
+        if (property_exists($promo,'used_by_booking_id')) $promo->used_by_booking_id = $booking->booking_id;
+        if (property_exists($promo,'used_by_user_id'))    $promo->used_by_user_id = $booking->user_id;
+        if (property_exists($promo,'usage_count'))        $promo->usage_count = (int)$promo->usage_count + 1;
+        $promo->save();
+    }
+
+    private function releaseRedemption(Booking $booking, PromoCode $promo): void
+    {
+        if (class_exists(\App\Models\PromoCodeRedemption::class)) {
+            \App\Models\PromoCodeRedemption::where('booking_id',$booking->booking_id)->delete();
+        }
+        if (property_exists($promo,'is_used')) $promo->is_used = false;
+        if (property_exists($promo,'used_by_booking_id')) $promo->used_by_booking_id = null;
+        if (property_exists($promo,'used_by_user_id'))    $promo->used_by_user_id = null;
+        if (property_exists($promo,'usage_count') && (int)$promo->usage_count > 0) $promo->usage_count--;
+        $promo->save();
     }
 }

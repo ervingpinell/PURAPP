@@ -6,6 +6,9 @@
   {{-- Choices.js --}}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
+  {{-- SweetAlert (para alertas en Add to Cart) --}}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endonce
 
 @push('scripts')
@@ -121,7 +124,7 @@
   meetingSel?.addEventListener('change', refreshMeetingInfo);
   refreshMeetingInfo();
 
-  /* ========= BLOQUEO DE SUBMIT ========= */
+  /* ========= BLOQUEO DE SUBMIT NATIVO ========= */
   formEl.addEventListener('submit', (e) => e.preventDefault());
 
   window.isAuthenticated = @json(Auth::check());
@@ -162,12 +165,11 @@
     return !(iso < r.min);
   };
 
-  /* ========= Choices (sin APIs privadas) ========= */
+  /* ========= Choices ========= */
   const scheduleChoices = new Choices(scheduleSel, {
     searchEnabled: false,
     shouldSort: false,
     itemSelectText: '',
-    // Usamos el <option value=""> del Blade como placeholder
     placeholder: false
   });
   const langChoices     = new Choices(langSelect,  { searchEnabled:false, shouldSort:false, itemSelectText:'' });
@@ -191,17 +193,16 @@
   };
 
   function rebuildScheduleChoices(iso){
-    // preserva la selección actual (si la había)
     const prev = scheduleSel.value || '';
-
     scheduleChoices.clearChoices();
 
     if (!iso || isDayFullyBlocked(iso)) {
-      // Sin opciones: dejamos solo el placeholder vía <option value="">
       scheduleChoices.setChoices([], 'value', 'label', true);
       scheduleChoices.disable();
-      helpMsg.textContent = iso ? T.noSlots : '';
-      helpMsg.style.display = iso ? '' : 'none';
+      if (helpMsg) {
+        helpMsg.textContent = iso ? T.noSlots : '';
+        helpMsg.style.display = iso ? '' : 'none';
+      }
       return;
     }
 
@@ -216,9 +217,8 @@
     if (enabled.length > 0) {
       scheduleChoices.enable();
       scheduleSel.removeAttribute('disabled');
-      helpMsg.style.display = 'none';
+      if (helpMsg) helpMsg.style.display = 'none';
 
-      // si la previa sigue siendo válida, restáurala; si hay solo una, autoseleccionar
       if (prev && enabled.some(c => String(c.value) === String(prev))) {
         scheduleChoices.setChoiceByValue(String(prev));
       } else if (enabled.length === 1) {
@@ -227,8 +227,10 @@
       }
     } else {
       scheduleChoices.disable();
-      helpMsg.textContent = T.noSlots;
-      helpMsg.style.display = '';
+      if (helpMsg) {
+        helpMsg.textContent = T.noSlots;
+        helpMsg.style.display = '';
+      }
     }
   }
 
@@ -274,7 +276,6 @@
     if (fp && typeof fp.setDate === 'function' && current && sid && current < rule.min) {
       fp.setDate(rule.min, true);
     }
-    // Importante: no llamar rebuildScheduleChoices aquí para no resetear la selección
   });
 
   /* Hotel "otro" */
@@ -285,37 +286,53 @@
 
   const toggleOther = () => {
     const isOther = (hotelChoices.getValue(true) === 'other');
-    otherWrap.classList.toggle('d-none', !isOther);
+    otherWrap && otherWrap.classList.toggle('d-none', !isOther);
     if (isOtherH) isOtherH.value = isOther ? 1 : 0;
-    if (isOther) { warnMsg && (warnMsg.style.display = ''); otherInp && otherInp.setAttribute('required','required'); }
-    else { warnMsg && (warnMsg.style.display = 'none'); if (otherInp) { otherInp.removeAttribute('required'); otherInp.value=''; } }
+    if (isOther) {
+      if (warnMsg) warnMsg.style.display = '';
+      if (otherInp) otherInp.setAttribute('required','required');
+    } else {
+      if (warnMsg) warnMsg.style.display = 'none';
+      if (otherInp) { otherInp.removeAttribute('required'); otherInp.value=''; }
+    }
   };
-  hotelSelect.addEventListener('change', toggleOther);
+  hotelSelect?.addEventListener('change', toggleOther);
   toggleOther();
 
-  /* Meeting point -> hidden + info (si usas hidden) */
+  /* Meeting point -> hidden + info */
   const hiddenMP = document.getElementById('selectedMeetingPoint');
-  meetingSel.addEventListener('change', () => {
+  meetingSel?.addEventListener('change', () => {
     if (hiddenMP) hiddenMP.value = meetingChoices.getValue(true) || '';
     refreshMeetingInfo();
   });
 
   /* Mutua exclusión hotel/meeting */
   function validateHotelMeetingPoint() {
-    const hotelValue = hotelChoices.getValue(true);
+    if (!hotelSelect || !meetingSel) return;
+
+    const hotelValue   = hotelChoices.getValue(true);
     const meetingValue = meetingChoices.getValue(true);
 
     if (hotelValue && hotelValue !== '') {
-      meetingChoices.disable(); meetingSel.value = ''; if (hiddenMP) hiddenMP.value = '';
+      meetingChoices.disable();
+      meetingSel.value = '';
+      if (hiddenMP) hiddenMP.value = '';
       refreshMeetingInfo();
-    } else { meetingChoices.enable(); }
+    } else {
+      meetingChoices.enable();
+    }
 
     if (meetingValue && meetingValue !== '') {
-      hotelChoices.disable(); hotelSelect.value = ''; toggleOther(); if (isOtherH) isOtherH.value = 0;
-    } else { hotelChoices.enable(); }
+      hotelChoices.disable();
+      hotelSelect.value = '';
+      toggleOther();
+      if (isOtherH) isOtherH.value = 0;
+    } else {
+      hotelChoices.enable();
+    }
   }
-  hotelSelect.addEventListener('change', validateHotelMeetingPoint);
-  meetingSel.addEventListener('change', validateHotelMeetingPoint);
+  hotelSelect?.addEventListener('change', validateHotelMeetingPoint);
+  meetingSel  ?.addEventListener('change', validateHotelMeetingPoint);
   validateHotelMeetingPoint();
 
   /* ========= Validaciones nativas traducidas ========= */
@@ -350,7 +367,7 @@
     const MIN_ADULTS    = Number(formEl?.dataset?.minAdults ?? 1);
     const MIN_TOTAL     = Number(formEl?.dataset?.minTotal  ?? 2);
     const MAX_TRAVELERS = Number(formEl?.dataset?.maxTravelers ?? 12);
-    const MAX_KIDS = Math.min(2, Number(formEl?.dataset?.maxKids ?? 2));
+    const MAX_KIDS      = Math.min(2, Number(formEl?.dataset?.maxKids ?? 2));
 
     const MIN_KIDS      = 0;
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
@@ -431,18 +448,18 @@
 
     if (!formEl.checkValidity()) { formEl.reportValidity(); return; }
 
-    const meetingValue = window.meetingChoices ? window.meetingChoices.getValue(true) : '';
+    const meetingValue = (window.meetingChoices && typeof window.meetingChoices.getValue === 'function')
+      ? window.meetingChoices.getValue(true) : '';
 
     const isOtherH = document.getElementById('isOtherHotel');
     const otherInp = document.getElementById('otherHotelInput');
-
     const hotelSelect = document.getElementById('hotelSelect');
-    const selectedHotel = hotelSelect ? hotelSelect.value : '';
-    const isOtherHotel = isOtherH && isOtherH.value === '1';
-    const otherHotelName = otherInp && otherInp.value.trim();
 
-    const hasHotel = (selectedHotel && selectedHotel !== '' && selectedHotel !== 'other') || (isOtherHotel && otherHotelName);
-    const hasMeeting = (meetingValue && meetingValue !== '');
+    const selectedHotel   = hotelSelect ? hotelSelect.value : '';
+    const isOtherHotel    = isOtherH && isOtherH.value === '1';
+    const otherHotelName  = otherInp && otherInp.value.trim();
+    const hasHotel        = (selectedHotel && selectedHotel !== '' && selectedHotel !== 'other') || (isOtherHotel && otherHotelName);
+    const hasMeeting      = (meetingValue && meetingValue !== '');
 
     if (!hasHotel && !hasMeeting) {
       await Swal.fire({ icon: 'warning', title: T.pickupRequiredTitle, text: T.pickupRequiredBody, confirmButtonColor: '#198754', confirmButtonText: T.ok });
@@ -464,22 +481,50 @@
         body: fd
       });
 
-      let data = {}; try { data = await res.json(); } catch(_) {}
+      let data = {};
+      try { data = await res.json(); } catch(_) {}
 
       if (!res.ok) {
-        const msg = (data && data.message) ? data.message : 'No se pudo agregar el tour. Intenta de nuevo.';
-        await Swal.fire({ icon:'error', title:'Error', text:msg }); return;
+        // ==== manejo fino de capacidad / validación ====
+        if (res.status === 422) {
+          const firstErr =
+            data?.message ||
+            (data?.errors && Object.values(data.errors)[0]?.[0]) ||
+            @json(__('carts.messages.capacity_full'));
+
+          await Swal.fire({
+            icon: 'error',
+            title: @json(__('adminlte::adminlte.error') ?? 'Error'),
+            text: firstErr,
+            confirmButtonColor: '#dc3545'
+          });
+
+          addBtn.disabled = false;
+          addBtn.innerHTML = prevHTML;
+          submitting = false;
+          return;
+        }
+
+        const msg = data?.message || 'No se pudo agregar el tour. Intenta de nuevo.';
+        await Swal.fire({ icon:'error', title:'Error', text:msg });
+        addBtn.disabled = false;
+        addBtn.innerHTML = prevHTML;
+        submitting = false;
+        return;
       }
 
-      const okMsg = (data && data.message) ? data.message : 'Tour añadido al carrito.';
-      await Swal.fire({ icon:'success', title:'Success', text:okMsg, confirmButtonColor:'#198754', confirmButtonText:T.ok });
+      const okMsg = data?.message || 'Tour añadido al carrito.';
+      await Swal.fire({
+        icon:'success',
+        title:@json(__('adminlte::adminlte.success') ?? 'Success'),
+        text: okMsg,
+        confirmButtonColor:'#198754',
+        confirmButtonText:T.ok
+      });
 
       if (typeof data.count !== 'undefined' && window.setCartCount) {
         window.setCartCount(data.count);
-      }
-
-      // Actualiza el contador si existe endpoint público
-      if (window.CART_COUNT_URL && window.setCartCount && typeof data.count === 'undefined') {
+      } else if (window.CART_COUNT_URL && window.setCartCount) {
         try {
           const cRes = await fetch(window.CART_COUNT_URL, { headers: { 'Accept': 'application/json' }});
           const cData = await cRes.json();

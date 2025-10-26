@@ -86,16 +86,16 @@
       </a>
     </div>
 
-    <!-- Amenities -->
+    <!-- Amenidades -->
     <div class="col-md-4 mb-3">
       <x-adminlte-info-box
-        title="{{ __('adminlte::adminlte.entities.amenities') }}"
+        title="Amenidades"
         text="{{ $totalAmenities ?? 0 }}"
         icon="fas fa-concierge-bell"
         theme="secondary"
       />
       <a href="{{ route('admin.tours.amenities.index') }}" class="btn btn-secondary btn-block mt-2">
-        {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.amenities') }}
+        {{ __('adminlte::adminlte.buttons.view') }} Amenidades
       </a>
     </div>
 
@@ -113,28 +113,35 @@
     </div>
   </div>
 
-  <!-- Itineraries -->
+  <!-- Tours Disponibles (mismo diseño; toggle propio para abrir/cerrar) -->
   <div class="row">
     <div class="col-md-12 mb-3">
       <div class="card">
         <div class="card-header bg-danger text-white">
-          <h4 class="mb-0">{{ __('adminlte::adminlte.sections.available_itineraries') }}</h4>
+          <h4 class="mb-0">Tours Disponibles</h4>
         </div>
         <div class="card-body">
           @forelse (($itineraries ?? collect()) as $itinerary)
+            @php
+              $cid = 'collapseItin_' . $itinerary->itinerary_id;
+            @endphp
+
             <div class="mb-2">
-              <button class="btn btn-outline-danger btn-block text-center"
-                      data-toggle="collapse"
-                      data-target="#collapse{{ $itinerary->itinerary_id }}"
-                      aria-expanded="false"
-                      aria-controls="collapse{{ $itinerary->itinerary_id }}">
-                {{ $itinerary->name }} 
-                <i class="fas fa-chevron-down ml-2"></i>
+              <button
+                type="button"
+                class="btn btn-outline-danger btn-block text-center js-simple-toggle"
+                data-target="#{{ $cid }}"
+                aria-expanded="false"
+                aria-controls="{{ $cid }}"
+              >
+                {{ $itinerary->name }}
+                <i class="fas fa-chevron-down ml-2 itin-chevron" aria-hidden="true"></i>
               </button>
-              <div id="collapse{{ $itinerary->itinerary_id }}" class="collapse mt-2">
+
+              <div id="{{ $cid }}" class="mt-2 simple-collapse">
                 @php $items = $itinerary->items ?? collect(); @endphp
                 @if ($items->isEmpty())
-                  <p class="text-muted text-center">{{ __('adminlte::adminlte.empty.itinerary_items') }}</p>
+                  <p class="text-muted text-center mb-0">{{ __('adminlte::adminlte.empty.itinerary_items') }}</p>
                 @else
                   <ul class="list-group">
                     @foreach ($items->sortBy('order') as $item)
@@ -155,33 +162,69 @@
     </div>
   </div>
 
-  <!-- Upcoming Bookings -->
-  <div class="row">
-    <div class="col-md-12 mb-3">
-      <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-          <h5 class="mb-0">{{ __('adminlte::adminlte.sections.upcoming_bookings') }}</h5>
-        </div>
-        <div class="card-body">
-          @forelse (($upcomingBookings ?? collect()) as $booking)
-            <div class="mb-2">
-              <strong>{{ $booking->user->full_name ?? '—' }}</strong>
-              – {{ $booking->tour->name ?? optional(optional($booking->detail)->tour)->name ?? '—' }}<br>
-              <small class="text-muted">
-                {{ __('adminlte::adminlte.labels.reference') }}: {{ $booking->booking_reference ?? '—' }}
-              </small><br>
-              <span class="text-muted">
-                {{ __('adminlte::adminlte.labels.date') }}:
-                {{ optional(optional($booking->detail)->tour_date)->format('d/m/Y') ?? '—' }}
-              </span>
-            </div>
-            <hr>
-          @empty
-            <p class="text-muted text-center">{{ __('adminlte::adminlte.empty.upcoming_bookings') }}</p>
-          @endforelse
-        </div>
+  <!-- Próximas reservas (solo mañana) -->
+  <div class="col-md-12 mb-3">
+    <div class="card shadow">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+          {{ __('adminlte::adminlte.sections.upcoming_bookings') }}
+          @isset($tomorrowC)
+            <small class="d-block fw-normal">
+              ({{ __('adminlte::adminlte.labels.date') }}: {{ $tomorrowC->format('d/m/Y') }})
+            </small>
+          @endisset
+        </h5>
+      </div>
+      <div class="card-body">
+        @forelse (($upcomingBookings ?? collect()) as $booking)
+          <div class="mb-2">
+            <strong>{{ $booking->user->full_name ?? '—' }}</strong>
+            – {{ optional(optional($booking->detail)->tour)->name ?? '—' }}<br>
+            <small class="text-muted">
+              {{ __('adminlte::adminlte.labels.reference') }}: {{ $booking->booking_reference ?? '—' }}
+            </small><br>
+            <span class="text-muted">
+              {{ __('adminlte::adminlte.labels.date') }}:
+              {{ optional(optional($booking->detail)->tour_date)->format('d/m/Y') ?? '—' }}
+            </span>
+          </div>
+          <hr>
+        @empty
+          <p class="text-muted">{{ __('adminlte::adminlte.empty.upcoming_bookings') }}</p>
+        @endforelse
       </div>
     </div>
   </div>
 
 @stop
+
+@push('css')
+<style>
+  /* "Collapse" simple sin Bootstrap JS */
+  .simple-collapse { display: none; }
+  .simple-collapse.show { display: block; }
+
+  /* Chevron rotación suave */
+  .itin-chevron { transition: transform .2s ease-in-out; }
+  .js-simple-toggle[aria-expanded="true"] .itin-chevron { transform: rotate(180deg); }
+</style>
+@endpush
+
+@push('js')
+<script>
+(function () {
+  // Toggle propio: sin depender de Bootstrap (evita cualquier conflicto)
+  document.querySelectorAll('.js-simple-toggle').forEach(function(btn){
+    var sel = btn.getAttribute('data-target');
+    if (!sel) return;
+    var panel = document.querySelector(sel);
+    if (!panel) return;
+
+    btn.addEventListener('click', function(){
+      var open = panel.classList.toggle('show');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  });
+})();
+</script>
+@endpush
