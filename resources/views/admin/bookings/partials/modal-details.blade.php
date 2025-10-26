@@ -137,7 +137,7 @@
                   <dd class="col-sm-8">{{ optional($detail->meetingPoint)->name ?? '—' }}</dd>
 
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.type') }}:</dt>
-                  <dd class="col-sm-8">{{ optional($tour->tourType)->name ?? '—' }}</dd>
+                  <dd class="col-sm-8">{{ data_get($booking, 'tour.tourType.name', '—') }}</dd>
                 </dl>
               </div>
             </div>

@@ -4,14 +4,14 @@
 
 @section('content')
 @php
-  // --- Fallback Meeting Points si el controller no los envía ---
+  // --- Fallback Meeting Points if controller didn't send them ---
   $meetingPoints = $meetingPoints
       ?? \App\Models\MeetingPoint::where('is_active', true)
           ->orderByRaw('sort_order IS NULL, sort_order ASC')
           ->orderBy('name', 'asc')
           ->get();
 
-  // JSON listo para usar en data-attributes
+  // JSON for data-attributes
   $mpListJson = ($meetingPoints ?? collect())
       ->map(fn($mp) => [
           'id'          => $mp->id,
@@ -21,22 +21,22 @@
           'map_url'     => $mp->map_url,
       ])->values()->toJson();
 
-  $pickupLabel = __('adminlte::adminlte.pickupTime') ?? 'Pick-up';
+  $pickupLabel = __('adminlte::adminlte.pickupTime');
 
-  // Columnas condicionales
+  // Conditional columns
   $showHotelColumn = ($cart && $cart->items)
       ? $cart->items->contains(fn($it) => $it->hotel || $it->is_other_hotel || $it->other_hotel_name)
       : false;
 
   $showMeetingPointColumn = ($cart && $cart->items)
-      ? $cart->items->contains(fn($it) => !$it->hotel && !$it->is_other_hotel && ($it->meeting_point_id || $it->meeting_point_name))
+      ? $cart->items->contains(fn($it) => !$it->hotel && !$it->is_other_hotel && ($it->meeting_point_id))
       : false;
 
-  // Config timer
+  // Timer config
   $expiryMinutes  = (int) config('cart.expiry_minutes', 15);
   $extendMinutes  = (int) config('cart.extend_minutes', 15);
 
-  // Promo en sesión (para estado inicial del botón)
+  // Promo in session
   $promoSession = session('public_cart_promo');
 @endphp
 
@@ -77,7 +77,7 @@
     {{ __('adminlte::adminlte.myCart') }}
   </h1>
 
-  {{-- Errores de validación --}}
+  {{-- Validation errors --}}
   @if ($errors->any())
     <div class="alert alert-danger">
       <ul class="mb-0">
@@ -88,7 +88,7 @@
     </div>
   @endif
 
-  {{-- Toasts SweetAlert --}}
+  {{-- Toasts --}}
   @if (session('success') || session('error'))
     @once
       <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -98,7 +98,7 @@
         @if (session('success'))
           Swal.fire({
             icon: 'success',
-            title: @json(__('adminlte::adminlte.success') ?? 'Success'),
+            title: @json(__('adminlte::adminlte.success')),
             text:  @json(session('success')),
             confirmButtonColor: '#198754',
             allowOutsideClick: false
@@ -107,7 +107,7 @@
         @if (session('error'))
           Swal.fire({
             icon: 'error',
-            title: @json(__('adminlte::adminlte.error') ?? 'Error'),
+            title: @json(__('adminlte::adminlte.error')),
             text:  @json(session('error')),
             confirmButtonColor: '#dc3545',
             allowOutsideClick: false
@@ -119,7 +119,7 @@
 
   @if($cart && $cart->items->count())
 
-    {{-- Tabla (desktop) --}}
+    {{-- Desktop table --}}
     <div class="table-responsive d-none d-md-block mb-4">
       <table class="table table-bordered table-striped table-hover align-middle">
         <thead>
@@ -134,7 +134,7 @@
               <th>{{ __('adminlte::adminlte.hotel') }}</th>
             @endif
             @if($showMeetingPointColumn)
-              <th>{{ __('adminlte::adminlte.meeting_point') ?? 'Meeting point' }}</th>
+              <th>{{ __('adminlte::adminlte.meeting_point') }}</th>
             @endif
             <th>{{ __('adminlte::adminlte.status') }}</th>
             <th>{{ __('adminlte::adminlte.actions') }}</th>
@@ -156,17 +156,17 @@
                   {{ \Carbon\Carbon::parse($item->schedule->start_time)->format('g:i A') }} -
                   {{ \Carbon\Carbon::parse($item->schedule->end_time)->format('g:i A') }}
                 @else
-                  {{ __('adminlte::adminlte.noSchedule') ?? 'Sin horario' }}
+                  {{ __('adminlte::adminlte.noSchedule') }}
                 @endif
               </td>
-              <td>{{ $item->language?->name ?? __('adminlte::adminlte.notSpecified') ?? 'No indicado' }}</td>
+              <td>{{ $item->language?->name ?? __('adminlte::adminlte.notSpecified') }}</td>
               <td>{{ $item->adults_quantity }}</td>
               <td>{{ $item->kids_quantity }}</td>
 
               @if($showHotelColumn)
                 <td>
                   @if($item->is_other_hotel && $item->other_hotel_name)
-                    {{ $item->other_hotel_name }} <small class="text-muted">(personalizado)</small>
+                    {{ $item->other_hotel_name }} <small class="text-muted">({{ __('adminlte::adminlte.custom') }})</small>
                   @elseif($item->hotel)
                     {{ $item->hotel->name }}
                   @endif
@@ -175,20 +175,22 @@
 
               @if($showMeetingPointColumn)
                 <td class="text-start">
-                  @if(!$item->hotel && !$item->is_other_hotel && $item->meeting_point_name)
-                    <div class="fw-semibold">{{ $item->meeting_point_name }}</div>
-                    @if($item->meeting_point_pickup_time)
+                  @php $mp = $item->meetingPoint; @endphp
+                  @if(!$item->hotel && !$item->is_other_hotel && $mp)
+                    <div class="fw-semibold">{{ $mp->name }}</div>
+                    @if($mp->pickup_time)
                       <div class="small text-muted">
-                        {{ __('adminlte::adminlte.pickupTime') ?? 'Pick-up' }}: {{ $item->meeting_point_pickup_time }}
+                        {{ __('adminlte::adminlte.pickupTime') }}: {{ $mp->pickup_time }}
                       </div>
                     @endif
-                    @if($item->meeting_point_description)
+                    @if($mp->description)
                       <div class="small text-muted">
-                        <i class="fas fa-map-marker-alt me-1"></i>{{ $item->meeting_point_description }}</div>
+                        <i class="fas fa-map-marker-alt me-1"></i>{{ $mp->description }}
+                      </div>
                     @endif
-                    @if($item->meeting_point_map_url)
-                      <a href="{{ $item->meeting_point_map_url }}" target="_blank" class="small">
-                        <i class="fas fa-external-link-alt me-1"></i>{{ __('adminlte::adminlte.openMap') ?? 'Abrir mapa' }}
+                    @if($mp->map_url)
+                      <a href="{{ $mp->map_url }}" target="_blank" class="small">
+                        <i class="fas fa-external-link-alt me-1"></i>{{ __('adminlte::adminlte.openMap') }}
                       </a>
                     @endif
                   @endif
@@ -205,7 +207,7 @@
                         class="btn btn-sm btn-primary me-1"
                         data-bs-toggle="modal"
                         data-bs-target="#editItemModal-{{ $item->item_id }}">
-                  <i class="fas fa-edit"></i> {{ __('adminlte::adminlte.edit') ?? 'Editar' }}
+                  <i class="fas fa-edit"></i> {{ __('adminlte::adminlte.edit') }}
                 </button>
 
                 <form action="{{ route('public.carts.destroy', $item->item_id) }}"
@@ -223,14 +225,14 @@
       </table>
     </div>
 
-    {{-- Tarjetas (móvil) --}}
+    {{-- Mobile cards --}}
     <div class="d-block d-md-none">
       @foreach($cart->items as $item)
         @php
           $itemSubtotal   = ($item->tour->adult_price * $item->adults_quantity)
                           + ($item->tour->kid_price   * $item->kids_quantity);
           $showHotelInCard = ($item->is_other_hotel && $item->other_hotel_name) || $item->hotel;
-          $showMpInCard    = !$item->hotel && !$item->is_other_hotel && $item->meeting_point_name;
+          $showMpInCard    = !$item->hotel && !$item->is_other_hotel && $item->meeting_point_id;
         @endphp
         <div class="card mb-3 shadow-sm cart-item-card"
              data-item-id="{{ $item->item_id }}"
@@ -245,17 +247,17 @@
                 {{ \Carbon\Carbon::parse($item->schedule->start_time)->format('g:i A') }} -
                 {{ \Carbon\Carbon::parse($item->schedule->end_time)->format('g:i A') }}
               @else
-                {{ __('adminlte::adminlte.noSchedule') ?? 'Sin horario' }}
+                {{ __('adminlte::adminlte.noSchedule') }}
               @endif
             </div>
-            <div class="mb-2"><strong>{{ __('adminlte::adminlte.language') }}:</strong> {{ $item->language?->name ?? __('adminlte::adminlte.notSpecified') ?? 'No indicado' }}</div>
+            <div class="mb-2"><strong>{{ __('adminlte::adminlte.language') }}:</strong> {{ $item->language?->name ?? __('adminlte::adminlte.notSpecified') }}</div>
             <div class="mb-2"><strong>{{ __('adminlte::adminlte.adults') }}:</strong> {{ $item->adults_quantity }}</div>
             <div class="mb-2"><strong>{{ __('adminlte::adminlte.kids') }}:</strong> {{ $item->kids_quantity }}</div>
 
             @if($showHotelInCard)
               <div class="mb-3"><strong>{{ __('adminlte::adminlte.hotel') }}:</strong>
                 @if($item->is_other_hotel && $item->other_hotel_name)
-                  {{ $item->other_hotel_name }} <small class="text-muted">(personalizado)</small>
+                  {{ $item->other_hotel_name }} <small class="text-muted">({{ __('adminlte::adminlte.custom') }})</small>
                 @elseif($item->hotel)
                   {{ $item->hotel->name }}
                 @endif
@@ -263,22 +265,25 @@
             @endif
 
             @if($showMpInCard)
-              <div class="mb-3"><strong>{{ __('adminlte::adminlte.meetingPoint') ?? 'Meeting point' }}:</strong>
-                <div>{{ $item->meeting_point_name }}</div>
-                @if($item->meeting_point_pickup_time)
-                  <div class="small text-muted">
-                    {{ __('adminlte::adminlte.pickupTime') ?? 'Pick-up' }}: {{ $item->meeting_point_pickup_time }}
-                  </div>
-                @endif
-                @if($item->meeting_point_description)
-                  <div class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i>{{ $item->meeting_point_description }}</div>
-                @endif
-                @if($item->meeting_point_map_url)
-                  <a href="{{ $item->meeting_point_map_url }}" class="small" target="_blank">
-                    <i class="fas fa-external-link-alt me-1"></i>{{ __('adminlte::adminlte.openMap') ?? 'Abrir mapa' }}
-                  </a>
-                @endif
-              </div>
+              @php $mp = $item->meetingPoint; @endphp
+              @if($mp)
+                <div class="mb-3"><strong>{{ __('adminlte::adminlte.meeting_point') }}:</strong>
+                  <div>{{ $mp->name }}</div>
+                  @if($mp->pickup_time)
+                    <div class="small text-muted">
+                      {{ __('adminlte::adminlte.pickupTime') }}: {{ $mp->pickup_time }}
+                    </div>
+                  @endif
+                  @if($mp->description)
+                    <div class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i>{{ $mp->description }}</div>
+                  @endif
+                  @if($mp->map_url)
+                    <a href="{{ $mp->map_url }}" class="small" target="_blank">
+                      <i class="fas fa-external-link-alt me-1"></i>{{ __('adminlte::adminlte.openMap') }}
+                    </a>
+                  @endif
+                </div>
+              @endif
             @endif
 
             <div class="d-grid gap-2">
@@ -286,7 +291,7 @@
                       class="btn btn-success"
                       data-bs-toggle="modal"
                       data-bs-target="#editItemModal-{{ $item->item_id }}">
-                <i class="fas fa-edit"></i> {{ __('adminlte::adminlte.edit') ?? 'Editar' }}
+                <i class="fas fa-edit"></i> {{ __('adminlte::adminlte.edit') }}
               </button>
 
               <form action="{{ route('public.carts.destroy', $item->item_id) }}"
@@ -303,13 +308,12 @@
       @endforeach
     </div>
 
-    {{-- Total + Código Promocional (minimal) --}}
+    {{-- Total + Promo code --}}
     @php
       $total = $cart->items->sum(fn($it) =>
         ($it->tour->adult_price * $it->adults_quantity)
         + ($it->tour->kid_price * $it->kids_quantity)
       );
-      // Si hay promo en sesión, calcular el total final para mostrarlo directamente:
       if ($promoSession) {
         $op = ($promoSession['operation'] ?? 'subtract') === 'add' ? 1 : -1;
         $total = max(0, round($total + $op * (float)($promoSession['adjustment'] ?? 0), 2));
@@ -339,13 +343,10 @@
             class="btn {{ $promoSession ? 'btn-outline-danger' : 'btn-outline-primary' }}"
             data-state="{{ $promoSession ? 'applied' : 'idle' }}"
           >
-            {{ $promoSession ? __('adminlte::adminlte.remove') ?? 'Quitar' : __('adminlte::adminlte.apply') }}
+            {{ $promoSession ? __('adminlte::adminlte.remove') : __('adminlte::adminlte.apply') }}
           </button>
         </div>
-        <div
-          id="promo-message"
-          class="mt-2 small {{ $promoSession ? 'text-success' : '' }}"
-        >
+        <div id="promo-message" class="mt-2 small {{ $promoSession ? 'text-success' : '' }}">
           @if($promoSession)
             <i class="fas fa-check-circle me-1"></i>{{ __('carts.messages.code_applied') }}.
           @endif
@@ -353,7 +354,7 @@
       </div>
     </div>
 
-    {{-- Confirmar Reserva --}}
+    {{-- Confirm booking --}}
     <form action="{{ route('public.bookings.storeFromCart') }}" method="POST" id="confirm-reserva-form">
       @csrf
       <input type="hidden" name="promo_code" id="promo_code_hidden" value="{{ $promoSession['code'] ?? '' }}">
@@ -372,7 +373,7 @@
 </div>
 
 {{-- ============================= --}}
-{{-- MODALES: EDICIÓN POR ITEM   --}}
+{{-- MODALS: per-item edit        --}}
 {{-- ============================= --}}
 @foreach(($cart->items ?? collect()) as $item)
   @php
@@ -380,9 +381,10 @@
     $currentTourLangId   = $item->tour_language_id ?? $item->language?->tour_language_id;
     $currentHotelId      = $item->hotel?->hotel_id ?? null;
     $currentMeetingPoint = $item->meeting_point_id ?? null;
+
     $schedules           = $item->tour->schedules ?? collect();
     $tourLangs           = $item->tour->languages ?? collect();
-    $initPickup          = $item->is_other_hotel ? 'custom' : ($item->hotel ? 'hotel' : ($item->meeting_point_id ? 'mp' : 'hotel'));
+    $initPickup          = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom' : ($item->hotel ? 'hotel' : 'hotel'));
   @endphp
   <div class="modal fade" id="editItemModal-{{ $item->item_id }}" tabindex="-1" aria-labelledby="editItemLabel-{{ $item->item_id }}" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-sm-down">
@@ -390,21 +392,21 @@
         <form action="{{ route('public.carts.update', $item->item_id) }}" method="POST" class="edit-item-form">
           @csrf @method('PUT')
 
-          {{-- Mantener activo al guardar --}}
+          {{-- keep active when saving --}}
           <input type="hidden" name="is_active" value="1" />
           <input type="hidden" name="is_other_hotel" id="is-other-hidden-{{ $item->item_id }}" value="{{ $item->is_other_hotel ? 1 : 0 }}">
 
           <div class="modal-header">
             <h5 class="modal-title" id="editItemLabel-{{ $item->item_id }}">
               <i class="fas fa-pencil-alt me-2"></i>
-              {{ __('adminlte::adminlte.editItem') ?? 'Editar reserva' }} — {{ $item->tour->getTranslatedName() ?? $item->tour->name }}
+              {{ __('adminlte::adminlte.editItem') }} — {{ $item->tour->getTranslatedName() ?? $item->tour->name }}
             </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('adminlte::adminlte.close') ?? 'Cerrar' }}"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('adminlte::adminlte.close') }}"></button>
           </div>
 
           <div class="modal-body">
             <div class="row g-3">
-              {{-- Fecha --}}
+              {{-- Date --}}
               <div class="col-12 col-md-6">
                 <label class="form-label fw-semibold">{{ __('adminlte::adminlte.date') }}</label>
                 <input type="date"
@@ -415,11 +417,11 @@
                        required>
               </div>
 
-              {{-- Horario (nullable) --}}
+              {{-- Schedule --}}
               <div class="col-12 col-md-6">
                 <label class="form-label fw-semibold">{{ __('adminlte::adminlte.schedule') }}</label>
                 <select name="schedule_id" class="form-select">
-                  <option value="">{{ __('adminlte::adminlte.selectOption') ?? 'Seleccione…' }}</option>
+                  <option value="">{{ __('adminlte::adminlte.selectOption') }}</option>
                   @foreach($schedules as $sch)
                     @php
                       $label = \Carbon\Carbon::parse($sch->start_time)->format('g:i A') . ' - ' . \Carbon\Carbon::parse($sch->end_time)->format('g:i A');
@@ -427,16 +429,16 @@
                     <option value="{{ $sch->schedule_id }}" @selected($currentScheduleId == $sch->schedule_id)>{{ $label }}</option>
                   @endforeach
                 </select>
-                <div class="form-text">{{ __('adminlte::adminlte.scheduleHelp') ?? 'Si el tour no requiere horario, déjelo vacío.' }}</div>
+                <div class="form-text">{{ __('adminlte::adminlte.scheduleHelp') }}</div>
               </div>
 
-              {{-- Idioma --}}
+              {{-- Language --}}
               <div class="col-12 col-md-6">
                 <label class="form-label fw-semibold">{{ __('adminlte::adminlte.language') }}</label>
                 <select name="tour_language_id" class="form-select" required>
                   @forelse($tourLangs as $tl)
                     <option value="{{ $tl->tour_language_id }}" @selected($currentTourLangId == $tl->tour_language_id)>
-                      {{ $tl->name ?? $tl->language->name ?? 'Idioma' }}
+                      {{ $tl->name ?? $tl->language->name ?? __('adminlte::adminlte.language') }}
                     </option>
                   @empty
                     @if($item->language)
@@ -448,7 +450,7 @@
                 </select>
               </div>
 
-              {{-- Cantidades --}}
+              {{-- Quantities --}}
               <div class="col-6 col-md-3">
                 <label class="form-label fw-semibold">{{ __('adminlte::adminlte.adults') }}</label>
                 <input type="number" name="adults_quantity" class="form-control" min="1" max="12" value="{{ (int) $item->adults_quantity }}" required>
@@ -458,39 +460,39 @@
                 <input type="number" name="kids_quantity" class="form-control" min="0" max="12" value="{{ (int) $item->kids_quantity }}">
               </div>
 
-              {{-- ====== PICKUP (Segmented) ====== --}}
+              {{-- ====== PICKUP (segmented) ====== --}}
               <div class="col-12">
                 <label class="form-label fw-semibold d-flex align-items-center gap-2">
-                  <i class="fas fa-bus"></i> {{ __('adminlte::adminlte.pickup') ?? 'Pickup' }}
+                  <i class="fas fa-bus"></i> {{ __('adminlte::adminlte.pickup') }}
                 </label>
 
                 <div class="btn-group w-100 mb-2 pickup-tabs" role="group" aria-label="Pickup options"
                      data-item="{{ $item->item_id }}" data-init="{{ $initPickup }}">
                   <button type="button" class="btn btn-outline-secondary flex-fill" data-pickup-tab="hotel">
-                    <i class="fas fa-hotel me-1"></i>{{ __('adminlte::adminlte.hotel') ?? 'Hotel' }}
+                    <i class="fas fa-hotel me-1"></i>{{ __('adminlte::adminlte.hotel') }}
                   </button>
                   <button type="button" class="btn btn-outline-secondary flex-fill" data-pickup-tab="custom">
-                    <i class="fas fa-pen me-1"></i>{{ __('adminlte::adminlte.otherHotel') ?? 'Otro hotel' }}
+                    <i class="fas fa-pen me-1"></i>{{ __('adminlte::adminlte.otherHotel') }}
                   </button>
                   <button type="button" class="btn btn-outline-secondary flex-fill" data-pickup-tab="mp">
-                    <i class="fas fa-map-marker-alt me-1"></i>{{ __('adminlte::adminlte.meetingPoint') ?? 'Meeting point' }}
+                    <i class="fas fa-map-marker-alt me-1"></i>{{ __('adminlte::adminlte.meeting_point') }}
                   </button>
                 </div>
 
                 <div id="pickup-panes-{{ $item->item_id }}">
                   <div class="pickup-pane" id="pane-hotel-{{ $item->item_id }}" style="display:none">
                     <select name="hotel_id" id="hotel-select-{{ $item->item_id }}" class="form-select">
-                      <option value="">{{ __('adminlte::adminlte.selectOption') ?? 'Seleccione…' }}</option>
+                      <option value="">{{ __('adminlte::adminlte.selectOption') }}</option>
                       @foreach(($hotels ?? []) as $hotel)
                         <option value="{{ $hotel->hotel_id }}" @selected($currentHotelId == $hotel->hotel_id)>{{ $hotel->name }}</option>
                       @endforeach
                     </select>
-                    <div class="form-text">{{ __('adminlte::adminlte.selectHotelHelp') ?? 'Elija su hotel de la lista.' }}</div>
+                    <div class="form-text">{{ __('adminlte::adminlte.selectHotelHelp') }}</div>
                   </div>
 
                   <div class="pickup-pane" id="pane-custom-{{ $item->item_id }}" style="display:none">
-                    <input type="text" name="other_hotel_name" id="custom-hotel-input-{{ $item->item_id }}" class="form-control" value="{{ $item->other_hotel_name }}" placeholder="{{ __('adminlte::adminlte.customHotelName') ?? 'Nombre del hotel' }}">
-                    <div class="form-text">{{ __('adminlte::adminlte.customHotelHelp') ?? 'Escriba el nombre del hotel si no aparece en la lista.' }}</div>
+                    <input type="text" name="other_hotel_name" id="custom-hotel-input-{{ $item->item_id }}" class="form-control" value="{{ $item->other_hotel_name }}" placeholder="{{ __('adminlte::adminlte.customHotelName') }}">
+                    <div class="form-text">{{ __('adminlte::adminlte.customHotelHelp') }}</div>
                   </div>
 
                   <div class="pickup-pane" id="pane-mp-{{ $item->item_id }}" style="display:none">
@@ -499,7 +501,7 @@
                             id="meetingpoint-select-{{ $item->item_id }}"
                             data-target="#mp-info-{{ $item->item_id }}"
                             data-mplist='{!! $mpListJson !!}'>
-                      <option value="">{{ __('adminlte::adminlte.selectOption') ?? 'Seleccione…' }}</option>
+                      <option value="">{{ __('adminlte::adminlte.selectOption') }}</option>
                       @foreach($meetingPoints as $mp)
                         <option value="{{ $mp->id }}" @selected($currentMeetingPoint == $mp->id)>{{ $mp->name }}</option>
                       @endforeach
@@ -510,7 +512,7 @@
                       <div class="mp-time text-muted"></div>
                       <div class="mp-addr mt-1"></div>
                       <a class="mp-link mt-1 d-inline-block" href="#" target="_blank" style="display:none">
-                        <i class="fas fa-external-link-alt me-1"></i>{{ __('adminlte::adminlte.openMap') ?? 'Abrir mapa' }}
+                        <i class="fas fa-external-link-alt me-1"></i>{{ __('adminlte::adminlte.openMap') }}
                       </a>
                     </div>
                   </div>
@@ -522,10 +524,10 @@
 
           <div class="modal-footer d-block d-sm-flex">
             <button type="button" class="btn btn-secondary w-100 w-sm-auto me-sm-2 mb-2 mb-sm-0" data-bs-dismiss="modal">
-              <i class="fas fa-times"></i> {{ __('adminlte::adminlte.cancel') ?? 'Cancelar' }}
+              <i class="fas fa-times"></i> {{ __('adminlte::adminlte.cancel') }}
             </button>
             <button type="submit" class="btn btn-primary w-100 w-sm-auto">
-              <i class="fas fa-save"></i> {{ __('adminlte::adminlte.update') ?? 'Actualizar' }}
+              <i class="fas fa-save"></i> {{ __('adminlte::adminlte.update') }}
             </button>
           </div>
         </form>
@@ -586,7 +588,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  /* ===== Confirmar reserva ===== */
+  /* ===== Confirm booking ===== */
   const reservaForm = document.getElementById('confirm-reserva-form');
   if(reservaForm){
     reservaForm.addEventListener('submit', function(e){
@@ -604,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* ===== Eliminar item ===== */
+  /* ===== Delete item ===== */
   document.querySelectorAll('.delete-item-form').forEach(form => {
     form.addEventListener('submit', function(e){
       e.preventDefault();
@@ -621,7 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  /* ===== Meeting Point UI ===== */
+  /* ===== Meeting Point preview ===== */
   const pickupLabel = (document.getElementById('mp-config')?.dataset?.pickupLabel) || 'Pick-up';
   const updateMpInfo = (selectEl) => {
     if (!selectEl) return;
@@ -656,7 +658,54 @@ document.addEventListener('DOMContentLoaded', () => {
     sel.addEventListener('change', () => updateMpInfo(sel));
   });
 
-  /* ===== Anti doble submit en modales ===== */
+  /* ===== Pickup tabs ===== */
+  const activatePickupTab = (group, tab) => {
+    const itemId = group.getAttribute('data-item');
+    const panes = document.getElementById('pickup-panes-' + itemId);
+    if (!panes) return;
+
+    group.querySelectorAll('[data-pickup-tab]').forEach(btn => {
+      btn.classList.toggle('btn-secondary', btn.getAttribute('data-pickup-tab') === tab);
+      btn.classList.toggle('btn-outline-secondary', btn.getAttribute('data-pickup-tab') !== tab);
+    });
+
+    panes.querySelectorAll('.pickup-pane').forEach(p => p.style.display = 'none');
+    const showPane = document.getElementById('pane-' + tab + '-' + itemId);
+    if (showPane) showPane.style.display = 'block';
+
+    const isOtherHidden = document.getElementById('is-other-hidden-' + itemId);
+    const hotelSelect   = document.getElementById('hotel-select-' + itemId);
+    const customInput   = document.getElementById('custom-hotel-input-' + itemId);
+    const mpSelect      = document.getElementById('meetingpoint-select-' + itemId);
+
+    if (hotelSelect) hotelSelect.value = hotelSelect.value;
+    if (customInput) { /* keep text */ }
+    if (mpSelect) mpSelect.value = mpSelect.value;
+
+    if (tab === 'hotel') {
+      if (isOtherHidden) isOtherHidden.value = 0;
+      if (mpSelect) mpSelect.value = '';
+      updateMpInfo(mpSelect);
+    } else if (tab === 'custom') {
+      if (isOtherHidden) isOtherHidden.value = 1;
+      if (hotelSelect) hotelSelect.value = '';
+      if (mpSelect) mpSelect.value = '';
+      updateMpInfo(mpSelect);
+    } else if (tab === 'mp') {
+      if (isOtherHidden) isOtherHidden.value = 0;
+      if (hotelSelect) hotelSelect.value = '';
+    }
+  };
+
+  document.querySelectorAll('.pickup-tabs').forEach(group => {
+    const init = group.getAttribute('data-init') || 'hotel';
+    activatePickupTab(group, init);
+    group.querySelectorAll('[data-pickup-tab]').forEach(btn => {
+      btn.addEventListener('click', () => activatePickupTab(group, btn.getAttribute('data-pickup-tab')));
+    });
+  });
+
+  /* ===== Prevent double submit in modals ===== */
   document.querySelectorAll('.edit-item-form').forEach(f => {
     f.addEventListener('submit', () => {
       const btn = f.querySelector('button[type="submit"]');
@@ -664,12 +713,12 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.disabled = true;
         btn.innerHTML =
           '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>' +
-          (@json(__('adminlte::adminlte.saving') ?? 'Guardando...'));
+          (@json(__('adminlte::adminlte.saving')));
       }
     });
   });
 
-  /* ===== Promo code: botón único que alterna aplicar/quitar ===== */
+  /* ===== Promo code toggle ===== */
   {
     const toggleBtn   = document.getElementById('toggle-promo');
     const codeInput   = document.getElementById('promo-code');
@@ -696,7 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const setState = (applied, code, newTotal) => {
       toggleBtn.dataset.state = applied ? 'applied' : 'idle';
-      toggleBtn.textContent = applied ? (@json(__('adminlte::adminlte.remove') ?? 'Quitar')) : (@json(__('adminlte::adminlte.apply')));
+      toggleBtn.textContent = applied ? (@json(__('adminlte::adminlte.remove'))) : (@json(__('adminlte::adminlte.apply')));
       toggleBtn.classList.toggle('btn-outline-danger', applied);
       toggleBtn.classList.toggle('btn-outline-primary', !applied);
       hiddenCode.value = applied ? (code || '') : '';
@@ -726,48 +775,44 @@ document.addEventListener('DOMContentLoaded', () => {
       const state = toggleBtn.dataset.state || 'idle';
 
       if (state === 'applied') {
-        // Quitar
         try {
           const data = await removeCode();
-          setMsg(true, `<i class="fas fa-check-circle me-1"></i>${data?.message || 'Código eliminado.'}`);
+          setMsg(true, `<i class="fas fa-check-circle me-1"></i>${data?.message || @json(__('carts.messages.code_removed'))}`);
           setState(false, '', baseTotal());
-          // Opcional: recargar si quieres que el backend re-renderice (minimal no lo requiere)
-          // location.reload();
         } catch {
-          setMsg(false, '<i class="fas fa-times-circle me-1"></i>No se pudo quitar el código.');
+          setMsg(false, '<i class="fas fa-times-circle me-1"></i>' + @json(__('carts.messages.code_remove_failed')));
         }
         return;
       }
 
-      // Aplicar
       const code = (codeInput?.value || '').trim();
       if (!code) {
-        setMsg(false, '<i class="fas fa-times-circle me-1"></i>Ingrese un código.');
+        setMsg(false, '<i class="fas fa-times-circle me-1"></i>' + @json(__('carts.messages.enter_code')));
         return;
       }
 
       try {
         const data = await applyCode(code);
         if (!data?.ok) {
-          setMsg(false, `<i class="fas fa-times-circle me-1"></i>${data?.message || 'Código inválido o no disponible.'}`);
+          setMsg(false, `<i class="fas fa-times-circle me-1"></i>${data?.message || @json(__('carts.messages.invalid_code'))}`);
           setState(false, '', baseTotal());
         } else {
-          setMsg(true, `<i class="fas fa-check-circle me-1"></i>${data?.message || 'Código aplicado.'}`);
+          setMsg(true, `<i class="fas fa-check-circle me-1"></i>${data?.message || @json(__('carts.messages.code_applied'))}`);
           const newTotal = Number(data?.new_total ?? baseTotal());
           setState(true, data?.code || code, newTotal);
         }
       } catch {
-        setMsg(false, '<i class="fas fa-times-circle me-1"></i>No se pudo aplicar el cupón.');
+        setMsg(false, '<i class="fas fa-times-circle me-1"></i>' + @json(__('carts.messages.code_apply_failed')));
       }
     });
   }
 
-  /* ===== Timer countdown + progreso ===== */
+  /* ===== Timer countdown ===== */
   (function(){
     const box = document.getElementById('cart-timer');
     if (!box) return;
 
-    const csrf            = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const csrf            = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const remainingEl     = document.getElementById('cart-timer-remaining');
     const barEl           = document.getElementById('cart-timer-bar');
     const btnRefresh      = document.getElementById('cart-timer-refresh');
