@@ -16,7 +16,7 @@
     </form>
 
     {{-- Crear hotel --}}
-    <form action="{{ route('admin.hotels.store') }}" method="POST" class="mb-4" autocomplete="off">
+    <form action="{{ route('admin.hotels.store') }}" method="POST" class="mb-4" autocomplete="off" novalidate>
         @csrf
         <div class="row g-2 align-items-end">
             <div class="col-md-6">
@@ -24,11 +24,15 @@
                 <input
                     type="text"
                     name="name"
-                    class="form-control"
+                    class="form-control @error('name') is-invalid @enderror"
                     placeholder="{{ __('hotels.name_placeholder') }}"
                     value="{{ old('name') }}"
+                    @if ($errors->has('name')) autofocus @endif
                     required
                 >
+                @error('name')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
             <div class="col-md-2">
                 <button class="btn btn-edit w-100" type="submit">
@@ -161,7 +165,7 @@ const I18N = {
   confirmDeleteTitle: @json(__('hotels.confirm_delete_title')),
   confirmDeleteText:  @json(__('hotels.confirm_delete_text')),
   // Botones genéricos
-  confirmBtn: @json(__('hotels.save_changes')), // usamos un texto genérico positivo
+  confirmBtn: @json(__('hotels.save_changes')),
   cancel: @json(__('hotels.cancel')),
   errorTitle: @json(__('hotels.error_title')),
 };
@@ -232,7 +236,7 @@ document.querySelectorAll('.delete-form').forEach(form => {
   });
 });
 
-// ---- SweetAlert para mensajes de éxito o error ----
+// ---- SweetAlert para mensajes de éxito o error del controller ----
 @if (session('success'))
   Swal.fire({
     icon: 'success',
@@ -250,6 +254,15 @@ document.querySelectorAll('.delete-form').forEach(form => {
     text: @json(session('error')),
     timer: 2500,
     showConfirmButton: false
+  });
+@endif
+
+// ---- SweetAlert para errores de validación (p.ej., nombre duplicado) ----
+@if ($errors->any())
+  Swal.fire({
+    icon: 'error',
+    title: @json(__('hotels.error_title')),
+    text: @json($errors->first()),
   });
 @endif
 </script>

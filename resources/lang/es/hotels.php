@@ -41,7 +41,11 @@ return [
     'unexpected_error'  => 'Ocurrió un error inesperado. Inténtalo de nuevo.',
 
     // Validación / genéricos
-    'validation_errors' => 'Por favor, revisa los campos indicados.',
+'validation' => [
+    'name_required' => 'El nombre es obligatorio.',
+    'name_unique'   => 'Ese hotel ya existe en la lista.',
+    'name_max'      => 'El nombre no puede exceder 255 caracteres.',
+],
     'error_title'       => 'Error',
 
     // Modales

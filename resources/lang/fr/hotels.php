@@ -37,6 +37,12 @@ return [
     'unexpected_error'  => 'Une erreur inattendue s’est produite. Veuillez réessayer.',
 
     'validation_errors' => 'Veuillez vérifier les champs indiqués.',
+    'validation' => [
+    'name_required' => 'Le nom est obligatoire.',
+    'name_unique'   => 'Cet hôtel existe déjà dans la liste.',
+    'name_max'      => 'Le nom ne peut pas dépasser 255 caractères.',
+],
+
     'error_title'       => 'Erreur',
 
     'edit_title'        => 'Modifier l’hôtel',

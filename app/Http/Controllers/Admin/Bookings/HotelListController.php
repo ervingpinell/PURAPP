@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\HotelList;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -28,15 +29,32 @@ class HotelListController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:hotels_list,name',
-        ]);
+        // Normaliza/recorta antes de validar para evitar duplicados por espacios
+        $name = trim((string) $request->input('name'));
+
+        $request->merge(['name' => $name]);
+
+        $request->validate(
+            [
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('hotels_list', 'name'),
+                ],
+            ],
+            [
+                'name.required' => __('hotels.validation.name_required'),
+                'name.unique'   => __('hotels.validation.name_unique'),
+                'name.max'      => __('hotels.validation.name_max'),
+            ]
+        );
 
         try {
             $nextOrder = (HotelList::max('sort_order') ?? 0) + 1;
 
             HotelList::create([
-                'name'       => $request->string('name')->trim(),
+                'name'       => $name,
                 'is_active'  => true,
                 'sort_order' => $nextOrder,
             ]);
@@ -58,14 +76,30 @@ class HotelListController extends Controller
      */
     public function update(Request $request, HotelList $hotel): RedirectResponse
     {
-        $request->validate([
-            'name'      => 'required|string|max:255|unique:hotels_list,name,' . $hotel->hotel_id . ',hotel_id',
-            'is_active' => 'required|boolean',
-        ]);
+        $name = trim((string) $request->input('name'));
+        $request->merge(['name' => $name]);
+
+        $request->validate(
+            [
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('hotels_list', 'name')
+                        ->ignore($hotel->hotel_id, 'hotel_id'),
+                ],
+                'is_active' => ['required','boolean'],
+            ],
+            [
+                'name.required' => __('hotels.validation.name_required'),
+                'name.unique'   => __('hotels.validation.name_unique'),
+                'name.max'      => __('hotels.validation.name_max'),
+            ]
+        );
 
         try {
             $hotel->update([
-                'name'      => $request->string('name')->trim(),
+                'name'      => $name,
                 'is_active' => (bool) $request->boolean('is_active'),
             ]);
 

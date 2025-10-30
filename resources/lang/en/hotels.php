@@ -37,6 +37,12 @@ return [
     'unexpected_error'  => 'An unexpected error occurred. Please try again.',
 
     'validation_errors' => 'Please review the highlighted fields.',
+    'validation' => [
+    'name_required' => 'The name is required.',
+    'name_unique'   => 'This hotel already exists in the list.',
+    'name_max'      => 'The name cannot exceed 255 characters.',
+],
+
     'error_title'       => 'Error',
 
     'edit_title'        => 'Edit hotel',
