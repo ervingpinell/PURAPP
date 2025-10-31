@@ -35,7 +35,7 @@
     >
   </div>
 
-  {{-- Schedule --}}
+  {{-- Schedule (ÚNICO select) --}}
   <div class="col-12 col-sm-6">
     <label class="form-label gv-label-icon">
       <i class="fas fa-clock" aria-hidden="true"></i>
@@ -127,27 +127,60 @@
   </a>
 </div>
 
-{{-- ====== SCRIPT: Calendar dinámico ====== --}}
+{{-- ====== SCRIPT: Calendar dinámico + guards ====== --}}
 @push('scripts')
 <script>
 (function(){
+  // Evita montar dos veces si el partial se reinyecta (Turbo/Livewire/navegación)
+  if (window.__gvDateTimeInit) return;
+  window.__gvDateTimeInit = true;
+
+  // Si por algún motivo aparecieron DOS selects con el mismo id, nos quedamos con el primero
+  const dups = document.querySelectorAll('#scheduleSelect');
+  if (dups.length > 1) {
+    dups.forEach((el, i) => { if (i > 0) el.closest('.col-12, .col-sm-6')?.remove(); });
+  }
+
   const blockedBySchedule = @json($blockedBySchedule ?? []);
-  const fullByCapacity = @json($capacityDisabled ?? []);
-  const generalBlocks = @json($blockedGeneral ?? []);
-  const fullyBlocked = @json($fullyBlockedDates ?? []);
+  const fullByCapacity    = @json($capacityDisabled ?? []);
+  const generalBlocks     = @json($blockedGeneral ?? []);
+  const fullyBlocked      = @json($fullyBlockedDates ?? []);
 
-  const dateInput = document.getElementById('tourDateInput');
+  const dateInput      = document.getElementById('tourDateInput');
   const scheduleSelect = document.getElementById('scheduleSelect');
-  const help = document.getElementById('noSlotsHelp');
+  const help           = document.getElementById('noSlotsHelp');
 
-  if (!window.flatpickr || !dateInput) return;
+  if (!dateInput || !scheduleSelect) return;
 
-  const fp = flatpickr(dateInput, {
-    dateFormat: 'd/m/Y',
-    minDate: 'today',
-    locale: '{{ app()->getLocale() }}',
-    disable: [],
-  });
+  // Inicialización segura de Choices (si lo usas en otros lados)
+  try {
+    if (window.__gvScheduleChoices?.destroy) {
+      window.__gvScheduleChoices.destroy();
+    }
+    if (window.Choices) {
+      window.__gvScheduleChoices = new Choices(scheduleSelect, {
+        searchEnabled: false,
+        shouldSort: false,
+        itemSelectText: '',
+        placeholder: false
+      });
+    }
+  } catch (_) {}
+
+  // Flatpickr: evita doble init
+  let fp;
+  if (window.flatpickr) {
+    fp = flatpickr(dateInput, {
+      dateFormat: 'd/m/Y',
+      minDate: 'today',
+      disable: [],
+    });
+  } else {
+    // fallback nativo si no cargó flatpickr
+    dateInput.type = 'date';
+  }
+
+  const NO_SLOTS_TEXT = @json( __('adminlte::adminlte.no_slots_for_date') ?: 'No hay horarios disponibles para esa fecha.' );
 
   function updateDisabled() {
     const sid = scheduleSelect.value;
@@ -160,18 +193,21 @@
       ...fullyBlocked,
       ...specific,
     ];
-    fp.set('disable', combined);
-    help.style.display = specific.length > 0 ? 'block' : 'none';
-    help.textContent = specific.length > 0
-      ? '{{ __("m_bookings.bookings.messages.limited_seats_available") }}'
-      : '';
+
+    if (fp) {
+      fp.set('disable', combined);
+      // Limpia selección para obligar a elegir una fecha válida con el nuevo horario
+      fp.clear();
+    } else {
+      // Fallback: si no hay flatpickr, al menos mostramos el mensaje
+    }
+
+    const isBlocked = specific.length > 0 || combined.length > 0;
+    help.style.display = isBlocked ? 'block' : 'none';
+    help.textContent   = isBlocked ? NO_SLOTS_TEXT : '';
   }
 
-  scheduleSelect.addEventListener('change', () => {
-    updateDisabled();
-    fp.clear();
-  });
-
+  scheduleSelect.addEventListener('change', updateDisabled);
   updateDisabled();
 })();
 </script>
