@@ -114,7 +114,7 @@ public function index(ReviewDistributor $distributor, ReviewsCacheManager $cache
             $tour->translated_name     = $tr->name ?? $tour->name;
             $tour->translated_overview = $tr->overview ?? $tour->overview;
 
-            // Traducciones del itinerario
+            // Traducciones de itinerario
             if ($tour->itinerary) {
                 $itTr = $this->pickTranslation($tour->itinerary->translations, $loc, $fb);
                 $tour->itinerary->translated_name        = $itTr->name ?? $tour->itinerary->name;
@@ -138,9 +138,51 @@ public function index(ReviewDistributor $distributor, ReviewsCacheManager $cache
                 $amenity->translated_name = $amenityTr->name ?? $amenity->name;
             }
 
+            // ========================================================
+            // [1] Fechas bloqueadas manualmente (desde Admin)
+            // ========================================================
             [$blockedGeneral, $blockedBySchedule, $fullyBlockedDates] = $this->computeTourBlocks($tour);
 
-            // Reviews con caché
+            // ========================================================
+            // [2] Fechas llenas por capacidad (BookingDetail)
+            // ========================================================
+            $capacityDisabled = [];
+            $start = Carbon::today();
+            $end   = Carbon::today()->addDays(90);
+
+            foreach ($tour->schedules as $sch) {
+                $max = (int) ($sch->max_capacity ?: $tour->max_capacity);
+                $rows = \App\Models\BookingDetail::query()
+                    ->selectRaw('tour_date::date AS d, SUM(COALESCE(adults_quantity,0)+COALESCE(kids_quantity,0)) AS pax')
+                    ->whereHas('booking', fn($q) =>
+                        $q->whereIn('status', config('bookings.count_statuses', ['confirmed']))
+                    )
+                    ->where('tour_id', $tour->tour_id)
+                    ->where('schedule_id', $sch->schedule_id)
+                    ->whereBetween('tour_date', [$start->toDateString(), $end->toDateString()])
+                    ->groupBy('d')
+                    ->get();
+
+                $fullDates = [];
+                foreach ($rows as $r) {
+                    if ((int) $r->pax >= $max) {
+                        $fullDates[] = Carbon::parse($r->d)->format('Y-m-d');
+                    }
+                }
+                $capacityDisabled[(string) $sch->schedule_id] = $fullDates;
+            }
+
+            // Fusionar bloqueos por exclusión y por capacidad
+            foreach ($capacityDisabled as $sid => $dates) {
+                $blockedBySchedule[$sid] = array_values(array_unique(array_merge(
+                    $blockedBySchedule[$sid] ?? [],
+                    $dates
+                )));
+            }
+
+            // ========================================================
+            // [3] Reviews con caché
+            // ========================================================
             $tourName = $tour->translated_name;
             $tourId   = $tour->tour_id;
             $cacheKey = "tour_reviews_pool:{$tourId}:" . $cacheManager->getRevision("tour.{$tourId}");
@@ -163,19 +205,19 @@ public function index(ReviewDistributor $distributor, ReviewsCacheManager $cache
                     ->values();
             });
 
-            return view('public.tour-show', compact(
-                'tour',
-                'blockedGeneral',
-                'blockedBySchedule',
-                'fullyBlockedDates',
-                'tourReviews'
-            ) + [
-                'hotels'        => HotelList::orderBy('name')->get(),
-                'cancelPolicy'  => $tour->cancel_policy ?? null,
-                'refundPolicy'  => $tour->refund_policy ?? null,
-                'meetingPoints' => $this->loadMeetingPoints(true),
+            return view('public.tour-show', [
+                'tour'               => $tour,
+                'blockedGeneral'     => $blockedGeneral,
+                'blockedBySchedule'  => $blockedBySchedule,
+                'fullyBlockedDates'  => $fullyBlockedDates,
+                'capacityDisabled'   => $capacityDisabled,
+                'tourReviews'        => $tourReviews,
+                'hotels'             => HotelList::orderBy('name')->get(),
+                'cancelPolicy'       => $tour->cancel_policy ?? null,
+                'refundPolicy'       => $tour->refund_policy ?? null,
+                'meetingPoints'      => $this->loadMeetingPoints(true),
             ]);
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             Log::error('tour.show.failed', [
                 'tour_id' => $tour->tour_id ?? 'unknown',
                 'error'   => $e->getMessage()
@@ -183,6 +225,7 @@ public function index(ReviewDistributor $distributor, ReviewsCacheManager $cache
             abort(404);
         }
     }
+
 
     /* ===========================
        HELPERS PRIVADOS

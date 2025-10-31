@@ -1,15 +1,20 @@
 {{-- ===== Date & Time ===== --}}
 @push('css')
 <style>
-  .gv-label-icon{
-    display:flex; align-items:center; gap:.5rem; font-weight:700;
+  .gv-label-icon {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-weight: 700;
   }
-  .gv-label-icon i{ color:#30363c; line-height:1; }
-  .gv-label-icon span{ white-space:nowrap; }
+  .gv-label-icon i { color: #30363c; line-height: 1; }
+  .gv-label-icon span { white-space: nowrap; }
 
   .reservation-box .choices,
   .reservation-box .choices__inner,
-  .reservation-box .choices__list--dropdown{ width:100%; }
+  .reservation-box .choices__list--dropdown {
+    width: 100%;
+  }
 </style>
 @endpush
 
@@ -99,9 +104,8 @@
   <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
   @foreach($meetingPoints as $mp)
     @php
-      // 👇 Usa las traducciones cargadas (con ->with('translations') desde el controller)
-      $mpName = $mp->getTranslated('name');         // usa el locale actual de la app
-      $mpDesc = $mp->getTranslated('description');  // idem
+      $mpName = $mp->getTranslated('name');
+      $mpDesc = $mp->getTranslated('description');
     @endphp
     <option
       value="{{ $mp->id }}"
@@ -122,3 +126,53 @@
     <i class="fas fa-map me-1"></i> {{ __('adminlte::adminlte.open_map') ?: 'View location' }}
   </a>
 </div>
+
+{{-- ====== SCRIPT: Calendar dinámico ====== --}}
+@push('scripts')
+<script>
+(function(){
+  const blockedBySchedule = @json($blockedBySchedule ?? []);
+  const fullByCapacity = @json($capacityDisabled ?? []);
+  const generalBlocks = @json($blockedGeneral ?? []);
+  const fullyBlocked = @json($fullyBlockedDates ?? []);
+
+  const dateInput = document.getElementById('tourDateInput');
+  const scheduleSelect = document.getElementById('scheduleSelect');
+  const help = document.getElementById('noSlotsHelp');
+
+  if (!window.flatpickr || !dateInput) return;
+
+  const fp = flatpickr(dateInput, {
+    dateFormat: 'd/m/Y',
+    minDate: 'today',
+    locale: '{{ app()->getLocale() }}',
+    disable: [],
+  });
+
+  function updateDisabled() {
+    const sid = scheduleSelect.value;
+    const specific = [
+      ...(blockedBySchedule[sid] || []),
+      ...(fullByCapacity[sid] || []),
+    ];
+    const combined = [
+      ...generalBlocks,
+      ...fullyBlocked,
+      ...specific,
+    ];
+    fp.set('disable', combined);
+    help.style.display = specific.length > 0 ? 'block' : 'none';
+    help.textContent = specific.length > 0
+      ? '{{ __("m_bookings.bookings.messages.limited_seats_available") }}'
+      : '';
+  }
+
+  scheduleSelect.addEventListener('change', () => {
+    updateDisabled();
+    fp.clear();
+  });
+
+  updateDisabled();
+})();
+</script>
+@endpush
