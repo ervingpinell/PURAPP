@@ -5,6 +5,9 @@ return [
         'will_expire' => 'Ihr Warenkorb läuft bald ab.',
         'time_left'   => 'Verbleibende Zeit:',
         'extend'      => 'Verlängern :count Min|Verlängern :count Min',
+        'already_extended' => 'Die Wartezeit wurde bereits verlängert. Sie kann nicht weiter verlängert werden.',
+        'cart_deleted' => 'Ihr Warenkorb wurde automatisch gelöscht, da er keine Produkte enthält.',
+
     ],
 
     'title_all' => 'Alle Kunden-Warenkörbe',
@@ -147,4 +150,30 @@ return [
     'messages.validation_failed'   => 'Datenvalidierung fehlgeschlagen.',
     'messages.cart_expires_in'     => 'Der Warenkorb läuft in :minutes Minuten ab.',
     'messages.cart_being_processed' => 'Ihr Warenkorb wird bearbeitet. Bitte versuchen Sie es in wenigen Sekunden erneut.',
+'messages' => [
+    'limited_seats_available' => 'Es sind nur noch :available Plätze für „:tour“ am :date verfügbar.',
+    'cart_empty'              => 'Dein Warenkorb ist leer.',
+    'cart_expired'            => 'Dein Warenkorb ist abgelaufen.',
+    'schedule_unavailable'    => 'Der ausgewählte Zeitplan ist nicht mehr verfügbar.',
+    'extend_success'          => 'Dein Warenkorb wurde erfolgreich verlängert.',
+    'max_extensions_reached'  => 'Du hast die maximale Anzahl an Verlängerungen erreicht.',
+    'cart_being_processed'    => 'Dein Warenkorb wird verarbeitet, bitte versuche es in ein paar Sekunden erneut.',
+    'code_applied'            => 'Code angewendet.',
+    'code_removed'            => 'Code entfernt.',
+    'enter_code'              => 'Gib einen Aktionscode ein.',
+    'invalid_code'            => 'Ungültiger Code.',
+    'code_apply_failed'       => 'Der Code konnte nicht angewendet werden.',
+    'code_remove_failed'      => 'Der Code konnte nicht entfernt werden.',
+    'will_expire'             => 'Dein Warenkorb läuft bald ab.',
+    'time_left'               => 'Verbleibende Zeit:',
+    'extend'                  => 'Verlängern um :count Min|Verlängern um :count Min',
+    'already_extended'        => 'Du hast deinen Warenkorb bereits einmal verlängert.',
+    'extend_limit_reached'    => 'Du kannst die Zeit nur einmal verlängern.',
+    'cart_deleted'            => 'Dein Warenkorb wurde automatisch gelöscht, da er keine Produkte enthält.',
+    'cart_refreshed'          => 'Dein Warenkorb wurde aktualisiert.',
+    'extend_success'          => 'Dein Warenkorb wurde erfolgreich verlängert.',
+    'max_extensions_reached'  => 'Du hast die maximale Anzahl an Verlängerungen erreicht.',
+],
+
+
 ];

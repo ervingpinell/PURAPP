@@ -1,50 +1,48 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}">
+@php
+  $appLocale = str_replace('_','-', app()->getLocale() ?? 'es');
+  $ASSET_ROOT = rtrim(asset(''), '/');
+
+  $pageTitle  = trim($__env->yieldContent('title') ?? '');
+  $fullTitle  = 'GV | ' . ($pageTitle !== '' ? $pageTitle : 'Green Vacations CR');
+
+  $metaDescSlot = $__env->yieldContent('meta_description');
+  $metaDesc = $metaDescSlot ?: 'Descubre los mejores tours sostenibles en La Fortuna y Arenal con Green Vacations Costa Rica. Reserva tu aventura con responsabilidad ecológica.';
+
+  $isProd   = app()->environment('production');
+
+  $consentCookie = request()->cookie('gv_cookie_consent');
+  $hasConsent    = !is_null($consentCookie);
+  $cookiesOk     = ($consentCookie === '1') || (bool) session('cookies.accepted', false);
+
+  $gaId    = config('services.google.analytics_id');
+  $pixelId = config('services.meta.pixel_id');
+
+  $themeColor = $__env->yieldContent('theme_color') ?: '#0f2419';
+  $isHome = request()->routeIs('home');
+
+  $homeEs = function_exists('localized_route') ? localized_route('home','es')    : url('/');
+  $homeEn = function_exists('localized_route') ? localized_route('home','en')    : url('/en');
+  $homeFr = function_exists('localized_route') ? localized_route('home','fr')    : url('/fr');
+  $homeDe = function_exists('localized_route') ? localized_route('home','de')    : url('/de');
+  $homePt = function_exists('localized_route') ? localized_route('home','pt_BR') : url('/pt');
+
+  $cartCountUrl = route('cart.count.public');
+@endphp
+<html lang="{{ $appLocale }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <meta name="locale" content="{{ app()->getLocale() }}">
-<meta name="cart-count-url" content="{{ route('cart.count.public') }}">
-
-  @php
-      $ASSET_ROOT = rtrim(asset(''), '/');
-      $pageTitle  = $__env->yieldContent('title') ?: 'Green Vacations CR';
-      $fullTitle  = 'GV | ' . trim($pageTitle);
-      $metaDesc   = $__env->yieldContent('meta_description')
-                  ?? 'Descubre los mejores tours sostenibles en La Fortuna y Arenal con Green Vacations Costa Rica. Reserva tu aventura con responsabilidad ecológica.';
-
-      $isProd = app()->environment('production');
-
-      // ⚠️ Nuevo: separar "hay decisión" de "aceptado"
-      $consentCookie = request()->cookie('gv_cookie_consent'); // null | '0' | '1'
-      $hasConsent    = !is_null($consentCookie);               // decidió o no
-      $cookiesOk     = ($consentCookie === '1') || (bool) session('cookies.accepted', false); // aceptado
-
-      $gaId    = config('services.google.analytics_id');
-      $pixelId = config('services.meta.pixel_id');
-
-      // Color de tinte por defecto (usa el verde del footer)
-      $themeColor = '#0f2419';
-      // Si quieres un color distinto por página, puedes setear $themeColor vía @section('theme_color', '#xxxxxx')
-      $themeColor = $__env->yieldContent('theme_color') ?: $themeColor;
-
-      // Detecta si es la Home para activar fondo sólido y evitar “flash” blanco
-      $isHome = request()->routeIs('home');
-  @endphp
+  <meta name="locale" content="{{ $appLocale }}">
+  <meta name="cart-count-url" content="{{ $cartCountUrl }}">
 
   <title>{{ $fullTitle }}</title>
   <meta name="description" content="{{ $metaDesc }}">
   <meta name="keywords" content="tours Costa Rica, turismo ecológico, La Fortuna, Arenal, viajes sostenibles, Green Vacations CR">
   <link rel="canonical" href="{{ url()->current() }}">
 
-  @php
-    $homeEs = function_exists('localized_route') ? localized_route('home','es') : url('/');
-    $homeEn = function_exists('localized_route') ? localized_route('home','en') : url('/en');
-    $homeFr = function_exists('localized_route') ? localized_route('home','fr') : url('/fr');
-    $homeDe = function_exists('localized_route') ? localized_route('home','de') : url('/de');
-    $homePt = function_exists('localized_route') ? localized_route('home','pt_BR') : url('/pt');
-  @endphp
   <link rel="alternate" hreflang="es" href="{{ $homeEs }}">
   <link rel="alternate" hreflang="en" href="{{ $homeEn }}">
   <link rel="alternate" hreflang="fr" href="{{ $homeFr }}">
@@ -58,7 +56,7 @@
   <meta property="og:url" content="{{ url()->current() }}">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Green Vacations Costa Rica">
-  <meta property="og:locale" content="{{ app()->getLocale() }}">
+  <meta property="og:locale" content="{{ $appLocale }}">
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ $fullTitle }}">
@@ -71,19 +69,17 @@
   <link rel="apple-touch-icon" sizes="180x180" href="{{ $ASSET_ROOT }}/apple-touch-icon.png">
   <link rel="manifest" href="{{ $ASSET_ROOT }}/site.webmanifest">
 
-  {{-- iOS/Safari: tinte de la barra y PWA status bar --}}
   <meta id="themeColorMeta" name="theme-color" content="{{ $themeColor }}">
   <meta name="theme-color" content="#0b2e13" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  {{-- CSS críticos mínimos para evitar flash blanco en iOS en la Home --}}
   @if ($isHome)
-  <style>
-    html { background-color: {{ $themeColor }}; }
-    @@supports (padding: max(0px)) {
-      body { padding-bottom: max(0px, env(safe-area-inset-bottom)); }
-    }
-  </style>
+    <style>
+      html { background-color: {{ $themeColor }}; }
+      @@supports (padding: max(0px)) {
+        body { padding-bottom: max(0px, env(safe-area-inset-bottom)); }
+      }
+    </style>
   @endif
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -99,36 +95,38 @@
 
   @stack('styles')
 
-  {{-- ✅ Inyectar analítica SOLO si aceptó --}}
   @if ($isProd && $cookiesOk)
-      @if (!empty($gaId))
-          <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
-          <script>
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '{{ $gaId }}', { 'anonymize_ip': true });
-          </script>
-      @endif
+    @if (!empty($gaId))
+      <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
+      <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+      <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ $gaId }}', { 'anonymize_ip': true });
+      </script>
+    @endif
 
-      @if (!empty($pixelId))
-          <script>
-              !function(f,b,e,v,n,t,s)
-              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-              n.queue=[];t=b.createElement(e);t.async=!0;
-              t.src=v;s=b.getElementsByTagName(e)[0];
-              s.parentNode.insertBefore(t,s)}(window, document,'script',
-              'https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init', '{{ $pixelId }}');
-              fbq('track', 'PageView');
-          </script>
-          <noscript>
-              <img height="1" width="1" style="display:none"
-                   src="https://www.facebook.com/tr?id={{ $pixelId }}&ev=PageView&noscript=1"/>
-          </noscript>
-      @endif
+    @if (!empty($pixelId))
+      <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
+      <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '{{ $pixelId }}');
+        fbq('track', 'PageView');
+      </script>
+      <noscript>
+        <img height="1" width="1" style="display:none"
+             src="https://www.facebook.com/tr?id={{ $pixelId }}&ev=PageView&noscript=1"/>
+      </noscript>
+    @endif
   @endif
 
   <script type="application/ld+json">
@@ -153,14 +151,12 @@
   </script>
 </head>
 
-{{-- Añadimos clase is-home para estilos específicos si estás en la Home --}}
-<body class="d-flex flex-column min-vh-100 {{ $isHome ? 'is-home' : '' }}">
-
-    @if(config('gv.public_readonly'))
-  <div class="alert alert-warning text-center mb-0 rounded-0">
-    {{ __('Site is under maintenance. Registration and purchases are temporarily disabled.') }}
-  </div>
-@endif
+<body class="d-flex flex-column min-vh-100 {{ $isHome ? 'is-home' : '' }} @yield('body_class')">
+  @if(config('gv.public_readonly'))
+    <div class="alert alert-warning text-center mb-0 rounded-0">
+      {{ __('Site is under maintenance. Registration and purchases are temporarily disabled.') }}
+    </div>
+  @endif
 
   @include('partials.header')
 
@@ -179,21 +175,36 @@
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
   <script>
-    window.setCartCount = function(count) {
-      const n = Number(count || 0);
-      document.querySelectorAll('.cart-count-badge').forEach(el => {
-        el.textContent = n;
-        el.style.display = n > 0 ? 'inline-block' : 'none';
-      });
-    };
+    (function(){
+      const setBadge = (n) => {
+        document.querySelectorAll('.cart-count-badge').forEach(el => {
+          el.textContent = n;
+          el.style.display = n > 0 ? 'inline-block' : 'none';
+        });
+      };
+      window.setCartCount = setBadge;
 
-    // (Opcional) Cambiar theme-color cuando te acercas al footer (para evitar contraste raro)
+      const fetchAndSet = async () => {
+        const url = document.querySelector('meta[name="cart-count-url"]')?.getAttribute('content');
+        if (!url) return;
+        try {
+          const res = await fetch(url, { headers: { 'Accept':'application/json' } });
+          const data = await res.json();
+          if (typeof data?.count !== 'undefined') setBadge(Number(data.count||0));
+        } catch(_) {}
+      };
+
+      fetchAndSet();
+
+      window.addEventListener('cart:changed', fetchAndSet);
+    })();
+
     (function(){
       const meta = document.querySelector('#themeColorMeta');
       if(!meta) return;
 
-      const TOP_COLOR = '{{ $themeColor }}';
-      const FOOTER_COLOR = '{{ $themeColor }}'; // mismo verde; cambia si tu footer difiere
+      const TOP_COLOR = @json($themeColor);
+      const FOOTER_COLOR = @json($themeColor);
 
       const footer = document.querySelector('.footer-nature');
       if(!footer) return;
@@ -222,9 +233,8 @@
     </script>
   @endif
 
-  {{-- ✅ Mostrar banner SOLO si NO hay decisión aún --}}
   @if (! $hasConsent)
-      @include('partials.cookie-consent')
+    @include('partials.cookie-consent')
   @endif
 </body>
 </html>

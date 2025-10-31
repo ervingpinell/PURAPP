@@ -12,7 +12,7 @@ use App\Http\Controllers\Reviews\PublicReviewController;
 use App\Http\Controllers\Reviews\ReviewsController;
 use App\Http\Controllers\SitemapController;
 
-    // Public (auth) cart controller
+// Public (auth) cart controller
 use App\Http\Controllers\CartController as PublicCartController;
 
 // Admin controllers
@@ -241,13 +241,14 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::delete('/carts/{item}', [PublicCartController::class, 'destroy'])->name('public.carts.destroy');
         Route::put('/carts/{item}',    [PublicCartController::class, 'update'])->name('public.carts.update');
 
+        // Timer / expiry (no duplicar en /public/*)
         Route::post('/carts/expire',         [PublicCartController::class, 'expire'])->name('public.carts.expire');
         Route::post('/carts/refresh-expiry', [PublicCartController::class, 'refreshExpiry'])->name('public.carts.refreshExpiry');
-        Route::get('/cart/count', [PublicCartController::class, 'count'])->name('cart.count.public');
+        Route::get('/cart/count',            [PublicCartController::class, 'count'])->name('cart.count.public');
 
-        // Promo público (en sesión) desde CartController
-        Route::post('/apply-promo',   [PublicCartController::class, 'applyPromo'])->name('public.carts.applyPromo');
-        Route::delete('/remove-promo',[PublicCartController::class, 'removePromo'])->name('public.carts.removePromo');
+        // Promo público (en sesión)
+        Route::post('/apply-promo',    [PublicCartController::class, 'applyPromo'])->name('public.carts.applyPromo');
+        Route::delete('/remove-promo', [PublicCartController::class, 'removePromo'])->name('public.carts.removePromo');
 
         // Checkout desde carrito (público)
         Route::post('/bookings/from-cart', [PublicBookingController::class, 'storeFromCart'])->name('public.bookings.storeFromCart');
@@ -396,7 +397,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('bookings/export/excel', [AdminBookingController::class, 'exportExcel'])->name('bookings.export.excel');
                 Route::get('bookings/export/pdf',   [AdminBookingController::class, 'exportPdf'])->name('bookings.export.pdf');
 
-                // Calendar (restaurado)
+                // Calendar
                 Route::get('bookings/reserved', [AdminBookingController::class, 'reservedSeats'])->name('bookings.reserved');
                 Route::get('bookings/calendar-data', [AdminBookingController::class, 'calendarData'])->name('bookings.calendarData');
                 Route::get('bookings/calendar', [AdminBookingController::class, 'calendar'])->name('bookings.calendar');

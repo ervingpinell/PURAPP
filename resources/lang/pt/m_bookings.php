@@ -74,6 +74,8 @@ return [
             'zoom_in'            => 'Ampliar',
             'zoom_out'           => 'Reduzir',
             'zoom_reset'         => 'Redefinir Zoom',
+            'no_promo'        => 'Nenhum código promocional aplicado',
+
         ],
 
         'fields' => [

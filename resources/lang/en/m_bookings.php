@@ -74,6 +74,8 @@ return [
             'zoom_in'            => 'Zoom In',
             'zoom_out'           => 'Zoom Out',
             'zoom_reset'         => 'Reset Zoom',
+            'no_promo'        => 'No promo code applied',
+
         ],
 
         'fields' => [
@@ -156,6 +158,7 @@ return [
             'deleted_tour_snapshot' => 'Deleted Tour (:name)',
             'tour_archived'         => '(archived)',
             'meeting_point_hint'    => 'Only the name of the point will be shown in the list.',
+            'customer_locked'       => 'The customer is locked and cannot be edited.',
         ],
 
         'alerts' => [

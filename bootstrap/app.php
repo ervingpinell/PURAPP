@@ -5,6 +5,11 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Console\Scheduling\Schedule;
+
+// Models usados en las tareas programadas
+use App\Models\Cart;
+use App\Models\CartItem;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,7 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Stack web por defecto (EncryptCookies, AddQueuedCookiesToResponse, StartSession, etc.)
         $middleware->statefulApi();
 
-        // CSRF del core con exclusiones
+        // CSRF del core con exclusiones (si tus endpoints usan fetch SIN token)
+        // Si ya envías X-CSRF-TOKEN desde el front, puedes QUITAR exclusiones.
         $middleware->validateCsrfTokens(except: [
             'api/reviews',
             'api/reviews/batch',
@@ -46,7 +52,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // ✅ Aplica middlewares al grupo WEB (después de StartSession)
         $middleware->appendToGroup('web', [
             \App\Http\Middleware\SyncCookieConsent::class,
-            \App\Http\Middleware\PublicReadOnly::class,  // ✅ NUEVO: ReadOnly en web group
+            \App\Http\Middleware\PublicReadOnly::class,  // ✅ ReadOnly en web group
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -88,5 +94,55 @@ return Application::configure(basePath: dirname(__DIR__))
                 'text'  => $text,
             ]);
         });
+    })
+    ->withSchedule(function (Schedule $schedule) {
+        // 1) Expirar carritos activos vencidos (cada 5 min)
+        $schedule->call(function () {
+            Cart::query()
+                ->where('is_active', true)
+                ->whereNotNull('expires_at')
+                ->where('expires_at', '<=', now())
+                ->orderBy('cart_id')
+                ->chunkById(500, function ($carts) {
+                    foreach ($carts as $cart) {
+                        // Limpia items y marca expirado utilizando tu lógica centralizada
+                        $cart->forceExpire();
+                    }
+                });
+        })->everyFiveMinutes()->name('carts:expire-overdue')->withoutOverlapping();
+
+        // 2) Purgar carritos inactivos antiguos (p.ej., >7 días) (cada noche)
+        $schedule->call(function () {
+            $cutoff = now()->subDays(7);
+
+            Cart::query()
+                ->where('is_active', false)
+                ->whereNotNull('expires_at')
+                ->where('expires_at', '<=', $cutoff)
+                ->orderBy('cart_id')
+                ->chunkById(500, function ($carts) {
+                    foreach ($carts as $cart) {
+                        // Por sanidad: borra items y luego el carrito
+                        $cart->items()->delete();
+                        $cart->delete();
+                    }
+                });
+        })->dailyAt('02:30')->name('carts:prune-old')->onOneServer();
+
+        // 3) Items huérfanos (por si hubo borrados manuales)
+        $schedule->call(function () {
+            CartItem::query()
+                ->whereDoesntHave('cart')
+                ->delete();
+        })->weeklyOn(1, '03:10')->name('cart_items:prune-orphans')->onOneServer();
+
+        // 4) (Opcional) Horizon snapshots para métricas/tiempos (recomendado)
+        // Requiere que Horizon esté instalado y corriendo como daemon.
+        if (class_exists(\Laravel\Horizon\Horizon::class)) {
+            $schedule->command('horizon:snapshot')
+                ->everyFiveMinutes()
+                ->onOneServer()
+                ->name('horizon:snapshot');
+        }
     })
     ->create();

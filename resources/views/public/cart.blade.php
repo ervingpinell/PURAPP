@@ -36,20 +36,25 @@
   // Timer config
   $expiryMinutes  = (int) config('cart.expiry_minutes', 15);
   $extendMinutes  = (int) config('cart.extend_minutes', 15);
+  $extendMax      = (int) config('cart.max_extensions', 1);
+$extendUsed = (int) ($cart->extended_count ?? 0);
+  $isExtendDisabled = $extendUsed >= $extendMax;
 
   // Promo en sesión
   $promoSession = session('public_cart_promo');
 @endphp
 
 {{-- ========== TIMER ========== --}}
-@if(!empty($expiresAtIso))
+@if($cart && $cart->is_active && $cart->items->count() && !empty($expiresAtIso) && !$cart->isExpired())
   <div id="cart-timer"
        class="gv-timer shadow-sm"
        role="alert"
        data-expires-at="{{ $expiresAtIso }}"
        data-total-minutes="{{ $expiryMinutes }}"
        data-expire-endpoint="{{ route('public.carts.expire') }}"
-       data-refresh-endpoint="{{ route('public.carts.refreshExpiry') }}">
+       data-refresh-endpoint="{{ route('public.carts.refreshExpiry') }}"
+       data-extend-max="{{ $extendMax }}"
+       data-extend-used="{{ $extendUsed }}">
     <div class="gv-timer-head">
       <div class="gv-timer-icon">
         <i class="fas fa-hourglass-half"></i>
@@ -61,8 +66,16 @@
           <span id="cart-timer-remaining" class="gv-timer-remaining">--:--</span>
         </div>
       </div>
-      <button id="cart-timer-refresh" class="btn btn-dark btn-sm gv-timer-btn">
-        {{ trans_choice('carts.timer.extend', $extendMinutes, ['count' => $extendMinutes]) }}
+
+      <button id="cart-timer-refresh"
+              class="btn btn-sm gv-timer-btn {{ $isExtendDisabled ? 'btn-secondary disabled' : 'btn-dark' }}"
+              @disabled($isExtendDisabled)
+              data-label-default="{{ trans_choice('carts.timer.extend', $extendMinutes, ['count' => $extendMinutes]) }}"
+              data-label-disabled="{{ __('carts.timer.already_extended') }}">
+        {{ $isExtendDisabled
+            ? __('carts.timer.already_extended')
+            : trans_choice('carts.timer.extend', $extendMinutes, ['count' => $extendMinutes])
+        }}
       </button>
     </div>
     <div class="gv-timer-bar">
@@ -107,7 +120,7 @@
         @endif
         @if (session('error'))
           Swal.fire({
-            icon: 'error',
+            icon: 'error'),
             title: @json(__('adminlte::adminlte.error')),
             text:  @json(session('error')),
             confirmButtonColor: '#dc3545',
@@ -151,7 +164,7 @@
                 data-item-id="{{ $item->item_id }}"
                 data-subtotal="{{ number_format($itemSubtotal, 2, '.', '') }}">
               <td>{{ $item->tour->getTranslatedName() ?? $item->tour->name }}</td>
-              <td>{{ \Carbon\Carbon::parse($item->tour_date)->format('d/m/Y') }}</td>
+              <td>{{ \Carbon\Carbon::parse($item->tour_date)->format('d/M/Y') }}</td>
               <td>
                 @if($item->schedule)
                   {{ \Carbon\Carbon::parse($item->schedule->start_time)->format('g:i A') }} -
@@ -243,7 +256,7 @@
             {{ $item->tour->getTranslatedName() ?? $item->tour->name }}
           </div>
           <div class="card-body">
-            <div class="mb-2"><strong>{{ __('adminlte::adminlte.date') }}:</strong> {{ \Carbon\Carbon::parse($item->tour_date)->format('d/m/Y') }}</div>
+            <div class="mb-2"><strong>{{ __('adminlte::adminlte.date') }}:</strong> {{ \Carbon\Carbon::parse($item->tour_date)->format('d/M/Y') }} </div>
             <div class="mb-2"><strong>{{ __('adminlte::adminlte.schedule') }}:</strong>
               @if($item->schedule)
                 {{ \Carbon\Carbon::parse($item->schedule->start_time)->format('g:i A') }} -
@@ -325,10 +338,12 @@
 
     <div class="card shadow-sm mb-4">
       <div class="card-body">
-        <h4 class="mb-3">
-          <strong>{{ __('adminlte::adminlte.totalEstimated') }}:</strong>
-          $<span id="cart-total">{{ number_format($total, 2) }}</span>
-        </h4>
+ <h4 class="mb-3">
+  <strong>{{ __('adminlte::adminlte.totalEstimated') }}:</strong>
+  <span class="currency-symbol">$</span>
+  <span id="cart-total" class="gv-total">{{ number_format($total, 2) }}</span>
+</h4>
+
 
         <label for="promo-code" class="form-label fw-semibold">{{ __('adminlte::adminlte.promoCode') }}</label>
         <div class="d-flex flex-column flex-sm-row gap-2">
@@ -539,337 +554,7 @@
 @endforeach
 @endsection
 
-@push('styles')
-<style>
-/* ===== Timer minimal ===== */
-.gv-timer{
-  background: linear-gradient(90deg, #fff7e6, #fff);
-  border: 1px solid #ffe2b9;
-  border-left: 6px solid #f0ad4e;
-  border-radius: 14px;
-  padding: 14px 16px 10px;
-  margin: 10px auto 0;
-  max-width: 1100px;
-}
-.gv-timer-head{ display:flex; align-items:center; gap:14px; }
-.gv-timer-icon{
-  width:48px;height:48px; border-radius:50%;
-  display:grid; place-items:center;
-  background:#fff; border:2px dashed #f0ad4e; color:#b36b00; font-size:22px;
-}
-.gv-timer-text{ flex:1; line-height:1.2; }
-.gv-timer-title{ font-weight:700; font-size:1.05rem; color:#8a5a00; }
-.gv-timer-sub{ font-size:.95rem; color:#6c4a00; }
-.gv-timer-remaining{
-  display:inline-block; font-variant-numeric: tabular-nums; font-weight:800;
-  font-size:1.15rem; color:#000; letter-spacing:.5px; padding:2px 8px;
-  border-radius:8px; background:#fff; border:1px solid #ffe2b9; margin-left:6px;
-}
-.gv-timer-btn{ white-space:nowrap; }
-.gv-timer-bar{ position:relative; height:8px; background:#ffe7c4; border-radius:8px; overflow:hidden; margin-top:10px; }
-.gv-timer-bar-fill{ position:absolute; left:0; top:0; bottom:0; width:100%; background: linear-gradient(90deg, #ffc107, #fd7e14); transition: width .35s ease; }
-
-/* Mobile */
-@media (max-width: 575.98px){
-  .gv-timer{ border-left-width:5px; padding:12px 12px 9px; }
-  .gv-timer-icon{ width:42px; height:42px; font-size:20px; }
-  .gv-timer-title{ font-size:1rem; }
-  .gv-timer-remaining{ font-size:1.05rem; }
-}
-
-/* Tweaks */
-@media (max-width: 767.98px) {
-  .modal-body { padding: 1rem; }
-  .modal-header, .modal-footer { padding: .75rem 1rem; }
-  .btn { min-height: 42px; }
-}
-</style>
-@endpush
-
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  /* ===== Confirm booking ===== */
-  const reservaForm = document.getElementById('confirm-reserva-form');
-  if(reservaForm){
-    reservaForm.addEventListener('submit', function(e){
-      e.preventDefault();
-      Swal.fire({
-        title: @json(__('adminlte::adminlte.confirmReservationTitle')),
-        text: @json(__('adminlte::adminlte.confirmReservationText')),
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#198754',
-        cancelButtonColor: '#d33',
-        confirmButtonText: @json(__('adminlte::adminlte.confirmReservationConfirm')),
-        cancelButtonText: @json(__('adminlte::adminlte.confirmReservationCancel'))
-      }).then((r) => { if(r.isConfirmed){ reservaForm.submit(); } });
-    });
-  }
-
-  /* ===== Delete item ===== */
-  document.querySelectorAll('.delete-item-form').forEach(form => {
-    form.addEventListener('submit', function(e){
-      e.preventDefault();
-      Swal.fire({
-        title: @json(__('adminlte::adminlte.deleteItemTitle')),
-        text: @json(__('adminlte::adminlte.deleteItemText')),
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: @json(__('adminlte::adminlte.deleteItemConfirm')),
-        cancelButtonText: @json(__('adminlte::adminlte.deleteItemCancel'))
-      }).then((r) => { if(r.isConfirmed){ form.submit(); } });
-    });
-  });
-
-  /* ===== Meeting Point preview (usa mpListJson ya traducido) ===== */
-  const pickupLabel = (document.getElementById('mp-config')?.dataset?.pickupLabel) || 'Pick-up';
-  const updateMpInfo = (selectEl) => {
-    if (!selectEl) return;
-    let mplist = [];
-    try { mplist = JSON.parse(selectEl.getAttribute('data-mplist') || '[]'); } catch (_) { mplist = []; }
-    const box = document.querySelector(selectEl.getAttribute('data-target'));
-    if (!box) return;
-
-    const id = selectEl.value ? Number(selectEl.value) : null;
-    const found = id ? mplist.find(m => Number(m.id) === id) : null;
-
-    const nameEl = box.querySelector('.mp-name');
-    const timeEl = box.querySelector('.mp-time');
-    const addrEl = box.querySelector('.mp-addr');
-    const linkEl = box.querySelector('.mp-link');
-
-    if (found) {
-      box.style.display = 'block';
-      if (nameEl) nameEl.textContent = found.name || '';
-      if (timeEl) timeEl.textContent = found.pickup_time ? (pickupLabel + ': ' + found.pickup_time) : '';
-      if (addrEl) addrEl.innerHTML = found.description ? ('<i class="fas fa-map-marker-alt me-1"></i>' + found.description) : '';
-      if (linkEl) {
-        if (found.map_url) { linkEl.href = found.map_url; linkEl.style.display = 'inline-block'; }
-        else { linkEl.style.display = 'none'; }
-      }
-    } else {
-      box.style.display = 'none';
-    }
-  };
-  document.querySelectorAll('.meetingpoint-select').forEach(sel => {
-    updateMpInfo(sel);
-    sel.addEventListener('change', () => updateMpInfo(sel));
-  });
-
-  /* ===== Pickup tabs ===== */
-  const activatePickupTab = (group, tab) => {
-    const itemId = group.getAttribute('data-item');
-    const panes = document.getElementById('pickup-panes-' + itemId);
-    if (!panes) return;
-
-    group.querySelectorAll('[data-pickup-tab]').forEach(btn => {
-      btn.classList.toggle('btn-secondary', btn.getAttribute('data-pickup-tab') === tab);
-      btn.classList.toggle('btn-outline-secondary', btn.getAttribute('data-pickup-tab') !== tab);
-    });
-
-    panes.querySelectorAll('.pickup-pane').forEach(p => p.style.display = 'none');
-    const showPane = document.getElementById('pane-' + tab + '-' + itemId);
-    if (showPane) showPane.style.display = 'block';
-
-    const isOtherHidden = document.getElementById('is-other-hidden-' + itemId);
-    const hotelSelect   = document.getElementById('hotel-select-' + itemId);
-    const customInput   = document.getElementById('custom-hotel-input-' + itemId);
-    const mpSelect      = document.getElementById('meetingpoint-select-' + itemId);
-
-    if (hotelSelect) hotelSelect.value = hotelSelect.value;
-    if (customInput) { /* keep text */ }
-    if (mpSelect) mpSelect.value = mpSelect.value;
-
-    if (tab === 'hotel') {
-      if (isOtherHidden) isOtherHidden.value = 0;
-      if (mpSelect) mpSelect.value = '';
-      updateMpInfo(mpSelect);
-    } else if (tab === 'custom') {
-      if (isOtherHidden) isOtherHidden.value = 1;
-      if (hotelSelect) hotelSelect.value = '';
-      if (mpSelect) mpSelect.value = '';
-      updateMpInfo(mpSelect);
-    } else if (tab === 'mp') {
-      if (isOtherHidden) isOtherHidden.value = 0;
-      if (hotelSelect) hotelSelect.value = '';
-    }
-  };
-
-  document.querySelectorAll('.pickup-tabs').forEach(group => {
-    const init = group.getAttribute('data-init') || 'hotel';
-    activatePickupTab(group, init);
-    group.querySelectorAll('[data-pickup-tab]').forEach(btn => {
-      btn.addEventListener('click', () => activatePickupTab(group, btn.getAttribute('data-pickup-tab')));
-    });
-  });
-
-  /* ===== Prevent double submit in modals ===== */
-  document.querySelectorAll('.edit-item-form').forEach(f => {
-    f.addEventListener('submit', () => {
-      const btn = f.querySelector('button[type="submit"]');
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML =
-          '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>' +
-          (@json(__('adminlte::adminlte.saving')));
-      }
-    });
-  });
-
-  /* ===== Promo code toggle ===== */
-  {
-    const toggleBtn   = document.getElementById('toggle-promo');
-    const codeInput   = document.getElementById('promo-code');
-    const msgBox      = document.getElementById('promo-message');
-    const totalEl     = document.getElementById('cart-total');
-    const hiddenCode  = document.getElementById('promo_code_hidden');
-
-    const setMsg = (ok, text) => {
-      msgBox.classList.remove('text-success','text-danger');
-      msgBox.classList.add(ok ? 'text-success' : 'text-danger');
-      msgBox.innerHTML = text;
-    };
-
-    const baseTotal = () => {
-      const rows = Array.from(document.querySelectorAll('.cart-item-row, .cart-item-card'));
-      const seen = new Set(); let sum = 0;
-      rows.forEach(el => {
-        const id = el.dataset.itemId || '';
-        if (!id || seen.has(id)) return; seen.add(id);
-        const v = parseFloat(el.dataset.subtotal || '0'); if (!isNaN(v)) sum += v;
-      });
-      return Math.round(sum * 100) / 100;
-    };
-
-    const setState = (applied, code, newTotal) => {
-      toggleBtn.dataset.state = applied ? 'applied' : 'idle';
-      toggleBtn.textContent = applied ? (@json(__('adminlte::adminlte.remove'))) : (@json(__('adminlte::adminlte.apply')));
-      toggleBtn.classList.toggle('btn-outline-danger', applied);
-      toggleBtn.classList.toggle('btn-outline-primary', !applied);
-      hiddenCode.value = applied ? (code || '') : '';
-      if (typeof newTotal === 'number') totalEl.textContent = newTotal.toFixed(2);
-    };
-
-    const applyCode = async (code) => {
-      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-      const res = await fetch(@json(route('public.carts.applyPromo')), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
-        body: JSON.stringify({ code })
-      });
-      return res.json();
-    };
-
-    const removeCode = async () => {
-      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-      const res = await fetch(@json(route('public.carts.removePromo')), {
-        method: 'POST',
-        headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
-      });
-      return res.json();
-    };
-
-    toggleBtn?.addEventListener('click', async () => {
-      const state = toggleBtn.dataset.state || 'idle';
-
-      if (state === 'applied') {
-        try {
-          const data = await removeCode();
-          setMsg(true, `<i class="fas fa-check-circle me-1"></i>${data?.message || @json(__('carts.messages.code_removed'))}`);
-          setState(false, '', baseTotal());
-        } catch {
-          setMsg(false, '<i class="fas fa-times-circle me-1"></i>' + @json(__('carts.messages.code_remove_failed')));
-        }
-        return;
-      }
-
-      const code = (codeInput?.value || '').trim();
-      if (!code) {
-        setMsg(false, '<i class="fas fa-times-circle me-1"></i>' + @json(__('carts.messages.enter_code')));
-        return;
-      }
-
-      try {
-        const data = await applyCode(code);
-        if (!data?.ok) {
-          setMsg(false, `<i class="fas fa-times-circle me-1"></i>${data?.message || @json(__('carts.messages.invalid_code'))}`);
-          setState(false, '', baseTotal());
-        } else {
-          setMsg(true, `<i class="fas fa-check-circle me-1"></i>${data?.message || @json(__('carts.messages.code_applied'))}`);
-          const newTotal = Number(data?.new_total ?? baseTotal());
-          setState(true, data?.code || code, newTotal);
-        }
-      } catch {
-        setMsg(false, '<i class="fas fa-times-circle me-1"></i>' + @json(__('carts.messages.code_apply_failed')));
-      }
-    });
-  }
-
-  /* ===== Timer countdown ===== */
-  (function(){
-    const box = document.getElementById('cart-timer');
-    if (!box) return;
-
-    const csrf            = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const remainingEl     = document.getElementById('cart-timer-remaining');
-    const barEl           = document.getElementById('cart-timer-bar');
-    const btnRefresh      = document.getElementById('cart-timer-refresh');
-    const expireEndpoint  = box.getAttribute('data-expire-endpoint');
-    const refreshEndpoint = box.getAttribute('data-refresh-endpoint');
-
-    const totalSecondsCfg = Number(box.getAttribute('data-total-minutes') || '15') * 60;
-    let serverExpires = new Date(box.getAttribute('data-expires-at')).getTime();
-    let rafId = null;
-
-    const fmt = (sec) => {
-      const s = Math.max(0, sec|0);
-      const m = Math.floor(s / 60);
-      const r = s % 60;
-      return String(m).padStart(2,'0') + ':' + String(r).padStart(2,'0');
-    };
-    const setBar = (remainingSec) => {
-      const frac = Math.max(0, Math.min(1, remainingSec / totalSecondsCfg));
-      if (barEl) barEl.style.width = (frac * 100).toFixed(2) + '%';
-    };
-
-    const tick = () => {
-      const now = Date.now();
-      const remainingSec = Math.ceil((serverExpires - now) / 1000);
-      if (remainingEl) remainingEl.textContent = fmt(remainingSec);
-      setBar(remainingSec);
-      if (remainingSec <= 0) { cancelAnimationFrame(rafId); return handleExpire(); }
-      rafId = requestAnimationFrame(tick);
-    };
-
-    const handleExpire = async () => {
-      try {
-        await fetch(expireEndpoint, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' } });
-      } catch {}
-      location.reload();
-    };
-
-    const handleRefresh = async (e) => {
-      e?.preventDefault?.();
-      try {
-        const res = await fetch(refreshEndpoint, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' } });
-        const data = await res.json();
-        if (data?.ok && data?.expires_at) {
-          serverExpires = new Date(data.expires_at).getTime();
-          if (rafId) cancelAnimationFrame(rafId);
-          tick();
-        } else {
-          location.reload();
-        }
-      } catch { location.reload(); }
-    };
-
-    if (btnRefresh) btnRefresh.addEventListener('click', handleRefresh);
-    tick();
-  })();
-});
-</script>
+  @include('partials.cart.cart-scripts')
 @endpush
+

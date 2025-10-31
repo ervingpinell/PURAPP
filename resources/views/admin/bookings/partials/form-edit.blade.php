@@ -338,7 +338,7 @@
                  class="form-control"
                  id="promoInput-{{ $bid }}"
                  name="promo_code"
-                 placeholder="{{ __('m_bookings.bookings.placeholders.promo_code') }}"
+                 placeholder="{{ __('m_bookings.bookings.placeholders.enter_promo_code') }}"
                  value="{{ $promoCode }}">
         </div>
 
@@ -377,7 +377,7 @@
               <span class="badge bg-secondary ms-1">${{ number_format($initDiscount,2) }}</span>
             @endif
           @else
-            <span class="text-muted">{{ __('m_bookings.bookings.ui.no_promo_code') }}</span>
+            <span class="text-muted">{{ __('m_bookings.bookings.ui.no_promo') }}</span>
           @endif
         </div>
         <div id="promoFeedback-{{ $bid }}" class="small"></div>
@@ -556,7 +556,7 @@
     if (!summaryEl) return;
 
     if (!window.__promoCode) {
-      summaryEl.innerHTML = `<span class="text-muted">${@json(__('m_bookings.bookings.ui.no_promo_code'))}</span>`;
+      summaryEl.innerHTML = `<span class="text-muted">${@json(__('m_bookings.bookings.ui.no_promo'))}</span>`;
       return;
     }
 

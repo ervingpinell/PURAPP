@@ -22,11 +22,13 @@ class BookingCreator
      *  - promo_code (opcional, string)
      *  - meeting_point_id (opcional), hotel_id (opcional), is_other_hotel (bool), other_hotel_name (nullable)
      *  - notes (nullable)
+     *  - exclude_cart_id (opcional, para no contar tu propio hold en checkout)
      * @param  bool   $validateCapacity  Si true, valida cupos (tanto pending como confirmed).
+     * @param  bool   $countHolds        Si true, descuenta holds de otros carritos.
      */
-    public function create(array $payload, bool $validateCapacity = true): Booking
+    public function create(array $payload, bool $validateCapacity = true, bool $countHolds = true): Booking
     {
-        return DB::transaction(function () use ($payload, $validateCapacity) {
+        return DB::transaction(function () use ($payload, $validateCapacity, $countHolds) {
             // ===== Entities
             $tour     = Tour::findOrFail($payload['tour_id']);
             $schedule = Schedule::findOrFail($payload['schedule_id']);
@@ -53,25 +55,32 @@ class BookingCreator
                 if ($promo && method_exists($promo,'hasRemainingUses') && !$promo->hasRemainingUses()) $promo = null;
             }
 
-            // ===== Capacidad (usar snapshot UNIFICADO: max/confirmed/held/available/blocked)
+            // ===== Capacidad (usar snapshot UNIFICADO)
             if ($validateCapacity) {
-                $date = $payload['tour_date'];
+                $date          = $payload['tour_date'];
+                $excludeCartId = $payload['exclude_cart_id'] ?? null;
 
-                // Exclude booking id = null (creación), y contar holds (true)
-                $snap = $this->cap->capacitySnapshot($tour, $schedule, $date, excludeBookingId: null, countHolds: true);
+                // Valida contando holds, pero excluyendo el de este carrito si aplica
+                $snap = $this->cap->capacitySnapshot(
+                    $tour,
+                    $schedule,
+                    $date,
+                    excludeBookingId: null,
+                    countHolds: $countHolds,
+                    excludeCartId: $excludeCartId
+                );
 
                 $requested = $adults + $kids;
 
-                // Bloqueado o sin cupos suficientes
                 if ($snap['blocked'] || $requested > $snap['available']) {
                     throw new \RuntimeException(json_encode([
                         'type'        => 'capacity',
                         'blocked'     => (bool) $snap['blocked'],
-                        'available'   => (int)  $snap['available'],  // lo que realmente queda hoy
-                        'max'         => (int)  $snap['max'],        // capacidad del slot
-                        'confirmed'   => (int)  $snap['confirmed'],  // ya confirmados
-                        'held'        => (int)  $snap['held'],       // retenidos en carritos
-                        'requested'   => (int)  $requested,          // lo que se intenta reservar
+                        'available'   => (int)  $snap['available'],
+                        'max'         => (int)  $snap['max'],
+                        'confirmed'   => (int)  $snap['confirmed'],
+                        'held'        => (int)  $snap['held'],
+                        'requested'   => (int)  $requested,
                         'tour_id'     => (int)  $tour->tour_id,
                         'schedule_id' => (int)  $schedule->schedule_id,
                         'date'        => $date,

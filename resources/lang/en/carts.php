@@ -5,6 +5,8 @@ return [
         'will_expire' => 'Your cart will expire soon.',
         'time_left'   => 'Time left:',
         'extend'      => 'Extend :count min|Extend :count min',
+        'already_extended' => 'The timeout has already been extended. It cannot be extended further.',
+        'cart_deleted' => 'Your cart has been automatically deleted because it has no products.',
     ],
 
     'title_all' => 'All customer carts',
@@ -147,4 +149,31 @@ return [
     'messages.validation_failed'   => 'Data validation failed.',
     'messages.cart_expires_in'     => 'The cart will expire in :minutes minutes.',
     'messages.cart_being_processed' => 'Your cart is being processed. Please try again in a few seconds.',
+
+'messages' => [
+    'limited_seats_available' => 'Only :available spots left for ":tour" on :date.',
+    'cart_empty'              => 'Your cart is empty.',
+    'cart_expired'            => 'Your cart has expired.',
+    'schedule_unavailable'    => 'The selected schedule is no longer available.',
+    'extend_success'          => 'Your cart has been successfully extended.',
+    'max_extensions_reached'  => 'You have reached the maximum number of extensions.',
+    'cart_being_processed'    => 'Your cart is being processed, please try again in a few seconds.',
+    'code_applied'            => 'Code applied.',
+    'code_removed'            => 'Code removed.',
+    'enter_code'              => 'Enter a promo code.',
+    'invalid_code'            => 'Invalid code.',
+    'code_apply_failed'       => 'Failed to apply the code.',
+    'code_remove_failed'      => 'Failed to remove the code.',
+    'will_expire'             => 'Your cart will expire soon.',
+    'time_left'               => 'Time remaining:',
+    'extend'                  => 'Extend :count min|Extend :count min',
+    'already_extended'        => 'You have already extended your cart once.',
+    'extend_limit_reached'    => 'You can only extend the time once.',
+    'cart_deleted'            => 'Your cart has been automatically deleted because it has no products.',
+    'cart_refreshed'          => 'Your cart has been refreshed.',
+    'extend_success'          => 'Your cart has been successfully extended.',
+    'max_extensions_reached'  => 'You have reached the maximum number of extensions.',
+],
+
+
 ];

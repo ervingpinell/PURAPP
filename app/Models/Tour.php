@@ -360,4 +360,12 @@ class Tour extends Model
         'tour_type_id'
     )->withPivot('position');
 }
+private function activeCartOf($user, bool $withTourSchedules = false): ?Cart
+{
+    $q = $user->cart()->where('is_active', true)->orderByDesc('cart_id');
+    if ($withTourSchedules) {
+        $q->with(['items.tour.schedules', 'items.tour.translations']);
+    }
+    return $q->first();
+}
 }

@@ -6,20 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Str;
-use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-use App\Models\Cart;
 use App\Models\Booking;
 use App\Models\BookingDetail;
 use App\Models\PromoCode;
-use App\Models\Tour;
-use App\Support\BookingRules;
-use App\Mail\BookingCreatedMail;
 
 use App\Services\Bookings\{BookingCreator, BookingCapacityService};
 
@@ -31,16 +23,17 @@ class BookingController extends Controller
     ) {}
 
     /** Checkout desde carrito (público) */
+/** Checkout desde carrito (público) */
 public function storeFromCart(Request $request)
 {
     $user = Auth::user();
 
     $key = 'booking:cart:' . $user->user_id;
-    if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($key, 1)) {
+    if (RateLimiter::tooManyAttempts($key, 1)) {
         return redirect()->route('public.carts.index')
             ->with('error', __('carts.messages.cart_being_processed'));
     }
-    \Illuminate\Support\Facades\RateLimiter::hit($key, 10);
+    RateLimiter::hit($key, 10);
 
     $createdBookings = DB::transaction(function () use ($user, $request) {
         $cart = \App\Models\Cart::with(['items.tour','items.schedule'])
@@ -56,25 +49,13 @@ public function storeFromCart(Request $request)
             throw \Illuminate\Validation\ValidationException::withMessages(['cart' => __('carts.messages.cart_expired')]);
         }
 
-        // Validaciones por grupo (tour+fecha+horario)
+        // ===== Pre-validación por grupos EXCLUYENDO el carrito actual =====
         $groups = $cart->items->groupBy(fn($i) => $i->tour_id.'_'.$i->tour_date.'_'.$i->schedule_id);
         foreach ($groups as $items) {
-            $tz      = config('app.timezone', 'America/Costa_Rica');
-            $minDate = \App\Support\BookingRules::earliestBookableDate();
-
             $first      = $items->first();
             $tour       = $first->tour;
             $tourDate   = $first->tour_date;
             $scheduleId = $first->schedule_id;
-
-            $dt = \Carbon\Carbon::parse($tourDate, $tz)->startOfDay();
-            if ($dt->lt($minDate)) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
-                    'tour_date' => __("m_bookings.messages.date_no_longer_available", [
-                        'date' => $tourDate, 'min' => $minDate->toDateString(),
-                    ]),
-                ]);
-            }
 
             $schedule = $tour->schedules()
                 ->where('schedules.schedule_id', $scheduleId)
@@ -88,8 +69,12 @@ public function storeFromCart(Request $request)
                 ]);
             }
 
-            // Capacidad real (bloqueos + confirmados + pendientes + holds de carritos)
-            $remaining = $this->capacity->remainingCapacity($tour, $schedule, $tourDate, excludeBookingId: null, countHolds: true);
+            $remaining = $this->capacity->remainingCapacity(
+                $tour, $schedule, $tourDate,
+                excludeBookingId: null,
+                countHolds: true,
+                excludeCartId: (int)$cart->cart_id // <==== EXCLUIR PROPIO HOLD
+            );
             $requested = $items->sum(fn($i) => (int)$i->adults_quantity + (int)$i->kids_quantity);
 
             if ($requested > $remaining) {
@@ -101,13 +86,16 @@ public function storeFromCart(Request $request)
             }
         }
 
-        // Promo (primera reserva la consume)
+        // Promo (se aplica a la primera reserva creada)
         $promoCodeValue   = $request->input('promo_code') ?? $request->session()->get('public_cart_promo.code');
         $promoCodeToApply = null;
         if ($promoCodeValue) {
-            $clean = strtoupper(trim(preg_replace('/\s+/', '', $promoCodeValue)));
-            $promoCodeToApply = \App\Models\PromoCode::whereRaw("UPPER(TRIM(REPLACE(code, ' ', ''))) = ?", [$clean])
-                ->where('is_used', false)
+            $clean = PromoCode::normalize($promoCodeValue);
+            $promoCodeToApply = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code, ' ', ''))) = ?", [$clean])
+                ->where(function($q){
+                    $q->where('is_used', false)->orWhereNull('is_used');
+                })
+                ->lockForUpdate()
                 ->first();
         }
 
@@ -127,13 +115,14 @@ public function storeFromCart(Request $request)
                 'other_hotel_name'  => $item->is_other_hotel ? $item->other_hotel_name : null,
                 'adults_quantity'   => (int)$item->adults_quantity,
                 'kids_quantity'     => (int)$item->kids_quantity,
-                'status'            => 'pending', // público arranca en pending
+                'status'            => 'pending',
                 'meeting_point_id'  => $item->meeting_point_id,
                 'notes'             => null,
                 'promo_code'        => $promoApplied ? null : ($promoCodeToApply?->code),
+                'exclude_cart_id'   => (int)$cart->cart_id, // <==== EXCLUIR PROPIO HOLD
             ];
 
-            $booking = $this->creator->create($payload, validateCapacity: false);
+            $booking = $this->creator->create($payload, validateCapacity: true, countHolds: true);
 
             if (!$promoApplied && $promoCodeToApply) {
                 $promoCodeToApply->redeemForBooking($booking->booking_id, $user->user_id);
@@ -144,13 +133,13 @@ public function storeFromCart(Request $request)
         }
 
         $cart->items()->delete();
-        $cart->update(['is_active' => false]);
+        $cart->update(['is_active' => false, 'expires_at' => now()]);
         $request->session()->forget('public_cart_promo');
 
         return $created;
     });
 
-    // Correos (igual que lo tenías)
+    // Emails igual que tenías…
     $createdBookings = collect($createdBookings);
     $details = \App\Models\BookingDetail::with(['tour','schedule','hotel','tourLanguage','booking.user'])
         ->whereIn('booking_id', $createdBookings->pluck('booking_id'))
@@ -167,6 +156,7 @@ public function storeFromCart(Request $request)
     return redirect()->route('my-bookings')
         ->with('success', __('m_bookings.messages.bookings_created_from_cart'));
 }
+
 
     /** Mis reservas (público) */
     public function myBookings()

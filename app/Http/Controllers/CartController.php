@@ -17,60 +17,62 @@ class CartController extends Controller
 {
     public function __construct(private BookingCapacityService $capacity) {}
 
-    /* ======================================================
-     *  Cart view (auth only)
-     * ====================================================== */
+    /* ====================== Cart view (auth only) ====================== */
     public function index(Request $request)
     {
-        if (!Auth::check()) return redirect()->route('login');
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
 
         $user = Auth::user();
 
+        // Fetch the most recent active cart with relations
         $cart = $user->cart()
             ->where('is_active', true)
             ->orderByDesc('cart_id')
             ->with([
                 'items.tour.schedules',
                 'items.tour.languages',
+                'items.tour.translations',
                 'items.schedule',
                 'items.language',
                 'items.hotel',
-                // 👇 Eager-load translations para que el Blade vea el nombre/descr localizados
                 'items.meetingPoint.translations',
             ])
             ->first();
 
-        if (!$cart || $cart->isExpired()) {
-            if ($cart) $this->expireCart($cart);
-            $cart = Cart::create(['user_id' => $user->user_id, 'is_active' => true])
-                ->refreshExpiry((int) config('cart.expiry_minutes', 15));
-        } else {
-            $cart->refreshExpiry((int) config('cart.expiry_minutes', 15));
+        // If it exists but is empty, expire it and hide timer
+        if ($cart && !$cart->items()->count()) {
+            $cart->forceExpire();
+            $cart = null;
         }
 
         return view('public.cart', [
             'cart'           => $cart,
             'client'         => $user,
             'hotels'         => HotelList::where('is_active', true)->orderBy('name')->get(),
-            // 👇 También la lista del selector con translations
             'meetingPoints'  => MeetingPoint::where('is_active', true)
                 ->with('translations')
                 ->orderByRaw('sort_order IS NULL, sort_order ASC')
                 ->orderBy('name', 'asc')
                 ->get(),
-            'expiresAtIso'   => optional($cart->expires_at)->toIso8601String(),
+            'expiresAtIso'   => optional($cart?->expires_at)->toIso8601String(),
+            'extendUsed'     => (int) ($cart?->extended_count ?? 0),
+            'extendMax'      => (int) config('cart.max_extensions', 1),
         ]);
     }
 
-    /* ======================================================
-     *  Add item
-     * ====================================================== */
+    /* ====================== Add item ====================== */
     public function store(Request $request)
     {
         abort_unless(Auth::check(), 403);
 
         $this->normalizeHotelInput($request);
 
+        // Business rules:
+        // - At least 2 adults
+        // - At most 2 kids
+        // - Total pax (adults + kids) <= 12
         $request->validate([
             'tour_id'                => 'required|exists:tours,tour_id',
             'tour_date'              => 'required|date|after_or_equal:today',
@@ -79,25 +81,31 @@ class CartController extends Controller
             'hotel_id'               => 'bail|nullable|integer|exists:hotels_list,hotel_id|exclude_if:is_other_hotel,1',
             'is_other_hotel'         => 'boolean',
             'other_hotel_name'       => 'nullable|string|max:255|required_if:is_other_hotel,1',
-            'adults_quantity'        => 'required|integer|min:1',
-            'kids_quantity'          => 'nullable|integer|min:0|max:12',
+            'adults_quantity'        => 'required|integer|min:2|max:12',
+            'kids_quantity'          => 'nullable|integer|min:0|max:2',
             'selected_meeting_point' => 'nullable|integer|exists:meeting_points,id',
         ]);
 
         $user     = $request->user();
         $adults   = (int) $request->adults_quantity;
         $kids     = (int) ($request->kids_quantity ?? 0);
-        $tourDate = $request->tour_date;
-        $expiry   = (int) config('cart.expiry_minutes', 15);
+        $totalPax = $adults + $kids;
+
+        // Enforce total pax <= 12
+        if ($totalPax > 12) {
+            return $this->backOrJsonError($request, __('Máximo 12 personas por reserva (adultos + niños).'));
+        }
 
         $tour     = \App\Models\Tour::with('schedules')->findOrFail((int) $request->tour_id);
         $schedule = $this->findValidScheduleOrFail($tour, (int) $request->schedule_id);
+        $tourDate = $request->tour_date;
 
+        // Blocked date / capacity
         if ($this->capacity->isDateBlocked($tour, $schedule, $tourDate)) {
             return $this->backOrJsonError($request, __('carts.messages.capacity_full'));
         }
 
-        $requested = $adults + $kids;
+        $requested = $totalPax;
         $remaining = $this->capacity->remainingCapacity($tour, $schedule, $tourDate, excludeBookingId: null, countHolds: true);
 
         if ($requested > $remaining) {
@@ -105,16 +113,30 @@ class CartController extends Controller
                 ? __('carts.messages.capacity_full')
                 : __('carts.messages.limited_seats_available', [
                     'available' => $remaining,
-                    'tour'      => $tour->name,
-                    'date'      => Carbon::parse($tourDate)->format('d/m/Y'),
+                    'tour'      => $tour->getTranslatedName(),
+                    'date'      => $this->fmtDateEn($tourDate),
                 ]);
             return $this->backOrJsonError($request, $msg);
         }
 
-        // Pickup resolution (mutually exclusive)
+        // Pickup resolution
         [$hotelId, $isOther, $other, $mpId] = $this->resolvePickupForStore($request);
 
-        $cart = $this->activeCartOrCreate($user->user_id)->refreshExpiry($expiry);
+        // Create cart ONLY if needed when adding the first item
+        $cart = Cart::where('user_id', $user->user_id)
+            ->where('is_active', true)
+            ->latest('cart_id')
+            ->first();
+
+        if (!$cart || $cart->isExpired()) {
+            if ($cart && $cart->isExpired()) {
+                $cart->forceExpire();
+            }
+            $cart = Cart::create([
+                'user_id'   => $user->user_id,
+                'is_active' => true,
+            ])->ensureExpiry((int) config('cart.expiry_minutes', 15));
+        }
 
         CartItem::create([
             'cart_id'          => $cart->cart_id,
@@ -131,19 +153,14 @@ class CartController extends Controller
             'meeting_point_id' => $mpId,
         ]);
 
-        $cart->refreshExpiry($expiry);
-
-        $successMessage = __('carts.messages.item_added') . ' ' .
-            __('carts.messages.cart_expires_in', ['minutes' => $expiry]);
+        $successMessage = __('carts.messages.item_added');
 
         return $request->ajax()
             ? response()->json(['ok' => true, 'message' => $successMessage, 'count' => $this->countRaw($request)])
             : back()->with('success', $successMessage);
     }
 
-    /* ======================================================
-     *  Remove item
-     * ====================================================== */
+    /* ====================== Remove item ====================== */
     public function destroy(Request $request, $itemId)
     {
         abort_unless(Auth::check(), 403);
@@ -151,15 +168,18 @@ class CartController extends Controller
         $cart = $this->activeCartOf(Auth::user());
         if ($cart) {
             $cart->items()->where('item_id', $itemId)->delete();
-            if (!$cart->isExpired()) $cart->refreshExpiry((int) config('cart.expiry_minutes', 15));
+
+            // If there are no items left, expire the cart (avoid empty timers)
+            if ($cart->items()->count() === 0) {
+                $cart->forceExpire();
+                return back()->with('success', __('carts.messages.cart_deleted'));
+            }
         }
 
         return back()->with('success', __('carts.messages.item_removed'));
     }
 
-    /* ======================================================
-     *  Quick count (AJAX)
-     * ====================================================== */
+    /* ====================== Quick count (AJAX) ====================== */
     public function count(Request $request)
     {
         abort_unless(Auth::check(), 403);
@@ -167,6 +187,13 @@ class CartController extends Controller
         $cart = $this->activeCartOf($request->user());
         if (!$cart) return response()->json(['count' => 0, 'expired' => false]);
 
+        // If empty, expire immediately and answer 0
+        if (!$cart->items()->count()) {
+            $cart->forceExpire();
+            return response()->json(['count' => 0, 'expired' => true]);
+        }
+
+        // If expired, force expiration
         if ($cart->isExpired()) {
             $this->expireCart($cart);
             return response()->json(['count' => 0, 'expired' => true]);
@@ -179,120 +206,144 @@ class CartController extends Controller
         ]);
     }
 
-    /* ======================================================
-     *  Expire cart (AJAX)
-     * ====================================================== */
+    /* ====================== Expire cart (AJAX) ====================== */
     public function expire(Request $request)
     {
         abort_unless(Auth::check(), 403);
 
         $cart = $this->activeCartOf($request->user());
-        if (!$cart) return response()->json(['ok' => true, 'message' => __('carts.messages.no_active_cart')]);
+        if (!$cart) return response()->json(['ok' => true, 'already' => 'no_cart']);
 
-        if ($cart->isExpired() || now()->greaterThanOrEqualTo($cart->expires_at)) {
-            $this->expireCart($cart);
-            return response()->json(['ok' => true, 'expired' => true]);
-        }
-
-        return response()->json(['ok' => true, 'expired' => false, 'remaining' => $cart->remainingSeconds()]);
+        $cart->forceExpire();
+        return response()->json(['ok' => true, 'message' => __('carts.messages.cart_expired')]);
     }
 
-    /* ======================================================
-     *  Refresh expiry (AJAX)
-     * ====================================================== */
+    /* ====================== Refresh/Extend expiry (AJAX) ====================== */
     public function refreshExpiry(Request $request)
     {
         abort_unless(Auth::check(), 403);
 
-        $cart = $this->activeCartOrCreate($request->user()->user_id);
-        $cart->refreshExpiry((int) config('cart.expiry_minutes', 15));
+        // Important: DO NOT create a cart if none exists
+        $cart   = $this->activeCartOf($request->user());
+        $extend = (int) config('cart.extend_minutes', 10);
+        $maxExt = (int) config('cart.max_extensions', 1);
+
+        // If there is no cart or it is empty, return 410 and ensure it is not active
+        if (!$cart || !$cart->items()->count()) {
+            if ($cart) $cart->forceExpire();
+            return response()->json([
+                'ok'      => false,
+                'expired' => true,
+                'message' => __('carts.messages.cart_empty'),
+            ], 410);
+        }
+
+        if ($cart->isExpired()) {
+            $this->expireCart($cart);
+            return response()->json(['ok' => false, 'expired' => true, 'message' => __('carts.messages.cart_expired')], 422);
+        }
+
+        if (!$cart->canExtend()) {
+            return response()->json([
+                'ok'              => false,
+                'message'         => __('carts.messages.max_extensions_reached', ['max' => $maxExt]),
+                'expires_at'      => optional($cart->expires_at)->toIso8601String(),
+                'remaining'       => $cart->remainingSeconds(),
+                'extended_count'  => (int) $cart->extended_count,
+                'max_extensions'  => $maxExt,
+            ], 422);
+        }
+
+        $cart->extendOnce($extend);
 
         return response()->json([
-            'ok'         => true,
-            'expires_at' => $cart->expires_at->toIso8601String(),
-            'remaining'  => $cart->remainingSeconds(),
-            'message'    => __('carts.messages.cart_refreshed'),
+            'ok'              => true,
+            'expires_at'      => $cart->expires_at->toIso8601String(),
+            'remaining'       => $cart->remainingSeconds(),
+            'message'         => __('carts.messages.cart_refreshed'),
+            'extended_count'  => (int) $cart->extended_count,
+            'max_extensions'  => $maxExt,
         ]);
     }
 
-    /* ======================================================
-     *  Apply / remove promo
-     * ====================================================== */
+    /* ====================== Promo (public) ====================== */
     public function applyPromo(Request $request)
     {
-        $request->validate(['code' => ['required', 'string', 'max:50']]);
+        abort_unless(Auth::check(), 403);
 
+        $request->validate(['code' => 'required|string|max:100']);
         $user = $request->user();
-        if (!$user) return response()->json(['ok' => false, 'message' => __('carts.messages.no_active_cart')], 401);
 
-        $cart = $user->cart()->where('is_active', true)->orderByDesc('cart_id')->with('items.tour')->first();
-        if (!$cart || !$cart->items->count()) return response()->json(['ok' => false, 'message' => __('carts.messages.cart_empty')], 422);
+        $cart = $user->cart()
+            ->where('is_active', true)
+            ->with('items.tour')
+            ->first();
+
+        if (!$cart || !$cart->items->count()) {
+            return response()->json(['ok' => false, 'message' => __('carts.messages.cart_empty')], 422);
+        }
         if ($cart->isExpired()) {
             $this->expireCart($cart);
             return response()->json(['ok' => false, 'message' => __('carts.messages.cart_expired')], 422);
         }
 
-        $code  = strtoupper(trim($request->code));
-        $promo = PromoCode::whereRaw('UPPER(code) = ?', [$code])->first();
+        $clean = PromoCode::normalize($request->code);
+        $promo = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$clean])->first();
 
-        if (!$promo)                         return response()->json(['ok' => false, 'message' => __('carts.messages.invalid_code')], 422);
-        if (!$promo->isValidToday())         return response()->json(['ok' => false, 'message' => __('carts.messages.code_expired_or_not_yet')], 422);
-        if (!$promo->hasRemainingUses())     return response()->json(['ok' => false, 'message' => __('carts.messages.code_limit_reached')], 422);
-        if ($promo->is_used)                 return response()->json(['ok' => false, 'message' => __('carts.messages.code_already_used')], 422);
+        if (!$promo)                     return response()->json(['ok' => false, 'message' => __('carts.messages.invalid_code')], 422);
+        if (!$promo->isValidToday())     return response()->json(['ok' => false, 'message' => __('carts.messages.code_expired_or_not_yet')], 422);
+        if (!$promo->hasRemainingUses()) return response()->json(['ok' => false, 'message' => __('carts.messages.code_limit_reached')], 422);
+        if ($promo->is_used && ($promo->usage_limit === 1)) {
+            return response()->json(['ok' => false, 'message' => __('carts.messages.code_already_used')], 422);
+        }
 
-        $subtotal = (float) $cart->items->sum(function ($it) {
-            $ap = (float)($it->tour->adult_price ?? 0);
-            $kp = (float)($it->tour->kid_price ?? 0);
-            return ($ap * $it->adults_quantity) + ($kp * $it->kids_quantity);
-        });
+        $subtotal = $this->cartSubtotal($cart);
 
-        $fixed    = max(0.0, (float)($promo->discount_amount ?? 0));
-        $perc     = max(0.0, (float)($promo->discount_percent ?? 0));
-        $fromPerc = round($subtotal * ($perc / 100), 2);
-        $adj      = round($fixed + $fromPerc, 2);
+        $discountFixed    = max(0.0, (float)($promo->discount_amount  ?? 0));
+        $discountPerc     = max(0.0, (float)($promo->discount_percent ?? 0));
+        $discountFromPerc = round($subtotal * ($discountPerc / 100), 2);
+        $adjustment       = round($discountFixed + $discountFromPerc, 2);
+        $operation        = $promo->operation === 'add' ? 'add' : 'subtract';
 
-        $op     = $promo->operation === 'add' ? 'add' : 'subtract';
-        $sign   = $op === 'add' ? +1 : -1;
-        $total  = max(0, round($subtotal + ($sign * $adj), 2));
-
+        // Persist promo in public session
         session([
             'public_cart_promo' => [
                 'code'       => $promo->code,
-                'operation'  => $op,
-                'amount'     => $fixed,
-                'percent'    => $perc,
-                'adjustment' => $adj,
-                'subtotal'   => $subtotal,
-                'new_total'  => $total,
-                'applied_at' => now()->toISOString(),
+                'operation'  => $operation,
+                'amount'     => $discountFixed,
+                'percent'    => $discountPerc,
+                'adjustment' => $adjustment,
+                'applied_at' => now()->toIso8601String(),
             ]
         ]);
 
-        $cart->refreshExpiry((int) config('cart.expiry_minutes', 15));
-
-        $message = $op === 'add'
-            ? __('carts.messages.code_applied') . ' (' . __('surcharge') . ')'
-            : __('carts.messages.code_applied');
+        $newTotal = $this->cartTotalWithSessionPromo($cart);
 
         return response()->json([
             'ok'        => true,
-            'message'   => $message,
             'code'      => $promo->code,
-            'operation' => $op,
-            'adjustment'=> number_format($adj, 2),
-            'subtotal'  => number_format($subtotal, 2),
-            'new_total' => number_format($total, 2),
+            'message'   => __('carts.messages.code_applied'),
+            'new_total' => $newTotal,
         ]);
     }
 
     public function removePromo(Request $request)
     {
+        abort_unless(Auth::check(), 403);
+
         $request->session()->forget('public_cart_promo');
-        return response()->json(['ok' => true, 'message' => __('carts.messages.code_removed')]);
+
+        $cart = $this->activeCartOf($request->user());
+        $newTotal = $cart ? $this->cartSubtotal($cart) : 0.0;
+
+        return response()->json([
+            'ok'        => true,
+            'message'   => __('carts.messages.code_removed'),
+            'new_total' => $newTotal,
+        ]);
     }
 
-    /* ================= Internals ================ */
-
+    /* ====================== Internals ====================== */
     private function expireCart(?Cart $cart): void
     {
         if (!$cart) return;
@@ -317,19 +368,17 @@ class CartController extends Controller
         return (int) ($cart->items_count ?? 0);
     }
 
-    /* ======================================================
-     *  Update item (cart edit)
-     * ====================================================== */
     public function update(Request $request, $itemId)
     {
         abort_unless(Auth::check(), 403);
 
+        // Business rules identical to store()
         $request->validate([
             'tour_date'        => 'required|date|after_or_equal:today',
             'schedule_id'      => 'required|exists:schedules,schedule_id',
             'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
-            'adults_quantity'  => 'required|integer|min:1',
-            'kids_quantity'    => 'nullable|integer|min:0|max:12',
+            'adults_quantity'  => 'required|integer|min:2|max:12',
+            'kids_quantity'    => 'nullable|integer|min:0|max:2',
             'hotel_id'         => 'nullable|integer|exists:hotels_list,hotel_id',
             'is_other_hotel'   => 'boolean',
             'other_hotel_name' => 'nullable|string|max:255|required_if:is_other_hotel,1',
@@ -350,32 +399,38 @@ class CartController extends Controller
         $kids      = (int)($request->kids_quantity ?? 0);
         $requested = $adults + $kids;
 
+        // Enforce total pax <= 12
+        if ($requested > 12) {
+            return back()->with('error', __('Máximo 12 personas en total (adultos + niños).'));
+        }
+
         if ($this->capacity->isDateBlocked($tour, $schedule, $tourDate)) {
             return back()->with('error', __('carts.messages.date_no_longer_available', [
-                'date' => Carbon::parse($tourDate)->format('d/m/Y'), 'min' => 1
+                'date' => $this->fmtDateEn($tourDate), 'min' => 1
             ]));
         }
 
-        $max       = $this->capacity->resolveMaxCapacity($schedule, $tour);
-        $confirmed = $this->capacity->confirmedPaxFor($tourDate, (int)$schedule->schedule_id, null, (int)$tour->tour_id);
-        $held      = $this->capacity->heldPaxInActiveCarts($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id);
-        $remaining = max(0, (int)$max - (int)$confirmed - (int)$held + ($item->adults_quantity + $item->kids_quantity));
+        // remaining = max - confirmed - held + (current item pax)
+        $max        = $this->capacity->resolveMaxCapacity($schedule, $tour);
+        $confirmed  = $this->capacity->confirmedPaxFor($tourDate, (int)$schedule->schedule_id, null, (int)$tour->tour_id);
+        $held       = $this->capacity->heldPaxInActiveCarts($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id);
+        $currentPax = (int)$item->adults_quantity + (int)$item->kids_quantity;
+        $remaining  = max(0, (int)$max - (int)$confirmed - (int)$held + $currentPax);
 
         if ($requested > $remaining) {
             $msg = $remaining <= 0
                 ? __('carts.messages.slot_full')
                 : __('carts.messages.limited_seats_available', [
                     'available' => $remaining,
-                    'tour'      => $tour->name,
-                    'date'      => Carbon::parse($tourDate)->format('d/m/Y'),
+                    'tour'      => $tour->getTranslatedName(),
+                    'date'      => $this->fmtDateEn($tourDate),
                 ]);
             return back()->with('error', $msg);
         }
 
-        // Pickup resolution (mutually exclusive)
+        // Pickup resolution
         [$hotelId, $isOther, $other, $mpId] = $this->resolvePickupForUpdate($request);
 
-        // Persist
         $item->fill([
             'tour_date'        => $tourDate,
             'schedule_id'      => (int)$schedule->schedule_id,
@@ -388,13 +443,10 @@ class CartController extends Controller
             'hotel_id'         => $isOther || $mpId ? null : $hotelId,
         ])->save();
 
-        $cart->refreshExpiry((int) config('cart.expiry_minutes', 15));
-
         return back()->with('success', __('carts.messages.item_updated'));
     }
 
-    /* ================= Helpers ================= */
-
+    /* ---------------- helpers ---------------- */
     private function normalizeHotelInput(Request $request): void
     {
         $in = $request->all();
@@ -421,21 +473,10 @@ class CartController extends Controller
             ->first();
 
         if (!$schedule) {
-            // Mantén el mismo flujo de error hacia atrás
             abort(403, __('carts.messages.schedule_unavailable'));
         }
 
         return $schedule;
-    }
-
-    private function activeCartOrCreate(int $userId): Cart
-    {
-        $cart = Cart::where('user_id', $userId)->where('is_active', true)->orderByDesc('cart_id')->first();
-        if (!$cart || $cart->isExpired()) {
-            if ($cart) $this->expireCart($cart);
-            $cart = Cart::create(['user_id' => $userId, 'is_active' => true]);
-        }
-        return $cart;
     }
 
     private function activeCartOf($user, bool $withTourSchedules = false): ?Cart
@@ -454,9 +495,7 @@ class CartController extends Controller
         $hotelId = $isOther ? null : ($request->hotel_id ?: null);
         $other   = $isOther ? ($request->other_hotel_name ?: null) : null;
 
-        if ($mpId) { // MP wipes hotel/custom
-            $hotelId = null; $isOther = false; $other = null;
-        }
+        if ($mpId) { $hotelId = null; $isOther = false; $other = null; }
 
         return [$hotelId, $isOther, $other, $mpId];
     }
@@ -470,13 +509,9 @@ class CartController extends Controller
         $hotelId = $isOther ? null : ($request->hotel_id ?: null);
         $other   = $isOther ? ($request->other_hotel_name ?: null) : null;
 
-        if ($mpId) {
-            $hotelId = null; $isOther = false; $other = null;
-        } elseif ($isOther) {
-            $mpId = null; $hotelId = null;
-        } elseif ($hotelId) {
-            $mpId = null; $isOther = false; $other = null;
-        }
+        if ($mpId)       { $hotelId = null; $isOther = false; $other = null; }
+        elseif ($isOther){ $mpId = null; $hotelId = null; }
+        elseif ($hotelId){ $mpId = null; $isOther = false; $other = null; }
 
         return [$hotelId, $isOther, $other, $mpId];
     }
@@ -486,5 +521,33 @@ class CartController extends Controller
         return $request->ajax()
             ? response()->json(['ok' => false, 'message' => $message], 422)
             : back()->withInput()->with('error', $message);
+    }
+
+    private function fmtDateEn(string|\DateTimeInterface $date): string
+    {
+        // Example: 30/Oct/2025
+        return Carbon::parse($date)->format('d/M/Y');
+    }
+
+    private function cartSubtotal(Cart $cart): float
+    {
+        return (float) $cart->items->sum(function ($it) {
+            $ap = (float)($it->tour->adult_price ?? 0);
+            $kp = (float)($it->tour->kid_price   ?? 0);
+            $aq = (int)($it->adults_quantity ?? 0);
+            $kq = (int)($it->kids_quantity   ?? 0);
+            return ($ap * $aq) + ($kp * $kq);
+        });
+    }
+
+    private function cartTotalWithSessionPromo(Cart $cart): float
+    {
+        $total = $this->cartSubtotal($cart);
+        $promoSession = session('public_cart_promo');
+        if ($promoSession) {
+            $op = ($promoSession['operation'] ?? 'subtract') === 'add' ? 1 : -1;
+            $total = max(0, round($total + $op * (float)($promoSession['adjustment'] ?? 0), 2));
+        }
+        return $total;
     }
 }

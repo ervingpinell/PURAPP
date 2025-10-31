@@ -47,7 +47,7 @@
       </td>
       <td>{{ $booking->user->full_name ?? '-' }}</td>
       <td title="{{ $tourCellText }}">{{ $tourDisplay }}</td>
-      <td>{{ optional($detail)->tour_date?->format('Y-m-d') ?? '-' }}</td>
+      <td>{{ optional($detail)->tour_date?->format('d-M-Y') ?? '-' }}</td>
       <td>
         @if($detail->schedule)
           {{ \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') }}

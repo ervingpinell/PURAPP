@@ -57,8 +57,7 @@ class BookingCapacityService
     }
 
     /**
-     * Pax confirmados para un tour+schedule+fecha
-     * IMPORTANT: filtrar por tour_id para no mezclar horarios compartidos.
+     * Pax confirmados para un tour+schedule+fecha (filtra por tour_id para no mezclar horarios).
      */
     public function confirmedPaxFor(string $tourDate, int $scheduleId, ?int $excludeBookingId = null, ?int $tourId = null): int
     {
@@ -66,7 +65,7 @@ class BookingCapacityService
                 $q->whereIn('status', $this->bookingCountStatuses);
                 if ($excludeBookingId) $q->where('booking_id', '!=', $excludeBookingId);
             })
-            ->whereNotNull('booking_id') // defensivo
+            ->whereNotNull('booking_id')
             ->when($tourId, fn($q) => $q->where('tour_id', $tourId))
             ->whereDate('tour_date', $tourDate)
             ->where('schedule_id', $scheduleId)
@@ -77,11 +76,11 @@ class BookingCapacityService
 
     /**
      * Pax retenidos en carritos activos (para evitar sobreventa).
-     * Si no quieres considerar “holds”, puedes no usar esta resta.
+     * $excludeCartId: excluye un carrito (el del usuario que está confirmando).
      */
-    public function heldPaxInActiveCarts(string $tourDate, int $scheduleId, int $tourId): int
+    public function heldPaxInActiveCarts(string $tourDate, int $scheduleId, int $tourId, ?int $excludeCartId = null): int
     {
-        $sum = DB::table('cart_items')
+        $q = DB::table('cart_items')
             ->join('carts', 'cart_items.cart_id', '=', 'carts.cart_id')
             ->where('carts.is_active', true)
             ->whereNotNull('carts.expires_at')
@@ -89,24 +88,32 @@ class BookingCapacityService
             ->where('cart_items.is_active', true)
             ->where('cart_items.tour_id', $tourId)
             ->whereDate('cart_items.tour_date', $tourDate)
-            ->where('cart_items.schedule_id', $scheduleId)
-            ->sum(DB::raw('COALESCE(cart_items.adults_quantity,0) + COALESCE(cart_items.kids_quantity,0)'));
+            ->where('cart_items.schedule_id', $scheduleId);
 
-        return (int) $sum;
+        if ($excludeCartId) {
+            $q->where('carts.cart_id', '!=', $excludeCartId);
+        }
+
+        return (int) $q->sum(DB::raw('COALESCE(cart_items.adults_quantity,0) + COALESCE(cart_items.kids_quantity,0)'));
     }
 
     /**
      * Snapshot completo de capacidad para Tour+Schedule+Fecha.
      * Devuelve: ['blocked', 'max', 'confirmed', 'held', 'available'].
      */
-    public function capacitySnapshot(Tour $tour, Schedule $schedule, string $tourDate, ?int $excludeBookingId = null, bool $countHolds = true): array
-    {
+    public function capacitySnapshot(
+        Tour $tour,
+        Schedule $schedule,
+        string $tourDate,
+        ?int $excludeBookingId = null,
+        bool $countHolds = true,
+        ?int $excludeCartId = null
+    ): array {
         $blocked   = $this->isDateBlocked($tour, $schedule, $tourDate);
         $max       = $this->resolveMaxCapacity($schedule, $tour);
         $confirmed = $this->confirmedPaxFor($tourDate, (int)$schedule->schedule_id, $excludeBookingId, (int)$tour->tour_id);
-        $held      = $countHolds ? $this->heldPaxInActiveCarts($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id) : 0;
+        $held      = $countHolds ? $this->heldPaxInActiveCarts($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id, $excludeCartId) : 0;
 
-        // Si está bloqueado, disponibles = 0 (pero devolvemos max/confirmed por transparencia)
         $available = $blocked ? 0 : max(0, (int)$max - (int)$confirmed - (int)$held);
 
         return [
@@ -121,9 +128,15 @@ class BookingCapacityService
     /**
      * Capacidad restante real para Tour+Schedule+Fecha (helper simple).
      */
-    public function remainingCapacity(Tour $tour, Schedule $schedule, string $tourDate, ?int $excludeBookingId = null, bool $countHolds = true): int
-    {
-        $snap = $this->capacitySnapshot($tour, $schedule, $tourDate, $excludeBookingId, $countHolds);
+    public function remainingCapacity(
+        Tour $tour,
+        Schedule $schedule,
+        string $tourDate,
+        ?int $excludeBookingId = null,
+        bool $countHolds = true,
+        ?int $excludeCartId = null
+    ): int {
+        $snap = $this->capacitySnapshot($tour, $schedule, $tourDate, $excludeBookingId, $countHolds, $excludeCartId);
         return (int) $snap['available'];
     }
 }

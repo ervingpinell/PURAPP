@@ -5,6 +5,8 @@ return [
         'will_expire' => 'Tu carrito expirará pronto.',
         'time_left'   => 'Tiempo restante:',
         'extend'      => 'Extender :count min|Extender :count min',
+        'already_extended' => 'Ya se ha extendido el tiempo de espera. No se puede extender más.',
+        'cart_deleted' => 'Tu carrito se ha eliminado automáticamente porque no tiene productos.',
     ],
 
     'title_all' => 'Todos los carritos de clientes',
@@ -148,5 +150,30 @@ return [
     'messages.cart_expires_in' => 'El carrito expirará en :minutes minutos.',
     'messages.cart_being_processed' => 'Tu carrito está siendo procesado. Por favor intenta de nuevo en unos segundos.',
 
+    'messages' => [
+        'limited_seats_available' => 'Solo quedan :available espacios para ":tour" el :date.',
+        'cart_empty'              => 'Tu carrito está vacío.',
+        'cart_expired'            => 'Tu carrito ha expirado.',
+        'schedule_unavailable'    => 'El horario seleccionado ya no está disponible.',
+        'extend_success'          => 'Tu carrito se ha extendido correctamente.',
+        'max_extensions_reached'  => 'Has alcanzado el número máximo de extensiones.',
+        'cart_being_processed'    => 'Tu carrito está siendo procesado, intenta de nuevo en unos segundos.',
+        'code_applied'            => 'Código aplicado',
+        'code_removed'            => 'Código eliminado',
+        'enter_code'              => 'Ingresa un código promocional.',
+        'invalid_code'            => 'Código inválido.',
+        'code_apply_failed'       => 'No se pudo aplicar el código.',
+        'code_remove_failed'      => 'No se pudo eliminar el código.',
+        'will_expire' => 'Tu carrito expirará pronto.',
+        'time_left'   => 'Tiempo restante:',
+        'extend'      => 'Extender :count min|Extender :count min',
+        'already_extended' => 'Ya has extendido tu carrito una vez.',
+        'extend_limit_reached' => 'Solo puedes extender el tiempo una vez.',
+
+        'cart_deleted' => 'Tu carrito se ha eliminado automáticamente porque no tiene productos.',
+        'cart_refreshed' => 'Se extendió el tiempo de tu carrito.',
+        'extend_success' => 'Carrito extendido correctamente.',
+        'max_extensions_reached' => 'Ya alcanzaste el máximo de extensiones permitidas.',
+    ],
 
 ];
