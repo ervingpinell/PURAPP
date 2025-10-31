@@ -317,10 +317,32 @@ return [
         'route' => 'admin.home',
         'icon' => 'fas fa-fw fa-home'
     ],
+        // ✅ RESERVAS
     [
-        'text' => 'Mi Perfil',
-        'route'=> 'profile.edit',
-        'icon' => 'fas fa-fw fa-user',
+        'text'    => 'Reservas',
+        'icon'    => 'fas fa-calendar-check',
+        'submenu' => [
+            [
+                'text' => 'Ver Reservas',
+                'route' => 'admin.bookings.index',
+                'icon'  => 'fas fa-calendar-check',
+            ],
+            // [
+            //     'text' => 'Calendario',
+            //     'route' => 'admin.bookings.calendar',
+            //     'icon'  => 'fas fa-calendar-alt',
+            // ],
+            [
+                'text'  => 'Bloquear Fechas',
+                'route' => 'admin.tours.excluded_dates.index',
+                'icon' => 'fas fa-ban',
+            ],
+                        [
+                'text'  => 'Cut-Off',
+                'route' => 'admin.tours.cutoff.edit',
+                'icon'  => 'fas fa-clock',
+            ],
+        ],
     ],
 
     // ✅ CARRITOS
@@ -389,34 +411,6 @@ return [
                 'text'  => 'Meeting Points',
                 'route' => 'admin.meetingpoints.index',
                 'icon'  => 'fas fa-map-marker-alt',
-            ],
-        ],
-    ],
-
-    // ✅ RESERVAS
-    [
-        'text'    => 'Reservas',
-        'icon'    => 'fas fa-calendar-check',
-        'submenu' => [
-            [
-                'text' => 'Ver Reservas',
-                'route' => 'admin.bookings.index',
-                'icon'  => 'fas fa-calendar-check',
-            ],
-            // [
-            //     'text' => 'Calendario',
-            //     'route' => 'admin.bookings.calendar',
-            //     'icon'  => 'fas fa-calendar-alt',
-            // ],
-            [
-                'text'  => 'Bloquear Fechas',
-                'route' => 'admin.tours.excluded_dates.index',
-                'icon' => 'fas fa-ban',
-            ],
-                        [
-                'text'  => 'Cut-Off',
-                'route' => 'admin.tours.cutoff.edit',
-                'icon'  => 'fas fa-clock',
             ],
         ],
     ],
@@ -531,6 +525,11 @@ return [
                 'icon' => 'fas fa-chart-line',
             ],
 
+                [
+        'text' => 'Mi Perfil',
+        'route'=> 'profile.edit',
+        'icon' => 'fas fa-fw fa-user',
+    ],
 
 [
     'text'         => '🌐',
