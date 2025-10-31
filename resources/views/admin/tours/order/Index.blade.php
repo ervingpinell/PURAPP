@@ -34,7 +34,7 @@
   }
 
   .helper-text{
-    color: var(--muted);
+    color: var(--border);
     font-size: .95rem;
     margin-bottom: .75rem;
   }
@@ -50,8 +50,8 @@
     margin-bottom: .6rem;
     border: 1px solid var(--border);
     border-radius: .75rem;
-    background: var(--card-bg);
-    color: var(--card-text);
+    background: none;
+    color: var(--card-bg);
     box-shadow: 0 2px 6px rgba(0,0,0,.05);
     transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
     cursor: grab;

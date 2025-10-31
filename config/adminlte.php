@@ -371,11 +371,6 @@ return [
                 'route' => 'admin.tourtypes.index',
                 'icon' => 'fas fa-tags',
             ],
-            [
-                'text'  => 'Cut-Off',
-                'route' => 'admin.tours.cutoff.edit',
-                'icon'  => 'fas fa-clock',
-            ],
 
         ],
     ],
@@ -417,6 +412,11 @@ return [
                 'text'  => 'Bloquear Fechas',
                 'route' => 'admin.tours.excluded_dates.index',
                 'icon' => 'fas fa-ban',
+            ],
+                        [
+                'text'  => 'Cut-Off',
+                'route' => 'admin.tours.cutoff.edit',
+                'icon'  => 'fas fa-clock',
             ],
         ],
     ],
