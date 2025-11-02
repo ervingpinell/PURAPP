@@ -45,6 +45,7 @@ use App\Http\Controllers\Admin\Users\RoleController;
 use App\Http\Controllers\Admin\Users\UserRegisterController;
 use App\Http\Controllers\Admin\MeetingPointSimpleController;
 use App\Http\Controllers\Admin\TranslationController;
+use App\Http\Controllers\Admin\CustomerCategoryController;
 
 // Public bookings controller (split)
 use App\Http\Controllers\Bookings\BookingController as PublicBookingController;
@@ -281,6 +282,12 @@ Route::middleware([SetLocale::class])->group(function () {
 
                 Route::resource('roles', RoleController::class)->except(['show', 'create']);
                 Route::patch('roles/{role}/toggle', [RoleController::class, 'toggle'])->name('roles.toggle');
+
+                Route::resource('customer_categories', CustomerCategoryController::class)
+                ->parameters(['customer_categories' => 'category']);
+
+                Route::post('customer_categories/{category}/toggle', [CustomerCategoryController::class, 'toggle'])
+                ->name('customer_categories.toggle');
 
                 // Translations
                 Route::get('translations', [TranslationController::class, 'index'])->name('translations.index');
