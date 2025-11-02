@@ -394,6 +394,12 @@ return [
                 'icon' => 'fas fa-tags',
             ],
 
+                        [
+                'text' => 'Tipos de clientes',
+                'route' => 'admin.customer_categories.index',
+                'icon' => 'fas fa-tags',
+            ],
+
         ],
     ],
 
