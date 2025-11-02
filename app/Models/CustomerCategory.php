@@ -148,4 +148,22 @@ class CustomerCategory extends Model
 
         return $translation?->name ?? $this->name;
     }
+
+    /**
+ * Relación con precios de tours
+ */
+public function tourPrices()
+{
+    return $this->hasMany(TourPrice::class, 'category_id', 'category_id');
+}
+
+/**
+ * Tours que usan esta categoría
+ */
+public function tours()
+{
+    return $this->belongsToMany(Tour::class, 'tour_prices', 'category_id', 'tour_id')
+        ->withPivot(['price', 'min_quantity', 'max_quantity', 'is_active'])
+        ->withTimestamps();
+}
 }

@@ -254,24 +254,33 @@ public function index(ReviewDistributor $distributor, ReviewsCacheManager $cache
 private function loadActiveToursWithTranslations(string $loc, string $fb): Collection
 {
     return Tour::query()
-        ->with(['tourType:tour_type_id,name', 'tourType.translations', 'translations', 'coverImage'])
+        ->with([
+            'tourType:tour_type_id,name',
+            'tourType.translations',
+            'translations',
+            'coverImage',
+            'prices' => function($q) {
+                $q->where('is_active', true)
+                  ->with(['category' => function($cq) {
+                      $cq->where('is_active', true);
+                  }])
+                  ->orderBy('category_id');
+            }
+        ])
         ->leftJoin('tour_type_tour_order as o', function ($join) {
             $join->on('o.tour_id', '=', 'tours.tour_id')
                  ->on('o.tour_type_id', '=', 'tours.tour_type_id');
         })
         ->where('tours.is_active', true)
-        // === Orden asegurado por categoría y posición ===
-        ->orderBy('tours.tour_type_id')                                // agrupa por categoría
-        ->orderByRaw('CASE WHEN o.position IS NULL THEN 1 ELSE 0 END') // con posición primero
-        ->orderBy('o.position')                                        // orden definido (drag & drop)
-        ->orderBy('tours.name')                                        // desempate estable
+        ->orderBy('tours.tour_type_id')
+        ->orderByRaw('CASE WHEN o.position IS NULL THEN 1 ELSE 0 END')
+        ->orderBy('o.position')
+        ->orderBy('tours.name')
         ->get([
             'tours.tour_id',
             'tours.name',
             'tours.slug',
             'tours.tour_type_id',
-            'tours.adult_price',
-            'tours.kid_price',
             'tours.length',
         ])
         ->map(function ($tour) use ($loc, $fb) {
@@ -279,10 +288,31 @@ private function loadActiveToursWithTranslations(string $loc, string $fb): Colle
             $tour->translated_name     = $tr->name ?? $tour->name;
             $tour->translated_overview = $tr->overview ?? $tour->overview;
             $tour->tour_type_id_group  = optional($tour->tourType)->tour_type_id ?? 'uncategorized';
+
+            // Calcular precios desde las categorías
+            $activePrices = $tour->prices->filter(function($price) {
+                return $price->is_active &&
+                       $price->category &&
+                       $price->category->is_active;
+            });
+
+            // Obtener el precio mínimo para mostrar
+            $tour->min_price = $activePrices->min('price') ?? 0;
+
+            // Si necesitas adultos/niños específicos, busca por slug de categoría
+            $adultPrice = $activePrices->first(function($p) {
+                return $p->category && in_array($p->category->slug, ['adult', 'adulto', 'adults']);
+            });
+            $childPrice = $activePrices->first(function($p) {
+                return $p->category && in_array($p->category->slug, ['child', 'nino', 'kids', 'children']);
+            });
+
+            $tour->adult_price = $adultPrice ? $adultPrice->price : $tour->min_price;
+            $tour->kid_price = $childPrice ? $childPrice->price : 0;
+
             return $tour;
         });
 }
-
     private function computeTourBlocks(Tour $tour): array
     {
         $visibleScheduleIds = $tour->schedules->pluck('schedule_id')->map(fn($sid) => (int)$sid)->all();

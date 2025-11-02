@@ -1,70 +1,74 @@
 @extends('adminlte::page')
-<style>
-  #modalRegistrar .card { border: 1px solid rgba(255,255,255,.08); }
-  #modalRegistrar .schedule-row:last-child { border-bottom: 0 !important; margin-bottom: 0 !important; padding-bottom: 0 !important; }
-  .form-control-color { height: 38px; }
-</style>
-
-@section('adminlte_css_pre')
-    <link rel="stylesheet" href="{{ asset('css/gv.css') }}">
-@stop
 
 @section('title', __('m_tours.tour.ui.page_title'))
+
 @section('content_header')
-    <h1>{{ __('m_tours.tour.ui.page_heading') }}</h1>
+    <div class="d-flex justify-content-between align-items-center">
+        <h1>{{ __('m_tours.tour.ui.page_heading') }}</h1>
+        <a href="{{ route('admin.tours.create') }}" class="btn btn-success">
+            <i class="fas fa-plus"></i> {{ __('m_tours.tour.ui.add_tour') }}
+        </a>
+    </div>
 @stop
 
 @section('content')
-    <div class="btn-group mb-2" role="group">
-        <a href="{{ route('admin.tours.index', ['status' => 'active']) }}" class="btn btn-outline-primary {{ ($status ?? '')==='active' ? 'active' : '' }}">{{ __('m_tours.tour.ui.actives') }}</a>
-        <a href="{{ route('admin.tours.index', ['status' => 'inactive']) }}" class="btn btn-outline-primary {{ ($status ?? '')==='inactive' ? 'active' : '' }}">{{ __('m_tours.tour.ui.inactives') }}</a>
-        <a href="{{ route('admin.tours.index', ['status' => 'archived']) }}" class="btn btn-outline-primary {{ ($status ?? '')==='archived' ? 'active' : '' }}">{{ __('m_tours.tour.ui.archived') }}</a>
-        <a href="{{ route('admin.tours.index', ['status' => 'all']) }}" class="btn btn-outline-secondary {{ ($status ?? '')==='all' ? 'active' : '' }}">{{ __('m_tours.tour.ui.all') }}</a>
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ session('error') }}
+        </div>
+    @endif
+
+    {{-- Filtros de estado --}}
+    <div class="btn-group mb-3" role="group">
+        <a href="{{ route('admin.tours.index', ['status' => 'active']) }}"
+           class="btn btn-outline-primary {{ ($status ?? '')==='active' ? 'active' : '' }}">
+            {{ __('m_tours.tour.ui.actives') }}
+        </a>
+        <a href="{{ route('admin.tours.index', ['status' => 'inactive']) }}"
+           class="btn btn-outline-primary {{ ($status ?? '')==='inactive' ? 'active' : '' }}">
+            {{ __('m_tours.tour.ui.inactives') }}
+        </a>
+        <a href="{{ route('admin.tours.index', ['status' => 'archived']) }}"
+           class="btn btn-outline-primary {{ ($status ?? '')==='archived' ? 'active' : '' }}">
+            {{ __('m_tours.tour.ui.archived') }}
+        </a>
+        <a href="{{ route('admin.tours.index', ['status' => 'all']) }}"
+           class="btn btn-outline-secondary {{ ($status ?? '')==='all' ? 'active' : '' }}">
+            {{ __('m_tours.tour.ui.all') }}
+        </a>
     </div>
 
-    <div class="p-3 table-responsive">
+    {{-- Botón carrito --}}
+    <a href="{{ route('admin.carts.index') }}" class="btn btn-primary mb-3 float-right">
+        <i class="fas fa-shopping-cart"></i> {{ __('m_tours.tour.ui.view_cart') }}
+    </a>
 
-        {{-- Botón para registrar un nuevo tour --}}
-        <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-            <i class="fas fa-plus"></i> {{ __('m_tours.tour.ui.add_tour') }}
-        </a>
+    <div class="clearfix"></div>
 
-        {{-- Botón para ver el carrito (si aplica) --}}
-        <a href="{{ route('admin.carts.index') }}" class="btn btn-primary mb-3">
-            <i class="fas fa-shopping-cart"></i> {{ __('m_tours.tour.ui.view_cart') }}
-        </a>
-
-        {{-- Tabla de tours --}}
-        <div class="table-responsive">
+    {{-- Tabla de tours --}}
+    <div class="card">
+        <div class="card-body p-0">
             @include('admin.tours.tourlist')
         </div>
     </div>
-
-    {{-- Template de ítems de itinerario --}}
-    @include('admin.tours.itinerary.template')
-
-    {{-- Modal de creación --}}
-    @include('admin.tours.create')
-
-    {{-- Modales de edición --}}
-    @include('admin.tours.edit')
 @stop
 
-@php
-    // JSON para previsualizar itinerarios
-    $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {
-        return [
-            'description' => $it->description,
-            'items' => $it->items->map(function ($item) {
-                return [
-                    'title' => $item->title,
-                    'description' => $item->description,
-                ];
-            })->toArray()
-        ];
-    });
-@endphp
-
 @section('js')
-    @include('admin.tours.scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    @if(session('success'))
+        Swal.fire({ icon: 'success', title: @json(session('success')), timer: 2000, showConfirmButton: false });
+    @endif
+    @if(session('error'))
+        Swal.fire({ icon: 'error', title: @json(session('error')), timer: 2500, showConfirmButton: false });
+    @endif
+</script>
 @stop

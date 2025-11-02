@@ -368,4 +368,63 @@ private function activeCartOf($user, bool $withTourSchedules = false): ?Cart
     }
     return $q->first();
 }
+
+// Agregar al modelo Tour.php
+
+/**
+ * Relación con precios por categoría
+ */
+public function prices()
+{
+    return $this->hasMany(TourPrice::class, 'tour_id', 'tour_id');
+}
+
+/**
+ * Precios activos con categorías cargadas
+ */
+public function activePrices()
+{
+    return $this->hasMany(TourPrice::class, 'tour_id', 'tour_id')
+        ->where('is_active', true)
+        ->with('category')
+        ->join('customer_categories', 'tour_prices.category_id', '=', 'customer_categories.category_id')
+        ->where('customer_categories.is_active', true)
+        ->orderBy('customer_categories.order');
+}
+
+/**
+ * Obtiene el precio para una categoría específica
+ */
+public function getPriceForCategory(int|string $categoryId): ?TourPrice
+{
+    // Acepta category_id o slug
+    if (is_string($categoryId)) {
+        $category = CustomerCategory::where('slug', $categoryId)->first();
+        if (!$category) return null;
+        $categoryId = $category->category_id;
+    }
+
+    return $this->prices()
+        ->where('category_id', $categoryId)
+        ->where('is_active', true)
+        ->first();
+}
+
+/**
+ * Helper para obtener precio de adultos (backward compatibility)
+ */
+public function getAdultPriceAttribute(): ?float
+{
+    $adultPrice = $this->getPriceForCategory('adult');
+    return $adultPrice ? (float) $adultPrice->price : null;
+}
+
+/**
+ * Helper para obtener precio de niños (backward compatibility)
+ */
+public function getKidPriceAttribute(): ?float
+{
+    $kidPrice = $this->getPriceForCategory('child');
+    return $kidPrice ? (float) $kidPrice->price : null;
+}
 }

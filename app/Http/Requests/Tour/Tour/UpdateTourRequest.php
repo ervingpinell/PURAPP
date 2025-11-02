@@ -50,7 +50,7 @@ class UpdateTourRequest extends FormRequest
 
     public function rules(): array
     {
-        $tourId = $this->route('tour'); // Obtener el ID del tour actual
+        $tourId = $this->route('tour');
 
         return [
             'name'                         => ['required','string','max:255'],
@@ -62,8 +62,15 @@ class UpdateTourRequest extends FormRequest
                 Rule::unique('tours', 'slug')->ignore($tourId, 'tour_id')
             ],
             'overview'                     => ['nullable','string'],
-            'adult_price'                  => ['required','numeric','min:0'],
-            'kid_price'                    => ['nullable','numeric','min:0'],
+
+            // NUEVO: Sistema de precios por categoría
+            'prices'                       => ['nullable','array'],
+            'prices.*.category_id'         => ['required','exists:customer_categories,category_id'],
+            'prices.*.price'               => ['required','numeric','min:0'],
+            'prices.*.min_quantity'        => ['required','integer','min:0'],
+            'prices.*.max_quantity'        => ['required','integer','min:0'],
+            'prices.*.is_active'           => ['boolean'],
+
             'max_capacity'                 => ['required','integer','min:1'],
             'length'                       => ['required','numeric','min:1'],
             'tour_type_id'                 => ['required','exists:tour_types,tour_type_id'],
@@ -100,6 +107,8 @@ class UpdateTourRequest extends FormRequest
             'slug.unique' => 'Este slug ya está en uso por otro tour.',
             'languages.required' => 'Debes seleccionar al menos un idioma.',
             'languages.min'      => 'Debes seleccionar al menos un idioma.',
+            'prices.*.category_id.required' => 'Debes seleccionar una categoría para cada precio.',
+            'prices.*.price.required' => 'El precio es obligatorio.',
         ];
     }
 
