@@ -166,4 +166,5 @@ public function tours()
         ->withPivot(['price', 'min_quantity', 'max_quantity', 'is_active'])
         ->withTimestamps();
 }
+
 }

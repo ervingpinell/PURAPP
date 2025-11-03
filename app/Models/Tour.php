@@ -8,10 +8,25 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+// Relacionados
+use App\Models\{
+    TourType,
+    TourLanguage,
+    Amenity,
+    Schedule,
+    TourAvailability,
+    Itinerary,
+    TourExcludedDate,
+    TourTranslation,
+    Booking,
+    TourImage,
+    TourPrice,
+    CustomerCategory
+};
+
 class Tour extends Model
 {
-    use HasFactory;
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'tours';
     protected $primaryKey = 'tour_id';
@@ -25,8 +40,6 @@ class Tour extends Model
         'name',
         'slug',
         'overview',
-        'adult_price',
-        'kid_price',
         'length',
         'max_capacity',
         'is_active',
@@ -39,8 +52,6 @@ class Tour extends Model
     ];
 
     protected $casts = [
-        'adult_price'  => 'float',
-        'kid_price'    => 'float',
         'length'       => 'float',
         'max_capacity' => 'int',
         'is_active'    => 'bool',
@@ -173,14 +184,14 @@ class Tour extends Model
             'tour_id',
             'schedule_id'
         )
-            ->withPivot(['is_active', 'cutoff_hour', 'lead_days'])
+            ->withPivot(['is_active', 'cutoff_hour', 'lead_days', 'base_capacity'])
             ->withTimestamps();
     }
 
     public function activeSchedules()
     {
         return $this->belongsToMany(
-            \App\Models\Schedule::class,
+            Schedule::class,
             'schedule_tour',
             'tour_id',
             'schedule_id'
@@ -218,10 +229,82 @@ class Tour extends Model
         return $this->hasMany(Booking::class, 'tour_id', 'tour_id');
     }
 
+    /** Orden por tipo (si usas el pivot de ordenamiento por tipo) */
+    public function typeOrders()
+    {
+        return $this->belongsToMany(
+            TourType::class,
+            'tour_type_tour_order',
+            'tour_id',
+            'tour_type_id'
+        )->withPivot('position');
+    }
+
+    /**
+     * Relación con precios por categoría
+     */
+    public function prices()
+    {
+        return $this->hasMany(TourPrice::class, 'tour_id', 'tour_id');
+    }
+
+    /**
+     * Precios activos con categorías cargadas
+     */
+    public function activePrices()
+    {
+        return $this->hasMany(TourPrice::class, 'tour_id', 'tour_id')
+            ->where('is_active', true)
+            ->with('category')
+            ->whereHas('category', fn($q) => $q->where('is_active', true))
+            ->orderBy('category_id');
+    }
+
+    /**
+     * Obtiene el precio para una categoría específica (id o slug)
+     */
+    public function getPriceForCategory(int|string $categoryIdOrSlug): ?TourPrice
+    {
+        $categoryId = $categoryIdOrSlug;
+
+        if (is_string($categoryIdOrSlug)) {
+            $category = CustomerCategory::where('slug', $categoryIdOrSlug)->first();
+            if (!$category) return null;
+            $categoryId = $category->category_id;
+        }
+
+        return $this->prices()
+            ->where('category_id', $categoryId)
+            ->where('is_active', true)
+            ->first();
+    }
+
+    /**
+     * Accessor de SOLO LECTURA para no romper vistas que lean $tour->adult_price
+     * (calcula desde tour_prices con slug 'adult')
+     */
+    public function getAdultPriceAttribute(): ?float
+    {
+        $adultPrice = $this->getPriceForCategory('adult');
+        return $adultPrice ? (float) $adultPrice->price : null;
+    }
+
+    /**
+     * Accessor de SOLO LECTURA para no romper vistas que lean $tour->kid_price
+     * (calcula desde tour_prices con slug 'kid' o 'child')
+     */
+    public function getKidPriceAttribute(): ?float
+    {
+        $kid = $this->getPriceForCategory('kid') ?: $this->getPriceForCategory('child');
+        return $kid ? (float) $kid->price : null;
+    }
+
+    /* =====================
+     * Traducciones helpers
+     * ===================== */
     public function translate(?string $locale = null)
     {
         $locale = $locale ?: app()->getLocale() ?: 'es';
-
         $locale = str_replace('_', '-', $locale);
         $candidates = [$locale];
 
@@ -292,6 +375,9 @@ class Tour extends Model
         return ($tr?->overview) ?? ($this->overview ?? '');
     }
 
+    /* =====================
+     * Imágenes helpers
+     * ===================== */
     public function getImagesAttribute(): array
     {
         $dir = "tours/{$this->tour_id}/gallery";
@@ -351,82 +437,9 @@ class Tour extends Model
         return [asset('images/volcano.png')];
     }
 
-    public function typeOrders()
-{
-    return $this->belongsToMany(
-        TourType::class,
-        'tour_type_tour_order',
-        'tour_id',
-        'tour_type_id'
-    )->withPivot('position');
-}
-private function activeCartOf($user, bool $withTourSchedules = false): ?Cart
-{
-    $q = $user->cart()->where('is_active', true)->orderByDesc('cart_id');
-    if ($withTourSchedules) {
-        $q->with(['items.tour.schedules', 'items.tour.translations']);
-    }
-    return $q->first();
-}
-
-// Agregar al modelo Tour.php
-
-/**
- * Relación con precios por categoría
- */
-public function prices()
-{
-    return $this->hasMany(TourPrice::class, 'tour_id', 'tour_id');
-}
-
-/**
- * Precios activos con categorías cargadas
- */
-public function activePrices()
-{
-    return $this->hasMany(TourPrice::class, 'tour_id', 'tour_id')
-        ->where('is_active', true)
-        ->with('category')
-        ->join('customer_categories', 'tour_prices.category_id', '=', 'customer_categories.category_id')
-        ->where('customer_categories.is_active', true)
-        ->orderBy('customer_categories.order');
-}
-
-/**
- * Obtiene el precio para una categoría específica
- */
-public function getPriceForCategory(int|string $categoryId): ?TourPrice
-{
-    // Acepta category_id o slug
-    if (is_string($categoryId)) {
-        $category = CustomerCategory::where('slug', $categoryId)->first();
-        if (!$category) return null;
-        $categoryId = $category->category_id;
-    }
-
-    return $this->prices()
-        ->where('category_id', $categoryId)
-        ->where('is_active', true)
-        ->first();
-}
-
-/**
- * Helper para obtener precio de adultos (backward compatibility)
- */
-public function getAdultPriceAttribute(): ?float
-{
-    $adultPrice = $this->getPriceForCategory('adult');
-    return $adultPrice ? (float) $adultPrice->price : null;
-}
-
-/**
- * Helper para obtener precio de niños (backward compatibility)
- */
-public function getKidPriceAttribute(): ?float
-{
-    $kidPrice = $this->getPriceForCategory('child');
-    return $kidPrice ? (float) $kidPrice->price : null;
-}
+    /* =====================
+     * Capacidad helpers
+     * ===================== */
 
     /**
      * Obtener capacidad efectiva para una fecha y horario específico
@@ -438,90 +451,78 @@ public function getKidPriceAttribute(): ?float
      */
     public function getEffectiveCapacity(string $date, int $scheduleId): int
     {
-        // 1. Buscar override día+horario
+        // 1) Override día+horario
         $dayScheduleOverride = TourAvailability::where('tour_id', $this->tour_id)
             ->where('schedule_id', $scheduleId)
-            ->where('date', $date)
+            ->whereDate('date', $date)
             ->first();
 
         if ($dayScheduleOverride) {
-            // Si está bloqueado, capacidad = 0
             if ($dayScheduleOverride->is_blocked) {
                 return 0;
             }
-            // Si tiene capacidad definida, usarla
             if ($dayScheduleOverride->max_capacity !== null) {
                 return (int) $dayScheduleOverride->max_capacity;
             }
         }
 
-        // 2. Buscar override por día (sin horario específico)
+        // 2) Override por día (sin horario)
         $dayOverride = TourAvailability::where('tour_id', $this->tour_id)
             ->whereNull('schedule_id')
-            ->where('date', $date)
+            ->whereDate('date', $date)
             ->first();
 
         if ($dayOverride) {
-            // Si está bloqueado, capacidad = 0
             if ($dayOverride->is_blocked) {
                 return 0;
             }
-            // Si tiene capacidad definida, usarla
             if ($dayOverride->max_capacity !== null) {
                 return (int) $dayOverride->max_capacity;
             }
         }
 
-        // 3. Buscar override en el pivote (base_capacity del horario para este tour)
+        // 3) Capacidad del pivote schedule_tour
         $schedule = $this->schedules()
             ->where('schedules.schedule_id', $scheduleId)
             ->first();
 
-        if ($schedule && $schedule->pivot->base_capacity !== null) {
+        if ($schedule && $schedule->pivot && $schedule->pivot->base_capacity !== null) {
             return (int) $schedule->pivot->base_capacity;
         }
 
-        // 4. Usar capacidad base del tour
-        return (int) ($this->max_capacity ?? 15); // Default 15 si no está definido
+        // 4) Capacidad base del tour (o default 15 si no se definió)
+        return (int) ($this->max_capacity ?? 15);
     }
 
     /**
-     * Obtener el nivel de override aplicado (para UI)
+     * Indica el nivel de override aplicado (para UI)
      * Retorna: 'day-schedule', 'day', 'pivot', 'tour', o 'blocked'
      */
     public function getCapacityOverrideLevel(string $date, int $scheduleId): string
     {
-        // Verificar día+horario
         $dayScheduleOverride = TourAvailability::where('tour_id', $this->tour_id)
             ->where('schedule_id', $scheduleId)
-            ->where('date', $date)
+            ->whereDate('date', $date)
             ->first();
-
         if ($dayScheduleOverride) {
             return $dayScheduleOverride->is_blocked ? 'blocked' : 'day-schedule';
         }
 
-        // Verificar día
         $dayOverride = TourAvailability::where('tour_id', $this->tour_id)
             ->whereNull('schedule_id')
-            ->where('date', $date)
+            ->whereDate('date', $date)
             ->first();
-
         if ($dayOverride) {
             return $dayOverride->is_blocked ? 'blocked' : 'day';
         }
 
-        // Verificar pivote
         $schedule = $this->schedules()
             ->where('schedules.schedule_id', $scheduleId)
             ->first();
-
-        if ($schedule && $schedule->pivot->base_capacity !== null) {
+        if ($schedule && $schedule->pivot && $schedule->pivot->base_capacity !== null) {
             return 'pivot';
         }
 
-        // Capacidad base del tour
         return 'tour';
     }
-
 }

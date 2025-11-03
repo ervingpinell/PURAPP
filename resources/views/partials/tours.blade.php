@@ -2,10 +2,6 @@
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * Estima nº de filas a partir de caracteres por línea.
- * (Servirá solo para reservar altura mínima; el título SIEMPRE se muestra completo)
- */
 function estimate_rows(string $text, int $charsPerLine): int {
     $t = trim(preg_replace('/\s+/u', ' ', $text) ?? '');
     $len = mb_strlen($t);
@@ -37,7 +33,6 @@ $coverFromFolder = function (?int $tourId): string {
     return $first ? asset('storage/'.$first) : asset('images/volcano.png');
 };
 
-/* Filas para los títulos de las cards de HOME (según el más largo) */
 $typeTitles = collect($typeMeta)
     ->map(fn($m) => (string)($m['title'] ?? ''))
     ->filter();
@@ -53,7 +48,6 @@ $homeRowsLG = min(4, max(1, (int)ceil($typeTitles->map(fn($t)=>estimate_rows($t,
 
 @foreach ($typeMeta as $key => $meta)
   @php
-      /** @var \Illuminate\Support\Collection $group */
       $group = $toursByType[$key] ?? collect();
       if ($group->isEmpty()) continue;
 
@@ -70,7 +64,6 @@ $homeRowsLG = min(4, max(1, (int)ceil($typeTitles->map(fn($t)=>estimate_rows($t,
 
       $slugKey = Str::slug((string)$key);
 
-      /* Filas para títulos de cada MODAL (según su lista de tours) */
       $rowsXS = max_rows_for_group($group, fn($t)=>$t->getTranslatedName(), 14, 1, 4);
       $rowsSM = max_rows_for_group($group, fn($t)=>$t->getTranslatedName(), 18, 1, 4);
       $rowsMD = max_rows_for_group($group, fn($t)=>$t->getTranslatedName(), 24, 1, 4);
@@ -99,7 +92,7 @@ $homeRowsLG = min(4, max(1, (int)ceil($typeTitles->map(fn($t)=>estimate_rows($t,
     </div>
   </div>
 
-  {{-- Modal por tipo (sin JS; reserva de altura, sin truncado) --}}
+  {{-- Modal por tipo --}}
   <div class="modal fade modal-fix-top" id="modal-{{ $slugKey }}" tabindex="-1"
        aria-labelledby="modalLabel-{{ $slugKey }}" aria-hidden="true"
        style="--title-rows-xs:{{$rowsXS}};--title-rows-sm:{{$rowsSM}};--title-rows-md:{{$rowsMD}};--title-rows-lg:{{$rowsLG}};">
@@ -124,6 +117,14 @@ $homeRowsLG = min(4, max(1, (int)ceil($typeTitles->map(fn($t)=>estimate_rows($t,
 
                   $unitLabel = __('adminlte::adminlte.horas');
                   $durLabel  = __('adminlte::adminlte.duration');
+
+                  // Obtener categorías activas con precios
+                  $activeCategories = $tour->prices()
+                      ->where('is_active', true)
+                      ->whereHas('category', fn($q) => $q->where('is_active', true))
+                      ->with('category')
+                      ->orderBy('category_id')
+                      ->get();
                 @endphp
 
                 <div class="col d-flex">
@@ -138,22 +139,39 @@ $homeRowsLG = min(4, max(1, (int)ceil($typeTitles->map(fn($t)=>estimate_rows($t,
                         </p>
                       @endif
 
-                      <div class="mb-3 small mt-auto">
-                        <div class="d-flex justify-content-between">
-                          <div>
-                            <strong>{{ __('adminlte::adminlte.adult') }}</strong>
-                            <small>({{ __('adminlte::adminlte.age_10_plus') }})</small>
-                          </div>
-                          <strong style="color:#006633">${{ number_format($tour->adult_price, 2) }}</strong>
+                      @if($activeCategories->isNotEmpty())
+                        <div class="mb-3 small mt-auto">
+                          @foreach($activeCategories as $priceRecord)
+                            @php
+                              $category = $priceRecord->category;
+                              $categoryName = $category->name ?? 'N/A';
+                              $categorySlug = $category->slug ?? strtolower($categoryName);
+                              $price = $priceRecord->price;
+
+                              // Obtener rango de edad si existe
+                              $ageRange = '';
+                              if ($categorySlug === 'adult') {
+                                  $ageRange = __('adminlte::adminlte.age_10_plus');
+                              } elseif ($categorySlug === 'kid') {
+                                  $ageRange = __('adminlte::adminlte.age_4_to_9');
+                              }
+                            @endphp
+                            <div class="d-flex justify-content-between">
+                              <div>
+                                <strong>{{ $categoryName }}</strong>
+                                @if($ageRange)
+                                  <small>({{ $ageRange }})</small>
+                                @endif
+                              </div>
+                              <strong style="color:#006633">${{ number_format($price, 2) }}</strong>
+                            </div>
+                          @endforeach
                         </div>
-                        <div class="d-flex justify-content-between">
-                          <div>
-                            <strong>{{ __('adminlte::adminlte.kid') }}</strong>
-                            <small>({{ __('adminlte::adminlte.age_4_to_9') }})</small>
-                          </div>
-                          <strong style="color:#006633">${{ number_format($tour->kid_price, 2) }}</strong>
+                      @else
+                        <div class="mb-3 small mt-auto text-muted">
+                          {{ __('adminlte::adminlte.no_prices_available') ?? 'Precios no disponibles' }}
                         </div>
-                      </div>
+                      @endif
 
                       <a href="{{ localized_route('tours.show', $tour) }}" class="btn btn-success w-100 mt-2">
                         {{ __('adminlte::adminlte.see_tour') }}

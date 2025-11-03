@@ -11,21 +11,15 @@ class BookingCapacityService
 
     public function __construct()
     {
-        $this->bookingCountStatuses = config('bookings.count_statuses', ['confirmed']);
+        $this->bookingCountStatuses = config('booking.count_statuses', ['confirmed', 'pending']);
     }
 
     /**
-     * NUEVA LÓGICA JERÁRQUICA DE CAPACIDAD
-     * Prioridad:
-     * 1. TourAvailability (día + horario específico)
-     * 2. TourAvailability (día general, todos los horarios)
-     * 3. schedule_tour.base_capacity (pivote)
-     * 4. Tour.max_capacity
-     * 5. PHP_INT_MAX (sin límite)
+     * LÓGICA JERÁRQUICA DE CAPACIDAD
      */
     public function resolveMaxCapacity(Tour $tour, ?Schedule $schedule, string $tourDate): int
     {
-        // 1. Buscar override específico para día + horario
+        // 1) Override específico (día + horario)
         if ($schedule) {
             $specificOverride = TourAvailability::active()
                 ->where('tour_id', $tour->tour_id)
@@ -34,16 +28,14 @@ class BookingCapacityService
                 ->first();
 
             if ($specificOverride) {
-                if ($specificOverride->is_blocked) {
-                    return 0;
-                }
+                if ($specificOverride->is_blocked) return 0;
                 if (!is_null($specificOverride->max_capacity)) {
                     return (int) $specificOverride->max_capacity;
                 }
             }
         }
 
-        // 2. Buscar override general del día (aplica a todos los horarios)
+        // 2) Override general del día (sin horario)
         $generalDayOverride = TourAvailability::active()
             ->where('tour_id', $tour->tour_id)
             ->whereNull('schedule_id')
@@ -51,15 +43,13 @@ class BookingCapacityService
             ->first();
 
         if ($generalDayOverride) {
-            if ($generalDayOverride->is_blocked) {
-                return 0;
-            }
+            if ($generalDayOverride->is_blocked) return 0;
             if (!is_null($generalDayOverride->max_capacity)) {
                 return (int) $generalDayOverride->max_capacity;
             }
         }
 
-        // 3. Capacidad del pivote schedule_tour.base_capacity
+        // 3) Capacidad del pivote schedule_tour
         if ($schedule) {
             $pivot = DB::table('schedule_tour')
                 ->where('tour_id', $tour->tour_id)
@@ -71,12 +61,11 @@ class BookingCapacityService
             }
         }
 
-        // 4. Capacidad general del tour
+        // 4) Capacidad del tour
         if (!is_null($tour->max_capacity)) {
             return (int) $tour->max_capacity;
         }
 
-        // 5. Sin límite
         return PHP_INT_MAX;
     }
 
@@ -85,7 +74,6 @@ class BookingCapacityService
      */
     public function isDateBlocked(Tour $tour, ?Schedule $schedule, string $tourDate): bool
     {
-        // 1. Bloqueos por TourExcludedDate
         $excludedDateBlock = TourExcludedDate::where('tour_id', $tour->tour_id)
             ->where(function ($q) use ($schedule) {
                 $q->whereNull('schedule_id');
@@ -96,15 +84,12 @@ class BookingCapacityService
             ->where('start_date', '<=', $tourDate)
             ->where(function ($q) use ($tourDate) {
                 $q->where('end_date', '>=', $tourDate)
-                    ->orWhereNull('end_date');
+                  ->orWhereNull('end_date');
             })
             ->exists();
 
-        if ($excludedDateBlock) {
-            return true;
-        }
+        if ($excludedDateBlock) return true;
 
-        // 2. Bloqueos por TourAvailability específico
         if ($schedule) {
             $specificBlock = TourAvailability::active()
                 ->where('tour_id', $tour->tour_id)
@@ -113,12 +98,9 @@ class BookingCapacityService
                 ->where('is_blocked', true)
                 ->exists();
 
-            if ($specificBlock) {
-                return true;
-            }
+            if ($specificBlock) return true;
         }
 
-        // 3. Bloqueo general del día
         $generalDayBlock = TourAvailability::active()
             ->where('tour_id', $tour->tour_id)
             ->whereNull('schedule_id')
@@ -130,7 +112,7 @@ class BookingCapacityService
     }
 
     /**
-     * Pax confirmados para tour+schedule+fecha
+     * Pax confirmados (suma de todas las categorías en JSON)
      */
     public function confirmedPaxFor(
         string $tourDate,
@@ -138,23 +120,40 @@ class BookingCapacityService
         int $tourId,
         ?int $excludeBookingId = null
     ): int {
-        $sum = BookingDetail::whereHas('booking', function ($q) use ($excludeBookingId) {
-            $q->whereIn('status', $this->bookingCountStatuses);
-            if ($excludeBookingId) {
-                $q->where('booking_id', '!=', $excludeBookingId);
-            }
-        })
+        $details = BookingDetail::whereHas('booking', function ($q) use ($excludeBookingId) {
+                $q->whereIn('status', $this->bookingCountStatuses);
+                if ($excludeBookingId) {
+                    $q->where('booking_id', '!=', $excludeBookingId);
+                }
+            })
             ->whereNotNull('booking_id')
             ->where('tour_id', $tourId)
             ->whereDate('tour_date', $tourDate)
             ->where('schedule_id', $scheduleId)
-            ->sum(DB::raw('COALESCE(adults_quantity,0) + COALESCE(kids_quantity,0)'));
+            ->get(['categories']); // solo necesitamos el JSON
 
-        return (int) $sum;
+        $total = 0;
+
+        foreach ($details as $detail) {
+            $cats = $detail->categories;
+
+            // Por seguridad, si llegara como string, decodificamos
+            if (is_string($cats)) {
+                $cats = json_decode($cats, true);
+            }
+
+            if (is_array($cats)) {
+                foreach ($cats as $cat) {
+                    $total += (int)($cat['quantity'] ?? 0);
+                }
+            }
+        }
+
+        return $total;
     }
 
     /**
-     * Pax retenidos en carritos activos
+     * Pax retenidos en carritos activos (suma desde JSON categories)
      */
     public function heldPaxInActiveCarts(
         string $tourDate,
@@ -162,7 +161,7 @@ class BookingCapacityService
         int $tourId,
         ?int $excludeCartId = null
     ): int {
-        $q = DB::table('cart_items')
+        $rows = DB::table('cart_items')
             ->join('carts', 'cart_items.cart_id', '=', 'carts.cart_id')
             ->where('carts.is_active', true)
             ->whereNotNull('carts.expires_at')
@@ -170,13 +169,28 @@ class BookingCapacityService
             ->where('cart_items.is_active', true)
             ->where('cart_items.tour_id', $tourId)
             ->whereDate('cart_items.tour_date', $tourDate)
-            ->where('cart_items.schedule_id', $scheduleId);
+            ->where('cart_items.schedule_id', $scheduleId)
+            ->when($excludeCartId, fn($q) => $q->where('carts.cart_id', '!=', $excludeCartId))
+            ->select('cart_items.categories')
+            ->get();
 
-        if ($excludeCartId) {
-            $q->where('carts.cart_id', '!=', $excludeCartId);
+        $total = 0;
+
+        foreach ($rows as $row) {
+            $cats = $row->categories;
+
+            if (is_string($cats)) {
+                $cats = json_decode($cats, true);
+            }
+
+            if (is_array($cats)) {
+                foreach ($cats as $cat) {
+                    $total += (int)($cat['quantity'] ?? 0);
+                }
+            }
         }
 
-        return (int) $q->sum(DB::raw('COALESCE(cart_items.adults_quantity,0) + COALESCE(cart_items.kids_quantity,0)'));
+        return $total;
     }
 
     /**
@@ -190,20 +204,20 @@ class BookingCapacityService
         bool $countHolds = true,
         ?int $excludeCartId = null
     ): array {
-        $blocked = $this->isDateBlocked($tour, $schedule, $tourDate);
-        $max = $this->resolveMaxCapacity($tour, $schedule, $tourDate);
+        $blocked   = $this->isDateBlocked($tour, $schedule, $tourDate);
+        $max       = $this->resolveMaxCapacity($tour, $schedule, $tourDate);
         $confirmed = $this->confirmedPaxFor($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id, $excludeBookingId);
-        $held = $countHolds
+        $held      = $countHolds
             ? $this->heldPaxInActiveCarts($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id, $excludeCartId)
             : 0;
 
         $available = $blocked ? 0 : max(0, (int)$max - (int)$confirmed - (int)$held);
 
         return [
-            'blocked' => (bool) $blocked,
-            'max' => (int) $max,
+            'blocked'   => (bool) $blocked,
+            'max'       => (int) $max,
             'confirmed' => (int) $confirmed,
-            'held' => (int) $held,
+            'held'      => (int) $held,
             'available' => (int) $available,
         ];
     }

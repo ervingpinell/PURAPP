@@ -319,16 +319,18 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])
                 Route::get('/order', [TourOrderController::class, 'index'])->name('order.index');
                 Route::post('/order/{tourType}/save', [TourOrderController::class, 'save'])->name('order.save');
 
-                // -------------------- PRICES (por categoría) --------------------
-                Route::prefix('{tour}/prices')->name('prices.')->group(function () {
-                    Route::get('/', [TourPriceController::class, 'index'])->name('index');
-                    Route::post('/', [TourPriceController::class, 'store'])->name('store');
-                    Route::post('/bulk-update', [TourPriceController::class, 'bulkUpdate'])->name('bulk-update');
-                    Route::put('/{price}', [TourPriceController::class, 'update'])->name('update');
-                    Route::post('/{price}/toggle', [TourPriceController::class, 'toggle'])->name('toggle');
-                    Route::delete('/{price}', [TourPriceController::class, 'destroy'])->name('destroy');
-                });
 
+                Route::prefix('{tour}/prices')->name('prices.')->group(function () {
+                Route::get('/', [TourPriceController::class, 'index'])->name('index');
+                Route::post('/', [TourPriceController::class, 'store'])->name('store');
+
+                // ✅ bulk-update DEBE estar antes de rutas con parámetros
+                Route::post('/bulk-update', [TourPriceController::class, 'bulkUpdate'])->name('bulk-update');
+
+                Route::put('/{price}', [TourPriceController::class, 'update'])->name('update');
+                Route::post('/{price}/toggle', [TourPriceController::class, 'toggle'])->name('toggle');
+                Route::delete('/{price}', [TourPriceController::class, 'destroy'])->name('destroy');
+            });
                 // -------------------- IMAGES --------------------
                 Route::get('/images', [TourImageController::class, 'pick'])->name('images.pick');
                 Route::prefix('{tour}/images')->name('images.')->group(function () {

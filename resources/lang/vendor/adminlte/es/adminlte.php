@@ -128,6 +128,21 @@ return [
     'guest_2' => 'Ana G.',
     'tour_information'=> 'Información del tour',
     'group_size'=> 'Tamaño del grupo',
+      'no_prices_available' => 'No hay precios disponibles',
+    'no_prices_configured' => 'Este tour no tiene precios configurados',
+    'total_persons' => 'Total personas',
+    'quantity' => 'Cantidad',
+    'decrease' => 'Disminuir',
+    'increase' => 'Aumentar',
+    'max_persons_reached' => 'Máximo :max personas por reserva',
+    'min_category_required' => 'Se requieren mínimo :min en :category',
+    'max_category_exceeded' => 'Máximo :max permitidos en :category',
+    'max_persons_exceeded' => 'Máximo :max personas en total',
+    'min_one_person' => 'Debe haber al menos una persona',
+    'persons_max' => 'personas máximo',
+    'or' => 'O',
+    'open_map' => 'Ver ubicación',
+
 
     // 6. HORARIOS
     'schedule' => 'Horario',
@@ -232,6 +247,11 @@ return [
     'deleteItemConfirm' => 'Eliminar',
     'deleteItemCancel' => 'Cancelar',
     'selectOption' => 'Selecciona una opción',
+    'breakdown' => 'Desglose',
+    'subtotal'  => 'Subtotal',
+    'senior'    => 'Adulto mayor',
+    'student'   => 'Estudiante',
+
 
     // 10. VALIDACIÓN
     'required_field' => 'Este campo es obligatorio.',
@@ -437,6 +457,38 @@ return [
     // 26. BOTONES (GENÉRICOS)
     'buttons' => [
         'view' => 'Ver',
+    ],
+
+    'persons' => [
+            'count' => '{0} 0 personas|{1} 1 persona|[2,*] :count personas',
+        'title'            => 'Personas',
+        'pax'              => 'PAX',
+        'adults'           => 'Adultos',
+        'kids'             => 'Niños',
+        'seniors'          => 'Adultos mayores',
+        'infants'          => 'Infantes',
+        'students'         => 'Estudiantes',
+        'guides'           => 'Guías',
+        'drivers'          => 'Choferes',
+        'free'             => 'Gratis',
+        'other'            => 'Otros',
+        'category'         => 'Categoría',
+        'categories'       => 'Categorías',
+        'quantity'         => 'Cantidad',
+        'min'              => 'Mín',
+        'max'              => 'Máx',
+        'per_person'       => 'por persona',
+        'price'            => 'Precio',
+        'subtotal'         => 'Subtotal',
+        'total'            => 'Total',
+        'add_category'     => 'Agregar categoría',
+        'remove_category'  => 'Quitar',
+        'select_category'  => 'Selecciona una categoría',
+        'required'         => 'Requerido',
+        'optional'         => 'Opcional',
+        'min_required'     => 'Mínimo requerido: :min',
+        'max_allowed'      => 'Máximo permitido: :max',
+        'invalid_quantity' => 'Cantidad inválida para ":category".',
     ],
 
     // 27. ETIQUETAS

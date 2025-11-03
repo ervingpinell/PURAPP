@@ -37,18 +37,28 @@ class TourPriceController extends Controller
      */
     public function bulkUpdate(Request $request, Tour $tour)
     {
-        $request->validate([
+        $validated = $request->validate([
             'prices'                    => 'required|array',
             'prices.*.category_id'      => 'required|exists:customer_categories,category_id',
             'prices.*.price'            => 'required|numeric|min:0',
             'prices.*.min_quantity'     => 'required|integer|min:0|max:255',
-            'prices.*.max_quantity'     => 'required|integer|min:0|max:255|gte:prices.*.min_quantity',
-            'prices.*.is_active'        => 'boolean',
+            'prices.*.max_quantity'     => 'required|integer|min:0|max:255',
+            'prices.*.is_active'        => 'nullable|boolean',
         ]);
 
         try {
-            DB::transaction(function () use ($request, $tour) {
-                foreach ($request->prices as $priceData) {
+            DB::transaction(function () use ($validated, $tour, $request) {
+                foreach ($validated['prices'] as $priceData) {
+                    // Validar que min <= max
+                    if ($priceData['min_quantity'] > $priceData['max_quantity']) {
+                        throw new Exception("Min quantity cannot be greater than max quantity for category ID {$priceData['category_id']}");
+                    }
+
+                    // Si el precio es 0, desactivar automáticamente
+                    if ($priceData['price'] == 0) {
+                        $priceData['is_active'] = false;
+                    }
+
                     TourPrice::updateOrCreate(
                         [
                             'tour_id'     => $tour->tour_id,
@@ -62,13 +72,13 @@ class TourPriceController extends Controller
                         ]
                     );
                 }
-            });
 
-            LoggerHelper::mutated($this->controller, 'bulkUpdate', 'tour_prices', $tour->tour_id, [
-                'tour_id' => $tour->tour_id,
-                'count'   => count($request->prices),
-                'user_id' => optional($request->user())->getAuthIdentifier(),
-            ]);
+                LoggerHelper::mutated($this->controller, 'bulkUpdate', 'tour_prices', $tour->tour_id, [
+                    'tour_id' => $tour->tour_id,
+                    'count'   => count($validated['prices']),
+                    'user_id' => optional($request->user())->getAuthIdentifier(),
+                ]);
+            });
 
             return back()->with('success', 'Precios actualizados exitosamente.');
         } catch (Exception $e) {
@@ -85,26 +95,47 @@ class TourPriceController extends Controller
      */
     public function store(Request $request, Tour $tour)
     {
-        $request->validate([
-            'category_id'  => 'required|exists:customer_categories,category_id|unique:tour_prices,category_id,NULL,tour_price_id,tour_id,' . $tour->tour_id,
+        $validated = $request->validate([
+            'category_id'  => 'required|exists:customer_categories,category_id',
             'price'        => 'required|numeric|min:0',
             'min_quantity' => 'required|integer|min:0|max:255',
-            'max_quantity' => 'required|integer|min:0|max:255|gte:min_quantity',
+            'max_quantity' => 'required|integer|min:0|max:255',
         ]);
 
         try {
+            // Validar que no exista ya
+            $exists = TourPrice::where('tour_id', $tour->tour_id)
+                ->where('category_id', $validated['category_id'])
+                ->exists();
+
+            if ($exists) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Esta categoría ya está asignada a este tour.');
+            }
+
+            // Validar que min <= max
+            if ($validated['min_quantity'] > $validated['max_quantity']) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'La cantidad mínima no puede ser mayor que la máxima.');
+            }
+
+            // Si el precio es 0, desactivar automáticamente
+            $isActive = $validated['price'] > 0;
+
             $tourPrice = TourPrice::create([
                 'tour_id'      => $tour->tour_id,
-                'category_id'  => $request->category_id,
-                'price'        => $request->price,
-                'min_quantity' => $request->min_quantity,
-                'max_quantity' => $request->max_quantity,
-                'is_active'    => true,
+                'category_id'  => $validated['category_id'],
+                'price'        => $validated['price'],
+                'min_quantity' => $validated['min_quantity'],
+                'max_quantity' => $validated['max_quantity'],
+                'is_active'    => $isActive,
             ]);
 
             LoggerHelper::mutated($this->controller, 'store', 'tour_prices', $tourPrice->tour_price_id, [
                 'tour_id'     => $tour->tour_id,
-                'category_id' => $request->category_id,
+                'category_id' => $validated['category_id'],
                 'user_id'     => optional($request->user())->getAuthIdentifier(),
             ]);
 
@@ -115,7 +146,7 @@ class TourPriceController extends Controller
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', 'Error al agregar categoría.');
+            return back()->with('error', 'Error al agregar categoría: ' . $e->getMessage());
         }
     }
 
@@ -124,15 +155,27 @@ class TourPriceController extends Controller
      */
     public function update(Request $request, Tour $tour, TourPrice $price)
     {
-        $request->validate([
+        $validated = $request->validate([
             'price'        => 'required|numeric|min:0',
             'min_quantity' => 'required|integer|min:0|max:255',
-            'max_quantity' => 'required|integer|min:0|max:255|gte:min_quantity',
-            'is_active'    => 'boolean',
+            'max_quantity' => 'required|integer|min:0|max:255',
+            'is_active'    => 'nullable|boolean',
         ]);
 
         try {
-            $price->update($request->only(['price', 'min_quantity', 'max_quantity', 'is_active']));
+            // Validar que min <= max
+            if ($validated['min_quantity'] > $validated['max_quantity']) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'La cantidad mínima no puede ser mayor que la máxima.');
+            }
+
+            // Si el precio es 0, desactivar automáticamente
+            if ($validated['price'] == 0) {
+                $validated['is_active'] = false;
+            }
+
+            $price->update($validated);
 
             LoggerHelper::mutated($this->controller, 'update', 'tour_prices', $price->tour_price_id, [
                 'tour_id' => $tour->tour_id,
@@ -145,7 +188,7 @@ class TourPriceController extends Controller
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', 'Error al actualizar precio.');
+            return back()->with('error', 'Error al actualizar precio: ' . $e->getMessage());
         }
     }
 

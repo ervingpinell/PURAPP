@@ -8,6 +8,7 @@ use App\Models\MeetingPoint;
 use App\Models\Tour;
 use App\Models\TourExcludedDate;
 use App\Models\TourType;
+use App\Services\Bookings\BookingCapacityService;
 use App\Services\Reviews\ReviewDistributor;
 use App\Services\Reviews\ReviewsCacheManager;
 use App\Services\Reviews\ReviewAggregator;
@@ -22,74 +23,93 @@ use Throwable;
 
 class HomeController extends Controller
 {
-public function index(ReviewDistributor $distributor, ReviewsCacheManager $cacheManager)
-{
-    $currentLocale  = app()->getLocale();
-    $fallbackLocale = config('app.fallback_locale', 'es');
+    public function index(ReviewDistributor $distributor, ReviewsCacheManager $cacheManager)
+    {
+        $currentLocale  = app()->getLocale();
+        $fallbackLocale = config('app.fallback_locale', 'es');
 
-    try {
-        // 1) Meta de tipos + Tours
-        $typeMeta = $this->loadTypeMeta($currentLocale, $fallbackLocale);
+        try {
+            // 1) Meta de tipos
+            $typeMeta = $this->loadTypeMeta($currentLocale, $fallbackLocale);
 
-        // 2) Cargar tours activos con traducciones (YA VIENEN ORDENADOS)
-        $tours = $this->loadActiveToursWithTranslations($currentLocale, $fallbackLocale)
-            ->map(function ($tour) use ($currentLocale, $fallbackLocale) {
-                $tr = $this->pickTranslation($tour->translations, $currentLocale, $fallbackLocale);
-                $tour->translated_name = $tr->name ?? $tour->name;
-                return $tour;
+            // 2) Cargar tours activos con traducciones y precios (categorías)
+            $tours = $this->loadActiveToursWithTranslations($currentLocale, $fallbackLocale)
+                ->map(function ($tour) use ($currentLocale, $fallbackLocale) {
+                    $tr = $this->pickTranslation($tour->translations, $currentLocale, $fallbackLocale);
+                    $tour->translated_name = $tr->name ?? $tour->name;
+                    return $tour;
+                });
+
+            // Agrupa conservando el orden
+            $toursByType = $tours->groupBy(fn ($tour) => $tour->tour_type_id_group);
+
+            // 3) Reviews para HOME usando ReviewDistributor
+            $cacheKey = 'home_reviews:' . $currentLocale . ':' . $cacheManager->getRevision();
+            $homeReviews = Cache::remember($cacheKey, 86400, function () use ($distributor, $tours) {
+                return $distributor->forHome($tours, perTour: 3, maxTotal: 24);
             });
 
-        // Agrupa conservando el orden que ya trae cada categoría
-        $toursByType = $tours->groupBy(fn ($tour) => $tour->tour_type_id_group);
-
-        // 3) Reviews para HOME
-        $cacheKey = 'home_reviews:' . $currentLocale . ':' . $cacheManager->getRevision();
-        $homeReviews = Cache::remember($cacheKey, 86400, function () use ($distributor, $tours) {
-            return $distributor->forHome($tours, perTour: 3, maxTotal: 24);
-        });
-
-        // 4) Asegurar nombre traducido y slug en cada review
-        $homeReviews = $homeReviews->map(function ($review) use ($tours, $currentLocale, $fallbackLocale) {
-            $tourId = (int)($review['tour_id'] ?? 0);
-            if ($tourId) {
-                $tour = $tours->firstWhere('tour_id', $tourId);
-                if ($tour) {
-                    if (empty($tour->translated_name)) {
-                        $tr = $this->pickTranslation($tour->translations, $currentLocale, $fallbackLocale);
-                        $tour->translated_name = $tr->name ?? $tour->name;
+            // 4) Asegurar nombre traducido y slug en cada review
+            $homeReviews = $homeReviews->map(function ($review) use ($tours, $currentLocale, $fallbackLocale) {
+                $tourId = (int)($review['tour_id'] ?? 0);
+                if ($tourId) {
+                    $tour = $tours->firstWhere('tour_id', $tourId);
+                    if ($tour) {
+                        if (empty($tour->translated_name)) {
+                            $tr = $this->pickTranslation($tour->translations, $currentLocale, $fallbackLocale);
+                            $tour->translated_name = $tr->name ?? $tour->name;
+                        }
+                        $review['tour_name'] = $tour->translated_name ?? $tour->name;
+                        $review['tour_slug'] = $tour->slug;
                     }
-                    $review['tour_name'] = $tour->translated_name ?? $tour->name;
-                    $review['tour_slug'] = $tour->slug;
                 }
-            }
-            return $review;
-        });
+                return $review;
+            });
 
-        // 5) Meeting Points
-        $meetingPoints = MeetingPoint::active()
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get(['id','name','pickup_time','description','map_url']);
+            // 5) Meeting Points
+            $meetingPoints = MeetingPoint::active()
+                ->with('translations')
+                ->orderByRaw('sort_order IS NULL, sort_order ASC')
+                ->orderBy('name')
+                ->get();
 
-        return view('public.home', compact('toursByType', 'typeMeta', 'homeReviews', 'meetingPoints'));
-    } catch (Throwable $e) {
-        Log::error('home.index.error', [
-            'msg'  => $e->getMessage(),
-            'line' => $e->getLine(),
-            'file' => $e->getFile(),
-        ]);
+            // 6) Hotels para el formulario de reserva
+            $hotels = HotelList::where('is_active', true)
+                ->orderBy('name')
+                ->get();
 
-        return view('public.home', [
-            'toursByType'   => collect(),
-            'typeMeta'      => collect(),
-            'homeReviews'   => collect(),
-            'meetingPoints' => collect(),
-        ]);
+            return view('public.home', compact(
+                'toursByType',
+                'typeMeta',
+                'homeReviews',
+                'meetingPoints',
+                'hotels'
+            ));
+
+        } catch (Throwable $e) {
+            Log::error('home.index.error', [
+                'msg'  => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return view('public.home', [
+                'toursByType'   => collect(),
+                'typeMeta'      => collect(),
+                'homeReviews'   => collect(),
+                'meetingPoints' => collect(),
+                'hotels'        => collect(),
+            ]);
+        }
     }
-}
 
-    public function showTour(Tour $tour, ReviewAggregator $agg, ReviewsCacheManager $cacheManager)
-    {
+    public function showTour(
+        Tour $tour,
+        ReviewAggregator $agg,
+        ReviewsCacheManager $cacheManager,
+        BookingCapacityService $capacityService
+    ) {
         $loc = app()->getLocale();
         $fb  = config('app.fallback_locale', 'es');
 
@@ -102,6 +122,10 @@ public function index(ReviewDistributor $distributor, ReviewsCacheManager $cache
                 'languages' => fn($q) => $q->wherePivot('is_active', true)
                     ->where('tour_languages.is_active', true)
                     ->orderBy('name'),
+                'prices' => fn($q) => $q->where('is_active', true)
+                    ->whereHas('category', fn($cq) => $cq->where('is_active', true))
+                    ->with('category')
+                    ->orderBy('category_id'),
                 'itinerary.items.translations',
                 'itinerary.translations',
                 'amenities.translations',
@@ -144,32 +168,36 @@ public function index(ReviewDistributor $distributor, ReviewsCacheManager $cache
             [$blockedGeneral, $blockedBySchedule, $fullyBlockedDates] = $this->computeTourBlocks($tour);
 
             // ========================================================
-            // [2] Fechas llenas por capacidad (BookingDetail)
+            // [2] Fechas llenas por capacidad usando el servicio
             // ========================================================
             $capacityDisabled = [];
             $start = Carbon::today();
             $end   = Carbon::today()->addDays(90);
 
-            foreach ($tour->schedules as $sch) {
-                $max = (int) ($sch->max_capacity ?: $tour->max_capacity);
-                $rows = \App\Models\BookingDetail::query()
-                    ->selectRaw('tour_date::date AS d, SUM(COALESCE(adults_quantity,0)+COALESCE(kids_quantity,0)) AS pax')
-                    ->whereHas('booking', fn($q) =>
-                        $q->whereIn('status', config('bookings.count_statuses', ['confirmed']))
-                    )
-                    ->where('tour_id', $tour->tour_id)
-                    ->where('schedule_id', $sch->schedule_id)
-                    ->whereBetween('tour_date', [$start->toDateString(), $end->toDateString()])
-                    ->groupBy('d')
-                    ->get();
-
+            foreach ($tour->schedules as $schedule) {
                 $fullDates = [];
-                foreach ($rows as $r) {
-                    if ((int) $r->pax >= $max) {
-                        $fullDates[] = Carbon::parse($r->d)->format('Y-m-d');
+
+                // Iterar por cada día del rango
+                $period = CarbonPeriod::create($start, $end);
+                foreach ($period as $date) {
+                    $dateStr = $date->toDateString();
+
+                    // Usar el servicio de capacidad para verificar disponibilidad
+                    $snap = $capacityService->capacitySnapshot(
+                        $tour,
+                        $schedule,
+                        $dateStr,
+                        excludeBookingId: null,
+                        countHolds: false // No contar holds en vista pública
+                    );
+
+                    // Si no hay disponibilidad o está bloqueado, agregar a full
+                    if ($snap['blocked'] || $snap['available'] <= 0) {
+                        $fullDates[] = $dateStr;
                     }
                 }
-                $capacityDisabled[(string) $sch->schedule_id] = $fullDates;
+
+                $capacityDisabled[(string) $schedule->schedule_id] = $fullDates;
             }
 
             // Fusionar bloqueos por exclusión y por capacidad
@@ -212,20 +240,21 @@ public function index(ReviewDistributor $distributor, ReviewsCacheManager $cache
                 'fullyBlockedDates'  => $fullyBlockedDates,
                 'capacityDisabled'   => $capacityDisabled,
                 'tourReviews'        => $tourReviews,
-                'hotels'             => HotelList::orderBy('name')->get(),
+                'hotels'             => HotelList::where('is_active', true)->orderBy('name')->get(),
                 'cancelPolicy'       => $tour->cancel_policy ?? null,
                 'refundPolicy'       => $tour->refund_policy ?? null,
                 'meetingPoints'      => $this->loadMeetingPoints(true),
             ]);
-        } catch (\Throwable $e) {
+
+        } catch (Throwable $e) {
             Log::error('tour.show.failed', [
                 'tour_id' => $tour->tour_id ?? 'unknown',
-                'error'   => $e->getMessage()
+                'error'   => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
             ]);
             abort(404);
         }
     }
-
 
     /* ===========================
        HELPERS PRIVADOS
@@ -251,77 +280,85 @@ public function index(ReviewDistributor $distributor, ReviewsCacheManager $cache
             });
     }
 
-private function loadActiveToursWithTranslations(string $loc, string $fb): Collection
-{
-    return Tour::query()
-        ->with([
-            'tourType:tour_type_id,name',
-            'tourType.translations',
-            'translations',
-            'coverImage',
-            'prices' => function($q) {
-                $q->where('is_active', true)
-                  ->with(['category' => function($cq) {
-                      $cq->where('is_active', true);
-                  }])
-                  ->orderBy('category_id');
-            }
-        ])
-        ->leftJoin('tour_type_tour_order as o', function ($join) {
-            $join->on('o.tour_id', '=', 'tours.tour_id')
-                 ->on('o.tour_type_id', '=', 'tours.tour_type_id');
-        })
-        ->where('tours.is_active', true)
-        ->orderBy('tours.tour_type_id')
-        ->orderByRaw('CASE WHEN o.position IS NULL THEN 1 ELSE 0 END')
-        ->orderBy('o.position')
-        ->orderBy('tours.name')
-        ->get([
-            'tours.tour_id',
-            'tours.name',
-            'tours.slug',
-            'tours.tour_type_id',
-            'tours.length',
-        ])
-        ->map(function ($tour) use ($loc, $fb) {
-            $tr = $this->pickTranslation($tour->translations, $loc, $fb);
-            $tour->translated_name     = $tr->name ?? $tour->name;
-            $tour->translated_overview = $tr->overview ?? $tour->overview;
-            $tour->tour_type_id_group  = optional($tour->tourType)->tour_type_id ?? 'uncategorized';
+    private function loadActiveToursWithTranslations(string $loc, string $fb): Collection
+    {
+        return Tour::query()
+            ->with([
+                'tourType:tour_type_id,name',
+                'tourType.translations',
+                'translations',
+                'coverImage',
+                'prices' => function($q) {
+                    $q->where('is_active', true)
+                      ->whereHas('category', fn($cq) => $cq->where('is_active', true))
+                      ->with('category')
+                      ->orderBy('category_id');
+                }
+            ])
+            ->leftJoin('tour_type_tour_order as o', function ($join) {
+                $join->on('o.tour_id', '=', 'tours.tour_id')
+                     ->on('o.tour_type_id', '=', 'tours.tour_type_id');
+            })
+            ->where('tours.is_active', true)
+            // Orden por categoría y posición
+            ->orderBy('tours.tour_type_id')
+            ->orderByRaw('CASE WHEN o.position IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('o.position')
+            ->orderBy('tours.name')
+            ->get([
+                'tours.tour_id',
+                'tours.name',
+                'tours.slug',
+                'tours.tour_type_id',
+                'tours.length',
+                'tours.max_capacity',
+            ])
+            ->map(function ($tour) use ($loc, $fb) {
+                $tr = $this->pickTranslation($tour->translations, $loc, $fb);
+                $tour->translated_name     = $tr->name ?? $tour->name;
+                $tour->translated_overview = $tr->overview ?? $tour->overview;
+                $tour->tour_type_id_group  = optional($tour->tourType)->tour_type_id ?? 'uncategorized';
 
-            // Calcular precios desde las categorías
-            $activePrices = $tour->prices->filter(function($price) {
-                return $price->is_active &&
-                       $price->category &&
-                       $price->category->is_active;
+                // Filtrar precios activos con categorías activas
+                $activePrices = $tour->prices->filter(function($price) {
+                    return $price->is_active &&
+                           $price->category &&
+                           $price->category->is_active;
+                });
+
+                // Precio mínimo para mostrar en listados
+                $tour->min_price = $activePrices->min('price') ?? 0;
+
+                // Legacy: buscar adult/kid por slug para compatibilidad
+                $adultPrice = $activePrices->first(function($p) {
+                    $slug = $p->category->slug ?? '';
+                    return in_array($slug, ['adult', 'adulto', 'adults']);
+                });
+
+                $kidPrice = $activePrices->first(function($p) {
+                    $slug = $p->category->slug ?? '';
+                    return in_array($slug, ['kid', 'nino', 'child', 'kids', 'children']);
+                });
+
+$tour->setAttribute('preview_adult_price', $adultPrice ? (float)$adultPrice->price : $tour->min_price);
+$tour->setAttribute('preview_kid_price',   $kidPrice   ? (float)$kidPrice->price   : null);
+
+                return $tour;
             });
+    }
 
-            // Obtener el precio mínimo para mostrar
-            $tour->min_price = $activePrices->min('price') ?? 0;
-
-            // Si necesitas adultos/niños específicos, busca por slug de categoría
-            $adultPrice = $activePrices->first(function($p) {
-                return $p->category && in_array($p->category->slug, ['adult', 'adulto', 'adults']);
-            });
-            $childPrice = $activePrices->first(function($p) {
-                return $p->category && in_array($p->category->slug, ['child', 'nino', 'kids', 'children']);
-            });
-
-            $tour->adult_price = $adultPrice ? $adultPrice->price : $tour->min_price;
-            $tour->kid_price = $childPrice ? $childPrice->price : 0;
-
-            return $tour;
-        });
-}
     private function computeTourBlocks(Tour $tour): array
     {
         $visibleScheduleIds = $tour->schedules->pluck('schedule_id')->map(fn($sid) => (int)$sid)->all();
+
         $blockedRows = TourExcludedDate::where('tour_id', $tour->tour_id)
             ->where(function ($q) use ($visibleScheduleIds) {
                 $q->whereNull('schedule_id');
-                if (!empty($visibleScheduleIds)) $q->orWhereIn('schedule_id', $visibleScheduleIds);
+                if (!empty($visibleScheduleIds)) {
+                    $q->orWhereIn('schedule_id', $visibleScheduleIds);
+                }
             })
-            ->get(['schedule_id','start_date','end_date']);
+            ->get(['schedule_id', 'start_date', 'end_date']);
 
         $blockedGeneral = [];
         foreach ($blockedRows->whereNull('schedule_id') as $row) {
@@ -342,6 +379,7 @@ private function loadActiveToursWithTranslations(string $loc, string $fb): Colle
                 $blockedBySchedule[$scheduleKey][] = $date->toDateString();
             }
         }
+
         foreach ($blockedBySchedule as $scheduleKey => $dates) {
             $blockedBySchedule[$scheduleKey] = array_values(array_unique($dates));
         }
@@ -350,16 +388,21 @@ private function loadActiveToursWithTranslations(string $loc, string $fb): Colle
         if (!empty($visibleScheduleIds)) {
             $visibleCount = count($visibleScheduleIds);
             $blocksPerDay = [];
+
             foreach ($blockedGeneral as $date) {
                 $blocksPerDay[$date] = ($blocksPerDay[$date] ?? 0) + $visibleCount;
             }
+
             foreach ($blockedBySchedule as $dates) {
                 foreach ($dates as $date) {
                     $blocksPerDay[$date] = ($blocksPerDay[$date] ?? 0) + 1;
                 }
             }
+
             foreach ($blocksPerDay as $date => $count) {
-                if ($count >= $visibleCount) $fullyBlockedDates[] = $date;
+                if ($count >= $visibleCount) {
+                    $fullyBlockedDates[] = $date;
+                }
             }
         }
 
@@ -368,10 +411,14 @@ private function loadActiveToursWithTranslations(string $loc, string $fb): Colle
 
     private function loadMeetingPoints(bool $full = false): Collection
     {
-        $base = MeetingPoint::active()->orderBy('sort_order')->orderBy('name');
+        $base = MeetingPoint::active()
+            ->with('translations')
+            ->orderByRaw('sort_order IS NULL, sort_order ASC')
+            ->orderBy('name');
+
         return $full
-            ? $base->get(['id','name','pickup_time','description','map_url'])
-            : $base->get(['id','name','pickup_time','description']);
+            ? $base->get(['id', 'name', 'pickup_time', 'description', 'map_url'])
+            : $base->get(['id', 'name', 'pickup_time', 'description']);
     }
 
     private function pickTranslation($translations, string $locale, string $fallback)

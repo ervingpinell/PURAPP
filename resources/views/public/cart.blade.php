@@ -2,12 +2,24 @@
 
 @section('title', __('adminlte::adminlte.myCart'))
 
+@push('styles')
+<style>
+
+  /* ===== Desglose bonito ===== */
+  .cat-line{display:flex; align-items:center; justify-content:space-between; gap:.5rem; font-size:.92rem}
+  .cat-left{display:flex; align-items:center; gap:.5rem}
+  .cat-badge{display:inline-flex; align-items:center; justify-content:center; min-width:1.6rem; height:1.35rem; padding:0 .4rem; font-size:.75rem; border-radius:.25rem; background:#f1f3f5; color:#212529}
+  .cat-name{font-weight:500}
+  .cat-sub{white-space:nowrap; font-weight:600}
+</style>
+@endpush
+
 @section('content')
 @php
-  // --- Fallback Meeting Points if controller didn't send them ---
+  // --- Fallback Meeting Points si el controlador no los pasó ---
   $meetingPoints = $meetingPoints
       ?? \App\Models\MeetingPoint::where('is_active', true)
-          ->with('translations') // evitar N+1 y tener traducciones
+          ->with('translations')
           ->orderByRaw('sort_order IS NULL, sort_order ASC')
           ->orderBy('name', 'asc')
           ->get();
@@ -35,13 +47,93 @@
 
   // Timer config
   $expiryMinutes  = (int) config('cart.expiry_minutes', 15);
-  $extendMinutes  = (int) config('cart.extend_minutes', 15);
+  $extendMinutes  = (int) config('cart.extend_minutes', 10);
   $extendMax      = (int) config('cart.max_extensions', 1);
-$extendUsed = (int) ($cart->extended_count ?? 0);
+  $extendUsed     = (int) ($cart->extended_count ?? 0);
   $isExtendDisabled = $extendUsed >= $extendMax;
 
   // Promo en sesión
   $promoSession = session('public_cart_promo');
+
+  // ==== Helpers de dinero ====
+  $fmt2 = fn ($n) => number_format((float)$n, 2, '.', '');
+
+  // ==== Resolutor de categorías (nombre, qty, price, subtotal) ====
+  $catLinesFn = function($it) {
+      // map opcional para códigos conocidos → label traducido
+      $codeMap = [
+          'adult'    => __('adminlte::adminlte.adult'),
+          'adults'   => __('adminlte::adminlte.adults'),
+          'kid'      => __('adminlte::adminlte.kid'),
+          'kids'     => __('adminlte::adminlte.kids'),
+          'child'    => __('adminlte::adminlte.kid'),
+          'children' => __('adminlte::adminlte.kids'),
+          'senior'   => __('adminlte::adminlte.senior') ?? 'Senior',
+          'student'  => __('adminlte::adminlte.student') ?? 'Student',
+      ];
+
+      $cats = collect($it->categories ?? []);
+      if ($cats->isNotEmpty()) {
+          return $cats->map(function($c) use ($codeMap) {
+              $q = (int)  data_get($c, 'quantity', 0);
+              $p = (float) data_get($c, 'price', 0);
+
+              $name =
+                  data_get($c, 'name') ??
+                  data_get($c, 'label') ??
+                  data_get($c, 'category_name') ??
+                  data_get($c, 'category.name') ??
+                  (function() use ($c, $codeMap) {
+                      $code = data_get($c, 'code');
+                      if (!$code) return null;
+                      if (isset($codeMap[$code])) return $codeMap[$code];
+                      $tr = __($code);
+                      return $tr === $code ? (string)$code : $tr;
+                  })();
+
+              if (!$name) $name = 'Category';
+
+              return [
+                  'name'     => (string) $name,
+                  'quantity' => $q,
+                  'price'    => $p,
+                  'subtotal' => $p * $q,
+              ];
+          })->filter(fn($c) => $c['quantity'] > 0)->values();
+      }
+
+      // Fallback legacy: adultos/niños
+      $fallback = [
+          [
+              'name'     => __('adminlte::adminlte.adults'),
+              'quantity' => (int)($it->adults_quantity ?? 0),
+              'price'    => (float)($it->tour->adult_price ?? 0),
+          ],
+          [
+              'name'     => __('adminlte::adminlte.kids'),
+              'quantity' => (int)($it->kids_quantity ?? 0),
+              'price'    => (float)($it->tour->kid_price ?? 0),
+          ],
+      ];
+      return collect($fallback)->map(function($c){
+          $c['subtotal'] = $c['price'] * $c['quantity'];
+          return $c;
+      })->filter(fn($c) => $c['quantity'] > 0)->values();
+  };
+
+  // ==== Subtotal item (sumando categorías) ====
+  $itemSubtotalFn = fn($it) => (float) collect($catLinesFn($it))->sum('subtotal');
+
+  // ==== Total carrito (con promo si aplica) ====
+  $rawTotal = $cart
+      ? (float) $cart->items->sum(fn($it) => $itemSubtotalFn($it))
+      : 0.0;
+
+  $total = $rawTotal;
+  if ($promoSession) {
+      $op = (($promoSession['operation'] ?? 'subtract') === 'add') ? 1 : -1;
+      $total = max(0, round($rawTotal + $op * (float)($promoSession['adjustment'] ?? 0), 2));
+  }
 @endphp
 
 {{-- ========== TIMER ========== --}}
@@ -120,7 +212,7 @@ $extendUsed = (int) ($cart->extended_count ?? 0);
         @endif
         @if (session('error'))
           Swal.fire({
-            icon: 'error'),
+            icon: 'error',
             title: @json(__('adminlte::adminlte.error')),
             text:  @json(session('error')),
             confirmButtonColor: '#dc3545',
@@ -142,28 +234,27 @@ $extendUsed = (int) ($cart->extended_count ?? 0);
             <th>{{ __('adminlte::adminlte.date') }}</th>
             <th>{{ __('adminlte::adminlte.schedule') }}</th>
             <th>{{ __('adminlte::adminlte.language') }}</th>
-            <th>{{ __('adminlte::adminlte.adults') }}</th>
-            <th>{{ __('adminlte::adminlte.kids') }}</th>
+            <th>{{ __('adminlte::adminlte.breakdown') }}</th>
             @if($showHotelColumn)
               <th>{{ __('adminlte::adminlte.hotel') }}</th>
             @endif
             @if($showMeetingPointColumn)
               <th>{{ __('adminlte::adminlte.meeting_point') }}</th>
             @endif
-            <th>{{ __('adminlte::adminlte.status') }}</th>
+            <th>{{ __('adminlte::adminlte.subtotal') }}</th>
             <th>{{ __('adminlte::adminlte.actions') }}</th>
           </tr>
         </thead>
         <tbody>
           @foreach($cart->items as $item)
             @php
-              $itemSubtotal = ($item->tour->adult_price * $item->adults_quantity)
-                            + ($item->tour->kid_price   * $item->kids_quantity);
+              $lines = $catLinesFn($item);
+              $itemSubtotal = $itemSubtotalFn($item);
             @endphp
             <tr class="text-center cart-item-row"
                 data-item-id="{{ $item->item_id }}"
-                data-subtotal="{{ number_format($itemSubtotal, 2, '.', '') }}">
-              <td>{{ $item->tour->getTranslatedName() ?? $item->tour->name }}</td>
+                data-subtotal="{{ $fmt2($itemSubtotal) }}">
+              <td class="text-start">{{ $item->tour->getTranslatedName() ?? $item->tour->name }}</td>
               <td>{{ \Carbon\Carbon::parse($item->tour_date)->format('d/M/Y') }}</td>
               <td>
                 @if($item->schedule)
@@ -174,11 +265,22 @@ $extendUsed = (int) ($cart->extended_count ?? 0);
                 @endif
               </td>
               <td>{{ $item->language?->name ?? __('adminlte::adminlte.notSpecified') }}</td>
-              <td>{{ $item->adults_quantity }}</td>
-              <td>{{ $item->kids_quantity }}</td>
+
+              {{-- Breakdown categorías --}}
+              <td class="text-start">
+                @foreach($lines as $L)
+                  <div class="cat-line">
+                    <div class="cat-left">
+                      <span class="cat-badge">{{ $L['quantity'] }}x</span>
+                      <span class="cat-name">{{ $L['name'] }}</span>
+                    </div>
+                    <div class="cat-sub">${{ $fmt2($L['subtotal']) }}</div>
+                  </div>
+                @endforeach
+              </td>
 
               @if($showHotelColumn)
-                <td>
+                <td class="text-start">
                   @if($item->is_other_hotel && $item->other_hotel_name)
                     {{ $item->other_hotel_name }} <small class="text-muted">({{ __('adminlte::adminlte.custom') }})</small>
                   @elseif($item->hotel)
@@ -212,11 +314,8 @@ $extendUsed = (int) ($cart->extended_count ?? 0);
                 </td>
               @endif
 
-              <td>
-                <span class="badge {{ $item->is_active ? 'bg-success' : 'bg-secondary' }}">
-                  {{ $item->is_active ? __('adminlte::adminlte.active') : __('adminlte::adminlte.inactive') }}
-                </span>
-              </td>
+              <td class="fw-bold">${{ $fmt2($itemSubtotal) }}</td>
+
               <td class="text-nowrap">
                 <button type="button"
                         class="btn btn-sm btn-primary me-1"
@@ -244,30 +343,44 @@ $extendUsed = (int) ($cart->extended_count ?? 0);
     <div class="d-block d-md-none">
       @foreach($cart->items as $item)
         @php
-          $itemSubtotal   = ($item->tour->adult_price * $item->adults_quantity)
-                          + ($item->tour->kid_price   * $item->kids_quantity);
+          $lines = $catLinesFn($item);
+          $itemSubtotal   = $itemSubtotalFn($item);
           $showHotelInCard = ($item->is_other_hotel && $item->other_hotel_name) || $item->hotel;
           $showMpInCard    = !$item->hotel && !$item->is_other_hotel && $item->meeting_point_id;
         @endphp
         <div class="card mb-3 shadow-sm cart-item-card"
              data-item-id="{{ $item->item_id }}"
-             data-subtotal="{{ number_format($itemSubtotal, 2, '.', '') }}">
-          <div class="card-header text-center fw-semibold">
+             data-subtotal="{{ $fmt2($itemSubtotal) }}">
+          <div class="card-header fw-semibold">
             {{ $item->tour->getTranslatedName() ?? $item->tour->name }}
           </div>
           <div class="card-body">
-            <div class="mb-2"><strong>{{ __('adminlte::adminlte.date') }}:</strong> {{ \Carbon\Carbon::parse($item->tour_date)->format('d/M/Y') }} </div>
-            <div class="mb-2"><strong>{{ __('adminlte::adminlte.schedule') }}:</strong>
+            <div class="mb-2">
+              <i class="far fa-calendar-alt me-1"></i>{{ \Carbon\Carbon::parse($item->tour_date)->format('d/M/Y') }}
               @if($item->schedule)
-                {{ \Carbon\Carbon::parse($item->schedule->start_time)->format('g:i A') }} -
-                {{ \Carbon\Carbon::parse($item->schedule->end_time)->format('g:i A') }}
-              @else
-                {{ __('adminlte::adminlte.noSchedule') }}
+                <span class="ms-2"><i class="fas fa-clock me-1"></i>
+                  {{ \Carbon\Carbon::parse($item->schedule->start_time)->format('g:i A') }}
+                  – {{ \Carbon\Carbon::parse($item->schedule->end_time)->format('g:i A') }}
+                </span>
               @endif
             </div>
             <div class="mb-2"><strong>{{ __('adminlte::adminlte.language') }}:</strong> {{ $item->language?->name ?? __('adminlte::adminlte.notSpecified') }}</div>
-            <div class="mb-2"><strong>{{ __('adminlte::adminlte.adults') }}:</strong> {{ $item->adults_quantity }}</div>
-            <div class="mb-2"><strong>{{ __('adminlte::adminlte.kids') }}:</strong> {{ $item->kids_quantity }}</div>
+
+            {{-- Breakdown categorías (card) --}}
+            <div class="mb-2">
+              <strong>{{ __('adminlte::adminlte.breakdown') }}:</strong>
+              <div class="mt-2">
+                @foreach($lines as $L)
+                  <div class="cat-line">
+                    <div class="cat-left">
+                      <span class="cat-badge">{{ $L['quantity'] }}x</span>
+                      <span class="cat-name">{{ $L['name'] }}</span>
+                    </div>
+                    <div class="cat-sub">${{ $fmt2($L['subtotal']) }}</div>
+                  </div>
+                @endforeach
+              </div>
+            </div>
 
             @if($showHotelInCard)
               <div class="mb-3"><strong>{{ __('adminlte::adminlte.hotel') }}:</strong>
@@ -302,7 +415,12 @@ $extendUsed = (int) ($cart->extended_count ?? 0);
               @endif
             @endif
 
-            <div class="d-grid gap-2">
+            <div class="d-flex justify-content-between align-items-center border-top pt-2">
+              <span class="fw-semibold">{{ __('adminlte::adminlte.subtotal') }}</span>
+              <span class="fw-bold">${{ $fmt2($itemSubtotal) }}</span>
+            </div>
+
+            <div class="d-grid gap-2 mt-3">
               <button type="button"
                       class="btn btn-success"
                       data-bs-toggle="modal"
@@ -325,25 +443,13 @@ $extendUsed = (int) ($cart->extended_count ?? 0);
     </div>
 
     {{-- Total + Promo code --}}
-    @php
-      $total = $cart->items->sum(fn($it) =>
-        ($it->tour->adult_price * $it->adults_quantity)
-        + ($it->tour->kid_price * $it->kids_quantity)
-      );
-      if ($promoSession) {
-        $op = ($promoSession['operation'] ?? 'subtract') === 'add' ? 1 : -1;
-        $total = max(0, round($total + $op * (float)($promoSession['adjustment'] ?? 0), 2));
-      }
-    @endphp
-
     <div class="card shadow-sm mb-4">
       <div class="card-body">
- <h4 class="mb-3">
-  <strong>{{ __('adminlte::adminlte.totalEstimated') }}:</strong>
-  <span class="currency-symbol">$</span>
-  <span id="cart-total" class="gv-total">{{ number_format($total, 2) }}</span>
-</h4>
-
+        <h4 class="mb-3">
+          <strong>{{ __('adminlte::adminlte.totalEstimated') }}:</strong>
+          <span class="currency-symbol">$</span>
+          <span id="cart-total" class="gv-total">{{ number_format($total, 2) }}</span>
+        </h4>
 
         <label for="promo-code" class="form-label fw-semibold">{{ __('adminlte::adminlte.promoCode') }}</label>
         <div class="d-flex flex-column flex-sm-row gap-2">
@@ -391,7 +497,7 @@ $extendUsed = (int) ($cart->extended_count ?? 0);
 </div>
 
 {{-- ============================= --}}
-{{-- MODALES: edición por item     --}}
+{{-- MODALES: edición por ítem     --}}
 {{-- ============================= --}}
 @foreach(($cart->items ?? collect()) as $item)
   @php
@@ -465,16 +571,6 @@ $extendUsed = (int) ($cart->extended_count ?? 0);
                     @endif
                   @endforelse
                 </select>
-              </div>
-
-              {{-- Cantidades --}}
-              <div class="col-6 col-md-3">
-                <label class="form-label fw-semibold">{{ __('adminlte::adminlte.adults') }}</label>
-                <input type="number" name="adults_quantity" class="form-control" min="1" max="12" value="{{ (int) $item->adults_quantity }}" required>
-              </div>
-              <div class="col-6 col-md-3">
-                <label class="form-label fw-semibold">{{ __('adminlte::adminlte.kids') }}</label>
-                <input type="number" name="kids_quantity" class="form-control" min="0" max="12" value="{{ (int) $item->kids_quantity }}">
               </div>
 
               {{-- ====== PICKUP (segmentado) ====== --}}
@@ -557,4 +653,3 @@ $extendUsed = (int) ($cart->extended_count ?? 0);
 @push('scripts')
   @include('partials.cart.cart-scripts')
 @endpush
-

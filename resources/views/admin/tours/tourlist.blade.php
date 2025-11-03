@@ -181,6 +181,7 @@
         <th style="min-width: 150px;">Horarios</th>
         <th style="min-width: 180px;">Precios</th>
         <th style="min-width: 100px;">Capacidad</th>
+        <th style="min-width: 100px;">Group Size</th>
         <th style="min-width: 90px;">Estado</th>
         <th style="min-width: 280px;">Acciones</th>
       </tr>
@@ -243,6 +244,13 @@
           <td class="text-center">
             <span class="badge bg-info">
               {{ $tour->max_capacity }} personas
+            </span>
+          </td>
+
+                    {{-- Group Size --}}
+          <td class="text-center">
+            <span class="badge bg-light">
+              {{ $tour->group_size }} personas
             </span>
           </td>
 
