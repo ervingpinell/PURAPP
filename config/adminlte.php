@@ -342,6 +342,12 @@ return [
                 'route' => 'admin.tours.cutoff.edit',
                 'icon'  => 'fas fa-clock',
             ],
+
+            [
+                'text'  => 'Disponibilidad y Capacidad',
+                'route' => 'admin.tours.capacity.index',
+                'icon' => 'fas fa-calendar-alt',
+            ],
         ],
     ],
 
@@ -391,6 +397,12 @@ return [
             [
                 'text' => 'Tipos de Tour',
                 'route' => 'admin.tourtypes.index',
+                'icon' => 'fas fa-tags',
+            ],
+
+                        [
+                'text' => 'Tipos de clientes',
+                'route' => 'admin.customer_categories.index',
                 'icon' => 'fas fa-tags',
             ],
 

@@ -26,6 +26,7 @@
   .badge.bg-success{ background:#00a65a !important; }
   .badge.bg-danger{ background:#dd4b39 !important; }
   .badge.bg-secondary{ background:#6c757d !important; }
+  .badge.bg-info{ background:#17a2b8 !important; }
 
   /* ===== Cards ===== */
   .card{ border-radius:.5rem; }
@@ -69,7 +70,7 @@
 @section('content')
 <div class="p-3">
 
-  {{-- ===================== HORARIOS GENERALES (tabla original) ===================== --}}
+  {{-- ===================== HORARIOS GENERALES (sin max_capacity) ===================== --}}
   <div class="card mb-4 shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0">{{ __('m_tours.schedule.ui.general_title') }}</h5>
@@ -85,9 +86,8 @@
             <tr>
               <th class="text-nowrap">{{ __('m_tours.schedule.ui.time_range') }}</th>
               <th>{{ __('m_tours.schedule.fields.label') }}</th>
-              <th class="text-center">{{ __('m_tours.schedule.fields.max_capacity') }}</th>
               <th class="text-center">{{ __('m_tours.schedule.ui.state') }}</th>
-              <th class="text-center" style="width:260px">{{ __('m_tours.schedule.ui.actions') }}</th>
+              <th class="text-center" style="width:200px">{{ __('m_tours.schedule.ui.actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -99,7 +99,6 @@
                   {{ \Carbon\Carbon::createFromTimeString($s->end_time)->format('g:i A') }}
                 </td>
                 <td>{{ $s->label ?: '—' }}</td>
-                <td class="text-center">{{ $s->max_capacity ?? '—' }}</td>
                 <td class="text-center">
                   <span class="badge {{ $s->is_active ? 'bg-success' : 'bg-secondary' }}">
                     {{ $s->is_active ? __('m_tours.schedule.status.active') : __('m_tours.schedule.status.inactive') }}
@@ -114,7 +113,6 @@
                           data-start="{{ $s->start_time }}"
                           data-end="{{ $s->end_time }}"
                           data-label="{{ $s->label }}"
-                          data-capacity="{{ $s->max_capacity }}"
                           data-active="{{ $s->is_active ? 1 : 0 }}"
                           title="{{ __('m_tours.schedule.ui.edit_global') }}">
                     <i class="fas fa-edit"></i>
@@ -144,7 +142,7 @@
               </tr>
             @empty
               <tr>
-                <td colspan="5" class="text-center text-muted py-4">{{ __('m_tours.schedule.ui.no_general') }}</td>
+                <td colspan="4" class="text-center text-muted py-4">{{ __('m_tours.schedule.ui.no_general') }}</td>
               </tr>
             @endforelse
           </tbody>
@@ -157,7 +155,6 @@
   <div class="row">
     @foreach($tours as $tour)
       <div class="col-md-6 mb-4">
-        <!-- OJO: sin h-100 para evitar huecos -->
         <div class="card shadow-sm">
           <div class="card-header bg-dark text-white tour-header">
             <h5 class="mb-0 tour-title text-truncate" title="{{ $tour->name }}">
@@ -181,7 +178,10 @@
 
           <div class="card-body pt-3 pb-2">
             @forelse($tour->schedules as $bloque)
-              @php $assignActive = (bool) ($bloque->pivot->is_active ?? true); @endphp
+              @php
+                $assignActive = (bool) ($bloque->pivot->is_active ?? true);
+                $baseCapacity = $bloque->pivot->base_capacity ?? null;
+              @endphp
 
               <div class="schedule-row">
                 <div class="schedule-info">
@@ -189,9 +189,14 @@
                     🕒 {{ \Carbon\Carbon::createFromTimeString($bloque->start_time)->format('g:i A') }} –
                     {{ \Carbon\Carbon::createFromTimeString($bloque->end_time)->format('g:i A') }}
                   </div>
-                  <div class="text-muted small text-truncate">
-                    {{ $bloque->label ?: __('m_tours.schedule.ui.no_label') }} · {{ __('m_tours.schedule.fields.max_capacity') }}: {{ $bloque->max_capacity ?? '—' }}
-                  </div>
+<div class="text-muted small text-truncate">
+    {{ $bloque->label ?: __('m_tours.schedule.ui.no_label') }}
+    @if($baseCapacity)
+      · <span class="badge bg-info"><i class="fas fa-users me-1"></i>{{ $baseCapacity }} pax</span>
+    @else
+      · <span class="badge bg-secondary"><i class="fas fa-users me-1"></i>{{ $tour->max_capacity ?? 15 }} pax</span>
+    @endif
+</div>
 
                   <div class="small mt-1">
                     <span class="me-3">
@@ -222,10 +227,17 @@
                           data-start="{{ $bloque->start_time }}"
                           data-end="{{ $bloque->end_time }}"
                           data-label="{{ $bloque->label }}"
-                          data-capacity="{{ $bloque->max_capacity }}"
                           data-active="{{ $bloque->is_active ? 1 : 0 }}"
                           title="{{ __('m_tours.schedule.ui.edit_global') }}">
                     <i class="fas fa-edit"></i>
+                  </button>
+
+                  {{-- Editar CAPACIDAD del pivote --}}
+                  <button class="btn btn-sm btn-view"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalEditarCapacidadPivote{{ $tour->tour_id }}_{{ $bloque->schedule_id }}"
+                          title="Editar capacidad para este tour">
+                    <i class="fas fa-users"></i>
                   </button>
 
                   {{-- Toggle ASIGNACIÓN (pivote) --}}
@@ -250,6 +262,50 @@
                   </form>
                 </div>
               </div>
+
+              {{-- Modal: EDITAR CAPACIDAD DEL PIVOTE --}}
+              <div class="modal fade" id="modalEditarCapacidadPivote{{ $tour->tour_id }}_{{ $bloque->schedule_id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-sm">
+                  <form action="{{ route('admin.tours.schedule.update-pivot-capacity', [$tour->tour_id, $bloque->schedule_id]) }}"
+                        method="POST" class="modal-content">
+                    @csrf @method('PATCH')
+                    <div class="modal-header">
+                      <h5 class="modal-title">Capacidad Override</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                      <p class="small text-muted mb-3">
+                        <strong>{{ $tour->name }}</strong><br>
+                        {{ \Carbon\Carbon::createFromTimeString($bloque->start_time)->format('g:i A') }} -
+                        {{ \Carbon\Carbon::createFromTimeString($bloque->end_time)->format('g:i A') }}
+                      </p>
+
+                      <div class="alert alert-info small mb-3">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Dejar vacío para usar capacidad base del tour: <strong>{{ $tour->max_capacity ?? 'No definida' }}</strong>
+                      </div>
+
+                      <div class="mb-3">
+                        <label class="form-label">Capacidad Override</label>
+                        <input type="number"
+                               name="base_capacity"
+                               class="form-control"
+                               min="1"
+                               max="999"
+                               value="{{ $baseCapacity }}"
+                               placeholder="Usar capacidad del tour">
+                        <small class="text-muted">Solo para este horario en este tour</small>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="submit" class="btn btn-view btn-sm">
+                        <i class="fas fa-save"></i> Guardar
+                      </button>
+                      <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             @empty
               <span class="text-muted">{{ __('m_tours.schedule.ui.no_tour_schedules') }}</span>
             @endforelse
@@ -262,7 +318,7 @@
         </div>
       </div>
 
-      {{-- Modal: ASIGNAR EXISTENTE --}}
+      {{-- Modal: ASIGNAR EXISTENTE (con campo opcional de capacidad) --}}
       <div class="modal fade" id="modalAsignarExistente{{ $tour->tour_id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
           <form action="{{ route('admin.tours.schedule.attach', $tour->tour_id) }}"
@@ -287,6 +343,22 @@
                   @endforeach
                 </select>
               </div>
+
+              <div class="alert alert-info small">
+                <i class="fas fa-info-circle me-1"></i>
+                Capacidad base del tour: <strong>{{ $tour->max_capacity ?? 'No definida' }}</strong>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Capacidad Override (opcional)</label>
+                <input type="number"
+                       name="base_capacity"
+                       class="form-control"
+                       min="1"
+                       max="999"
+                       placeholder="Dejar vacío para usar capacidad del tour">
+                <small class="text-muted">Solo si necesitas una capacidad diferente para este horario</small>
+              </div>
             </div>
             <div class="modal-footer">
               <button class="btn btn-view">{{ __('m_tours.schedule.ui.assign') }}</button>
@@ -296,7 +368,7 @@
         </div>
       </div>
 
-      {{-- Modal: CREAR PARA ESTE TOUR --}}
+      {{-- Modal: CREAR PARA ESTE TOUR (con campo opcional de capacidad) --}}
       <div class="modal fade" id="modalCrearParaTour{{ $tour->tour_id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
           <form action="{{ route('admin.tours.schedule.store') }}" method="POST" class="modal-content" autocomplete="off">
@@ -317,17 +389,29 @@
                   <input type="time" name="end_time" class="form-control" required>
                 </div>
               </div>
-              <div class="row g-2 mt-2">
-                <div class="col-6">
-                  <label class="form-label">{{ __('m_tours.schedule.fields.max_capacity') }}</label>
-                  <input type="number" name="max_capacity" class="form-control" min="1" value="20" required>
-                </div>
-                <div class="col-6">
-                  <label class="form-label">{{ __('m_tours.schedule.fields.label_optional') }}</label>
-                  <input type="text" name="label" class="form-control" maxlength="255">
-                </div>
+
+              <div class="mt-2">
+                <label class="form-label">{{ __('m_tours.schedule.fields.label_optional') }}</label>
+                <input type="text" name="label" class="form-control" maxlength="255">
               </div>
-              <div class="form-check mt-2">
+
+              <div class="alert alert-info small mt-2">
+                <i class="fas fa-info-circle me-1"></i>
+                Capacidad base del tour: <strong>{{ $tour->max_capacity ?? 'No definida' }}</strong>
+              </div>
+
+              <div class="mt-2">
+                <label class="form-label">Capacidad Override (opcional)</label>
+                <input type="number"
+                       name="base_capacity"
+                       class="form-control"
+                       min="1"
+                       max="999"
+                       placeholder="Dejar vacío para usar capacidad del tour">
+                <small class="text-muted">Solo si necesitas una capacidad diferente para este horario</small>
+              </div>
+
+              <div class="form-check mt-3">
                 <input class="form-check-input" type="checkbox" id="active-{{ $tour->tour_id }}" name="is_active" value="1" checked>
                 <label class="form-check-label" for="active-{{ $tour->tour_id }}">{{ __('m_tours.schedule.fields.active') }}</label>
               </div>
@@ -343,7 +427,7 @@
   </div>
 </div>
 
-{{-- ===================== MODAL: NUEVO HORARIO GENERAL ===================== --}}
+{{-- ===================== MODAL: NUEVO HORARIO GENERAL (sin capacidad) ===================== --}}
 <div class="modal fade" id="modalNuevoHorarioGeneral" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <form action="{{ route('admin.tours.schedule.store') }}" method="POST" class="modal-content" autocomplete="off">
@@ -363,17 +447,18 @@
             <input type="time" name="end_time" class="form-control" required>
           </div>
         </div>
-        <div class="row g-2 mt-2">
-          <div class="col-6">
-            <label class="form-label">{{ __('m_tours.schedule.fields.max_capacity') }}</label>
-            <input type="number" name="max_capacity" class="form-control" min="1" value="20" required>
-          </div>
-          <div class="col-6">
-            <label class="form-label">{{ __('m_tours.schedule.fields.label') }}</label>
-            <input type="text" name="label" class="form-control" maxlength="255">
-          </div>
+
+        <div class="mt-2">
+          <label class="form-label">{{ __('m_tours.schedule.fields.label') }}</label>
+          <input type="text" name="label" class="form-control" maxlength="255">
         </div>
-        <div class="form-check mt-2">
+
+        <div class="alert alert-info small mt-3 mb-0">
+          <i class="fas fa-info-circle me-1"></i>
+          La capacidad se define al asignar este horario a un tour específico
+        </div>
+
+        <div class="form-check mt-3">
           <input class="form-check-input" type="checkbox" id="active-general" name="is_active" value="1" checked>
           <label class="form-check-label" for="active-general">{{ __('m_tours.schedule.fields.active') }}</label>
         </div>
@@ -386,7 +471,7 @@
   </div>
 </div>
 
-{{-- ===================== MODAL ÚNICO: EDITAR HORARIO GENERAL ===================== --}}
+{{-- ===================== MODAL ÚNICO: EDITAR HORARIO GENERAL (sin capacidad) ===================== --}}
 <div class="modal fade" id="modalEditarHorarioGeneral" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <form id="formEditarHorarioGeneral" action="#" method="POST" class="modal-content" autocomplete="off">
@@ -406,19 +491,19 @@
             <input type="time" id="edit-end" name="end_time" class="form-control" required>
           </div>
         </div>
-        <div class="row g-2 mt-2">
-          <div class="col-6">
-            <label class="form-label">{{ __('m_tours.schedule.fields.max_capacity') }}</label>
-            <input type="number" id="edit-capacity" name="max_capacity" class="form-control" min="1" required>
-          </div>
-          <div class="col-6">
-            <label class="form-label">{{ __('m_tours.schedule.fields.label') }}</label>
-            <input type="text" id="edit-label" name="label" class="form-control" maxlength="255">
-          </div>
+
+        <div class="mt-2">
+          <label class="form-label">{{ __('m_tours.schedule.fields.label') }}</label>
+          <input type="text" id="edit-label" name="label" class="form-control" maxlength="255">
+        </div>
+
+        <div class="alert alert-info small mt-3 mb-0">
+          <i class="fas fa-info-circle me-1"></i>
+          Para editar capacidades específicas de tours, usa el botón <i class="fas fa-users"></i> en cada tour
         </div>
 
         <input type="hidden" name="is_active" value="0">
-        <div class="form-check mt-2">
+        <div class="form-check mt-3">
           <input class="form-check-input" type="checkbox" id="edit-active" name="is_active" value="1">
           <label class="form-check-label" for="edit-active">{{ __('m_tours.schedule.fields.active') }}</label>
         </div>
@@ -465,14 +550,13 @@ function lockAndSubmit(form, opts = {}) {
   form.submit();
 }
 
-// ===== Rellenar modal de edición =====
+// ===== Rellenar modal de edición (SIN capacidad) =====
 document.getElementById('modalEditarHorarioGeneral')?.addEventListener('show.bs.modal', function (ev) {
   const btn = ev.relatedTarget; if (!btn) return;
   const id     = btn.getAttribute('data-id');
   const start  = timeToHHMM(btn.getAttribute('data-start') || '');
   const end    = timeToHHMM(btn.getAttribute('data-end')   || '');
   const label  = btn.getAttribute('data-label') || '';
-  const cap    = btn.getAttribute('data-capacity') || '';
   const active = btn.getAttribute('data-active') === '1';
 
   const form = document.getElementById('formEditarHorarioGeneral');
@@ -482,7 +566,6 @@ document.getElementById('modalEditarHorarioGeneral')?.addEventListener('show.bs.
   document.getElementById('edit-start').value    = start;
   document.getElementById('edit-end').value      = end;
   document.getElementById('edit-label').value    = label;
-  document.getElementById('edit-capacity').value = cap;
   document.getElementById('edit-active').checked = active;
 });
 

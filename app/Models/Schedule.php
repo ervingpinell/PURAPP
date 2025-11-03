@@ -8,13 +8,10 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 class Schedule extends Model
 {
     protected $table = 'schedules';
-
-
     protected $primaryKey = 'schedule_id';
     public $incrementing = true;
     protected $keyType = 'int';
     public $timestamps = true;
-
     public function getRouteKeyName()
     {
         return 'schedule_id';
@@ -24,15 +21,12 @@ class Schedule extends Model
         'start_time',
         'end_time',
         'label',
-        'max_capacity',
         'is_active',
     ];
 
     protected $casts = [
-        'is_active'    => 'boolean',
-        'max_capacity' => 'integer',
+        'is_active' => 'boolean',
     ];
-
 
     protected function startTime(): Attribute
     {
@@ -57,6 +51,7 @@ class Schedule extends Model
             }
         );
     }
+
     public function tours()
     {
         return $this->belongsToMany(
@@ -64,10 +59,10 @@ class Schedule extends Model
             'schedule_tour',
             'schedule_id',
             'tour_id'
-        )->withPivot(['is_active', 'cutoff_hour', 'lead_days'])
-         ->withTimestamps();
+        )
+            ->withPivot(['is_active', 'base_capacity', 'cutoff_hour', 'lead_days'])
+            ->withTimestamps();
     }
-
 
     public function scopeActive($query)
     {

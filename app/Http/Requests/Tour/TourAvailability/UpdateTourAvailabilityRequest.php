@@ -11,58 +11,42 @@ class UpdateTourAvailabilityRequest extends FormRequest
 {
     protected string $controller = 'TourAvailabilityController';
 
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'tour_id'    => (int) $this->input('tour_id'),
-            'date'       => (string) $this->string('date')->trim(),
-            'start_time' => (string) $this->string('start_time')->trim(),
-            'end_time'   => (string) $this->string('end_time')->trim(),
-            'available'  => $this->has('available') ? $this->boolean('available') : null,
-            'is_active'  => $this->has('is_active') ? $this->boolean('is_active') : null,
+            'max_capacity' => $this->filled('max_capacity') ? (int) $this->input('max_capacity') : null,
+            'is_blocked'   => $this->has('is_blocked') ? $this->boolean('is_blocked') : null,
         ]);
     }
 
     public function rules(): array
     {
         return [
-            'tour_id'    => ['bail','required','integer','exists:tours,tour_id'],
-            'date'       => ['bail','required','date_format:Y-m-d'],
-            'start_time' => ['nullable','date_format:H:i','required_with:end_time'],
-            'end_time'   => ['nullable','date_format:H:i','after_or_equal:start_time'],
-            'available'  => ['sometimes','boolean'],
-            'is_active'  => ['sometimes','boolean'],
+            'max_capacity' => ['nullable', 'integer', 'min:0', 'max:999'],
+            'is_blocked'   => ['nullable', 'boolean'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'tour_id.required'         => __('m_booking.availability.validation.tour_id.required'),
-            'tour_id.integer'          => __('m_booking.availability.validation.tour_id.integer'),
-            'tour_id.exists'           => __('m_booking.availability.validation.tour_id.exists'),
-            'date.required'            => __('m_booking.availability.validation.date.required'),
-            'date.date_format'         => __('m_booking.availability.validation.date.date_format'),
-            'start_time.date_format'   => __('m_booking.availability.validation.start_time.date_format'),
-            'start_time.required_with' => __('m_booking.availability.validation.start_time.required_with'),
-            'end_time.date_format'     => __('m_booking.availability.validation.end_time.date_format'),
-            'end_time.after_or_equal'  => __('m_booking.availability.validation.end_time.after_or_equal'),
-            'available.boolean'        => __('m_booking.availability.validation.available.boolean'),
-            'is_active.boolean'        => __('m_booking.availability.validation.is_active.boolean'),
+            'max_capacity.integer' => 'La capacidad debe ser un número entero.',
+            'max_capacity.min'     => 'La capacidad debe ser al menos 0.',
+            'max_capacity.max'     => 'La capacidad no puede superar 999.',
+            'is_blocked.boolean'   => 'El estado de bloqueo debe ser verdadero o falso.',
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'tour_id'    => __('m_booking.availability.fields.tour'),
-            'date'       => __('m_booking.availability.fields.date'),
-            'start_time' => __('m_booking.availability.fields.start_time'),
-            'end_time'   => __('m_booking.availability.fields.end_time'),
-            'available'  => __('m_booking.availability.fields.available'),
-            'is_active'  => __('m_booking.availability.fields.is_active'),
+            'max_capacity' => 'Capacidad',
+            'is_blocked'   => 'Bloqueado',
         ];
     }
 
@@ -70,9 +54,8 @@ class UpdateTourAvailabilityRequest extends FormRequest
     {
         /** @var TourAvailability|null $availability */
         $availability = $this->route('availability');
-        $action       = $this->route()?->getActionMethod() ?? 'update';
 
-        LoggerHelper::validationFailed($this->controller, $action, $validator->errors()->toArray(), [
+        LoggerHelper::validationFailed($this->controller, 'update', $validator->errors()->toArray(), [
             'entity'    => 'tour_availability',
             'entity_id' => $availability?->getKey(),
             'user_id'   => optional($this->user())->getAuthIdentifier(),

@@ -7,6 +7,7 @@ use Exception;
 use App\Models\Tour;
 use App\Models\Schedule;
 use App\Services\LoggerHelper;
+use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\Tour\Schedule\StoreScheduleRequest;
 use App\Http\Requests\Tour\Schedule\UpdateScheduleRequest;
@@ -33,30 +34,38 @@ class TourScheduleController extends Controller
 
     /**
      * Crear horario (general o para un tour)
-     * - Si viene `tour_id`, se adjunta al tour con pivote is_active = true
-     * - Si NO, queda como horario general
+     * - Si viene `tour_id`, se adjunta al tour con pivote is_active = true y opcional base_capacity
+     * - Si NO, queda como horario general (sin capacidad en la tabla schedules)
      */
     public function store(StoreScheduleRequest $request): RedirectResponse
     {
         try {
             $data = $request->validated();
 
+            // Crear schedule SIN max_capacity (ya no existe en la tabla)
             $schedule = Schedule::create([
-                'start_time'   => $data['start_time'],
-                'end_time'     => $data['end_time'],
-                'label'        => $data['label'] ?? null,
-                'max_capacity' => $data['max_capacity'],
-                'is_active'    => $request->has('is_active') ? $request->boolean('is_active') : true,
+                'start_time' => $data['start_time'],
+                'end_time'   => $data['end_time'],
+                'label'      => $data['label'] ?? null,
+                'is_active'  => $request->has('is_active') ? $request->boolean('is_active') : true,
             ]);
 
+            // Si se adjunta a un tour, crear pivote con base_capacity opcional
             if (!empty($data['tour_id'])) {
+                $pivotData = ['is_active' => true];
+
+                if (!empty($data['base_capacity'])) {
+                    $pivotData['base_capacity'] = (int) $data['base_capacity'];
+                }
+
                 $schedule->tours()->syncWithoutDetaching([
-                    $data['tour_id'] => ['is_active' => true],
+                    $data['tour_id'] => $pivotData
                 ]);
             }
 
             LoggerHelper::mutated($this->controller, 'store', 'schedule', $schedule->getKey(), [
                 'tour_id_attached' => $data['tour_id'] ?? null,
+                'base_capacity'    => $data['base_capacity'] ?? null,
                 'user_id'          => optional($request->user())->getAuthIdentifier(),
             ]);
 
@@ -77,17 +86,20 @@ class TourScheduleController extends Controller
         return view('admin.tours.schedule.edit', compact('schedule'));
     }
 
+    /**
+     * Actualizar horario general (SIN capacidad)
+     */
     public function update(UpdateScheduleRequest $request, Schedule $schedule): RedirectResponse
     {
         try {
             $data = $request->validated();
 
+            // Actualizar schedule SIN max_capacity
             $schedule->update([
-                'start_time'   => $data['start_time'],
-                'end_time'     => $data['end_time'],
-                'label'        => $data['label'] ?? null,
-                'max_capacity' => $data['max_capacity'],
-                'is_active'    => $request->boolean('is_active'),
+                'start_time' => $data['start_time'],
+                'end_time'   => $data['end_time'],
+                'label'      => $data['label'] ?? null,
+                'is_active'  => $request->boolean('is_active'),
             ]);
 
             LoggerHelper::mutated($this->controller, 'update', 'schedule', $schedule->getKey(), [
@@ -106,10 +118,13 @@ class TourScheduleController extends Controller
         }
     }
 
+    /**
+     * Toggle estado activo del schedule (global)
+     */
     public function toggle(ToggleScheduleRequest $request, Schedule $schedule): RedirectResponse
     {
         try {
-            $schedule->is_active = ! $schedule->is_active;
+            $schedule->is_active = !$schedule->is_active;
             $schedule->save();
 
             LoggerHelper::mutated($this->controller, 'toggle', 'schedule', $schedule->getKey(), [
@@ -130,6 +145,9 @@ class TourScheduleController extends Controller
         }
     }
 
+    /**
+     * Toggle asignación de schedule a tour (pivote)
+     */
     public function toggleAssignment(ToggleScheduleAssignmentRequest $request, Tour $tour, Schedule $schedule): RedirectResponse
     {
         try {
@@ -140,16 +158,16 @@ class TourScheduleController extends Controller
             }
 
             $current = (bool) ($rel->pivot->is_active ?? true);
-            $tour->schedules()->updateExistingPivot($schedule->getKey(), ['is_active' => ! $current]);
+            $tour->schedules()->updateExistingPivot($schedule->getKey(), ['is_active' => !$current]);
 
             LoggerHelper::mutated($this->controller, 'toggleAssignment', 'tour_schedule_pivot', $schedule->getKey(), [
-                'tour_id'        => $tour->getKey(),
-                'schedule_id'    => $schedule->getKey(),
-                'pivot_is_active'=> ! $current,
-                'user_id'        => optional($request->user())->getAuthIdentifier(),
+                'tour_id'         => $tour->getKey(),
+                'schedule_id'     => $schedule->getKey(),
+                'pivot_is_active' => !$current,
+                'user_id'         => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('success', ! $current
+            return back()->with('success', !$current
                 ? __('m_tours.schedule.success.assignment_activated')
                 : __('m_tours.schedule.success.assignment_deactivated'));
         } catch (Exception $e) {
@@ -161,18 +179,28 @@ class TourScheduleController extends Controller
         }
     }
 
+    /**
+     * Asignar schedule existente a un tour (con capacidad opcional)
+     */
     public function attach(AttachScheduleToTourRequest $request, Tour $tour): RedirectResponse
     {
         try {
             $data = $request->validated();
 
+            $pivotData = ['is_active' => true];
+
+            if (!empty($data['base_capacity'])) {
+                $pivotData['base_capacity'] = (int) $data['base_capacity'];
+            }
+
             $tour->schedules()->syncWithoutDetaching([
-                $data['schedule_id'] => ['is_active' => true],
+                $data['schedule_id'] => $pivotData
             ]);
 
             LoggerHelper::mutated($this->controller, 'attach', 'tour_schedule_pivot', $data['schedule_id'], [
-                'tour_id' => $tour->getKey(),
-                'user_id' => optional($request->user())->getAuthIdentifier(),
+                'tour_id'       => $tour->getKey(),
+                'base_capacity' => $data['base_capacity'] ?? null,
+                'user_id'       => optional($request->user())->getAuthIdentifier(),
             ]);
 
             return back()->with('success', __('m_tours.schedule.success.attached'));
@@ -185,6 +213,39 @@ class TourScheduleController extends Controller
         }
     }
 
+    /**
+     * Actualizar capacidad del pivote (base_capacity)
+     */
+    public function updatePivotCapacity(Request $request, Tour $tour, Schedule $schedule): RedirectResponse
+    {
+        $request->validate([
+            'base_capacity' => 'nullable|integer|min:1|max:999',
+        ]);
+
+        try {
+            $tour->schedules()->updateExistingPivot($schedule->getKey(), [
+                'base_capacity' => $request->base_capacity
+            ]);
+
+            LoggerHelper::mutated($this->controller, 'updatePivotCapacity', 'tour_schedule_pivot', $schedule->getKey(), [
+                'tour_id'       => $tour->getKey(),
+                'base_capacity' => $request->base_capacity,
+                'user_id'       => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('success', 'Capacidad del horario actualizada correctamente.');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'updatePivotCapacity', 'tour_schedule_pivot', $schedule->getKey(), $e, [
+                'tour_id' => $tour->getKey(),
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+            return back()->with('error', 'Error al actualizar capacidad.');
+        }
+    }
+
+    /**
+     * Desasignar schedule de un tour
+     */
     public function detach(Tour $tour, Schedule $schedule): RedirectResponse
     {
         try {
@@ -205,6 +266,9 @@ class TourScheduleController extends Controller
         }
     }
 
+    /**
+     * Eliminar schedule general completamente
+     */
     public function destroy(Schedule $schedule): RedirectResponse
     {
         try {
