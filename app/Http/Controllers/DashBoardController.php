@@ -12,11 +12,12 @@ use App\Models\Tour;
 use App\Models\TourLanguage;
 use App\Models\TourType;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashBoardController extends Controller
 {
@@ -34,37 +35,32 @@ class DashBoardController extends Controller
             $language = $default;
         }
 
-        // Prefix (2 letters) and internal "locale"
-        $prefix   = $language;                 // es, en, pt, ...
-        $internal = $prefix === 'pt' ? 'pt' : $prefix; // map if needed
+        $prefix   = $language;
+        $internal = $prefix === 'pt' ? 'pt' : $prefix;
 
-        // Save BOTH values
         session([
-            'locale'        => $internal,  // used by views, etc.
-            'locale_prefix' => $prefix,    // used by SetLocale when no /{locale} in URL
+            'locale'        => $internal,
+            'locale_prefix' => $prefix,
         ]);
 
         app()->setLocale($internal);
 
-        // Return to where user was, WITHOUT adding prefix to non-localized routes
-        $prev = (string) ($request->headers->get('referer') ?: url()->previous() ?: $request->fullUrl());
+        $prev   = (string) ($request->headers->get('referer') ?: url()->previous() ?: $request->fullUrl());
         $parsed = parse_url($prev) ?: [];
         $path   = $parsed['path'] ?? '/';
         $query  = isset($parsed['query']) ? ('?'.$parsed['query']) : '';
 
-        // Remove locale prefix if exists
-        $segments = array_values(array_filter(explode('/', $path)));
+        $segments     = array_values(array_filter(explode('/', $path)));
         $pathNoLocale = $path;
         if (!empty($segments) && in_array($segments[0], $supported, true)) {
             $pathNoLocale = '/' . implode('/', array_slice($segments, 1));
             if ($pathNoLocale === '/') { $pathNoLocale = ''; }
         }
 
-        // Routes without localization (don't add /es, /en, ...)
         $unlocalized = [
             'login','register','password','password-reset','email','verify',
             'auth','two-factor-challenge','two-factor','unlock-account','account',
-            'admin', // admin is not localized
+            'admin',
             'profile','my-bookings','my-cart',
         ];
 
@@ -72,60 +68,14 @@ class DashBoardController extends Controller
         $first = $first !== '' ? strtok($first, '/') : '';
 
         if ($first !== '' && in_array($first, $unlocalized, true)) {
-            // return as-is, without prefix
             return redirect()->to(($pathNoLocale === '' ? '/' : $pathNoLocale) . $query);
         }
 
-        // If public root → redirect to language home
         if ($pathNoLocale === '' || $pathNoLocale === '/') {
             return redirect()->to('/' . $prefix);
         }
 
-        // Localized public routes → prepend chosen language prefix
         return redirect()->to('/' . $prefix . $pathNoLocale . $query);
-    }
-
-    private function isAdminUrl(string $url): bool
-    {
-        $parsed = parse_url($url);
-        $path   = $parsed['path'] ?? '/';
-
-        $adminPrefixes = [
-            '/admin',
-            '/profile',
-            '/my-bookings',
-            '/my-cart',
-        ];
-
-        foreach ($adminPrefixes as $prefix) {
-            if (str_starts_with($path, $prefix)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private function replaceLocaleInUrl(string $url, string $newLocale): string
-    {
-        $locales = array_keys(config('routes.locales', []));
-        $parsed  = parse_url($url);
-        $path    = $parsed['path'] ?? '/';
-        $query   = isset($parsed['query']) ? '?' . $parsed['query'] : '';
-
-        foreach ($locales as $locale) {
-            if (str_starts_with($path, "/{$locale}/")) {
-                $path = substr($path, strlen("/{$locale}"));
-                break;
-            } elseif ($path === "/{$locale}") {
-                $path = '/';
-                break;
-            }
-        }
-
-        $newPath = "/{$newLocale}" . $path;
-
-        return rtrim(config('app.url'), '/') . $newPath . $query;
     }
 
     public function dashboard(): View|RedirectResponse
@@ -137,6 +87,7 @@ class DashBoardController extends Controller
                 ->with('error', __('adminlte::adminlte.access_denied'));
         }
 
+        // Métricas
         $totalUsers          = User::count();
         $totalTours          = Tour::count();
         $totalRoles          = Role::count();
@@ -149,17 +100,66 @@ class DashBoardController extends Controller
 
         $itineraries = Itinerary::with('items')->get();
 
-        // ---- SOLO reservas para MAÑANA (según timezone de la app) ----
+        // Próximas reservas (mañana)
         $tz        = config('app.timezone', 'UTC');
-        $tomorrow  = Carbon::now($tz)->addDay()->toDateString(); // yyyy-mm-dd
-        $tomorrowC = Carbon::now($tz)->addDay();                 // objeto para mostrar en vista
+        $tomorrow  = Carbon::now($tz)->addDay()->toDateString();
+        $tomorrowC = Carbon::now($tz)->addDay();
 
         $upcomingBookings = Booking::with(['user', 'detail.tour'])
-            ->whereHas('detail', function ($query) use ($tomorrow) {
-                $query->whereDate('tour_date', $tomorrow);
-            })
+            ->whereHas('detail', fn ($q) => $q->whereDate('tour_date', $tomorrow))
             ->orderBy('booking_date')
-            ->get(); // sin "take(5)" para listar todas las de mañana
+            ->get();
+
+        // ========= Alertas de capacidad por FECHA (respetando overrides) =========
+        $start = Carbon::now($tz)->toDateString();
+        $end   = Carbon::now($tz)->addDays(30)->toDateString();
+
+        // Sumatoria por (schedule_id, fecha) y capacidad efectiva (override o base)
+        $rows = DB::table('booking_details as d')
+            ->join('bookings as b', 'b.booking_id', '=', 'd.booking_id')
+            ->join('schedules as s', 's.schedule_id', '=', 'd.schedule_id')
+            ->leftJoin('tours as t', 't.tour_id', '=', 'd.tour_id')
+            ->leftJoin('schedule_capacity_overrides as o', function ($j) {
+                $j->on('o.schedule_id', '=', 'd.schedule_id')
+                  ->on(DB::raw('o.date'), '=', DB::raw('DATE(d.tour_date)'));
+            })
+            ->whereDate('d.tour_date', '>=', $start)
+            ->whereDate('d.tour_date', '<=', $end)
+            ->whereIn('b.status', ['confirmed', 'paid'])
+            ->groupBy('d.schedule_id', DB::raw('DATE(d.tour_date)'), 't.name', 's.max_capacity', 'o.max_capacity')
+            ->select([
+                'd.schedule_id',
+                DB::raw('DATE(d.tour_date) as date'),
+                't.name as tour',
+                DB::raw('SUM(COALESCE(d.adults_quantity,0)+COALESCE(d.kids_quantity,0)) as used'),
+                DB::raw('COALESCE(o.max_capacity, s.max_capacity) as eff_max'),
+            ])
+            ->get();
+
+        $alerts = $rows->map(function ($r) {
+            $max = (int) $r->eff_max;
+            $used = (int) $r->used;
+            $remaining = max(0, $max - $used);
+            $pct = $max > 0 ? (int) floor(($used * 100) / $max) : 0;
+
+            $type = $remaining === 0
+                ? 'sold_out'
+                : (($remaining <= 3 || $pct >= 80) ? 'near_capacity' : 'info');
+
+            return [
+                'key'         => (string) ($r->schedule_id . '-' . $r->date), // clave única p/ cache local
+                'schedule_id' => (int) $r->schedule_id,
+                'date'        => (string) $r->date,
+                'tour'        => $r->tour ?? '—',
+                'used'        => $used,
+                'max'         => $max,
+                'remaining'   => $remaining,
+                'pct'         => $pct,
+                'type'        => $type,
+            ];
+        })->sortBy(['date','tour'])->values();
+
+        $criticalCount = $alerts->whereIn('type', ['near_capacity','sold_out'])->count();
 
         return view('admin.dashboard', compact(
             'totalUsers',
@@ -173,7 +173,8 @@ class DashBoardController extends Controller
             'totalBookings',
             'itineraries',
             'upcomingBookings',
-            'tomorrowC'
-        ));
+            'tomorrowC',
+        ))->with('capAlerts', $alerts)
+          ->with('capCritical', $criticalCount);
     }
 }

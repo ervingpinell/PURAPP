@@ -45,6 +45,7 @@ use App\Http\Controllers\Admin\Users\RoleController;
 use App\Http\Controllers\Admin\Users\UserRegisterController;
 use App\Http\Controllers\Admin\MeetingPointSimpleController;
 use App\Http\Controllers\Admin\TranslationController;
+use App\Http\Controllers\Admin\CapacityController;
 
 // Public bookings controller (split)
 use App\Http\Controllers\Bookings\BookingController as PublicBookingController;
@@ -272,6 +273,17 @@ Route::middleware([SetLocale::class])->group(function () {
 
                 // Dashboard
                 Route::get('/', [DashBoardController::class, 'dashboard'])->name('home');
+
+                // Aumentar capacidad de un horario (Desbloquear)
+                Route::patch('/capacity/{schedule}', [CapacityController::class, 'increase'])
+                ->name('capacity.increase');
+
+                // Detalles de ocupación de un horario
+                Route::get('/capacity/{schedule}', [CapacityController::class, 'show'])
+                ->name('capacity.details');
+                
+                // 🔒 Bloquear fecha de un horario (NUEVO)
+                Route::patch('/capacity/{schedule}/block', [CapacityController::class, 'block'])->name('capacity.block');
 
                 // Users & Roles
                 Route::resource('users', UserRegisterController::class)->except(['show']);
