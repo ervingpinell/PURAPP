@@ -14,7 +14,6 @@
                         <option value="">-- Crear Nuevo --</option>
                         @foreach($itineraries ?? [] as $itinerary)
                             <option value="{{ $itinerary->itinerary_id }}"
-                                    data-description="{{ $itinerary->description }}"
                                     {{ old('itinerary_id', $tour->itinerary_id ?? '') == $itinerary->itinerary_id ? 'selected' : '' }}>
                                 {{ $itinerary->name ?? "Itinerario #{$itinerary->itinerary_id}" }}
                             </option>
@@ -45,6 +44,18 @@
 
                 {{-- Formulario para Crear Nuevo Itinerario --}}
                 <div id="new-itinerary-form" style="display: none;">
+                    {{-- NOMBRE DEL ITINERARIO --}}
+                    <div class="form-group">
+                        <label for="new_itinerary_name">Nombre del Itinerario <span class="text-danger">*</span></label>
+                        <input type="text"
+                               name="new_itinerary[name]"
+                               id="new_itinerary_name"
+                               class="form-control"
+                               placeholder="Ej: Itinerario Estándar Volcán Arenal"
+                               value="{{ old('new_itinerary.name') }}">
+                        <small class="form-text text-muted">Nombre identificador para este itinerario</small>
+                    </div>
+
                     <div class="form-group">
                         <label for="new_itinerary_description">Descripción del Itinerario</label>
                         <textarea name="new_itinerary[description]"
@@ -54,10 +65,61 @@
                                   placeholder="Descripción general del itinerario...">{{ old('new_itinerary.description') }}</textarea>
                     </div>
 
+                    {{-- SELECCIONAR ITEMS EXISTENTES --}}
                     <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="card-title mb-0">Ítems del Itinerario</h4>
-                            <button type="button" class="btn btn-sm btn-success" id="add-itinerary-item">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list"></i> Seleccionar Ítems Existentes
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-hand-pointer"></i>
+                                <strong>Instrucciones:</strong> Marca los ítems que quieres incluir y arrástralos para ordenarlos.
+                            </div>
+
+                            @php
+                                $availableItems = \App\Models\ItineraryItem::where('is_active', true)
+                                    ->orderBy('title')
+                                    ->get();
+                            @endphp
+
+                            @if($availableItems->isNotEmpty())
+                                <ul class="list-group sortable-items-new" id="sortable-new-itinerary">
+                                    @foreach($availableItems as $item)
+                                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                                            data-id="{{ $item->item_id }}">
+                                            <div class="form-check">
+                                                <input type="checkbox"
+                                                       class="form-check-input checkbox-item-new"
+                                                       value="{{ $item->item_id }}"
+                                                       id="new-item-{{ $item->item_id }}"
+                                                       {{ in_array($item->item_id, old('new_itinerary.existing_items', [])) ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="new-item-{{ $item->item_id }}">
+                                                    <strong>{{ $item->title }}</strong>
+                                                    @if($item->description)
+                                                        <br><small class="text-muted">{{ Str::limit($item->description, 50) }}</small>
+                                                    @endif
+                                                </label>
+                                            </div>
+                                            <i class="fas fa-arrows-alt handle text-muted" style="cursor: move;" title="Arrastrar para ordenar"></i>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                                <div id="ordered-new-itinerary-inputs"></div>
+                            @else
+                                <p class="text-muted">No hay ítems disponibles. <a href="{{ route('admin.tours.itinerary.index') }}" target="_blank">Crear ítems primero</a></p>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- O CREAR ITEMS NUEVOS --}}
+                    <div class="card mt-3">
+                        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-plus-circle"></i> O Crear Nuevos Ítems
+                            </h5>
+                            <button type="button" class="btn btn-sm btn-light" id="add-itinerary-item">
                                 <i class="fas fa-plus"></i> Agregar Ítem
                             </button>
                         </div>
@@ -95,6 +157,12 @@
                                     @endforeach
                                 @endif
                             </div>
+
+                            @if(!old('new_itinerary.items'))
+                                <div class="text-muted text-center py-3" id="empty-items-message">
+                                    <i class="fas fa-info-circle"></i> Haz clic en "Agregar Ítem" para crear ítems nuevos
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -116,20 +184,41 @@
                     <li><strong>Crear nuevo:</strong> Define un itinerario único para este tour</li>
                 </ul>
                 <hr>
-                <h5>Estructura</h5>
-                <p class="small">
-                    Cada ítem tiene un <strong>título</strong> y una <strong>descripción</strong>
-                    que explica qué sucede en esa parte del tour.
-                </p>
-                <p class="small mb-0">
-                    Ejemplo: "Recogida en Hotel" → "Nuestro transporte lo recogerá en su hotel entre 7:00 - 7:30 AM"
-                </p>
+                <h5>Al crear nuevo puedes:</h5>
+                <ul class="small">
+                    <li><strong>Seleccionar ítems existentes:</strong> Marca los que quieras y ordénalos arrastrando</li>
+                    <li><strong>Crear ítems nuevos:</strong> Define ítems únicos para este itinerario</li>
+                    <li><strong>Combinar ambos:</strong> Puedes usar ítems existentes Y crear nuevos</li>
+                </ul>
             </div>
         </div>
+
+        @if($tour ?? false)
+            <div class="card card-secondary">
+                <div class="card-header">
+                    <h3 class="card-title">Itinerario Actual</h3>
+                </div>
+                <div class="card-body">
+                    @if($tour->itinerary)
+                        <h5>{{ $tour->itinerary->name ?? 'Sin nombre' }}</h5>
+                        <p class="text-muted small">{{ $tour->itinerary->description }}</p>
+                        @if($tour->itinerary->items->isNotEmpty())
+                            <ol class="pl-3">
+                                @foreach($tour->itinerary->items as $item)
+                                    <li><strong>{{ $item->title }}</strong></li>
+                                @endforeach
+                            </ol>
+                        @endif
+                    @else
+                        <p class="text-muted mb-0">Sin itinerario asignado</p>
+                    @endif
+                </div>
+            </div>
+        @endif
     </div>
 </div>
 
-{{-- Template para nuevos ítems --}}
+{{-- Template para nuevos ítems (crear desde cero) --}}
 <template id="itinerary-item-template">
     <div class="itinerary-item mb-3 p-3 border rounded">
         <div class="row">
@@ -158,7 +247,15 @@
     </div>
 </template>
 
+@push('css')
+<style>
+.sortable-items-new { list-style: none; padding: 0; }
+.sortable-items-new .handle { cursor: move; }
+</style>
+@endpush
+
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const itinerarySelect = document.getElementById('itinerary_id');
@@ -167,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const descriptionEl = document.getElementById('itinerary-description');
     const itemsList = document.getElementById('itinerary-items-list');
 
-    // Datos de itinerarios (pasados desde el controlador)
+    // Datos de itinerarios
     const itineraryData = @json($itineraryJson ?? []);
 
     function updateItineraryView() {
@@ -200,18 +297,62 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Event listener para cambio de select
     if (itinerarySelect) {
         itinerarySelect.addEventListener('change', updateItineraryView);
-        updateItineraryView(); // Inicializar
+        updateItineraryView();
     }
 
-    // Agregar ítem de itinerario
+    // ===== Sortable para items existentes =====
+    const sortableList = document.getElementById('sortable-new-itinerary');
+    if (sortableList) {
+        new Sortable(sortableList, {
+            animation: 150,
+            handle: '.handle'
+        });
+    }
+
+    // ===== Al enviar formulario: construir orden de items seleccionados =====
+    const tourForm = document.getElementById('tourForm');
+    if (tourForm) {
+        tourForm.addEventListener('submit', function(e) {
+            // Solo si estamos creando nuevo itinerario
+            if (itinerarySelect && itinerarySelect.value === '') {
+                buildOrderedInputs();
+            }
+        });
+    }
+
+    function buildOrderedInputs() {
+        const container = document.getElementById('ordered-new-itinerary-inputs');
+        if (!container) return;
+
+        container.innerHTML = '';
+        let index = 0;
+
+        const listItems = sortableList.querySelectorAll('li');
+        listItems.forEach(li => {
+            const checkbox = li.querySelector('.checkbox-item-new');
+            if (checkbox && checkbox.checked) {
+                const itemId = checkbox.value;
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = `new_itinerary[existing_items][${index}]`;
+                input.value = itemId;
+                container.appendChild(input);
+                index++;
+            }
+        });
+    }
+
+    // ===== Agregar nuevo ítem (crear desde cero) =====
     let itemIndex = {{ old('new_itinerary.items') ? count(old('new_itinerary.items')) : 0 }};
 
     document.getElementById('add-itinerary-item')?.addEventListener('click', function() {
         const template = document.getElementById('itinerary-item-template');
         const container = document.getElementById('itinerary-items-container');
+        const emptyMessage = document.getElementById('empty-items-message');
+
+        if (emptyMessage) emptyMessage.style.display = 'none';
 
         const clone = template.content.cloneNode(true);
         const html = clone.querySelector('.itinerary-item').outerHTML.replace(/__INDEX__/g, itemIndex);
@@ -224,6 +365,13 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(e) {
         if (e.target.closest('.remove-itinerary-item')) {
             e.target.closest('.itinerary-item').remove();
+
+            // Mostrar mensaje si no hay items
+            const container = document.getElementById('itinerary-items-container');
+            const emptyMessage = document.getElementById('empty-items-message');
+            if (container && container.children.length === 0 && emptyMessage) {
+                emptyMessage.style.display = 'block';
+            }
         }
     });
 });

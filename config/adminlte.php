@@ -342,6 +342,12 @@ return [
                 'route' => 'admin.tours.cutoff.edit',
                 'icon'  => 'fas fa-clock',
             ],
+
+            [
+                'text'  => 'Disponibilidad y Capacidad',
+                'route' => 'admin.tours.capacity.index',
+                'icon' => 'fas fa-calendar-alt',
+            ],
         ],
     ],
 

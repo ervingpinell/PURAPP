@@ -21,11 +21,10 @@
                                    value="{{ $schedule->schedule_id }}"
                                    {{ in_array($schedule->schedule_id, old('schedules', $existingSchedules)) ? 'checked' : '' }}>
                             <label class="custom-control-label" for="schedule_{{ $schedule->schedule_id }}">
-                                <strong>{{ $schedule->start_time }}</strong> - {{ $schedule->end_time }}
+                                <strong>{{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}</strong>
                                 @if($schedule->label)
                                     <span class="badge badge-info">{{ $schedule->label }}</span>
                                 @endif
-                                <small class="text-muted">(Capacidad: {{ $schedule->max_capacity }})</small>
                             </label>
                         </div>
                     @empty
@@ -45,19 +44,14 @@
             </div>
         </div>
 
-        {{-- Opción para crear horario nuevo (opcional) --}}
+        {{-- Crear horario nuevo - SIEMPRE VISIBLE --}}
         <div class="card card-success">
             <div class="card-header">
                 <h3 class="card-title">
                     <i class="fas fa-plus"></i> Crear Horario Nuevo
                 </h3>
-                <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                </div>
             </div>
-            <div class="card-body" style="display: none;">
+            <div class="card-body">
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
@@ -81,24 +75,15 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="new_schedule_capacity">Capacidad</label>
-                            <input type="number"
-                                   name="new_schedule[max_capacity]"
-                                   id="new_schedule_capacity"
+                            <label for="new_schedule_label">Etiqueta (opcional)</label>
+                            <input type="text"
+                                   name="new_schedule[label]"
+                                   id="new_schedule_label"
                                    class="form-control"
-                                   value="{{ old('new_schedule.max_capacity', 12) }}"
-                                   min="1">
+                                   placeholder="Ej: Mañana, Tarde"
+                                   value="{{ old('new_schedule.label') }}">
                         </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="new_schedule_label">Etiqueta (opcional)</label>
-                    <input type="text"
-                           name="new_schedule[label]"
-                           id="new_schedule_label"
-                           class="form-control"
-                           placeholder="Ej: Mañana, Tarde"
-                           value="{{ old('new_schedule.label') }}">
                 </div>
                 <div class="custom-control custom-checkbox">
                     <input type="checkbox"
@@ -108,7 +93,7 @@
                            value="1"
                            {{ old('new_schedule.create') ? 'checked' : '' }}>
                     <label class="custom-control-label" for="new_schedule_create">
-                        Crear este horario y asignarlo al tour
+                        <strong>Crear este horario y asignarlo al tour</strong>
                     </label>
                 </div>
             </div>
@@ -131,7 +116,7 @@
                 <h5>Crear Nuevo</h5>
                 <p class="small mb-0">
                     Si necesitas un horario que no existe, puedes crearlo desde aquí
-                    y se asignará automáticamente a este tour.
+                    marcando la casilla "Crear este horario y asignarlo al tour".
                 </p>
             </div>
         </div>
@@ -145,7 +130,7 @@
                     <ul class="list-group list-group-flush">
                         @forelse($tour->schedules as $schedule)
                             <li class="list-group-item">
-                                <strong>{{ $schedule->start_time }}</strong> - {{ $schedule->end_time }}
+                                <strong>{{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}</strong>
                                 @if($schedule->label)
                                     <br><small class="text-muted">{{ $schedule->label }}</small>
                                 @endif

@@ -5,14 +5,9 @@
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
         <h1>Editar: {{ $tour->name }}</h1>
-        <div>
-            <a href="{{ route('admin.tours.prices.index', $tour) }}" class="btn btn-warning mr-2">
-                <i class="fas fa-dollar-sign"></i> Gestionar Precios Detallados
-            </a>
-            <a href="{{ route('admin.tours.index') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Volver
-            </a>
-        </div>
+        <a href="{{ route('admin.tours.index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
     </div>
 @stop
 

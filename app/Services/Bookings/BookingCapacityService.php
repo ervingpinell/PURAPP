@@ -7,66 +7,145 @@ use Illuminate\Support\Facades\DB;
 
 class BookingCapacityService
 {
-    /** Estados de booking que cuentan para ocupar capacidad */
     private array $bookingCountStatuses;
 
     public function __construct()
     {
-        // Ajusta si usas más estados (paid/completed, etc.)
         $this->bookingCountStatuses = config('bookings.count_statuses', ['confirmed']);
     }
 
-    /** Capacidad base (prioriza Schedule, luego Tour, o “infinito”) */
-    public function resolveMaxCapacity(?Schedule $schedule, ?Tour $tour): int
+    /**
+     * NUEVA LÓGICA JERÁRQUICA DE CAPACIDAD
+     * Prioridad:
+     * 1. TourAvailability (día + horario específico)
+     * 2. TourAvailability (día general, todos los horarios)
+     * 3. schedule_tour.base_capacity (pivote)
+     * 4. Tour.max_capacity
+     * 5. PHP_INT_MAX (sin límite)
+     */
+    public function resolveMaxCapacity(Tour $tour, ?Schedule $schedule, string $tourDate): int
     {
-        if ($schedule && !is_null($schedule->max_capacity)) return (int) $schedule->max_capacity;
-        if ($tour && !is_null($tour->max_capacity))         return (int) $tour->max_capacity;
-        return PHP_INT_MAX; // Sin límite explícito
-    }
+        // 1. Buscar override específico para día + horario
+        if ($schedule) {
+            $specificOverride = TourAvailability::active()
+                ->where('tour_id', $tour->tour_id)
+                ->where('schedule_id', $schedule->schedule_id)
+                ->whereDate('date', $tourDate)
+                ->first();
 
-    /** ¿Fecha bloqueada por exclusiones (y opcionalmente por disponibilidad)? */
-    public function isDateBlocked(Tour $tour, ?Schedule $schedule, string $tourDate): bool
-    {
-        // Bloqueos por rango (por tour o por horario)
-        $blocked = TourExcludedDate::where('tour_id', $tour->tour_id)
-            ->where(function ($q) use ($schedule) {
-                $q->whereNull('schedule_id');
-                if ($schedule) $q->orWhere('schedule_id', $schedule->schedule_id);
-            })
-            ->where('start_date', '<=', $tourDate)
-            ->where(function ($q) use ($tourDate) {
-                $q->where('end_date', '>=', $tourDate)->orWhereNull('end_date');
-            })
-            ->exists();
+            if ($specificOverride) {
+                if ($specificOverride->is_blocked) {
+                    return 0;
+                }
+                if (!is_null($specificOverride->max_capacity)) {
+                    return (int) $specificOverride->max_capacity;
+                }
+            }
+        }
 
-        if ($blocked) return true;
-
-        // Disponibilidad a nivel de tour para el día
-        $availabilityBlocked = TourAvailability::where('tour_id', $tour->tour_id)
+        // 2. Buscar override general del día (aplica a todos los horarios)
+        $generalDayOverride = TourAvailability::active()
+            ->where('tour_id', $tour->tour_id)
+            ->whereNull('schedule_id')
             ->whereDate('date', $tourDate)
-            ->where('available', 0)
-            ->where('is_active', 1)
-            ->exists();
+            ->first();
 
-        // Si manejas disponibilidad por horario, agrega columna schedule_id y descomenta:
-        // ->when($schedule, fn($q) => $q->where(function($qq) use ($schedule) {
-        //     $qq->whereNull('schedule_id')->orWhere('schedule_id', $schedule->schedule_id);
-        // }))
+        if ($generalDayOverride) {
+            if ($generalDayOverride->is_blocked) {
+                return 0;
+            }
+            if (!is_null($generalDayOverride->max_capacity)) {
+                return (int) $generalDayOverride->max_capacity;
+            }
+        }
 
-        return $availabilityBlocked;
+        // 3. Capacidad del pivote schedule_tour.base_capacity
+        if ($schedule) {
+            $pivot = DB::table('schedule_tour')
+                ->where('tour_id', $tour->tour_id)
+                ->where('schedule_id', $schedule->schedule_id)
+                ->first();
+
+            if ($pivot && !is_null($pivot->base_capacity)) {
+                return (int) $pivot->base_capacity;
+            }
+        }
+
+        // 4. Capacidad general del tour
+        if (!is_null($tour->max_capacity)) {
+            return (int) $tour->max_capacity;
+        }
+
+        // 5. Sin límite
+        return PHP_INT_MAX;
     }
 
     /**
-     * Pax confirmados para un tour+schedule+fecha (filtra por tour_id para no mezclar horarios).
+     * Verificar si fecha está bloqueada
      */
-    public function confirmedPaxFor(string $tourDate, int $scheduleId, ?int $excludeBookingId = null, ?int $tourId = null): int
+    public function isDateBlocked(Tour $tour, ?Schedule $schedule, string $tourDate): bool
     {
-        $sum = BookingDetail::whereHas('booking', function ($q) use ($excludeBookingId) {
-                $q->whereIn('status', $this->bookingCountStatuses);
-                if ($excludeBookingId) $q->where('booking_id', '!=', $excludeBookingId);
+        // 1. Bloqueos por TourExcludedDate
+        $excludedDateBlock = TourExcludedDate::where('tour_id', $tour->tour_id)
+            ->where(function ($q) use ($schedule) {
+                $q->whereNull('schedule_id');
+                if ($schedule) {
+                    $q->orWhere('schedule_id', $schedule->schedule_id);
+                }
             })
+            ->where('start_date', '<=', $tourDate)
+            ->where(function ($q) use ($tourDate) {
+                $q->where('end_date', '>=', $tourDate)
+                    ->orWhereNull('end_date');
+            })
+            ->exists();
+
+        if ($excludedDateBlock) {
+            return true;
+        }
+
+        // 2. Bloqueos por TourAvailability específico
+        if ($schedule) {
+            $specificBlock = TourAvailability::active()
+                ->where('tour_id', $tour->tour_id)
+                ->where('schedule_id', $schedule->schedule_id)
+                ->whereDate('date', $tourDate)
+                ->where('is_blocked', true)
+                ->exists();
+
+            if ($specificBlock) {
+                return true;
+            }
+        }
+
+        // 3. Bloqueo general del día
+        $generalDayBlock = TourAvailability::active()
+            ->where('tour_id', $tour->tour_id)
+            ->whereNull('schedule_id')
+            ->whereDate('date', $tourDate)
+            ->where('is_blocked', true)
+            ->exists();
+
+        return $generalDayBlock;
+    }
+
+    /**
+     * Pax confirmados para tour+schedule+fecha
+     */
+    public function confirmedPaxFor(
+        string $tourDate,
+        int $scheduleId,
+        int $tourId,
+        ?int $excludeBookingId = null
+    ): int {
+        $sum = BookingDetail::whereHas('booking', function ($q) use ($excludeBookingId) {
+            $q->whereIn('status', $this->bookingCountStatuses);
+            if ($excludeBookingId) {
+                $q->where('booking_id', '!=', $excludeBookingId);
+            }
+        })
             ->whereNotNull('booking_id')
-            ->when($tourId, fn($q) => $q->where('tour_id', $tourId))
+            ->where('tour_id', $tourId)
             ->whereDate('tour_date', $tourDate)
             ->where('schedule_id', $scheduleId)
             ->sum(DB::raw('COALESCE(adults_quantity,0) + COALESCE(kids_quantity,0)'));
@@ -75,11 +154,14 @@ class BookingCapacityService
     }
 
     /**
-     * Pax retenidos en carritos activos (para evitar sobreventa).
-     * $excludeCartId: excluye un carrito (el del usuario que está confirmando).
+     * Pax retenidos en carritos activos
      */
-    public function heldPaxInActiveCarts(string $tourDate, int $scheduleId, int $tourId, ?int $excludeCartId = null): int
-    {
+    public function heldPaxInActiveCarts(
+        string $tourDate,
+        int $scheduleId,
+        int $tourId,
+        ?int $excludeCartId = null
+    ): int {
         $q = DB::table('cart_items')
             ->join('carts', 'cart_items.cart_id', '=', 'carts.cart_id')
             ->where('carts.is_active', true)
@@ -98,8 +180,7 @@ class BookingCapacityService
     }
 
     /**
-     * Snapshot completo de capacidad para Tour+Schedule+Fecha.
-     * Devuelve: ['blocked', 'max', 'confirmed', 'held', 'available'].
+     * Snapshot completo de capacidad
      */
     public function capacitySnapshot(
         Tour $tour,
@@ -109,24 +190,26 @@ class BookingCapacityService
         bool $countHolds = true,
         ?int $excludeCartId = null
     ): array {
-        $blocked   = $this->isDateBlocked($tour, $schedule, $tourDate);
-        $max       = $this->resolveMaxCapacity($schedule, $tour);
-        $confirmed = $this->confirmedPaxFor($tourDate, (int)$schedule->schedule_id, $excludeBookingId, (int)$tour->tour_id);
-        $held      = $countHolds ? $this->heldPaxInActiveCarts($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id, $excludeCartId) : 0;
+        $blocked = $this->isDateBlocked($tour, $schedule, $tourDate);
+        $max = $this->resolveMaxCapacity($tour, $schedule, $tourDate);
+        $confirmed = $this->confirmedPaxFor($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id, $excludeBookingId);
+        $held = $countHolds
+            ? $this->heldPaxInActiveCarts($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id, $excludeCartId)
+            : 0;
 
         $available = $blocked ? 0 : max(0, (int)$max - (int)$confirmed - (int)$held);
 
         return [
-            'blocked'   => (bool) $blocked,
-            'max'       => (int) $max,
+            'blocked' => (bool) $blocked,
+            'max' => (int) $max,
             'confirmed' => (int) $confirmed,
-            'held'      => (int) $held,
+            'held' => (int) $held,
             'available' => (int) $available,
         ];
     }
 
     /**
-     * Capacidad restante real para Tour+Schedule+Fecha (helper simple).
+     * Helper simple para capacidad restante
      */
     public function remainingCapacity(
         Tour $tour,

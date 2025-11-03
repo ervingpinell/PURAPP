@@ -29,7 +29,7 @@
                         @if($tour && $tour->tourType)
                             {{ $tour->tourType->name }}
                         @else
-                            Sin especificar
+                            <span id="summary-type-text">Sin especificar</span>
                         @endif
                     </dd>
 
@@ -80,6 +80,8 @@
     </div>
 </div>
 
+@if($tour ?? false)
+{{-- SOLO MOSTRAR ESTAS SECCIONES EN EDIT --}}
 <div class="row">
     {{-- Precios --}}
     <div class="col-md-6">
@@ -99,21 +101,26 @@
                         </tr>
                     </thead>
                     <tbody id="summary-prices">
-                        @if($tour && $tour->prices->isNotEmpty())
-                            @foreach($tour->prices as $price)
-                                <tr>
-                                    <td>{{ $price->category->name }}</td>
-                                    <td>${{ number_format($price->price, 2) }}</td>
-                                    <td>{{ $price->min_quantity }}-{{ $price->max_quantity }}</td>
-                                </tr>
-                            @endforeach
-                        @else
+                        @php
+                            $activePrices = $tour->prices->filter(function($price) {
+                                return $price->is_active &&
+                                       $price->category &&
+                                       $price->category->is_active;
+                            });
+                        @endphp
+                        @forelse($activePrices as $price)
+                            <tr>
+                                <td>{{ $price->category->name }}</td>
+                                <td>${{ number_format($price->price, 2) }}</td>
+                                <td>{{ $price->min_quantity }}-{{ $price->max_quantity }}</td>
+                            </tr>
+                        @empty
                             <tr>
                                 <td colspan="3" class="text-muted text-center">
-                                    Sin precios configurados
+                                    Sin precios activos configurados
                                 </td>
                             </tr>
-                        @endif
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -130,20 +137,18 @@
             </div>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush" id="summary-schedules">
-                    @if($tour && $tour->schedules->isNotEmpty())
-                        @foreach($tour->schedules as $schedule)
-                            <li class="list-group-item">
-                                <strong>{{ $schedule->start_time }}</strong> - {{ $schedule->end_time }}
-                                @if($schedule->label)
-                                    <span class="badge badge-info ml-2">{{ $schedule->label }}</span>
-                                @endif
-                            </li>
-                        @endforeach
-                    @else
+                    @forelse($tour->schedules as $schedule)
+                        <li class="list-group-item">
+                            <strong>{{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}</strong>
+                            @if($schedule->label)
+                                <span class="badge badge-info ml-2">{{ $schedule->label }}</span>
+                            @endif
+                        </li>
+                    @empty
                         <li class="list-group-item text-muted">
                             Sin horarios asignados
                         </li>
-                    @endif
+                    @endforelse
                 </ul>
             </div>
         </div>
@@ -161,17 +166,15 @@
             </div>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush" id="summary-languages">
-                    @if($tour && $tour->languages->isNotEmpty())
-                        @foreach($tour->languages as $language)
-                            <li class="list-group-item">
-                                <i class="fas fa-language"></i> {{ $language->name }}
-                            </li>
-                        @endforeach
-                    @else
+                    @forelse($tour->languages as $language)
+                        <li class="list-group-item">
+                            <i class="fas fa-language"></i> {{ $language->name }}
+                        </li>
+                    @empty
                         <li class="list-group-item text-muted">
                             Sin idiomas asignados
                         </li>
-                    @endif
+                    @endforelse
                 </ul>
             </div>
         </div>
@@ -186,7 +189,7 @@
                 </h3>
             </div>
             <div class="card-body">
-                @if($tour && $tour->itinerary)
+                @if($tour->itinerary)
                     <h5>{{ $tour->itinerary->name ?? 'Itinerario' }}</h5>
                     <p class="text-muted small">{{ $tour->itinerary->description }}</p>
                     @if($tour->itinerary->items->isNotEmpty())
@@ -215,20 +218,18 @@
             </div>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush" id="summary-included">
-                    @if($tour && $tour->amenities->isNotEmpty())
-                        @foreach($tour->amenities as $amenity)
-                            <li class="list-group-item">
-                                @if($amenity->icon)
-                                    <i class="{{ $amenity->icon }}"></i>
-                                @endif
-                                {{ $amenity->name }}
-                            </li>
-                        @endforeach
-                    @else
+                    @forelse($tour->amenities as $amenity)
+                        <li class="list-group-item">
+                            @if($amenity->icon)
+                                <i class="{{ $amenity->icon }}"></i>
+                            @endif
+                            {{ $amenity->name }}
+                        </li>
+                    @empty
                         <li class="list-group-item text-muted">
                             Nada incluido especificado
                         </li>
-                    @endif
+                    @endforelse
                 </ul>
             </div>
         </div>
@@ -244,22 +245,104 @@
             </div>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush" id="summary-excluded">
-                    @if($tour && $tour->excludedAmenities->isNotEmpty())
-                        @foreach($tour->excludedAmenities as $amenity)
-                            <li class="list-group-item">
-                                @if($amenity->icon)
-                                    <i class="{{ $amenity->icon }}"></i>
-                                @endif
-                                {{ $amenity->name }}
-                            </li>
-                        @endforeach
-                    @else
+                    @forelse($tour->excludedAmenities as $amenity)
+                        <li class="list-group-item">
+                            @if($amenity->icon)
+                                <i class="{{ $amenity->icon }}"></i>
+                            @endif
+                            {{ $amenity->name }}
+                        </li>
+                    @empty
                         <li class="list-group-item text-muted">
                             Nada excluido especificado
                         </li>
-                    @endif
+                    @endforelse
                 </ul>
             </div>
         </div>
     </div>
 </div>
+@else
+{{-- EN CREATE: Mensaje informativo --}}
+<div class="alert alert-info mt-3">
+    <i class="fas fa-info-circle"></i>
+    <strong>Nota:</strong> Los horarios, precios, idiomas y amenidades se mostrarán aquí después de guardar el tour.
+</div>
+@endif
+
+@push('js')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Actualización dinámica del resumen (solo campos básicos)
+    function updateSummary() {
+        const nameInput = document.getElementById('name');
+        if (nameInput) {
+            document.getElementById('summary-name').textContent = nameInput.value || 'Sin especificar';
+        }
+
+        const slugInput = document.getElementById('slug');
+        if (slugInput) {
+            document.getElementById('summary-slug').innerHTML =
+                `<code>${slugInput.value || 'Se generará automáticamente'}</code>`;
+        }
+
+        const overviewInput = document.getElementById('overview');
+        if (overviewInput) {
+            document.getElementById('summary-overview').textContent =
+                overviewInput.value || 'Sin descripción';
+        }
+
+        const lengthInput = document.getElementById('length');
+        if (lengthInput) {
+            document.getElementById('summary-length').textContent =
+                (lengthInput.value || 'N/A') + ' horas';
+        }
+
+        const capacityInput = document.getElementById('max_capacity');
+        if (capacityInput) {
+            document.getElementById('summary-capacity').textContent =
+                (capacityInput.value || 'N/A') + ' personas';
+        }
+
+        const colorInput = document.getElementById('color');
+        if (colorInput) {
+            const colorBadge = document.getElementById('summary-color').querySelector('.badge');
+            if (colorBadge) {
+                colorBadge.style.backgroundColor = colorInput.value;
+                colorBadge.textContent = colorInput.value;
+            }
+        }
+
+        const activeInput = document.getElementById('is_active');
+        if (activeInput) {
+            const statusBadge = document.getElementById('summary-status');
+            if (activeInput.checked) {
+                statusBadge.innerHTML = '<span class="badge badge-success">Activo</span>';
+            } else {
+                statusBadge.innerHTML = '<span class="badge badge-secondary">Inactivo</span>';
+            }
+        }
+
+        const tourTypeSelect = document.getElementById('tour_type_id');
+        if (tourTypeSelect) {
+            const typeText = document.getElementById('summary-type-text');
+            if (typeText) {
+                const selectedOption = tourTypeSelect.options[tourTypeSelect.selectedIndex];
+                typeText.textContent = selectedOption.text || 'Sin especificar';
+            }
+        }
+    }
+
+    // Event listeners
+    ['name', 'slug', 'overview', 'length', 'max_capacity', 'color', 'is_active', 'tour_type_id'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', updateSummary);
+            element.addEventListener('change', updateSummary);
+        }
+    });
+
+    updateSummary();
+});
+</script>
+@endpush

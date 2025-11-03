@@ -427,4 +427,101 @@ public function getKidPriceAttribute(): ?float
     $kidPrice = $this->getPriceForCategory('child');
     return $kidPrice ? (float) $kidPrice->price : null;
 }
+
+    /**
+     * Obtener capacidad efectiva para una fecha y horario específico
+     * Jerarquía (de mayor a menor prioridad):
+     * 1. Override Día+Horario (TourAvailability con schedule_id)
+     * 2. Override Día (TourAvailability sin schedule_id)
+     * 3. Override Horario (pivote base_capacity en schedule_tour)
+     * 4. Capacidad Base del Tour (Tour.max_capacity)
+     */
+    public function getEffectiveCapacity(string $date, int $scheduleId): int
+    {
+        // 1. Buscar override día+horario
+        $dayScheduleOverride = TourAvailability::where('tour_id', $this->tour_id)
+            ->where('schedule_id', $scheduleId)
+            ->where('date', $date)
+            ->first();
+
+        if ($dayScheduleOverride) {
+            // Si está bloqueado, capacidad = 0
+            if ($dayScheduleOverride->is_blocked) {
+                return 0;
+            }
+            // Si tiene capacidad definida, usarla
+            if ($dayScheduleOverride->max_capacity !== null) {
+                return (int) $dayScheduleOverride->max_capacity;
+            }
+        }
+
+        // 2. Buscar override por día (sin horario específico)
+        $dayOverride = TourAvailability::where('tour_id', $this->tour_id)
+            ->whereNull('schedule_id')
+            ->where('date', $date)
+            ->first();
+
+        if ($dayOverride) {
+            // Si está bloqueado, capacidad = 0
+            if ($dayOverride->is_blocked) {
+                return 0;
+            }
+            // Si tiene capacidad definida, usarla
+            if ($dayOverride->max_capacity !== null) {
+                return (int) $dayOverride->max_capacity;
+            }
+        }
+
+        // 3. Buscar override en el pivote (base_capacity del horario para este tour)
+        $schedule = $this->schedules()
+            ->where('schedules.schedule_id', $scheduleId)
+            ->first();
+
+        if ($schedule && $schedule->pivot->base_capacity !== null) {
+            return (int) $schedule->pivot->base_capacity;
+        }
+
+        // 4. Usar capacidad base del tour
+        return (int) ($this->max_capacity ?? 15); // Default 15 si no está definido
+    }
+
+    /**
+     * Obtener el nivel de override aplicado (para UI)
+     * Retorna: 'day-schedule', 'day', 'pivot', 'tour', o 'blocked'
+     */
+    public function getCapacityOverrideLevel(string $date, int $scheduleId): string
+    {
+        // Verificar día+horario
+        $dayScheduleOverride = TourAvailability::where('tour_id', $this->tour_id)
+            ->where('schedule_id', $scheduleId)
+            ->where('date', $date)
+            ->first();
+
+        if ($dayScheduleOverride) {
+            return $dayScheduleOverride->is_blocked ? 'blocked' : 'day-schedule';
+        }
+
+        // Verificar día
+        $dayOverride = TourAvailability::where('tour_id', $this->tour_id)
+            ->whereNull('schedule_id')
+            ->where('date', $date)
+            ->first();
+
+        if ($dayOverride) {
+            return $dayOverride->is_blocked ? 'blocked' : 'day';
+        }
+
+        // Verificar pivote
+        $schedule = $this->schedules()
+            ->where('schedules.schedule_id', $scheduleId)
+            ->first();
+
+        if ($schedule && $schedule->pivot->base_capacity !== null) {
+            return 'pivot';
+        }
+
+        // Capacidad base del tour
+        return 'tour';
+    }
+
 }

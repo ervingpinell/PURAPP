@@ -15,42 +15,42 @@ class StoreScheduleRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'tour_id'      => $this->filled('tour_id') ? (int) $this->input('tour_id') : null,
-            'start_time'   => $this->normalizeTime($this->input('start_time')),
-            'end_time'     => $this->normalizeTime($this->input('end_time')),
-            'label'        => (string) $this->string('label')->trim()->squish(),
-            'max_capacity' => $this->filled('max_capacity') ? (int) $this->input('max_capacity') : null,
-            'is_active'    => $this->has('is_active') ? $this->boolean('is_active') : null,
+            'tour_id'       => $this->filled('tour_id') ? (int) $this->input('tour_id') : null,
+            'start_time'    => $this->normalizeTime($this->input('start_time')),
+            'end_time'      => $this->normalizeTime($this->input('end_time')),
+            'label'         => (string) $this->string('label')->trim()->squish(),
+            'base_capacity' => $this->filled('base_capacity') ? (int) $this->input('base_capacity') : null,
+            'is_active'     => $this->has('is_active') ? $this->boolean('is_active') : null,
         ]);
     }
 
     public function rules(): array
     {
         return [
-            'tour_id'      => ['nullable', 'exists:tours,tour_id'],
-            'start_time'   => ['required', 'date_format:H:i'],
-            'end_time'     => ['required', 'date_format:H:i', 'after:start_time'],
-            'label'        => ['nullable', 'string', 'max:255'],
-            'max_capacity' => ['required', 'integer', 'min:1'],
-            'is_active'    => ['nullable', 'boolean'],
+            'tour_id'       => ['nullable', 'exists:tours,tour_id'],
+            'start_time'    => ['required', 'date_format:H:i'],
+            'end_time'      => ['required', 'date_format:H:i', 'after:start_time'],
+            'label'         => ['nullable', 'string', 'max:255'],
+            'base_capacity' => ['nullable', 'integer', 'min:1', 'max:999'], // CAMBIADO: ahora es opcional
+            'is_active'     => ['nullable', 'boolean'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'tour_id.exists'        => 'El tour seleccionado no existe.',
-            'start_time.required'   => 'El campo "Inicio" es obligatorio.',
-            'start_time.date_format'=> 'El campo "Inicio" debe tener el formato HH:MM (24h).',
-            'end_time.required'     => 'El campo "Fin" es obligatorio.',
-            'end_time.date_format'  => 'El campo "Fin" debe tener el formato HH:MM (24h).',
-            'end_time.after'        => 'El campo "Fin" debe ser posterior al campo "Inicio".',
-            'label.string'          => 'La etiqueta debe ser texto.',
-            'label.max'             => 'La etiqueta no puede superar 255 caracteres.',
-            'max_capacity.required' => 'La capacidad máxima es obligatoria.',
-            'max_capacity.integer'  => 'La capacidad máxima debe ser un número entero.',
-            'max_capacity.min'      => 'La capacidad máxima debe ser al menos 1.',
-            'is_active.boolean'     => 'El estado debe ser verdadero o falso.',
+            'tour_id.exists'          => 'El tour seleccionado no existe.',
+            'start_time.required'     => 'El campo "Inicio" es obligatorio.',
+            'start_time.date_format'  => 'El campo "Inicio" debe tener el formato HH:MM (24h).',
+            'end_time.required'       => 'El campo "Fin" es obligatorio.',
+            'end_time.date_format'    => 'El campo "Fin" debe tener el formato HH:MM (24h).',
+            'end_time.after'          => 'El campo "Fin" debe ser posterior al campo "Inicio".',
+            'label.string'            => 'La etiqueta debe ser texto.',
+            'label.max'               => 'La etiqueta no puede superar 255 caracteres.',
+            'base_capacity.integer'   => 'La capacidad override debe ser un número entero.',
+            'base_capacity.min'       => 'La capacidad override debe ser al menos 1.',
+            'base_capacity.max'       => 'La capacidad override no puede superar 999.',
+            'is_active.boolean'       => 'El estado debe ser verdadero o falso.',
         ];
     }
 

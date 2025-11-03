@@ -69,6 +69,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Inicializar
+    updateSummary();
+
     // ========== Validación del formulario ==========
     const tourForm = document.getElementById('tourForm');
     if (tourForm) {
