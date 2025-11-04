@@ -22,41 +22,119 @@
           $snapName = $detail->tour_name_snapshot ?? ($booking->tour_name_snapshot ?? null);
           $tourName = $liveName ?? ($snapName ? "Deleted Tour ({$snapName})" : "Deleted tour");
 
-          // ===== Snapshots de precios/quantities (preferir detalle)
-          $adultPrice   = (float) ($detail->adult_price ?? $tour->adult_price ?? 0);
-          $kidPrice     = (float) ($detail->kid_price   ?? $tour->kid_price   ?? 0);
-          $adultsQty    = (int)   ($detail->adults_quantity ?? 0);
-          $kidsQty      = (int)   ($detail->kids_quantity   ?? 0);
+          // ========== CATEGORÍAS DINÁMICAS ==========
+          $categoriesData = [];
+          $subtotalSnap = 0;
+          $totalPersons = 0;
 
-          // Subtotal snapshot (si el detalle lo trae, úsalo)
-          $subtotalSnap = isset($detail->total)
-            ? (float)$detail->total
-            : round($adultPrice * $adultsQty + $kidPrice * $kidsQty, 2);
-
-          // ===== Promo / ajuste desde pivot con snapshots
-          $booking->loadMissing('redemption.promoCode'); // por si no vino eager
-          $redemption   = $booking->redemption;
-          $promoModel   = optional($redemption)->promoCode ?: $booking->promoCode; // compat legado
-          $promoCode    = $promoModel?->code;
-
-          // Operación aplicada tal cual se guardó (default subtract)
-          $operation    = ($redemption && $redemption->operation_snapshot === 'add') ? 'add' : 'subtract';
-
-          // Monto aplicado (snapshot si existe, de lo contrario calcular para no dejar vacío)
-          $appliedAmount = (float) ($redemption->applied_amount ?? 0.0);
-          if (!$appliedAmount && $promoModel) {
-              if ($promoModel->discount_percent) {
-                  $appliedAmount = round($subtotalSnap * ($promoModel->discount_percent/100), 2);
-              } elseif ($promoModel->discount_amount) {
-                  $appliedAmount = (float)$promoModel->discount_amount;
-              }
+          if ($detail->categories && is_string($detail->categories)) {
+            try {
+              $categoriesData = json_decode($detail->categories, true);
+            } catch (\Exception $e) {
+              \Log::error('Error decoding categories JSON', [
+                'booking_id' => $booking->booking_id,
+                'error' => $e->getMessage()
+              ]);
+            }
+          } elseif (is_array($detail->categories)) {
+            $categoriesData = $detail->categories;
           }
 
-          // Badges de valor (snapshot primero)
+          // Normalizar formato
+          $categories = [];
+          if (!empty($categoriesData)) {
+            // Array de objetos
+            if (isset($categoriesData[0]) && is_array($categoriesData[0])) {
+              foreach ($categoriesData as $cat) {
+                $qty = (int)($cat['quantity'] ?? 0);
+                $price = (float)($cat['price'] ?? 0);
+                $name = $cat['name'] ?? $cat['category_name'] ?? 'Category';
+
+                $categories[] = [
+                  'name' => $name,
+                  'quantity' => $qty,
+                  'price' => $price,
+                  'total' => $qty * $price
+                ];
+
+                $subtotalSnap += $qty * $price;
+                $totalPersons += $qty;
+              }
+            }
+            // Array asociativo
+            else {
+              foreach ($categoriesData as $catId => $cat) {
+                $qty = (int)($cat['quantity'] ?? 0);
+                $price = (float)($cat['price'] ?? 0);
+                $name = $cat['name'] ?? $cat['category_name'] ?? "Category #{$catId}";
+
+                $categories[] = [
+                  'name' => $name,
+                  'quantity' => $qty,
+                  'price' => $price,
+                  'total' => $qty * $price
+                ];
+
+                $subtotalSnap += $qty * $price;
+                $totalPersons += $qty;
+              }
+            }
+          }
+
+          // Fallback a legacy
+          if (empty($categories)) {
+            $adultsQty = (int)($detail->adults_quantity ?? 0);
+            $kidsQty = (int)($detail->kids_quantity ?? 0);
+            $adultPrice = (float)($detail->adult_price ?? $tour->adult_price ?? 0);
+            $kidPrice = (float)($detail->kid_price ?? $tour->kid_price ?? 0);
+
+            if ($adultsQty > 0) {
+              $categories[] = [
+                'name' => 'Adults',
+                'quantity' => $adultsQty,
+                'price' => $adultPrice,
+                'total' => $adultsQty * $adultPrice
+              ];
+              $subtotalSnap += $adultsQty * $adultPrice;
+              $totalPersons += $adultsQty;
+            }
+
+            if ($kidsQty > 0) {
+              $categories[] = [
+                'name' => 'Kids',
+                'quantity' => $kidsQty,
+                'price' => $kidPrice,
+                'total' => $kidsQty * $kidPrice
+              ];
+              $subtotalSnap += $kidsQty * $kidPrice;
+              $totalPersons += $kidsQty;
+            }
+          }
+
+          // ===== Promo / ajuste desde pivot con snapshots
+          $booking->loadMissing('redemption.promoCode');
+          $redemption   = $booking->redemption;
+          $promoModel   = optional($redemption)->promoCode ?: $booking->promoCode;
+          $promoCode    = $promoModel?->code;
+
+          // Operación aplicada
+          $operation = ($redemption && $redemption->operation_snapshot === 'add') ? 'add' : 'subtract';
+
+          // Monto aplicado
+          $appliedAmount = (float) ($redemption->applied_amount ?? 0.0);
+          if (!$appliedAmount && $promoModel) {
+            if ($promoModel->discount_percent) {
+              $appliedAmount = round($subtotalSnap * ($promoModel->discount_percent/100), 2);
+            } elseif ($promoModel->discount_amount) {
+              $appliedAmount = (float)$promoModel->discount_amount;
+            }
+          }
+
+          // Badges de valor
           $percentSnapshot = $redemption->percent_snapshot ?? $promoModel->discount_percent ?? null;
           $amountSnapshot  = $redemption->amount_snapshot  ?? $promoModel->discount_amount  ?? null;
 
-          // Etiqueta según operación (solo m_config)
+          // Etiqueta según operación
           $adjustLabel = $operation === 'add'
               ? __('m_config.promocode.operations.surcharge')
               : __('m_config.promocode.operations.discount');
@@ -64,10 +142,23 @@
           // Signo para el display
           $sign = $operation === 'add' ? '+' : '−';
 
-          // Total (fuente de verdad)
+          // Total
           $grandTotal = (float) ($booking->total ?? max(0, $operation === 'add'
-                            ? $subtotalSnap + $appliedAmount
-                            : $subtotalSnap - $appliedAmount));
+                ? $subtotalSnap + $appliedAmount
+                : $subtotalSnap - $appliedAmount));
+
+          // ========== HOTEL O MEETING POINT ==========
+          $hasHotel = !empty($detail->hotel_id) || !empty($detail->other_hotel_name);
+          $hasMeetingPoint = !empty($detail->meeting_point_id) || !empty($detail->meeting_point_name);
+
+          $hotelName = null;
+          $meetingPointName = null;
+
+          if ($hasHotel) {
+            $hotelName = $detail->other_hotel_name ?? optional($detail->hotel)->name ?? '—';
+          } elseif ($hasMeetingPoint) {
+            $meetingPointName = $detail->meeting_point_name ?? optional($detail->meetingPoint)->name ?? '—';
+          }
         @endphp
 
         {{-- Status Alert with Actions --}}
@@ -114,8 +205,6 @@
 
                   <dt class="col-sm-5">{{ __('m_bookings.bookings.fields.booking_date') }}:</dt>
                   <dd class="col-sm-7">{{ \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') }}</dd>
-
-                  {{-- (PROMO CODE MOVED TO PRICING SECTION) --}}
                 </dl>
               </div>
             </div>
@@ -174,11 +263,15 @@
 
               <div class="col-md-6">
                 <dl class="row">
-                  <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.hotel') }}:</dt>
-                  <dd class="col-sm-8">{{ $detail->hotel->name ?? $detail->other_hotel_name ?? '—' }}</dd>
+                  @if($hasHotel && $hotelName)
+                    <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.hotel') }}:</dt>
+                    <dd class="col-sm-8">{{ $hotelName }}</dd>
+                  @endif
 
-                  <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.meeting_point') }}:</dt>
-                  <dd class="col-sm-8">{{ optional($detail->meetingPoint)->name ?? '—' }}</dd>
+                  @if(!$hasHotel && $hasMeetingPoint && $meetingPointName)
+                    <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.meeting_point') }}:</dt>
+                    <dd class="col-sm-8">{{ $meetingPointName }}</dd>
+                  @endif
 
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.type') }}:</dt>
                   <dd class="col-sm-8">{{ optional($tour->tourType)->name ?? '—' }}</dd>
@@ -188,7 +281,7 @@
           </div>
         </div>
 
-        {{-- Pricing Information (con ajuste y código abajo) --}}
+        {{-- Pricing Information --}}
         <div class="card mb-3">
           <div class="card-header bg-danger text-white">
             <strong>{{ __('m_bookings.details.pricing_info') }}</strong>
@@ -197,11 +290,13 @@
             <div class="row">
               <div class="col-md-6">
                 <dl class="row">
-                  <dt class="col-sm-6">{{ __('m_bookings.bookings.fields.adults') }}:</dt>
-                  <dd class="col-sm-6">{{ $adultsQty }} × ${{ number_format($adultPrice, 2) }}</dd>
+                  @foreach($categories as $cat)
+                    <dt class="col-sm-6">{{ $cat['name'] }}:</dt>
+                    <dd class="col-sm-6">{{ $cat['quantity'] }} × ${{ number_format($cat['price'], 2) }}</dd>
+                  @endforeach
 
-                  <dt class="col-sm-6">{{ __('m_bookings.bookings.fields.children') }}:</dt>
-                  <dd class="col-sm-6">{{ $kidsQty }} × ${{ number_format($kidPrice, 2) }}</dd>
+                  <dt class="col-sm-6"><strong>{{ __('m_bookings.details.total_persons') }}:</strong></dt>
+                  <dd class="col-sm-6"><strong>{{ $totalPersons }}</strong></dd>
                 </dl>
               </div>
 
@@ -225,12 +320,9 @@
                       {{ $sign }}${{ number_format($appliedAmount, 2) }}
                     </dd>
 
-                    {{-- Código promocional (abajo en precios) --}}
                     <dt class="col-sm-6">{{ __('m_bookings.bookings.fields.promo_code') }}:</dt>
                     <dd class="col-sm-6">
-                      <span class="badge bg-success">
-                        {{ $promoCode }}
-                      </span>
+                      <span class="badge bg-success">{{ $promoCode }}</span>
                     </dd>
                   @endif
 

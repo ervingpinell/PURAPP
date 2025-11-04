@@ -176,6 +176,18 @@ return [
             'zoom_out'           => 'Alejar',
             'zoom_reset'         => 'Restablecer Zoom',
             'no_promo'        => 'No hay código promocional aplicado',
+            'create_booking'                 => 'Crear Reserva',
+            'booking_info'                   => 'Información de la Reserva',
+            'select_customer'                => 'Seleccionar cliente',
+            'select_tour'                    => 'Seleccionar tour',
+            'select_tour_first'              => 'Seleccione un tour primero',
+            'select_option'                  => 'Seleccionar',
+            'select_tour_to_see_categories'  => 'Selecciona un tour para ver las categorías',
+            'loading'                        => 'Cargando...',
+            'no_results'                     => 'Sin resultados',
+            'error_loading'                  => 'Error cargando datos',
+            'tour_without_categories'        => 'Este tour no tiene categorías configuradas',
+            'verifying' => 'Verificando...'
 
         ],
 
@@ -207,6 +219,11 @@ return [
             'adult_price'       => 'Precio Adulto',
             'child_price'       => 'Precio Niño',
             'notes'             => 'Notas',
+            'hotel_name'     => 'Nombre del Hotel',
+            'travelers'      => 'Viajeros',
+            'subtotal'       => 'Subtotal',
+            'discount'       => 'Descuento',
+            'total_persons'  => 'Personas',
         ],
 
         'placeholders' => [
@@ -237,6 +254,7 @@ return [
             'apply'           => 'Aplicar',
             'update'          => 'Actualizar',
             'close'           => 'Cerrar',
+            'back'     => 'Volver',
         ],
 
         'meeting_point' => [
@@ -259,6 +277,11 @@ return [
             'tour_archived'         => '(archivado)',
             'meeting_point_hint'    => 'Solo se muestra el nombre del punto en la lista.',
         'customer_locked'       => 'El cliente está bloqueado y no puede ser editado.',
+        'promo_applied_subtract' => 'Descuento aplicado:',
+            'promo_applied_add'      => 'Cargo aplicado:',
+                 'hotel_locked_by_meeting_point'   => 'Se seleccionó un punto de encuentro; no se puede seleccionar hotel.',
+      'meeting_point_locked_by_hotel'   => 'Se seleccionó un hotel; no se puede seleccionar punto de encuentro.',
+      'promo_removed' => 'Código promocional eliminado',
         ],
 
         'alerts' => [
@@ -271,6 +294,8 @@ return [
             'promo_checking' => 'Verificando código…',
             'promo_invalid'  => 'Código promocional inválido.',
             'promo_error'    => 'No se pudo validar el código.',
+               'promo_empty'          => 'Ingresa un código primero.',
+            'promo_needs_subtotal' => 'Agrega al menos 1 pasajero para calcular el descuento.',
         ],
 
         'promo' => [
@@ -302,7 +327,7 @@ return [
             'status_update_failed'  => 'No se pudo actualizar el estado de la reserva.',
             'detail_not_found'      => 'Detalles de la reserva no encontrados.',
             'schedule_not_found'    => 'Horario no encontrado.',
-            'insufficient_capacity' => 'No se puede confirmar la reserva. Capacidad insuficiente para :tour el :date a las :time. Solicitado: :requested personas, Disponible: :available/:max.',
+            'insufficient_capacity'  => 'No hay capacidad suficiente para ":tour" el :date a las :time. Solicitado: :requested, disponible: :available (máx: :max).',
         ],
 
         'confirm' => [

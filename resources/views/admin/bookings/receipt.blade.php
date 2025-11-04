@@ -1,4 +1,4 @@
-{{-- resources/views/admin/bookings/receipts.blade.php --}}
+{{-- resources/views/admin/bookings/receipt.blade.php --}}
 
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}">
@@ -18,7 +18,7 @@
 
     body {
       font-family:var(--font-body);
-      font-size:13.5px;
+      font-size:13px;
       background:var(--gray-light);
       margin:0;
       padding:20px;
@@ -98,6 +98,42 @@
       margin:22px 0;
     }
 
+    .category-breakdown {
+      background:#f9fdf9;
+      border-radius:6px;
+      padding:12px;
+      margin:10px 0;
+    }
+
+    .category-item {
+      display:flex;
+      justify-content:space-between;
+      padding:5px 0;
+      border-bottom:1px dashed #e0e0e0;
+    }
+
+    .category-item:last-child {
+      border-bottom:none;
+    }
+
+    .category-item .category-name {
+      font-family:var(--font-heading);
+      font-weight:600;
+      color:var(--green-dark);
+      font-size:13px;
+    }
+
+    .category-item .category-qty {
+      color:#666;
+      font-size:12px;
+      margin-left:8px;
+    }
+
+    .category-item .category-price {
+      font-weight:600;
+      color:var(--text-color);
+    }
+
     .total-section {
       display:flex;
       justify-content:flex-end;
@@ -161,26 +197,122 @@
 
       $tour   = $booking->tour;
       $detail = $booking->detail;
-      $adultsQty = (int) $detail->adults_quantity;
-      $kidsQty   = (int) $detail->kids_quantity;
-      $adultPrice = $tour->adult_price ?? 0;
-      $kidPrice   = $tour->kid_price ?? 0;
 
-      $hotel = $detail->is_other_hotel
-        ? $detail->other_hotel_name
-        : (optional($detail->hotel)->name ?? '—');
+      // ========== CATEGORÍAS DINÁMICAS ==========
+      $categoriesData = [];
+      $subtotal = 0;
+      $totalPersons = 0;
 
-      $meetingPointName = $detail->meeting_point_name ?? optional($detail->meetingPoint)->name ?? '—';
+      if ($detail->categories && is_string($detail->categories)) {
+        try {
+          $categoriesData = json_decode($detail->categories, true);
+        } catch (\Exception $e) {
+          \Log::error('Error decoding categories JSON in receipt', [
+            'booking_id' => $booking->booking_id,
+            'error' => $e->getMessage()
+          ]);
+        }
+      } elseif (is_array($detail->categories)) {
+        $categoriesData = $detail->categories;
+      }
 
+      // Normalizar el formato (soporta array de objetos o array asociativo)
+      $categories = [];
+      if (!empty($categoriesData)) {
+        // Si es array de objetos: [{"category_id": 1, "quantity": 2, ...}, ...]
+        if (isset($categoriesData[0]) && is_array($categoriesData[0])) {
+          foreach ($categoriesData as $cat) {
+            $qty = (int)($cat['quantity'] ?? 0);
+            $price = (float)($cat['price'] ?? 0);
+            $name = $cat['name'] ?? $cat['category_name'] ?? 'Category';
+
+            $categories[] = [
+              'name' => $name,
+              'quantity' => $qty,
+              'price' => $price,
+              'total' => $qty * $price
+            ];
+
+            $subtotal += $qty * $price;
+            $totalPersons += $qty;
+          }
+        }
+        // Si es array asociativo: {"1": {"quantity": 2, "price": 50}, ...}
+        else {
+          foreach ($categoriesData as $catId => $cat) {
+            $qty = (int)($cat['quantity'] ?? 0);
+            $price = (float)($cat['price'] ?? 0);
+            $name = $cat['name'] ?? $cat['category_name'] ?? "Category #{$catId}";
+
+            $categories[] = [
+              'name' => $name,
+              'quantity' => $qty,
+              'price' => $price,
+              'total' => $qty * $price
+            ];
+
+            $subtotal += $qty * $price;
+            $totalPersons += $qty;
+          }
+        }
+      }
+
+      // Fallback a campos legacy si categories está vacío
+      if (empty($categories)) {
+        $adultsQty = (int)($detail->adults_quantity ?? 0);
+        $kidsQty = (int)($detail->kids_quantity ?? 0);
+        $adultPrice = (float)($detail->adult_price ?? $tour->adult_price ?? 0);
+        $kidPrice = (float)($detail->kid_price ?? $tour->kid_price ?? 0);
+
+        if ($adultsQty > 0) {
+          $categories[] = [
+            'name' => 'Adults',
+            'quantity' => $adultsQty,
+            'price' => $adultPrice,
+            'total' => $adultsQty * $adultPrice
+          ];
+          $subtotal += $adultsQty * $adultPrice;
+          $totalPersons += $adultsQty;
+        }
+
+        if ($kidsQty > 0) {
+          $categories[] = [
+            'name' => 'Kids',
+            'quantity' => $kidsQty,
+            'price' => $kidPrice,
+            'total' => $kidsQty * $kidPrice
+          ];
+          $subtotal += $kidsQty * $kidPrice;
+          $totalPersons += $kidsQty;
+        }
+      }
+
+      // ========== HOTEL O MEETING POINT (EXCLUSIVO) ==========
+      $hasHotel = !empty($detail->hotel_id) || !empty($detail->other_hotel_name);
+      $hasMeetingPoint = !empty($detail->meeting_point_id) || !empty($detail->meeting_point_name);
+
+      $hotel = null;
+      $meetingPointName = null;
+
+      if ($hasHotel) {
+        $hotel = $detail->is_other_hotel
+          ? $detail->other_hotel_name
+          : (optional($detail->hotel)->name ?? '—');
+      } elseif ($hasMeetingPoint) {
+        $meetingPointName = $detail->meeting_point_name
+          ?? optional($detail->meetingPoint)->name
+          ?? '—';
+      }
+
+      // ========== OTROS DATOS ==========
       $schedule = $detail->schedule
-        ? Carbon::parse($detail->schedule->start_time)->isoFormat('LT') . ' — ' . Carbon::parse($detail->schedule->end_time)->isoFormat('LT')
+        ? Carbon::parse($detail->schedule->start_time)->isoFormat('LT') . ' – ' . Carbon::parse($detail->schedule->end_time)->isoFormat('LT')
         : __('m_bookings.receipt.no_schedule');
 
       $bookingDate = Carbon::parse($booking->booking_date)->isoFormat('L');
-      $tourDate    = Carbon::parse($detail->tour_date)->isoFormat('L');
+      $tourDate = Carbon::parse($detail->tour_date)->isoFormat('L');
 
-      $subtotal = ($adultPrice * $adultsQty) + ($kidPrice * $kidsQty);
-
+      // ========== PROMO CODE / AJUSTE ==========
       $promo = $booking->promoCode ?? optional($booking->redemption)->promoCode;
       $operation = $promo ? ($promo->operation === 'add' ? 'add' : 'subtract') : null;
 
@@ -201,24 +333,82 @@
     @endphp
 
     <div class="data-grid">
-      <div class="data-item"><strong>{{ __('m_bookings.receipt.code') }}</strong><span>{{ $booking->booking_reference }}</span></div>
-      <div class="data-item"><strong>{{ __('m_bookings.receipt.client') }}</strong><span>{{ optional($booking->user)->full_name }}</span><small>({{ optional($booking->user)->email }})</small></div>
-      <div class="data-item"><strong>{{ __('m_bookings.receipt.tour') }}</strong><span>{{ $tour->name }}</span></div>
-      <div class="data-item"><strong>{{ __('m_bookings.receipt.booking_date') }}</strong><span>{{ $bookingDate }}</span></div>
-      <div class="data-item"><strong>{{ __('m_bookings.receipt.tour_date') }}</strong><span>{{ $tourDate }}</span></div>
-      <div class="data-item"><strong>{{ __('m_bookings.receipt.schedule') }}</strong><span>{{ $schedule }}</span></div>
-      <div class="data-item"><strong>{{ __('m_bookings.receipt.hotel') }}</strong><span>{{ $hotel }}</span></div>
-      <div class="data-item"><strong>{{ __('m_bookings.receipt.meeting_point') }}</strong><span>{{ $meetingPointName }}</span></div>
-      <div class="data-item"><strong>{{ __('m_bookings.receipt.status') }}</strong><span>{{ $statusTranslated }}</span></div>
+      <div class="data-item">
+        <strong>{{ __('m_bookings.receipt.code') }}:</strong>
+        <span>{{ $booking->booking_reference }}</span>
+      </div>
+
+      <div class="data-item">
+        <strong>{{ __('m_bookings.receipt.client') }}:</strong>
+        <span>{{ optional($booking->user)->full_name }}</span>
+        <small>({{ optional($booking->user)->email }})</small>
+      </div>
+
+      <div class="data-item">
+        <strong>{{ __('m_bookings.receipt.tour') }}:</strong>
+        <span>{{ $tour->name }}</span>
+      </div>
+
+      <div class="data-item">
+        <strong>{{ __('m_bookings.receipt.booking_date') }}:</strong>
+        <span>{{ $bookingDate }}</span>
+      </div>
+
+      <div class="data-item">
+        <strong>{{ __('m_bookings.receipt.tour_date') }}:</strong>
+        <span>{{ $tourDate }}</span>
+      </div>
+
+      <div class="data-item">
+        <strong>{{ __('m_bookings.receipt.schedule') }}:</strong>
+        <span>{{ $schedule }}</span>
+      </div>
+
+      {{-- HOTEL (solo si tiene hotel) --}}
+      @if($hasHotel && $hotel)
+        <div class="data-item">
+          <strong>{{ __('m_bookings.receipt.hotel') }}:</strong>
+          <span>{{ $hotel }}</span>
+        </div>
+      @endif
+
+      {{-- MEETING POINT (solo si tiene meeting point Y NO tiene hotel) --}}
+      @if(!$hasHotel && $hasMeetingPoint && $meetingPointName)
+        <div class="data-item">
+          <strong>{{ __('m_bookings.receipt.meeting_point') }}:</strong>
+          <span>{{ $meetingPointName }}</span>
+        </div>
+      @endif
+
+      <div class="data-item">
+        <strong>{{ __('m_bookings.receipt.status') }}:</strong>
+        <span>{{ $statusTranslated }}</span>
+      </div>
     </div>
 
     <div class="line-separator"></div>
 
-    <div class="data-grid">
-      <div class="data-item"><strong>{{ __('m_bookings.receipt.adults_x', ['count' => $adultsQty]) }}</strong><span>${{ number_format($adultPrice * $adultsQty, 2) }}</span></div>
-      <div class="data-item"><strong>{{ __('m_bookings.receipt.kids_x', ['count' => $kidsQty]) }}</strong><span>${{ number_format($kidPrice * $kidsQty, 2) }}</span></div>
-      <div class="data-item"><strong>{{ __('m_bookings.receipt.people') }}</strong><span>{{ $adultsQty + $kidsQty }}</span></div>
-    </div>
+    {{-- ========== BREAKDOWN DE CATEGORÍAS ========== --}}
+    @if(!empty($categories))
+      <div class="category-breakdown">
+        @foreach($categories as $cat)
+          <div class="category-item">
+            <div>
+              <span class="category-name">{{ $cat['name'] }}</span>
+              <span class="category-qty">({{ $cat['quantity'] }} × ${{ number_format($cat['price'], 2) }})</span>
+            </div>
+            <div class="category-price">${{ number_format($cat['total'], 2) }}</div>
+          </div>
+        @endforeach
+
+        <div class="category-item" style="margin-top: 8px; padding-top: 8px; border-top: 2px solid var(--green-base);">
+          <div>
+            <span class="category-name">{{ __('m_bookings.receipt.people') }}:</span>
+            <span class="category-qty">{{ $totalPersons }} {{ Str::plural('person', $totalPersons) }}</span>
+          </div>
+        </div>
+      </div>
+    @endif
 
     <div class="total-section">
       <div style="text-align:right;">

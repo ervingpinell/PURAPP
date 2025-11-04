@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Editar Categoría')
+@section('title', __('customer_categories.ui.page_title_edit'))
 
 @section('content_header')
-    <h1>Editar Categoría: {{ $category->name }}</h1>
+    <h1>{{ __('customer_categories.ui.header_edit', ['name' => $category->name]) }}</h1>
 @stop
 
 @section('content')
@@ -20,10 +20,10 @@
 
                     <div class="card-footer">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Actualizar Categoría
+                            <i class="fas fa-save"></i> {{ __('customer_categories.buttons.update') }}
                         </button>
                         <a href="{{ route('admin.customer_categories.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Volver
+                            <i class="fas fa-arrow-left"></i> {{ __('customer_categories.buttons.back') }}
                         </a>
                     </div>
                 </form>
@@ -34,14 +34,14 @@
             @include('admin.customer_categories.partials.help')
 
             {{-- Información adicional --}}
-            <div class="card card-secondary">
+            <div class="card card-secondary mt-3 mt-md-0">
                 <div class="card-header">
-                    <h3 class="card-title">Información</h3>
+                    <h3 class="card-title">{{ __('customer_categories.ui.info_card_title') }}</h3>
                 </div>
                 <div class="card-body">
-                    <p><strong>ID:</strong> {{ $category->category_id }}</p>
-                    <p><strong>Creado:</strong> {{ $category->created_at->format('d/m/Y H:i') }}</p>
-                    <p><strong>Actualizado:</strong> {{ $category->updated_at->format('d/m/Y H:i') }}</p>
+                    <p><strong>{{ __('customer_categories.info.id') }}</strong> {{ $category->category_id }}</p>
+                    <p><strong>{{ __('customer_categories.info.created') }}</strong> {{ $category->created_at->format(__('customer_categories.info.date_fmt')) }}</p>
+                    <p><strong>{{ __('customer_categories.info.updated') }}</strong> {{ $category->updated_at->format(__('customer_categories.info.date_fmt')) }}</p>
                 </div>
             </div>
         </div>

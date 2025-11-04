@@ -88,10 +88,9 @@
   {{-- 🟩 Top buttons - MEJORADO Y ALINEADO --}}
   <div class="mb-3 d-flex flex-wrap align-items-center gap-2">
     {{-- Action Buttons --}}
-    <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegister">
-      <i class="fas fa-plus"></i> {{ __('m_bookings.bookings.ui.add_booking') }}
-    </a>
-
+<a href="{{ route('admin.bookings.create') }}" class="btn btn-success">
+  <i class="fas fa-plus"></i> {{ __('m_bookings.bookings.ui.add_booking') }}
+</a>
     <a href="{{ route('admin.bookings.export.pdf') }}" class="btn btn-danger">
       <i class="fas fa-file-pdf"></i> {{ __('m_bookings.reports.download_pdf') }}
     </a>
@@ -146,9 +145,7 @@
 </div>
 
 {{-- ✨ Modals --}}
-@include('admin.bookings.partials.modal-register')
 @foreach ($bookings as $booking)
-  @include('admin.bookings.partials.modal-edit', ['booking' => $booking])
   @include('admin.bookings.partials.modal-details', ['booking' => $booking])
 @endforeach
 @endsection

@@ -67,6 +67,52 @@ class BookingController extends Controller
         return view('admin.bookings.index', compact('bookings', 'tours', 'schedules', 'hotels', 'meetingPoints'));
     }
 
+    public function create()
+{
+    $tours = Tour::with(['prices.category', 'schedules', 'languages'])
+        ->where('is_active', true)
+        ->orderBy('name')
+        ->get();
+
+    $users = User::where('is_active', true)
+        ->orderBy('full_name')
+        ->get();
+
+    $hotels = HotelList::where('is_active', true)
+        ->orderBy('name')
+        ->get();
+
+    $meetingPoints = MeetingPoint::where('is_active', true)
+        ->orderBy('name')
+        ->get();
+
+    return view('admin.bookings.create', compact('tours', 'users', 'hotels', 'meetingPoints'));
+}
+
+public function edit(Booking $booking)
+{
+    $booking->load(['detail', 'user', 'tour.prices.category', 'tour.schedules', 'tour.languages']);
+
+    $tours = Tour::with(['prices.category', 'schedules', 'languages'])
+        ->where('is_active', true)
+        ->orderBy('name')
+        ->get();
+
+    $users = User::where('is_active', true)
+        ->orderBy('full_name')
+        ->get();
+
+    $hotels = HotelList::where('is_active', true)
+        ->orderBy('name')
+        ->get();
+
+    $meetingPoints = MeetingPoint::where('is_active', true)
+        ->orderBy('name')
+        ->get();
+
+    return view('admin.bookings.edit', compact('booking', 'tours', 'users', 'hotels', 'meetingPoints'));
+}
+
     /** Crear una reserva (admin) */
     public function store(Request $request)
     {
@@ -694,4 +740,51 @@ class BookingController extends Controller
             'discount_percent' => $discountPercent,
         ]);
     }
+
+    /**
+ * API: Get schedules for a tour (AJAX)
+ */
+public function getSchedules(Tour $tour)
+{
+    return response()->json(
+        $tour->schedules()
+            ->orderBy('start_time')
+            ->get(['schedule_id', 'start_time', 'end_time'])
+    );
+}
+
+/**
+ * API: Get languages for a tour (AJAX)
+ */
+public function getLanguages(Tour $tour)
+{
+    return response()->json(
+        $tour->languages()
+            ->get(['tour_language_id', 'name'])
+    );
+}
+
+/**
+ * API: Get categories with prices for a tour (AJAX)
+ */
+public function getCategories(Tour $tour)
+{
+    $categories = $tour->prices()
+        ->where('is_active', true)
+        ->with('category')
+        ->orderBy('category_id')
+        ->get()
+        ->map(function($price) {
+            return [
+                'id' => $price->category_id,
+                'name' => $price->category->name,
+                'price' => (float) $price->price,
+                'min' => (int) $price->min_quantity,
+                'max' => (int) $price->max_quantity,
+                'is_active' => (bool) $price->is_active
+            ];
+        });
+
+    return response()->json($categories);
+}
 }

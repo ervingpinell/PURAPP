@@ -1,36 +1,36 @@
 {{-- Nombre --}}
 <div class="form-group">
     <label for="name">
-        Nombre <span class="text-danger">*</span>
+        {{ __('customer_categories.form.name.label') }} <span class="text-danger">*</span>
     </label>
     <input type="text"
            name="name"
            id="name"
            class="form-control @error('name') is-invalid @enderror"
            value="{{ old('name', $category->name ?? '') }}"
-           placeholder="Ej: Adulto, Niño, Infante"
+           placeholder="{{ __('customer_categories.form.name.placeholder') }}"
            required>
     @error('name')
-        <span class="invalid-feedback">{{ $message }}</span>
+        <span class="invalid-feedback">{{ $message ?: __('customer_categories.form.name.required') }}</span>
     @enderror
 </div>
 
 {{-- Slug --}}
 <div class="form-group">
     <label for="slug">
-        Slug (identificador único) <span class="text-danger">*</span>
+        {{ __('customer_categories.form.slug.label') }} <span class="text-danger">*</span>
     </label>
     <input type="text"
            name="slug"
            id="slug"
            class="form-control @error('slug') is-invalid @enderror"
            value="{{ old('slug', $category->slug ?? '') }}"
-           placeholder="Ej: adult, child, infant"
+           placeholder="{{ __('customer_categories.form.slug.placeholder') }}"
            required
            pattern="[a-z0-9_-]+"
-           title="Solo minúsculas, números, guiones y guiones bajos">
+           title="{{ __('customer_categories.form.slug.title') }}">
     <small class="form-text text-muted">
-        Solo letras minúsculas, números, guiones (-) y guiones bajos (_)
+        {{ __('customer_categories.form.slug.helper') }}
     </small>
     @error('slug')
         <span class="invalid-feedback d-block">{{ $message }}</span>
@@ -42,7 +42,7 @@
     <div class="col-md-6">
         <div class="form-group">
             <label for="age_from">
-                Edad Desde <span class="text-danger">*</span>
+                {{ __('customer_categories.form.age_from.label') }} <span class="text-danger">*</span>
             </label>
             <input type="number"
                    name="age_from"
@@ -51,7 +51,8 @@
                    value="{{ old('age_from', $category->age_from ?? '') }}"
                    min="0"
                    max="255"
-                   required>
+                   required
+                   placeholder="{{ __('customer_categories.form.age_from.placeholder') }}">
             @error('age_from')
                 <span class="invalid-feedback">{{ $message }}</span>
             @enderror
@@ -62,8 +63,8 @@
     <div class="col-md-6">
         <div class="form-group">
             <label for="age_to">
-                Edad Hasta
-                <small class="text-muted">(dejar vacío para sin límite)</small>
+                {{ __('customer_categories.form.age_to.label') }}
+                <small class="text-muted">({{ __('customer_categories.form.age_to.hint_no_limit') }})</small>
             </label>
             <input type="number"
                    name="age_to"
@@ -72,7 +73,7 @@
                    value="{{ old('age_to', $category->age_to ?? '') }}"
                    min="0"
                    max="255"
-                   placeholder="Vacío = sin límite (18+)">
+                   placeholder="{{ __('customer_categories.form.age_to.placeholder') }}">
             @error('age_to')
                 <span class="invalid-feedback">{{ $message }}</span>
             @enderror
@@ -83,7 +84,7 @@
 {{-- Orden --}}
 <div class="form-group">
     <label for="order">
-        Orden de Visualización <span class="text-danger">*</span>
+        {{ __('customer_categories.form.order.label') }} <span class="text-danger">*</span>
     </label>
     <input type="number"
            name="order"
@@ -94,7 +95,7 @@
            max="255"
            required>
     <small class="form-text text-muted">
-        Determina el orden en que aparecen las categorías (menor = primero)
+        {{ __('customer_categories.form.order.helper') }}
     </small>
     @error('order')
         <span class="invalid-feedback">{{ $message }}</span>
@@ -112,46 +113,52 @@
                value="1"
                {{ old('is_active', $category->is_active ?? true) ? 'checked' : '' }}>
         <label class="custom-control-label" for="is_active">
-            Categoría activa
+            {{ __('customer_categories.form.active.label') }}
         </label>
     </div>
     <small class="form-text text-muted">
-        Solo las categorías activas se muestran en los formularios de reserva
+        {{ __('customer_categories.form.active.helper') }}
     </small>
 </div>
 
 @push('js')
 <script>
     // Auto-generar slug desde el nombre
-    document.getElementById('name').addEventListener('input', function(e) {
+    document.getElementById('name')?.addEventListener('input', function(e) {
         const slug = e.target.value
             .toLowerCase()
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '') // Quitar acentos
             .replace(/[^a-z0-9]+/g, '-')      // Reemplazar no alfanuméricos con -
-            .replace(/^-+|-+$/g, '');          // Quitar guiones al inicio/fin
+            .replace(/^-+|-+$/g, '');         // Quitar guiones al inicio/fin
 
-        document.getElementById('slug').value = slug;
+        const slugInput = document.getElementById('slug');
+        if (slugInput && !slugInput.dataset.touched) {
+            slugInput.value = slug;
+        }
+    });
+
+    // Marca manual de edición de slug para no sobreescribirlo si el usuario lo cambia
+    document.getElementById('slug')?.addEventListener('input', function() {
+        this.dataset.touched = '1';
     });
 
     // Validar que age_to >= age_from
     const ageFrom = document.getElementById('age_from');
     const ageTo = document.getElementById('age_to');
+    const msg = @json(__('customer_categories.validation.age_to_gte_age_from'));
 
-    ageTo.addEventListener('input', function() {
-        if (this.value && parseInt(this.value) < parseInt(ageFrom.value)) {
-            this.setCustomValidity('La edad hasta debe ser mayor o igual que la edad desde');
-        } else {
-            this.setCustomValidity('');
+    function validateAges() {
+        if (ageFrom && ageTo && ageTo.value && ageFrom.value) {
+            if (parseInt(ageTo.value, 10) < parseInt(ageFrom.value, 10)) {
+                ageTo.setCustomValidity(msg);
+                return;
+            }
         }
-    });
+        ageTo.setCustomValidity('');
+    }
 
-    ageFrom.addEventListener('input', function() {
-        if (ageTo.value && parseInt(ageTo.value) < parseInt(this.value)) {
-            ageTo.setCustomValidity('La edad hasta debe ser mayor o igual que la edad desde');
-        } else {
-            ageTo.setCustomValidity('');
-        }
-    });
+    ageTo?.addEventListener('input', validateAges);
+    ageFrom?.addEventListener('input', validateAges);
 </script>
 @endpush

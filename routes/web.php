@@ -443,28 +443,50 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])
             Route::resource('meetingpoints', MeetingPointSimpleController::class)->except(['show', 'create', 'edit']);
             Route::patch('meetingpoints/{meetingpoint}/toggle', [MeetingPointSimpleController::class, 'toggle'])->name('meetingpoints.toggle');
 
-            // ============================
-            // BOOKINGS (ADMIN)
-            // ============================
-            // Export
-            Route::get('bookings/export/excel', [AdminBookingController::class, 'exportExcel'])->name('bookings.export.excel');
-            Route::get('bookings/export/pdf', [AdminBookingController::class, 'exportPdf'])->name('bookings.export.pdf');
 
-            // Calendar
-            Route::get('bookings/reserved', [AdminBookingController::class, 'reservedSeats'])->name('bookings.reserved');
-            Route::get('bookings/calendar-data', [AdminBookingController::class, 'calendarData'])->name('bookings.calendarData');
-            Route::get('bookings/calendar', [AdminBookingController::class, 'calendar'])->name('bookings.calendar');
+        // ============================
+        // BOOKINGS (ADMIN)
+        // ============================
+        Route::prefix('bookings')
+            ->name('bookings.')
+            ->controller(AdminBookingController::class)
+            ->group(function () {
 
-            // API promo verification
-            Route::get('bookings/verify-promo-code', [AdminBookingController::class, 'verifyPromoCode'])->name('bookings.verifyPromoCode');
+                // -------- Export --------
+                Route::get('export/excel', 'exportExcel')->name('export.excel');
+                Route::get('export/pdf',   'exportPdf')->name('export.pdf');
 
-            // Receipt + status
-            Route::get('bookings/{booking}/receipt', [AdminBookingController::class, 'generateReceipt'])->name('bookings.receipt');
-            Route::patch('bookings/{booking}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.update-status');
+                // -------- Calendar --------
+                Route::get('reserved',      'reservedSeats')->name('reserved');
+                Route::get('calendar-data', 'calendarData')->name('calendarData');
+                Route::get('calendar',      'calendar')->name('calendar');
 
-            // CRUD principal
-            Route::resource('bookings', AdminBookingController::class)->except(['show']);
-            Route::post('bookings/from-cart', [AdminBookingController::class, 'storeFromCart'])->name('bookings.storeFromCart');
+                // -------- API promo verification --------
+                Route::get('verify-promo-code', 'verifyPromoCode')->name('verifyPromoCode');
+
+                // -------- CRUD principal (excepto show) --------
+                Route::get('',            'index')->name('index');
+                Route::get('create',      'create')->name('create');
+                Route::post('',           'store')->name('store');
+
+                // Crear desde carrito
+                Route::post('from-cart',  'storeFromCart')->name('storeFromCart');
+
+                // Acciones sobre un booking específico
+                Route::get('{booking}/edit',    'edit')->name('edit');
+                Route::match(['put','patch'], '{booking}', 'update')->name('update');
+                Route::delete('{booking}',      'destroy')->name('destroy');
+
+                // Estado y recibo
+                Route::patch('{booking}/status',  'updateStatus')->name('update-status');
+                Route::get('{booking}/receipt',   'generateReceipt')->name('receipt');
+            });
+              // ✅ Rutas API para cargar datos dinámicamente (AJAX)
+    Route::prefix('api')->name('api.')->group(function () {
+        Route::get('tours/{tour}/schedules', [AdminBookingController::class, 'getSchedules'])->name('tours.schedules');
+        Route::get('tours/{tour}/languages', [AdminBookingController::class, 'getLanguages'])->name('tours.languages');
+        Route::get('tours/{tour}/categories', [AdminBookingController::class, 'getCategories'])->name('tours.categories');
+    });
 
             // ============================
             // CART (ADMIN)

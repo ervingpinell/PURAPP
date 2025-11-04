@@ -14,6 +14,8 @@ class BookingDetail extends Model
         'tour_date'      => 'date',
         'categories'     => 'array',
         'is_other_hotel' => 'boolean',
+    'created_at'   => 'datetime',
+    'updated_at'   => 'datetime',
     ];
 
     protected $fillable = [

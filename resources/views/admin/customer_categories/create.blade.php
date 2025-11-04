@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Nueva Categoría de Cliente')
+@section('title', __('customer_categories.ui.page_title_create'))
 
 @section('content_header')
-    <h1>Nueva Categoría de Cliente</h1>
+    <h1>{{ __('customer_categories.ui.header_create') }}</h1>
 @stop
 
 @section('content')
@@ -19,10 +19,10 @@
 
                     <div class="card-footer">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Guardar Categoría
+                            <i class="fas fa-save"></i> {{ __('customer_categories.buttons.save') }}
                         </button>
                         <a href="{{ route('admin.customer_categories.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Cancelar
+                            <i class="fas fa-times"></i> {{ __('customer_categories.buttons.cancel') }}
                         </a>
                     </div>
                 </form>
