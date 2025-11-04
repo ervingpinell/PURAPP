@@ -286,4 +286,20 @@ return [
         'discount'      => 'Discount',
     ],
 
+    // =========================================================
+    // [08] VIAJEROS (MODAL)
+    // =========================================================
+    'travelers' => [
+        'title_warning'        => 'Attention',
+        'title_info'           => 'Info',
+        'title_error'          => 'Error',
+        'max_persons_reached'  => 'Maximum :max people per booking.',
+        'max_category_reached' => 'The maximum for this category is :max.',
+        'invalid_quantity'     => 'Invalid quantity. Please enter a valid number.',
+        'age_between'          => 'Age :min-:max',
+        'age_from'             => 'Age :min+',
+        'age_to'               => 'Up to :max years',
+    ],
+
+
 ];

@@ -300,6 +300,9 @@ return [
     'age_10_plus' => 'Idade 10+',
     'age_4_to_9' => 'Idade 0-9',
     'max_limits_info' => 'Máx. 12 viajantes, máx. 2 crianças.',
+    'total_persons' => 'Total de pessoas',
+    'or' => 'ou',
+    'min' => 'Mín',
 
     // 16. CONTACT
     'name' => 'Nome',

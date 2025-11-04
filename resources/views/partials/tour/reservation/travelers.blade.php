@@ -1,5 +1,5 @@
 @php
-  // Obtener categorías activas con precios y límites
+  // ===== CATEGORÍAS ACTIVAS (precios y límites) =====
   $activeCategories = $tour->prices()
       ->where('is_active', true)
       ->whereHas('category', fn($q) => $q->where('is_active', true))
@@ -7,73 +7,92 @@
       ->orderBy('category_id')
       ->get();
 
-  // Límites globales
+  // Límites globales (del config/booking.php)
   $maxPersonsGlobal = (int) config('booking.max_persons_per_booking', 12);
-  $minAdultsGlobal = (int) config('booking.min_adults_per_booking', 2);
-  $maxKidsGlobal = (int) config('booking.max_kids_per_booking', 2);
+  $minAdultsGlobal  = (int) config('booking.min_adults_per_booking', 2);
+  $maxKidsGlobal    = (int) config('booking.max_kids_per_booking', 2);
 
-  // Construir data attributes para JS
+  // Estructura para JS con textos YA traducidos
   $categoriesData = $activeCategories->map(function($priceRecord) use ($minAdultsGlobal, $maxKidsGlobal, $maxPersonsGlobal) {
       $category = $priceRecord->category;
-      $categorySlug = $category->slug ?? strtolower($category->name ?? '');
+      $slug = $category->slug ?? strtolower($category->name ?? '');
 
-      // Aplicar límites globales para adultos y niños si aplica
       $min = (int) $priceRecord->min_quantity;
       $max = (int) $priceRecord->max_quantity;
 
-      if (in_array($categorySlug, ['adult', 'adulto', 'adults'])) {
-          $min = max($min, $minAdultsGlobal);
-      } elseif (in_array($categorySlug, ['kid', 'nino', 'child', 'kids', 'children'])) {
-          $max = min($max, $maxKidsGlobal);
+      // Reglas globales por slug
+      if (in_array($slug, ['adult','adulto','adults'])) {
+        $min = max($min, $minAdultsGlobal);
+      } elseif (in_array($slug, ['kid','nino','child','kids','children'])) {
+        $max = min($max, $maxKidsGlobal);
       }
 
-      // No permitir que el max de ninguna categoría exceda el límite global
+      // Ninguna categoría debe superar el global
       $max = min($max, $maxPersonsGlobal);
 
-      // Definir valor inicial
-      $initial = in_array($categorySlug, ['adult', 'adulto', 'adults']) ? max($min, 2) : 0;
+      // Valor inicial
+      $initial = in_array($slug, ['adult','adulto','adults']) ? max($min, 2) : 0;
+
+      // Texto de rango de edad (traducido) desde m_bookings.travelers.*
+      $ageMin = $category->age_min;
+      $ageMax = $category->age_max;
+      $ageRangeText = null;
+      if ($ageMin && $ageMax) {
+          $ageRangeText = __('m_bookings.travelers.age_between', ['min' => $ageMin, 'max' => $ageMax]);
+      } elseif ($ageMin) {
+          $ageRangeText = __('m_bookings.travelers.age_from', ['min' => $ageMin]);
+      } elseif ($ageMax) {
+          $ageRangeText = __('m_bookings.travelers.age_to', ['max' => $ageMax]);
+      }
 
       return [
-          'id' => (int) $priceRecord->category_id,
-          'name' => $category->name ?? 'N/A',
-          'slug' => $categorySlug,
-          'price' => (float) $priceRecord->price,
-          'min' => $min,
-          'max' => $max,
-          'initial' => $initial,
-          'age_range' => $category->age_min || $category->age_max
-              ? ($category->age_min && $category->age_max
-                  ? "{$category->age_min}-{$category->age_max}"
-                  : ($category->age_min ? "{$category->age_min}+" : "hasta {$category->age_max}"))
-              : null,
+        'id'       => (int) $priceRecord->category_id,
+        'name'     => $category->name ?? 'N/A',
+        'slug'     => $slug,
+        'price'    => (float) $priceRecord->price,
+        'min'      => $min,
+        'max'      => $max,
+        'initial'  => $initial,
+        'age_text' => $ageRangeText, // <-- ya traducido
       ];
   })->values()->toArray();
+
+  // Paquete i18n para el JS (títulos y plantillas de mensajes)
+  // Asegúrate de tener estas claves en resources/lang/{locale}/m_bookings.php -> travelers.*
+  $travI18n = [
+    'title_warning'        => __('m_bookings.travelers.title_warning'),        // p.ej. "Atención"
+    'title_info'           => __('m_bookings.travelers.title_info'),           // p.ej. "Información"
+    'title_error'          => __('m_bookings.travelers.title_error'),          // p.ej. "Error"
+    'max_persons_reached'  => __('m_bookings.travelers.max_persons_reached'),  // "Máximo :max personas por reserva"
+    'max_category_reached' => __('m_bookings.travelers.max_category_reached'), // "Máximo :max para esta categoría"
+    'invalid_quantity'     => __('m_bookings.travelers.invalid_quantity'),     // "Cantidad inválida. Ingresa un número válido."
+  ];
 @endphp
 
-{{-- Travelers inline + total --}}
+{{-- ===== VIAJEROS: CANTIDADES Y TOTAL ===== --}}
 <div class="mb-3 gv-travelers"
      data-categories='@json($categoriesData)'
-     data-max-total="{{ $maxPersonsGlobal }}">
+     data-max-total="{{ $maxPersonsGlobal }}"
+     data-i18n='@json($travI18n)'>
 
   @if($activeCategories->isNotEmpty())
     <div class="gv-trav-rows mt-2">
       @foreach($categoriesData as $cat)
         @php
-          $catId = $cat['id'];
-          $catName = $cat['name'];
-          $catSlug = $cat['slug'];
-          $catMin = $cat['min'];
-          $catMax = $cat['max'];
-          $catInitial = $cat['initial'];
-          $catAgeRange = $cat['age_range'] ?? null;
+          $catId       = $cat['id'];
+          $catName     = $cat['name'];
+          $catSlug     = $cat['slug'];
+          $catMin      = $cat['min'];
+          $catMax      = $cat['max'];
+          $catInitial  = $cat['initial'];
+          $catAgeText  = $cat['age_text'] ?? null;
 
-          // Ícono según slug
           $icon = match(true) {
-              in_array($catSlug, ['adult', 'adulto', 'adults']) => 'fa-male',
-              in_array($catSlug, ['kid', 'child', 'nino', 'kids', 'children']) => 'fa-child',
-              $catSlug === 'senior' => 'fa-user-tie',
-              $catSlug === 'student' => 'fa-user-graduate',
-              in_array($catSlug, ['infant', 'infante', 'baby']) => 'fa-baby',
+              in_array($catSlug, ['adult','adulto','adults'])              => 'fa-male',
+              in_array($catSlug, ['kid','child','nino','kids','children']) => 'fa-child',
+              $catSlug === 'senior'   => 'fa-user-tie',
+              $catSlug === 'student'  => 'fa-user-graduate',
+              in_array($catSlug, ['infant','infante','baby'])              => 'fa-baby',
               default => 'fa-user',
           };
         @endphp
@@ -85,14 +104,15 @@
             <i class="fas {{ $icon }}" aria-hidden="true"></i>
             <div class="d-flex flex-column">
               <span class="fw-semibold">{{ $catName }}</span>
-              @if($catAgeRange)
-                <small class="text-muted">({{ $catAgeRange }} años)</small>
+              @if($catAgeText)
+                <small class="text-muted">({{ $catAgeText }})</small>
               @endif
               @if($catMin > 0)
-                <small class="text-muted">Min: {{ $catMin }}</small>
+                <small class="text-muted">{{ __('adminlte::adminlte.min') }}: {{ $catMin }}</small>
               @endif
             </div>
           </div>
+
           <div class="d-flex align-items-center gap-2">
             <button type="button"
                     class="btn btn-outline-secondary btn-sm category-minus-btn"
@@ -100,16 +120,10 @@
                     aria-label="{{ __('adminlte::adminlte.decrease') }} {{ $catName }}">−</button>
 
             <input class="form-control form-control-sm text-center category-input"
-                   type="number"
-                   inputmode="numeric"
-                   pattern="[0-9]*"
-                   data-category-id="{{ $catId }}"
-                   data-category-slug="{{ $catSlug }}"
-                   min="{{ $catMin }}"
-                   max="{{ $catMax }}"
-                   step="1"
-                   value="{{ $catInitial }}"
-                   style="width: 60px;"
+                   type="number" inputmode="numeric" pattern="[0-9]*"
+                   data-category-id="{{ $catId }}" data-category-slug="{{ $catSlug }}"
+                   min="{{ $catMin }}" max="{{ $catMax }}" step="1"
+                   value="{{ $catInitial }}" style="width: 60px;"
                    aria-label="{{ __('adminlte::adminlte.quantity') }} {{ $catName }}">
 
             <button type="button"
@@ -119,11 +133,9 @@
           </div>
         </div>
 
-        {{-- Hidden input para enviar al servidor --}}
-        <input type="hidden"
-               name="categories[{{ $catId }}]"
-               id="category_quantity_{{ $catId }}"
-               value="{{ $catInitial }}">
+        {{-- hidden para request --}}
+        <input type="hidden" name="categories[{{ $catId }}]"
+               id="category_quantity_{{ $catId }}" value="{{ $catInitial }}">
       @endforeach
     </div>
 
@@ -134,209 +146,154 @@
         <strong id="reservation-total-price-inline" class="text-success fs-5">$0.00</strong>
       </div>
       <div class="d-flex justify-content-between text-muted small">
-        <span>{{ __('adminlte::adminlte.total_persons') ?? 'Total personas' }}:</span>
+        <span>{{ __('adminlte::adminlte.total_persons') }}:</span>
         <span id="reservation-total-pax">0</span>
       </div>
     </div>
   @else
     <div class="alert alert-danger">
-      {{ __('adminlte::adminlte.no_prices_configured') ?? 'Este tour no tiene precios configurados.' }}
+      {{ __('adminlte::adminlte.no_prices_configured') }}
     </div>
   @endif
 </div>
 
+@once
+  {{-- SweetAlert2 para los avisos --}}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@endonce
+
 @push('scripts')
 <script>
 (function() {
-  // Prevenir doble inicialización
-  if (window.__gvTravelersInit) {
-    console.log('Travelers already initialized');
-    return;
-  }
+  if (window.__gvTravelersInit) return;
   window.__gvTravelersInit = true;
 
-  console.log('🚀 Initializing travelers...');
-
+  // ===== i18n =====
   const container = document.querySelector('.gv-travelers');
-  if (!container) {
-    console.error('❌ Container .gv-travelers not found');
-    return;
+  if (!container) return;
+
+  let i18n = {};
+  try { i18n = JSON.parse(container.getAttribute('data-i18n') || '{}'); } catch(_) { i18n = {}; }
+
+  // Helper para avisos (usa títulos traducidos si existen)
+  function gvAlert(message, type = 'warning') {
+    if (!window.Swal) { alert(message); return; }
+    const title =
+      type === 'error' ? (i18n.title_error || 'Error') :
+      type === 'info'  ? (i18n.title_info  || 'Info')  :
+                         (i18n.title_warning || 'Attention');
+    Swal.fire({ icon: type, title, text: message, confirmButtonColor: '#198754' });
   }
 
-  const categoriesJson = container.getAttribute('data-categories');
-  console.log('📦 Raw categories JSON:', categoriesJson);
-
-  const maxTotal = parseInt(container.getAttribute('data-max-total') || '12');
-
+  const maxTotal = parseInt(container.getAttribute('data-max-total') || '12', 10);
   let categories = [];
-  try {
-    categories = JSON.parse(categoriesJson || '[]');
-    console.log('✅ Categories parsed successfully:', categories);
-  } catch(e) {
-    console.error('❌ Error parsing categories:', e);
-    console.error('JSON string was:', categoriesJson);
-    return;
-  }
+  try { categories = JSON.parse(container.getAttribute('data-categories') || '[]'); }
+  catch (_) { categories = []; }
 
-  if (!categories.length) {
-    console.error('❌ No categories found');
-    return;
-  }
+  if (!Array.isArray(categories) || !categories.length) return;
 
-  // Función para calcular total
   function updateTotals() {
-    let totalPrice = 0;
-    let totalPax = 0;
+    let totalPax = 0, totalPrice = 0;
 
     categories.forEach(cat => {
       const input = document.querySelector(`.category-input[data-category-id="${cat.id}"]`);
-      if (!input) {
-        console.warn(`⚠️ Input not found for category ${cat.id}`);
-        return;
-      }
-
-      const qty = parseInt(input.value || '0');
-      totalPrice += cat.price * qty;
-      totalPax += qty;
+      if (!input) return;
+      const qty = parseInt(input.value || '0', 10);
+      totalPax  += qty;
+      totalPrice += (cat.price || 0) * qty;
     });
 
     const priceEl = document.getElementById('reservation-total-price-inline');
-    const paxEl = document.getElementById('reservation-total-pax');
-
+    const paxEl   = document.getElementById('reservation-total-pax');
     if (priceEl) priceEl.textContent = '$' + totalPrice.toFixed(2);
-    if (paxEl) paxEl.textContent = totalPax;
+    if (paxEl)   paxEl.textContent   = totalPax;
 
-    // Actualizar hidden inputs
+    // Sincronizar inputs ocultos y recalcular máximos dinámicos
     categories.forEach(cat => {
-      const input = document.querySelector(`.category-input[data-category-id="${cat.id}"]`);
+      const input  = document.querySelector(`.category-input[data-category-id="${cat.id}"]`);
       const hidden = document.getElementById(`category_quantity_${cat.id}`);
-      if (input && hidden) {
-        hidden.value = input.value;
+      if (input && hidden) hidden.value = input.value;
+
+      if (input) {
+        const current = parseInt(input.value || '0', 10);
+        const otherTotal = totalPax - current;
+        const maxAllowed = Math.min(cat.max, Math.max(0, maxTotal - otherTotal));
+        input.setAttribute('max', maxAllowed);
       }
     });
 
-    // Validar máximo total y ajustar límites dinámicamente
-    const allInputs = document.querySelectorAll('.category-input');
-    allInputs.forEach(inp => {
-      const currentQty = parseInt(inp.value || '0');
-      const catId = parseInt(inp.getAttribute('data-category-id'));
-      const cat = categories.find(c => c.id === catId);
-      if (!cat) return;
-
-      const otherTotal = totalPax - currentQty;
-      const maxAllowed = Math.min(cat.max, maxTotal - otherTotal);
-
-      inp.setAttribute('max', maxAllowed);
-    });
-
-    console.log(`💰 Total: $${totalPrice.toFixed(2)}, 👥 Pax: ${totalPax}`);
     return totalPax;
   }
 
-  // Event listeners para botones MINUS
-  const minusButtons = document.querySelectorAll('.category-minus-btn');
-  console.log(`🔘 Found ${minusButtons.length} minus buttons`);
-
-  minusButtons.forEach((btn, index) => {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      console.log(`➖ Minus button ${index} clicked`);
-
-      const catId = parseInt(this.getAttribute('data-category-id'));
-      console.log(`   Category ID: ${catId}`);
-
-      const input = document.querySelector(`.category-input[data-category-id="${catId}"]`);
-      if (!input) {
-        console.error(`   ❌ Input not found for category ${catId}`);
-        return;
-      }
-
-      const min = parseInt(input.getAttribute('min') || '0');
-      const current = parseInt(input.value || '0');
-
-      console.log(`   Current: ${current}, Min: ${min}`);
-
-      if (current > min) {
-        input.value = current - 1;
-        console.log(`   ✅ New value: ${input.value}`);
-        updateTotals();
-      } else {
-        console.log(`   ⚠️ Already at minimum`);
-      }
+  // Minus
+  document.querySelectorAll('.category-minus-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault(); e.stopPropagation();
+      const id  = parseInt(btn.getAttribute('data-category-id'), 10);
+      const inp = document.querySelector(`.category-input[data-category-id="${id}"]`);
+      if (!inp) return;
+      const min = parseInt(inp.getAttribute('min') || '0', 10);
+      const cur = parseInt(inp.value || '0', 10);
+      if (cur > min) { inp.value = cur - 1; updateTotals(); }
     });
   });
 
-  // Event listeners para botones PLUS
-  const plusButtons = document.querySelectorAll('.category-plus-btn');
-  console.log(`🔘 Found ${plusButtons.length} plus buttons`);
+  // Plus
+  document.querySelectorAll('.category-plus-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault(); e.stopPropagation();
+      const id  = parseInt(btn.getAttribute('data-category-id'), 10);
+      const inp = document.querySelector(`.category-input[data-category-id="${id}"]`);
+      if (!inp) return;
 
-  plusButtons.forEach((btn, index) => {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
+      const cur = parseInt(inp.value || '0', 10);
+      const max = parseInt(inp.getAttribute('max') || '12', 10);
 
-      console.log(`➕ Plus button ${index} clicked`);
-
-      const catId = parseInt(this.getAttribute('data-category-id'));
-      console.log(`   Category ID: ${catId}`);
-
-      const input = document.querySelector(`.category-input[data-category-id="${catId}"]`);
-      if (!input) {
-        console.error(`   ❌ Input not found for category ${catId}`);
-        return;
-      }
-
-      const current = parseInt(input.value || '0');
-      const max = parseInt(input.getAttribute('max') || '12');
-
-      // Calcular total actual
+      // total actual antes de sumar
       const totalPax = categories.reduce((sum, cat) => {
-        const inp = document.querySelector(`.category-input[data-category-id="${cat.id}"]`);
-        return sum + parseInt(inp?.value || '0');
+        const i = document.querySelector(`.category-input[data-category-id="${cat.id}"]`);
+        return sum + parseInt(i?.value || '0', 10);
       }, 0);
 
-      console.log(`   Current: ${current}, Max: ${max}, Total Pax: ${totalPax}`);
-
-      if (current < max && totalPax < maxTotal) {
-        input.value = current + 1;
-        console.log(`   ✅ New value: ${input.value}`);
+      if (cur < max && totalPax < maxTotal) {
+        inp.value = cur + 1;
         updateTotals();
       } else if (totalPax >= maxTotal) {
-        const msg = @json(__('adminlte::adminlte.max_persons_reached', ['max' => ':max'])).replace(':max', maxTotal);
-        alert(msg);
-        console.log(`   ⚠️ Max total reached`);
+        const tpl = i18n.max_persons_reached || 'Maximum people reached (:max).';
+        gvAlert(tpl.replace(':max', String(maxTotal)), 'warning');
       } else {
-        alert('Máximo ' + max + ' para esta categoría');
-        console.log(`   ⚠️ Max category reached`);
+        const tpl = i18n.max_category_reached || 'The maximum for this category is :max.';
+        gvAlert(tpl.replace(':max', String(max)), 'info');
       }
     });
   });
 
-  // Permitir edición manual del input
-  document.querySelectorAll('.category-input').forEach(input => {
-    input.addEventListener('change', function() {
-      const min = parseInt(this.getAttribute('min') || '0');
-      const max = parseInt(this.getAttribute('max') || '12');
-      let value = parseInt(this.value || '0');
-
-      console.log(`📝 Input changed: ${value}, Min: ${min}, Max: ${max}`);
-
-      // Validar rango
-      if (value < min) value = min;
-      if (value > max) value = max;
-
-      this.value = value;
-      updateTotals();
+  // Edición manual
+  document.querySelectorAll('.category-input').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const min = parseInt(inp.getAttribute('min') || '0', 10);
+      const max = parseInt(inp.getAttribute('max') || '12', 10);
+      let val   = parseInt(inp.value || '0', 10);
+      if (Number.isNaN(val)) {
+        const msg = i18n.invalid_quantity || 'Invalid quantity. Please enter a valid number.';
+        gvAlert(msg, 'warning');
+        val = min;
+      }
+      if (val < min) val = min;
+      if (val > max) val = max;
+      inp.value = val;
+      const total = updateTotals();
+      if (total > maxTotal) {
+        inp.value = Math.max(min, val - (total - maxTotal));
+        updateTotals();
+        const tpl = i18n.max_persons_reached || 'Maximum people reached (:max).';
+        gvAlert(tpl.replace(':max', String(maxTotal)), 'warning');
+      }
     });
   });
 
-  // Inicializar totales
-  console.log('🎬 Initializing totals...');
+  // Inicial
   updateTotals();
-
-  console.log('✅ Travelers initialization complete');
 })();
 </script>
 @endpush

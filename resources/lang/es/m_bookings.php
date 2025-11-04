@@ -425,5 +425,21 @@ return [
         'subtotal'      => 'Subtotal',
         'discount'      => 'Descuento',
     ],
+    
+    // =========================================================
+    // [08] VIAJEROS (MODAL)
+    // =========================================================
+    'travelers' => [
+        'title_warning'        => 'Atención',
+        'title_info'           => 'Información',
+        'title_error'          => 'Error',
+        'max_persons_reached'  => 'Máximo :max personas por reserva.',
+        'max_category_reached' => 'El máximo para esta categoría es :max.',
+        'invalid_quantity'     => 'Cantidad inválida. Ingresa un número válido.',
+        'age_between'          => 'Edad :min-:max',
+        'age_from'             => 'Edad :min+',
+        'age_to'               => 'Hasta :max años',
+    ],
+
 
 ];
