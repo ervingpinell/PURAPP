@@ -42,7 +42,7 @@ class Dropdown extends Component
                 ->orderByDesc('cart_id')
                 ->first();
 
-            // Si no hay carrito o expiró, no mostramos nada (la API también devolvería 0)
+            // Si expiró, lo ignoramos visualmente
             if ($cart && method_exists($cart, 'isExpired') && $cart->isExpired()) {
                 $cart = null;
             }
@@ -51,9 +51,10 @@ class Dropdown extends Component
                 $this->headerCart  = $cart;
                 $this->headerCount = $cart->items->count();
                 $this->headerTotal = (float) $cart->items->sum(function ($i) {
-                    $adult = ($i->tour->adult_price ?? 0) * (int)($i->adults_quantity ?? 0);
-                    $kid   = ($i->tour->kid_price   ?? 0) * (int)($i->kids_quantity   ?? 0);
-                    return $adult + $kid;
+                    // Total desde snapshot de categorías (price * quantity)
+                    return collect($i->categories ?? [])->sum(
+                        fn($cat) => ((float)($cat['price'] ?? 0)) * ((int)($cat['quantity'] ?? 0))
+                    );
                 });
             }
             return;
@@ -65,11 +66,11 @@ class Dropdown extends Component
             $this->sessionItems = $sessionItems;
             $this->headerCount  = $sessionItems->count();
             $this->headerTotal  = (float) $sessionItems->sum(function ($i) {
-                $adultPrice = (float)($i['adult_price'] ?? 0);
-                $kidPrice   = (float)($i['kid_price'] ?? 0);
-                $adultsQty  = (int)  ($i['adults_quantity'] ?? 0);
-                $kidsQty    = (int)  ($i['kids_quantity'] ?? 0);
-                return ($adultPrice * $adultsQty) + ($kidPrice * $kidsQty);
+                // Esperamos categories también en sesión
+                $cats = $i['categories'] ?? [];
+                return collect($cats)->sum(
+                    fn($cat) => ((float)($cat['price'] ?? 0)) * ((int)($cat['quantity'] ?? 0))
+                );
             });
         }
     }

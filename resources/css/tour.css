@@ -398,3 +398,56 @@
   .reservation-box .traveler-button{ font-size:var(--fs-xs); padding:.35rem .6rem; }
   .languages-schedules-box .badge{ font-size:clamp(9px, .5vw + 8px, 11px); }
 }
+
+/* Ultra compacto (un paso más que .is-compact) */
+.reservation-box.is-compact-2{
+  --gv-field-h: 36px;           /* antes 40–44 */
+  --gv-field-pad-y: .35rem;
+  --gv-field-pad-x: .55rem;
+}
+
+/* Tipos un poco más chicos aún */
+.reservation-box.is-compact-2 .form-label{
+  font-size: calc(var(--fs-sm) - 2px);
+  margin-bottom: .15rem;
+}
+.reservation-box.is-compact-2 .price-breakdown,
+.reservation-box.is-compact-2 .gv-total-inline{
+  font-size: calc(var(--fs-body) - 3px);
+}
+
+/* Inputs/selects/choices/flatpickr */
+.reservation-box.is-compact-2 .form-control,
+.reservation-box.is-compact-2 .form-select,
+.reservation-box.is-compact-2 .flatpickr-input,
+.reservation-box.is-compact-2 .choices__inner,
+.reservation-box.is-compact-2 .choices__list--single .choices__item{
+  font-size: calc(var(--fs-body) - 2px);
+  min-height: var(--gv-field-h);
+  height: var(--gv-field-h);
+  padding: var(--gv-field-pad-y) var(--gv-field-pad-x);
+}
+
+/* Travelers aún más comprimido */
+.reservation-box.is-compact-2 .gv-travelers{
+  --trav-row-font: calc(var(--fs-body) - 2px);
+  --trav-label-font: calc(var(--fs-body) - 3px);
+  --trav-btn-font: .8rem;
+  --trav-input-w: 62px;  /* antes 68–72 */
+}
+.reservation-box.is-compact-2 .gv-trav-row .btn{
+  min-width: 1.9rem;
+  padding: .2rem .45rem;
+}
+
+/* Encabezados internos y separaciones */
+.reservation-box.is-compact-2 .form-header h3,
+.reservation-box.is-compact-2 .form-header h4{
+  font-size: calc(var(--fs-h6) - 1px);
+  margin-bottom: .2rem;
+}
+.reservation-box.is-compact-2 .section-title span{ font-size: calc(var(--fs-body) - 2px); }
+.reservation-box.is-compact-2 .section-title i{ font-size: .9em; }
+
+/* Paddings generales del box */
+.reservation-box.is-compact-2{ padding: .75rem !important; }

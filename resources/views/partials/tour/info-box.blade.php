@@ -4,8 +4,10 @@
   <h4 class="mt-3">{{ __('adminlte::adminlte.duration') }}</h4>
   <p>{{ $tour->length }} {{ __('adminlte::adminlte.hours') }}</p>
 
-  <h4 class="mt-3">{{ __('adminlte::adminlte.group_size') }}</h4>
-  <p>{{ $tour->max_capacity }} max</p>
+  @if($tour->group_size)
+    <h4 class="mt-3">{{ __('adminlte::adminlte.group_size') }}</h4>
+    <p>{{ $tour->group_size }} {{ __('adminlte::adminlte.persons_max') ?? 'personas máximo' }}</p>
+  @endif
 
   <h4 class="mt-3">{{ __('adminlte::adminlte.languages_available') }}</h4>
   <p class="badges-group">

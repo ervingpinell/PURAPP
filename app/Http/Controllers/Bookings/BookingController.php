@@ -23,140 +23,168 @@ class BookingController extends Controller
     ) {}
 
     /** Checkout desde carrito (público) */
-/** Checkout desde carrito (público) */
-public function storeFromCart(Request $request)
-{
-    $user = Auth::user();
+    public function storeFromCart(Request $request)
+    {
+        $user = Auth::user();
 
-    $key = 'booking:cart:' . $user->user_id;
-    if (RateLimiter::tooManyAttempts($key, 1)) {
-        return redirect()->route('public.carts.index')
-            ->with('error', __('carts.messages.cart_being_processed'));
-    }
-    RateLimiter::hit($key, 10);
-
-    $createdBookings = DB::transaction(function () use ($user, $request) {
-        $cart = \App\Models\Cart::with(['items.tour','items.schedule'])
-            ->where('user_id', $user->user_id)
-            ->where('is_active', true)
-            ->orderByDesc('cart_id')
-            ->first();
-
-        if (!$cart || $cart->items->isEmpty()) {
-            throw \Illuminate\Validation\ValidationException::withMessages(['cart' => __('carts.messages.cart_empty')]);
+        $key = 'booking:cart:' . $user->user_id;
+        if (RateLimiter::tooManyAttempts($key, 1)) {
+            return redirect()->route('public.carts.index')
+                ->with('error', __('carts.messages.cart_being_processed'));
         }
-        if ($cart->isExpired()) {
-            throw \Illuminate\Validation\ValidationException::withMessages(['cart' => __('carts.messages.cart_expired')]);
-        }
+        RateLimiter::hit($key, 10);
 
-        // ===== Pre-validación por grupos EXCLUYENDO el carrito actual =====
-        $groups = $cart->items->groupBy(fn($i) => $i->tour_id.'_'.$i->tour_date.'_'.$i->schedule_id);
-        foreach ($groups as $items) {
-            $first      = $items->first();
-            $tour       = $first->tour;
-            $tourDate   = $first->tour_date;
-            $scheduleId = $first->schedule_id;
-
-            $schedule = $tour->schedules()
-                ->where('schedules.schedule_id', $scheduleId)
-                ->where('schedules.is_active', true)
-                ->wherePivot('is_active', true)
+        $createdBookings = DB::transaction(function () use ($user, $request) {
+            $cart = \App\Models\Cart::with(['items.tour.prices.category', 'items.schedule'])
+                ->where('user_id', $user->user_id)
+                ->where('is_active', true)
+                ->orderByDesc('cart_id')
                 ->first();
 
-            if (!$schedule) {
+            if (!$cart || $cart->items->isEmpty()) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
-                    'schedule_id' => __("carts.messages.schedule_unavailable"),
+                    'cart' => __('carts.messages.cart_empty')
                 ]);
             }
 
-            $remaining = $this->capacity->remainingCapacity(
-                $tour, $schedule, $tourDate,
-                excludeBookingId: null,
-                countHolds: true,
-                excludeCartId: (int)$cart->cart_id // <==== EXCLUIR PROPIO HOLD
-            );
-            $requested = $items->sum(fn($i) => (int)$i->adults_quantity + (int)$i->kids_quantity);
-
-            if ($requested > $remaining) {
+            if ($cart->isExpired()) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
-                    'capacity' => __("m_bookings.messages.limited_seats_available", [
-                        'available' => $remaining, 'tour' => $tour->name, 'date' => $tourDate
-                    ]),
+                    'cart' => __('carts.messages.cart_expired')
                 ]);
             }
-        }
 
-        // Promo (se aplica a la primera reserva creada)
-        $promoCodeValue   = $request->input('promo_code') ?? $request->session()->get('public_cart_promo.code');
-        $promoCodeToApply = null;
-        if ($promoCodeValue) {
-            $clean = PromoCode::normalize($promoCodeValue);
-            $promoCodeToApply = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code, ' ', ''))) = ?", [$clean])
-                ->where(function($q){
-                    $q->where('is_used', false)->orWhereNull('is_used');
-                })
-                ->lockForUpdate()
-                ->first();
-        }
+            // Pre-validación por grupos
+            $groups = $cart->items->groupBy(fn($i) => $i->tour_id . '_' . $i->tour_date . '_' . $i->schedule_id);
 
-        $created = [];
-        $promoApplied = false;
+            foreach ($groups as $items) {
+                $first      = $items->first();
+                $tour       = $first->tour;
+                $tourDate   = $first->tour_date;
+                $scheduleId = $first->schedule_id;
 
-        foreach ($cart->items as $item) {
-            $payload = [
-                'user_id'           => $user->user_id,
-                'tour_id'           => $item->tour_id,
-                'schedule_id'       => $item->schedule_id,
-                'tour_language_id'  => $item->tour_language_id,
-                'tour_date'         => $item->tour_date,
-                'booking_date'      => now(),
-                'hotel_id'          => $item->is_other_hotel ? null : $item->hotel_id,
-                'is_other_hotel'    => (bool)$item->is_other_hotel,
-                'other_hotel_name'  => $item->is_other_hotel ? $item->other_hotel_name : null,
-                'adults_quantity'   => (int)$item->adults_quantity,
-                'kids_quantity'     => (int)$item->kids_quantity,
-                'status'            => 'pending',
-                'meeting_point_id'  => $item->meeting_point_id,
-                'notes'             => null,
-                'promo_code'        => $promoApplied ? null : ($promoCodeToApply?->code),
-                'exclude_cart_id'   => (int)$cart->cart_id, // <==== EXCLUIR PROPIO HOLD
-            ];
+                $schedule = $tour->schedules()
+                    ->where('schedules.schedule_id', $scheduleId)
+                    ->where('schedules.is_active', true)
+                    ->wherePivot('is_active', true)
+                    ->first();
 
-            $booking = $this->creator->create($payload, validateCapacity: true, countHolds: true);
+                if (!$schedule) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'schedule_id' => __("carts.messages.schedule_unavailable"),
+                    ]);
+                }
 
-            if (!$promoApplied && $promoCodeToApply) {
-                $promoCodeToApply->redeemForBooking($booking->booking_id, $user->user_id);
-                $promoApplied = true;
+                // Calcular pax total del grupo SOLO desde JSON categories
+                $totalPax = $items->sum(function ($item) {
+                    return collect($item->categories ?? [])->sum('quantity');
+                });
+
+                $remaining = $this->capacity->remainingCapacity(
+                    $tour,
+                    $schedule,
+                    $tourDate,
+                    excludeBookingId: null,
+                    countHolds: true,
+                    excludeCartId: (int) $cart->cart_id
+                );
+
+                if ($totalPax > $remaining) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'capacity' => __("m_bookings.messages.limited_seats_available", [
+                            'available' => $remaining,
+                            'tour'      => $tour->name,
+                            'date'      => $tourDate
+                        ]),
+                    ]);
+                }
             }
 
-            $created[] = $booking;
+            // Promo code
+            $promoCodeValue   = $request->input('promo_code') ?? $request->session()->get('public_cart_promo.code');
+            $promoCodeToApply = null;
+
+            if ($promoCodeValue) {
+                $clean = PromoCode::normalize($promoCodeValue);
+                $promoCodeToApply = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code, ' ', ''))) = ?", [$clean])
+                    ->where(function ($q) {
+                        $q->where('is_used', false)->orWhereNull('is_used');
+                    })
+                    ->lockForUpdate()
+                    ->first();
+            }
+
+            $created      = [];
+            $promoApplied = false;
+
+            foreach ($cart->items as $item) {
+                // Convertir snapshot de categories JSON a array category_id => quantity
+                $quantities = [];
+                foreach ((array) ($item->categories ?? []) as $cat) {
+                    $qid = (int)($cat['category_id'] ?? 0);
+                    $qq  = (int)($cat['quantity'] ?? 0);
+                    if ($qid > 0 && $qq > 0) {
+                        $quantities[$qid] = $qq;
+                    }
+                }
+
+                if (empty($quantities)) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'categories' => __('m_bookings.validation.no_active_categories'),
+                    ]);
+                }
+
+                $payload = [
+                    'user_id'           => $user->user_id,
+                    'tour_id'           => $item->tour_id,
+                    'schedule_id'       => $item->schedule_id,
+                    'tour_language_id'  => $item->tour_language_id,
+                    'tour_date'         => $item->tour_date,
+                    'booking_date'      => now(),
+                    'categories'        => $quantities,
+                    'hotel_id'          => $item->is_other_hotel ? null : $item->hotel_id,
+                    'is_other_hotel'    => (bool) $item->is_other_hotel,
+                    'other_hotel_name'  => $item->is_other_hotel ? $item->other_hotel_name : null,
+                    'status'            => 'pending',
+                    'meeting_point_id'  => $item->meeting_point_id,
+                    'notes'             => null,
+                    'promo_code'        => $promoApplied ? null : ($promoCodeToApply?->code),
+                    'exclude_cart_id'   => (int) $cart->cart_id,
+                ];
+
+                $booking = $this->creator->create($payload, validateCapacity: true, countHolds: true);
+
+                if (!$promoApplied && $promoCodeToApply) {
+                    $promoCodeToApply->redeemForBooking($booking->booking_id, $user->user_id);
+                    $promoApplied = true;
+                }
+
+                $created[] = $booking;
+            }
+
+            $cart->items()->delete();
+            $cart->update(['is_active' => false, 'expires_at' => now()]);
+            $request->session()->forget('public_cart_promo');
+
+            return $created;
+        });
+
+        // Emails
+        $createdBookings = collect($createdBookings);
+        $details = BookingDetail::with(['tour', 'schedule', 'hotel', 'tourLanguage', 'booking.user'])
+            ->whereIn('booking_id', $createdBookings->pluck('booking_id'))
+            ->get();
+
+        if ($details->isNotEmpty()) {
+            $byLang = $details->groupBy('tour_language_id');
+            foreach ($byLang as $langId => $langDetails) {
+                $firstBooking = $createdBookings->firstWhere('booking_id', $langDetails->first()->booking_id);
+                \Mail::to($user->email)->queue(new \App\Mail\BookingCreatedMail($firstBooking, $langDetails));
+            }
         }
 
-        $cart->items()->delete();
-        $cart->update(['is_active' => false, 'expires_at' => now()]);
-        $request->session()->forget('public_cart_promo');
-
-        return $created;
-    });
-
-    // Emails igual que tenías…
-    $createdBookings = collect($createdBookings);
-    $details = \App\Models\BookingDetail::with(['tour','schedule','hotel','tourLanguage','booking.user'])
-        ->whereIn('booking_id', $createdBookings->pluck('booking_id'))
-        ->get();
-
-    if ($details->isNotEmpty()) {
-        $byLang = $details->groupBy('tour_language_id');
-        foreach ($byLang as $langId => $langDetails) {
-            $firstBooking = $createdBookings->firstWhere('booking_id', $langDetails->first()->booking_id);
-            \Mail::to($user->email)->queue(new \App\Mail\BookingCreatedMail($firstBooking, $langDetails));
-        }
+        return redirect()->route('my-bookings')
+            ->with('success', __('m_bookings.messages.bookings_created_from_cart'));
     }
-
-    return redirect()->route('my-bookings')
-        ->with('success', __('m_bookings.messages.bookings_created_from_cart'));
-}
-
 
     /** Mis reservas (público) */
     public function myBookings()
@@ -176,9 +204,10 @@ public function storeFromCart(Request $request)
 
         $booking->load(['detail.schedule','user']);
 
-        $detail       = $booking->detail;
-        $totalAdults  = (int)$detail->adults_quantity;
-        $totalKids    = (int)$detail->kids_quantity;
+        $detail    = $booking->detail;
+        $cats      = collect($detail->categories ?? []);
+        $totalAdults = (int) ($cats->firstWhere('category_slug', 'adult')['quantity'] ?? 0);
+        $totalKids   = (int) ($cats->firstWhere('category_slug', 'kid')['quantity']   ?? 0);
         $totalPersons = $totalAdults + $totalKids;
 
         $client = preg_replace('/[^A-Za-z0-9_]/', '_', $booking->user->full_name ?? 'Client');

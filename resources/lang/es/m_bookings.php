@@ -10,6 +10,17 @@ return [
         'meeting_point_hint' => 'Solo se muestra el nombre del punto en la lista.',
     ],
 
+      'validation' => [
+        'max_persons_exceeded' => 'Máximo :max personas por reserva en total.',
+        'min_adults_required' => 'Se requieren mínimo :min adultos por reserva.',
+        'max_kids_exceeded' => 'Máximo :max niños por reserva.',
+        'no_active_categories' => 'Este tour no tiene categorías de clientes activas.',
+        'min_category_not_met' => 'Se requieren mínimo :min personas en la categoría ":category".',
+        'max_category_exceeded' => 'Máximo :max personas permitidas en la categoría ":category".',
+        'min_one_person_required' => 'Debe haber al menos una persona en la reserva.',
+        'category_not_available' => 'La categoría con ID :category_id no está disponible para este tour.',
+    ],
+
     // =========================================================
     // [01] DISPONIBILIDAD
     // =========================================================

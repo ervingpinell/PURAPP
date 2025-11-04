@@ -31,7 +31,7 @@ class ReportsController extends Controller
             ? Carbon::parse($request->input('to'))->endOfDay()
             : Carbon::now()->endOfDay();
 
-        $status = $request->input('status'); // paid|confirmed|completed|cancelled|null
+        $status = $request->input('status'); // paid|confirmed|completed|cancelled|pending|null
 
         // Filtros múltiples
         $tourIds = collect((array) $request->input('tour_id', []))->filter()->map(fn($v)=>(int)$v)->values()->all();
@@ -71,48 +71,46 @@ class ReportsController extends Controller
             ->get();
 
         // ====== Confirmadas (sólo estatus 'confirmed' en rango y filtros) ======
-        $confirmedBookings = DB::table('bookings as b')
-            ->leftJoin('booking_details as bd', 'bd.booking_id', '=', 'b.booking_id')
+        // Tomamos desde v_booking_facts para consistencia y luego contamos bookings únicos.
+        $confirmedBookings = DB::table('v_booking_facts as vf')
             ->when($groupBy === 'tour_date',
-                fn($q) => $q->whereBetween('bd.tour_date', [$from, $to]),
-                fn($q) => $q->whereBetween('b.booking_date', [$from, $to])
+                fn($q) => $q->whereBetween('vf.tour_date', [$from, $to]),
+                fn($q) => $q->whereBetween('vf.booking_date', [$from, $to])
             )
-            ->where('b.status', 'confirmed')
-            ->when(!empty($tourIds), fn($q)=>$q->whereIn('bd.tour_id', $tourIds))
-            ->when(!empty($langIds), fn($q)=>$q->whereIn('bd.tour_language_id', $langIds))
-            ->distinct('b.booking_id')->count('b.booking_id');
+            ->where('vf.status', 'confirmed')
+            ->when(!empty($tourIds), fn($q)=>$q->whereIn('vf.tour_id', $tourIds))
+            ->when(!empty($langIds), fn($q)=>$q->whereIn('vf.tour_language_id', $langIds))
+            ->distinct('vf.booking_id')->count('vf.booking_id');
 
         // ====== Pendientes (widget) ======
-        $pendingBase = DB::table('bookings as b')
-            ->leftJoin('booking_details as bd', 'bd.booking_id', '=', 'b.booking_id')
-            ->leftJoin('tours as t', 't.tour_id', '=', 'bd.tour_id')
+        // Reescrito 100% contra v_booking_facts (sin adult/kid price/qty legacy).
+        $pendingBase = DB::table('v_booking_facts as vf')
+            ->join('bookings as b', 'b.booking_id', '=', 'vf.booking_id')
+            ->leftJoin('tours as t', 't.tour_id', '=', 'vf.tour_id')
             ->leftJoin('users as u', 'u.user_id', '=', 'b.user_id')
-            ->where('b.status', 'pending')
+            ->where('vf.status', 'pending')
             ->when($groupBy === 'tour_date',
-                fn($q) => $q->whereBetween('bd.tour_date', [$from, $to]),
-                fn($q) => $q->whereBetween('b.booking_date', [$from, $to])
+                fn($q) => $q->whereBetween('vf.tour_date', [$from, $to]),
+                fn($q) => $q->whereBetween('vf.booking_date', [$from, $to])
             )
-            ->when(!empty($tourIds), fn($q)=>$q->whereIn('bd.tour_id', $tourIds))
-            ->when(!empty($langIds), fn($q)=>$q->whereIn('bd.tour_language_id', $langIds));
+            ->when(!empty($tourIds), fn($q)=>$q->whereIn('vf.tour_id', $tourIds))
+            ->when(!empty($langIds), fn($q)=>$q->whereIn('vf.tour_language_id', $langIds));
 
-        $pendingCount = (clone $pendingBase)
-            ->distinct('b.booking_id')->count('b.booking_id');
+        $pendingCount = (clone $pendingBase)->distinct('vf.booking_id')->count('vf.booking_id');
 
         $pendingItems = (clone $pendingBase)
             ->selectRaw("
-                b.booking_id,
+                vf.booking_id,
                 b.booking_reference,
-                MIN(bd.tour_date)                        AS tour_date,
-                MIN(b.booking_date)                      AS booking_date,
-                COALESCE(MIN(b.total),
-                         SUM(COALESCE(bd.total, (bd.adult_price*bd.adults_quantity)+(bd.kid_price*bd.kids_quantity)))
-                )                                        AS total,
-                SUM(COALESCE(bd.adults_quantity,0) + COALESCE(bd.kids_quantity,0)) AS pax,
-                MIN(u.email)                             AS customer_email,
-                MIN(t.name)                              AS tour_name
+                MIN(vf.tour_date)                         AS tour_date,
+                MIN(vf.booking_date)                      AS booking_date,
+                COALESCE(SUM(vf.detail_total), 0)         AS total,
+                COALESCE(SUM(vf.adults_qty + vf.kids_qty), 0) AS pax,
+                MIN(u.email)                              AS customer_email,
+                MIN(t.name)                               AS tour_name
             ")
-            ->groupBy('b.booking_id','b.booking_reference')
-            ->orderByRaw('MIN(b.booking_date) ASC NULLS LAST')
+            ->groupBy('vf.booking_id','b.booking_reference')
+            ->orderByRaw('MIN(vf.booking_date) ASC NULLS LAST')
             ->limit(8)
             ->get();
 
@@ -190,8 +188,8 @@ class ReportsController extends Controller
                 $sqlKey = $d->isoFormat('GGGG-[W]WW'); // coincide con IYYY-IW
             }
 
-            $labels[]        = $label;
-            $seriesRevenue[] = isset($rows[$sqlKey]) ? round((float)$rows[$sqlKey]->revenue, 2) : 0;
+            $labels[]         = $label;
+            $seriesRevenue[]  = isset($rows[$sqlKey]) ? round((float)$rows[$sqlKey]->revenue, 2) : 0;
             $seriesBookings[] = isset($rows[$sqlKey]) ? (int)$rows[$sqlKey]->bookings : 0;
             $seriesPax[]      = isset($rows[$sqlKey]) ? (int)$rows[$sqlKey]->pax : 0;
         }

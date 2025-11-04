@@ -28,6 +28,15 @@
         .alert-info .btn-primary { background-color: #28a745; border-color: #28a745; }
         .alert-info .btn-primary:hover { background-color: #218838; border-color: #1e7e34; }
 
+        /* Categorías en la card */
+        .cat-line{display:flex; align-items:center; justify-content:space-between; gap:.5rem; font-size:.95rem}
+        .cat-left{display:flex; align-items:center; gap:.5rem}
+        .cat-badge{display:inline-flex; align-items:center; justify-content:center; min-width:1.6rem; height:1.35rem; padding:0 .4rem; font-size:.75rem; border-radius:.25rem; background:#eef3ee; color:#0d4b1a}
+        .cat-name{font-weight:500}
+        .cat-price{white-space:nowrap;font-weight: 600;}
+        .cat-sub{white-space:nowrap; color:var(--primary-red); font-weight:600}
+        .cat-total{color:var(--primary-dark); font-weight:600}
+
         /* Footer responsiveness */
         @media (max-width: 992px) {
             .footer-brand, .footer-links, .footer-tours, .contact-info { min-width: 45%; }
@@ -42,6 +51,81 @@
 </head>
 
 @section('content')
+@php
+  $fmt2 = fn($n) => number_format((float)$n, 2, '.', '');
+
+  /**
+   * Convierte el snapshot de categorías (booking->detail->categories) a líneas normalizadas:
+   * - name (resuelto)
+   * - quantity
+   * - price
+   * - subtotal
+   */
+  $catLinesFromDetail = function($detail) {
+      $codeMap = [
+          'adult'    => __('adminlte::adminlte.adult'),
+          'adults'   => __('adminlte::adminlte.adults'),
+          'kid'      => __('adminlte::adminlte.kid'),
+          'kids'     => __('adminlte::adminlte.kids'),
+          'child'    => __('adminlte::adminlte.kid'),
+          'children' => __('adminlte::adminlte.kids'),
+          'senior'   => __('adminlte::adminlte.senior') ?? 'Senior',
+          'student'  => __('adminlte::adminlte.student') ?? 'Student',
+      ];
+
+      $raw = collect($detail->categories ?? []);
+      if ($raw->isEmpty()) {
+          // Fallback legacy (adultos/niños)
+          $fallback = [
+              [
+                  'name'     => __('adminlte::adminlte.adults'),
+                  'quantity' => (int)($detail->adults_quantity ?? 0),
+                  'price'    => (float)($detail->adult_price  ?? 0),
+              ],
+              [
+                  'name'     => __('adminlte::adminlte.kids'),
+                  'quantity' => (int)($detail->kids_quantity ?? 0),
+                  'price'    => (float)($detail->kid_price    ?? 0),
+              ],
+          ];
+          return collect($fallback)->map(function($c){
+              $c['subtotal'] = $c['price'] * $c['quantity'];
+              return $c;
+          })->filter(fn($c) => $c['quantity'] > 0)->values();
+      }
+
+      return $raw->map(function($c) use ($codeMap) {
+          $q = (int)  data_get($c, 'quantity', 0);
+          $p = (float) data_get($c, 'price', 0);
+          // Resolver nombre
+          $name =
+              data_get($c, 'name') ??
+              data_get($c, 'label') ??
+              data_get($c, 'category_name') ??
+              data_get($c, 'category.name') ??
+              (function() use ($c, $codeMap) {
+                  $code = data_get($c, 'code');
+                  if (!$code) return null;
+                  if (isset($codeMap[$code])) return $codeMap[$code];
+                  $tr = __($code);
+                  return $tr === $code ? (string)$code : $tr;
+              })();
+
+          if (!$name) $name = 'Category';
+
+          return [
+              'name'     => (string)$name,
+              'quantity' => $q,
+              'price'    => $p,
+              'subtotal' => $p * $q,
+          ];
+      })->filter(fn($c) => $c['quantity'] > 0)->values();
+  };
+
+  $detailSubtotal = fn($detail) => (float) collect($catLinesFromDetail($detail))->sum('subtotal');
+  $detailTotalPax = fn($detail) => (int) collect($catLinesFromDetail($detail))->sum('quantity');
+@endphp
+
 <body>
 <main class="container my-5">
     <h1 class="mb-4 text-center">{{ __('adminlte::adminlte.my_reservations') }}</h1>
@@ -82,6 +166,11 @@
 
                     <div class="row justify-content-center row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
                         @foreach($groupedBookings[$statusKey] as $booking)
+                            @php
+                                $detail = $booking->detail; // BookingDetail
+                                $lines  = $detail ? $catLinesFromDetail($detail) : collect();
+                                $pax    = $detail ? $detailTotalPax($detail) : 0;
+                            @endphp
                             <div class="col mx-auto">
                                 <div class="card h-100">
                                     {{-- Tour Image --}}
@@ -92,8 +181,10 @@
                                     @endif
 
                                     <div class="card-body">
-                                        {{-- Tour Name --}}
-                                        <h5 class="card-title">{{ optional($booking->tour)->name ?? __('adminlte::adminlte.unknown_tour') }}</h5>
+                                        {{-- Tour Name (con traducción si tienes helper) --}}
+                                        <h5 class="card-title">
+                                            {{ method_exists($booking->tour, 'getTranslatedName') ? $booking->tour->getTranslatedName() : (optional($booking->tour)->name ?? __('adminlte::adminlte.unknown_tour')) }}
+                                        </h5>
 
                                         {{-- Booking Details --}}
                                         <p class="card-text text-muted small mb-1">
@@ -101,26 +192,59 @@
                                             <strong>{{ __('adminlte::adminlte.booking_date') }}:</strong>
                                             {{ \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') }}
                                         </p>
+
                                         <p class="card-text text-muted small mb-1">
                                             <i class="fas fa-calendar-check"></i>
                                             <strong>{{ __('adminlte::adminlte.tour_date') }}:</strong>
-                                            {{ \Carbon\Carbon::parse(optional($booking->detail)->tour_date)->format('M d, Y') }}
+                                            {{ \Carbon\Carbon::parse(optional($detail)->tour_date)->format('M d, Y') }}
                                         </p>
-                                        <p class="card-text text-muted small mb-1">
+
+                                        @if(optional($detail)->schedule)
+                                          <p class="card-text text-muted small mb-1">
+                                              <i class="fas fa-clock"></i>
+                                              <strong>{{ __('adminlte::adminlte.schedule') }}:</strong>
+                                              {{ \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') }}
+                                              – {{ \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A') }}
+                                          </p>
+                                        @endif
+
+                                        @if(optional($booking->language)->name)
+                                          <p class="card-text text-muted small mb-1">
+                                              <i class="fas fa-language"></i>
+                                              <strong>{{ __('adminlte::adminlte.language') }}:</strong>
+                                              {{ $booking->language->name }}
+                                          </p>
+                                        @endif
+
+                                        {{-- Categorías / Participantes --}}
+                                        <div class="card-text text-muted small mb-2">
                                             <i class="fas fa-users"></i>
                                             <strong>{{ __('adminlte::adminlte.participants') }}:</strong>
-                                            {{ optional($booking->detail)->adults_quantity ?? 0 }} {{ __('adminlte::adminlte.adults') }}
-                                            @if(optional($booking->detail)->kids_quantity > 0)
-                                                , {{ optional($booking->detail)->kids_quantity }} {{ __('adminlte::adminlte.children') }}
+                                            <span class="ms-1">{{ $pax }}</span>
+                                            @if($lines->count())
+                                                <div class="mt-2">
+                                                    @foreach($lines as $L)
+                                                      <div class="cat-line">
+                                                          <div class="cat-left">
+                                                              <span class="cat-badge">{{ $L['quantity'] }}x</span>
+                                                              <span class="cat-name">{{ $L['name'] }}</span>
+                                                              <span class="cat-price">${{ $fmt2($L['price']) }}</span>
+                                                          </div>
+                                                          <div class="cat-sub">${{ $fmt2($L['subtotal']) }}</div>
+                                                      </div>
+                                                    @endforeach
+                                                </div>
                                             @endif
-                                        </p>
+                                        </div>
+
+                                        {{-- Hotel / Meeting point --}}
                                         <p class="card-text text-muted small mb-2">
                                             <i class="fas fa-hotel"></i>
                                             <strong>{{ __('adminlte::adminlte.hotel') }}:</strong>
-                                            @if(optional($booking->detail)->is_other_hotel)
-                                                {{ $booking->detail->other_hotel_name }}
+                                            @if(optional($detail)->is_other_hotel)
+                                                {{ $detail->other_hotel_name }}
                                             @else
-                                                {{ optional(optional($booking->detail)->hotel)->name ?? __('adminlte::adminlte.not_specified') }}
+                                                {{ optional(optional($detail)->hotel)->name ?? __('adminlte::adminlte.not_specified') }}
                                             @endif
                                         </p>
 
@@ -143,7 +267,7 @@
                                                     @endswitch
                                                 </span>
                                             </div>
-                                            <div class="fw-bold fs-5 text-success">
+                                            <div class="cat-total fw-bold fs-5">
                                                 ${{ number_format($booking->total, 2) }}
                                             </div>
                                         </div>

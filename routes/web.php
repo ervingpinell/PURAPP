@@ -333,6 +333,7 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::prefix('{tour}/prices')->name('prices.')->group(function () {
                         Route::get('/', [TourPriceController::class, 'index'])->name('index');
                         Route::post('/', [TourPriceController::class, 'store'])->name('store');
+                        // ✅ bulk-update DEBE estar antes de rutas con parámetros
                         Route::post('/bulk-update', [TourPriceController::class, 'bulkUpdate'])->name('bulk-update');
                         Route::put('/{price}', [TourPriceController::class, 'update'])->name('update');
                         Route::post('/{price}/toggle', [TourPriceController::class, 'toggle'])->name('toggle');

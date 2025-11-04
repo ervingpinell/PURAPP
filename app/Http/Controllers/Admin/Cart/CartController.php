@@ -6,18 +6,20 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Cart;
-use App\Models\CartItem;
-use App\Models\Tour;
-use App\Models\TourLanguage;
-use App\Models\HotelList;
-use App\Models\MeetingPoint;
-use App\Models\PromoCode;
-use App\Services\Bookings\BookingCapacityService;
+use App\Models\{Cart, CartItem, Tour, TourLanguage, HotelList, MeetingPoint, PromoCode};
+use App\Services\Bookings\{
+    BookingCapacityService,
+    BookingPricingService,
+    BookingValidationService
+};
 
 class CartController extends Controller
 {
-    public function __construct(private BookingCapacityService $capacity) {}
+    public function __construct(
+        private BookingCapacityService $capacity,
+        private BookingPricingService $pricing,
+        private BookingValidationService $validation
+    ) {}
 
     public function index(Request $request)
     {
@@ -31,17 +33,19 @@ class CartController extends Controller
             ->orderByDesc('cart_id')
             ->first();
 
-        if (!$cart) {
-            $empty           = new \stdClass();
-            $empty->items    = collect();
+        if (!$cart || $cart->isExpired()) {
+            if ($cart) $this->expireCart($cart);
+            $empty        = new \stdClass();
+            $empty->items = collect();
             return view('admin.carts.cart', [
                 'cart'      => $empty,
                 'languages' => $languages,
                 'hotels'    => $hotels,
+                'adminPromo'=> $adminPromo,
             ]);
         }
 
-        $itemsQuery = CartItem::with(['tour','schedule','language','hotel','meetingPoint'])
+        $itemsQuery = CartItem::with(['tour.prices.category', 'schedule', 'language', 'hotel', 'meetingPoint'])
             ->where('cart_id', $cart->cart_id);
 
         if ($request->filled('status')) {
@@ -50,35 +54,41 @@ class CartController extends Controller
 
         $cart->items = $itemsQuery->get();
 
-        return view('admin.carts.cart', compact('cart','languages','hotels','adminPromo'));
+        return view('admin.carts.cart', compact('cart', 'languages', 'hotels', 'adminPromo'));
     }
 
     public function store(Request $request)
     {
+        // Normalizar pickup: meeting point anula hotel/otro
         $in = $request->all();
         $in['is_other_hotel'] = (bool)($in['is_other_hotel'] ?? false);
-
-        $raw = $in['hotel_id'] ?? null;
-        if ($raw === 'other' || $raw === '__custom__' || (isset($raw) && !ctype_digit((string)$raw))) {
-            if ($raw === 'other' || $raw === '__custom__') $in['is_other_hotel'] = true;
+        if (!empty($in['selected_meeting_point'])) {
+            $in['is_other_hotel'] = false;
+            $in['other_hotel_name'] = null;
             $in['hotel_id'] = null;
-        }
-        if ($in['is_other_hotel'] && !empty($in['other_hotel_name'])) {
+        } elseif (!empty($in['other_hotel_name'])) {
+            $in['is_other_hotel'] = true;
             $in['hotel_id'] = null;
+        } else {
+            $raw = $in['hotel_id'] ?? null;
+            if ($raw === 'other' || $raw === '__custom__' || (isset($raw) && !ctype_digit((string)$raw))) {
+                if ($raw === 'other' || $raw === '__custom__') $in['is_other_hotel'] = true;
+                $in['hotel_id'] = null;
+            }
         }
         $request->replace($in);
 
         $request->validate([
-            'tour_id'                 => 'required|exists:tours,tour_id',
-            'tour_date'               => 'required|date|after_or_equal:today',
-            'schedule_id'             => 'required|exists:schedules,schedule_id',
-            'tour_language_id'        => 'required|exists:tour_languages,tour_language_id',
-            'hotel_id'                => 'bail|nullable|integer|exists:hotels_list,hotel_id|exclude_if:is_other_hotel,1',
-            'is_other_hotel'          => 'boolean',
-            'other_hotel_name'        => 'nullable|string|max:255|required_if:is_other_hotel,1',
-            'adults_quantity'         => 'required|integer|min:1',
-            'kids_quantity'           => 'nullable|integer|min:0|max:12',
-            'selected_meeting_point'  => 'nullable|integer|exists:meeting_points,id',
+            'tour_id'                => 'required|exists:tours,tour_id',
+            'tour_date'              => 'required|date|after_or_equal:today',
+            'schedule_id'            => 'required|exists:schedules,schedule_id',
+            'tour_language_id'       => 'required|exists:tour_languages,tour_language_id',
+            'categories'             => 'required|array|min:1',
+            'categories.*'           => 'required|integer|min:0',
+            'hotel_id'               => 'bail|nullable|integer|exists:hotels_list,hotel_id|exclude_if:is_other_hotel,1',
+            'is_other_hotel'         => 'boolean',
+            'other_hotel_name'       => 'nullable|string|max:255|required_if:is_other_hotel,1',
+            'selected_meeting_point' => 'nullable|integer|exists:meeting_points,id',
         ]);
 
         $user = Auth::user();
@@ -86,50 +96,81 @@ class CartController extends Controller
         $cart = $user->cart()->where('is_active', true)->orderByDesc('cart_id')->first();
         if (!$cart || $cart->isExpired()) {
             if ($cart) $this->expireCart($cart);
-            $cart = Cart::create(['user_id' => $user->user_id, 'is_active' => true])->ensureExpiry((int) config('cart.expiry_minutes', 15));
+            $cart = Cart::create(['user_id' => $user->user_id, 'is_active' => true])
+                ->ensureExpiry((int) config('cart.expiry_minutes', 15));
         } else {
             $cart->ensureExpiry((int) config('cart.expiry_minutes', 15));
         }
 
-        $tour = Tour::with('schedules')->findOrFail($request->tour_id);
+        $tour = Tour::with(['schedules', 'prices.category'])->findOrFail($request->tour_id);
+
+        // Validación modular de categorías
+        $validationResult = $this->validation->validateQuantities($tour, $request->categories);
+        if (!$validationResult['valid']) {
+            $errorMsg = implode(' ', $validationResult['errors']);
+            return back()->withInput()->withErrors(['categories' => $errorMsg]);
+        }
+
         $schedule = $tour->schedules()
             ->where('schedules.schedule_id', $request->schedule_id)
             ->where('schedules.is_active', true)
             ->wherePivot('is_active', true)
             ->first();
-
         if (!$schedule) {
             return back()->withErrors(['schedule_id' => __('carts.messages.schedule_unavailable')]);
         }
 
-        // Capacidad con holds
-        $remaining = $this->capacity->remainingCapacity($tour, $schedule, $request->tour_date, excludeBookingId: null, countHolds: true);
-        $requested = (int)$request->adults_quantity + (int)($request->kids_quantity ?? 0);
-
-        if ($requested > $remaining) {
+        // Capacidad
+        $totalPax = array_sum($request->categories);
+        $remaining = $this->capacity->remainingCapacity(
+            $tour,
+            $schedule,
+            $request->tour_date,
+            excludeBookingId: null,
+            countHolds: true
+        );
+        if ($totalPax > $remaining) {
             return back()->with('error', __('adminlte::adminlte.tourCapacityFull'));
+        }
+
+        // Snapshot
+        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $request->categories);
+        if (empty($categoriesSnapshot)) {
+            return back()->with('error', __('m_bookings.validation.no_active_categories'));
         }
 
         $mpId = $request->integer('selected_meeting_point') ?: null;
         $mp   = $mpId ? MeetingPoint::find($mpId) : null;
 
+        // Legacy: adults/kids
+        $adultCategory = collect($categoriesSnapshot)->firstWhere('category_slug', 'adult');
+        $kidCategory   = collect($categoriesSnapshot)->firstWhere('category_slug', 'kid');
+
         CartItem::create([
-            'cart_id'          => $cart->cart_id,
-            'tour_id'          => $request->tour_id,
-            'tour_date'        => $request->tour_date,
-            'schedule_id'      => $request->schedule_id,
-            'tour_language_id' => $request->tour_language_id,
-            'hotel_id'         => $request->boolean('is_other_hotel') ? null : $request->hotel_id,
-            'is_other_hotel'   => $request->boolean('is_other_hotel'),
-            'other_hotel_name' => $request->boolean('is_other_hotel') ? $request->other_hotel_name : null,
-            'adults_quantity'  => (int)$request->adults_quantity,
-            'kids_quantity'    => (int)($request->kids_quantity ?? 0),
-            'is_active'        => true,
-            'meeting_point_id'          => $mp?->id,
-            'meeting_point_name'        => $mp?->name,
-            'meeting_point_pickup_time' => $mp?->pickup_time,
-            'meeting_point_description' => $mp?->description,
-            'meeting_point_map_url'     => $mp?->map_url,
+            'cart_id'                    => $cart->cart_id,
+            'tour_id'                    => (int)$request->tour_id,
+            'tour_date'                  => $request->tour_date,
+            'schedule_id'                => (int)$request->schedule_id,
+            'tour_language_id'           => (int)$request->tour_language_id,
+            'categories'                 => $categoriesSnapshot,
+
+            // Legacy
+            'adults_quantity'            => $adultCategory ? (int)$adultCategory['quantity'] : 0,
+            'kids_quantity'              => $kidCategory ? (int)$kidCategory['quantity'] : 0,
+            'adult_price'                => $adultCategory ? (float)$adultCategory['price'] : 0,
+            'kid_price'                  => $kidCategory ? (float)$kidCategory['price'] : 0,
+
+            // Pickup
+            'hotel_id'                   => $request->boolean('is_other_hotel') ? null : $request->hotel_id,
+            'is_other_hotel'             => $request->boolean('is_other_hotel'),
+            'other_hotel_name'           => $request->boolean('is_other_hotel') ? $request->other_hotel_name : null,
+            'meeting_point_id'           => $mp?->id,
+            'meeting_point_name'         => $mp?->name,
+            'meeting_point_pickup_time'  => $mp?->pickup_time,
+            'meeting_point_description'  => $mp?->description,
+            'meeting_point_map_url'      => $mp?->map_url,
+
+            'is_active'                  => true,
         ]);
 
         $cart->refreshExpiry((int) config('cart.expiry_minutes', 15));
@@ -141,29 +182,46 @@ class CartController extends Controller
 
     public function update(Request $request, CartItem $item)
     {
+        // Normalizar pickup
         $in = $request->all();
         $in['is_other_hotel'] = (bool)($in['is_other_hotel'] ?? false);
-
-        $raw = $in['hotel_id'] ?? null;
-        if ($in['is_other_hotel'] === true || $raw === 'other' || $raw === '__custom__' || (isset($raw) && !ctype_digit((string)$raw))) {
+        if (!empty($in['meeting_point_id'])) {
+            $in['is_other_hotel'] = false;
+            $in['other_hotel_name'] = null;
             $in['hotel_id'] = null;
+        } elseif (!empty($in['other_hotel_name'])) {
+            $in['is_other_hotel'] = true;
+            $in['hotel_id'] = null;
+        } else {
+            $raw = $in['hotel_id'] ?? null;
+            if ($in['is_other_hotel'] === true || $raw === 'other' || $raw === '__custom__' || (isset($raw) && !ctype_digit((string)$raw))) {
+                $in['hotel_id'] = null;
+            }
         }
         $request->replace($in);
 
         $data = $request->validate([
-            'tour_date'        => ['required','date','after_or_equal:today'],
-            'adults_quantity'  => ['required','integer','min:1'],
-            'kids_quantity'    => ['nullable','integer','min:0','max:12'],
-            'schedule_id'      => ['nullable','exists:schedules,schedule_id'],
-            'tour_language_id' => ['required','exists:tour_languages,tour_language_id'],
-            'is_active'        => ['nullable','boolean'],
-            'hotel_id'         => ['bail','nullable','integer','exists:hotels_list,hotel_id','exclude_if:is_other_hotel,1'],
+            'tour_date'        => ['required', 'date', 'after_or_equal:today'],
+            'categories'       => ['required', 'array', 'min:1'],
+            'categories.*'     => ['required', 'integer', 'min:0'],
+            'schedule_id'      => ['nullable', 'exists:schedules,schedule_id'],
+            'tour_language_id' => ['required', 'exists:tour_languages,tour_language_id'],
+            'is_active'        => ['nullable', 'boolean'],
+            'hotel_id'         => ['bail', 'nullable', 'integer', 'exists:hotels_list,hotel_id', 'exclude_if:is_other_hotel,1'],
             'is_other_hotel'   => ['boolean'],
-            'other_hotel_name' => ['nullable','string','max:255','required_if:is_other_hotel,1'],
-            'meeting_point_id' => ['nullable','integer','exists:meeting_points,id'],
+            'other_hotel_name' => ['nullable', 'string', 'max:255', 'required_if:is_other_hotel,1'],
+            'meeting_point_id' => ['nullable', 'integer', 'exists:meeting_points,id'],
         ]);
 
-        $tour       = $item->tour;
+        $tour = $item->tour->load('prices.category');
+
+        // Validación por categorías
+        $validationResult = $this->validation->validateQuantities($tour, $data['categories']);
+        if (!$validationResult['valid']) {
+            $errorMsg = implode(' ', $validationResult['errors']);
+            return back()->withInput()->withErrors(['categories' => $errorMsg]);
+        }
+
         $scheduleId = $data['schedule_id'] ?? $item->schedule_id;
 
         if ($scheduleId) {
@@ -172,23 +230,44 @@ class CartController extends Controller
                 ->where('schedules.is_active', true)
                 ->wherePivot('is_active', true)
                 ->first();
-
             if (!$schedule) {
                 return back()->withErrors(['schedule_id' => __('carts.messages.schedule_unavailable')]);
             }
 
-            $remaining = $this->capacity->remainingCapacity($tour, $schedule, $data['tour_date'], excludeBookingId: null, countHolds: true);
-            $requested = (int)$data['adults_quantity'] + (int)($data['kids_quantity'] ?? 0);
+            // Capacidad (devolver pax actual del item)
+            $cart = $item->cart;
+            $snap = $this->capacity->capacitySnapshot(
+                $tour,
+                $schedule,
+                $data['tour_date'],
+                excludeBookingId: null,
+                countHolds: true,
+                excludeCartId: (int) $cart->cart_id
+            );
 
-            if ($requested > $remaining) {
+            $currentPax = (int)$item->total_pax;
+            $totalPax   = array_sum($data['categories']);
+            $remaining  = $snap['available'] + $currentPax;
+
+            if ($totalPax > $remaining) {
                 return back()->with('error', __('carts.messages.capacity_full'));
             }
         }
 
+        // Nuevo snapshot
+        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $data['categories']);
+
+        // Legacy
+        $adultCategory = collect($categoriesSnapshot)->firstWhere('category_slug', 'adult');
+        $kidCategory   = collect($categoriesSnapshot)->firstWhere('category_slug', 'kid');
+
         $item->fill([
             'tour_date'        => $data['tour_date'],
-            'adults_quantity'  => (int)$data['adults_quantity'],
-            'kids_quantity'    => (int)($data['kids_quantity'] ?? 0),
+            'categories'       => $categoriesSnapshot,
+            'adults_quantity'  => $adultCategory ? (int)$adultCategory['quantity'] : 0,
+            'kids_quantity'    => $kidCategory ? (int)$kidCategory['quantity'] : 0,
+            'adult_price'      => $adultCategory ? (float)$adultCategory['price'] : 0,
+            'kid_price'        => $kidCategory ? (float)$kidCategory['price'] : 0,
             'schedule_id'      => $data['schedule_id'] ?? $item->schedule_id,
             'tour_language_id' => (int)$data['tour_language_id'],
             'is_active'        => $request->boolean('is_active'),
@@ -256,7 +335,7 @@ class CartController extends Controller
         $status = $request->query('status');
 
         $query = Cart::query()
-            ->with(['user','items.tour','items.language','items.schedule','items.meetingPoint'])
+            ->with(['user', 'items.tour.prices.category', 'items.language', 'items.schedule', 'items.meetingPoint'])
             ->withCount('items')
             ->whereHas('user', function ($q) use ($request) {
                 if ($request->filled('email')) {
@@ -265,20 +344,14 @@ class CartController extends Controller
             })
             ->whereHas('items');
 
-        if (in_array($status, ['0','1'], true)) {
+        if (in_array($status, ['0', '1'], true)) {
             $query->where('is_active', (bool)$status);
         }
 
         $carts = $query->orderByDesc('updated_at')->get();
 
         foreach ($carts as $cart) {
-            $cart->total_usd = $cart->items->sum(function ($it) {
-                $ap = (float)($it->tour->adult_price ?? 0);
-                $kp = (float)($it->tour->kid_price   ?? 0);
-                $aq = (int)($it->adults_quantity ?? 0);
-                $kq = (int)($it->kids_quantity   ?? 0);
-                return ($ap * $aq) + ($kp * $kq);
-            });
+            $cart->total_usd = $cart->items->sum(fn($item) => (float)$item->subtotal);
         }
 
         return view('admin.carts.all', compact('carts'));
@@ -314,7 +387,7 @@ class CartController extends Controller
         }
 
         $user = Auth::user();
-        $cart = $user->cart()->where('is_active', true)->with('items.tour')->first();
+        $cart = $user->cart()->where('is_active', true)->with('items.tour.prices.category')->first();
 
         if (!$cart || !$cart->items->count()) {
             return back()->with('error', __('carts.messages.cart_empty'));
@@ -326,6 +399,7 @@ class CartController extends Controller
 
         $clean = PromoCode::normalize($codeInput);
         $promo = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$clean])->first();
+
         if (!$promo)                     return back()->with('error', __('carts.messages.invalid_code'));
         if (!$promo->isValidToday())     return back()->with('error', __('carts.messages.code_expired_or_not_yet'));
         if (!$promo->hasRemainingUses()) return back()->with('error', __('carts.messages.code_limit_reached'));
@@ -333,13 +407,8 @@ class CartController extends Controller
             return back()->with('error', __('carts.messages.code_already_used'));
         }
 
-        $subtotal = (float)$cart->items->sum(function ($it) {
-            $ap = (float)($it->tour->adult_price ?? 0);
-            $kp = (float)($it->tour->kid_price   ?? 0);
-            $aq = (int)($it->adults_quantity ?? 0);
-            $kq = (int)($it->kids_quantity   ?? 0);
-            return ($ap * $aq) + ($kp * $kq);
-        });
+        // Subtotal del carrito (modelo CartItem->subtotal)
+        $subtotal = (float) $cart->items->sum(fn($item) => (float)$item->subtotal);
 
         $discountFixed    = max(0.0, (float)($promo->discount_amount   ?? 0));
         $discountPerc     = max(0.0, (float)($promo->discount_percent  ?? 0));
