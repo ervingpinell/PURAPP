@@ -42,11 +42,11 @@ use App\Http\Controllers\Admin\Tours\TourTypeController;
 use App\Http\Controllers\Admin\Tours\TourTypeCoverPickerController;
 use App\Http\Controllers\Admin\Tours\TourOrderController;
 use App\Http\Controllers\Admin\Tours\TourPriceController;
-
 use App\Http\Controllers\Admin\Users\RoleController;
 use App\Http\Controllers\Admin\Users\UserRegisterController;
 use App\Http\Controllers\Admin\MeetingPointSimpleController;
 use App\Http\Controllers\Admin\TranslationController;
+use App\Http\Controllers\Admin\CapacityController;
 use App\Http\Controllers\Admin\CustomerCategoryController;
 
 // Public bookings controller (split)
@@ -257,191 +257,200 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::post('/bookings/from-cart', [PublicBookingController::class, 'storeFromCart'])->name('public.bookings.storeFromCart');
     });
 
-// ------------------------------
-// Admin
-// ------------------------------
-Route::middleware(['auth', 'verified', 'can:access-admin'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
-
-        // ============================
-        // ADMIN PROFILE
-        // ============================
-        Route::get('/profile', [ProfileController::class, 'adminShow'])->name('profile.show');
-        Route::get('/profile/edit', [ProfileController::class, 'adminEdit'])->name('profile.edit');
-        Route::post('/profile/edit', [ProfileController::class, 'adminUpdate'])->name('profile.update');
-
-        // ============================
-        // 2FA PROTECTED ROUTES
-        // ============================
-        Route::middleware('2fa.admin')->group(function () {
-
-            // Dashboard
-            Route::get('/', [DashBoardController::class, 'dashboard'])->name('home');
+    // ------------------------------
+    // Admin
+    // ------------------------------
+    Route::middleware(['auth', 'verified', 'can:access-admin'])
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
 
             // ============================
-            // USERS & ROLES
+            // ADMIN PROFILE
             // ============================
-            Route::resource('users', UserRegisterController::class)->except(['show']);
-            Route::patch('users/{user}/lock', [UserRegisterController::class, 'lock'])->name('users.lock');
-            Route::patch('users/{user}/unlock', [UserRegisterController::class, 'unlock'])->name('users.unlock');
-            Route::patch('users/{user}/mark-verified', [UserRegisterController::class, 'markVerified'])->name('users.markVerified');
-
-            Route::resource('roles', RoleController::class)->except(['show', 'create']);
-            Route::patch('roles/{role}/toggle', [RoleController::class, 'toggle'])->name('roles.toggle');
+            Route::get('/profile', [ProfileController::class, 'adminShow'])->name('profile.show');
+            Route::get('/profile/edit', [ProfileController::class, 'adminEdit'])->name('profile.edit');
+            Route::post('/profile/edit', [ProfileController::class, 'adminUpdate'])->name('profile.update');
 
             // ============================
-            // CUSTOMER CATEGORIES
+            // 2FA PROTECTED ROUTES
             // ============================
-            Route::resource('customer_categories', CustomerCategoryController::class)
-                ->parameters(['customer_categories' => 'category']);
-            Route::post('customer_categories/{category}/toggle', [CustomerCategoryController::class, 'toggle'])
-                ->name('customer_categories.toggle');
+            Route::middleware('2fa.admin')->group(function () {
 
-            // ============================
-            // TOURS
-            // ============================
-            Route::prefix('tours')->name('tours.')->group(function () {
+                // Dashboard
+                Route::get('/', [DashBoardController::class, 'dashboard'])->name('home');
 
-                // -------------------- TOUR MAIN CRUD --------------------
-                Route::get('/', [TourController::class, 'index'])->name('index');
-                Route::get('/create', [TourController::class, 'create'])->name('create');
-                Route::post('/', [TourController::class, 'store'])->name('store');
-                Route::get('/{tour}/edit', [TourController::class, 'edit'])->name('edit');
-                Route::put('/{tour}', [TourController::class, 'update'])->name('update');
-                Route::patch('/{tour}/toggle', [TourController::class, 'toggle'])->name('toggle');
-                Route::delete('/{tour}', [TourController::class, 'destroy'])->name('destroy');
-                Route::post('/{tour}/restore', [TourController::class, 'restore'])->name('restore');
-                Route::delete('/{tour}/purge', [TourController::class, 'purge'])->name('purge');
+                // ============================
+                // CAPACITY QUICK ACTIONS (Schedule)
+                // ============================
+                // Aumentar capacidad de un horario (Desbloquear)
+                Route::patch('/capacity/{schedule}', [CapacityController::class, 'increase'])->name('capacity.increase');
+                // Detalles de ocupación de un horario
+                Route::get('/capacity/{schedule}', [CapacityController::class, 'show'])->name('capacity.details');
+                // 🔒 Bloquear fecha de un horario
+                Route::patch('/capacity/{schedule}/block', [CapacityController::class, 'block'])->name('capacity.block');
 
-                // -------------------- TOUR ORDER --------------------
-                Route::get('/order', [TourOrderController::class, 'index'])->name('order.index');
-                Route::post('/order/{tourType}/save', [TourOrderController::class, 'save'])->name('order.save');
+                // ============================
+                // USERS & ROLES
+                // ============================
+                Route::resource('users', UserRegisterController::class)->except(['show']);
+                Route::patch('users/{user}/lock', [UserRegisterController::class, 'lock'])->name('users.lock');
+                Route::patch('users/{user}/unlock', [UserRegisterController::class, 'unlock'])->name('users.unlock');
+                Route::patch('users/{user}/mark-verified', [UserRegisterController::class, 'markVerified'])->name('users.markVerified');
 
+                Route::resource('roles', RoleController::class)->except(['show', 'create']);
+                Route::patch('roles/{role}/toggle', [RoleController::class, 'toggle'])->name('roles.toggle');
 
-                Route::prefix('{tour}/prices')->name('prices.')->group(function () {
-                Route::get('/', [TourPriceController::class, 'index'])->name('index');
-                Route::post('/', [TourPriceController::class, 'store'])->name('store');
+                // ============================
+                // CUSTOMER CATEGORIES
+                // ============================
+                Route::resource('customer_categories', CustomerCategoryController::class)
+                    ->parameters(['customer_categories' => 'category']);
+                Route::post('customer_categories/{category}/toggle', [CustomerCategoryController::class, 'toggle'])
+                    ->name('customer_categories.toggle');
 
-                // ✅ bulk-update DEBE estar antes de rutas con parámetros
-                Route::post('/bulk-update', [TourPriceController::class, 'bulkUpdate'])->name('bulk-update');
+                // ============================
+                // TOURS
+                // ============================
+                Route::prefix('tours')->name('tours.')->group(function () {
 
-                Route::put('/{price}', [TourPriceController::class, 'update'])->name('update');
-                Route::post('/{price}/toggle', [TourPriceController::class, 'toggle'])->name('toggle');
-                Route::delete('/{price}', [TourPriceController::class, 'destroy'])->name('destroy');
-            });
-                // -------------------- IMAGES --------------------
-                Route::get('/images', [TourImageController::class, 'pick'])->name('images.pick');
-                Route::prefix('{tour}/images')->name('images.')->group(function () {
-                    Route::get('/', [TourImageController::class, 'index'])->name('index');
-                    Route::post('/', [TourImageController::class, 'store'])->name('store');
-                    Route::delete('/', [TourImageController::class, 'bulkDestroy'])->name('bulk-destroy');
-                    Route::delete('/all', [TourImageController::class, 'destroyAll'])->name('destroyAll');
-                    Route::patch('/{image}', [TourImageController::class, 'update'])->name('update');
-                    Route::delete('/{image}', [TourImageController::class, 'destroy'])->name('destroy');
-                    Route::post('/{image}/cover', [TourImageController::class, 'setCover'])->name('cover');
-                    Route::post('/reorder', [TourImageController::class, 'reorder'])->name('reorder');
+                    // -------------------- TOUR MAIN CRUD --------------------
+                    Route::get('/', [TourController::class, 'index'])->name('index');
+                    Route::get('/create', [TourController::class, 'create'])->name('create');
+                    Route::post('/', [TourController::class, 'store'])->name('store');
+                    Route::get('/{tour}/edit', [TourController::class, 'edit'])->name('edit');
+                    Route::put('/{tour}', [TourController::class, 'update'])->name('update');
+                    Route::patch('/{tour}/toggle', [TourController::class, 'toggle'])->name('toggle');
+                    Route::delete('/{tour}', [TourController::class, 'destroy'])->name('destroy');
+                    Route::post('/{tour}/restore', [TourController::class, 'restore'])->name('restore');
+                    Route::delete('/{tour}/purge', [TourController::class, 'purge'])->name('purge');
+
+                    // -------------------- TOUR ORDER --------------------
+                    Route::get('/order', [TourOrderController::class, 'index'])->name('order.index');
+                    Route::post('/order/{tourType}/save', [TourOrderController::class, 'save'])->name('order.save');
+
+                    // -------------------- PRICES (por categoría) --------------------
+                    Route::prefix('{tour}/prices')->name('prices.')->group(function () {
+                        Route::get('/', [TourPriceController::class, 'index'])->name('index');
+                        Route::post('/', [TourPriceController::class, 'store'])->name('store');
+                        // ✅ bulk-update DEBE estar antes de rutas con parámetros
+                        Route::post('/bulk-update', [TourPriceController::class, 'bulkUpdate'])->name('bulk-update');
+                        Route::put('/{price}', [TourPriceController::class, 'update'])->name('update');
+                        Route::post('/{price}/toggle', [TourPriceController::class, 'toggle'])->name('toggle');
+                        Route::delete('/{price}', [TourPriceController::class, 'destroy'])->name('destroy');
+                    });
+
+                    // -------------------- IMAGES --------------------
+                    Route::get('/images', [TourImageController::class, 'pick'])->name('images.pick');
+                    Route::prefix('{tour}/images')->name('images.')->group(function () {
+                        Route::get('/', [TourImageController::class, 'index'])->name('index');
+                        Route::post('/', [TourImageController::class, 'store'])->name('store');
+                        Route::delete('/', [TourImageController::class, 'bulkDestroy'])->name('bulk-destroy');
+                        Route::delete('/all', [TourImageController::class, 'destroyAll'])->name('destroyAll');
+                        Route::patch('/{image}', [TourImageController::class, 'update'])->name('update');
+                        Route::delete('/{image}', [TourImageController::class, 'destroy'])->name('destroy');
+                        Route::post('/{image}/cover', [TourImageController::class, 'setCover'])->name('cover');
+                        Route::post('/reorder', [TourImageController::class, 'reorder'])->name('reorder');
+                    });
+
+                    // -------------------- SCHEDULES (Horarios) --------------------
+                    Route::prefix('schedule')->name('schedule.')->group(function () {
+                        // CRUD básico
+                        Route::get('/', [TourScheduleController::class, 'index'])->name('index');
+                        Route::post('/', [TourScheduleController::class, 'store'])->name('store');
+                        Route::put('/{schedule}', [TourScheduleController::class, 'update'])->name('update');
+                        Route::delete('/{schedule}', [TourScheduleController::class, 'destroy'])->name('destroy');
+
+                        // Acciones globales
+                        Route::put('/{schedule}/toggle', [TourScheduleController::class, 'toggle'])->name('toggle');
+
+                        // Asignación a tours
+                        Route::post('/{tour}/attach', [TourScheduleController::class, 'attach'])->name('attach');
+                        Route::delete('/{tour}/{schedule}/detach', [TourScheduleController::class, 'detach'])->name('detach');
+                        Route::patch('/{tour}/{schedule}/assignment-toggle', [TourScheduleController::class, 'toggleAssignment'])->name('assignment.toggle');
+
+                        // Capacidad del pivote (base_capacity)
+                        Route::patch('/{tour}/{schedule}/capacity', [TourScheduleController::class, 'updatePivotCapacity'])->name('update-pivot-capacity');
+                    });
+
+                    // -------------------- CAPACITY MANAGEMENT --------------------
+                    Route::prefix('capacity')->name('capacity.')->group(function () {
+                        Route::get('/', [TourAvailabilityController::class, 'index'])->name('index');
+                        Route::patch('/tour/{tour}', [TourAvailabilityController::class, 'updateTourCapacity'])->name('update-tour');
+                        Route::patch('/schedule/{schedule}', [TourAvailabilityController::class, 'updateScheduleCapacity'])->name('update-schedule');
+                        Route::post('/', [TourAvailabilityController::class, 'store'])->name('store');
+                        Route::patch('/{availability}', [TourAvailabilityController::class, 'update'])->name('update');
+                        Route::delete('/{availability}', [TourAvailabilityController::class, 'destroy'])->name('destroy');
+                    });
+
+                    // -------------------- AVAILABILITY --------------------
+                    Route::resource('availability', TourAvailabilityController::class)->except(['show']);
+
+                    // -------------------- EXCLUDED DATES --------------------
+                    Route::prefix('excluded_dates')->name('excluded_dates.')->group(function () {
+                        Route::get('/', [TourExcludedDateController::class, 'index'])->name('index');
+                        Route::get('/blocked', [TourExcludedDateController::class, 'blocked'])->name('blocked');
+                        Route::post('/', [TourExcludedDateController::class, 'store'])->name('store');
+                        Route::put('/{excludedDate}', [TourExcludedDateController::class, 'update'])->name('update');
+                        Route::delete('/{excludedDate}', [TourExcludedDateController::class, 'destroy'])->name('destroy');
+                        Route::post('/toggle', [TourExcludedDateController::class, 'toggle'])->name('toggle');
+                        Route::post('/bulk-toggle', [TourExcludedDateController::class, 'bulkToggle'])->name('bulkToggle');
+                        Route::post('/block-all', [TourExcludedDateController::class, 'blockAll'])->name('blockAll');
+                    });
+
+                    // -------------------- CUTOFF --------------------
+                    Route::prefix('cutoff')->name('cutoff.')->group(function () {
+                        Route::get('/', [CutOffController::class, 'edit'])->name('edit');
+                        Route::put('/', [CutOffController::class, 'update'])->name('update');
+                        Route::put('/tour', [CutOffController::class, 'updateTourOverrides'])->name('tour.update');
+                        Route::put('/schedule', [CutOffController::class, 'updateScheduleOverrides'])->name('schedule.update');
+                    });
+
+                    // -------------------- ITINERARY --------------------
+                    Route::resource('itinerary', ItineraryController::class)->except(['show']);
+                    Route::patch('itineraries/{itinerary}/toggle', [ItineraryController::class, 'toggle'])->name('itinerary.toggle');
+                    Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');
+
+                    // -------------------- ITINERARY ITEMS --------------------
+                    Route::resource('itinerary_items', ItineraryItemController::class)->except(['show', 'create', 'edit']);
+                    Route::patch('itinerary_items/{itinerary_item}/toggle', [ItineraryItemController::class, 'toggle'])->name('itinerary_items.toggle');
+
+                    // -------------------- AMENITIES --------------------
+                    Route::resource('amenities', AmenityController::class)->except(['show']);
+                    Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])->name('amenities.toggle');
                 });
 
-                // -------------------- SCHEDULES (Horarios) --------------------
-                Route::prefix('schedule')->name('schedule.')->group(function () {
-                    // CRUD básico
-                    Route::get('/', [TourScheduleController::class, 'index'])->name('index');
-                    Route::post('/', [TourScheduleController::class, 'store'])->name('store');
-                    Route::put('/{schedule}', [TourScheduleController::class, 'update'])->name('update');
-                    Route::delete('/{schedule}', [TourScheduleController::class, 'destroy'])->name('destroy');
+                // ============================
+                // TOUR TYPES
+                // ============================
+                Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);
+                Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
 
-                    // Acciones globales
-                    Route::put('/{schedule}/toggle', [TourScheduleController::class, 'toggle'])->name('toggle');
-
-                    // Asignación a tours
-                    Route::post('/{tour}/attach', [TourScheduleController::class, 'attach'])->name('attach');
-                    Route::delete('/{tour}/{schedule}/detach', [TourScheduleController::class, 'detach'])->name('detach');
-                    Route::patch('/{tour}/{schedule}/assignment-toggle', [TourScheduleController::class, 'toggleAssignment'])->name('assignment.toggle');
-
-                    // Capacidad del pivote (base_capacity)
-                    Route::patch('/{tour}/{schedule}/capacity', [TourScheduleController::class, 'updatePivotCapacity'])->name('update-pivot-capacity');
+                // Tour Type Images
+                Route::prefix('types')->name('types.')->group(function () {
+                    Route::get('images', [TourTypeCoverPickerController::class, 'pick'])->name('images.pick');
+                    Route::get('images/{tourType}/edit', [TourTypeCoverPickerController::class, 'edit'])->name('images.edit');
+                    Route::put('images/{tourType}', [TourTypeCoverPickerController::class, 'updateCover'])->name('images.update');
                 });
 
-                // -------------------- CAPACITY MANAGEMENT --------------------
-                Route::prefix('capacity')->name('capacity.')->group(function () {
-                    Route::get('/', [TourAvailabilityController::class, 'index'])->name('index');
-                    Route::patch('/tour/{tour}', [TourAvailabilityController::class, 'updateTourCapacity'])->name('update-tour');
-                    Route::patch('/schedule/{schedule}', [TourAvailabilityController::class, 'updateScheduleCapacity'])->name('update-schedule');
-                    Route::post('/', [TourAvailabilityController::class, 'store'])->name('store');
-                    Route::patch('/{availability}', [TourAvailabilityController::class, 'update'])->name('update');
-                    Route::delete('/{availability}', [TourAvailabilityController::class, 'destroy'])->name('destroy');
-                });
+                // ============================
+                // LANGUAGES
+                // ============================
+                Route::resource('languages', TourLanguageController::class, ['parameters' => ['languages' => 'language']])->except(['show']);
+                Route::patch('languages/{language}/toggle', [TourLanguageController::class, 'toggle'])->name('languages.toggle');
 
-                // -------------------- AVAILABILITY --------------------
-                Route::resource('availability', TourAvailabilityController::class)->except(['show']);
+                // ============================
+                // HOTELS
+                // ============================
+                Route::resource('hotels', HotelListController::class)->except(['show', 'create', 'edit']);
+                Route::post('hotels/sort', [HotelListController::class, 'sort'])->name('hotels.sort');
+                Route::patch('hotels/{hotel}/toggle', [HotelListController::class, 'toggle'])->name('hotels.toggle');
 
-                // -------------------- EXCLUDED DATES --------------------
-                Route::prefix('excluded_dates')->name('excluded_dates.')->group(function () {
-                    Route::get('/', [TourExcludedDateController::class, 'index'])->name('index');
-                    Route::get('/blocked', [TourExcludedDateController::class, 'blocked'])->name('blocked');
-                    Route::post('/', [TourExcludedDateController::class, 'store'])->name('store');
-                    Route::put('/{excludedDate}', [TourExcludedDateController::class, 'update'])->name('update');
-                    Route::delete('/{excludedDate}', [TourExcludedDateController::class, 'destroy'])->name('destroy');
-                    Route::post('/toggle', [TourExcludedDateController::class, 'toggle'])->name('toggle');
-                    Route::post('/bulk-toggle', [TourExcludedDateController::class, 'bulkToggle'])->name('bulkToggle');
-                    Route::post('/block-all', [TourExcludedDateController::class, 'blockAll'])->name('blockAll');
-                });
-
-                // -------------------- CUTOFF --------------------
-                Route::prefix('cutoff')->name('cutoff.')->group(function () {
-                    Route::get('/', [CutOffController::class, 'edit'])->name('edit');
-                    Route::put('/', [CutOffController::class, 'update'])->name('update');
-                    Route::put('/tour', [CutOffController::class, 'updateTourOverrides'])->name('tour.update');
-                    Route::put('/schedule', [CutOffController::class, 'updateScheduleOverrides'])->name('schedule.update');
-                });
-
-                // -------------------- ITINERARY --------------------
-                Route::resource('itinerary', ItineraryController::class)->except(['show']);
-                Route::patch('itineraries/{itinerary}/toggle', [ItineraryController::class, 'toggle'])->name('itinerary.toggle');
-                Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');
-
-                // -------------------- ITINERARY ITEMS --------------------
-                Route::resource('itinerary_items', ItineraryItemController::class)->except(['show', 'create', 'edit']);
-                Route::patch('itinerary_items/{itinerary_item}/toggle', [ItineraryItemController::class, 'toggle'])->name('itinerary_items.toggle');
-
-                // -------------------- AMENITIES --------------------
-                Route::resource('amenities', AmenityController::class)->except(['show']);
-                Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])->name('amenities.toggle');
-            });
-
-            // ============================
-            // TOUR TYPES
-            // ============================
-            Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);
-            Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
-
-            // Tour Type Images
-            Route::prefix('types')->name('types.')->group(function () {
-                Route::get('images', [TourTypeCoverPickerController::class, 'pick'])->name('images.pick');
-                Route::get('images/{tourType}/edit', [TourTypeCoverPickerController::class, 'edit'])->name('images.edit');
-                Route::put('images/{tourType}', [TourTypeCoverPickerController::class, 'updateCover'])->name('images.update');
-            });
-
-            // ============================
-            // LANGUAGES
-            // ============================
-            Route::resource('languages', TourLanguageController::class, ['parameters' => ['languages' => 'language']])->except(['show']);
-            Route::patch('languages/{language}/toggle', [TourLanguageController::class, 'toggle'])->name('languages.toggle');
-
-            // ============================
-            // HOTELS
-            // ============================
-            Route::resource('hotels', HotelListController::class)->except(['show', 'create', 'edit']);
-            Route::post('hotels/sort', [HotelListController::class, 'sort'])->name('hotels.sort');
-            Route::patch('hotels/{hotel}/toggle', [HotelListController::class, 'toggle'])->name('hotels.toggle');
-
-            // ============================
-            // MEETING POINTS
-            // ============================
-            Route::resource('meetingpoints', MeetingPointSimpleController::class)->except(['show', 'create', 'edit']);
-            Route::patch('meetingpoints/{meetingpoint}/toggle', [MeetingPointSimpleController::class, 'toggle'])->name('meetingpoints.toggle');
+                // ============================
+                // MEETING POINTS
+                // ============================
+                Route::resource('meetingpoints', MeetingPointSimpleController::class)->except(['show', 'create', 'edit']);
+                Route::patch('meetingpoints/{meetingpoint}/toggle', [MeetingPointSimpleController::class, 'toggle'])->name('meetingpoints.toggle');
 
 
         // ============================
@@ -488,132 +497,132 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])
         Route::get('tours/{tour}/categories', [AdminBookingController::class, 'getCategories'])->name('tours.categories');
     });
 
-            // ============================
-            // CART (ADMIN)
-            // ============================
-            Route::prefix('carts')->name('carts.')->group(function () {
-                Route::get('/', [AdminCartController::class, 'index'])->name('index');
-                Route::post('/', [AdminCartController::class, 'store'])->name('store');
-                Route::patch('/{item}', [AdminCartController::class, 'update'])->name('update');
-                Route::delete('/item/{item}', [AdminCartController::class, 'destroy'])->name('item.destroy');
+                // ============================
+                // CART (ADMIN)
+                // ============================
+                Route::prefix('carts')->name('carts.')->group(function () {
+                    Route::get('/', [AdminCartController::class, 'index'])->name('index');
+                    Route::post('/', [AdminCartController::class, 'store'])->name('store');
+                    Route::patch('/{item}', [AdminCartController::class, 'update'])->name('update');
+                    Route::delete('/item/{item}', [AdminCartController::class, 'destroy'])->name('item.destroy');
 
-                Route::get('/all', [AdminCartController::class, 'allCarts'])->name('all');
-                Route::delete('/{cart}', [AdminCartController::class, 'destroyCart'])->name('destroy');
-                Route::patch('/{cart}/toggle', [AdminCartController::class, 'toggleActive'])->name('toggle');
+                    Route::get('/all', [AdminCartController::class, 'allCarts'])->name('all');
+                    Route::delete('/{cart}', [AdminCartController::class, 'destroyCart'])->name('destroy');
+                    Route::patch('/{cart}/toggle', [AdminCartController::class, 'toggleActive'])->name('toggle');
 
-                Route::post('/apply-promo', [AdminCartController::class, 'applyPromoAdmin'])->name('applyPromo');
-                Route::delete('/remove-promo', [AdminCartController::class, 'removePromoAdmin'])->name('removePromo');
-            });
-
-            // ============================
-            // PROMO CODES
-            // ============================
-            Route::prefix('promo-codes')->name('promoCodes.')->group(function () {
-                Route::get('/', [PromoCodeController::class, 'index'])->name('index');
-                Route::post('/', [PromoCodeController::class, 'store'])->name('store');
-                Route::delete('/{promo}', [PromoCodeController::class, 'destroy'])->name('destroy');
-                Route::patch('/{promo}/operation', [PromoCodeController::class, 'updateOperation'])->name('updateOperation');
-            });
-
-            // ============================
-            // REVIEWS MANAGEMENT
-            // ============================
-            Route::middleware(['can:manage-reviews'])->group(function () {
-                // Providers
-                Route::resource('review-providers', ReviewProviderController::class)
-                    ->except(['show'])
-                    ->parameters(['review-providers' => 'provider'])
-                    ->names('review-providers');
-                Route::post('review-providers/{provider}/toggle', [ReviewProviderController::class, 'toggle'])->name('review-providers.toggle');
-                Route::post('review-providers/{provider}/test', [ReviewProviderController::class, 'test'])->name('review-providers.test');
-                Route::post('review-providers/{provider}/cache/flush', [ReviewProviderController::class, 'flushCache'])->name('review-providers.flush');
-
-                // Reviews
-                Route::prefix('reviews')->name('reviews.')->group(function () {
-                    Route::get('/', [ReviewAdminController::class, 'index'])->name('index');
-                    Route::get('/create', [ReviewAdminController::class, 'create'])->name('create');
-                    Route::post('/', [ReviewAdminController::class, 'store'])->name('store');
-                    Route::get('/{review}/edit', [ReviewAdminController::class, 'edit'])->name('edit');
-                    Route::put('/{review}', [ReviewAdminController::class, 'update'])->name('update');
-                    Route::delete('/{review}', [ReviewAdminController::class, 'destroy'])->name('destroy');
-
-                    Route::post('/{review}/publish', [ReviewAdminController::class, 'publish'])->name('publish');
-                    Route::post('/{review}/hide', [ReviewAdminController::class, 'hide'])->name('hide');
-                    Route::post('/{review}/flag', [ReviewAdminController::class, 'flag'])->name('flag');
-                    Route::post('/bulk', [ReviewAdminController::class, 'bulk'])->name('bulk');
-
-                    // Replies & Threads
-                    Route::get('/{review}/replies/create', [ReviewReplyController::class, 'create'])->name('replies.create');
-                    Route::post('/{review}/replies', [ReviewReplyController::class, 'store'])->name('replies.store');
-                    Route::delete('/{review}/replies/{reply}', [ReviewReplyController::class, 'destroy'])->name('replies.destroy');
-                    Route::post('/{review}/replies/{reply}/toggle', [ReviewReplyController::class, 'toggle'])->name('replies.toggle');
-                    Route::get('/{review}/thread', [ReviewReplyController::class, 'thread'])->name('replies.thread');
+                    Route::post('/apply-promo', [AdminCartController::class, 'applyPromoAdmin'])->name('applyPromo');
+                    Route::delete('/remove-promo', [AdminCartController::class, 'removePromoAdmin'])->name('removePromo');
                 });
 
-                // Review Requests
-                Route::prefix('review-requests')->name('review-requests.')->group(function () {
-                    Route::get('/', [ReviewRequestAdminController::class, 'index'])->name('index');
-                    Route::post('/{booking}/send', [ReviewRequestAdminController::class, 'send'])->name('send');
-                    Route::post('/{rr}/resend', [ReviewRequestAdminController::class, 'resend'])->name('resend');
-                    Route::delete('/{rr}', [ReviewRequestAdminController::class, 'destroy'])->name('destroy');
+                // ============================
+                // PROMO CODES
+                // ============================
+                Route::prefix('promo-codes')->name('promoCodes.')->group(function () {
+                    Route::get('/', [PromoCodeController::class, 'index'])->name('index');
+                    Route::post('/', [PromoCodeController::class, 'store'])->name('store');
+                    Route::delete('/{promo}', [PromoCodeController::class, 'destroy'])->name('destroy');
+                    Route::patch('/{promo}/operation', [PromoCodeController::class, 'updateOperation'])->name('updateOperation');
                 });
-            });
 
-            // ============================
-            // FAQs
-            // ============================
-            Route::resource('faqs', AdminFaqController::class)->except(['show']);
-            Route::patch('faqs/{faq}/toggle-status', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
+                // ============================
+                // REVIEWS MANAGEMENT
+                // ============================
+                Route::middleware(['can:manage-reviews'])->group(function () {
+                    // Providers
+                    Route::resource('review-providers', ReviewProviderController::class)
+                        ->except(['show'])
+                        ->parameters(['review-providers' => 'provider'])
+                        ->names('review-providers');
+                    Route::post('review-providers/{provider}/toggle', [ReviewProviderController::class, 'toggle'])->name('review-providers.toggle');
+                    Route::post('review-providers/{provider}/test', [ReviewProviderController::class, 'test'])->name('review-providers.test');
+                    Route::post('review-providers/{provider}/cache/flush', [ReviewProviderController::class, 'flushCache'])->name('review-providers.flush');
 
-            // ============================
-            // POLICIES
-            // ============================
-            Route::prefix('policies')->name('policies.')->group(function () {
-                Route::get('/', [PolicyController::class, 'index'])->name('index');
-                Route::post('/', [PolicyController::class, 'store'])->name('store');
-                Route::put('/{policy:policy_id}', [PolicyController::class, 'update'])->name('update');
-                Route::post('/{policy:policy_id}/toggle', [PolicyController::class, 'toggle'])->name('toggle');
-                Route::delete('/{policy:policy_id}', [PolicyController::class, 'destroy'])->name('destroy');
+                    // Reviews
+                    Route::prefix('reviews')->name('reviews.')->group(function () {
+                        Route::get('/', [ReviewAdminController::class, 'index'])->name('index');
+                        Route::get('/create', [ReviewAdminController::class, 'create'])->name('create');
+                        Route::post('/', [ReviewAdminController::class, 'store'])->name('store');
+                        Route::get('/{review}/edit', [ReviewAdminController::class, 'edit'])->name('edit');
+                        Route::put('/{review}', [ReviewAdminController::class, 'update'])->name('update');
+                        Route::delete('/{review}', [ReviewAdminController::class, 'destroy'])->name('destroy');
 
-                // Policy Sections
-                Route::get('/{policy:policy_id}/sections', [PolicySectionController::class, 'index'])->name('sections.index');
-                Route::post('/{policy:policy_id}/sections', [PolicySectionController::class, 'store'])->name('sections.store');
-                Route::put('/{policy:policy_id}/sections/{section}', [PolicySectionController::class, 'update'])->name('sections.update');
-                Route::post('/{policy:policy_id}/sections/{section}/toggle', [PolicySectionController::class, 'toggle'])->name('sections.toggle');
-                Route::delete('/{policy:policy_id}/sections/{section}', [PolicySectionController::class, 'destroy'])->name('sections.destroy');
-            });
+                        Route::post('/{review}/publish', [ReviewAdminController::class, 'publish'])->name('publish');
+                        Route::post('/{review}/hide', [ReviewAdminController::class, 'hide'])->name('hide');
+                        Route::post('/{review}/flag', [ReviewAdminController::class, 'flag'])->name('flag');
+                        Route::post('/bulk', [ReviewAdminController::class, 'bulk'])->name('bulk');
 
-            // ============================
-            // TRANSLATIONS
-            // ============================
-            Route::prefix('translations')->name('translations.')->group(function () {
-                Route::get('/', [TranslationController::class, 'index'])->name('index');
-                Route::get('/{type}/choose-locale', [TranslationController::class, 'chooseLocale'])->name('choose-locale');
-                Route::get('/{type}/select', [TranslationController::class, 'select'])->name('select');
-                Route::get('/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('edit');
-                Route::post('/{type}/{id}/update', [TranslationController::class, 'update'])->name('update');
-                Route::post('/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('change-editing-locale');
-            });
+                        // Replies & Threads
+                        Route::get('/{review}/replies/create', [ReviewReplyController::class, 'create'])->name('replies.create');
+                        Route::post('/{review}/replies', [ReviewReplyController::class, 'store'])->name('replies.store');
+                        Route::delete('/{review}/replies/{reply}', [ReviewReplyController::class, 'destroy'])->name('replies.destroy');
+                        Route::post('/{review}/replies/{reply}/toggle', [ReviewReplyController::class, 'toggle'])->name('replies.toggle');
+                        Route::get('/{review}/thread', [ReviewReplyController::class, 'thread'])->name('replies.thread');
+                    });
 
-            // ============================
-            // REPORTS
-            // ============================
-            Route::prefix('reports')->name('reports.')->group(function () {
-                Route::get('/', [ReportsController::class, 'index'])->name('index');
-                Route::get('/chart/monthly-sales', [ReportsController::class, 'chartMonthlySales'])->name('chart.monthly');
-                Route::get('/chart/by-language', [ReportsController::class, 'chartByLanguage'])->name('chart.language');
+                    // Review Requests
+                    Route::prefix('review-requests')->name('review-requests.')->group(function () {
+                        Route::get('/', [ReviewRequestAdminController::class, 'index'])->name('index');
+                        Route::post('/{booking}/send', [ReviewRequestAdminController::class, 'send'])->name('send');
+                        Route::post('/{rr}/resend', [ReviewRequestAdminController::class, 'resend'])->name('resend');
+                        Route::delete('/{rr}', [ReviewRequestAdminController::class, 'destroy'])->name('destroy');
+                    });
+                });
+
+                // ============================
+                // FAQs
+                // ============================
+                Route::resource('faqs', AdminFaqController::class)->except(['show']);
+                Route::patch('faqs/{faq}/toggle-status', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
+
+                // ============================
+                // POLICIES
+                // ============================
+                Route::prefix('policies')->name('policies.')->group(function () {
+                    Route::get('/', [PolicyController::class, 'index'])->name('index');
+                    Route::post('/', [PolicyController::class, 'store'])->name('store');
+                    Route::put('/{policy:policy_id}', [PolicyController::class, 'update'])->name('update');
+                    Route::post('/{policy:policy_id}/toggle', [PolicyController::class, 'toggle'])->name('toggle');
+                    Route::delete('/{policy:policy_id}', [PolicyController::class, 'destroy'])->name('destroy');
+
+                    // Policy Sections
+                    Route::get('/{policy:policy_id}/sections', [PolicySectionController::class, 'index'])->name('sections.index');
+                    Route::post('/{policy:policy_id}/sections', [PolicySectionController::class, 'store'])->name('sections.store');
+                    Route::put('/{policy:policy_id}/sections/{section}', [PolicySectionController::class, 'update'])->name('sections.update');
+                    Route::post('/{policy:policy_id}/sections/{section}/toggle', [PolicySectionController::class, 'toggle'])->name('sections.toggle');
+                    Route::delete('/{policy:policy_id}/sections/{section}', [PolicySectionController::class, 'destroy'])->name('sections.destroy');
+                });
+
+                // ============================
+                // TRANSLATIONS
+                // ============================
+                Route::prefix('translations')->name('translations.')->group(function () {
+                    Route::get('/', [TranslationController::class, 'index'])->name('index');
+                    Route::get('/{type}/choose-locale', [TranslationController::class, 'chooseLocale'])->name('choose-locale');
+                    Route::get('/{type}/select', [TranslationController::class, 'select'])->name('select');
+                    Route::get('/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('edit');
+                    Route::post('/{type}/{id}/update', [TranslationController::class, 'update'])->name('update');
+                    Route::post('/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('change-editing-locale');
+                });
+
+                // ============================
+                // REPORTS
+                // ============================
+                Route::prefix('reports')->name('reports.')->group(function () {
+                    Route::get('/', [ReportsController::class, 'index'])->name('index');
+                    Route::get('/chart/monthly-sales', [ReportsController::class, 'chartMonthlySales'])->name('chart.monthly');
+                    Route::get('/chart/by-language', [ReportsController::class, 'chartByLanguage'])->name('chart.language');
+                });
             });
         });
-    });
 
-// ============================
-// COOKIES (consent) - Outside admin middleware
-// ============================
-Route::post('/cookies/accept', [CookieConsentController::class, 'accept'])
-    ->name('cookies.accept')
-    ->middleware('throttle:10,1');
+    // ============================
+    // COOKIES (consent) - Outside admin middleware
+    // ============================
+    Route::post('/cookies/accept', [CookieConsentController::class, 'accept'])
+        ->name('cookies.accept')
+        ->middleware('throttle:10,1');
 
-Route::post('/cookies/reject', [CookieConsentController::class, 'reject'])
-    ->name('cookies.reject')
-    ->middleware('throttle:10,1');
+    Route::post('/cookies/reject', [CookieConsentController::class, 'reject'])
+        ->name('cookies.reject')
+        ->middleware('throttle:10,1');
 });
