@@ -117,7 +117,7 @@ class DashBoardController extends Controller
 
         // Traemos detalles necesarios y SUMAMOS pax por (tour_id, schedule_id, date) desde JSON categories
         $details = BookingDetail::with([
-                'booking:id,status',
+                'booking:booking_id,status',
                 'tour:tour_id,name',
                 'schedule:schedule_id,start_time',
             ])

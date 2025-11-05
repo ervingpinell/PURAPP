@@ -39,10 +39,10 @@ class BookingDetail extends Model
     /* =======================
        Relaciones
        ======================= */
-    public function booking()
-    {
-        return $this->belongsTo(Booking::class, 'booking_id', 'booking_id');
-    }
+public function booking()
+{
+    return $this->belongsTo(Booking::class, 'booking_id', 'booking_id');
+}
 
     public function tour()
     {
@@ -110,4 +110,6 @@ class BookingDetail extends Model
         $cat = collect($this->categories ?? [])->firstWhere('category_id', $categoryId);
         return (int)($cat['quantity'] ?? 0);
     }
+
+
 }
