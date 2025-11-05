@@ -224,6 +224,7 @@ return [
             'subtotal'       => 'Subtotal',
             'discount'       => 'Descuento',
             'total_persons'  => 'Personas',
+
         ],
 
         'placeholders' => [
@@ -424,6 +425,216 @@ return [
         'pricing_info'  => 'Información de Precios',
         'subtotal'      => 'Subtotal',
         'discount'      => 'Descuento',
+    ],
+
+    'excluded_dates' => [
+
+        'ui' => [
+            'page_title'           => 'Gestión de Disponibilidad y Capacidad',
+            'page_heading'         => 'Gestión de Disponibilidad y Capacidad',
+            'tours_count'          => 'tours',
+            'blocked_page_title'   => 'Tours bloqueados',
+            'blocked_page_heading' => 'Tours bloqueados',
+            'blocked_count'        => ':count tours bloqueados',
+        ],
+
+        'legend' => [
+            'title'                  => 'Leyenda de Capacidades',
+            'base_tour'              => 'Base Tour',
+            'override_schedule'      => 'Override Horario',
+            'override_day'           => 'Override Día',
+            'override_day_schedule'  => 'Override Día+Horario',
+            'blocked'                => 'Bloqueado',
+        ],
+
+        'filters' => [
+            'date'               => 'Fecha',
+            'days'               => 'Días',
+            'product'            => 'Buscar Tour',
+            'search_placeholder' => 'Nombre del tour…',
+            'bulk_actions'       => 'Acciones Masivas',
+            'update_state'       => 'Actualizar estado',
+        ],
+
+        'blocks' => [
+            'am'          => 'TOURS AM',
+            'pm'          => 'TOURS PM',
+            'am_blocked'  => 'TOURS AM (bloqueados)',
+            'pm_blocked'  => 'TOURS PM (bloqueados)',
+            'empty_am'    => 'No hay tours en este bloque',
+            'empty_pm'    => 'No hay tours en este bloque',
+            'no_data'     => 'No hay datos para mostrar',
+            'no_blocked'  => 'No hay tours bloqueados para el rango seleccionado',
+        ],
+
+        'buttons' => [
+            'mark_all'         => 'Marcar Todos',
+            'unmark_all'       => 'Desmarcar Todos',
+            'block_all'        => 'Bloquear Todos',
+            'unblock_all'      => 'Desbloquear Todos',
+            'block_selected'   => 'Bloquear Seleccionados',
+            'unblock_selected' => 'Desbloquear Seleccionados',
+            'set_capacity'     => 'Ajustar Capacidad',
+            'capacity'         => 'Capacidad',
+            'view_blocked'     => 'Ver Bloqueados',
+            'capacity_settings'=> 'Configuración Capacidades',
+            'block'            => 'Bloquear',
+            'unblock'          => 'Desbloquear',
+            'apply'            => 'Aplicar',
+            'save'             => 'Guardar',
+            'cancel'           => 'Cancelar',
+            'back'             => 'Volver',
+        ],
+
+        'states' => [
+            'available' => 'Disponible',
+            'blocked'   => 'Bloqueado',
+        ],
+
+        'badges' => [
+            'tooltip_prefix' => 'Ocupados/Capacidad -',
+        ],
+
+        'modals' => [
+            'capacity_title'            => 'Ajustar Capacidad',
+            'selected_capacity_title'   => 'Ajustar Capacidad de Seleccionados',
+            'date'                      => 'Fecha:',
+            'hierarchy_title'           => 'Jerarquía de capacidades:',
+            'new_capacity'              => 'Nueva Capacidad',
+            'hint_zero_blocks'          => 'Dejar en 0 para bloquear completamente',
+            'selected_count'            => 'Se actualizará la capacidad de :count ítems seleccionados.',
+            'capacity_day_title'        => 'Ajustar capacidad para el día',
+            'capacity_day_subtitle'     => 'Todos los horarios del día',
+        ],
+
+        'confirm' => [
+            'block_title'        => '¿Bloquear?',
+            'unblock_title'      => '¿Desbloquear?',
+            'block_html'         => '<strong>:label</strong><br>Fecha: :day',
+            'unblock_html'       => '<strong>:label</strong><br>Fecha: :day',
+            'block_btn'          => 'Bloquear',
+            'unblock_btn'        => 'Desbloquear',
+            'bulk_title'         => 'Confirmar operación masiva',
+            'bulk_items_html'    => ':count ítems serán afectados',
+            'block_day_title'    => 'Bloquear todo el día',
+            'block_block_title'  => 'Bloquear bloque :block del :day',
+        ],
+
+        'toasts' => [
+            'invalid_date_title' => 'Fecha inválida',
+            'invalid_date_text'  => 'No puedes seleccionar fechas pasadas',
+            'searching'          => 'Buscando…',
+            'applying_filters'   => 'Aplicando filtros…',
+            'updating_range'     => 'Actualizando rango…',
+            'no_selection_title' => 'Sin selección',
+            'no_selection_text'  => 'Debes seleccionar al menos un item',
+            'no_changes_title'   => 'Sin cambios',
+            'no_changes_text'    => 'No hay ítems para actualizar',
+            'marked_n'           => 'Marcados :n ítems',
+            'unmarked_n'         => 'Desmarcados :n ítems',
+            'error_generic'      => 'No se pudo completar la operación',
+            'updated'            => 'Actualizado',
+            'updated_count'      => ':count ítems actualizados',
+            'unblocked_count'    => ':count ítems desbloqueados',
+            'blocked'            => 'Bloqueado',
+            'unblocked'          => 'Desbloqueado',
+            'capacity_updated'   => 'Capacidad actualizada',
+        ],
+
+    ],
+
+     'capacity' => [
+
+        // =========================================================
+        // [01] UI TITLES & HEADINGS
+        // =========================================================
+        'ui' => [
+            'page_title'   => 'Gestión de Capacidades',
+            'page_heading' => 'Gestión de Capacidades',
+        ],
+
+        // =========================================================
+        // [02] TABS
+        // =========================================================
+        'tabs' => [
+            'global'         => 'Globales',
+            'by_tour'        => 'Por Tour + Horario',
+            'day_schedules'  => 'Overrides Día + Horario',
+        ],
+
+        // =========================================================
+        // [03] ALERTS
+        // =========================================================
+        'alerts' => [
+            'global_info' => '<strong>Capacidades globales:</strong> Define el límite base para cada tour (todos los días y horarios).',
+            'by_tour_info' => '<strong>Por Tour + Horario:</strong> Override de capacidad específico para cada horario de cada tour. Estos overrides tienen prioridad sobre la capacidad global del tour.',
+            'day_schedules_info' => '<strong>Día + Horario:</strong> Override de máxima prioridad para un día y horario específico. Estos se gestionan desde la vista de "Disponibilidad y Capacidad".',
+        ],
+
+        // =========================================================
+        // [04] TABLE HEADERS
+        // =========================================================
+        'tables' => [
+            'global' => [
+                'tour'       => 'Tour',
+                'type'       => 'Tipo',
+                'capacity'   => 'Capacidad Global',
+                'level'      => 'Nivel',
+            ],
+            'by_tour' => [
+                'schedule'   => 'Horario',
+                'capacity'   => 'Capacidad Override',
+                'level'      => 'Nivel',
+                'no_schedules' => 'Este tour no tiene horarios asignados',
+            ],
+            'day_schedules' => [
+                'date'       => 'Fecha',
+                'tour'       => 'Tour',
+                'schedule'   => 'Horario',
+                'capacity'   => 'Capacidad',
+                'actions'    => 'Acciones',
+                'no_overrides' => 'No hay overrides de día + horario',
+            ],
+        ],
+
+        // =========================================================
+        // [05] BADGES / LABELS
+        // =========================================================
+        'badges' => [
+            'base'       => 'Base',
+            'override'   => 'Override',
+            'global'     => 'Global',
+            'blocked'    => 'BLOQUEADO',
+            'unlimited'  => '∞',
+        ],
+
+        // =========================================================
+        // [06] BUTTONS
+        // =========================================================
+        'buttons' => [
+            'save'      => 'Guardar',
+            'delete'    => 'Eliminar',
+            'back'      => 'Volver',
+            'apply'     => 'Aplicar',
+            'cancel'    => 'Cancelar',
+        ],
+
+        // =========================================================
+        // [07] MESSAGES
+        // =========================================================
+        'messages' => [
+            'empty_placeholder' => 'Vacío = usa capacidad global (:capacity)',
+            'deleted_confirm'   => '¿Eliminar este override?',
+            'no_day_overrides'  => 'No hay overrides de día + horario.',
+        ],
+
+        // =========================================================
+        // [08] TOASTS (SweetAlert2)
+        // =========================================================
+        'toasts' => [
+            'success_title' => 'Éxito',
+            'error_title'   => 'Error',
+        ],
     ],
 
 ];

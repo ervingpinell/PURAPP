@@ -23,6 +23,31 @@ class TourExcludedDateController extends Controller
 {
     protected string $controller = 'TourExcludedDateController';
 
+        // NEW: Resolver nombre traducido si el modelo lo expone.
+    private function resolveTourName(Tour $tour, ?string $locale = null): string
+    {
+        $locale = $locale ?: app()->getLocale();
+        if (method_exists($tour, 'getTranslatedName')) {
+            try {
+                $n = $tour->getTranslatedName($locale);
+                if (is_string($n) && $n !== '') return $n;
+            } catch (\Throwable $e) {
+                // fallback abajo
+            }
+        }
+        // Fallbacks comunes: atributo translated_name, o relación translations
+        if (!empty($tour->translated_name)) {
+            return (string) $tour->translated_name;
+        }
+        if (isset($tour->translations) && is_iterable($tour->translations)) {
+            $match = collect($tour->translations)->first(fn($t) =>
+                ($t['locale'] ?? $t->locale ?? null) === $locale && !empty($t['name'] ?? $t->name ?? null)
+            );
+            if ($match) return (string) ($match['name'] ?? $match->name);
+        }
+        return (string) $tour->name;
+    }
+
     public function index(Request $request)
     {
         $timezone         = config('app.timezone', 'America/Costa_Rica');
@@ -41,7 +66,11 @@ class TourExcludedDateController extends Controller
         $searchQuery      = trim((string) $request->input('q', ''));
 
         $tours = Tour::with('schedules')
-            ->when($searchQuery !== '', fn ($query) => $query->where('name', 'like', "%{$searchQuery}%"))
+            ->when($searchQuery !== '', function ($query) use ($searchQuery) {
+                // Búsqueda básica por nombre base; si usas tabla de traducciones,
+                // puedes agregar aquí un join/whereHas.
+                $query->where('name', 'like', "%{$searchQuery}%");
+            })
             ->orderBy('name')
             ->get();
 
@@ -61,6 +90,7 @@ class TourExcludedDateController extends Controller
         ]);
     }
 
+
     public function blocked(Request $request)
     {
         $timezone        = config('app.timezone', 'America/Costa_Rica');
@@ -79,7 +109,6 @@ class TourExcludedDateController extends Controller
         $exclusionRecords    = TourExcludedDate::whereIn('start_date', $dateRange)->get();
 
         $calendar = $this->buildCalendar($tours, $dateRange, $timezone, $availabilityRecords, $exclusionRecords, onlyBlocked: true);
-
         $calendar = array_filter($calendar, fn ($buckets) => count($buckets['am']) + count($buckets['pm']) > 0);
 
         return view('admin.tours.excluded_dates.blocked', [
@@ -366,83 +395,84 @@ class TourExcludedDateController extends Controller
     /**
      * Construye el calendario de disponibilidad con capacidades correctas
      */
-    private function buildCalendar($tours, $dateRange, string $timezone, $availabilityRecords, $exclusionRecords, bool $onlyBlocked = false): array
-    {
-        $calendar = [];
-        $capacityService = app(\App\Services\Bookings\BookingCapacityService::class);
+private function buildCalendar($tours, $dateRange, string $timezone, $availabilityRecords, $exclusionRecords, bool $onlyBlocked = false): array
+{
+    $calendar = [];
+    $capacityService = app(\App\Services\Bookings\BookingCapacityService::class);
+    $locale = app()->getLocale() ?: 'es';
 
-        foreach ($dateRange as $dateString) {
-            $calendar[$dateString] = ['am' => [], 'pm' => []];
+    foreach ($dateRange as $dateString) {
+        $calendar[$dateString] = ['am' => [], 'pm' => []];
 
-            foreach ($tours as $tour) {
-                foreach ($tour->schedules as $schedule) {
-                    $startTime = Carbon::parse($schedule->start_time, $timezone);
-                    $scheduleBucket = ((int) $startTime->format('H') < 12) ? 'am' : 'pm';
-                    $formattedTime = $startTime->format('g:ia');
+        foreach ($tours as $tour) {
+            foreach ($tour->schedules as $schedule) {
+                $startTime = \Carbon\Carbon::parse($schedule->start_time, $timezone);
+                $scheduleBucket = ((int) $startTime->format('H') < 12) ? 'am' : 'pm';
+                $formattedTime = $startTime->format('g:ia');
 
-                    // Verificar disponibilidad
-                    $availability = $availabilityRecords->first(fn ($record) =>
-                        $record->tour_id == $tour->tour_id &&
-                        $record->schedule_id == $schedule->schedule_id &&
-                        $record->date === $dateString
-                    );
-
-                    $exclusion = $exclusionRecords->first(fn ($record) =>
-                        $record->tour_id == $tour->tour_id &&
-                        $record->schedule_id == $schedule->schedule_id &&
-                        Carbon::parse($record->start_date, $timezone)->toDateString() === $dateString
-                    );
-
-                    $isAvailable = $availability !== null
-                        ? !$availability->is_blocked
-                        : ($exclusion === null);
-
-                    // Obtener snapshot de capacidad
-                    $snapshot = $capacityService->capacitySnapshot($tour, $schedule, $dateString);
-                    $effectiveCapacity = $snapshot['max'];
-                    $occupiedCount = $snapshot['confirmed'] + $snapshot['held'];
-
-                    // CALCULAR NIVEL DE OVERRIDE USANDO EL MÉTODO DEL MODELO
-                    $overrideLevel = $tour->getCapacityOverrideLevel($dateString, $schedule->schedule_id);
-
-                    // Si está bloqueado, override level es 'blocked'
-                    if (!$isAvailable) {
-                        $overrideLevel = 'blocked';
-                    }
-
-                    // Filtrar si solo queremos bloqueados
-                    if ($onlyBlocked && $isAvailable) {
-                        continue;
-                    }
-
-                    // Construir entrada del calendario
-                    $entry = [
-                        'tour_id'          => $tour->tour_id,
-                        'tour_name'        => $tour->name,
-                        'schedule_id'      => $schedule->schedule_id,
-                        'time'             => $formattedTime,
-                        'is_available'     => $isAvailable,
-                        'date'             => $dateString,
-                        'current_capacity' => $effectiveCapacity,
-                        'occupied_count'   => $occupiedCount,
-                        'override_level'   => $overrideLevel,
-                    ];
-
-                    $calendar[$dateString][$scheduleBucket][] = $entry;
-                }
-            }
-
-            // Ordenar por nombre de tour
-            foreach (['am', 'pm'] as $bucket) {
-                usort(
-                    $calendar[$dateString][$bucket],
-                    fn ($left, $right) => strnatcasecmp($left['tour_name'], $right['tour_name'])
+                // Disponibilidad
+                $availability = $availabilityRecords->first(fn ($record) =>
+                    $record->tour_id == $tour->tour_id &&
+                    $record->schedule_id == $schedule->schedule_id &&
+                    $record->date === $dateString
                 );
+
+                $exclusion = $exclusionRecords->first(fn ($record) =>
+                    $record->tour_id == $tour->tour_id &&
+                    $record->schedule_id == $schedule->schedule_id &&
+                    \Carbon\Carbon::parse($record->start_date, $timezone)->toDateString() === $dateString
+                );
+
+                $isAvailable = $availability !== null
+                    ? !$availability->is_blocked
+                    : ($exclusion === null);
+
+                // Capacidad
+                $snapshot = $capacityService->capacitySnapshot($tour, $schedule, $dateString);
+                $effectiveCapacity = $snapshot['max'];
+                $occupiedCount = $snapshot['confirmed'] + $snapshot['held'];
+
+                // Nivel de override
+                $overrideLevel = $tour->getCapacityOverrideLevel($dateString, $schedule->schedule_id);
+                if (!$isAvailable) {
+                    $overrideLevel = 'blocked';
+                }
+
+                if ($onlyBlocked && $isAvailable) {
+                    continue;
+                }
+
+                // === NOMBRE TRADUCIDO ===
+                $tourName = method_exists($tour, 'getTranslatedName')
+                    ? ($tour->getTranslatedName($locale) ?? $tour->name)
+                    : $tour->name;
+
+                $entry = [
+                    'tour_id'          => $tour->tour_id,
+                    'tour_name'        => $tourName,
+                    'schedule_id'      => $schedule->schedule_id,
+                    'time'             => $formattedTime,
+                    'is_available'     => $isAvailable,
+                    'date'             => $dateString,
+                    'current_capacity' => $effectiveCapacity,
+                    'occupied_count'   => $occupiedCount,
+                    'override_level'   => $overrideLevel,
+                ];
+
+                $calendar[$dateString][$scheduleBucket][] = $entry;
             }
         }
 
-        return $calendar;
+        foreach (['am', 'pm'] as $bucket) {
+            usort(
+                $calendar[$dateString][$bucket],
+                fn ($left, $right) => strnatcasecmp($left['tour_name'], $right['tour_name'])
+            );
+        }
     }
+
+    return $calendar;
+}
 
     /**
      * Realizar toggle de disponibilidad

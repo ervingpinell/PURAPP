@@ -42,6 +42,7 @@ class Tour extends Model
         'overview',
         'length',
         'max_capacity',
+        'group_size',
         'is_active',
         'tour_type_id',
         'itinerary_id',

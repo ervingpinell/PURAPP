@@ -1,60 +1,61 @@
 <?php
 
 /**
- * Table of Contents
+ * Índice
  *
- * 1. AUTHENTICATION AND REGISTRATION ........... Line 37
- * 2. HOTELS ................................... Line 57
- * 3. GENERAL NAVIGATION ....................... Line 67
- * 4. CONTENT AND PAGES ........................ Line 82
- * 5. TOURS AND REVIEWS ........................ Line 97
- * 6. SCHEDULES ................................ Line 131
- * 7. ITINERARIES .............................. Line 144
- * 8. HOTELS (DETAIL) .......................... Line 156
- * 9. CART AND BOOKINGS ........................ Line 180
- * 10. VALIDATION .............................. Line 219
- * 11. BUTTONS AND CRUD ........................ Line 225
- * 12. FOOTER .................................. Line 243
- * 13. WHATSAPP ................................ Line 247
- * 14. REVIEWS ................................. Line 257
- * 15. TRAVELERS ............................... Line 273
- * 16. CONTACT ................................. Line 286
- * 17. ERRORS .................................. Line 295
- * 18. CART LOGIN MODAL ........................ Line 298
- * 19. SWEETALERTS (ACTIONS) ................... Line 322
- * 20. SUCCESSES (USED IN CONTROLLERS) ......... Line 328
- * 21. MAIL .................................... Line 381
- * 22. DASHBOARD ............................... Line 386
- * 23. ENTITIES ................................ Line 394
- * 24. SECTIONS ................................ Line 408
- * 25. EMPTY STATES ............................ Line 414
- * 26. BUTTONS (GENERIC) ....................... Line 421
- * 27. LABELS .................................. Line 426
+ * 1. AUTENTICAÇÃO E REGISTRO .................. Linha 37
+ * 2. HOTÉIS ................................... Linha 57
+ * 3. NAVEGAÇÃO GERAL .......................... Linha 67
+ * 4. CONTEÚDO E PÁGINAS ....................... Linha 82
+ * 5. PASSEIOS E AVALIAÇÕES .................... Linha 97
+ * 6. HORÁRIOS ..................................Linha 131
+ * 7. ITINERÁRIOS .............................. Linha 144
+ * 8. HOTÉIS (DETALHE) ......................... Linha 156
+ * 9. CARRINHO E RESERVAS ...................... Linha 180
+ * 10. VALIDAÇÃO ............................... Linha 219
+ * 11. BOTÕES E CRUD ........................... Linha 225
+ * 12. RODAPÉ .................................. Linha 243
+ * 13. WHATSAPP ................................ Linha 247
+ * 14. AVALIAÇÕES .............................. Linha 257
+ * 15. VIAJANTES ............................... Linha 273
+ * 16. CONTATO ................................. Linha 286
+ * 17. ERROS ................................... Linha 295
+ * 18. MODAL DE LOGIN DO CARRINHO .............. Linha 298
+ * 19. SWEETALERTS (AÇÕES) ..................... Linha 322
+ * 20. SUCESSOS (EM CONTROLLERS) ............... Linha 328
+ * 21. E-MAIL .................................. Linha 381
+ * 22. PAINEL .................................. Linha 386
+ * 23. ENTIDADES ............................... Linha 394
+ * 24. SEÇÕES .................................. Linha 408
+ * 25. ESTADOS VAZIOS .......................... Linha 414
+ * 26. BOTÕES (GENÉRICOS) ...................... Linha 421
+ * 27. RÓTULOS ................................. Linha 426
  */
 
 return [
 
-    // 1. AUTHENTICATION AND REGISTRATION
+    // 1. AUTENTICAÇÃO E REGISTRO
     'hello' => 'Olá',
     'full_name' => 'Nome completo',
     'email' => 'E-mail',
     'password' => 'Senha',
     'phone' => 'Telefone',
     'retype_password' => 'Repetir senha',
-    'remember_me' => 'Lembrar-me',
-    'remember_me_hint' => 'Mantenha a sessão aberta indefinidamente ou até ser fechada manualmente',
-    'register' => 'Registrar',
+    'remember_me' => 'Lembrar de mim',
+    'remember_me_hint' => 'Manter a sessão aberta indefinidamente ou até sair manualmente',
+    'register' => 'Cadastrar',
     'promo_invalid' => 'Código promocional inválido.',
-    'promo_already_used' => 'Esse código promocional já foi usado em outra reserva.',
-    'no_past_dates' => 'Você não pode reservar datas anteriores a hoje.',
-    'dupe_submit_cart' => 'Uma reserva semelhante já está sendo processada. Por favor, tente novamente em alguns segundos.',
+    'promo_already_used' => 'Esse código promocional já foi utilizado em outra reserva.',
+    'no_past_dates' => 'Você não pode reservar para datas anteriores a hoje.',
+    'dupe_submit_cart' => 'Uma reserva semelhante já está sendo processada. Tente novamente em alguns segundos.',
     'schedule_not_available' => 'O horário não está disponível para este passeio (inativo ou não atribuído).',
     'date_blocked' => 'A data selecionada está bloqueada para este passeio.',
-    'capacity_left' => 'Apenas :available vagas restantes para este horário.',
+    'capacity_left' => 'Restam apenas :available vagas para este horário.',
     'booking_created_success' => 'Reserva criada com sucesso.',
     'booking_updated_success' => 'Reserva atualizada com sucesso.',
+    'two_factor_authentication' => 'Autenticação em dois fatores (2FA)',
 
-    // 2. HOTELS
+    // 2. HOTÉIS
     'hotel_name_required' => 'O nome do hotel é obrigatório.',
     'hotel_name_unique'   => 'Já existe um hotel com esse nome.',
     'hotel_name_max'      => 'O nome do hotel não pode exceder :max caracteres.',
@@ -62,12 +63,12 @@ return [
     'hotel_updated_success' => 'Hotel atualizado com sucesso.',
     'is_active_required'  => 'O status é obrigatório.',
     'is_active_boolean'   => 'O status deve ser verdadeiro ou falso.',
-    'outside_list' => 'Este hotel está fora da nossa lista. Por favor, entre em contato para verificar se podemos oferecer transporte.',
+    'outside_list' => 'Este hotel está fora da nossa lista. Entre em contato para verificar se podemos oferecer transporte.',
 
-    // 3. GENERAL NAVIGATION
+    // 3. NAVEGAÇÃO GERAL
     'back' => 'Voltar',
     'home' => 'Início',
-    'dashboard' => 'Painel',
+    'dashboard_menu' => 'Painel',
     'profile' => 'Perfil',
     'settings' => 'Configurações',
     'users' => 'Usuários',
@@ -79,10 +80,10 @@ return [
     'support' => 'Suporte',
     'admin_panel' => 'Painel administrativo',
 
-    // 4. CONTENT AND PAGES
-    'faq' => 'Perguntas Frequentes',
-    'faqpage' => 'Perguntas Frequentes',
-    'no_faqs_available' => 'Nenhuma FAQ disponível.',
+    // 4. CONTEÚDO E PÁGINAS
+    'faq' => 'Perguntas frequentes',
+    'faqpage' => 'Perguntas frequentes',
+    'no_faqs_available' => 'Não há perguntas frequentes disponíveis.',
     'contact' => 'Contato',
     'about' => 'Sobre nós',
     'privacy_policy' => 'Política de privacidade',
@@ -94,7 +95,7 @@ return [
     'quick_links'=> 'Links rápidos',
     'rights_reserved' => 'Todos os direitos reservados',
 
-    // 5. TOURS AND REVIEWS
+    // 5. PASSEIOS E AVALIAÇÕES
     'tours' => 'Passeios',
     'tour' => 'Passeio',
     'tour_name' => 'Nome do passeio',
@@ -103,32 +104,46 @@ return [
     'price' => 'Preço',
     'type' => 'Tipo de passeio',
     'languages_available' => 'Idiomas disponíveis',
-    'amenities_included' => 'Comodidades incluídas',
-    'excluded_amenities' => 'Comodidades excluídas',
+    'amenities_included' => 'Serviços incluídos',
+    'excluded_amenities' => 'Serviços não incluídos',
     'tour_details' => 'Detalhes do passeio',
     'select_tour' => 'Selecione um passeio',
     'reviews' => 'Avaliações',
     'hero_title' => 'Descubra a magia da Costa Rica',
-    'hero_subtext' => 'Explore nossos passeios únicos e viva a aventura.',
+    'hero_subtext' => 'Explore nossos passeios exclusivos e viva a aventura.',
     'book_now' => 'Reservar agora',
     'our_tours' => 'Nossos passeios',
     'half_day' => 'Meio dia',
     'full_day' => 'Dia inteiro',
     'full_day_description' => 'Perfeito para quem busca uma experiência completa em um dia',
-    'half_day_description' => 'Passeios ideais para uma aventura rápida para quem tem pouco tempo.',
+    'half_day_description' => 'Passeios ideais para uma aventura rápida quando há pouco tempo.',
     'full_day_tours' => 'Passeios de dia inteiro',
     'half_day_tours' => 'Passeios de meio dia',
     'see_tour' => 'Ver passeio',
     'see_tours' => 'Ver passeios',
-    'what_visitors_say' => 'O que nossos visitantes dizem',
+    'what_visitors_say' => 'O que dizem nossos visitantes',
     'quote_1' => 'Uma experiência inesquecível!',
     'guest_1' => 'Carlos M.',
     'quote_2' => 'Com certeza voltarei.',
     'guest_2' => 'Ana G.',
     'tour_information'=> 'Informações do passeio',
     'group_size'=> 'Tamanho do grupo',
+    'no_prices_available' => 'Não há preços disponíveis',
+    'no_prices_configured' => 'Este passeio não tem preços configurados',
+    'total_persons' => 'Total de pessoas',
+    'quantity' => 'Quantidade',
+    'decrease' => 'Diminuir',
+    'increase' => 'Aumentar',
+    'max_persons_reached' => 'Máximo de :max pessoas por reserva',
+    'min_category_required' => 'Mínimo de :min em :category',
+    'max_category_exceeded' => 'Máximo de :max permitido em :category',
+    'max_persons_exceeded' => 'Máximo de :max pessoas no total',
+    'min_one_person' => 'É necessário pelo menos uma pessoa',
+    'persons_max' => 'pessoas máx.',
+    'or' => 'Ou',
+    'open_map' => 'Ver localização',
 
-    // 6. SCHEDULES
+    // 6. HORÁRIOS
     'schedule' => 'Horário',
     'schedule_am' => 'Horário da manhã',
     'schedule_pm' => 'Horário da tarde',
@@ -141,7 +156,7 @@ return [
     'horas' => 'horas',
     'hours' => 'horas',
 
-    // 7. ITINERARIES
+    // 7. ITINERÁRIOS
     'itinerary' => 'Roteiro',
     'itineraries' => 'Roteiros',
     'new_itinerary' => 'Novo roteiro',
@@ -150,51 +165,49 @@ return [
     'item_description' => 'Descrição do item',
     'add_item' => 'Adicionar item',
     'edit_itinerary' => 'Editar roteiro',
-    'no_itinerary_info' => 'Nenhuma informação de roteiro.',
+    'no_itinerary_info' => 'Sem informações do roteiro.',
     'whats_included' => 'O que está incluído',
 
-    // 8. HOTELS (DETAIL)
+    // 8. HOTÉIS (DETALHE)
     'hotels' => 'Hotéis',
     'hotel' => 'Hotel',
     'select_hotel' => 'Hotel',
-    'hotel_other' => 'Outro (especificar manualmente)',
+    'hotel_other' => 'Outro (informar manualmente)',
     'hotel_name' => 'Nome do hotel',
-    'other_hotel' => 'Outro hotel (especificar)',
-    'hotel_pickup' => 'Embarque no hotel',
-    'outside_area' => 'Este hotel está fora da área de cobertura. Entre em contato para revisar suas opções.',
-    'pickup_valid' => 'O hotel selecionado é válido! Assim que confirmar a reserva, entraremos em contato para coordenar o horário de embarque.',
-    'pickup_details' => 'Detalhes do embarque',
-    'pickup_note' => 'Embarques gratuitos aplicam-se apenas para hotéis na região de La Fortuna...',
-    'pickup_points' => 'Pontos de embarque',
-    'select_pickup' => 'Selecione um ponto de embarque',
-    'type_to_search' => 'Digite para pesquisar...',
-    'no_pickup_available' => 'Nenhum ponto de embarque disponível.',
+    'other_hotel' => 'Outro hotel (informar)',
+    'hotel_pickup' => 'Traslado no hotel',
+    'outside_area' => 'Este hotel está fora da área de cobertura. Entre em contato para verificar as opções.',
+    'pickup_valid' => 'O hotel selecionado é válido! Após confirmar a reserva, entraremos em contato para combinar o horário do traslado.',
+    'pickup_details' => 'Detalhes do traslado',
+    'pickup_note' => 'Traslados gratuitos se aplicam apenas para hotéis na área de La Fortuna...',
+    'pickup_points' => 'Pontos de traslado',
+    'select_pickup' => 'Selecione um ponto de traslado',
+    'type_to_search' => 'Digite para buscar...',
+    'no_pickup_available' => 'Não há pontos de traslado disponíveis.',
     'pickup_not_found' => 'Hotel não encontrado.',
     'meeting_points' => 'Pontos de encontro',
     'select_meeting' => 'Selecione um ponto de encontro',
+    'meeting_point_details' => 'Detalhes do ponto de encontro',
     'meeting_not_found' => 'Ponto de encontro não encontrado.',
     'main_street_entrance' => 'Entrada da rua principal',
-    'example_address' => 'Endereço exemplo 123',
+    'example_address' => 'Endereço de exemplo 123',
     'hotels_meeting_points' => 'Hotéis e pontos de encontro',
-    'meeting_point_details' => 'Detalhes do ponto de encontro',
-    'meeting_valid' => 'O ponto de encontro selecionado é válido! Assim que você confirmar sua reserva, enviaremos as instruções e o horário exato do encontro.',
+    'meeting_valid' => 'O ponto de encontro selecionado é válido! Após confirmar sua reserva, enviaremos instruções e o horário exato.',
     'meeting_point' => 'Ponto de encontro',
     'meetingPoint'  => 'Ponto de encontro',
-    'selectHotelHelp' => 'Selecione o seu hotel na lista.',
+    'selectHotelHelp' => 'Selecione seu hotel na lista.',
     'selectFromList'      => 'Selecione um item da lista',
     'fillThisField'       => 'Preencha este campo',
-    'pickupRequiredTitle' => 'Pickup obrigatório',
+    'pickupRequiredTitle' => 'Traslado obrigatório',
     'pickupRequiredBody'  => 'Você deve selecionar um hotel ou um ponto de encontro para continuar.',
     'ok'                  => 'OK',
-
-    'pickup_time' => 'Horário de coleta',
-    'pickupTime'  => 'Horário de coleta',
-    'meeting_time' => 'Horário de encontro',
-
+    'pickup_time' => 'Horário do traslado',
+    'pickupTime'  => 'Horário do traslado',
+    'meeting_time' => 'Horário do encontro',
     'open_map' => 'Abrir mapa',
     'openMap'  => 'Abrir mapa',
 
-    // 9. CART AND BOOKINGS
+    // 9. CARRINHO E RESERVAS
     'cart' => 'Carrinho',
     'myCart' => 'Meu carrinho',
     'my_reservations' => 'Minhas reservas',
@@ -210,7 +223,7 @@ return [
     'emptyCart' => 'Seu carrinho está vazio.',
     'no_items_in_cart' => 'Seu carrinho está vazio.',
     'reservation_success' => 'Reserva concluída com sucesso!',
-    'reservation_failed' => 'Ocorreu um erro ao fazer a reserva.',
+    'reservation_failed' => 'Ocorreu um erro ao processar a reserva.',
     'booking_reference' => 'Referência da reserva',
     'booking_date' => 'Data da reserva',
     'reservation_status' => 'Status da reserva',
@@ -233,14 +246,18 @@ return [
     'deleteItemConfirm' => 'Excluir',
     'deleteItemCancel' => 'Cancelar',
     'selectOption' => 'Selecione uma opção',
+    'breakdown' => 'Detalhamento',
+    'subtotal'  => 'Subtotal',
+    'senior'    => 'Idoso',
+    'student'   => 'Estudante',
 
-    // 10. VALIDATION
+    // 10. VALIDAÇÃO
     'required_field' => 'Este campo é obrigatório.',
     'invalid_email' => 'E-mail inválido.',
     'invalid_date' => 'Data inválida.',
     'select_option' => 'Selecione uma opção',
 
-    // 11. BUTTONS AND CRUD
+    // 11. BOTÕES E CRUD
     'create' => 'Criar',
     'edit' => 'Editar',
     'update' => 'Atualizar',
@@ -253,43 +270,43 @@ return [
     'are_you_sure' => 'Tem certeza?',
     'optional' => 'Opcional',
     'edit_profile' => 'Editar perfil',
-    'read_more' => 'Leia mais',
-    'read_less' => 'Leia menos',
-    'switch_view' => 'Alternar visualização',
+    'read_more' => 'Ler mais',
+    'read_less' => 'Ler menos',
+    'switch_view' => 'Alterar visualização',
     'close' => 'Fechar',
 
-    // 12. FOOTER
+    // 12. RODAPÉ
     'contact_us' => 'Fale conosco',
     'location' => 'San José, Costa Rica',
 
     // 13. WHATSAPP
     'whatsapp_title' => 'Green Vacations CR',
-    'whatsapp_subtitle' => 'Normalmente responde instantaneamente',
+    'whatsapp_subtitle' => 'Normalmente responde na hora',
     'whatsapp_attention_schedule' => 'Segunda a domingo, das 7h30 às 19h30 (GMT-6)',
     'whatsapp_attention_language' => 'Atendimento apenas em espanhol e inglês',
     'whatsapp_greeting' => '👋 Olá! Como podemos ajudar a planejar sua aventura na Costa Rica?',
-    'whatsapp_placeholder' => 'Olá, tenho interesse em um dos seus passeios. Pode me dar mais informações?',
+    'whatsapp_placeholder' => 'Olá, tenho interesse em um dos passeios. Poderiam me enviar mais informações?',
     'whatsapp_button' => 'Enviar mensagem',
     'whatsapp_footer' => 'Conectado pelo WhatsApp Business',
 
-    // 14. REVIEWS
-    'what_customers_thinks_about' => 'O que nossos clientes acham sobre',
+    // 14. AVALIAÇÕES
+    'what_customers_thinks_about' => 'O que os nossos clientes acham de',
     'loading_reviews' => 'Carregando avaliações',
     'redirect_to_tour' => 'Redirecionar para o passeio',
     'would_you_like_to_visit' => 'Você gostaria de visitar ',
     'this_tour' => 'este passeio',
     'no_reviews_found' => 'Nenhuma avaliação encontrada para este passeio.',
-    'no_reviews_available' => 'Nenhuma avaliação disponível.',
-    'error_loading_reviews' => 'Erro ao carregar avaliações.',
+    'no_reviews_available' => 'Não há avaliações disponíveis.',
+    'error_loading_reviews' => 'Erro ao carregar as avaliações.',
     'anonymous_user' => 'Anônimo',
     'see_more' => 'Ver mais',
     'see_less' => 'Ver menos',
     'powered_by_viator' => 'Fornecido por Viator',
-    'go_to_tour' => 'Você quer ir para o passeio ":name"?',
+    'go_to_tour' => 'Deseja ir ao passeio ":name"?',
     'view_in_viator' => 'Ver :name no Viator',
 
-    // 15. TRAVELERS
-    'select_travelers' => 'Selecione os viajantes',
+    // 15. VIAJANTES
+    'select_travelers' => 'Selecionar viajantes',
     'max_travelers_info' => 'Você pode selecionar até 12 pessoas no total.',
     'adult' => 'Adulto',
     'adults' => 'Adultos',
@@ -298,52 +315,50 @@ return [
     'kids' => 'Crianças',
     'kids_quantity' => 'Quantidade de crianças',
     'age_10_plus' => 'Idade 10+',
-    'age_4_to_9' => 'Idade 0-9',
+    'age_4_to_9' => 'Idade 4–9',
     'max_limits_info' => 'Máx. 12 viajantes, máx. 2 crianças.',
 
-    // 16. CONTACT
+    // 16. CONTATO
     'name' => 'Nome',
     'subject' => 'Assunto',
     'message' => 'Mensagem',
     'send_message' => 'Enviar mensagem',
     'message_sent' => 'Mensagem enviada',
     'business_hours' => 'Horário de atendimento',
-    'business_schedule' => 'Segunda a domingo, das 7h30 às 19h30.',
+    'business_schedule' => 'Segunda a domingo, das 7h30 às 19h30',
 
-    // 17. ERRORS
+    // 17. ERROS
     'access_denied' => 'Acesso negado',
 
-    // 18. CART LOGIN MODAL
+    // 18. MODAL DE LOGIN DO CARRINHO
     'login' => 'Entrar',
     'view_cart' => 'Ver carrinho',
-    'login_required_title' => 'Você precisa fazer login',
-    'login_required_text' => 'Para adicionar ao carrinho, você deve fazer login.',
-    'login_required_text_confirm' => 'Para adicionar ao carrinho, você deve fazer login. Ir para login?',
+    'login_required_title' => 'É necessário entrar',
+    'login_required_text' => 'Para adicionar ao carrinho você precisa entrar.',
+    'login_required_text_confirm' => 'Para adicionar ao carrinho você precisa entrar. Ir para a tela de login?',
     'pax' => 'pax',
     'remove_item_title' => 'Remover do carrinho',
     'remove_item_text' => 'Deseja remover este passeio do carrinho?',
     'success' => 'Sucesso',
     'error' => 'Erro',
     'validation_error' => 'Dados incompletos',
-    'editItem'          => 'Editar item',
-    // Removed duplicate keys: date, schedule, language, adults, kids, hotel, status, active, cancel, update
-    'scheduleHelp'      => 'Se o passeio não exigir horário, deixe em branco.',
-    'customHotel'       => 'Hotel personalizado…',
-    'otherHotel'        => 'Usar hotel personalizado',
-    'customHotelName'   => 'Nome do hotel personalizado',
-    'customHotelHelp'   => 'Se você inserir um hotel personalizado, a seleção da lista será ignorada.',
-    'inactive'          => 'Inativo',
-    'close'             => 'Fechar',
-    'notSpecified'     => 'Não especificado',
+    'editItem' => 'Editar item',
+    'scheduleHelp' => 'Se o passeio não exigir horário, deixe em branco.',
+    'customHotel' => 'Hotel personalizado…',
+    'otherHotel' => 'Usar hotel personalizado',
+    'customHotelName' => 'Nome do hotel personalizado',
+    'customHotelHelp' => 'Se você informar um hotel personalizado, a seleção da lista será ignorada.',
+    'inactive' => 'Inativo',
+    'notSpecified' => 'Não especificado',
     'saving' => 'Salvando…',
 
-    // 19. SWEETALERTS (ACTIONS)
+    // 19. SWEETALERTS (AÇÕES)
     'confirmReservationTitle' => 'Tem certeza?',
     'confirmReservationText' => 'Sua reserva será confirmada',
     'confirmReservationConfirm' => 'Sim, confirmar',
     'confirmReservationCancel' => 'Cancelar',
 
-    // 20. SUCCESSES (USED IN CONTROLLERS)
+    // 20. SUCESSOS (EM CONTROLLERS)
     'edit_profile_of' => 'Editar perfil',
     'profile_information' => 'Informações do perfil',
     'new_password_optional' => 'Nova senha (opcional)',
@@ -365,8 +380,8 @@ return [
     'children' => 'Crianças',
     'not_specified' => 'Não especificado',
     'status_pending' => 'Pendente',
-    'status_confirmed' => 'Confirmado',
-    'status_cancelled' => 'Cancelado',
+    'status_confirmed' => 'Confirmada',
+    'status_cancelled' => 'Cancelada',
     'status_unknown' => 'Desconhecido',
 
     'view_receipt' => 'Ver recibo',
@@ -382,69 +397,102 @@ return [
     'open_tour_confirm'  => 'Ir agora',
     'open_tour_cancel'   => 'Cancelar',
 
-    // Successes (used in controllers)
+    // Sucessos (em controllers)
     'show_password' => 'Mostrar senha',
-    'user_registered_successfully'   => 'Usuário registrado com sucesso.',
+    'user_registered_successfully'   => 'Usuário cadastrado com sucesso.',
     'user_updated_successfully'      => 'Usuário atualizado com sucesso.',
     'user_reactivated_successfully'  => 'Usuário reativado com sucesso.',
     'user_deactivated_successfully'  => 'Usuário desativado com sucesso.',
     'profile_updated_successfully'   => 'Perfil atualizado com sucesso.',
-    'user_unlocked_successfully' => 'Sua conta foi desbloqueada. Agora você pode fazer login.',
+    'user_unlocked_successfully' => 'Sua conta foi desbloqueada. Você já pode entrar.',
     'user_locked_successfully' => 'Usuário bloqueado com sucesso.',
-    'auth_required_title' => 'Você deve fazer login para reservar',
-    'auth_required_body'  => 'Faça login ou registre-se para iniciar sua compra. Os campos estão bloqueados até o login.',
+    'auth_required_title' => 'Você precisa entrar para reservar',
+    'auth_required_body'  => 'Entre ou cadastre-se para iniciar sua compra. Os campos ficam bloqueados até você entrar.',
     'login_now'           => 'Entrar',
-    'back_to_login'      => 'Voltar para login',
+    'back_to_login'       => 'Voltar para entrar',
 
-    // 21. MAIL
+    // 21. E-MAIL
     'mail' => [
-        'trouble_clicking' => 'Se você estiver com problemas para clicar no botão ":actionText", copie e cole a URL abaixo no seu navegador',
+        'trouble_clicking' => 'Se você tiver problemas para clicar no botão ":actionText", copie e cole a URL abaixo no seu navegador',
     ],
 
-    // 22. DASHBOARD
+    // 22. PAINEL
     'dashboard' => [
         'title'      => 'Painel',
-        'greeting'   => 'Olá :name! 👋',
+        'greeting'   => 'Olá, :name! 👋',
         'welcome_to' => 'Bem-vindo ao painel administrativo do :app.',
         'hint'       => 'Use o menu lateral para começar a gerenciar o conteúdo.',
     ],
 
-    // 23. ENTITIES
+    // 23. ENTIDADES
     'entities' => [
         'users'        => 'Usuários',
         'tours'        => 'Passeios',
         'tour_types'   => 'Tipos de passeio',
         'languages'    => 'Idiomas',
         'schedules'    => 'Horários',
-        'amenities'    => 'Comodidades',
+        'amenities'    => 'Serviços',
         'bookings'     => 'Reservas',
-        'total_bookings'=> 'Total de reservas',
+        'total_bookings'=> 'Reservas totais',
         'itineraries'  => 'Roteiros',
         'items'        => 'Itens',
     ],
 
-    // 24. SECTIONS
+    // 24. SEÇÕES
     'sections' => [
         'available_itineraries' => 'Roteiros disponíveis',
         'upcoming_bookings'     => 'Próximas reservas',
     ],
 
-    // 25. EMPTY STATES
+    // 25. ESTADOS VAZIOS
     'empty' => [
         'itinerary_items'   => 'Este roteiro ainda não possui itens.',
         'itineraries'       => 'Nenhum roteiro encontrado.',
-        'upcoming_bookings' => 'Nenhuma reserva futura.',
+        'upcoming_bookings' => 'Não há próximas reservas.',
     ],
 
-    // 26. BUTTONS (GENERIC)
+    // 26. BOTÕES (GENÉRICOS)
     'buttons' => [
-        'view' => 'Visualizar',
+        'view' => 'Ver',
     ],
 
-    // 27. LABELS
+    'persons' => [
+        'count' => '{0} 0 pessoas|{1} 1 pessoa|[2,*] :count pessoas',
+        'title'            => 'Pessoas',
+        'pax'              => 'PAX',
+        'adults'           => 'Adultos',
+        'kids'             => 'Crianças',
+        'seniors'          => 'Idosos',
+        'infants'          => 'Bebês',
+        'students'         => 'Estudantes',
+        'guides'           => 'Guias',
+        'drivers'          => 'Motoristas',
+        'free'             => 'Grátis',
+        'other'            => 'Outros',
+        'category'         => 'Categoria',
+        'categories'       => 'Categorias',
+        'quantity'         => 'Quantidade',
+        'min'              => 'Mín',
+        'max'              => 'Máx',
+        'per_person'       => 'por pessoa',
+        'price'            => 'Preço',
+        'subtotal'         => 'Subtotal',
+        'total'            => 'Total',
+        'add_category'     => 'Adicionar categoria',
+        'remove_category'  => 'Remover',
+        'select_category'  => 'Selecione uma categoria',
+        'required'         => 'Obrigatório',
+        'optional'         => 'Opcional',
+        'min_required'     => 'Mínimo obrigatório: :min',
+        'max_allowed'      => 'Máximo permitido: :max',
+        'invalid_quantity' => 'Quantidade inválida para ":category".',
+    ],
+
+    // 27. RÓTULOS
     'labels' => [
         'reference' => 'Referência',
         'date'      => 'Data',
     ],
-'pickup' => 'Local de coleta'
+    'pickup'      => 'Local de traslado',
+
 ];

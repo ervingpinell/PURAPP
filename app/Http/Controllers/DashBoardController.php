@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Amenity;
 use App\Models\Booking;
+use App\Models\BookingDetail;
 use App\Models\Itinerary;
 use App\Models\ItineraryItem;
 use App\Models\Role;
@@ -12,12 +13,12 @@ use App\Models\Tour;
 use App\Models\TourLanguage;
 use App\Models\TourType;
 use App\Models\User;
+use App\Services\Bookings\BookingCapacityService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class DashBoardController extends Controller
 {
@@ -78,7 +79,7 @@ class DashBoardController extends Controller
         return redirect()->to('/' . $prefix . $pathNoLocale . $query);
     }
 
-    public function dashboard(): View|RedirectResponse
+    public function dashboard(BookingCapacityService $capacity): View|RedirectResponse
     {
         $user = Auth::user();
         if (!$user || !in_array($user->role_id, [1, 2], true)) {
@@ -87,7 +88,7 @@ class DashBoardController extends Controller
                 ->with('error', __('adminlte::adminlte.access_denied'));
         }
 
-        // Métricas
+        // ===== Métricas básicas =====
         $totalUsers          = User::count();
         $totalTours          = Tour::count();
         $totalRoles          = Role::count();
@@ -110,54 +111,93 @@ class DashBoardController extends Controller
             ->orderBy('booking_date')
             ->get();
 
-        // ========= Alertas de capacidad por FECHA (respetando overrides) =========
+        // ===== Alertas de capacidad (próximos 30 días) =====
         $start = Carbon::now($tz)->toDateString();
         $end   = Carbon::now($tz)->addDays(30)->toDateString();
 
-        // Sumatoria por (schedule_id, fecha) y capacidad efectiva (override o base)
-        $rows = DB::table('booking_details as d')
-            ->join('bookings as b', 'b.booking_id', '=', 'd.booking_id')
-            ->join('schedules as s', 's.schedule_id', '=', 'd.schedule_id')
-            ->leftJoin('tours as t', 't.tour_id', '=', 'd.tour_id')
-            ->leftJoin('schedule_capacity_overrides as o', function ($j) {
-                $j->on('o.schedule_id', '=', 'd.schedule_id')
-                  ->on(DB::raw('o.date'), '=', DB::raw('DATE(d.tour_date)'));
-            })
-            ->whereDate('d.tour_date', '>=', $start)
-            ->whereDate('d.tour_date', '<=', $end)
-            ->whereIn('b.status', ['confirmed', 'paid'])
-            ->groupBy('d.schedule_id', DB::raw('DATE(d.tour_date)'), 't.name', 's.max_capacity', 'o.max_capacity')
-            ->select([
-                'd.schedule_id',
-                DB::raw('DATE(d.tour_date) as date'),
-                't.name as tour',
-                DB::raw('SUM(COALESCE(d.adults_quantity,0)+COALESCE(d.kids_quantity,0)) as used'),
-                DB::raw('COALESCE(o.max_capacity, s.max_capacity) as eff_max'),
+        // Traemos detalles necesarios y SUMAMOS pax por (tour_id, schedule_id, date) desde JSON categories
+        $details = BookingDetail::with([
+                'booking:id,status',
+                'tour:tour_id,name',
+                'schedule:schedule_id,start_time',
             ])
-            ->get();
+            ->whereHas('booking', fn ($q) => $q->whereIn('status', ['confirmed', 'paid']))
+            ->whereDate('tour_date', '>=', $start)
+            ->whereDate('tour_date', '<=', $end)
+            ->get(['booking_id','tour_id','schedule_id','tour_date','categories']);
 
-        $alerts = $rows->map(function ($r) {
-            $max = (int) $r->eff_max;
-            $used = (int) $r->used;
-            $remaining = max(0, $max - $used);
+        // Pre-caches de Tour y Schedule para evitar N+1 al usar el service
+        $tourCache = Tour::whereIn('tour_id', $details->pluck('tour_id')->unique())->get()->keyBy('tour_id');
+        $scheduleCache = Schedule::whereIn('schedule_id', $details->pluck('schedule_id')->unique())->get()->keyBy('schedule_id');
+
+        // Agrupación por llave (tour|schedule|date) y suma de pax (categories JSON)
+        $buckets = [];
+        foreach ($details as $d) {
+            $date = Carbon::parse($d->tour_date, $tz)->toDateString();
+            $key  = $d->tour_id.'|'.$d->schedule_id.'|'.$date;
+
+            if (!isset($buckets[$key])) {
+                $buckets[$key] = [
+                    'tour_id'     => (int) $d->tour_id,
+                    'schedule_id' => (int) $d->schedule_id,
+                    'date'        => $date,
+                    'tour_name'   => optional($d->tour)->name ?? '—',
+                    'used'        => 0,
+                ];
+            }
+
+            // Sumar categorías del JSON
+            $cats = $d->categories;
+            if (is_string($cats)) { $cats = json_decode($cats, true); }
+            if (is_array($cats)) {
+                foreach ($cats as $cat) {
+                    $buckets[$key]['used'] += (int) ($cat['quantity'] ?? 0);
+                }
+            }
+        }
+
+        // Construir alertas consultando la CAPACIDAD EFECTIVA con el Service (overrides, pivot y tour)
+        $alerts = collect();
+        foreach ($buckets as $g) {
+            $tour     = $tourCache->get($g['tour_id']);
+            $schedule = $scheduleCache->get($g['schedule_id']);
+            if (!$tour || !$schedule) {
+                // si algo falta, lo ignoramos para no romper el dashboard
+                continue;
+            }
+
+            // Snapshot con lógica centralizada (bloqueos, overrides, pivot, tour)
+            $snap = $capacity->capacitySnapshot($tour, $schedule, $g['date']);
+            // Usamos nuestro 'used' (confirmados) + retenidos (held) del snapshot
+            $used = (int) $g['used'];
+            $max  = (int) $snap['max'];
+
+            // Si está bloqueado, toda la disponibilidad es 0
+            $remaining = $snap['blocked'] ? 0 : max(0, $max - $used - (int) $snap['held']);
             $pct = $max > 0 ? (int) floor(($used * 100) / $max) : 0;
 
             $type = $remaining === 0
                 ? 'sold_out'
                 : (($remaining <= 3 || $pct >= 80) ? 'near_capacity' : 'info');
 
-            return [
-                'key'         => (string) ($r->schedule_id . '-' . $r->date), // clave única p/ cache local
-                'schedule_id' => (int) $r->schedule_id,
-                'date'        => (string) $r->date,
-                'tour'        => $r->tour ?? '—',
+            $alerts->push([
+                'key'         => (string) ($g['schedule_id'].'-'.$g['date']),
+                'schedule_id' => (int) $g['schedule_id'],
+                'date'        => (string) $g['date'],
+                'tour'        => (string) $g['tour_name'],
                 'used'        => $used,
                 'max'         => $max,
                 'remaining'   => $remaining,
                 'pct'         => $pct,
                 'type'        => $type,
-            ];
-        })->sortBy(['date','tour'])->values();
+            ]);
+        }
+
+        // Orden por fecha y nombre de tour
+        $alerts = $alerts->sortBy([
+            ['date', 'asc'],
+            ['tour', 'asc'],
+        ])->values();
 
         $criticalCount = $alerts->whereIn('type', ['near_capacity','sold_out'])->count();
 

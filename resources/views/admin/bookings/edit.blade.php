@@ -4,13 +4,29 @@
 @section('title', __('m_bookings.bookings.ui.edit_booking'))
 
 @php
-    // ======= Precarga de PROMO desde la redención real (si existe) =======
-    $redemption     = $booking->redemption;                 // hasOne con ->promoCode()
-    $promoModel     = optional($redemption)->promoCode;     // modelo PromoCode (puede ser null)
+    // ===== Precarga PROMO desde redención real (si existe) =====
+    $redemption     = $booking->redemption;
+    $promoModel     = optional($redemption)->promoCode;
     $initPromoCode  = old('promo_code', $promoModel->code ?? '');
     $initOp         = old('promo_operation', $redemption->operation_snapshot ?? ($promoModel->operation ?? ''));
     $initAmount     = (float) old('promo_amount',  $redemption->applied_amount ?? ($promoModel->discount_amount ?? 0));
     $initPercent    = old('promo_percent', $redemption->percent_snapshot ?? ($promoModel->discount_percent ?? ''));
+
+    // ===== Precarga DETALLES (categorías ya guardadas en la reserva) =====
+    // Booking->details: se asume tiene customer_category_id, quantity, unit_price
+    $details = collect($booking->details ?? []);
+    $qtyByCat = $details
+        ->groupBy('customer_category_id')
+        ->map(fn($rows) => (int) $rows->sum('quantity'));
+
+    $priceByCat = $details
+        ->groupBy('customer_category_id')
+        ->map(fn($rows) => (float) ($rows->first()->unit_price ?? 0));
+
+    // Si tu controlador ya envía $categoryQuantitiesById / $initialCategories, esto lo complementa
+    $categoryQuantitiesById = $categoryQuantitiesById ?? $qtyByCat;
+    // Opcional: $initialCategories puede venir del controlador con: id,name,price,min,max,is_active
+    $initialCategories = $initialCategories ?? [];
 @endphp
 
 @section('content_header')
@@ -90,7 +106,7 @@
                         </div>
 
                         <div class="row">
-                            {{-- Date --}}
+                            {{-- Date (permitimos editar fechas pasadas si así lo decides en el validador) --}}
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
                                     <label for="tour_date">{{ __('m_bookings.bookings.fields.tour_date') }} *</label>
@@ -100,20 +116,20 @@
                                         id="tour_date"
                                         class="form-control"
                                         value="{{ old('tour_date', optional($booking->detail?->tour_date ?? $booking->tour_date)->toDateString()) }}"
-                                        min="{{ now()->toDateString() }}"
                                         required
                                     >
                                 </div>
                             </div>
 
-                            {{-- Schedule --}}
+                            {{-- Schedule (desde detalle) --}}
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
                                     <label for="schedule_id">{{ __('m_bookings.bookings.fields.schedule') }} *</label>
-                                    <select name="schedule_id" id="schedule_id" class="form-control" required disabled>
+                                    <select name="schedule_id" id="schedule_id" class="form-control"
+                                            required {{ old('schedule_id', optional($booking->detail)->schedule_id) ? '' : 'disabled' }}>
                                         @php
-                                            $initialScheduleId = old('schedule_id', $booking->schedule_id);
-                                            $initialSchedule   = optional($booking->detail)->schedule; // si lo tienes cargado
+                                            $initialScheduleId = old('schedule_id', optional($booking->detail)->schedule_id);
+                        $initialSchedule   = optional($booking->detail)->schedule;
                                         @endphp
                                         @if($initialScheduleId)
                                             <option value="{{ $initialScheduleId }}" selected>
@@ -129,10 +145,11 @@
                             </div>
                         </div>
 
-                        {{-- Language --}}
+                        {{-- Language (si usas el de cabecera, se mantiene) --}}
                         <div class="form-group">
                             <label for="tour_language_id">{{ __('m_bookings.bookings.fields.language') }} *</label>
-                            <select name="tour_language_id" id="tour_language_id" class="form-control" required disabled>
+                            <select name="tour_language_id" id="tour_language_id" class="form-control"
+                                    required {{ old('tour_language_id', $booking->tour_language_id) ? '' : 'disabled' }}>
                                 @php
                                     $initialLangId = old('tour_language_id', $booking->tour_language_id);
                                 @endphp
@@ -155,11 +172,11 @@
                                             <option value="">-- {{ __('m_bookings.bookings.ui.select_option') }} --</option>
                                             @foreach($hotels as $hotel)
                                                 <option value="{{ $hotel->hotel_id }}"
-                                                    {{ old('hotel_id', $booking->hotel_id) == $hotel->hotel_id ? 'selected' : '' }}>
+                                                    {{ old('hotel_id', optional($booking->detail)->hotel_id) == $hotel->hotel_id ? 'selected' : '' }}>
                                                     {{ $hotel->name }}
                                                 </option>
                                             @endforeach
-                                            <option value="other" {{ old('is_other_hotel', $booking->is_other_hotel) ? 'selected' : '' }}>
+                                            <option value="other" {{ old('is_other_hotel', optional($booking->detail)->is_other_hotel) ? 'selected' : '' }}>
                                                 {{ __('m_bookings.bookings.ui.other_hotel') }}
                                             </option>
                                         </select>
@@ -169,9 +186,9 @@
                                         <label for="other_hotel_name">{{ __('m_bookings.bookings.fields.hotel_name') }}</label>
                                         <input type="text" name="other_hotel_name" id="other_hotel_name"
                                                class="form-control"
-                                               value="{{ old('other_hotel_name', $booking->other_hotel_name) }}">
+                                               value="{{ old('other_hotel_name', optional($booking->detail)->other_hotel_name) }}">
                                         <input type="hidden" name="is_other_hotel" id="is_other_hotel"
-                                               value="{{ old('is_other_hotel', $booking->is_other_hotel ? 1 : 0) }}">
+                                               value="{{ old('is_other_hotel', optional($booking->detail)->is_other_hotel ? 1 : 0) }}">
                                     </div>
                                 </div>
 
@@ -189,7 +206,7 @@
                                             <option value="">-- {{ __('m_bookings.bookings.ui.select_option') }} --</option>
                                             @foreach($meetingPoints as $mp)
                                                 <option value="{{ $mp->id }}"
-                                                    {{ old('meeting_point_id', $booking->meeting_point_id) == $mp->id ? 'selected' : '' }}>
+                                                    {{ old('meeting_point_id', optional($booking->detail)->meeting_point_id) == $mp->id ? 'selected' : '' }}>
                                                     {{ $mp->name }}
                                                 </option>
                                             @endforeach
@@ -284,9 +301,9 @@
                                 <span id="discount-amount">-$0.00</span>
                             </div>
                             <hr class="my-2">
-                            <div class="d-flex justify-content-between mb-2">
-                                <strong>{{ __('m_bookings.bookings.fields.total_persons') }}:</strong>
-                                <span id="total-persons" class="badge bg-info">0</span>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong class="mb-0">{{ __('m_bookings.bookings.fields.total_persons') }}:</strong>
+                                <div id="total-persons" class="fw-bold fs-5">0</div>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <strong>{{ __('m_bookings.bookings.fields.total') }}:</strong>
@@ -317,17 +334,19 @@
 $(function() {
     $('.select2').select2({ theme: 'bootstrap4', width: '100%' });
 
-    // ====== Endpoints (mismos que create) ======
+    // ===== Endpoints =====
     const apiBase = '/api/v1';
     const epSchedules  = tourId => `${apiBase}/tours/${tourId}/schedules`;
     const epLanguages  = tourId => `${apiBase}/tours/${tourId}/languages`;
     const epCategories = tourId => `${apiBase}/tours/${tourId}/categories`;
     const epVerify     =        `${apiBase}/bookings/verify-promo-code`;
 
-    // Cantidades iniciales por categoría (inyectadas desde el controlador)
-    window.INIT_QTYS = @json($categoryQuantitiesById ?? []); // { "1": 2, "3": 1 }
+    // ===== Precarga desde servidor =====
+    window.INIT_QTYS       = @json($categoryQuantitiesById ?? []);
+    window.INIT_PRICES     = @json($priceByCat ?? []);
+    window.INIT_CATEGORIES = @json($initialCategories); // opcional: [{id,name,price,min,max,is_active}, ...]
 
-    // Estado promo inicial (desde snapshots/redención)
+    // ===== PROMO inicial =====
     window.INIT_PROMO = {
         code:     @json($initPromoCode),
         operation:@json($initOp),
@@ -349,13 +368,16 @@ $(function() {
     }
 
     // ---------- Loaders ----------
-    function loadSchedules(tourId, preselect = '{{ old('schedule_id', $booking->schedule_id) }}') {
+    function loadSchedules(tourId, preselect = '{{ old('schedule_id', optional($booking->detail)->schedule_id) }}') {
         const $sel = $('#schedule_id');
         resetSelect($sel, @json(__('m_bookings.bookings.ui.loading')), true);
         $.get(epSchedules(tourId))
             .done(list => {
                 if (!Array.isArray(list) || !list.length) {
-                    resetSelect($sel, @json(__('m_bookings.bookings.ui.no_results')), true);
+                    // Si no hay lista, mantenemos la opción actual (si existe)
+                    const cur = '{{ old('schedule_id', optional($booking->detail)->schedule_id) }}';
+                    if (cur) $sel.prop('disabled', false);
+                    else resetSelect($sel, @json(__('m_bookings.bookings.ui.no_results')), true);
                     return;
                 }
                 let html = `<option value="">${@json(__('m_bookings.bookings.ui.select_option'))}</option>`;
@@ -374,7 +396,9 @@ $(function() {
         $.get(epLanguages(tourId))
             .done(list => {
                 if (!Array.isArray(list) || !list.length) {
-                    resetSelect($sel, @json(__('m_bookings.bookings.ui.no_results')), true);
+                    const cur = '{{ old('tour_language_id', $booking->tour_language_id) }}';
+                    if (cur) $sel.prop('disabled', false);
+                    else resetSelect($sel, @json(__('m_bookings.bookings.ui.no_results')), true);
                     return;
                 }
                 let html = `<option value="">${@json(__('m_bookings.bookings.ui.select_option'))}</option>`;
@@ -387,6 +411,80 @@ $(function() {
             .fail(() => resetSelect($sel, @json(__('m_bookings.bookings.ui.error_loading')), true));
     }
 
+    function bootstrapCategoriesFromInit() {
+        const $c = $('#categories-container');
+        const qtys   = window.INIT_QTYS || {};
+        const prices = window.INIT_PRICES || {};
+        const inits  = window.INIT_CATEGORIES || [];
+
+        // Si vienen categorías completas del servidor, úsalas
+        let catList = Array.isArray(inits) && inits.length
+            ? inits.filter(c => c.is_active ?? true)
+            : // si no, arma una mínima a partir de ids en qty/price
+              Object.keys({...qtys, ...prices}).map(id => ({
+                  id: id,
+                  name: `Category #${id}`,
+                  price: Number(prices[id] || 0),
+                  min: 0,
+                  max: 99,
+                  is_active: true
+              }));
+
+        if (!catList.length) {
+            $c.html(
+              `<div class="alert alert-warning mb-0">
+                 {{ __('m_bookings.bookings.ui.tour_without_categories') }}
+               </div>`
+            );
+            currentCategories = [];
+            updateTotals();
+            initPromoFromBooking();
+            return;
+        }
+
+        currentCategories = catList;
+        let html = '';
+        catList.forEach(cat => {
+            const min = parseInt(cat.min ?? 0);
+            const max = parseInt(cat.max ?? 99);
+            const existing = parseInt((qtys || {})[String(cat.id)]);
+            const start = Number.isFinite(existing) ? existing : Math.max(min, 0);
+            const clamped = Math.max(min, Math.min(max, start));
+            const price = Number(cat.price ?? prices[String(cat.id)] ?? 0);
+
+            html += `
+              <div class="category-row mb-3 p-2 border rounded">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <strong>${cat.name}</strong>
+                  <span class="text-muted small">${fmtMoney(price)}</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                  <button type="button" class="btn btn-sm btn-secondary category-minus" data-category-id="${cat.id}">
+                    <i class="fas fa-minus"></i>
+                  </button>
+                  <input type="number"
+                         name="categories[${cat.id}]"
+                         class="form-control form-control-sm text-center category-input mx-2"
+                         data-category-id="${cat.id}"
+                         data-price="${price}"
+                         min="${min}"
+                         max="${max}"
+                         value="${clamped}"
+                         style="width: 72px;">
+                  <button type="button" class="btn btn-sm btn-secondary category-plus" data-category-id="${cat.id}">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+                <small class="text-muted d-block mt-1">Min: ${min}, Max: ${max}</small>
+              </div>`;
+        });
+
+        $c.html(html);
+        attachCategoryHandlers();
+        updateTotals();
+        initPromoFromBooking();
+    }
+
     function loadCategories(tourId) {
         const $c = $('#categories-container');
         $c.html(
@@ -397,23 +495,19 @@ $(function() {
 
         $.get(epCategories(tourId))
             .done(list => {
-                currentCategories = (list || []).filter(c => c.is_active);
-                if (!currentCategories.length) {
-                    $c.html(
-                      `<div class="alert alert-warning mb-0">
-                          {{ __('m_bookings.bookings.ui.tour_without_categories') }}
-                       </div>`
-                    );
-                    updateTotals();
-                    initPromoFromBooking(); // muestra estado si hubiera uno aplicado
+                const arr = (list || []).filter(c => c.is_active);
+                if (!arr.length) {
+                    // Si el API no trae nada, intenta bootstrap desde INIT
+                    bootstrapCategoriesFromInit();
                     return;
                 }
-
+                currentCategories = arr;
                 let html = '';
-                currentCategories.forEach(cat => {
+                const qtys   = window.INIT_QTYS || {};
+                arr.forEach(cat => {
                     const min = parseInt(cat.min);
                     const max = parseInt(cat.max);
-                    const existing = parseInt((window.INIT_QTYS || {})[String(cat.id)]);
+                    const existing = parseInt((qtys || {})[String(cat.id)]);
                     const start = Number.isFinite(existing) ? existing : min;
                     const clamped = Math.max(min, Math.min(max, start));
 
@@ -450,14 +544,8 @@ $(function() {
                 initPromoFromBooking();
             })
             .fail(() => {
-                $c.html(
-                  `<div class="alert alert-danger mb-0">
-                      {{ __('m_bookings.bookings.ui.error_loading') }}
-                   </div>`
-                );
-                currentCategories = [];
-                updateTotals();
-                initPromoFromBooking();
+                // Fallback total si el API falla
+                bootstrapCategoriesFromInit();
             });
     }
 
@@ -521,7 +609,7 @@ $(function() {
         $('#total-price').text(fmtMoney(Math.max(total, 0)));
     }
 
-    // ===== PROMO TOGGLE (igual a create) =====
+    // ===== PROMO TOGGLE =====
     const APPLY_LABEL  = @json(__('m_bookings.bookings.buttons.apply'));
     const REMOVE_LABEL = @json(__('m_bookings.bookings.buttons.delete') ?? 'Quitar');
 
@@ -699,7 +787,10 @@ $(function() {
     });
 
     // ---------- Inicialización ----------
-    if ($('#hotel_id').val() === 'other') { $('#other_hotel_wrapper').show(); }
+    if ($('#hotel_id').val() === 'other' || '{{ old('is_other_hotel', optional($booking->detail)->is_other_hotel) ? 1 : 0 }}' === '1') {
+        $('#other_hotel_wrapper').show();
+        $('#is_other_hotel').val('1');
+    }
 
     (function initState(){
         const hasMP = ($('#meeting_point_id').val() || '') !== '';
@@ -720,8 +811,12 @@ $(function() {
     const initialTourId = '{{ old('tour_id', $booking->tour_id) }}';
     if (initialTourId) {
         $('#tour_id').val(initialTourId).trigger('change.select2');
-        loadSchedules(initialTourId, '{{ old('schedule_id', $booking->schedule_id) }}');
+        loadSchedules(initialTourId, '{{ old('schedule_id', optional($booking->detail)->schedule_id) }}');
         loadLanguages(initialTourId, '{{ old('tour_language_id', $booking->tour_language_id) }}');
+
+        // 1) Render inmediato con datos de la reserva
+        bootstrapCategoriesFromInit();
+        // 2) Intentar refrescar con datos live del tour (min/max/activos/precio actual)
         loadCategories(initialTourId);
     }
 

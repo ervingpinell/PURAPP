@@ -301,260 +301,295 @@ return [
     | https://github.com/jeroennoten/Laravel-AdminLTE/wiki/Menu-Configuration
     |
     */
-
-   'menu' => [
+'menu' => [
 
     // Widgets de la barra superior
-    ['type' => 'navbar-search', 'text' => 'search', 'topnav_right' => false],
-    ['type' => 'fullscreen-widget', 'topnav_right' => true],
+    ['type' => 'navbar-search',       'text' => 'menu.nav_search',    'topnav_right' => false, 'trans' => true],
+    ['type' => 'fullscreen-widget',                                        'topnav_right' => true],
 
     // Buscador del sidebar
-    ['type' => 'sidebar-menu-search', 'text' => 'Buscar...'],
+    ['type' => 'sidebar-menu-search', 'text' => 'menu.sidebar_search',                          'trans' => true],
 
     // Acceso rápido
     [
-        'text' => 'Inicio',
+        'text'  => 'menu.home',
         'route' => 'admin.home',
-        'icon' => 'fas fa-fw fa-home'
+        'icon'  => 'fas fa-fw fa-home',
+        'trans' => true,
     ],
-        // ✅ RESERVAS
+
+    // ✅ RESERVAS
     [
-        'text'    => 'Reservas',
+        'text'    => 'menu.bookings',
         'icon'    => 'fas fa-calendar-check',
+        'trans'   => true,
         'submenu' => [
             [
-                'text' => 'Ver Reservas',
+                'text'  => 'menu.bookings_list',
                 'route' => 'admin.bookings.index',
                 'icon'  => 'fas fa-calendar-check',
+                'trans' => true,
             ],
             // [
-            //     'text' => 'Calendario',
+            //     'text'  => 'menu.bookings_calendar',
             //     'route' => 'admin.bookings.calendar',
             //     'icon'  => 'fas fa-calendar-alt',
+            //     'trans' => true,
             // ],
             [
-                'text'  => 'Bloquear Fechas',
+                'text'  => 'menu.blocked_dates',
                 'route' => 'admin.tours.excluded_dates.index',
-                'icon' => 'fas fa-ban',
+                'icon'  => 'fas fa-ban',
+                'trans' => true,
             ],
-                        [
-                'text'  => 'Cut-Off',
+            [
+                'text'  => 'menu.cutoff',
                 'route' => 'admin.tours.cutoff.edit',
                 'icon'  => 'fas fa-clock',
+                'trans' => true,
             ],
-
             [
-                'text'  => 'Disponibilidad y Capacidad',
+                'text'  => 'menu.capacity',
                 'route' => 'admin.tours.capacity.index',
-                'icon' => 'fas fa-calendar-alt',
+                'icon'  => 'fas fa-calendar-alt',
+                'trans' => true,
             ],
         ],
     ],
 
     // ✅ CARRITOS
     [
-        'text'    => 'Carritos',
+        'text'    => 'menu.carts',
         'icon'    => 'fas fa-shopping-cart',
+        'trans'   => true,
         'submenu' => [
             [
-                'text' => 'Mi Carrito',
+                'text'  => 'menu.my_cart',
                 'route' => 'admin.carts.index',
                 'icon'  => 'fas fa-shopping-cart',
+                'trans' => true,
             ],
             [
-                'text' => 'Carritos Activos',
+                'text'  => 'menu.active_carts',
                 'route' => 'admin.carts.all',
                 'icon'  => 'fas fa-list',
+                'trans' => true,
             ],
         ],
     ],
 
     // ✅ CONFIGURACIÓN
     [
-        'text'    => 'Configuración',
+        'text'    => 'menu.settings',
         'icon'    => 'fas fa-cogs',
+        'trans'   => true,
         'submenu' => [
             [
-                'text' => 'FAQ',
+                'text'  => 'menu.faq',
                 'route' => 'admin.faqs.index',
-                'icon' => 'fas fa-question-circle',
+                'icon'  => 'fas fa-question-circle',
+                'trans' => true,
             ],
-                        [
-                'text' => 'Politicas',
+            [
+                'text'  => 'menu.policies',
                 'route' => 'admin.policies.index',
-                'icon' => 'fas fa-info-circle',
+                'icon'  => 'fas fa-info-circle',
+                'trans' => true,
             ],
             [
-                'text' => 'Generar Códigos Promocionales',
+                'text'  => 'menu.promo_codes',
                 'route' => 'admin.promoCodes.index',
-                'icon' => 'fas fa-tags',
+                'icon'  => 'fas fa-tags',
+                'trans' => true,
             ],
             [
-                'text' => 'Traducciones',
+                'text'  => 'menu.translations',
                 'route' => 'admin.translations.index',
-                'icon' => 'fas fa-language',
+                'icon'  => 'fas fa-language',
+                'trans' => true,
             ],
             [
-                'text' => 'Tipos de Tour',
+                'text'  => 'menu.tour_types',
                 'route' => 'admin.tourtypes.index',
-                'icon' => 'fas fa-tags',
+                'icon'  => 'fas fa-tags',
+                'trans' => true,
             ],
-
-                        [
-                'text' => 'Tipos de clientes',
+            [
+                'text'  => 'menu.customer_types',
                 'route' => 'admin.customer_categories.index',
-                'icon' => 'fas fa-tags',
+                'icon'  => 'fas fa-tags',
+                'trans' => true,
             ],
-
         ],
     ],
 
-    // ✅ HOTELES
+    // ✅ HOTELES / TRASLADOS
     [
-        'text'    => 'Pickups',
+        'text'    => 'menu.pickups',
         'icon'    => 'fas fa-hotel',
+        'trans'   => true,
         'submenu' => [
             [
-                'text' => 'Lista de Hoteles',
+                'text'  => 'menu.hotels_list',
                 'route' => 'admin.hotels.index',
                 'icon'  => 'fas fa-list',
+                'trans' => true,
             ],
-                        [
-                'text'  => 'Meeting Points',
+            [
+                'text'  => 'menu.meeting_points',
                 'route' => 'admin.meetingpoints.index',
                 'icon'  => 'fas fa-map-marker-alt',
+                'trans' => true,
             ],
         ],
     ],
 
     // ✅ TOURS
     [
-        'text'    => 'Tours',
+        'text'    => 'menu.tours',
         'icon'    => 'fas fa-map-marked-alt',
+        'trans'   => true,
         'submenu' => [
             [
-                'text'  => 'Amenidades',
+                'text'  => 'menu.amenities',
                 'route' => 'admin.tours.amenities.index',
                 'icon'  => 'fas fa-concierge-bell',
+                'trans' => true,
             ],
             [
-                'text'  => 'Horarios',
+                'text'  => 'menu.schedules',
                 'route' => 'admin.tours.schedule.index',
                 'icon'  => 'fas fa-calendar-alt',
+                'trans' => true,
             ],
             [
-                'text'  => 'Idiomas',
+                'text'  => 'menu.languages',
                 'route' => 'admin.languages.index',
                 'icon'  => 'fas fa-globe',
+                'trans' => true,
             ],
             [
-                'text'  => 'Itinerarios',
+                'text'  => 'menu.itineraries',
                 'route' => 'admin.tours.itinerary.index',
                 'icon'  => 'fas fa-route',
+                'trans' => true,
             ],
             [
-                'text'  => 'Todos los Tours',
+                'text'  => 'menu.all_tours',
                 'route' => 'admin.tours.index',
                 'icon'  => 'fas fa-map-marked-alt',
+                'trans' => true,
             ],
-
             [
-            'text'  => 'Ordenar Tours',
-            'route' => 'admin.tours.order.index',
-            'icon'  => 'fas fa-sort-amount-down',
-            // opcional si usas gates/roles:
-            // 'can'   => 'manage-tours',
+                'text'  => 'menu.order_tours',
+                'route' => 'admin.tours.order.index',
+                'icon'  => 'fas fa-sort-amount-down',
+                'trans' => true,
+            ],
         ],
-
-        ],
-
     ],
 
+    // ✅ IMÁGENES
     [
-         'text'    => 'Imagenes',
+        'text'    => 'menu.images',
         'icon'    => 'fas fa-camera',
+        'trans'   => true,
         'submenu' => [
-[
-                'text'  => 'Imágenes de Tours',
+            [
+                'text'  => 'menu.tour_images',
                 'route' => 'admin.tours.images.pick',
                 'icon'  => 'fas fa-images',
+                'trans' => true,
             ],
             [
-                'text'  => 'Covers de Categorías',
+                'text'  => 'menu.category_covers',
                 'route' => 'admin.types.images.pick',
                 'icon'  => 'fas fa-image',
+                'trans' => true,
             ],
+        ],
     ],
-],
 
     // ✅ USUARIOS
     [
-        'text'    => 'Usuarios',
+        'text'    => 'menu.users',
         'icon'    => 'fas fa-users-cog',
+        'trans'   => true,
         'submenu' => [
             [
-                'text' => 'Usuarios',
-                'route'=> 'admin.users.index',
-                'icon' => 'fas fa-user-cog',
-                'can'  => 'is-admin',
+                'text'  => 'menu.users_list',
+                'route' => 'admin.users.index',
+                'icon'  => 'fas fa-user-cog',
+                'can'   => 'is-admin',
+                'trans' => true,
             ],
             [
-                'text' => 'Roles',
-                'route'=> 'admin.roles.index',
-                'icon' => 'fas fa-user-shield',
-                'can'  => 'is-admin',
+                'text'  => 'menu.roles',
+                'route' => 'admin.roles.index',
+                'icon'  => 'fas fa-user-shield',
+                'can'   => 'is-admin',
+                'trans' => true,
             ],
         ],
     ],
-// ✅ RESEÑAS
-[
-    'text'    => 'Reseñas',
-    'icon'    => 'fas fa-star',
-    'can'     => 'manage-reviews',
-    'submenu' => [
-        [
-            'text'  => 'Todos los Reviews',
-            'route' => 'admin.reviews.index',
-            'icon'  => 'fas fa-star',
-        ],
 
-        [
-            'text'  => 'Proveedores',
-            'route' => 'admin.review-providers.index',
-            'icon'  => 'fas fa-plug',
-        ],
-        [
-            'text'  => 'Solicitar Reviews',
-            'route' => 'admin.review-requests.index',
-            'icon'  => 'fas fa-envelope-open-text',
-        ],
-    ],
-],
-
+    // ✅ RESEÑAS
+    [
+        'text'    => 'menu.reviews',
+        'icon'    => 'fas fa-star',
+        'can'     => 'manage-reviews',
+        'trans'   => true,
+        'submenu' => [
             [
-                'text' => 'Reportes',
-                'url'  => 'admin/reports',
-                'icon' => 'fas fa-chart-line',
+                'text'  => 'menu.all_reviews',
+                'route' => 'admin.reviews.index',
+                'icon'  => 'fas fa-star',
+                'trans' => true,
             ],
-
-                [
-        'text' => 'Mi Perfil',
-        'route'=> 'profile.edit',
-        'icon' => 'fas fa-fw fa-user',
+            [
+                'text'  => 'menu.providers',
+                'route' => 'admin.review-providers.index',
+                'icon'  => 'fas fa-plug',
+                'trans' => true,
+            ],
+            [
+                'text'  => 'menu.request_reviews',
+                'route' => 'admin.review-requests.index',
+                'icon'  => 'fas fa-envelope-open-text',
+                'trans' => true,
+            ],
+        ],
     ],
 
-[
-    'text'         => '🌐',
-    'icon'         => false,
-    'topnav_right' => true,
-    'submenu'      => [
-        [ 'text' => 'Español',   'route' => ['switch.language', ['language' => 'es']] ],
-        [ 'text' => 'English',   'route' => ['switch.language', ['language' => 'en']] ],
-        [ 'text' => 'Français',  'route' => ['switch.language', ['language' => 'fr']] ],
-        [ 'text' => 'Português', 'route' => ['switch.language', ['language' => 'pt']] ],
-        [ 'text' => 'Deutsch',   'route' => ['switch.language', ['language' => 'de']] ],
+    // ✅ REPORTES
+    [
+        'text'  => 'menu.reports',
+        'url'   => 'admin/reports',
+        'icon'  => 'fas fa-chart-line',
+        'trans' => true,
     ],
-],
+
+    // ✅ PERFIL
+    [
+        'text'  => 'menu.my_profile',
+        'route' => 'profile.edit',
+        'icon'  => 'fas fa-fw fa-user',
+        'trans' => true,
+    ],
+
+    // 🌐 Selector de idioma (texto literal; sin 'trans')
+    [
+        'text'         => '🌐',
+        'icon'         => false,
+        'topnav_right' => true,
+        'submenu'      => [
+            [ 'text' => 'Español',   'route' => ['switch.language', ['language' => 'es']] ],
+            [ 'text' => 'English',   'route' => ['switch.language', ['language' => 'en']] ],
+            [ 'text' => 'Français',  'route' => ['switch.language', ['language' => 'fr']] ],
+            [ 'text' => 'Português', 'route' => ['switch.language', ['language' => 'pt']] ],
+            [ 'text' => 'Deutsch',   'route' => ['switch.language', ['language' => 'de']] ],
+        ],
+    ],
 
 ],
 
@@ -579,6 +614,8 @@ return [
         JeroenNoten\LaravelAdminLte\Menu\Filters\ClassesFilter::class,
         JeroenNoten\LaravelAdminLte\Menu\Filters\LangFilter::class,
         JeroenNoten\LaravelAdminLte\Menu\Filters\DataFilter::class,
+        App\AdminLte\Filters\TranslateTextFilter::class,
+
     ],
 
     /*
