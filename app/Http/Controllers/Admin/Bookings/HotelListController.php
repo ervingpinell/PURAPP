@@ -44,9 +44,9 @@ class HotelListController extends Controller
                 ],
             ],
             [
-                'name.required' => __('hotels.validation.name_required'),
-                'name.unique'   => __('hotels.validation.name_unique'),
-                'name.max'      => __('hotels.validation.name_max'),
+                'name.required' => __('pickups.hotels.validation.name_required'),
+                'name.unique'   => __('pickups.hotels.validation.name_unique'),
+                'name.max'      => __('pickups.hotels.validation.name_max'),
             ]
         );
 
@@ -61,13 +61,13 @@ class HotelListController extends Controller
 
             return redirect()
                 ->route('admin.hotels.index')
-                ->with('success', __('hotels.created_success'));
+                ->with('success', __('pickups.hotels.created_success'));
         } catch (Exception $e) {
             Log::error('Hotel store error: '.$e->getMessage());
 
             return back()
                 ->withInput()
-                ->with('error', __('hotels.unexpected_error'));
+                ->with('error', __('pickups.hotels.unexpected_error'));
         }
     }
 
@@ -91,9 +91,9 @@ class HotelListController extends Controller
                 'is_active' => ['required','boolean'],
             ],
             [
-                'name.required' => __('hotels.validation.name_required'),
-                'name.unique'   => __('hotels.validation.name_unique'),
-                'name.max'      => __('hotels.validation.name_max'),
+                'name.required' => __('pickups.hotels.validation.name_required'),
+                'name.unique'   => __('pickups.hotels.validation.name_unique'),
+                'name.max'      => __('pickups.hotels.validation.name_max'),
             ]
         );
 
@@ -105,13 +105,13 @@ class HotelListController extends Controller
 
             return redirect()
                 ->route('admin.hotels.index')
-                ->with('success', __('hotels.updated_success'));
+                ->with('success', __('pickups.hotels.updated_success'));
         } catch (Exception $e) {
             Log::error('Hotel update error: '.$e->getMessage());
 
             return back()
                 ->withInput()
-                ->with('error', __('hotels.unexpected_error'));
+                ->with('error', __('pickups.hotels.unexpected_error'));
         }
     }
 
@@ -131,11 +131,11 @@ class HotelListController extends Controller
 
             return redirect()
                 ->route('admin.hotels.index')
-                ->with('success', __('hotels.sorted_success'));
+                ->with('success', __('pickups.hotels.sorted_success'));
         } catch (Exception $e) {
             Log::error('Hotel sort error: '.$e->getMessage());
 
-            return back()->with('error', __('hotels.unexpected_error'));
+            return back()->with('error', __('pickups.hotels.unexpected_error'));
         }
     }
 
@@ -149,8 +149,8 @@ class HotelListController extends Controller
             $hotel->save();
 
             $message = $hotel->is_active
-                ? __('hotels.activated_success')
-                : __('hotels.deactivated_success');
+                ? __('pickups.hotels.activated_success')
+                : __('pickups.hotels.deactivated_success');
 
             return redirect()
                 ->route('admin.hotels.index')
@@ -158,7 +158,7 @@ class HotelListController extends Controller
         } catch (Exception $e) {
             Log::error('Hotel toggle error: '.$e->getMessage());
 
-            return back()->with('error', __('hotels.unexpected_error'));
+            return back()->with('error', __('pickups.hotels.unexpected_error'));
         }
     }
 
@@ -172,11 +172,11 @@ class HotelListController extends Controller
 
             return redirect()
                 ->route('admin.hotels.index')
-                ->with('success', __('hotels.deleted_success'));
+                ->with('success', __('pickups.hotels.deleted_success'));
         } catch (Exception $e) {
             Log::error('Hotel destroy error: '.$e->getMessage());
 
-            return back()->with('error', __('hotels.unexpected_error'));
+            return back()->with('error', __('pickups.hotels.unexpected_error'));
         }
     }
 }

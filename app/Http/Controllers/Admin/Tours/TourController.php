@@ -85,15 +85,15 @@ class TourController extends Controller
             $base->where('is_active', true);
         }
 
-        $tours = $base->orderBy('tour_id')->get();
+    $tours = $base->orderBy('tour_id')->paginate(25)->withQueryString();
 
         // Para la tabla de listado y modales
-        $tourTypes = TourType::where('is_active', true)->orderBy('name')->get();
+        $tourTypes   = TourType::where('is_active', true)->orderBy('name')->get();
         $itineraries = Itinerary::where('is_active', true)->orderBy('name')->get();
-        $languages = TourLanguage::where('is_active', true)->orderBy('name')->get();
-        $amenities = Amenity::where('is_active', true)->orderBy('name')->get();
-        $schedules = Schedule::where('is_active', true)->orderBy('start_time')->get();
-        $hotels = HotelList::where('is_active', true)->orderBy('name')->get();
+        $languages   = TourLanguage::where('is_active', true)->orderBy('name')->get();
+        $amenities   = Amenity::where('is_active', true)->orderBy('name')->get();
+        $schedules   = Schedule::where('is_active', true)->orderBy('start_time')->get();
+        $hotels      = HotelList::where('is_active', true)->orderBy('name')->get();
 
         // JSON para itinerarios
         $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {
@@ -126,7 +126,7 @@ class TourController extends Controller
      *  ========================================================= */
     public function create()
     {
-        $tourTypes = TourType::where('is_active', true)->orderBy('name')->get();
+        $tourTypes   = TourType::where('is_active', true)->orderBy('name')->get();
         $itineraries = Itinerary::where('is_active', true)
             ->with('items')
             ->orderBy('created_at', 'desc')
@@ -174,7 +174,7 @@ class TourController extends Controller
             'translations'
         ]);
 
-        $tourTypes = TourType::where('is_active', true)->orderBy('name')->get();
+        $tourTypes   = TourType::where('is_active', true)->orderBy('name')->get();
         $itineraries = Itinerary::where('is_active', true)
             ->with('items')
             ->orderBy('created_at', 'desc')
@@ -216,6 +216,7 @@ class TourController extends Controller
             'slug'         => 'nullable|string|max:255|unique:tours,slug',
             'overview'     => 'nullable|string',
             'max_capacity' => 'required|integer|min:1',
+            'group_size'   => ['nullable','integer','min:1'], // <= FIX
             'length'       => 'nullable|numeric|min:0',
             'tour_type_id' => 'nullable|exists:tour_types,tour_type_id',
             'color'        => 'nullable|string|max:7',
@@ -298,12 +299,13 @@ class TourController extends Controller
                     $itineraryId = $itinerary->itinerary_id;
                 }
 
-                // 3. Crear el tour (SIN adult_price y kid_price)
+                // 3. Crear el tour (ahora con group_size)
                 $tour = Tour::create([
                     'name'         => trim($request->name),
                     'slug'         => $slug,
                     'overview'     => $request->overview ?? '',
                     'max_capacity' => (int) $request->max_capacity,
+                    'group_size'   => $request->group_size, // <= NUEVO
                     'length'       => $request->length,
                     'tour_type_id' => $request->tour_type_id,
                     'itinerary_id' => $itineraryId,
@@ -363,7 +365,7 @@ class TourController extends Controller
 
                 // 8. Traducciones automáticas
                 try {
-                    $translatedNames = $translator->translateAll($request->name ?? '');
+                    $translatedNames     = $translator->translateAll($request->name ?? '');
                     $translatedOverviews = $translator->translateAll($request->overview ?? '');
 
                     foreach (['es', 'en', 'fr', 'pt', 'de'] as $locale) {
@@ -408,6 +410,7 @@ class TourController extends Controller
             'slug'         => 'nullable|string|max:255|unique:tours,slug,' . $tour->tour_id . ',tour_id',
             'overview'     => 'nullable|string',
             'max_capacity' => 'required|integer|min:1',
+            'group_size'   => ['nullable','integer','min:1'], // <= NUEVO
             'length'       => 'nullable|numeric|min:0',
             'tour_type_id' => 'nullable|exists:tour_types,tour_type_id',
             'color'        => 'nullable|string|max:7',
@@ -478,11 +481,12 @@ class TourController extends Controller
                     $itineraryId = $itinerary->itinerary_id;
                 }
 
-                // 3. Actualizar tour (SIN adult_price y kid_price)
+                // 3. Actualizar tour (ahora con group_size)
                 $tour->update([
                     'name'         => trim($request->name),
                     'overview'     => $request->overview ?? '',
                     'max_capacity' => (int) $request->max_capacity,
+                    'group_size'   => $request->group_size, // <= NUEVO
                     'length'       => $request->length,
                     'tour_type_id' => $request->tour_type_id,
                     'itinerary_id' => $itineraryId,
@@ -535,7 +539,7 @@ class TourController extends Controller
 
                 // 7. Actualizar traducciones
                 try {
-                    $translatedNames = $translator->translateAll($request->name ?? '');
+                    $translatedNames     = $translator->translateAll($request->name ?? '');
                     $translatedOverviews = $translator->translateAll($request->overview ?? '');
 
                     foreach (['es', 'en', 'fr', 'pt', 'de'] as $locale) {
@@ -573,29 +577,29 @@ class TourController extends Controller
     /** =========================================================
      *  TOGGLE (activar/inactivar)
      *  ========================================================= */
-public function toggle(Request $request, Tour $tour)
-{
-    try {
-        $tour->update(['is_active' => !$tour->is_active]);
+    public function toggle(Request $request, Tour $tour)
+    {
+        try {
+            $tour->update(['is_active' => !$tour->is_active]);
 
-        LoggerHelper::mutated($this->controller, 'toggle', 'tour', $tour->tour_id, [
-            'is_active' => $tour->is_active,
-            'user_id'   => optional($request->user())->getAuthIdentifier(),
-        ]);
+            LoggerHelper::mutated($this->controller, 'toggle', 'tour', $tour->tour_id, [
+                'is_active' => $tour->is_active,
+                'user_id'   => optional($request->user())->getAuthIdentifier(),
+            ]);
 
-        $message = $tour->is_active ? 'Tour activado' : 'Tour desactivado';
+            $message = $tour->is_active ? 'Tour activado' : 'Tour desactivado';
 
-        return redirect()
-            ->route('admin.tours.index')
-            ->with('success', $message);
-    } catch (Exception $e) {
-        LoggerHelper::exception($this->controller, 'toggle', 'tour', $tour->tour_id, $e, [
-            'user_id' => optional($request->user())->getAuthIdentifier(),
-        ]);
+            return redirect()
+                ->route('admin.tours.index')
+                ->with('success', $message);
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'toggle', 'tour', $tour->tour_id, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
 
-        return back()->with('error', 'Error al cambiar estado del tour.');
+            return back()->with('error', 'Error al cambiar estado del tour.');
+        }
     }
-}
 
     /** =========================================================
      *  DESTROY (Soft Delete)

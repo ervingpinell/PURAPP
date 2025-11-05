@@ -353,50 +353,66 @@ Route::middleware([SetLocale::class])->group(function () {
                         Route::post('/reorder', [TourImageController::class, 'reorder'])->name('reorder');
                     });
 
-                    // -------------------- SCHEDULES (Horarios) --------------------
-                    Route::prefix('schedule')->name('schedule.')->group(function () {
-                        // CRUD básico
-                        Route::get('/', [TourScheduleController::class, 'index'])->name('index');
-                        Route::post('/', [TourScheduleController::class, 'store'])->name('store');
-                        Route::put('/{schedule}', [TourScheduleController::class, 'update'])->name('update');
-                        Route::delete('/{schedule}', [TourScheduleController::class, 'destroy'])->name('destroy');
+                   // -------------------- SCHEDULES (Horarios) --------------------
+Route::prefix('schedule')->name('schedule.')->group(function () {
+    // CRUD básico
+    Route::get('/', [TourScheduleController::class, 'index'])->name('index');
+    Route::post('/', [TourScheduleController::class, 'store'])->name('store');
+    Route::put('/{schedule}', [TourScheduleController::class, 'update'])->name('update');
+    Route::delete('/{schedule}', [TourScheduleController::class, 'destroy'])->name('destroy');
 
-                        // Acciones globales
-                        Route::put('/{schedule}/toggle', [TourScheduleController::class, 'toggle'])->name('toggle');
+    // Acciones globales
+    Route::put('/{schedule}/toggle', [TourScheduleController::class, 'toggle'])->name('toggle');
 
-                        // Asignación a tours
-                        Route::post('/{tour}/attach', [TourScheduleController::class, 'attach'])->name('attach');
-                        Route::delete('/{tour}/{schedule}/detach', [TourScheduleController::class, 'detach'])->name('detach');
-                        Route::patch('/{tour}/{schedule}/assignment-toggle', [TourScheduleController::class, 'toggleAssignment'])->name('assignment.toggle');
+    // Asignación a tours
+    Route::post('/{tour}/attach', [TourScheduleController::class, 'attach'])->name('attach');
+    Route::delete('/{tour}/{schedule}/detach', [TourScheduleController::class, 'detach'])->name('detach');
+    Route::patch('/{tour}/{schedule}/assignment-toggle', [TourScheduleController::class, 'toggleAssignment'])->name('assignment.toggle');
 
-                        // Capacidad del pivote (base_capacity)
-                        Route::patch('/{tour}/{schedule}/capacity', [TourScheduleController::class, 'updatePivotCapacity'])->name('update-pivot-capacity');
-                    });
+    // Capacidad del pivote (base_capacity) —>>> ahora lo maneja TourAvailabilityController
+    // (dejamos la ruta, pero redirigimos al controller unificado)
+    Route::patch('/{tour}/{schedule}/capacity', [TourAvailabilityController::class, 'updateScheduleBaseCapacity'])->name('update-pivot-capacity');
+});
 
-                    // -------------------- CAPACITY MANAGEMENT --------------------
-                    Route::prefix('capacity')->name('capacity.')->group(function () {
-                        Route::get('/', [TourAvailabilityController::class, 'index'])->name('index');
-                        Route::patch('/tour/{tour}', [TourAvailabilityController::class, 'updateTourCapacity'])->name('update-tour');
-                        Route::patch('/schedule/{schedule}', [TourAvailabilityController::class, 'updateScheduleCapacity'])->name('update-schedule');
-                        Route::post('/', [TourAvailabilityController::class, 'store'])->name('store');
-                        Route::patch('/{availability}', [TourAvailabilityController::class, 'update'])->name('update');
-                        Route::delete('/{availability}', [TourAvailabilityController::class, 'destroy'])->name('destroy');
-                    });
+// -------------------- CAPACITY MANAGEMENT --------------------
+Route::prefix('capacity')->name('capacity.')->group(function () {
+    Route::get('/', [TourAvailabilityController::class, 'index'])->name('index');
 
-                    // -------------------- AVAILABILITY --------------------
-                    Route::resource('availability', TourAvailabilityController::class)->except(['show']);
+    // Global tour capacity
+    Route::patch('/tour/{tour}', [TourAvailabilityController::class, 'updateTourCapacity'])->name('update-tour');
 
-                    // -------------------- EXCLUDED DATES --------------------
-                    Route::prefix('excluded_dates')->name('excluded_dates.')->group(function () {
-                        Route::get('/', [TourExcludedDateController::class, 'index'])->name('index');
-                        Route::get('/blocked', [TourExcludedDateController::class, 'blocked'])->name('blocked');
-                        Route::post('/', [TourExcludedDateController::class, 'store'])->name('store');
-                        Route::put('/{excludedDate}', [TourExcludedDateController::class, 'update'])->name('update');
-                        Route::delete('/{excludedDate}', [TourExcludedDateController::class, 'destroy'])->name('destroy');
-                        Route::post('/toggle', [TourExcludedDateController::class, 'toggle'])->name('toggle');
-                        Route::post('/bulk-toggle', [TourExcludedDateController::class, 'bulkToggle'])->name('bulkToggle');
-                        Route::post('/block-all', [TourExcludedDateController::class, 'blockAll'])->name('blockAll');
-                    });
+    // Base capacity (pivot) vía controller unificado
+    Route::patch('/tour/{tour}/schedule/base-capacity', [TourAvailabilityController::class, 'updateScheduleBaseCapacity'])->name('update-schedule-base');
+
+    // Override puntual por día+horario
+    Route::post('/tour/{tour}/overrides/day-schedule', [TourAvailabilityController::class, 'upsertDayScheduleOverride'])->name('override-day-schedule');
+
+    // Bloqueo puntual por día+horario
+    Route::post('/tour/{tour}/overrides/day-schedule/toggle-block', [TourAvailabilityController::class, 'toggleBlockDaySchedule'])->name('toggle-block-day-schedule');
+
+    // Compatibilidad con legacy (CRUD TourAvailability directo)
+    Route::post('/', [TourAvailabilityController::class, 'store'])->name('store');
+    Route::patch('/{availability}', [TourAvailabilityController::class, 'update'])->name('update');
+    Route::delete('/{availability}', [TourAvailabilityController::class, 'destroy'])->name('destroy');
+});
+
+// -------------------- AVAILABILITY --------------------
+// Si ya concentras todo en capacity/, puedes retirar este resource para evitar duplicación.
+// Si lo mantienes, excluye 'show' y úsalas con cuidado para no pisar nombres:
+Route::resource('availability', TourAvailabilityController::class)->except(['show']);
+
+// -------------------- EXCLUDED DATES --------------------
+Route::prefix('excluded_dates')->name('excluded_dates.')->group(function () {
+    Route::get('/', [TourExcludedDateController::class, 'index'])->name('index');
+    Route::get('/blocked', [TourExcludedDateController::class, 'blocked'])->name('blocked');
+    Route::post('/', [TourExcludedDateController::class, 'store'])->name('store');
+    Route::put('/{excludedDate}', [TourExcludedDateController::class, 'update'])->name('update');
+    Route::delete('/{excludedDate}', [TourExcludedDateController::class, 'destroy'])->name('destroy');
+    Route::post('/toggle', [TourExcludedDateController::class, 'toggle'])->name('toggle');
+    Route::post('/bulk-toggle', [TourExcludedDateController::class, 'bulkToggle'])->name('bulkToggle');
+    Route::post('/block-all', [TourExcludedDateController::class, 'blockAll'])->name('blockAll');
+});
+
 
                     // -------------------- CUTOFF --------------------
                     Route::prefix('cutoff')->name('cutoff.')->group(function () {

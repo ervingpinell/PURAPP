@@ -1,13 +1,13 @@
 {{-- resources/views/admin/tours/prices/index.blade.php --}}
 @extends('adminlte::page')
 
-@section('title', 'Precios - ' . $tour->name)
+@section('title', __('m_tours.prices.ui.page_title', ['name' => $tour->name]))
 
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
-        <h1>Precios: {{ $tour->name }}</h1>
+        <h1>{{ __('m_tours.prices.ui.header_title', ['name' => $tour->name]) }}</h1>
         <a href="{{ route('admin.tours.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Volver a Tours
+            <i class="fas fa-arrow-left"></i> {{ __('m_tours.prices.ui.back_to_tours') }}
         </a>
     </div>
 @stop
@@ -43,7 +43,7 @@
             {{-- Formulario de actualización masiva --}}
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Categorías y Precios Configurados</h3>
+                    <h3 class="card-title">{{ __('m_tours.prices.ui.configured_title') }}</h3>
                 </div>
 
                 <form action="{{ route('admin.tours.prices.bulk-update', $tour) }}" method="POST" id="bulkUpdateForm">
@@ -53,21 +53,21 @@
                         @if($tour->prices->isEmpty())
                             <div class="p-4 text-center text-muted">
                                 <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
-                                <p>No hay categorías configuradas para este tour.</p>
-                                <p class="small">Usa el formulario de la derecha para agregar categorías.</p>
+                                <p>{{ __('m_tours.prices.ui.empty_title') }}</p>
+                                <p class="small">{{ __('m_tours.prices.ui.empty_hint') }}</p>
                             </div>
                         @else
                             <div class="table-responsive">
                                 <table class="table table-hover mb-0">
                                     <thead>
                                         <tr>
-                                            <th>Categoría</th>
-                                            <th>Rango Edad</th>
-                                            <th style="width: 150px">Precio (USD)</th>
-                                            <th style="width: 100px">Mín</th>
-                                            <th style="width: 100px">Máx</th>
-                                            <th style="width: 100px" class="text-center">Estado</th>
-                                            <th style="width: 80px" class="text-center">Acción</th>
+                                            <th>{{ __('m_tours.prices.table.category') }}</th>
+                                            <th>{{ __('m_tours.prices.table.age_range') }}</th>
+                                            <th style="width: 150px">{{ __('m_tours.prices.table.price_usd') }}</th>
+                                            <th style="width: 100px">{{ __('m_tours.prices.table.min') }}</th>
+                                            <th style="width: 100px">{{ __('m_tours.prices.table.max') }}</th>
+                                            <th style="width: 100px" class="text-center">{{ __('m_tours.prices.table.status') }}</th>
+                                            <th style="width: 80px" class="text-center">{{ __('m_tours.prices.table.action') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -147,7 +147,7 @@
                                                             data-toggle="modal"
                                                             data-target="#confirmDeleteModal"
                                                             data-action="{{ route('admin.tours.prices.destroy', ['tour' => $tour->tour_id, 'price' => $price->getKey()]) }}"
-                                                            title="Eliminar categoría">
+                                                            title="{{ __('m_tours.prices.modal.delete_tooltip') }}">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </td>
@@ -162,11 +162,11 @@
                     @if($tour->prices->isNotEmpty())
                         <div class="card-footer">
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Guardar Cambios
+                                <i class="fas fa-save"></i> {{ __('m_tours.prices.ui.save_changes') }}
                             </button>
                             <span class="ml-2 text-muted small">
                                 <i class="fas fa-info-circle"></i>
-                                Los precios en $0 se desactivan automáticamente
+                                {{ __('m_tours.prices.ui.auto_disable_note') }}
                             </span>
                         </div>
                     @endif
@@ -179,7 +179,7 @@
             @if($availableCategories->isNotEmpty())
                 <div class="card card-success">
                     <div class="card-header">
-                        <h3 class="card-title">Agregar Categoría</h3>
+                        <h3 class="card-title">{{ __('m_tours.prices.ui.add_category') }}</h3>
                     </div>
 
                     <form action="{{ route('admin.tours.prices.store', $tour) }}" method="POST" id="addCategoryForm">
@@ -187,9 +187,9 @@
 
                         <div class="card-body">
                             <div class="form-group">
-                                <label for="category_id">Categoría</label>
+                                <label for="category_id">{{ __('m_tours.prices.forms.category') }}</label>
                                 <select name="category_id" id="category_id" class="form-control" required>
-                                    <option value="">-- Seleccionar --</option>
+                                    <option value="">{{ __('m_tours.prices.forms.select_placeholder') }}</option>
                                     @foreach($availableCategories as $category)
                                         <option value="{{ $category->category_id }}">
                                             {{ $category->name }} ({{ $category->age_range }})
@@ -199,7 +199,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="price">Precio (USD)</label>
+                                <label for="price">{{ __('m_tours.prices.forms.price_usd') }}</label>
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">$</span>
@@ -214,14 +214,14 @@
                                            required>
                                 </div>
                                 <small class="form-text text-muted">
-                                    Si el precio es $0, la categoría se creará desactivada
+                                    {{ __('m_tours.prices.forms.create_disabled_hint') }}
                                 </small>
                             </div>
 
                             <div class="row">
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <label for="min_quantity">Mínimo</label>
+                                        <label for="min_quantity">{{ __('m_tours.prices.forms.min') }}</label>
                                         <input type="number"
                                                name="min_quantity"
                                                id="min_quantity"
@@ -234,7 +234,7 @@
                                 </div>
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <label for="max_quantity">Máximo</label>
+                                        <label for="max_quantity">{{ __('m_tours.prices.forms.max') }}</label>
                                         <input type="number"
                                                name="max_quantity"
                                                id="max_quantity"
@@ -250,7 +250,7 @@
 
                         <div class="card-footer">
                             <button type="submit" class="btn btn-success btn-block">
-                                <i class="fas fa-plus"></i> Agregar
+                                <i class="fas fa-plus"></i> {{ __('m_tours.prices.forms.add') }}
                             </button>
                         </div>
                     </form>
@@ -259,8 +259,8 @@
                 <div class="card card-info">
                     <div class="card-body text-center">
                         <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                        <p><strong>Todas las categorías están asignadas</strong></p>
-                        <p class="small text-muted">No hay más categorías disponibles para agregar a este tour.</p>
+                        <p><strong>{{ __('m_tours.prices.ui.all_assigned_title') }}</strong></p>
+                        <p class="small text-muted">{{ __('m_tours.prices.ui.all_assigned_text') }}</p>
                     </div>
                 </div>
             @endif
@@ -269,27 +269,27 @@
             <div class="card card-info">
                 <div class="card-header">
                     <h3 class="card-title">
-                        <i class="fas fa-info-circle"></i> Información
+                        <i class="fas fa-info-circle"></i> {{ __('m_tours.prices.ui.info_title') }}
                     </h3>
                 </div>
                 <div class="card-body">
-                    <p><strong>Tour:</strong> {{ $tour->name }}</p>
-                    <p><strong>Categorías configuradas:</strong> {{ $tour->prices->count() }}</p>
-                    <p><strong>Categorías activas:</strong> {{ $tour->prices->where('is_active', true)->count() }}</p>
+                    <p><strong>{{ __('m_tours.prices.ui.tour_label') }}:</strong> {{ $tour->name }}</p>
+                    <p><strong>{{ __('m_tours.prices.ui.configured_count') }}:</strong> {{ $tour->prices->count() }}</p>
+                    <p><strong>{{ __('m_tours.prices.ui.active_count') }}:</strong> {{ $tour->prices->where('is_active', true)->count() }}</p>
                     <hr>
-                    <h5>Campos</h5>
+                    <h5>{{ __('m_tours.prices.ui.fields_title') }}</h5>
                     <ul class="small">
-                        <li><strong>Precio:</strong> Precio en USD para esta categoría</li>
-                        <li><strong>Mín:</strong> Cantidad mínima requerida por reserva</li>
-                        <li><strong>Máx:</strong> Cantidad máxima permitida por reserva</li>
-                        <li><strong>Estado:</strong> Activa/Inactiva en formularios públicos</li>
+                        <li><strong>{{ __('m_tours.prices.ui.field_price') }}:</strong> {{ __('m_tours.prices.forms.price_usd') }}</li>
+                        <li><strong>{{ __('m_tours.prices.ui.field_min') }}:</strong> {{ __('m_tours.prices.forms.min') }}</li>
+                        <li><strong>{{ __('m_tours.prices.ui.field_max') }}:</strong> {{ __('m_tours.prices.forms.max') }}</li>
+                        <li><strong>{{ __('m_tours.prices.ui.field_status') }}:</strong> {{ __('m_tours.prices.table.active') }}/{{ __('m_tours.prices.table.inactive') }}</li>
                     </ul>
                     <hr>
-                    <h5>Reglas</h5>
+                    <h5>{{ __('m_tours.prices.ui.rules_title') }}</h5>
                     <ul class="small">
-                        <li>El mínimo debe ser menor o igual al máximo</li>
-                        <li>Precios en $0 se desactivan automáticamente</li>
-                        <li>Solo categorías activas aparecen en el frontend</li>
+                        <li>{{ __('m_tours.prices.ui.rule_min_le_max') }}</li>
+                        <li>{{ __('m_tours.prices.ui.rule_zero_disable') }}</li>
+                        <li>{{ __('m_tours.prices.ui.rule_only_active') }}</li>
                     </ul>
                 </div>
             </div>
@@ -304,17 +304,17 @@
                 @method('DELETE')
                 <div class="modal-content">
                     <div class="modal-header bg-danger text-white">
-                        <h5 class="modal-title">Eliminar Categoría</h5>
-                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <h5 class="modal-title">{{ __('m_tours.prices.modal.delete_title') }}</h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="{{ __('m_tours.common.cancel') }}">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        ¿Eliminar esta categoría de este tour?
+                        {{ __('m_tours.prices.modal.delete_text') }}
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_tours.prices.modal.cancel') }}</button>
+                        <button type="submit" class="btn btn-danger">{{ __('m_tours.prices.modal.delete') }}</button>
                     </div>
                 </div>
             </form>
@@ -332,7 +332,7 @@ function validateQuantities(minInput, maxInput) {
     const max = parseInt(maxInput.value) || 0;
 
     if (max < min) {
-        maxInput.setCustomValidity('El máximo debe ser mayor o igual al mínimo');
+        maxInput.setCustomValidity(@json(__('m_tours.prices.js.max_ge_min')));
         return false;
     } else {
         maxInput.setCustomValidity('');
@@ -369,7 +369,7 @@ document.querySelectorAll('.price-input').forEach(priceInput => {
         if (parseFloat(this.value) === 0 && checkbox) {
             checkbox.checked = false;
             $(checkbox).closest('.custom-switch').find('.custom-control-label')
-                .attr('title', 'Precio en $0 - Desactivado automáticamente');
+                .attr('title', @json(__('m_tours.prices.js.auto_disabled_tooltip')));
         }
     });
 });
@@ -389,7 +389,7 @@ document.getElementById('bulkUpdateForm')?.addEventListener('submit', function(e
 
     if (hasErrors) {
         e.preventDefault();
-        alert('Por favor corrige los errores en las cantidades mínimas y máximas');
+        alert(@json(__('m_tours.prices.js.fix_errors')));
         return false;
     }
 });

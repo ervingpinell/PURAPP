@@ -40,27 +40,24 @@ return Application::configure(basePath: dirname(__DIR__))
             'public.readonly' => \App\Http\Middleware\PublicReadOnly::class,
         ]);
 
-        // Globales (corren antes del grupo web)
+        // Globales (corren antes del grupo web) — OJO: aquí NO va SetLocale
         $middleware->append([
             \App\Http\Middleware\ForceCorrectDomain::class,
             \App\Http\Middleware\NormalizeEmail::class,
             \App\Http\Middleware\LogContext::class,
-            \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\RememberEmail::class,
         ]);
 
-        // ✅ Aplica middlewares al grupo WEB (después de StartSession)
+        // Middlewares del grupo WEB (después de StartSession)
         $middleware->appendToGroup('web', [
             \App\Http\Middleware\SyncCookieConsent::class,
-            \App\Http\Middleware\PublicReadOnly::class,  // ✅ ReadOnly en web group
+            \App\Http\Middleware\PublicReadOnly::class,
+            \App\Http\Middleware\SetLocale::class, // ✅ Aquí sí es seguro
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 
-        // Asegura locale también en errores
-        $exceptions->render(function (\Throwable $e, $request) {
-            app()->setLocale(session('locale', config('app.locale')));
-        });
+        // ❗️No forzamos locale aquí: el 'translator' puede no existir aún.
 
         // 429: Too Many Requests
         $exceptions->render(function (ThrottleRequestsException $e, $request) {
@@ -74,8 +71,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // 413: Payload Too Large
         $exceptions->render(function (PostTooLargeException $e, $request) {
-            $title = __('m_tours.image.ui.error_title');
-            $text  = __('m_tours.image.errors.too_large');
+            // Evita __() si el traductor no está enlazado
+            $title = app()->bound('translator') ? __('m_tours.image.ui.error_title') : 'Error';
+            $text  = app()->bound('translator') ? __('m_tours.image.errors.too_large') : 'The uploaded file is too large.';
 
             if ($request->wantsJson()) {
                 return response()->json([
@@ -105,13 +103,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->orderBy('cart_id')
                 ->chunkById(500, function ($carts) {
                     foreach ($carts as $cart) {
-                        // Limpia items y marca expirado utilizando tu lógica centralizada
                         $cart->forceExpire();
                     }
                 });
         })->everyFiveMinutes()->name('carts:expire-overdue')->withoutOverlapping();
 
-        // 2) Purgar carritos inactivos antiguos (p.ej., >7 días) (cada noche)
+        // 2) Purgar carritos inactivos antiguos (>7 días) (cada noche)
         $schedule->call(function () {
             $cutoff = now()->subDays(7);
 
@@ -122,22 +119,20 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->orderBy('cart_id')
                 ->chunkById(500, function ($carts) {
                     foreach ($carts as $cart) {
-                        // Por sanidad: borra items y luego el carrito
                         $cart->items()->delete();
                         $cart->delete();
                     }
                 });
         })->dailyAt('02:30')->name('carts:prune-old')->onOneServer();
 
-        // 3) Items huérfanos (por si hubo borrados manuales)
+        // 3) Items huérfanos
         $schedule->call(function () {
             CartItem::query()
                 ->whereDoesntHave('cart')
                 ->delete();
         })->weeklyOn(1, '03:10')->name('cart_items:prune-orphans')->onOneServer();
 
-        // 4) (Opcional) Horizon snapshots para métricas/tiempos (recomendado)
-        // Requiere que Horizon esté instalado y corriendo como daemon.
+        // 4) Horizon snapshots (opcional)
         if (class_exists(\Laravel\Horizon\Horizon::class)) {
             $schedule->command('horizon:snapshot')
                 ->everyFiveMinutes()

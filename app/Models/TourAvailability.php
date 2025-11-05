@@ -12,6 +12,9 @@ class TourAvailability extends Model
     protected $table = 'tour_availability';
     protected $primaryKey = 'availability_id';
 
+    // Descomenta si tu tabla NO tiene created_at / updated_at
+    // public $timestamps = false;
+
     protected $fillable = [
         'tour_id',
         'schedule_id',
@@ -29,7 +32,19 @@ class TourAvailability extends Model
     ];
 
     /**
-     * Scope para obtener overrides activos
+     * Valores por defecto a nivel modelo (por si vienen nulos del form).
+     */
+    protected $attributes = [
+        'is_active'  => true,
+        'is_blocked' => false,
+    ];
+
+    /* ===========================
+     *          Scopes
+     * =========================== */
+
+    /**
+     * Overrides activos.
      */
     public function scopeActive($query)
     {
@@ -37,7 +52,33 @@ class TourAvailability extends Model
     }
 
     /**
-     * Scope para un tour y fecha específica
+     * Para un tour específico.
+     */
+    public function scopeForTour($query, int $tourId)
+    {
+        return $query->where('tour_id', $tourId);
+    }
+
+    /**
+     * Para un horario específico (schedule).
+     */
+    public function scopeForSchedule($query, ?int $scheduleId)
+    {
+        return $query->when($scheduleId, fn($q) => $q->where('schedule_id', $scheduleId),
+            fn($q) => $q->whereNull('schedule_id'));
+    }
+
+    /**
+     * Para una fecha específica (YYYY-MM-DD).
+     */
+    public function scopeOnDate($query, string $date)
+    {
+        return $query->whereDate('date', $date);
+    }
+
+    /**
+     * Scope original tuyo (tour + fecha + opcional schedule).
+     * Lo mantengo por compatibilidad.
      */
     public function scopeForDate($query, int $tourId, string $date, ?int $scheduleId = null)
     {
@@ -46,9 +87,10 @@ class TourAvailability extends Model
             ->when($scheduleId, fn($q) => $q->where('schedule_id', $scheduleId));
     }
 
-    /**
-     * Relaciones
-     */
+    /* ===========================
+     *       Relaciones
+     * =========================== */
+
     public function tour()
     {
         return $this->belongsTo(Tour::class, 'tour_id', 'tour_id');
@@ -59,16 +101,21 @@ class TourAvailability extends Model
         return $this->belongsTo(Schedule::class, 'schedule_id', 'schedule_id');
     }
 
+    /* ===========================
+     *        Helpers
+     * =========================== */
+
     /**
-     * Helper: ¿Este override bloquea completamente el día/horario?
+     * ¿Este override bloquea completamente el día/horario?
+     * max_capacity = 0 también se considera bloqueo efectivo.
      */
     public function blocksAvailability(): bool
     {
-        return $this->is_blocked || $this->max_capacity === 0;
+        return (bool) $this->is_blocked || (int) $this->max_capacity === 0;
     }
 
     /**
-     * Helper: ¿Es un override general del día (todos los horarios)?
+     * ¿Override general del día (todos los horarios)?
      */
     public function isGeneralDayOverride(): bool
     {
@@ -76,7 +123,7 @@ class TourAvailability extends Model
     }
 
     /**
-     * Helper: ¿Es un override específico de un horario?
+     * ¿Override específico a un horario?
      */
     public function isScheduleSpecificOverride(): bool
     {

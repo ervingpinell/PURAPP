@@ -11,6 +11,8 @@ class Booking extends Model
 
     protected $table = 'bookings';
     protected $primaryKey = 'booking_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
 
     protected $fillable = [
         'user_id',
@@ -25,7 +27,11 @@ class Booking extends Model
         'schedule_id',
         'notes',
     ];
-
+    protected $casts = [
+        'booking_date' => 'datetime',
+        'is_active'    => 'boolean',
+        'total'        => 'decimal:2',
+    ];
     // ---------------- Relaciones ----------------
     public function user()
     {

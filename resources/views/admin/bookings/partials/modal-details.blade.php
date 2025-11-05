@@ -349,9 +349,12 @@
         <a href="{{ route('admin.bookings.receipt', $booking->booking_id) }}" class="btn btn-primary" target="_blank">
           <i class="fas fa-file-pdf me-1"></i> {{ __('m_bookings.bookings.ui.download_receipt') }}
         </a>
-        <button type="button" class="btn btn-warning" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#modalEdit{{ $booking->booking_id }}">
-          <i class="fas fa-edit me-1"></i> {{ __('m_bookings.bookings.buttons.edit') }}
-        </button>
+<a href="{{ route('admin.bookings.edit', $booking) }}"
+   class="btn btn-warning">
+  <i class="fas fa-edit me-1"></i> {{ __('m_bookings.bookings.buttons.edit') }}
+</a>
+
+
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_bookings.bookings.buttons.close') }}</button>
       </div>
     </div>

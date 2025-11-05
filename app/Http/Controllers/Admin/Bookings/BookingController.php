@@ -91,7 +91,11 @@ class BookingController extends Controller
 
 public function edit(Booking $booking)
 {
-    $booking->load(['detail', 'user', 'tour.prices.category', 'tour.schedules', 'tour.languages']);
+    $booking->load([
+        'detail.schedule', 'detail.tourLanguage', 'detail.hotel', 'detail.meetingPoint',
+        'user', 'tour.prices.category', 'tour.schedules', 'tour.languages',
+        'redemption.promoCode',
+    ]);
 
     $tours = Tour::with(['prices.category', 'schedules', 'languages'])
         ->where('is_active', true)
@@ -110,8 +114,79 @@ public function edit(Booking $booking)
         ->orderBy('name')
         ->get();
 
-    return view('admin.bookings.edit', compact('booking', 'tours', 'users', 'hotels', 'meetingPoints'));
+    // ========= Cantidades por categoría para precargar los inputs en el JS =========
+    $categoryQuantitiesById = [];
+    $categoriesSnapshot = null;
+    $rawCategories = $booking->detail?->categories;
+
+    if (is_string($rawCategories)) {
+        try { $categoriesSnapshot = json_decode($rawCategories, true); } catch (\Throwable $e) { $categoriesSnapshot = null; }
+    } elseif (is_array($rawCategories)) {
+        $categoriesSnapshot = $rawCategories;
+    }
+
+    if (is_array($categoriesSnapshot)) {
+        // soporta snapshot como array asociativo {catId: {quantity, price...}} o lista de objetos
+        if (isset($categoriesSnapshot[0]) && is_array($categoriesSnapshot[0])) {
+            foreach ($categoriesSnapshot as $item) {
+                $cid = (string)($item['category_id'] ?? $item['id'] ?? '');
+                if ($cid !== '') {
+                    $categoryQuantitiesById[$cid] = (int)($item['quantity'] ?? 0);
+                }
+            }
+        } else {
+            foreach ($categoriesSnapshot as $cid => $info) {
+                $categoryQuantitiesById[(string)$cid] = (int)($info['quantity'] ?? 0);
+            }
+        }
+    }
+
+    // ========= Cálculo de totales iniciales (backend) =========
+    // Subtotal: preferimos recalcular desde snapshot con el servicio; si no, usamos detail->total
+    $initSubtotal = 0.0;
+    if (is_array($categoriesSnapshot) && method_exists($this->pricing, 'calculateSubtotal')) {
+        $initSubtotal = (float) $this->pricing->calculateSubtotal($categoriesSnapshot);
+    } else {
+        $initSubtotal = (float) ($booking->detail->total ?? 0);
+    }
+
+    // Descuento/recargo desde la redención (si existe)
+    $redemption   = $booking->redemption;
+    $opSnapshot   = $redemption?->operation_snapshot ?: ($redemption?->promoCode?->operation ?? null); // 'subtract' | 'add'
+    $applied      = (float) ($redemption->applied_amount ?? 0);
+    $initDiscount = 0.0; // lo mostramos solo si es 'subtract'
+    $initTotal    = $initSubtotal;
+
+    if ($opSnapshot === 'subtract' && $applied > 0) {
+        $initDiscount = $applied;
+        $initTotal    = max(0, $initSubtotal - $applied);
+    } elseif ($opSnapshot === 'add' && $applied > 0) {
+        // En UI tratamos el "descuento" como recargo (no se muestra la fila de descuento)
+        $initDiscount = 0.0;
+        $initTotal    = $initSubtotal + $applied;
+    } else {
+        // Sin redención; si booking->total existe y difiere, lo respetamos como total inicial
+        $initTotal = (float) ($booking->total ?? $initSubtotal);
+    }
+
+    // Total de personas inicial (para la badge)
+    $initPersons = 0;
+    foreach ($categoryQuantitiesById as $q) { $initPersons += (int)$q; }
+
+    return view('admin.bookings.edit', compact(
+        'booking',
+        'tours',
+        'users',
+        'hotels',
+        'meetingPoints',
+        'categoryQuantitiesById',
+        'initSubtotal',
+        'initDiscount',
+        'initTotal',
+        'initPersons'
+    ));
 }
+
 
     /** Crear una reserva (admin) */
     public function store(Request $request)

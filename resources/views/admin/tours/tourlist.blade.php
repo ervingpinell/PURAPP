@@ -1,200 +1,88 @@
 {{-- resources/views/admin/tours/tourlist.blade.php --}}
+@push('css')
 <style>
-  :root {
-    --tbl-font-size: 1rem;  /* Cambiado a 1rem = 100% por defecto */
-    --btn-cell-mult: 2.2;
-    --btn-cell-size: calc(var(--tbl-font-size) * var(--btn-cell-mult));
-  }
-
-  .table-responsive-custom {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .table-sm td, .table-sm th {
-    padding: .5rem;
-    font-size: var(--tbl-font-size);
-    vertical-align: middle;
-  }
-
-  .font-toolbar {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    margin: 0.5rem 0 1rem;
-    flex-wrap: wrap;
-  }
-
-  .font-toolbar .btn {
-    line-height: 1;
-    padding: 0.25rem 0.5rem;
-  }
-
-  .font-toolbar .size-indicator {
-    min-width: 3.5rem;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-    font-weight: 500;
-  }
-
-  .actions-cell {
-    min-width: 280px;
-  }
-
-  .actions-cell .d-flex {
-    gap: .375rem;
-  }
-
-  .actions-cell .btn-sm {
-    width: var(--btn-cell-size);
-    height: var(--btn-cell-size);
-    padding: 0 !important;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    border-radius: .375rem;
-    font-size: var(--tbl-font-size);
-  }
-
-  .actions-cell .btn-sm i {
-    font-size: 1em;
-  }
-
-  .schedule-badge {
-    display: inline-block;
-    margin: 0.15rem;
-    white-space: nowrap;
-  }
-
-  .price-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.25rem 0;
-    border-bottom: 1px solid #e9ecef;
-  }
-
-  .price-item:last-child {
-    border-bottom: none;
-  }
-
-  .price-label {
-    font-weight: 500;
-    color: #ffffff;
-  }
-
-  .price-value {
-    font-weight: 600;
-    color: #28a745;
-  }
-
-  .price-range {
-    font-size: 0.75rem;
-    color: #ffffff;
-    margin-left: 0.5rem;
-  }
-
-  .table-striped tbody tr:hover {
-    background-color: rgba(0, 0, 0, 0.03);
-  }
-
-  @media (max-width: 992px) {
-    :root {
-      --btn-cell-mult: 2.0;
-    }
-  }
-
-  @media (max-width: 768px) {
-    :root {
-      --btn-cell-mult: 1.8;
-    }
-
-    .actions-cell {
-      min-width: 240px;
-    }
-  }
-
-  .table-responsive-custom::-webkit-scrollbar {
-    height: 8px;
-  }
-
-  .table-responsive-custom::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-  }
-
-  .table-responsive-custom::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-  }
-
-  .table-responsive-custom::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  }
-
-  .scroll-hint {
-    display: none;
-    text-align: center;
-    padding: 0.5rem;
-    background: #e3f2fd;
-    border-radius: 0.25rem;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
-    color: #1976d2;
-  }
-
-  @media (max-width: 992px) {
-    .scroll-hint {
-      display: block;
-    }
-  }
+  :root { --tbl-font-size: 1rem; --btn-cell-mult: 2.2; --btn-cell-size: calc(var(--tbl-font-size) * var(--btn-cell-mult)); }
+  .table-responsive-custom{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .table-sm td,.table-sm th{padding:.5rem;font-size:var(--tbl-font-size);vertical-align:middle}
+  .font-toolbar{display:flex;gap:.5rem;align-items:center;margin:.5rem 0 1rem;flex-wrap:wrap}
+  .font-toolbar .btn{line-height:1;padding:.25rem .5rem}
+  .font-toolbar .size-indicator{min-width:3.5rem;text-align:center;font-variant-numeric:tabular-nums;font-weight:500}
+  .actions-cell{min-width:280px}
+  .actions-cell .d-flex{gap:.375rem}
+  .actions-cell .btn-sm{width:var(--btn-cell-size);height:var(--btn-cell-size);padding:0!important;display:inline-flex;align-items:center;justify-content:center;line-height:1;border-radius:.375rem;font-size:var(--tbl-font-size)}
+  .actions-cell .btn-sm i{font-size:1em}
+  .schedule-badge{display:inline-block;margin:.15rem;white-space:nowrap}
+  .price-item{display:flex;justify-content:space-between;align-items:center;padding:.25rem 0;border-bottom:1px solid #e9ecef}
+  .price-item:last-child{border-bottom:none}
+  .price-label{font-weight:500;color:#ffffff}
+  .price-value{font-weight:600;color:#28a745}
+  .price-range{font-size:.75rem;color:#ffffff;margin-left:.5rem}
+  .table-striped tbody tr:hover{background-color:rgba(0,0,0,.03)}
+  @media (max-width:992px){:root{--btn-cell-mult:2.0}}
+  @media (max-width:768px){:root{--btn-cell-mult:1.8}.actions-cell{min-width:240px}}
+  .table-responsive-custom::-webkit-scrollbar{height:8px}
+  .table-responsive-custom::-webkit-scrollbar-track{background:#f1f1f1;border-radius:4px}
+  .table-responsive-custom::-webkit-scrollbar-thumb{background:#888;border-radius:4px}
+  .table-responsive-custom::-webkit-scrollbar-thumb:hover{background:#555}
+  .scroll-hint{display:none;text-align:center;padding:.5rem;background:#e3f2fd;border-radius:.25rem;margin-bottom:.5rem;font-size:.875rem;color:#1976d2}
+  @media (max-width:992px){.scroll-hint{display:block}}
 </style>
+@endpush
+
 
 @include('admin.carts.cartmodal')
 
 {{-- Toolbar de tamaño de fuente --}}
+@once
 <div class="font-toolbar">
   <button class="btn btn-outline-secondary btn-sm" id="fontSmaller" type="button"
-    title="Disminuir tamaño" aria-label="Disminuir tamaño de fuente">
+          title="{{ __('m_tours.common.font_decrease') }}" aria-label="{{ __('m_tours.common.font_decrease') }}">
     A−
   </button>
   <div class="size-indicator" id="fontIndicator" aria-live="polite">100%</div>
   <button class="btn btn-outline-secondary btn-sm" id="fontBigger" type="button"
-    title="Aumentar tamaño" aria-label="Aumentar tamaño de fuente">
+          title="{{ __('m_tours.common.font_increase') }}" aria-label="{{ __('m_tours.common.font_increase') }}">
     A+
   </button>
 </div>
+@endonce
+
 
 {{-- Indicador de scroll --}}
 <div class="scroll-hint">
   <i class="fas fa-arrows-alt-h me-1"></i>
-  Desliza horizontalmente para ver más columnas
+  {{ __('m_tours.tour.ui.scroll_hint') }}
 </div>
 
 <div class="table-responsive-custom">
   <table class="table table-sm table-bordered table-striped table-hover" id="toursTable">
     <thead class="bg-primary text-white">
       <tr>
-        <th style="min-width: 60px;">ID</th>
-        <th style="min-width: 180px;">Nombre</th>
-        <th style="min-width: 150px;">Horarios</th>
-        <th style="min-width: 180px;">Precios</th>
-        <th style="min-width: 100px;">Capacidad</th>
-        <th style="min-width: 100px;">Group Size</th>
-        <th style="min-width: 90px;">Estado</th>
-        <th style="min-width: 280px;">Acciones</th>
+        <th style="min-width:60px;">{{ __('m_tours.tour.table.id') }}</th>
+        <th style="min-width:180px;">{{ __('m_tours.tour.table.name') }}</th>
+        <th style="min-width:150px;">{{ __('m_tours.tour.table.schedules') }}</th>
+        <th style="min-width:180px;">{{ __('m_tours.tour.table.prices') }}</th>
+        <th style="min-width:100px;">{{ __('m_tours.tour.table.capacity') }}</th>
+        <th style="min-width:100px;">{{ __('m_tours.tour.table.group_size') }}</th>
+        <th style="min-width:90px;">{{ __('m_tours.tour.table.status') }}</th>
+        <th style="min-width:280px;">{{ __('m_tours.tour.table.actions') }}</th>
       </tr>
     </thead>
     <tbody id="toursTbody">
       @foreach($tours as $tour)
+        @php
+          $isArchived  = !is_null($tour->deleted_at ?? null);
+          $hasBookings = (int) ($tour->bookings_count ?? 0);
+        @endphp
         <tr>
           {{-- ID --}}
           <td>{{ $tour->tour_id }}</td>
 
-          {{-- Nombre --}}
+          {{-- Nombre (con traducción si existe helper) --}}
           <td>
-            <strong>{{ $tour->name }}</strong>
+            <strong>
+              {{ method_exists($tour, 'getTranslatedName') ? $tour->getTranslatedName(app()->getLocale()) : $tour->name }}
+            </strong>
             @if($tour->tourType)
               <br>
               <small class="text-muted">{{ $tour->tourType->name }}</small>
@@ -208,20 +96,15 @@
                 {{ date('g:i A', strtotime($schedule->start_time)) }}
               </span>
             @empty
-              <span class="text-muted">Sin horarios</span>
+              <span class="text-muted">{{ __('m_tours.tour.ui.no_schedules') }}</span>
             @endforelse
           </td>
 
-          {{-- Precios Dinámicos - SOLO LAS ACTIVAS --}}
+          {{-- Precios Dinámicos (activos) --}}
           <td>
             @php
-              // Filtrar solo precios activos con categorías activas
               $activePrices = $tour->prices
-                ->filter(function($price) {
-                  return $price->is_active &&
-                         $price->category &&
-                         $price->category->is_active;
-                })
+                ->filter(fn($p) => $p->is_active && $p->category && $p->category->is_active)
                 ->sortBy('category.order');
             @endphp
 
@@ -232,70 +115,71 @@
                     {{ $price->category->name }}
                     <span class="price-range">({{ $price->min_quantity }}-{{ $price->max_quantity }})</span>
                   </span>
-                  <span class="price-value">${{ number_format($price->price, 2) }}</span>
-                </div>
+                @php
+                $currency = config('app.currency_symbol', '$');
+                @endphp
+                <span class="price-value">{{ $currency }}{{ number_format($price->price, 2) }}</span>
+                                </div>
               @endforeach
             @else
-              <span class="text-muted">Sin precios configurados</span>
+              <span class="text-muted">{{ __('m_tours.tour.ui.no_prices') }}</span>
             @endif
           </td>
 
           {{-- Capacidad Máxima --}}
           <td class="text-center">
             <span class="badge bg-info">
-              {{ $tour->max_capacity }} personas
+              {{ $tour->max_capacity }} {{ __('m_tours.common.people') }}
             </span>
           </td>
 
-                    {{-- Group Size --}}
+          {{-- Group Size --}}
           <td class="text-center">
-            <span class="badge bg-light">
-              {{ $tour->group_size }} personas
-            </span>
+        <span class="badge text-bg-light">
+        {{ $tour->group_size ? $tour->group_size.' '. __('m_tours.common.people') : __('m_tours.common.na') }}
+        </span>
           </td>
 
           {{-- Estado --}}
           <td class="text-center">
             <span class="badge {{ $tour->is_active ? 'bg-success' : 'bg-secondary' }}">
-              {{ $tour->is_active ? 'Activo' : 'Inactivo' }}
+              {{ $tour->is_active ? __('m_tours.common.active') : __('m_tours.common.inactive') }}
             </span>
           </td>
 
           {{-- Acciones --}}
           <td class="actions-cell">
-            @php
-              $isArchived = !is_null($tour->deleted_at ?? null);
-              $hasBookings = (int) ($tour->bookings_count ?? 0);
-            @endphp
-
             <div class="d-flex flex-wrap">
               {{-- Carrito --}}
               <button type="button"
                 class="btn btn-primary btn-sm"
                 data-bs-toggle="modal"
                 data-bs-target="#modalCart{{ $tour->tour_id }}"
-                title="Añadir al carrito">
+                title="{{ __('m_tours.tour.ui.add_to_cart') }}"
+                aria-label="{{ __('m_tours.tour.ui.add_to_cart') }}">
                 <i class="fas fa-cart-plus"></i>
               </button>
 
               {{-- Editar --}}
               <a href="{{ route('admin.tours.edit', $tour) }}"
-                class="btn btn-warning btn-sm"
-                title="Editar">
+                 class="btn btn-warning btn-sm"
+                 title="{{ __('m_tours.tour.ui.edit') }}"
+                 aria-label="{{ __('m_tours.tour.ui.edit') }}">
                 <i class="fas fa-edit"></i>
               </a>
 
               {{-- Toggle activo/inactivo --}}
               @unless($isArchived)
                 <form action="{{ route('admin.tours.toggle', $tour) }}"
-                  method="POST"
-                  class="d-inline js-toggle-form"
-                  data-question="{{ $tour->is_active ? '¿Desactivar tour?' : '¿Activar tour?' }}">
+                      method="POST"
+                      class="d-inline js-toggle-form"
+                      data-question="{{ $tour->is_active ? __('m_tours.tour.alerts.toggle_question_active') : __('m_tours.tour.alerts.toggle_question_inactive') }}">
                   @csrf
                   @method('PATCH')
                   <button type="submit"
-                    class="btn btn-sm btn-{{ $tour->is_active ? 'success' : 'secondary' }}"
-                    title="{{ $tour->is_active ? 'Desactivar' : 'Activar' }}">
+                          class="btn btn-sm btn-{{ $tour->is_active ? 'success' : 'secondary' }}"
+                          title="{{ $tour->is_active ? __('m_tours.tour.ui.deactivate') : __('m_tours.tour.ui.activate') }}"
+                          aria-label="{{ $tour->is_active ? __('m_tours.tour.ui.deactivate') : __('m_tours.tour.ui.activate') }}">
                     <i class="fas fa-toggle-{{ $tour->is_active ? 'on' : 'off' }}"></i>
                   </button>
                 </form>
@@ -303,30 +187,33 @@
 
               {{-- Gestionar Precios --}}
               <a href="{{ route('admin.tours.prices.index', $tour) }}"
-                class="btn btn-info btn-sm"
-                title="Gestionar precios">
+                 class="btn btn-info btn-sm"
+                 title="{{ __('m_tours.tour.ui.manage_prices') }}"
+                 aria-label="{{ __('m_tours.tour.ui.manage_prices') }}">
                 <i class="fas fa-dollar-sign"></i>
               </a>
 
               {{-- Gestionar Imágenes --}}
               <a href="{{ route('admin.tours.images.index', $tour) }}"
-                class="btn btn-secondary btn-sm"
-                title="Gestionar imágenes">
+                 class="btn btn-secondary btn-sm"
+                 title="{{ __('m_tours.tour.ui.manage_images') }}"
+                 aria-label="{{ __('m_tours.tour.ui.manage_images') }}">
                 <i class="fas fa-images"></i>
               </a>
 
-              {{-- Eliminar --}}
+              {{-- Eliminar (soft) --}}
               @unless($isArchived)
                 <form id="delete-form-{{ $tour->tour_id }}"
-                  action="{{ route('admin.tours.destroy', $tour) }}"
-                  method="POST"
-                  class="d-inline">
+                      action="{{ route('admin.tours.destroy', $tour) }}"
+                      method="POST"
+                      class="d-inline">
                   @csrf
                   @method('DELETE')
                   <button type="button"
-                    class="btn btn-danger btn-sm"
-                    title="Eliminar"
-                    onclick="confirmDelete({{ $tour->tour_id }})">
+                          class="btn btn-danger btn-sm"
+                          title="{{ __('m_tours.tour.ui.delete') }}"
+                          aria-label="{{ __('m_tours.tour.ui.delete') }}"
+                          onclick="confirmDelete({{ $tour->tour_id }})">
                     <i class="fas fa-trash-alt"></i>
                   </button>
                 </form>
@@ -335,29 +222,31 @@
               {{-- Restaurar --}}
               @if($isArchived)
                 <form action="{{ route('admin.tours.restore', $tour) }}"
-                  method="POST"
-                  class="d-inline">
+                      method="POST"
+                      class="d-inline">
                   @csrf
                   <button type="submit"
-                    class="btn btn-success btn-sm"
-                    title="Restaurar">
+                          class="btn btn-success btn-sm"
+                          title="{{ __('m_tours.tour.ui.restore') }}"
+                          aria-label="{{ __('m_tours.tour.ui.restore') }}">
                     <i class="fas fa-undo"></i>
                   </button>
                 </form>
               @endif
 
-              {{-- Eliminar definitivamente --}}
+              {{-- Eliminar definitivamente (hard) --}}
               @if($isArchived)
                 <form id="purge-form-{{ $tour->tour_id }}"
-                  action="{{ route('admin.tours.purge', $tour) }}"
-                  method="POST"
-                  class="d-inline">
+                      action="{{ route('admin.tours.purge', $tour) }}"
+                      method="POST"
+                      class="d-inline">
                   @csrf
                   @method('DELETE')
                   <button type="button"
-                    class="btn btn-outline-danger btn-sm"
-                    title="Eliminar definitivamente"
-                    onclick="confirmPurge({{ $tour->tour_id }}, {{ $hasBookings }})">
+                          class="btn btn-outline-danger btn-sm"
+                          title="{{ __('m_tours.tour.ui.purge') }}"
+                          aria-label="{{ __('m_tours.tour.ui.purge') }}"
+                          onclick="confirmPurge({{ $tour->tour_id }}, {{ $hasBookings }})">
                     <i class="fas fa-times"></i>
                   </button>
                 </form>
@@ -377,128 +266,102 @@
   </div>
 @endif
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+@push('js')
 <script>
-// Confirmar eliminación
-function confirmDelete(id) {
-  Swal.fire({
-    title: '¿Eliminar tour?',
-    text: 'El tour se moverá a Eliminados. Podrás restaurarlo después.',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#dc3545',
-    cancelButtonColor: '#6c757d'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      document.getElementById('delete-form-' + id).submit();
-    }
-  });
-}
-
-// Confirmar purga
-function confirmPurge(id, hasBookings) {
-  const extra = hasBookings > 0
-    ? `<div class="mt-2 text-start">
-         <strong>Advertencia:</strong> Este tour tiene ${hasBookings} reserva(s).
-         <br>Las reservas NO se eliminarán, solo quedarán sin tour asociado.
-       </div>`
-    : '';
-
-  Swal.fire({
-    title: '¿Eliminar definitivamente?',
-    html: 'Esta acción es irreversible.' + extra,
-    icon: 'error',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#dc3545',
-    cancelButtonColor: '#6c757d'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      document.getElementById('purge-form-' + id).submit();
-    }
-  });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  // Toggle forms
-  document.addEventListener('submit', function(ev) {
-    const form = ev.target;
-    if (!form.matches('.js-toggle-form')) return;
-
-    ev.preventDefault();
-    const question = form.dataset.question || '¿Confirmar acción?';
-
+  // Confirmar eliminación (soft)
+  function confirmDelete(id) {
     Swal.fire({
-      icon: 'question',
-      title: 'Confirmar',
-      text: question,
+      title: @json(__('m_tours.tour.alerts.delete_title')),
+      text:  @json(__('m_tours.tour.alerts.delete_text')),
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Sí',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#0d6efd',
+      confirmButtonText: @json(__('m_tours.common.confirm_delete')),
+      cancelButtonText:  @json(__('m_tours.common.cancel')),
+      confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    }).then(res => {
-      if (res.isConfirmed) form.submit();
+    }).then((result) => {
+      if (result.isConfirmed) {
+        document.getElementById('delete-form-' + id).submit();
+      }
     });
-  });
-
-  // Control de tamaño de fuente - CAMBIADO A 100% POR DEFECTO
-  const root = document.documentElement;
-  const indicator = document.getElementById('fontIndicator');
-  const LS_KEY = 'toursTableFontPct';
-
-  function setPct(pct) {
-    pct = Math.max(70, Math.min(150, pct));
-    const rem = (pct / 100).toFixed(3) + 'rem';
-    root.style.setProperty('--tbl-font-size', rem);
-
-    let mult = 2.2;
-    if (pct <= 95) mult = 2.1;
-    if (pct <= 90) mult = 2.0;
-    if (pct <= 85) mult = 1.9;
-    if (pct <= 80) mult = 1.8;
-    root.style.setProperty('--btn-cell-mult', String(mult));
-
-    if (indicator) indicator.textContent = pct + '%';
-    localStorage.setItem(LS_KEY, String(pct));
   }
 
-  // CAMBIADO: Por defecto 100 en lugar de 90
-  const saved = parseInt(localStorage.getItem(LS_KEY) || '100', 10);
-  setPct(saved);
+  // Confirmar purga (hard)
+  function confirmPurge(id, hasBookings) {
+    const extra = hasBookings > 0
+      ? `<div class="mt-2 text-start">
+           <strong>{{ __('m_tours.common.warning') }}:</strong>
+           {{ __('m_tours.tour.alerts.purge_text_with_bookings', ['count' => '___COUNT___']) }}
+         </div>`.replace('___COUNT___', hasBookings)
+      : '';
 
-  document.getElementById('fontSmaller')?.addEventListener('click', () => {
-    const current = parseInt(localStorage.getItem(LS_KEY) || '100', 10);
-    setPct(current - 5);
-  });
-
-  document.getElementById('fontBigger')?.addEventListener('click', () => {
-    const current = parseInt(localStorage.getItem(LS_KEY) || '100', 10);
-    setPct(current + 5);
-  });
-
-  // Mensajes de sesión
-  @if(session('success'))
     Swal.fire({
-      icon: 'success',
-      title: @json(session('success')),
-      timer: 2000,
-      showConfirmButton: false
-    });
-  @endif
-
-  @if(session('error'))
-    Swal.fire({
+      title: @json(__('m_tours.tour.alerts.purge_title')),
+      html:  @json(__('m_tours.tour.alerts.purge_text')) + extra,
       icon: 'error',
-      title: @json(session('error')),
-      timer: 2500,
-      showConfirmButton: false
+      showCancelButton: true,
+      confirmButtonText: @json(__('m_tours.common.confirm_delete')),
+      cancelButtonText:  @json(__('m_tours.common.cancel')),
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        document.getElementById('purge-form-' + id).submit();
+      }
     });
-  @endif
-});
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Toggle (activar/inactivar)
+    document.addEventListener('submit', function(ev) {
+      const form = ev.target;
+      if (!form.matches('.js-toggle-form')) return;
+      ev.preventDefault();
+      const question = form.dataset.question || @json(__('m_tours.common.confirm_action'));
+      Swal.fire({
+        icon: 'question',
+        title: @json(__('m_tours.common.confirm')),
+        text: question,
+        showCancelButton: true,
+        confirmButtonText: @json(__('m_tours.common.yes')),
+        cancelButtonText:  @json(__('m_tours.common.cancel')),
+        confirmButtonColor: '#0d6efd',
+        cancelButtonColor: '#6c757d'
+      }).then(res => {
+        if (res.isConfirmed) form.submit();
+      });
+    });
+
+    // Control de tamaño de fuente (persistente)
+    const root = document.documentElement;
+    const indicator = document.getElementById('fontIndicator');
+    const LS_KEY = 'toursTableFontPct';
+
+    function setPct(pct) {
+      pct = Math.max(70, Math.min(150, pct));
+      const rem = (pct / 100).toFixed(3) + 'rem';
+      root.style.setProperty('--tbl-font-size', rem);
+      let mult = 2.2;
+      if (pct <= 95) mult = 2.1;
+      if (pct <= 90) mult = 2.0;
+      if (pct <= 85) mult = 1.9;
+      if (pct <= 80) mult = 1.8;
+      root.style.setProperty('--btn-cell-mult', String(mult));
+      if (indicator) indicator.textContent = pct + '%';
+      localStorage.setItem(LS_KEY, String(pct));
+    }
+
+    const saved = parseInt(localStorage.getItem(LS_KEY) || '100', 10);
+    setPct(saved);
+
+    document.getElementById('fontSmaller')?.addEventListener('click', () => {
+      const current = parseInt(localStorage.getItem(LS_KEY) || '100', 10);
+      setPct(current - 5);
+    });
+    document.getElementById('fontBigger')?.addEventListener('click', () => {
+      const current = parseInt(localStorage.getItem(LS_KEY) || '100', 10);
+      setPct(current + 5);
+    });
+  });
 </script>
+@endpush
