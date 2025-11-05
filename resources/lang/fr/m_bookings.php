@@ -19,6 +19,8 @@ return [
         'max_category_exceeded' => 'Maximum :max personnes autorisées dans la catégorie « :category ».',
         'min_one_person_required' => 'Au moins une personne est requise dans la réservation.',
         'category_not_available' => 'La catégorie avec l’ID :category_id n’est pas disponible pour cette visite.',
+        'max_persons_label' => 'Nombre maximal de personnes autorisées par réservation',
+        'date_range_hint' => 'Sélectionnez une date entre :from — :to',
     ],
 
     // =========================================================

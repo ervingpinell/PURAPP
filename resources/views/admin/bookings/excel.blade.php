@@ -1,5 +1,4 @@
 {{-- resources/views/admin/bookings/excel.blade.php --}}
-
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}">
 <head>
@@ -42,37 +41,23 @@
                     $hotel   = $detail->hotel ?? null;
                     $schedule = $detail->schedule ?? null;
 
-                    // ========== CATEGORÍAS DINÁMICAS ==========
+                    // categorías dinámicas
                     $categoriesData = [];
                     $subtotal = 0;
                     $persons = 0;
 
                     if ($detail->categories && is_string($detail->categories)) {
-                      try {
-                        $categoriesData = json_decode($detail->categories, true);
-                      } catch (\Exception $e) {}
+                      try { $categoriesData = json_decode($detail->categories, true); } catch (\Exception $e) {}
                     } elseif (is_array($detail->categories)) {
                       $categoriesData = $detail->categories;
                     }
 
                     if (!empty($categoriesData)) {
-                      // Array de objetos
-                      if (isset($categoriesData[0]) && is_array($categoriesData[0])) {
-                        foreach ($categoriesData as $cat) {
-                          $qty = (int)($cat['quantity'] ?? 0);
-                          $price = (float)($cat['price'] ?? 0);
-                          $subtotal += $qty * $price;
-                          $persons += $qty;
-                        }
-                      }
-                      // Array asociativo
-                      else {
-                        foreach ($categoriesData as $cat) {
-                          $qty = (int)($cat['quantity'] ?? 0);
-                          $price = (float)($cat['price'] ?? 0);
-                          $subtotal += $qty * $price;
-                          $persons += $qty;
-                        }
+                      foreach ($categoriesData as $cat) {
+                        $qty = (int)($cat['quantity'] ?? 0);
+                        $price = (float)($cat['price'] ?? 0);
+                        $subtotal += $qty * $price;
+                        $persons += $qty;
                       }
                     }
 
@@ -121,7 +106,13 @@
                     <td>{{ $booking->booking_id }}</td>
                     <td>{{ $booking->booking_reference }}</td>
                     <td>{{ __('m_bookings.bookings.statuses.' . $booking->status) }}</td>
-                    <td>{{ $booking->booking_date ?? '—' }}</td>
+                    <td>
+                      @if($booking->booking_date instanceof \Illuminate\Support\Carbon || $booking->booking_date instanceof \Carbon\Carbon)
+                        {{ $booking->booking_date->format('Y-m-d H:i') }}
+                      @else
+                        {{ $booking->booking_date ?? '—' }}
+                      @endif
+                    </td>
                     <td>{{ $booking->user->full_name ?? '—' }}</td>
                     <td>{{ $booking->user->email ?? '—' }}</td>
                     <td>{{ $booking->user->phone ?? '—' }}</td>

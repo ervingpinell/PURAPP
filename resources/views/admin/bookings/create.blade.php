@@ -76,15 +76,19 @@
                         </div>
 
                         <div class="row">
-                            {{-- Date --}}
+                            {{-- Date (ajustada por límites dinámicos) --}}
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
                                     <label for="tour_date">{{ __('m_bookings.bookings.fields.tour_date') }} *</label>
-                                    <input type="date" name="tour_date" id="tour_date"
-                                           class="form-control"
-                                           value="{{ old('tour_date') }}"
-                                           min="{{ now()->toDateString() }}"
-                                           required>
+                                    <input
+                                        type="date"
+                                        name="tour_date"
+                                        id="tour_date"
+                                        class="form-control"
+                                        value="{{ old('tour_date') }}"
+                                        required
+                                    >
+                                    <small class="form-text text-muted" id="tour_date_help"></small>
                                 </div>
                             </div>
 
@@ -93,7 +97,7 @@
                                 <div class="form-group">
                                     <label for="schedule_id">{{ __('m_bookings.bookings.fields.schedule') }} *</label>
                                     <select name="schedule_id" id="schedule_id" class="form-control" required disabled>
-                                        <option value="">-- {{ __('m_bookings.bookings.ui.select_tour_first') }} --</option>
+                                        <option value="">{{ __('m_bookings.bookings.ui.select_tour_first') }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -103,7 +107,7 @@
                         <div class="form-group">
                             <label for="tour_language_id">{{ __('m_bookings.bookings.fields.language') }} *</label>
                             <select name="tour_language_id" id="tour_language_id" class="form-control" required disabled>
-                                <option value="">-- {{ __('m_bookings.bookings.ui.select_tour_first') }} --</option>
+                                <option value="">{{ __('m_bookings.bookings.ui.select_tour_first') }}</option>
                             </select>
                         </div>
 
@@ -176,7 +180,7 @@
                 </div>
             </div>
 
-            {{-- Right Column: Categories + Promo --}}
+            {{-- Right Column: Categories + Promo + Totals (con límites y warnings) --}}
             <div class="col-12 col-xl-4">
                 <div class="card sticky-lg-top">
                     <div class="card-header bg-success text-white">
@@ -186,6 +190,15 @@
                         </h3>
                     </div>
                     <div class="card-body">
+                        {{-- Resumen de límites globales (opcional visible) --}}
+                        @if(!empty($bookingLimits ?? null))
+                          <div class="alert alert-info py-2">
+                            <div class="small">
+                              <div><strong>{{ __('m_bookings.validation.max_persons_label') ?? 'Máx. personas por reserva' }}:</strong> {{ $bookingLimits['max_persons_total'] ?? ($bookingLimits['max_persons_per_booking'] ?? '—') }}</div>
+                            </div>
+                          </div>
+                        @endif
+
                         <div id="categories-container">
                             <div class="alert alert-primary mb-0">
                                 <i class="fas fa-info-circle me-2"></i>
@@ -222,7 +235,7 @@
                             <input type="hidden" id="promo-percent" value="">
                         </div>
 
-                        {{-- Totales --}}
+                        {{-- Totales + Warnings de límites --}}
                         <div class="mt-3 p-3 border rounded">
                             <div class="d-flex justify-content-between mb-1">
                                 <span>{{ __('m_bookings.bookings.fields.subtotal') }}:</span>
@@ -233,14 +246,15 @@
                                 <span id="discount-amount">-$0.00</span>
                             </div>
                             <hr class="my-2">
-                            <div class="d-flex justify-content-between mb-2">
-                                <strong>{{ __('m_bookings.bookings.fields.total_persons') }}:</strong>
-                                <span id="total-persons" class="badge bg-info">0</span>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong class="mb-0">{{ __('m_bookings.bookings.fields.total_persons') }}:</strong>
+                                <div id="total-persons" class="fw-bold fs-5">0</div>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <strong>{{ __('m_bookings.bookings.fields.total') }}:</strong>
                                 <strong id="total-price" class="text-success fs-4">$0.00</strong>
                             </div>
+                            <small id="limits-warning" class="text-danger d-block mt-2" style="display:none;"></small>
                         </div>
                     </div>
                     <div class="card-footer">
@@ -260,12 +274,18 @@
 @stop
 
 @section('js')
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script>
-$(function() {
+  {{-- Exponer límites de booking y por tour al front (igual que edit) --}}
+  <script>
+    window.BOOKING_LIMITS  = @json($bookingLimits ?? []);
+    window.LIMITS_PER_TOUR = @json($limitsPerTour ?? []);
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script>
+  $(function() {
     $('.select2').select2({ theme: 'bootstrap4', width: '100%' });
 
-    // ====== CONFIG: endpoints API v1 ======
+    // ===== Endpoints =====
     const apiBase = '/api/v1';
     const epSchedules  = tourId => `${apiBase}/tours/${tourId}/schedules`;
     const epLanguages  = tourId => `${apiBase}/tours/${tourId}/languages`;
@@ -273,20 +293,52 @@ $(function() {
     const epVerify     =        `${apiBase}/bookings/verify-promo-code`;
 
     let currentCategories = [];
+    let lastChangedInputId = null;
+    const LIMITS = window.BOOKING_LIMITS || {};
+    const PER_TOUR = window.LIMITS_PER_TOUR || {};
     const fmtMoney = n => '$' + (Number(n||0)).toFixed(2);
 
-    // ---------- Helpers UI ----------
     function resetSelect($sel, placeholder, disabled=true) {
         $sel.html(`<option value="">${placeholder}</option>`).prop('disabled', !!disabled);
     }
     function applyOldValue($sel, value) {
-        if (!value) return;
+        if (value === undefined || value === null || value === '') return;
         if ($sel.find(`option[value="${value}"]`).length) {
             $sel.val(String(value)).trigger('change.select2');
         }
     }
 
-    // ---------- Fillers via AJAX ----------
+    // ---------- Date limits from config (igual a edit) ----------
+    (function setupDateMinMax(){
+      const minDays = Number(LIMITS.min_days_advance ?? 1);
+      const maxDays = Number(LIMITS.max_days_advance ?? 365);
+      const $input = $('#tour_date');
+      if (!$input.length) return;
+
+      const today = new Date();
+      const minDate = new Date(today); minDate.setDate(today.getDate() + minDays);
+      const maxDate = new Date(today); maxDate.setDate(today.getDate() + maxDays);
+      const toYMD = (d) => new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+
+      $input.attr('min', toYMD(minDate));
+      $input.attr('max', toYMD(maxDate));
+// Texto base traducido con placeholders (:from — :to)
+const hintTpl = @json(__('m_bookings.validation.date_range_hint') ?: 'Rango permitido: :from — :to');
+
+// Construye las fechas min/max
+const hintText = (hintTpl || 'Rango permitido: :from — :to')
+  .replace(':from', toYMD(minDate))
+  .replace(':to', toYMD(maxDate));
+
+$('#tour_date_help').text(hintText);
+      const current = $input.val();
+      if (current) {
+        if (current < toYMD(minDate)) $input.val(toYMD(minDate));
+        if (current > toYMD(maxDate)) $input.val(toYMD(maxDate));
+      }
+    })();
+
+    // ---------- Loaders ----------
     function loadSchedules(tourId, preselect = '{{ old('schedule_id') }}') {
         const $sel = $('#schedule_id');
         resetSelect($sel, @json(__('m_bookings.bookings.ui.loading')), true);
@@ -328,7 +380,7 @@ $(function() {
     function loadCategories(tourId, oldCategories = @json(old('categories', []))) {
         const $c = $('#categories-container');
         $c.html(
-          `<div class="alert alert-info">
+          `<div class="alert alert-info mb-0">
               <i class="fas fa-spinner fa-spin me-2"></i>{{ __('m_bookings.bookings.ui.loading') }}
            </div>`
         );
@@ -338,7 +390,7 @@ $(function() {
                 currentCategories = (list || []).filter(c => c.is_active);
                 if (!currentCategories.length) {
                     $c.html(
-                      `<div class="alert alert-warning">
+                      `<div class="alert alert-warning mb-0">
                           {{ __('m_bookings.bookings.ui.tour_without_categories') }}
                        </div>`
                     );
@@ -348,8 +400,10 @@ $(function() {
 
                 let html = '';
                 currentCategories.forEach(cat => {
-                    const oldVal = parseInt(oldCategories[cat.id] ?? cat.min) || cat.min;
-                    const clamped = Math.max(cat.min, Math.min(cat.max, oldVal));
+                    const min = parseInt(cat.min);
+                    const max = parseInt(cat.max);
+                    const oldVal = parseInt(oldCategories[cat.id] ?? min) || min;
+                    const clamped = Math.max(min, Math.min(max, oldVal));
 
                     html += `
                       <div class="category-row mb-3 p-2 border rounded">
@@ -366,15 +420,15 @@ $(function() {
                                  class="form-control form-control-sm text-center category-input mx-2"
                                  data-category-id="${cat.id}"
                                  data-price="${cat.price}"
-                                 min="${cat.min}"
-                                 max="${cat.max}"
+                                 min="${min}"
+                                 max="${max}"
                                  value="${clamped}"
                                  style="width: 72px;">
                           <button type="button" class="btn btn-sm btn-secondary category-plus" data-category-id="${cat.id}">
                             <i class="fas fa-plus"></i>
                           </button>
                         </div>
-                        <small class="text-muted d-block mt-1">Min: ${cat.min}, Max: ${cat.max}</small>
+                        <small class="text-muted d-block mt-1">Min: ${min}, Max: ${max}</small>
                       </div>`;
                 });
 
@@ -384,7 +438,7 @@ $(function() {
             })
             .fail(() => {
                 $c.html(
-                  `<div class="alert alert-danger">
+                  `<div class="alert alert-danger mb-0">
                       {{ __('m_bookings.bookings.ui.error_loading') }}
                    </div>`
                 );
@@ -393,33 +447,22 @@ $(function() {
             });
     }
 
-    // ---------- Categories interactions ----------
-    function attachCategoryHandlers() {
-        $('.category-minus').on('click', function() {
-            const id = $(this).data('category-id');
-            const $i = $(`.category-input[data-category-id="${id}"]`);
-            const min = parseInt($i.attr('min'));
-            const cur = parseInt($i.val()) || 0;
-            if (cur > min) { $i.val(cur - 1); updateTotals(); }
-        });
+    // ---------- Helpers para límites globales (igual que edit) ----------
+    function getAdultsKidsFromInputs() {
+      const cats = (PER_TOUR.categories || []);
+      const adultId = (cats.find(c => c.slug === 'adult') || {}).category_id;
+      const kidId   = (cats.find(c => c.slug === 'kid')   || {}).category_id;
 
-        $('.category-plus').on('click', function() {
-            const id = $(this).data('category-id');
-            const $i = $(`.category-input[data-category-id="${id}"]`);
-            const max = parseInt($i.attr('max'));
-            const cur = parseInt($i.val()) || 0;
-            if (cur < max) { $i.val(cur + 1); updateTotals(); }
-        });
-
-        $('.category-input').on('change keyup', function() {
-            const min = parseInt($(this).attr('min'));
-            const max = parseInt($(this).attr('max'));
-            let v = parseInt($(this).val()) || 0;
-            if (v < min) v = min;
-            if (v > max) v = max;
-            $(this).val(v);
-            updateTotals();
-        });
+      let adults = 0, kids = 0;
+      if (adultId) {
+        const $a = $(`.category-input[data-category-id="${adultId}"]`);
+        adults = parseInt($a.val() || 0);
+      }
+      if (kidId) {
+        const $k = $(`.category-input[data-category-id="${kidId}"]`);
+        kids = parseInt($k.val() || 0);
+      }
+      return { adults, kids };
     }
 
     function computeSubtotalAndPersons() {
@@ -433,9 +476,45 @@ $(function() {
         return { persons, subtotal };
     }
 
+    function showLimitsWarning(msg) {
+      $('#limits-warning').text(msg).show();
+    }
+    function hideLimitsWarning() {
+      $('#limits-warning').text('').hide();
+    }
+
     function updateTotals() {
+        hideLimitsWarning();
+
         const { persons, subtotal } = computeSubtotalAndPersons();
-        $('#total-persons').text(persons);
+        const maxTotal = Number(LIMITS.max_persons_per_booking ?? LIMITS.max_persons_total ?? 12);
+        let finalPersons = persons;
+
+        // ====== Máx. personas por reserva ======
+        if (persons > maxTotal) {
+          if (lastChangedInputId !== null) {
+            const sumOthers = persons - (parseInt($(`.category-input[data-category-id="${lastChangedInputId}"]`).val()) || 0);
+            const allowedForLast = Math.max(0, maxTotal - sumOthers);
+            const $last = $(`.category-input[data-category-id="${lastChangedInputId}"]`);
+            $last.val(allowedForLast);
+            finalPersons = maxTotal;
+          }
+          showLimitsWarning(`{{ __('m_bookings.validation.max_persons_exceeded') ?? 'Se excede el máximo de personas por reserva' }}: ${maxTotal}`);
+        }
+
+        // ====== Min adultos / Max niños ======
+        const { adults, kids } = getAdultsKidsFromInputs();
+        const minAdults = Number(LIMITS.min_adults_per_booking ?? LIMITS.min_adults ?? 0);
+        const maxKids   = Number(LIMITS.max_kids_per_booking ?? LIMITS.max_kids ?? Number.MAX_SAFE_INTEGER);
+
+        if (minAdults > 0 && adults < minAdults) {
+          showLimitsWarning(`{{ __('m_bookings.validation.min_adults_required') ?? 'Mínimo de adultos requerido' }}: ${minAdults}`);
+        }
+        if (kids > maxKids) {
+          showLimitsWarning(`{{ __('m_bookings.validation.max_kids_exceeded') ?? 'Máximo de niños excedido' }}: ${maxKids}`);
+        }
+
+        $('#total-persons').text(finalPersons);
         $('#subtotal-price').text(fmtMoney(subtotal));
 
         const op  = $('#promo-operation').val();
@@ -453,7 +532,39 @@ $(function() {
         $('#total-price').text(fmtMoney(Math.max(total, 0)));
     }
 
-    // ===== PROMO TOGGLE =====
+    // ---------- Categories interactions ----------
+    function attachCategoryHandlers() {
+        $('.category-minus').on('click', function() {
+            const id = $(this).data('category-id');
+            lastChangedInputId = String(id);
+            const $i = $(`.category-input[data-category-id="${id}"]`);
+            const min = parseInt($i.attr('min'));
+            const cur = parseInt($i.val()) || 0;
+            if (cur > min) { $i.val(cur - 1); updateTotals(); }
+        });
+
+        $('.category-plus').on('click', function() {
+            const id = $(this).data('category-id');
+            lastChangedInputId = String(id);
+            const $i = $(`.category-input[data-category-id="${id}"]`);
+            const max = parseInt($i.attr('max'));
+            const cur = parseInt($i.val()) || 0;
+            if (cur < max) { $i.val(cur + 1); updateTotals(); }
+        });
+
+        $('.category-input').on('change keyup', function() {
+            lastChangedInputId = String($(this).data('category-id'));
+            const min = parseInt($(this).attr('min'));
+            const max = parseInt($(this).attr('max'));
+            let v = parseInt($(this).val()) || 0;
+            if (v < min) v = min;
+            if (v > max) v = max;
+            $(this).val(v);
+            updateTotals();
+        });
+    }
+
+    // ===== PROMO (idéntico a edit) =====
     const APPLY_LABEL  = @json(__('m_bookings.bookings.buttons.apply'));
     const REMOVE_LABEL = @json(__('m_bookings.bookings.buttons.delete') ?? 'Quitar');
 
@@ -485,7 +596,6 @@ $(function() {
         updateTotals();
     }
 
-    // Enter en el input aplica/quita
     $('#promo_code').on('keydown', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -493,7 +603,6 @@ $(function() {
         }
     });
 
-    // Si el input queda vacío y el estado era "remove", quitar automáticamente
     $('#promo_code').on('input', function() {
         const val = ($(this).val() || '').trim();
         if (val === '' && $('#btn-verify-promo').data('mode') === 'remove') {
@@ -501,14 +610,13 @@ $(function() {
         }
     });
 
-    // Botón aplicar/quitar con anti-doble click y spinner
     $('#btn-verify-promo').on('click', function() {
         const $btn = $(this);
         const mode = $btn.data('mode');
 
         if (mode === 'remove') {
             clearPromoUI(true);
-            $('#promo_code').val(''); // limpia campo al quitar
+            $('#promo_code').val('');
             return;
         }
 
@@ -517,7 +625,6 @@ $(function() {
         if (!code) { $('#promo-feedback').removeClass('text-success').addClass('text-danger').text('{{ __('m_bookings.bookings.validation.promo_empty') }}'); return; }
         if (subtotal <= 0) { $('#promo-feedback').removeClass('text-success').addClass('text-danger').text('{{ __('m_bookings.bookings.validation.promo_needs_subtotal') }}'); return; }
 
-        // bloquear botón durante la verificación
         const originalHtml = $btn.html();
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span><span class="promo-label">{{ __('m_bookings.bookings.ui.verifying') ?? 'Verificando…' }}</span>');
 
@@ -546,7 +653,6 @@ $(function() {
             })
             .always(function() {
                 $btn.prop('disabled', false);
-                // restaurar label correcto
                 if ($btn.data('mode') === 'remove') {
                     $btn.removeClass('btn-success').addClass('btn-danger')
                         .html('<span class="promo-label">' + REMOVE_LABEL + '</span>');
@@ -556,31 +662,9 @@ $(function() {
                 }
             });
     });
-    // ===== /PROMO TOGGLE =====
+    // ===== /PROMO =====
 
-    // ---------- Tour change: cargar por API ----------
-    $('#tour_id').on('change', function() {
-        const tourId = $(this).val();
-        // limpiar selects y categorías
-        resetSelect($('#schedule_id'), @json(__('m_bookings.bookings.ui.select_tour_first')), true);
-        resetSelect($('#tour_language_id'), @json(__('m_bookings.bookings.ui.select_tour_first')), true);
-        $('#categories-container').html(
-          `<div class="alert alert-info mb-0">
-             {{ __('m_bookings.bookings.ui.select_tour_to_see_categories') }}
-           </div>`
-        );
-        currentCategories = [];
-        // reset promo completamente
-        clearPromoUI(false);
-        $('#promo_code').val('');
-
-        if (!tourId) return;
-        loadSchedules(tourId);
-        loadLanguages(tourId);
-        loadCategories(tourId);
-    });
-
-    // ---------- Bloqueo/Desbloqueo con texto: Hotel vs Meeting Point ----------
+    // ---------- Locks Hotel vs Meeting Point ----------
     function lockHotel(msg){
         $('#hotel_group').addClass('d-none');
         $('#other_hotel_wrapper').hide();
@@ -632,6 +716,27 @@ $(function() {
         }
     });
 
+    // ---------- Tour change ----------
+    $('#tour_id').on('change', function() {
+        const tourId = $(this).val();
+        resetSelect($('#schedule_id'), @json(__('m_bookings.bookings.ui.select_tour_first')), true);
+        resetSelect($('#tour_language_id'), @json(__('m_bookings.bookings.ui.select_tour_first')), true);
+        $('#categories-container').html(
+          `<div class="alert alert-info mb-0">
+             {{ __('m_bookings.bookings.ui.select_tour_to_see_categories') }}
+           </div>`
+        );
+        currentCategories = [];
+        // reset promo
+        clearPromoUI(false);
+        $('#promo_code').val('');
+
+        if (!tourId) return;
+        loadSchedules(tourId);
+        loadLanguages(tourId);
+        loadCategories(tourId);
+    });
+
     // ---------- Inicialización ----------
     if ($('#hotel_id').val() === 'other') { $('#other_hotel_wrapper').show(); }
 
@@ -658,8 +763,8 @@ $(function() {
         loadLanguages(oldTourId, '{{ old('tour_language_id') }}');
         loadCategories(oldTourId, @json(old('categories', [])));
     }
-});
-</script>
+  });
+  </script>
 @stop
 
 @section('css')

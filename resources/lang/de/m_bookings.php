@@ -19,6 +19,8 @@ return [
         'max_category_exceeded' => 'Maximal :max Personen sind in der Kategorie „:category“ erlaubt.',
         'min_one_person_required' => 'Es muss mindestens eine Person in der Buchung sein.',
         'category_not_available' => 'Die Kategorie mit der ID :category_id ist für diese Tour nicht verfügbar.',
+        'max_persons_label' => 'Maximale Personenzahl pro Buchung',
+        'date_range_hint' => 'Wählen Sie ein Datum zwischen :from — :to',
     ],
 
     // =========================================================
