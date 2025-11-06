@@ -19,14 +19,7 @@
       <i class="fas fa-calendar-alt" aria-hidden="true"></i>
       <span>{{ __('adminlte::adminlte.select_date') }}</span>
     </label>
-    <input
-      id="tourDateInput"
-      type="text"
-      name="tour_date"
-      class="form-control w-100"
-      placeholder="dd/mm/yyyy"
-      required
-    >
+    <input id="tourDateInput" type="text" name="tour_date" class="form-control w-100" placeholder="dd/mm/yyyy" required>
   </div>
 
   {{-- Horario --}}
@@ -150,10 +143,10 @@
 
   /* ========= Datos del backend ========= */
   const RULES  = @json($rulesPayload ?? ['tour'=>['min'=>null],'schedules'=>[],'initialMin'=>null]);
-  const blockedBySchedule = @json($blockedBySchedule ?? (object)[]); // {schedule_id: [YYYY-MM-DD,...]}
-  const fullByCapacity    = @json($capacityDisabled  ?? (object)[]);
-const blockedGeneral    = @json($blockedGeneral    ?? []);
-const fullyBlockedDates = @json($fullyBlockedDates ?? []);
+  const blockedBySchedule = @json($blockedBySchedule ?? (object)[]); // <- FIX
+  const fullByCapacity    = @json($capacityDisabled  ?? (object)[]); // <- FIX
+  const blockedGeneral    = @json($blockedGeneral    ?? []);
+  const fullyBlockedDates = @json($fullyBlockedDates ?? []);
 
   const T = {
     noSlots: @json(__('adminlte::adminlte.no_slots_for_date') ?: 'No hay horarios disponibles para esa fecha.')
@@ -166,14 +159,14 @@ const fullyBlockedDates = @json($fullyBlockedDates ?? []);
 
   const hotelSelect = document.getElementById('hotelSelect');
   const otherHotelWrapper = document.getElementById('otherHotelWrapper');
-  const otherHotelInput = document.getElementById('otherHotelInput');
+  const otherHotelInput   = document.getElementById('otherHotelInput');
   const isOtherHotelInput = document.getElementById('isOtherHotel');
-  const outsideMessage = document.getElementById('outsideAreaMessage');
+  const outsideMessage    = document.getElementById('outsideAreaMessage');
 
-  const meetingPointSelect = document.getElementById('meetingPointSelect');
+  const meetingPointSelect  = document.getElementById('meetingPointSelect');
   const meetingPointSection = document.getElementById('meetingPointSection');
-  const hotelSection = document.getElementById('hotelSection');
-  const meetingPointInfo = document.getElementById('meetingPointInfo');
+  const hotelSection        = document.getElementById('hotelSection');
+  const meetingPointInfo    = document.getElementById('meetingPointInfo');
   const mpDesc = document.getElementById('mpDesc');
   const mpTime = document.getElementById('mpTime');
   const mpLink = document.getElementById('mpLink');
@@ -182,9 +175,15 @@ const fullyBlockedDates = @json($fullyBlockedDates ?? []);
 
   /* ========= Helpers ========= */
   const isoFromDate = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  const SCHEDULE_IDS = Array.from(scheduleSelect.options).filter(o=>o.value).map(o=>String(o.value));
+
+  // Opciones base ANTES de instanciar Choices
+  const BASE_CHOICES = Array.from(scheduleSelect.querySelectorAll('option'))
+    .filter(o => o.value !== '')
+    .map(o => ({ value:String(o.value), label:o.label }));
+
   const ruleForSchedule = (sid) => (RULES.schedules && RULES.schedules[String(sid)]) ? RULES.schedules[String(sid)] : (RULES.tour || {min:null});
   const globalMin = RULES.initialMin || (RULES.tour?.min) || 'today';
+  const SCHEDULE_IDS = BASE_CHOICES.map(o => String(o.value));
 
   const canUseScheduleOnDate = (iso, sid) => {
     if (!iso) return false;
@@ -210,29 +209,33 @@ const fullyBlockedDates = @json($fullyBlockedDates ?? []);
   const meetingChoices  = new Choices(meetingPointSelect, { searchEnabled:true, shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- {{ __('adminlte::adminlte.select_option') }} --' });
   window.meetingChoices = meetingChoices;
 
-  const BASE_CHOICES = Array.from(scheduleSelect.options).filter(o=>o.value!=='').map(o=>({value:String(o.value), label:o.label}));
-
   function rebuildScheduleChoices(iso){
-    const prev = scheduleSelect.value || '';
+    const prevValue = scheduleChoices.getValue(true) || '';
+    scheduleChoices.removeActiveItems();
+    scheduleChoices.clearStore();
     scheduleChoices.clearChoices();
 
     if (!iso || isDayFullyBlocked(iso)) {
-      scheduleChoices.setChoices([], 'value','label', true);
+      scheduleChoices.setChoices([], 'value', 'label', true);
       scheduleChoices.disable();
       help.textContent = iso ? T.noSlots : '';
       help.style.display = iso ? '' : 'none';
       return;
     }
 
-    const allowed = BASE_CHOICES.map(o=>({ ...o, disabled: !canUseScheduleOnDate(iso, o.value)}));
-    scheduleChoices.setChoices(allowed, 'value','label', true);
+    const allowed = BASE_CHOICES.map(o => ({
+      ...o,
+      disabled: !canUseScheduleOnDate(iso, o.value)
+    }));
 
-    const enabled = allowed.filter(c=>!c.disabled);
+    scheduleChoices.setChoices(allowed, 'value', 'label', true);
+
+    const enabled = allowed.filter(c => !c.disabled);
     if (enabled.length){
       scheduleChoices.enable();
       help.style.display = 'none';
-      if (prev && enabled.some(c => String(c.value)===String(prev))){
-        scheduleChoices.setChoiceByValue(String(prev));
+      if (prevValue && enabled.some(c => String(c.value)===String(prevValue))){
+        scheduleChoices.setChoiceByValue(String(prevValue));
       } else if (enabled.length===1){
         scheduleChoices.setChoiceByValue(String(enabled[0].value));
         scheduleSelect.dispatchEvent(new Event('change',{bubbles:true}));
@@ -248,38 +251,33 @@ const fullyBlockedDates = @json($fullyBlockedDates ?? []);
   let fp;
   if (window.flatpickr){
     fp = flatpickr(dateInput, {
-      // Visual como tu captura:
       altInput: true,
       altFormat: 'd/m/Y',
       dateFormat: 'Y-m-d',
-      minDate: globalMin,                            // bloquea todo el pasado
-      disable: [ (date) => isDayFullyBlocked(isoFromDate(date)) ], // bloquea llenas/inhábiles
+      minDate: globalMin,
+      disable: [ (date) => isDayFullyBlocked(isoFromDate(date)) ],
       onChange: (_sel, iso) => rebuildScheduleChoices(iso),
       onReady: (_sel, iso, instance) => {
-        // Set inicial = hoy o la mínima global
         const start = iso || (globalMin === 'today' ? instance.formatDate(new Date(),'Y-m-d') : globalMin);
         instance.setDate(start, false);
         rebuildScheduleChoices(start);
       }
     });
   } else {
-    // Fallback nativo
     dateInput.type = 'date';
     dateInput.min  = (globalMin==='today') ? new Date().toISOString().slice(0,10) : globalMin;
     dateInput.addEventListener('change', e=> rebuildScheduleChoices(e.target.value));
     scheduleChoices.disable();
   }
 
-  // Cambio de horario -> ajusta restricciones del calendario y limpia fecha si ya no sirve
+  // Cambio de horario
   scheduleSelect.addEventListener('change', ()=>{
     const sid  = scheduleSelect.value;
     const rule = sid ? ruleForSchedule(sid) : (RULES.tour || {min:null});
-
     if (fp){
       fp.set('minDate', sid ? (rule.min || globalMin) : globalMin);
-      // forzamos re-evaluar el disable function (flatpickr lo hace solo)
-      const current = dateInput.value;
-      if (current && sid && !canUseScheduleOnDate(current, sid)){
+      const currentIso = dateInput.value;
+      if (currentIso && sid && !canUseScheduleOnDate(currentIso, sid)){
         fp.clear();
         help.textContent = T.noSlots;
         help.style.display = '';
@@ -319,15 +317,15 @@ const fullyBlockedDates = @json($fullyBlockedDates ?? []);
     const hotelValue = hotelChoices.getValue(true);
     const meetingVal = meetingChoices.getValue(true);
 
-    if (hotelValue){ // Hay hotel -> deshabilitar meeting
-      meetingChoices.disable(); meetingPointSelect.value=''; refreshMeetingInfo();
+    if (hotelValue){
+      meetingChoices.disable(); meetingPointSelect.value=''; meetingChoices.removeActiveItems(); refreshMeetingInfo();
       meetingPointSection.classList.add('disabled');
     } else {
       meetingChoices.enable(); meetingPointSection.classList.remove('disabled');
     }
 
-    if (meetingVal){ // Hay meeting -> deshabilitar hotel
-      hotelChoices.disable(); hotelSelect.value=''; toggleOther(); if (isOtherHotelInput) isOtherHotelInput.value='0';
+    if (meetingVal){
+      hotelChoices.disable(); hotelSelect.value=''; hotelChoices.removeActiveItems(); toggleOther(); if (isOtherHotelInput) isOtherHotelInput.value='0';
       hotelSection.classList.add('disabled');
     } else {
       hotelChoices.enable(); hotelSection.classList.remove('disabled');
