@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
 use App\Http\Controllers\Reviews\ReviewApiController;
 use App\Http\Controllers\Admin\API\TourDataController;
 use App\Http\Controllers\Admin\API\BookingApiController;
+use App\Http\Controllers\Admin\API\CapacityApiController;
+
 
 // ============================
 // API PÚBLICA (sin auth)
@@ -42,5 +44,14 @@ Route::prefix('v1')
         // Promo codes
         Route::get('bookings/verify-promo-code', [BookingApiController::class, 'verifyPromo'])
             ->name('api.v1.bookings.verifyPromo');
+
+              Route::prefix('capacity')->name('api.v1.capacity.')->group(function () {
+            Route::patch('schedules/{schedule}/increase', [CapacityApiController::class, 'increase'])
+                ->name('increase'); // api.v1.capacity.increase
+            Route::patch('schedules/{schedule}/block',    [CapacityApiController::class, 'block'])
+                ->name('block');   // api.v1.capacity.block
+            Route::get('schedules/{schedule}/details',    [CapacityApiController::class, 'details'])
+                ->name('details'); // api.v1.capacity.details
+        });
     });
 
