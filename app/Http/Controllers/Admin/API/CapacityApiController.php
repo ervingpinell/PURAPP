@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\{Tour, Schedule, TourAvailability, TourExcludedDate};
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -15,7 +16,7 @@ class CapacityApiController extends Controller
 {
     /**
      * PATCH /api/v1/capacity/schedules/{schedule}/increase
-     * Body: { tour_id:int, date:YYYY-MM-DD, amount:int>=1 }  (amount = nueva capacidad máxima para ese día/horario)
+     * Body: { tour_id:int, date:YYYY-MM-DD, amount:int>=1 }
      * Auth: sanctum
      */
     public function increase(Request $request, Schedule $schedule)
@@ -28,8 +29,9 @@ class CapacityApiController extends Controller
             'amount'  => ['required','integer','min:1','max:9999'],
         ]);
 
-        $tour = Tour::findOrFail($data['tour_id']);
-        $date = Carbon::parse($data['date'])->toDateString();
+        $tour   = Tour::findOrFail($data['tour_id']);
+        $date   = Carbon::parse($data['date'])->toDateString();
+        $amount = (int) $data['amount'];
 
         Log::info('[CAPACITY] increase() start', [
             'rid'         => $rid,
@@ -38,53 +40,53 @@ class CapacityApiController extends Controller
             'schedule_id' => $schedule->schedule_id,
             'tour_id'     => $tour->tour_id,
             'date'        => $date,
-            'amount'      => (int) $data['amount'],
+            'amount'      => $amount,
         ]);
 
         try {
-            // Override puntual para ese día+horario (ABSOLUTO = amount)
-            $availability = TourAvailability::updateOrCreate(
-                [
-                    'tour_id'     => $tour->tour_id,
-                    'schedule_id' => $schedule->schedule_id,
-                    'date'        => $date,
-                ],
-                [
-                    'is_active'    => true,
-                    'is_blocked'   => false,
-                    'max_capacity' => (int) $data['amount'],
-                ]
-            );
+            // (Opcional) Idempotency-Key de 60s
+            $this->idempotencyGuard('capacity', (string)$request->header('Idempotency-Key',''), 60);
 
-            [$used, $max, $rem, $pct] = $this->metrics(
-                $tour->tour_id,
-                $schedule->schedule_id,
-                $date,
-                (int) ($availability->max_capacity ?? 0)
-            );
+            return $this->withCapacityLock($tour->tour_id, $schedule->schedule_id, $date, function () use ($tour, $schedule, $date, $amount, $rid) {
 
-            Log::info('[CAPACITY] increase() ok', [
-                'rid'         => $rid,
-                'used'        => $used,
-                'max'         => $max,
-                'remaining'   => $rem,
-                'pct'         => $pct,
-            ]);
+                $availability = TourAvailability::updateOrCreate(
+                    [
+                        'tour_id'     => $tour->tour_id,
+                        'schedule_id' => $schedule->schedule_id,
+                        'date'        => $date,
+                    ],
+                    [
+                        'is_active'    => true,
+                        'is_blocked'   => false,
+                        'max_capacity' => $amount,
+                    ]
+                );
 
-            return response()->json([
-                'ok'           => true,
-                'used'         => $used,
-                'max_capacity' => $max,
-                'remaining'    => $rem,
-                'pct'          => $pct,
-            ]);
+                [$used, $max, $rem, $pct] = $this->metrics(
+                    $tour->tour_id,
+                    $schedule->schedule_id,
+                    $date,
+                    (int) ($availability->max_capacity ?? 0)
+                );
+
+                Log::info('[CAPACITY] increase() ok', compact('rid','used','max','rem','pct'));
+
+                return response()->json([
+                    'ok'           => true,
+                    'used'         => $used,
+                    'max_capacity' => $max,
+                    'remaining'    => $rem,
+                    'pct'          => $pct,
+                ]);
+            });
+
         } catch (Throwable $e) {
             report($e);
             Log::error('[CAPACITY] increase() failed', [
                 'rid'         => $rid,
                 'schedule_id' => $schedule->schedule_id ?? null,
                 'tour_id'     => $tour->tour_id ?? null,
-                'date'        => $date,
+                'date'        => $date ?? null,
                 'error'       => $e->getMessage(),
             ]);
 
@@ -111,8 +113,9 @@ class CapacityApiController extends Controller
             'reason'  => ['nullable','string','max:255'],
         ]);
 
-        $tour = Tour::findOrFail($data['tour_id']);
-        $date = Carbon::parse($data['date'])->toDateString();
+        $tour  = Tour::findOrFail($data['tour_id']);
+        $date  = Carbon::parse($data['date'])->toDateString();
+        $reason = $data['reason'] ?? 'Bloqueo puntual';
 
         Log::info('[CAPACITY] block() start', [
             'rid'         => $rid,
@@ -121,57 +124,60 @@ class CapacityApiController extends Controller
             'schedule_id' => $schedule->schedule_id,
             'tour_id'     => $tour->tour_id,
             'date'        => $date,
-            'reason'      => $data['reason'] ?? null,
+            'reason'      => $reason,
         ]);
 
         try {
-            // Bloqueo puntual (override is_blocked=true y max_capacity=null)
-            TourAvailability::updateOrCreate(
-                [
-                    'tour_id'     => $tour->tour_id,
-                    'schedule_id' => $schedule->schedule_id,
-                    'date'        => $date,
-                ],
-                [
-                    'is_active'    => true,
-                    'is_blocked'   => true,
-                    'max_capacity' => null,
-                ]
-            );
+            // (Opcional) Idempotency-Key de 60s
+            $this->idempotencyGuard('capacity', (string)$request->header('Idempotency-Key',''), 60);
 
-            // Bitácora
-            TourExcludedDate::firstOrCreate(
-                [
-                    'tour_id'     => $tour->tour_id,
-                    'schedule_id' => $schedule->schedule_id,
-                    'start_date'  => $date,
-                    'end_date'    => $date,
-                ],
-                ['reason' => $data['reason'] ?? 'Bloqueo puntual']
-            );
+            return $this->withCapacityLock($tour->tour_id, $schedule->schedule_id, $date, function () use ($tour, $schedule, $date, $reason, $rid) {
 
-            $used = $this->countUsed($tour->tour_id, $schedule->schedule_id, $date);
+                // Bloqueo puntual
+                TourAvailability::updateOrCreate(
+                    [
+                        'tour_id'     => $tour->tour_id,
+                        'schedule_id' => $schedule->schedule_id,
+                        'date'        => $date,
+                    ],
+                    [
+                        'is_active'    => true,
+                        'is_blocked'   => true,
+                        'max_capacity' => null,
+                    ]
+                );
 
-            Log::info('[CAPACITY] block() ok', [
-                'rid'   => $rid,
-                'used'  => $used,
-                'date'  => $date,
-            ]);
+                // Bitácora humana (TourExcludedDate)
+                TourExcludedDate::firstOrCreate(
+                    [
+                        'tour_id'     => $tour->tour_id,
+                        'schedule_id' => $schedule->schedule_id,
+                        'start_date'  => $date,
+                        'end_date'    => $date,
+                    ],
+                    ['reason' => $reason]
+                );
 
-            return response()->json([
-                'ok'           => true,
-                'used'         => $used,
-                'max_capacity' => 0,
-                'remaining'    => 0,
-                'pct'          => 100,
-            ]);
+                $used = $this->countUsed($tour->tour_id, $schedule->schedule_id, $date);
+
+                Log::info('[CAPACITY] block() ok', compact('rid','used','date'));
+
+                return response()->json([
+                    'ok'           => true,
+                    'used'         => $used,
+                    'max_capacity' => 0,
+                    'remaining'    => 0,
+                    'pct'          => 100,
+                ]);
+            });
+
         } catch (Throwable $e) {
             report($e);
             Log::error('[CAPACITY] block() failed', [
                 'rid'         => $rid,
                 'schedule_id' => $schedule->schedule_id ?? null,
                 'tour_id'     => $tour->tour_id ?? null,
-                'date'        => $date,
+                'date'        => $date ?? null,
                 'error'       => $e->getMessage(),
             ]);
 
@@ -220,7 +226,7 @@ class CapacityApiController extends Controller
                 // override puntual para esa fecha
                 $override = TourAvailability::where('tour_id', $tour->tour_id)
                     ->where('schedule_id', $schedule->schedule_id)
-                    ->whereDate('date', $date) // PG-safe
+                    ->whereDate('date', $date)
                     ->first();
 
                 if ($override?->is_blocked) {
@@ -238,7 +244,9 @@ class CapacityApiController extends Controller
 
                 $rows[] = [
                     'date'      => $date,
-                    'tour'      => $tour->name,
+                    'tour'      => method_exists($tour, 'getTranslatedName')
+                        ? $tour->getTranslatedName(app()->getLocale())
+                        : $tour->name,
                     'used'      => $used,
                     'max'       => $max,
                     'remaining' => $rem,
@@ -246,10 +254,7 @@ class CapacityApiController extends Controller
                 ];
             }
 
-            Log::info('[CAPACITY] details() ok', [
-                'rid'   => $rid,
-                'rows'  => count($rows),
-            ]);
+            Log::info('[CAPACITY] details() ok', ['rid' => $rid, 'rows' => count($rows)]);
 
             return response()->json(['ok' => true, 'data' => $rows]);
         } catch (Throwable $e) {
@@ -271,9 +276,30 @@ class CapacityApiController extends Controller
 
     /* ======================= Helpers ======================= */
 
-    /**
-     * Capacidad base en el pivot `schedule_tour.base_capacity`.
-     */
+    /** Lock por tour+schedule+date + transacción */
+    private function withCapacityLock(int $tourId, int $scheduleId, string $date, \Closure $callback)
+    {
+        $key  = "cap:lock:{$tourId}:{$scheduleId}:{$date}";
+        $lock = Cache::lock($key, 5);           // TTL del lock 5s
+        return $lock->block(3, function () use ($callback) { // esperar hasta 3s
+            return DB::transaction(fn() => $callback(), 3); // 3 reintentos en deadlock
+        });
+    }
+
+    /** Guard idempotencia simple (60s por defecto) */
+    private function idempotencyGuard(string $scope, string $key, int $ttlSeconds = 60): void
+    {
+        if (!$key) return;
+        $cacheKey = "idem:{$scope}:{$key}";
+        // Si ya existe una en curso, responder 409
+        if (!Cache::add($cacheKey, '1', $ttlSeconds)) {
+            abort(response()->json(['ok'=>false,'message'=>'duplicate_request'], 409));
+        }
+        // Nota: si quisieras devolver la misma respuesta en reintentos,
+        // guarda aquí el JSON y recupéralo antes con Cache::get($cacheKeyResp).
+    }
+
+    /** Capacidad base en schedule_tour.base_capacity */
     private function resolveBaseCapacity(int $tourId, int $scheduleId): ?int
     {
         try {
@@ -293,15 +319,10 @@ class CapacityApiController extends Controller
         }
     }
 
-    /**
-     * Cuenta “usados” consultando booking_details (evita usar schedule_id en bookings).
-     * Ajusta nombres de tabla/columnas si difieren.
-     */
+    /** Cuenta “usados” en booking_details para fecha+horario */
     private function countUsed(int $tourId, int $scheduleId, string $date): int
     {
         try {
-            // Asumimos tabla booking_details con: booking_id, tour_id, schedule_id, tour_date (DATE), deleted_at (soft deletes)
-            // y tabla bookings con: booking_id, deleted_at (soft deletes), status (opcional)
             $q = DB::table('booking_details as bd')
                 ->join('bookings as b', 'b.booking_id', '=', 'bd.booking_id')
                 ->where('bd.tour_id', $tourId)
@@ -309,10 +330,7 @@ class CapacityApiController extends Controller
                 ->whereDate('bd.tour_date', $date)
                 ->whereNull('bd.deleted_at')
                 ->whereNull('b.deleted_at');
-
-            // Si manejas estados/cancelaciones, agrega filtros aquí, por ejemplo:
-            // ->whereIn('b.status', ['paid','confirmed'])
-
+            // Si usas estados: ->whereIn('b.status', ['paid','confirmed'])
             return (int) $q->count();
         } catch (Throwable $e) {
             Log::error('[CAPACITY] countUsed() failed', [
@@ -321,14 +339,11 @@ class CapacityApiController extends Controller
                 'date'        => $date,
                 'error'       => $e->getMessage(),
             ]);
-            // Si falla la consulta, devolvemos 0 para no romper toda la respuesta
             return 0;
         }
     }
 
-    /**
-     * Calcula métricas con “max” ya resuelto.
-     */
+    /** Métricas básicas con $max ya resuelto */
     private function metrics(int $tourId, int $scheduleId, string $date, int $max): array
     {
         $used = $this->countUsed($tourId, $scheduleId, $date);

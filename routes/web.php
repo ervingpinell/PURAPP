@@ -256,7 +256,7 @@ Route::middleware([SetLocale::class])->group(function () {
 
         // Checkout desde carrito (público)
         Route::post('/bookings/from-cart', [PublicBookingController::class, 'storeFromCart'])->name('public.bookings.storeFromCart');
-    
+
         // Checkout: vista de términos + proceso de aceptación (desplazar/leer + checkbox)
         Route::get('/checkout', [PublicCheckoutController::class, 'show'])->name('public.checkout.show');
         Route::post('/checkout/process', [PublicCheckoutController::class, 'process'])->name('public.checkout.process');
@@ -284,16 +284,6 @@ Route::middleware([SetLocale::class])->group(function () {
 
                 // Dashboard
                 Route::get('/', [DashBoardController::class, 'dashboard'])->name('home');
-
-                // ============================
-                // CAPACITY QUICK ACTIONS (Schedule)
-                // ============================
-                // Aumentar capacidad de un horario (Desbloquear)
-                Route::patch('/capacity/{schedule}', [CapacityController::class, 'increase'])->name('capacity.increase');
-                // Detalles de ocupación de un horario
-                Route::get('/capacity/{schedule}', [CapacityController::class, 'show'])->name('capacity.details');
-                // 🔒 Bloquear fecha de un horario
-                Route::patch('/capacity/{schedule}/block', [CapacityController::class, 'block'])->name('capacity.block');
 
                 // ============================
                 // USERS & ROLES

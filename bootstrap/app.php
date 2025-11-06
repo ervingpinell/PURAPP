@@ -7,9 +7,9 @@ use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Console\Scheduling\Schedule;
 
-// Models usados en las tareas programadas
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Jobs\PurgeOldAvailabilityOverrides;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,18 +17,14 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__ . '/../routes/api.php',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Stack web por defecto (EncryptCookies, AddQueuedCookiesToResponse, StartSession, etc.)
         $middleware->statefulApi();
 
-        // CSRF del core con exclusiones (si tus endpoints usan fetch SIN token)
-        // Si ya envías X-CSRF-TOKEN desde el front, puedes QUITAR exclusiones.
         $middleware->validateCsrfTokens(except: [
             'api/reviews',
             'api/reviews/batch',
             'api/apply-promo',
         ]);
 
-        // Aliases
         $middleware->alias([
             'noindex'         => \App\Http\Middleware\NoIndex::class,
             'verified'        => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
@@ -40,7 +36,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'public.readonly' => \App\Http\Middleware\PublicReadOnly::class,
         ]);
 
-        // Globales (corren antes del grupo web) — OJO: aquí NO va SetLocale
         $middleware->append([
             \App\Http\Middleware\ForceCorrectDomain::class,
             \App\Http\Middleware\NormalizeEmail::class,
@@ -48,18 +43,14 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\RememberEmail::class,
         ]);
 
-        // Middlewares del grupo WEB (después de StartSession)
         $middleware->appendToGroup('web', [
             \App\Http\Middleware\SyncCookieConsent::class,
             \App\Http\Middleware\PublicReadOnly::class,
-            \App\Http\Middleware\SetLocale::class, // ✅ Aquí sí es seguro
+            \App\Http\Middleware\SetLocale::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 
-        // ❗️No forzamos locale aquí: el 'translator' puede no existir aún.
-
-        // 429: Too Many Requests
         $exceptions->render(function (ThrottleRequestsException $e, $request) {
             $headers = $e->getHeaders();
             $seconds = (int) ($headers['Retry-After'] ?? 600);
@@ -69,9 +60,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->withHeaders($headers);
         });
 
-        // 413: Payload Too Large
         $exceptions->render(function (PostTooLargeException $e, $request) {
-            // Evita __() si el traductor no está enlazado
             $title = app()->bound('translator') ? __('m_tours.image.ui.error_title') : 'Error';
             $text  = app()->bound('translator') ? __('m_tours.image.errors.too_large') : 'The uploaded file is too large.';
 
@@ -94,6 +83,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->withSchedule(function (Schedule $schedule) {
+
         // 1) Expirar carritos activos vencidos (cada 5 min)
         $schedule->call(function () {
             Cart::query()
@@ -125,7 +115,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 });
         })->dailyAt('02:30')->name('carts:prune-old')->onOneServer();
 
-        // 3) Items huérfanos
+        // 3) Items huérfanos (semanal)
         $schedule->call(function () {
             CartItem::query()
                 ->whereDoesntHave('cart')
@@ -139,5 +129,22 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->onOneServer()
                 ->name('horizon:snapshot');
         }
+
+        // 5) Purga de overrides de capacidad (anteriores a HOY)
+        //    Usamos call() + dispatch()->onQueue('maintenance') para evitar onQueue() en el Event.
+        $schedule->call(function () {
+            PurgeOldAvailabilityOverrides::dispatch([
+                'daysAgo'      => 0,       // solo fechas estrictamente pasadas
+                'onlyInactive' => false,   // true para tocar solo overrides inactivos
+                'keepBlocked'  => true,    // conserva bloqueados históricos
+                'limit'        => 20000,   // techo de seguridad
+                'chunk'        => 1000,
+                'dryRun'       => false,   // true para simular
+            ])->onQueue('maintenance');
+        })
+        ->dailyAt('02:40')
+        ->name('overrides:purge-old')
+        ->onOneServer()
+        ->withoutOverlapping();
     })
     ->create();
