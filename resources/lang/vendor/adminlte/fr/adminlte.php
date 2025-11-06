@@ -317,6 +317,9 @@ return [
     'age_10_plus' => 'Âge 10+',
     'age_4_to_9' => 'Âge 4–9',
     'max_limits_info' => 'Max. 12 voyageurs, max. 2 enfants.',
+    'total_persons' => 'Total de personnes',
+    'or' => 'ou',
+    'min' => 'Min',
 
     // 16. CONTACT
     'name' => 'Nom',

@@ -51,6 +51,7 @@ use App\Http\Controllers\Admin\CustomerCategoryController;
 
 // Public bookings controller (split)
 use App\Http\Controllers\Bookings\BookingController as PublicBookingController;
+use App\Http\Controllers\PublicCheckoutController;
 
 use App\Http\Middleware\SetLocale;
 use App\Services\Reviews\ReviewAggregator;
@@ -255,6 +256,10 @@ Route::middleware([SetLocale::class])->group(function () {
 
         // Checkout desde carrito (público)
         Route::post('/bookings/from-cart', [PublicBookingController::class, 'storeFromCart'])->name('public.bookings.storeFromCart');
+    
+        // Checkout: vista de términos + proceso de aceptación (desplazar/leer + checkbox)
+        Route::get('/checkout', [PublicCheckoutController::class, 'show'])->name('public.checkout.show');
+        Route::post('/checkout/process', [PublicCheckoutController::class, 'process'])->name('public.checkout.process');
     });
 
     // ------------------------------

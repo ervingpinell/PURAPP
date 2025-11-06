@@ -4,19 +4,19 @@ return [
 
     'messages' => [
         'date_no_longer_available' => 'Das Datum :date steht nicht mehr zur Buchung zur Verfügung (Mindest­alter: :min).',
-        'limited_seats_available' => 'Es sind nur noch :available Plätze für „:tour“ am :date verfügbar.',
+        'limited_seats_available'  => 'Es sind nur noch :available Plätze für „:tour“ am :date verfügbar.',
         'bookings_created_from_cart' => 'Ihre Buchungen wurden erfolgreich aus dem Warenkorb erstellt.',
-        'capacity_exceeded' => 'Kapazität überschritten',
-        'meeting_point_hint' => 'Nur der Name des Treffpunkts wird in der Liste angezeigt.',
+        'capacity_exceeded'        => 'Kapazität überschritten',
+        'meeting_point_hint'       => 'Nur der Name des Treffpunkts wird in der Liste angezeigt.',
     ],
 
     'validation' => [
         'max_persons_exceeded' => 'Maximal :max Personen pro Buchung insgesamt.',
-        'min_adults_required' => 'Mindestens :min Erwachsene pro Buchung erforderlich.',
-        'max_kids_exceeded' => 'Maximal :max Kinder pro Buchung.',
+        'min_adults_required'  => 'Mindestens :min Erwachsene pro Buchung erforderlich.',
+        'max_kids_exceeded'    => 'Maximal :max Kinder pro Buchung.',
         'no_active_categories' => 'Für diese Tour gibt es keine aktiven Kundengruppen.',
         'min_category_not_met' => 'Mindestens :min Personen sind in der Kategorie „:category“ erforderlich.',
-        'max_category_exceeded' => 'Maximal :max Personen sind in der Kategorie „:category“ erlaubt.',
+        'max_category_exceeded'=> 'Maximal :max Personen sind in der Kategorie „:category“ erlaubt.',
         'min_one_person_required' => 'Es muss mindestens eine Person in der Buchung sein.',
         'category_not_available' => 'Die Kategorie mit der ID :category_id ist für diese Tour nicht verfügbar.',
         'max_persons_label' => 'Maximale Personenzahl pro Buchung',
@@ -427,6 +427,24 @@ return [
         'discount'      => 'Rabatt',
     ],
 
+    // =========================================================
+    // [08] VIAJEROS (MODAL)
+    // =========================================================
+    'travelers' => [
+        'title_warning'        => 'Achtung',
+        'title_info'           => 'Info',
+        'title_error'          => 'Fehler',
+        'max_persons_reached'  => 'Maximal :max Personen pro Buchung.',
+        'max_category_reached' => 'Das Maximum für diese Kategorie beträgt :max.',
+        'invalid_quantity'     => 'Ungültige Menge. Bitte geben Sie eine gültige Zahl ein.',
+        'age_between'          => 'Alter :min–:max',
+        'age_from'             => 'Alter :min+',
+        'age_to'               => 'Bis :max Jahre',
+    ],
+
+    // =========================================================
+    // [09] EXCLUDED DATES / AVAILABILITY & CAPACITY
+    // =========================================================
     'excluded_dates' => [
 
         'ui' => [
@@ -451,7 +469,7 @@ return [
             'date'               => 'Datum',
             'days'               => 'Tage',
             'product'            => 'Tour suchen',
-            'search_placeholder' => 'Tourname…',
+            'search_placeholder' => 'Tournamen…',
             'bulk_actions'       => 'Massenaktionen',
             'update_state'       => 'Status aktualisieren',
         ],
@@ -542,74 +560,77 @@ return [
         ],
     ],
 
+    // =========================================================
+    // [10] CAPACITY SETTINGS
+    // =========================================================
     'capacity' => [
 
-    'ui' => [
-        'page_title'   => 'Kapazitätsverwaltung',
-        'page_heading' => 'Kapazitätsverwaltung',
-    ],
-
-    'tabs' => [
-        'global'         => 'Global',
-        'by_tour'        => 'Nach Tour + Zeitplan',
-        'day_schedules'  => 'Überschreibungen Tag + Zeitplan',
-    ],
-
-    'alerts' => [
-        'global_info' => '<strong>Globale Kapazitäten:</strong> Definiere das Basislimit für jede Tour (alle Tage und Zeiten).',
-        'by_tour_info' => '<strong>Nach Tour + Zeitplan:</strong> Spezifische Kapazitätsüberschreibung für jeden Zeitplan einer Tour. Diese Überschreibungen haben Vorrang vor der globalen Tourkapazität.',
-        'day_schedules_info' => '<strong>Tag + Zeitplan:</strong> Überschreibung mit höchster Priorität für einen bestimmten Tag und Zeitplan. Diese werden in der Ansicht „Verfügbarkeit und Kapazität“ verwaltet.',
-    ],
-
-    'tables' => [
-        'global' => [
-            'tour'       => 'Tour',
-            'type'       => 'Typ',
-            'capacity'   => 'Globale Kapazität',
-            'level'      => 'Ebene',
+        'ui' => [
+            'page_title'   => 'Kapazitätsverwaltung',
+            'page_heading' => 'Kapazitätsverwaltung',
         ],
-        'by_tour' => [
-            'schedule'   => 'Zeitplan',
-            'capacity'   => 'Kapazitätsüberschreibung',
-            'level'      => 'Ebene',
-            'no_schedules' => 'Diese Tour hat keine zugewiesenen Zeitpläne',
+
+        'tabs' => [
+            'global'         => 'Global',
+            'by_tour'        => 'Nach Tour + Zeitplan',
+            'day_schedules'  => 'Überschreibungen Tag + Zeitplan',
         ],
-        'day_schedules' => [
-            'date'       => 'Datum',
-            'tour'       => 'Tour',
-            'schedule'   => 'Zeitplan',
-            'capacity'   => 'Kapazität',
-            'actions'    => 'Aktionen',
-            'no_overrides' => 'Keine Überschreibungen für Tag + Zeitplan vorhanden',
+
+        'alerts' => [
+            'global_info'       => '<strong>Globale Kapazitäten:</strong> Definiere das Basislimit für jede Tour (alle Tage und Zeiten).',
+            'by_tour_info'      => '<strong>Nach Tour + Zeitplan:</strong> Spezifische Kapazitätsüberschreibung für jeden Zeitplan einer Tour. Diese Überschreibungen haben Vorrang vor der globalen Tourkapazität.',
+            'day_schedules_info'=> '<strong>Tag + Zeitplan:</strong> Überschreibung mit höchster Priorität für einen bestimmten Tag und Zeitplan. Diese werden in der Ansicht „Verfügbarkeit und Kapazität“ verwaltet.',
+        ],
+
+        'tables' => [
+            'global' => [
+                'tour'       => 'Tour',
+                'type'       => 'Typ',
+                'capacity'   => 'Globale Kapazität',
+                'level'      => 'Ebene',
+            ],
+            'by_tour' => [
+                'schedule'     => 'Zeitplan',
+                'capacity'     => 'Kapazitätsüberschreibung',
+                'level'        => 'Ebene',
+                'no_schedules' => 'Diese Tour hat keine zugewiesenen Zeitpläne',
+            ],
+            'day_schedules' => [
+                'date'         => 'Datum',
+                'tour'         => 'Tour',
+                'schedule'     => 'Zeitplan',
+                'capacity'     => 'Kapazität',
+                'actions'      => 'Aktionen',
+                'no_overrides' => 'Keine Überschreibungen für Tag + Zeitplan vorhanden',
+            ],
+        ],
+
+        'badges' => [
+            'base'       => 'Basis',
+            'override'   => 'Überschreibung',
+            'global'     => 'Global',
+            'blocked'    => 'GESPERRT',
+            'unlimited'  => '∞',
+        ],
+
+        'buttons' => [
+            'save'      => 'Speichern',
+            'delete'    => 'Löschen',
+            'back'      => 'Zurück',
+            'apply'     => 'Anwenden',
+            'cancel'    => 'Abbrechen',
+        ],
+
+        'messages' => [
+            'empty_placeholder' => 'Leer = verwendet globale Kapazität (:capacity)',
+            'deleted_confirm'   => 'Diese Überschreibung löschen?',
+            'no_day_overrides'  => 'Keine Überschreibungen für Tag + Zeitplan vorhanden.',
+        ],
+
+        'toasts' => [
+            'success_title' => 'Erfolg',
+            'error_title'   => 'Fehler',
         ],
     ],
-
-    'badges' => [
-        'base'       => 'Basis',
-        'override'   => 'Überschreibung',
-        'global'     => 'Global',
-        'blocked'    => 'GESPERRT',
-        'unlimited'  => '∞',
-    ],
-
-    'buttons' => [
-        'save'      => 'Speichern',
-        'delete'    => 'Löschen',
-        'back'      => 'Zurück',
-        'apply'     => 'Anwenden',
-        'cancel'    => 'Abbrechen',
-    ],
-
-    'messages' => [
-        'empty_placeholder' => 'Leer = verwendet globale Kapazität (:capacity)',
-        'deleted_confirm'   => 'Diese Überschreibung löschen?',
-        'no_day_overrides'  => 'Keine Überschreibungen für Tag + Zeitplan vorhanden.',
-    ],
-
-    'toasts' => [
-        'success_title' => 'Erfolg',
-        'error_title'   => 'Fehler',
-    ],
-],
 
 ];

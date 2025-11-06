@@ -478,10 +478,8 @@
       </div>
     </div>
 
-    {{-- Confirmar reserva --}}
-    <form action="{{ route('public.bookings.storeFromCart') }}" method="POST" id="confirm-reserva-form">
-      @csrf
-      <input type="hidden" name="promo_code" id="promo_code_hidden" value="{{ $promoSession['code'] ?? '' }}">
+    {{-- Confirmar → Checkout --}}
+    <form action="{{ route('public.checkout.show') }}" method="GET" id="confirm-reserva-form">
       <div class="d-grid">
         <button type="submit" class="btn btn-success btn-lg">
           <i class="fas fa-check"></i> {{ __('adminlte::adminlte.confirmBooking') }}

@@ -3,21 +3,21 @@
 return [
 
     'messages' => [
-        'date_no_longer_available' => 'La date :date n’est plus disponible pour la réservation (minimum : :min).',
-        'limited_seats_available' => 'Il ne reste que :available places pour « :tour » le :date.',
+        'date_no_longer_available'   => 'La date :date n’est plus disponible pour la réservation (minimum : :min).',
+        'limited_seats_available'    => 'Il ne reste que :available places pour « :tour » le :date.',
         'bookings_created_from_cart' => 'Vos réservations ont été créées avec succès depuis le panier.',
-        'capacity_exceeded' => 'Capacité dépassée',
-        'meeting_point_hint' => 'Seul le nom du point de rencontre est affiché dans la liste.',
+        'capacity_exceeded'          => 'Capacité dépassée',
+        'meeting_point_hint'         => 'Seul le nom du point de rencontre est affiché dans la liste.',
     ],
 
     'validation' => [
-        'max_persons_exceeded' => 'Maximum :max personnes par réservation au total.',
-        'min_adults_required' => 'Au minimum :min adultes par réservation requis.',
-        'max_kids_exceeded' => 'Maximum :max enfants par réservation.',
-        'no_active_categories' => 'Cette visite n’a pas de catégories clients actives.',
-        'min_category_not_met' => 'Au minimum :min personnes sont requises dans la catégorie « :category ».',
-        'max_category_exceeded' => 'Maximum :max personnes autorisées dans la catégorie « :category ».',
-        'min_one_person_required' => 'Au moins une personne est requise dans la réservation.',
+        'max_persons_exceeded'   => 'Maximum :max personnes par réservation au total.',
+        'min_adults_required'    => 'Au minimum :min adultes par réservation requis.',
+        'max_kids_exceeded'      => 'Maximum :max enfants par réservation.',
+        'no_active_categories'   => 'Cette visite n’a pas de catégories clients actives.',
+        'min_category_not_met'   => 'Au minimum :min personnes sont requises dans la catégorie « :category ».',
+        'max_category_exceeded'  => 'Maximum :max personnes autorisées dans la catégorie « :category ».',
+        'min_one_person_required'=> 'Au moins une personne est requise dans la réservation.',
         'category_not_available' => 'La catégorie avec l’ID :category_id n’est pas disponible pour cette visite.',
         'max_persons_label' => 'Nombre maximal de personnes autorisées par réservation',
         'date_range_hint' => 'Sélectionnez une date entre :from — :to',
@@ -28,12 +28,12 @@ return [
     // =========================================================
     'availability' => [
         'fields' => [
-            'tour'        => 'Visite',
-            'date'        => 'Date',
-            'start_time'  => 'Heure de début',
-            'end_time'    => 'Heure de fin',
-            'available'   => 'Disponible',
-            'is_active'   => 'Actif',
+            'tour'       => 'Visite',
+            'date'       => 'Date',
+            'start_time' => 'Heure de début',
+            'end_time'   => 'Heure de fin',
+            'available'  => 'Disponible',
+            'is_active'  => 'Actif',
         ],
 
         'success' => [
@@ -94,8 +94,8 @@ return [
         ],
 
         'blocks' => [
-            'am_tours'    => 'Visites AM (toutes les visites débutant avant 12:00pm)',
-            'pm_tours'    => 'Visites PM (toutes les visites débutant après 12:00pm)',
+            'am_tours'    => 'Visites AM (toutes les visites débutant avant 12:00)',
+            'pm_tours'    => 'Visites PM (toutes les visites débutant après 12:00)',
             'am_blocked'  => 'AM bloquées',
             'pm_blocked'  => 'PM bloquées',
             'empty_block' => 'Aucune visite dans ce bloc.',
@@ -164,32 +164,32 @@ return [
     // =========================================================
     'bookings' => [
         'ui' => [
-            'page_title'         => 'Réservations',
-            'page_heading'       => 'Gestion des réservations',
-            'register_booking'   => 'Enregistrer réservation',
-            'add_booking'        => 'Ajouter réservation',
-            'edit_booking'       => 'Modifier réservation',
-            'booking_details'    => 'Détails de la réservation',
-            'download_receipt'   => 'Télécharger reçu',
-            'actions'            => 'Actions',
-            'view_details'       => 'Voir les détails',
-            'click_to_view'      => 'Cliquez pour voir les détails',
-            'zoom_in'            => 'Zoom avant',
-            'zoom_out'           => 'Zoom arrière',
-            'zoom_reset'         => 'Réinitialiser zoom',
-            'no_promo'           => 'Aucun code promotionnel appliqué',
-            'create_booking'     => 'Créer réservation',
-            'booking_info'       => 'Informations de la réservation',
-            'select_customer'    => 'Sélectionner client',
-            'select_tour'        => 'Sélectionner visite',
-            'select_tour_first'  => 'Sélectionnez d’abord une visite',
-            'select_option'      => 'Sélectionner',
+            'page_title'                => 'Réservations',
+            'page_heading'              => 'Gestion des réservations',
+            'register_booking'          => 'Enregistrer réservation',
+            'add_booking'               => 'Ajouter réservation',
+            'edit_booking'              => 'Modifier réservation',
+            'booking_details'           => 'Détails de la réservation',
+            'download_receipt'          => 'Télécharger reçu',
+            'actions'                   => 'Actions',
+            'view_details'              => 'Voir les détails',
+            'click_to_view'             => 'Cliquez pour voir les détails',
+            'zoom_in'                   => 'Zoom avant',
+            'zoom_out'                  => 'Zoom arrière',
+            'zoom_reset'                => 'Réinitialiser zoom',
+            'no_promo'                  => 'Aucun code promotionnel appliqué',
+            'create_booking'            => 'Créer réservation',
+            'booking_info'              => 'Informations de la réservation',
+            'select_customer'           => 'Sélectionner client',
+            'select_tour'               => 'Sélectionner visite',
+            'select_tour_first'         => 'Sélectionnez d’abord une visite',
+            'select_option'             => 'Sélectionner',
             'select_tour_to_see_categories' => 'Sélectionnez une visite pour voir les catégories',
-            'loading'            => 'Chargement…',
-            'no_results'         => 'Aucun résultat',
-            'error_loading'      => 'Erreur de chargement des données',
-            'tour_without_categories' => 'Cette visite n’a pas de catégories configurées',
-            'verifying'          => 'Vérification…',
+            'loading'                   => 'Chargement…',
+            'no_results'                => 'Aucun résultat',
+            'error_loading'             => 'Erreur de chargement des données',
+            'tour_without_categories'   => 'Cette visite n’a pas de catégories configurées',
+            'verifying'                 => 'Vérification…',
         ],
 
         'fields' => [
@@ -211,7 +211,7 @@ return [
             'schedule'          => 'Horaire',
             'type'              => 'Type',
             'adults'            => 'Adultes',
-            'adults_quantity'   => 'Quantité adult es',
+            'adults_quantity'   => 'Quantité adultes',
             'children'          => 'Enfants',
             'children_quantity' => 'Quantité enfants',
             'promo_code'        => 'Code promo',
@@ -290,13 +290,13 @@ return [
         ],
 
         'validation' => [
-            'past_date'       => 'Vous ne pouvez pas réserver pour des dates antérieures à aujourd’hui.',
-            'promo_required'  => 'Saisissez d’abord un code promo.',
-            'promo_checking'  => 'Vérification du code…',
-            'promo_invalid'   => 'Code promo invalide.',
-            'promo_error'     => 'Échec de la validation du code.',
-            'promo_empty'     => 'Entrez d’abord un code.',
-            'promo_needs_subtotal' => 'Ajoutez au moins 1 passager pour calculer la remise.',
+            'past_date'           => 'Vous ne pouvez pas réserver pour des dates antérieures à aujourd’hui.',
+            'promo_required'      => 'Saisissez d’abord un code promo.',
+            'promo_checking'      => 'Vérification du code…',
+            'promo_invalid'       => 'Code promo invalide.',
+            'promo_error'         => 'Échec de la validation du code.',
+            'promo_empty'         => 'Entrez d’abord un code.',
+            'promo_needs_subtotal'=> 'Ajoutez au moins 1 passager pour calculer la remise.',
         ],
 
         'promo' => [
@@ -427,6 +427,24 @@ return [
         'discount'      => 'Remise',
     ],
 
+    // =========================================================
+    // [08] VOYAGEURS (MODAL)
+    // =========================================================
+    'travelers' => [
+        'title_warning'        => 'Attention',
+        'title_info'           => 'Info',
+        'title_error'          => 'Erreur',
+        'max_persons_reached'  => 'Maximum :max personnes par réservation.',
+        'max_category_reached' => 'Le maximum pour cette catégorie est :max.',
+        'invalid_quantity'     => 'Quantité invalide. Saisissez un nombre valide.',
+        'age_between'          => 'Âge :min-:max',
+        'age_from'             => 'Âge :min+',
+        'age_to'               => 'Jusqu’à :max ans',
+    ],
+
+    // =========================================================
+    // [09] DATES EXCLUES / DISPONIBILITÉ & CAPACITÉ
+    // =========================================================
     'excluded_dates' => [
 
         'ui' => [
@@ -468,22 +486,22 @@ return [
         ],
 
         'buttons' => [
-            'mark_all'         => 'Tout cocher',
-            'unmark_all'       => 'Tout décocher',
-            'block_all'        => 'Tout bloquer',
-            'unblock_all'      => 'Tout débloquer',
-            'block_selected'   => 'Bloquer les sélectionnés',
-            'unblock_selected' => 'Débloquer les sélectionnés',
-            'set_capacity'     => 'Ajuster capacité',
-            'capacity'         => 'Capacité',
-            'view_blocked'     => 'Voir bloqués',
-            'capacity_settings'=> 'Paramètres capacité',
-            'block'            => 'Bloquer',
-            'unblock'          => 'Débloquer',
-            'apply'            => 'Appliquer',
-            'save'             => 'Enregistrer',
-            'cancel'           => 'Annuler',
-            'back'             => 'Retour',
+            'mark_all'          => 'Tout cocher',
+            'unmark_all'        => 'Tout décocher',
+            'block_all'         => 'Tout bloquer',
+            'unblock_all'       => 'Tout débloquer',
+            'block_selected'    => 'Bloquer les sélectionnés',
+            'unblock_selected'  => 'Débloquer les sélectionnés',
+            'set_capacity'      => 'Ajuster capacité',
+            'capacity'          => 'Capacité',
+            'view_blocked'      => 'Voir bloqués',
+            'capacity_settings' => 'Paramètres capacité',
+            'block'             => 'Bloquer',
+            'unblock'           => 'Débloquer',
+            'apply'             => 'Appliquer',
+            'save'              => 'Enregistrer',
+            'cancel'            => 'Annuler',
+            'back'              => 'Retour',
         ],
 
         'states' => [
@@ -496,28 +514,28 @@ return [
         ],
 
         'modals' => [
-            'capacity_title'            => 'Ajuster capacité',
-            'selected_capacity_title'   => 'Ajuster capacité des sélectionnés',
-            'date'                      => 'Date :',
-            'hierarchy_title'           => 'Hiérarchie de capacité :',
-            'new_capacity'              => 'Nouvelle capacité',
-            'hint_zero_blocks'          => 'Laissez à 0 pour bloquer entièrement',
-            'selected_count'            => 'La capacité sera mise à jour pour :count éléments sélectionnés.',
-            'capacity_day_title'        => 'Ajuster capacité pour la journée',
-            'capacity_day_subtitle'     => 'Tous les horaires du jour',
+            'capacity_title'           => 'Ajuster capacité',
+            'selected_capacity_title'  => 'Ajuster capacité des sélectionnés',
+            'date'                     => 'Date :',
+            'hierarchy_title'          => 'Hiérarchie de capacité :',
+            'new_capacity'             => 'Nouvelle capacité',
+            'hint_zero_blocks'         => 'Laissez à 0 pour bloquer entièrement',
+            'selected_count'           => 'La capacité sera mise à jour pour :count éléments sélectionnés.',
+            'capacity_day_title'       => 'Ajuster capacité pour la journée',
+            'capacity_day_subtitle'    => 'Tous les horaires du jour',
         ],
 
         'confirm' => [
-            'block_title'        => 'Bloquer ?',
-            'unblock_title'      => 'Débloquer ?',
-            'block_html'         => '<strong>:label</strong><br>Date : :day',
-            'unblock_html'       => '<strong>:label</strong><br>Date : :day',
-            'block_btn'          => 'Bloquer',
-            'unblock_btn'        => 'Débloquer',
-            'bulk_title'         => 'Confirmer opération en masse',
-            'bulk_items_html'    => ':count éléments seront affectés',
-            'block_day_title'    => 'Bloquer toute la journée',
-            'block_block_title'  => 'Bloquer bloc :block du :day',
+            'block_title'       => 'Bloquer ?',
+            'unblock_title'     => 'Débloquer ?',
+            'block_html'        => '<strong>:label</strong><br>Date : :day',
+            'unblock_html'      => '<strong>:label</strong><br>Date : :day',
+            'block_btn'         => 'Bloquer',
+            'unblock_btn'       => 'Débloquer',
+            'bulk_title'        => 'Confirmer opération en masse',
+            'bulk_items_html'   => ':count éléments seront affectés',
+            'block_day_title'   => 'Bloquer toute la journée',
+            'block_block_title' => 'Bloquer bloc :block du :day',
         ],
 
         'toasts' => [
@@ -542,74 +560,77 @@ return [
         ],
     ],
 
+    // =========================================================
+    // [10] PARAMÈTRES DE CAPACITÉ
+    // =========================================================
     'capacity' => [
 
-    'ui' => [
-        'page_title'   => 'Gestion des Capacités',
-        'page_heading' => 'Gestion des Capacités',
-    ],
-
-    'tabs' => [
-        'global'         => 'Global',
-        'by_tour'        => 'Par Tour + Horaire',
-        'day_schedules'  => 'Remplacements Jour + Horaire',
-    ],
-
-    'alerts' => [
-        'global_info' => '<strong>Capacités globales :</strong> Définit la limite de base pour chaque tour (tous les jours et horaires).',
-        'by_tour_info' => '<strong>Par Tour + Horaire :</strong> Remplacement spécifique de la capacité pour chaque horaire de chaque tour. Ces remplacements ont priorité sur la capacité globale du tour.',
-        'day_schedules_info' => '<strong>Jour + Horaire :</strong> Remplacement de la plus haute priorité pour un jour et un horaire spécifiques. Ils sont gérés depuis la vue "Disponibilité et Capacité".',
-    ],
-
-    'tables' => [
-        'global' => [
-            'tour'       => 'Tour',
-            'type'       => 'Type',
-            'capacity'   => 'Capacité Globale',
-            'level'      => 'Niveau',
+        'ui' => [
+            'page_title'   => 'Gestion des Capacités',
+            'page_heading' => 'Gestion des Capacités',
         ],
-        'by_tour' => [
-            'schedule'   => 'Horaire',
-            'capacity'   => 'Remplacement de Capacité',
-            'level'      => 'Niveau',
-            'no_schedules' => 'Ce tour n’a pas d’horaires assignés',
+
+        'tabs' => [
+            'global'        => 'Global',
+            'by_tour'       => 'Par Tour + Horaire',
+            'day_schedules' => 'Remplacements Jour + Horaire',
         ],
-        'day_schedules' => [
-            'date'       => 'Date',
-            'tour'       => 'Tour',
-            'schedule'   => 'Horaire',
-            'capacity'   => 'Capacité',
-            'actions'    => 'Actions',
-            'no_overrides' => 'Aucun remplacement Jour + Horaire',
+
+        'alerts' => [
+            'global_info'        => '<strong>Capacités globales :</strong> Définit la limite de base pour chaque tour (tous les jours et horaires).',
+            'by_tour_info'       => '<strong>Par Tour + Horaire :</strong> Remplacement spécifique de la capacité pour chaque horaire de chaque tour. Ces remplacements ont priorité sur la capacité globale du tour.',
+            'day_schedules_info' => '<strong>Jour + Horaire :</strong> Remplacement de la plus haute priorité pour un jour et un horaire spécifiques. Ils sont gérés depuis la vue "Disponibilité et Capacité".',
+        ],
+
+        'tables' => [
+            'global' => [
+                'tour'     => 'Tour',
+                'type'     => 'Type',
+                'capacity' => 'Capacité Globale',
+                'level'    => 'Niveau',
+            ],
+            'by_tour' => [
+                'schedule'     => 'Horaire',
+                'capacity'     => 'Remplacement de Capacité',
+                'level'        => 'Niveau',
+                'no_schedules' => 'Ce tour n’a pas d’horaires assignés',
+            ],
+            'day_schedules' => [
+                'date'         => 'Date',
+                'tour'         => 'Tour',
+                'schedule'     => 'Horaire',
+                'capacity'     => 'Capacité',
+                'actions'      => 'Actions',
+                'no_overrides' => 'Aucun remplacement Jour + Horaire',
+            ],
+        ],
+
+        'badges' => [
+            'base'      => 'Base',
+            'override'  => 'Remplacement',
+            'global'    => 'Global',
+            'blocked'   => 'BLOQUÉ',
+            'unlimited' => '∞',
+        ],
+
+        'buttons' => [
+            'save'   => 'Enregistrer',
+            'delete' => 'Supprimer',
+            'back'   => 'Retour',
+            'apply'  => 'Appliquer',
+            'cancel' => 'Annuler',
+        ],
+
+        'messages' => [
+            'empty_placeholder' => 'Vide = utilise la capacité globale (:capacity)',
+            'deleted_confirm'   => 'Supprimer ce remplacement ?',
+            'no_day_overrides'  => 'Aucun remplacement Jour + Horaire disponible.',
+        ],
+
+        'toasts' => [
+            'success_title' => 'Succès',
+            'error_title'   => 'Erreur',
         ],
     ],
-
-    'badges' => [
-        'base'       => 'Base',
-        'override'   => 'Remplacement',
-        'global'     => 'Global',
-        'blocked'    => 'BLOQUÉ',
-        'unlimited'  => '∞',
-    ],
-
-    'buttons' => [
-        'save'      => 'Enregistrer',
-        'delete'    => 'Supprimer',
-        'back'      => 'Retour',
-        'apply'     => 'Appliquer',
-        'cancel'    => 'Annuler',
-    ],
-
-    'messages' => [
-        'empty_placeholder' => 'Vide = utilise la capacité globale (:capacity)',
-        'deleted_confirm'   => 'Supprimer ce remplacement ?',
-        'no_day_overrides'  => 'Aucun remplacement Jour + Horaire disponible.',
-    ],
-
-    'toasts' => [
-        'success_title' => 'Succès',
-        'error_title'   => 'Erreur',
-    ],
-],
 
 ];
