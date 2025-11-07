@@ -443,7 +443,7 @@ return [
 
     // 24. SEÇÕES
     'sections' => [
-        'available_itineraries' => 'Roteiros disponíveis',
+        'available_tours' => 'Passeios disponíveis',
         'upcoming_bookings'     => 'Próximas reservas',
     ],
 

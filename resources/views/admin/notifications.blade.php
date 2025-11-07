@@ -7,9 +7,9 @@
     $capCount     = $capCritical ?? $serverAlerts->whereIn('type', ['near_capacity', 'sold_out'])->count();
 
     // Descubrimiento de rutas con fallback (API v1)
-    $incRouteName = RouteFacade::has('api.v1.capacity.increase') ? 'api.v1.capacity.increase' : null;
-    $detRouteName = RouteFacade::has('api.v1.capacity.details')  ? 'api.v1.capacity.details'  : null;
-    $blkRouteName = RouteFacade::has('api.v1.capacity.block')    ? 'api.v1.capacity.block'    : null;
+    $incRouteName = RouteFacade::has('admin.tours.capacity.increase') ? 'admin.tours.capacity.increase' : null;
+    $detRouteName = RouteFacade::has('admin.tours.capacity.details')  ? 'admin.tours.capacity.details'  : null;
+    $blkRouteName = RouteFacade::has('admin.tours.capacity.block')    ? 'admin.tours.capacity.block'    : null;
 @endphp
 
 {{-- ===== Reescribir títulos de tours con el nombre traducido ===== --}}
@@ -67,6 +67,7 @@
     'reserved'          => __('m_notifications.card.reserved'),
     'available'         => __('m_notifications.card.available'),
     'occupancy'         => __('m_notifications.card.occupancy'),
+    'blocked_at'        => 'Bloqueado en',
 
     // Badges
     'sold_out'          => __('m_notifications.badge.sold_out'),
@@ -78,6 +79,7 @@
     'expand'            => __('m_notifications.actions.expand'),
     'block'             => __('m_notifications.actions.block'),
     'details'           => __('m_notifications.actions.details'),
+    'reduce'            => 'Reducir',
 
     // Modales / textos
     'loading_details'   => __('m_notifications.modal.loading_details'),
@@ -98,6 +100,9 @@
     'cancel'            => __('m_notifications.prompts.cancel'),
     'invalid_qty'       => __('m_notifications.prompts.invalid_qty'),
     'enter_int'         => __('m_notifications.prompts.enter_int'),
+    'modify_capacity'   => 'Modificar Capacidad',
+    'positive_expand'   => 'Número positivo: expandir capacidad',
+    'negative_reduce'   => 'Número negativo: reducir capacidad',
 
     // Toasters
     'ready'             => __('m_notifications.toasts.ready'),
@@ -221,6 +226,7 @@
   border-left:4px solid #6b7280;box-shadow:0 1px 6px rgba(0,0,0,.25);
   overflow:hidden; word-break:break-word; hyphens:auto;
 }
+.cap-card--blocked{border-left-color:#ef4444}
 .cap-card__top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;min-width:0}
 .cap-chip{font-size:11px;font-weight:700;border-radius:999px;padding:4px 10px;background:#374151;color:#e5e7eb;text-transform:uppercase}
 .cap-chip--danger{background:rgba(239,68,68,.2);color:#fca5a5}
@@ -241,7 +247,8 @@
 
 /* Progreso */
 .cap-bar{height:6px;background:#374151;border-radius:8px;overflow:hidden}
-.cap-bar__fill{height:100%;background:linear-gradient(90deg,#10b981 0%,#059669 100%)}
+.cap-bar__fill{height:100%;background:linear-gradient(90deg,#10b981 0%,#059669 100%);transition:all 0.3s}
+.cap-bar__fill--blocked{background:linear-gradient(90deg,#ef4444 0%,#dc2626 100%)}
 
 /* Acciones */
 .cap-actions-row{ display:flex;gap:8px;flex-wrap:wrap;margin-top:10px }
@@ -295,7 +302,7 @@
   const KEY_CACHE = 'capCacheV1';
   const TTL_MS    = 24*60*60*1000;
 
-  // Rutas con placeholder __SID__ (pueden ser vacías si no existen)
+  // Rutas con placeholder __SID__
   const incRoute = sid => `{{ $incRouteName ? route($incRouteName, ['schedule' => '__SID__']) : '' }}`.replace('__SID__',sid);
   const detRoute = sid => `{{ $detRouteName ? route($detRouteName, ['schedule' => '__SID__']) : '' }}`.replace('__SID__',sid);
   const blkRoute = sid => `{{ $blkRouteName ? route($blkRouteName, ['schedule' => '__SID__']) : '' }}`.replace('__SID__',sid);
@@ -345,16 +352,26 @@
 
   /* ===================== Render ===================== */
   const formatDateDMY = iso => !iso ? '—' : iso.split('T')[0].split('-').reverse().join('/');
+
   const cardHTML = a=>{
-    const critical = (a.remaining<=3 || a.pct>=90);
-    const chipCls  = a.type==='sold_out' ? 'cap-chip--danger' : (critical ? 'cap-chip--near_capacity' : 'cap-chip--info');
-    const badge    = a.type==='sold_out' ? T('sold_out') : (critical ? T('critical') : T('alert'));
-    const pct      = Math.max(0, Math.min(100, parseInt(a.pct||0,10)));
-    const incLbl   = a.type==='sold_out' ? `<i class="fas fa-unlock"></i> ${T('unlock')}` : `<i class="fas fa-plus-circle"></i> ${T('expand')}`;
-    const incCls   = a.type==='sold_out' ? 'cap-btn--success' : 'cap-btn--primary';
-    const blkDis   = a.type==='sold_out' ? 'disabled' : '';
+    const isBlocked = a.max === 0 || a.type === 'sold_out';
+    const used = parseInt(a.used || 0, 10);
+    const max = isBlocked ? used : parseInt(a.max || 0, 10);
+    const displayMax = isBlocked ? used : max;
+
+    const critical = !isBlocked && (a.remaining<=3 || a.pct>=90);
+    const chipCls = isBlocked ? 'cap-chip--danger' : (critical ? 'cap-chip--near_capacity' : 'cap-chip--info');
+    const badge = isBlocked ? T('sold_out') : (critical ? T('critical') : T('alert'));
+    const pct = isBlocked ? 100 : Math.max(0, Math.min(100, parseInt(a.pct||0,10)));
+
+    const incLbl = isBlocked ? `<i class="fas fa-unlock"></i> ${T('unlock')}` : `<i class="fas fa-edit"></i> ${T('expand')}`;
+    const incCls = isBlocked ? 'cap-btn--success' : 'cap-btn--primary';
+    const blkDis = isBlocked ? 'disabled' : '';
+    const cardCls = isBlocked ? 'cap-card--blocked' : '';
+    const barCls = isBlocked ? 'cap-bar__fill--blocked' : '';
+
     return `
-      <div class="cap-card" data-key="${a.key}" data-id="${a.schedule_id}" data-tour="${a.tour_id||''}" data-date="${a.date}">
+      <div class="cap-card ${cardCls}" data-key="${a.key}" data-id="${a.schedule_id}" data-tour="${a.tour_id||''}" data-date="${a.date}">
         <div class="cap-card__top">
           <div class="cap-chip ${chipCls}">${badge}</div>
           <button class="cap-dismiss" title="${T('alerts')}"><i class="fas fa-times"></i></button>
@@ -362,11 +379,11 @@
         <div class="cap-card__title" title="${(a.tour||'').replace(/"/g,'&quot;')}">${a.tour||'—'}</div>
         <div class="cap-card__date"><i class="far fa-calendar-alt"></i> ${formatDateDMY(a.date||'')}</div>
         <div class="cap-stats">
-          <div><div class="cap-stat__lbl">${T('reserved')}</div><div class="cap-stat__val js-used">${a.used}/${a.max}</div></div>
-          <div><div class="cap-stat__lbl">${T('available')}</div><div class="cap-stat__val js-rem">${a.remaining}</div></div>
-          <div><div class="cap-stat__lbl">${T('occupancy')}</div><div class="cap-stat__val js-pct">${a.pct}%</div></div>
+          <div><div class="cap-stat__lbl">${T('reserved')}</div><div class="cap-stat__val js-used">${used}/${displayMax}</div></div>
+          <div><div class="cap-stat__lbl js-avail-lbl">${isBlocked ? T('blocked_at') : T('available')}</div><div class="cap-stat__val js-rem">${isBlocked ? used : (a.remaining||0)}</div></div>
+          <div><div class="cap-stat__lbl">${T('occupancy')}</div><div class="cap-stat__val js-pct">${pct}%</div></div>
         </div>
-        <div class="cap-bar"><div class="cap-bar__fill js-bar" style="width:${pct}%"></div></div>
+        <div class="cap-bar"><div class="cap-bar__fill ${barCls} js-bar" style="width:${pct}%"></div></div>
         <div class="cap-actions-row">
           <button class="cap-btn ${incCls} js-inc" data-url-inc="${incRoute(a.schedule_id)}">${incLbl}</button>
           <button class="cap-btn cap-btn--danger js-block" data-url-block="${blkRoute(a.schedule_id)}" ${blkDis}><i class="fas fa-ban"></i> ${T('block')}</button>
@@ -472,25 +489,62 @@
   };
 
   const applyResponse = (card,res)=>{
-    card.querySelector('.js-used').textContent = `${res.used}/${res.max_capacity}`;
-    card.querySelector('.js-rem').textContent  = `${res.remaining}`;
-    card.querySelector('.js-pct').textContent  = `${res.pct}%`;
-    card.querySelector('.js-bar').style.width  = (res.pct||0)+'%';
+    const used = parseInt(res.used||0,10);
+    const max = parseInt(res.max_capacity||0,10);
+    const isBlocked = max === 0;
+    const displayMax = isBlocked ? used : max;
+    const pct = isBlocked ? 100 : (res.pct || 0);
 
-    const chip=card.querySelector('.cap-chip'), incBtn=card.querySelector('.js-inc'), blkBtn=card.querySelector('.js-block');
-    chip.className='cap-chip';
-    if(res.max_capacity===0 || (res.remaining===0 && res.pct>=100)){
-      chip.classList.add('cap-chip--danger'); chip.textContent=T('sold_out');
-      incBtn.classList.remove('cap-btn--primary'); incBtn.classList.add('cap-btn--success'); incBtn.innerHTML=`<i class="fas fa-unlock"></i> ${T('unlock')}`;
-      blkBtn.disabled=true;
+    // ✅ Actualizar valores
+    const usedEl = card.querySelector('.js-used');
+    const remEl = card.querySelector('.js-rem');
+    const pctEl = card.querySelector('.js-pct');
+    const barEl = card.querySelector('.js-bar');
+    const availLblEl = card.querySelector('.js-avail-lbl');
+
+    if(usedEl) usedEl.textContent = `${used}/${displayMax}`;
+    if(remEl) remEl.textContent = isBlocked ? used : `${res.remaining}`;
+    if(pctEl) pctEl.textContent = `${pct}%`;
+    if(barEl) barEl.style.width = pct+'%';
+
+    const chip=card.querySelector('.cap-chip');
+    const incBtn=card.querySelector('.js-inc');
+    const blkBtn=card.querySelector('.js-block');
+    const barFillEl=card.querySelector('.cap-bar__fill');
+
+    if(chip) chip.className='cap-chip';
+    if(barFillEl) barFillEl.classList.remove('cap-bar__fill--blocked');
+    card.classList.remove('cap-card--blocked');
+
+    if(isBlocked){
+      if(chip){ chip.classList.add('cap-chip--danger'); chip.textContent=T('sold_out'); }
+      if(incBtn){
+        incBtn.classList.remove('cap-btn--primary');
+        incBtn.classList.add('cap-btn--success');
+        incBtn.innerHTML=`<i class="fas fa-unlock"></i> ${T('unlock')}`;
+      }
+      if(blkBtn) blkBtn.disabled=true;
+      if(barFillEl) barFillEl.classList.add('cap-bar__fill--blocked');
+      card.classList.add('cap-card--blocked');
+      if(availLblEl) availLblEl.textContent = T('blocked_at');
     }else if(res.remaining<=3 || res.pct>=80){
-      chip.classList.add('cap-chip--near_capacity'); chip.textContent=T('critical');
-      incBtn.classList.remove('cap-btn--success'); incBtn.classList.add('cap-btn--primary'); incBtn.innerHTML=`<i class="fas fa-plus-circle"></i> ${T('expand')}`;
-      blkBtn.disabled=false;
+      if(chip){ chip.classList.add('cap-chip--near_capacity'); chip.textContent=T('critical'); }
+      if(incBtn){
+        incBtn.classList.remove('cap-btn--success');
+        incBtn.classList.add('cap-btn--primary');
+        incBtn.innerHTML=`<i class="fas fa-edit"></i> ${T('expand')}`;
+      }
+      if(blkBtn) blkBtn.disabled=false;
+      if(availLblEl) availLblEl.textContent = T('available');
     }else{
-      chip.classList.add('cap-chip--info'); chip.textContent=T('alert');
-      incBtn.classList.remove('cap-btn--success'); incBtn.classList.add('cap-btn--primary'); incBtn.innerHTML=`<i class="fas fa-plus-circle"></i> ${T('expand')}`;
-      blkBtn.disabled=false;
+      if(chip){ chip.classList.add('cap-chip--info'); chip.textContent=T('alert'); }
+      if(incBtn){
+        incBtn.classList.remove('cap-btn--success');
+        incBtn.classList.add('cap-btn--primary');
+        incBtn.innerHTML=`<i class="fas fa-edit"></i> ${T('expand')}`;
+      }
+      if(blkBtn) blkBtn.disabled=false;
+      if(availLblEl) availLblEl.textContent = T('available');
     }
   };
 
@@ -576,29 +630,32 @@
       const url = e.target.closest('.js-inc').dataset.urlInc;
       if(!url) return Swal.fire(T('missing_route'), T('define_route_inc'), 'warning');
 
-      const isSoldOrBlocked =
-        card.querySelector('.cap-chip')?.classList.contains('cap-chip--danger') ||
-        parseInt(card.querySelector('.js-rem')?.textContent || '0', 10) === 0 ||
-        /\/0$/.test(card.querySelector('.js-used')?.textContent || '');
+      const [used, currentMax] = (card.querySelector('.js-used')?.textContent || '0/0').split('/').map(x=>parseInt(x,10));
+      const isSoldOrBlocked = currentMax === 0 || currentMax === used || card.querySelector('.cap-chip')?.classList.contains('cap-chip--danger');
 
       let amount;
       if(isSoldOrBlocked){
-        const used = parseInt((card.querySelector('.js-used')?.textContent || '0/0').split('/')[0],10) || 0;
-        amount = used + 2;  // desbloquear = usados + 2
+        amount = used + 2;
       }else{
         const { value } = await Swal.fire({
-          title: T('add_spaces'),
+          title: T('modify_capacity'),
+          html: `
+            <p style="font-size:14px;color:#6b7280;margin-bottom:12px;">
+              ${T('positive_expand')}<br>
+              ${T('negative_reduce')}
+            </p>
+          `,
           input: 'number',
-          inputLabel: T('quantity'),
+          inputLabel: `${T('quantity')} (${used}/${currentMax})`,
           inputValue: 5,
-          inputAttributes: { min:1, step:1 },
+          inputAttributes: { step:1 },
           showCancelButton: true,
           confirmButtonText: T('add'),
           cancelButtonText: T('cancel')
         });
         if(value===undefined) return;
         amount = parseInt(value,10);
-        if(isNaN(amount)||amount<1) return Swal.fire(T('invalid_qty'), T('enter_int'), 'error');
+        if(isNaN(amount)||amount===0) return Swal.fire(T('invalid_qty'), T('enter_int'), 'error');
       }
 
       try{
@@ -606,7 +663,8 @@
         if(!tourId){
           return Swal.fire(T('error'), 'No se pudo determinar el tour_id para esta alerta.', 'error');
         }
-        const res  = await fetch(url,{
+
+        const res = await fetch(url,{
           method:'PATCH',
           headers:{'Content-Type':'application/json','X-CSRF-TOKEN':token,'Accept':'application/json'},
           body:JSON.stringify({amount, date:card.dataset.date||null, tour_id: tourId})
@@ -618,15 +676,39 @@
           return Swal.fire(T('error'), errs.join('<br>'), 'error');
         }
 
-        const ct = res.headers.get('content-type') || '';
-        const data = ct.includes('application/json') ? await res.json().catch(()=>({})) : {};
-        if(!res.ok || (ct.includes('application/json') && data?.ok !== true)) throw new Error('bad_response');
+        if(!res.ok){
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        let data;
+        try {
+          data = await res.json();
+        } catch(parseErr) {
+          console.error('JSON parse error:', parseErr);
+          throw new Error('Invalid JSON response');
+        }
+
+        if(data?.ok !== true){
+          console.error('Response data:', data);
+          throw new Error(data?.message || 'Operation failed');
+        }
 
         applyResponse(card, data);
         putInCache(cardToAlert(card));
-        Swal.fire(T('ready'), T('capacity_updated'), 'success');
         updateCountersFromDOM();
-      }catch{ Swal.fire(T('error'), T('couldnt_update'), 'error'); }
+
+        await Swal.fire({
+          icon: 'success',
+          title: T('ready'),
+          text: T('capacity_updated'),
+          timer: 2000,
+          showConfirmButton: false
+        });
+
+      } catch(err) {
+        console.error('Increase error:', err);
+        Swal.fire(T('error'), err.message || T('couldnt_update'), 'error');
+      }
       return;
     }
 
@@ -650,7 +732,8 @@
         if(!tourId){
           return Swal.fire(T('error'), 'No se pudo determinar el tour_id para esta alerta.', 'error');
         }
-        const res  = await fetch(url,{
+
+        const res = await fetch(url,{
           method:'PATCH',
           headers:{'Content-Type':'application/json','X-CSRF-TOKEN':token,'Accept':'application/json'},
           body:JSON.stringify({date:dateStr, tour_id: tourId})
@@ -662,15 +745,39 @@
           return Swal.fire(T('error'), errs.join('<br>'), 'error');
         }
 
-        const ct = res.headers.get('content-type') || '';
-        const data = ct.includes('application/json') ? await res.json().catch(()=>({})) : {};
-        if(!res.ok || (ct.includes('application/json') && data?.ok !== true)) throw new Error('bad_response');
+        if(!res.ok){
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        let data;
+        try {
+          data = await res.json();
+        } catch(parseErr) {
+          console.error('JSON parse error:', parseErr);
+          throw new Error('Invalid JSON response');
+        }
+
+        if(data?.ok !== true){
+          console.error('Response data:', data);
+          throw new Error(data?.message || 'Operation failed');
+        }
 
         applyResponse(card, data);
         putInCache(cardToAlert(card));
-        Swal.fire(T('blocked'), T('date_blocked'), 'success');
         updateCountersFromDOM();
-      }catch{ Swal.fire(T('error'), T('couldnt_block'), 'error'); }
+
+        await Swal.fire({
+          icon: 'success',
+          title: T('blocked'),
+          text: T('date_blocked'),
+          timer: 2000,
+          showConfirmButton: false
+        });
+
+      } catch(err) {
+        console.error('Block error:', err);
+        Swal.fire(T('error'), err.message || T('couldnt_block'), 'error');
+      }
       return;
     }
   });

@@ -45,13 +45,13 @@ Route::prefix('v1')
         Route::get('bookings/verify-promo-code', [BookingApiController::class, 'verifyPromo'])
             ->name('api.v1.bookings.verifyPromo');
 
-              Route::prefix('capacity')->name('api.v1.capacity.')->group(function () {
-            Route::patch('schedules/{schedule}/increase', [CapacityApiController::class, 'increase'])
-                ->name('increase'); // api.v1.capacity.increase
-            Route::patch('schedules/{schedule}/block',    [CapacityApiController::class, 'block'])
-                ->name('block');   // api.v1.capacity.block
-            Route::get('schedules/{schedule}/details',    [CapacityApiController::class, 'details'])
-                ->name('details'); // api.v1.capacity.details
-        });
+        //       Route::prefix('capacity')->name('api.v1.capacity.')->group(function () {
+        //     Route::patch('schedules/{schedule}/increase', [CapacityApiController::class, 'increase'])
+        //         ->name('increase'); // api.v1.capacity.increase
+        //     Route::patch('schedules/{schedule}/block',    [CapacityApiController::class, 'block'])
+        //         ->name('block');   // api.v1.capacity.block
+        //     Route::get('schedules/{schedule}/details',    [CapacityApiController::class, 'details'])
+        //         ->name('details'); // api.v1.capacity.details
+        // });
     });
 

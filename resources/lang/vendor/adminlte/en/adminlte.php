@@ -444,7 +444,7 @@ return [
 
     // 24. SECTIONS
     'sections' => [
-        'available_itineraries' => 'Available itineraries',
+        'available_tours' => 'Available tours',
         'upcoming_bookings'     => 'Upcoming bookings',
     ],
 
