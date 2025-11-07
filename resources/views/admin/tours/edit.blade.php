@@ -125,6 +125,8 @@
       </div>
     </div>
   </form>
+  @include('admin.tours.partials.inline-modals')
+
 @stop
 
 @push('js')
@@ -151,4 +153,6 @@
 
   {{-- Scripts de la pantalla (resumen dinámico, validación, toasts) --}}
   @include('admin.tours.partials.scripts')
+  @include('admin.tours.partials.inline-scripts')
+
 @endpush

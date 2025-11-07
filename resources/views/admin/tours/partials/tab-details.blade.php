@@ -31,6 +31,8 @@
                 class="form-control @error('slug') is-invalid @enderror"
                 value="{{ old('slug', $tour->slug ?? '') }}"
                 placeholder="{{ __('m_tours.tour.ui.generate_auto') }}">
+                <div id="slug-feedback" class="mt-1"></div>
+
             <small class="form-text text-muted">
                 {{ __('m_tours.tour.ui.slug_help') }}
             </small>

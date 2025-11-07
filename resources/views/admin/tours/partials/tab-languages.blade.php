@@ -2,18 +2,15 @@
 <div class="row">
   <div class="col-md-8">
     <div class="card">
-      <div class="card-header">
-        <h3 class="card-title">
-          {{-- m_tours.tour.ui.available_languages --}}
-          {{ __('m_tours.tour.ui.available_languages') }}
-        </h3>
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">{{ __('m_tours.tour.ui.available_languages') }}</h3>
+        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalCreateLanguage">
+          <i class="fas fa-plus"></i> {{ __('m_tours.language.ui.create_new') }}
+        </button>
       </div>
 
       <div class="card-body">
         <div class="form-group">
-          <label class="d-block">
-            {{ __('m_tours.tour.ui.available_languages') }}
-          </label>
           <small class="text-muted d-block mb-2">
             {{ __('m_tours.tour.ui.multiple_hint_ctrl_cmd') }}
           </small>
@@ -63,7 +60,6 @@
       <div class="card-header">
         <h3 class="card-title">
           <i class="fas fa-info-circle"></i>
-          {{-- Usamos el heading general de idiomas como rótulo informativo --}}
           {{ __('m_tours.language.ui.page_heading') }}
         </h3>
       </div>
@@ -73,7 +69,6 @@
           {{ __('m_tours.tour.ui.multiple_hint_ctrl_cmd') }}
         </p>
         <p class="small mb-0">
-          {{-- Texto informativo libre: no hay clave específica, se mantiene como ayuda genérica --}}
           {{ __('m_tours.tour.ui.available_languages') }} —
           {{ __('m_tours.tour.ui.add_tour') }}
         </p>
@@ -84,7 +79,6 @@
       <div class="card card-secondary">
         <div class="card-header">
           <h3 class="card-title">
-            {{-- Lista “actual” de idiomas asignados --}}
             {{ __('m_tours.language.ui.list_title') }}
           </h3>
         </div>

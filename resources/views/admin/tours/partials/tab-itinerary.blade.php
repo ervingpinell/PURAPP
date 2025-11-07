@@ -1,386 +1,273 @@
 {{-- resources/views/admin/tours/partials/tab-itinerary.blade.php --}}
-<div class="itinerary-tab"> {{-- wrapper seguro para no romper el DOM del card/tab --}}
 
-  <div class="row">
-    <div class="col-md-8">
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">
-            {{ __('m_tours.itinerary.ui.page_heading') }}
-          </h3>
+<div class="row">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-route"></i> {{ __('m_tours.tour.fields.itinerary') }}
+        </h3>
+      </div>
+
+      <div class="card-body">
+        {{-- Seleccionar Itinerario Existente / Crear nuevo --}}
+        <div class="form-group">
+          <label for="select-itinerary">{{ __('m_tours.tour.fields.itinerary') }}</label>
+          <select name="itinerary_id" id="select-itinerary" class="form-control">
+            <option value="">{{ __('m_tours.itinerary.ui.new_itinerary') }}</option>
+            @foreach($itineraries ?? [] as $itinerary)
+              <option value="{{ $itinerary->itinerary_id }}"
+                      {{ old('itinerary_id', $tour->itinerary_id ?? '') == $itinerary->itinerary_id ? 'selected' : '' }}>
+                {{ $itinerary->name ?? __('m_tours.itinerary.fields.name') . ' #' . $itinerary->itinerary_id }}
+              </option>
+            @endforeach
+          </select>
         </div>
 
-        <div class="card-body">
-
-          {{-- Selector de Itinerario Existente / Crear Nuevo --}}
-          <div class="form-group">
-            <label for="itinerary_id">{{ __('m_tours.tour.fields.itinerary') }}</label>
-            <select
-              name="itinerary_id"
-              id="itinerary_id"
-              class="form-control @error('itinerary_id') is-invalid @enderror"
-            >
-              <option value="">{{ __('m_tours.itinerary.ui.new_itinerary') }}</option>
-              @foreach($itineraries ?? [] as $itinerary)
-                <option value="{{ $itinerary->itinerary_id }}"
-                  {{ old('itinerary_id', $tour->itinerary_id ?? '') == $itinerary->itinerary_id ? 'selected' : '' }}>
-                  {{ $itinerary->name ?? __('m_tours.itinerary.fields.name') . ' #' . $itinerary->itinerary_id }}
-                </option>
-              @endforeach
-            </select>
-            @error('itinerary_id')
-              <span class="invalid-feedback">{{ $message }}</span>
-            @enderror
+        {{-- Vista previa del itinerario seleccionado --}}
+        <div id="view-itinerary-items-create" style="display:none;" class="mt-3">
+          <div class="alert alert-info">
+            <strong>{{ __('m_tours.itinerary.fields.description') }}:</strong>
+            <div id="selected-itinerary-description" class="mt-2"></div>
           </div>
+          <h6 class="mb-2">{{ __('m_tours.itinerary_item.ui.list_title') }}</h6>
+          <ul class="list-group"></ul>
+        </div>
 
-          {{-- Vista de Itinerario Existente --}}
-          <div id="existing-itinerary-view" style="display:none;">
-            <div class="alert alert-info">
-              <strong>{{ __('m_tours.itinerary.fields.description') }}:</strong>
-              <p id="itinerary-description" class="mb-0 mt-2"></p>
+        {{-- Sección para crear nuevo itinerario --}}
+        <div id="new-itinerary-section" style="display:none;" class="mt-4">
+          <div class="card card-success">
+            <div class="card-header">
+              <h4 class="card-title mb-0">
+                <i class="fas fa-plus"></i> {{ __('m_tours.itinerary.ui.create_title') }}
+              </h4>
             </div>
-
-            <div class="card mb-0">
-              <div class="card-header">
-                <h4 class="card-title mb-0">{{ __('m_tours.itinerary_item.ui.list_title') }}</h4>
+            <div class="card-body">
+              {{-- Nombre del nuevo itinerario --}}
+              <div class="form-group">
+                <label for="new_itinerary_name">
+                  {{ __('m_tours.itinerary.fields.name') }} *
+                </label>
+                <input type="text"
+                       name="new_itinerary[name]"
+                       id="new_itinerary_name"
+                       class="form-control"
+                       placeholder="{{ __('m_tours.itinerary.ui.create_title') }}">
+                <small class="form-text text-muted">
+                  {{ __('m_tours.itinerary.fields.name') }}
+                </small>
               </div>
-              <div class="card-body p-0">
-                <ul id="itinerary-items-list" class="list-group list-group-flush"></ul>
+
+              {{-- Descripción del nuevo itinerario --}}
+              <div class="form-group">
+                <label for="new_itinerary_description">
+                  {{ __('m_tours.itinerary.fields.description') }}
+                </label>
+                <textarea name="new_itinerary[description]"
+                          id="new_itinerary_description"
+                          class="form-control"
+                          rows="3"
+                          placeholder="{{ __('m_tours.itinerary.fields.description_optional') }}"></textarea>
               </div>
-            </div>
-          </div>
 
-          {{-- Formulario para Crear Nuevo Itinerario --}}
-          <div id="new-itinerary-form" style="display:none;">
+              <hr>
 
-            {{-- Nombre --}}
-            <div class="form-group">
-              <label for="new_itinerary_name">
-                {{ __('m_tours.itinerary.fields.name') }} <span class="text-danger">*</span>
-              </label>
-              <input
-                type="text"
-                name="new_itinerary[name]"
-                id="new_itinerary_name"
-                class="form-control"
-                placeholder="{{ __('m_tours.itinerary.ui.create_title') }}"
-                value="{{ old('new_itinerary.name') }}"
-              >
-              <small class="form-text text-muted">
-                {{ __('m_tours.itinerary.fields.name') }}
-              </small>
-            </div>
+              {{-- Seleccionar items existentes para el nuevo itinerario --}}
+              <div class="form-group">
+                <label>
+                  <i class="fas fa-list"></i> {{ __('m_tours.itinerary_item.ui.list_title') }}
+                </label>
+                <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                  @php
+                    $availableItems = \App\Models\ItineraryItem::where('is_active', true)
+                                        ->orderBy('title')
+                                        ->get();
+                  @endphp
 
-            {{-- Descripción --}}
-            <div class="form-group">
-              <label for="new_itinerary_description">{{ __('m_tours.itinerary.fields.description') }}</label>
-              <textarea
-                name="new_itinerary[description]"
-                id="new_itinerary_description"
-                class="form-control"
-                rows="3"
-                placeholder="{{ __('m_tours.itinerary.fields.description_optional') }}"
-              >{{ old('new_itinerary.description') }}</textarea>
-            </div>
-
-            {{-- Seleccionar ítems existentes --}}
-            <div class="card">
-              <div class="card-header bg-info text-white">
-                <h5 class="mb-0">
-                  <i class="fas fa-list"></i>
-                  {{ __('m_tours.itinerary_item.ui.list_title') }}
-                </h5>
-              </div>
-              <div class="card-body">
-                <div class="alert alert-warning">
-                  <i class="fas fa-hand-pointer"></i>
-                  <strong>{{ __('m_tours.itinerary.ui.assign') }}:</strong>
-                  {{ __('m_tours.itinerary.ui.drag_hint') }}
+                  @forelse($availableItems as $item)
+                    <div class="form-check mb-2">
+                      <input type="checkbox"
+                             class="form-check-input existing-item-checkbox"
+                             id="existing_item_{{ $item->item_id }}"
+                             value="{{ $item->item_id }}"
+                             data-title="{{ $item->title }}"
+                             data-description="{{ $item->description }}">
+                      <label class="form-check-label" for="existing_item_{{ $item->item_id }}">
+                        <strong>{{ $item->title }}</strong>
+                        @if($item->description)
+                          <br><small class="text-muted">{{ \Illuminate\Support\Str::limit($item->description, 60) }}</small>
+                        @endif
+                      </label>
+                    </div>
+                  @empty
+                    <p class="text-muted mb-0">
+                      {{ __('m_tours.itinerary_item.ui.list_title') }} — {{ __('m_tours.tour.ui.none.itinerary_items') }}
+                    </p>
+                  @endforelse
                 </div>
-
-                @php
-                  $availableItems = \App\Models\ItineraryItem::where('is_active', true)
-                    ->orderBy('title')->get();
-                @endphp
-
-                @if($availableItems->isNotEmpty())
-                  <ul class="list-group sortable-items-new" id="sortable-new-itinerary">
-                    @foreach($availableItems as $item)
-                      <li class="list-group-item d-flex justify-content-between align-items-center" data-id="{{ $item->item_id }}">
-                        <div class="form-check">
-                          <input
-                            type="checkbox"
-                            class="form-check-input checkbox-item-new"
-                            value="{{ $item->item_id }}"
-                            id="new-item-{{ $item->item_id }}"
-                            {{ in_array($item->item_id, old('new_itinerary.existing_items', [])) ? 'checked' : '' }}
-                          >
-                          <label class="form-check-label" for="new-item-{{ $item->item_id }}">
-                            <strong>{{ $item->title }}</strong>
-                            @if($item->description)
-                              <br><small class="text-muted">{{ \Illuminate\Support\Str::limit($item->description, 50) }}</small>
-                            @endif
-                          </label>
-                        </div>
-                        <i class="fas fa-arrows-alt handle text-muted" style="cursor: move;" title="{{ __('m_tours.itinerary.ui.drag_handle') }}"></i>
-                      </li>
-                    @endforeach
-                  </ul>
-                  <div id="ordered-new-itinerary-inputs"></div>
-                @else
-                  <p class="text-muted mb-0">
-                    {{ __('m_tours.itinerary_item.ui.list_title') }} — {{ __('m_tours.tour.ui.none.itinerary_items') }}
-                    <a href="{{ route('admin.tours.itinerary.index') }}" target="_blank">
-                      {{ __('m_tours.itinerary.ui.new_itinerary') }}
-                    </a>
-                  </p>
-                @endif
               </div>
-            </div>
 
-            {{-- Crear ítems nuevos --}}
-            <div class="card mt-3">
-              <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                  <i class="fas fa-plus-circle"></i>
-                  {{ __('m_tours.itinerary_item.ui.register_item') }}
-                </h5>
-                <button type="button" class="btn btn-sm btn-light" id="add-itinerary-item">
+              <hr>
+
+              {{-- Crear nuevos items inline --}}
+              <div class="form-group">
+                <label>
+                  <i class="fas fa-plus-circle"></i> {{ __('m_tours.itinerary_item.ui.register_item') }}
+                </label>
+                <div id="new-items-container" class="mb-2"></div>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="btn-add-new-item">
                   <i class="fas fa-plus"></i> {{ __('m_tours.itinerary_item.ui.add_item') }}
                 </button>
               </div>
-              <div class="card-body">
-                <div id="itinerary-items-container">
-                  @if(old('new_itinerary.items'))
-                    @foreach(old('new_itinerary.items') as $index => $item)
-                      <div class="itinerary-item mb-3 p-3 border rounded">
-                        <div class="row">
-                          <div class="col-md-11">
-                            <div class="form-group">
-                              <label>{{ __('m_tours.itinerary_item.fields.title') }}</label>
-                              <input type="text" name="new_itinerary[items][{{ $index }}][title]" class="form-control"
-                                     value="{{ $item['title'] ?? '' }}" placeholder="{{ __('m_tours.itinerary_item.fields.title') }}">
-                            </div>
-                            <div class="form-group mb-0">
-                              <label>{{ __('m_tours.itinerary_item.fields.description') }}</label>
-                              <textarea name="new_itinerary[items][{{ $index }}][description]" class="form-control" rows="2"
-                                        placeholder="{{ __('m_tours.itinerary_item.fields.description') }}">{{ $item['description'] ?? '' }}</textarea>
-                            </div>
-                          </div>
-                          <div class="col-md-1 d-flex align-items-center">
-                            <button type="button" class="btn btn-danger btn-sm remove-itinerary-item" aria-label="remove item">
-                              <i class="fas fa-trash"></i>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    @endforeach
-                  @endif
-                </div>
-
-                @if(!old('new_itinerary.items'))
-                  <div class="text-muted text-center py-3" id="empty-items-message">
-                    <i class="fas fa-info-circle"></i>
-                    {{ __('m_tours.itinerary_item.ui.add_item') }}
-                  </div>
-                @endif
-              </div>
             </div>
-
-          </div> {{-- /#new-itinerary-form --}}
-        </div> {{-- /.card-body --}}
-      </div> {{-- /.card --}}
-    </div> {{-- /.col-md-8 --}}
-
-    {{-- Columna lateral: Ayuda + Resumen --}}
-    <div class="col-md-4">
-      <div class="card card-info">
-        <div class="card-header">
-          <h3 class="card-title">
-            <i class="fas fa-info-circle"></i> {{ __('m_tours.tour.ui.confirm_title') }}
-          </h3>
-        </div>
-        <div class="card-body">
-          <h5>{{ __('m_tours.itinerary.ui.assign') }}</h5>
-          <ul>
-            <li><strong>{{ __('m_tours.itinerary.ui.assign') }}:</strong> {{ __('m_tours.itinerary.ui.drag_hint') }}</li>
-            <li><strong>{{ __('m_tours.itinerary.ui.create_button') }}</strong>: {{ __('m_tours.itinerary.ui.create_title') }}</li>
-          </ul>
-          <hr>
-          <h5>{{ __('m_tours.itinerary.ui.create_title') }}</h5>
-          <ul class="small mb-0">
-            <li><strong>{{ __('m_tours.itinerary_item.ui.list_title') }}</strong>: {{ __('m_tours.itinerary.ui.drag_hint') }}</li>
-            <li><strong>{{ __('m_tours.itinerary_item.ui.register_item') }}</strong>: {{ __('m_tours.itinerary.ui.create_title') }}</li>
-            <li><strong>{{ __('m_tours.common.success_title') }}</strong>: {{ __('m_tours.itinerary.ui.save_changes') }}</li>
-          </ul>
-        </div>
-      </div>
-
-      @if($tour ?? false)
-        <div class="card card-secondary">
-          <div class="card-header">
-            <h3 class="card-title">{{ __('m_tours.tour.fields.itinerary') }}</h3>
           </div>
-          <div class="card-body">
-            @if($tour->itinerary)
-              <h5>{{ $tour->itinerary->name ?? __('m_tours.itinerary.fields.name') }}</h5>
-              <p class="text-muted small">{{ $tour->itinerary->description }}</p>
-
-              @if($tour->itinerary->items->isNotEmpty())
-                <ol class="pl-3 mb-0">
-                  @foreach($tour->itinerary->items as $item)
-                    <li><strong>{{ $item->title }}</strong></li>
-                  @endforeach
-                </ol>
-              @endif
-            @else
-              <p class="text-muted mb-0">{{ __('m_tours.tour.ui.none.itinerary') }}</p>
-            @endif
-          </div>
-        </div>
-      @endif
-    </div> {{-- /.col-md-4 --}}
-  </div> {{-- /.row --}}
-
-  {{-- Template para nuevos ítems (crear desde cero) --}}
-  <template id="itinerary-item-template">
-    <div class="itinerary-item mb-3 p-3 border rounded">
-      <div class="row">
-        <div class="col-md-11">
-          <div class="form-group">
-            <label>{{ __('m_tours.itinerary_item.fields.title') }}</label>
-            <input type="text" name="new_itinerary[items][__INDEX__][title]" class="form-control"
-                   placeholder="{{ __('m_tours.itinerary_item.fields.title') }}">
-          </div>
-          <div class="form-group mb-0">
-            <label>{{ __('m_tours.itinerary_item.fields.description') }}</label>
-            <textarea name="new_itinerary[items][__INDEX__][description]" class="form-control" rows="2"
-                      placeholder="{{ __('m_tours.itinerary_item.fields.description') }}"></textarea>
-          </div>
-        </div>
-        <div class="col-md-1 d-flex align-items-center">
-          <button type="button" class="btn btn-danger btn-sm remove-itinerary-item" aria-label="remove item">
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>
+        </div> {{-- /#new-itinerary-section --}}
       </div>
     </div>
-  </template>
+  </div>
 
-</div> {{-- /.itinerary-tab --}}
+  {{-- Columna lateral de ayuda / resumen (reusando las mismas llaves del blade previo) --}}
+  <div class="col-md-4">
+    <div class="card card-info">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-info-circle"></i> {{ __('m_tours.tour.ui.confirm_title') }}
+        </h3>
+      </div>
+      <div class="card-body">
+        <h5>{{ __('m_tours.itinerary.ui.assign') }}</h5>
+        <ul>
+          <li><strong>{{ __('m_tours.itinerary.ui.assign') }}:</strong> {{ __('m_tours.itinerary.ui.drag_hint') }}</li>
+          <li><strong>{{ __('m_tours.itinerary.ui.create_button') }}</strong>: {{ __('m_tours.itinerary.ui.create_title') }}</li>
+        </ul>
+        <hr>
+        <h5>{{ __('m_tours.itinerary.ui.create_title') }}</h5>
+        <ul class="small mb-0">
+          <li><strong>{{ __('m_tours.itinerary_item.ui.list_title') }}</strong>: {{ __('m_tours.itinerary.ui.drag_hint') }}</li>
+          <li><strong>{{ __('m_tours.itinerary_item.ui.register_item') }}</strong>: {{ __('m_tours.itinerary.ui.create_title') }}</li>
+          <li><strong>{{ __('m_tours.common.success_title') }}</strong>: {{ __('m_tours.itinerary.ui.save_changes') }}</li>
+        </ul>
+      </div>
+    </div>
 
-@push('css')
-<style>
-  .sortable-items-new { list-style: none; padding: 0; margin: 0; }
-  .sortable-items-new .handle { cursor: move; }
-</style>
-@endpush
+    @if($tour ?? false)
+      <div class="card card-secondary">
+        <div class="card-header">
+          <h3 class="card-title">{{ __('m_tours.tour.fields.itinerary') }}</h3>
+        </div>
+        <div class="card-body">
+          @if($tour->itinerary)
+            <h6>{{ $tour->itinerary->name ?? __('m_tours.itinerary.fields.name') }}</h6>
+            @if($tour->itinerary->description)
+              <p class="text-muted small">{{ $tour->itinerary->description }}</p>
+            @endif
+            @if($tour->itinerary->items->isNotEmpty())
+              <hr>
+              <ol class="mb-0">
+                @foreach($tour->itinerary->items as $item)
+                  <li>{{ $item->title }}</li>
+                @endforeach
+              </ol>
+            @endif
+          @else
+            <p class="text-muted mb-0">{{ __('m_tours.tour.ui.none.itinerary') }}</p>
+          @endif
+        </div>
+      </div>
+    @endif
+  </div>
+</div>
 
 @push('js')
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  const itinerarySelect = document.getElementById('itinerary_id');
-  const existingView    = document.getElementById('existing-itinerary-view');
-  const newForm         = document.getElementById('new-itinerary-form');
-  const descriptionEl   = document.getElementById('itinerary-description');
-  const itemsList       = document.getElementById('itinerary-items-list');
-  const itineraryData   = @json($itineraryJson ?? []);
+document.addEventListener('DOMContentLoaded', function() {
+  let newItemCounter = 0;
 
-  function updateItineraryView() {
-    if (!itinerarySelect) return;
-    const selectedValue = itinerarySelect.value;
+  // ========== Agregar nuevo item inline ==========
+  document.getElementById('btn-add-new-item')?.addEventListener('click', function() {
+    const container = document.getElementById('new-items-container');
+    const itemHtml = `
+      <div class="card mb-2 new-item-card">
+        <div class="card-body p-2">
+          <div class="row g-2">
+            <div class="col-md-5">
+              <input type="text"
+                     name="new_itinerary[items][${newItemCounter}][title]"
+                     class="form-control form-control-sm"
+                     placeholder="{{ __('m_tours.itinerary_item.fields.title') }}"
+                     required>
+            </div>
+            <div class="col-md-6">
+              <input type="text"
+                     name="new_itinerary[items][${newItemCounter}][description]"
+                     class="form-control form-control-sm"
+                     placeholder="{{ __('m_tours.itinerary_item.fields.description') }}">
+            </div>
+            <div class="col-md-1 text-end">
+              <button type="button" class="btn btn-sm btn-danger btn-remove-new-item" aria-label="remove item">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    container.insertAdjacentHTML('beforeend', itemHtml);
+    newItemCounter++;
+  });
 
-    if (!selectedValue) {
-      existingView.style.display = 'none';
-      newForm.style.display = 'block';
-    } else {
-      existingView.style.display = 'block';
-      newForm.style.display = 'none';
-
-      const data = itineraryData[selectedValue] || {};
-      descriptionEl.textContent = data.description || '{{ __('m_tours.itinerary.fields.description_optional') }}';
-
-      if (Array.isArray(data.items) && data.items.length > 0) {
-        itemsList.innerHTML = data.items.map(item => `
-          <li class="list-group-item">
-            <strong>${item.title || @json(__('m_tours.itinerary_item.fields.title'))}</strong>
-            <p class="mb-0 text-muted small">${item.description || ''}</p>
-          </li>
-        `).join('');
-      } else {
-        itemsList.innerHTML = `
-          <li class="list-group-item text-muted">
-            {{ __('m_tours.tour.ui.none.itinerary_items') }}
-          </li>
-        `;
-      }
+  // ========== Remover item nuevo ==========
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.btn-remove-new-item')) {
+      e.target.closest('.new-item-card')?.remove();
     }
-  }
+  });
+
+  // ========== Manejar selección de itinerario ==========
+  const itinerarySelect = document.getElementById('select-itinerary');
+  const newSection = document.getElementById('new-itinerary-section');
+  const viewSection = document.getElementById('view-itinerary-items-create');
 
   if (itinerarySelect) {
-    itinerarySelect.addEventListener('change', updateItineraryView);
-    updateItineraryView();
-  }
+    itinerarySelect.addEventListener('change', function() {
+      const value = this.value;
 
-  const sortableList = document.getElementById('sortable-new-itinerary');
-  if (sortableList) {
-    new Sortable(sortableList, { animation: 150, handle: '.handle' });
-  }
+      if (!value) {
+        // Crear nuevo
+        newSection.style.display = 'block';
+        viewSection.style.display = 'none';
+        return;
+      }
 
-  const tourForm = document.getElementById('tourForm');
-  function buildOrderedInputs() {
-    const container = document.getElementById('ordered-new-itinerary-inputs');
-    if (!container || !sortableList) return;
+      // Mostrar vista previa del itinerario seleccionado
+      newSection.style.display = 'none';
+      viewSection.style.display = 'block';
 
-    container.innerHTML = '';
-    let index = 0;
-    sortableList.querySelectorAll('li').forEach(li => {
-      const checkbox = li.querySelector('.checkbox-item-new');
-      if (checkbox && checkbox.checked) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = `new_itinerary[existing_items][${index}]`;
-        input.value = checkbox.value;
-        container.appendChild(input);
-        index++;
+      const itineraryData = @json($itineraryJson ?? []);
+      const data = itineraryData[value];
+
+      const descEl = document.getElementById('selected-itinerary-description');
+      const listEl = viewSection.querySelector('ul');
+
+      if (data) {
+        descEl.textContent = data.description || @json(__('m_tours.itinerary.fields.description_optional'));
+        listEl.innerHTML = (Array.isArray(data.items) && data.items.length)
+          ? data.items.map(item => `
+              <li class="list-group-item">
+                <strong>${item.title || @json(__('m_tours.itinerary_item.fields.title'))}</strong>
+                ${item.description ? `<br><small class="text-muted">${item.description}</small>` : ''}
+              </li>
+            `).join('')
+          : `<li class="list-group-item text-muted">{{ __('m_tours.tour.ui.none.itinerary_items') }}</li>`;
+      } else {
+        descEl.textContent = @json(__('m_tours.itinerary.fields.description_optional'));
+        listEl.innerHTML = `<li class="list-group-item text-muted">{{ __('m_tours.tour.ui.none.itinerary_items') }}</li>`;
       }
     });
+
+    // Trigger inicial
+    itinerarySelect.dispatchEvent(new Event('change'));
   }
-
-  if (tourForm) {
-    tourForm.addEventListener('submit', function () {
-      if (itinerarySelect && itinerarySelect.value === '') {
-        buildOrderedInputs();
-      }
-    });
-  }
-
-  let itemIndex = {{ old('new_itinerary.items') ? count(old('new_itinerary.items')) : 0 }};
-  const addBtn = document.getElementById('add-itinerary-item');
-  const tpl    = document.getElementById('itinerary-item-template');
-  const cont   = document.getElementById('itinerary-items-container');
-
-  addBtn?.addEventListener('click', function () {
-    if (!tpl || !cont) return;
-    const html = tpl.innerHTML.replace(/__INDEX__/g, itemIndex++);
-    cont.insertAdjacentHTML('beforeend', html);
-    const empty = document.getElementById('empty-items-message');
-    if (empty) empty.style.display = 'none';
-  });
-
-  document.addEventListener('click', function (e) {
-    const btn = e.target.closest('.remove-itinerary-item');
-    if (!btn) return;
-    e.preventDefault();
-    const block = btn.closest('.itinerary-item');
-    if (block) block.remove();
-    const container = document.getElementById('itinerary-items-container');
-    const empty = document.getElementById('empty-items-message');
-    if (container && container.children.length === 0 && empty) {
-      empty.style.display = 'block';
-    }
-  });
 });
 </script>
 @endpush

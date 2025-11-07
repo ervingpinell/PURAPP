@@ -37,6 +37,7 @@ return [
         'inactive' => 'Inactivo',
         'notice' => 'Aviso',
         'na'    => 'No configurado',
+        'create' => 'Crear',
     ],
 
     // =========================================================
@@ -512,6 +513,8 @@ return [
 
         ],
         'pricing' => [
+            'configured_categories' => 'Categorías configuradas',
+            'create_category' => 'Crear categoría',
             'note_title'              => 'Nota:',
             'note_text'               => 'Define aquí los precios base para cada categoría de cliente.',
             'manage_detailed_hint'    => ' Para gestión detallada, usa el botón "Gestionar Precios Detallados" arriba.',
@@ -522,7 +525,52 @@ return [
             'active'                  => 'Activo',
             'no_categories'           => 'No hay categorías de clientes configuradas.',
             'create_categories_first' => 'Crear categorías primero',
+            'page_title'         => 'Precios - :name',
+            'header_title'       => 'Precios: :name',
+            'back_to_tours'      => 'Volver a los tours',
+
+            'configured_title'   => 'Categorías y precios configurados',
+            'empty_title'        => 'No hay categorías configuradas para este tour.',
+            'empty_hint'         => 'Usa el formulario a la derecha para agregar categorías.',
+
+            'save_changes'       => 'Guardar cambios',
+            'auto_disable_note'  => 'Los precios en $0 se desactivan automáticamente',
+
+            'add_category'       => 'Agregar categoría',
+
+            'all_assigned_title' => 'Todas las categorías están asignadas',
+            'all_assigned_text'  => 'No hay más categorías disponibles para este tour.',
+
+            'info_title'         => 'Información',
+            'tour_label'         => 'Tour',
+            'configured_count'   => 'Categorías configuradas',
+            'active_count'       => 'Categorías activas',
+
+            'fields_title'       => 'Campos',
+            'rules_title'        => 'Reglas',
+
+            'field_price'        => 'Precio',
+            'field_min'          => 'Mínimo',
+            'field_max'          => 'Máximo',
+            'field_status'       => 'Estado',
+
+            'rule_min_le_max'    => 'El mínimo debe ser menor o igual al máximo',
+            'rule_zero_disable'  => 'Los precios en $0 se desactivan automáticamente',
+            'rule_only_active'   => 'Solo las categorías activas aparecen en el sitio público',
+
+            'status_active'      => 'Activo',
+
         ],
+        'modal' =>[
+            'create_category' => 'Crear categoría   ',
+            'fields' =>[
+                'name' => 'Nombre',
+                'age_range'=> 'Rango de Edad',
+                'min' => 'Minimo',
+                'max' => 'Maximo',
+            ],
+        ]
+        ,
 
         'schedules_form' => [
             'available_title'        => 'Horarios Disponibles',
@@ -908,5 +956,31 @@ return [
     ],
 ],
 
+'ajax' => [
+    'category_created' => 'Categoría creada exitosamente',
+    'category_error' => 'Error al crear la categoría',
+    'language_created' => 'Idioma creado exitosamente',
+    'language_error' => 'Error al crear el idioma',
+    'amenity_created' => 'Amenidad creada exitosamente',
+    'amenity_error' => 'Error al crear la amenidad',
+    'schedule_created' => 'Horario creado exitosamente',
+    'schedule_error' => 'Error al crear el horario',
+    'itinerary_created' => 'Itinerario creado exitosamente',
+    'itinerary_error' => 'Error al crear el itinerario',
+    'translation_error' => 'Error al traducir',
+],
+
+'modal' => [
+    'create_category' => 'Crear Nueva Categoría',
+    'create_language' => 'Crear Nuevo Idioma',
+    'create_amenity' => 'Crear Nueva Amenidad',
+    'create_schedule' => 'Crear Nuevo Horario',
+    'create_itinerary' => 'Crear Nuevo Itinerario',
+],
+
+'validation' => [
+    'slug_taken' => 'Este slug ya está en uso',
+    'slug_available' => 'Slug disponible',
+],
 
 ];

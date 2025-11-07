@@ -3,8 +3,11 @@
 <div class="row">
   <div class="col-md-8">
     <div class="card">
-      <div class="card-header">
-        <h3 class="card-title">{{ __('m_tours.tour.schedules_form.available_title') }}</h3>
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">{{ __('m_tours.tour.schedules_form.available_title') }}</h3>
+        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalCreateSchedule">
+          <i class="fas fa-plus"></i> {{ __('m_tours.schedule.ui.create_quick') }}
+        </button>
       </div>
 
       <div class="card-body">

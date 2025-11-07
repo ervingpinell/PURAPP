@@ -2,17 +2,19 @@
   {{-- ====== Incluido ====== --}}
   <div class="col-md-6">
     <div class="card card-success">
-      <div class="card-header">
-        <h3 class="card-title">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">
           <i class="fas fa-check"></i>
           {{ __('m_tours.tour.ui.amenities_included') }}
         </h3>
+        <button type="button" class="btn btn-tool btn-sm" data-bs-toggle="modal" data-bs-target="#modalCreateAmenity">
+          <i class="fas fa-plus"></i>
+        </button>
       </div>
 
       <div class="card-body">
         <div class="form-group">
-          <label class="form-label">{{ __('m_tours.tour.ui.amenities_included') }}</label>
-          <div class="form-text">{{ __('m_tours.tour.ui.amenities_included_hint') }}</div>
+          <div class="form-text mb-2">{{ __('m_tours.tour.ui.amenities_included_hint') }}</div>
 
           @php
             $includedAmenities = ($tour ?? null) ? $tour->amenities->pluck('amenity_id')->toArray() : [];
@@ -52,17 +54,19 @@
   {{-- ====== No Incluido ====== --}}
   <div class="col-md-6">
     <div class="card card-danger">
-      <div class="card-header">
-        <h3 class="card-title">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">
           <i class="fas fa-times"></i>
           {{ __('m_tours.tour.ui.amenities_excluded') }}
         </h3>
+        <button type="button" class="btn btn-tool btn-sm" data-bs-toggle="modal" data-bs-target="#modalCreateAmenity">
+          <i class="fas fa-plus"></i>
+        </button>
       </div>
 
       <div class="card-body">
         <div class="form-group">
-          <label class="form-label">{{ __('m_tours.tour.ui.amenities_excluded') }}</label>
-          <div class="form-text">{{ __('m_tours.tour.ui.amenities_excluded_hint') }}</div>
+          <div class="form-text mb-2">{{ __('m_tours.tour.ui.amenities_excluded_hint') }}</div>
 
           @php
             $excludedAmenities = ($tour ?? null) ? $tour->excludedAmenities->pluck('amenity_id')->toArray() : [];
@@ -99,6 +103,8 @@
     </div>
   </div>
 </div>
+
+{{-- Resto del blade igual... --}}
 
 {{-- ====== Ayuda ====== --}}
 <div class="row">

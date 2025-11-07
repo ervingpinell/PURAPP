@@ -9,6 +9,14 @@
   @endif
 </div>
 
+{{-- Botón para crear nueva categoría --}}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">{{ __('m_tours.tour.pricing.configured_categories') }}</h5>
+  <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalCreateCategory">
+    <i class="fas fa-plus"></i> {{ __('m_tours.tour.pricing.create_category') }}
+  </button>
+</div>
+
 <div id="prices-container">
   @php
       $categories     = \App\Models\CustomerCategory::active()->ordered()->get();

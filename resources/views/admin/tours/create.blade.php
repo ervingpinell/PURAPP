@@ -166,8 +166,12 @@
             </div>
         </div>
     </form>
+    @include('admin.tours.partials.inline-modals')
+
 @stop
 
 @section('js')
     @include('admin.tours.partials.scripts')
+    @include('admin.tours.partials.inline-scripts')
+
 @stop
