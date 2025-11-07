@@ -62,7 +62,7 @@ class DashBoardController extends Controller
             'login','register','password','password-reset','email','verify',
             'auth','two-factor-challenge','two-factor','unlock-account','account',
             'admin',
-            'profile','my-bookings','my-cart',
+            'profile','my-bookings','my-cart','checkout'
         ];
 
         $first = ltrim($pathNoLocale, '/');
