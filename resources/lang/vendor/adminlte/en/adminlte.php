@@ -33,6 +33,7 @@
  */
 
 return [
+    'no_slots_for_date' => 'No spaces available for this date',
 
     // 1. AUTHENTICATION AND REGISTRATION
     'hello' => 'Hello',

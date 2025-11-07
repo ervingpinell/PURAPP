@@ -33,7 +33,7 @@
  */
 
 return [
-
+    'no_slots_for_date' => 'Não há espaços disponíveis para esta data',
     // 1. AUTENTICAÇÃO E REGISTRO
     'hello' => 'Olá',
     'full_name' => 'Nome completo',

@@ -34,6 +34,7 @@
 
 return [
 
+    'no_slots_for_date' => 'Accune place disponible pour cette date',
     // 1. AUTHENTIFICATION ET INSCRIPTION
     'hello' => 'Bonjour',
     'full_name' => 'Nom complet',

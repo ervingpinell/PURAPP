@@ -34,6 +34,7 @@
 
 return [
 
+    'no_slots_for_date' => 'no hay espacios disponibles para esta fecha',
     // 1. AUTHENTICATION AND REGISTRATION
     'hello' => 'Hola',
     'full_name' => 'Nombre completo',
