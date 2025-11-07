@@ -1,7 +1,7 @@
 {{-- resources/views/public/checkout.blade.php --}}
 @extends('layouts.app')
 
-@section('title', __('Checkout'))
+@section('title', __('m_checkout.title'))
 
 @push('styles')
 <style>
@@ -43,7 +43,7 @@
 .acceptance-box{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid var(--ok);border-radius:.75rem;padding:1.5rem;margin-bottom:2rem;transition:.3s}
 .acceptance-box.disabled{background:var(--g100);border-color:var(--g300);opacity:.6}
 .acceptance-checkbox{display:flex;align-items:start;gap:1rem}
-.acceptance-checkbox input{margin-top:.25rem} /* ← sin width/height ni accent-color */
+.acceptance-checkbox input{margin-top:.25rem}
 .acceptance-checkbox input:disabled{cursor:not-allowed;opacity:.5}
 .acceptance-checkbox label{flex:1;cursor:pointer;color:var(--g800);font-weight:500;line-height:1.6;user-select:none}
 .acceptance-checkbox label strong{color:var(--p)}
@@ -168,28 +168,30 @@
     $code=strtolower((string)(data_get($cat,'code')??''));$name=strtolower((string)(data_get($cat,'name')??data_get($cat,'label')??data_get($cat,'description')??''));$hay=$code.' '.$name;
     if(str_contains($hay,'adult'))return'Adult'; if(str_contains($hay,'kid')||str_contains($hay,'child')||str_contains($hay,'niño'))return'Kid'; return'Category';
   };
-@endphp
-@php
+
   $raw=(float)$cart->items->sum(fn($it)=>$itemSub($it));
   $total=$raw; if($promo){$op=(($promo['operation']??'subtract')==='add')?1:-1;$total=max(0,round($raw+$op*(float)($promo['adjustment']??0),2));}
 @endphp
 
 <div class="checkout-container">
   <div class="progress-steps">
-    <div class="step active"><div class="num">!</div><span>{{ __('Payment') }}</span></div>
+    <div class="step active"><div class="num">!</div><span>{{ __('m_checkout.title') }}</span></div>
   </div>
 
   <div class="checkout-grid">
     {{-- Left: Terms --}}
     <div class="form-panel">
-      <div class="panel-title"><i class="fas fa-shield-check"></i>{{ __('Políticas y Términos') }}</div>
-      <div class="panel-subtitle"><i class="fas fa-lock"></i>{{ __('Checkout is fast and secure') }}</div>
+      <div class="panel-title"><i class="fas fa-shield-check"></i>{{ __('m_checkout.panels.terms_title') }}</div>
+      <div class="panel-subtitle"><i class="fas fa-lock"></i>{{ __('m_checkout.panels.secure_subtitle') }}</div>
 
-      <div class="required-notice"><strong>* {{ __('Campos requeridos') }}</strong><br>{{ __('Debes leer y aceptar todas las políticas para continuar con el pago') }}</div>
+      <div class="required-notice">
+        <strong>* {{ __('m_checkout.panels.required_title') }}</strong><br>
+        {{ __('m_checkout.panels.required_read_accept') }}
+      </div>
 
       <div class="policy-section">
         <div class="policy-header">
-          <h3>{{ __('Términos, Condiciones y Políticas') }}</h3>
+          <h3>{{ __('m_checkout.panels.terms_block_title') }}</h3>
           <span class="policy-version">v2.1</span>
         </div>
 
@@ -204,15 +206,17 @@
           <div class="acceptance-box disabled" id="accept-box">
             <div class="acceptance-checkbox">
               <input type="checkbox" id="accept_terms" name="accept_terms" value="1" {{ old('accept_terms')?'checked':'' }} disabled>
-              <label for="accept_terms">{!! __('He leído y acepto los <strong>Términos y Condiciones</strong>, la <strong>Política de Privacidad</strong>, y todas las <strong>Políticas de Cancelación, Devoluciones y Garantía</strong>. *') !!}</label>
+              <label for="accept_terms">{!! __('m_checkout.accept.label_html') !!}</label>
             </div>
             @error('accept_terms')<div class="text-danger small mt-2">{{ $message }}</div>@enderror
           </div>
 
           <div class="d-flex gap-3 mt-3">
-            <a href="{{ route('public.carts.index') }}" class="btn btn-back"><i class="fas fa-arrow-left"></i>{{ __('Volver') }}</a>
+            <a href="{{ route('public.carts.index') }}" class="btn btn-back">
+              <i class="fas fa-arrow-left"></i>{{ __('m_checkout.buttons.back') }}
+            </a>
             <button type="submit" id="btn-proceed" class="btn btn-payment" {{ old('accept_terms')?'':'disabled' }}>
-              {{ __('Go to payment') }} <i class="fas fa-arrow-right"></i>
+              {{ __('m_checkout.buttons.go_to_payment') }} <i class="fas fa-arrow-right"></i>
             </button>
           </div>
         </form>
@@ -222,8 +226,9 @@
     {{-- Right: Summary with internal scroll --}}
     <div class="summary-panel">
       <div class="summary-header">
-        <h3>{{ __('Order summary') }}</h3>
-        <span class="count">{{ $cart->items->count() }} {{ Str::plural('item', $cart->items->count()) }}</span>
+        <h3>{{ __('m_checkout.summary.title') }}</h3>
+        @php $cnt = $cart->items->count(); @endphp
+        <span class="count">{{ $cnt }} {{ $cnt===1 ? __('m_checkout.summary.item') : __('m_checkout.summary.items') }}</span>
       </div>
 
       <div class="items-scroll">
@@ -250,18 +255,18 @@
 
             @if($ref || $line)
               <div class="d-flex flex-wrap" style="gap:.4rem; margin-bottom:.35rem">
-                @if($ref)<span class="badge-ghost"><i class="fas fa-hashtag me-1"></i>{{ __('Ref') }}: {{ $ref }}</span>@endif
-                @if($line)<span class="badge-ghost"><i class="fas fa-stream me-1"></i>{{ __('Item') }}: {{ $line }}</span>@endif
+                @if($ref)<span class="badge-ghost"><i class="fas fa-hashtag me-1"></i>{{ __('m_checkout.blocks.ref') }}: {{ $ref }}</span>@endif
+                @if($line)<span class="badge-ghost"><i class="fas fa-stream me-1"></i>{{ __('m_checkout.blocks.item') }}: {{ $line }}</span>@endif
               </div>
             @endif
 
             <div class="tour-details">
               <span><i class="far fa-calendar-alt"></i>{{ \Carbon\Carbon::parse($it->tour_date)->format('l, F d, Y') }}</span>
               @if($it->schedule)
-                <span><i class="far fa-clock"></i>{{ __('at') }} {{ \Carbon\Carbon::parse($it->schedule->start_time)->format('g:i A') }}</span>
+                <span><i class="far fa-clock"></i>{{ __('m_checkout.misc.at') }} {{ \Carbon\Carbon::parse($it->schedule->start_time)->format('g:i A') }}</span>
               @endif
               @if($totalPax>0)
-                <span><i class="fas fa-user"></i>{{ $totalPax }} {{ $totalPax===1?__('participant'):__('participants') }}</span>
+                <span><i class="fas fa-user"></i>{{ $totalPax }} {{ $totalPax===1?__('m_checkout.misc.participant'):__('m_checkout.misc.participants') }}</span>
               @endif
               @if($it->language)
                 <span><i class="fas fa-language"></i>{{ $it->language->name }}</span>
@@ -270,17 +275,22 @@
 
             @if($hotel || $mp || $pickupAt)
               <div class="secondary-block">
-                <div class="block-title"><i class="fas fa-map-marker-alt"></i><span>{{ __('Pickup / Meeting point') }}</span></div>
+                <div class="block-title">
+                  <i class="fas fa-map-marker-alt"></i>
+                  <span>{{ __('m_checkout.blocks.pickup_meeting') }}</span>
+                </div>
                 <div class="small" style="color:var(--g700)">
                   @if($hotel)
-                    <div class="mb-1"><strong>{{ __('Hotel') }}:</strong> {{ $hotel->name ?? '' }} @if(data_get($hotel,'address')) — {{ $hotel->address }} @endif</div>
+                    <div class="mb-1"><strong>{{ __('m_checkout.blocks.hotel') }}:</strong> {{ $hotel->name ?? '' }} @if(data_get($hotel,'address')) — {{ $hotel->address }} @endif</div>
                   @endif
                   @if($mp)
-                    <div class="mb-1"><strong>{{ __('Meeting point') }}:</strong> {{ $mp->name ?? '' }} @if(data_get($mp,'address')) — {{ $mp->address }} @endif</div>
+                    <div class="mb-1"><strong>{{ __('m_checkout.blocks.meeting_point') }}:</strong> {{ $mp->name ?? '' }} @if(data_get($mp,'address')) — {{ $mp->address }} @endif</div>
                     @if(data_get($mp,'notes'))<div class="text-muted">{{ $mp->notes }}</div>@endif
                   @endif
                   @if($pickupAt)
-                    <div class="mt-1"><i class="far fa-clock"></i> <strong>{{ __('Pickup time') }}:</strong> {{ \Carbon\Carbon::parse($pickupAt)->format('g:i A') }} ({{ $tz }})</div>
+                    <div class="mt-1"><i class="far fa-clock"></i>
+                      <strong>{{ __('m_checkout.blocks.pickup_time') }}:</strong> {{ \Carbon\Carbon::parse($pickupAt)->format('g:i A') }} ({{ $tz }})
+                    </div>
                   @endif
                 </div>
               </div>
@@ -288,7 +298,7 @@
 
             @if($addons->isNotEmpty())
               <div class="secondary-block">
-                <div class="block-title"><i class="fas fa-plus-circle"></i><span>{{ __('Add-ons') }}</span></div>
+                <div class="block-title"><i class="fas fa-plus-circle"></i><span>{{ __('m_checkout.blocks.add_ons') }}</span></div>
                 @foreach($addons as $ad)
                   @php $aq=(int)data_get($ad,'quantity',0); $ap=(float)data_get($ad,'price',0); $at=$aq*$ap; @endphp
                   @if($aq>0)
@@ -309,15 +319,23 @@
             @if($duration || $guide)
               <div class="secondary-block">
                 <div class="d-flex flex-wrap gap-3 small" style="color:var(--g700)">
-                  @if($duration)<div><i class="far fa-hourglass" style="color:var(--p)"></i> <strong>{{ __('Duration') }}:</strong> {{ $duration }} {{ __('hours') }}</div>@endif
-                  @if($guide)<div><i class="fas fa-user-tie" style="color:var(--p)"></i> <strong>{{ __('Guide') }}:</strong> {{ $guide }}</div>@endif
+                  @if($duration)
+                    <div><i class="far fa-hourglass" style="color:var(--p)"></i>
+                      <strong>{{ __('m_checkout.blocks.duration') }}:</strong> {{ $duration }} {{ __('m_checkout.blocks.hours') }}
+                    </div>
+                  @endif
+                  @if($guide)
+                    <div><i class="fas fa-user-tie" style="color:var(--p)"></i>
+                      <strong>{{ __('m_checkout.blocks.guide') }}:</strong> {{ $guide }}
+                    </div>
+                  @endif
                 </div>
               </div>
             @endif
 
             @if($notes)
               <div class="secondary-block">
-                <div class="block-title"><i class="fas fa-sticky-note"></i><span>{{ __('Notes') }}</span></div>
+                <div class="block-title"><i class="fas fa-sticky-note"></i><span>{{ __('m_checkout.blocks.notes') }}</span></div>
                 <div class="small" style="color:var(--g700)">{{ $notes }}</div>
               </div>
             @endif
@@ -335,8 +353,8 @@
                     @if($q>0)
                       <div class="category-line">
                         <div class="category-left">
-                          @if($isAdult)<i class="fas fa-user"></i><strong>Adult</strong>
-                          @elseif($isKid)<i class="fas fa-child"></i><strong>Kid</strong>
+                          @if($isAdult)<i class="fas fa-user"></i><strong>{{ __('m_checkout.categories.adult') }}</strong>
+                          @elseif($isKid)<i class="fas fa-child"></i><strong>{{ __('m_checkout.categories.kid') }}</strong>
                           @else<i class="fas fa-user-friends"></i><span>{{ $lab }}</span>@endif
                           <span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span>
                         </div>
@@ -347,11 +365,21 @@
                 @else
                   @if((int)($it->adults_quantity??0)>0)
                     @php $q=(int)$it->adults_quantity; $u=(float)($it->tour->adult_price??0); @endphp
-                    <div class="category-line"><div class="category-left"><i class="fas fa-user"></i><strong>Adult</strong><span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span></div><div class="category-total">${{ $fmt($q*$u) }}</div></div>
+                    <div class="category-line">
+                      <div class="category-left"><i class="fas fa-user"></i><strong>{{ __('m_checkout.categories.adult') }}</strong>
+                        <span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span>
+                      </div>
+                      <div class="category-total">${{ $fmt($q*$u) }}</div>
+                    </div>
                   @endif
                   @if((int)($it->kids_quantity??0)>0)
                     @php $q=(int)$it->kids_quantity; $u=(float)($it->tour->kid_price??0); @endphp
-                    <div class="category-line"><div class="category-left"><i class="fas fa-child"></i><strong>Kid</strong><span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span></div><div class="category-total">${{ $fmt($q*$u) }}</div></div>
+                    <div class="category-line">
+                      <div class="category-left"><i class="fas fa-child"></i><strong>{{ __('m_checkout.categories.kid') }}</strong>
+                        <span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span>
+                      </div>
+                      <div class="category-total">${{ $fmt($q*$u) }}</div>
+                    </div>
                   @endif
                 @endif
               </div>
@@ -365,42 +393,53 @@
       <div class="summary-footer">
         <div class="cancellation-badge">
           <i class="fas fa-check-circle"></i>
-          <div><strong>{{ __('Free cancellation') }}</strong><small>{{ __('Until 8:15 AM on November 18') }}</small></div>
+          <div>
+            <strong>{{ __('m_checkout.summary.free_cancellation') }}</strong>
+          </div>
         </div>
 
         <div class="totals-section">
-          <div class="total-row"><span>{{ __('Subtotal') }}</span><span>${{ $fmt($raw) }}</span></div>
+          <div class="total-row"><span>{{ __('m_checkout.summary.subtotal') }}</span><span>${{ $fmt($raw) }}</span></div>
           @if($promo)
             <div class="total-row promo">
-              <span>{{ __('Promo code') }} <span class="promo-code">{{ $promo['code'] }}</span></span>
+              <span>{{ __('m_checkout.summary.promo_code') }} <span class="promo-code">{{ $promo['code'] }}</span></span>
               <span>{{ ($promo['operation']??'subtract')==='subtract'?'-':'+' }}${{ $fmt($promo['adjustment']??0) }}</span>
             </div>
           @endif
           @php $total=$raw; if($promo){$op=(($promo['operation']??'subtract')==='add')?1:-1;$total=max(0,round($raw+$op*(float)($promo['adjustment']??0),2));} @endphp
-          <div class="total-row final"><span>{{ __('Total') }}</span><span>${{ $fmt($total) }}</span></div>
-          <div style="text-align:right;color:var(--g600);font-size:.75rem;margin-top:.5rem">{{ __('All taxes and fees included') }}</div>
+          <div class="total-row final"><span>{{ __('m_checkout.summary.total') }}</span><span>${{ $fmt($total) }}</span></div>
+          <div style="text-align:right;color:var(--g600);font-size:.75rem;margin-top:.5rem">{{ __('m_checkout.summary.taxes_included') }}</div>
         </div>
 
-        <button class="btn btn-details" data-bs-toggle="modal" data-bs-target="#orderModal"><i class="fas fa-list"></i>{{ __('View details') }}</button>
-        <a href="{{ route('public.carts.index') }}" class="btn btn-edit"><i class="fas fa-edit"></i>{{ __('Change date or participants') }}</a>
+        <button class="btn btn-details" data-bs-toggle="modal" data-bs-target="#orderModal">
+          <i class="fas fa-list"></i>{{ __('m_checkout.buttons.view_details') }}
+        </button>
+        <a href="{{ route('public.carts.index') }}" class="btn btn-edit">
+          <i class="fas fa-edit"></i>{{ __('m_checkout.buttons.edit') }}
+        </a>
       </div>
     </div>
   </div>
 </div>
 
-{{-- Modal de detalle --}}
+{{-- Modal de detalle (DENTRO de la sección) --}}
 <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-receipt me-2"></i>{{ __('Order Details') }}</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+        <h5 class="modal-title">
+          <i class="fas fa-receipt me-2"></i>{{ __('m_checkout.summary.order_details') }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('m_checkout.buttons.close') }}"></button>
       </div>
       <div class="modal-body">
         @foreach($cart->items as $it)
           @php $s=$itemSub($it); @endphp
           <div class="item-detail">
-            <div class="item-header"><strong>{{ $it->tour->getTranslatedName() ?? $it->tour->name }}</strong><span class="price">${{ $fmt($s) }}</span></div>
+            <div class="item-header">
+              <strong>{{ $it->tour->getTranslatedName() ?? $it->tour->name }}</strong>
+              <span class="price">${{ $fmt($s) }}</span>
+            </div>
             <div class="item-meta">
               <span><i class="far fa-calendar-alt"></i>{{ \Carbon\Carbon::parse($it->tour_date)->format('l, F d, Y') }}</span>
               @if($it->schedule)<span><i class="far fa-clock"></i>{{ \Carbon\Carbon::parse($it->schedule->start_time)->format('g:i A') }} - {{ \Carbon\Carbon::parse($it->schedule->end_time)->format('g:i A') }}</span>@endif
@@ -419,31 +458,39 @@
 
             @if($ref || $line)
               <div class="d-flex flex-wrap gap-2 mt-2">
-                @if($ref)<span class="badge-ghost"><i class="fas fa-hashtag me-1"></i>{{ __('Ref') }}: {{ $ref }}</span>@endif
-                @if($line)<span class="badge-ghost"><i class="fas fa-stream me-1"></i>{{ __('Item') }}: {{ $line }}</span>@endif
+                @if($ref)<span class="badge-ghost"><i class="fas fa-hashtag me-1"></i>{{ __('m_checkout.blocks.ref') }}: {{ $ref }}</span>@endif
+                @if($line)<span class="badge-ghost"><i class="fas fa-stream me-1"></i>{{ __('m_checkout.blocks.item') }}: {{ $line }}</span>@endif
               </div>
             @endif
 
             @if($hotel || $mp || $pickupAt)
               <div class="categories-section mt-2">
-                <div class="d-flex align-items-center mb-2" style="gap:.5rem"><i class="fas fa-map-marker-alt" style="color:var(--p)"></i><strong>{{ __('Pickup / Meeting point') }}</strong></div>
+                <div class="d-flex align-items-center mb-2" style="gap:.5rem">
+                  <i class="fas fa-map-marker-alt" style="color:var(--p)"></i><strong>{{ __('m_checkout.blocks.pickup_meeting') }}</strong>
+                </div>
                 <div class="small" style="color:var(--g700)">
-                  @if($hotel)<div class="mb-1"><strong>{{ __('Hotel') }}:</strong> {{ $hotel->name ?? '' }} @if(data_get($hotel,'address')) — {{ $hotel->address }} @endif</div>@endif
-                  @if($mp)<div class="mb-1"><strong>{{ __('Meeting point') }}:</strong> {{ $mp->name ?? '' }} @if(data_get($mp,'address')) — {{ $mp->address }} @endif</div>@endif
+                  @if($hotel)<div class="mb-1"><strong>{{ __('m_checkout.blocks.hotel') }}:</strong> {{ $hotel->name ?? '' }} @if(data_get($hotel,'address')) — {{ $hotel->address }} @endif</div>@endif
+                  @if($mp)<div class="mb-1"><strong>{{ __('m_checkout.blocks.meeting_point') }}:</strong> {{ $mp->name ?? '' }} @if(data_get($mp,'address')) — {{ $mp->address }} @endif</div>@endif
                   @if(data_get($mp,'notes'))<div class="text-muted">{{ $mp->notes }}</div>@endif
-                  @if($pickupAt)<div class="mt-1"><i class="far fa-clock"></i> <strong>{{ __('Pickup time') }}:</strong> {{ \Carbon\Carbon::parse($pickupAt)->format('g:i A') }} ({{ $tz }})</div>@endif
+                  @if($pickupAt)<div class="mt-1"><i class="far fa-clock"></i> <strong>{{ __('m_checkout.blocks.pickup_time') }}:</strong> {{ \Carbon\Carbon::parse($pickupAt)->format('g:i A') }} ({{ $tz }})</div>@endif
                 </div>
               </div>
             @endif
 
             @if($addons->isNotEmpty())
               <div class="categories-section mt-2">
-                <div class="d-flex align-items-center mb-2" style="gap:.5rem"><i class="fas fa-plus-circle" style="color:var(--p)"></i><strong>{{ __('Add-ons') }}</strong></div>
+                <div class="d-flex align-items-center mb-2" style="gap:.5rem">
+                  <i class="fas fa-plus-circle" style="color:var(--p)"></i><strong>{{ __('m_checkout.blocks.add_ons') }}</strong>
+                </div>
                 @foreach($addons as $ad)
                   @php $aq=(int)data_get($ad,'quantity',0); $ap=(float)data_get($ad,'price',0); $at=$aq*$ap; @endphp
                   @if($aq>0)
                     <div class="category-line">
-                      <div class="category-left"><i class="fas fa-tag"></i><span>{{ data_get($ad,'name','Extra') }}</span><span class="qty-badge">{{ $aq }}x</span><span class="price-detail">(${{ $fmt($ap) }} × {{ $aq }})</span></div>
+                      <div class="category-left"><i class="fas fa-tag"></i>
+                        <span>{{ data_get($ad,'name','Extra') }}</span>
+                        <span class="qty-badge">{{ $aq }}x</span>
+                        <span class="price-detail">(${{ $fmt($ap) }} × {{ $aq }})</span>
+                      </div>
                       <div class="category-total">${{ $fmt($at) }}</div>
                     </div>
                   @endif
@@ -453,14 +500,16 @@
 
             @if($duration || $guide)
               <div class="d-flex flex-wrap gap-3 mt-2 small" style="color:var(--g700)">
-                @if($duration)<div><i class="far fa-hourglass"></i> <strong>{{ __('Duration') }}:</strong> {{ $duration }} {{ __('hours') }}</div>@endif
-                @if($guide)<div><i class="fas fa-user-tie"></i> <strong>{{ __('Guide') }}:</strong> {{ $guide }}</div>@endif
+                @if($duration)<div><i class="far fa-hourglass"></i> <strong>{{ __('m_checkout.blocks.duration') }}:</strong> {{ $duration }} {{ __('m_checkout.blocks.hours') }}</div>@endif
+                @if($guide)<div><i class="fas fa-user-tie"></i> <strong>{{ __('m_checkout.blocks.guide') }}:</strong> {{ $guide }}</div>@endif
               </div>
             @endif
 
             @if($notes)
               <div class="categories-section mt-2">
-                <div class="d-flex align-items-center mb-2" style="gap:.5rem"><i class="fas fa-sticky-note" style="color:var(--p)"></i><strong>{{ __('Notes') }}</strong></div>
+                <div class="d-flex align-items-center mb-2" style="gap:.5rem">
+                  <i class="fas fa-sticky-note" style="color:var(--p)"></i><strong>{{ __('m_checkout.blocks.notes') }}</strong>
+                </div>
                 <div class="small" style="color:var(--g700)">{{ $notes }}</div>
               </div>
             @endif
@@ -476,8 +525,8 @@
                   @if($q>0)
                     <div class="category-line">
                       <div class="category-left">
-                        @if($isAdult)<i class="fas fa-user"></i><strong>Adult</strong>
-                        @elseif($isKid)<i class="fas fa-child"></i><strong>Kid</strong>
+                        @if($isAdult)<i class="fas fa-user"></i><strong>{{ __('m_checkout.categories.adult') }}</strong>
+                        @elseif($isKid)<i class="fas fa-child"></i><strong>{{ __('m_checkout.categories.kid') }}</strong>
                         @else<i class="fas fa-user-friends"></i><span>{{ $lab }}</span>@endif
                         <span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span>
                       </div>
@@ -490,11 +539,11 @@
               <div class="categories-section">
                 @if((int)($it->adults_quantity??0)>0)
                   @php $q=(int)$it->adults_quantity; $u=(float)($it->tour->adult_price??0); @endphp
-                  <div class="category-line"><div class="category-left"><i class="fas fa-user"></i><strong>Adult</strong><span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span></div><div class="category-total">${{ $fmt($q*$u) }}</div></div>
+                  <div class="category-line"><div class="category-left"><i class="fas fa-user"></i><strong>{{ __('m_checkout.categories.adult') }}</strong><span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span></div><div class="category-total">${{ $fmt($q*$u) }}</div></div>
                 @endif
                 @if((int)($it->kids_quantity??0)>0)
                   @php $q=(int)$it->kids_quantity; $u=(float)($it->tour->kid_price??0); @endphp
-                  <div class="category-line"><div class="category-left"><i class="fas fa-child"></i><strong>Kid</strong><span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span></div><div class="category-total">${{ $fmt($q*$u) }}</div></div>
+                  <div class="category-line"><div class="category-left"><i class="fas fa-child"></i><strong>{{ __('m_checkout.categories.kid') }}</strong><span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span></div><div class="category-total">${{ $fmt($q*$u) }}</div></div>
                 @endif
               </div>
             @endif
@@ -502,18 +551,21 @@
         @endforeach
       </div>
 
-      <div class="summary-footer">
-        <div class="modal-summary" style="border:none; padding:0">
-          <div class="total-row"><span>{{ __('Subtotal') }}</span><span style="font-weight:600">${{ $fmt($raw) }}</span></div>
+      <div class="modal-footer">
+        <div class="w-100">
+          <div class="total-row d-flex justify-content-between">
+            <span>{{ __('m_checkout.summary.subtotal') }}</span><span style="font-weight:600">${{ $fmt($raw) }}</span>
+          </div>
           @if($promo)
-            <div class="total-row promo"><span>{{ __('Promo code') }} <span class="promo-code">{{ $promo['code'] }}</span></span><span style="font-weight:600">{{ ($promo['operation']??'subtract')==='subtract' ? '-' : '+' }}${{ $fmt($promo['adjustment']??0) }}</span></div>
+            <div class="total-row promo d-flex justify-content-between">
+              <span>{{ __('m_checkout.summary.promo_code') }} <span class="promo-code">{{ $promo['code'] }}</span></span>
+              <span style="font-weight:600">{{ ($promo['operation']??'subtract')==='subtract' ? '-' : '+' }}${{ $fmt($promo['adjustment']??0) }}</span>
+            </div>
           @endif
-          <div class="total-row final"><span>{{ __('Total') }}</span><span>${{ $fmt($total) }}</span></div>
+          <div class="total-row final d-flex justify-content-between">
+            <span>{{ __('m_checkout.summary.total') }}</span><span>${{ $fmt($total) }}</span>
+          </div>
         </div>
-        <div style="text-align:right;color:var(--g600);font-size:.75rem;margin-top:.35rem">{{ __('All taxes and fees included') }}</div>
-
-        <button class="btn btn-details" data-bs-toggle="modal" data-bs-target="#orderModal"><i class="fas fa-list"></i>{{ __('View details') }}</button>
-        <a href="{{ route('public.carts.index') }}" class="btn btn-edit"><i class="fas fa-edit"></i>{{ __('Change date or participants') }}</a>
       </div>
     </div>
   </div>
