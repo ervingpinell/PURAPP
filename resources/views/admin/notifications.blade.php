@@ -404,19 +404,26 @@
     if(c2) c2.textContent=leftCritical;
   };
 
+  // ✅ OPCIÓN 2: Solo usar alertas del servidor, ignorar cache mezclado
   const mountCards = ()=>{
-    const server = serverRaw;
-    const sMap = Object.fromEntries(server.map(a=>[a.key,a]));
-    const cache = loadCache();
-    const merged = {...cache};
-    Object.keys(sMap).forEach(k=>{ merged[k]={data:sMap[k],exp:Date.now()+TTL_MS}; });
-    const arr = Object.values(merged).map(x=>x.data)
-      .sort((a,b)=>(a.date||'').localeCompare(b.date||'') || (a.tour||'').localeCompare(b.tour||''));
+    // ✅ Filtrar alertas inválidas (sin tour_id válido)
+    const validAlerts = serverRaw.filter(a => {
+      const tid = a.tour_id;
+      return tid && tid !== 0 && tid !== null && tid !== undefined;
+    });
+
+    // ✅ Ordenar por fecha y nombre de tour
+    const arr = validAlerts.sort((a,b)=>
+      (a.date||'').localeCompare(b.date||'') || (a.tour||'').localeCompare(b.tour||'')
+    );
+
+    // ✅ Renderizar
     if(list){
       list.innerHTML = arr.length ? arr.map(cardHTML).join('') :
         `<div class="cap-empty"><i class="fas fa-check-circle"></i><p>${T('no_alerts')}</p></div>`;
     }
-    // Hidratación: si falta data-tour, colócalo desde el mapa
+
+    // ✅ Hidratación: asegurar data-tour desde el mapa
     $$('.cap-card').forEach(c=>{
       if(!c.dataset.tour || c.dataset.tour==='0' || c.dataset.tour===''){
         const sid = String(c.dataset.id||'');
@@ -424,11 +431,22 @@
         if(tid){ c.dataset.tour = String(tid); }
       }
     });
-    saveCache(merged);
+
+    // ✅ Actualizar cache solo con alertas válidas del servidor
+    const freshCache = {};
+    validAlerts.forEach(a => {
+      freshCache[a.key] = {
+        data: a,
+        exp: Date.now() + TTL_MS
+      };
+    });
+    saveCache(freshCache);
+
     updateCountersFromDOM();
   };
 
   mountCards();
+
   $('#cap-markread')?.addEventListener('click',()=>{
     if(list) list.innerHTML=`<div class="cap-empty"><i class="fas fa-check-circle"></i><p>${T('no_alerts')}</p></div>`;
     saveCache({}); updateCountersFromDOM();
@@ -491,11 +509,14 @@
   const applyResponse = (card,res)=>{
     const used = parseInt(res.used||0,10);
     const max = parseInt(res.max_capacity||0,10);
+    const remaining = parseInt(res.remaining||0,10);
+    const pct = parseInt(res.pct||0,10);
+
+    // ✅ Determinar estado basado en la respuesta del servidor
     const isBlocked = max === 0;
     const displayMax = isBlocked ? used : max;
-    const pct = isBlocked ? 100 : (res.pct || 0);
 
-    // ✅ Actualizar valores
+    // ✅ Actualizar valores en el DOM
     const usedEl = card.querySelector('.js-used');
     const remEl = card.querySelector('.js-rem');
     const pctEl = card.querySelector('.js-pct');
@@ -503,7 +524,7 @@
     const availLblEl = card.querySelector('.js-avail-lbl');
 
     if(usedEl) usedEl.textContent = `${used}/${displayMax}`;
-    if(remEl) remEl.textContent = isBlocked ? used : `${res.remaining}`;
+    if(remEl) remEl.textContent = isBlocked ? used : remaining;
     if(pctEl) pctEl.textContent = `${pct}%`;
     if(barEl) barEl.style.width = pct+'%';
 
@@ -512,11 +533,14 @@
     const blkBtn=card.querySelector('.js-block');
     const barFillEl=card.querySelector('.cap-bar__fill');
 
+    // ✅ Resetear todas las clases primero
     if(chip) chip.className='cap-chip';
     if(barFillEl) barFillEl.classList.remove('cap-bar__fill--blocked');
     card.classList.remove('cap-card--blocked');
 
+    // ✅ Aplicar el estado correcto según respuesta del servidor
     if(isBlocked){
+      // Estado: BLOQUEADO (max = 0)
       if(chip){ chip.classList.add('cap-chip--danger'); chip.textContent=T('sold_out'); }
       if(incBtn){
         incBtn.classList.remove('cap-btn--primary');
@@ -527,7 +551,8 @@
       if(barFillEl) barFillEl.classList.add('cap-bar__fill--blocked');
       card.classList.add('cap-card--blocked');
       if(availLblEl) availLblEl.textContent = T('blocked_at');
-    }else if(res.remaining<=3 || res.pct>=80){
+    }else if(remaining<=3 || pct>=80){
+      // Estado: CRÍTICO (casi lleno)
       if(chip){ chip.classList.add('cap-chip--near_capacity'); chip.textContent=T('critical'); }
       if(incBtn){
         incBtn.classList.remove('cap-btn--success');
@@ -537,6 +562,7 @@
       if(blkBtn) blkBtn.disabled=false;
       if(availLblEl) availLblEl.textContent = T('available');
     }else{
+      // Estado: NORMAL (disponible)
       if(chip){ chip.classList.add('cap-chip--info'); chip.textContent=T('alert'); }
       if(incBtn){
         incBtn.classList.remove('cap-btn--success');
@@ -546,6 +572,12 @@
       if(blkBtn) blkBtn.disabled=false;
       if(availLblEl) availLblEl.textContent = T('available');
     }
+
+    console.log('[CAPACITY] Card updated:', {
+      used, max, remaining, pct, isBlocked,
+      chip: chip?.className,
+      incBtn: incBtn?.className
+    });
   };
 
   const cardToAlert = (card)=>{
@@ -553,9 +585,22 @@
     const remaining=Math.max(0,(max||0)-(u||0));
     const pct=(max||0)>0?Math.floor((u*100)/max):0;
     const type=remaining===0?'sold_out':(remaining<=3||pct>=80)?'near_capacity':'info';
-    return { key:card.dataset.key, schedule_id:parseInt(card.dataset.id,10),
-             date:card.dataset.date, tour:card.querySelector('.cap-card__title')?.textContent||'—',
-             used:u, max:max, remaining, pct, type };
+
+    // ✅ Obtener tour_id de la tarjeta
+    const tourId = getTourIdForCard(card);
+
+    return {
+      key: card.dataset.key,
+      tour_id: tourId, // ✅ Incluir tour_id
+      schedule_id: parseInt(card.dataset.id,10),
+      date: card.dataset.date,
+      tour: card.querySelector('.cap-card__title')?.textContent||'—',
+      used: u,
+      max: max,
+      remaining,
+      pct,
+      type
+    };
   };
 
   // Helper para obtener tour_id siempre
@@ -633,30 +678,51 @@
       const [used, currentMax] = (card.querySelector('.js-used')?.textContent || '0/0').split('/').map(x=>parseInt(x,10));
       const isSoldOrBlocked = currentMax === 0 || currentMax === used || card.querySelector('.cap-chip')?.classList.contains('cap-chip--danger');
 
-      let amount;
+      // ✅ SIEMPRE preguntar cuántos espacios agregar
+      let suggestedAmount;
+      let promptTitle;
+      let promptLabel;
+
       if(isSoldOrBlocked){
-        amount = used + 2;
+        // Si está bloqueado, sugerir +2 desde lo que ya está usado
+        suggestedAmount = 2;
+        promptTitle = `🔓 ${T('unlock')} - ${T('modify_capacity')}`;
+        promptLabel = `Actualmente: ${used} reservados (bloqueado). ¿Cuántos espacios liberar?`;
       }else{
-        const { value } = await Swal.fire({
-          title: T('modify_capacity'),
-          html: `
-            <p style="font-size:14px;color:#6b7280;margin-bottom:12px;">
-              ${T('positive_expand')}<br>
-              ${T('negative_reduce')}
-            </p>
-          `,
-          input: 'number',
-          inputLabel: `${T('quantity')} (${used}/${currentMax})`,
-          inputValue: 5,
-          inputAttributes: { step:1 },
-          showCancelButton: true,
-          confirmButtonText: T('add'),
-          cancelButtonText: T('cancel')
-        });
-        if(value===undefined) return;
-        amount = parseInt(value,10);
-        if(isNaN(amount)||amount===0) return Swal.fire(T('invalid_qty'), T('enter_int'), 'error');
+        // Si está activo, sugerir +5 desde la capacidad actual
+        suggestedAmount = 5;
+        promptTitle = T('modify_capacity');
+        promptLabel = `${T('quantity')} (${used}/${currentMax})`;
       }
+
+      const { value } = await Swal.fire({
+        title: promptTitle,
+        html: `
+          <p style="font-size:14px;color:#6b7280;margin-bottom:12px;">
+            ${isSoldOrBlocked
+              ? `<strong>✅ Desbloquear y liberar espacios</strong><br>Número positivo: cuántos espacios totales tendrá disponible`
+              : `${T('positive_expand')}<br>${T('negative_reduce')}`
+            }
+          </p>
+        `,
+        input: 'number',
+        inputLabel: promptLabel,
+        inputValue: suggestedAmount,
+        inputAttributes: {
+          step: 1,
+          min: isSoldOrBlocked ? 1 : -999
+        },
+        showCancelButton: true,
+        confirmButtonText: isSoldOrBlocked ? '🔓 Desbloquear' : T('add'),
+        cancelButtonText: T('cancel'),
+        customClass: {
+          confirmButton: isSoldOrBlocked ? 'btn btn-success' : 'btn btn-primary'
+        }
+      });
+
+      if(value===undefined) return;
+      const amount = parseInt(value,10);
+      if(isNaN(amount)||amount===0) return Swal.fire(T('invalid_qty'), T('enter_int'), 'error');
 
       try{
         const tourId = getTourIdForCard(card);
@@ -700,8 +766,8 @@
         await Swal.fire({
           icon: 'success',
           title: T('ready'),
-          text: T('capacity_updated'),
-          timer: 2000,
+          text: isSoldOrBlocked ? `🔓 Desbloqueado con ${data.max_capacity} espacios disponibles` : T('capacity_updated'),
+          timer: 2500,
           showConfirmButton: false
         });
 

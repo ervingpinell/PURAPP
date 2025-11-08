@@ -14,10 +14,10 @@
                     @csrf
 
                     <div class="card-body">
-                        @include('admin.customer_categories.partials.form')
+                        @include('admin.customer_categories.partials.form', ['mode' => 'create'])
                     </div>
 
-                    <div class="card-footer">
+                    <div class="card-footer d-flex gap-2">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> {{ __('customer_categories.buttons.save') }}
                         </button>

@@ -1,4 +1,4 @@
-{{-- resources/views/admin/Cart/general.blade.php --}}
+{{-- resources/views/admin/Cart/all.blade.php --}}
 @extends('adminlte::page')
 
 @section('title', __('carts.title_all'))
@@ -8,7 +8,6 @@
 @stop
 
 @section('content')
-{{-- 🔎 Filters --}}
 <div class="card shadow mb-4">
     <div class="card-header bg-primary text-white">
         <strong><i class="fas fa-filter"></i> {{ __('carts.filters.title') }}</strong>
@@ -39,7 +38,6 @@
     </div>
 </div>
 
-{{-- 🧺 Table: 1 row = 1 cart --}}
 @if($carts->count())
 <div class="table-responsive">
     <table class="table table-bordered table-hover shadow-sm">
@@ -65,7 +63,7 @@
                     <button class="btn btn-sm btn-info"
                         data-bs-toggle="modal"
                         data-bs-target="#modalItemsCart{{ $cart->cart_id }}"
-                        title="{{ __('carts.actions.view_items') }}" data-bs-toggle="tooltip">
+                        title="{{ __('carts.actions.view_items') }}">
                         <i class="fas fa-list"></i> ({{ $cart->items_count }})
                     </button>
                 </td>
@@ -79,28 +77,24 @@
                 <td>{{ $cart->updated_at->format(__('carts.format.datetime')) }}</td>
 
                 <td class="text-center">
-                    {{-- 👁️ View items --}}
                     <button class="btn btn-info btn-sm me-1"
                         data-bs-toggle="modal"
                         data-bs-target="#modalItemsCart{{ $cart->cart_id }}"
-                        title="{{ __('carts.actions.view_items') }}" data-bs-toggle="tooltip">
+                        title="{{ __('carts.actions.view_items') }}">
                         <i class="fas fa-eye"></i>
                     </button>
 
-                    {{-- 🔁 Toggle cart --}}
                     <form action="{{ route('admin.carts.toggle', $cart->cart_id) }}" method="POST" class="d-inline-block me-1">
                         @csrf @method('PATCH')
                         <button class="btn btn-sm {{ $cart->is_active ? 'btn-toggle' : 'btn-secondary' }}"
-                                title="{{ $cart->is_active ? __('carts.actions.toggle_deactivate') : __('carts.actions.toggle_activate') }}"
-                                data-bs-toggle="tooltip">
+                                title="{{ $cart->is_active ? __('carts.actions.toggle_deactivate') : __('carts.actions.toggle_activate') }}">
                             <i class="fas {{ $cart->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                         </button>
                     </form>
 
-                    {{-- 🗑️ Delete cart --}}
                     <form action="{{ route('admin.carts.destroy', $cart->cart_id) }}" method="POST" class="d-inline-block form-delete-cart">
                         @csrf @method('DELETE')
-                        <button class="btn btn-delete btn-sm" title="{{ __('carts.actions.delete_cart') }}" data-bs-toggle="tooltip">
+                        <button class="btn btn-delete btn-sm" title="{{ __('carts.actions.delete_cart') }}">
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
@@ -111,7 +105,6 @@
     </table>
 </div>
 
-{{-- 📦 Items per cart modal --}}
 @foreach($carts as $cart)
 <div class="modal fade"
      id="modalItemsCart{{ $cart->cart_id }}"
@@ -126,7 +119,7 @@
         <h5 class="modal-title" id="modalLabelCart{{ $cart->cart_id }}">
             {{ __('carts.items_modal.title', ['name' => $cart->user->full_name]) }}
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('adminlte::adminlte.close') }}"></button>
       </div>
 
       <div class="modal-body p-0">
@@ -179,19 +172,17 @@
                             </span>
                         </td>
                         <td class="d-flex justify-content-center gap-1">
-                            {{-- ✏️ Edit: close parent modal, open edit modal --}}
                             <button
                                 class="btn btn-sm btn-edit btn-open-edit"
-                                title="{{ __('carts.actions.edit') }}" data-bs-toggle="tooltip"
+                                title="{{ __('carts.actions.edit') }}"
                                 data-parent="#modalItemsCart{{ $cart->cart_id }}"
                                 data-child="#modalEditar{{ $item->item_id }}">
                                 <i class="fas fa-edit"></i>
                             </button>
 
-                            {{-- 🗑️ Delete item --}}
                             <form action="{{ route('admin.carts.item.destroy', $item->item_id) }}" method="POST" class="d-inline-block form-delete-item">
                                 @csrf @method('DELETE')
-                                <button class="btn btn-sm btn-delete" title="{{ __('carts.actions.delete') }}" data-bs-toggle="tooltip">
+                                <button class="btn btn-sm btn-delete" title="{{ __('carts.actions.delete') }}">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </form>
@@ -215,7 +206,7 @@
         });
       @endphp
 
-      <div class="modal-footer d-flex justify-content-between">
+      <div class="modal-footer d-flex justify-content-between flex-wrap gap-2">
         <div class="text-muted">
             {{ __('carts.items_modal.customer') }}: <strong>{{ $cart->user->full_name }}</strong> ·
             {{ __('carts.items_modal.email') }}: <strong>{{ $cart->user->email }}</strong> ·
@@ -256,74 +247,38 @@
     @endif
 
     <script>
-    // Enable tooltips
     document.addEventListener('DOMContentLoaded', () => {
-        const list = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        list.map(el => new bootstrap.Tooltip(el));
-    });
-
-    // Avoid nested modals
-    document.addEventListener('click', function(e){
-      const btn = e.target.closest('.btn-open-edit');
-      if (!btn) return;
-      e.preventDefault();
-      const parentEl = document.querySelector(btn.getAttribute('data-parent'));
-      const childEl  = document.querySelector(btn.getAttribute('data-child'));
-      if (!parentEl || !childEl) return;
-
-      const parent = bootstrap.Modal.getOrCreateInstance(parentEl);
-      parent.hide();
-      parentEl.addEventListener('hidden.bs.modal', function onHidden(){
-        parentEl.removeEventListener('hidden.bs.modal', onHidden);
-        const child = bootstrap.Modal.getOrCreateInstance(childEl);
-        child.show();
-        childEl.addEventListener('hidden.bs.modal', function onChildHidden(){
-          childEl.removeEventListener('hidden.bs.modal', onChildHidden);
-          parent.show();
+        document.querySelectorAll('.form-delete-item').forEach(form => {
+          form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            Swal.fire({
+              title: @json(__('carts.swal.delete_item.title')),
+              text: @json(__('carts.swal.delete_item.text')),
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#d33',
+              cancelButtonColor: '#3085d6',
+              confirmButtonText: @json(__('carts.swal.delete_item.confirm')),
+              cancelButtonText: @json(__('carts.swal.delete_item.cancel'))
+            }).then((r) => { if (r.isConfirmed) form.submit(); });
+          });
         });
-      });
-    });
 
-    // Cleanup extra backdrops
-    document.addEventListener('hidden.bs.modal', function(){
-      const backs = document.querySelectorAll('.modal-backdrop');
-      if (backs.length > 1) {
-        backs.forEach((b, i) => { if (i < backs.length - 1) b.remove(); });
-      }
-    });
-
-    // Confirm delete ITEM
-    document.querySelectorAll('.form-delete-item').forEach(form => {
-      form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        Swal.fire({
-          title: @json(__('carts.swal.delete_item.title')),
-          text: @json(__('carts.swal.delete_item.text')),
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: @json(__('carts.swal.delete_item.confirm')),
-          cancelButtonText: @json(__('carts.swal.delete_item.cancel'))
-        }).then((r) => { if (r.isConfirmed) form.submit(); });
-      });
-    });
-
-    // Confirm delete CART
-    document.querySelectorAll('.form-delete-cart').forEach(form => {
-      form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        Swal.fire({
-          title: @json(__('carts.swal.delete_cart.title')),
-          text: @json(__('carts.swal.delete_cart.text')),
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: @json(__('carts.swal.delete_cart.confirm')),
-          cancelButtonText: @json(__('carts.swal.delete_cart.cancel'))
-        }).then((r) => { if (r.isConfirmed) form.submit(); });
-      });
+        document.querySelectorAll('.form-delete-cart').forEach(form => {
+          form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            Swal.fire({
+              title: @json(__('carts.swal.delete_cart.title')),
+              text: @json(__('carts.swal.delete_cart.text')),
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#d33',
+              cancelButtonColor: '#3085d6',
+              confirmButtonText: @json(__('carts.swal.delete_cart.confirm')),
+              cancelButtonText: @json(__('carts.swal.delete_cart.cancel'))
+            }).then((r) => { if (r.isConfirmed) form.submit(); });
+          });
+        });
     });
     </script>
 @stop

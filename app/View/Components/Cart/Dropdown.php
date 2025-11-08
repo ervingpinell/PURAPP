@@ -7,6 +7,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\Component;
 use App\Models\Cart;
+use App\Models\CustomerCategory;
 
 class Dropdown extends Component
 {
@@ -21,6 +22,9 @@ class Dropdown extends Component
 
     /** @var \Illuminate\Support\Collection|null */
     public $sessionItems = null;
+
+    /** @var array<int,string> */
+    public array $categoryNamesById = [];
 
     public function __construct(string $variant = 'desktop', ?string $id = null)
     {
@@ -56,7 +60,13 @@ class Dropdown extends Component
                         fn($cat) => ((float)($cat['price'] ?? 0)) * ((int)($cat['quantity'] ?? 0))
                     );
                 });
+
+                // 👇 Construir mapa de nombres traducidos por category_id a partir de snapshots del carrito
+                $this->categoryNamesById = $this->buildCategoryNamesMap(
+                    $cart->items->pluck('categories')->filter()->all()
+                );
             }
+
             return;
         }
 
@@ -72,18 +82,89 @@ class Dropdown extends Component
                     fn($cat) => ((float)($cat['price'] ?? 0)) * ((int)($cat['quantity'] ?? 0))
                 );
             });
+
+            // 👇 Construir mapa también para invitados
+            $this->categoryNamesById = $this->buildCategoryNamesMap(
+                $sessionItems->pluck('categories')->filter()->all()
+            );
         }
+    }
+
+    /**
+     * Recibe un arreglo (posiblemente mixto) de "categories" (snapshots por ítem)
+     * y devuelve [category_id => nombre_traducido].
+     *
+     * @param array<int, mixed> $categoriesSnapshots
+     * @return array<int, string>
+     */
+    private function buildCategoryNamesMap(array $categoriesSnapshots): array
+    {
+        $ids = collect();
+
+        foreach ($categoriesSnapshots as $cats) {
+            if (empty($cats)) continue;
+
+            // Soporta array indexado y asociativo
+            if (is_array($cats)) {
+                // Si NO es indexado, normalizamos a values()
+                $iterable = isset($cats[0]) ? $cats : array_values($cats);
+                foreach ($iterable as $c) {
+                    if (is_array($c) && !empty($c['category_id'])) {
+                        $ids->push((int) $c['category_id']);
+                    } elseif (is_array($c) && !empty($c['id'])) {
+                        $ids->push((int) $c['id']);
+                    }
+                }
+            }
+        }
+
+        $ids = $ids->unique()->values();
+        if ($ids->isEmpty()) return [];
+
+        $loc = app()->getLocale();
+        $fb  = config('app.fallback_locale', 'es');
+
+        // Carga UNA VEZ las categorías + traducciones
+        $rows = CustomerCategory::whereIn('category_id', $ids)
+            ->with('translations')
+            ->get();
+
+        $map = [];
+        foreach ($rows as $cat) {
+            // Si tienes helper en el modelo:
+            if (method_exists($cat, 'getTranslatedName')) {
+                $map[(int)$cat->category_id] = (string) $cat->getTranslatedName($loc);
+                continue;
+            }
+
+            // Fallback manual con translations:
+            $trLoc = optional($cat->translations)->firstWhere('locale', $loc);
+            $trFb  = optional($cat->translations)->firstWhere('locale', $fb);
+
+            $name = $trLoc->name
+                ?? $trFb->name
+                ?? ($cat->display_name ?? $cat->name ?? '');
+
+            if (!$name && !empty($cat->slug)) {
+                $name = str($cat->slug)->replace(['_','-'],' ')->title();
+            }
+
+            $map[(int)$cat->category_id] = (string) $name;
+        }
+
+        return $map;
     }
 
     public function render(): View|Closure|string
     {
         return view('components.cart.dropdown', [
-            'headerCart'    => $this->headerCart,
-            'headerCount'   => $this->headerCount,
-            'headerTotal'   => $this->headerTotal,
-            'variant'       => $this->variant,
-            'id'            => $this->id,
-            'sessionItems'  => $this->sessionItems,
+            'headerCart'        => $this->headerCart,
+            'headerCount'       => $this->headerCount,
+            'headerTotal'       => $this->headerTotal,
+            'variant'           => $this->variant,
+            'id'                => $this->id,
+            'sessionItems'      => $this->sessionItems,
+            'categoryNamesById' => $this->categoryNamesById, // 👈 pasamos el mapa a la vista
         ]);
     }
 }

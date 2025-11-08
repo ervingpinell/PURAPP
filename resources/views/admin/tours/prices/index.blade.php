@@ -14,27 +14,27 @@
 
 @section('content')
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('m_tours.common.cancel') }}"></button>
         </div>
     @endif
 
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
             {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('m_tours.common.cancel') }}"></button>
         </div>
     @endif
 
     @if($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <ul class="mb-0">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('m_tours.common.cancel') }}"></button>
         </div>
     @endif
 
@@ -66,7 +66,7 @@
                                             <th style="width: 150px">{{ __('m_tours.prices.table.price_usd') }}</th>
                                             <th style="width: 100px">{{ __('m_tours.prices.table.min') }}</th>
                                             <th style="width: 100px">{{ __('m_tours.prices.table.max') }}</th>
-                                            <th style="width: 100px" class="text-center">{{ __('m_tours.prices.table.status') }}</th>
+                                            <th style="width: 120px" class="text-center">{{ __('m_tours.prices.table.status') }}</th>
                                             <th style="width: 80px" class="text-center">{{ __('m_tours.prices.table.action') }}</th>
                                         </tr>
                                     </thead>
@@ -81,7 +81,7 @@
                                                     </small>
                                                 </td>
                                                 <td>
-                                                    <span class="badge badge-info">
+                                                    <span class="badge bg-info">
                                                         {{ $price->category->age_range }}
                                                     </span>
                                                 </td>
@@ -89,11 +89,8 @@
                                                     <input type="hidden"
                                                            name="prices[{{ $index }}][category_id]"
                                                            value="{{ $price->category_id }}">
-
                                                     <div class="input-group input-group-sm">
-                                                        <div class="input-group-prepend">
-                                                            <span class="input-group-text">$</span>
-                                                        </div>
+                                                        <span class="input-group-text">$</span>
                                                         <input type="number"
                                                                class="form-control price-input"
                                                                name="prices[{{ $index }}][price]"
@@ -125,27 +122,25 @@
                                                            required>
                                                 </td>
                                                 <td class="text-center">
-                                                    <div class="custom-control custom-switch">
-                                                        <input type="hidden"
-                                                               name="prices[{{ $index }}][is_active]"
-                                                               value="0">
-                                                        <input type="checkbox"
-                                                               class="custom-control-input is-active-toggle"
-                                                               id="active_{{ $price->tour_price_id }}"
-                                                               name="prices[{{ $index }}][is_active]"
-                                                               value="1"
-                                                               data-index="{{ $index }}"
-                                                               {{ $price->is_active ? 'checked' : '' }}>
-                                                        <label class="custom-control-label"
-                                                               for="active_{{ $price->tour_price_id }}">
-                                                        </label>
+                                                    <input type="hidden" name="prices[{{ $index }}][is_active]" value="0">
+                                                    <div class="form-check form-switch d-inline-flex justify-content-center">
+                                                        <input
+                                                            class="form-check-input is-active-toggle"
+                                                            type="checkbox"
+                                                            role="switch"
+                                                            id="active_{{ $price->tour_price_id }}"
+                                                            name="prices[{{ $index }}][is_active]"
+                                                            value="1"
+                                                            data-index="{{ $index }}"
+                                                            {{ $price->is_active ? 'checked' : '' }}>
+                                                        <label class="form-check-label ms-1" for="active_{{ $price->tour_price_id }}"></label>
                                                     </div>
                                                 </td>
                                                 <td class="text-center">
                                                     <button type="button"
                                                             class="btn btn-sm btn-danger"
-                                                            data-toggle="modal"
-                                                            data-target="#confirmDeleteModal"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#confirmDeleteModal"
                                                             data-action="{{ route('admin.tours.prices.destroy', ['tour' => $tour->tour_id, 'price' => $price->getKey()]) }}"
                                                             title="{{ __('m_tours.prices.modal.delete_tooltip') }}">
                                                         <i class="fas fa-trash"></i>
@@ -160,11 +155,11 @@
                     </div>
 
                     @if($tour->prices->isNotEmpty())
-                        <div class="card-footer">
+                        <div class="card-footer d-flex align-items-center gap-2">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> {{ __('m_tours.prices.ui.save_changes') }}
                             </button>
-                            <span class="ml-2 text-muted small">
+                            <span class="ms-2 text-muted small">
                                 <i class="fas fa-info-circle"></i>
                                 {{ __('m_tours.prices.ui.auto_disable_note') }}
                             </span>
@@ -186,7 +181,7 @@
                         @csrf
 
                         <div class="card-body">
-                            <div class="form-group">
+                            <div class="form-group mb-3">
                                 <label for="category_id">{{ __('m_tours.prices.forms.category') }}</label>
                                 <select name="category_id" id="category_id" class="form-control" required>
                                     <option value="">{{ __('m_tours.prices.forms.select_placeholder') }}</option>
@@ -198,12 +193,10 @@
                                 </select>
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group mb-3">
                                 <label for="price">{{ __('m_tours.prices.forms.price_usd') }}</label>
                                 <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">$</span>
-                                    </div>
+                                    <span class="input-group-text">$</span>
                                     <input type="number"
                                            name="price"
                                            id="price"
@@ -249,7 +242,7 @@
                         </div>
 
                         <div class="card-footer">
-                            <button type="submit" class="btn btn-success btn-block">
+                            <button type="submit" class="btn btn-success w-100">
                                 <i class="fas fa-plus"></i> {{ __('m_tours.prices.forms.add') }}
                             </button>
                         </div>
@@ -305,15 +298,13 @@
                 <div class="modal-content">
                     <div class="modal-header bg-danger text-white">
                         <h5 class="modal-title">{{ __('m_tours.prices.modal.delete_title') }}</h5>
-                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="{{ __('m_tours.common.cancel') }}">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('m_tours.common.cancel') }}"></button>
                     </div>
                     <div class="modal-body">
                         {{ __('m_tours.prices.modal.delete_text') }}
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_tours.prices.modal.cancel') }}</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.prices.modal.cancel') }}</button>
                         <button type="submit" class="btn btn-danger">{{ __('m_tours.prices.modal.delete') }}</button>
                     </div>
                 </div>
@@ -368,8 +359,8 @@ document.querySelectorAll('.price-input').forEach(priceInput => {
 
         if (parseFloat(this.value) === 0 && checkbox) {
             checkbox.checked = false;
-            $(checkbox).closest('.custom-switch').find('.custom-control-label')
-                .attr('title', @json(__('m_tours.prices.js.auto_disabled_tooltip')));
+            // Tooltip/ayuda (opcional)
+            checkbox.title = @json(__('m_tours.prices.js.auto_disabled_tooltip'));
         }
     });
 });
@@ -395,12 +386,13 @@ document.getElementById('bulkUpdateForm')?.addEventListener('submit', function(e
 });
 
 // ============================
-// Modal delete: setear action dinámico
+// Modal delete: setear action dinámico (Bootstrap 5)
 // ============================
-$('#confirmDeleteModal').on('show.bs.modal', function (e) {
-    const button = $(e.relatedTarget);
-    const action = button.data('action');
-    $('#confirmDeleteForm').attr('action', action);
+document.getElementById('confirmDeleteModal')?.addEventListener('show.bs.modal', function (e) {
+    const trigger = e.relatedTarget;
+    if (!trigger) return;
+    const action = trigger.getAttribute('data-action');
+    document.getElementById('confirmDeleteForm')?.setAttribute('action', action || '');
 });
 </script>
 @stop

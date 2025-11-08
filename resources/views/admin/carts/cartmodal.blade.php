@@ -3,7 +3,7 @@
      id="modalCart{{ $tour->tour_id }}"
      tabindex="-1"
      aria-hidden="true"
-     data-max="{{ $tour->max_capacity }}">  {{-- exposes max_capacity --}}
+     data-max="{{ $tour->max_capacity }}">
   <div class="modal-dialog">
     <form method="POST"
           action="{{ route('admin.carts.store') }}"
@@ -17,11 +17,10 @@
         <h5 class="modal-title">
           {{ __('carts.add_modal.title', ['name' => $tour->name]) }}
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('adminlte::adminlte.close') }}"></button>
       </div>
 
       <div class="modal-body">
-        {{-- Date --}}
         <div class="mb-3">
           <label>{{ __('carts.fields.tour_date') }}</label>
           <input type="date"
@@ -30,7 +29,6 @@
                  required>
         </div>
 
-        {{-- Language --}}
         <div class="mb-3">
           <label>{{ __('carts.fields.language') }}</label>
           <select name="tour_language_id"
@@ -43,7 +41,6 @@
           </select>
         </div>
 
-        {{-- Schedule --}}
         <div class="mb-3">
           <label>{{ __('carts.fields.schedule') }}</label>
           <select name="schedule_id" class="form-control" required>
@@ -58,7 +55,6 @@
           </select>
         </div>
 
-        {{-- Hotel --}}
         <div class="mb-3">
           <label>{{ __('carts.fields.hotel') }}</label>
           <select name="hotel_id"
@@ -73,7 +69,6 @@
           </select>
         </div>
 
-        {{-- Other hotel --}}
         <div class="mb-3 d-none"
              id="other_hotel_container_{{ $tour->tour_id }}">
           <label>{{ __('carts.fields.hotel_name') }}</label>
@@ -83,7 +78,6 @@
                  placeholder="{{ __('carts.placeholders.enter_hotel_name') }}">
         </div>
 
-        {{-- Quantities --}}
         <div class="mb-3">
           <label>{{ __('carts.fields.adults') }}</label>
           <input type="number"
@@ -102,7 +96,6 @@
                  value="0">
         </div>
 
-        {{-- hidden to indicate other hotel --}}
         <input type="hidden"
                name="is_other_hotel"
                id="is_other_hotel_{{ $tour->tour_id }}"
@@ -123,7 +116,6 @@
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  // Toggle "Other hotel" container + hidden flag
   @foreach($tours as $tour)
     (function() {
       const sel  = document.getElementById('hotel_select_{{ $tour->tour_id }}');
@@ -145,7 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
     })();
   @endforeach
 
-  // Capacity validation per modal
   document.querySelectorAll('.modal[data-max]').forEach(modal => {
     const form   = modal.querySelector('form');
     const maxCap = parseInt(modal.dataset.max, 10);
@@ -189,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: @json(__('carts.promo.apply_error')) // reusamos mensaje genérico
+          text: @json(__('carts.promo.apply_error'))
         });
       }
 

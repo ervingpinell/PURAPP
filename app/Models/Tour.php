@@ -252,11 +252,11 @@ class Tour extends Model
     /**
      * Precios activos con categorías cargadas
      */
-    public function activePrices()
+ public function activePrices()
     {
         return $this->hasMany(TourPrice::class, 'tour_id', 'tour_id')
             ->where('is_active', true)
-            ->with('category')
+            ->with(['category.translations']) // <-- PRELOAD traducciones
             ->whereHas('category', fn($q) => $q->where('is_active', true))
             ->orderBy('category_id');
     }

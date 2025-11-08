@@ -12,6 +12,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Booking;
 use App\Models\BookingDetail;
 use App\Models\PromoCode;
+use App\Models\Cart;
+use App\Models\Tour;
 
 use App\Services\Bookings\{BookingCreator, BookingCapacityService};
 
@@ -35,7 +37,7 @@ class BookingController extends Controller
         RateLimiter::hit($key, 10);
 
         $createdBookings = DB::transaction(function () use ($user, $request) {
-            $cart = \App\Models\Cart::with(['items.tour.prices.category', 'items.schedule'])
+            $cart = Cart::with(['items.tour.prices.category', 'items.schedule'])
                 ->where('user_id', $user->user_id)
                 ->where('is_active', true)
                 ->orderByDesc('cart_id')
@@ -92,8 +94,8 @@ class BookingController extends Controller
                     throw \Illuminate\Validation\ValidationException::withMessages([
                         'capacity' => __("m_bookings.messages.limited_seats_available", [
                             'available' => $remaining,
-                            'tour'      => $tour->name,
-                            'date'      => $tourDate
+                            'tour'      => $tour->getTranslatedName(),
+                            'date'      => \Carbon\Carbon::parse($tourDate)->translatedFormat('M d, Y')
                         ]),
                     ]);
                 }
@@ -111,6 +113,13 @@ class BookingController extends Controller
                     })
                     ->lockForUpdate()
                     ->first();
+
+                if ($promoCodeToApply && method_exists($promoCodeToApply, 'isValidToday') && !$promoCodeToApply->isValidToday()) {
+                    $promoCodeToApply = null;
+                }
+                if ($promoCodeToApply && method_exists($promoCodeToApply, 'hasRemainingUses') && !$promoCodeToApply->hasRemainingUses()) {
+                    $promoCodeToApply = null;
+                }
             }
 
             $created      = [];
@@ -189,7 +198,13 @@ class BookingController extends Controller
     /** Mis reservas (público) */
     public function myBookings()
     {
-        $bookings = Booking::with(['user','tour','detail.hotel','detail.meetingPoint'])
+        $bookings = Booking::with([
+                'user',
+                'tour.prices.category',
+                'detail.hotel',
+                'detail.meetingPoint.translations',
+                'detail.schedule'
+            ])
             ->where('user_id', Auth::id())
             ->orderByDesc('booking_date')
             ->get();
@@ -202,18 +217,59 @@ class BookingController extends Controller
     {
         abort_unless($booking->user_id === Auth::id(), 403);
 
-        $booking->load(['detail.schedule','user']);
+        $booking->load([
+            'detail.schedule',
+            'detail.hotel',
+            'detail.meetingPoint',
+            'user',
+            'tour.prices.category'
+        ]);
 
-        $detail    = $booking->detail;
-        $cats      = collect($detail->categories ?? []);
-        $totalAdults = (int) ($cats->firstWhere('category_slug', 'adult')['quantity'] ?? 0);
-        $totalKids   = (int) ($cats->firstWhere('category_slug', 'kid')['quantity']   ?? 0);
-        $totalPersons = $totalAdults + $totalKids;
+        $locale = app()->getLocale();
+
+        // Mapa de nombres de categorías traducidos para el PDF
+        $categoryNamesById = [];
+        if ($booking->tour && $booking->tour->relationLoaded('prices')) {
+            $categoryNamesById = $booking->tour->prices->mapWithKeys(function ($p) use ($locale) {
+                $cat  = $p->category;
+                $name = method_exists($cat, 'getTranslatedName')
+                    ? ($cat->getTranslatedName($locale) ?: ($cat->name ?? null))
+                    : ($cat->name ?? null);
+
+                if (!$name && ($slug = $cat->slug ?? null)) {
+                    foreach ([
+                        "customer_categories.labels.$slug",
+                        "m_tours.customer_categories.labels.$slug",
+                    ] as $key) {
+                        $tr = __($key);
+                        if ($tr !== $key) {
+                            $name = $tr;
+                            break;
+                        }
+                    }
+                }
+
+                if (!$name) {
+                    $name = 'Category #' . (int)$p->category_id;
+                }
+
+                return [$p->category_id => $name];
+            })->toArray();
+        }
+
+        // Calcular totales desde snapshot de categorías
+        $detail       = $booking->detail;
+        $cats         = collect($detail->categories ?? []);
+        $totalPersons = $cats->sum('quantity');
 
         $client = preg_replace('/[^A-Za-z0-9_]/', '_', $booking->user->full_name ?? 'Client');
         $code   = $booking->booking_reference;
 
-        $pdf = Pdf::loadView('admin.bookings.receipt', compact('booking','totalAdults','totalKids','totalPersons'));
+        $pdf = Pdf::loadView('admin.bookings.receipt', compact(
+            'booking',
+            'categoryNamesById',
+            'totalPersons'
+        ));
 
         return $pdf->download("Receipt_{$client}_{$code}.pdf");
     }

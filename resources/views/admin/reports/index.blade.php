@@ -184,7 +184,7 @@
               'period' => __('reports.sections.period_names.' . request('period','month'))
             ]) }}
           </h5>
-          <button id="exportMonthlyCsv" class="btn btn-outline-primary btn-sm">
+          <button id="exportMonthlyCsv" type="button" class="btn btn-outline-primary btn-sm">
             <i class="fas fa-file-csv me-1"></i> {{ __('reports.buttons.csv') }}
           </button>
         </div>
@@ -196,7 +196,7 @@
       <div class="card-elevated mt-3">
         <div class="d-flex align-items-center justify-content-between px-3 pt-3">
           <h5 class="mb-0">{{ __('reports.sections.top_tours_title') }}</h5>
-          <button id="exportTopCsv" class="btn btn-outline-primary btn-sm">
+          <button id="exportTopCsv" type="button" class="btn btn-outline-primary btn-sm">
             <i class="fas fa-file-csv me-1"></i> {{ __('reports.buttons.csv') }}
           </button>
         </div>
@@ -233,7 +233,7 @@
       <div class="card-elevated p-3 mb-3">
         <div class="section-title">
           <h5 class="mb-0">{{ __('reports.sections.sales_by_language') }}</h5>
-          <button id="exportLangCsv" class="btn btn-outline-primary btn-sm">
+          <button id="exportLangCsv" type="button" class="btn btn-outline-primary btn-sm">
             <i class="fas fa-file-csv"></i> {{ __('reports.buttons.csv') }}
           </button>
         </div>
@@ -268,9 +268,9 @@
                   <td>{{ $p->tour_name ?? '—' }}</td>
                   <td>
                     @if($gb==='tour_date')
-                      {{ optional(\Carbon\Carbon::parse($p->tour_date))->toDateString() }}
+                      {{ $p->tour_date ? \Carbon\Carbon::parse($p->tour_date)->toDateString() : '—' }}
                     @else
-                      {{ optional(\Carbon\Carbon::parse($p->booking_date))->toDateString() }}
+                      {{ $p->booking_date ? \Carbon\Carbon::parse($p->booking_date)->toDateString() : '—' }}
                     @endif
                   </td>
                   <td class="text-end">$ {{ number_format($p->total ?? 0, 2) }}</td>
@@ -312,7 +312,7 @@
       case 'this_month': a=startOfMonth(today); b=endOfMonth(today); break;
       case 'last_month': const lm=new Date(today.getFullYear(),today.getMonth()-1,1); a=startOfMonth(lm); b=endOfMonth(lm); break;
       case 'this_year': a=new Date(today.getFullYear(),0,1); b=new Date(today.getFullYear(),11,31); break;
-      case 'last_year': a=new Date(today.getFullYear()-1,0,1); b=new Date(today.getFullYear()-1,11,31); break;
+      case 'last_year': a=new Date(today.getFullYear()-1,0,1); b=new Date(today.getFullYear()-1,11,30); break;
     }
     $from.value=iso(a); $to.value=iso(b);
   });

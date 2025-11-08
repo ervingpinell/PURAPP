@@ -47,7 +47,7 @@
 
       return [
         'id'       => (int) $priceRecord->category_id,
-        'name'     => $category->name ?? 'N/A',
+        'name' => $category->getTranslatedName() ?? 'N/A',
         'slug'     => $slug,
         'price'    => (float) $priceRecord->price,
         'min'      => $min,

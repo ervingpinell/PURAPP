@@ -143,8 +143,8 @@
 
   /* ========= Datos del backend ========= */
   const RULES  = @json($rulesPayload ?? ['tour'=>['min'=>null],'schedules'=>[],'initialMin'=>null]);
-  const blockedBySchedule = @json($blockedBySchedule ?? (object)[]); // <- FIX
-  const fullByCapacity    = @json($capacityDisabled  ?? (object)[]); // <- FIX
+  const blockedBySchedule = @json($blockedBySchedule ?? (object)[]);
+  const fullByCapacity    = @json($capacityDisabled  ?? (object)[]);
   const blockedGeneral    = @json($blockedGeneral    ?? []);
   const fullyBlockedDates = @json($fullyBlockedDates ?? []);
 
@@ -303,10 +303,10 @@
     const opt = Array.from(meetingPointSelect.options).find(o => String(o.value)===String(val));
     if (!opt){ meetingPointInfo.classList.add('d-none'); return; }
     const desc = opt.dataset.desc || '';
-    const time = opt.dataset.time || '';
+    theTime = opt.dataset.time || '';
     const url  = opt.dataset.url  || '';
     mpDesc.textContent = desc;  mpDesc.classList.toggle('d-none', !desc);
-    mpTime.textContent = time ? `⏰ ${time}` : ''; mpTime.classList.toggle('d-none', !time);
+    mpTime.textContent = theTime ? `⏰ ${theTime}` : ''; mpTime.classList.toggle('d-none', !theTime);
     if (url){ mpLink.href=url; mpLink.classList.remove('d-none'); } else { mpLink.removeAttribute('href'); mpLink.classList.add('d-none'); }
     meetingPointInfo.classList.remove('d-none');
   }

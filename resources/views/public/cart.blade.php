@@ -58,8 +58,37 @@
   // ==== Helpers de dinero ====
   $fmt2 = fn ($n) => number_format((float)$n, 2, '.', '');
 
-  // ==== Resolutor de categorías (nombre, qty, price, subtotal) ====
-  $catLinesFn = function($it) {
+  // ======================================================
+  // Mapa: category_id -> nombre traducido (para el carrito)
+  // ======================================================
+  $loc = app()->getLocale();
+  $fb  = config('app.fallback_locale', 'es');
+
+  $categoryIdsInCart = collect($cart?->items ?? [])
+      ->flatMap(function($it){
+          $cats = collect($it->categories ?? []);
+          return $cats->pluck('category_id')->filter();
+      })
+      ->unique()->values();
+
+  $categoryNamesById = collect();
+  if ($categoryIdsInCart->isNotEmpty()) {
+      $catModels = \App\Models\CustomerCategory::whereIn('category_id', $categoryIdsInCart)
+          ->with('translations')
+          ->get();
+
+      $categoryNamesById = $catModels->mapWithKeys(function($c) use ($loc, $fb) {
+          $name = method_exists($c, 'getTranslated')
+              ? ($c->getTranslated('name') ?? $c->name)
+              : (optional($c->translations->firstWhere('locale', $loc))->name
+                  ?? optional($c->translations->firstWhere('locale', $fb))->name
+                  ?? $c->name);
+          return [$c->category_id => $name];
+      });
+  }
+
+  // ==== Resolutor de categorías (nombre, qty, price, subtotal) =====
+  $catLinesFn = function($it) use ($categoryNamesById) {
       // map opcional para códigos conocidos → label traducido
       $codeMap = [
           'adult'    => __('adminlte::adminlte.adult'),
@@ -74,22 +103,45 @@
 
       $cats = collect($it->categories ?? []);
       if ($cats->isNotEmpty()) {
-          return $cats->map(function($c) use ($codeMap) {
+          return $cats->map(function($c) use ($codeMap, $categoryNamesById) {
               $q = (int)  data_get($c, 'quantity', 0);
               $p = (float) data_get($c, 'price', 0);
 
+              // ID y slug para posibles resoluciones
+              $cid  = (int) (data_get($c, 'category_id') ?? data_get($c, 'id') ?? 0);
+              $slug = (string) (data_get($c, 'category_slug') ?? data_get($c, 'slug') ?? '');
+
+              // Prioridades de nombre:
+              // 1) i18n_name / name / label / category_name / category.name
               $name =
+                  data_get($c, 'i18n_name') ??
                   data_get($c, 'name') ??
                   data_get($c, 'label') ??
                   data_get($c, 'category_name') ??
-                  data_get($c, 'category.name') ??
-                  (function() use ($c, $codeMap) {
-                      $code = data_get($c, 'code');
-                      if (!$code) return null;
-                      if (isset($codeMap[$code])) return $codeMap[$code];
-                      $tr = __($code);
-                      return $tr === $code ? (string)$code : $tr;
-                  })();
+                  data_get($c, 'category.name');
+
+              // 2) Si no hay nombre, intentar por mapa id → traducido
+              if (!$name && $cid && $categoryNamesById->has($cid)) {
+                  $name = $categoryNamesById->get($cid);
+              }
+
+              // 3) Si no, resolver por 'code' con mapa/traducción
+              if (!$name) {
+                  $code = data_get($c, 'code');
+                  if ($code) {
+                      if (isset($codeMap[$code])) {
+                          $name = $codeMap[$code];
+                      } else {
+                          $tr = __($code);
+                          $name = ($tr === $code) ? (string)$code : $tr;
+                      }
+                  }
+              }
+
+              // 4) Si tampoco, un "bonito" del slug
+              if (!$name && $slug) {
+                  $name = \Illuminate\Support\Str::of($slug)->replace(['_','-'],' ')->title();
+              }
 
               if (!$name) $name = 'Category';
 

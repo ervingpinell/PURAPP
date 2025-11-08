@@ -23,6 +23,73 @@ document.addEventListener('DOMContentLoaded', () => {
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
   /* =========================
+     I18N helpers (categorías y validaciones)
+     ========================= */
+  const $cfg = document.getElementById('mp-config');
+
+  // Mapas inyectables desde Blade en data-attrs (opcionales)
+  let CAT_BY_ID = {};
+  let CAT_BY_CODE = {};
+  try { CAT_BY_ID = JSON.parse($cfg?.getAttribute('data-catmap-byid')  || '{}') || {}; } catch(_){}
+  try { CAT_BY_CODE = JSON.parse($cfg?.getAttribute('data-catmap-bycode')|| '{}') || {}; } catch(_){}
+
+  // Fallbacks por código con traducciones de Laravel
+  const DEFAULT_CODE_MAP = {
+    adult:   @json(__('adminlte::adminlte.adult')),
+    adults:  @json(__('adminlte::adminlte.adults')),
+    kid:     @json(__('adminlte::adminlte.kid')),
+    kids:    @json(__('adminlte::adminlte.kids')),
+    child:   @json(__('adminlte::adminlte.kid')),
+    children:@json(__('adminlte::adminlte.kids')),
+    senior:  @json(__('adminlte::adminlte.senior') ?? 'Senior'),
+    student: @json(__('adminlte::adminlte.student') ?? 'Student'),
+  };
+  CAT_BY_CODE = Object.assign({}, DEFAULT_CODE_MAP, CAT_BY_CODE);
+
+  // Resolver nombre de categoría (para cualquier objeto-like de categoría)
+  function resolveCategoryName(catLike) {
+    const get = (p, d=null) => p.split('.').reduce((o,k)=> (o && o[k]!==undefined) ? o[k] : d, catLike);
+
+    // 1) i18n embebido
+    let name =
+       get('i18n_name') ||
+       get('name')      ||
+       get('label')     ||
+       get('category_name') ||
+       get('category.name');
+
+    if (name) return String(name);
+
+    // 2) por ID
+    const id = Number(get('category_id', get('id', 0))) || 0;
+    if (id && CAT_BY_ID && CAT_BY_ID[id]) return String(CAT_BY_ID[id]);
+
+    // 3) por code
+    const code = get('code', null);
+    if (code) {
+      if (CAT_BY_CODE && CAT_BY_CODE[code]) return String(CAT_BY_CODE[code]);
+      // fallback: prettify del code
+      return String(code).replace(/[_-]+/g,' ').replace(/\b\w/g, m => m.toUpperCase());
+    }
+
+    // 4) prettify del slug
+    const slug = String(get('category_slug', get('slug','')) || '');
+    if (slug) {
+      return slug.replace(/[_-]+/g,' ').replace(/\b\w/g, m => m.toUpperCase());
+    }
+
+    return 'Category';
+  }
+
+  // I18N de validaciones (sin hardcode)
+  const I18N = {
+    info: @json(__('adminlte::adminlte.info')),
+    minAdults: @json(__('carts.validation.min_adults', ['min' => 2])),
+    maxKids:   @json(__('carts.validation.max_kids',   ['max' => 2])),
+    maxTotal:  @json(__('carts.validation.max_total',  ['max' => 12])),
+  };
+
+  /* =========================
      1) Confirmar reserva
      ========================= */
   const reservaForm = document.getElementById('confirm-reserva-form');
@@ -64,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* =========================
      3) Previsualización Meeting Point
      ========================= */
-  const pickupLabel = (document.getElementById('mp-config')?.dataset?.pickupLabel) || 'Pick-up';
+  const pickupLabel = ($cfg?.dataset?.pickupLabel) || 'Pick-up';
   const updateMpInfo = (selectEl) => {
     if (!selectEl) return;
     let mplist = [];
@@ -218,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // aplicar a cada modal de edición
   document.querySelectorAll('.modal form.edit-item-form').forEach(form => attachPaxListeners(form));
 
-  // validar antes de enviar (mensaje amable)
+  // validar antes de enviar (mensaje amable) — con I18N
   function validateEditForm(form){
     const adults = form.querySelector('input[name="adults_quantity"]');
     const kids   = form.querySelector('input[name="kids_quantity"]');
@@ -229,17 +296,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const total = a + k;
 
     if (a < PAX_MIN_ADULTS) {
-      swalInfo(@json(__('adminlte::adminlte.info')), @json('Mínimo 2 adultos por reserva.'));
+      swalInfo(I18N.info, I18N.minAdults);
       adults.focus();
       return false;
     }
     if (k > PAX_MAX_KIDS) {
-      swalInfo(@json(__('adminlte::adminlte.info')), @json('Máximo 2 niños por reserva.'));
+      swalInfo(I18N.info, I18N.maxKids);
       kids.focus();
       return false;
     }
     if (total > PAX_MAX_TOTAL) {
-      swalInfo(@json(__('adminlte::adminlte.info')), @json('Máximo 12 personas en total.'));
+      swalInfo(I18N.info, I18N.maxTotal);
       adults.focus();
       return false;
     }

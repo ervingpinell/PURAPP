@@ -24,7 +24,7 @@
 
     // Si tu controlador ya envía $categoryQuantitiesById / $initialCategories, esto lo complementa
     $categoryQuantitiesById = $categoryQuantitiesById ?? $qtyByCat;
-    // Opcional: $initialCategories puede venir del controlador con: id,name,price,min,max,is_active
+    // $initialCategories: idealmente [{id,slug,name,price,min,max,is_active}]
     $initialCategories = $initialCategories ?? [];
 @endphp
 
@@ -105,7 +105,7 @@
                         </div>
 
                         <div class="row">
-                            {{-- Date (se ajusta min/max por config en JS) --}}
+                            {{-- Date (corrige TZ para min/max y clamp) --}}
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
                                     <label for="tour_date">{{ __('m_bookings.bookings.fields.tour_date') }} *</label>
@@ -339,16 +339,28 @@
 @stop
 
 @section('js')
-  {{-- Exponer límites de booking y por tour al front --}}
+  {{-- Exponer límites de booking y por tour (incluye slugs adult/kid si los pasas en LIMITS_PER_TOUR.categories) --}}
   <script>
     window.BOOKING_LIMITS  = @json($bookingLimits ?? []);
-    window.LIMITS_PER_TOUR = @json($limitsPerTour ?? []); // trae categorías con slug si lo pasas desde el controlador
+    window.LIMITS_PER_TOUR = @json($limitsPerTour ?? []); // ideal: [{category_id,slug,...}] para adult/kid
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
   <script>
   $(function() {
     $('.select2').select2({ theme: 'bootstrap4', width: '100%' });
+
+    // ===== I18N mínimos para UI (fallbacks seguros) =====
+    const I18N = {
+      loading:        @json(__('m_bookings.bookings.ui.loading') ?? 'Cargando…'),
+      no_results:     @json(__('m_bookings.bookings.ui.no_results') ?? 'Sin resultados'),
+      select_option:  @json(__('m_bookings.bookings.ui.select_option') ?? 'Seleccione'),
+      select_first:   @json(__('m_bookings.bookings.ui.select_tour_first') ?? 'Seleccione un tour primero'),
+      verifying:      @json(__('m_bookings.bookings.ui.verifying') ?? 'Verificando…'),
+      tour_no_cats:   @json(__('m_bookings.bookings.ui.tour_without_categories') ?? 'Este tour no tiene categorías activas'),
+      min:            @json(__('m_bookings.bookings.ui.min') ?? 'Min'),
+      max:            @json(__('m_bookings.bookings.ui.max') ?? 'Max'),
+    };
 
     // ===== Endpoints =====
     const apiBase = '/api/v1';
@@ -360,7 +372,7 @@
     // ===== Precarga desde servidor =====
     window.INIT_QTYS       = @json($categoryQuantitiesById ?? []);
     window.INIT_PRICES     = @json($priceByCat ?? []);
-    window.INIT_CATEGORIES = @json($initialCategories); // opcional: [{id,name,price,min,max,is_active}, ...]
+    window.INIT_CATEGORIES = @json($initialCategories); // idealmente con 'name' YA traducido
 
     // ===== PROMO inicial =====
     window.INIT_PROMO = {
@@ -386,7 +398,7 @@
         }
     }
 
-    // ---------- Date limits from config ----------
+    // ---------- Date limits from config (corrige TZ) ----------
     (function setupDateMinMax(){
       const minDays = Number(LIMITS.min_days_advance ?? 1);
       const maxDays = Number(LIMITS.max_days_advance ?? 365);
@@ -397,21 +409,16 @@
       const minDate = new Date(today); minDate.setDate(today.getDate() + minDays);
       const maxDate = new Date(today); maxDate.setDate(today.getDate() + maxDays);
 
-      const toYMD = (d) => d.toISOString().slice(0,10);
+      const toYMD = (d) => new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
       $input.attr('min', toYMD(minDate));
       $input.attr('max', toYMD(maxDate));
 
-// Texto base traducido con placeholders (:from — :to)
-const hintTpl = @json(__('m_bookings.validation.date_range_hint') ?: 'Rango permitido: :from — :to');
+      const hintTpl = @json(__('m_bookings.validation.date_range_hint') ?: 'Rango permitido: :from — :to');
+      const hintText = (hintTpl || 'Rango permitido: :from — :to')
+        .replace(':from', toYMD(minDate))
+        .replace(':to', toYMD(maxDate));
+      $('#tour_date_help').text(hintText);
 
-// Construye las fechas min/max
-const hintText = (hintTpl || 'Rango permitido: :from — :to')
-  .replace(':from', toYMD(minDate))
-  .replace(':to', toYMD(maxDate));
-
-$('#tour_date_help').text(hintText);
-
-      // Clamp value if outside
       const current = $input.val();
       if (current) {
         if (current < toYMD(minDate)) $input.val(toYMD(minDate));
@@ -422,44 +429,50 @@ $('#tour_date_help').text(hintText);
     // ---------- Loaders ----------
     function loadSchedules(tourId, preselect = '{{ old('schedule_id', optional($booking->detail)->schedule_id) }}') {
         const $sel = $('#schedule_id');
-        resetSelect($sel, @json(__('m_bookings.bookings.ui.loading')), true);
+        resetSelect($sel, I18N.loading, true);
         $.get(epSchedules(tourId))
             .done(list => {
                 if (!Array.isArray(list) || !list.length) {
                     const cur = '{{ old('schedule_id', optional($booking->detail)->schedule_id) }}';
                     if (cur) $sel.prop('disabled', false);
-                    else resetSelect($sel, @json(__('m_bookings.bookings.ui.no_results')), true);
+                    else resetSelect($sel, I18N.no_results, true);
                     return;
                 }
-                let html = `<option value="">${@json(__('m_bookings.bookings.ui.select_option'))}</option>`;
+                let html = `<option value="">${I18N.select_option}</option>`;
                 list.forEach(s => {
                     html += `<option value="${s.schedule_id}">${s.start_time} - ${s.end_time}</option>`;
                 });
                 $sel.html(html).prop('disabled', false);
                 applyOldValue($sel, preselect);
             })
-            .fail(() => resetSelect($sel, @json(__('m_bookings.bookings.ui.error_loading')), true));
+            .fail(() => resetSelect($sel, I18N.no_results, true));
     }
 
     function loadLanguages(tourId, preselect = '{{ old('tour_language_id', $booking->tour_language_id) }}') {
         const $sel = $('#tour_language_id');
-        resetSelect($sel, @json(__('m_bookings.bookings.ui.loading')), true);
+        resetSelect($sel, I18N.loading, true);
         $.get(epLanguages(tourId))
             .done(list => {
                 if (!Array.isArray(list) || !list.length) {
                     const cur = '{{ old('tour_language_id', $booking->tour_language_id) }}';
                     if (cur) $sel.prop('disabled', false);
-                    else resetSelect($sel, @json(__('m_bookings.bookings.ui.no_results')), true);
+                    else resetSelect($sel, I18N.no_results, true);
                     return;
                 }
-                let html = `<option value="">${@json(__('m_bookings.bookings.ui.select_option'))}</option>`;
+                let html = `<option value="">${I18N.select_option}</option>`;
                 list.forEach(l => {
                     html += `<option value="${l.tour_language_id}">${l.name}</option>`;
                 });
                 $sel.html(html).prop('disabled', false);
                 applyOldValue($sel, preselect);
             })
-            .fail(() => resetSelect($sel, @json(__('m_bookings.bookings.ui.error_loading')), true));
+            .fail(() => resetSelect($sel, I18N.no_results, true));
+    }
+
+    function safeName(cat) {
+        // Usa nombre traducido del endpoint; si no, intenta from INIT_CATEGORIES, si no, usa slug o fallback
+        const init = (window.INIT_CATEGORIES || []).find(x => String(x.id) === String(cat.id));
+        return (cat.name || init?.name || cat.slug || `Category #${cat.id}`);
     }
 
     function bootstrapCategoriesFromInit() {
@@ -469,9 +482,10 @@ $('#tour_date_help').text(hintText);
         const inits  = window.INIT_CATEGORIES || [];
 
         let catList = Array.isArray(inits) && inits.length
-            ? inits.filter(c => c.is_active ?? true)
+            ? inits.filter(c => (c.is_active ?? true))
             : Object.keys({...qtys, ...prices}).map(id => ({
                 id: id,
+                slug: null,
                 name: `Category #${id}`,
                 price: Number(prices[id] || 0),
                 min: 0,
@@ -480,11 +494,7 @@ $('#tour_date_help').text(hintText);
               }));
 
         if (!catList.length) {
-            $c.html(
-              `<div class="alert alert-warning mb-0">
-                 {{ __('m_bookings.bookings.ui.tour_without_categories') }}
-               </div>`
-            );
+            $c.html(`<div class="alert alert-warning mb-0">${I18N.tour_no_cats}</div>`);
             currentCategories = [];
             updateTotals();
             initPromoFromBooking();
@@ -500,11 +510,12 @@ $('#tour_date_help').text(hintText);
             const start = Number.isFinite(existing) ? existing : Math.max(min, 0);
             const clamped = Math.max(min, Math.min(max, start));
             const price = Number(cat.price ?? prices[String(cat.id)] ?? 0);
+            const label = safeName(cat);
 
             html += `
               <div class="category-row mb-3 p-2 border rounded">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                  <strong>${cat.name}</strong>
+                  <strong>${label}</strong>
                   <span class="text-muted small">${fmtMoney(price)}</span>
                 </div>
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -524,11 +535,11 @@ $('#tour_date_help').text(hintText);
                     <i class="fas fa-plus"></i>
                   </button>
                 </div>
-                <small class="text-muted d-block mt-1">Min: ${min}, Max: ${max}</small>
+                <small class="text-muted d-block mt-1">${I18N.min}: ${min}, ${I18N.max}: ${max}</small>
               </div>`;
         });
 
-        $c.html(html);
+        $('#categories-container').html(html);
         attachCategoryHandlers();
         updateTotals();
         initPromoFromBooking();
@@ -538,7 +549,7 @@ $('#tour_date_help').text(hintText);
         const $c = $('#categories-container');
         $c.html(
           `<div class="alert alert-info mb-0">
-              <i class="fas fa-spinner fa-spin me-2"></i>{{ __('m_bookings.bookings.ui.loading') }}
+              <i class="fas fa-spinner fa-spin me-2"></i>${I18N.loading}
            </div>`
         );
 
@@ -558,11 +569,12 @@ $('#tour_date_help').text(hintText);
                     const existing = parseInt((qtys || {})[String(cat.id)]);
                     const start = Number.isFinite(existing) ? existing : min;
                     const clamped = Math.max(min, Math.min(max, start));
+                    const label = safeName(cat);
 
                     html += `
                       <div class="category-row mb-3 p-2 border rounded">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                          <strong>${cat.name}</strong>
+                          <strong>${label}</strong>
                           <span class="text-muted small">${fmtMoney(cat.price)}</span>
                         </div>
                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -582,7 +594,7 @@ $('#tour_date_help').text(hintText);
                             <i class="fas fa-plus"></i>
                           </button>
                         </div>
-                        <small class="text-muted d-block mt-1">Min: ${min}, Max: ${max}</small>
+                        <small class="text-muted d-block mt-1">${I18N.min}: ${min}, ${I18N.max}: ${max}</small>
                       </div>`;
                 });
 
@@ -592,13 +604,14 @@ $('#tour_date_help').text(hintText);
                 initPromoFromBooking();
             })
             .fail(() => {
+                // Si el endpoint falla, usa los datos existentes de la reserva (con nombres traducidos si vinieron)
                 bootstrapCategoriesFromInit();
             });
     }
 
     // ---------- Helpers para límites globales ----------
     function getAdultsKidsFromInputs() {
-      // Si PER_TOUR.categories existe con slug adult/kid, localiza sus IDs
+      // Si PER_TOUR.categories trae slugs adult/kid, úsalo
       const cats = (PER_TOUR.categories || []);
       const adultId = (cats.find(c => c.slug === 'adult') || {}).category_id;
       const kidId   = (cats.find(c => c.slug === 'kid')   || {}).category_id;
@@ -627,12 +640,8 @@ $('#tour_date_help').text(hintText);
         return { persons, subtotal };
     }
 
-    function showLimitsWarning(msg) {
-      $('#limits-warning').text(msg).show();
-    }
-    function hideLimitsWarning() {
-      $('#limits-warning').text('').hide();
-    }
+    function showLimitsWarning(msg) { $('#limits-warning').text(msg).show(); }
+    function hideLimitsWarning() { $('#limits-warning').text('').hide(); }
 
     function updateTotals() {
         hideLimitsWarning();
@@ -641,9 +650,8 @@ $('#tour_date_help').text(hintText);
         const maxTotal = Number(LIMITS.max_persons_per_booking ?? LIMITS.max_persons_total ?? 12);
         let finalPersons = persons;
 
-        // ====== Máx. personas por reserva ======
+        // Máx. personas por reserva
         if (persons > maxTotal) {
-          // Si se excede, intenta ajustar el último input cambiado
           if (lastChangedInputId !== null) {
             const sumOthers = persons - (parseInt($(`.category-input[data-category-id="${lastChangedInputId}"]`).val()) || 0);
             const allowedForLast = Math.max(0, maxTotal - sumOthers);
@@ -654,7 +662,7 @@ $('#tour_date_help').text(hintText);
           showLimitsWarning(`{{ __('m_bookings.validation.max_persons_exceeded') ?? 'Se excede el máximo de personas por reserva' }}: ${maxTotal}`);
         }
 
-        // ====== Min adultos / Max niños (si tenemos mapeo) ======
+        // Min adultos / Max niños
         const { adults, kids } = getAdultsKidsFromInputs();
         const minAdults = Number(LIMITS.min_adults_per_booking ?? LIMITS.min_adults ?? 0);
         const maxKids   = Number(LIMITS.max_kids_per_booking ?? LIMITS.max_kids ?? Number.MAX_SAFE_INTEGER);
@@ -716,7 +724,7 @@ $('#tour_date_help').text(hintText);
         });
     }
 
-    // ===== PROMO (igual que tenías) =====
+    // ===== PROMO =====
     const APPLY_LABEL  = @json(__('m_bookings.bookings.buttons.apply'));
     const REMOVE_LABEL = @json(__('m_bookings.bookings.buttons.delete') ?? 'Quitar');
 
@@ -724,12 +732,10 @@ $('#tour_date_help').text(hintText);
         const $btn   = $('#btn-verify-promo');
         const $label = $btn.find('.promo-label');
         if (mode === 'remove') {
-            $btn.data('mode', 'remove')
-                .removeClass('btn-success').addClass('btn-danger');
+            $btn.data('mode', 'remove').removeClass('btn-success').addClass('btn-danger');
             $label.length ? $label.text(REMOVE_LABEL) : $btn.text(REMOVE_LABEL);
         } else {
-            $btn.data('mode', 'apply')
-                .removeClass('btn-danger').addClass('btn-success');
+            $btn.data('mode', 'apply').removeClass('btn-danger').addClass('btn-success');
             $label.length ? $label.text(APPLY_LABEL) : $btn.text(APPLY_LABEL);
         }
     }
@@ -771,16 +777,13 @@ $('#tour_date_help').text(hintText);
     }
 
     $('#promo_code').on('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            $('#btn-verify-promo').trigger('click');
-        }
+        if (e.key === 'Enter') { e.preventDefault(); $('#btn-verify-promo').trigger('click'); }
     });
 
     $('#promo_code').on('input', function() {
         const val = ($(this).val() || '').trim();
         if (val === '' && $('#btn-verify-promo').data('mode') === 'remove') {
-            clearPromoUI(true);
+            clearPromoUI(true); $('#promo_code').val('');
         }
     });
 
@@ -788,19 +791,15 @@ $('#tour_date_help').text(hintText);
         const $btn = $(this);
         const mode = $btn.data('mode');
 
-        if (mode === 'remove') {
-            clearPromoUI(true);
-            $('#promo_code').val('');
-            return;
-        }
+        if (mode === 'remove') { clearPromoUI(true); $('#promo_code').val(''); return; }
 
         const code = ($('#promo_code').val() || '').trim();
         const { subtotal } = computeSubtotalAndPersons();
-        if (!code) { $('#promo-feedback').removeClass('text-success').addClass('text-danger').text('{{ __('m_bookings.bookings.validation.promo_empty') }}'); return; }
+        if (!code)  { $('#promo-feedback').removeClass('text-success').addClass('text-danger').text('{{ __('m_bookings.bookings.validation.promo_empty') }}'); return; }
         if (subtotal <= 0) { $('#promo-feedback').removeClass('text-success').addClass('text-danger').text('{{ __('m_bookings.bookings.validation.promo_needs_subtotal') }}'); return; }
 
         const originalHtml = $btn.html();
-        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span><span class="promo-label">{{ __('m_bookings.bookings.ui.verifying') ?? 'Verificando…' }}</span>');
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span><span class="promo-label">'+I18N.verifying+'</span>');
 
         $.get(epVerify, { code, subtotal })
             .done(function(resp) {
@@ -862,11 +861,8 @@ $('#tour_date_help').text(hintText);
 
     $('#meeting_point_id').on('change', function () {
         const hasMP = ($(this).val() || '') !== '';
-        if (hasMP) {
-            lockHotel('{{ __("m_bookings.bookings.messages.hotel_locked_by_meeting_point") ?? "Se seleccionó un punto de encuentro; no se puede seleccionar hotel." }}');
-        } else {
-            unlockHotel();
-        }
+        if (hasMP) { lockHotel('{{ __("m_bookings.bookings.messages.hotel_locked_by_meeting_point") ?? "Se seleccionó un punto de encuentro; no se puede seleccionar hotel." }}'); }
+        else { unlockHotel(); }
     });
 
     $('#hotel_id').on('change', function () {
@@ -874,20 +870,12 @@ $('#tour_date_help').text(hintText);
         const pickedHotel = val !== '';
         const pickedOther = val === 'other';
 
-        if (pickedOther) {
-            $('#other_hotel_wrapper').slideDown();
-            $('#is_other_hotel').val('1');
-        } else {
-            $('#other_hotel_wrapper').slideUp();
-            $('#is_other_hotel').val('0');
-            $('#other_hotel_name').val('');
-        }
+        if (pickedOther) { $('#other_hotel_wrapper').slideDown(); $('#is_other_hotel').val('1'); }
+        else { $('#other_hotel_wrapper').slideUp(); $('#is_other_hotel').val('0'); $('#other_hotel_name').val(''); }
 
         if (pickedHotel || pickedOther) {
             lockMeetingPoint('{{ __("m_bookings.bookings.messages.meeting_point_locked_by_hotel") ?? "Se seleccionó un hotel; no se puede seleccionar punto de encuentro." }}');
-        } else {
-            unlockMeetingPoint();
-        }
+        } else { unlockMeetingPoint(); }
     });
 
     // ---------- Inicialización ----------
@@ -918,20 +906,20 @@ $('#tour_date_help').text(hintText);
         loadSchedules(initialTourId, '{{ old('schedule_id', optional($booking->detail)->schedule_id) }}');
         loadLanguages(initialTourId, '{{ old('tour_language_id', $booking->tour_language_id) }}');
 
-        // 1) Render inmediato con datos de la reserva
+        // 1) Render inmediato con datos de la reserva (incluso si no hay conexión, muestra algo)
         bootstrapCategoriesFromInit();
-        // 2) Intentar refrescar con datos live del tour (min/max/activos/precio actual)
+        // 2) Refresca con datos live (trae nombres TRADUCIDOS del endpoint + min/max actuales)
         loadCategories(initialTourId);
     }
 
     // Si cambia el tour, recargar y mantener UX
     $('#tour_id').on('change', function() {
         const tourId = $(this).val();
-        resetSelect($('#schedule_id'), @json(__('m_bookings.bookings.ui.select_tour_first')), true);
-        resetSelect($('#tour_language_id'), @json(__('m_bookings.bookings.ui.select_tour_first')), true);
+        resetSelect($('#schedule_id'), I18N.select_first, true);
+        resetSelect($('#tour_language_id'), I18N.select_first, true);
         $('#categories-container').html(
           `<div class="alert alert-info mb-0">
-             {{ __('m_bookings.bookings.ui.select_tour_to_see_categories') }}
+             ${@json(__('m_bookings.bookings.ui.select_tour_to_see_categories'))}
            </div>`
         );
         currentCategories = [];

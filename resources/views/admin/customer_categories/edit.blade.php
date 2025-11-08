@@ -3,7 +3,7 @@
 @section('title', __('customer_categories.ui.page_title_edit'))
 
 @section('content_header')
-    <h1>{{ __('customer_categories.ui.header_edit', ['name' => $category->name]) }}</h1>
+    <h1>{{ __('customer_categories.ui.header_edit', ['name' => $category->getTranslatedName()]) }}</h1>
 @stop
 
 @section('content')
@@ -15,10 +15,10 @@
                     @method('PUT')
 
                     <div class="card-body">
-                        @include('admin.customer_categories.partials.form', ['category' => $category])
+                        @include('admin.customer_categories.partials.form', ['category' => $category, 'mode' => 'edit'])
                     </div>
 
-                    <div class="card-footer">
+                    <div class="card-footer d-flex gap-2">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> {{ __('customer_categories.buttons.update') }}
                         </button>
@@ -33,7 +33,6 @@
         <div class="col-md-4">
             @include('admin.customer_categories.partials.help')
 
-            {{-- Información adicional --}}
             <div class="card card-secondary mt-3 mt-md-0">
                 <div class="card-header">
                     <h3 class="card-title">{{ __('customer_categories.ui.info_card_title') }}</h3>

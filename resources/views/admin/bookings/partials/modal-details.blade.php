@@ -1,4 +1,55 @@
 {{-- resources/views/admin/bookings/partials/modal-details.blade.php --}}
+@php
+  use App\Models\CustomerCategory;
+
+  $currency = config('app.currency_symbol', '$');
+  $locale   = app()->getLocale();
+
+  // Resolver nombres de categorías (cache simple por request)
+  static $CAT_NAME_BY_ID = null;
+  static $CAT_NAME_BY_SLUG = null;
+
+  if ($CAT_NAME_BY_ID === null || $CAT_NAME_BY_SLUG === null) {
+      $allCats = CustomerCategory::active()->with('translations')->get();
+      $CAT_NAME_BY_ID = $allCats->mapWithKeys(function($c) use ($locale) {
+          return [$c->category_id => ($c->getTranslatedName($locale) ?: $c->slug ?: '')];
+      })->all();
+      $CAT_NAME_BY_SLUG = $allCats->filter(fn($c) => $c->slug)->mapWithKeys(function($c) use ($locale) {
+          $label = $c->getTranslatedName($locale);
+          if (!$label && $c->slug) {
+              $try = __('customer_categories.labels.' . $c->slug);
+              if ($try !== 'customer_categories.labels.' . $c->slug) $label = $try;
+              if (!$label) {
+                  $try2 = __('m_tours.customer_categories.labels.' . $c->slug);
+                  if ($try2 !== 'm_tours.customer_categories.labels.' . $c->slug) $label = $try2;
+              }
+          }
+          return [$c->slug => ($label ?: $c->slug)];
+      })->all();
+  }
+
+  $resolveCatName = function(array $cat) use ($CAT_NAME_BY_ID, $CAT_NAME_BY_SLUG) {
+      // 1) por id
+      $id = $cat['category_id'] ?? $cat['id'] ?? null;
+      if ($id && isset($CAT_NAME_BY_ID[$id]) && $CAT_NAME_BY_ID[$id]) {
+          return $CAT_NAME_BY_ID[$id];
+      }
+      // 2) por slug
+      $slug = $cat['slug'] ?? null;
+      if ($slug && isset($CAT_NAME_BY_SLUG[$slug]) && $CAT_NAME_BY_SLUG[$slug]) {
+          return $CAT_NAME_BY_SLUG[$slug];
+      }
+      // 3) por archivos de idioma (si vino el slug pero no está en mapa)
+      if ($slug) {
+          $tr = __('customer_categories.labels.' . $slug);
+          if ($tr !== 'customer_categories.labels.' . $slug) return $tr;
+          $tr2 = __('m_tours.customer_categories.labels.' . $slug);
+          if ($tr2 !== 'm_tours.customer_categories.labels.' . $slug) return $tr2;
+      }
+      // 4) fallback al snapshot
+      return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.category');
+  };
+@endphp
 
 <div class="modal fade" id="modalDetails{{ $booking->booking_id }}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg">
@@ -8,7 +59,7 @@
           <i class="fas fa-info-circle me-2"></i>
           {{ __('m_bookings.bookings.ui.booking_details') }} #{{ $booking->booking_id }}
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('m_bookings.bookings.buttons.close') }}"></button>
       </div>
 
       <div class="modal-body">
@@ -17,94 +68,96 @@
           $detail = $booking->detail;
           $tour   = $booking->tour;
 
-          // Nombre del tour (live o snapshot)
+          // Nombre del tour (live o snapshot) con i18n
           $liveName = optional($tour)->name;
           $snapName = $detail->tour_name_snapshot ?? ($booking->tour_name_snapshot ?? null);
-          $tourName = $liveName ?? ($snapName ? "Deleted Tour ({$snapName})" : "Deleted tour");
+          $tourName = $liveName
+            ?? ($snapName
+                ? __('m_bookings.bookings.messages.deleted_tour_snapshot', ['name' => $snapName])
+                : __('m_bookings.bookings.messages.deleted_tour'));
 
           // ========== CATEGORÍAS DINÁMICAS ==========
           $categoriesData = [];
-          $subtotalSnap = 0;
+          $subtotalSnap = 0.0;
           $totalPersons = 0;
 
-          if ($detail->categories && is_string($detail->categories)) {
-            try {
-              $categoriesData = json_decode($detail->categories, true);
-            } catch (\Exception $e) {
-              \Log::error('Error decoding categories JSON', [
-                'booking_id' => $booking->booking_id,
-                'error' => $e->getMessage()
-              ]);
+          if ($detail?->categories && is_string($detail->categories)) {
+            try { $categoriesData = json_decode($detail->categories, true) ?: []; }
+            catch (\Exception $e) {
+              \Log::error('Error decoding categories JSON', ['booking_id' => $booking->booking_id, 'error' => $e->getMessage()]);
             }
-          } elseif (is_array($detail->categories)) {
+          } elseif (is_array($detail?->categories)) {
             $categoriesData = $detail->categories;
           }
 
-          // Normalizar formato
           $categories = [];
           if (!empty($categoriesData)) {
-            // Array de objetos
+            // Lista
             if (isset($categoriesData[0]) && is_array($categoriesData[0])) {
               foreach ($categoriesData as $cat) {
-                $qty = (int)($cat['quantity'] ?? 0);
+                $qty   = (int)($cat['quantity'] ?? 0);
                 $price = (float)($cat['price'] ?? 0);
-                $name = $cat['name'] ?? $cat['category_name'] ?? 'Category';
-
-                $categories[] = [
-                  'name' => $name,
-                  'quantity' => $qty,
-                  'price' => $price,
-                  'total' => $qty * $price
-                ];
-
-                $subtotalSnap += $qty * $price;
-                $totalPersons += $qty;
+                if ($qty > 0) {
+                  $name = $resolveCatName($cat);
+                  $categories[] = [
+                    'name'     => $name,
+                    'quantity' => $qty,
+                    'price'    => $price,
+                    'total'    => $qty * $price
+                  ];
+                  $subtotalSnap += $qty * $price;
+                  $totalPersons += $qty;
+                }
               }
-            }
-            // Array asociativo
-            else {
+            } else {
+              // Mapa
               foreach ($categoriesData as $catId => $cat) {
-                $qty = (int)($cat['quantity'] ?? 0);
+                $qty   = (int)($cat['quantity'] ?? 0);
                 $price = (float)($cat['price'] ?? 0);
-                $name = $cat['name'] ?? $cat['category_name'] ?? "Category #{$catId}";
-
-                $categories[] = [
-                  'name' => $name,
-                  'quantity' => $qty,
-                  'price' => $price,
-                  'total' => $qty * $price
-                ];
-
-                $subtotalSnap += $qty * $price;
-                $totalPersons += $qty;
+                if ($qty > 0) {
+                  if (!isset($cat['category_id']) && is_numeric($catId)) $cat['category_id'] = (int)$catId;
+                  $name = $resolveCatName($cat);
+                  $categories[] = [
+                    'name'     => $name,
+                    'quantity' => $qty,
+                    'price'    => $price,
+                    'total'    => $qty * $price
+                  ];
+                  $subtotalSnap += $qty * $price;
+                  $totalPersons += $qty;
+                }
               }
             }
           }
 
-          // Fallback a legacy
+          // Fallback legacy (adults/kids)
           if (empty($categories)) {
-            $adultsQty = (int)($detail->adults_quantity ?? 0);
-            $kidsQty = (int)($detail->kids_quantity ?? 0);
-            $adultPrice = (float)($detail->adult_price ?? $tour->adult_price ?? 0);
-            $kidPrice = (float)($detail->kid_price ?? $tour->kid_price ?? 0);
+            $adultsQty   = (int)($detail->adults_quantity ?? 0);
+            $kidsQty     = (int)($detail->kids_quantity ?? 0);
+            $adultPrice  = (float)($detail->adult_price ?? $tour?->adult_price ?? 0);
+            $kidPrice    = (float)($detail->kid_price ?? $tour?->kid_price ?? 0);
 
             if ($adultsQty > 0) {
+              $name = __('customer_categories.labels.adult');
+              if ($name === 'customer_categories.labels.adult') $name = 'Adults';
               $categories[] = [
-                'name' => 'Adults',
+                'name'     => $name,
                 'quantity' => $adultsQty,
-                'price' => $adultPrice,
-                'total' => $adultsQty * $adultPrice
+                'price'    => $adultPrice,
+                'total'    => $adultsQty * $adultPrice
               ];
               $subtotalSnap += $adultsQty * $adultPrice;
               $totalPersons += $adultsQty;
             }
 
             if ($kidsQty > 0) {
+              $name = __('customer_categories.labels.child');
+              if ($name === 'customer_categories.labels.child') $name = 'Kids';
               $categories[] = [
-                'name' => 'Kids',
+                'name'     => $name,
                 'quantity' => $kidsQty,
-                'price' => $kidPrice,
-                'total' => $kidsQty * $kidPrice
+                'price'    => $kidPrice,
+                'total'    => $kidsQty * $kidPrice
               ];
               $subtotalSnap += $kidsQty * $kidPrice;
               $totalPersons += $kidsQty;
@@ -142,22 +195,22 @@
           // Signo para el display
           $sign = $operation === 'add' ? '+' : '−';
 
-          // Total
+          // Total (preferir el guardado si existe)
           $grandTotal = (float) ($booking->total ?? max(0, $operation === 'add'
                 ? $subtotalSnap + $appliedAmount
                 : $subtotalSnap - $appliedAmount));
 
           // ========== HOTEL O MEETING POINT ==========
-          $hasHotel = !empty($detail->hotel_id) || !empty($detail->other_hotel_name);
-          $hasMeetingPoint = !empty($detail->meeting_point_id) || !empty($detail->meeting_point_name);
+          $hasHotel        = !empty($detail?->hotel_id) || !empty($detail?->other_hotel_name);
+          $hasMeetingPoint = !empty($detail?->meeting_point_id) || !empty($detail?->meeting_point_name);
 
-          $hotelName = null;
+          $hotelName        = null;
           $meetingPointName = null;
 
           if ($hasHotel) {
-            $hotelName = $detail->other_hotel_name ?? optional($detail->hotel)->name ?? '—';
+            $hotelName = $detail?->other_hotel_name ?? optional($detail?->hotel)->name ?? '—';
           } elseif ($hasMeetingPoint) {
-            $meetingPointName = $detail->meeting_point_name ?? optional($detail->meetingPoint)->name ?? '—';
+            $meetingPointName = $detail?->meeting_point_name ?? optional($detail?->meetingPoint)->name ?? '—';
           }
         @endphp
 
@@ -218,13 +271,19 @@
               <div class="card-body">
                 <dl class="row mb-0">
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.customer') }}:</dt>
-                  <dd class="col-sm-8">{{ $booking->user->full_name ?? '-' }}</dd>
+                  <dd class="col-sm-8">{{ $booking->user->full_name ?? $booking->user->name ?? '—' }}</dd>
 
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.email') }}:</dt>
-                  <dd class="col-sm-8"><a href="mailto:{{ $booking->user->email }}">{{ $booking->user->email ?? '-' }}</a></dd>
+                  <dd class="col-sm-8">
+                    @if(!empty($booking->user->email))
+                      <a href="mailto:{{ $booking->user->email }}">{{ $booking->user->email }}</a>
+                    @else
+                      —
+                    @endif
+                  </dd>
 
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.phone') }}:</dt>
-                  <dd class="col-sm-8">{{ $booking->user->phone ?? '-' }}</dd>
+                  <dd class="col-sm-8">{{ $booking->user->phone ?? '—' }}</dd>
                 </dl>
               </div>
             </div>
@@ -244,20 +303,22 @@
                   <dd class="col-sm-8">{{ $tourName }}</dd>
 
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.tour_date') }}:</dt>
-                  <dd class="col-sm-8">{{ optional($detail)->tour_date?->format('M d, Y') ?? '-' }}</dd>
+                  <dd class="col-sm-8">{{ optional($detail?->tour_date)?->format('M d, Y') ?? '—' }}</dd>
 
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.schedule') }}:</dt>
                   <dd class="col-sm-8">
-                    @if($detail->schedule)
-                      {{ \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') }} -
-                      {{ \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A') }}
+                    @if($detail?->schedule)
+                      {{ \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') }}
+                      @if($detail?->schedule?->end_time)
+                        - {{ \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A') }}
+                      @endif
                     @else
                       —
                     @endif
                   </dd>
 
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.language') }}:</dt>
-                  <dd class="col-sm-8">{{ optional($detail->tourLanguage)->name ?? '-' }}</dd>
+                  <dd class="col-sm-8">{{ optional($detail?->tourLanguage)->name ?? '—' }}</dd>
                 </dl>
               </div>
 
@@ -274,7 +335,7 @@
                   @endif
 
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.type') }}:</dt>
-                  <dd class="col-sm-8">{{ optional($tour->tourType)->name ?? '—' }}</dd>
+                  <dd class="col-sm-8">{{ optional($tour?->tourType)->name ?? '—' }}</dd>
                 </dl>
               </div>
             </div>
@@ -292,7 +353,7 @@
                 <dl class="row">
                   @foreach($categories as $cat)
                     <dt class="col-sm-6">{{ $cat['name'] }}:</dt>
-                    <dd class="col-sm-6">{{ $cat['quantity'] }} × ${{ number_format($cat['price'], 2) }}</dd>
+                    <dd class="col-sm-6">{{ $cat['quantity'] }} × {{ $currency }}{{ number_format((float)$cat['price'], 2) }}</dd>
                   @endforeach
 
                   <dt class="col-sm-6"><strong>{{ __('m_bookings.details.total_persons') }}:</strong></dt>
@@ -303,7 +364,7 @@
               <div class="col-md-6">
                 <dl class="row">
                   <dt class="col-sm-6">{{ __('m_bookings.details.subtotal') }}:</dt>
-                  <dd class="col-sm-6">${{ number_format($subtotalSnap, 2) }}</dd>
+                  <dd class="col-sm-6">{{ $currency }}{{ number_format($subtotalSnap, 2) }}</dd>
 
                   @if($promoCode && $appliedAmount > 0)
                     <dt class="col-sm-6">
@@ -312,12 +373,12 @@
                         @if(!is_null($percentSnapshot))
                           <span class="badge bg-secondary">{{ number_format($percentSnapshot,0) }}%</span>
                         @elseif(!is_null($amountSnapshot))
-                          <span class="badge bg-secondary">${{ number_format($amountSnapshot,2) }}</span>
+                          <span class="badge bg-secondary">{{ $currency }}{{ number_format($amountSnapshot,2) }}</span>
                         @endif
                       </span>
                     </dt>
                     <dd class="col-sm-6 {{ $operation === 'add' ? 'text-primary' : 'text-success' }}">
-                      {{ $sign }}${{ number_format($appliedAmount, 2) }}
+                      {{ $sign }}{{ $currency }}{{ number_format($appliedAmount, 2) }}
                     </dd>
 
                     <dt class="col-sm-6">{{ __('m_bookings.bookings.fields.promo_code') }}:</dt>
@@ -328,7 +389,7 @@
 
                   <dt class="col-sm-6"><strong>{{ __('m_bookings.bookings.fields.total') }}:</strong></dt>
                   <dd class="col-sm-6">
-                    <strong class="text-success fs-5">${{ number_format($grandTotal, 2) }}</strong>
+                    <strong class="text-success fs-5">{{ $currency }}{{ number_format($grandTotal, 2) }}</strong>
                   </dd>
                 </dl>
               </div>
@@ -349,13 +410,12 @@
         <a href="{{ route('admin.bookings.receipt', $booking->booking_id) }}" class="btn btn-primary" target="_blank">
           <i class="fas fa-file-pdf me-1"></i> {{ __('m_bookings.bookings.ui.download_receipt') }}
         </a>
-<a href="{{ route('admin.bookings.edit', $booking) }}"
-   class="btn btn-warning">
-  <i class="fas fa-edit me-1"></i> {{ __('m_bookings.bookings.buttons.edit') }}
-</a>
-
-
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_bookings.bookings.buttons.close') }}</button>
+        <a href="{{ route('admin.bookings.edit', $booking) }}" class="btn btn-warning">
+          <i class="fas fa-edit me-1"></i> {{ __('m_bookings.bookings.buttons.edit') }}
+        </a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          {{ __('m_bookings.bookings.buttons.close') }}
+        </button>
       </div>
     </div>
   </div>

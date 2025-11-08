@@ -30,24 +30,23 @@
     <div class="price-breakdown d-flex flex-wrap align-items-center gap-2 mb-2">
       @foreach($activeCategories as $index => $priceRecord)
         @php
-          $category = $priceRecord->category;
-          $categoryName = $category->name ?? 'N/A';
-          $categorySlug = $category->slug ?? strtolower($categoryName);
-          $price = $priceRecord->price;
+          $category      = $priceRecord->category;
+          $categoryName  = optional($category)->getTranslatedName() ?? 'N/A';
+          $categorySlug  = $category->slug ?? \Illuminate\Support\Str::slug($categoryName);
+          $price         = $priceRecord->price;
 
-          // Construir rango de edad si existe
+          // Construir rango de edad si existe (localizable)
           $ageRange = '';
-          if ($category->age_min || $category->age_max) {
-              if ($category->age_min && $category->age_max) {
-                  $ageRange = " ({$category->age_min}-{$category->age_max} años)";
-              } elseif ($category->age_min) {
-                  $ageRange = " ({$category->age_min}+ años)";
-              } elseif ($category->age_max) {
-                  $ageRange = " (hasta {$category->age_max} años)";
+          if ($category?->age_min || $category?->age_max) {
+              if ($category?->age_min && $category?->age_max) {
+                  $ageRange = ' ('.__(':min-:max years', ['min' => $category->age_min, 'max' => $category->age_max]).')';
+              } elseif ($category?->age_min) {
+                  $ageRange = ' ('.__(':min+ years', ['min' => $category->age_min]).')';
+              } elseif ($category?->age_max) {
+                  $ageRange = ' ('.__('up to :max years', ['max' => $category->age_max]).')';
               }
           }
 
-          // Agregar separador después de cada categoría excepto la última
           $showSeparator = $index < $activeCategories->count() - 1;
         @endphp
 
@@ -68,21 +67,8 @@
 </div>
 
 <style>
-  .price-breakdown {
-    line-height: 1.6;
-  }
-
-  .price-item {
-    white-space: nowrap;
-  }
-
-  .price-item strong {
-    font-size: 0.95rem;
-  }
-
-  @media (max-width: 576px) {
-    .price-breakdown {
-      font-size: 0.9rem;
-    }
-  }
+  .price-breakdown { line-height: 1.6; }
+  .price-item { white-space: nowrap; }
+  .price-item strong { font-size: 0.95rem; }
+  @media (max-width: 576px) { .price-breakdown { font-size: 0.9rem; } }
 </style>
