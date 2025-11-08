@@ -1,19 +1,8 @@
-{{-- Nombre --}}
-<div class="form-group">
-    <label for="name">
-        {{ __('customer_categories.form.name.label') }} <span class="text-danger">*</span>
-    </label>
-    <input type="text"
-           name="name"
-           id="name"
-           class="form-control @error('name') is-invalid @enderror"
-           value="{{ old('name', $category->name ?? '') }}"
-           placeholder="{{ __('customer_categories.form.name.placeholder') }}"
-           required>
-    @error('name')
-        <span class="invalid-feedback">{{ $message ?: __('customer_categories.form.name.required') }}</span>
-    @enderror
-</div>
+@php
+  $locales = supported_locales();               // ['es','en','fr','pt','de'] (según tu config)
+  $mode    = $mode ?? 'create';                 // create|edit
+  $model   = $category ?? null;
+@endphp
 
 {{-- Slug --}}
 <div class="form-group">
@@ -24,7 +13,7 @@
            name="slug"
            id="slug"
            class="form-control @error('slug') is-invalid @enderror"
-           value="{{ old('slug', $category->slug ?? '') }}"
+           value="{{ old('slug', $model->slug ?? '') }}"
            placeholder="{{ __('customer_categories.form.slug.placeholder') }}"
            required
            pattern="[a-z0-9_-]+"
@@ -48,7 +37,7 @@
                    name="age_from"
                    id="age_from"
                    class="form-control @error('age_from') is-invalid @enderror"
-                   value="{{ old('age_from', $category->age_from ?? '') }}"
+                   value="{{ old('age_from', $model->age_from ?? '') }}"
                    min="0"
                    max="255"
                    required
@@ -70,7 +59,7 @@
                    name="age_to"
                    id="age_to"
                    class="form-control @error('age_to') is-invalid @enderror"
-                   value="{{ old('age_to', $category->age_to ?? '') }}"
+                   value="{{ old('age_to', $model->age_to ?? '') }}"
                    min="0"
                    max="255"
                    placeholder="{{ __('customer_categories.form.age_to.placeholder') }}">
@@ -90,7 +79,7 @@
            name="order"
            id="order"
            class="form-control @error('order') is-invalid @enderror"
-           value="{{ old('order', $category->order ?? 1) }}"
+           value="{{ old('order', $model->order ?? 1) }}"
            min="0"
            max="255"
            required>
@@ -111,7 +100,7 @@
                id="is_active"
                name="is_active"
                value="1"
-               {{ old('is_active', $category->is_active ?? true) ? 'checked' : '' }}>
+               {{ old('is_active', $model->is_active ?? true) ? 'checked' : '' }}>
         <label class="custom-control-label" for="is_active">
             {{ __('customer_categories.form.active.label') }}
         </label>
@@ -121,33 +110,83 @@
     </small>
 </div>
 
+{{-- Traducciones: Nombres por idioma --}}
+<div class="card mt-3">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="fas fa-language"></i> {{ __('customer_categories.form.translations.title') }}</span>
+
+        @if($mode === 'create')
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" id="auto_translate" name="auto_translate" value="1" checked>
+                <label for="auto_translate" class="custom-control-label">
+                    {{ __('customer_categories.form.translations.auto_translate') }}
+                </label>
+            </div>
+        @else
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" id="regen_missing" name="regen_missing" value="1">
+                <label for="regen_missing" class="custom-control-label">
+                    {{ __('customer_categories.form.translations.regen_missing') }}
+                </label>
+            </div>
+        @endif
+    </div>
+
+    <div class="card-body">
+        <ul class="nav nav-tabs" id="langTabs" role="tablist">
+            @foreach($locales as $i => $loc)
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {{ $i===0 ? 'active' : '' }}" id="tab-{{ $loc }}" data-toggle="tab" href="#pane-{{ $loc }}" role="tab">
+                        {{ strtoupper($loc) }}
+                    </a>
+                </li>
+            @endforeach
+        </ul>
+
+        <div class="tab-content border-left border-right border-bottom p-3">
+            @foreach($locales as $i => $loc)
+                @php
+                    $existing = $model
+                        ? optional($model->translations->firstWhere('locale', $loc))->name
+                        : null;
+                    $val = old("names.$loc", $existing);
+                @endphp
+
+                <div class="tab-pane fade {{ $i===0 ? 'show active' : '' }}" id="pane-{{ $loc }}" role="tabpanel">
+                    <div class="form-group mb-0">
+                        <label>
+                            {{ __('customer_categories.form.name.label') }}
+                            @if($i===0) <span class="text-danger">*</span> @endif
+                        </label>
+                        <input type="text"
+                               name="names[{{ $loc }}]"
+                               class="form-control @error('names.' . $loc) is-invalid @enderror"
+                               value="{{ $val }}"
+                               @if($i===0) required @endif
+                               placeholder="{{ __('customer_categories.form.name.placeholder') }}">
+                        @error('names.' . $loc)
+                            <span class="invalid-feedback">{{ $message ?: __('customer_categories.form.name.required') }}</span>
+                        @enderror
+                        <small class="form-text text-muted">
+                            {!! __('customer_categories.form.translations.locale_hint', ['loc' => '<code>'.strtoupper($loc).'</code>']) !!}
+                        </small>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <small class="text-muted d-block mt-2">
+            {{ __('customer_categories.form.translations.at_least_first') }}
+        </small>
+    </div>
+</div>
+
 @push('js')
 <script>
-    // Auto-generar slug desde el nombre
-    document.getElementById('name')?.addEventListener('input', function(e) {
-        const slug = e.target.value
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '') // Quitar acentos
-            .replace(/[^a-z0-9]+/g, '-')      // Reemplazar no alfanuméricos con -
-            .replace(/^-+|-+$/g, '');         // Quitar guiones al inicio/fin
-
-        const slugInput = document.getElementById('slug');
-        if (slugInput && !slugInput.dataset.touched) {
-            slugInput.value = slug;
-        }
-    });
-
-    // Marca manual de edición de slug para no sobreescribirlo si el usuario lo cambia
-    document.getElementById('slug')?.addEventListener('input', function() {
-        this.dataset.touched = '1';
-    });
-
     // Validar que age_to >= age_from
     const ageFrom = document.getElementById('age_from');
     const ageTo = document.getElementById('age_to');
     const msg = @json(__('customer_categories.validation.age_to_gte_age_from'));
-
     function validateAges() {
         if (ageFrom && ageTo && ageTo.value && ageFrom.value) {
             if (parseInt(ageTo.value, 10) < parseInt(ageFrom.value, 10)) {
@@ -157,7 +196,6 @@
         }
         ageTo.setCustomValidity('');
     }
-
     ageTo?.addEventListener('input', validateAges);
     ageFrom?.addEventListener('input', validateAges);
 </script>

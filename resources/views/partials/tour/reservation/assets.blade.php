@@ -76,7 +76,7 @@
 
       const desc = option.getAttribute('data-desc') || '';
       const time = option.getAttribute('data-time') || '';
-      const url = option.getAttribute('data-url') || '';
+      const url  = option.getAttribute('data-url') || '';
 
       meetingPointInfo.classList.remove('d-none');
       document.getElementById('mpDesc').textContent = desc;
@@ -111,22 +111,25 @@
 
       if (qty < cat.min) {
         hasError = true;
-        errorMsg = @json(__('adminlte::adminlte.min_category_required', ['category' => ':category', 'min' => ':min']))
-          .replace(':category', cat.slug)
+        const tmpl = @json(__('adminlte::adminlte.min_category_required', ['category' => ':category', 'min' => ':min']));
+        errorMsg = (tmpl || ':category requires at least :min')
+          .replace(':category', cat.label || cat.slug) // 👉 usar nombre traducido
           .replace(':min', cat.min);
       }
 
       if (qty > cat.max) {
         hasError = true;
-        errorMsg = @json(__('adminlte::adminlte.max_category_exceeded', ['category' => ':category', 'max' => ':max']))
-          .replace(':category', cat.slug)
+        const tmpl = @json(__('adminlte::adminlte.max_category_exceeded', ['category' => ':category', 'max' => ':max']));
+        errorMsg = (tmpl || ':category accepts up to :max')
+          .replace(':category', cat.label || cat.slug) // 👉 usar nombre traducido
           .replace(':max', cat.max);
       }
     });
 
     if (totalPax > maxTotal) {
       hasError = true;
-      errorMsg = @json(__('adminlte::adminlte.max_persons_exceeded', ['max' => ':max'])).replace(':max', maxTotal);
+      errorMsg = (@json(__('adminlte::adminlte.max_persons_exceeded', ['max' => ':max'])) || 'Max persons: :max')
+        .replace(':max', maxTotal);
     }
 
     if (totalPax < 1) {

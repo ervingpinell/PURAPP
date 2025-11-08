@@ -41,7 +41,7 @@
                 <thead>
                     <tr>
                         <th style="width: 60px">#</th>
-                        <th>{{ __('customer_categories.table.name') }}</th>
+                        <th>{{ __('customer_categories.table.name') }} <small class="text-muted">({{ strtoupper(app()->getLocale()) }})</small></th>
                         <th>Slug</th>
                         <th>{{ __('customer_categories.table.range') }}</th>
                         <th style="width: 80px">{{ __('customer_categories.table.order') }}</th>
@@ -53,7 +53,7 @@
                     @forelse($categories as $category)
                         <tr>
                             <td>{{ $category->category_id }}</td>
-                            <td><strong>{{ $category->name }}</strong></td>
+                            <td><strong>{{ $category->getTranslatedName() }}</strong></td>
                             <td><code>{{ $category->slug }}</code></td>
                             <td>
                                 <span class="badge badge-info">
@@ -68,6 +68,7 @@
                                       method="POST"
                                       style="display: inline">
                                     @csrf
+                                    @method('PATCH')
                                     <button type="submit"
                                             class="btn btn-sm {{ $category->is_active ? 'btn-success' : 'btn-secondary' }}"
                                             title="{{ $category->is_active ? __('customer_categories.states.active') : __('customer_categories.states.inactive') }}">
@@ -105,7 +106,7 @@
                                             </div>
                                             <div class="modal-body">
                                                 <p>{!! __('customer_categories.dialogs.delete.text', [
-                                                    'name' => '<strong>'.e($category->name).'</strong>'
+                                                    'name' => '<strong>'.e($category->getTranslatedName()).'</strong>'
                                                 ]) !!}</p>
                                                 <p class="text-muted small">
                                                     <i class="fas fa-exclamation-triangle"></i>
@@ -168,7 +169,5 @@
 @stop
 
 @section('css')
-    <style>
-        .table td { vertical-align: middle; }
-    </style>
+    <style>.table td { vertical-align: middle; }</style>
 @stop

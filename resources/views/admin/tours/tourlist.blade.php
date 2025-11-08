@@ -9,14 +9,18 @@
   .font-toolbar .size-indicator{min-width:3.5rem;text-align:center;font-variant-numeric:tabular-nums;font-weight:500}
   .actions-cell{min-width:280px}
   .actions-cell .d-flex{gap:.375rem}
-  .actions-cell .btn-sm{width:var(--btn-cell-size);height:var(--btn-cell-size);padding:0!important;display:inline-flex;align-items:center;justify-content:center;line-height:1;border-radius:.375rem;font-size:var(--tbl-font-size)}
+  .actions-cell .btn-sm{
+    width:var(--btn-cell-size);height:var(--btn-cell-size);
+    padding:0!important;display:inline-flex;align-items:center;justify-content:center;
+    line-height:1;border-radius:.375rem;font-size:var(--tbl-font-size)
+  }
   .actions-cell .btn-sm i{font-size:1em}
   .schedule-badge{display:inline-block;margin:.15rem;white-space:nowrap}
   .price-item{display:flex;justify-content:space-between;align-items:center;padding:.25rem 0;border-bottom:1px solid #e9ecef}
   .price-item:last-child{border-bottom:none}
-  .price-label{font-weight:500;color:#ffffff}
+  .price-label{font-weight:500;color:var(--bs-body-color)}
   .price-value{font-weight:600;color:#28a745}
-  .price-range{font-size:.75rem;color:#ffffff;margin-left:.5rem}
+  .price-range{font-size:.75rem;color:var(--bs-secondary-color);margin-left:.5rem}
   .table-striped tbody tr:hover{background-color:rgba(0,0,0,.03)}
   @media (max-width:992px){:root{--btn-cell-mult:2.0}}
   @media (max-width:768px){:root{--btn-cell-mult:1.8}.actions-cell{min-width:240px}}
@@ -28,7 +32,6 @@
   @media (max-width:992px){.scroll-hint{display:block}}
 </style>
 @endpush
-
 
 @include('admin.carts.cartmodal')
 
@@ -46,7 +49,6 @@
   </button>
 </div>
 @endonce
-
 
 {{-- Indicador de scroll --}}
 <div class="scroll-hint">
@@ -73,6 +75,8 @@
         @php
           $isArchived  = !is_null($tour->deleted_at ?? null);
           $hasBookings = (int) ($tour->bookings_count ?? 0);
+          $currency    = config('app.currency_symbol', '$');
+          $locale      = app()->getLocale();
         @endphp
         <tr>
           {{-- ID --}}
@@ -81,7 +85,7 @@
           {{-- Nombre (con traducción si existe helper) --}}
           <td>
             <strong>
-              {{ method_exists($tour, 'getTranslatedName') ? $tour->getTranslatedName(app()->getLocale()) : $tour->name }}
+              {{ method_exists($tour, 'getTranslatedName') ? $tour->getTranslatedName($locale) : $tour->name }}
             </strong>
             @if($tour->tourType)
               <br>
@@ -110,16 +114,34 @@
 
             @if($activePrices->isNotEmpty())
               @foreach($activePrices as $price)
+                @php
+                  $cat = $price->category;
+
+                  // 1) Intentar con método del modelo
+                  $catLabel = method_exists($cat, 'getTranslatedName') ? ($cat->getTranslatedName($locale) ?: null) : null;
+
+                  // 2) Fallback a archivos de idioma por slug
+                  if (!$catLabel && !empty($cat->slug)) {
+                      foreach ([
+                        'customer_categories.labels.' . $cat->slug,
+                        'm_tours.customer_categories.labels.' . $cat->slug,
+                      ] as $k) {
+                        $tr = __($k);
+                        if ($tr !== $k) { $catLabel = $tr; break; }
+                      }
+                  }
+
+                  // 3) Último fallback: nombre crudo
+                  if (!$catLabel) { $catLabel = $cat->name ?? $cat->slug ?? ''; }
+                @endphp
+
                 <div class="price-item">
                   <span class="price-label">
-                    {{ $price->category->name }}
+                    {{ $catLabel }}
                     <span class="price-range">({{ $price->min_quantity }}-{{ $price->max_quantity }})</span>
                   </span>
-                @php
-                $currency = config('app.currency_symbol', '$');
-                @endphp
-                <span class="price-value">{{ $currency }}{{ number_format($price->price, 2) }}</span>
-                                </div>
+                  <span class="price-value">{{ $currency }}{{ number_format($price->price, 2) }}</span>
+                </div>
               @endforeach
             @else
               <span class="text-muted">{{ __('m_tours.tour.ui.no_prices') }}</span>
@@ -135,9 +157,9 @@
 
           {{-- Group Size --}}
           <td class="text-center">
-        <span class="badge text-bg-light">
-        {{ $tour->group_size ? $tour->group_size.' '. __('m_tours.common.people') : __('m_tours.common.na') }}
-        </span>
+            <span class="badge text-bg-light">
+              {{ $tour->group_size ? $tour->group_size.' '. __('m_tours.common.people') : __('m_tours.common.na') }}
+            </span>
           </td>
 
           {{-- Estado --}}
@@ -267,23 +289,38 @@
 @endif
 
 @push('js')
+{{-- Cargar SweetAlert2 si no está disponible (cortesía) --}}
+<script>
+  (function(){
+    if (!window.Swal) {
+      const s = document.createElement('script');
+      s.src = "https://cdn.jsdelivr.net/npm/sweetalert2@11";
+      s.async = true;
+      document.head.appendChild(s);
+    }
+  })();
+</script>
+
 <script>
   // Confirmar eliminación (soft)
   function confirmDelete(id) {
-    Swal.fire({
-      title: @json(__('m_tours.tour.alerts.delete_title')),
-      text:  @json(__('m_tours.tour.alerts.delete_text')),
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: @json(__('m_tours.common.confirm_delete')),
-      cancelButtonText:  @json(__('m_tours.common.cancel')),
-      confirmButtonColor: '#dc3545',
-      cancelButtonColor: '#6c757d'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        document.getElementById('delete-form-' + id).submit();
-      }
-    });
+    const run = () => {
+      Swal.fire({
+        title: @json(__('m_tours.tour.alerts.delete_title')),
+        text:  @json(__('m_tours.tour.alerts.delete_text')),
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: @json(__('m_tours.common.confirm_delete')),
+        cancelButtonText:  @json(__('m_tours.common.cancel')),
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          document.getElementById('delete-form-' + id).submit();
+        }
+      });
+    };
+    if (window.Swal) run(); else setTimeout(run, 300);
   }
 
   // Confirmar purga (hard)
@@ -295,41 +332,47 @@
          </div>`.replace('___COUNT___', hasBookings)
       : '';
 
-    Swal.fire({
-      title: @json(__('m_tours.tour.alerts.purge_title')),
-      html:  @json(__('m_tours.tour.alerts.purge_text')) + extra,
-      icon: 'error',
-      showCancelButton: true,
-      confirmButtonText: @json(__('m_tours.common.confirm_delete')),
-      cancelButtonText:  @json(__('m_tours.common.cancel')),
-      confirmButtonColor: '#dc3545',
-      cancelButtonColor: '#6c757d'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        document.getElementById('purge-form-' + id).submit();
-      }
-    });
+    const run = () => {
+      Swal.fire({
+        title: @json(__('m_tours.tour.alerts.purge_title')),
+        html:  @json(__('m_tours.tour.alerts.purge_text')) + extra,
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonText: @json(__('m_tours.common.confirm_delete')),
+        cancelButtonText:  @json(__('m_tours.common.cancel')),
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          document.getElementById('purge-form-' + id).submit();
+        }
+      });
+    };
+    if (window.Swal) run(); else setTimeout(run, 300);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    // Toggle (activar/inactivar)
+    // Toggle (activar/inactivar) con confirm
     document.addEventListener('submit', function(ev) {
       const form = ev.target;
       if (!form.matches('.js-toggle-form')) return;
       ev.preventDefault();
       const question = form.dataset.question || @json(__('m_tours.common.confirm_action'));
-      Swal.fire({
-        icon: 'question',
-        title: @json(__('m_tours.common.confirm')),
-        text: question,
-        showCancelButton: true,
-        confirmButtonText: @json(__('m_tours.common.yes')),
-        cancelButtonText:  @json(__('m_tours.common.cancel')),
-        confirmButtonColor: '#0d6efd',
-        cancelButtonColor: '#6c757d'
-      }).then(res => {
-        if (res.isConfirmed) form.submit();
-      });
+      const run = () => {
+        Swal.fire({
+          icon: 'question',
+          title: @json(__('m_tours.common.confirm')),
+          text: question,
+          showCancelButton: true,
+          confirmButtonText: @json(__('m_tours.common.yes')),
+          cancelButtonText:  @json(__('m_tours.common.cancel')),
+          confirmButtonColor: '#0d6efd',
+          cancelButtonColor: '#6c757d'
+        }).then(res => {
+          if (res.isConfirmed) form.submit();
+        });
+      };
+      if (window.Swal) run(); else setTimeout(run, 300);
     });
 
     // Control de tamaño de fuente (persistente)

@@ -14,8 +14,8 @@
   {{-- Detalles Básicos --}}
   <div class="col-md-6">
     <div class="card">
-      <div class="card-header bg-primary">
-        <h3 class="card-title">
+      <div class="card-header bg-primary text-white">
+        <h3 class="card-title mb-0">
           <i class="fas fa-info-circle"></i> {{ __('m_tours.tour.summary.basic_details_title') }}
         </h3>
       </div>
@@ -50,17 +50,17 @@
             {{ $tour->max_capacity ?? 'N/A' }} {{ __('m_tours.tour.summary.units.people') }}
           </dd>
 
-                    <dt class="col-sm-4">{{ __('m_tours.tour.fields.group_size') }}:</dt>
-          <dd class="col-sm-8" id="summary-capacity">
+          <dt class="col-sm-4">{{ __('m_tours.tour.fields.group_size') }}:</dt>
+          <dd class="col-sm-8" id="summary-group-size">
             {{ $tour->group_size ?? 'N/A' }} {{ __('m_tours.tour.summary.units.people') }}
           </dd>
 
           <dt class="col-sm-4">{{ __('m_tours.tour.fields.status') }}:</dt>
           <dd class="col-sm-8" id="summary-status">
             @if($tour && $tour->is_active)
-              <span class="badge badge-success">{{ __('m_tours.tour.status.active') }}</span>
+              <span class="badge bg-success">{{ __('m_tours.tour.status.active') }}</span>
             @else
-              <span class="badge badge-secondary">{{ __('m_tours.tour.status.inactive') }}</span>
+              <span class="badge bg-secondary">{{ __('m_tours.tour.status.inactive') }}</span>
             @endif
           </dd>
 
@@ -78,8 +78,8 @@
   {{-- Descripción --}}
   <div class="col-md-6">
     <div class="card">
-      <div class="card-header bg-info">
-        <h3 class="card-title">
+      <div class="card-header bg-info text-white">
+        <h3 class="card-title mb-0">
           <i class="fas fa-align-left"></i> {{ __('m_tours.tour.summary.description_title') }}
         </h3>
       </div>
@@ -98,8 +98,8 @@
     {{-- Precios --}}
     <div class="col-md-6">
       <div class="card">
-        <div class="card-header bg-success">
-          <h3 class="card-title">
+        <div class="card-header bg-success text-white">
+          <h3 class="card-title mb-0">
             <i class="fas fa-dollar-sign"></i> {{ __('m_tours.tour.summary.prices_title') }}
           </h3>
         </div>
@@ -141,7 +141,7 @@
     <div class="col-md-6">
       <div class="card">
         <div class="card-header bg-warning">
-          <h3 class="card-title">
+          <h3 class="card-title mb-0">
             <i class="fas fa-clock"></i> {{ __('m_tours.tour.summary.schedules_title') }}
           </h3>
         </div>
@@ -155,7 +155,7 @@
                   {{ date('g:i A', strtotime($schedule->end_time)) }}
                 </strong>
                 @if($schedule->label)
-                  <span class="badge badge-info ml-2">{{ $schedule->label }}</span>
+                  <span class="badge bg-info ms-2">{{ $schedule->label }}</span>
                 @endif
               </li>
             @empty
@@ -173,8 +173,8 @@
     {{-- Idiomas --}}
     <div class="col-md-6">
       <div class="card">
-        <div class="card-header bg-secondary">
-          <h3 class="card-title">
+        <div class="card-header bg-secondary text-white">
+          <h3 class="card-title mb-0">
             <i class="fas fa-language"></i> {{ __('m_tours.tour.summary.languages_title') }}
           </h3>
         </div>
@@ -197,8 +197,8 @@
     {{-- Itinerario --}}
     <div class="col-md-6">
       <div class="card">
-        <div class="card-header bg-info">
-          <h3 class="card-title">
+        <div class="card-header bg-info text-white">
+          <h3 class="card-title mb-0">
             <i class="fas fa-route"></i> {{ __('m_tours.tour.summary.itinerary_title') }}
           </h3>
         </div>
@@ -207,7 +207,7 @@
             <h5>{{ $tour->itinerary->name ?? __('m_tours.itinerary.fields.name') }}</h5>
             <p class="text-muted small">{{ $tour->itinerary->description }}</p>
             @if($tour->itinerary->items->isNotEmpty())
-              <ol class="pl-3 mb-0">
+              <ol class="ps-3 mb-0">
                 @foreach($tour->itinerary->items as $item)
                   <li><strong>{{ $item->title }}</strong></li>
                 @endforeach
@@ -225,8 +225,8 @@
     {{-- Amenidades Incluidas --}}
     <div class="col-md-6">
       <div class="card">
-        <div class="card-header bg-success">
-          <h3 class="card-title">
+        <div class="card-header bg-success text-white">
+          <h3 class="card-title mb-0">
             <i class="fas fa-check"></i> {{ __('m_tours.tour.ui.amenities_included') }}
           </h3>
         </div>
@@ -252,8 +252,8 @@
     {{-- Amenidades Excluidas --}}
     <div class="col-md-6">
       <div class="card">
-        <div class="card-header bg-danger">
-          <h3 class="card-title">
+        <div class="card-header bg-danger text-white">
+          <h3 class="card-title mb-0">
             <i class="fas fa-times"></i> {{ __('m_tours.tour.ui.amenities_excluded') }}
           </h3>
         </div>
@@ -280,7 +280,7 @@
   {{-- EN CREATE: Mensaje informativo --}}
   <div class="alert alert-info mt-3">
     <i class="fas fa-info-circle"></i>
-    <strong>{{ __('m_tours.common.notice', [], 'es') ?? '' }}</strong>
+    <strong>{{ __('m_tours.common.notice') }}</strong>
     {{ __('m_tours.tour.summary.create_note') }}
   </div>
 @endif
@@ -288,54 +288,65 @@
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  function t(key, fallback) { return fallback; } // placeholder local
-
   function updateSummary() {
     const nameInput = document.getElementById('name');
     if (nameInput) {
-      document.getElementById('summary-name').textContent =
-        nameInput.value || @json(__('m_tours.tour.summary.not_specified'));
+      const el = document.getElementById('summary-name');
+      if (el) el.textContent = nameInput.value || @json(__('m_tours.tour.summary.not_specified'));
     }
 
     const slugInput = document.getElementById('slug');
     if (slugInput) {
-      document.getElementById('summary-slug').innerHTML =
-        `<code>${slugInput.value || @json(__('m_tours.tour.summary.slug_autogenerated'))}</code>`;
+      const el = document.getElementById('summary-slug');
+      if (el) el.innerHTML = `<code>${slugInput.value || @json(__('m_tours.tour.summary.slug_autogenerated'))}</code>`;
     }
 
     const overviewInput = document.getElementById('overview');
     if (overviewInput) {
-      document.getElementById('summary-overview').textContent =
-        overviewInput.value || @json(__('m_tours.tour.summary.no_description'));
+      const el = document.getElementById('summary-overview');
+      if (el) el.textContent = overviewInput.value || @json(__('m_tours.tour.summary.no_description'));
     }
 
     const lengthInput = document.getElementById('length');
     if (lengthInput) {
-      document.getElementById('summary-length').textContent =
-        (lengthInput.value || 'N/A') + ' ' + @json(__('m_tours.tour.summary.units.hours'));
+      const el = document.getElementById('summary-length');
+      if (el) el.textContent = (lengthInput.value || 'N/A') + ' ' + @json(__('m_tours.tour.summary.units.hours'));
     }
 
     const capacityInput = document.getElementById('max_capacity');
     if (capacityInput) {
-      document.getElementById('summary-capacity').textContent =
-        (capacityInput.value || 'N/A') + ' ' + @json(__('m_tours.tour.summary.units.people'));
+      const el = document.getElementById('summary-capacity');
+      if (el) el.textContent = (capacityInput.value || 'N/A') + ' ' + @json(__('m_tours.tour.summary.units.people'));
+    }
+
+    const groupSizeInput = document.getElementById('group_size');
+    if (groupSizeInput) {
+      const el = document.getElementById('summary-group-size');
+      if (el) el.textContent = (groupSizeInput.value || 'N/A') + ' ' + @json(__('m_tours.tour.summary.units.people'));
     }
 
     const colorInput = document.getElementById('color');
     if (colorInput) {
-      const colorBadge = document.getElementById('summary-color').querySelector('.badge');
-      if (colorBadge) {
-        colorBadge.style.backgroundColor = colorInput.value;
-        colorBadge.textContent = colorInput.value;
+      const wrap = document.getElementById('summary-color');
+      if (wrap) {
+        let badge = wrap.querySelector('.badge');
+        if (!badge) {
+          wrap.innerHTML = '<span class="badge rounded-pill">&nbsp;</span>';
+          badge = wrap.querySelector('.badge');
+        }
+        badge.style.backgroundColor = colorInput.value || '#3490dc';
+        badge.textContent = colorInput.value || '#3490dc';
       }
     }
 
     const activeInput = document.getElementById('is_active');
     if (activeInput) {
-      const statusBadge = document.getElementById('summary-status');
-      statusBadge.innerHTML = activeInput.checked
-        ? `<span class="badge badge-success">{{ __('m_tours.tour.status.active') }}</span>`
-        : `<span class="badge badge-secondary">{{ __('m_tours.tour.status.inactive') }}</span>`;
+      const el = document.getElementById('summary-status');
+      if (el) {
+        el.innerHTML = activeInput.checked
+          ? `<span class="badge bg-success">{{ __('m_tours.tour.status.active') }}</span>`
+          : `<span class="badge bg-secondary">{{ __('m_tours.tour.status.inactive') }}</span>`;
+      }
     }
 
     const tourTypeSelect = document.getElementById('tour_type_id');
@@ -348,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  ['name','slug','overview','length','max_capacity','color','is_active','tour_type_id'].forEach(id => {
+  ['name','slug','overview','length','max_capacity','group_size','color','is_active','tour_type_id'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener('input',  updateSummary);

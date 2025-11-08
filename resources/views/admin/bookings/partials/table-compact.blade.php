@@ -1,4 +1,34 @@
 {{-- resources/views/admin/bookings/partials/table-compact.blade.php --}}
+@php
+  use App\Models\CustomerCategory;
+
+  $locale   = app()->getLocale();
+  $currency = config('app.currency_symbol', '$');
+
+  // Mapa de nombres traducidos por category_id y por slug para resolver rápido
+  $allCats = CustomerCategory::active()
+    ->with('translations') // para que getTranslatedName use la relación ya cargada
+    ->get();
+
+  $catNameById = $allCats->mapWithKeys(function($c) use ($locale) {
+      return [$c->category_id => ($c->getTranslatedName($locale) ?: $c->slug ?: '')];
+  })->all();
+
+  $catNameBySlug = $allCats->filter(fn($c) => $c->slug)
+    ->mapWithKeys(function($c) use ($locale) {
+      $label = $c->getTranslatedName($locale);
+      // fallback a archivo de idioma por slug
+      if (!$label && $c->slug) {
+        $try = __('customer_categories.labels.' . $c->slug);
+        if ($try !== 'customer_categories.labels.' . $c->slug) $label = $try;
+        if (!$label) {
+          $try2 = __('m_tours.customer_categories.labels.' . $c->slug);
+          if ($try2 !== 'm_tours.customer_categories.labels.' . $c->slug) $label = $try2;
+        }
+      }
+      return [$c->slug => ($label ?: $c->slug)];
+    })->all();
+@endphp
 
 <table class="table table-bordered table-striped table-hover table-compact">
   <thead class="bg-primary text-white">
@@ -9,7 +39,7 @@
       <th>{{ __('m_bookings.bookings.fields.tour') }}</th>
       <th>{{ __('m_bookings.bookings.fields.tour_date') }}</th>
       <th>{{ __('m_bookings.bookings.fields.schedule') }}</th>
-      <th>Pickup Place</th>
+      <th>{{ __('m_bookings.bookings.fields.pickup_place') }}</th>
       <th>{{ __('m_bookings.bookings.fields.travelers') }}</th>
       <th>{{ __('m_bookings.bookings.fields.total') }}</th>
       <th>{{ __('m_bookings.bookings.ui.actions') }}</th>
@@ -21,13 +51,16 @@
         $detail = $booking->detail;
 
         // ===== Tour name con fallback =====
-        $liveName = optional($detail->tour)->name;
+        $liveName = optional($detail?->tour)->name;
         $snapName = $detail->tour_name_snapshot ?: ($booking->tour_name_snapshot ?? null);
-        $tourCellText = $liveName ?? ($snapName ? __('m_bookings.bookings.messages.deleted_tour_snapshot', ['name' => $snapName]) : __('m_bookings.bookings.messages.deleted_tour'));
+        $tourCellText = $liveName
+            ?? ($snapName
+                ? __('m_bookings.bookings.messages.deleted_tour_snapshot', ['name' => $snapName])
+                : __('m_bookings.bookings.messages.deleted_tour'));
         $tourDisplay = mb_strlen($tourCellText) > 30 ? (mb_substr($tourCellText, 0, 30) . '…') : $tourCellText;
 
         // ===== Horario =====
-        $scheduleLabel = $detail->schedule
+        $scheduleLabel = $detail?->schedule
             ? \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A')
             : '—';
 
@@ -35,9 +68,9 @@
         $pickupLabel = null;
         $pickupIcon  = null;
         $pickupSnap  = $detail->pickup_place_snapshot ?? $booking->pickup_place_snapshot ?? null;
-        $hotelName   = optional($detail->hotel)->name
+        $hotelName   = optional($detail?->hotel)->name
                        ?? ($detail->hotel_name_snapshot ?? $booking->hotel_name_snapshot ?? null);
-        $mpName      = optional($detail->meetingPoint)->name
+        $mpName      = optional($detail?->meetingPoint)->name
                        ?? ($detail->meeting_point_name_snapshot ?? $booking->meeting_point_name_snapshot ?? null);
 
         if ($hotelName) {
@@ -61,49 +94,78 @@
         $categoriesData = [];
         $totalPersons   = 0;
 
-        if ($detail->categories && is_string($detail->categories)) {
-            try { $categoriesData = json_decode($detail->categories, true); } catch (\Exception $e) { \Log::warning('Error parsing categories in table', ['booking_id' => $booking->booking_id]); }
-        } elseif (is_array($detail->categories)) {
+        if ($detail?->categories && is_string($detail->categories)) {
+            try { $categoriesData = json_decode($detail->categories, true) ?: []; }
+            catch (\Exception $e) { \Log::warning('Error parsing categories in table', ['booking_id' => $booking->booking_id]); }
+        } elseif (is_array($detail?->categories)) {
             $categoriesData = $detail->categories;
         }
 
-        $categories = [];
+        // Función helper para resolver nombre traducido de categoría desde array del detalle
+        $resolveCatName = function(array $cat) use ($catNameById, $catNameBySlug) {
+            // 1) por id
+            $id = $cat['category_id'] ?? $cat['id'] ?? null;
+            if ($id && isset($catNameById[$id]) && $catNameById[$id]) {
+                return $catNameById[$id];
+            }
+            // 2) por slug
+            $slug = $cat['slug'] ?? null;
+            if ($slug && isset($catNameBySlug[$slug]) && $catNameBySlug[$slug]) {
+                return $catNameBySlug[$slug];
+            }
+            // 3) por archivos de idioma (si vino el slug pero no está en catNameBySlug)
+            if ($slug) {
+                $tr = __('customer_categories.labels.' . $slug);
+                if ($tr !== 'customer_categories.labels.' . $slug) return $tr;
+                $tr2 = __('m_tours.customer_categories.labels.' . $slug);
+                if ($tr2 !== 'm_tours.customer_categories.labels.' . $slug) return $tr2;
+            }
+            // 4) fallback al nombre en el snapshot
+            return $cat['name'] ?? $cat['category_name'] ?? 'N/A';
+        };
+
+        $categoriesRendered = [];
         if (!empty($categoriesData)) {
+            // Soportar dos formatos (lista y mapa)
             if (isset($categoriesData[0]) && is_array($categoriesData[0])) {
                 foreach ($categoriesData as $cat) {
                     $qty  = (int)($cat['quantity'] ?? 0);
-                    $name = $cat['name'] ?? $cat['category_name'] ?? 'N/A';
                     if ($qty > 0) {
-                        $categories[] = ['name' => $name, 'quantity' => $qty];
+                        $name = $resolveCatName($cat);
+                        $categoriesRendered[] = ['name' => $name, 'quantity' => $qty];
                         $totalPersons += $qty;
                     }
                 }
             } else {
                 foreach ($categoriesData as $catId => $cat) {
                     $qty  = (int)($cat['quantity'] ?? 0);
-                    $name = $cat['name'] ?? $cat['category_name'] ?? "Cat #{$catId}";
                     if ($qty > 0) {
-                        $categories[] = ['name' => $name, 'quantity' => $qty];
+                        // inyectar id si la clave lo es
+                        if (!isset($cat['category_id']) && is_numeric($catId)) {
+                          $cat['category_id'] = (int)$catId;
+                        }
+                        $name = $resolveCatName($cat);
+                        $categoriesRendered[] = ['name' => $name, 'quantity' => $qty];
                         $totalPersons += $qty;
                     }
                 }
             }
         }
 
-        // Fallback legacy
-        if (empty($categories)) {
+        // Fallback legacy (adults/kids)
+        if (empty($categoriesRendered)) {
             $adults = (int)($detail->adults_quantity ?? 0);
             $kids   = (int)($detail->kids_quantity ?? 0);
-            if ($adults > 0) { $categories[] = ['name' => 'Adults', 'quantity' => $adults]; }
-            if ($kids > 0)   { $categories[] = ['name' => 'Kids',   'quantity' => $kids]; }
+            if ($adults > 0) { $categoriesRendered[] = ['name' => __('customer_categories.labels.adult') !== 'customer_categories.labels.adult' ? __('customer_categories.labels.adult') : 'Adults', 'quantity' => $adults]; }
+            if ($kids > 0)   { $categoriesRendered[] = ['name' => __('customer_categories.labels.child') !== 'customer_categories.labels.child' ? __('customer_categories.labels.child') : 'Kids',   'quantity' => $kids]; }
             $totalPersons = $adults + $kids;
         }
 
         // Tooltip con todo el desglose
         $catsTitle = '';
-        if (!empty($categories)) {
+        if (!empty($categoriesRendered)) {
             $titleParts = [];
-            foreach ($categories as $c) {
+            foreach ($categoriesRendered as $c) {
                 $titleParts[] = ($c['name'] ?? 'N/A') . ' ×' . (int)($c['quantity'] ?? 0);
             }
             $catsTitle = implode(' · ', $titleParts);
@@ -115,9 +177,9 @@
 
       <td>
         <span class="badge badge-compact badge-interactive
-          {{ $booking->status === 'pending' ? 'bg-warning text-dark' : '' }}
+          {{ $booking->status === 'pending'   ? 'bg-warning text-dark' : '' }}
           {{ $booking->status === 'confirmed' ? 'bg-success text-white' : '' }}
-          {{ $booking->status === 'cancelled' ? 'bg-danger text-white' : '' }}"
+          {{ $booking->status === 'cancelled' ? 'bg-danger text-white'  : '' }}"
           data-bs-toggle="modal"
           data-bs-target="#modalDetails{{ $booking->booking_id }}"
           style="cursor: pointer;"
@@ -127,11 +189,11 @@
         </span>
       </td>
 
-      <td>{{ $booking->user->full_name ?? $booking->user->name ?? '-' }}</td>
+      <td>{{ $booking->user->full_name ?? $booking->user->name ?? '—' }}</td>
 
       <td title="{{ $tourCellText }}">{{ $tourDisplay }}</td>
 
-      <td>{{ optional($detail)->tour_date?->format('d-M-Y') ?? '-' }}</td>
+      <td>{{ optional($detail?->tour_date)->format('d-M-Y') ?? '—' }}</td>
 
       <td>{{ $scheduleLabel }}</td>
 
@@ -151,13 +213,13 @@
       <td>
         @if($totalPersons > 0)
           <div class="cats-inline" title="{{ $catsTitle }}">
-            @foreach($categories as $c)
+            @foreach($categoriesRendered as $c)
               <span class="cat-chip" title="{{ $c['name'] }} ×{{ (int)($c['quantity'] ?? 0) }}">
                 {{ $c['name'] }} ×{{ (int)($c['quantity'] ?? 0) }}
               </span>
             @endforeach
 
-            <span class="cat-total ms-auto" title="Total pax">
+            <span class="cat-total ms-auto" title="{{ __('m_bookings.bookings.fields.total_travelers') }}">
               <i class="fas fa-users me-1"></i>{{ $totalPersons }}
             </span>
           </div>
@@ -166,7 +228,7 @@
         @endif
       </td>
 
-      <td><strong>${{ number_format($booking->total, 2) }}</strong></td>
+      <td><strong>{{ $currency }}{{ number_format((float)$booking->total, 2) }}</strong></td>
 
       <td class="text-nowrap">
         {{-- View Details --}}
@@ -208,28 +270,11 @@
   </tbody>
 </table>
 
-@if ($bookings->lastPage() > 1)
-  <nav class="mt-4 d-flex justify-content-center">
-    <ul class="pagination">
-      @if ($bookings->onFirstPage())
-        <li class="page-item disabled"><span class="page-link">«</span></li>
-      @else
-        <li class="page-item"><a class="page-link" href="{{ $bookings->previousPageUrl() }}">«</a></li>
-      @endif
-
-      @for ($i = 1; $i <= $bookings->lastPage(); $i++)
-        <li class="page-item {{ $i == $bookings->currentPage() ? 'active' : '' }}">
-          <a class="page-link" href="{{ $bookings->url($i) }}">{{ $i }}</a>
-        </li>
-      @endfor
-
-      @if ($bookings->hasMorePages())
-        <li class="page-item"><a class="page-link" href="{{ $bookings->nextPageUrl() }}">»</a></li>
-      @else
-        <li class="page-item disabled"><span class="page-link">»</span></li>
-      @endif
-    </ul>
-  </nav>
+{{-- Paginación (preserva filtros con withQueryString) --}}
+@if ($bookings instanceof \Illuminate\Contracts\Pagination\Paginator)
+  <div class="mt-3">
+    {{ $bookings->withQueryString()->links() }}
+  </div>
 @endif
 
 <style>
@@ -249,7 +294,7 @@
     line-height: 1;
     padding: .125rem .4rem;
     border-radius: .6rem;
-    background: #3f6791; /* color solicitado */
+    background: #3f6791;
     border: 1px solid var(--bs-border-color, #dee2e6);
     color: #fff;
     white-space: nowrap;
@@ -263,7 +308,7 @@
     line-height: 1;
     padding: .125rem .45rem;
     border-radius: .6rem;
-    background: #60a862; /* color solicitado */
+    background: #60a862;
     color: #fff;
     white-space: nowrap;
   }

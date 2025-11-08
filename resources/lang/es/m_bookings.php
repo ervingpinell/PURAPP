@@ -190,7 +190,9 @@ return [
             'no_results'                     => 'Sin resultados',
             'error_loading'                  => 'Error cargando datos',
             'tour_without_categories'        => 'Este tour no tiene categorías configuradas',
-            'verifying' => 'Verificando...'
+            'verifying' => 'Verificando...',
+            'min' => 'Mínimo',
+            'max' => 'Máximo',
 
         ],
 
@@ -227,6 +229,7 @@ return [
             'subtotal'       => 'Subtotal',
             'discount'       => 'Descuento',
             'total_persons'  => 'Personas',
+            'pickup_place'   => 'Lugar de recogida'
 
         ],
 
@@ -428,8 +431,9 @@ return [
         'pricing_info'  => 'Información de Precios',
         'subtotal'      => 'Subtotal',
         'discount'      => 'Descuento',
+        'total_persons' =>'Total de personas',
     ],
-    
+
     // =========================================================
     // [08] VIAJEROS (MODAL)
     // =========================================================

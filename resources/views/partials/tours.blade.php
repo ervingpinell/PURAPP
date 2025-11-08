@@ -118,13 +118,39 @@ $homeRowsLG = min(4, max(1, (int)ceil($typeTitles->map(fn($t)=>estimate_rows($t,
                   $unitLabel = __('adminlte::adminlte.horas');
                   $durLabel  = __('adminlte::adminlte.duration');
 
-                  // Obtener categorías activas con precios
-                  $activeCategories = $tour->prices()
-                      ->where('is_active', true)
-                      ->whereHas('category', fn($q) => $q->where('is_active', true))
-                      ->with('category')
-                      ->orderBy('category_id')
-                      ->get();
+                  // ✅ Usar la relación ya cargada (no volver a consultar):
+                  // Debes tener prices -> category.translations eager-loaded en el controller.
+                  $activeCategories = collect($tour->prices ?? [])
+                      ->filter(fn($p) => $p->is_active && $p->category && $p->category->is_active)
+                      ->sortBy('category_id')
+                      ->values();
+
+                  // Helper local para nombre traducido de categoría
+                  $catName = function ($cat) {
+                      if (!$cat) return 'N/A';
+                      // Si el modelo tiene el helper:
+                      if (method_exists($cat, 'getTranslatedName')) {
+                          return $cat->getTranslatedName(app()->getLocale());
+                      }
+                      // Si no, buscamos en translations cargadas:
+                      $loc = app()->getLocale();
+                      $fb  = config('app.fallback_locale', 'es');
+                      $t   = optional($cat->translations);
+                      return $t->firstWhere('locale', $loc)->name
+                          ?? $t->firstWhere('locale', $fb)->name
+                          ?? ($cat->display_name ?? $cat->name ?? 'N/A');
+                  };
+
+                  // Helper para rango de edad real
+                  $ageRangeText = function ($cat) {
+                      if (!$cat) return null;
+                      $from = $cat->age_from;
+                      $to   = $cat->age_to;
+                      if (is_null($from) && is_null($to)) return null;
+                      if (!is_null($from) && is_null($to)) return "{$from}+";
+                      if (is_null($from) && !is_null($to)) return "0–{$to}";
+                      return "{$from}–{$to}";
+                  };
                 @endphp
 
                 <div class="col d-flex">
@@ -143,24 +169,16 @@ $homeRowsLG = min(4, max(1, (int)ceil($typeTitles->map(fn($t)=>estimate_rows($t,
                         <div class="mb-3 small mt-auto">
                           @foreach($activeCategories as $priceRecord)
                             @php
-                              $category = $priceRecord->category;
-                              $categoryName = $category->name ?? 'N/A';
-                              $categorySlug = $category->slug ?? strtolower($categoryName);
-                              $price = $priceRecord->price;
-
-                              // Obtener rango de edad si existe
-                              $ageRange = '';
-                              if ($categorySlug === 'adult') {
-                                  $ageRange = __('adminlte::adminlte.age_10_plus');
-                              } elseif ($categorySlug === 'kid') {
-                                  $ageRange = __('adminlte::adminlte.age_4_to_9');
-                              }
+                              $category   = $priceRecord->category;
+                              $nameTr     = $catName($category);
+                              $price      = (float) $priceRecord->price;
+                              $ageText    = $ageRangeText($category);
                             @endphp
                             <div class="d-flex justify-content-between">
                               <div>
-                                <strong>{{ $categoryName }}</strong>
-                                @if($ageRange)
-                                  <small>({{ $ageRange }})</small>
+                                <strong>{{ $nameTr }}</strong>
+                                @if($ageText)
+                                  <small>({{ $ageText }})</small>
                                 @endif
                               </div>
                               <strong style="color:#006633">${{ number_format($price, 2) }}</strong>

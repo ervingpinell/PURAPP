@@ -1,5 +1,5 @@
 <?php
-
+// app/Http/Requests/Tour/CustomerCategory/StoreCustomerCategoryRequest.php
 namespace App\Http\Requests\Tour\CustomerCategory;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -7,56 +7,48 @@ use Illuminate\Validation\Rule;
 
 class StoreCustomerCategoryRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        return true; // O verificar permisos específicos
-    }
+    public function authorize(): bool { return true; }
 
     public function rules(): array
     {
-        return [
+        $id = $this->route('category')?->category_id;
+
+        $rules = [
             'slug'      => [
-                'required',
-                'string',
-                'max:50',
-                'regex:/^[a-z0-9_-]+$/',
-                Rule::unique('customer_categories', 'slug')
-                    ->ignore($this->route('category')?->category_id, 'category_id'),
+                'required','alpha_dash','max:60',
+                Rule::unique('customer_categories','slug')->ignore($id, 'category_id'),
             ],
-            'name'      => 'required|string|max:100',
-            'age_from'  => 'required|integer|min:0|max:255',
-            'age_to'    => 'nullable|integer|min:0|max:255|gte:age_from',
-            'order'     => 'required|integer|min:0|max:255',
-            'is_active' => 'boolean',
+            'age_from'  => ['required','integer','min:0'],
+            'age_to'    => ['nullable','integer','min:0','gte:age_from'],
+            'order'     => ['nullable','integer','min:0'],
+            'is_active' => ['sometimes','boolean'],
+
+            // Traducciones
+            'names'     => ['required','array'],
         ];
+
+        // Al menos el primer idioma debe venir
+        $first = supported_locales()[0] ?? 'es';
+        $rules["names.$first"] = ['required','string','max:120'];
+
+        // El resto opcionales
+        foreach (supported_locales() as $loc) {
+            if ($loc === $first) continue;
+            $rules["names.$loc"] = ['nullable','string','max:120'];
+        }
+
+        // Flags de auto-traducción opcionales
+        $rules['auto_translate'] = ['sometimes','boolean'];
+        $rules['regen_missing']  = ['sometimes','boolean'];
+
+        return $rules;
     }
 
-    public function messages(): array
+    public function prepareForValidation(): void
     {
-        return [
-            'age_to.gte' => 'La edad hasta debe ser mayor o igual que la edad desde.',
-            'slug.regex' => 'El slug solo puede contener letras minúsculas, números, guiones y guiones bajos.',
-        ];
-    }
-
-    /**
-     * Validación adicional después de las reglas básicas
-     */
-    public function withValidator($validator)
-    {
-        $validator->after(function ($validator) {
-            $category = new \App\Models\CustomerCategory($this->validated());
-
-            if ($this->route('category')) {
-                $category->category_id = $this->route('category')->category_id;
-            }
-
-            if (!$category->validateNoOverlap()) {
-                $validator->errors()->add(
-                    'age_from',
-                    'Los rangos de edad no pueden solaparse con otras categorías existentes.'
-                );
-            }
-        });
+        $this->merge([
+            'is_active' => (bool) $this->boolean('is_active'),
+            'order'     => $this->input('order', 0),
+        ]);
     }
 }

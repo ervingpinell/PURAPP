@@ -153,20 +153,83 @@
 
 @section('content')
 @php
+  use Illuminate\Support\Str;
+
   $fmt = fn($n)=>number_format((float)$n,2,'.','');
   $promo = session('public_cart_promo');
 
+  // Subtotal por ítem (categorías o legacy adultos/niños)
   $itemSub = function($it){
     $s=0;$c=collect($it->categories??[]);
-    if($c->isNotEmpty()){foreach($c as $x){$s+=(int)($x['quantity']??0)*(float)($x['price']??0);}return (float)$s;}
+    if($c->isNotEmpty()){
+      foreach($c as $x){ $s+=(int)($x['quantity']??0)*(float)($x['price']??0); }
+      return (float)$s;
+    }
     $s+=(int)($it->adults_quantity??0)*(float)($it->tour->adult_price??0);
     $s+=(int)($it->kids_quantity??0)*(float)($it->tour->kid_price??0);
     return (float)$s;
   };
 
-  $inferLabel=function($cat){
-    $code=strtolower((string)(data_get($cat,'code')??''));$name=strtolower((string)(data_get($cat,'name')??data_get($cat,'label')??data_get($cat,'description')??''));$hay=$code.' '.$name;
-    if(str_contains($hay,'adult'))return'Adult'; if(str_contains($hay,'kid')||str_contains($hay,'child')||str_contains($hay,'niño'))return'Kid'; return'Category';
+  // ====== Mapa: category_id -> nombre traducido desde BD ======
+  $loc = app()->getLocale();
+  $fb  = config('app.fallback_locale','es');
+
+  $categoryIdsInCart = collect($cart?->items ?? [])
+      ->flatMap(fn($it) => collect($it->categories ?? [])->pluck('category_id')->filter())
+      ->unique()->values();
+
+  $categoryNamesById = collect();
+  if ($categoryIdsInCart->isNotEmpty()) {
+    $catModels = \App\Models\CustomerCategory::whereIn('category_id', $categoryIdsInCart)
+      ->with('translations')
+      ->get();
+
+    $categoryNamesById = $catModels->mapWithKeys(function($c) use ($loc, $fb) {
+      $name = method_exists($c, 'getTranslated')
+        ? ($c->getTranslated('name') ?? $c->name)
+        : (optional($c->translations->firstWhere('locale', $loc))->name
+          ?? optional($c->translations->firstWhere('locale', $fb))->name
+          ?? $c->name);
+      return [$c->category_id => $name];
+    });
+  }
+
+  // ====== Resolutor de nombre traducido por categoría (snapshot) ======
+  $resolveCatLabel = function(array $cat) use ($categoryNamesById) {
+    // 1) Campos directos del snapshot (ya pueden venir traducidos)
+    $name = data_get($cat,'i18n_name')
+        ?? data_get($cat,'name')
+        ?? data_get($cat,'label')
+        ?? data_get($cat,'category_name')
+        ?? data_get($cat,'category.name');
+
+    // 2) Por ID contra la BD (mapa)
+    $cid = (int) (data_get($cat,'category_id') ?? data_get($cat,'id') ?? 0);
+    if (!$name && $cid && $categoryNamesById->has($cid)) {
+      $name = $categoryNamesById->get($cid);
+    }
+
+    // 3) Por code (adult/kid, etc.) con traducciones
+    if (!$name) {
+      $code = Str::lower((string) data_get($cat,'code',''));
+      if (in_array($code,['adult','adults'])) {
+        $name = __('adminlte::adminlte.adult'); // fallback
+      } elseif (in_array($code,['kid','kids','child','children'])) {
+        $name = __('adminlte::adminlte.kid'); // fallback
+      } elseif ($code !== '') {
+        $tr = __($code);
+        $name = ($tr === $code) ? $code : $tr;
+      }
+    }
+
+    // 4) Por slug “bonito”
+    if (!$name) {
+      $slug = (string) (data_get($cat,'category_slug') ?? data_get($cat,'slug') ?? '');
+      if ($slug) $name = Str::of($slug)->replace(['_','-'],' ')->title();
+    }
+
+    // 5) Fallback genérico traducido
+    return $name ?: __('adminlte::adminlte.category');
   };
 
   $raw=(float)$cart->items->sum(fn($it)=>$itemSub($it));
@@ -346,16 +409,25 @@
                 @if($cats->isNotEmpty())
                   @foreach($cats as $c)
                     @php
-                      $q=(int)data_get($c,'quantity',0); $u=(float)data_get($c,'price',0); $sub=$q*$u; $lab=$inferLabel($c);
-                      if($lab==='Category'){$lab=$loop->first?'Adult':($loop->iteration===2?'Kid':'Category');}
-                      $isAdult=strtolower($lab)==='adult'; $isKid=strtolower($lab)==='kid';
+                      $q   = (int)   data_get($c,'quantity',0);
+                      $u   = (float) data_get($c,'price',0);
+                      $sub = $q * $u;
+                      $lab = $resolveCatLabel((array)$c);
+
+                      $code = Str::lower((string) data_get($c,'code',''));
+                      $isAdult = in_array($code,['adult','adults']);
+                      $isKid   = in_array($code,['kid','kids','child','children']);
                     @endphp
                     @if($q>0)
                       <div class="category-line">
                         <div class="category-left">
-                          @if($isAdult)<i class="fas fa-user"></i><strong>{{ __('m_checkout.categories.adult') }}</strong>
-                          @elseif($isKid)<i class="fas fa-child"></i><strong>{{ __('m_checkout.categories.kid') }}</strong>
-                          @else<i class="fas fa-user-friends"></i><span>{{ $lab }}</span>@endif
+                          @if($isAdult)
+                            <i class="fas fa-user"></i><strong>{{ __('m_checkout.categories.adult') }}</strong>
+                          @elseif($isKid)
+                            <i class="fas fa-child"></i><strong>{{ __('m_checkout.categories.kid') }}</strong>
+                          @else
+                            <i class="fas fa-user-friends"></i><span>{{ $lab }}</span>
+                          @endif
                           <span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span>
                         </div>
                         <div class="category-total">${{ $fmt($sub) }}</div>
@@ -366,7 +438,8 @@
                   @if((int)($it->adults_quantity??0)>0)
                     @php $q=(int)$it->adults_quantity; $u=(float)($it->tour->adult_price??0); @endphp
                     <div class="category-line">
-                      <div class="category-left"><i class="fas fa-user"></i><strong>{{ __('m_checkout.categories.adult') }}</strong>
+                      <div class="category-left">
+                        <i class="fas fa-user"></i><strong>{{ __('m_checkout.categories.adult') }}</strong>
                         <span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span>
                       </div>
                       <div class="category-total">${{ $fmt($q*$u) }}</div>
@@ -375,7 +448,8 @@
                   @if((int)($it->kids_quantity??0)>0)
                     @php $q=(int)$it->kids_quantity; $u=(float)($it->tour->kid_price??0); @endphp
                     <div class="category-line">
-                      <div class="category-left"><i class="fas fa-child"></i><strong>{{ __('m_checkout.categories.kid') }}</strong>
+                      <div class="category-left">
+                        <i class="fas fa-child"></i><strong>{{ __('m_checkout.categories.kid') }}</strong>
                         <span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span>
                       </div>
                       <div class="category-total">${{ $fmt($q*$u) }}</div>
@@ -518,16 +592,25 @@
               <div class="categories-section">
                 @foreach($cats as $c)
                   @php
-                    $q=(int)data_get($c,'quantity',0); $u=(float)data_get($c,'price',0); $sub=$q*$u; $lab=$inferLabel($c);
-                    if($lab==='Category'){$lab=$loop->first?'Adult':($loop->iteration===2?'Kid':'Category');}
-                    $isAdult=strtolower($lab)==='adult'; $isKid=strtolower($lab)==='kid';
+                    $q   = (int)   data_get($c,'quantity',0);
+                    $u   = (float) data_get($c,'price',0);
+                    $sub = $q * $u;
+                    $lab = $resolveCatLabel((array)$c);
+
+                    $code = Str::lower((string) data_get($c,'code',''));
+                    $isAdult = in_array($code,['adult','adults']);
+                    $isKid   = in_array($code,['kid','kids','child','children']);
                   @endphp
                   @if($q>0)
                     <div class="category-line">
                       <div class="category-left">
-                        @if($isAdult)<i class="fas fa-user"></i><strong>{{ __('m_checkout.categories.adult') }}</strong>
-                        @elseif($isKid)<i class="fas fa-child"></i><strong>{{ __('m_checkout.categories.kid') }}</strong>
-                        @else<i class="fas fa-user-friends"></i><span>{{ $lab }}</span>@endif
+                        @if($isAdult)
+                          <i class="fas fa-user"></i><strong>{{ __('m_checkout.categories.adult') }}</strong>
+                        @elseif($isKid)
+                          <i class="fas fa-child"></i><strong>{{ __('m_checkout.categories.kid') }}</strong>
+                        @else
+                          <i class="fas fa-user-friends"></i><span>{{ $lab }}</span>
+                        @endif
                         <span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span>
                       </div>
                       <div class="category-total">${{ $fmt($sub) }}</div>
@@ -539,11 +622,23 @@
               <div class="categories-section">
                 @if((int)($it->adults_quantity??0)>0)
                   @php $q=(int)$it->adults_quantity; $u=(float)($it->tour->adult_price??0); @endphp
-                  <div class="category-line"><div class="category-left"><i class="fas fa-user"></i><strong>{{ __('m_checkout.categories.adult') }}</strong><span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span></div><div class="category-total">${{ $fmt($q*$u) }}</div></div>
+                  <div class="category-line">
+                    <div class="category-left">
+                      <i class="fas fa-user"></i><strong>{{ __('m_checkout.categories.adult') }}</strong>
+                      <span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span>
+                    </div>
+                    <div class="category-total">${{ $fmt($q*$u) }}</div>
+                  </div>
                 @endif
                 @if((int)($it->kids_quantity??0)>0)
                   @php $q=(int)$it->kids_quantity; $u=(float)($it->tour->kid_price??0); @endphp
-                  <div class="category-line"><div class="category-left"><i class="fas fa-child"></i><strong>{{ __('m_checkout.categories.kid') }}</strong><span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span></div><div class="category-total">${{ $fmt($q*$u) }}</div></div>
+                  <div class="category-line">
+                    <div class="category-left">
+                      <i class="fas fa-child"></i><strong>{{ __('m_checkout.categories.kid') }}</strong>
+                      <span class="qty-badge">{{ $q }}x</span><span class="price-detail">(${{ $fmt($u) }} × {{ $q }})</span>
+                    </div>
+                    <div class="category-total">${{ $fmt($q*$u) }}</div>
+                  </div>
                 @endif
               </div>
             @endif

@@ -25,7 +25,7 @@ class BookingValidationService
             $errors[] = __('m_bookings.validation.min_one_person_required');
         }
 
-        // Categorías activas con precio
+        // Categorías activas con precio (ya con nombre traducido resuelto)
         $active = $this->getActiveCategoriesForTour($tour);
         if ($active->isEmpty()) {
             $errors[] = __('m_bookings.validation.no_active_categories');
@@ -87,7 +87,7 @@ class BookingValidationService
                 'max_global' => $maxGlobal,
                 'categories' => $active->map(fn($cat) => [
                     'category_id' => $cat->category_id,
-                    'name'        => $cat->name,
+                    'name'        => $cat->name,          // <- YA RESUELTO
                     'slug'        => $cat->slug,
                     'min'         => $cat->min_quantity,
                     'max'         => $cat->max_quantity,
@@ -97,7 +97,11 @@ class BookingValidationService
         ];
     }
 
-    /** Categorías activas (con precio) del tour */
+    /**
+     * Categorías activas (con precio) del tour.
+     * Devuelve una colección de stdClass con:
+     * category_id, name (traducido/resuelto), slug, min_quantity, max_quantity, price
+     */
     protected function getActiveCategoriesForTour(Tour $tour): Collection
     {
         return $tour->prices()
@@ -107,10 +111,19 @@ class BookingValidationService
             ->orderBy('category_id')
             ->get()
             ->map(function ($price) {
+                $catModel = $price->category;
+
+                // Resolver nombre traducido con fallbacks
+                $resolvedName = $this->resolveCategoryLabel($catModel);
+
+                // Slug seguro
+                $slug = $catModel->slug ?? (isset($catModel->name) ? \Str::slug($catModel->name) : null);
+                $slug = $slug ?: 'category-'.$catModel->category_id;
+
                 return (object) [
                     'category_id'  => (int) $price->category_id,
-                    'name'         => $price->category->name,
-                    'slug'         => $price->category->slug ?? strtolower($price->category->name),
+                    'name'         => $resolvedName,                       // <- nombre ya final
+                    'slug'         => $slug,
                     'min_quantity' => (int) $price->min_quantity,
                     'max_quantity' => (int) $price->max_quantity,
                     'price'        => (float) $price->price,
@@ -118,7 +131,9 @@ class BookingValidationService
             });
     }
 
-    /** Límits para frontend */
+    /**
+     * Límits para frontend
+     */
     public function getLimitsForTour(Tour $tour): array
     {
         $maxGlobal = (int) config('booking.max_persons_per_booking', 12);
@@ -128,12 +143,46 @@ class BookingValidationService
             'max_persons_total' => $maxGlobal,
             'categories'        => $active->map(fn($cat) => [
                 'category_id' => $cat->category_id,
-                'name'        => $cat->name,
+                'name'        => $cat->name,        // <- YA RESUELTO (no llamar métodos aquí)
                 'slug'        => $cat->slug,
                 'min'         => $cat->min_quantity,
                 'max'         => $cat->max_quantity,
                 'price'       => $cat->price,
             ])->toArray(),
         ];
+    }
+
+    /**
+     * Resolver etiqueta traducida de la categoría con fallbacks:
+     * 1) Si el modelo tiene getTranslatedName($locale), úsalo.
+     * 2) Si hay slug, intenta con claves de lang:
+     *    - 'customer_categories.labels.{slug}'
+     *    - 'm_tours.customer_categories.labels.{slug}'
+     * 3) Fallback al nombre crudo.
+     */
+    protected function resolveCategoryLabel($categoryModel): string
+    {
+        $locale = app()->getLocale();
+
+        // 1) Método del modelo (si existe)
+        if (is_object($categoryModel) && method_exists($categoryModel, 'getTranslatedName')) {
+            $name = $categoryModel->getTranslatedName($locale);
+            if (!empty($name)) return $name;
+        }
+
+        // 2) Claves de lang por slug
+        $slug = $categoryModel->slug ?? (isset($categoryModel->name) ? \Str::slug($categoryModel->name) : null);
+        if (!empty($slug)) {
+            foreach ([
+                "customer_categories.labels.$slug",
+                "m_tours.customer_categories.labels.$slug",
+            ] as $key) {
+                $tr = __($key);
+                if ($tr !== $key) return $tr;
+            }
+        }
+
+        // 3) Fallback: nombre crudo
+        return (string) ($categoryModel->name ?? ucfirst($slug ?? 'Category'));
     }
 }

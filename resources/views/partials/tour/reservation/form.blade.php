@@ -2,7 +2,7 @@
 use Carbon\Carbon;
 use App\Models\AppSetting;
 
-$tz     = config('app.timezone', 'America/Costa_Rica');
+$tz      = config('app.timezone', 'America/Costa_Rica');
 $gCutoff = (string) AppSetting::get('booking.cutoff_hour', config('booking.cutoff_hour', '18:00'));
 $gLead   = (int)    AppSetting::get('booking.lead_days', (int) config('booking.lead_days', 1));
 
@@ -44,7 +44,7 @@ $rulesPayload = [
   'initialMin'=> $initialMin,
 ];
 
-// Obtener categorías activas para data attributes
+// Obtener categorías activas para data attributes (con nombre traducido)
 $activeCategories = $tour->prices()
     ->where('is_active', true)
     ->whereHas('category', fn($q) => $q->where('is_active', true))
@@ -53,12 +53,15 @@ $activeCategories = $tour->prices()
     ->get();
 
 $categoriesDataAttr = $activeCategories->map(function($priceRecord) {
+    $cat = $priceRecord->category;
+    $translatedName = optional($cat)->getTranslatedName() ?? ($cat->name ?? 'Category');
     return [
-        'id' => (int) $priceRecord->category_id,
-        'slug' => $priceRecord->category->slug ?? strtolower($priceRecord->category->name ?? ''),
+        'id'    => (int) $priceRecord->category_id,
+        'slug'  => $cat?->slug ?? \Illuminate\Support\Str::slug($translatedName),
+        'label' => $translatedName, // 👉 nombre traducido disponible para el JS
         'price' => (float) $priceRecord->price,
-        'min' => (int) $priceRecord->min_quantity,
-        'max' => (int) $priceRecord->max_quantity,
+        'min'   => (int) $priceRecord->min_quantity,
+        'max'   => (int) $priceRecord->max_quantity,
     ];
 })->values()->toJson();
 
@@ -66,7 +69,7 @@ $maxPersonsGlobal = (int) config('booking.max_persons_per_booking', 12);
 @endphp
 
 <form action="{{ route('public.carts.add') }}" method="POST"
-class="reservation-box gv-ui is-compact is-compact-2 p-3 shadow-sm rounded bg-white mb-4 border"
+  class="reservation-box gv-ui is-compact is-compact-2 p-3 shadow-sm rounded bg-white mb-4 border"
   data-categories="{{ e($categoriesDataAttr) }}"
   data-max-total="{{ $maxPersonsGlobal }}"
 >

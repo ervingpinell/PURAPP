@@ -32,7 +32,7 @@ class HomeController extends Controller
             // 1) Meta de tipos
             $typeMeta = $this->loadTypeMeta($currentLocale, $fallbackLocale);
 
-            // 2) Cargar tours activos con traducciones y precios (categorías)
+            // 2) Cargar tours activos con traducciones y precios (categorías) + translations de categoría
             $tours = $this->loadActiveToursWithTranslations($currentLocale, $fallbackLocale)
                 ->map(function ($tour) use ($currentLocale, $fallbackLocale) {
                     $tr = $this->pickTranslation($tour->translations, $currentLocale, $fallbackLocale);
@@ -122,9 +122,10 @@ class HomeController extends Controller
                 'languages' => fn($q) => $q->wherePivot('is_active', true)
                     ->where('tour_languages.is_active', true)
                     ->orderBy('name'),
+                // 👇 Aquí cargamos translations de la categoría
                 'prices' => fn($q) => $q->where('is_active', true)
                     ->whereHas('category', fn($cq) => $cq->where('is_active', true))
-                    ->with('category')
+                    ->with(['category.translations'])
                     ->orderBy('category_id'),
                 'itinerary.items.translations',
                 'itinerary.translations',
@@ -162,45 +163,33 @@ class HomeController extends Controller
                 $amenity->translated_name = $amenityTr->name ?? $amenity->name;
             }
 
-            // ========================================================
-            // [1] Fechas bloqueadas manualmente (desde Admin)
-            // ========================================================
+            // [1] Fechas bloqueadas
             [$blockedGeneral, $blockedBySchedule, $fullyBlockedDates] = $this->computeTourBlocks($tour);
 
-            // ========================================================
             // [2] Fechas llenas por capacidad usando el servicio
-            // ========================================================
             $capacityDisabled = [];
             $start = Carbon::today();
             $end   = Carbon::today()->addDays(90);
 
             foreach ($tour->schedules as $schedule) {
                 $fullDates = [];
-
-                // Iterar por cada día del rango
                 $period = CarbonPeriod::create($start, $end);
                 foreach ($period as $date) {
                     $dateStr = $date->toDateString();
-
-                    // Usar el servicio de capacidad para verificar disponibilidad
                     $snap = $capacityService->capacitySnapshot(
                         $tour,
                         $schedule,
                         $dateStr,
                         excludeBookingId: null,
-                        countHolds: false // No contar holds en vista pública
+                        countHolds: false
                     );
-
-                    // Si no hay disponibilidad o está bloqueado, agregar a full
                     if ($snap['blocked'] || $snap['available'] <= 0) {
                         $fullDates[] = $dateStr;
                     }
                 }
-
                 $capacityDisabled[(string) $schedule->schedule_id] = $fullDates;
             }
 
-            // Fusionar bloqueos por exclusión y por capacidad
             foreach ($capacityDisabled as $sid => $dates) {
                 $blockedBySchedule[$sid] = array_values(array_unique(array_merge(
                     $blockedBySchedule[$sid] ?? [],
@@ -208,9 +197,7 @@ class HomeController extends Controller
                 )));
             }
 
-            // ========================================================
             // [3] Reviews con caché
-            // ========================================================
             $tourName = $tour->translated_name;
             $tourId   = $tour->tour_id;
             $cacheKey = "tour_reviews_pool:{$tourId}:" . $cacheManager->getRevision("tour.{$tourId}");
@@ -288,10 +275,11 @@ class HomeController extends Controller
                 'tourType.translations',
                 'translations',
                 'coverImage',
+                // 👇 Aquí también cargamos translations de la categoría
                 'prices' => function($q) {
                     $q->where('is_active', true)
                       ->whereHas('category', fn($cq) => $cq->where('is_active', true))
-                      ->with('category')
+                      ->with(['category.translations'])
                       ->orderBy('category_id');
                 }
             ])
@@ -300,7 +288,6 @@ class HomeController extends Controller
                      ->on('o.tour_type_id', '=', 'tours.tour_type_id');
             })
             ->where('tours.is_active', true)
-            // Orden por categoría y posición
             ->orderBy('tours.tour_type_id')
             ->orderByRaw('CASE WHEN o.position IS NULL THEN 1 ELSE 0 END')
             ->orderBy('o.position')
@@ -340,8 +327,8 @@ class HomeController extends Controller
                     return in_array($slug, ['kid', 'nino', 'child', 'kids', 'children']);
                 });
 
-$tour->setAttribute('preview_adult_price', $adultPrice ? (float)$adultPrice->price : $tour->min_price);
-$tour->setAttribute('preview_kid_price',   $kidPrice   ? (float)$kidPrice->price   : null);
+                $tour->setAttribute('preview_adult_price', $adultPrice ? (float)$adultPrice->price : $tour->min_price);
+                $tour->setAttribute('preview_kid_price',   $kidPrice   ? (float)$kidPrice->price   : null);
 
                 return $tour;
             });

@@ -11,11 +11,9 @@
       : 'cart-icon-wrapper position-relative dropdown-toggle';
   $iconCls     = $isDesktop ? 'fas fa-shopping-cart' : 'fas fa-shopping-cart text-white';
 
-  // ===== Datos del header =====
   $headerCart  = $headerCart  ?? null;
   $headerCount = $headerCount ?? ($headerCart?->items?->count() ?? 0);
 
-  // Total del header: primero por categories snapshot, si no, legacy adults/kids
   $headerTotal = $headerTotal ?? (
     $headerCart
       ? (float) $headerCart->items->sum(function ($i) {
@@ -33,14 +31,12 @@
       : 0.0
   );
 
-  // ===== Timer =====
   $expiresIso      = optional($headerCart?->expires_at)->toIso8601String();
   $totalMinutesCfg = (int) config('cart.expiry_minutes', 15);
   $extendMinutes   = (int) config('cart.extend_minutes', 10);
   $maxExt          = (int) config('cart.max_extensions', 1);
   $extendedCount   = (int) ($headerCart->extended_count ?? 0);
 
-  // ===== Imagen de portada =====
   $coverFromTour = function ($tour) {
       if (!$tour) return asset('images/volcano.png');
       if (!empty($tour->image_path)) return asset('storage/'.$tour->image_path);
@@ -95,7 +91,6 @@
          data-refresh-endpoint="{{ route('public.carts.refreshExpiry') }}">
 
       @if($headerCart && $headerCount)
-        {{-- Timer compacto --}}
         @if($expiresIso)
           <div class="mini-cart-timer-simple">
             <div class="timer-header">
@@ -117,7 +112,6 @@
           </div>
         @endif
 
-        {{-- Lista de ítems --}}
         <div class="mini-cart-list">
           @foreach($headerCart->items as $it)
             @php
@@ -136,7 +130,6 @@
             @endphp
 
             <div class="mini-cart-item-wrapper">
-              {{-- Remover --}}
               <form class="mini-cart-remove-form"
                     action="{{ route('public.carts.destroy', $it->item_id) }}"
                     method="POST"
@@ -156,7 +149,6 @@
                     {{ $it->tour?->getTranslatedName() ?? '-' }}
                   </div>
 
-                  {{-- Meta compacta: fecha + hora en una sola línea --}}
                   <div class="mini-cart-meta">
                     <i class="far fa-calendar-alt"></i>
                     <span>{{ \Carbon\Carbon::parse($it->tour_date)->format('d/M/Y') }}</span>
@@ -169,12 +161,30 @@
                     @endif
                   </div>
 
-                  {{-- Desglose por categorías si existe snapshot; si no, muestra adultos/niños legado --}}
                   @if($itemCats->isNotEmpty())
                     <ul class="mini-cart-cats">
                       @foreach($itemCats as $c)
                         @php
-                          $cName  = $c['category_name'] ?? ($c['name'] ?? ($c['category_slug'] ?? '—'));
+                          // === Nombre traducido de categoría ===
+                          // Prioridad: snapshot i18n_name / name -> mapa por category_id -> slug bonito -> '—'
+                          $cid   = (int)($c['category_id'] ?? ($c['id'] ?? 0));
+                          $raw   = $c['i18n_name'] ?? $c['name'] ?? null;
+
+                          $fromMap = null;
+                          if (!$raw && $cid > 0 && !empty($categoryNamesById[$cid])) {
+                            $fromMap = $categoryNamesById[$cid];
+                          }
+
+                          $fallbackSlug = null;
+                          if (!$raw && !$fromMap) {
+                            $slug = (string)($c['category_slug'] ?? '');
+                            $fallbackSlug = $slug
+                              ? \Illuminate\Support\Str::of($slug)->replace(['_','-'],' ')->title()
+                              : '—';
+                          }
+
+                          $cName  = $raw ?: ($fromMap ?: $fallbackSlug);
+
                           $cQty   = (int)   ($c['quantity'] ?? 0);
                           $cPrice = (float) ($c['price'] ?? 0);
                           $cSub   = $cQty * $cPrice;
@@ -211,7 +221,6 @@
           @endforeach
         </div>
 
-        {{-- Footer --}}
         <div class="mini-cart-footer">
           <div class="mini-cart-total">
             <span class="mini-cart-total-label">{{ __('adminlte::adminlte.totalEstimated') }}</span>
@@ -279,7 +288,6 @@
       e.preventDefault();
       e.stopPropagation();
 
-      // Cierra cualquier dropdown abierto (desktop y mobile)
       const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
       openDropdowns.forEach(dd => {
         const trigger = document.querySelector(`[aria-controls="${dd.id}"]`);
@@ -321,7 +329,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-      // Inicializa timer para AMBOS íconos (desktop y mobile)
       initCartTimer('cartDropdownDesktopMenu', 'cartDropdownDesktop');
       initCartTimer('cartDropdownMobileMenu',  'cartDropdownMobile');
     });
@@ -340,7 +347,7 @@
 
       const parseIsoSafe = (s) => {
         if (!s) return NaN;
-        const clean = s.replace(/\.\d{1,6}(Z)?$/, '$1'); // tolera microsegundos
+        const clean = s.replace(/\.\d{1,6}(Z)?$/, '$1');
         const t = Date.parse(clean);
         return isNaN(t) ? Date.parse(s) : t;
       };
@@ -491,7 +498,6 @@
         triggerEl.addEventListener('hidden.bs.dropdown', stopTick);
       }
 
-      // Si ya está abierto (raro pero posible), inicia
       if (menu.classList.contains('show')) startTick();
     }
   </script>

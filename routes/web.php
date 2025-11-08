@@ -49,6 +49,8 @@ use App\Http\Controllers\Admin\TranslationController;
 use App\Http\Controllers\Admin\CapacityController;
 use App\Http\Controllers\Admin\CustomerCategoryController;
 use App\Http\Controllers\Admin\Tours\TourAjaxController;
+use App\Http\Controllers\Admin\API\TourDataController;
+
 
 // Public bookings controller (split)
 use App\Http\Controllers\Bookings\BookingController as PublicBookingController;
@@ -306,6 +308,15 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])
                 ->name('customer_categories.toggle');
 
             // ============================
+            // API AJAX (tours data) — UNIFICADO
+            // ============================
+            Route::prefix('api')->name('api.')->group(function () {
+                Route::get('tours/{tour}/schedules',  [\App\Http\Controllers\Admin\API\TourDataController::class, 'schedules'])->name('tours.schedules');
+                Route::get('tours/{tour}/languages',  [\App\Http\Controllers\Admin\API\TourDataController::class, 'languages'])->name('tours.languages');
+                Route::get('tours/{tour}/categories', [\App\Http\Controllers\Admin\API\TourDataController::class, 'categories'])->name('tours.categories');
+            });
+
+            // ============================
             // TOURS
             // ============================
             Route::prefix('tours')->name('tours.')->group(function () {
@@ -320,17 +331,19 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])
                 Route::delete('/{tour}', [TourController::class, 'destroy'])->name('destroy');
                 Route::post('/{tour}/restore', [TourController::class, 'restore'])->name('restore');
                 Route::delete('/{tour}/purge', [TourController::class, 'purge'])->name('purge');
-                  // 🆕 Rutas AJAX (nuevas)
+
+                // 🆕 Rutas AJAX (nuevas)
                 Route::prefix('ajax')->name('ajax.')->group(function () {
-                        Route::get('/validate-slug', [TourAjaxController::class, 'validateSlug'])->name('validate-slug');
-                        Route::post('/create-category', [TourAjaxController::class, 'createCategory'])->name('create-category');
-                        Route::post('/create-language', [TourAjaxController::class, 'createLanguage'])->name('create-language');
-                        Route::post('/create-amenity', [TourAjaxController::class, 'createAmenity'])->name('create-amenity');
-                        Route::post('/create-schedule', [TourAjaxController::class, 'createSchedule'])->name('create-schedule');
-                        Route::post('/create-itinerary', [TourAjaxController::class, 'createItinerary'])->name('create-itinerary');
-                        Route::post('/preview-translations', [TourAjaxController::class, 'previewTranslations'])->name('preview-translations');
-                        Route::get('/load-itinerary/{itinerary}', [TourAjaxController::class, 'loadItinerary'])->name('load-itinerary');
-                    });
+                    Route::get('/validate-slug', [TourAjaxController::class, 'validateSlug'])->name('validate-slug');
+                    Route::post('/create-category', [TourAjaxController::class, 'createCategory'])->name('create-category');
+                    Route::post('/create-language', [TourAjaxController::class, 'createLanguage'])->name('create-language');
+                    Route::post('/create-amenity', [TourAjaxController::class, 'createAmenity'])->name('create-amenity');
+                    Route::post('/create-schedule', [TourAjaxController::class, 'createSchedule'])->name('create-schedule');
+                    Route::post('/create-itinerary', [TourAjaxController::class, 'createItinerary'])->name('create-itinerary');
+                    Route::post('/preview-translations', [TourAjaxController::class, 'previewTranslations'])->name('preview-translations');
+                    Route::get('/load-itinerary/{itinerary}', [TourAjaxController::class, 'loadItinerary'])->name('load-itinerary');
+                });
+
                 // -------------------- TOUR ORDER --------------------
                 Route::get('/order', [TourOrderController::class, 'index'])->name('order.index');
                 Route::post('/order/{tourType}/save', [TourOrderController::class, 'save'])->name('order.save');
@@ -370,6 +383,10 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])
                     Route::post('/{tour}/attach', [TourScheduleController::class, 'attach'])->name('attach');
                     Route::delete('/{tour}/{schedule}/detach', [TourScheduleController::class, 'detach'])->name('detach');
                     Route::patch('/{tour}/{schedule}/assignment-toggle', [TourScheduleController::class, 'toggleAssignment'])->name('assignment.toggle');
+
+                    // 🆕 ACTUALIZAR CAPACIDAD DEL PIVOTE (tour+schedule)
+                    Route::patch('/{tour}/{schedule}/pivot', [TourScheduleController::class, 'updatePivotCapacity'])
+                        ->name('update-pivot-capacity');
                 });
 
                 // -------------------- CAPACITY MANAGEMENT --------------------
@@ -505,15 +522,6 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])
                 });
 
             // ============================
-            // API AJAX (tours data)
-            // ============================
-            Route::prefix('api')->name('api.')->group(function () {
-                Route::get('tours/{tour}/schedules',  [AdminBookingController::class, 'getSchedules'])->name('tours.schedules');
-                Route::get('tours/{tour}/languages',  [AdminBookingController::class, 'getLanguages'])->name('tours.languages');
-                Route::get('tours/{tour}/categories', [AdminBookingController::class, 'getCategories'])->name('tours.categories');
-            });
-
-            // ============================
             // CART (ADMIN)
             // ============================
             Route::prefix('carts')->name('carts.')->group(function () {
@@ -630,6 +638,7 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])
             });
         });
     });
+
 
 // ============================
 // COOKIES (consent) - Outside admin middleware

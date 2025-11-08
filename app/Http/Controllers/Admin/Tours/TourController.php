@@ -39,87 +39,87 @@ class TourController extends Controller
     /** =========================================================
      *  INDEX: lista con filtros (active | inactive | archived | all)
      *  ========================================================= */
-    public function index()
-    {
-        $status = request('status', 'active');
+public function index()
+{
+    $status = request('status', 'active');
 
-        $base = Tour::query()
-            ->with([
-                'tourType',
-                'translations',
-                'prices' => function ($q) {
-                    $q->where('is_active', true)
-                      ->with(['category' => function ($cq) {
-                          $cq->where('is_active', true);
-                      }]);
-                },
-                'languages' => function ($q) {
-                    $q->wherePivot('is_active', true)
-                      ->where('tour_languages.is_active', true);
-                },
-                'amenities' => function ($q) {
-                    $q->wherePivot('is_active', true)
-                      ->where('amenities.is_active', true);
-                },
-                'itinerary.items' => function ($q) {
-                    $q->where('itinerary_items.is_active', true);
-                },
-                'schedules' => function ($q) {
-                    $q->where('schedules.is_active', true)
-                      ->wherePivot('is_active', true)
-                      ->orderBy('schedules.start_time');
-                },
-            ]);
+    $base = Tour::query()
+        ->with([
+            'tourType',
+            'translations',
+            // Eager load de precios y traducciones de categorías para evitar N+1
+            'prices' => function ($q) {
+                $q->where('is_active', true)
+                  ->with(['category' => function ($cq) {
+                      $cq->where('is_active', true)
+                         ->with('translations'); // <-- importante para getTranslatedName/fallbacks
+                  }]);
+            },
+            'languages' => function ($q) {
+                $q->wherePivot('is_active', true)
+                  ->where('tour_languages.is_active', true);
+            },
+            'amenities' => function ($q) {
+                $q->wherePivot('is_active', true)
+                  ->where('amenities.is_active', true);
+            },
+            'itinerary.items' => function ($q) {
+                $q->where('itinerary_items.is_active', true);
+            },
+            'schedules' => function ($q) {
+                $q->where('schedules.is_active', true)
+                  ->wherePivot('is_active', true)
+                  ->orderBy('schedules.start_time');
+            },
+        ])
+        ->withCount('bookings');
 
-        if (method_exists(Tour::class, 'bookings')) {
-            $base->withCount('bookings');
-        }
-
-        if ($status === 'archived') {
-            $base->onlyTrashed();
-        } elseif ($status === 'all') {
-            $base->withTrashed();
-        } elseif ($status === 'inactive') {
-            $base->where('is_active', false);
-        } else {
-            $base->where('is_active', true);
-        }
+    if ($status === 'archived') {
+        $base->onlyTrashed();
+    } elseif ($status === 'all') {
+        $base->withTrashed();
+    } elseif ($status === 'inactive') {
+        $base->where('is_active', false);
+    } else {
+        $base->where('is_active', true);
+    }
 
     $tours = $base->orderBy('tour_id')->paginate(25)->withQueryString();
 
-        // Para la tabla de listado y modales
-        $tourTypes   = TourType::where('is_active', true)->orderBy('name')->get();
-        $itineraries = Itinerary::where('is_active', true)->orderBy('name')->get();
-        $languages   = TourLanguage::where('is_active', true)->orderBy('name')->get();
-        $amenities   = Amenity::where('is_active', true)->orderBy('name')->get();
-        $schedules   = Schedule::where('is_active', true)->orderBy('start_time')->get();
-        $hotels      = HotelList::where('is_active', true)->orderBy('name')->get();
+    // Para la tabla de listado y modales
+    $tourTypes   = TourType::where('is_active', true)->orderBy('name')->get();
+    $itineraries = Itinerary::where('is_active', true)->with('items')->orderBy('name')->get();
+    $languages   = TourLanguage::where('is_active', true)->orderBy('name')->get();
+    $amenities   = Amenity::where('is_active', true)->orderBy('name')->get();
+    $schedules   = Schedule::where('is_active', true)->orderBy('start_time')->get();
+    $hotels      = HotelList::where('is_active', true)->orderBy('name')->get();
 
-        // JSON para itinerarios
-        $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {
-            return [
-                'description' => $it->description,
-                'items' => $it->items->map(function ($item) {
-                    return [
-                        'title' => $item->title,
-                        'description' => $item->description,
-                    ];
-                })->toArray()
-            ];
-        });
+    // JSON para itinerarios (vista rápida en modales)
+    $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {
+        return [
+            'description' => $it->description,
+            'items' => $it->items->map(function ($item) {
+                return [
+                    'title'       => $item->title,
+                    'description' => $item->description,
+                ];
+            })->toArray()
+        ];
+    });
 
-        return view('admin.tours.index', compact(
-            'tours',
-            'tourTypes',
-            'itineraries',
-            'itineraryJson',
-            'languages',
-            'amenities',
-            'schedules',
-            'hotels',
-            'status'
-        ));
-    }
+    return view('admin.tours.index', compact(
+        'tours',
+        'tourTypes',
+        'itineraries',
+        'itineraryJson',
+        'languages',
+        'amenities',
+        'schedules',
+        'hotels',
+        'status'
+    ));
+}
+
 
     /** =========================================================
      *  CREATE

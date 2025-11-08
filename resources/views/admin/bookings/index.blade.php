@@ -1,5 +1,4 @@
 {{-- resources/views/admin/bookings/index.blade.php --}}
-
 @extends('adminlte::page')
 
 @section('title', __('m_bookings.bookings.ui.page_title'))
@@ -10,66 +9,34 @@
 
 @push('css')
 <style>
-  /* Zoom functionality */
+  /* Zoom container */
   #bookingsTableContainer {
     transform-origin: top left;
     transition: transform 0.3s ease;
   }
 
   /* Compact table styling */
-  .table-compact {
-    font-size: 0.875rem;
-  }
-
+  .table-compact { font-size: 0.875rem; }
   .table-compact td,
-  .table-compact th {
-    padding: 0.5rem;
-    white-space: nowrap;
-  }
+  .table-compact th { padding: 0.5rem; white-space: nowrap; }
 
-  .badge-compact {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-  }
+  .badge-compact { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
 
   /* Interactive badge styling */
-  .badge-interactive {
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
+  .badge-interactive { transition: all 0.2s ease; cursor: pointer; }
+  .badge-interactive:hover { transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,0,0,.2); opacity:.9; }
+  .badge-interactive:active { transform: scale(0.98); }
 
-  .badge-interactive:hover {
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    opacity: 0.9;
-  }
-
-  .badge-interactive:active {
-    transform: scale(0.98);
-  }
-
-  /* Ensure text color for different badge states */
-  .badge.bg-warning.text-dark {
-    color: #000 !important;
-  }
-
+  /* Badge color legibility */
+  .badge.bg-warning.text-dark { color: #000 !important; }
   .badge.bg-success.text-white,
-  .badge.bg-danger.text-white {
-    color: #fff !important;
-  }
+  .badge.bg-danger.text-white { color: #fff !important; }
 
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .table-compact {
-      font-size: 0.75rem;
-    }
-  }
+  /* Responsive */
+  @media (max-width: 768px) { .table-compact { font-size: 0.75rem; } }
 
-  /* Details button hover effect */
-  .btn-details:hover {
-    transform: scale(1.1);
-    transition: transform 0.2s;
-  }
+  /* Details button hover */
+  .btn-details:hover { transform: scale(1.1); transition: transform 0.2s; }
 </style>
 @endpush
 
@@ -85,12 +52,13 @@
 
 <div class="container-fluid">
 
-  {{-- 🟩 Top buttons - MEJORADO Y ALINEADO --}}
+  {{-- 🟩 Top buttons --}}
   <div class="mb-3 d-flex flex-wrap align-items-center gap-2">
     {{-- Action Buttons --}}
-<a href="{{ route('admin.bookings.create') }}" class="btn btn-success">
-  <i class="fas fa-plus"></i> {{ __('m_bookings.bookings.ui.add_booking') }}
-</a>
+    <a href="{{ route('admin.bookings.create') }}" class="btn btn-success">
+      <i class="fas fa-plus"></i> {{ __('m_bookings.bookings.ui.add_booking') }}
+    </a>
+
     <a href="{{ route('admin.bookings.export.pdf') }}" class="btn btn-danger">
       <i class="fas fa-file-pdf"></i> {{ __('m_bookings.reports.download_pdf') }}
     </a>
@@ -102,27 +70,34 @@
     {{-- Spacer --}}
     <div class="flex-grow-1"></div>
 
-    {{-- 🔍 Quick reference filter - ALINEADO --}}
+    {{-- 🔍 Quick reference filter --}}
     <form method="GET" action="{{ route('admin.bookings.index') }}" class="d-flex">
       <div class="input-group" style="width: 280px;">
-        <input type="text" name="reference" class="form-control"
-               placeholder="{{ __('m_bookings.filters.search_reference') }}"
-               value="{{ request('reference') }}">
-        <button class="btn btn-outline-secondary" type="submit">
+        <input
+          type="text"
+          name="reference"
+          class="form-control"
+          placeholder="{{ __('m_bookings.filters.search_reference') }}"
+          value="{{ request('reference') }}"
+          aria-label="{{ __('m_bookings.filters.search_reference') }}"
+        >
+        <button class="btn btn-outline-secondary" type="submit" title="{{ __('m_bookings.ui.search') }}">
           <i class="fas fa-search"></i>
         </button>
       </div>
     </form>
 
     {{-- Advanced Filters Button --}}
-    <button class="btn btn-secondary" type="button" data-bs-toggle="collapse"
+    <button class="btn btn-secondary" type="button"
+            data-bs-toggle="collapse"
             data-bs-target="#advancedFilters"
-            aria-expanded="{{ $activeFilters ? 'true' : 'false' }}">
+            aria-expanded="{{ $activeFilters ? 'true' : 'false' }}"
+            aria-controls="advancedFilters">
       <i class="fas fa-filter"></i> {{ __('m_bookings.filters.advanced_filters') }}
     </button>
 
     {{-- Zoom Controls --}}
-    <div class="btn-group" role="group">
+    <div class="btn-group" role="group" aria-label="Zoom">
       <button type="button" class="btn btn-outline-secondary" id="zoomOut" title="{{ __('m_bookings.ui.zoom_out') }}">
         <i class="fas fa-search-minus"></i>
       </button>
@@ -144,12 +119,13 @@
   </div>
 </div>
 
-{{-- ✨ Modals --}}
+{{-- ✨ Modals por booking (detalles) --}}
 @foreach ($bookings as $booking)
   @include('admin.bookings.partials.modal-details', ['booking' => $booking])
 @endforeach
 @endsection
 
 @push('js')
-@include('admin.bookings.partials.scripts')
+  {{-- Scripts propios (incluye handlers de zoom y filtros) --}}
+  @include('admin.bookings.partials.scripts')
 @endpush
