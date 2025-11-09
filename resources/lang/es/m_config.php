@@ -39,6 +39,10 @@ return [
         'slug_auto_hint'          => 'Se generará automáticamente del nombre si se deja vacío',
         'slug_edit_hint'          => 'Cambia la URL de la política. Usa solo letras minúsculas, números y guiones.',
         'updated'                  => 'Política actualizada con éxito.',
+        'propagate_to_all_langs' => 'Propagar este cambio a todos los idiomas (EN, FR, DE, PT)',
+        'propagate_hint'         => 'Se traducirá automáticamente desde el texto actual y se sobrescribirán las traducciones existentes en esos idiomas.',
+        'update_base_es'         => 'Actualizar también la base (ES)',
+        'update_base_hint'       => 'Sobrescribe el nombre y el contenido de la política en la tabla base (español). Úsalo solo si quieres que el texto original también cambie.',
 
 
         // Lista de categorías: acciones

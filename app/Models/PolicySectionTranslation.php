@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class PolicySectionTranslation extends Model
 {
     protected $table = 'policy_section_translations';
+    protected $primaryKey = 'id';
     public $timestamps = true;
 
     protected $fillable = [
         'section_id',
-        'locale',
+        'locale',   // es, en, fr, de, pt_BR
         'name',
         'content',
     ];

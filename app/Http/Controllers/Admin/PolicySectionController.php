@@ -63,24 +63,23 @@ class PolicySectionController extends Controller
                 $baseName    = trim((string) $validated['name']);
                 $baseContent = trim((string) $validated['content']);
 
-                // === Guarda base en policy_sections (incluyendo content) ===
                 $section = PolicySection::create([
                     'policy_id'  => $policy->policy_id,
                     'name'       => $baseName,
-                    'content'    => $baseContent, // <- NUEVO: persistimos el contenido original
+                    'content'    => $baseContent, // persistir contenido original
                     'sort_order' => (int) ($validated['sort_order'] ?? 0),
                     'is_active'  => array_key_exists('is_active', $validated)
                         ? (bool) ((int) $validated['is_active'])
                         : true,
                 ]);
 
-                // Traducción automática (fallback al original si falla)
                 try { $nameTranslations    = (array) $translator->translateAll($baseName); }    catch (\Throwable $e) { $nameTranslations = []; }
                 try { $contentTranslations = (array) $translator->translateAll($baseContent); } catch (\Throwable $e) { $contentTranslations = []; }
 
                 foreach ($supportedLocales as $locale) {
+                    $norm = Policy::canonicalLocale($locale);
                     PolicySectionTranslation::updateOrCreate(
-                        ['section_id' => $section->section_id, 'locale' => $locale],
+                        ['section_id' => $section->section_id, 'locale' => $norm],
                         [
                             'name'    => $nameTranslations[$locale]    ?? $baseName,
                             'content' => $contentTranslations[$locale] ?? $baseContent,
@@ -115,7 +114,7 @@ class PolicySectionController extends Controller
     {
         $rules = [
             'name'       => ['nullable', 'string', 'max:255'],
-            'content'    => ['nullable', 'string'], // <- NUEVO: permitir actualizar contenido base
+            'content'    => ['nullable', 'string'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active'  => ['nullable', 'in:0,1'],
         ];
@@ -147,7 +146,7 @@ class PolicySectionController extends Controller
                 $updateAttributes['name'] = trim((string) $validated['name']);
             }
             if ($request->filled('content')) {
-                $updateAttributes['content'] = trim((string) $validated['content']); // <- NUEVO
+                $updateAttributes['content'] = trim((string) $validated['content']);
             }
 
             $section->update($updateAttributes);

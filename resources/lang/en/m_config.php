@@ -36,6 +36,10 @@ return [
         'slug_auto_hint'          => 'Will be automatically generated from the name if left blank',
         'slug_edit_hint'          => 'Changes the policy URL. Use only lowercase letters, numbers, and hyphens.',
         'updated'                  => 'Policy updated successfully.',
+        'propagate_to_all_langs' => 'Propagate this change to all languages (EN, FR, DE, PT)',
+        'propagate_hint'         => 'It will auto-translate from the current text and overwrite existing translations in those languages.',
+        'update_base_es'         => 'Also update base (ES)',
+        'update_base_hint'       => 'Overwrites the policy name and content in the base table (Spanish). Use only if you also want to change the original text.',
 
 
         // Category list: actions

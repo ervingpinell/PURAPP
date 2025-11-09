@@ -6,12 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class PolicyTranslation extends Model
 {
-    protected $table = 'policies_translations';
+    protected $table = 'policy_translations';
+    protected $primaryKey = 'id';
     public $timestamps = true;
 
     protected $fillable = [
         'policy_id',
-        'locale',
+        'locale',   // es, en, fr, de, pt_BR
         'name',
         'content',
     ];

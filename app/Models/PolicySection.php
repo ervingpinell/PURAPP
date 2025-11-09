@@ -32,12 +32,10 @@ class PolicySection extends Model
 
     protected static function booted()
     {
-        // Sembrar traducciones para todos los locales soportados al crear
         static::created(function (self $section) {
             $section->seedMissingTranslations();
         });
 
-        // Si cambia el nombre base, actualizar traducciones vacías
         static::updated(function (self $section) {
             if ($section->wasChanged('name')) {
                 $section->syncNameIntoTranslations();
@@ -45,26 +43,21 @@ class PolicySection extends Model
         });
     }
 
-    /**
-     * Crea traducciones faltantes para los locales soportados.
-     * Rellena name con el base y content vacío.
-     */
     public function seedMissingTranslations(?array $locales = null): void
     {
-        $locales = $locales ?: config('app.supported_locales', ['es','en','fr','pt','de']);
+        $locales = $locales ?: (array) config('app.supported_locales', ['es','en','fr','pt','de']);
         foreach ($locales as $loc) {
             $norm = Policy::canonicalLocale($loc);
             $this->translations()->firstOrCreate(
                 ['locale' => $norm],
-                ['name' => (string) $this->name, 'content' => '']
+                [
+                    'name'    => (string) $this->name,
+                    'content' => (string) ($this->content ?? ''),
+                ]
             );
         }
     }
 
-    /**
-     * Copia el nombre base a las traducciones cuyo "name" esté vacío.
-     * No sobrescribe traducciones ya personalizadas.
-     */
     public function syncNameIntoTranslations(): void
     {
         $current = (string) ($this->name ?? '');
@@ -99,22 +92,32 @@ class PolicySection extends Model
 
     public function translation(?string $locale = null)
     {
-        $locale   = $locale ?: app()->getLocale();
-        $fallback = config('app.fallback_locale', 'es');
+        $requested = \App\Models\Policy::canonicalLocale($locale ?: app()->getLocale());
+        $fallback  = config('app.fallback_locale', 'es');
 
-        $bag = $this->relationLoaded('translations') ? $this->translations : $this->translations()->get();
+        $bag = $this->relationLoaded('translations')
+            ? $this->translations
+            : $this->translations()->get();
 
-        $found = $bag->firstWhere('locale', $locale)
-            ?: $bag->firstWhere('locale', substr($locale, 0, 2));
+        $norm = fn ($v) => str_replace('-', '_', strtolower((string) $v));
 
-        if ($found) return $found;
+        if ($exact = $bag->first(fn ($t) => $norm($t->locale) === $norm($requested))) {
+            return $exact;
+        }
 
-        return $bag->firstWhere('locale', $fallback)
-            ?: $bag->firstWhere('locale', substr($fallback, 0, 2))
+        foreach ([str_replace('_','-',$requested), substr($requested, 0, 2)] as $v) {
+            if ($found = $bag->first(fn ($t) => $norm($t->locale) === $norm($v))) {
+                return $found;
+            }
+        }
+
+        return $bag->first(fn ($t) => $norm($t->locale) === $norm($fallback))
+            ?: $bag->first(fn ($t) => $norm($t->locale) === $norm(substr($fallback, 0, 2)))
             ?: $bag->first();
     }
 
-    public function translate(?string $locale = null)
+
+    public function translate(?string $locale = null): ?PolicySectionTranslation
     {
         return $this->translation($locale);
     }

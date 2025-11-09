@@ -49,6 +49,10 @@ return [
         'delete_category_confirm' => 'Diese Kategorie und ALLE zugehörigen Abschnitte löschen?<br>Dies kann nicht rückgängig gemacht werden.',
         'no_categories'           => 'Keine Kategorien gefunden.',
         'edit_category'           => 'Kategorie bearbeiten',
+        'propagate_to_all_langs' => 'Propager cette modification à toutes les langues (EN, FR, DE, PT)',
+        'propagate_hint'         => 'La traduction sera générée automatiquement à partir du texte actuel et remplacera les traductions existantes dans ces langues.',
+        'update_base_es'         => 'Mettre aussi à jour la base (ES)',
+        'update_base_hint'       => 'Écrase le nom et le contenu de la politique dans la table de base (espagnol). À utiliser uniquement si vous souhaitez également modifier le texte original.',
 
         // Formulare (Kategorie)
         'title_label'             => 'Titel',

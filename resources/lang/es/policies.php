@@ -8,6 +8,11 @@ return [
     'page_title'  => 'Políticas',
     'no_policies' => 'No hay políticas disponibles por el momento.',
     'no_sections' => 'No hay secciones disponibles por el momento.',
+    'propagate_to_all_langs' => 'Propagar este cambio a todos los idiomas (EN, FR, DE, PT)',
+    'propagate_hint'         => 'Se traducirá automáticamente desde el texto actual y se sobrescribirán las traducciones existentes en esos idiomas.',
+    'update_base_es'         => 'Actualizar también la base (ES)',
+    'update_base_hint'       => 'Sobrescribe el nombre y el contenido de la política en la tabla base (español). Úsalo solo si quieres que el texto original también cambie.',
+
 
     // =========================================================
     // [01] CHECKOUT

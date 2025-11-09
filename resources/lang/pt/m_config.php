@@ -49,6 +49,10 @@ return [
         'delete_category_confirm' => 'Excluir esta categoria e TODAS as suas seções?<br>Esta ação não pode ser desfeita.',
         'no_categories'           => 'Nenhuma categoria encontrada.',
         'edit_category'           => 'Editar categoria',
+        'propagate_to_all_langs' => 'Propagar esta alteração para todos os idiomas (EN, FR, DE, PT)',
+        'propagate_hint'         => 'A tradução será gerada automaticamente a partir do texto atual e substituirá as traduções existentes nesses idiomas.',
+        'update_base_es'         => 'Atualizar também a base (ES)',
+        'update_base_hint'       => 'Substitui o nome e o conteúdo da política na tabela base (espanhol). Use apenas se você também quiser alterar o texto original.',
 
         // Formularios (categoría)
         'title_label'             => 'Título',

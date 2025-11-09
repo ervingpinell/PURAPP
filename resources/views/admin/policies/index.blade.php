@@ -6,11 +6,11 @@
 @section('content_header')
   <h1 class="mb-2">
     <i class="fas fa-shield-alt"></i> {{ __('m_config.policies.categories_title') }}
+    <small class="text-muted">({{ strtoupper(app()->getLocale()) }})</small>
   </h1>
 @stop
 
 @section('content')
-  {{-- ALERTAS (fallback si no hay JS) --}}
   <noscript>
     @if (session('success'))
       <div class="alert alert-success">{{ __(session('success')) }}</div>
@@ -49,16 +49,14 @@
           <tbody>
             @forelse ($policies as $p)
               @php
-                $t    = $p->translation(); // traducción del locale actual
+                $t    = $p->translation();
                 $from = $p->effective_from ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('Y-m-d') : null;
                 $to   = $p->effective_to   ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('Y-m-d')   : null;
               @endphp
               <tr class="text-center">
                 <td>{{ $p->policy_id }}</td>
                 <td class="text-center">{{ $t?->name ?? '—' }}</td>
-                <td class="text-center">
-                  <code class="text-muted">{{ $p->slug }}</code>
-                </td>
+                <td class="text-center"><code class="text-muted">{{ $p->slug }}</code></td>
                 <td>
                   @if($from || $to)
                     {{ $from ?? '—' }} &rarr; {{ $to ?? '—' }}
@@ -88,9 +86,7 @@
                       <i class="fas fa-edit"></i>
                     </button>
 
-                    {{-- Toggle con SweetAlert --}}
-                    <form class="d-inline me-1 js-confirm-toggle"
-                          method="POST"
+                    <form class="d-inline me-1 js-confirm-toggle" method="POST"
                           action="{{ route('admin.policies.toggle', $p) }}"
                           data-active="{{ $p->is_active ? 1 : 0 }}">
                       @csrf
@@ -101,9 +97,7 @@
                       </button>
                     </form>
 
-                    {{-- Eliminar con SweetAlert --}}
-                    <form class="d-inline js-confirm-delete"
-                          method="POST"
+                    <form class="d-inline js-confirm-delete" method="POST"
                           action="{{ route('admin.policies.destroy', $p) }}"
                           data-message="{{ __('m_config.policies.delete_category_confirm') }}">
                       @csrf @method('DELETE')
@@ -116,7 +110,11 @@
                 </td>
               </tr>
             @empty
-              <tr><td colspan="7" class="text-center text-muted p-4">{{ __('m_config.policies.no_categories') }}</td></tr>
+              <tr>
+                <td colspan="7" class="text-center text-muted p-4">
+                  {{ __('m_config.policies.no_categories') }}
+                </td>
+              </tr>
             @endforelse
           </tbody>
         </table>
@@ -124,7 +122,7 @@
     </div>
   </div>
 
-  {{-- MODAL: Nueva categoría (base + traducción automática en store) --}}
+  {{-- MODAL: Nueva categoría (base) --}}
   <div class="modal fade" id="createPolicyModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
       <form class="modal-content" method="POST" action="{{ route('admin.policies.store') }}">
@@ -146,8 +144,7 @@
             <div class="col-md-3 d-flex align-items-end">
               <div class="form-check">
                 <input type="hidden" name="is_active" value="0">
-                <input type="checkbox" name="is_active" value="1"
-                       class="form-check-input" id="p-active-new" checked>
+                <input type="checkbox" name="is_active" value="1" class="form-check-input" id="p-active-new" checked>
                 <label class="form-check-label" for="p-active-new">{{ __('m_config.policies.active') }}</label>
               </div>
             </div>
@@ -158,7 +155,6 @@
           <div class="mb-3">
             <label class="form-label">{{ __('m_config.policies.name') }}</label>
             <input type="text" name="name" class="form-control" required>
-            <small class="text-muted">{{ __('m_config.policies.lang_autodetect_hint') }}</small>
           </div>
 
           <div class="mb-3">
@@ -183,25 +179,29 @@
     </div>
   </div>
 
-  {{-- MODALES: Editar categoría (actualiza base + traducción del locale actual) --}}
+  {{-- MODALES: Editar categoría (traducción del locale actual + propagación opcional) --}}
   @foreach ($policies as $p)
     @php
       $fromVal = $p->effective_from ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('Y-m-d') : '';
       $toVal   = $p->effective_to   ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('Y-m-d')   : '';
-      $t       = $p->translation(); // traducción del locale actual
+      $t       = $p->translation();
     @endphp
     <div class="modal fade" id="editPolicyModal-{{ $p->policy_id }}" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <form class="modal-content" method="POST" action="{{ route('admin.policies.update', $p) }}">
           @csrf @method('PUT')
 
-          {{-- IMPORTANTE: locale a editar (por defecto, el actual) --}}
+          {{-- idioma que estás editando (traducción) --}}
           <input type="hidden" name="locale" value="{{ app()->getLocale() }}">
 
           <div class="modal-header">
-            <h5 class="modal-title">{{ __('m_config.policies.edit_category') }}</h5>
+            <h5 class="modal-title">
+              {{ __('m_config.policies.edit_category') }}
+              <small class="text-muted ms-2">({{ strtoupper(app()->getLocale()) }})</small>
+            </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_config.policies.close') }}"></button>
           </div>
+
           <div class="modal-body">
             <div class="row g-3">
               <div class="col-md-3">
@@ -225,36 +225,53 @@
 
             <hr>
 
-            {{-- Título (afecta base y la traducción del locale actual) --}}
+            {{-- Traducción del locale actual --}}
             <div class="mb-3">
               <label class="form-label">{{ __('m_config.policies.name') }}</label>
               <input type="text" name="name" class="form-control"
                      value="{{ old('name', $t?->name ?? $p->name) }}">
             </div>
 
-            {{-- SLUG editable --}}
+            <div class="mb-3">
+              <label class="form-label">{{ __('m_config.policies.description_label') }}</label>
+              <textarea name="content" class="form-control" rows="8">{{ old('content', $t?->content ?? $p->content) }}</textarea>
+            </div>
+
+            {{-- SLUG (base) --}}
             <div class="mb-3">
               <label class="form-label">
                 {{ __('m_config.policies.slug') }}
                 <span class="text-muted small">({{ __('m_config.policies.slug_hint') }})</span>
               </label>
-              <input type="text" name="slug" class="form-control"
-                     value="{{ old('slug', $p->slug) }}"
-                     placeholder="terminos-y-condiciones">
+              <input type="text" name="slug" class="form-control" value="{{ old('slug', $p->slug) }}">
               <small class="text-muted">
                 <i class="fas fa-info-circle"></i> {{ __('m_config.policies.slug_edit_hint') }}
               </small>
             </div>
 
-            {{-- CONTENIDO traducido del locale actual --}}
-            <div class="mb-3">
-              <label class="form-label">{{ __('m_config.policies.description_label') }}</label>
-              <textarea name="content" class="form-control" rows="8">{{ old('content', $t?->content) }}</textarea>
+            {{-- SOLO propagación --}}
+            <div class="row g-3 mt-1">
+              <div class="col-12">
+                <div class="form-check">
+                  <input type="checkbox" class="form-check-input" id="propagate-{{ $p->policy_id }}" name="propagate" value="1">
+                  <label class="form-check-label" for="propagate-{{ $p->policy_id }}">
+                    {{ __('m_config.policies.propagate_to_all_langs') }} (EN, FR, DE, PT)
+                  </label>
+                </div>
+                <small class="text-muted d-block">
+                  {{ __('m_config.policies.propagate_hint') }}
+                </small>
+              </div>
             </div>
           </div>
+
           <div class="modal-footer">
-            <button class="btn btn-primary"><i class="fas fa-save"></i> {{ __('m_config.policies.save_changes') }}</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_config.policies.close') }}</button>
+            <button class="btn btn-primary">
+              <i class="fas fa-save"></i> {{ __('m_config.policies.save_changes') }}
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              {{ __('m_config.policies.close') }}
+            </button>
           </div>
         </form>
       </div>
@@ -276,82 +293,49 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  {{-- Éxito / Error (usa claves m_config.policies.* si las mandas como clave en session) --}}
   @if(session('success'))
     <script>
-      Swal.fire({
-        icon: 'success',
-        title: @json(__(session('success'))),
-        showConfirmButton: false,
-        timer: 2000
-      });
+      Swal.fire({ icon:'success', title:@json(__(session('success'))), showConfirmButton:false, timer:1800 });
     </script>
   @endif
 
   @if(session('error'))
     <script>
-      Swal.fire({
-        icon: 'error',
-        title: @json(__('m_config.policies.error_title')),
-        text: @json(__(session('error')))
-      });
+      Swal.fire({ icon:'error', title:@json(__('m_config.policies.error_title')), text:@json(__(session('error'))) });
     </script>
   @endif
 
   <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // Tooltips
-    [...document.querySelectorAll('[data-bs-toggle="tooltip"]')].forEach(el => new bootstrap.Tooltip(el));
+    [...document.querySelectorAll('[data-bs-toggle="tooltip"]')]
+      .forEach(el => new bootstrap.Tooltip(el));
 
-    // Limpiar backdrops duplicados
-    document.addEventListener('hidden.bs.modal', () => {
-      const backs = document.querySelectorAll('.modal-backdrop');
-      if (backs.length > 1) backs.forEach((b,i) => { if (i < backs.length-1) b.remove(); });
-    });
-
-    // Validaciones (errores) como modal
-    const valErrors = @json($errors->any() ? $errors->all() : []);
-    if (valErrors && valErrors.length) {
-      const list = '<ul class="text-start mb-0">' + valErrors.map(e => `<li>${e}</li>`).join('') + '</ul>';
-      Swal.fire({
-        icon: 'warning',
-        title: @json(__('m_config.policies.validation_errors')),
-        html: list,
-        confirmButtonText: @json(__('m_config.policies.ok')),
-      });
-    }
-
-    // Confirmación ELIMINAR categoría
+    // Confirmar eliminar
     document.querySelectorAll('.js-confirm-delete').forEach(form => {
-      form.addEventListener('submit', (ev) => {
+      form.addEventListener('submit', ev => {
         ev.preventDefault();
         const msg = form.dataset.message || @json(__('m_config.policies.delete_category_confirm'));
         Swal.fire({
-          title: msg,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: @json(__('m_config.policies.delete')),
-          cancelButtonText: @json(__('m_config.policies.cancel')),
+          title: msg, icon:'warning', showCancelButton:true,
+          confirmButtonColor:'#d33', cancelButtonColor:'#6c757d',
+          confirmButtonText:@json(__('m_config.policies.delete')),
+          cancelButtonText:@json(__('m_config.policies.cancel')),
         }).then(res => { if (res.isConfirmed) form.submit(); });
       });
     });
 
-    // Confirmación ACTIVAR / DESACTIVAR categoría
+    // Confirmar toggle
     document.querySelectorAll('.js-confirm-toggle').forEach(form => {
-      form.addEventListener('submit', (ev) => {
+      form.addEventListener('submit', ev => {
         ev.preventDefault();
         const isActive = form.dataset.active === '1';
         const titleVar = isActive ? @json(__('m_config.policies.deactivate_category')) : @json(__('m_config.policies.activate_category'));
         Swal.fire({
-          title: titleVar + '?',
-          icon: 'question',
-          showCancelButton: true,
+          title: titleVar + '?', icon:'question', showCancelButton:true,
           confirmButtonColor: isActive ? '#d33' : '#28a745',
-          cancelButtonColor: '#6c757d',
+          cancelButtonColor:'#6c757d',
           confirmButtonText: titleVar,
-          cancelButtonText: @json(__('m_config.policies.cancel')),
+          cancelButtonText:@json(__('m_config.policies.cancel')),
         }).then(res => { if (res.isConfirmed) form.submit(); });
       });
     });

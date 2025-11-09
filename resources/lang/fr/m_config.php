@@ -47,6 +47,10 @@ return [
         'delete_category_confirm' => 'Supprimer cette catégorie et TOUTES ses sections ?<br>Cette action est irréversible.',
         'no_categories'           => 'Aucune catégorie trouvée.',
         'edit_category'           => 'Modifier la catégorie',
+        'propagate_to_all_langs' => 'Propager cette modification à toutes les langues (EN, FR, DE, PT)',
+        'propagate_hint'         => 'La traduction sera générée automatiquement à partir du texte actuel et remplacera les traductions existantes dans ces langues.',
+        'update_base_es'         => 'Mettre aussi à jour la base (ES)',
+        'update_base_hint'       => 'Écrase le nom et le contenu de la politique dans la table de base (espagnol). À utiliser uniquement si vous souhaitez également modifier le texte original.',
 
         // Formulaires (catégorie)
         'title_label'             => 'Titre',
