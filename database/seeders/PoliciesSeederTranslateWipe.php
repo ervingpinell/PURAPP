@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+
 use App\Models\Policy;
 use App\Models\PolicyTranslation;
 use App\Models\PolicySection;
@@ -16,47 +17,51 @@ class PoliciesSeederTranslateWipe extends Seeder
 {
     public function run(): void
     {
-        // ========= WIPE (borra tablas antes de sembrar) =========
+        // 1) Limpia tablas (en orden seguro)
         $this->wipePolicyTables();
 
         DB::transaction(function () {
             $today = Carbon::today()->toDateString();
 
-            // Resolver traductor si existe; si no, fallback a copiar ES
+            // === Traductor (opcional). Si no existe, hace fallback a ES.
             $translator = null;
-            try { $translator = app()->make(TranslatorInterface::class); } catch (\Throwable $e) {}
+            try {
+                $translator = app()->make(TranslatorInterface::class);
+            } catch (\Throwable $e) {
+                // sin traductor => se copian textos ES
+            }
 
-            // Normaliza locales (mantenemos pt tal cual)
+            // Normaliza locales si tu modelo lo soporta
             $canon = function (string $lang): string {
                 if (method_exists(Policy::class, 'canonicalLocale')) {
                     return Policy::canonicalLocale($lang);
                 }
-                return in_array($lang, ['es','en','fr','de','pt'], true) ? $lang : 'es';
+                return in_array($lang, ['es', 'en', 'fr', 'de', 'pt'], true) ? $lang : 'es';
             };
 
             // Traducción masiva con fallback
             $translateAll = function (string $text) use ($translator): array {
-                $out = ['en'=>null,'fr'=>null,'de'=>null,'pt'=>null];
+                $out = ['en' => null, 'fr' => null, 'de' => null, 'pt' => null];
                 if ($translator) {
                     try {
                         $res = (array) ($translator->translateAll($text) ?? []);
                         foreach ($out as $k => $_) { $out[$k] = $res[$k] ?? null; }
-                    } catch (\Throwable $e) {
-                        // fallback silencioso
-                    }
+                    } catch (\Throwable $e) { /* silent fallback */ }
                 }
                 return $out;
             };
 
-            // Helpers para guardar traducciones de policies y sections
+            // === Helpers de traducciones para policies
             $savePolicyTranslations = function (int $policyId, string $nameEs, string $contentEs) use ($translateAll, $canon) {
+                // ES
                 PolicyTranslation::updateOrCreate(
                     ['policy_id' => $policyId, 'locale' => 'es'],
                     ['name' => $nameEs, 'content' => $contentEs]
                 );
+                // Otros idiomas (fallback a ES)
                 $nameAll = $translateAll($nameEs);
                 $contAll = $translateAll($contentEs);
-                foreach (['en','fr','de','pt'] as $lang) {
+                foreach (['en', 'fr', 'de', 'pt'] as $lang) {
                     $locale = $canon($lang);
                     PolicyTranslation::updateOrCreate(
                         ['policy_id' => $policyId, 'locale' => $locale],
@@ -68,27 +73,51 @@ class PoliciesSeederTranslateWipe extends Seeder
                 }
             };
 
-            $saveSectionTranslations = function (int $sectionId, string $nameEs, string $contentEs) use ($translateAll, $canon) {
+            // === Detección del nombre del FK real en la tabla de traducciones
+            $sectionFkCol = Schema::hasColumn('policy_section_translations', 'policy_section_id')
+                ? 'policy_section_id'
+                : 'section_id';
+
+            // === Helper: crear/actualizar sección base + traducciones
+            $upsertSectionWithTranslations = function (
+                int $policyId,
+                string $sectionKey,   // <— se ignora porque tu tabla base no tiene name/slug/code
+                int $sort,
+                string $nameEs,
+                string $contentEs
+            ) use ($sectionFkCol, $translateAll, $canon) {
+
+                // 1) Base (policy_sections) — identificar por (policy_id, sort_order)
+                //    Usamos firstOrCreate para no depender de 'name/slug'
+                $section = PolicySection::firstOrCreate(
+                    ['policy_id' => $policyId, 'sort_order' => $sort],
+                    ['is_active' => true]
+                );
+
+                // Detectar el nombre real de la PK del modelo (policy_section_id o section_id)
+                $sectionId = $section->policy_section_id ?? $section->section_id ?? $section->getKey();
+
+                // 2) Traducción ES
                 PolicySectionTranslation::updateOrCreate(
-                    ['section_id' => $sectionId, 'locale' => 'es'],
+                    [$sectionFkCol => $sectionId, 'locale' => 'es'],
                     ['name' => $nameEs, 'content' => $contentEs]
                 );
+
+                // 3) Otras traducciones (fallback a ES)
                 $nameAll = $translateAll($nameEs);
                 $contAll = $translateAll($contentEs);
-                foreach (['en','fr','de','pt'] as $lang) {
-                    $locale = $canon($lang);
+                foreach (['en', 'fr', 'de', 'pt'] as $lang) {
+                    $loc = $canon($lang);
                     PolicySectionTranslation::updateOrCreate(
-                        ['section_id' => $sectionId, 'locale' => $locale],
-                        [
-                            'name'    => $nameAll[$lang] ?? $nameEs,
-                            'content' => $contAll[$lang] ?? $contentEs,
-                        ]
+                        [$sectionFkCol => $sectionId, 'locale' => $loc],
+                        ['name' => $nameAll[$lang] ?? $nameEs, 'content' => $contAll[$lang] ?? $contentEs]
                     );
                 }
             };
 
+
             // =========================
-            // 1) TERMS & CONDITIONS
+            // 1) TÉRMINOS Y CONDICIONES
             // =========================
             $terms = Policy::updateOrCreate(
                 ['slug' => 'terms-and-conditions'],
@@ -116,21 +145,24 @@ TXT;
 
             $savePolicyTranslations($terms->policy_id, $termsNameEs, $termsContentEs);
 
-            // Secciones (sin slug; name = clave interna)
-            $cookies = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'cookies'],
-                ['sort_order' => 1, 'is_active' => true]
-            );
-            $saveSectionTranslations($cookies->section_id, 'Cookies', <<<'TXT'
+            // Secciones (usar slug/clave + traducciones)
+            $upsertSectionWithTranslations(
+                $terms->policy_id,
+                'cookies',
+                1,
+                'Cookies',
+                <<<'TXT'
 Empleamos el uso de cookies. Al acceder a greenvacationscr.com, usted aceptó usar cookies de acuerdo con la Política de Privacidad de Green Vacations Costa Rica.
 La mayoría de los sitios web interactivos utilizan cookies para permitirnos recuperar los detalles del usuario para cada visita. Nuestro sitio web utiliza cookies para habilitar la funcionalidad de ciertas áreas para que sea más fácil para las personas que visitan nuestro sitio web. Algunos de nuestros socios afiliados/publicitarios también pueden usar cookies.
-TXT);
-
-            $license = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'license'],
-                ['sort_order' => 2, 'is_active' => true]
+TXT
             );
-            $saveSectionTranslations($license->section_id, 'Licencia', <<<'TXT'
+
+            $upsertSectionWithTranslations(
+                $terms->policy_id,
+                'license',
+                2,
+                'Licencia',
+                <<<'TXT'
 A menos que se indique lo contrario, Green Vacations Costa Rica y/o sus licenciantes poseen los derechos de propiedad intelectual de todo el material en greenvacationscr.com. Todos los derechos de propiedad intelectual están reservados. Puede acceder a este sitio web para su uso personal sujeto a las restricciones establecidas en estos términos y condiciones.
 
 No debes:
@@ -140,13 +172,15 @@ No debes:
 • Redistribuir contenido de greenvacationscr.com
 
 Este Acuerdo comenzará en la fecha del mismo.
-TXT);
-
-            $comments = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'comments'],
-                ['sort_order' => 3, 'is_active' => true]
+TXT
             );
-            $saveSectionTranslations($comments->section_id, 'Comentarios', <<<'TXT'
+
+            $upsertSectionWithTranslations(
+                $terms->policy_id,
+                'comments',
+                3,
+                'Comentarios',
+                <<<'TXT'
 Partes de este sitio web ofrecen una oportunidad para que los usuarios publiquen e intercambien opiniones e información en ciertas áreas del sitio web. Green Vacations Costa Rica no filtra, edita, publica o revisa los Comentarios antes de su presencia en el sitio web. Los comentarios no reflejan los puntos de vista y opiniones de Green Vacations Costa Rica, sus agentes y/o afiliados. En la medida en que lo permitan las leyes aplicables, Green Vacations Costa Rica no será responsable de los Comentarios ni de ninguna responsabilidad, daño o gasto causado y/o sufrido como resultado de cualquier uso y/o publicación y/o apariencia de los Comentarios en este sitio web.
 
 Green Vacations Costa Rica se reserva el derecho de monitorear todos los Comentarios y eliminar cualquier Comentario que pueda considerarse inapropiado, ofensivo o que infrinja estos Términos y Condiciones.
@@ -158,13 +192,15 @@ Usted garantiza y declara que:
 • Los Comentarios no se utilizarán para solicitar o promover negocios o costumbres o presentar actividades comerciales o actividades ilegales.
 
 Por la presente, otorga a Green Vacations Costa Rica una licencia no exclusiva para usar, reproducir, editar y autorizar a otros a usar, reproducir y editar cualquiera de sus Comentarios en cualquiera y todas las formas, formatos o medios.
-TXT);
-
-            $links = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'hyperlinks-to-our-content'],
-                ['sort_order' => 4, 'is_active' => true]
+TXT
             );
-            $saveSectionTranslations($links->section_id, 'Hipervínculos a nuestro contenido', <<<'TXT'
+
+            $upsertSectionWithTranslations(
+                $terms->policy_id,
+                'hyperlinks-to-our-content',
+                4,
+                'Hipervínculos a nuestro contenido',
+                <<<'TXT'
 Las siguientes organizaciones pueden vincular a nuestro sitio web sin aprobación previa por escrito: agencias gubernamentales; motores de búsqueda; organizaciones de noticias; distribuidores de directorios en línea en la misma forma en que enlazan a otros sitios; y empresas acreditadas en todo el sistema (excepto organizaciones sin fines de lucro, centros comerciales de caridad y grupos de recaudación de fondos de caridad).
 Estas organizaciones pueden vincularse a nuestra página de inicio, publicaciones u otra información siempre que el enlace: (a) no sea engañoso; (b) no implique falsamente patrocinio, respaldo o aprobación; y (c) encaje en el contexto del sitio de la parte vinculada.
 
@@ -172,40 +208,51 @@ Podemos considerar y aprobar otras solicitudes de enlace de: fuentes de informac
 Aprobaremos si: (a) el enlace no nos hace ver desfavorablemente; (b) la organización no tiene registros negativos con nosotros; (c) el beneficio de la visibilidad compensa la ausencia de Green Vacations Costa Rica; y (d) el enlace está en el contexto de información general de recursos.
 
 Las organizaciones aprobadas pueden enlazar usando: nuestro nombre corporativo; el URL al que se enlaza; o cualquier descripción razonable de nuestro sitio web. No se permite el uso del logotipo u otra obra de arte sin acuerdo de licencia.
-TXT);
-
-            $frames = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'frames'],
-                ['sort_order' => 5, 'is_active' => true]
+TXT
             );
-            $saveSectionTranslations($frames->section_id, 'Marcos flotantes', 'Sin aprobación previa y permiso por escrito, no puede crear marcos alrededor de nuestras páginas web que alteren de ninguna manera la presentación visual o la apariencia de nuestro sitio web.');
 
-            $contentLiab = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'content-liability'],
-                ['sort_order' => 6, 'is_active' => true]
+            $upsertSectionWithTranslations(
+                $terms->policy_id,
+                'frames',
+                5,
+                'Marcos flotantes',
+                'Sin aprobación previa y permiso por escrito, no puede crear marcos alrededor de nuestras páginas web que alteren de ninguna manera la presentación visual o la apariencia de nuestro sitio web.'
             );
-            $saveSectionTranslations($contentLiab->section_id, 'Responsabilidad por el contenido', 'No seremos responsables de ningún contenido que aparezca en su sitio web. Usted acepta protegernos y defendernos contra todos los reclamos que surjan en su sitio web. Ningún enlace debe aparecer en ningún sitio web que pueda interpretarse como calumnioso, obsceno o criminal, o que infrinja o promueva la violación de derechos de terceros.');
 
-            $rights = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'reservation-of-rights'],
-                ['sort_order' => 7, 'is_active' => true]
+            $upsertSectionWithTranslations(
+                $terms->policy_id,
+                'content-liability',
+                6,
+                'Responsabilidad por el contenido',
+                'No seremos responsables de ningún contenido que aparezca en su sitio web. Usted acepta protegernos y defendernos contra todos los reclamos que surjan en su sitio web. Ningún enlace debe aparecer en ningún sitio web que pueda interpretarse como calumnioso, obsceno o criminal, o que infrinja o promueva la violación de derechos de terceros.'
             );
-            $saveSectionTranslations($rights->section_id, 'Reserva de Derechos', 'Nos reservamos el derecho de solicitarle que elimine todos los enlaces o cualquier enlace particular a nuestro sitio web. Usted aprueba eliminar inmediatamente todos los enlaces a nuestro sitio web a pedido. También nos reservamos el derecho de modificar estos términos y condiciones y su política de vinculación en cualquier momento. Al vincularse continuamente a nuestro sitio web, usted acepta estar sujeto y seguir estos términos y condiciones de vinculación.');
 
-            $removeLinks = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'removal-of-links'],
-                ['sort_order' => 8, 'is_active' => true]
+            $upsertSectionWithTranslations(
+                $terms->policy_id,
+                'reservation-of-rights',
+                7,
+                'Reserva de Derechos',
+                'Nos reservamos el derecho de solicitarle que elimine todos los enlaces o cualquier enlace particular a nuestro sitio web. Usted aprueba eliminar inmediatamente todos los enlaces a nuestro sitio web a pedido. También nos reservamos el derecho de modificar estos términos y condiciones y su política de vinculación en cualquier momento. Al vincularse continuamente a nuestro sitio web, usted acepta estar sujeto y seguir estos términos y condiciones de vinculación.'
             );
-            $saveSectionTranslations($removeLinks->section_id, 'Eliminación de enlaces de nuestro sitio web', 'Si encuentra algún enlace en nuestro sitio web que sea ofensivo por cualquier motivo, puede contactarnos e informarnos en cualquier momento. Consideraremos solicitudes para eliminar enlaces, pero no estamos obligados a hacerlo ni a responderle directamente. No aseguramos que la información en este sitio web sea correcta, ni garantizamos su integridad o exactitud; ni prometemos que el sitio web permanezca disponible o que el material se mantenga actualizado.');
 
-            $disclaimer = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'disclaimer'],
-                ['sort_order' => 9, 'is_active' => true]
+            $upsertSectionWithTranslations(
+                $terms->policy_id,
+                'removal-of-links',
+                8,
+                'Eliminación de enlaces de nuestro sitio web',
+                'Si encuentra algún enlace en nuestro sitio web que sea ofensivo por cualquier motivo, puede contactarnos e informarnos en cualquier momento. Consideraremos solicitudes para eliminar enlaces, pero no estamos obligados a hacerlo ni a responderle directamente. No aseguramos que la información en este sitio web sea correcta, ni garantizamos su integridad o exactitud; ni prometemos que el sitio web permanezca disponible o que el material se mantenga actualizado.'
             );
-            $saveSectionTranslations($disclaimer->section_id, 'Descargo de responsabilidad', <<<'TXT'
+
+            $upsertSectionWithTranslations(
+                $terms->policy_id,
+                'disclaimer',
+                9,
+                'Descargo de responsabilidad',
+                <<<'TXT'
 En la máxima medida permitida por la ley aplicable, excluimos todas las representaciones, garantías y condiciones relacionadas con nuestro sitio web y el uso de este sitio web. Nada en este descargo de responsabilidad: (i) limita o excluye nuestra o su responsabilidad por muerte o lesiones personales; (ii) limita o excluye nuestra o su responsabilidad por fraude o tergiversación fraudulenta; (iii) limita cualquiera de nuestras responsabilidades o las suyas de cualquier manera no permitida por la ley; o (iv) excluye cualquiera de nuestras o sus responsabilidades que no puedan ser excluidas bajo la ley aplicable.
 Las limitaciones y prohibiciones de responsabilidad establecidas en este documento rigen todas las responsabilidades que surjan por contrato, agravio o incumplimiento del deber legal. Siempre que el sitio web y la información/servicios se proporcionen de forma gratuita, no seremos responsables de ninguna pérdida o daño de ningún tipo.
-TXT);
+TXT
+            );
 
             // =========================
             // 2) CANCELACIÓN
@@ -266,55 +313,45 @@ TXT
             );
         });
 
-        $this->command->info('✅ PoliciesSeederTranslateWipe: wiped & seeded (es/en/fr/de/pt).');
+        $this->command?->info('✅ PoliciesSeederTranslateWipe: wiped & seeded (es/en/fr/de/pt).');
     }
 
     /**
-     * Vacía tablas de policies y translations con soporte MySQL/Postgres.
+     * Vacía policies y sus tablas relacionadas en orden seguro.
      */
-/**
- * Vacía policies y tablas relacionadas (Postgres/MySQL/SQLite)
- * usando nombres EXACTOS: policies, policies_translations, policy_sections, policy_sections_translations.
- */
-protected function wipePolicyTables(): void
-{
-    $driver = DB::getDriverName();
+    protected function wipePolicyTables(): void
+    {
+        $driver = DB::getDriverName();
 
-    $tblPolicies        = 'policies';
-    $tblPolTranslations = 'policies_translations';
-    $tblSections        = 'policy_sections';
-    $tblSecTranslations = 'policy_sections_translations';
+        $tblPolicies        = 'policies';
+        $tblPolTranslations = 'policies_translations';
+        $tblSections        = 'policy_sections';
+        $tblSecTranslations = 'policy_section_translations'; // <— nombre correcto
 
-    // Orden seguro: primero translations, luego maestros
-    $tablesInOrder = [
-        $tblSecTranslations,   // depende de policy_sections
-        $tblPolTranslations,   // depende de policies
-        $tblSections,          // depende de policies
-        $tblPolicies,
-    ];
+        $tablesInOrder = [
+            $tblSecTranslations,   // depende de policy_sections
+            $tblPolTranslations,   // depende de policies
+            $tblSections,          // depende de policies
+            $tblPolicies,
+        ];
 
-    if ($driver === 'pgsql') {
-        // Postgres: TRUNCATE por tabla, SIN "IF EXISTS"
-        foreach ($tablesInOrder as $t) {
-            if (!Schema::hasTable($t)) continue;
-            // comillas dobles para respetar el nombre exacto
-            DB::statement('TRUNCATE TABLE "'.$t.'" RESTART IDENTITY CASCADE');
-        }
-    } else {
-        // MySQL / SQLite
-        Schema::disableForeignKeyConstraints();
-        foreach ($tablesInOrder as $t) {
-            if (!Schema::hasTable($t)) continue;
-            try {
-                DB::table($t)->truncate();
-            } catch (\Throwable $e) {
-                // Fallback (SQLite antiguos)
-                DB::statement("DELETE FROM {$t}");
-                try { DB::statement("DELETE FROM sqlite_sequence WHERE name = '{$t}'"); } catch (\Throwable $e2) {}
+        if ($driver === 'pgsql') {
+            foreach ($tablesInOrder as $t) {
+                if (!Schema::hasTable($t)) continue;
+                DB::statement('TRUNCATE TABLE "'.$t.'" RESTART IDENTITY CASCADE');
             }
+        } else {
+            Schema::disableForeignKeyConstraints();
+            foreach ($tablesInOrder as $t) {
+                if (!Schema::hasTable($t)) continue;
+                try {
+                    DB::table($t)->truncate();
+                } catch (\Throwable $e) {
+                    DB::statement("DELETE FROM {$t}");
+                    try { DB::statement("DELETE FROM sqlite_sequence WHERE name = '{$t}'"); } catch (\Throwable $e2) {}
+                }
+            }
+            Schema::enableForeignKeyConstraints();
         }
-        Schema::enableForeignKeyConstraints();
     }
-}
-
 }
