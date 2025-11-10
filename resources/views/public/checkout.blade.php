@@ -1,4 +1,3 @@
-{{-- resources/views/public/checkout.blade.php --}}
 @extends('layouts.app')
 
 @section('title', __('m_checkout.title'))
@@ -39,7 +38,7 @@
 .policy-content p{margin-bottom:1rem}.policy-content ul{margin:0 0 1rem 1.5rem}.policy-content li{margin-bottom:.5rem}
 .policy-content::-webkit-scrollbar{width:8px}.policy-content::-webkit-scrollbar-track{background:var(--g200);border-radius:4px}.policy-content::-webkit-scrollbar-thumb{background:var(--g400);border-radius:4px}
 
-/* ===== Aceptación de términos (MISMO DISEÑO) ===== */
+/* ===== Aceptación de términos ===== */
 .acceptance-box{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid var(--ok);border-radius:.75rem;padding:1.5rem;margin-bottom:2rem;transition:.3s}
 .acceptance-box.disabled{background:var(--g100);border-color:var(--g300);opacity:.6}
 .acceptance-checkbox{display:flex;align-items:start;gap:1rem}
@@ -95,6 +94,19 @@
 .total-row.promo{color:var(--ok);font-weight:500}
 .promo-code{background:#fff;padding:.2rem .45rem;border-radius:.375rem;font-family:monospace;font-size:.85rem;border:1px solid var(--ok)}
 .total-row.final{padding-top:.6rem;margin-top:.6rem;border-top:2px solid var(--g300);font-size:1.25rem;font-weight:700;color:var(--g900)}
+.total-note{margin-top:.35rem;text-align:right;color:var(--g600);font-size:.8rem}
+
+/* === Etiqueta verde de cancelación (restaurada) === */
+.cancellation-badge{
+  background:linear-gradient(135deg,#dcfce7,#bbf7d0);
+  border:1px solid #16a34a33;
+  padding:.75rem 1rem;border-radius:.75rem;margin:.75rem 0 0;
+  display:flex;align-items:flex-start;gap:.75rem
+}
+.cancellation-badge i{color:#16a34a;font-size:1.05rem;margin-top:.15rem}
+.cancellation-badge div{flex:1}
+.cancellation-badge strong{display:block;color:var(--g900);font-weight:700;margin-bottom:.15rem}
+.cancellation-badge small{color:var(--g700)}
 
 /* Botones */
 .btn{padding:.9rem 1.25rem;border-radius:.65rem;font-weight:600;border:0;cursor:pointer;transition:.3s;display:inline-flex;align-items:center;justify-content:center;gap:.6rem;text-decoration:none;font-size:1rem}
@@ -108,13 +120,6 @@
 .btn-details:hover{background:var(--p);color:#fff}
 .btn-edit{background:var(--g100);color:var(--g700);border:2px solid var(--g300);margin-top:.75rem}
 .btn-edit:hover{background:var(--g200);border-color:var(--g400)}
-
-/* Aviso de cancelación */
-.cancellation-badge{background:linear-gradient(135deg,#dcfce7,#bbf7d0);border:1px solid var(--ok);padding:.75rem 1rem;border-radius:.75rem;margin:1rem 0;display:flex;align-items:center;gap:.75rem}
-.cancellation-badge i{color:var(--ok);font-size:1.05rem}
-.cancellation-badge div{flex:1;font-size:.85rem}
-.cancellation-badge strong{display:block;color:var(--g900);font-weight:600}
-.cancellation-badge small{color:var(--g600)}
 
 /* Modal */
 .modal-content{border-radius:1rem;border:none;box-shadow:0 20px 25px -5px #00000033}
@@ -132,7 +137,7 @@
 .price-detail{color:var(--g600);font-size:.85rem;margin-left:.4rem}
 .category-total{font-weight:700;color:var(--g900)}
 
-/* Responsivo: altura del scroll de ítems */
+/* Responsivo */
 @media (max-width:1400px){ .items-scroll{max-height:44vh} }
 @media (max-width:1200px){ .items-scroll{max-height:42vh} }
 @media (max-width:1024px){
@@ -154,11 +159,12 @@
 @section('content')
 @php
   use Illuminate\Support\Str;
+  use Illuminate\Support\Facades\Lang;
 
   $fmt = fn($n)=>number_format((float)$n,2,'.','');
   $promo = session('public_cart_promo');
 
-  // Subtotal por ítem (categorías o legacy adultos/niños)
+  // Subtotal por ítem
   $itemSub = function($it){
     $s=0;$c=collect($it->categories??[]);
     if($c->isNotEmpty()){
@@ -170,7 +176,7 @@
     return (float)$s;
   };
 
-  // ====== Mapa: category_id -> nombre traducido desde BD ======
+  // Mapa category_id -> nombre traducido
   $loc = app()->getLocale();
   $fb  = config('app.fallback_locale','es');
 
@@ -181,8 +187,7 @@
   $categoryNamesById = collect();
   if ($categoryIdsInCart->isNotEmpty()) {
     $catModels = \App\Models\CustomerCategory::whereIn('category_id', $categoryIdsInCart)
-      ->with('translations')
-      ->get();
+      ->with('translations')->get();
 
     $categoryNamesById = $catModels->mapWithKeys(function($c) use ($loc, $fb) {
       $name = method_exists($c, 'getTranslated')
@@ -194,46 +199,61 @@
     });
   }
 
-  // ====== Resolutor de nombre traducido por categoría (snapshot) ======
+  // Resolutor label de categoría
   $resolveCatLabel = function(array $cat) use ($categoryNamesById) {
-    // 1) Campos directos del snapshot (ya pueden venir traducidos)
     $name = data_get($cat,'i18n_name')
         ?? data_get($cat,'name')
         ?? data_get($cat,'label')
         ?? data_get($cat,'category_name')
         ?? data_get($cat,'category.name');
 
-    // 2) Por ID contra la BD (mapa)
     $cid = (int) (data_get($cat,'category_id') ?? data_get($cat,'id') ?? 0);
     if (!$name && $cid && $categoryNamesById->has($cid)) {
       $name = $categoryNamesById->get($cid);
     }
 
-    // 3) Por code (adult/kid, etc.) con traducciones
     if (!$name) {
       $code = Str::lower((string) data_get($cat,'code',''));
       if (in_array($code,['adult','adults'])) {
-        $name = __('adminlte::adminlte.adult'); // fallback
+        $name = __('adminlte::adminlte.adult');
       } elseif (in_array($code,['kid','kids','child','children'])) {
-        $name = __('adminlte::adminlte.kid'); // fallback
+        $name = __('adminlte::adminlte.kid');
       } elseif ($code !== '') {
         $tr = __($code);
         $name = ($tr === $code) ? $code : $tr;
       }
     }
 
-    // 4) Por slug “bonito”
     if (!$name) {
       $slug = (string) (data_get($cat,'category_slug') ?? data_get($cat,'slug') ?? '');
       if ($slug) $name = Str::of($slug)->replace(['_','-'],' ')->title();
     }
 
-    // 5) Fallback genérico traducido
     return $name ?: __('adminlte::adminlte.category');
   };
 
   $raw=(float)$cart->items->sum(fn($it)=>$itemSub($it));
   $total=$raw; if($promo){$op=(($promo['operation']??'subtract')==='add')?1:-1;$total=max(0,round($raw+$op*(float)($promo['adjustment']??0),2));}
+
+  // ===== Texto "Cancelación gratuita hasta :time el :date" (debajo del total)
+$freeCancelText = null;
+if (!empty($freeCancelUntil)) {
+    $tz = config('app.timezone', 'America/Costa_Rica');
+    $locCut = $freeCancelUntil->copy()->setTimezone($tz)->locale(app()->getLocale());
+
+    // Usa Moment/ICU tokens válidos con isoFormat
+    $cutTime = $locCut->isoFormat('LT'); // ej: 3:15 p. m.
+    $cutDate = $locCut->isoFormat('LL'); // ej: 9 de noviembre de 2025
+
+    $key = 'policies.checkout.free_cancellation_until';
+    if (\Illuminate\Support\Facades\Lang::has($key)) {
+        $freeCancelText = __($key, ['time' => $cutTime, 'date' => $cutDate]);
+    } else {
+        // Fallback legible si falta la traducción
+        $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTime . ' · ' . $cutDate;
+    }
+}
+
 @endphp
 
 <div class="checkout-container">
@@ -255,7 +275,7 @@
       <div class="policy-section">
         <div class="policy-header">
           <h3>{{ __('m_checkout.panels.terms_block_title') }}</h3>
-          <span class="policy-version">v2.1</span>
+          <span class="policy-version">{{ $termsVersion ?? 'v1' }}</span>
         </div>
 
         <div class="policy-content" tabindex="0" data-scroll-guard>
@@ -413,7 +433,6 @@
                       $u   = (float) data_get($c,'price',0);
                       $sub = $q * $u;
                       $lab = $resolveCatLabel((array)$c);
-
                       $code = Str::lower((string) data_get($c,'code',''));
                       $isAdult = in_array($code,['adult','adults']);
                       $isKid   = in_array($code,['kid','kids','child','children']);
@@ -465,13 +484,6 @@
       </div>
 
       <div class="summary-footer">
-        <div class="cancellation-badge">
-          <i class="fas fa-check-circle"></i>
-          <div>
-            <strong>{{ __('m_checkout.summary.free_cancellation') }}</strong>
-          </div>
-        </div>
-
         <div class="totals-section">
           <div class="total-row"><span>{{ __('m_checkout.summary.subtotal') }}</span><span>${{ $fmt($raw) }}</span></div>
           @if($promo)
@@ -482,7 +494,18 @@
           @endif
           @php $total=$raw; if($promo){$op=(($promo['operation']??'subtract')==='add')?1:-1;$total=max(0,round($raw+$op*(float)($promo['adjustment']??0),2));} @endphp
           <div class="total-row final"><span>{{ __('m_checkout.summary.total') }}</span><span>${{ $fmt($total) }}</span></div>
-          <div style="text-align:right;color:var(--g600);font-size:.75rem;margin-top:.5rem">{{ __('m_checkout.summary.taxes_included') }}</div>
+          <div class="total-note">{{ __('m_checkout.summary.taxes_included') }}</div>
+
+          {{-- === Etiqueta VERDE (restaurada) debajo del total === --}}
+          @if($freeCancelText)
+            <div class="cancellation-badge">
+              <i class="fas fa-check-circle"></i>
+              <div>
+                <strong>{{ __('m_checkout.summary.free_cancellation') }}</strong>
+                <small>{{ $freeCancelText }}</small>
+              </div>
+            </div>
+          @endif
         </div>
 
         <button class="btn btn-details" data-bs-toggle="modal" data-bs-target="#orderModal">
@@ -496,7 +519,7 @@
   </div>
 </div>
 
-{{-- Modal de detalle (DENTRO de la sección) --}}
+{{-- Modal de detalle --}}
 <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
@@ -510,11 +533,11 @@
         @foreach($cart->items as $it)
           @php $s=$itemSub($it); @endphp
           <div class="item-detail">
-            <div class="item-header">
+            <div class="item-header d-flex justify-content-between align-items-center">
               <strong>{{ $it->tour->getTranslatedName() ?? $it->tour->name }}</strong>
               <span class="price">${{ $fmt($s) }}</span>
             </div>
-            <div class="item-meta">
+            <div class="item-meta d-flex flex-wrap gap-3">
               <span><i class="far fa-calendar-alt"></i>{{ \Carbon\Carbon::parse($it->tour_date)->format('l, F d, Y') }}</span>
               @if($it->schedule)<span><i class="far fa-clock"></i>{{ \Carbon\Carbon::parse($it->schedule->start_time)->format('g:i A') }} - {{ \Carbon\Carbon::parse($it->schedule->end_time)->format('g:i A') }}</span>@endif
               @if($it->language)<span><i class="fas fa-language"></i>{{ $it->language->name }}</span>@endif
@@ -579,15 +602,6 @@
               </div>
             @endif
 
-            @if($notes)
-              <div class="categories-section mt-2">
-                <div class="d-flex align-items-center mb-2" style="gap:.5rem">
-                  <i class="fas fa-sticky-note" style="color:var(--p)"></i><strong>{{ __('m_checkout.blocks.notes') }}</strong>
-                </div>
-                <div class="small" style="color:var(--g700)">{{ $notes }}</div>
-              </div>
-            @endif
-
             @if($cats->isNotEmpty())
               <div class="categories-section">
                 @foreach($cats as $c)
@@ -596,7 +610,6 @@
                     $u   = (float) data_get($c,'price',0);
                     $sub = $q * $u;
                     $lab = $resolveCatLabel((array)$c);
-
                     $code = Str::lower((string) data_get($c,'code',''));
                     $isAdult = in_array($code,['adult','adults']);
                     $isKid   = in_array($code,['kid','kids','child','children']);
@@ -660,6 +673,16 @@
           <div class="total-row final d-flex justify-content-between">
             <span>{{ __('m_checkout.summary.total') }}</span><span>${{ $fmt($total) }}</span>
           </div>
+
+          @if($freeCancelText)
+            <div class="cancellation-badge mt-2">
+              <i class="fas fa-check-circle"></i>
+              <div>
+                <strong>{{ __('m_checkout.summary.free_cancellation') }}</strong>
+                <small>{{ $freeCancelText }}</small>
+              </div>
+            </div>
+          @endif
         </div>
       </div>
     </div>
@@ -670,7 +693,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
-  /* 1) Elimina títulos duplicados en el include */
+  /* 1) Limpia títulos duplicados en el include */
   const cont = document.querySelector('.policy-content');
   if (cont){
     const norm = s => (s||'')

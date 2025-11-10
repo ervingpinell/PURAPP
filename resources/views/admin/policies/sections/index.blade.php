@@ -1,12 +1,14 @@
+{{-- resources/views/admin/policies/sections/index.blade.php --}}
 @extends('adminlte::page')
 
-@section('title', __('m_config.policies.sections_title', ['policy' => ($policy->translation()?->name ?? $policy->name)]))
+@section('title', __('m_config.policies.sections_title', ['policy' => ($policy->translation()?->name ?? '')]))
 
 @section('content_header')
   <div class="d-flex align-items-center justify-content-between flex-wrap">
     <h1 class="mb-2">
       <i class="fas fa-list-ul"></i>
-      {{ __('m_config.policies.sections_title', ['policy' => ($policy->translation()?->name ?? $policy->name)]) }}
+      {{ __('m_config.policies.sections_title', ['policy' => ($policy->translation()?->name ?? '')]) }}
+      <small class="text-muted ms-2">({{ strtoupper(app()->getLocale()) }})</small>
     </h1>
     <div class="mb-2">
       <a class="btn btn-secondary" href="{{ route('admin.policies.index') }}">
@@ -20,7 +22,6 @@
 @stop
 
 @section('content')
-  {{-- Fallback solo si no hay JS --}}
   <noscript>
     @if(session('success'))
       <div class="alert alert-success">{{ __(session('success')) }}</div>
@@ -53,9 +54,10 @@
           </thead>
           <tbody>
           @forelse ($sections as $s)
+            @php $tr = $s->translation(); @endphp
             <tr>
               <td class="text-center">{{ $s->section_id }}</td>
-              <td class="text-center text-break">{{ $s->name ?? '—' }}</td>
+              <td class="text-center text-break">{{ $tr?->name ?? '—' }}</td>
               <td class="text-center">{{ $s->sort_order }}</td>
               <td class="text-center">
                 @if($s->is_active)
@@ -67,7 +69,7 @@
               <td class="text-center">
                 <div class="d-flex justify-content-center gap-2 flex-wrap">
 
-                  {{-- Editar (base: name/content/sort_order/is_active) --}}
+                  {{-- Editar traducción del locale actual + base (orden/activo) --}}
                   <button class="btn btn-sm btn-edit"
                           title="{{ __('m_config.policies.edit') }}"
                           data-bs-toggle="modal"
@@ -75,7 +77,7 @@
                     <i class="fas fa-edit"></i>
                   </button>
 
-                  {{-- Toggle con SweetAlert --}}
+                  {{-- Toggle --}}
                   <form action="{{ route('admin.policies.sections.toggle', [$policy, $s]) }}" method="POST"
                         class="d-inline js-confirm-toggle" data-active="{{ $s->is_active ? 1 : 0 }}">
                     @csrf
@@ -86,7 +88,7 @@
                     </button>
                   </form>
 
-                  {{-- Eliminar con SweetAlert --}}
+                  {{-- Eliminar --}}
                   <form action="{{ route('admin.policies.sections.destroy', [$policy, $s]) }}" method="POST"
                         class="d-inline js-confirm-delete"
                         data-message="{{ __('m_config.policies.confirm_delete_section') }}">
@@ -101,48 +103,48 @@
               </td>
             </tr>
 
-            {{-- Modal Edit (BASE + contenido) --}}
+            {{-- Modal Edit (edita traducción del LOCALE ACTUAL + base: orden/activo) --}}
             <div class="modal fade" id="editSectionModal-{{ $s->section_id }}" tabindex="-1" aria-hidden="true">
               <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
                   <form action="{{ route('admin.policies.sections.update', [$policy, $s]) }}" method="POST" class="js-confirm-edit">
                     @csrf @method('PUT')
+                    <input type="hidden" name="locale" value="{{ app()->getLocale() }}">
                     <div class="modal-header">
-                      <h5 class="modal-title">{{ __('m_config.policies.edit_section') }}</h5>
+                      <h5 class="modal-title">
+                        {{ __('m_config.policies.edit_section') }}
+                        <small class="text-muted ms-2">({{ strtoupper(app()->getLocale()) }})</small>
+                      </h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                       <div class="row g-3">
                         <div class="col-md-6">
                           <label class="form-label">{{ __('m_config.policies.name') }}</label>
-                          <input type="text" name="name" class="form-control" value="{{ $s->name }}">
+                          <input type="text" name="name" class="form-control" value="{{ old('name', $tr?->name) }}">
                         </div>
 
                         <div class="col-md-3">
                           <label class="form-label">{{ __('m_config.policies.order') }}</label>
-                          <input type="number" min="0" name="sort_order" class="form-control" value="{{ $s->sort_order }}">
+                          <input type="number" min="0" name="sort_order" class="form-control" value="{{ old('sort_order', $s->sort_order) }}">
                         </div>
                         <div class="col-md-3 d-flex align-items-end">
                           <div class="form-check">
                             <input type="hidden" name="is_active" value="0">
-                            <input type="checkbox" name="is_active" value="1" id="is_active_{{ $s->section_id }}" class="form-check-input" {{ $s->is_active ? 'checked' : '' }}>
+                            <input type="checkbox" name="is_active" value="1"
+                                   id="is_active_{{ $s->section_id }}" class="form-check-input" {{ $s->is_active ? 'checked' : '' }}>
                             <label for="is_active_{{ $s->section_id }}" class="form-check-label">{{ __('m_config.policies.active') }}</label>
                           </div>
                         </div>
 
-                        {{-- === NUEVO: Contenido base de la sección === --}}
                         <div class="col-12">
-                          <label class="form-label">{{ __('m_config.policies.section_content') ?? __('m_config.policies.translation_content') }}</label>
-                          <textarea name="content" class="form-control" rows="10">{{ old('content', $s->content) }}</textarea>
-                          <small class="text-muted d-block mt-1">
-                            {{ __('m_config.policies.base_content_hint') ?? 'Este contenido es el original (base). Las traducciones lo usarán como referencia si no hay versión en su idioma.' }}
-                          </small>
+                          <label class="form-label">{{ __('m_config.policies.translation_content') }}</label>
+                          <textarea name="content" class="form-control" rows="10">{{ old('content', $tr?->content) }}</textarea>
                         </div>
-                        {{-- ============================ --}}
                       </div>
                     </div>
                     <div class="modal-footer">
-                      <button class="btn btn-primary">{{ __('m_config.policies.save') }}</button>
+                      <button class="btn btn-primary">{{ __('m_config.policies.save_changes') }}</button>
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_config.policies.close') }}</button>
                     </div>
                   </form>
@@ -159,7 +161,7 @@
     </div>
   </div>
 
-  {{-- Modal Create (name/content base + orden/activo) --}}
+  {{-- Modal Create (name/content base → controller traduce a todos) --}}
   <div class="modal fade" id="createSectionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
@@ -208,35 +210,34 @@
   </div>
 @stop
 
+@push('css')
+<style>
+  .btn-edit { background:#0dcaf0; color:#000; }
+  .btn-edit:hover { filter: brightness(.95); }
+  .btn-toggle { background:#198754; color:#fff; }
+  .btn-delete { background:#dc3545; color:#fff; }
+  .btn-delete:hover { filter: brightness(.95); }
+</style>
+@endpush
+
 @section('js')
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  {{-- Éxito / Error --}}
   @if(session('success'))
     <script>
-      Swal.fire({
-        icon: 'success',
-        title: @json(__(session('success'))),
-        showConfirmButton: false,
-        timer: 2000
-      });
+      Swal.fire({ icon:'success', title:@json(__(session('success'))), showConfirmButton:false, timer:1800 });
     </script>
   @endif
 
   @if(session('error'))
     <script>
-      Swal.fire({
-        icon: 'error',
-        title: @json(__('m_config.policies.error_title') ?? 'Error'),
-        text: @json(__(session('error')))
-      });
+      Swal.fire({ icon:'error', title:@json(__('m_config.policies.error_title')), text:@json(__(session('error'))) });
     </script>
   @endif
 
   <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // tooltips
     [...document.querySelectorAll('[data-bs-toggle="tooltip"]')].forEach(el => new bootstrap.Tooltip(el));
 
     // limpiar backdrops duplicados
@@ -245,85 +246,62 @@
       if (backs.length > 1) backs.forEach((b,i) => { if (i < backs.length-1) b.remove(); });
     });
 
-    // Validaciones como modal
-    const valErrors = @json($errors->any() ? $errors->all() : []);
-    if (valErrors && valErrors.length) {
-      const list = '<ul class="text-start mb-0">' + valErrors.map(e => `<li>${e}</li>`).join('') + '</ul>';
-      Swal.fire({
-        icon: 'warning',
-        title: @json(__('m_config.policies.validation_errors') ?? 'Hay errores de validación'),
-        html: list,
-        confirmButtonText: @json(__('m_config.policies.ok') ?? 'Aceptar'),
-      });
-    }
+    const confirm = (opts) => Swal.fire(Object.assign({
+      icon: 'question', showCancelButton: true,
+      cancelButtonColor:'#6c757d'
+    }, opts));
 
-    // Confirmación CREAR sección
+    // Crear
     document.querySelectorAll('.js-confirm-create').forEach(form => {
-      form.addEventListener('submit', (ev) => {
+      form.addEventListener('submit', ev => {
         ev.preventDefault();
-        Swal.fire({
+        confirm({
           title: @json(__('m_config.policies.confirm_create_section') ?? '¿Crear esta sección?'),
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonColor: '#28a745',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: @json(__('m_config.policies.create') ?? 'Crear'),
-          cancelButtonText: @json(__('m_config.policies.cancel') ?? 'Cancelar'),
-        }).then((res) => { if (res.isConfirmed) form.submit(); });
+          confirmButtonColor:'#28a745',
+          confirmButtonText:@json(__('m_config.policies.create') ?? 'Crear'),
+          cancelButtonText:@json(__('m_config.policies.cancel') ?? 'Cancelar'),
+        }).then(r => { if (r.isConfirmed) form.submit(); });
       });
     });
 
-    // Confirmación EDITAR sección
+    // Editar
     document.querySelectorAll('.js-confirm-edit').forEach(form => {
-      form.addEventListener('submit', (ev) => {
+      form.addEventListener('submit', ev => {
         ev.preventDefault();
-        Swal.fire({
-          title: @json(__('m_config.policies.confirm_edit_section') ?? '¿Guardar cambios de la sección?'),
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonColor: '#0d6efd',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: @json(__('m_config.policies.save_changes') ?? 'Guardar cambios'),
-          cancelButtonText: @json(__('m_config.policies.cancel') ?? 'Cancelar'),
-        }).then((res) => { if (res.isConfirmed) form.submit(); });
+        confirm({
+          title: @json(__('m_config.policies.confirm_edit_section') ?? '¿Guardar cambios?'),
+          confirmButtonColor:'#0d6efd',
+          confirmButtonText:@json(__('m_config.policies.save_changes') ?? 'Guardar cambios'),
+          cancelButtonText:@json(__('m_config.policies.cancel') ?? 'Cancelar'),
+        }).then(r => { if (r.isConfirmed) form.submit(); });
       });
     });
 
-    // Confirmación ELIMINAR sección
+    // Eliminar
     document.querySelectorAll('.js-confirm-delete').forEach(form => {
-      form.addEventListener('submit', (ev) => {
+      form.addEventListener('submit', ev => {
         ev.preventDefault();
-        const msg = form.dataset.message || @json(__('m_config.policies.confirm_delete_section'));
-        Swal.fire({
-          title: msg,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: @json(__('m_config.policies.delete') ?? 'Eliminar'),
-          cancelButtonText: @json(__('m_config.policies.cancel') ?? 'Cancelar'),
-        }).then((res) => { if (res.isConfirmed) form.submit(); });
+        confirm({
+          title: form.dataset.message || @json(__('m_config.policies.confirm_delete_section')),
+          icon:'warning',
+          confirmButtonColor:'#d33',
+          confirmButtonText:@json(__('m_config.policies.delete') ?? 'Eliminar'),
+          cancelButtonText:@json(__('m_config.policies.cancel') ?? 'Cancelar'),
+        }).then(r => { if (r.isConfirmed) form.submit(); });
       });
     });
 
-    // Confirmación ACTIVAR/DESACTIVAR sección
+    // Toggle
     document.querySelectorAll('.js-confirm-toggle').forEach(form => {
-      form.addEventListener('submit', (ev) => {
+      form.addEventListener('submit', ev => {
         ev.preventDefault();
         const isActive = form.dataset.active === '1';
-        Swal.fire({
-          title: isActive
-            ? @json(__('m_config.policies.confirm_deactivate_section'))
-            : @json(__('m_config.policies.confirm_activate_section')),
-          icon: 'question',
-          showCancelButton: true,
+        confirm({
+          title: isActive ? @json(__('m_config.policies.confirm_deactivate_section')) : @json(__('m_config.policies.confirm_activate_section')),
           confirmButtonColor: isActive ? '#d33' : '#28a745',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: isActive
-            ? @json(__('m_config.policies.deactivate') ?? 'Desactivar')
-            : @json(__('m_config.policies.activate') ?? 'Activar'),
+          confirmButtonText: isActive ? @json(__('m_config.policies.deactivate') ?? 'Desactivar') : @json(__('m_config.policies.activate') ?? 'Activar'),
           cancelButtonText: @json(__('m_config.policies.cancel') ?? 'Cancelar'),
-        }).then((res) => { if (res.isConfirmed) form.submit(); });
+        }).then(r => { if (r.isConfirmed) form.submit(); });
       });
     });
   });

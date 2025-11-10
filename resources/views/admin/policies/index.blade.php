@@ -229,12 +229,12 @@
             <div class="mb-3">
               <label class="form-label">{{ __('m_config.policies.name') }}</label>
               <input type="text" name="name" class="form-control"
-                     value="{{ old('name', $t?->name ?? $p->name) }}">
+                     value="{{ old('name', $t?->name) }}">
             </div>
 
             <div class="mb-3">
               <label class="form-label">{{ __('m_config.policies.description_label') }}</label>
-              <textarea name="content" class="form-control" rows="8">{{ old('content', $t?->content ?? $p->content) }}</textarea>
+              <textarea name="content" class="form-control" rows="8">{{ old('content', $t?->content) }}</textarea>
             </div>
 
             {{-- SLUG (base) --}}

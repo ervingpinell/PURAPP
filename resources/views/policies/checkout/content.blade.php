@@ -1,12 +1,45 @@
-{{-- resources/views/policies/checkout/content.blade.php --}}
 @php
+  /**
+   * Estructura esperada (DB-first):
+   * $policyBlocks = [
+   *   ['key'=>'terms',        'title'=>'...', 'version'=>'vX', 'html'=>'<p>...</p>'],
+   *   ['key'=>'privacy',      'title'=>'...', 'version'=>'vX', 'html'=>'<p>...</p>'],
+   *   ['key'=>'cancellation', 'title'=>'...', 'version'=>'vX', 'html'=>'<p>...</p>'],
+   *   ['key'=>'refunds',      'title'=>'...', 'version'=>'vX', 'html'=>'<p>...</p>'],
+   *   ['key'=>'warranty',     'title'=>'...', 'version'=>'vX', 'html'=>'<p>...</p>'],
+   *   ['key'=>'payments',     'title'=>'...', 'version'=>'vX', 'html'=>'<p>...</p>'],
+   * ];
+   */
+
+  // Helpers de fallback a archivos de traducción
   $T = fn($k) => __('policies.checkout.titles.' . $k);
   $V = fn($k) => __('policies.checkout.version.' . $k);
   $B = fn($k) => __('policies.checkout.bodies.' . $k . '_html');
+
+  // Si NO llega $policyBlocks, construimos con las claves actuales (archivos)
+  if (empty($policyBlocks) || !is_array($policyBlocks)) {
+    $policyBlocks = [
+      ['key'=>'terms',        'title'=> $T('terms'),        'version'=> $V('terms'),        'html'=> $B('terms')],
+      ['key'=>'privacy',      'title'=> $T('privacy'),      'version'=> $V('privacy'),      'html'=> $B('privacy')],
+      ['key'=>'cancellation', 'title'=> $T('cancellation'), 'version'=> 'v1',               'html'=> $B('cancellation')],
+      ['key'=>'refunds',      'title'=> $T('refunds'),      'version'=> 'v1',               'html'=> $B('refunds')],
+      ['key'=>'warranty',     'title'=> $T('warranty'),     'version'=> 'v1',               'html'=> $B('warranty')],
+      ['key'=>'payments',     'title'=> $T('payments'),     'version'=> 'v1',               'html'=> $B('payments')],
+    ];
+  } else {
+    // Si sí llega $policyBlocks desde BD, permite override de versions para términos/privacidad
+    if (!empty($termsVersion)) {
+      foreach ($policyBlocks as &$blk) if (($blk['key'] ?? null) === 'terms') $blk['version'] = $termsVersion;
+      unset($blk);
+    }
+    if (!empty($privacyVersion)) {
+      foreach ($policyBlocks as &$blk) if (($blk['key'] ?? null) === 'privacy') $blk['version'] = $privacyVersion;
+      unset($blk);
+    }
+  }
 @endphp
 
 <style>
-  /* separadores visuales por sección */
   .policy-block{margin-bottom:1.25rem;border:1px solid var(--g200);border-radius:.75rem;overflow:hidden;background:#fff}
   .policy-subheader{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.75rem 1rem;background:var(--g50);border-bottom:1px solid var(--g200)}
   .policy-subheader .title{font-weight:700;color:var(--g800)}
@@ -16,56 +49,14 @@
   .policy-body li{margin:.35rem 0}
 </style>
 
-{{-- Términos y Condiciones --}}
-<div class="policy-block">
-  <div class="policy-subheader">
-    <span class="title">{{ $T('terms') }}</span>
-    <span class="version">{{ $V('terms') }}</span>
+@foreach($policyBlocks as $block)
+  <div class="policy-block">
+    <div class="policy-subheader">
+      <span class="title">{{ $block['title'] ?? '' }}</span>
+      <span class="version">{{ $block['version'] ?? 'v1' }}</span>
+    </div>
+    <div class="policy-body">
+      {!! $block['html'] ?? '' !!}
+    </div>
   </div>
-  <div class="policy-body">{!! $B('terms') !!}</div>
-</div>
-
-{{-- Privacidad --}}
-<div class="policy-block">
-  <div class="policy-subheader">
-    <span class="title">{{ $T('privacy') }}</span>
-    <span class="version">{{ $V('privacy') }}</span>
-  </div>
-  <div class="policy-body">{!! $B('privacy') !!}</div>
-</div>
-
-{{-- Cancelación --}}
-<div class="policy-block">
-  <div class="policy-subheader">
-    <span class="title">{{ $T('cancellation') }}</span>
-    <span class="version">v1</span>
-  </div>
-  <div class="policy-body">{!! $B('cancellation') !!}</div>
-</div>
-
-{{-- Devoluciones --}}
-<div class="policy-block">
-  <div class="policy-subheader">
-    <span class="title">{{ $T('refunds') }}</span>
-    <span class="version">v1</span>
-  </div>
-  <div class="policy-body">{!! $B('refunds') !!}</div>
-</div>
-
-{{-- Garantía --}}
-<div class="policy-block">
-  <div class="policy-subheader">
-    <span class="title">{{ $T('warranty') }}</span>
-    <span class="version">v1</span>
-  </div>
-  <div class="policy-body">{!! $B('warranty') !!}</div>
-</div>
-
-{{-- Métodos de pago --}}
-<div class="policy-block">
-  <div class="policy-subheader">
-    <span class="title">{{ $T('payments') }}</span>
-    <span class="version">v1</span>
-  </div>
-  <div class="policy-body">{!! $B('payments') !!}</div>
-</div>
+@endforeach

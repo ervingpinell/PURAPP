@@ -19,13 +19,13 @@ class Policy extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        'name',
+        // OJO: sin name/content (ya no existen en policies)
         'slug',
-        'content',
         'is_default',
         'is_active',
         'effective_from',
         'effective_to',
+        // si tienes 'type' u otros, agréguelos aquí
     ];
 
     protected $casts = [
@@ -40,52 +40,33 @@ class Policy extends Model
         return 'slug';
     }
 
-    /* ===================== BOOT & AUTO-TRADUCCIONES ===================== */
+    /* ===================== BOOT ===================== */
 
     protected static function booted()
     {
-        // Generar slug automáticamente al crear
+        // Asegurar unicidad del slug si se modifica/proporciona
         static::creating(function (self $policy) {
-            if (empty($policy->slug) && !empty($policy->name)) {
-                $policy->slug = $policy->generateUniqueSlug($policy->name);
+            if (empty($policy->slug)) {
+                // Si quieres auto-generar slug aquí, toma la decisión desde el controlador.
+                // Aquí solo garantizamos unicidad si existe.
+                $policy->slug = $policy->slug ?: null;
+            } else {
+                $policy->slug = $policy->generateUniqueSlug($policy->slug);
             }
         });
 
-        // Sembrar traducciones inmediatamente después de crear
-        static::created(function (self $policy) {
-            $policy->seedMissingTranslations();
-        });
-
-        // Permitir actualización manual del slug asegurando unicidad
         static::updating(function (self $policy) {
-            if (empty($policy->slug) && !empty($policy->name)) {
-                $policy->slug = $policy->generateUniqueSlug($policy->name);
-            }
-
             if ($policy->isDirty('slug') && !empty($policy->slug)) {
-                $exists = static::where('slug', $policy->slug)
-                    ->where('policy_id', '!=', $policy->policy_id)
-                    ->exists();
-
-                if ($exists) {
-                    $policy->slug = $policy->generateUniqueSlug($policy->slug);
-                }
-            }
-        });
-
-        // Si cambió el name base, rellenar traducciones vacías con el nuevo valor
-        static::updated(function (self $policy) {
-            if ($policy->wasChanged('name')) {
-                $policy->syncNameIntoTranslations();
+                $policy->slug = $policy->generateUniqueSlug($policy->slug);
             }
         });
     }
 
     /* ===================== SLUG ===================== */
 
-    public function generateUniqueSlug(string $name): string
+    public function generateUniqueSlug(string $base): string
     {
-        $slug = Str::slug($name);
+        $slug = Str::slug($base);
         $originalSlug = $slug;
         $counter = 1;
 
@@ -99,9 +80,9 @@ class Policy extends Model
         return $slug;
     }
 
-    public function regenerateSlug(?string $baseName = null): self
+    public function regenerateSlug(string $from): self
     {
-        $this->slug = $this->generateUniqueSlug($baseName ?? (string)$this->name);
+        $this->slug = $this->generateUniqueSlug($from);
         $this->save();
         return $this;
     }
@@ -110,6 +91,7 @@ class Policy extends Model
 
     /**
      * Normaliza cualquier variante a un código canónico corto.
+     * Guardamos 'pt' como convención (no 'pt_BR').
      */
     public static function canonicalLocale(string $loc): string
     {
@@ -121,35 +103,9 @@ class Policy extends Model
             'en' => 'en',
             'fr' => 'fr',
             'de' => 'de',
-            'pt' => 'pt', // <- unificamos siempre a 'pt'
+            'pt' => 'pt',
             default => $loc,
         };
-    }
-
-    public function seedMissingTranslations(?array $locales = null): void
-    {
-        $locales = $locales ?: (array) config('app.supported_locales', ['es','en','fr','pt','de']);
-        foreach ($locales as $loc) {
-            $norm = self::canonicalLocale($loc);
-            $this->translations()->firstOrCreate(
-                ['locale' => $norm],
-                [
-                    'name'    => (string) $this->name,
-                    'content' => (string) ($this->content ?? ''),
-                ]
-            );
-        }
-    }
-
-    public function syncNameIntoTranslations(): void
-    {
-        $current = (string) ($this->name ?? '');
-        $this->translations()->get()->each(function (PolicyTranslation $tr) use ($current) {
-            if (blank($tr->name)) {
-                $tr->name = $current;
-                $tr->save();
-            }
-        });
     }
 
     public function translation(?string $locale = null)
@@ -163,20 +119,17 @@ class Policy extends Model
 
         $norm = fn ($v) => str_replace('-', '_', strtolower((string) $v));
 
-        // 1) Coincidencia exacta (case-insensitive)
+        // Exacta
         if ($exact = $bag->first(fn ($t) => $norm($t->locale) === $norm($requested))) {
             return $exact;
         }
 
-        // 2) Variantes típicas que mapeen a lo mismo (por robustez)
-        //    Nota: aunque sólo guardamos 'pt', intentamos coincidir si
-        //    hubiera legacy 'pt_BR' en la DB.
+        // Variantes típicas (compatibilidad)
         $variants = array_unique([
             $requested,
             str_replace('_', '-', $requested),
-            substr($requested, 0, 2), // 'pt'
-            'pt_BR',                  // compat: por si quedara algún registro antiguo
-            'pt-br',                  // compat
+            substr($requested, 0, 2), // ej. 'pt'
+            'pt_BR', 'pt-br',         // compat si quedó legacy
         ]);
 
         foreach ($variants as $v) {
@@ -185,7 +138,7 @@ class Policy extends Model
             }
         }
 
-        // 3) Fallback
+        // Fallback
         return $bag->first(fn ($t) => $norm($t->locale) === $norm($fallback))
             ?: $bag->first(fn ($t) => $norm($t->locale) === $norm(substr($fallback, 0, 2)))
             ?: $bag->first();
@@ -197,30 +150,31 @@ class Policy extends Model
     }
 
     /* ===================== ACCESSORS PARA BLADE ===================== */
+    // Solo desde translations (sin fallback a columnas base)
 
     public function getDisplayNameAttribute(): string
     {
-        return (string) (optional($this->translation())?->name ?? $this->name ?? '');
+        return (string) (optional($this->translation())?->name ?? '');
     }
 
     public function getDisplayContentAttribute(): string
     {
-        return (string) (optional($this->translation())?->content ?? $this->content ?? '');
+        return (string) (optional($this->translation())?->content ?? '');
     }
 
     public function getNameTranslatedAttribute(): ?string
     {
-        return optional($this->translation())?->name ?? $this->name;
+        return $this->translation()?->name;
     }
 
     public function getTitleTranslatedAttribute(): ?string
     {
-        return optional($this->translation())?->name ?? $this->name;
+        return $this->translation()?->name;
     }
 
     public function getContentTranslatedAttribute(): ?string
     {
-        return optional($this->translation())?->content ?? $this->content;
+        return $this->translation()?->content;
     }
 
     /* ===================== RELACIONES ===================== */
@@ -272,11 +226,13 @@ class Policy extends Model
 
     public static function byType(string $type): ?self
     {
+        // Todo por traducciones; ya no usamos name de policies
         $query = static::query()
             ->active()
             ->effectiveOn()
             ->with('translations');
 
+        // Si tienes columna 'type' en policies:
         if (Schema::hasColumn((new static)->getTable(), 'type')) {
             return $query->where('type', $type)
                 ->orderByDesc('is_default')
@@ -284,28 +240,9 @@ class Policy extends Model
                 ->first();
         }
 
-        // Búsqueda por nombre base (compat)
-        $map = [
-            'terminos'    => 'Términos y Condiciones',
-            'cancelacion' => 'Política de Cancelación',
-            'reembolso'   => 'Política de Reembolsos',
-            'privacidad'  => 'Política de Privacidad',
-        ];
-
-        if (isset($map[$type])) {
-            $base = $map[$type];
-
-            $query->where(function ($qq) use ($base) {
-                $qq->where('name', $base)
-                   ->orWhere('name', 'like', $base.'%');
-            });
-
-            return $query->orderByDesc('effective_from')->first();
-        }
-
-        // Búsqueda por traducciones
+        // Búsqueda por traducciones (por nombre)
         return $query->whereHas('translations', function ($qq) use ($type) {
-                $qq->where('name', 'like', '%'.$type.'%');
+                $qq->where('name', 'ilike', '%'.$type.'%'); // ILIKE si estás en Postgres
             })
             ->orderByDesc('effective_from')
             ->first();
