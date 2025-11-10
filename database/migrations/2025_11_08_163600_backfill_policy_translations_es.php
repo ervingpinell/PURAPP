@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        // Detecta tabla de traducciones (preferida plural)
+        // 0) Detecta tabla de traducciones (preferida en plural)
         $translationsTable = null;
         if (Schema::hasTable('policies_translations')) {
             $translationsTable = 'policies_translations';
@@ -20,47 +20,47 @@ return new class extends Migration {
             return;
         }
 
-        // Determina cómo construir el contenido destino
-        // Si existe policies.description, se concatena al final con doble salto de línea.
-        $hasDescription = Schema::hasColumn('policies', 'description');
-        $contentExpr = $hasDescription
-            ? "COALESCE(p.content, '') || CASE WHEN p.description IS NOT NULL AND p.description <> '' THEN E'\n\n' || p.description ELSE '' END"
-            : "p.content";
+        // 1) Determina de forma segura qué usar como "name" y "content" desde policies
+        //    (tu tabla policies NO tiene name/content, así que usamos slug como name por defecto)
+        $nameExpr = Schema::hasColumn('policies', 'name')        ? "p.name"
+                 : (Schema::hasColumn('policies', 'title')       ? "p.title"
+                 : (Schema::hasColumn('policies', 'slug')        ? "p.slug"
+                 :                                               "'(sin nombre)'" ));
 
-        // 1) Crear tabla backup si no existe
-        //    Guarda el snapshot de las traducciones ES anteriores para rollback.
+        $contentExpr = Schema::hasColumn('policies', 'content')      ? "p.content"
+                     : (Schema::hasColumn('policies', 'description') ? "p.description"
+                     :                                               "NULL");
+
+        // 2) Crear tabla backup si no existe (para permitir rollback)
         DB::statement("
             CREATE TABLE IF NOT EXISTS policies_translations_backfill_backup (
-                policy_id BIGINT PRIMARY KEY,
-                old_name  TEXT NULL,
+                policy_id   BIGINT PRIMARY KEY,
+                old_name    TEXT NULL,
                 old_content TEXT NULL,
-                existed BOOLEAN NOT NULL DEFAULT FALSE
+                existed     BOOLEAN NOT NULL DEFAULT FALSE
             )
         ");
 
-        // Limpiamos posibles restos de una corrida anterior incompleta
+        // Limpia restos de una corrida anterior
         DB::statement("DELETE FROM policies_translations_backfill_backup");
 
-        // 2) Insertar en backup:
-        //    - Si ya existe fila ES en translations: guardar nombre y contenido y existed=true
-        //    - Si no existe fila ES: guardar registro con existed=false (sin valores)
+        // 3) Guardar snapshot previo de traducciones 'es'
         DB::statement("
             INSERT INTO policies_translations_backfill_backup (policy_id, old_name, old_content, existed)
             SELECT p.policy_id,
-                   t.name  AS old_name,
+                   t.name    AS old_name,
                    t.content AS old_content,
                    (t.policy_id IS NOT NULL) AS existed
             FROM policies p
             LEFT JOIN {$translationsTable} t
-                   ON t.policy_id = p.policy_id AND t.locale = 'es'
+              ON t.policy_id = p.policy_id
+             AND t.locale = 'es'
         ");
 
-        // 3) UPSERT a translations con los valores actuales de policies
-        //    - Inserta si no existe
-        //    - Si existe, sobrescribe name y content (como pediste)
+        // 4) UPSERT en tabla de traducciones con datos provenientes de policies
         DB::statement("
             INSERT INTO {$translationsTable} (policy_id, locale, name, content, created_at, updated_at)
-            SELECT p.policy_id, 'es', p.name, {$contentExpr}, NOW(), NOW()
+            SELECT p.policy_id, 'es', {$nameExpr}, {$contentExpr}, NOW(), NOW()
             FROM policies p
             ON CONFLICT (policy_id, locale)
             DO UPDATE SET
@@ -87,23 +87,22 @@ return new class extends Migration {
         // 1) Restaurar filas ES que existían previamente (existed=true)
         DB::statement("
             UPDATE {$translationsTable} t
-            SET
-                name = b.old_name,
-                content = b.old_content,
-                updated_at = NOW()
-            FROM policies_translations_backfill_backup b
-            WHERE b.existed = TRUE
-              AND t.policy_id = b.policy_id
-              AND t.locale = 'es'
+               SET name      = b.old_name,
+                   content   = b.old_content,
+                   updated_at = NOW()
+              FROM policies_translations_backfill_backup b
+             WHERE b.existed = TRUE
+               AND t.policy_id = b.policy_id
+               AND t.locale = 'es'
         ");
 
         // 2) Eliminar filas ES que fueron creadas por el backfill (existed=false)
         DB::statement("
             DELETE FROM {$translationsTable} t
-            USING policies_translations_backfill_backup b
-            WHERE b.existed = FALSE
-              AND t.policy_id = b.policy_id
-              AND t.locale = 'es'
+             USING policies_translations_backfill_backup b
+             WHERE b.existed = FALSE
+               AND t.policy_id = b.policy_id
+               AND t.locale = 'es'
         ");
 
         // 3) Limpiar backup
