@@ -333,6 +333,14 @@ return [
 
     // 17. ERREURS
     'access_denied' => 'Accès refusé',
+    'need_language' => 'Veuillez sélectionner une langue.',
+    'need_pickup'   => 'Veuillez sélectionner un hôtel ou un point de rendez-vous.',
+    'need_schedule_title' => 'Heure obligatoire',
+    'need_schedule'       => 'Veuillez sélectionner une heure.',
+    'need_language_title' => 'Langue obligatoire',
+    'need_pickup_title'   => 'Prise en charge obligatoire',
+    'no_slots_title'      => 'Aucun horaire disponible',
+    'no_slots'            => 'Aucun horaire disponible pour la date sélectionnée. Veuillez choisir une autre date.',
 
     // 18. MODALE CONNEXION PANIER
     'login' => 'Se connecter',

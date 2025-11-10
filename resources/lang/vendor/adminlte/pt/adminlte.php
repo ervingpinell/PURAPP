@@ -332,6 +332,14 @@ return [
 
     // 17. ERROS
     'access_denied' => 'Acesso negado',
+    'need_language' => 'Selecione um idioma.',
+    'need_pickup'   => 'Selecione um hotel ou um ponto de encontro.',
+    'need_schedule_title' => 'Horário obrigatório',
+    'need_schedule'       => 'Por favor, selecione um horário.',
+    'need_language_title' => 'Idioma obrigatório',
+    'need_pickup_title'   => 'Ponto de retirada obrigatório',
+    'no_slots_title'      => 'Sem horários disponíveis',
+    'no_slots'            => 'Não há horários disponíveis para a data selecionada. Por favor, escolha outra data.',
 
     // 18. MODAL DE LOGIN DO CARRINHO
     'login' => 'Entrar',

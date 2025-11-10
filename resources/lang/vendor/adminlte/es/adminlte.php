@@ -335,7 +335,15 @@ return [
 
     // 17. ERRORES
     'access_denied' => 'Acceso denegado',
-
+    'need_language' => 'Por favor, selecciona un idioma.',
+    'need_pickup'   => 'Por favor, selecciona un hotel o un punto de encuentro.',
+    'need_schedule_title' => 'Horario obligatorio',
+    'need_schedule'       => 'Por favor, selecciona una hora.',
+    'need_language_title' => 'Idioma obligatorio',
+    'need_pickup_title'   => 'Recogida obligatoria',
+    'no_slots_title'      => 'Sin horarios disponibles',
+    'no_slots_text'       => 'No hay horarios disponibles para la fecha seleccionada. Por favor, elige otra fecha.',
+    
     // 18. MODAL CARRITO LOGIN
     'login' => 'Iniciar sesión',
     'view_cart' => 'Ver carrito',

@@ -332,6 +332,14 @@ return [
 
     // 17. FEHLER
     'access_denied' => 'Zugriff verweigert',
+    'need_language' => 'Bitte wählen Sie eine Sprache aus.',
+    'need_pickup'   => 'Bitte wählen Sie ein Hotel oder einen Treffpunkt aus.',
+    'need_schedule_title' => 'Uhrzeit erforderlich',
+    'need_schedule'       => 'Bitte wählen Sie eine Uhrzeit aus.',
+    'need_language_title' => 'Sprache erforderlich',
+    'need_pickup_title'   => 'Abholort erforderlich',
+    'no_slots_title'      => 'Keine verfügbaren Uhrzeiten',
+    'no_slots'            => 'Für das ausgewählte Datum sind keine Uhrzeiten verfügbar. Bitte wählen Sie ein anderes Datum.',
 
     // 18. LOGIN-MODAL FÜR WARENKORB
     'login' => 'Anmelden',

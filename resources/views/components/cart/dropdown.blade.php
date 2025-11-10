@@ -165,8 +165,6 @@
                     <ul class="mini-cart-cats">
                       @foreach($itemCats as $c)
                         @php
-                          // === Nombre traducido de categoría ===
-                          // Prioridad: snapshot i18n_name / name -> mapa por category_id -> slug bonito -> '—'
                           $cid   = (int)($c['category_id'] ?? ($c['id'] ?? 0));
                           $raw   = $c['i18n_name'] ?? $c['name'] ?? null;
 
@@ -184,7 +182,6 @@
                           }
 
                           $cName  = $raw ?: ($fromMap ?: $fallbackSlug);
-
                           $cQty   = (int)   ($c['quantity'] ?? 0);
                           $cPrice = (float) ($c['price'] ?? 0);
                           $cSub   = $cQty * $cPrice;
@@ -226,16 +223,18 @@
             <span class="mini-cart-total-label">{{ __('adminlte::adminlte.totalEstimated') }}</span>
             <span class="mini-cart-total-amount">${{ number_format($headerTotal, 2) }}</span>
           </div>
+
           <div class="mini-cart-actions">
             <a class="btn btn-success btn-sm w-100 mb-2" href="{{ route('public.carts.index') }}">
               {{ __('adminlte::adminlte.view_cart') }}
             </a>
-            <form action="{{ route('public.bookings.storeFromCart') }}" method="POST">
-              @csrf
-              <button class="btn btn-outline-success btn-sm w-100">
-                {{ __('adminlte::adminlte.confirmBooking') }}
-              </button>
-            </form>
+
+            {{-- 👇 Cambiado: ir al checkout (términos) --}}
+            <a class="btn btn-outline-success btn-sm w-100"
+               href="{{ route('public.checkout.show') }}"
+               id="mini-cart-confirm">
+              {{ __('adminlte::adminlte.confirmBooking') }}
+            </a>
           </div>
         </div>
       @else

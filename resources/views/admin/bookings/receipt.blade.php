@@ -253,7 +253,7 @@
             <strong>{{ $adjustLabel }} ({{ $couponCode }}):</strong>
             {{ $opApplied === 'add' ? '+' : '-' }}${{ number_format($appliedAmt, 2) }}
           </div>
-        @endif>
+        @endif
 
         <div class="total mt-2">{{ __('m_bookings.receipt.total') }}: ${{ number_format((float)($booking->total ?? 0), 2) }}</div>
       </div>

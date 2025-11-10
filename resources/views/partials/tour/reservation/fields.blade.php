@@ -1,4 +1,4 @@
-{{-- ====== Date & Time + Pickup ====== --}}
+{{-- ====== Date & Time + Pickup (validación SweetAlert2) ====== --}}
 @push('css')
 <style>
   .gv-label-icon{display:flex;align-items:center;gap:.5rem;font-weight:700}
@@ -9,50 +9,92 @@
   .reservation-box .choices__list--dropdown{width:100%}
   .pickup-section{transition:opacity .3s ease}
   .pickup-section.disabled{opacity:.5;pointer-events:none}
+  .field-hint{font-size:.85rem}
+  .error-message{display:none;font-size:.875rem;margin-top:.25rem}
 </style>
 @endpush
+
+@php
+  // Helper: usa fallback cuando la key no está traducida
+  $tr = function(string $key, string $fallback){
+      $t = __($key);
+      return $t === $key ? $fallback : $t;
+  };
+
+  $oldDate        = old('tour_date');
+  $oldSchedule    = old('schedule_id');
+  $oldLanguage    = old('tour_language_id');
+  $oldHotel       = old('hotel_id');
+  $oldOtherHotel  = old('other_hotel_name');
+  $oldIsOther     = old('is_other_hotel', 0);
+  $oldMeeting     = old('selected_meeting_point');
+  $isSelected = fn($v,$o) => (string)$v===(string)$o ? 'selected' : '';
+@endphp
 
 <div class="row g-2">
   {{-- Fecha --}}
   <div class="col-12 col-sm-6">
     <label class="form-label gv-label-icon">
       <i class="fas fa-calendar-alt" aria-hidden="true"></i>
-      <span>{{ __('adminlte::adminlte.select_date') }}</span>
+      <span>{{ $tr('adminlte::adminlte.select_date','Selecciona una fecha') }}</span>
     </label>
-    <input id="tourDateInput" type="text" name="tour_date" class="form-control w-100" placeholder="dd/mm/yyyy" required>
+    <input
+      id="tourDateInput"
+      type="text"
+      name="tour_date"
+      class="form-control w-100 @error('tour_date') is-invalid @enderror"
+      placeholder="dd/mm/yyyy"
+      value="{{ $oldDate }}"
+      required
+    >
+    @error('tour_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
   </div>
 
   {{-- Horario --}}
   <div class="col-12 col-sm-6">
     <label class="form-label gv-label-icon">
       <i class="fas fa-clock" aria-hidden="true"></i>
-      <span>{{ __('adminlte::adminlte.select_time') }}</span>
+      <span>{{ $tr('adminlte::adminlte.select_time','Selecciona una hora') }}</span>
     </label>
-    <select name="schedule_id" class="form-select w-100" id="scheduleSelect" required>
-      <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
+    <select
+      name="schedule_id"
+      class="form-select w-100 @error('schedule_id') is-invalid @enderror"
+      id="scheduleSelect"
+      required
+    >
+      <option value="">-- {{ $tr('adminlte::adminlte.select_option','Selecciona una opción') }} --</option>
       @foreach($tour->schedules->sortBy('start_time') as $schedule)
-        <option value="{{ $schedule->schedule_id }}">
+        <option value="{{ $schedule->schedule_id }}" {{ $isSelected($schedule->schedule_id,$oldSchedule) }}>
           {{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}
         </option>
       @endforeach
     </select>
+    @error('schedule_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+    <div id="noSlotsHelp" class="form-text text-danger field-hint" style="display:none;"></div>
   </div>
 </div>
-
-<div id="noSlotsHelp" class="form-text text-danger mb-2" style="display:none;"></div>
 
 {{-- Idioma --}}
 <div class="section-title mt-3 d-flex align-items-center gap-2">
   <i class="fas fa-language" aria-hidden="true"></i>
-  <span>{{ __('adminlte::adminlte.select_language') }}</span>
+  <span>{{ $tr('adminlte::adminlte.select_language','Selecciona un idioma') }}</span>
 </div>
-<label for="languageSelect" class="visually-hidden">{{ __('adminlte::adminlte.select_language') }}</label>
-<select name="tour_language_id" class="form-select mb-2 w-100" id="languageSelect" required>
-  <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
+<label for="languageSelect" class="visually-hidden">{{ $tr('adminlte::adminlte.select_language','Selecciona un idioma') }}</label>
+<select
+  name="tour_language_id"
+  class="form-select mb-1 w-100 @error('tour_language_id') is-invalid @enderror"
+  id="languageSelect"
+  required
+>
+  <option value="">-- {{ $tr('adminlte::adminlte.select_option','Selecciona una opción') }} --</option>
   @foreach($tour->languages as $lang)
-    <option value="{{ $lang->tour_language_id }}">{{ $lang->name }}</option>
+    <option value="{{ $lang->tour_language_id }}" {{ $isSelected($lang->tour_language_id,$oldLanguage) }}>
+      {{ $lang->name }}
+    </option>
   @endforeach
 </select>
+<div id="langHelp" class="error-message text-danger"></div>
+@error('tour_language_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
 
 {{-- Pickup: Hotel O Punto de encuentro (excluyentes) --}}
 <div class="pickup-options mt-3">
@@ -60,70 +102,90 @@
   <div class="pickup-section" id="hotelSection">
     <div class="section-title d-flex align-items-center gap-2">
       <i class="fas fa-hotel" aria-hidden="true"></i>
-      <span>{{ __('adminlte::adminlte.select_hotel') ?? 'Hotel o punto de recogida' }}</span>
+      <span>{{ $tr('adminlte::adminlte.select_hotel','Hotel') }}</span>
     </div>
-    <label for="hotelSelect" class="visually-hidden">{{ __('adminlte::adminlte.select_hotel') }}</label>
-    <select class="form-select mb-2 w-100" id="hotelSelect" name="hotel_id">
-      <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
+    <label for="hotelSelect" class="visually-hidden">{{ $tr('adminlte::adminlte.select_hotel','Hotel') }}</label>
+    <select
+      class="form-select mb-1 w-100 @error('hotel_id') is-invalid @enderror"
+      id="hotelSelect"
+      name="hotel_id"
+    >
+      <option value="">-- {{ $tr('adminlte::adminlte.select_option','Selecciona una opción') }} --</option>
       @foreach($hotels as $hotel)
-        <option value="{{ $hotel->hotel_id }}">{{ $hotel->name }}</option>
+        <option value="{{ $hotel->hotel_id }}" {{ $isSelected($hotel->hotel_id,$oldHotel) }}>
+          {{ $hotel->name }}
+        </option>
       @endforeach
-      <option value="other">{{ __('adminlte::adminlte.hotel_other') }}</option>
+      <option value="other" {{ $oldIsOther ? 'selected' : '' }}>{{ $tr('adminlte::adminlte.hotel_other','Otro hotel') }}</option>
     </select>
+    <div id="hotelHelp" class="error-message text-danger"></div>
 
     {{-- Otro hotel --}}
-    <div class="mb-2 d-none" id="otherHotelWrapper">
-      <label for="otherHotelInput" class="form-label">{{ __('adminlte::adminlte.hotel_name') }}</label>
-      <input type="text" class="form-control" name="other_hotel_name" id="otherHotelInput"
-             placeholder="{{ __('adminlte::adminlte.hotel_name') }}">
-      <div class="form-text text-danger mt-1" id="outsideAreaMessage" style="display:none;">
-        {{ __('adminlte::adminlte.outside_area')
-            ?: 'Has ingresado un hotel personalizado. Contáctanos para confirmar si podemos ofrecer transporte desde ese lugar.' }}
+    <div class="mb-2 {{ $oldIsOther ? '' : 'd-none' }}" id="otherHotelWrapper">
+      <label for="otherHotelInput" class="form-label">{{ $tr('adminlte::adminlte.hotel_name','Nombre del hotel') }}</label>
+      <input
+        type="text"
+        class="form-control @error('other_hotel_name') is-invalid @enderror"
+        name="other_hotel_name"
+        id="otherHotelInput"
+        value="{{ $oldOtherHotel }}"
+        placeholder="{{ $tr('adminlte::adminlte.hotel_name','Nombre del hotel') }}"
+      >
+      @error('other_hotel_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+
+      <div class="form-text text-danger mt-1 field-hint" id="outsideAreaMessage" style="display: {{ $oldIsOther ? 'block' : 'none' }};">
+        {{ $tr('adminlte::adminlte.outside_area','Has ingresado un hotel personalizado. Contáctanos para confirmar si podemos ofrecer transporte desde ese lugar.') }}
       </div>
     </div>
   </div>
 
   <div class="text-center my-2">
-    <span class="badge bg-secondary">{{ __('adminlte::adminlte.or') ?? 'O' }}</span>
+    <span class="badge bg-secondary">{{ $tr('adminlte::adminlte.or','O') }}</span>
   </div>
 
   {{-- Meeting point --}}
   <div class="pickup-section" id="meetingPointSection">
     <div class="section-title d-flex align-items-center gap-2">
       <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-      <span>{{ __('adminlte::adminlte.meetingPoint') ?? 'Punto de encuentro' }}</span>
+      <span>{{ $tr('adminlte::adminlte.meetingPoint','Punto de encuentro') }}</span>
     </div>
-    <label for="meetingPointSelect" class="visually-hidden">{{ __('adminlte::adminlte.meetingPoint') }}</label>
-    <select class="form-select w-100" name="selected_meeting_point" id="meetingPointSelect">
-      <option value="">-- {{ __('adminlte::adminlte.select_option') }} --</option>
+    <label for="meetingPointSelect" class="visually-hidden">{{ $tr('adminlte::adminlte.meetingPoint','Punto de encuentro') }}</label>
+    <select
+      class="form-select w-100 @error('selected_meeting_point') is-invalid @enderror"
+      name="selected_meeting_point"
+      id="meetingPointSelect"
+    >
+      <option value="">-- {{ $tr('adminlte::adminlte.select_option','Selecciona una opción') }} --</option>
       @foreach($meetingPoints as $mp)
         @php
-          $mpName = method_exists($mp, 'getTranslated') ? $mp->getTranslated('name') : ($mp->name ?? '');
-          $mpDesc = method_exists($mp, 'getTranslated') ? $mp->getTranslated('description') : ($mp->description ?? '');
+          $mpName = method_exists($mp,'getTranslated') ? $mp->getTranslated('name') : ($mp->name ?? '');
+          $mpDesc = method_exists($mp,'getTranslated') ? $mp->getTranslated('description') : ($mp->description ?? '');
         @endphp
         <option
           value="{{ $mp->id }}"
           data-desc="{{ e($mpDesc ?? '') }}"
           data-time="{{ $mp->pickup_time ?? '' }}"
           data-url="{{ $mp->map_url ?? $mp->url ?? '' }}"
+          {{ $isSelected($mp->id,$oldMeeting) }}
         >
           {{ $mpName }}{{ $mp->pickup_time ? ' — '.$mp->pickup_time : '' }}
         </option>
       @endforeach
     </select>
+    <div id="mpHelp" class="error-message text-danger"></div>
 
     {{-- Info dinámica --}}
     <div id="meetingPointInfo" class="meeting-info card card-body bg-light border rounded small d-none mt-2">
       <div id="mpDesc" class="mp-desc mb-2"></div>
       <div id="mpTime" class="mp-time text-muted mb-2"></div>
       <a id="mpLink" class="btn btn-sm btn-outline-success d-none" href="#" target="_blank" rel="noopener">
-        <i class="fas fa-map me-1"></i> {{ __('adminlte::adminlte.open_map') ?: 'Ver ubicación' }}
+        <i class="fas fa-map me-1"></i> {{ $tr('adminlte::adminlte.open_map','Ver ubicación') }}
       </a>
     </div>
   </div>
 </div>
 
-<input type="hidden" name="is_other_hotel" id="isOtherHotel" value="0">
+<input type="hidden" name="is_other_hotel" id="isOtherHotel" value="{{ $oldIsOther ? '1' : '0' }}">
 
 @once
   {{-- Flatpickr --}}
@@ -133,6 +195,9 @@
   {{-- Choices.js --}}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
+  {{-- SweetAlert2 --}}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endonce
 
 @push('scripts')
@@ -142,14 +207,37 @@
   window.__gvDateTimeInit = true;
 
   /* ========= Datos del backend ========= */
-  const RULES  = @json($rulesPayload ?? ['tour'=>['min'=>null],'schedules'=>[],'initialMin'=>null]);
+  const RULES = @json($rulesPayload ?? [
+    'tour' => ['min' => null],
+    'schedules' => [],
+    'initialMin' => null
+  ]);
   const blockedBySchedule = @json($blockedBySchedule ?? (object)[]);
   const fullByCapacity    = @json($capacityDisabled  ?? (object)[]);
   const blockedGeneral    = @json($blockedGeneral    ?? []);
   const fullyBlockedDates = @json($fullyBlockedDates ?? []);
 
+  const OLD = {
+    date: @json($oldDate),
+    schedule: @json($oldSchedule),
+    language: @json($oldLanguage),
+    hotel: @json($oldHotel),
+    otherHotel: @json($oldOtherHotel),
+    isOther: @json((bool)$oldIsOther),
+    meeting: @json($oldMeeting),
+  };
+
   const T = {
-    noSlots: @json(__('adminlte::adminlte.no_slots_for_date') ?: 'No hay horarios disponibles para esa fecha.')
+    noSlotsTitle : @json($tr('adminlte::adminlte.no_slots_title','Sin horarios')),
+    noSlots      : @json($tr('adminlte::adminlte.no_slots_for_date','No hay horarios disponibles para esa fecha.')),
+    needScheduleTitle : @json($tr('adminlte::adminlte.need_schedule_title','Horario obligatorio')),
+    needScheduleText  : @json($tr('adminlte::adminlte.need_schedule','Por favor, selecciona una hora.')),
+    needLangTitle : @json($tr('adminlte::adminlte.need_language_title','Idioma obligatorio')),
+    needLangText  : @json($tr('adminlte::adminlte.need_language','Por favor, selecciona un idioma.')),
+    needPickTitle : @json($tr('adminlte::adminlte.need_pickup_title','Recogida obligatoria')),
+    needPickText  : @json($tr('adminlte::adminlte.need_pickup','Debes seleccionar un hotel o un punto de encuentro para continuar.')),
+    placeholder   : @json('-- '.$tr('adminlte::adminlte.select_option','Selecciona una opción').' --'),
+    ok            : @json($tr('adminlte::adminlte.ok','OK')),
   };
 
   /* ========= Elementos ========= */
@@ -161,9 +249,9 @@
   const otherHotelWrapper = document.getElementById('otherHotelWrapper');
   const otherHotelInput   = document.getElementById('otherHotelInput');
   const isOtherHotelInput = document.getElementById('isOtherHotel');
-  const outsideMessage    = document.getElementById('outsideAreaMessage');
+  const languageSelect    = document.getElementById('languageSelect');
+  const meetingPointSelect= document.getElementById('meetingPointSelect');
 
-  const meetingPointSelect  = document.getElementById('meetingPointSelect');
   const meetingPointSection = document.getElementById('meetingPointSection');
   const hotelSection        = document.getElementById('hotelSection');
   const meetingPointInfo    = document.getElementById('meetingPointInfo');
@@ -175,11 +263,14 @@
 
   /* ========= Helpers ========= */
   const isoFromDate = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const textOf = (opt) => (opt.textContent || '').trim();
+  const warn = (title, text, focusEl) => Swal.fire({icon:'warning', title, text, confirmButtonText: T.ok})
+    .then(()=>{ if(focusEl){ focusEl.scrollIntoView({behavior:'smooth',block:'center'}); setTimeout(()=>focusEl.focus(),120); } });
 
-  // Opciones base ANTES de instanciar Choices
+  // Opciones base (antes de Choices)
   const BASE_CHOICES = Array.from(scheduleSelect.querySelectorAll('option'))
     .filter(o => o.value !== '')
-    .map(o => ({ value:String(o.value), label:o.label }));
+    .map(o => ({ value:String(o.value), label:textOf(o) }));
 
   const ruleForSchedule = (sid) => (RULES.schedules && RULES.schedules[String(sid)]) ? RULES.schedules[String(sid)] : (RULES.tour || {min:null});
   const globalMin = RULES.initialMin || (RULES.tour?.min) || 'today';
@@ -194,7 +285,6 @@
     const r = ruleForSchedule(sid);
     return !r.min || iso >= r.min;
   };
-
   const anyScheduleAvailable = (iso) => SCHEDULE_IDS.some(id => canUseScheduleOnDate(iso, id));
   const isDayFullyBlocked = (iso) => {
     if (!iso) return true;
@@ -204,13 +294,22 @@
   };
 
   /* ========= Choices ========= */
-  const scheduleChoices = new Choices(scheduleSelect, { searchEnabled:false, shouldSort:false, itemSelectText:'', placeholder:false });
-  const hotelChoices    = new Choices(hotelSelect,    { searchEnabled:true,  shouldSort:false, itemSelectText:'' });
-  const meetingChoices  = new Choices(meetingPointSelect, { searchEnabled:true, shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:'-- {{ __('adminlte::adminlte.select_option') }} --' });
-  window.meetingChoices = meetingChoices;
+  const scheduleChoices = new Choices(scheduleSelect, { 
+    searchEnabled:false, shouldSort:false, itemSelectText:'',
+    placeholder:true, placeholderValue:T.placeholder
+  });
+  const hotelChoices    = new Choices(hotelSelect,    { searchEnabled:true, shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:T.placeholder });
+  const meetingChoices  = new Choices(meetingPointSelect, { searchEnabled:true, shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:T.placeholder });
+  const languageChoices = new Choices(languageSelect, { searchEnabled:true, shouldSort:false, itemSelectText:'', placeholder:true, placeholderValue:T.placeholder });
+
+  function forceSchedulePlaceholder(){
+    // limpia cualquier ítem seleccionado y vuelve al placeholder
+    scheduleChoices.removeActiveItems();
+    scheduleSelect.value = '';
+    scheduleChoices.setChoiceByValue('');
+  }
 
   function rebuildScheduleChoices(iso){
-    const prevValue = scheduleChoices.getValue(true) || '';
     scheduleChoices.removeActiveItems();
     scheduleChoices.clearStore();
     scheduleChoices.clearChoices();
@@ -220,6 +319,7 @@
       scheduleChoices.disable();
       help.textContent = iso ? T.noSlots : '';
       help.style.display = iso ? '' : 'none';
+      if (iso) warn(T.noSlotsTitle, T.noSlots, dateInput);
       return;
     }
 
@@ -234,16 +334,19 @@
     if (enabled.length){
       scheduleChoices.enable();
       help.style.display = 'none';
-      if (prevValue && enabled.some(c => String(c.value)===String(prevValue))){
-        scheduleChoices.setChoiceByValue(String(prevValue));
-      } else if (enabled.length===1){
-        scheduleChoices.setChoiceByValue(String(enabled[0].value));
+
+      if (OLD.schedule && enabled.some(c => String(c.value)===String(OLD.schedule))) {
+        scheduleChoices.setChoiceByValue(String(OLD.schedule));
         scheduleSelect.dispatchEvent(new Event('change',{bubbles:true}));
+      } else {
+        // IMPORTANTÍSIMO: no autoseleccionar; mantener placeholder
+        forceSchedulePlaceholder();
       }
     } else {
       scheduleChoices.disable();
       help.textContent = T.noSlots;
       help.style.display = '';
+      warn(T.noSlotsTitle, T.noSlots, dateInput);
     }
   }
 
@@ -254,23 +357,27 @@
       altInput: true,
       altFormat: 'd/m/Y',
       dateFormat: 'Y-m-d',
+      defaultDate: OLD.date || null,
       minDate: globalMin,
       disable: [ (date) => isDayFullyBlocked(isoFromDate(date)) ],
-      onChange: (_sel, iso) => rebuildScheduleChoices(iso),
+      onChange: (_sel, iso) => { rebuildScheduleChoices(iso); forceSchedulePlaceholder(); },
       onReady: (_sel, iso, instance) => {
-        const start = iso || (globalMin === 'today' ? instance.formatDate(new Date(),'Y-m-d') : globalMin);
-        instance.setDate(start, false);
-        rebuildScheduleChoices(start);
+        const startIso = OLD.date
+          ? OLD.date
+          : (iso || (globalMin === 'today' ? instance.formatDate(new Date(),'Y-m-d') : globalMin));
+        if (startIso) instance.setDate(startIso, false);
+        rebuildScheduleChoices(startIso);
+        if (!OLD.schedule) forceSchedulePlaceholder();
       }
     });
   } else {
     dateInput.type = 'date';
     dateInput.min  = (globalMin==='today') ? new Date().toISOString().slice(0,10) : globalMin;
-    dateInput.addEventListener('change', e=> rebuildScheduleChoices(e.target.value));
+    if (OLD.date) dateInput.value = OLD.date;
+    dateInput.addEventListener('change', e=> { rebuildScheduleChoices(e.target.value); forceSchedulePlaceholder(); });
     scheduleChoices.disable();
   }
 
-  // Cambio de horario
   scheduleSelect.addEventListener('change', ()=>{
     const sid  = scheduleSelect.value;
     const rule = sid ? ruleForSchedule(sid) : (RULES.tour || {min:null});
@@ -281,6 +388,8 @@
         fp.clear();
         help.textContent = T.noSlots;
         help.style.display = '';
+        forceSchedulePlaceholder();
+        warn(T.noSlotsTitle, T.noSlots, dateInput);
       } else {
         help.style.display = 'none';
       }
@@ -289,13 +398,12 @@
 
   /* ========= Excluyente: Hotel vs Meeting ========= */
   function toggleOther(){
-    const isOther = (hotelChoices.getValue(true) === 'other');
+    const isOther = (hotelChoices.getValue(true) === 'other') || !!OLD.isOther;
     otherHotelWrapper.classList.toggle('d-none', !isOther);
     if (isOtherHotelInput) isOtherHotelInput.value = isOther ? '1' : '0';
-    outsideMessage && (outsideMessage.style.display = isOther ? 'block' : 'none');
-    if (isOther) { otherHotelInput?.focus(); }
+    if (isOther && !otherHotelInput.value && OLD.otherHotel){ otherHotelInput.value = OLD.otherHotel; }
+    if (isOther) otherHotelInput?.focus();
   }
-  hotelSelect.addEventListener('change', toggleOther); toggleOther();
 
   function refreshMeetingInfo(){
     const val = meetingChoices.getValue(true);
@@ -303,17 +411,15 @@
     const opt = Array.from(meetingPointSelect.options).find(o => String(o.value)===String(val));
     if (!opt){ meetingPointInfo.classList.add('d-none'); return; }
     const desc = opt.dataset.desc || '';
-    theTime = opt.dataset.time || '';
+    const theTime = opt.dataset.time || '';
     const url  = opt.dataset.url  || '';
     mpDesc.textContent = desc;  mpDesc.classList.toggle('d-none', !desc);
     mpTime.textContent = theTime ? `⏰ ${theTime}` : ''; mpTime.classList.toggle('d-none', !theTime);
     if (url){ mpLink.href=url; mpLink.classList.remove('d-none'); } else { mpLink.removeAttribute('href'); mpLink.classList.add('d-none'); }
     meetingPointInfo.classList.remove('d-none');
   }
-  meetingPointSelect.addEventListener('change', refreshMeetingInfo); refreshMeetingInfo();
 
-  // Mutua exclusión
-  function validateHotelMeetingPoint(){
+  function validatePickupUI(){
     const hotelValue = hotelChoices.getValue(true);
     const meetingVal = meetingChoices.getValue(true);
 
@@ -331,9 +437,64 @@
       hotelChoices.enable(); hotelSection.classList.remove('disabled');
     }
   }
-  hotelSelect.addEventListener('change', validateHotelMeetingPoint);
-  meetingPointSelect.addEventListener('change', validateHotelMeetingPoint);
-  validateHotelMeetingPoint();
+
+  // Restaurar selecciones previas
+  if (OLD.language) languageChoices.setChoiceByValue(String(OLD.language));
+  if (OLD.hotel)    hotelChoices.setChoiceByValue(String(OLD.hotel));
+  else if (OLD.isOther) hotelChoices.setChoiceByValue('other');
+  toggleOther();
+  if (OLD.meeting) meetingChoices.setChoiceByValue(String(OLD.meeting));
+  refreshMeetingInfo();
+  validatePickupUI();
+
+  hotelSelect.addEventListener('change', ()=>{ toggleOther(); validatePickupUI(); });
+  meetingPointSelect.addEventListener('change', ()=>{ refreshMeetingInfo(); validatePickupUI(); });
+
+  /* ========= Validación con SweetAlert2 ========= */
+  async function validateForm(e){
+    // 1) Horario
+    if (!scheduleSelect.value){
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      await warn(T.needScheduleTitle, T.needScheduleText, scheduleSelect);
+      return false;
+    }
+
+    // 2) Idioma
+    if (!languageSelect.value){
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      await warn(T.needLangTitle, T.needLangText, languageSelect);
+      return false;
+    }
+
+    // 3) Hotel o Meeting
+    const hotelVal   = hotelSelect.value;
+    const meetingVal = meetingPointSelect.value;
+    const isOther    = (hotelVal === 'other');
+    const otherTxt   = (otherHotelInput?.value || '').trim();
+    const hasHotel   = (hotelVal && hotelVal !== '' && hotelVal !== 'other') || (isOther && otherTxt !== '');
+    const hasMeeting = !!meetingVal;
+
+    if (!hasHotel && !hasMeeting){
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      await warn(T.needPickTitle, T.needPickText, hotelSelect);
+      return false;
+    }
+    return true;
+  }
+
+  // Click “Agregar al carrito” o submit del form
+  document.addEventListener('click', function(e){
+    const target = e.target.closest('[data-role="add-to-cart"], [name="add_to_cart"], #add-to-cart-btn, button[type="submit"]');
+    if (!target) return;
+    const form = target.closest('form');
+    if (!form || !form.contains(scheduleSelect)) return; // asegura que estamos en este formulario
+    validateForm(e);
+  }, {capture:true});
+
+  const form = document.getElementById('languageSelect')?.closest('form');
+  if (form){
+    form.addEventListener('submit', (e)=>{ if (!validateForm(e)) return false; }, {capture:true});
+  }
 })();
 </script>
 @endpush

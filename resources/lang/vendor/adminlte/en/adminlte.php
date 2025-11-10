@@ -333,7 +333,15 @@ return [
 
     // 17. ERRORS
     'access_denied' => 'Access denied',
-
+    'need_language' => 'Please select a language.',
+    'need_pickup'   => 'Please select a hotel or a meeting point.',
+    'need_schedule_title' => 'Time required',
+    'need_schedule'       => 'Please select a time.',
+    'need_language_title' => 'Language required',
+    'need_pickup_title'   => 'Pickup required',
+    'no_slots_title'      => 'No schedules',
+    'no_slots'            => 'No available schedules for the selected date.',
+    
     // 18. CART LOGIN MODAL
     'login' => 'Log in',
     'view_cart' => 'View cart',
