@@ -23,6 +23,11 @@ return [
             ),
         ],
 
+        // Microsoft Graph API Transport
+        'graph' => [
+            'transport' => 'graph',
+        ],
+
         'ses' => [ 'transport' => 'ses' ],
         'postmark' => [ 'transport' => 'postmark' ],
         'resend' => [ 'transport' => 'resend' ],
@@ -39,11 +44,11 @@ return [
 
         'array' => [ 'transport' => 'array' ],
 
+        'failover' => [
+            'transport' => 'failover',
+            'mailers' => ['graph', 'log'], // Primero intenta Graph, luego log
+        ],
 
-    'failover' => [
-        'transport' => 'failover',
-        'mailers' => ['smtp', 'log'],
-    ],
         'roundrobin' => [
             'transport' => 'roundrobin',
             'mailers' => ['ses', 'postmark'],

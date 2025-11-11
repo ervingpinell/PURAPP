@@ -8,7 +8,6 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 
-
 class AccountLockedNotification extends Notification
 {
     use Queueable;
@@ -22,14 +21,16 @@ class AccountLockedNotification extends Notification
 
     public function toMail($notifiable): MailMessage
     {
-        // Log rápido para verificar que se dispara
         Log::info('Sending AccountLockedNotification', [
             'to'   => $notifiable->email,
             'url'  => $this->unlockUrl,
         ]);
 
+        $replyTo = config('mail.to.contact', 'info@greenvacationscr.com');
+
         return (new MailMessage)
-            ->from(config('mail.from.address'), config('mail.from.name'))
+            ->from('noreply@greenvacationscr.com', config('mail.from.name', 'Green Vacations CR'))
+            ->replyTo($replyTo)
             ->subject(__('adminlte::auth.account.locked_title') ?: 'Tu cuenta ha sido bloqueada')
             ->greeting(__('adminlte::auth.hello') ?: 'Hola')
             ->line(__('adminlte::auth.account.locked_message') ?: 'Has superado el número de intentos permitidos. Por seguridad, tu cuenta fue bloqueada temporalmente.')

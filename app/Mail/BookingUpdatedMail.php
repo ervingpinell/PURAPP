@@ -41,7 +41,12 @@ class BookingUpdatedMail extends Mailable implements ShouldQueue
             'reference' => $this->reference,
         ], $this->mailLocale);
 
-        return $this->locale($this->mailLocale)
+        $replyTo = config('mail.to.contact', 'info@greenvacationscr.com');
+
+        return $this
+            ->locale($this->mailLocale)
+            ->from('noreply@greenvacationscr.com', config('mail.from.name', 'Green Vacations CR'))
+            ->replyTo($replyTo)
             ->subject($subject)
             ->view('emails.booking_updated')
             ->with([
@@ -51,7 +56,7 @@ class BookingUpdatedMail extends Mailable implements ShouldQueue
                 'tourLangLabel'  => $this->tourLangLabel,
                 'statusLabel'    => $this->statusText,
                 'company'        => config('mail.from.name', config('app.name', 'Green Vacations CR')),
-                'contactEmail'   => 'info@greenvacations.com',
+                'contactEmail'   => $replyTo,
             ]);
     }
 }

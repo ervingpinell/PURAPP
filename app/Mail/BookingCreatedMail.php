@@ -15,15 +15,10 @@ class BookingCreatedMail extends Mailable implements ShouldQueue
     use Queueable, SerializesModels;
 
     public Booking $booking;
-    /** @var \Illuminate\Support\Collection<int, BookingDetail> */
     public $details;
     public string $lang;
     public string $company;
 
-    /**
-     * @param \App\Models\Booking $booking
-     * @param \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection|null $details
-     */
     public function __construct(Booking $booking, $details = null)
     {
         $this->booking = $booking->loadMissing(['user']);
@@ -32,9 +27,6 @@ class BookingCreatedMail extends Mailable implements ShouldQueue
             ->where('booking_id', $booking->booking_id)->get());
 
         $this->company = config('app.company_name', 'Green Vacations CR');
-
-        // Determinar idioma por el primer detalle (si el controlador manda 1 por item
-        // quedará perfecto; si manda varios, ya se validó que son del mismo idioma)
         $this->lang = $this->resolveLangFromDetail($this->details->first());
     }
 
@@ -52,7 +44,12 @@ class BookingCreatedMail extends Mailable implements ShouldQueue
             'reference' => $this->booking->booking_reference
         ], $this->lang);
 
-        return $this->subject($subject)
+        $replyTo = config('mail.to.contact', 'info@greenvacationscr.com');
+
+        return $this
+            ->from('noreply@greenvacationscr.com', config('mail.from.name', 'Green Vacations CR'))
+            ->replyTo($replyTo)
+            ->subject($subject)
             ->view('emails.booking_created')
             ->with([
                 'booking' => $this->booking,

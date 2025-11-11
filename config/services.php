@@ -23,6 +23,19 @@ return [
         ],
     ],
 
+    'microsoft' => [
+        // Credenciales de Azure AD App
+        'tenant_id'     => env('MSFT_TENANT_ID'),
+        'client_id'     => env('MSFT_CLIENT_ID'),
+        'client_secret' => env('MSFT_CLIENT_SECRET'),
+
+        // Buzón desde el cual enviar (User Principal Name)
+        // Debe tener permisos en la AAC (Application Access Policy)
+        'sender_upn'    => env('MSFT_SENDER_UPN', 'noreply@greenvacationscr.com'),
+
+        // Reply-To por defecto (opcional)
+        'reply_to'      => env('MSFT_REPLY_TO', 'info@greenvacationscr.com'),
+    ],
     // === Reviews / Partners ===
 
     'viator' => [

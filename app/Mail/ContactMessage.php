@@ -26,8 +26,14 @@ class ContactMessage extends Mailable implements ShouldQueue
 
     public function build()
     {
-        return $this->subject('Contacto: ' . $this->subjectLine)
+        // Obtener destinatario desde config (para facilitar cambios futuros)
+        $contactEmail = config('mail.to.contact', 'info@greenvacationscr.com');
+
+        return $this
+            ->from('noreply@greenvacationscr.com', config('mail.from.name', 'Green Vacations CR'))
+            ->to($contactEmail)
             ->replyTo($this->email, $this->name)
+            ->subject('Contacto: ' . $this->subjectLine)
             ->markdown('emails.contact.message', [
                 'name'        => $this->name,
                 'email'       => $this->email,
