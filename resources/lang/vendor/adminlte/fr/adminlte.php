@@ -251,6 +251,7 @@ return [
     'subtotal'  => 'Sous-total',
     'senior'    => 'Senior',
     'student'   => 'Étudiant',
+    'custom' => 'Personnalisé',
 
     // 10. VALIDATION
     'required_field' => 'Ce champ est obligatoire.',

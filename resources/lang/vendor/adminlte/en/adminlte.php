@@ -251,6 +251,7 @@ return [
     'subtotal'  => 'Subtotal',
     'senior'    => 'Senior',
     'student'   => 'Student',
+    'custom' => 'Custom',
 
     // 10. VALIDATION
     'required_field' => 'This field is required.',

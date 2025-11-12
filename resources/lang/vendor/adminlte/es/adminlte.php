@@ -252,6 +252,7 @@ return [
     'subtotal'  => 'Subtotal',
     'senior'    => 'Adulto mayor',
     'student'   => 'Estudiante',
+    'custom' => 'Personalizado',
 
 
     // 10. VALIDACIÓN

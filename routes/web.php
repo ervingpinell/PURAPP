@@ -49,8 +49,6 @@ use App\Http\Controllers\Admin\TranslationController;
 use App\Http\Controllers\Admin\CapacityController;
 use App\Http\Controllers\Admin\CustomerCategoryController;
 use App\Http\Controllers\Admin\Tours\TourAjaxController;
-use App\Http\Controllers\Admin\API\TourDataController;
-
 
 // Public bookings controller (split)
 use App\Http\Controllers\Bookings\BookingController as PublicBookingController;
@@ -123,6 +121,15 @@ Route::get('/', function () {
     $locale = session('locale', config('routes.default_locale', 'es'));
     return redirect("/{$locale}");
 });
+
+/*
+|--------------------------------------------------------------------------
+| 🔓 Cart count público (para evitar 401 en frontend)
+|--------------------------------------------------------------------------
+*/
+Route::get('/cart/count', [PublicCartController::class, 'count'])
+    ->name('cart.count')
+    ->middleware('throttle:30,1');
 
 /*
 |--------------------------------------------------------------------------
@@ -251,7 +258,6 @@ Route::middleware([SetLocale::class])->group(function () {
         // Timer / expiry (no duplicar en /public/*)
         Route::post('/carts/expire',         [PublicCartController::class, 'expire'])->name('public.carts.expire');
         Route::post('/carts/refresh-expiry', [PublicCartController::class, 'refreshExpiry'])->name('public.carts.refreshExpiry');
-        Route::get('/cart/count',            [PublicCartController::class, 'count'])->name('cart.count.public');
 
         // Promo público (en sesión)
         Route::post('/apply-promo',    [PublicCartController::class, 'applyPromo'])->name('public.carts.applyPromo');
@@ -638,7 +644,6 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])
             });
         });
     });
-
 
 // ============================
 // COOKIES (consent) - Outside admin middleware

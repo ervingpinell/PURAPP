@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 @php
+  use Illuminate\Support\Facades\Route as RouteFacade;
+
   $appLocale = str_replace('_','-', app()->getLocale() ?? 'es');
   $ASSET_ROOT = rtrim(asset(''), '/');
 
@@ -27,7 +29,14 @@
   $homeDe = function_exists('localized_route') ? localized_route('home','de')    : url('/de');
   $homePt = function_exists('localized_route') ? localized_route('home','pt_BR') : url('/pt');
 
-  $cartCountUrl = route('cart.count.public');
+  // ===== FIX: ruta del contador de carrito con fallback seguro =====
+  if (RouteFacade::has('cart.count')) {
+      $cartCountUrl = route('cart.count');
+  } elseif (RouteFacade::has('cart.count.public')) {
+      $cartCountUrl = route('cart.count.public');
+  } else {
+      $cartCountUrl = url('/cart/count');
+  }
 @endphp
 <html lang="{{ $appLocale }}">
 <head>
@@ -189,13 +198,13 @@
         if (!url) return;
         try {
           const res = await fetch(url, { headers: { 'Accept':'application/json' } });
+          if (res.status === 401) { setBadge(0); return; }
           const data = await res.json();
           if (typeof data?.count !== 'undefined') setBadge(Number(data.count||0));
         } catch(_) {}
       };
 
       fetchAndSet();
-
       window.addEventListener('cart:changed', fetchAndSet);
     })();
 

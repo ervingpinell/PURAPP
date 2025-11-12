@@ -27,7 +27,7 @@
   $oldHotel       = old('hotel_id');
   $oldOtherHotel  = old('other_hotel_name');
   $oldIsOther     = old('is_other_hotel', 0);
-  $oldMeeting     = old('selected_meeting_point');
+  $oldMeeting     = old('meeting_point_id'); // ← CORREGIDO: era 'selected_meeting_point'
   $isSelected = fn($v,$o) => (string)$v===(string)$o ? 'selected' : '';
 @endphp
 
@@ -151,8 +151,8 @@
     </div>
     <label for="meetingPointSelect" class="visually-hidden">{{ $tr('adminlte::adminlte.meetingPoint','Punto de encuentro') }}</label>
     <select
-      class="form-select w-100 @error('selected_meeting_point') is-invalid @enderror"
-      name="selected_meeting_point"
+      class="form-select w-100 @error('meeting_point_id') is-invalid @enderror"
+      name="meeting_point_id"
       id="meetingPointSelect"
     >
       <option value="">-- {{ $tr('adminlte::adminlte.select_option','Selecciona una opción') }} --</option>
@@ -173,6 +173,7 @@
       @endforeach
     </select>
     <div id="mpHelp" class="error-message text-danger"></div>
+    @error('meeting_point_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
 
     {{-- Info dinámica --}}
     <div id="meetingPointInfo" class="meeting-info card card-body bg-light border rounded small d-none mt-2">
@@ -482,7 +483,7 @@
     return true;
   }
 
-  // Click “Agregar al carrito” o submit del form
+  // Click "Agregar al carrito" o submit del form
   document.addEventListener('click', function(e){
     const target = e.target.closest('[data-role="add-to-cart"], [name="add_to_cart"], #add-to-cart-btn, button[type="submit"]');
     if (!target) return;

@@ -250,6 +250,7 @@ return [
     'subtotal'  => 'Zwischensumme',
     'senior'    => 'Senior',
     'student'   => 'Student',
+    'custom' => 'Benutzerdefiniert',
 
     // 10. VALIDIERUNG
     'required_field' => 'Dieses Feld ist erforderlich.',

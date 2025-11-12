@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CartController extends Controller
 {
@@ -74,6 +75,15 @@ class CartController extends Controller
     {
         abort_unless(Auth::check(), 403);
 
+        // Log de datos recibidos para debug
+        Log::info('Cart Store - Data received:', [
+            'hotel_id' => $request->hotel_id,
+            'meeting_point_id' => $request->meeting_point_id,
+            'is_other_hotel' => $request->is_other_hotel,
+            'other_hotel_name' => $request->other_hotel_name,
+            'all_data' => $request->all()
+        ]);
+
         $this->normalizeHotelInput($request);
 
         // Validar estructura básica
@@ -84,6 +94,10 @@ class CartController extends Controller
             'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
             'categories'       => 'required|array|min:1',
             'categories.*'     => 'required|integer|min:0',
+            'hotel_id'         => 'nullable|integer|exists:hotels_list,hotel_id',
+            'is_other_hotel'   => 'nullable|boolean',
+            'other_hotel_name' => 'nullable|string|max:255|required_if:is_other_hotel,1',
+            'meeting_point_id' => 'nullable|integer|exists:meeting_points,id',
         ]);
 
         $user = $request->user();
@@ -141,11 +155,18 @@ class CartController extends Controller
             ])->ensureExpiry((int) config('cart.expiry_minutes', 15));
         }
 
-        // Pickup
+        // Pickup - CORREGIDO: usar meeting_point_id directamente
         [$hotelId, $isOther, $other, $mpId] = $this->resolvePickupForStore($request);
 
-        // Crear item (solo categorías)
-        CartItem::create([
+        Log::info('Cart Store - Resolved pickup:', [
+            'hotelId' => $hotelId,
+            'isOther' => $isOther,
+            'other' => $other,
+            'mpId' => $mpId,
+        ]);
+
+        // Crear item
+        $cartItem = CartItem::create([
             'cart_id'          => $cart->cart_id,
             'tour_id'          => (int) $tour->tour_id,
             'tour_date'        => $tourDate,
@@ -159,6 +180,12 @@ class CartController extends Controller
             'is_active'        => true,
         ]);
 
+        Log::info('Cart Item created:', [
+            'item_id' => $cartItem->item_id,
+            'meeting_point_id' => $cartItem->meeting_point_id,
+            'hotel_id' => $cartItem->hotel_id,
+        ]);
+
         $successMessage = __('carts.messages.item_added');
 
         return $request->ajax()
@@ -167,117 +194,113 @@ class CartController extends Controller
     }
 
     /* ====================== Update ====================== */
-public function update(Request $request, $itemId)
-{
-    abort_unless(Auth::check(), 403);
+    public function update(Request $request, $itemId)
+    {
+        abort_unless(Auth::check(), 403);
 
-    // 1) Validación (categories pasa a nullable)
-    $request->validate([
-        'tour_date'        => 'required|date|after_or_equal:today',
-        'schedule_id'      => 'required|exists:schedules,schedule_id',
-        'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
-        'categories'       => 'nullable|array',
-        'categories.*'     => 'nullable|integer|min:0',
-        'hotel_id'         => 'nullable|integer|exists:hotels_list,hotel_id',
-        'is_other_hotel'   => 'boolean',
-        'other_hotel_name' => 'nullable|string|max:255|required_if:is_other_hotel,1',
-        'meeting_point_id' => 'nullable|integer|exists:meeting_points,id',
-    ]);
+        // 1) Validación (categories pasa a nullable)
+        $request->validate([
+            'tour_date'        => 'required|date|after_or_equal:today',
+            'schedule_id'      => 'required|exists:schedules,schedule_id',
+            'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
+            'categories'       => 'nullable|array',
+            'categories.*'     => 'nullable|integer|min:0',
+            'hotel_id'         => 'nullable|integer|exists:hotels_list,hotel_id',
+            'is_other_hotel'   => 'boolean',
+            'other_hotel_name' => 'nullable|string|max:255|required_if:is_other_hotel,1',
+            'meeting_point_id' => 'nullable|integer|exists:meeting_points,id',
+        ]);
 
-    // 2) Cart activo
-    $cart = $this->activeCartOf($request->user(), withTourSchedules: true);
-    if (!$cart || $cart->isExpired()) {
-        return back()->with('error', __('carts.messages.cart_expired'));
+        // 2) Cart activo
+        $cart = $this->activeCartOf($request->user(), withTourSchedules: true);
+        if (!$cart || $cart->isExpired()) {
+            return back()->with('error', __('carts.messages.cart_expired'));
+        }
+
+        // 3) Item
+        $item = $cart->items()->where('item_id', $itemId)->first();
+        if (!$item) {
+            return back()->with('error', __('carts.messages.item_not_found'));
+        }
+
+        // 4) Entidades base
+        $tour     = $item->tour->load('prices.category');
+        $schedule = $this->findValidScheduleOrFail($tour, (int) $request->schedule_id);
+        $tourDate = $request->tour_date;
+
+        // 5) Resolver categorías efectivas
+        $requestedCategories = $request->input('categories');
+        if (is_null($requestedCategories)) {
+            $requestedCategories = $this->snapshotToQuantities((array) ($item->categories ?? []));
+        }
+        $requestedCategories = array_filter(
+            array_map('intval', (array) $requestedCategories),
+            fn ($q) => $q > 0
+        );
+
+        // Validación de negocio por categorías
+        $validationResult = $this->validation->validateQuantities($tour, $requestedCategories);
+        if (!$validationResult['valid']) {
+            $errorMsg = implode(' ', $validationResult['errors']);
+            return back()->with('error', $errorMsg);
+        }
+
+        // 6) Bloqueos
+        if ($this->capacity->isDateBlocked($tour, $schedule, $tourDate)) {
+            return back()->with('error', __('carts.messages.date_no_longer_available', [
+                'date' => $this->fmtDateEn($tourDate), 'min' => 1
+            ]));
+        }
+
+        // 7) Capacidad
+        $snap = $this->capacity->capacitySnapshot(
+            $tour,
+            $schedule,
+            $tourDate,
+            excludeBookingId: null,
+            countHolds: true,
+            excludeCartId: (int) $cart->cart_id
+        );
+
+        $currentPax = $this->totalFromCategories((array) ($item->categories ?? []));
+        $requested  = $this->totalFromCategories($requestedCategories);
+        $remaining  = $snap['available'] + $currentPax;
+
+        if ($requested > $remaining) {
+            $msg = $remaining <= 0
+                ? __('carts.messages.slot_full')
+                : __('carts.messages.limited_seats_available', [
+                    'available' => $remaining,
+                    'tour'      => $tour->getTranslatedName(),
+                    'date'      => $this->fmtDateEn($tourDate),
+                ]);
+            return back()->with('error', $msg);
+        }
+
+        // 8) Pickup - CORREGIDO
+        [$hotelId, $isOther, $other, $mpId] = $this->resolvePickupForUpdate($request);
+
+        // 9) Recalcular snapshot
+        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $requestedCategories);
+
+        if (empty($categoriesSnapshot)) {
+            return back()->with('error', __('m_bookings.validation.no_active_categories'));
+        }
+
+        // 10) Guardar cambios
+        $item->fill([
+            'tour_date'        => $tourDate,
+            'schedule_id'      => (int) $schedule->schedule_id,
+            'tour_language_id' => (int) $request->tour_language_id,
+            'categories'       => $categoriesSnapshot,
+            'meeting_point_id' => $mpId,
+            'is_other_hotel'   => $isOther,
+            'other_hotel_name' => $other,
+            'hotel_id'         => $isOther || $mpId ? null : $hotelId,
+        ])->save();
+
+        return back()->with('success', __('carts.messages.item_updated'));
     }
-
-    // 3) Item
-    $item = $cart->items()->where('item_id', $itemId)->first();
-    if (!$item) {
-        return back()->with('error', __('carts.messages.item_not_found'));
-    }
-
-    // 4) Entidades base
-    $tour     = $item->tour->load('prices.category');
-    $schedule = $this->findValidScheduleOrFail($tour, (int) $request->schedule_id);
-    $tourDate = $request->tour_date;
-
-    // 5) Resolver categorías efectivas:
-    //    - Si vienen en el request, úsese el payload.
-    //    - Si NO vienen, tomar del snapshot actual del item.
-    $requestedCategories = $request->input('categories');
-    if (is_null($requestedCategories)) {
-        // convertir snapshot (array de arrays con category_id/quantity) a ['id' => qty]
-        $requestedCategories = $this->snapshotToQuantities((array) ($item->categories ?? []));
-    }
-    // normalizar a enteros > 0
-    $requestedCategories = array_filter(
-        array_map('intval', (array) $requestedCategories),
-        fn ($q) => $q > 0
-    );
-
-    // Validación de negocio por categorías
-    $validationResult = $this->validation->validateQuantities($tour, $requestedCategories);
-    if (!$validationResult['valid']) {
-        $errorMsg = implode(' ', $validationResult['errors']);
-        return back()->with('error', $errorMsg);
-    }
-
-    // 6) Bloqueos
-    if ($this->capacity->isDateBlocked($tour, $schedule, $tourDate)) {
-        return back()->with('error', __('carts.messages.date_no_longer_available', [
-            'date' => $this->fmtDateEn($tourDate), 'min' => 1
-        ]));
-    }
-
-    // 7) Capacidad, permitiendo conservar la pax actual del mismo item
-    $snap = $this->capacity->capacitySnapshot(
-        $tour,
-        $schedule,
-        $tourDate,
-        excludeBookingId: null,
-        countHolds: true,
-        excludeCartId: (int) $cart->cart_id
-    );
-
-    $currentPax = $this->totalFromCategories((array) ($item->categories ?? []));
-    $requested  = $this->totalFromCategories($requestedCategories);
-    $remaining  = $snap['available'] + $currentPax;
-
-    if ($requested > $remaining) {
-        $msg = $remaining <= 0
-            ? __('carts.messages.slot_full')
-            : __('carts.messages.limited_seats_available', [
-                'available' => $remaining,
-                'tour'      => $tour->getTranslatedName(),
-                'date'      => $this->fmtDateEn($tourDate),
-            ]);
-        return back()->with('error', $msg);
-    }
-
-    // 8) Pickup
-    [$hotelId, $isOther, $other, $mpId] = $this->resolvePickupForUpdate($request);
-
-    // 9) Recalcular snapshot con precios vigentes a partir de $requestedCategories
-    $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $requestedCategories);
-
-    if (empty($categoriesSnapshot)) {
-        return back()->with('error', __('m_bookings.validation.no_active_categories'));
-    }
-
-    // 10) Guardar cambios
-    $item->fill([
-        'tour_date'        => $tourDate,
-        'schedule_id'      => (int) $schedule->schedule_id,
-        'tour_language_id' => (int) $request->tour_language_id,
-        'categories'       => $categoriesSnapshot,
-        'meeting_point_id' => $mpId,
-        'is_other_hotel'   => $isOther,
-        'other_hotel_name' => $other,
-        'hotel_id'         => $isOther || $mpId ? null : $hotelId,
-    ])->save();
-
-    return back()->with('success', __('carts.messages.item_updated'));
-}
 
     /* ====================== Remove item ====================== */
     public function destroy(Request $request, $itemId)
@@ -300,19 +323,36 @@ public function update(Request $request, $itemId)
     /* ====================== Quick count (AJAX) ====================== */
     public function count(Request $request)
     {
-        abort_unless(Auth::check(), 403);
+        if (!Auth::check()) {
+            return response()->json([
+                'count'   => 0,
+                'expired' => false,
+            ]);
+        }
 
         $cart = $this->activeCartOf($request->user());
-        if (!$cart) return response()->json(['count' => 0, 'expired' => false]);
+
+        if (!$cart) {
+            return response()->json([
+                'count'   => 0,
+                'expired' => false,
+            ]);
+        }
 
         if (!$cart->items()->count()) {
             $cart->forceExpire();
-            return response()->json(['count' => 0, 'expired' => true]);
+            return response()->json([
+                'count'   => 0,
+                'expired' => true,
+            ]);
         }
 
         if ($cart->isExpired()) {
             $this->expireCart($cart);
-            return response()->json(['count' => 0, 'expired' => true]);
+            return response()->json([
+                'count'   => 0,
+                'expired' => true,
+            ]);
         }
 
         return response()->json([
@@ -457,10 +497,6 @@ public function update(Request $request, $itemId)
     }
 
     /* ====================== API: Get Categories por Tour (AJAX) ====================== */
-    /**
-     * Obtener categorías con nombres traducidos para un tour específico
-     * Endpoint público para que el frontend muestre las categorías disponibles
-     */
     public function getCategories(Tour $tour)
     {
         $locale = app()->getLocale();
@@ -474,7 +510,6 @@ public function update(Request $request, $itemId)
                 $cat  = $price->category;
                 $slug = $cat->slug ?? '';
 
-                // Resolver nombre con fallbacks (mismo patrón que Admin)
                 $name = method_exists($cat, 'getTranslatedName')
                     ? ($cat->getTranslatedName($locale) ?: ($cat->name ?? null))
                     : ($cat->name ?? null);
@@ -540,15 +575,23 @@ public function update(Request $request, $itemId)
         $in = $request->all();
         $in['is_other_hotel'] = (bool)($in['is_other_hotel'] ?? false);
 
-        $rawHotel = $in['hotel_id'] ?? null;
-        if ($rawHotel === 'other' || $rawHotel === '__custom__' || (isset($rawHotel) && !ctype_digit((string)$rawHotel))) {
-            if ($rawHotel === 'other' || $rawHotel === '__custom__') $in['is_other_hotel'] = true;
-            $in['hotel_id'] = null;
+        // Si viene meeting_point_id, anula hotel
+        if (!empty($in['meeting_point_id'])) {
+            $in['is_other_hotel']  = false;
+            $in['other_hotel_name'] = null;
+            $in['hotel_id']         = null;
+        } else {
+            $rawHotel = $in['hotel_id'] ?? null;
+            if ($rawHotel === 'other' || $rawHotel === '__custom__' || (isset($rawHotel) && !ctype_digit((string)$rawHotel))) {
+                if ($rawHotel === 'other' || $rawHotel === '__custom__') $in['is_other_hotel'] = true;
+                $in['hotel_id'] = null;
+            }
+            if (!empty($in['other_hotel_name'])) {
+                $in['is_other_hotel'] = true;
+                $in['hotel_id'] = null;
+            }
         }
-        if (!empty($in['other_hotel_name'])) {
-            $in['is_other_hotel'] = true;
-            $in['hotel_id'] = null;
-        }
+
         $request->replace($in);
     }
 
@@ -574,16 +617,22 @@ public function update(Request $request, $itemId)
         return $q->first();
     }
 
+    // CORREGIDO: Ahora busca meeting_point_id directamente
     private function resolvePickupForStore(Request $request): array
     {
-        $mpId = $request->integer('selected_meeting_point') ?: null;
+        // Buscar meeting_point_id (no selected_meeting_point)
+        $mpId = $request->integer('meeting_point_id') ?: null;
         if ($mpId && !MeetingPoint::whereKey($mpId)->exists()) $mpId = null;
 
         $isOther = $request->boolean('is_other_hotel');
         $hotelId = $isOther ? null : ($request->hotel_id ?: null);
         $other   = $isOther ? ($request->other_hotel_name ?: null) : null;
 
-        if ($mpId) { $hotelId = null; $isOther = false; $other = null; }
+        if ($mpId) { 
+            $hotelId = null; 
+            $isOther = false; 
+            $other = null; 
+        }
 
         return [$hotelId, $isOther, $other, $mpId];
     }
@@ -618,7 +667,6 @@ public function update(Request $request, $itemId)
 
     private function cartSubtotal(Cart $cart): float
     {
-        // Sólo desde snapshot de categories
         return (float) $cart->items->sum(function ($item) {
             return collect($item->categories ?? [])->sum(
                 fn($cat) => ((float)($cat['price'] ?? 0)) * ((int)($cat['quantity'] ?? 0))
@@ -637,21 +685,21 @@ public function update(Request $request, $itemId)
         return $total;
     }
 
-    /* ====================== Helpers ====================== */
     private function totalFromCategories(array $cats): int
     {
         return array_sum(array_map(fn($q) => (int) $q, $cats));
     }
+
     private function snapshotToQuantities(array $snapshot): array
-{
-    $out = [];
-    foreach ($snapshot as $cat) {
-        $cid = (int)($cat['category_id'] ?? 0);
-        $qty = (int)($cat['quantity'] ?? 0);
-        if ($cid > 0 && $qty > 0) {
-            $out[$cid] = $qty;
+    {
+        $out = [];
+        foreach ($snapshot as $cat) {
+            $cid = (int)($cat['category_id'] ?? 0);
+            $qty = (int)($cat['quantity'] ?? 0);
+            if ($cid > 0 && $qty > 0) {
+                $out[$cid] = $qty;
+            }
         }
+        return $out;
     }
-    return $out;
-}
 }
