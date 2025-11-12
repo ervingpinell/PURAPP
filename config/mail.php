@@ -3,6 +3,7 @@
 return [
 
     'default' => env('MAIL_MAILER', 'smtp'),
+    'booking_notify' => env('BOOKING_NOTIFY', ''),
 
     'mailers' => [
 

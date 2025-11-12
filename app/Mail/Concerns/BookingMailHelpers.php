@@ -6,6 +6,8 @@ use App\Models\Booking;
 
 trait BookingMailHelpers
 {
+    use RestrictsEmailLocale;
+
     /**
      * Intenta extraer un código de idioma ('es' | 'en') desde el modelo de TourLanguage,
      * tolerando distintos nombres de campo.
@@ -34,7 +36,7 @@ trait BookingMailHelpers
     /**
      * Locale del correo según el idioma elegido del tour.
      * Preferimos el detalle (lo realmente reservado) y luego la cabecera.
-     * Si no se encuentra, caemos a 'en'.
+     * SIEMPRE devuelve 'es' o 'en'.
      */
     protected function mailLocaleFromBooking(Booking $booking): string
     {
@@ -44,7 +46,8 @@ trait BookingMailHelpers
              ?? $this->resolveLangCode($booking->tourLanguage ?? null)
              ?? 'en';
 
-        return str_starts_with($code, 'es') ? 'es' : 'en';
+        // Forzar a solo español o inglés
+        return $this->restrictedLocale($code);
     }
 
     /**
@@ -57,7 +60,6 @@ trait BookingMailHelpers
 
     /**
      * Etiqueta legible del idioma del tour, alineada con el locale del correo.
-     * (De esta forma, si el correo es 'es', la etiqueta dirá 'Español'; si es 'en', 'English').
      */
     protected function humanTourLanguage(string $mailLocale, Booking $booking): string
     {
@@ -67,18 +69,17 @@ trait BookingMailHelpers
     /**
      * Estado traducido usando el locale del correo.
      */
-protected function statusLabel(string $mailLocale, Booking $booking): string
-{
-    $status = strtolower((string)($booking->status ?? 'confirmed'));
+    protected function statusLabel(string $mailLocale, Booking $booking): string
+    {
+        $status = strtolower((string)($booking->status ?? 'confirmed'));
 
-    $key = match ($status) {
-        'pending'                 => 'state_pending',
-        'confirmed'               => 'state_confirmed',
-        'cancelled', 'canceled'   => 'state_cancelled',
-        default                   => 'state_confirmed', // fallback seguro
-    };
+        $key = match ($status) {
+            'pending'                 => 'state_pending',
+            'confirmed'               => 'state_confirmed',
+            'cancelled', 'canceled'   => 'state_cancelled',
+            default                   => 'state_confirmed',
+        };
 
-    return __('adminlte::email.' . $key, [], $mailLocale);
-}
-
+        return __('adminlte::email.' . $key, [], $mailLocale);
+    }
 }
