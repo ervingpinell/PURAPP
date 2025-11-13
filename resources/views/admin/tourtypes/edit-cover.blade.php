@@ -28,7 +28,6 @@
         <i class="fas fa-star me-2 text-primary"></i>
         {{ __('m_tours.image.cover_updated_title') }}
       </h1>
-      <span class="gv-kicker">{{ __('m_tours.image.ui.set_cover_btn') }}</span>
     </div>
     @isset($tourType)
       <div class="gv-sub mt-1">
