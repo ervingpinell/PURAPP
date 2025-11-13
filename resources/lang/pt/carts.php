@@ -2,11 +2,11 @@
 
 return [
     'timer' => [
-        'will_expire' => 'Seu carrinho vai expirar em breve.',
+        'will_expire' => 'Seu carrinho irá expirar em breve.',
         'time_left'   => 'Tempo restante:',
         'extend'      => 'Estender :count min|Estender :count min',
-        'already_extended' => 'O tempo de espera já foi estendido. Não é possível estender novamente.',
-        'cart_deleted' => 'Seu carrinho foi excluído automaticamente porque não contém produtos.',
+        'already_extended' => 'O tempo de espera já foi estendido. Não é possível estender mais.',
+        'cart_deleted' => 'Seu carrinho foi automaticamente excluído porque não tem itens.',
     ],
 
     'title_all' => 'Todos os carrinhos de clientes',
@@ -69,12 +69,12 @@ return [
     'my.customer_info.phone' => 'Telefone',
 
     'promo.title'        => 'Código promocional',
-    'promo.placeholder'  => 'Insira o código',
+    'promo.placeholder'  => 'Digite o código',
     'promo.apply'        => 'Aplicar',
     'promo.remove'       => 'Remover',
     'promo.applied'      => ':code aplicado (:label)',
     'promo.removed'      => 'Cupom removido.',
-    'promo.enter_code'   => 'Insira um código',
+    'promo.enter_code'   => 'Digite um código',
     'promo.apply_error'  => 'Não foi possível aplicar o código.',
     'promo.remove_error' => 'Não foi possível remover o código.',
 
@@ -84,7 +84,7 @@ return [
 
     'confirm_send.button' => 'Confirmar e enviar solicitação de reserva',
 
-    'empty.no_records' => 'Nenhum registro corresponde aos filtros.',
+    'empty.no_records' => 'Não há registros que correspondam aos filtros.',
     'empty.cart'       => 'Seu carrinho está vazio.',
 
     'swal.validation_errors.title' => 'Erros de validação',
@@ -96,16 +96,16 @@ return [
     'swal.delete_item.cancel'      => 'Cancelar',
 
     'swal.delete_cart.title'       => 'Excluir este carrinho?',
-    'swal.delete_cart.text'        => 'Todos os passeios incluídos serão excluídos.',
+    'swal.delete_cart.text'        => 'Todos os passeios contidos serão excluídos.',
     'swal.delete_cart.confirm'     => 'Sim, excluir',
     'swal.delete_cart.cancel'      => 'Cancelar',
 
     'messages.item_updated'          => 'Item atualizado com sucesso.',
-    'messages.cart_item_deleted'     => 'Item do carrinho removido.',
+    'messages.cart_item_deleted'     => 'Item do carrinho excluído.',
     'messages.cart_deleted'          => 'Carrinho excluído com sucesso.',
     'messages.cart_status_updated'   => 'Status do carrinho atualizado com sucesso.',
     'messages.blocked_date_for_tour' => 'A data :date está bloqueada para o passeio ":tour".',
-    'messages.capacity_full'         => 'O passeio está totalmente reservado para a data/horário selecionado.',
+    'messages.capacity_full'         => 'O passeio está completamente reservado para a data/horário selecionado.',
 
     'format.datetime' => 'd/m/Y H:i',
     'format.date'     => 'd/m/Y',
@@ -121,11 +121,11 @@ return [
     'fields.adults'    => 'Número de adultos',
     'fields.kids'      => 'Número de crianças',
 
-    'placeholders.select'          => 'Selecionar',
-    'placeholders.select_schedule' => 'Selecionar um horário',
-    'placeholders.select_hotel'    => 'Selecionar um hotel',
-    'placeholders.other_hotel_option' => 'Outro (digite o nome)',
-    'placeholders.enter_hotel_name'=> 'Digite o nome do hotel',
+    'placeholders.select'             => 'Selecionar',
+    'placeholders.select_schedule'    => 'Selecionar um horário',
+    'placeholders.select_hotel'       => 'Selecionar um hotel',
+    'placeholders.other_hotel_option' => 'Outro (digitar nome)',
+    'placeholders.enter_hotel_name'   => 'Digite o nome do hotel',
 
     'buttons.add_to_cart' => 'Adicionar ao carrinho',
 
@@ -138,17 +138,17 @@ return [
     'messages.item_removed'        => 'Item removido do carrinho.',
     'messages.cart_expired'        => 'Seu carrinho expirou por inatividade.',
     'messages.cart_refreshed'      => 'Carrinho atualizado com sucesso.',
-    'messages.no_active_cart'      => 'Nenhum carrinho ativo.',
+    'messages.no_active_cart'      => 'Não há um carrinho ativo.',
     'messages.invalid_code'        => 'Código inválido.',
     'messages.code_already_used'   => 'Este código já foi utilizado.',
     'messages.code_applied'        => 'Código aplicado com sucesso.',
     'messages.code_removed'        => 'Código removido com sucesso.',
-    'messages.slot_full'           => 'Este horário está cheio.',
+    'messages.slot_full'           => 'Este horário está lotado.',
     'messages.date_blocked'        => 'A data selecionada está bloqueada para este passeio.',
     'messages.schedule_unavailable'=> 'O horário selecionado não está disponível para este passeio.',
-    'messages.validation_failed'   => 'Falha na validação dos dados.',
-    'messages.cart_expires_in' => 'O carrinho expirará em :minutes minutos.',
-    'messages.cart_being_processed' => 'Seu carrinho está sendo processado. Tente novamente em alguns segundos.',
+    'messages.validation_failed'   => 'A validação dos dados falhou.',
+    'messages.cart_expires_in'     => 'O carrinho irá expirar em :minutes minutos.',
+    'messages.cart_being_processed'=> 'Seu carrinho está sendo processado. Tente novamente em alguns segundos.',
 
     'messages' => [
         'limited_seats_available' => 'Restam apenas :available vagas para ":tour" em :date.',
@@ -160,19 +160,20 @@ return [
         'cart_being_processed'    => 'Seu carrinho está sendo processado, tente novamente em alguns segundos.',
         'code_applied'            => 'Código aplicado',
         'code_removed'            => 'Código removido',
-        'enter_code'              => 'Insira um código promocional.',
+        'enter_code'              => 'Digite um código promocional.',
         'invalid_code'            => 'Código inválido.',
         'code_apply_failed'       => 'Não foi possível aplicar o código.',
         'code_remove_failed'      => 'Não foi possível remover o código.',
-        'will_expire' => 'Seu carrinho vai expirar em breve.',
-        'time_left'   => 'Tempo restante:',
-        'extend'      => 'Estender :count min|Estender :count min',
-        'already_extended' => 'Você já estendeu seu carrinho uma vez.',
-        'extend_limit_reached' => 'Você só pode estender o tempo uma vez.',
+        'will_expire'             => 'Seu carrinho irá expirar em breve.',
+        'time_left'               => 'Tempo restante:',
+        'extend'                  => 'Estender :count min|Estender :count min',
+        'already_extended'        => 'Você já estendeu seu carrinho uma vez.',
+        'extend_limit_reached'    => 'Você só pode estender o tempo uma vez.',
 
-        'cart_deleted' => 'Seu carrinho foi automaticamente excluído porque não contém produtos.',
-        'cart_refreshed' => 'O tempo do seu carrinho foi estendido.',
-        'extend_success' => 'Carrinho estendido com sucesso.',
-        'max_extensions_reached' => 'Você atingiu o número máximo de extensões permitidas.',
+        'cart_deleted'            => 'Seu carrinho foi automaticamente excluído porque não tem itens.',
+        'cart_refreshed'          => 'O tempo do seu carrinho foi estendido.',
+        'extend_success'          => 'Carrinho estendido com sucesso.',
+        'max_extensions_reached'  => 'Você já atingiu o máximo de extensões permitidas.',
     ],
+
 ];

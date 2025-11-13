@@ -232,6 +232,8 @@ return [
             'submit'       => 'Enviar reseña',
         ],
         'thanks'       => '¡Gracias por tu reseña! 🌿',
+        'thanks_body' => 'Tu opinión es muy importante y nos ayuda a mejorar, te lo agaradecemos de corazón',
+        'thanks_farewell' => "Esperamos que hayas disfrutado con nosotros y esperamos vernos pronto.\n\n🇨🇷 ¡Pura Vida mae! 🇨🇷",
         'thanks_dup'   => '¡Gracias! Ya teníamos tu reseña registrada 🙌',
         'expired'      => 'Este enlace ya expiró, pero gracias por tu intención 💚',
         'used'         => 'Esta solicitud ya fue usada.',
@@ -265,6 +267,9 @@ return [
             'intro'    => 'Nuestro equipo ha respondido a tu reseña :extra.',
             'quote'    => '“:text”',
             'sign'     => '— :admin',
+        ],
+        'submitted' =>[
+            'subject' => 'Nueva reseña recibida',
         ],
     ],
 

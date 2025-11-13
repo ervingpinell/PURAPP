@@ -9,8 +9,10 @@ return [
         'header_create'     => 'Neue Kundenkategorie',
         'header_edit'       => 'Kategorie bearbeiten: :name',
         'info_card_title'   => 'Informationen',
+
+        // Neu für Index/Liste
         'list_title'        => 'Kategorieliste',
-        'empty_list'        => 'Keine Kategorien registriert.',
+        'empty_list'        => 'Es sind keine Kategorien registriert.',
     ],
 
     'buttons' => [
@@ -30,34 +32,43 @@ return [
         'range'    => 'Bereich',
         'active'   => 'Aktiv',
         'actions'  => 'Aktionen',
+
+        // Neu im Index verwendet
         'order'    => 'Reihenfolge',
         'slug'     => 'Slug',
     ],
 
     'form' => [
+        'translations' => [
+            'title'          => 'Namensübersetzungen',
+            'auto_translate' => 'Andere Sprachen automatisch übersetzen (DeepL)',
+            'regen_missing'  => 'Fehlende Einträge automatisch ausfüllen (DeepL)',
+            'at_least_first' => 'Du musst mindestens die erste Sprache ausfüllen.',
+            'locale_hint'    => 'Übersetzung für Locale :loc.',
+        ],
         'name' => [
             'label'       => 'Name',
-            'placeholder' => 'Z. B.: Erwachsener, Kind, Säugling',
-            'required'    => 'Der Name ist erforderlich',
+            'placeholder' => 'Z.B.: Erwachsener, Kind, Kleinkind',
+            'required'    => 'Der Name ist erforderlich.',
         ],
         'slug' => [
             'label'       => 'Slug (eindeutiger Bezeichner)',
-            'placeholder' => 'Z. B.: adult, child, infant',
+            'placeholder' => 'Z.B.: adult, child, infant',
             'title'       => 'Nur Kleinbuchstaben, Zahlen, Bindestriche und Unterstriche',
             'helper'      => 'Nur Kleinbuchstaben, Zahlen, Bindestriche (-) und Unterstriche (_)',
         ],
         'age_from' => [
             'label'       => 'Alter von',
-            'placeholder' => 'Z. B.: 0, 3, 13, 65',
+            'placeholder' => 'Z.B.: 0, 3, 13, 65',
         ],
         'age_to' => [
             'label'         => 'Alter bis',
-            'placeholder'   => 'Z. B.: 2, 12, 64 (leer lassen für „kein Limit“)',
+            'placeholder'   => 'Z.B.: 2, 12, 64 (leer lassen für „kein Limit“)',
             'hint_no_limit' => 'leer lassen für „kein Limit“',
         ],
         'order' => [
             'label'  => 'Anzeigereihenfolge',
-            'helper' => 'Bestimmt die Reihenfolge der Anzeige (kleiner = zuerst)',
+            'helper' => 'Bestimmt die Reihenfolge, in der Kategorien angezeigt werden (kleiner = zuerst)',
         ],
         'active' => [
             'label'  => 'Aktive Kategorie',
@@ -65,11 +76,11 @@ return [
         ],
         'min_per_booking' => [
             'label'       => 'Minimum pro Buchung',
-            'placeholder' => 'Z. B.: 0, 1',
+            'placeholder' => 'Z.B.: 0, 1',
         ],
         'max_per_booking' => [
             'label'       => 'Maximum pro Buchung',
-            'placeholder' => 'Z. B.: 10 (leer lassen für „kein Limit“)',
+            'placeholder' => 'Z.B.: 10 (leer lassen für „kein Limit“)',
         ],
     ],
 
@@ -82,14 +93,14 @@ return [
         'success_created' => 'Kategorie erfolgreich erstellt.',
         'success_updated' => 'Kategorie erfolgreich aktualisiert.',
         'success_deleted' => 'Kategorie erfolgreich gelöscht.',
-        'warning_title'  => 'Warnung',
-        'warning_text'   => 'Das Löschen einer Kategorie, die in Touren oder Buchungen verwendet wird, kann Probleme verursachen. Es wird empfohlen, sie zu deaktivieren, anstatt sie zu löschen.',
+        'warning_title'   => 'Warnung',
+        'warning_text'    => 'Das Löschen einer Kategorie, die in Touren oder Buchungen verwendet wird, kann Probleme verursachen. Es wird empfohlen, sie zu deaktivieren, anstatt sie zu löschen.',
     ],
 
     'dialogs' => [
         'delete' => [
-            'title'   => 'Löschung bestätigen',
-            'text'    => 'Sind Sie sicher, dass Sie die Kategorie :name löschen möchten?',
+            'title'   => 'Löschen bestätigen',
+            'text'    => 'Möchtest du die Kategorie :name wirklich löschen?',
             'caution' => 'Diese Aktion kann nicht rückgängig gemacht werden.',
         ],
     ],
@@ -97,15 +108,15 @@ return [
     'rules' => [
         'title'                 => 'Wichtige Regeln',
         'no_overlap'            => 'Altersbereiche dürfen sich zwischen aktiven Kategorien nicht überschneiden.',
-        'no_upper_limit_hint'   => '„Alter bis“ leer lassen, um „kein oberes Limit“ anzugeben.',
+        'no_upper_limit_hint'   => 'Lass „Alter bis“ leer, um „kein oberes Limit“ anzugeben.',
         'slug_unique'           => 'Der Slug muss eindeutig sein.',
-        'order_affects_display' => 'Die Reihenfolge bestimmt die Anzeige im System.',
+        'order_affects_display' => 'Die Reihenfolge bestimmt, wie sie im System angezeigt werden.',
     ],
 
     'help' => [
         'title'           => 'Hilfe',
         'examples_title'  => 'Beispiele für Kategorien',
-        'infant'          => 'Säugling',
+        'infant'          => 'Kleinkind',
         'child'           => 'Kind',
         'adult'           => 'Erwachsener',
         'senior'          => 'Senior',
@@ -114,16 +125,16 @@ return [
         'range_tip'       => 'Bereich:',
         'notes_title'     => 'Hinweise',
         'notes' => [
-            'use_null_age_to' => 'Verwenden Sie age_to = NULL, um „kein oberes Limit“ anzugeben (z. B.: 18+ Jahre).',
+            'use_null_age_to' => 'Verwende age_to = NULL, um „kein oberes Limit“ anzugeben (z.B. 18+ Jahre).',
             'inactive_hidden' => 'Inaktive Kategorien werden in Buchungsformularen nicht angezeigt.',
         ],
     ],
 
     'info' => [
-        'id'        => 'ID:',
-        'created'   => 'Erstellt:',
-        'updated'   => 'Aktualisiert:',
-        'date_fmt'  => 'd.m.Y H:i',
+        'id'       => 'ID:',
+        'created'  => 'Erstellt:',
+        'updated'  => 'Aktualisiert:',
+        'date_fmt' => 'd/m/Y H:i',
     ],
 
     'validation' => [

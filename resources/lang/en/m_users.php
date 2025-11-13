@@ -1,11 +1,10 @@
 <?php
 
 return [
-    'title' => 'User Management',
-    'add_user' => 'Add User',
+    'title' => 'User management',
+    'add_user' => 'Add user',
     'no_role' => 'No role',
-    'user_marked_verified' => 'User marked as verified successfully.',
-
+    'user_marked_verified' => 'User successfully marked as verified.',
 
     'filters' => [
         'role' => 'Filter by role:',
@@ -14,7 +13,7 @@ return [
         'email_placeholder' => 'example@domain.com',
         'all' => '-- All --',
         'search' => 'Search',
-        'clear' => 'Clear',
+        'clear' => 'Reset',
     ],
 
     'table' => [
@@ -50,7 +49,7 @@ return [
         'reactivate' => 'Reactivate',
         'lock' => 'Lock',
         'unlock' => 'Unlock',
-        'mark_verified' => 'Mark verified',
+        'mark_verified' => 'Mark as verified',
     ],
 
     'dialog' => [
@@ -69,8 +68,8 @@ return [
     ],
 
     'modals' => [
-        'register_user' => 'Register User',
-        'edit_user' => 'Edit User',
+        'register_user' => 'Register user',
+        'edit_user' => 'Edit user',
         'save' => 'Save',
         'update' => 'Update',
         'cancel' => 'Cancel',
@@ -78,7 +77,7 @@ return [
     ],
 
     'form' => [
-        'full_name' => 'Name',
+        'full_name' => 'Full name',
         'email' => 'Email',
         'role' => 'Role',
         'country_code' => 'Country code',

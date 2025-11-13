@@ -3,7 +3,7 @@ return [
   'widget' => [
     'alerts'          => 'Alertes',
     'capacity_alerts' => 'Alertes de capacité',
-    'mark_all_read'   => 'Marquer tout comme lu',
+    'mark_all_read'   => 'Tout marquer comme lu',
     'minimize'        => 'Minimiser',
     'realtime'        => 'Mises à jour en temps réel',
     'no_alerts'       => 'Aucune alerte en attente',
@@ -14,12 +14,12 @@ return [
     'occupancy' => 'Occupation',
   ],
   'badge' => [
-    'sold_out' => 'COMPLET',
+    'sold_out' => 'SOLD OUT',
     'critical' => 'CRITIQUE',
     'alert'    => 'ALERTE',
   ],
   'actions' => [
-    'unlock'  => 'Débloquer',
+    'unlock'  => 'Déverrouiller',
     'expand'  => 'Agrandir',
     'block'   => 'Bloquer',
     'details' => 'Détails',
@@ -32,9 +32,9 @@ return [
   ],
   'errors' => [
     'missing_route'   => 'Route manquante',
-    'define_route_inc'=> 'Définir la route : admin.capacity.increase',
-    'define_route_det'=> 'Définir la route : admin.capacity.details',
-    'define_route_blk'=> 'Définir la route : admin.capacity.block',
+    'define_route_inc'=> 'Définissez la route : admin.capacity.increase',
+    'define_route_det'=> 'Définissez la route : admin.capacity.details',
+    'define_route_blk'=> 'Définissez la route : admin.capacity.block',
   ],
   'prompts' => [
     'add_spaces' => 'Ajouter des places',
@@ -42,22 +42,22 @@ return [
     'add'        => 'Ajouter',
     'cancel'     => 'Annuler',
     'invalid_qty'=> 'Quantité invalide',
-    'enter_int'  => 'Entrer un entier ≥ 1',
+    'enter_int'  => 'Entrez un entier ≥ 1',
   ],
   'toasts' => [
     'ready'            => 'Prêt',
     'capacity_updated' => 'Capacité mise à jour',
     'error'            => 'Erreur',
-    'couldnt_update'   => 'Impossible de mettre à jour',
+    'couldnt_update'   => 'Mise à jour impossible',
   ],
   'block' => [
     'block_date'    => 'Bloquer la date',
-    'block_confirm' => 'Bloquer complètement cet horaire pour la date sélectionnée ?',
+    'block_confirm' => 'Bloquer complètement ce créneau pour la date sélectionnée ?',
     'yes_block'     => 'Oui, bloquer',
     'blocked'       => 'Bloqué',
     'date_blocked'  => 'La date a été bloquée',
     'couldnt_block' => 'Impossible de bloquer',
-    'required_date' => 'Date à bloquer manquante',
+    'required_date' => 'La date à bloquer est manquante',
   ],
   'table' => [
     'date'     => 'Date',

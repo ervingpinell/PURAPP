@@ -14,13 +14,13 @@ return [
         'last_month'          => 'Mois dernier',
         'this_year'           => 'Cette année',
         'last_year'           => 'Année dernière',
-        'from'                => 'Du',
-        'to'                  => 'Au',
+        'from'                => 'De',
+        'to'                  => 'À',
         'period'              => 'Période',
         'period_day'          => 'Quotidien',
         'period_week'         => 'Hebdomadaire',
         'period_month'        => 'Mensuel',
-        'group_by'            => 'Regrouper par',
+        'group_by'            => 'Grouper par',
         'group_booking_date'  => 'Date de réservation',
         'group_tour_date'     => 'Date du tour',
         'reset'               => 'Réinitialiser',
@@ -40,7 +40,7 @@ return [
     ],
 
     'kpi' => [
-        'revenue_range'      => 'Revenus (plage)',
+        'revenue_range'      => 'Revenus (période)',
         'avg_ticket'         => 'Panier moyen',
         'bookings'           => 'Réservations',
         'pax'                => 'PAX',
@@ -50,7 +50,7 @@ return [
     'sections' => [
         'revenue_by_period_title' => 'Revenus par :period',
         'period_names'            => ['day' => 'jour', 'week' => 'semaine', 'month' => 'mois'],
-        'top_tours_title'         => 'Meilleurs tours (par revenus)',
+        'top_tours_title'         => 'Top Tours (par revenus)',
         'sales_by_language'       => 'Ventes par langue',
         'pending_bookings'        => 'Réservations en attente',
     ],
@@ -67,7 +67,7 @@ return [
         'tour_date'     => 'Date du tour',
         'booking_date'  => 'Date de réservation',
         'total'         => 'Total',
-        'none_pending'  => 'Aucune en attente',
+        'none_pending'  => 'Aucune réservation en attente',
     ],
 
     'footnotes' => [
@@ -86,7 +86,7 @@ return [
 
     'csv' => [
         'revenue_by_period_filename'  => 'revenus-par-periode',
-        'top_tours_filename'          => 'meilleurs-tours',
+        'top_tours_filename'          => 'top-tours',
         'sales_by_language_filename'  => 'ventes-par-langue',
         'headers_revenue'             => ['Période','Revenus','Réservations','PAX'],
         'headers_top'                 => ['#','Tour','Réservations','PAX','Revenus'],

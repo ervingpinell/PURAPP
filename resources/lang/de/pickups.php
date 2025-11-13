@@ -4,10 +4,12 @@ return [
 
     'hotels' => [
 
+        // Titel / Überschriften
         'title'             => 'Hotelliste',
         'header'            => 'Registrierte Hotels',
         'sort_alpha'        => 'Alphabetisch sortieren',
 
+        // Felder / Spalten / Aktionen
         'name'              => 'Name',
         'status'            => 'Status',
         'actions'           => 'Aktionen',
@@ -24,21 +26,24 @@ return [
         'no_records'        => 'Keine Hotels registriert.',
         'name_placeholder'  => 'Z. B.: Hotel Arenal Springs',
 
+        // Bestätigungen
         'confirm_activate_title'    => 'Hotel aktivieren?',
-        'confirm_activate_text'     => 'Möchten Sie ":name" wirklich aktivieren?',
+        'confirm_activate_text'     => 'Möchtest du ":name" wirklich aktivieren?',
         'confirm_deactivate_title'  => 'Hotel deaktivieren?',
-        'confirm_deactivate_text'   => 'Möchten Sie ":name" wirklich deaktivieren?',
-        'confirm_delete_title'      => 'Dauerhaft löschen?',
+        'confirm_deactivate_text'   => 'Möchtest du ":name" wirklich deaktivieren?',
+        'confirm_delete_title'      => 'Endgültig löschen?',
         'confirm_delete_text'       => '":name" wird gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.',
 
+        // Meldungen (Flash)
         'created_success'    => 'Hotel erfolgreich erstellt.',
         'updated_success'    => 'Hotel erfolgreich aktualisiert.',
         'deleted_success'    => 'Hotel erfolgreich gelöscht.',
         'activated_success'  => 'Hotel erfolgreich aktiviert.',
         'deactivated_success'=> 'Hotel erfolgreich deaktiviert.',
         'sorted_success'     => 'Hotels alphabetisch sortiert.',
-        'unexpected_error'   => 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+        'unexpected_error'   => 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.',
 
+        // Validierung / Generisches
         'validation' => [
             'name_required' => 'Der Name ist erforderlich.',
             'name_unique'   => 'Dieses Hotel existiert bereits in der Liste.',
@@ -46,36 +51,43 @@ return [
         ],
         'error_title' => 'Fehler',
 
+        // Modale
         'edit_title' => 'Hotel bearbeiten',
     ],
 
     'meeting_point' => [
 
+        // UI
         'ui' => [
             'page_title'   => 'Treffpunkte',
             'page_heading' => 'Treffpunkte',
         ],
 
+        // Badges
         'badges' => [
             'count_badge' => ':count Einträge',
             'active'      => 'Aktiv',
             'inactive'    => 'Inaktiv',
         ],
 
+        // Erstellen
         'create' => [
             'title' => 'Treffpunkt hinzufügen',
         ],
 
+        // Liste
         'list' => [
             'title' => 'Liste',
-            'empty' => 'Keine Einträge vorhanden. Erstellen Sie den ersten oben.',
+            'empty' => 'Keine Einträge vorhanden. Erstelle den ersten oben.',
         ],
 
+        // Kompakte Labels auf Karten
         'labels' => [
             'time'       => 'Uhrzeit',
             'sort_order' => 'Reihenfolge',
         ],
 
+        // Felder
         'fields' => [
             'name'                    => 'Name',
             'pickup_time'             => 'Abholzeit',
@@ -88,6 +100,7 @@ return [
             'status'                  => 'Status',
             'actions'                 => 'Aktionen',
 
+            // Bearbeitung / Übersetzungen
             'name_base'               => 'Name (Basis)',
             'description_base'        => 'Beschreibung (Basis)',
             'locale'                  => 'Sprache',
@@ -95,21 +108,24 @@ return [
             'description_translation' => 'Beschreibung (Übersetzung)',
         ],
 
+        // Platzhalter
         'placeholders' => [
             'name'        => 'Zentralpark von La Fortuna',
-            'pickup_time' => '07:10 Uhr',
+            'pickup_time' => '7:10 Uhr',
             'description' => 'Zentrum von La Fortuna',
             'map_url'     => 'https://maps.google.com/...',
             'search'      => 'Suchen…',
             'optional'    => 'Optional',
         ],
 
+        // Hinweise
         'hints' => [
-            'name_example'   => 'Beispiel: „Zentralpark von La Fortuna“. ',
-            'name_base_sync' => 'Wenn Sie es nicht ändern, bleibt es bestehen. Sprachspezifische Namen werden unten bearbeitet.',
-            'fallback_sync'  => 'Wenn Sie das Gebietsschema <strong>:fallback</strong> wählen, wird es auch mit den Basisfeldern synchronisiert.',
+            'name_example'   => 'Z. B.: „Zentralpark von La Fortuna“.',
+            'name_base_sync' => 'Wenn du es nicht änderst, bleibt es unverändert. Der Name pro Sprache wird unten bearbeitet.',
+            'fallback_sync'  => 'Wenn du das Locale <strong>:fallback</strong> wählst, wird es ebenfalls mit den Basisfeldern synchronisiert.',
         ],
 
+        // Buttons
         'buttons' => [
             'reload'       => 'Neu laden',
             'save'         => 'Speichern',
@@ -118,43 +134,50 @@ return [
             'cancel'       => 'Abbrechen',
             'save_changes' => 'Änderungen speichern',
             'close'        => 'Schließen',
-            'ok'           => 'OK',
+            'ok'           => 'Verstanden',
             'confirm'      => 'Ja, fortfahren',
             'delete'       => 'Löschen',
             'activate'     => 'Aktivieren',
             'deactivate'   => 'Deaktivieren',
         ],
 
+        // Aktionen (Titel / Tooltips)
         'actions' => [
             'view_map'    => 'Karte ansehen',
-            'view_on_map' => 'Auf Karte anzeigen',
+            'view_on_map' => 'Auf Karte ansehen',
             'edit'        => 'Bearbeiten',
             'delete'      => 'Löschen',
             'activate'    => 'Aktivieren',
             'deactivate'  => 'Deaktivieren',
         ],
 
+        // Bestätigungen
         'confirm' => [
             'create_title'             => 'Neuen Treffpunkt erstellen?',
             'create_text_with_name'    => '":name" wird erstellt.',
             'create_text'              => 'Ein neuer Treffpunkt wird erstellt.',
+
             'save_title'               => 'Änderungen speichern?',
-            'save_text'                => 'Der Treffpunkt und die Übersetzung werden aktualisiert.',
+            'save_text'                => 'Der Treffpunkt und die ausgewählte Übersetzung werden aktualisiert.',
+
             'deactivate_title'         => 'Treffpunkt deaktivieren?',
             'deactivate_title_short'   => 'Deaktivieren?',
-            'deactivate_text'          => '":name" wird inaktiv.',
+            'deactivate_text'          => '":name" wird inaktiv gesetzt.',
+
             'activate_title'           => 'Treffpunkt aktivieren?',
             'activate_title_short'     => 'Aktivieren?',
-            'activate_text'            => '":name" wird aktiv.',
+            'activate_text'            => '":name" wird aktiv gesetzt.',
+
             'delete_title'             => 'Treffpunkt löschen?',
             'delete_title_short'       => 'Löschen?',
             'delete_text'              => '":name" wird dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.',
         ],
 
+        // Validierung / Toastr / SweetAlert
         'validation' => [
             'title'                         => 'Validierungsfehler',
-            'missing_translated_name_title' => 'Fehlender übersetzter Name',
-            'missing_translated_name_text'  => 'Bitte füllen Sie das Feld für den übersetzten Namen aus.',
+            'missing_translated_name_title' => 'Übersetzter Name fehlt',
+            'missing_translated_name_text'  => 'Bitte fülle das Feld für den übersetzten Namen aus.',
         ],
 
         'toasts' => [

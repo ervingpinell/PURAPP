@@ -2,11 +2,13 @@
 
 return [
 
-    'what_visitors_say' => 'What do our visitors say?',
+    'what_visitors_say' => 'What do our customers say?',
     'powered_by'        => 'Powered by',
+
     'generic' => [
         'our_tour' => 'our tour',
     ],
+
     // =========================
     // Common
     // =========================
@@ -37,33 +39,33 @@ return [
         'apply'     => 'Apply',
         'yes'       => 'Yes',
         'no'        => 'No',
-        'not_found' => 'No results found.',
+        'not_found' => 'No results were found.',
         'clear'     => 'Clear',
         'language'  => 'Language',
 
-        // Provider panel additions
-        'new'              => 'New',
-        'name'             => 'Name',
-        'active'           => 'Active',
-        'inactive'         => 'Inactive',
-        'indexable'        => 'Indexable',
-        'indexable_yes'    => 'Includes indexable markup/JSON-LD',
-        'indexable_no'     => 'Not indexable',
-        'activate'         => 'Activate provider',
-        'deactivate'       => 'Deactivate provider',
-        'activate_title'   => 'Activate provider?',
-        'activate_text'    => 'The provider will be activated.',
-        'deactivate_title' => 'Deactivate provider?',
-        'deactivate_text'  => 'The provider will be deactivated.',
-        'cancel'           => 'Cancel',
-        'test'             => 'Test connection',
-        'flush_cache'      => 'Clear cache',
-        'delete_confirm'   => 'Delete provider?',
-        'system_locked'    => 'System provider (locked)',
+        // 🔹 Keys added for Providers panel
+        'new'             => 'New',
+        'name'            => 'Name',
+        'active'          => 'Active',
+        'inactive'        => 'Inactive',
+        'indexable'       => 'Indexable',
+        'indexable_yes'   => 'Includes indexable/JSON-LD markup',
+        'indexable_no'    => 'Not indexable',
+        'activate'        => 'Activate provider',
+        'deactivate'      => 'Deactivate provider',
+        'activate_title'  => 'Activate provider?',
+        'activate_text'   => 'The provider will be set as active.',
+        'deactivate_title'=> 'Deactivate provider?',
+        'deactivate_text' => 'The provider will no longer be active.',
+        'cancel'          => 'Cancel',
+        'test'            => 'Test connection',
+        'flush_cache'     => 'Flush cache',
+        'delete_confirm'  => 'Delete provider?',
+        'system_locked'   => 'System provider (locked)',
     ],
 
     // =========================
-    // Review status (moderation)
+    // Review statuses (moderation)
     // =========================
     'status' => [
         'pending'   => 'pending',
@@ -76,29 +78,29 @@ return [
     // Admin - list / moderation
     // =========================
     'admin' => [
-        'index_title' => 'Reviews',
-        'index_titel' => 'Reviews', // legacy alias for common typo
+        'index_title'   => 'Reviews',
+        'index_titel'   => 'Reviews', // alias for common typo
 
-        'new_local'  => 'New (local)',
-        'bulk_apply' => 'Apply to selected',
+        'new_local'     => 'New (local)',
+        'bulk_apply'    => 'Apply to selected',
 
-        'responded'  => 'Responded?',
-        'last_reply' => 'Last:',
+        'responded'     => 'Responded?',
+        'last_reply'    => 'Last:',
 
-        'filters' => [
+        'filters'       => [
             'provider'  => 'Provider',
             'status'    => 'Status',
             'tour_id'   => 'Tour ID',
             'stars'     => '⭐',
-            'q'         => 'Search text/author...',
+            'q'         => 'Search text/author…',
             'responded' => 'Responded?',
         ],
 
         'table' => [
-            'date'   => 'Date',
-            'review' => 'Review',
-            'client' => 'Client',
-            'tour'   => 'Tour',
+            'date'     => 'Date',
+            'review'   => 'Review',
+            'client'   => 'Client',
+            'tour'     => 'Tour',
         ],
 
         'messages' => [
@@ -114,7 +116,7 @@ return [
             'bulk_flagged'   => ':n reviews flagged.',
             'bulk_deleted'   => ':n reviews deleted.',
             'publish_min_rating' => 'Cannot publish because the rating (:rating★) is lower than the allowed minimum (:min★).',
-            'bulk_published_partial' => ':ok reviews published. Skipped :skipped due to rating lower than :min★.',
+            'bulk_published_partial' => ':ok reviews published. :skipped skipped because their rating was lower than :min★.',
         ],
     ],
 
@@ -126,11 +128,11 @@ return [
         'title_create'     => 'Reply — Review #:id',
         'label_body'       => 'Reply',
         'label_is_public'  => 'Public',
-        'label_notify'     => 'Send email to the customer',
-        'notify_to'        => 'Will be sent to: :email',
-        'warn_no_email'    => 'Attention: we could not find the customer’s email on this review. The reply will be saved, but no email will be sent.',
-        'saved_notified'   => 'Reply posted and emailed to :email.',
-        'saved_no_email'   => 'Reply posted. No email was sent because no recipient was found.',
+        'label_notify'     => 'Send email to customer',
+        'notify_to'        => 'It will be sent to: :email',
+        'warn_no_email'    => 'Warning: we did not find an email address for the customer in this review. The reply will be saved, but no email will be sent.',
+        'saved_notified'   => 'Reply published and emailed to :email.',
+        'saved_no_email'   => 'Reply published. No email was sent because no recipient was found.',
         'deleted'          => 'Reply deleted.',
         'visibility_ok'    => 'Visibility updated.',
         'thread_title'     => 'Conversation — Review #:id',
@@ -139,17 +141,19 @@ return [
     ],
 
     // =========================
-    // Admin - post-purchase requests
+    // Admin - post-purchase review requests
     // =========================
     'requests' => [
         'index_title' => 'Request reviews',
-        'subtitle'    => 'Send post-purchase review links and manage requests already sent.',
+        'subtitle'    => 'Send post-purchase review links and manage already sent requests.',
 
+        // Tabs
         'tabs' => [
             'eligible'  => 'Eligible (bookings)',
             'requested' => 'Requested (sent)',
         ],
 
+        // Filters
         'filters' => [
             'q_placeholder' => 'ID, name or email',
             'any_status'    => '— Any —',
@@ -167,14 +171,14 @@ return [
         'table' => [
             'booking'   => 'Booking',
             'reference' => 'Reference',
-            'sent_at'   => 'Sent',
+            'sent_at'   => 'Sent at',
             'states'    => 'States',
         ],
 
         'labels' => [
-            'expires_in_days' => 'Expiration days',
-            'expires_at'      => 'Expires',
-            'used_at'         => 'Used',
+            'expires_in_days' => 'Expiration (days)',
+            'expires_at'      => 'Expires at',
+            'used_at'         => 'Used at',
         ],
 
         'actions' => [
@@ -185,7 +189,7 @@ return [
         'status' => [
             'active'    => 'Active',
             'sent'      => 'Sent',
-            'reminded'  => 'Resent',
+            'reminded'  => 'Reminded',
             'used'      => 'Used',
             'expired'   => 'Expired',
             'cancelled' => 'Cancelled',
@@ -194,7 +198,7 @@ return [
         'status_labels' => [
             'created'   => 'created',
             'sent'      => 'sent',
-            'reminded'  => 'resent',
+            'reminded'  => 'reminded',
             'fulfilled' => 'completed',
             'expired'   => 'expired',
             'cancelled' => 'cancelled',
@@ -228,30 +232,34 @@ return [
             'submit'       => 'Submit review',
         ],
         'thanks'       => 'Thank you for your review! 🌿',
-        'thanks_dup'   => 'Thanks! We already had your review on file 🙌',
-        'expired'      => 'This link has expired, but thank you for your intention 💚',
+        'thanks_body'  => 'Your opinion is very important and helps us improve. We truly appreciate it.',
+        'thanks_farewell' => "We hope you enjoyed your time with us and we hope to see you again soon.\n\n🇨🇷 Pura Vida mae! 🇨🇷",
+        'thanks_dup'   => 'Thank you! We already had your review on file 🙌',
+        'expired'      => 'This link has expired, but thank you so much for your intention 💚',
         'used'         => 'This request has already been used.',
-        'used_help'    => 'This review link has already been used. If you think this is an error or want to update your comment, contact us and we’ll gladly help.',
+        'used_help'    => 'This review link has already been used. If you think this is an error or want to update your comment, contact us and we will gladly help you.',
         'not_found'    => 'Request not found.',
+        'back_home'    => 'Go back',
     ],
 
     // =========================
     // Emails
     // =========================
     'emails' => [
+
         'brand_from'   => 'Green Vacations CR',
         'contact_line' => 'If you need help, contact us at :email or :phone. Visit us at :url.',
         'request' => [
-            'preheader_with_date' => 'Tell us about your experience on :tour (:date). It takes less than a minute.',
-            'preheader'           => 'Tell us about your experience on :tour. It takes less than a minute.',
+            'preheader_with_date' => 'Tell us about your experience on :tour (:date). It only takes a minute.',
+            'preheader'           => 'Tell us about your experience on :tour. It only takes a minute.',
             'subject'   => 'How was your experience on :tour?',
             'cta'       => 'Leave my review',
-            'footer'    => 'Thanks for supporting local tourism. We hope to see you again soon! 🌿',
+            'footer'    => 'Thank you for supporting local tourism. We hope to see you back soon! 🌿',
             'expires'   => '* This link will be active until: :date.',
             'greeting'  => 'Hi :name,',
-            'intro'     => 'Pura vida! 🙌 Thanks for choosing us. We’d love to know how it went on :tour.',
-            'ask'       => 'Could you spare 1–2 minutes to leave your review? It truly helps a lot.',
-            'fallback'  => 'If the button does not work, copy and paste this link in your browser:',
+            'intro'     => 'Pura vida! 🙌 Thank you for choosing us. We would love to know how your experience on :tour was.',
+            'ask'       => 'Would you give us 1–2 minutes to leave your review? It really means a lot.',
+            'fallback'  => 'If the button does not work, copy and paste this link into your browser:',
         ],
         'reply' => [
             'subject'  => 'Reply to your review',
@@ -259,6 +267,9 @@ return [
             'intro'    => 'Our team has replied to your review :extra.',
             'quote'    => '“:text”',
             'sign'     => '— :admin',
+        ],
+        'submitted' =>[
+            'subject' => 'New review received',
         ],
     ],
 
@@ -277,13 +288,13 @@ return [
         'index_title' => 'Review providers',
         'system_locked' => 'System provider',
         'messages' => [
-            'cannot_delete_local' => 'The “local” provider is a system record and cannot be deleted.',
+            'cannot_delete_local' => 'The “local” provider is a system provider and cannot be deleted.',
             'created'        => 'Provider created.',
             'updated'        => 'Provider updated.',
             'deleted'        => 'Provider deleted.',
             'status_updated' => 'Status updated.',
-            'cache_flushed'  => 'Cache cleared.',
-            'test_fetched'   => 'Fetched :n reviews.',
+            'cache_flushed'  => 'Cache flushed.',
+            'test_fetched'   => ':n reviews fetched.',
         ],
     ],
 
@@ -291,7 +302,7 @@ return [
     // Sync
     // =========================
     'sync' => [
-        'queued' => 'Sync enqueued for :target.',
+        'queued' => 'Sync queued for :target.',
         'all'    => 'all providers',
     ],
 
@@ -317,13 +328,13 @@ return [
     // Admin form (create/edit)
     // =========================
     'form' => [
-        'title_edit'       => 'Edit Review',
-        'title_new'        => 'New Review',
-        'visible_publicly' => 'Publicly visible',
+        'title_edit'       => 'Edit review',
+        'title_new'        => 'New review',
+        'visible_publicly' => 'Visible publicly',
     ],
 
     // =========================
-    // Reply email alias (if used outside "emails")
+    // Alias for reply emails (if used outside "emails")
     // =========================
     'reply' => [
         'subject'          => 'Reply to your review',
@@ -333,17 +344,19 @@ return [
         'intro'            => 'Our team has replied to your review :extra.',
         'quote'            => '“:text”',
         'sign'             => '— :admin',
-        'closing'          => 'If you have questions or want to expand your comment, just reply to this email. Pura vida! 🌿',
+        'closing'          => 'If you have any questions or would like to expand on your comment, just reply to this email. Pura vida! 🌿',
         'rights_reserved'  => 'All rights reserved',
     ],
 
+    // Fallback for greeting if there is no name
     'traveler' => 'traveler',
 
-    // =========================
-    // Legacy compatibility
-    // =========================
+    // =====================================================================
+    // ==== Compatibility with old translation file (legacy) ================
+    // =====================================================================
+
     'loaded'           => 'Reviews loaded successfully.',
-    'provider_error'   => 'There was a problem with the reviews provider.',
+    'provider_error'   => 'There was a problem with the review provider.',
     'service_busy'     => 'The service is busy, please try again shortly.',
     'unexpected_error' => 'An unexpected error occurred while loading reviews.',
     'anonymous'        => 'Anonymous',
@@ -352,14 +365,18 @@ return [
     'previous_review'            => 'Previous review',
     'next_review'                => 'Next review',
     'loading'                    => 'Loading reviews...',
+    // 'what_visitors_say' already exists above; kept for compatibility
     'reviews_title'              => 'Customer reviews',
+    // 'powered_by' already exists above; kept for compatibility
     'view_on_viator'             => 'View :name on Viator',
 
-    'open_tour_title'    => 'Open tour?',
-    'open_tour_text_pre' => 'You’re about to open the tour page',
+    // Modal / actions (legacy)
+    'open_tour_title'    => 'Open tour page?',
+    'open_tour_text_pre' => 'You are about to open the tour page for',
     'open_tour_confirm'  => 'Open now',
     'open_tour_cancel'   => 'Cancel',
 
+    // Carousel controls (legacy, alias of front.see_more/less)
     'previous' => 'Previous',
     'next'     => 'Next',
     'see_more' => 'See more',

@@ -77,7 +77,7 @@ return [
     ],
 
     'form' => [
-        'full_name' => 'Nom',
+        'full_name' => 'Nom complet',
         'email' => 'E-mail',
         'role' => 'Rôle',
         'country_code' => 'Indicatif pays',

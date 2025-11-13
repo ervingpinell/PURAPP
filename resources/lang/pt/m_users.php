@@ -1,9 +1,9 @@
 <?php
 
 return [
-    'title' => 'Gerenciamento de Usuários',
-    'add_user' => 'Adicionar Usuário',
-    'no_role' => 'Sem função',
+    'title' => 'Gerenciamento de usuários',
+    'add_user' => 'Adicionar usuário',
+    'no_role' => 'Nenhuma função',
     'user_marked_verified' => 'Usuário marcado como verificado com sucesso.',
 
     'filters' => [
@@ -68,8 +68,8 @@ return [
     ],
 
     'modals' => [
-        'register_user' => 'Registrar Usuário',
-        'edit_user' => 'Editar Usuário',
+        'register_user' => 'Registrar usuário',
+        'edit_user' => 'Editar usuário',
         'save' => 'Salvar',
         'update' => 'Atualizar',
         'cancel' => 'Cancelar',
@@ -77,7 +77,7 @@ return [
     ],
 
     'form' => [
-        'full_name' => 'Nome',
+        'full_name' => 'Nome completo',
         'email' => 'E-mail',
         'role' => 'Função',
         'country_code' => 'Código do país',

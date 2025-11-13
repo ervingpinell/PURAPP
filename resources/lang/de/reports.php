@@ -6,7 +6,7 @@ return [
 
     'filters' => [
         'quick_range'         => 'Schnellbereich',
-        'select_placeholder'  => '— Auswählen —',
+        'select_placeholder'  => '— Wählen —',
         'today'               => 'Heute',
         'last7'               => 'Letzte 7 Tage',
         'this_week'           => 'Diese Woche',
@@ -22,14 +22,14 @@ return [
         'period_month'        => 'Monatlich',
         'group_by'            => 'Gruppieren nach',
         'group_booking_date'  => 'Buchungsdatum',
-        'group_tour_date'     => 'Tourdatum',
+        'group_tour_date'     => 'Tour-Datum',
         'reset'               => 'Zurücksetzen',
         'apply'               => 'Anwenden',
         'more_filters'        => 'Weitere Filter',
         'status'              => 'Status',
         'all'                 => '(Alle)',
-        'tours_multi'         => 'Touren (mehrfach)',
-        'languages_multi'     => 'Sprachen (mehrfach)',
+        'tours_multi'         => 'Touren (Multi)',
+        'languages_multi'     => 'Sprachen (Multi)',
     ],
 
     'status_options' => [
@@ -40,17 +40,17 @@ return [
     ],
 
     'kpi' => [
-        'revenue_range'      => 'Umsatz (Zeitraum)',
-        'avg_ticket'         => 'Durchschnittlicher Ticketwert',
+        'revenue_range'      => 'Einnahmen (Zeitraum)',
+        'avg_ticket'         => 'Durchschnittliches Ticket',
         'bookings'           => 'Buchungen',
         'pax'                => 'PAX',
         'confirmed_bookings' => 'Bestätigte Buchungen',
     ],
 
     'sections' => [
-        'revenue_by_period_title' => 'Umsatz nach :period',
+        'revenue_by_period_title' => 'Einnahmen pro :period',
         'period_names'            => ['day' => 'Tag', 'week' => 'Woche', 'month' => 'Monat'],
-        'top_tours_title'         => 'Top-Touren (nach Umsatz)',
+        'top_tours_title'         => 'Top-Touren (nach Einnahmen)',
         'sales_by_language'       => 'Verkäufe nach Sprache',
         'pending_bookings'        => 'Ausstehende Buchungen',
     ],
@@ -60,18 +60,18 @@ return [
         'tour'          => 'Tour',
         'bookings'      => 'Buchungen',
         'pax'           => 'PAX',
-        'revenue'       => 'Umsatz',
+        'revenue'       => 'Einnahmen',
         'no_data'       => 'Keine Daten',
         'ref'           => 'Ref.',
         'customer'      => 'Kunde',
-        'tour_date'     => 'Tourdatum',
+        'tour_date'     => 'Tour-Datum',
         'booking_date'  => 'Buchungsdatum',
-        'total'         => 'Summe',
-        'none_pending'  => 'Keine ausstehend',
+        'total'         => 'Gesamt',
+        'none_pending'  => 'Keine ausstehenden Buchungen',
     ],
 
     'footnotes' => [
-        'pending_limit' => '* Bis zu 8 je nach Filtern.',
+        'pending_limit' => '* Bis zu 8 je nach Filter.',
     ],
 
     'buttons' => [
@@ -79,18 +79,18 @@ return [
     ],
 
     'charts' => [
-        'aria_revenue_by_period'  => 'Umsatz nach Zeitraum',
+        'aria_revenue_by_period'  => 'Einnahmen pro Zeitraum',
         'aria_sales_by_language'  => 'Verkäufe nach Sprache',
-        'tooltip_revenue'         => 'Umsatz',
+        'tooltip_revenue'         => 'Einnahmen',
     ],
 
     'csv' => [
-        'revenue_by_period_filename'  => 'umsatz-nach-zeitraum',
+        'revenue_by_period_filename'  => 'einnahmen-nach-zeitraum',
         'top_tours_filename'          => 'top-touren',
         'sales_by_language_filename'  => 'verkaeufe-nach-sprache',
-        'headers_revenue'             => ['Zeitraum','Umsatz','Buchungen','PAX'],
-        'headers_top'                 => ['#','Tour','Buchungen','PAX','Umsatz'],
-        'headers_language'            => ['Sprache','Umsatz','Buchungen'],
+        'headers_revenue'             => ['Zeitraum','Einnahmen','Buchungen','PAX'],
+        'headers_top'                 => ['#','Tour','Buchungen','PAX','Einnahmen'],
+        'headers_language'            => ['Sprache','Einnahmen','Buchungen'],
         'period'                      => 'Zeitraum',
         'language'                    => 'Sprache',
     ],
