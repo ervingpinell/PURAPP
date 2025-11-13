@@ -2,8 +2,40 @@
 
 @section('content')
 @php
-    $mailLocale = str_starts_with(($mailLocale ?? app()->getLocale()), 'es') ? 'es' : 'en';
+    use Illuminate\Support\Str;
 
+    /**
+     * === 1) Detectar idioma del tour (spanish vs. other) ===
+     * Priorizamos:
+     *  - $tourLanguageCode (ej. 'es', 'en')
+     *  - $tourLanguageName  (ej. 'Español', 'English')
+     *  - relaciones si vienen: $detail->tourLanguage->name / $booking->tourLanguage->name
+     */
+    $tourLanguageCode = $tourLanguageCode
+        ?? null;
+
+    $tourLanguageName = $tourLanguageName
+        ?? ($detail->tourLanguage->name ?? null)
+        ?? ($booking->tourLanguage->name ?? null);
+
+    $isSpanish = false;
+
+    if (!empty($tourLanguageCode)) {
+        $isSpanish = Str::startsWith(Str::lower($tourLanguageCode), 'es');
+    } elseif (!empty($tourLanguageName)) {
+        $nameLower = Str::lower($tourLanguageName);
+        // heurística simple: 'español', 'spanish', 'es-xx'
+        $isSpanish = (Str::contains($nameLower, 'espa') || Str::contains($nameLower, 'spani'));
+    }
+
+    // Si no se pudo inferir nada, caemos a lo que venga en $mailLocale o app()->getLocale()
+    $mailLocale = $isSpanish ? 'es' : 'en';
+
+    // === 2) Congelar locale de traducciones durante este render ===
+    $oldLocale = app()->getLocale();
+    app()->setLocale($mailLocale);
+
+    // === 3) Branding / contacto ===
     $company = $brandName
         ?? ($company ?? config('mail.from.name', config('app.name', 'Green Vacations CR')));
 
@@ -13,11 +45,24 @@
         'phone' => env('COMPANY_PHONE', '+506 2479 1471'),
     ];
 
+    // === 4) Nombre del tour usando traducciones ===
+    // Si tienes el modelo $tour disponible, úsalo; si no, conserva $tourName tal cual.
+    if (!empty($tour) && method_exists($tour, 'getTranslatedName')) {
+        // si el tour tiene traducciones, respeta el mailLocale (es/en)
+        $tourNameResolved = $tour->getTranslatedName($mailLocale);
+    } else {
+        // fallback a lo que venga por variable
+        $tourNameResolved = $tourName ?? '';
+    }
+
+    // Adjuntar fecha de actividad si viene
+    $tourLabel = trim($tourNameResolved . (!empty($activityDateText) ? " ({$activityDateText})" : ''));
+
+    // === 5) Textos del email (en el locale ya fijado) ===
     $greeting = __('reviews.emails.request.greeting', [
         'name' => $userName ?: __('reviews.emails.traveler')
     ]);
 
-    $tourLabel = trim(($tourName ?? '') . (!empty($activityDateText) ? " ({$activityDateText})" : ''));
     $intro = __('reviews.emails.request.intro', ['tour' => $tourLabel]);
     $ask   = __('reviews.emails.request.ask');
     $cta   = __('reviews.emails.request.cta');
@@ -73,4 +118,9 @@
     ]) !!}
   </div>
 </div>
+
+@php
+  // Restaurar locale original después de componer el correo
+  app()->setLocale($oldLocale);
+@endphp
 @endsection

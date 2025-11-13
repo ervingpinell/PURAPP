@@ -8,4 +8,6 @@ return [
     ],
 
     'min_public_rating' => (int) env('REVIEWS_MIN_PUBLIC_RATING', 4),
+
+
 ];

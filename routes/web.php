@@ -50,6 +50,8 @@ use App\Http\Controllers\Admin\CapacityController;
 use App\Http\Controllers\Admin\CustomerCategoryController;
 use App\Http\Controllers\Admin\Tours\TourAjaxController;
 use App\Http\Controllers\Admin\API\TourDataController;
+use App\Mail\BookingCreatedMail;
+use App\Models\Booking;
 
 
 // Public bookings controller (split)
@@ -138,9 +140,12 @@ Route::middleware([SetLocale::class])->group(function () {
     // ============================
     // PUBLIC LOCALIZED ROUTES
     // ============================
+
+
     localizedRoutes(function () {
         // Home & Tours
         Route::get('/', [HomeController::class, 'index'])->name('home');
+        Route::get('/home', [HomeController::class, 'index'])->name('home');
         Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
         Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tours.show');
 

@@ -4,7 +4,9 @@ return [
 
     'what_visitors_say' => 'What do our visitors say?',
     'powered_by'        => 'Powered by',
-
+    'generic' => [
+        'our_tour' => 'our tour',
+    ],
     // =========================
     // Common
     // =========================
@@ -240,6 +242,8 @@ return [
         'brand_from'   => 'Green Vacations CR',
         'contact_line' => 'If you need help, contact us at :email or :phone. Visit us at :url.',
         'request' => [
+            'preheader_with_date' => 'Tell us about your experience on :tour (:date). It takes less than a minute.',
+            'preheader'           => 'Tell us about your experience on :tour. It takes less than a minute.',
             'subject'   => 'How was your experience on :tour?',
             'cta'       => 'Leave my review',
             'footer'    => 'Thanks for supporting local tourism. We hope to see you again soon! 🌿',

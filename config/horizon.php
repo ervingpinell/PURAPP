@@ -10,11 +10,13 @@ return [
 
     'prefix' => env('HORIZON_PREFIX', 'horizon'),
 
+    // TIP: protege el dashboard de Horizon con auth en routes/web.php (ver nota abajo)
     'middleware' => ['web'],
 
-    // Esperas máximas para métricas (añadimos maintenance)
+    // Esperas máximas para métricas (incluye mail y maintenance)
     'waits' => [
         'redis:default'      => 10,
+        'redis:mail'         => 10,
         'redis:maintenance'  => 10,
     ],
 
@@ -22,14 +24,14 @@ return [
         'recent'        => 60,
         'pending'       => 60,
         'completed'     => 60,
-        'recent_failed' => 10080,
-        'failed'        => 10080,
+        'recent_failed' => 10080, // 7 días
+        'failed'        => 10080, // 7 días
         'monitored'     => 120,
     ],
 
-    // Métricas por cola (incluye maintenance)
+    // Métricas por cola (agregamos 'mail')
     'metrics' => [
-        'queue' => ['default', 'maintenance'],
+        'queue' => ['default', 'mail', 'maintenance'],
         'job'   => [],
     ],
 
@@ -39,34 +41,67 @@ return [
 
     'environments' => [
 
-        // Producción: procesa default + maintenance
+        // Producción: supervisores separados por cola
         'production' => [
-            'supervisor-1' => [
-                'connection'     => 'redis',
-                'queue'          => ['default', 'maintenance'],
-                'balance'        => 'auto',
-                'minProcesses'   => 1,
-                'maxProcesses'   => 3,
-                'balanceCooldown'=> 3,
-                'sleep'          => 3,
-                'maxTime'        => 3600,
-                'maxJobs'        => 0,
-                'nice'           => 0,
-                'tries'          => 3,
-                'timeout'        => 60,
+            // Cola de correos: más timeout y procesos elásticos
+            'supervisor-mail' => [
+                'connection'      => 'redis',
+                'queue'           => ['mail'],
+                'balance'         => 'auto',
+                'minProcesses'    => 2,
+                'maxProcesses'    => 10,
+                'balanceCooldown' => 3,
+                'sleep'           => 3,
+                'maxTime'         => 3600,
+                'maxJobs'         => 0,
+                'nice'            => 0,
+                'tries'           => 3,
+                'timeout'         => 120, // PDFs/email pueden tardar más
+            ],
+
+            // Cola por defecto
+            'supervisor-default' => [
+                'connection'      => 'redis',
+                'queue'           => ['default'],
+                'balance'         => 'auto',
+                'minProcesses'    => 1,
+                'maxProcesses'    => 5,
+                'balanceCooldown' => 3,
+                'sleep'           => 3,
+                'maxTime'         => 3600,
+                'maxJobs'         => 0,
+                'nice'            => 0,
+                'tries'           => 3,
+                'timeout'         => 90,
+            ],
+
+            // Mantenimiento / jobs pesados diferidos
+            'supervisor-maintenance' => [
+                'connection'      => 'redis',
+                'queue'           => ['maintenance'],
+                'balance'         => 'simple',
+                'minProcesses'    => 1,
+                'maxProcesses'    => 2,
+                'sleep'           => 5,
+                'maxTime'         => 3600,
+                'maxJobs'         => 0,
+                'nice'            => 0,
+                'tries'           => 3,
+                'timeout'         => 120,
             ],
         ],
 
-        // Otros entornos: también escucha ambas colas
+        // Otros entornos: un solo supervisor que escucha todas
         '*' => [
             'supervisor-1' => [
                 'connection'   => 'redis',
-                'queue'        => ['default', 'maintenance'],
+                'queue'        => ['mail', 'default', 'maintenance'],
                 'balance'      => 'simple',
                 'minProcesses' => 1,
                 'maxProcesses' => 1,
                 'sleep'        => 3,
                 'tries'        => 3,
+                'timeout'      => 120,
             ],
         ],
     ],

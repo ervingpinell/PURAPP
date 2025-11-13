@@ -14,40 +14,23 @@
       color: #1f2937;
       -webkit-font-smoothing: antialiased;
     }
-    .email-wrapper {
-      width: 100%;
-      background: #f4f5f7;
-      padding: 32px 0;
-    }
+    .email-wrapper { width: 100%; background: #f4f5f7; padding: 32px 0; }
     .email-container {
-      max-width: 640px;
-      margin: 0 auto;
-      background: #fff;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      max-width: 640px; margin: 0 auto; background: #fff; border-radius: 12px;
+      overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 
     /* ===== Header ===== */
-    .email-header {
-      background: linear-gradient(135deg, #059669, #10b981);
-      padding: 36px 20px;
-      text-align: center;
-    }
+    .email-header { background: linear-gradient(135deg, #059669, #10b981); padding: 36px 20px; text-align: center; }
     .email-header img { max-width: 180px; height: auto; }
 
     /* ===== Body ===== */
     .email-body { padding: 36px 40px; font-size: 15px; line-height: 1.6; }
     .section-card {
-      background: #f9fafb;
-      border-radius: 8px;
-      padding: 16px 20px;
-      margin-bottom: 18px;
-      border: 1px solid #e5e7eb;
+      background: #f9fafb; border-radius: 8px; padding: 16px 20px; margin-bottom: 18px; border: 1px solid #e5e7eb;
     }
     .section-title { font-size: 17px; font-weight: 600; color: #111827; margin-bottom: 6px; }
 
-    /* ===== Standalone titles (fuera de .section-card) ===== */
     .title { font-size: 18px; font-weight: 700; color: #111827; margin: 0 0 8px; padding: 0 20px; }
 
     /* ===== Tables ===== */
@@ -82,13 +65,20 @@
 </head>
 
 @php
-  $appUrl = rtrim($appUrl ?? config('app.url'), '/');
-  $brand  = $company ?? config('mail.from.name', config('app.name', 'Green Vacations CR'));
-  $logoSrc = $appUrl . '/' . ltrim(env('APP_LOGO', 'images/logo.png'), '/');
+  // Valores base
+  $appUrl   = rtrim($appUrl ?? config('app.url'), '/');
+  $brand    = $company ?? config('mail.from.name', config('app.name', 'Green Vacations CR'));
   $supportEmail = env('MAIL_TO_CONTACT', 'info@greenvacationscr.com');
   $phone = env('COMPANY_PHONE', '+506 2479 1471');
-  // Evita Undefined variable $locale
   $currentLocale = ($locale ?? app()->getLocale());
+
+  // Blindajes de logo
+  $logoCid         = $logoCid         ?? null;
+  $appLogoFallback = $appLogoFallback
+    ?? (env('COMPANY_LOGO_URL')
+      ?: (file_exists(public_path('images/logo-email.png'))
+          ? asset('images/logo-email.png')
+          : asset(ltrim($appLogo ?? 'images/logoCompanyWhite.png', '/'))));
 @endphp
 
 <body>
@@ -96,7 +86,10 @@
     <div class="email-container">
       {{-- HEADER --}}
       <div class="email-header">
-        <img src="{{ $logoSrc }}" alt="{{ $brand }}">
+        <img
+          src="{{ $logoCid ? ('cid:' . $logoCid) : $appLogoFallback }}"
+          alt="{{ $brand }}"
+        />
       </div>
 
       {{-- BODY --}}

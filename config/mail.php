@@ -60,8 +60,4 @@ return [
         'address' => env('MAIL_FROM_ADDRESS', 'info@greenvacationscr.com'),
         'name' => env('MAIL_FROM_NAME', 'Green Vacations CR'),
     ],
-
-    'to' => [
-        'contact' => env('MAIL_TO_CONTACT', 'info@greenvacationscr.com'),
-    ],
 ];
