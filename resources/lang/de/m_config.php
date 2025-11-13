@@ -1,5 +1,8 @@
 <?php
 /*************************************************************
+ *  KONFIGURATIONS-MODUL – ÜBERSETZUNGEN (DE)
+ *  Datei: resources/lang/de/m_config.php
+ *
  *  Index (durchsuchbare Anker)
  *  [01] POLICIES ZEILE 20
  *  [02] TOURTYPES ZEILE 139
@@ -16,15 +19,15 @@ return [
     // =========================================================
     'policies' => [
         // Titel / Überschriften
-        'categories_title'        => 'Richtlinienkategorien',
-        'sections_title'          => 'Abschnitte — :policy',
+        'categories_title'        => 'Richtlinien',
+        'sections_title'          => 'Abschnitte',
 
-        // Spalten / Felder
+        // Spalten / gemeinsame Felder
         'id'                      => 'ID',
         'internal_name'           => 'Interner Name',
         'title_current_locale'    => 'Titel',
         'validity_range'          => 'Gültigkeitszeitraum',
-        'valid_from'              => 'Gültig ab',
+        'valid_from'              => 'Gültig von',
         'valid_to'                => 'Gültig bis',
         'status'                  => 'Status',
         'sections'                => 'Abschnitte',
@@ -33,26 +36,24 @@ return [
         'inactive'                => 'Inaktiv',
         'slug'                    => 'URL',
         'slug_hint'               => 'optional',
-        'slug_auto_hint'          => 'Wird automatisch aus dem Namen generiert, wenn es leer gelassen wird',
-        'slug_edit_hint'          => 'Ändert die URL der Richtlinie. Verwenden Sie nur Kleinbuchstaben, Zahlen und Bindestriche.',
-        'updated'                  => 'Richtlinie erfolgreich aktualisiert.',
+        'slug_auto_hint'          => 'Wird automatisch aus dem Namen generiert, wenn leer gelassen.',
+        'slug_edit_hint'          => 'Ändert die URL der Richtlinie. Verwende nur Kleinbuchstaben, Zahlen und Bindestriche.',
+        'updated'                 => 'Richtlinie erfolgreich aktualisiert.',
+        'propagate_to_all_langs' => 'Diese Änderung auf alle Sprachen anwenden (EN, FR, DE, PT)',
+        'propagate_hint'         => 'Wird automatisch aus dem aktuellen Text übersetzt und überschreibt vorhandene Übersetzungen in diesen Sprachen.',
+        'update_base_es'         => 'Auch die Basis (ES) aktualisieren',
+        'update_base_hint'       => 'Überschreibt Name und Inhalt der Richtlinie in der Basistabelle (Spanisch). Nur verwenden, wenn sich auch der Originaltext ändern soll.',
 
-
-
-        // Kategorienliste: Aktionen
+        // Kategorien-Liste: Aktionen
         'new_category'            => 'Neue Kategorie',
         'view_sections'           => 'Abschnitte anzeigen',
         'edit'                    => 'Bearbeiten',
         'activate_category'       => 'Kategorie aktivieren',
         'deactivate_category'     => 'Kategorie deaktivieren',
         'delete'                  => 'Löschen',
-        'delete_category_confirm' => 'Diese Kategorie und ALLE zugehörigen Abschnitte löschen?<br>Dies kann nicht rückgängig gemacht werden.',
-        'no_categories'           => 'Keine Kategorien gefunden.',
+        'delete_category_confirm' => 'Diese Kategorie und ALLE ihre Abschnitte löschen?<br>Diese Aktion kann nicht rückgängig gemacht werden.',
+        'no_categories'           => 'Es wurden keine Kategorien gefunden.',
         'edit_category'           => 'Kategorie bearbeiten',
-        'propagate_to_all_langs' => 'Propager cette modification à toutes les langues (EN, FR, DE, PT)',
-        'propagate_hint'         => 'La traduction sera générée automatiquement à partir du texte actuel et remplacera les traductions existantes dans ces langues.',
-        'update_base_es'         => 'Mettre aussi à jour la base (ES)',
-        'update_base_hint'       => 'Écrase le nom et le contenu de la politique dans la table de base (espagnol). À utiliser uniquement si vous souhaitez également modifier le texte original.',
 
         // Formulare (Kategorie)
         'title_label'             => 'Titel',
@@ -62,37 +63,37 @@ return [
         'close'                   => 'Schließen',
 
         // Abschnitte
-        'back_to_categories'      => 'Zurück zu Kategorien',
+        'back_to_categories'      => 'Zurück zu den Kategorien',
         'new_section'             => 'Neuer Abschnitt',
         'key'                     => 'Schlüssel',
         'order'                   => 'Reihenfolge',
         'activate_section'        => 'Abschnitt aktivieren',
         'deactivate_section'      => 'Abschnitt deaktivieren',
-        'delete_section_confirm'  => 'Diesen Abschnitt wirklich löschen?<br>Dies kann nicht rückgängig gemacht werden.',
-        'no_sections'             => 'Keine Abschnitte gefunden.',
+        'delete_section_confirm'  => 'Möchtest du diesen Abschnitt wirklich löschen?<br>Diese Aktion kann nicht rückgängig gemacht werden.',
+        'no_sections'             => 'Es wurden keine Abschnitte gefunden.',
         'edit_section'            => 'Abschnitt bearbeiten',
         'internal_key_optional'   => 'Interner Schlüssel (optional)',
         'content_label'           => 'Inhalt',
         'section_content'         => 'Inhalt',
-        'base_content_hint'       => 'Dies ist der Haupttext der Richtlinie. Er wird automatisch in andere Sprachen übersetzt, wenn er erstellt wird, aber Sie können jede Übersetzung später bearbeiten.',
+        'base_content_hint'       => 'Dies ist der Haupttext der Richtlinie. Beim Erstellen wird er automatisch in andere Sprachen übersetzt, aber du kannst jede Übersetzung später bearbeiten.',
 
         // Öffentlich
         'page_title'              => 'Richtlinien',
         'no_policies'             => 'Derzeit sind keine Richtlinien verfügbar.',
         'section'                 => 'Abschnitt',
-        'cancellation_policy'     => 'Stornierungsrichtlinie',
+        'cancellation_policy'     => 'Stornorichtlinie',
         'refund_policy'           => 'Erstattungsrichtlinie',
-        'no_cancellation_policy'  => 'Keine Stornierungsrichtlinie konfiguriert.',
-        'no_refund_policy'        => 'Keine Erstattungsrichtlinie konfiguriert.',
+        'no_cancellation_policy'  => 'Es ist keine Stornorichtlinie konfiguriert.',
+        'no_refund_policy'        => 'Es ist keine Erstattungsrichtlinie konfiguriert.',
 
-        // Nachrichten (Kategorien)
+        // Meldungen (Kategorien)
         'category_created'        => 'Kategorie erfolgreich erstellt.',
         'category_updated'        => 'Kategorie erfolgreich aktualisiert.',
         'category_activated'      => 'Kategorie erfolgreich aktiviert.',
         'category_deactivated'    => 'Kategorie erfolgreich deaktiviert.',
         'category_deleted'        => 'Kategorie erfolgreich gelöscht.',
 
-        // --- Neue Schlüssel (Refactor / Utilities) ---
+        // --- NEUE SCHLÜSSEL (Refactor / Utilities) ---
         'untitled'                => 'Ohne Titel',
         'no_content'              => 'Kein Inhalt verfügbar.',
         'display_name'            => 'Anzeigename',
@@ -104,43 +105,43 @@ return [
         'save'                    => 'Speichern',
         'name_base_label'         => 'Basisname',
         'translation_name'        => 'Übersetzter Name',
-        'lang_autodetect_hint'    => 'Sie können in jeder Sprache schreiben; automatische Erkennung.',
+        'lang_autodetect_hint'    => 'Du kannst in jeder Sprache schreiben; sie wird automatisch erkannt.',
         'bulk_edit_sections'      => 'Schnellbearbeitung von Abschnitten',
-        'bulk_edit_hint'          => 'Alle Änderungen an Abschnitten werden zusammen mit der Kategorietraduction gespeichert, wenn Sie „Speichern“ klicken.',
-        'no_changes_made'         => 'Keine Änderungen vorgenommen.',
-        'no_sections_found'       => 'Keine Abschnitte gefunden.',
-        'editing_locale'          => 'Bearbeiten',
+        'bulk_edit_hint'          => 'Die Änderungen an allen Abschnitten werden zusammen mit der Übersetzung der Kategorie gespeichert, wenn du auf „Speichern“ klickst.',
+        'no_changes_made'         => 'Es wurden keine Änderungen vorgenommen.',
+        'no_sections_found'       => 'Es wurden keine Abschnitte gefunden.',
+        'editing_locale'          => 'Bearbeitung von',
 
-        // Nachrichten (Abschnitte)
+        // Meldungen (Abschnitte)
         'section_created'         => 'Abschnitt erfolgreich erstellt.',
         'section_updated'         => 'Abschnitt erfolgreich aktualisiert.',
         'section_activated'       => 'Abschnitt erfolgreich aktiviert.',
         'section_deactivated'     => 'Abschnitt erfolgreich deaktiviert.',
         'section_deleted'         => 'Abschnitt erfolgreich gelöscht.',
 
-        // Generische Modulmeldungen
+        // Generische Meldungen des Moduls
         'created_success'         => 'Erfolgreich erstellt.',
         'updated_success'         => 'Erfolgreich aktualisiert.',
         'deleted_success'         => 'Erfolgreich gelöscht.',
         'activated_success'       => 'Erfolgreich aktiviert.',
         'deactivated_success'     => 'Erfolgreich deaktiviert.',
-        'unexpected_error'        => 'Ein unerwarteter Fehler ist aufgetreten.',
+        'unexpected_error'        => 'Es ist ein unerwarteter Fehler aufgetreten.',
 
-        // Buttons / SweetAlert
+        // Buttons / allgemeine Texte (SweetAlert)
         'create'                  => 'Erstellen',
         'activate'                => 'Aktivieren',
         'deactivate'              => 'Deaktivieren',
         'cancel'                  => 'Abbrechen',
         'ok'                      => 'OK',
-        'validation_errors'       => 'Validierungsfehler',
+        'validation_errors'       => 'Es liegen Validierungsfehler vor',
         'error_title'             => 'Fehler',
 
-        // Abschnittsbestätigungen
+        // Spezifische Bestätigungen für Abschnitte
         'confirm_create_section'      => 'Diesen Abschnitt erstellen?',
         'confirm_edit_section'        => 'Änderungen an diesem Abschnitt speichern?',
-        'confirm_deactivate_section'  => 'Diesen Abschnitt wirklich deaktivieren?',
-        'confirm_activate_section'    => 'Diesen Abschnitt wirklich aktivieren?',
-        'confirm_delete_section'      => 'Diesen Abschnitt wirklich löschen?<br>Dies kann nicht rückgängig gemacht werden.',
+        'confirm_deactivate_section'  => 'Möchtest du diesen Abschnitt wirklich deaktivieren?',
+        'confirm_activate_section'    => 'Möchtest du diesen Abschnitt wirklich aktivieren?',
+        'confirm_delete_section'      => 'Möchtest du diesen Abschnitt wirklich löschen?<br>Diese Aktion kann nicht rückgängig gemacht werden.',
     ],
 
     // =========================================================
@@ -148,8 +149,8 @@ return [
     // =========================================================
     'tourtypes' => [
         // Titel / Überschriften
-        'title'                   => 'Tourarten',
-        'new'                     => 'Tourart hinzufügen',
+        'title'                   => 'Tourtypen',
+        'new'                     => 'Tourtyp hinzufügen',
 
         // Spalten / Felder
         'id'                      => 'ID',
@@ -172,33 +173,33 @@ return [
         'activate'                => 'Aktivieren',
         'deactivate'              => 'Deaktivieren',
 
-        // Modal-Titel
-        'edit_title'              => 'Tourart bearbeiten',
-        'create_title'            => 'Tourart erstellen',
+        // Modaltitel
+        'edit_title'              => 'Tourtyp bearbeiten',
+        'create_title'            => 'Tourtyp erstellen',
 
         // Platzhalter / Hinweise
-        'examples_placeholder'    => 'Z. B.: Abenteuer, Natur, Erholung',
+        'examples_placeholder'    => 'Z. B.: Abenteuer, Natur, Entspannung',
         'duration_placeholder'    => 'Z. B.: 4 Stunden, 8 Stunden',
         'suggested_duration_hint' => 'Empfohlenes Format: „4 Stunden“, „8 Stunden“.',
-        'keep_default_hint'       => 'Lassen Sie „4 Stunden“, falls zutreffend; anpassbar.',
+        'keep_default_hint'       => 'Lass „4 Stunden“, falls es passt; du kannst es ändern.',
         'optional'                => 'optional',
 
         // Bestätigungen
-        'confirm_delete'          => '„:name“ löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
-        'confirm_activate'        => '„:name“ aktivieren?',
-        'confirm_deactivate'      => '„:name“ deaktivieren?',
+        'confirm_delete'          => '„:name“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+        'confirm_activate'        => '„:name“ wirklich aktivieren?',
+        'confirm_deactivate'      => '„:name“ wirklich deaktivieren?',
 
         // Meldungen (Flash)
-        'created_success'         => 'Tourart erfolgreich erstellt.',
-        'updated_success'         => 'Tourart erfolgreich aktualisiert.',
-        'deleted_success'         => 'Tourart erfolgreich gelöscht.',
-        'activated_success'       => 'Tourart erfolgreich aktiviert.',
-        'deactivated_success'     => 'Tourart erfolgreich deaktiviert.',
-        'in_use_error'            => 'Löschen nicht möglich: Diese Tourart wird verwendet.',
-        'unexpected_error'        => 'Unerwarteter Fehler. Bitte erneut versuchen.',
+        'created_success'         => 'Tourtyp erfolgreich erstellt.',
+        'updated_success'         => 'Tourtyp erfolgreich aktualisiert.',
+        'deleted_success'         => 'Tourtyp erfolgreich gelöscht.',
+        'activated_success'       => 'Tourtyp erfolgreich aktiviert.',
+        'deactivated_success'     => 'Tourtyp erfolgreich deaktiviert.',
+        'in_use_error'            => 'Löschen nicht möglich: Dieser Tourtyp wird verwendet.',
+        'unexpected_error'        => 'Es ist ein unerwarteter Fehler aufgetreten. Bitte versuche es erneut.',
 
         // Validierung / generisch
-        'validation_errors'       => 'Bitte die markierten Felder prüfen.',
+        'validation_errors'       => 'Bitte prüfe die hervorgehobenen Felder.',
         'error_title'             => 'Fehler',
     ],
 
@@ -206,10 +207,10 @@ return [
     // ==== FAQ ================================================
     // =========================================================
     'faq' => [
-        // Titel
-        'title'            => 'Häufig gestellte Fragen',
+        // Titel / Kopfzeile
+        'title'            => 'FAQ',
 
-        // Felder
+        // Felder / Spalten
         'question'         => 'Frage',
         'answer'           => 'Antwort',
         'status'           => 'Status',
@@ -217,7 +218,7 @@ return [
         'active'           => 'Aktiv',
         'inactive'         => 'Inaktiv',
 
-        // Aktionen
+        // Buttons / Aktionen
         'new'              => 'Neue Frage',
         'create'           => 'Erstellen',
         'save'             => 'Speichern',
@@ -234,23 +235,23 @@ return [
         'read_less'        => 'Weniger anzeigen',
 
         // Bestätigungen
-        'confirm_create'   => 'Diese Frage erstellen?',
-        'confirm_edit'     => 'Änderungen speichern?',
-        'confirm_delete'   => 'Diese Frage wirklich löschen?<br>Dies kann nicht rückgängig gemacht werden.',
-        'confirm_activate' => 'Diese Frage wirklich aktivieren?',
-        'confirm_deactivate'=> 'Diese Frage wirklich deaktivieren?',
+        'confirm_create'   => 'Diese häufig gestellte Frage erstellen?',
+        'confirm_edit'     => 'Änderungen an dieser häufig gestellten Frage speichern?',
+        'confirm_delete'   => 'Möchtest du diese häufig gestellte Frage wirklich löschen?<br>Diese Aktion kann nicht rückgängig gemacht werden.',
+        'confirm_activate' => 'Möchtest du diese häufig gestellte Frage wirklich aktivieren?',
+        'confirm_deactivate'=> 'Möchtest du diese häufig gestellte Frage wirklich deaktivieren?',
 
         // Validierung / Fehler
-        'validation_errors'=> 'Validierungsfehler',
+        'validation_errors'=> 'Es liegen Validierungsfehler vor',
         'error_title'      => 'Fehler',
 
-        // Meldungen
-        'created_success'      => 'FAQ erfolgreich erstellt.',
-        'updated_success'      => 'FAQ erfolgreich aktualisiert.',
-        'deleted_success'      => 'FAQ erfolgreich gelöscht.',
-        'activated_success'    => 'FAQ erfolgreich aktiviert.',
-        'deactivated_success'  => 'FAQ erfolgreich deaktiviert.',
-        'unexpected_error'     => 'Unerwarteter Fehler.',
+        // Meldungen (Flash)
+        'created_success'      => 'Häufig gestellte Frage erfolgreich erstellt.',
+        'updated_success'      => 'Häufig gestellte Frage erfolgreich aktualisiert.',
+        'deleted_success'      => 'Häufig gestellte Frage erfolgreich gelöscht.',
+        'activated_success'    => 'Häufig gestellte Frage erfolgreich aktiviert.',
+        'deactivated_success'  => 'Häufig gestellte Frage erfolgreich deaktiviert.',
+        'unexpected_error'     => 'Es ist ein unerwarteter Fehler aufgetreten.',
     ],
 
     // =========================================================
@@ -260,27 +261,28 @@ return [
         // Titel / allgemeine Texte
         'title'                 => 'Übersetzungsverwaltung',
         'index_title'           => 'Übersetzungsverwaltung',
-        'select_entity_title'   => ':entity zum Übersetzen auswählen',
+        'select_entity_title'   => 'Wähle :entity zum Übersetzen aus',
         'edit_title'            => 'Übersetzung bearbeiten',
         'main_information'      => 'Hauptinformationen',
         'ok'                    => 'OK',
         'save'                  => 'Speichern',
-        'validation_errors'     => 'Validierungsfehler',
+        'validation_errors'     => 'Es liegen Validierungsfehler vor',
         'updated_success'       => 'Übersetzung erfolgreich aktualisiert.',
-        'unexpected_error'      => 'Übersetzung konnte nicht aktualisiert werden.',
-                'editing'         => 'Bearbeiten',
-        'policy_name'     => 'Richtlinientitel',
-        'policy_content'  => 'Inhalt',
-        'policy_sections' => 'Richtlinienabschnitte',
-        'section'         => 'Abschnitt',
-        'section_name'    => 'Abschnittsname',
-        'section_content' => 'Abschnittsinhalt',
+        'unexpected_error'      => 'Die Übersetzung konnte nicht aktualisiert werden.',
 
-        // Sprachwahl
+        'editing'            => 'Bearbeiten',
+        'policy_name'        => 'Name der Richtlinie',
+        'policy_content'     => 'Inhalt',
+        'policy_sections'    => 'Abschnitte der Richtlinie',
+        'section'            => 'Abschnitt',
+        'section_name'       => 'Name des Abschnitts',
+        'section_content'    => 'Inhalt des Abschnitts',
+
+        // Sprachauswahl (Bildschirm und Hilfen)
         'choose_locale_title'   => 'Sprache auswählen',
-        'choose_locale_hint'    => 'Wählen Sie die Sprache, in die dieses Element übersetzt werden soll.',
+        'choose_locale_hint'    => 'Wähle die Sprache, in die dieses Element übersetzt werden soll.',
         'select_language_title' => 'Sprache auswählen',
-        'select_language_intro' => 'Wählen Sie die Sprache, in die dieses Element übersetzt werden soll.',
+        'select_language_intro' => 'Wähle die Sprache, in die dieses Element übersetzt werden soll.',
         'languages' => [
             'es' => 'Spanisch',
             'en' => 'Englisch',
@@ -292,293 +294,296 @@ return [
         // Listen / Buttons
         'select'                => 'Auswählen',
         'id_unavailable'        => 'ID nicht verfügbar',
-        'no_items'              => 'Keine :entity zum Übersetzen verfügbar.',
+        'no_items'              => 'Es sind keine :entity zum Übersetzen verfügbar.',
 
-        // Formularfelder
+        // Gemeinsame Felder der Übersetzungsformulare
         'name'                  => 'Name',
         'description'           => 'Beschreibung',
         'content'               => 'Inhalt',
-        'overview'              => 'Übersicht',
-        'itinerary'             => 'Reiseplan',
-        'itinerary_name'        => 'Name des Reiseplans',
-        'itinerary_description' => 'Beschreibung des Reiseplans',
-        'itinerary_items'       => 'Reiseplan-Elemente',
+        'overview'              => 'Überblick',
+        'itinerary'             => 'Reiseverlauf',
+        'itinerary_name'        => 'Name des Reiseverlaufs',
+        'itinerary_description' => 'Beschreibung des Reiseverlaufs',
+        'itinerary_items'       => 'Elemente des Reiseverlaufs',
         'item'                  => 'Element',
-        'item_title'            => 'Elementtitel',
-        'item_description'      => 'Elementbeschreibung',
+        'item_title'            => 'Titel des Elements',
+        'item_description'      => 'Beschreibung des Elements',
         'sections'              => 'Abschnitte',
         'edit'                  => 'Bearbeiten',
         'close'                 => 'Schließen',
         'actions'               => 'Aktionen',
 
-        // Modulare Feldlabels
+        // === Modulare Feldbezeichnungen ========================
+        // Verwendung: __('m_config.translations.fields.<feld>')
         'fields' => [
+            // Generisch
             'name'                  => 'Name',
             'title'                 => 'Titel',
-            'overview'              => 'Übersicht',
+            'overview'              => 'Überblick',
             'description'           => 'Beschreibung',
             'content'               => 'Inhalt',
             'duration'              => 'Dauer',
             'question'              => 'Frage',
             'answer'                => 'Antwort',
 
-            'itinerary'             => 'Reiseplan',
-            'itinerary_name'        => 'Name des Reiseplans',
-            'itinerary_description' => 'Beschreibung des Reiseplans',
+            // Reiseverlauf / Elemente (Tour-Partial)
+            'itinerary'             => 'Reiseverlauf',
+            'itinerary_name'        => 'Name des Reiseverlaufs',
+            'itinerary_description' => 'Beschreibung des Reiseverlaufs',
             'item'                  => 'Element',
-            'item_title'            => 'Elementtitel',
-            'item_description'      => 'Elementbeschreibung',
+            'item_title'            => 'Titel des Elements',
+            'item_description'      => 'Beschreibung des Elements',
         ],
 
-        // Overrides je ENTITÄT und FELD
+        // === Überschreibungen nach ENTITÄT und FELD ===========
+        // Im Blade: zuerst entity_fields.<type>.<field> prüfen,
+        // sonst fields.<field> verwenden.
         'entity_fields' => [
             'tour_types' => [
                 'duration' => 'Empfohlene Dauer',
-                'name'     => 'Name der Tourart',
+                'name'     => 'Name des Tourtyps',
             ],
             'faqs' => [
-                'question' => 'Frage (kundenseitig sichtbar)',
-                'answer'   => 'Antwort (kundenseitig sichtbar)',
+                'question' => 'Frage (für Kunden sichtbar)',
+                'answer'   => 'Antwort (für Kunden sichtbar)',
             ],
         ],
 
-        // Entitätsnamen (Plural)
+        // Namen der Entitäten (Plural)
         'entities' => [
             'tours'            => 'Touren',
-            'itineraries'      => 'Reisepläne',
-            'itinerary_items'  => 'Reiseplan-Elemente',
+            'itineraries'      => 'Reiseverläufe',
+            'itinerary_items'  => 'Elemente des Reiseverlaufs',
             'amenities'        => 'Ausstattungen',
-            'faqs'             => 'FAQs',
+            'faqs'             => 'Häufig gestellte Fragen',
             'policies'         => 'Richtlinien',
-            'tour_types'       => 'Tourarten',
+            'tour_types'       => 'Tourtypen',
         ],
 
-        // Entitätsnamen (Singular)
+        // Namen der Entitäten (Singular)
         'entities_singular' => [
             'tours'            => 'Tour',
-            'itineraries'      => 'Reiseplan',
-            'itinerary_items'  => 'Reiseplan-Element',
+            'itineraries'      => 'Reiseverlauf',
+            'itinerary_items'  => 'Element des Reiseverlaufs',
             'amenities'        => 'Ausstattung',
-            'faqs'             => 'FAQ',
+            'faqs'             => 'häufig gestellte Frage',
             'policies'         => 'Richtlinie',
-            'tour_types'       => 'Tourart',
+            'tour_types'       => 'Tourtyp',
         ],
     ],
 
-    // =========================================================
-    // ==== PROMOCODE ==========================================
-    // =========================================================
-    'promocode' => [
-        'title'        => 'Gutscheincodes',
-        'create_title' => 'Neuen Gutscheincode erstellen',
-        'list_title'   => 'Vorhandene Gutscheincodes',
+// =========================================================
+// ==== PROMOCODE ==========================================
+// =========================================================
+'promocode' => [
+    'title'        => 'Promo-Codes',
+    'create_title' => 'Neuen Promo-Code generieren',
+    'list_title'   => 'Vorhandene Promo-Codes',
 
+    'success_title' => 'Erfolg',
+    'error_title'   => 'Fehler',
+
+    'fields' => [
+        'code'        => 'Code',
+        'discount'    => 'Rabatt',
+
+        'type'        => 'Typ',
+        'operation'   => 'Operation',
+        'valid_from'  => 'Gültig von',
+        'valid_until' => 'Gültig bis',
+        'usage_limit' => 'Nutzungsbegrenzung',
+        'promocode_hint'        => 'Nach dem Anwenden wird der Gutschein beim Absenden des Formulars gespeichert und die Verlaufssnapshots aktualisiert.',
+    ],
+
+    'types' => [
+        'percent' => '%',
+        'amount'  => '$',
+    ],
+
+    'symbols' => [
+        'percent'  => '%',
+        'currency' => '$',
+    ],
+
+    'table' => [
+        'code'         => 'Code',
+        'discount'     => 'Rabatt',
+        'operation'    => 'Operation',
+        'validity'     => 'Gültigkeit',
+        'date_status'  => 'Status (Datum)',
+        'usage'        => 'Verwendung',
+        'usage_status' => 'Status (Nutzung)',
+        'actions'      => 'Aktionen',
+    ],
+
+    'status' => [
+        'used'      => 'Verwendet',
+        'available' => 'Verfügbar',
+    ],
+
+    'date_status' => [
+        'scheduled' => 'Geplant',
+        'active'    => 'Aktiv',
+        'expired'   => 'Abgelaufen',
+    ],
+
+    'actions' => [
+        'generate' => 'Generieren',
+        'delete'   => 'Löschen',
+        'toggle_operation' => 'Zwischen Addieren/Subtrahieren wechseln',
+    ],
+
+    'labels' => [
+        'unlimited_placeholder' => 'Leer = unbegrenzt',
+        'unlimited_hint'        => 'Leer lassen für unbegrenzte Nutzung. 1 bedeutet einmalige Nutzung.',
+        'no_limit'              => '(ohne Begrenzung)',
+        'remaining'             => 'verbleibend',
+    ],
+
+    'confirm_delete' => 'Möchtest du diesen Code wirklich löschen?',
+    'empty'          => 'Es sind keine Promo-Codes verfügbar.',
+
+    'messages' => [
+        'created_success'         => 'Promo-Code erfolgreich erstellt.',
+        'deleted_success'         => 'Promo-Code erfolgreich gelöscht.',
+        'percent_over_100'        => 'Der Prozentsatz darf nicht größer als 100 sein.',
+        'code_exists_normalized'  => 'Dieser Code (ohne Leerzeichen und Groß-/Kleinschreibung) existiert bereits.',
+        'invalid_or_used'         => 'Ungültiger oder bereits verwendeter Code.',
+        'valid'                   => 'Gültiger Code.',
+        'server_error'            => 'Serverfehler, bitte versuche es erneut.',
+        'operation_updated'       => 'Operation erfolgreich aktualisiert.',
+    ],
+
+    'operations' => [
+        'add'            => 'Addieren',
+        'subtract'       => 'Subtrahieren',
+        'make_add'       => 'Zu „Addieren“ wechseln',
+        'make_subtract'  => 'Zu „Subtrahieren“ wechseln',
+        'surcharge'      => 'Aufschlag',
+        'discount'       => 'Rabatt',
+    ],
+],
+
+// =========================================================
+// ==== CUTOFF =============================================
+// =========================================================
+'cut-off' => [
+    // Titel / Überschriften
+    'title'       => 'Cut-off',
+    'header'      => 'Cut-off-Konfiguration',
+    'server_time' => 'Serverzeit (:tz)',
+
+    // Tabs
+    'tabs' => [
+        'global'   => 'Global (Standard)',
+        'tour'     => 'Sperre nach Tour',
+        'schedule' => 'Sperre nach Uhrzeit',
+        'summary'  => 'Übersicht',
+        'help'     => 'Hilfe',
+    ],
+
+    // Felder
+    'fields' => [
+        'cutoff_hour'       => 'Cut-off-Zeit (24h)',
+        'cutoff_hour_short' => 'Cut-off (24h)',
+        'lead_days'         => 'Vorlauftage',
+        'timezone'          => 'Zeitzone',
+        'tour'              => 'Tour',
+        'schedule'          => 'Uhrzeit',
+        'actions'           => 'Aktionen'
+    ],
+
+    // Selects / Platzhalter
+    'selects' => [
+        'tour' => '— Tour auswählen —',
+        'time' => '— Uhrzeit auswählen —',
+    ],
+
+    // Labels
+    'labels' => [
+        'status' => 'Status',
+    ],
+
+    // Badges / Chips
+    'badges' => [
+        'inherits'            => 'Erbt global',
+        'override'            => 'Sperre',
+        'inherit_tour_global' => 'Erbt von Tour/Global',
+        'schedule'            => 'Uhrzeit',
+        'tour'                => 'Tour',
+        'global'              => 'Global',
+    ],
+
+    // Aktionen
+    'actions' => [
+        'save_global'   => 'Global speichern',
+        'save_tour'     => 'Tour-Sperre speichern',
+        'save_schedule' => 'Uhrzeit-Sperre speichern',
+        'clear'         => 'Sperre entfernen',
+        'confirm'       => 'Bestätigen',
+        'cancel'        => 'Abbrechen',
+    ],
+
+    // Bestätigungen (Modale)
+    'confirm' => [
+        'tour' => [
+            'title' => 'Tour-Sperre speichern?',
+            'text'  => 'Es wird eine spezifische Sperre für diese Tour angewendet. Leer lassen, um zu erben.',
+        ],
+        'schedule' => [
+            'title' => 'Uhrzeit-Sperre speichern?',
+            'text'  => 'Es wird eine spezifische Sperre für diese Uhrzeit angewendet. Leer lassen, um zu erben.',
+        ],
+    ],
+
+    // Übersicht
+    'summary' => [
+        'tour_title'            => 'Sperren nach Tour',
+        'no_tour_overrides'     => 'Es gibt keine Sperren auf Tour-Ebene.',
+        'schedule_title'        => 'Sperren nach Uhrzeit',
+        'no_schedule_overrides' => 'Es gibt keine Sperren auf Uhrzeit-Ebene.',
+        'search_placeholder'    => 'Tour oder Uhrzeit suchen…',
+    ],
+
+    // Flash / Toasts
+    'flash' => [
         'success_title' => 'Erfolg',
         'error_title'   => 'Fehler',
-
-        'fields' => [
-            'code'        => 'Code',
-            'discount'    => 'Rabatt',
-            'type'        => 'Typ',
-            'operation'   => 'Operation',
-            'valid_from'  => 'Gültig ab',
-            'valid_until' => 'Gültig bis',
-            'usage_limit' => 'Nutzungsgrenze',
-            'promocode_hint'        => 'Nach der Anwendung wird der Gutschein beim Absenden des Formulars gespeichert und die Snapshots des Verlaufs aktualisiert.',
-
-        ],
-
-        'types' => [
-            'percent' => '%',
-            'amount'  => '€',
-        ],
-
-        'symbols' => [
-            'percent'  => '%',
-            'currency' => '€',
-        ],
-
-        'table' => [
-            'code'         => 'Code',
-            'discount'     => 'Rabatt',
-            'operation'    => 'Operation',
-            'validity'     => 'Gültigkeit',
-            'date_status'  => 'Status (Datum)',
-            'usage'        => 'Nutzungen',
-            'usage_status' => 'Status (Nutzung)',
-            'actions'      => 'Aktionen',
-        ],
-
-        'status' => [
-            'used'      => 'Verwendet',
-            'available' => 'Verfügbar',
-        ],
-
-        'date_status' => [
-            'scheduled' => 'Geplant',
-            'active'    => 'Aktiv',
-            'expired'   => 'Abgelaufen',
-        ],
-
-        'actions' => [
-            'generate'         => 'Erstellen',
-            'delete'           => 'Löschen',
-            'toggle_operation' => 'Zwischen Add/Subtract wechseln',
-        ],
-
-        'labels' => [
-            'unlimited_placeholder' => 'Leer = unbegrenzt',
-            'unlimited_hint'        => 'Leer lassen für unbegrenzte Nutzung. 1 = einmalige Nutzung.',
-            'no_limit'              => '(ohne Limit)',
-            'remaining'             => 'verbleibend',
-        ],
-
-        'confirm_delete' => 'Diesen Code wirklich löschen?',
-        'empty'          => 'Keine Gutscheincodes verfügbar.',
-
-        'messages' => [
-            'created_success'        => 'Gutscheincode erfolgreich erstellt.',
-            'deleted_success'        => 'Gutscheincode erfolgreich gelöscht.',
-            'percent_over_100'       => 'Prozentsatz darf 100 nicht überschreiten.',
-            'code_exists_normalized' => 'Dieser Code (ohne Leerzeichen und Groß-/Kleinschreibung) existiert bereits.',
-            'invalid_or_used'        => 'Ungültiger oder bereits verwendeter Code.',
-            'valid'                  => 'Gültiger Code.',
-            'server_error'           => 'Serverfehler. Bitte erneut versuchen.',
-            'operation_updated'      => 'Operation erfolgreich aktualisiert.',
-        ],
-
-        'operations' => [
-            'add'           => 'Addieren',
-            'subtract'      => 'Subtrahieren',
-            'make_add'      => 'Zu „Addieren“ wechseln',
-            'make_subtract' => 'Zu „Subtrahieren“ wechseln',
-            'surcharge'     => 'Aufschlag',
-            'discount'      => 'Rabatt',
-        ],
     ],
 
+    // Hilfe
+    'help' => [
+        'title'      => 'Wie funktioniert das?',
+        'global'     => 'Standardwert für die gesamte Website.',
+        'tour'       => 'Wenn eine Tour einen konfigurierten Cut-off/Vorlauftage hat, hat sie Vorrang vor Global.',
+        'schedule'   => 'Wenn eine Uhrzeit der Tour eine Sperre hat, hat sie Vorrang vor der Tour.',
+        'precedence' => 'Priorität',
+    ],
 
-    // =========================================================
-    // ==== CUTOFF =============================================
-    // =========================================================
-    'cut-off' => [
-        // Titel / Überschriften
-        'title'       => 'Cut-off-Einstellungen',
-        'header'      => 'Buchungseinstellungen',
-        'server_time' => 'Serverzeit (:tz)',
+    // Hinweise / Hints
+    'hints' => [
+        // Global
+        'cutoff_example'    => 'Z. B.: :ex. Nach dieser Zeit ist „heute“ nicht mehr verfügbar.',
+        'pattern_24h'       => '24-Stunden-Format HH:MM (z. B. 09:30, 18:00).',
+        'cutoff_behavior'   => 'Wenn die Cut-off-Zeit bereits überschritten ist, verschiebt sich das früheste verfügbare Datum auf den nächsten Tag.',
+        'lead_days'         => 'Mindestanzahl an Vorlauftagen (0 erlaubt Buchungen für heute, sofern die Cut-off-Zeit nicht überschritten ist).',
+        'lead_days_detail'  => 'Erlaubter Bereich: 0–30. 0 erlaubt Buchungen am selben Tag, wenn die Cut-off-Zeit noch nicht erreicht ist.',
+        'timezone_source'   => 'Wird aus config(\'app.timezone\') übernommen.',
 
-        // Tabs
-        'tabs' => [
-            'global'   => 'Global (Standard)',
-            'tour'     => 'Sperre pro Tour',
-            'schedule' => 'Sperre pro Zeitplan',
-            'summary'  => 'Übersicht',
-            'help'     => 'Hilfe',
-        ],
+        // Tour
+        'pick_tour'             => 'Wähle zuerst eine Tour und definiere anschließend deren Sperre (optional).',
+        'tour_override_explain' => 'Wenn du nur einen Wert (Cut-off oder Tage) festlegst, erbt der andere den globalen Wert.',
+        'clear_button_hint'     => 'Verwende „Sperre entfernen“, um wieder zu erben.',
+        'leave_empty_inherit'   => 'Leer lassen, um zu erben.',
 
-        // Felder
-        'fields' => [
-            'cutoff_hour'       => 'Sperrzeit (24h)',
-            'cutoff_hour_short' => 'Sperre (24h)',
-            'lead_days'         => 'Vorlauftage',
-            'timezone'          => 'Zeitzone',
-            'tour'              => 'Tour',
-            'schedule'          => 'Zeitplan',
-        ],
-
-        // Selects / Platzhalter
-        'selects' => [
-            'tour' => '— Tour auswählen —',
-            'time' => '— Zeit auswählen —',
-        ],
-
-        // Labels
-        'labels' => [
-            'status' => 'Status',
-        ],
-
-        // Badges / Chips
-        'badges' => [
-            'inherits'            => 'Erbt global',
-            'override'            => 'Sperre',
-            'inherit_tour_global' => 'Erbt von Tour/Global',
-            'schedule'            => 'Zeitplan',
-            'tour'                => 'Tour',
-            'global'              => 'Global',
-        ],
-
-        // Aktionen
-        'actions' => [
-            'save_global'   => 'Global speichern',
-            'save_tour'     => 'Toursperre speichern',
-            'save_schedule' => 'Zeitplansperre speichern',
-            'clear'         => 'Sperre löschen',
-            'confirm'       => 'Bestätigen',
-            'cancel'        => 'Abbrechen',
-            'actions'       => 'Aktionen',
-
-        ],
-
-        // Bestätigungen (Modale)
-        'confirm' => [
-            'tour' => [
-                'title' => 'Toursperre speichern?',
-                'text'  => 'Für diese Tour wird eine spezifische Sperre angewendet. Leer lassen zum Vererben.',
-            ],
-            'schedule' => [
-                'title' => 'Zeitplansperre speichern?',
-                'text'  => 'Für diesen Zeitplan wird eine spezifische Sperre angewendet. Leer lassen zum Vererben.',
-            ],
-        ],
+        // Uhrzeit (Schedule)
+        'pick_schedule'             => 'Wähle anschließend die Uhrzeit der Tour.',
+        'schedule_override_explain' => 'Die hier gesetzten Werte haben Vorrang vor denen der Tour. Leer lassen, um zu erben.',
+        'schedule_precedence_hint'  => 'Priorität: Uhrzeit → Tour → Global.',
 
         // Übersicht
-        'summary' => [
-            'tour_title'            => 'Sperren nach Tour',
-            'no_tour_overrides'     => 'Keine Sperren auf Tour-Ebene.',
-            'schedule_title'        => 'Sperren nach Zeitplan',
-            'no_schedule_overrides' => 'Keine Sperren auf Zeitplan-Ebene.',
-            'search_placeholder'    => 'Tour oder Zeitplan suchen…',
-        ],
-
-        // Flash / Toasts
-        'flash' => [
-            'success_title' => 'Erfolg',
-            'error_title'   => 'Fehler',
-        ],
-
-        // Hilfe
-        'help' => [
-            'title'      => 'Wie funktioniert das?',
-            'global'     => 'Standardwert für die gesamte Website.',
-            'tour'       => 'Hat eine Tour Cut-off/Vorlauftage, hat sie Vorrang vor Global.',
-            'schedule'   => 'Hat ein Zeitplan eine Sperre, hat er Vorrang vor der Tour.',
-            'precedence' => 'Vorrang',
-        ],
-
-        // Hinweise
-        'hints' => [
-            // Global
-            'cutoff_example'    => 'z. B. :ex. Nach dieser Zeit ist „heute“ nicht mehr verfügbar.',
-            'pattern_24h'       => '24-h-Format HH:MM (z. B. 09:30, 18:00).',
-            'cutoff_behavior'   => 'Nach der Sperrzeit verschiebt sich das nächstmögliche Datum auf den nächsten Tag.',
-            'lead_days'         => 'Minimale Vorlauftage (0 erlaubt Buchung am selben Tag, sofern Sperrzeit nicht überschritten).',
-            'lead_days_detail'  => 'Erlaubter Bereich: 0–30. 0 erlaubt Tagesbuchung, wenn Sperrzeit nicht überschritten.',
-            'timezone_source'   => 'Aus config(\'app.timezone\').',
-
-            // Tour
-            'pick_tour'             => 'Wählen Sie zuerst eine Tour; definieren Sie dann optional die Sperre.',
-            'tour_override_explain' => 'Wenn Sie nur eines setzen (Sperre oder Tage), erbt das andere von Global.',
-            'clear_button_hint'     => 'Mit „Sperre löschen“ zum Vererben zurückkehren.',
-            'leave_empty_inherit'   => 'Leer lassen zum Vererben.',
-
-            // Zeitplan
-            'pick_schedule'             => 'Wählen Sie anschließend den Zeitplan.',
-            'schedule_override_explain' => 'Werte hier haben Vorrang vor der Tour. Leer lassen zum Vererben.',
-            'schedule_precedence_hint'  => 'Vorrang: Zeitplan → Tour → Global.',
-
-            // Übersicht
-            'dash_means_inherit' => '„—“ bedeutet: Wert wird vererbt.',
-        ],
+        'dash_means_inherit' => 'Das Symbol „—“ bedeutet, dass der Wert geerbt wird.',
     ],
+],
 
 ];

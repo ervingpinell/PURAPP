@@ -1,5 +1,6 @@
 <?php
 
+
 return [
     // Standard Laravel messages
     'failed'   => 'The email or password is incorrect.',
@@ -11,37 +12,37 @@ return [
     'locked'     => 'Your account is locked. Contact support to unlock it.',
     'unverified' => 'You must verify your email address before logging in. Check your inbox.',
 
-    // Fortify 2FA (status and UI texts)
+    // Fortify 2FA (status & UI text)
     'two_factor' => [
-        'title'              => 'Two-Factor Authentication',
-        'header'             => 'Two-Factor Authentication',
-        'enabled'            => 'Two-factor authentication enabled.',
-        'confirmed'          => 'Two-factor authentication confirmed.',
-        'disabled'           => 'Two-factor authentication disabled.',
-        'recovery_codes_generated' => 'New recovery codes have been generated.',
-        'remember_device'   => 'Remember this device for 30 days',
-        'enter_code'        => 'Enter the 6-digit code',
-        'use_recovery'      => 'Use a recovery code',
-        'use_authenticator' => 'Use authenticator app',
-        'code'              => 'Authentication code',
-        'recovery_code'     => 'Recovery code',
-        'confirm'           => 'Confirm',
+        'title'                   => 'Two-Factor Authentication',
+        'header'                  => 'Two-Factor Authentication',
+        'enabled'                 => 'Two-factor authentication enabled.',
+        'confirmed'               => 'Two-factor authentication confirmed.',
+        'disabled'                => 'Two-factor authentication disabled.',
+        'recovery_codes_generated'=> 'New recovery codes have been generated.',
+        'remember_device'         => 'Remember this device for 30 days',
+        'enter_code'              => 'Enter the 6-digit code',
+        'use_recovery'            => 'Use a recovery code',
+        'use_authenticator'       => 'Use authenticator app',
+        'code'                    => 'Authentication code',
+        'recovery_code'           => 'Recovery code',
+        'confirm'                 => 'Confirm',
     ],
 
     // Throttle screen
     'too_many_attempts' => [
-        'title'        => 'Too many attempts',
+        'title'        => 'Too Many Attempts',
         'intro'        => 'You have made too many login attempts.',
         'blocked_for'  => 'Blocked for ~:minutes min',
         'retry_in'     => 'You can try again in',
-        'seconds_hint' => 'The time will update automatically.',
+        'seconds_hint' => 'Time will update automatically.',
         'generic_wait' => 'Please wait a moment before trying again.',
         'back'         => 'Back',
         'go_login'     => 'Go to login',
     ],
 
     'throttle_page' => [
-        'title'         => 'Too many attempts',
+        'title'         => 'Too Many Attempts',
         'message'       => 'You have made too many login attempts.',
         'retry_in'      => 'You can try again in',
         'minutes_abbr'  => 'min',
@@ -49,13 +50,14 @@ return [
         'total_seconds' => 'total seconds',
         'redirecting'   => 'Redirecting…',
     ],
-    'remember_me' => 'Remember me',
-    'forgot_password' => 'Forgot your password?',
-    'send_link' => 'Send link',
+
+    'remember_me'      => 'Remember me',
+    'forgot_password'  => 'Forgot your password?',
+    'send_link'        => 'Send link',
     'confirm_password' => 'Confirm password',
 
     'login' => [
-        'remaining_attempts' => '{0} Invalid credentials.|{1} Invalid credentials. You have 1 attempt left before being locked out.|[2,*] Invalid credentials. You have :count attempts left before being locked out.',
+        'remaining_attempts' => '{0} Invalid credentials.|{1} Invalid credentials. You have 1 attempt left before lockout.|[2,*] Invalid credentials. You have :count attempts left before lockout.',
     ],
 
     'account' => [
@@ -63,10 +65,10 @@ return [
         'unlocked' => 'Your account has been unlocked. You can now log in.',
     ],
 
-'verify' => [
-    'already'  => 'You have already verified your email,',
-    'verified' => 'Your email has been verified.',
-],
+    'verify.verified' => 'Your email has been verified. You can now log in.',
 
-
+    'verify' => [
+        'already'  => 'You have already verified your email,',
+        'verified' => 'Your email has been verified.',
+    ],
 ];

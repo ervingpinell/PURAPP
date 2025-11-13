@@ -29,9 +29,11 @@
     }
 
     // Si no se pudo inferir nada, caemos a lo que venga en $mailLocale o app()->getLocale()
-    $mailLocale = $isSpanish ? 'es' : 'en';
+    $mailLocale = $isSpanish
+        ? 'es'
+        : (str_starts_with(strtolower($mailLocale ?? app()->getLocale()), 'es') ? 'es' : 'en');
 
-    // === 2) Congelar locale de traducciones durante este render ===
+    // === 2) Congelar locale de traducciones durante este render (por si algo externo lo usa) ===
     $oldLocale = app()->getLocale();
     app()->setLocale($mailLocale);
 
@@ -46,7 +48,6 @@
     ];
 
     // === 4) Nombre del tour usando traducciones ===
-    // Si tienes el modelo $tour disponible, úsalo; si no, conserva $tourName tal cual.
     if (!empty($tour) && method_exists($tour, 'getTranslatedName')) {
         // si el tour tiene traducciones, respeta el mailLocale (es/en)
         $tourNameResolved = $tour->getTranslatedName($mailLocale);
@@ -55,19 +56,55 @@
         $tourNameResolved = $tourName ?? '';
     }
 
-    // Adjuntar fecha de actividad si viene
+    // Adjuntar fecha de actividad si viene (texto ya formateado fuera)
     $tourLabel = trim($tourNameResolved . (!empty($activityDateText) ? " ({$activityDateText})" : ''));
 
-    // === 5) Textos del email (en el locale ya fijado) ===
-    $greeting = __('reviews.emails.request.greeting', [
-        'name' => $userName ?: __('reviews.emails.traveler')
+    // === 5) Textos del email en ES / EN (sin usar __()) ===
+    $nameForGreeting = $userName ?: ($mailLocale === 'es' ? 'viajero' : 'traveler');
+
+    if ($mailLocale === 'es') {
+        $greeting = "Hola {$nameForGreeting},";
+        $intro    = "¡Pura vida! 🙌 Gracias por elegirnos. Nos encantaría saber cómo te fue en {$tourLabel}.";
+        $ask      = "¿Nos regalas 1–2 minutos para dejar tu reseña? ¡Nos ayuda muchísimo!";
+        $cta      = "Dejar mi reseña";
+
+        $fallbackLabel = "Si el botón no funciona, copia y pega este enlace en tu navegador:";
+        $expiresLabel  = "Este enlace estará activo hasta: :date.";
+        $footerText    = "Gracias por apoyar el turismo local. ¡Esperamos verte de nuevo pronto! 🌿";
+
+        $contactLineTemplate = "Si necesitas ayuda, contáctanos en :email o :phone. Visítanos en :url.";
+    } else {
+        $greeting = "Hi {$nameForGreeting},";
+        $intro    = "Pura vida! 🙌 Thanks for choosing us. We’d love to know how it went on {$tourLabel}.";
+        $ask      = "Could you spare 1–2 minutes to leave your review? It truly helps a lot.";
+        $cta      = "Leave my review";
+
+        $fallbackLabel = "If the button does not work, copy and paste this link in your browser:";
+        $expiresLabel  = "This link will be active until: :date.";
+        $footerText    = "Thanks for supporting local tourism. We hope to see you again soon! 🌿";
+
+        $contactLineTemplate = "If you need help, contact us at :email or :phone. Visit us at :url.";
+    }
+
+    // Preheader (puedes ajustar si quieres algo más descriptivo)
+    $pre = $preheader ?? $tourLabel;
+
+    // Texto de expiración (si viene la fecha ya formateada)
+    $expiresText = null;
+    if (!empty($expiresAtText)) {
+        $expiresText = str_replace(':date', $expiresAtText, $expiresLabel);
+    }
+
+    // Línea de contacto con HTML
+    $emailHtml = '<a href="mailto:'.e($contact['email']).'" style="color:#6b7280">'.e($contact['email']).'</a>';
+    $phoneHtml = '<a href="tel:'.preg_replace("/\s+/", "", e($contact['phone'])).'" style="color:#6b7280">'.e($contact['phone']).'</a>';
+    $urlHtml   = '<a href="'.e($contact['site']).'" style="color:#6b7280">'.e($contact['site']).'</a>';
+
+    $contactLineHtml = strtr($contactLineTemplate, [
+        ':email' => $emailHtml,
+        ':phone' => $phoneHtml,
+        ':url'   => $urlHtml,
     ]);
-
-    $intro = __('reviews.emails.request.intro', ['tour' => $tourLabel]);
-    $ask   = __('reviews.emails.request.ask');
-    $cta   = __('reviews.emails.request.cta');
-
-    $pre   = $preheader ?? $tourLabel; // preheader
 @endphp
 
 {{-- Preheader oculto --}}
@@ -93,29 +130,25 @@
 
   <div style="font-size:12px;color:#6b7280;line-height:1.5;">
     <p style="margin:0;">
-      {{ __('reviews.emails.request.fallback') }}<br>
+      {{ $fallbackLabel }}<br>
       <a href="{{ $ctaUrl }}" style="color:#6b7280;word-break:break-all;">{{ $ctaUrl }}</a>
     </p>
   </div>
 </div>
 
 <div class="section-card" style="margin-top:8px;">
-  @if(!empty($expiresAtText))
+  @if($expiresText)
     <p style="margin:0 0 8px 0;font-size:13px;color:#374151;">
-      {{ __('reviews.emails.request.expires', ['date' => $expiresAtText]) }}
+      {{ $expiresText }}
     </p>
   @endif
 
   <p style="margin:0 0 8px 0;font-size:13px;color:#374151;">
-    {{ __('reviews.emails.request.footer') }}
+    {{ $footerText }}
   </p>
 
   <div style="font-size:13px;color:#6b7280;">
-    {!! __('reviews.emails.contact_line', [
-        'email' => '<a href="mailto:'.e($contact['email']).'" style="color:#6b7280">'.e($contact['email']).'</a>',
-        'phone' => '<a href="tel:'.preg_replace("/\s+/", "", e($contact['phone'])).'" style="color:#6b7280">'.e($contact['phone']).'</a>',
-        'url'   => '<a href="'.e($contact['site']).'" style="color:#6b7280">'.e($contact['site']).'</a>',
-    ]) !!}
+    {!! $contactLineHtml !!}
   </div>
 </div>
 

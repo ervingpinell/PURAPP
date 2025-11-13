@@ -10,7 +10,7 @@ return [
         'role' => 'Nach Rolle filtern:',
         'state' => 'Nach Status filtern:',
         'email' => 'Nach E-Mail filtern:',
-        'email_placeholder' => 'beispiel@domain.de',
+        'email_placeholder' => 'beispiel@domain.com',
         'all' => '-- Alle --',
         'search' => 'Suchen',
         'clear' => 'Zurücksetzen',

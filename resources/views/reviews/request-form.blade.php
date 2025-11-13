@@ -5,7 +5,7 @@
 @section('content')
   <div class="container py-4">
     <h1 class="h4 mb-3">
-      {{ __('reviews.public.form_title_for', ['tour' => $tour?->name ?? __('reviews.common.tour')]) }}
+      {{ __('reviews.public.form_title', ['tour' => $tour?->name ?? __('reviews.common.tour')]) }}
     </h1>
 
     @if ($errors->any())

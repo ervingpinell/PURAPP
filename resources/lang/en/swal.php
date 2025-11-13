@@ -1,10 +1,12 @@
 <?php
 return [
+    // Standard titles
     'title_success' => 'Success',
     'title_error'   => 'Error',
     'title_warning' => 'Warning',
     'title_info'    => 'Information',
 
+    // Buttons
     'ok'       => 'OK',
     'cancel'   => 'Cancel',
     'close'    => 'Close',
@@ -17,6 +19,7 @@ return [
     'next'     => 'Next',
     'previous' => 'Previous',
 
+    // Actions
     'create'      => 'Create',
     'save'        => 'Save',
     'edit'        => 'Edit',
@@ -41,24 +44,26 @@ return [
     'resend'      => 'Resend',
     'invite'      => 'Invite',
 
+    // Generic messages
     'validation_errors' => 'Please review the highlighted fields.',
-    'unexpected_error'  => 'An unexpected error occurred.',
+    'unexpected_error'  => 'An unexpected error has occurred.',
     'network_error'     => 'Network error. Please try again.',
     'processing'        => 'Processing...',
     'please_wait'       => 'Please wait...',
     'are_you_sure'      => 'Are you sure?',
     'cannot_undo'       => 'This action cannot be undone.',
 
-    'confirm_create'     => 'Do you want to create this record?',
-    'confirm_save'       => 'Save changes?',
-    'confirm_edit'       => 'Do you want to edit this record?',
-    'confirm_update'     => 'Update this record?',
+    // Confirmations (generic)
+    'confirm_create'     => 'Are you sure you want to create this record?',
+    'confirm_save'       => 'Do you want to save the changes?',
+    'confirm_edit'       => 'Are you sure you want to edit this record?',
+    'confirm_update'     => 'Do you want to update this record?',
     'confirm_delete'     => 'Are you sure you want to delete?',
     'confirm_remove'     => 'Are you sure you want to remove?',
-    'confirm_activate'   => 'Activate this item?',
-    'confirm_deactivate' => 'Deactivate this item?',
-    'confirm_enable'     => 'Enable this item?',
-    'confirm_disable'    => 'Disable this item?',
+    'confirm_activate'   => 'Are you sure you want to activate?',
+    'confirm_deactivate' => 'Are you sure you want to deactivate?',
+    'confirm_enable'     => 'Are you sure you want to enable?',
+    'confirm_disable'    => 'Are you sure you want to disable?',
     'confirm_archive'    => 'Archive this record?',
     'confirm_unarchive'  => 'Unarchive this record?',
     'confirm_restore'    => 'Restore this record?',
@@ -73,6 +78,7 @@ return [
     'confirm_resend'     => 'Resend now?',
     'confirm_invite'     => 'Send invitation?',
 
+    // Confirmations with name
     'confirm_delete_named'     => 'Delete ":name"?',
     'confirm_activate_named'   => 'Activate ":name"?',
     'confirm_deactivate_named' => 'Deactivate ":name"?',
@@ -81,6 +87,7 @@ return [
     'confirm_publish_named'    => 'Publish ":name"?',
     'confirm_unpublish_named'  => 'Unpublish ":name"?',
 
+    // Generic success messages
     'created_success'     => 'Created successfully.',
     'saved_success'       => 'Saved successfully.',
     'updated_success'     => 'Updated successfully.',
@@ -97,7 +104,7 @@ return [
     'uploaded_success'    => 'File uploaded successfully.',
     'downloaded_success'  => 'File downloaded.',
     'published_success'   => 'Published successfully.',
-    'unpublished_success' => 'Unpublished successfully.',
+    'unpublished_success' => 'Publication removed.',
     'approved_success'    => 'Approved successfully.',
     'rejected_success'    => 'Rejected successfully.',
     'sent_success'        => 'Sent successfully.',

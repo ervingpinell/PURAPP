@@ -1,10 +1,12 @@
 <?php
 return [
+    // Títulos padrão
     'title_success' => 'Sucesso',
     'title_error'   => 'Erro',
     'title_warning' => 'Aviso',
     'title_info'    => 'Informação',
 
+    // Botões
     'ok'       => 'OK',
     'cancel'   => 'Cancelar',
     'close'    => 'Fechar',
@@ -17,6 +19,7 @@ return [
     'next'     => 'Próximo',
     'previous' => 'Anterior',
 
+    // Ações
     'create'      => 'Criar',
     'save'        => 'Salvar',
     'edit'        => 'Editar',
@@ -31,16 +34,17 @@ return [
     'unarchive'   => 'Desarquivar',
     'restore'     => 'Restaurar',
     'duplicate'   => 'Duplicar',
-    'upload'      => 'Enviar',
-    'download'    => 'Baixar',
+    'upload'      => 'Enviar arquivo',
+    'download'    => 'Baixar arquivo',
     'publish'     => 'Publicar',
-    'unpublish'   => 'Despublicar',
+    'unpublish'   => 'Retirar publicação',
     'approve'     => 'Aprovar',
     'reject'      => 'Rejeitar',
     'send'        => 'Enviar',
     'resend'      => 'Reenviar',
     'invite'      => 'Convidar',
 
+    // Mensagens genéricas
     'validation_errors' => 'Por favor, revise os campos destacados.',
     'unexpected_error'  => 'Ocorreu um erro inesperado.',
     'network_error'     => 'Erro de rede. Tente novamente.',
@@ -49,16 +53,17 @@ return [
     'are_you_sure'      => 'Tem certeza?',
     'cannot_undo'       => 'Esta ação não pode ser desfeita.',
 
-    'confirm_create'     => 'Deseja criar este registro?',
-    'confirm_save'       => 'Deseja salvar as alterações?',
-    'confirm_edit'       => 'Deseja editar este registro?',
-    'confirm_update'     => 'Deseja atualizar este registro?',
-    'confirm_delete'     => 'Tem certeza que deseja excluir?',
-    'confirm_remove'     => 'Tem certeza que deseja remover?',
-    'confirm_activate'   => 'Ativar este item?',
-    'confirm_deactivate' => 'Desativar este item?',
-    'confirm_enable'     => 'Habilitar este item?',
-    'confirm_disable'    => 'Desabilitar este item?',
+    // Confirmações genéricas
+    'confirm_create'     => 'Criar este registro?',
+    'confirm_save'       => 'Salvar alterações?',
+    'confirm_edit'       => 'Editar este registro?',
+    'confirm_update'     => 'Atualizar este registro?',
+    'confirm_delete'     => 'Excluir?',
+    'confirm_remove'     => 'Remover?',
+    'confirm_activate'   => 'Ativar?',
+    'confirm_deactivate' => 'Desativar?',
+    'confirm_enable'     => 'Habilitar agora?',
+    'confirm_disable'    => 'Desabilitar agora?',
     'confirm_archive'    => 'Arquivar este registro?',
     'confirm_unarchive'  => 'Desarquivar este registro?',
     'confirm_restore'    => 'Restaurar este registro?',
@@ -66,21 +71,23 @@ return [
     'confirm_upload'     => 'Enviar este arquivo?',
     'confirm_download'   => 'Baixar este arquivo?',
     'confirm_publish'    => 'Publicar este conteúdo?',
-    'confirm_unpublish'  => 'Despublicar este conteúdo?',
+    'confirm_unpublish'  => 'Retirar a publicação?',
     'confirm_approve'    => 'Aprovar este item?',
     'confirm_reject'     => 'Rejeitar este item?',
     'confirm_send'       => 'Enviar agora?',
     'confirm_resend'     => 'Reenviar agora?',
     'confirm_invite'     => 'Enviar convite?',
 
+    // Com nome
     'confirm_delete_named'     => 'Excluir ":name"?',
     'confirm_activate_named'   => 'Ativar ":name"?',
     'confirm_deactivate_named' => 'Desativar ":name"?',
     'confirm_archive_named'    => 'Arquivar ":name"?',
     'confirm_restore_named'    => 'Restaurar ":name"?',
     'confirm_publish_named'    => 'Publicar ":name"?',
-    'confirm_unpublish_named'  => 'Despublicar ":name"?',
+    'confirm_unpublish_named'  => 'Retirar publicação de ":name"?',
 
+    // Sucessos
     'created_success'     => 'Criado com sucesso.',
     'saved_success'       => 'Salvo com sucesso.',
     'updated_success'     => 'Atualizado com sucesso.',
@@ -97,7 +104,7 @@ return [
     'uploaded_success'    => 'Arquivo enviado com sucesso.',
     'downloaded_success'  => 'Arquivo baixado.',
     'published_success'   => 'Publicado com sucesso.',
-    'unpublished_success' => 'Despublicado com sucesso.',
+    'unpublished_success' => 'Publicação retirada.',
     'approved_success'    => 'Aprovado com sucesso.',
     'rejected_success'    => 'Rejeitado com sucesso.',
     'sent_success'        => 'Enviado com sucesso.',

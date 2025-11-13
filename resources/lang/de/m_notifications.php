@@ -14,7 +14,7 @@ return [
     'occupancy' => 'Belegung',
   ],
   'badge' => [
-    'sold_out' => 'AUSVERKAUFT',
+    'sold_out' => 'SOLD OUT',
     'critical' => 'KRITISCH',
     'alert'    => 'ALARM',
   ],
@@ -32,9 +32,9 @@ return [
   ],
   'errors' => [
     'missing_route'   => 'Fehlende Route',
-    'define_route_inc'=> 'Route definieren: admin.capacity.increase',
-    'define_route_det'=> 'Route definieren: admin.capacity.details',
-    'define_route_blk'=> 'Route definieren: admin.capacity.block',
+    'define_route_inc'=> 'Definiere Route: admin.capacity.increase',
+    'define_route_det'=> 'Definiere Route: admin.capacity.details',
+    'define_route_blk'=> 'Definiere Route: admin.capacity.block',
   ],
   'prompts' => [
     'add_spaces' => 'Plätze hinzufügen',
@@ -52,12 +52,12 @@ return [
   ],
   'block' => [
     'block_date'    => 'Datum blockieren',
-    'block_confirm' => 'Diesen Termin für das ausgewählte Datum vollständig blockieren?',
+    'block_confirm' => 'Diesen Zeitraum für das ausgewählte Datum vollständig blockieren?',
     'yes_block'     => 'Ja, blockieren',
     'blocked'       => 'Blockiert',
     'date_blocked'  => 'Das Datum wurde blockiert',
     'couldnt_block' => 'Konnte nicht blockiert werden',
-    'required_date' => 'Fehlendes zu blockierendes Datum',
+    'required_date' => 'Fehlendes Datum zum Blockieren',
   ],
   'table' => [
     'date'     => 'Datum',

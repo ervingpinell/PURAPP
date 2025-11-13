@@ -1,10 +1,12 @@
 <?php
 return [
+    // Titres standards
     'title_success' => 'Succès',
     'title_error'   => 'Erreur',
     'title_warning' => 'Avertissement',
     'title_info'    => 'Information',
 
+    // Boutons
     'ok'       => 'OK',
     'cancel'   => 'Annuler',
     'close'    => 'Fermer',
@@ -17,6 +19,7 @@ return [
     'next'     => 'Suivant',
     'previous' => 'Précédent',
 
+    // Actions
     'create'      => 'Créer',
     'save'        => 'Enregistrer',
     'edit'        => 'Modifier',
@@ -41,38 +44,41 @@ return [
     'resend'      => 'Renvoyer',
     'invite'      => 'Inviter',
 
-    'validation_errors' => 'Veuillez vérifier les champs en surbrillance.',
+    // Messages génériques
+    'validation_errors' => 'Veuillez vérifier les champs surlignés.',
     'unexpected_error'  => 'Une erreur inattendue s’est produite.',
     'network_error'     => 'Erreur réseau. Veuillez réessayer.',
     'processing'        => 'Traitement...',
     'please_wait'       => 'Veuillez patienter...',
-    'are_you_sure'      => 'Êtes-vous sûr ?',
-    'cannot_undo'       => 'Cette action est irréversible.',
+    'are_you_sure'      => 'Es-tu sûr ?',
+    'cannot_undo'       => 'Cette action ne peut pas être annulée.',
 
-    'confirm_create'     => 'Voulez-vous créer cet enregistrement ?',
+    // Confirmations
+    'confirm_create'     => 'Créer cet enregistrement ?',
     'confirm_save'       => 'Enregistrer les modifications ?',
-    'confirm_edit'       => 'Voulez-vous modifier cet enregistrement ?',
+    'confirm_edit'       => 'Modifier cet enregistrement ?',
     'confirm_update'     => 'Mettre à jour cet enregistrement ?',
-    'confirm_delete'     => 'Êtes-vous sûr de vouloir supprimer ?',
-    'confirm_remove'     => 'Êtes-vous sûr de vouloir retirer ?',
+    'confirm_delete'     => 'Supprimer cet élément ?',
+    'confirm_remove'     => 'Retirer cet élément ?',
     'confirm_activate'   => 'Activer cet élément ?',
     'confirm_deactivate' => 'Désactiver cet élément ?',
-    'confirm_enable'     => 'Activer cet élément ?',
-    'confirm_disable'    => 'Désactiver cet élément ?',
-    'confirm_archive'    => 'Archiver cet enregistrement ?',
-    'confirm_unarchive'  => 'Désarchiver cet enregistrement ?',
-    'confirm_restore'    => 'Restaurer cet enregistrement ?',
-    'confirm_duplicate'  => 'Dupliquer cet enregistrement ?',
+    'confirm_enable'     => 'Activer maintenant ?',
+    'confirm_disable'    => 'Désactiver maintenant ?',
+    'confirm_archive'    => 'Archiver cet élément ?',
+    'confirm_unarchive'  => 'Désarchiver cet élément ?',
+    'confirm_restore'    => 'Restaurer cet élément ?',
+    'confirm_duplicate'  => 'Dupliquer cet élément ?',
     'confirm_upload'     => 'Téléverser ce fichier ?',
     'confirm_download'   => 'Télécharger ce fichier ?',
     'confirm_publish'    => 'Publier ce contenu ?',
-    'confirm_unpublish'  => 'Retirer la publication de ce contenu ?',
+    'confirm_unpublish'  => 'Retirer la publication ?',
     'confirm_approve'    => 'Approuver cet élément ?',
     'confirm_reject'     => 'Rejeter cet élément ?',
     'confirm_send'       => 'Envoyer maintenant ?',
     'confirm_resend'     => 'Renvoyer maintenant ?',
-    'confirm_invite'     => 'Envoyer une invitation ?',
+    'confirm_invite'     => 'Envoyer l’invitation ?',
 
+    // Avec nom
     'confirm_delete_named'     => 'Supprimer « :name » ?',
     'confirm_activate_named'   => 'Activer « :name » ?',
     'confirm_deactivate_named' => 'Désactiver « :name » ?',
@@ -81,6 +87,7 @@ return [
     'confirm_publish_named'    => 'Publier « :name » ?',
     'confirm_unpublish_named'  => 'Retirer la publication de « :name » ?',
 
+    // Succès
     'created_success'     => 'Créé avec succès.',
     'saved_success'       => 'Enregistré avec succès.',
     'updated_success'     => 'Mis à jour avec succès.',

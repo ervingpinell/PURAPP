@@ -5,7 +5,7 @@ return [
     'header' => 'Relatórios de Vendas',
 
     'filters' => [
-        'quick_range'         => 'Período rápido',
+        'quick_range'         => 'Intervalo rápido',
         'select_placeholder'  => '— Selecionar —',
         'today'               => 'Hoje',
         'last7'               => 'Últimos 7 dias',
@@ -22,56 +22,56 @@ return [
         'period_month'        => 'Mensal',
         'group_by'            => 'Agrupar por',
         'group_booking_date'  => 'Data da reserva',
-        'group_tour_date'     => 'Data do passeio',
-        'reset'               => 'Resetar',
+        'group_tour_date'     => 'Data do tour',
+        'reset'               => 'Limpar',
         'apply'               => 'Aplicar',
         'more_filters'        => 'Mais filtros',
         'status'              => 'Status',
         'all'                 => '(Todos)',
-        'tours_multi'         => 'Passeios (múltiplos)',
+        'tours_multi'         => 'Tours (múltiplos)',
         'languages_multi'     => 'Idiomas (múltiplos)',
     ],
 
     'status_options' => [
-        'paid'       => 'Pago',
-        'confirmed'  => 'Confirmado',
-        'completed'  => 'Concluído',
-        'cancelled'  => 'Cancelado',
+        'paid'       => 'Paga',
+        'confirmed'  => 'Confirmada',
+        'completed'  => 'Concluída',
+        'cancelled'  => 'Cancelada',
     ],
 
     'kpi' => [
         'revenue_range'      => 'Receita (período)',
-        'avg_ticket'         => 'Ticket médio',
+        'avg_ticket'         => 'Ticket Médio',
         'bookings'           => 'Reservas',
         'pax'                => 'PAX',
         'confirmed_bookings' => 'Reservas confirmadas',
     ],
 
     'sections' => [
-        'revenue_by_period_title' => 'Receita por :periodo',
+        'revenue_by_period_title' => 'Receita por :period',
         'period_names'            => ['day' => 'dia', 'week' => 'semana', 'month' => 'mês'],
-        'top_tours_title'         => 'Top Passeios (por receita)',
+        'top_tours_title'         => 'Top Tours (por receita)',
         'sales_by_language'       => 'Vendas por idioma',
         'pending_bookings'        => 'Reservas pendentes',
     ],
 
     'table' => [
         'hash'          => '#',
-        'tour'          => 'Passeio',
+        'tour'          => 'Tour',
         'bookings'      => 'Reservas',
         'pax'           => 'PAX',
         'revenue'       => 'Receita',
         'no_data'       => 'Sem dados',
         'ref'           => 'Ref.',
         'customer'      => 'Cliente',
-        'tour_date'     => 'Data do passeio',
+        'tour_date'     => 'Data do tour',
         'booking_date'  => 'Data da reserva',
         'total'         => 'Total',
         'none_pending'  => 'Nenhuma pendente',
     ],
 
     'footnotes' => [
-        'pending_limit' => '* Até 8 conforme os filtros.',
+        'pending_limit' => '* Até 8 de acordo com os filtros.',
     ],
 
     'buttons' => [
@@ -86,10 +86,10 @@ return [
 
     'csv' => [
         'revenue_by_period_filename'  => 'receita-por-periodo',
-        'top_tours_filename'          => 'top-passeios',
+        'top_tours_filename'          => 'top-tours',
         'sales_by_language_filename'  => 'vendas-por-idioma',
         'headers_revenue'             => ['Período','Receita','Reservas','PAX'],
-        'headers_top'                 => ['#','Passeio','Reservas','PAX','Receita'],
+        'headers_top'                 => ['#','Tour','Reservas','PAX','Receita'],
         'headers_language'            => ['Idioma','Receita','Reservas'],
         'period'                      => 'Período',
         'language'                    => 'Idioma',

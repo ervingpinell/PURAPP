@@ -27,7 +27,7 @@ return [
   'modal' => [
     'loading_details' => 'Loading details…',
     'operation_cancel'=> 'Operation cancelled.',
-    'cannot_load'     => 'Unable to load details.',
+    'cannot_load'     => 'Could not load details.',
     'close'           => 'Close',
   ],
   'errors' => [
@@ -52,12 +52,12 @@ return [
   ],
   'block' => [
     'block_date'    => 'Block date',
-    'block_confirm' => 'Completely block this schedule for the selected date?',
+    'block_confirm' => 'Block this time slot completely for the selected date?',
     'yes_block'     => 'Yes, block',
     'blocked'       => 'Blocked',
     'date_blocked'  => 'The date was blocked',
     'couldnt_block' => 'Could not block',
-    'required_date' => 'Date to block is missing',
+    'required_date' => 'Missing date to block',
   ],
   'table' => [
     'date'     => 'Date',

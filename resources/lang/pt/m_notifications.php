@@ -2,11 +2,11 @@
 return [
   'widget' => [
     'alerts'          => 'Alertas',
-    'capacity_alerts' => 'Alertas de Capacidade',
+    'capacity_alerts' => 'Alertas de capacidade',
     'mark_all_read'   => 'Marcar todas como lidas',
     'minimize'        => 'Minimizar',
     'realtime'        => 'Atualizações em tempo real',
-    'no_alerts'       => 'Nenhum alerta pendente',
+    'no_alerts'       => 'Não há alertas pendentes',
   ],
   'card' => [
     'reserved'  => 'Reservados',
@@ -14,13 +14,13 @@ return [
     'occupancy' => 'Ocupação',
   ],
   'badge' => [
-    'sold_out' => 'ESGOTADO',
+    'sold_out' => 'SOLD OUT',
     'critical' => 'CRÍTICO',
     'alert'    => 'ALERTA',
   ],
   'actions' => [
     'unlock'  => 'Desbloquear',
-    'expand'  => 'Expandir',
+    'expand'  => 'Ampliar',
     'block'   => 'Bloquear',
     'details' => 'Detalhes',
   ],
@@ -42,7 +42,7 @@ return [
     'add'        => 'Adicionar',
     'cancel'     => 'Cancelar',
     'invalid_qty'=> 'Quantidade inválida',
-    'enter_int'  => 'Insira um número inteiro ≥ 1',
+    'enter_int'  => 'Digite um inteiro ≥ 1',
   ],
   'toasts' => [
     'ready'            => 'Pronto',
@@ -52,12 +52,12 @@ return [
   ],
   'block' => [
     'block_date'    => 'Bloquear data',
-    'block_confirm' => 'Deseja bloquear completamente este horário para a data selecionada?',
+    'block_confirm' => 'Bloquear completamente este horário para a data selecionada?',
     'yes_block'     => 'Sim, bloquear',
     'blocked'       => 'Bloqueado',
     'date_blocked'  => 'A data foi bloqueada',
     'couldnt_block' => 'Não foi possível bloquear',
-    'required_date' => 'Falta a data para bloquear',
+    'required_date' => 'Falta a data a ser bloqueada',
   ],
   'table' => [
     'date'     => 'Data',

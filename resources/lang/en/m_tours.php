@@ -3,16 +3,6 @@
 /*************************************************************
  *  TRANSLATION MODULE: TOURS
  *  File: resources/lang/en/m_tours.php
- *
- *  Index (section and starting line)
- *  [01] COMMON           -> line 23
- *  [02] AMENITY          -> line 31
- *  [03] SCHEDULE         -> line 106
- *  [04] ITINERARY_ITEM   -> line 218
- *  [05] ITINERARY        -> line 288
- *  [06] LANGUAGE         -> line 364
- *  [07] TOUR             -> line 453
- *  [08] IMAGES           -> line 579
  *************************************************************/
 
 return [
@@ -21,22 +11,23 @@ return [
     // [01] COMMON
     // =========================================================
     'common' => [
-        'success_title' => 'Success',
-        'error_title'   => 'Error',
-        'people' => 'people',
-        'hours' => 'hours',
-        'success' => 'Success',
-        'error' => 'Error',
-        'cancel' => 'Cancel',
-        'confirm_delete' => 'Yes, delete',
-        'unspecified' => 'Unspecified',
-        'no_description' => 'No description',
-        'required_fields_title' => 'Required fields',
-        'required_fields_text' => 'Please complete the required fields: Name and Maximum Capacity',
-        'active' => 'Active',
-        'inactive' => 'Inactive',
-        'notice' => 'Notice',
-        'na'     => 'No configured',
+        'success_title'        => 'Success',
+        'error_title'          => 'Error',
+        'people'               => 'people',
+        'hours'                => 'hours',
+        'success'              => 'Success',
+        'error'                => 'Error',
+        'cancel'               => 'Cancel',
+        'confirm_delete'       => 'Yes, delete',
+        'unspecified'          => 'Unspecified',
+        'no_description'       => 'No description',
+        'required_fields_title'=> 'Required fields',
+        'required_fields_text' => 'Please fill in the required fields: Name and Maximum Capacity',
+        'active'               => 'Active',
+        'inactive'             => 'Inactive',
+        'notice'               => 'Notice',
+        'na'                   => 'Not configured',
+        'create'               => 'Create',
     ],
 
     // =========================================================
@@ -54,8 +45,8 @@ return [
 
         'ui' => [
             'page_title'    => 'Amenities',
-            'page_heading'  => 'Amenities Management',
-            'list_title'    => 'Amenities List',
+            'page_heading'  => 'Amenity Management',
+            'list_title'    => 'Amenity List',
 
             'add'            => 'Add Amenity',
             'create_title'   => 'Register Amenity',
@@ -66,7 +57,7 @@ return [
             'close'          => 'Close',
             'state'          => 'Status',
             'actions'        => 'Actions',
-            'delete_forever' => 'Delete Permanently',
+            'delete_forever' => 'Delete permanently',
 
             'processing' => 'Processing...',
             'applying'   => 'Applying...',
@@ -81,7 +72,7 @@ return [
             'toggle_confirm_off_html'  => 'The amenity <b>:label</b> will be inactive.',
 
             'delete_confirm_title' => 'Delete permanently?',
-            'delete_confirm_html'  => '<b>:label</b> will be deleted and this action cannot be undone.',
+            'delete_confirm_html'  => '<b>:label</b> will be deleted and you will not be able to undo this.',
 
             'yes_continue' => 'Yes, continue',
             'yes_delete'   => 'Yes, delete',
@@ -98,18 +89,18 @@ return [
         ],
 
         'error' => [
-            'create' => 'Could not create the amenity.',
-            'update' => 'Could not update the amenity.',
-            'toggle' => 'Could not change the amenity status.',
-            'delete' => 'Could not delete the amenity.',
+            'create' => 'The amenity could not be created.',
+            'update' => 'The amenity could not be updated.',
+            'toggle' => 'The amenity status could not be changed.',
+            'delete' => 'The amenity could not be deleted.',
         ],
 
         'validation' => [
             'name' => [
                 'title'    => 'Invalid name',
-                'required' => 'The :attribute field is required.',
-                'string'   => 'The :attribute must be a string.',
-                'max'      => 'The :attribute may not exceed :max characters.',
+                'required' => 'The :attribute is required.',
+                'string'   => 'The :attribute must be a text string.',
+                'max'      => 'The :attribute may not be greater than :max characters.',
             ],
         ],
     ],
@@ -133,30 +124,30 @@ return [
         ],
 
         'ui' => [
-            'page_title'        => 'Tour Schedules',
-            'page_heading'      => 'Schedule Management',
+            'page_title'   => 'Tour Schedules',
+            'page_heading' => 'Schedule Management',
 
-            'general_title'     => 'General Schedules',
-            'new_schedule'      => 'New Schedule',
-            'new_general_title' => 'New General Schedule',
+            'general_title'     => 'General schedules',
+            'new_schedule'      => 'New schedule',
+            'new_general_title' => 'New general schedule',
             'new'               => 'New',
-            'edit_schedule'     => 'Edit Schedule',
+            'edit_schedule'     => 'Edit schedule',
             'edit_global'       => 'Edit (global)',
 
-            'assign_existing'    => 'Assign Existing',
+            'assign_existing'    => 'Assign existing',
             'assign_to_tour'     => 'Assign schedule to ":tour"',
             'select_schedule'    => 'Select a schedule',
             'choose'             => 'Choose',
             'assign'             => 'Assign',
             'new_for_tour_title' => 'New schedule for ":tour"',
 
-            'time_range'        => 'Time Range',
+            'time_range'        => 'Schedule',
             'state'             => 'Status',
             'actions'           => 'Actions',
             'schedule_state'    => 'Schedule',
             'assignment_state'  => 'Assignment',
-            'no_general'        => 'No general schedules.',
-            'no_tour_schedules' => 'This tour has no schedules yet.',
+            'no_general'        => 'There are no general schedules.',
+            'no_tour_schedules' => 'This tour does not have schedules yet.',
             'no_label'          => 'No label',
             'assigned_count'    => 'assigned schedule(s)',
 
@@ -166,10 +157,10 @@ return [
             'toggle_global_on_html'   => '<b>:label</b> will be activated for all tours.',
             'toggle_global_off_html'  => '<b>:label</b> will be deactivated for all tours.',
 
-            'toggle_on_tour'          => 'Activate on this tour',
-            'toggle_off_tour'         => 'Deactivate on this tour',
-            'toggle_assign_on_title'  => 'Activate on this tour?',
-            'toggle_assign_off_title' => 'Deactivate on this tour?',
+            'toggle_on_tour'          => 'Activate for this tour',
+            'toggle_off_tour'         => 'Deactivate for this tour',
+            'toggle_assign_on_title'  => 'Activate for this tour?',
+            'toggle_assign_off_title' => 'Deactivate for this tour?',
             'toggle_assign_on_html'   => 'The assignment will be <b>active</b> for <b>:tour</b>.',
             'toggle_assign_off_html'  => 'The assignment will be <b>inactive</b> for <b>:tour</b>.',
 
@@ -179,7 +170,7 @@ return [
 
             'delete_forever'       => 'Delete (global)',
             'delete_confirm_title' => 'Delete permanently?',
-            'delete_confirm_html'  => '<b>:label</b> will be deleted (global) and cannot be undone.',
+            'delete_confirm_html'  => '<b>:label</b> (global) will be deleted and you will not be able to undo this.',
 
             'yes_continue' => 'Yes, continue',
             'yes_delete'   => 'Yes, delete',
@@ -198,7 +189,7 @@ return [
             'cancel'         => 'Cancel',
 
             'missing_fields_title' => 'Missing data',
-            'missing_fields_text'  => 'Check required fields (start, end, and capacity).',
+            'missing_fields_text'  => 'Check the required fields (start, end and capacity).',
             'could_not_save'       => 'Could not save',
         ],
 
@@ -207,8 +198,8 @@ return [
             'updated'                => 'Schedule updated successfully.',
             'activated_global'       => 'Schedule activated successfully (global).',
             'deactivated_global'     => 'Schedule deactivated successfully (global).',
-            'attached'               => 'Schedule assigned to tour.',
-            'detached'               => 'Schedule removed from tour successfully.',
+            'attached'               => 'Schedule assigned to the tour.',
+            'detached'               => 'Schedule removed from the tour successfully.',
             'assignment_activated'   => 'Assignment activated for this tour.',
             'assignment_deactivated' => 'Assignment deactivated for this tour.',
             'deleted'                => 'Schedule deleted successfully.',
@@ -217,11 +208,11 @@ return [
         'error' => [
             'create'               => 'There was a problem creating the schedule.',
             'update'               => 'There was a problem updating the schedule.',
-            'toggle'               => 'Could not change global schedule status.',
-            'attach'               => 'Could not assign schedule to tour.',
-            'detach'               => 'Could not unassign schedule from tour.',
-            'assignment_toggle'    => 'Could not change assignment status.',
-            'not_assigned_to_tour' => 'Schedule is not assigned to this tour.',
+            'toggle'               => 'The global status of the schedule could not be changed.',
+            'attach'               => 'The schedule could not be assigned to the tour.',
+            'detach'               => 'The schedule could not be unassigned from the tour.',
+            'assignment_toggle'    => 'The assignment status could not be changed.',
+            'not_assigned_to_tour' => 'The schedule is not assigned to this tour.',
             'delete'               => 'There was a problem deleting the schedule.',
         ],
     ],
@@ -258,7 +249,7 @@ return [
 
             'delete_forever'       => 'Delete permanently',
             'delete_confirm_title' => 'Delete permanently?',
-            'delete_confirm_html'  => '<b>:label</b> will be deleted and cannot be undone.',
+            'delete_confirm_html'  => '<b>:label</b> will be deleted and you will not be able to undo this.',
             'yes_delete'           => 'Yes, delete',
             'item_this'            => 'this item',
 
@@ -276,25 +267,26 @@ return [
         ],
 
         'error' => [
-            'create' => 'Could not create the item.',
-            'update' => 'Could not update the item.',
-            'toggle' => 'Could not change item status.',
-            'delete' => 'Could not delete the item.',
+            'create' => 'The item could not be created.',
+            'update' => 'The item could not be updated.',
+            'toggle' => 'The item status could not be changed.',
+            'delete' => 'The item could not be deleted.',
         ],
 
         'validation' => [
             'title' => [
                 'required' => 'The :attribute is required.',
-                'string'   => 'The :attribute must be a string.',
-                'max'      => 'The :attribute may not exceed :max characters.',
+                'string'   => 'The :attribute must be a text string.',
+                'max'      => 'The :attribute may not be greater than :max characters.',
             ],
             'description' => [
                 'required' => 'The :attribute is required.',
-                'string'   => 'The :attribute must be a string.',
-                'max'      => 'The :attribute may not exceed :max characters.',
+                'string'   => 'The :attribute must be a text string.',
+                'max'      => 'The :attribute may not be greater than :max characters.',
             ],
         ],
     ],
+
     // =========================================================
     // [05] ITINERARY
     // =========================================================
@@ -311,7 +303,7 @@ return [
         ],
 
         'ui' => [
-            'page_title'    => 'Itineraries & Items',
+            'page_title'    => 'Itineraries and Items',
             'page_heading'  => 'Itineraries and Item Management',
             'new_itinerary' => 'New Itinerary',
 
@@ -329,18 +321,18 @@ return [
             'toggle_confirm_off_title' => 'Deactivate itinerary?',
             'toggle_confirm_on_html'   => 'The itinerary <b>:label</b> will be <b>active</b>.',
             'toggle_confirm_off_html'  => 'The itinerary <b>:label</b> will be <b>inactive</b>.',
-            'yes_continue' => 'Yes, continue',
+            'yes_continue'             => 'Yes, continue',
 
             'assign_title'          => 'Assign items to :name',
-            'drag_hint'             => 'Drag and drop items to set the order.',
+            'drag_hint'             => 'Drag and drop items to define the order.',
             'drag_handle'           => 'Drag to reorder',
-            'select_one_title'      => 'Select at least one item',
+            'select_one_title'      => 'You must select at least one item',
             'select_one_text'       => 'Please select at least one item to continue.',
             'assign_confirm_title'  => 'Assign selected items?',
             'assign_confirm_button' => 'Yes, assign',
             'assigning'             => 'Assigning...',
 
-            'no_items_assigned'       => 'No items assigned to this itinerary.',
+            'no_items_assigned'       => 'There are no items assigned to this itinerary.',
             'itinerary_this'          => 'this itinerary',
             'processing'              => 'Processing...',
             'saving'                  => 'Saving...',
@@ -363,31 +355,31 @@ return [
         ],
 
         'error' => [
-            'create'  => 'Could not create the itinerary.',
-            'update'  => 'Could not update the itinerary.',
-            'toggle'  => 'Could not change the itinerary status.',
-            'delete'  => 'Could not delete the itinerary.',
-            'assign'  => 'Could not assign the items.',
+            'create'  => 'The itinerary could not be created.',
+            'update'  => 'The itinerary could not be updated.',
+            'toggle'  => 'The itinerary status could not be changed.',
+            'delete'  => 'The itinerary could not be deleted.',
+            'assign'  => 'The items could not be assigned.',
         ],
 
         'validation' => [
             'name' => [
                 'required' => 'The itinerary name is required.',
                 'string'   => 'The name must be text.',
-                'max'      => 'The name may not exceed 255 characters.',
-                'unique'   => 'An itinerary with this name already exists.',
+                'max'      => 'The name may not be greater than 255 characters.',
+                'unique'   => 'An itinerary with that name already exists.',
             ],
             'description' => [
                 'string' => 'The description must be text.',
-                'max'    => 'The description may not exceed 1000 characters.',
+                'max'    => 'The description may not be greater than 1000 characters.',
             ],
             'items' => [
                 'required'      => 'You must select at least one item.',
                 'array'         => 'The items format is not valid.',
                 'min'           => 'You must select at least one item.',
-                'order_integer' => 'Order must be an integer.',
-                'order_min'     => 'Order cannot be negative.',
-                'order_max'     => 'Order may not exceed 9999.',
+                'order_integer' => 'The order must be an integer.',
+                'order_min'     => 'The order cannot be negative.',
+                'order_max'     => 'The order may not be greater than 9999.',
             ],
         ],
     ],
@@ -408,7 +400,7 @@ return [
         'ui' => [
             'page_title'   => 'Tour Languages',
             'page_heading' => 'Language Management',
-            'list_title'   => 'Languages List',
+            'list_title'   => 'Language List',
 
             'table' => [
                 'id'      => 'ID',
@@ -425,7 +417,7 @@ return [
             'cancel'         => 'Cancel',
             'close'          => 'Close',
             'actions'        => 'Actions',
-            'delete_forever' => 'Delete Permanently',
+            'delete_forever' => 'Delete permanently',
 
             'processing'   => 'Processing...',
             'saving'       => 'Saving...',
@@ -464,10 +456,10 @@ return [
         ],
 
         'error' => [
-            'create' => 'Could not create the language.',
-            'update' => 'Could not update the language.',
-            'toggle' => 'Could not change the language status.',
-            'delete' => 'Could not delete the language.',
+            'create' => 'The language could not be created.',
+            'update' => 'The language could not be updated.',
+            'toggle' => 'The language status could not be changed.',
+            'delete' => 'The language could not be deleted.',
             'save'   => 'Could not save',
         ],
 
@@ -475,9 +467,9 @@ return [
             'name' => [
                 'title'    => 'Invalid name',
                 'required' => 'The language name is required.',
-                'string'   => 'The :attribute must be a string.',
-                'max'      => 'The :attribute may not exceed :max characters.',
-                'unique'   => 'A language with this name already exists.',
+                'string'   => 'The :attribute must be a text string.',
+                'max'      => 'The :attribute may not be greater than :max characters.',
+                'unique'   => 'A language with that name already exists.',
             ],
         ],
     ],
@@ -489,44 +481,90 @@ return [
         'title' => 'Tours',
 
         'fields' => [
-            'id'            => 'ID',
-            'name'          => 'Name',
-            'details'       => 'Details',
-            'price'         => 'Prices',
-            'overview'      => 'Overview',
-            'amenities'     => 'Amenities',
-            'exclusions'    => 'Exclusions',
-            'itinerary'     => 'Itinerary',
-            'languages'     => 'Languages',
-            'schedules'     => 'Schedules',
-            'adult_price'   => 'Adult Price',
-            'kid_price'     => 'Child Price',
-            'length_hours'  => 'Duration (hours)',
-            'max_capacity'  => 'Max capacity',
-            'type'          => 'Tour Type',
-            'viator_code'   => 'Viator Code',
-            'status'        => 'Status',
-            'actions'       => 'Actions',
-            'group_size'    => 'Group size',
+            'id'           => 'ID',
+            'name'         => 'Name',
+            'details'      => 'Details',
+            'price'        => 'Prices',
+            'overview'     => 'Overview',
+            'amenities'    => 'Amenities',
+            'exclusions'   => 'Exclusions',
+            'itinerary'    => 'Itinerary',
+            'languages'    => 'Languages',
+            'schedules'    => 'Schedules',
+            'adult_price'  => 'Adult Price',
+            'kid_price'    => 'Child Price',
+            'length_hours' => 'Duration (hours)',
+            'max_capacity' => 'Maximum capacity',
+            'type'         => 'Tour Type',
+            'viator_code'  => 'Viator Code',
+            'status'       => 'Status',
+            'actions'      => 'Actions',
+            'group_size'   => 'Group size',
         ],
 
         'pricing' => [
-            'note_title'              => 'Note:',
-            'note_text'               => 'Define base prices for each customer category here.',
-            'manage_detailed_hint'    => ' For detailed management, use the "Manage Detailed Prices" button above.',
-            'price_usd'               => 'Price (USD)',
-            'min_quantity'            => 'Minimum quantity',
-            'max_quantity'            => 'Maximum quantity',
-            'status'                  => 'Status',
-            'active'                  => 'Active',
-            'no_categories'           => 'No customer categories configured.',
+            'configured_categories' => 'Configured categories',
+            'create_category'       => 'Create category',
+            'note_title'            => 'Note:',
+            'note_text'             => 'Define the base prices here for each customer category.',
+            'manage_detailed_hint'  => ' For detailed management, use the "Manage Detailed Prices" button above.',
+            'price_usd'             => 'Price (USD)',
+            'min_quantity'          => 'Minimum quantity',
+            'max_quantity'          => 'Maximum quantity',
+            'status'                => 'Status',
+            'active'                => 'Active',
+            'no_categories'         => 'There are no customer categories configured.',
             'create_categories_first' => 'Create categories first',
+            'page_title'            => 'Prices - :name',
+            'header_title'          => 'Prices: :name',
+            'back_to_tours'         => 'Back to tours',
+
+            'configured_title'   => 'Configured categories and prices',
+            'empty_title'        => 'There are no categories configured for this tour.',
+            'empty_hint'         => 'Use the form on the right to add categories.',
+
+            'save_changes'       => 'Save changes',
+            'auto_disable_note'  => 'Prices of $0 are automatically deactivated',
+
+            'add_category'       => 'Add category',
+
+            'all_assigned_title' => 'All categories are assigned',
+            'all_assigned_text'  => 'There are no more available categories for this tour.',
+
+            'info_title'         => 'Information',
+            'tour_label'         => 'Tour',
+            'configured_count'   => 'Configured categories',
+            'active_count'       => 'Active categories',
+
+            'fields_title'       => 'Fields',
+            'rules_title'        => 'Rules',
+
+            'field_price'        => 'Price',
+            'field_min'          => 'Minimum',
+            'field_max'          => 'Maximum',
+            'field_status'       => 'Status',
+
+            'rule_min_le_max'    => 'The minimum must be less than or equal to the maximum',
+            'rule_zero_disable'  => 'Prices of $0 are automatically deactivated',
+            'rule_only_active'   => 'Only active categories appear on the public site',
+
+            'status_active'      => 'Active',
+        ],
+
+        'modal' => [
+            'create_category' => 'Create category',
+            'fields' => [
+                'name'      => 'Name',
+                'age_range' => 'Age range',
+                'min'       => 'Minimum',
+                'max'       => 'Maximum',
+            ],
         ],
 
         'schedules_form' => [
             'available_title'        => 'Available Schedules',
-            'select_hint'            => 'Select schedules for this tour',
-            'no_schedules'           => 'No schedules available.',
+            'select_hint'            => 'Select the schedules for this tour',
+            'no_schedules'           => 'There are no available schedules.',
             'create_schedules_link'  => 'Create schedules',
 
             'create_new_title'       => 'Create New Schedule',
@@ -535,9 +573,9 @@ return [
 
             'info_title'             => 'Information',
             'schedules_title'        => 'Schedules',
-            'schedules_text'         => 'Select one or more schedules when this tour will be available.',
+            'schedules_text'         => 'Select one or more schedules in which this tour will be available.',
             'create_block_title'     => 'Create New',
-            'create_block_text'      => 'If you need a schedule that doesn’t exist, create it here by checking "Create this schedule and assign it to the tour".',
+            'create_block_text'      => 'If you need a schedule that does not exist, you can create it here by checking the box "Create this schedule and assign it to the tour".',
 
             'current_title'          => 'Current Schedules',
             'none_assigned'          => 'No schedules assigned',
@@ -545,12 +583,12 @@ return [
 
         'summary' => [
             'preview_title'        => 'Tour Preview',
-            'preview_text_create'  => 'Review all information before creating the tour.',
-            'preview_text_update'  => 'Review all information before updating the tour.',
+            'preview_text_create'  => 'Review all the information before creating the tour.',
+            'preview_text_update'  => 'Review all the information before updating the tour.',
 
             'basic_details_title'  => 'Basic Details',
             'description_title'    => 'Description',
-            'prices_title'         => 'Prices by Category',
+            'prices_title'         => 'Prices per Category',
             'schedules_title'      => 'Schedules',
             'languages_title'      => 'Languages',
             'itinerary_title'      => 'Itinerary',
@@ -558,10 +596,10 @@ return [
             'table' => [
                 'category' => 'Category',
                 'price'    => 'Price',
-                'min_max'  => 'Min–Max',
+                'min_max'  => 'Min-Max',
             ],
 
-            'not_specified'        => 'Not specified',
+            'not_specified'        => 'Unspecified',
             'slug_autogenerated'   => 'Will be generated automatically',
             'no_description'       => 'No description',
             'no_active_prices'     => 'No active prices configured',
@@ -574,12 +612,12 @@ return [
                 'people' => 'people',
             ],
 
-            'create_note' => 'Schedules, prices, languages, and amenities will appear here after saving the tour.',
+            'create_note' => 'Schedules, prices, languages and amenities will appear here after saving the tour.',
         ],
 
         'alerts' => [
             'delete_title' => 'Delete tour?',
-            'delete_text'  => 'The tour will be moved to Deleted. You can restore it later.',
+            'delete_text'  => 'The tour will be moved to Deleted. You will be able to restore it later.',
             'purge_title'  => 'Delete permanently?',
             'purge_text'   => 'This action is irreversible.',
             'purge_text_with_bookings' => 'This tour has :count booking(s). They will not be deleted; they will remain without an associated tour.',
@@ -598,26 +636,26 @@ return [
         ],
 
         'table' => [
-            'id'            => 'ID',
-            'name'          => 'Name',
-            'overview'      => 'Overview',
-            'amenities'     => 'Amenities',
-            'exclusions'    => 'Exclusions',
-            'itinerary'     => 'Itinerary',
-            'languages'     => 'Languages',
-            'schedules'     => 'Schedules',
-            'adult_price'   => 'Adult Price',
-            'kid_price'     => 'Child Price',
-            'length_hours'  => 'Duration (h)',
-            'max_capacity'  => 'Max Capacity',
-            'type'          => 'Type',
-            'viator_code'   => 'Viator Code',
-            'status'        => 'Status',
-            'actions'       => 'Actions',
-            'slug'          => 'URL',
-            'prices'        => 'Prices',
-            'capacity'      => 'Capacity',
-            'group_size'    => 'Max. Group',
+            'id'           => 'ID',
+            'name'         => 'Name',
+            'overview'     => 'Overview',
+            'amenities'    => 'Amenities',
+            'exclusions'   => 'Exclusions',
+            'itinerary'    => 'Itinerary',
+            'languages'    => 'Languages',
+            'schedules'    => 'Schedules',
+            'adult_price'  => 'Adult Price',
+            'kid_price'    => 'Child Price',
+            'length_hours' => 'Duration (h)',
+            'max_capacity' => 'Max Capacity',
+            'type'         => 'Type',
+            'viator_code'  => 'Viator Code',
+            'status'       => 'Status',
+            'actions'      => 'Actions',
+            'slug'         => 'URL',
+            'prices'       => 'Prices',
+            'capacity'     => 'Capacity',
+            'group_size'   => 'Max Group',
         ],
 
         'status' => [
@@ -627,11 +665,11 @@ return [
         ],
 
         'placeholders' => [
-            'group_size' => 'e.g., 10',
+            'group_size' => 'E.g.: 10',
         ],
 
         'hints' => [
-            'group_size' => 'Recommended capacity per group for this tour.',
+            'group_size' => 'Recommended capacity/group for this tour.',
         ],
 
         'success' => [
@@ -647,13 +685,13 @@ return [
         ],
 
         'error' => [
-            'create'    => 'Could not create the tour.',
-            'update'    => 'Could not update the tour.',
-            'delete'    => 'Could not delete the tour.',
-            'toggle'    => 'Could not change the tour status.',
+            'create'    => 'The tour could not be created.',
+            'update'    => 'The tour could not be updated.',
+            'delete'    => 'The tour could not be deleted.',
+            'toggle'    => 'The tour status could not be changed.',
             'not_found' => 'The tour does not exist.',
-            'restore'            => 'Could not restore the tour.',
-            'purge'              => 'Could not permanently delete the tour.',
+            'restore'            => 'The tour could not be restored.',
+            'purge'              => 'The tour could not be permanently deleted.',
             'purge_has_bookings' => 'Cannot permanently delete: the tour has bookings.',
         ],
 
@@ -702,34 +740,34 @@ return [
             'add_schedule'           => 'Add schedule',
             'schedules_title'        => 'Tour Schedules',
             'amenities_included'     => 'Included amenities',
-            'amenities_excluded'     => 'Not included amenities',
+            'amenities_excluded'     => 'Amenities not included',
             'color'                  => 'Tour color',
             'remove'                 => 'Remove',
             'choose_itinerary'       => 'Choose itinerary',
             'select_type'            => 'Select type',
             'empty_means_default'    => 'Default',
-            'actives'                 => 'Active',
-            'inactives'               => 'Inactive',
-            'archived'                => 'Archived',
-            'all'                     => 'All',
-            'help_title'              => 'Help',
-            'amenities_included_hint' => 'Select what is included in the tour.',
-            'amenities_excluded_hint' => 'Select what is NOT included in the tour.',
-            'help_included_title'     => 'Included',
-            'help_included_text'      => 'Check everything included in the tour price (transportation, meals, tickets, equipment, guide, etc.).',
-            'help_excluded_title'     => 'Not Included',
-            'help_excluded_text'      => 'Check what the customer must pay separately or bring (tips, alcoholic drinks, souvenirs, etc.).',
-            'select_or_create_title'  => 'Select or Create Itinerary',
-            'select_existing_items'   => 'Select Existing Items',
-            'name_hint'               => 'Identifier name for this itinerary',
-            'click_add_item_hint'     => 'Click "Add Item" to create new items',
-            'scroll_hint'             => 'Scroll horizontally to see more columns',
-            'no_schedules'            => 'No schedules',
-            'no_prices'               => 'No prices configured',
-            'edit'                    => 'Edit',
-            'slug_auto'               => 'Will be generated automatically',
-            'added_to_cart'           => 'Added to cart',
-            'added_to_cart_text'      => 'The tour was added to the cart successfully.',
+            'actives'                => 'Active',
+            'inactives'              => 'Inactive',
+            'archived'               => 'Archived',
+            'all'                    => 'All',
+            'help_title'             => 'Help',
+            'amenities_included_hint'=> 'Select what is included in the tour.',
+            'amenities_excluded_hint'=> 'Select what is NOT included in the tour.',
+            'help_included_title'    => 'Included',
+            'help_included_text'     => 'Check everything that is included in the tour price (transportation, meals, tickets, equipment, guide, etc.).',
+            'help_excluded_title'    => 'Not Included',
+            'help_excluded_text'     => 'Check what the customer must pay separately or bring (tips, alcoholic beverages, souvenirs, etc.).',
+            'select_or_create_title' => 'Select or Create Itinerary',
+            'select_existing_items'  => 'Select Existing Items',
+            'name_hint'              => 'Identifier name for this itinerary',
+            'click_add_item_hint'    => 'Click "Add Item" to create new items',
+            'scroll_hint'            => 'Scroll horizontally to see more columns',
+            'no_schedules'           => 'No schedules',
+            'no_prices'              => 'No prices configured',
+            'edit'                   => 'Edit',
+            'slug_auto'              => 'Will be generated automatically',
+            'added_to_cart'          => 'Added to cart',
+            'added_to_cart_text'     => 'The tour was added to the cart successfully.',
 
             'none' => [
                 'amenities'       => 'No amenities',
@@ -740,17 +778,16 @@ return [
                 'schedules'       => 'No schedules',
             ],
 
-            // Archive/restore/purge actions
+            // Archive/restore/purge
             'archive' => 'Archive',
             'restore' => 'Restore',
             'purge'   => 'Delete permanently',
 
             'confirm_archive_title' => 'Archive tour?',
-            'confirm_archive_text'  => 'The tour will be disabled for new bookings, but existing bookings are preserved.',
+            'confirm_archive_text'  => 'The tour will be disabled for new bookings, but existing bookings will be kept.',
             'confirm_purge_title'   => 'Delete permanently',
-            'confirm_purge_text'    => 'This action is irreversible and only allowed if the tour never had bookings.',
+            'confirm_purge_text'    => 'This action is irreversible and is only allowed if the tour has never had bookings.',
 
-            // Status filters
             'filters' => [
                 'active'   => 'Active',
                 'inactive' => 'Inactive',
@@ -758,10 +795,10 @@ return [
                 'all'      => 'All',
             ],
 
-            // Font toolbar (used in tourlist.blade.php)
             'font_decrease_title' => 'Decrease font size',
             'font_increase_title' => 'Increase font size',
         ],
+
     ],
 
     // =========================================================
@@ -820,92 +857,120 @@ return [
         ],
 
         'errors' => [
-            'validation'     => 'The submitted data is not valid.',
+            'validation'     => 'The data provided are not valid.',
             'upload_generic' => 'Some images could not be uploaded.',
-            'update_caption' => 'Could not update the caption.',
-            'delete'         => 'Could not delete the image.',
-            'reorder'        => 'Could not save the order.',
-            'set_cover'      => 'Could not set the cover.',
-            'load_list'      => 'Could not load the list.',
-            'too_large'      => 'The file exceeds the maximum allowed size. Try a lighter image.',
+            'update_caption' => 'The caption could not be updated.',
+            'delete'         => 'The image could not be deleted.',
+            'reorder'        => 'The order could not be saved.',
+            'set_cover'      => 'The cover could not be set.',
+            'load_list'      => 'The list could not be loaded.',
+            'too_large'      => 'The file exceeds the maximum allowed size. Try a smaller image.',
         ],
     ],
-'prices' => [
-    'ui' => [
-        'page_title'         => 'Prices - :name',
-        'header_title'       => 'Prices: :name',
-        'back_to_tours'      => 'Back to tours',
 
-        'configured_title'   => 'Configured categories and prices',
-        'empty_title'        => 'No categories configured for this tour.',
-        'empty_hint'         => 'Use the form on the right to add categories.',
+    'prices' => [
+        'ui' => [
+            'page_title'         => 'Prices - :name',
+            'header_title'       => 'Prices: :name',
+            'back_to_tours'      => 'Back to tours',
 
-        'save_changes'       => 'Save changes',
-        'auto_disable_note'  => 'Prices at $0 are automatically disabled',
+            'configured_title'   => 'Configured categories and prices',
+            'empty_title'        => 'There are no categories configured for this tour.',
+            'empty_hint'         => 'Use the form on the right to add categories.',
 
-        'add_category'       => 'Add category',
+            'save_changes'       => 'Save changes',
+            'auto_disable_note'  => 'Prices of $0 are automatically deactivated',
 
-        'all_assigned_title' => 'All categories are assigned',
-        'all_assigned_text'  => 'No more categories available for this tour.',
+            'add_category'       => 'Add category',
 
-        'info_title'         => 'Information',
-        'tour_label'         => 'Tour',
-        'configured_count'   => 'Configured categories',
-        'active_count'       => 'Active categories',
+            'all_assigned_title' => 'All categories are assigned',
+            'all_assigned_text'  => 'There are no more available categories for this tour.',
 
-        'fields_title'       => 'Fields',
-        'rules_title'        => 'Rules',
+            'info_title'         => 'Information',
+            'tour_label'         => 'Tour',
+            'configured_count'   => 'Configured categories',
+            'active_count'       => 'Active categories',
 
-        'field_price'        => 'Price',
-        'field_min'          => 'Min',
-        'field_max'          => 'Max',
-        'field_status'       => 'Status',
+            'fields_title'       => 'Fields',
+            'rules_title'        => 'Rules',
 
-        'rule_min_le_max'    => 'Minimum must be less than or equal to maximum',
-        'rule_zero_disable'  => 'Prices at $0 are automatically disabled',
-        'rule_only_active'   => 'Only active categories appear on the public site',
+            'field_price'        => 'Price',
+            'field_min'          => 'Minimum',
+            'field_max'          => 'Maximum',
+            'field_status'       => 'Status',
+
+            'rule_min_le_max'    => 'The minimum must be less than or equal to the maximum',
+            'rule_zero_disable'  => 'Prices of $0 are automatically deactivated',
+            'rule_only_active'   => 'Only active categories appear on the public site',
+        ],
+
+        'table' => [
+            'category'   => 'Category',
+            'age_range'  => 'Age range',
+            'price_usd'  => 'Price (USD)',
+            'min'        => 'Min',
+            'max'        => 'Max',
+            'status'     => 'Status',
+            'action'     => 'Action',
+            'active'     => 'Active',
+            'inactive'   => 'Inactive',
+        ],
+
+        'forms' => [
+            'select_placeholder'   => '-- Select --',
+            'category'             => 'Category',
+            'price_usd'            => 'Price (USD)',
+            'min'                  => 'Minimum',
+            'max'                  => 'Maximum',
+            'create_disabled_hint' => 'If the price is $0, the category will be created as disabled',
+            'add'                  => 'Add',
+        ],
+
+        'modal' => [
+            'delete_title'   => 'Delete category',
+            'delete_text'    => 'Delete this category from this tour?',
+            'cancel'         => 'Cancel',
+            'delete'         => 'Delete',
+            'delete_tooltip' => 'Delete category',
+        ],
+
+        'flash' => [
+            'success' => 'Operation completed successfully.',
+            'error'   => 'An error occurred.',
+        ],
+
+        'js' => [
+            'max_ge_min'            => 'The maximum must be greater than or equal to the minimum',
+            'auto_disabled_tooltip' => 'Price is $0 – automatically disabled',
+            'fix_errors'            => 'Fix the minimum and maximum quantities',
+        ],
     ],
 
-    'table' => [
-        'category'   => 'Category',
-        'age_range'  => 'Age range',
-        'price_usd'  => 'Price (USD)',
-        'min'        => 'Min',
-        'max'        => 'Max',
-        'status'     => 'Status',
-        'action'     => 'Action',
-        'active'     => 'Active',
-        'inactive'   => 'Inactive',
-    ],
-
-    'forms' => [
-        'select_placeholder'  => '-- Select --',
-        'category'            => 'Category',
-        'price_usd'           => 'Price (USD)',
-        'min'                 => 'Minimum',
-        'max'                 => 'Maximum',
-        'create_disabled_hint'=> 'If the price is $0, the category will be created as disabled',
-        'add'                 => 'Add',
+    'ajax' => [
+        'category_created'   => 'Category created successfully',
+        'category_error'     => 'Error creating category',
+        'language_created'   => 'Language created successfully',
+        'language_error'     => 'Error creating language',
+        'amenity_created'    => 'Amenity created successfully',
+        'amenity_error'      => 'Error creating amenity',
+        'schedule_created'   => 'Schedule created successfully',
+        'schedule_error'     => 'Error creating schedule',
+        'itinerary_created'  => 'Itinerary created successfully',
+        'itinerary_error'    => 'Error creating itinerary',
+        'translation_error'  => 'Error translating',
     ],
 
     'modal' => [
-        'delete_title'   => 'Delete category',
-        'delete_text'    => 'Delete this category from this tour?',
-        'cancel'         => 'Cancel',
-        'delete'         => 'Delete',
-        'delete_tooltip' => 'Delete category',
+        'create_category'  => 'Create New Category',
+        'create_language'  => 'Create New Language',
+        'create_amenity'   => 'Create New Amenity',
+        'create_schedule'  => 'Create New Schedule',
+        'create_itinerary' => 'Create New Itinerary',
     ],
 
-    'flash' => [
-        'success' => 'Operation completed successfully.',
-        'error'   => 'An error occurred.',
+    'validation' => [
+        'slug_taken'     => 'This slug is already in use',
+        'slug_available' => 'Slug available',
     ],
-
-    'js' => [
-        'max_ge_min'            => 'Maximum must be greater than or equal to minimum',
-        'auto_disabled_tooltip' => '$0 price – automatically disabled',
-        'fix_errors'            => 'Please fix the minimum and maximum quantities',
-    ],
-],
 
 ];

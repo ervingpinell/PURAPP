@@ -51,7 +51,7 @@
   @endif
 
   <div class="card mb-3">
-    <div class="card-header"><i class="fas fa-reply"></i> {{ __('reviews.replies.header') }}</div>
+    <div class="card-header"><i class="fas fa-reply"></i> {{ __('reviews.replies.reply') }}</div>
     <div class="card-body">
       <form method="post" action="{{ route('admin.reviews.replies.store',$review) }}">
         @csrf

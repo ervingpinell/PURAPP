@@ -9,8 +9,10 @@ return [
         'header_create'     => 'New Customer Category',
         'header_edit'       => 'Edit Category: :name',
         'info_card_title'   => 'Information',
+
+        // New for index/list
         'list_title'        => 'Category List',
-        'empty_list'        => 'No categories registered.',
+        'empty_list'        => 'There are no categories registered.',
     ],
 
     'buttons' => [
@@ -25,51 +27,60 @@ return [
 
     'table' => [
         'name'     => 'Name',
-        'age_from' => 'Age From',
-        'age_to'   => 'Age To',
+        'age_from' => 'Age from',
+        'age_to'   => 'Age to',
         'range'    => 'Range',
         'active'   => 'Active',
         'actions'  => 'Actions',
+
+        // New used in index
         'order'    => 'Order',
         'slug'     => 'Slug',
     ],
 
     'form' => [
+        'translations' => [
+            'title'          => 'Name translations',
+            'auto_translate' => 'Automatically translate the other languages (DeepL)',
+            'regen_missing'  => 'Automatically fill in the empty ones (DeepL)',
+            'at_least_first' => 'You must complete at least the first language.',
+            'locale_hint'    => 'Translation for locale :loc.',
+        ],
         'name' => [
             'label'       => 'Name',
-            'placeholder' => 'E.g.: Adult, Child, Infant',
-            'required'    => 'The name is required',
+            'placeholder' => 'Ex: Adult, Child, Infant',
+            'required'    => 'Name is required',
         ],
         'slug' => [
             'label'       => 'Slug (unique identifier)',
-            'placeholder' => 'E.g.: adult, child, infant',
-            'title'       => 'Only lowercase letters, numbers, hyphens, and underscores',
+            'placeholder' => 'Ex: adult, child, infant',
+            'title'       => 'Lowercase letters, numbers, hyphens and underscores only',
             'helper'      => 'Only lowercase letters, numbers, hyphens (-) and underscores (_)',
         ],
         'age_from' => [
-            'label'       => 'Age From',
-            'placeholder' => 'E.g.: 0, 3, 13, 65',
+            'label'       => 'Age from',
+            'placeholder' => 'Ex: 0, 3, 13, 65',
         ],
         'age_to' => [
-            'label'         => 'Age To',
-            'placeholder'   => 'E.g.: 2, 12, 64 (leave empty for “no limit”)',
+            'label'         => 'Age to',
+            'placeholder'   => 'Ex: 2, 12, 64 (leave empty for “no limit”)',
             'hint_no_limit' => 'leave empty for “no limit”',
         ],
         'order' => [
-            'label'  => 'Display Order',
+            'label'  => 'Display order',
             'helper' => 'Determines the order in which categories appear (lower = first)',
         ],
         'active' => [
-            'label'  => 'Active Category',
-            'helper' => 'Only active categories appear in booking forms',
+            'label'  => 'Active category',
+            'helper' => 'Only active categories are shown in booking forms',
         ],
         'min_per_booking' => [
-            'label'       => 'Minimum per Booking',
-            'placeholder' => 'E.g.: 0, 1',
+            'label'       => 'Minimum per booking',
+            'placeholder' => 'Ex: 0, 1',
         ],
         'max_per_booking' => [
-            'label'       => 'Maximum per Booking',
-            'placeholder' => 'E.g.: 10 (leave empty for “no limit”)',
+            'label'       => 'Maximum per booking',
+            'placeholder' => 'Ex: 10 (leave empty for “no limit”)',
         ],
     ],
 
@@ -82,8 +93,8 @@ return [
         'success_created' => 'Category created successfully.',
         'success_updated' => 'Category updated successfully.',
         'success_deleted' => 'Category deleted successfully.',
-        'warning_title'  => 'Warning',
-        'warning_text'   => 'Deleting a category used in tours or bookings may cause issues. It is recommended to deactivate it instead of deleting it.',
+        'warning_title'   => 'Warning',
+        'warning_text'    => 'Deleting a category that is in use in tours or bookings may cause issues. It is recommended to deactivate it instead of deleting it.',
     ],
 
     'dialogs' => [
@@ -97,9 +108,9 @@ return [
     'rules' => [
         'title'                 => 'Important Rules',
         'no_overlap'            => 'Age ranges cannot overlap between active categories.',
-        'no_upper_limit_hint'   => 'Leave “Age To” empty to indicate “no upper limit”.',
+        'no_upper_limit_hint'   => 'Leave “Age to” empty to indicate “no upper limit”.',
         'slug_unique'           => 'The slug must be unique.',
-        'order_affects_display' => 'Order determines how they are displayed in the system.',
+        'order_affects_display' => 'The order determines how they are displayed in the system.',
     ],
 
     'help' => [
@@ -109,24 +120,24 @@ return [
         'child'           => 'Child',
         'adult'           => 'Adult',
         'senior'          => 'Senior',
-        'age_from_tip'    => 'Age From:',
-        'age_to_tip'      => 'Age To:',
+        'age_from_tip'    => 'Age from:',
+        'age_to_tip'      => 'Age to:',
         'range_tip'       => 'Range:',
         'notes_title'     => 'Notes',
         'notes' => [
-            'use_null_age_to' => 'Use age_to = NULL to indicate "no upper limit" (e.g.: 18+ years).',
+            'use_null_age_to' => 'Use age_to = NULL to indicate “no upper limit” (e.g. 18+ years).',
             'inactive_hidden' => 'Inactive categories are not shown in booking forms.',
         ],
     ],
 
     'info' => [
-        'id'        => 'ID:',
-        'created'   => 'Created:',
-        'updated'   => 'Updated:',
-        'date_fmt'  => 'Y-m-d H:i',
+        'id'       => 'ID:',
+        'created'  => 'Created:',
+        'updated'  => 'Updated:',
+        'date_fmt' => 'd/m/Y H:i',
     ],
 
     'validation' => [
-        'age_to_gte_age_from' => '“Age To” must be greater than or equal to “Age From”.',
+        'age_to_gte_age_from' => 'Age to must be greater than or equal to age from.',
     ],
 ];

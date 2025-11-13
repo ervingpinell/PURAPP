@@ -4,23 +4,23 @@ return [
 
     'messages' => [
         'date_no_longer_available'   => 'The date :date is no longer available for booking (minimum: :min).',
-        'limited_seats_available'    => 'Only :available seats remain for ":tour" on :date.',
+        'limited_seats_available'    => 'Only :available spots left for ":tour" on :date.',
         'bookings_created_from_cart' => 'Your bookings were successfully created from the cart.',
         'capacity_exceeded'          => 'Capacity Exceeded',
-        'meeting_point_hint'         => 'Only the name of the meeting point is displayed in the list.',
+        'meeting_point_hint'         => 'Only the point name is shown in the list.',
     ],
 
     'validation' => [
-        'max_persons_exceeded'  => 'Maximum :max persons per booking in total.',
-        'min_adults_required'   => 'A minimum of :min adults per booking is required.',
+        'max_persons_exceeded'  => 'Maximum :max people per booking in total.',
+        'min_adults_required'   => 'At least :min adults are required per booking.',
         'max_kids_exceeded'     => 'Maximum :max children per booking.',
         'no_active_categories'  => 'This tour has no active customer categories.',
-        'min_category_not_met'  => 'A minimum of :min persons is required in the category ":category".',
-        'max_category_exceeded' => 'Maximum :max persons allowed in the category ":category".',
-        'min_one_person_required' => 'At least one person is required in the booking.',
-        'category_not_available' => 'The category with ID :category_id is not available for this tour.',
-        'max_persons_label' => 'Maximum number of people allowed per booking',
-        'date_range_hint' => 'Select a date between :from — :to',
+        'min_category_not_met'  => 'At least :min people are required in the ":category" category.',
+        'max_category_exceeded' => 'Maximum :max people allowed in the ":category" category.',
+        'min_one_person_required' => 'There must be at least one person in the booking.',
+        'category_not_available'  => 'The category with ID :category_id is not available for this tour.',
+        'max_persons_label'       => 'Maximum number of people allowed per booking',
+        'date_range_hint'         => 'Select a date between :from — :to',
     ],
 
     // =========================================================
@@ -30,8 +30,8 @@ return [
         'fields' => [
             'tour'       => 'Tour',
             'date'       => 'Date',
-            'start_time' => 'Start Time',
-            'end_time'   => 'End Time',
+            'start_time' => 'Start time',
+            'end_time'   => 'End time',
             'available'  => 'Available',
             'is_active'  => 'Active',
         ],
@@ -43,9 +43,9 @@ return [
         ],
 
         'error' => [
-            'create'     => 'Could not create availability.',
-            'update'     => 'Could not update availability.',
-            'deactivate' => 'Could not deactivate availability.',
+            'create'     => 'The availability could not be created.',
+            'update'     => 'The availability could not be updated.',
+            'deactivate' => 'The availability could not be deactivated.',
         ],
 
         'validation' => [
@@ -56,15 +56,15 @@ return [
             ],
             'date' => [
                 'required'    => 'The :attribute is required.',
-                'date_format' => 'The :attribute must be in YYYY-MM-DD format.',
+                'date_format' => 'The :attribute must use the YYYY-MM-DD format.',
             ],
             'start_time' => [
-                'date_format'   => 'The :attribute must be in HH:MM (24h) format.',
-                'required_with' => 'The :attribute is required when end time is specified.',
+                'date_format'   => 'The :attribute must use the HH:MM format (24h).',
+                'required_with' => 'The :attribute is required when the end time is specified.',
             ],
             'end_time' => [
-                'date_format'    => 'The :attribute must be in HH:MM (24h) format.',
-                'after_or_equal' => 'The :attribute must be after or equal to the start time.',
+                'date_format'    => 'The :attribute must use the HH:MM format (24h).',
+                'after_or_equal' => 'The :attribute must be greater than or equal to the start time.',
             ],
             'available' => [
                 'boolean' => 'The :attribute field is invalid.',
@@ -77,8 +77,8 @@ return [
         'ui' => [
             'page_title'           => 'Availability',
             'page_heading'         => 'Availability',
-            'blocked_page_title'   => 'Blocked Tours',
-            'blocked_page_heading' => 'Blocked Tours',
+            'blocked_page_title'   => 'Blocked tours',
+            'blocked_page_heading' => 'Blocked tours',
             'tours_count'          => '( :count tours )',
             'blocked_count'        => '( :count blocked )',
         ],
@@ -87,22 +87,22 @@ return [
             'date'               => 'Date',
             'days'               => 'Days',
             'product'            => 'Product',
-            'search_placeholder' => 'Search tour…',
-            'update_state'       => 'Update state',
+            'search_placeholder' => 'Search tour...',
+            'update_state'       => 'Update status',
             'view_blocked'       => 'View blocked',
-            'tip'                => 'Tip: mark rows and use a menu action.',
+            'tip'                => 'Tip: mark rows and use an action from the menu.',
         ],
 
         'blocks' => [
             'am_tours'    => 'AM Tours (all tours starting before 12:00pm)',
             'pm_tours'    => 'PM Tours (all tours starting after 12:00pm)',
-            'am_blocked'  => 'AM Blocked',
-            'pm_blocked'  => 'PM Blocked',
-            'empty_block' => 'No tours in this block.',
+            'am_blocked'  => 'AM blocked',
+            'pm_blocked'  => 'PM blocked',
+            'empty_block' => 'There are no tours in this block.',
             'empty_am'    => 'No blocked tours in AM.',
             'empty_pm'    => 'No blocked tours in PM.',
-            'no_data'     => 'No data for selected filters.',
-            'no_blocked'  => 'No tours blocked in the selected range.',
+            'no_data'     => 'There is no data for the selected filters.',
+            'no_blocked'  => 'There are no blocked tours in the selected range.',
         ],
 
         'states' => [
@@ -111,12 +111,12 @@ return [
         ],
 
         'buttons' => [
-            'mark_all'         => 'Mark All',
-            'unmark_all'       => 'Unmark All',
-            'block_all'        => 'Block All',
-            'unblock_all'      => 'Unblock All',
-            'block_selected'   => 'Block Selected',
-            'unblock_selected' => 'Unblock Selected',
+            'mark_all'         => 'Mark all',
+            'unmark_all'       => 'Unmark all',
+            'block_all'        => 'Block all',
+            'unblock_all'      => 'Unblock all',
+            'block_selected'   => 'Block selected',
+            'unblock_selected' => 'Unblock selected',
             'back'             => 'Back',
             'open'             => 'Open',
             'cancel'           => 'Cancel',
@@ -126,23 +126,23 @@ return [
 
         'confirm' => [
             'view_blocked_title'    => 'View blocked tours',
-            'view_blocked_text'     => 'The view with blocked tours will open to unblock them.',
+            'view_blocked_text'     => 'The blocked tours view will open so you can unblock them.',
             'block_title'           => 'Block tour?',
-            'block_html'            => '<b>:label</b> will be blocked for date <b>:day</b>.',
+            'block_html'            => '<b>:label</b> will be blocked for the date <b>:day</b>.',
             'block_btn'             => 'Yes, block',
             'unblock_title'         => 'Unblock tour?',
-            'unblock_html'          => '<b>:label</b> will be unblocked for date <b>:day</b>.',
+            'unblock_html'          => '<b>:label</b> will be unblocked for the date <b>:day</b>.',
             'unblock_btn'           => 'Yes, unblock',
             'bulk_title'            => 'Confirm action',
-            'bulk_items_html'       => 'Items to be affected: <b>:count</b>.',
-            'bulk_block_day_html'   => 'Block all available for day <b>:day</b>',
+            'bulk_items_html'       => 'Items to affect: <b>:count</b>.',
+            'bulk_block_day_html'   => 'Block all available for the day <b>:day</b>',
             'bulk_block_block_html' => 'Block all available in block <b>:block</b> on <b>:day</b>',
         ],
 
         'toasts' => [
-            'applying_filters'   => 'Applying filters…',
-            'searching'          => 'Searching…',
-            'updating_range'     => 'Updating range…',
+            'applying_filters'   => 'Applying filters...',
+            'searching'          => 'Searching...',
+            'updating_range'     => 'Updating range...',
             'invalid_date_title' => 'Invalid date',
             'invalid_date_text'  => 'Past dates are not allowed.',
             'marked_n'           => 'Marked :n',
@@ -151,10 +151,10 @@ return [
             'updated_count'      => 'Updated: :count',
             'unblocked_count'    => 'Unblocked: :count',
             'no_selection_title' => 'No selection',
-            'no_selection_text'  => 'Please mark at least one tour.',
+            'no_selection_text'  => 'Mark at least one tour.',
             'no_changes_title'   => 'No changes',
             'no_changes_text'    => 'There are no applicable items.',
-            'error_generic'      => 'Could not complete the update.',
+            'error_generic'      => 'The update could not be completed.',
             'error_update'       => 'Could not update.',
         ],
     ],
@@ -164,63 +164,65 @@ return [
     // =========================================================
     'bookings' => [
         'ui' => [
-            'page_title'               => 'Bookings',
-            'page_heading'             => 'Bookings Management',
-            'register_booking'         => 'Register Booking',
-            'add_booking'              => 'Add Booking',
-            'edit_booking'             => 'Edit Booking',
-            'booking_details'          => 'Booking Details',
-            'download_receipt'         => 'Download Receipt',
-            'actions'                  => 'Actions',
-            'view_details'             => 'View Details',
-            'click_to_view'            => 'Click to view details',
-            'zoom_in'                  => 'Zoom In',
-            'zoom_out'                 => 'Zoom Out',
-            'zoom_reset'               => 'Reset Zoom',
-            'no_promo'                 => 'No promotional code applied',
-            'create_booking'           => 'Create Booking',
-            'booking_info'             => 'Booking Information',
-            'select_customer'          => 'Select customer',
-            'select_tour'              => 'Select tour',
-            'select_tour_first'        => 'Select a tour first',
-            'select_option'            => 'Select',
-            'select_tour_to_see_categories' => 'Select a tour to view categories',
-            'loading'                  => 'Loading...',
-            'no_results'               => 'No results',
-            'error_loading'            => 'Error loading data',
-            'tour_without_categories'  => 'This tour has no categories set up',
-            'verifying'                => 'Verifying…',
+            'page_title'        => 'Bookings',
+            'page_heading'      => 'Booking Management',
+            'register_booking'  => 'Register Booking',
+            'add_booking'       => 'Add Booking',
+            'edit_booking'      => 'Edit Booking',
+            'booking_details'   => 'Booking Details',
+            'download_receipt'  => 'Download receipt',
+            'actions'           => 'Actions',
+            'view_details'      => 'View details',
+            'click_to_view'     => 'Click to view details',
+            'zoom_in'           => 'Zoom in',
+            'zoom_out'          => 'Zoom out',
+            'zoom_reset'        => 'Reset zoom',
+            'no_promo'          => 'No promotional code applied',
+            'create_booking'    => 'Create Booking',
+            'booking_info'      => 'Booking Information',
+            'select_customer'   => 'Select customer',
+            'select_tour'       => 'Select tour',
+            'select_tour_first' => 'Select a tour first',
+            'select_option'     => 'Select',
+            'select_tour_to_see_categories' => 'Select a tour to see the categories',
+            'loading'           => 'Loading...',
+            'no_results'        => 'No results',
+            'error_loading'     => 'Error loading data',
+            'tour_without_categories' => 'This tour has no categories configured',
+            'verifying'         => 'Verifying...',
+            'min'               => 'Minimum',
+            'max'               => 'Maximum',
         ],
 
         'fields' => [
             'booking_id'        => 'Booking ID',
             'status'            => 'Status',
-            'booking_date'      => 'Booking Date',
-            'booking_origin'    => 'Booking Date (origin)',
+            'booking_date'      => 'Booking date',
+            'booking_origin'    => 'Booking date (origin)',
             'reference'         => 'Reference',
             'customer'          => 'Customer',
             'email'             => 'Email',
             'phone'             => 'Phone',
             'tour'              => 'Tour',
             'language'          => 'Language',
-            'tour_date'         => 'Tour Date',
+            'tour_date'         => 'Tour date',
             'hotel'             => 'Hotel',
             'other_hotel'       => 'Other hotel name',
-            'meeting_point'     => 'Meeting Point',
-            'pickup_location'   => 'Pickup Location',
+            'meeting_point'     => 'Meeting point',
+            'pickup_location'   => 'Pickup location',
             'schedule'          => 'Schedule',
             'type'              => 'Type',
             'adults'            => 'Adults',
-            'adults_quantity'   => 'Adults Quantity',
+            'adults_quantity'   => 'Number of adults',
             'children'          => 'Children',
-            'children_quantity' => 'Children Quantity',
-            'promo_code'        => 'Promotional Code',
+            'children_quantity' => 'Number of children',
+            'promo_code'        => 'Promotional code',
             'total'             => 'Total',
-            'total_to_pay'      => 'Total to Pay',
-            'adult_price'       => 'Adult Price',
-            'child_price'       => 'Child Price',
+            'total_to_pay'      => 'Total to pay',
+            'adult_price'       => 'Adult price',
+            'child_price'       => 'Child price',
             'notes'             => 'Notes',
-            'hotel_name'        => 'Hotel Name',
+            'hotel_name'        => 'Hotel name',
             'travelers'         => 'Travelers',
             'subtotal'          => 'Subtotal',
             'discount'          => 'Discount',
@@ -271,19 +273,19 @@ return [
         'optional' => 'optional',
 
         'messages' => [
-            'past_booking_warning'   => 'This booking corresponds to a past date and cannot be edited.',
-            'tour_archived_warning'  => 'The tour for this booking was deleted/archived and could not be loaded. Please select a tour to view its schedules.',
-            'no_schedules'           => 'No schedules available',
-            'deleted_tour'           => 'Tour deleted',
-            'deleted_tour_snapshot'  => 'Tour Deleted (:name)',
-            'tour_archived'          => '(archived)',
-            'meeting_point_hint'     => 'Only the name of the meeting point is displayed in the list.',
-            'customer_locked'        => 'The customer is locked and cannot be edited.',
-            'promo_applied_subtract' => 'Discount applied:',
-            'promo_applied_add'      => 'Charge applied:',
-            'hotel_locked_by_meeting_point' => 'A meeting point has been selected; cannot select hotel.',
-            'meeting_point_locked_by_hotel' => 'A hotel has been selected; cannot select meeting point.',
-            'promo_removed'          => 'Promotional code removed',
+            'past_booking_warning'  => 'This booking corresponds to a past date and cannot be edited.',
+            'tour_archived_warning' => 'The tour for this booking was deleted/archived and could not be loaded. Select a tour to see its schedules.',
+            'no_schedules'          => 'No schedules available',
+            'deleted_tour'          => 'Deleted tour',
+            'deleted_tour_snapshot' => 'Deleted Tour (:name)',
+            'tour_archived'         => '(archived)',
+            'meeting_point_hint'    => 'Only the point name is shown in the list.',
+            'customer_locked'       => 'The customer is locked and cannot be edited.',
+            'promo_applied_subtract'=> 'Discount applied:',
+            'promo_applied_add'     => 'Surcharge applied:',
+            'hotel_locked_by_meeting_point' => 'A meeting point was selected; a hotel cannot be selected.',
+            'meeting_point_locked_by_hotel' => 'A hotel was selected; a meeting point cannot be selected.',
+            'promo_removed'         => 'Promotional code removed',
         ],
 
         'alerts' => [
@@ -291,11 +293,11 @@ return [
         ],
 
         'validation' => [
-            'past_date'          => 'You cannot book for dates prior to today.',
+            'past_date'          => 'You cannot book for dates earlier than today.',
             'promo_required'     => 'Enter a promotional code first.',
             'promo_checking'     => 'Checking code…',
             'promo_invalid'      => 'Invalid promotional code.',
-            'promo_error'        => 'Could not validate the code.',
+            'promo_error'        => 'The code could not be validated.',
             'promo_empty'        => 'Enter a code first.',
             'promo_needs_subtotal' => 'Add at least 1 passenger to calculate the discount.',
         ],
@@ -307,9 +309,9 @@ return [
         ],
 
         'loading' => [
-            'saving'     => 'Saving…',
+            'saving'     => 'Saving...',
             'validating' => 'Validating…',
-            'updating'   => 'Updating…',
+            'updating'   => 'Updating...',
         ],
 
         'success' => [
@@ -323,13 +325,13 @@ return [
         ],
 
         'errors' => [
-            'create'               => 'Could not create the booking.',
-            'update'               => 'Could not update the booking.',
-            'delete'               => 'Could not delete the booking.',
-            'status_update_failed' => 'Could not update booking status.',
+            'create'               => 'The booking could not be created.',
+            'update'               => 'The booking could not be updated.',
+            'delete'               => 'The booking could not be deleted.',
+            'status_update_failed' => 'The booking status could not be updated.',
             'detail_not_found'     => 'Booking details not found.',
             'schedule_not_found'   => 'Schedule not found.',
-            'insufficient_capacity'=> 'There is insufficient capacity for ":tour" on :date at :time. Requested: :requested, available: :available (max: :max).',
+            'insufficient_capacity'=> 'Not enough capacity for ":tour" on :date at :time. Requested: :requested, available: :available (max: :max).',
         ],
 
         'confirm' => [
@@ -352,15 +354,15 @@ return [
     'filters' => [
         'advanced_filters' => 'Advanced Filters',
         'dates'            => 'Dates',
-        'booked_from'      => 'Booked From',
-        'booked_until'     => 'Booked Until',
-        'tour_from'        => 'Tour From',
-        'tour_until'       => 'Tour Until',
+        'booked_from'      => 'Booked from',
+        'booked_until'     => 'Booked until',
+        'tour_from'        => 'Tour from',
+        'tour_until'       => 'Tour until',
         'all'              => 'All',
         'apply'            => 'Apply',
         'clear'            => 'Clear',
         'close_filters'    => 'Close filters',
-        'search_reference' => 'Search reference…',
+        'search_reference' => 'Search reference...',
         'enter_reference'  => 'Enter booking reference',
     ],
 
@@ -368,24 +370,24 @@ return [
     // [05] REPORTS
     // =========================================================
     'reports' => [
-        'excel_title'           => 'Bookings Export',
-        'pdf_title'             => 'Bookings Report – Green Vacations CR',
-        'general_report_title'  => 'General Bookings Report – Green Vacations Costa Rica',
-        'download_pdf'          => 'Download PDF',
-        'export_excel'          => 'Export Excel',
-        'coupon'                => 'Coupon',
-        'adjustment'            => 'Adjustment',
-        'totals'                => 'Totals',
-        'adults_qty'            => 'Adults (x:qty)',
-        'kids_qty'              => 'Children (x:qty)',
-        'people'                => 'People',
-        'subtotal'              => 'Subtotal',
-        'discount'              => 'Discount',
-        'surcharge'             => 'Surcharge',
-        'original_price'        => 'Original Price',
-        'total_adults'          => 'Total Adults',
-        'total_kids'            => 'Total Children',
-        'total_people'          => 'Total Persons',
+        'excel_title'          => 'Bookings Export',
+        'pdf_title'            => 'Bookings Report - Green Vacations CR',
+        'general_report_title' => 'General Bookings Report - Green Vacations Costa Rica',
+        'download_pdf'         => 'Download PDF',
+        'export_excel'         => 'Export Excel',
+        'coupon'               => 'Coupon',
+        'adjustment'           => 'Adjustment',
+        'totals'               => 'Totals',
+        'adults_qty'           => 'Adults (x:qty)',
+        'kids_qty'             => 'Children (x:qty)',
+        'people'               => 'People',
+        'subtotal'             => 'Subtotal',
+        'discount'             => 'Discount',
+        'surcharge'            => 'Surcharge',
+        'original_price'       => 'Original price',
+        'total_adults'         => 'Total Adults',
+        'total_kids'           => 'Total Children',
+        'total_people'         => 'Total People',
     ],
 
     // =========================================================
@@ -395,13 +397,13 @@ return [
         'title'         => 'Booking Receipt',
         'company'       => 'Green Vacations CR',
         'code'          => 'Code',
-        'client'        => 'Client',
+        'client'        => 'Customer',
         'tour'          => 'Tour',
-        'booking_date'  => 'Booking Date',
-        'tour_date'     => 'Tour Date',
+        'booking_date'  => 'Booking date',
+        'tour_date'     => 'Tour date',
         'schedule'      => 'Schedule',
         'hotel'         => 'Hotel',
-        'meeting_point' => 'Meeting Point',
+        'meeting_point' => 'Meeting point',
         'status'        => 'Status',
         'adults_x'      => 'Adults (x:count)',
         'kids_x'        => 'Children (x:count)',
@@ -412,7 +414,7 @@ return [
         'total'         => 'TOTAL',
         'no_schedule'   => 'No schedule',
         'qr_alt'        => 'QR Code',
-        'qr_scan'       => 'Scan to view booking',
+        'qr_scan'       => 'Scan to view the booking',
         'thanks'        => 'Thank you for choosing :company!',
     ],
 
@@ -426,6 +428,7 @@ return [
         'pricing_info'  => 'Pricing Information',
         'subtotal'      => 'Subtotal',
         'discount'      => 'Discount',
+        'total_persons' => 'Total people',
     ],
 
     // =========================================================
@@ -433,36 +436,33 @@ return [
     // =========================================================
     'travelers' => [
         'title_warning'        => 'Attention',
-        'title_info'           => 'Info',
+        'title_info'           => 'Information',
         'title_error'          => 'Error',
         'max_persons_reached'  => 'Maximum :max people per booking.',
         'max_category_reached' => 'The maximum for this category is :max.',
-        'invalid_quantity'     => 'Invalid quantity. Please enter a valid number.',
+        'invalid_quantity'     => 'Invalid quantity. Enter a valid number.',
         'age_between'          => 'Age :min-:max',
         'age_from'             => 'Age :min+',
         'age_to'               => 'Up to :max years',
     ],
 
-    // =========================================================
-    // [09] EXCLUDED DATES / AVAILABILITY & CAPACITY
-    // =========================================================
     'excluded_dates' => [
 
         'ui' => [
-            'page_title'           => 'Availability & Capacity Management',
-            'page_heading'         => 'Availability & Capacity Management',
+            'page_title'           => 'Availability and Capacity Management',
+            'page_heading'         => 'Availability and Capacity Management',
             'tours_count'          => 'tours',
-            'blocked_page_title'   => 'Blocked Tours',
-            'blocked_page_heading' => 'Blocked Tours',
+            'blocked_page_title'   => 'Blocked tours',
+            'blocked_page_heading' => 'Blocked tours',
             'blocked_count'        => ':count blocked tours',
         ],
 
         'legend' => [
             'title'                 => 'Capacity Legend',
             'base_tour'             => 'Base Tour',
-            'override_schedule'     => 'Override Schedule',
-            'override_day'          => 'Override Day',
-            'override_day_schedule' => 'Override Day+Schedule',
+            'override_schedule'     => 'Schedule Override',
+            'override_day'          => 'Day Override',
+            'override_day_schedule' => 'Day+Schedule Override',
             'blocked'               => 'Blocked',
         ],
 
@@ -472,7 +472,7 @@ return [
             'product'            => 'Search Tour',
             'search_placeholder' => 'Tour name…',
             'bulk_actions'       => 'Bulk Actions',
-            'update_state'       => 'Update state',
+            'update_state'       => 'Update status',
         ],
 
         'blocks' => [
@@ -480,10 +480,10 @@ return [
             'pm'          => 'PM TOURS',
             'am_blocked'  => 'AM TOURS (blocked)',
             'pm_blocked'  => 'PM TOURS (blocked)',
-            'empty_am'    => 'No tours in this block',
-            'empty_pm'    => 'No tours in this block',
-            'no_data'     => 'No data to display',
-            'no_blocked'  => 'No tours blocked for selected range',
+            'empty_am'    => 'There are no tours in this block',
+            'empty_pm'    => 'There are no tours in this block',
+            'no_data'     => 'There is no data to display',
+            'no_blocked'  => 'There are no blocked tours for the selected range',
         ],
 
         'buttons' => [
@@ -515,15 +515,15 @@ return [
         ],
 
         'modals' => [
-            'capacity_title'           => 'Adjust Capacity',
-            'selected_capacity_title'  => 'Adjust Capacity of Selected',
-            'date'                     => 'Date:',
-            'hierarchy_title'          => 'Capacity Hierarchy:',
-            'new_capacity'             => 'New Capacity',
-            'hint_zero_blocks'         => 'Leave at 0 to fully block',
-            'selected_count'           => 'Capacity will be updated for :count selected items.',
-            'capacity_day_title'       => 'Adjust capacity for the day',
-            'capacity_day_subtitle'    => 'All schedules of the day',
+            'capacity_title'          => 'Adjust Capacity',
+            'selected_capacity_title' => 'Adjust Capacity of Selected',
+            'date'                    => 'Date:',
+            'hierarchy_title'         => 'Capacity hierarchy:',
+            'new_capacity'            => 'New Capacity',
+            'hint_zero_blocks'        => 'Set to 0 to completely block',
+            'selected_count'          => 'Capacity will be updated for :count selected items.',
+            'capacity_day_title'      => 'Adjust capacity for the day',
+            'capacity_day_subtitle'   => 'All schedules of the day',
         ],
 
         'confirm' => [
@@ -535,7 +535,7 @@ return [
             'unblock_btn'       => 'Unblock',
             'bulk_title'        => 'Confirm bulk operation',
             'bulk_items_html'   => ':count items will be affected',
-            'block_day_title'   => 'Block whole day',
+            'block_day_title'   => 'Block all day',
             'block_block_title' => 'Block block :block on :day',
         ],
 
@@ -549,9 +549,9 @@ return [
             'no_selection_text'  => 'You must select at least one item',
             'no_changes_title'   => 'No changes',
             'no_changes_text'    => 'There are no items to update',
-            'marked_n'           => 'Marked :n items',
-            'unmarked_n'         => 'Unmarked :n items',
-            'error_generic'      => 'Could not complete the operation',
+            'marked_n'           => ':n items marked',
+            'unmarked_n'         => ':n items unmarked',
+            'error_generic'      => 'The operation could not be completed',
             'updated'            => 'Updated',
             'updated_count'      => ':count items updated',
             'unblocked_count'    => ':count items unblocked',
@@ -559,30 +559,40 @@ return [
             'unblocked'          => 'Unblocked',
             'capacity_updated'   => 'Capacity updated',
         ],
+
     ],
 
-    // =========================================================
-    // [10] CAPACITY SETTINGS
-    // =========================================================
     'capacity' => [
 
+        // =========================================================
+        // [01] UI TITLES & HEADINGS
+        // =========================================================
         'ui' => [
             'page_title'   => 'Capacity Management',
             'page_heading' => 'Capacity Management',
         ],
 
+        // =========================================================
+        // [02] TABS
+        // =========================================================
         'tabs' => [
             'global'        => 'Global',
             'by_tour'       => 'By Tour + Schedule',
             'day_schedules' => 'Day + Schedule Overrides',
         ],
 
+        // =========================================================
+        // [03] ALERTS
+        // =========================================================
         'alerts' => [
-            'global_info'       => '<strong>Global capacities:</strong> Define the base limit for each tour (all days and times).',
-            'by_tour_info'      => '<strong>By Tour + Schedule:</strong> Specific capacity override for each schedule of every tour. These overrides take precedence over the global tour capacity.',
-            'day_schedules_info'=> '<strong>Day + Schedule:</strong> Highest priority override for a specific day and schedule. These are managed from the "Availability and Capacity" view.',
+            'global_info'        => '<strong>Global capacities:</strong> Define the base limit for each tour (all days and schedules).',
+            'by_tour_info'       => '<strong>By Tour + Schedule:</strong> Capacity override specific to each schedule of each tour. These overrides take precedence over the tour’s global capacity.',
+            'day_schedules_info' => '<strong>Day + Schedule:</strong> Highest priority override for a specific day and schedule. These are managed from the "Availability and Capacity" view.',
         ],
 
+        // =========================================================
+        // [04] TABLE HEADERS
+        // =========================================================
         'tables' => [
             'global' => [
                 'tour'     => 'Tour',
@@ -591,21 +601,24 @@ return [
                 'level'    => 'Level',
             ],
             'by_tour' => [
-                'schedule'     => 'Schedule',
-                'capacity'     => 'Capacity Override',
-                'level'        => 'Level',
-                'no_schedules' => 'This tour has no assigned schedules',
+                'schedule'    => 'Schedule',
+                'capacity'    => 'Override Capacity',
+                'level'       => 'Level',
+                'no_schedules'=> 'This tour has no assigned schedules',
             ],
             'day_schedules' => [
-                'date'         => 'Date',
-                'tour'         => 'Tour',
-                'schedule'     => 'Schedule',
-                'capacity'     => 'Capacity',
-                'actions'      => 'Actions',
-                'no_overrides' => 'No day + schedule overrides found',
+                'date'        => 'Date',
+                'tour'        => 'Tour',
+                'schedule'    => 'Schedule',
+                'capacity'    => 'Capacity',
+                'actions'     => 'Actions',
+                'no_overrides'=> 'There are no day + schedule overrides',
             ],
         ],
 
+        // =========================================================
+        // [05] BADGES / LABELS
+        // =========================================================
         'badges' => [
             'base'      => 'Base',
             'override'  => 'Override',
@@ -614,6 +627,9 @@ return [
             'unlimited' => '∞',
         ],
 
+        // =========================================================
+        // [06] BUTTONS
+        // =========================================================
         'buttons' => [
             'save'   => 'Save',
             'delete' => 'Delete',
@@ -622,12 +638,18 @@ return [
             'cancel' => 'Cancel',
         ],
 
+        // =========================================================
+        // [07] MESSAGES
+        // =========================================================
         'messages' => [
-            'empty_placeholder' => 'Empty = uses global capacity (:capacity)',
+            'empty_placeholder' => 'Empty = use global capacity (:capacity)',
             'deleted_confirm'   => 'Delete this override?',
-            'no_day_overrides'  => 'No day + schedule overrides available.',
+            'no_day_overrides'  => 'There are no day + schedule overrides.',
         ],
 
+        // =========================================================
+        // [08] TOASTS (SweetAlert2)
+        // =========================================================
         'toasts' => [
             'success_title' => 'Success',
             'error_title'   => 'Error',

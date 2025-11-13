@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ $subject ?? config('app.name') }}</title>
   <style>
+
+    .root{
+--primary-color:#60a862;
+  --primary-dark:#256d1b;
+  --primary-header:#0f2419;
+  --primary-red:#e74c3c;
+  --text-dark:#333;
+  --white:#fff;
+}
     /* ===== Reset & Base ===== */
     body {
       margin: 0;
@@ -21,7 +30,7 @@
     }
 
     /* ===== Header ===== */
-    .email-header { background: linear-gradient(135deg, #059669, #10b981); padding: 36px 20px; text-align: center; }
+    .email-header { background: linear-gradient(135deg, #256d1b, #60a862); padding: 36px 20px; text-align: center; }
     .email-header img { max-width: 180px; height: auto; }
 
     /* ===== Body ===== */
