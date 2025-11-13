@@ -33,6 +33,11 @@
  */
 
 return [
+'pending_email_title'  => 'Changement d’e-mail en attente',
+'pending_email_notice' => 'Vous avez demandé à changer votre e-mail de <strong>:current</strong> à <strong>:pending</strong>. Nous avons envoyé un lien de confirmation à votre nouvel e-mail. Tant que vous ne confirmez pas, nous continuerons d’utiliser votre e-mail actuel.',
+'email_change_warning' => 'Si vous changez votre e-mail, nous enverrons un lien de confirmation à la nouvelle adresse. Votre e-mail actuel restera actif jusqu’à ce que vous confirmiez le changement.',
+'profile_updated_email_change_pending' => 'Votre profil a été mis à jour. Nous avons envoyé un lien à votre nouvel e-mail pour confirmer le changement. Tant que vous ne confirmez pas, nous continuerons d’utiliser votre e-mail actuel.',
+'email_change_confirmed' => 'Votre adresse e-mail a été mise à jour et vérifiée avec succès.',
 
     'no_slots_for_date' => 'Accune place disponible pour cette date',
     // 1. AUTHENTIFICATION ET INSCRIPTION

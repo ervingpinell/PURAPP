@@ -71,4 +71,13 @@ return [
         'already'  => 'You have already verified your email,',
         'verified' => 'Your email has been verified.',
     ],
+    'email_change_subject'        => 'Confirm your email address change',
+'email_change_title'          => 'Confirm your new email address',
+'email_change_hello'          => 'Hello :name,',
+'email_change_intro'          => 'You have requested to change the email address associated with your account. To complete the process, click the button below:',
+'email_change_button'         => 'Confirm new email',
+'email_change_footer'         => 'If you did not request this change, you may ignore this message and your current email will remain unchanged.',
+'email_change_link_expired'   => 'The link to change your email has expired. Please request the change again from your profile.',
+'email_change_confirmed'      => 'Your email address has been successfully updated and verified.',
+
 ];

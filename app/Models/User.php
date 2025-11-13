@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 // Notificaciones nativas (sin colas)
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\EmailChangeVerificationNotification;
 
 // Sanctum (/api)
 use Laravel\Sanctum\HasApiTokens;
@@ -70,6 +71,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'two_factor_secret'         => 'encrypted',
         'two_factor_recovery_codes' => 'encrypted',
         'two_factor_confirmed_at'   => 'datetime',
+            'pending_email_created_at' => 'datetime',
     ];
 
     /**
@@ -344,4 +346,26 @@ class User extends Authenticatable implements MustVerifyEmail
         $allowed = (array) ($matrix[$ability] ?? []);
         return $this->hasAnyRole($allowed);
     }
+
+public function sendEmailChangeVerificationNotification(string $token, ?string $locale = null): void
+{
+    $this->notify(new EmailChangeVerificationNotification(
+        $token,
+        $locale ?? app()->getLocale()
+    ));
+}
+
+
+/**
+ * Si existe pending_email, las notificaciones de cambio de correo
+ * se envían a ese correo en lugar del actual.
+ */
+public function routeNotificationForMail($notification): ?string
+{
+    if ($notification instanceof EmailChangeVerificationNotification && $this->pending_email) {
+        return $this->pending_email;
+    }
+
+    return $this->email;
+}
 }

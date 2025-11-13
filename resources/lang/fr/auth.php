@@ -70,4 +70,13 @@ return [
         'already'  => 'Vous avez déjà vérifié votre adresse e-mail,',
         'verified' => 'Votre adresse e-mail a été vérifiée.',
     ],
+    'email_change_subject'        => 'Confirmez le changement de votre adresse e-mail',
+'email_change_title'          => 'Confirmez votre nouvelle adresse e-mail',
+'email_change_hello'          => 'Bonjour :name,',
+'email_change_intro'          => 'Vous avez demandé à changer l’adresse e-mail associée à votre compte. Pour finaliser la modification, cliquez sur le bouton ci-dessous :',
+'email_change_button'         => 'Confirmer la nouvelle adresse',
+'email_change_footer'         => 'Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignorer ce message et votre adresse actuelle restera inchangée.',
+'email_change_link_expired'   => 'Le lien pour changer votre adresse e-mail a expiré. Veuillez demander à nouveau la modification depuis votre profil.',
+'email_change_confirmed'      => 'Votre adresse e-mail a été mise à jour et vérifiée avec succès.',
+
 ];

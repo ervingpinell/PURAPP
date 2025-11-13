@@ -33,6 +33,11 @@
  */
 
 return [
+'pending_email_title'  => 'Cambio de correo pendiente',
+'pending_email_notice' => 'Has solicitado cambiar tu correo de <strong>:current</strong> a <strong>:pending</strong>. Te enviamos un enlace a tu nuevo correo para confirmar el cambio. Hasta que lo confirmes, seguiremos usando tu correo actual.',
+'email_change_warning' => 'Si cambias tu correo, te enviaremos un enlace de confirmación al nuevo correo. Tu correo actual seguirá activo hasta que confirmes el cambio.',
+'profile_updated_email_change_pending' => 'Tu perfil se ha actualizado. Te hemos enviado un enlace a tu nuevo correo para confirmar el cambio. Hasta que lo confirmes, seguiremos usando tu correo actual.',
+'email_change_confirmed' => 'Tu correo electrónico ha sido actualizado y verificado correctamente.',
 
     'no_slots_for_date' => 'no hay espacios disponibles para esta fecha',
     // 1. AUTHENTICATION AND REGISTRATION
@@ -347,7 +352,7 @@ return [
     'need_pickup_title'   => 'Recogida obligatoria',
     'no_slots_title'      => 'Sin horarios disponibles',
     'no_slots_text'       => 'No hay horarios disponibles para la fecha seleccionada. Por favor, elige otra fecha.',
-    
+
     // 18. MODAL CARRITO LOGIN
     'login' => 'Iniciar sesión',
     'view_cart' => 'Ver carrito',

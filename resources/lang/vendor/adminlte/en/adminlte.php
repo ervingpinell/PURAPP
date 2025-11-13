@@ -33,6 +33,12 @@
  */
 
 return [
+    'pending_email_title'  => 'Pending Email Change',
+'pending_email_notice' => 'You have requested to change your email from <strong>:current</strong> to <strong>:pending</strong>. We’ve sent a confirmation link to your new email. Until you confirm it, we will continue using your current email.',
+'email_change_warning' => 'If you change your email, we will send a confirmation link to the new address. Your current email will remain active until you confirm the change.',
+'profile_updated_email_change_pending' => 'Your profile has been updated. We’ve sent a link to your new email to confirm the change. Until you confirm it, we will continue using your current email.',
+'email_change_confirmed' => 'Your email address has been successfully updated and verified.',
+
     'no_slots_for_date' => 'No spaces available for this date',
 
     // 1. AUTHENTICATION AND REGISTRATION
@@ -346,7 +352,7 @@ return [
     'need_pickup_title'   => 'Pickup required',
     'no_slots_title'      => 'No schedules',
     'no_slots'            => 'No available schedules for the selected date.',
-    
+
     // 18. CART LOGIN MODAL
     'login' => 'Log in',
     'view_cart' => 'View cart',

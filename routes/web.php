@@ -50,6 +50,7 @@ use App\Http\Controllers\Admin\CapacityController;
 use App\Http\Controllers\Admin\CustomerCategoryController;
 use App\Http\Controllers\Admin\Tours\TourAjaxController;
 use App\Http\Controllers\Admin\API\TourDataController;
+use App\Http\Controllers\Auth\EmailChangeController;
 
 // Public bookings controller (split)
 use App\Http\Controllers\Bookings\BookingController as PublicBookingController;
@@ -287,6 +288,10 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::get('/email/verify', function () {
         return view('auth.verify-email');
     })->middleware('guest')->name('verification.notice');
+
+    Route::get('/email/change/confirm/{user}/{token}', [EmailChangeController::class, 'confirm'])
+    ->middleware('signed') // si quieres firma
+    ->name('email.change.confirm');
 
     // Email verification - Resend link
     Route::post('/email/verify/public/resend', function (Request $request) {

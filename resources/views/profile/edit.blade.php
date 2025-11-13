@@ -25,12 +25,27 @@
   <div class="row justify-content-center">
     <div class="col-md-7 col-lg-6">
 
-      {{-- Flashes --}}
-      @if(session('success'))
-        <div class="alert alert-success text-center">{{ session('success') }}</div>
-      @endif
-      @if(session('error'))
-        <div class="alert alert-danger text-center">{{ session('error') }}</div>
+{{-- Flashes --}}
+@if(session('success') && session('success') !== __('adminlte::adminlte.profile_updated_email_change_pending'))
+  <div class="alert alert-success text-center">{{ session('success') }}</div>
+@endif
+@if(session('error'))
+  <div class="alert alert-danger text-center">{{ session('error') }}</div>
+@endif
+      {{-- Aviso si hay un cambio de correo pendiente --}}
+      @if(!empty($user->pending_email))
+        <div class="alert alert-warning">
+          <h5 class="mb-1">
+            <i class="fas fa-info-circle me-1"></i>
+            {{ __('adminlte::adminlte.pending_email_title') }}
+          </h5>
+          <p class="mb-0">
+            {!! __('adminlte::adminlte.pending_email_notice', [
+                'current' => e($user->email),
+                'pending' => e($user->pending_email),
+            ]) !!}
+          </p>
+        </div>
       @endif
 
       {{-- Errores agrupados --}}
@@ -64,7 +79,7 @@
             <div class="input-group mb-3">
               <input type="text" name="full_name" id="full_name"
                      class="form-control @error('full_name') is-invalid @enderror"
-                     value="{{ old('full_name', auth()->user()->full_name) }}"
+                     value="{{ old('full_name', $user->full_name) }}"
                      placeholder="{{ __('adminlte::validation.attributes.full_name') }}" required autofocus>
               <div class="input-group-append">
                 <div class="input-group-text"><span class="fas fa-user"></span></div>
@@ -73,19 +88,28 @@
             </div>
 
             {{-- Email --}}
-            <div class="input-group mb-3">
+            <div class="input-group mb-1">
               <input type="email" name="email" id="email"
                      class="form-control @error('email') is-invalid @enderror"
-                     value="{{ old('email', auth()->user()->email) }}"
-                     placeholder="{{ __('adminlte::validation.attributes.email') }}" required autocomplete="email">
+                     value="{{ old('email', $user->pending_email ?? $user->email) }}"
+                     placeholder="{{ __('adminlte::validation.attributes.email') }}"
+                     required autocomplete="email">
               <div class="input-group-append">
                 <div class="input-group-text"><span class="fas fa-envelope"></span></div>
               </div>
               @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
 
+            {{-- Aviso: si cambias el correo, se enviará un enlace de confirmación --}}
+            <div id="email-change-hint"
+                 class="alert alert-warning py-2 px-3 mt-2 d-none"
+                 style="font-size: 0.9rem;">
+              <i class="fas fa-info-circle me-1"></i>
+              {{ __('adminlte::adminlte.email_change_warning') }}
+            </div>
+
             {{-- Phone --}}
-            <div class="mb-3">
+            <div class="mb-3 mt-3">
               <div class="input-group">
                 <select id="phone_cc" name="country_code"
                         class="form-select @error('country_code') is-invalid @enderror">
@@ -93,7 +117,7 @@
                 </select>
                 <input type="tel" name="phone" id="phone"
                        class="form-control @error('phone') is-invalid @enderror"
-                       value="{{ old('phone', auth()->user()->phone) }}"
+                       value="{{ old('phone', $user->phone) }}"
                        placeholder="{{ __('adminlte::validation.attributes.phone') }}"
                        inputmode="tel" autocomplete="tel">
                 <div class="input-group-append">
@@ -190,8 +214,31 @@ document.addEventListener('DOMContentLoaded', function () {
     cc.addEventListener('blur',  collapseLabels);
     collapseLabels();
 
-    const currentCode = @json(old('country_code', auth()->user()->country_code ?? null));
+    const currentCode = @json(old('country_code', $user->country_code ?? null));
     if (currentCode) cc.value = currentCode;
+  }
+
+  // aviso cuando el email es diferente al actual/pending
+  const emailInput = document.getElementById('email');
+  const emailHint  = document.getElementById('email-change-hint');
+
+  if (emailInput && emailHint) {
+    const originalEmail = @json($user->pending_email ?? $user->email);
+
+    const toggleEmailHint = () => {
+      const current  = (emailInput.value || '').trim().toLowerCase();
+      const original = (originalEmail || '').trim().toLowerCase();
+
+      if (current && current !== original) {
+        emailHint.classList.remove('d-none');
+      } else {
+        emailHint.classList.add('d-none');
+      }
+    };
+
+    emailInput.addEventListener('input', toggleEmailHint);
+    emailInput.addEventListener('blur', toggleEmailHint);
+    toggleEmailHint();
   }
 });
 </script>

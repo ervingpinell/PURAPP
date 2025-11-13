@@ -72,4 +72,13 @@ return [
         'already'     => 'Ya verificaste tu correo,',
         'verified'        => 'Tu correo ha sido verificado.',
     ],
+
+    'email_change_subject'        => 'Confirma el cambio de correo electrónico',
+    'email_change_title'          => 'Confirma tu nuevo correo electrónico',
+    'email_change_hello'          => 'Hola :name,',
+    'email_change_intro'          => 'Has solicitado cambiar el correo electrónico asociado a tu cuenta. Para completar el cambio, haz clic en el siguiente botón:',
+    'email_change_button'         => 'Confirmar nuevo correo',
+    'email_change_footer'         => 'Si tú no solicitaste este cambio, puedes ignorar este mensaje y tu correo actual seguirá siendo el mismo.',
+    'email_change_link_expired'   => 'El enlace para cambiar tu correo ha expirado. Por favor, vuelve a solicitar el cambio desde tu perfil.',
+    'email_change_confirmed'      => 'Tu correo electrónico ha sido actualizado y verificado correctamente.',
 ];
