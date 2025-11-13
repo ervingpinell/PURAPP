@@ -812,72 +812,127 @@ return [
 
     ],
 
-    // =========================================================
-    // [08] IMAGES
-    // =========================================================
-    'image' => [
+   // =========================================================
+// [08] IMAGES
+// =========================================================
+'image' => [
 
-        'limit_reached_title' => 'Límite alcanzado',
-        'limit_reached_text'  => 'Se alcanzó el límite de imágenes para este tour.',
-        'upload_success'      => 'Imágenes subidas correctamente.',
-        'upload_none'         => 'No se subieron imágenes.',
-        'upload_truncated'    => 'Algunos archivos se omitieron por el límite por tour.',
-        'done'                => 'Listo',
-        'notice'              => 'Aviso',
-        'saved'               => 'Guardar',
-        'caption_updated'     => 'Leyenda actualizada correctamente.',
-        'deleted'             => 'Eliminado',
-        'image_removed'       => 'Imagen eliminada correctamente.',
-        'invalid_order'       => 'Carga de orden inválida.',
-        'nothing_to_reorder'  => 'Nada que reordenar.',
-        'order_saved'         => 'Orden guardado.',
-        'cover_updated_title' => 'Actualizar portada',
-        'cover_updated_text'  => 'Esta imagen ahora es la portada.',
-        'deleting'            => 'Eliminando...',
+    'limit_reached_title' => 'Límite alcanzado',
+    'limit_reached_text'  => 'Se alcanzó el límite de imágenes para este tour.',
+    'upload_success'      => 'Imágenes subidas correctamente.',
+    'upload_none'         => 'No se subieron imágenes.',
+    'upload_truncated'    => 'Algunos archivos se omitieron por el límite por tour.',
+    'done'                => 'Listo',
+    'notice'              => 'Aviso',
+    'saved'               => 'Guardar',
+    'caption_updated'     => 'Leyenda actualizada correctamente.',
+    'deleted'             => 'Eliminado',
+    'image_removed'       => 'Imagen eliminada correctamente.',
+    'invalid_order'       => 'Carga de orden inválida.',
+    'nothing_to_reorder'  => 'Nada que reordenar.',
+    'order_saved'         => 'Orden guardado.',
+    'cover_updated_title' => 'Actualizar portada',
+    'cover_updated_text'  => 'Esta imagen ahora es la portada.',
+    'deleting'            => 'Eliminando...',
 
-        'ui' => [
-            'page_title_pick'     => 'Imágenes de Tours',
-            'page_heading'        => 'Imágenes de Tours',
-            'choose_tour'         => 'Elegir tour',
-            'search_placeholder'  => 'Buscar por ID o nombre…',
-            'search_button'       => 'Buscar',
-            'no_results'          => 'No se encontraron tours.',
-            'manage_images'       => 'Administrar imágenes',
-            'cover_alt'           => 'Portada',
-            'images_label'        => 'imágenes',
-            'upload_btn'          => 'Subir',
-            'caption_placeholder' => 'Leyenda (opcional)',
-            'set_cover_btn'       => 'Elige la imagen que quieres como portada',
-            'no_images'           => 'Aún no hay imágenes para este tour.',
-            'delete_btn'          => 'Eliminar',
-            'show_btn'            => 'Mostrar',
-            'close_btn'           => 'Cerrar',
-            'preview_title'       => 'Vista previa de la imagen',
+    'ui' => [
+        // Página de selección de tour
+        'page_title_pick'     => 'Imágenes de Tours',
+        'page_heading'        => 'Imágenes de Tours',
+        'choose_tour'         => 'Elegir tour',
+        'search_placeholder'  => 'Buscar por ID o nombre…',
+        'search_button'       => 'Buscar',
+        'no_results'          => 'No se encontraron tours.',
+        'manage_images'       => 'Administrar imágenes',
+        'cover_alt'           => 'Portada',
+        'images_label'        => 'imágenes',
 
-            'error_title'         => 'Error',
-            'warning_title'       => 'Atención',
-            'success_title'       => 'Éxito',
-            'cancel_btn'          => 'Cancelar',
-            'confirm_delete_title' => '¿Eliminar esta imagen?',
-            'confirm_delete_text' => 'Esta acción no se puede deshacer.',
-            'cover_current_title'      => 'Portada actual',
-            'upload_new_cover_title'   => 'Subir nueva portada',
-            'cover_file_label'         => 'Archivo de portada',
-            'file_help_cover'          => 'JPEG/PNG/WebP, 30 MB máx.',
-            'id_label'                 => 'ID',
-        ],
+        // Botones genéricos
+        'upload_btn'          => 'Subir',
+        'delete_btn'          => 'Eliminar',
+        'show_btn'            => 'Mostrar',
+        'close_btn'           => 'Cerrar',
+        'preview_title'       => 'Vista previa de la imagen',
 
-        'errors' => [
-            'validation'     => 'Los datos enviados no son válidos.',
-            'upload_generic' => 'No se pudieron subir algunas imágenes.',
-            'update_caption' => 'No se pudo actualizar la leyenda.',
-            'delete'         => 'No se pudo eliminar la imagen.',
-            'reorder'        => 'No se pudo guardar el orden.',
-            'set_cover'      => 'No se pudo establecer la portada.',
-            'load_list'      => 'No se pudo cargar el listado.',
-            'too_large'      => 'El archivo supera el tamaño máximo permitido. Intenta con una imagen más liviana.',
-        ],
+        // Textos generales de estado
+        'error_title'         => 'Error',
+        'warning_title'       => 'Atención',
+        'success_title'       => 'Éxito',
+        'cancel_btn'          => 'Cancelar',
+
+        // Confirmaciones básicas
+        'confirm_delete_title' => '¿Eliminar esta imagen?',
+        'confirm_delete_text'  => 'Esta acción no se puede deshacer.',
+
+        // Gestión de portada por formulario clásico
+        'cover_current_title'    => 'Portada actual',
+        'upload_new_cover_title' => 'Subir nueva portada',
+        'cover_file_label'       => 'Archivo de portada',
+        'file_help_cover'        => 'JPEG/PNG/WebP, 30 MB máx.',
+        'id_label'               => 'ID',
+
+        // Navegación / cabecera en vista de un tour
+        'back_btn'          => 'Volver a la lista',
+
+        // Stats (barra superior)
+        'stats_images'      => 'Imágenes subidas',
+        'stats_cover'       => 'Portadas definidas',
+        'stats_selected'    => 'Seleccionadas',
+
+        // Zona de subida
+        'drag_or_click'     => 'Arrastra y suelta tus imágenes o haz clic para seleccionar.',
+        'upload_help'       => 'Formatos permitidos: JPG, PNG, WebP. Tamaño máximo total 100 MB.',
+        'select_btn'        => 'Elegir archivos',
+        'limit_badge'       => 'Límite de :max imágenes alcanzado',
+        'files_word'        => 'archivos',
+
+        // Toolbar de selección múltiple
+        'select_all'        => 'Seleccionar todas',
+        'delete_selected'   => 'Eliminar seleccionadas',
+        'delete_all'        => 'Eliminar todas',
+
+        // Selector por imagen (chip)
+        'select_image_title' => 'Seleccionar esta imagen',
+        'select_image_aria'  => 'Seleccionar imagen :id',
+
+        // Portada (chip / botón por tarjeta)
+        'cover_label'       => 'Portada',
+        'cover_btn'         => 'Hacer portada',
+
+        // Estados de guardado / helpers JS
+        'caption_placeholder' => 'Leyenda (opcional)',
+        'saving_label'        => 'Guardando…',
+        'saving_fallback'     => 'Guardando…',
+        'none_label'          => 'Sin leyenda',
+        'limit_word'          => 'Límite',
+
+        // Confirmaciones avanzadas (JS)
+        'confirm_set_cover_title' => '¿Establecer como portada?',
+        'confirm_set_cover_text'  => 'Esta imagen será la portada principal del tour.',
+        'confirm_btn'             => 'Sí, continuar',
+
+        'confirm_bulk_delete_title' => '¿Eliminar las imágenes seleccionadas?',
+        'confirm_bulk_delete_text'  => 'Se eliminarán definitivamente las imágenes seleccionadas.',
+
+        'confirm_delete_all_title'  => '¿Eliminar todas las imágenes?',
+        'confirm_delete_all_text'   => 'Se eliminarán todas las imágenes de este tour.',
+
+        // Vista sin imágenes
+        'no_images'           => 'Aún no hay imágenes para este tour.',
     ],
+
+    'errors' => [
+        'validation'     => 'Los datos enviados no son válidos.',
+        'upload_generic' => 'No se pudieron subir algunas imágenes.',
+        'update_caption' => 'No se pudo actualizar la leyenda.',
+        'delete'         => 'No se pudo eliminar la imagen.',
+        'reorder'        => 'No se pudo guardar el orden.',
+        'set_cover'      => 'No se pudo establecer la portada.',
+        'load_list'      => 'No se pudo cargar el listado.',
+        'too_large'      => 'El archivo supera el tamaño máximo permitido. Intenta con una imagen más liviana.',
+    ],
+],
+
     'prices' => [
     'ui' => [
         'page_title'         => 'Precios - :name',

@@ -800,72 +800,110 @@ return [
 
     ],
 
-    // =========================================================
-    // [08] IMAGES
-    // =========================================================
-    'image' => [
+   'image' => [
 
-        'limit_reached_title' => 'Limite alcançado',
-        'limit_reached_text'  => 'Foi alcançado o limite de imagens para este tour.',
-        'upload_success'      => 'Imagens enviadas com sucesso.',
-        'upload_none'         => 'Nenhuma imagem foi enviada.',
-        'upload_truncated'    => 'Alguns arquivos foram ignorados devido ao limite por tour.',
-        'done'                => 'Pronto',
-        'notice'              => 'Aviso',
-        'saved'               => 'Salvar',
-        'caption_updated'     => 'Legenda atualizada com sucesso.',
-        'deleted'             => 'Excluída',
-        'image_removed'       => 'Imagem excluída com sucesso.',
-        'invalid_order'       => 'Ordem inválida.',
-        'nothing_to_reorder'  => 'Nada para reordenar.',
-        'order_saved'         => 'Ordem salva.',
-        'cover_updated_title' => 'Atualizar capa',
-        'cover_updated_text'  => 'Esta imagem agora é a capa.',
-        'deleting'            => 'Excluindo...',
+    'limit_reached_title' => 'Limite atingido',
+    'limit_reached_text'  => 'O limite de imagens para este tour foi atingido.',
+    'upload_success'      => 'Imagens enviadas com sucesso.',
+    'upload_none'         => 'Nenhuma imagem foi enviada.',
+    'upload_truncated'    => 'Alguns arquivos foram ignorados devido ao limite do tour.',
+    'done'                => 'Concluído',
+    'notice'              => 'Aviso',
+    'saved'               => 'Salvo',
+    'caption_updated'     => 'Legenda atualizada com sucesso.',
+    'deleted'             => 'Excluído',
+    'image_removed'       => 'Imagem excluída com sucesso.',
+    'invalid_order'       => 'Ordem inválida.',
+    'nothing_to_reorder'  => 'Nada para reordenar.',
+    'order_saved'         => 'Ordem salva.',
+    'cover_updated_title' => 'Capa atualizada',
+    'cover_updated_text'  => 'Esta imagem agora é a capa.',
+    'deleting'            => 'Excluindo...',
 
-        'ui' => [
-            'page_title_pick'     => 'Imagens dos Tours',
-            'page_heading'        => 'Imagens dos Tours',
-            'choose_tour'         => 'Escolher tour',
-            'search_placeholder'  => 'Buscar por ID ou nome…',
-            'search_button'       => 'Buscar',
-            'no_results'          => 'Nenhum tour encontrado.',
-            'manage_images'       => 'Gerenciar imagens',
-            'cover_alt'           => 'Capa',
-            'images_label'        => 'imagens',
-            'upload_btn'          => 'Enviar',
-            'caption_placeholder' => 'Legenda (opcional)',
-            'set_cover_btn'       => 'Escolha a imagem que deseja como capa',
-            'no_images'           => 'Ainda não há imagens para este tour.',
-            'delete_btn'          => 'Excluir',
-            'show_btn'            => 'Mostrar',
-            'close_btn'           => 'Fechar',
-            'preview_title'       => 'Prévia da imagem',
+    'ui' => [
+        'page_title_pick'     => 'Imagens dos Tours',
+        'page_heading'        => 'Imagens dos Tours',
+        'choose_tour'         => 'Escolher tour',
+        'search_placeholder'  => 'Buscar por ID ou nome…',
+        'search_button'       => 'Buscar',
+        'no_results'          => 'Nenhum tour encontrado.',
+        'manage_images'       => 'Gerenciar imagens',
+        'cover_alt'           => 'Capa',
+        'images_label'        => 'imagens',
 
-            'error_title'          => 'Erro',
-            'warning_title'        => 'Atenção',
-            'success_title'        => 'Sucesso',
-            'cancel_btn'           => 'Cancelar',
-            'confirm_delete_title' => 'Excluir esta imagem?',
-            'confirm_delete_text'  => 'Esta ação não pode ser desfeita.',
-            'cover_current_title'      => 'Capa atual',
-            'upload_new_cover_title'   => 'Enviar nova capa',
-            'cover_file_label'         => 'Arquivo de capa',
-            'file_help_cover'          => 'JPEG/PNG/WebP, máx. 30 MB.',
-            'id_label'                 => 'ID',
-        ],
+        'upload_btn'          => 'Enviar',
+        'delete_btn'          => 'Excluir',
+        'show_btn'            => 'Mostrar',
+        'close_btn'           => 'Fechar',
+        'preview_title'       => 'Prévia da imagem',
 
-        'errors' => [
-            'validation'     => 'Os dados enviados não são válidos.',
-            'upload_generic' => 'Não foi possível enviar algumas imagens.',
-            'update_caption' => 'Não foi possível atualizar a legenda.',
-            'delete'         => 'Não foi possível excluir a imagem.',
-            'reorder'        => 'Não foi possível salvar a ordem.',
-            'set_cover'      => 'Não foi possível definir a capa.',
-            'load_list'      => 'Não foi possível carregar a lista.',
-            'too_large'      => 'O arquivo excede o tamanho máximo permitido. Tente uma imagem menor.',
-        ],
+        'error_title'         => 'Erro',
+        'warning_title'       => 'Atenção',
+        'success_title'       => 'Sucesso',
+        'cancel_btn'          => 'Cancelar',
+
+        'confirm_delete_title' => 'Excluir esta imagem?',
+        'confirm_delete_text'  => 'Esta ação não pode ser desfeita.',
+
+        'cover_current_title'    => 'Capa atual',
+        'upload_new_cover_title' => 'Enviar nova capa',
+        'cover_file_label'       => 'Arquivo da capa',
+        'file_help_cover'        => 'JPEG/PNG/WebP, máx. 30 MB.',
+        'id_label'               => 'ID',
+
+        'back_btn'          => 'Voltar à lista',
+
+        'stats_images'      => 'Imagens enviadas',
+        'stats_cover'       => 'Capas definidas',
+        'stats_selected'    => 'Selecionadas',
+
+        'drag_or_click'     => 'Arraste e solte suas imagens ou clique para selecionar.',
+        'upload_help'       => 'Formatos permitidos: JPG, PNG, WebP. Tamanho total máximo: 100 MB.',
+        'select_btn'        => 'Escolher arquivos',
+        'limit_badge'       => 'Limite de :max imagens atingido',
+        'files_word'        => 'arquivos',
+
+        'select_all'        => 'Selecionar todas',
+        'delete_selected'   => 'Excluir selecionadas',
+        'delete_all'        => 'Excluir todas',
+
+        'select_image_title' => 'Selecionar esta imagem',
+        'select_image_aria'  => 'Selecionar imagem :id',
+
+        'cover_label'       => 'Capa',
+        'cover_btn'         => 'Definir como capa',
+
+        'caption_placeholder' => 'Legenda (opcional)',
+        'saving_label'        => 'Salvando…',
+        'saving_fallback'     => 'Salvando…',
+        'none_label'          => 'Sem legenda',
+        'limit_word'          => 'Limite',
+
+        'confirm_set_cover_title' => 'Definir como capa?',
+        'confirm_set_cover_text'  => 'Esta imagem será a capa principal do tour.',
+        'confirm_btn'             => 'Sim, continuar',
+
+        'confirm_bulk_delete_title' => 'Excluir imagens selecionadas?',
+        'confirm_bulk_delete_text'  => 'As imagens selecionadas serão excluídas permanentemente.',
+
+        'confirm_delete_all_title' => 'Excluir todas as imagens?',
+        'confirm_delete_all_text'  => 'Todas as imagens deste tour serão excluídas.',
+
+        'no_images'           => 'Ainda não há imagens para este tour.',
     ],
+
+    'errors' => [
+        'validation'     => 'Os dados enviados não são válidos.',
+        'upload_generic' => 'Algumas imagens não puderam ser enviadas.',
+        'update_caption' => 'A legenda não pôde ser atualizada.',
+        'delete'         => 'Não foi possível excluir a imagem.',
+        'reorder'        => 'Não foi possível salvar a ordem.',
+        'set_cover'      => 'Não foi possível definir a capa.',
+        'load_list'      => 'Não foi possível carregar a lista.',
+        'too_large'      => 'O arquivo excede o tamanho máximo permitido. Tente uma imagem menor.',
+    ],
+],
+
 
     'prices' => [
         'ui' => [

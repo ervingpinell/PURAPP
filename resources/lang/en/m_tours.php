@@ -800,73 +800,113 @@ return [
         ],
 
     ],
+// =========================================================
+// [08] IMAGES
+// =========================================================
+'image' => [
 
-    // =========================================================
-    // [08] IMAGES
-    // =========================================================
-    'image' => [
+    'limit_reached_title' => 'Limit reached',
+    'limit_reached_text'  => 'The image limit for this tour has been reached.',
+    'upload_success'      => 'Images uploaded successfully.',
+    'upload_none'         => 'No images were uploaded.',
+    'upload_truncated'    => 'Some files were skipped due to the tour limit.',
+    'done'                => 'Done',
+    'notice'              => 'Notice',
+    'saved'               => 'Saved',
+    'caption_updated'     => 'Caption updated successfully.',
+    'deleted'             => 'Deleted',
+    'image_removed'       => 'Image removed successfully.',
+    'invalid_order'       => 'Invalid order payload.',
+    'nothing_to_reorder'  => 'Nothing to reorder.',
+    'order_saved'         => 'Order saved.',
+    'cover_updated_title' => 'Cover updated',
+    'cover_updated_text'  => 'This image is now the cover.',
+    'deleting'            => 'Deleting...',
 
-        'limit_reached_title' => 'Limit reached',
-        'limit_reached_text'  => 'The image limit for this tour has been reached.',
-        'upload_success'      => 'Images uploaded successfully.',
-        'upload_none'         => 'No images were uploaded.',
-        'upload_truncated'    => 'Some files were skipped due to the per-tour limit.',
-        'done'                => 'Done',
-        'notice'              => 'Notice',
-        'saved'               => 'Save',
-        'caption_updated'     => 'Caption updated successfully.',
-        'deleted'             => 'Deleted',
-        'image_removed'       => 'Image removed successfully.',
-        'invalid_order'       => 'Invalid order payload.',
-        'nothing_to_reorder'  => 'Nothing to reorder.',
-        'order_saved'         => 'Order saved.',
-        'cover_updated_title' => 'Update cover',
-        'cover_updated_text'  => 'This image is now the cover.',
-        'deleting'            => 'Deleting...',
+    'ui' => [
+        'page_title_pick'     => 'Tour Images',
+        'page_heading'        => 'Tour Images',
+        'choose_tour'         => 'Choose tour',
+        'search_placeholder'  => 'Search by ID or name…',
+        'search_button'       => 'Search',
+        'no_results'          => 'No tours found.',
+        'manage_images'       => 'Manage images',
+        'cover_alt'           => 'Cover',
+        'images_label'        => 'images',
 
-        'ui' => [
-            'page_title_pick'     => 'Tour Images',
-            'page_heading'        => 'Tour Images',
-            'choose_tour'         => 'Choose tour',
-            'search_placeholder'  => 'Search by ID or name…',
-            'search_button'       => 'Search',
-            'no_results'          => 'No tours found.',
-            'manage_images'       => 'Manage images',
-            'cover_alt'           => 'Cover',
-            'images_label'        => 'images',
-            'upload_btn'          => 'Upload',
-            'caption_placeholder' => 'Caption (optional)',
-            'set_cover_btn'       => 'Choose the image you want as cover',
-            'no_images'           => 'There are no images for this tour yet.',
-            'delete_btn'          => 'Delete',
-            'show_btn'            => 'Show',
-            'close_btn'           => 'Close',
-            'preview_title'       => 'Image preview',
+        'upload_btn'          => 'Upload',
+        'delete_btn'          => 'Delete',
+        'show_btn'            => 'Show',
+        'close_btn'           => 'Close',
+        'preview_title'       => 'Image preview',
 
-            'error_title'         => 'Error',
-            'warning_title'       => 'Warning',
-            'success_title'       => 'Success',
-            'cancel_btn'          => 'Cancel',
-            'confirm_delete_title' => 'Delete this image?',
-            'confirm_delete_text' => 'This action cannot be undone.',
-            'cover_current_title'      => 'Current cover',
-            'upload_new_cover_title'   => 'Upload new cover',
-            'cover_file_label'         => 'Cover file',
-            'file_help_cover'          => 'JPEG/PNG/WebP, 30 MB max.',
-            'id_label'                 => 'ID',
-        ],
+        'error_title'         => 'Error',
+        'warning_title'       => 'Warning',
+        'success_title'       => 'Success',
+        'cancel_btn'          => 'Cancel',
 
-        'errors' => [
-            'validation'     => 'The data provided are not valid.',
-            'upload_generic' => 'Some images could not be uploaded.',
-            'update_caption' => 'The caption could not be updated.',
-            'delete'         => 'The image could not be deleted.',
-            'reorder'        => 'The order could not be saved.',
-            'set_cover'      => 'The cover could not be set.',
-            'load_list'      => 'The list could not be loaded.',
-            'too_large'      => 'The file exceeds the maximum allowed size. Try a smaller image.',
-        ],
+        'confirm_delete_title' => 'Delete this image?',
+        'confirm_delete_text'  => 'This action cannot be undone.',
+
+        'cover_current_title'    => 'Current cover',
+        'upload_new_cover_title' => 'Upload new cover',
+        'cover_file_label'       => 'Cover file',
+        'file_help_cover'        => 'JPEG/PNG/WebP, max 30 MB.',
+        'id_label'               => 'ID',
+
+        'back_btn'          => 'Back to list',
+
+        'stats_images'      => 'Uploaded images',
+        'stats_cover'       => 'Covers set',
+        'stats_selected'    => 'Selected',
+
+        'drag_or_click'     => 'Drag & drop your images or click to select.',
+        'upload_help'       => 'Allowed formats: JPG, PNG, WebP. Total maximum size 100 MB.',
+        'select_btn'        => 'Select files',
+        'limit_badge'       => ':max image limit reached',
+        'files_word'        => 'files',
+
+        'select_all'        => 'Select all',
+        'delete_selected'   => 'Delete selected',
+        'delete_all'        => 'Delete all',
+
+        'select_image_title' => 'Select this image',
+        'select_image_aria'  => 'Select image :id',
+
+        'cover_label'       => 'Cover',
+        'cover_btn'         => 'Make cover',
+
+        'caption_placeholder' => 'Caption (optional)',
+        'saving_label'        => 'Saving…',
+        'saving_fallback'     => 'Saving…',
+        'none_label'          => 'No caption',
+        'limit_word'          => 'Limit',
+
+        'confirm_set_cover_title' => 'Set as cover?',
+        'confirm_set_cover_text'  => 'This image will be the main tour cover.',
+        'confirm_btn'             => 'Yes, continue',
+
+        'confirm_bulk_delete_title' => 'Delete selected images?',
+        'confirm_bulk_delete_text'  => 'Selected images will be permanently deleted.',
+
+        'confirm_delete_all_title'  => 'Delete all images?',
+        'confirm_delete_all_text'   => 'All images for this tour will be deleted.',
+
+        'no_images'           => 'There are no images for this tour yet.',
     ],
+
+    'errors' => [
+        'validation'     => 'The submitted data is invalid.',
+        'upload_generic' => 'Some images could not be uploaded.',
+        'update_caption' => 'The caption could not be updated.',
+        'delete'         => 'The image could not be deleted.',
+        'reorder'        => 'The order could not be saved.',
+        'set_cover'      => 'The cover could not be set.',
+        'load_list'      => 'The list could not be loaded.',
+        'too_large'      => 'The file exceeds the allowed size. Try a lighter image.',
+    ],
+],
+
 
     'prices' => [
         'ui' => [

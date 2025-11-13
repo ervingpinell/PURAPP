@@ -800,72 +800,110 @@ return [
 
     ],
 
-    // =========================================================
-    // [08] IMAGES
-    // =========================================================
-    'image' => [
+'image' => [
 
-        'limit_reached_title' => 'Limite atteinte',
-        'limit_reached_text'  => 'La limite d\'images pour ce tour a été atteinte.',
-        'upload_success'      => 'Images téléchargées avec succès.',
-        'upload_none'         => 'Aucune image n\'a été téléchargée.',
-        'upload_truncated'    => 'Certains fichiers ont été ignorés en raison de la limite par tour.',
-        'done'                => 'Terminé',
-        'notice'              => 'Avis',
-        'saved'               => 'Enregistrer',
-        'caption_updated'     => 'Légende mise à jour avec succès.',
-        'deleted'             => 'Supprimée',
-        'image_removed'       => 'Image supprimée avec succès.',
-        'invalid_order'       => 'Ordre invalide.',
-        'nothing_to_reorder'  => 'Rien à réorganiser.',
-        'order_saved'         => 'Ordre enregistré.',
-        'cover_updated_title' => 'Mettre à jour l\'image de couverture',
-        'cover_updated_text'  => 'Cette image est maintenant la couverture.',
-        'deleting'            => 'Suppression en cours...',
+    'limit_reached_title' => 'Limite atteinte',
+    'limit_reached_text'  => 'La limite d’images pour ce tour a été atteinte.',
+    'upload_success'      => 'Images téléchargées avec succès.',
+    'upload_none'         => 'Aucune image téléchargée.',
+    'upload_truncated'    => 'Certains fichiers ont été ignorés en raison de la limite du tour.',
+    'done'                => 'Terminé',
+    'notice'              => 'Avis',
+    'saved'               => 'Enregistré',
+    'caption_updated'     => 'Légende mise à jour avec succès.',
+    'deleted'             => 'Supprimé',
+    'image_removed'       => 'Image supprimée avec succès.',
+    'invalid_order'       => 'Ordre invalide.',
+    'nothing_to_reorder'  => 'Rien à réorganiser.',
+    'order_saved'         => 'Ordre enregistré.',
+    'cover_updated_title' => 'Couverture mise à jour',
+    'cover_updated_text'  => 'Cette image est maintenant la couverture.',
+    'deleting'            => 'Suppression...',
 
-        'ui' => [
-            'page_title_pick'     => 'Images des tours',
-            'page_heading'        => 'Images des tours',
-            'choose_tour'         => 'Choisir un tour',
-            'search_placeholder'  => 'Rechercher par ID ou nom…',
-            'search_button'       => 'Rechercher',
-            'no_results'          => 'Aucun tour trouvé.',
-            'manage_images'       => 'Gérer les images',
-            'cover_alt'           => 'Couverture',
-            'images_label'        => 'images',
-            'upload_btn'          => 'Téléverser',
-            'caption_placeholder' => 'Légende (optionnelle)',
-            'set_cover_btn'       => 'Choisis l\'image que tu souhaites utiliser comme couverture',
-            'no_images'           => 'Aucune image pour ce tour pour le moment.',
-            'delete_btn'          => 'Supprimer',
-            'show_btn'            => 'Afficher',
-            'close_btn'           => 'Fermer',
-            'preview_title'       => 'Aperçu de l\'image',
+    'ui' => [
+        'page_title_pick'     => 'Images de Tours',
+        'page_heading'        => 'Images de Tours',
+        'choose_tour'         => 'Choisir un tour',
+        'search_placeholder'  => 'Rechercher par ID ou nom…',
+        'search_button'       => 'Rechercher',
+        'no_results'          => 'Aucun tour trouvé.',
+        'manage_images'       => 'Gérer les images',
+        'cover_alt'           => 'Couverture',
+        'images_label'        => 'images',
 
-            'error_title'         => 'Erreur',
-            'warning_title'       => 'Attention',
-            'success_title'       => 'Succès',
-            'cancel_btn'          => 'Annuler',
-            'confirm_delete_title' => 'Supprimer cette image ?',
-            'confirm_delete_text' => 'Cette action est irréversible.',
-            'cover_current_title'      => 'Couverture actuelle',
-            'upload_new_cover_title'   => 'Téléverser une nouvelle couverture',
-            'cover_file_label'         => 'Fichier de couverture',
-            'file_help_cover'          => 'JPEG/PNG/WebP, 30 Mo max.',
-            'id_label'                 => 'ID',
-        ],
+        'upload_btn'          => 'Téléverser',
+        'delete_btn'          => 'Supprimer',
+        'show_btn'            => 'Afficher',
+        'close_btn'           => 'Fermer',
+        'preview_title'       => 'Aperçu de l’image',
 
-        'errors' => [
-            'validation'     => 'Les données envoyées ne sont pas valides.',
-            'upload_generic' => 'Certaines images n\'ont pas pu être téléversées.',
-            'update_caption' => 'Impossible de mettre à jour la légende.',
-            'delete'         => 'Impossible de supprimer l\'image.',
-            'reorder'        => 'Impossible d\'enregistrer l\'ordre.',
-            'set_cover'      => 'Impossible de définir la couverture.',
-            'load_list'      => 'Impossible de charger la liste.',
-            'too_large'      => 'Le fichier dépasse la taille maximale autorisée. Essaie avec une image plus légère.',
-        ],
+        'error_title'         => 'Erreur',
+        'warning_title'       => 'Avertissement',
+        'success_title'       => 'Succès',
+        'cancel_btn'          => 'Annuler',
+
+        'confirm_delete_title' => 'Supprimer cette image ?',
+        'confirm_delete_text'  => 'Cette action est irréversible.',
+
+        'cover_current_title'    => 'Couverture actuelle',
+        'upload_new_cover_title' => 'Téléverser une nouvelle couverture',
+        'cover_file_label'       => 'Fichier de couverture',
+        'file_help_cover'        => 'JPEG/PNG/WebP, max 30 Mo.',
+        'id_label'               => 'ID',
+
+        'back_btn'          => 'Retour à la liste',
+
+        'stats_images'      => 'Images téléversées',
+        'stats_cover'       => 'Couvertures définies',
+        'stats_selected'    => 'Sélectionnées',
+
+        'drag_or_click'     => 'Glissez-déposez vos images ou cliquez pour sélectionner.',
+        'upload_help'       => 'Formats autorisés : JPG, PNG, WebP. Taille totale max 100 Mo.',
+        'select_btn'        => 'Choisir des fichiers',
+        'limit_badge'       => 'Limite de :max images atteinte',
+        'files_word'        => 'fichiers',
+
+        'select_all'        => 'Tout sélectionner',
+        'delete_selected'   => 'Supprimer la sélection',
+        'delete_all'        => 'Tout supprimer',
+
+        'select_image_title' => 'Sélectionner cette image',
+        'select_image_aria'  => 'Sélectionner l’image :id',
+
+        'cover_label'       => 'Couverture',
+        'cover_btn'         => 'Définir comme couverture',
+
+        'caption_placeholder' => 'Légende (facultatif)',
+        'saving_label'        => 'Enregistrement…',
+        'saving_fallback'     => 'Enregistrement…',
+        'none_label'          => 'Sans légende',
+        'limit_word'          => 'Limite',
+
+        'confirm_set_cover_title' => 'Définir comme couverture ?',
+        'confirm_set_cover_text'  => 'Cette image sera la couverture principale du tour.',
+        'confirm_btn'             => 'Oui, continuer',
+
+        'confirm_bulk_delete_title' => 'Supprimer les images sélectionnées ?',
+        'confirm_bulk_delete_text'  => 'Les images sélectionnées seront supprimées définitivement.',
+
+        'confirm_delete_all_title'  => 'Supprimer toutes les images ?',
+        'confirm_delete_all_text'   => 'Toutes les images de ce tour seront supprimées.',
+
+        'no_images'           => 'Il n’y a pas encore d’images pour ce tour.',
     ],
+
+    'errors' => [
+        'validation'     => 'Les données envoyées ne sont pas valides.',
+        'upload_generic' => 'Certaines images n’ont pas pu être téléversées.',
+        'update_caption' => 'Impossible de mettre à jour la légende.',
+        'delete'         => 'Impossible de supprimer l’image.',
+        'reorder'        => 'Impossible d’enregistrer l’ordre.',
+        'set_cover'      => 'Impossible de définir la couverture.',
+        'load_list'      => 'Impossible de charger la liste.',
+        'too_large'      => 'Le fichier dépasse la taille maximale autorisée. Essayez avec une image plus légère.',
+    ],
+],
+
 
     'prices' => [
         'ui' => [
