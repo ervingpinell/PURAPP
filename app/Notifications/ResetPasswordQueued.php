@@ -17,7 +17,7 @@ class ResetPasswordQueued extends Notification implements ShouldQueue
     public function __construct(string $token)
     {
         $this->token = $token;
-        $this->onQueue('mail'); // opcional
+        $this->onQueue('mail');
     }
 
     public function via($notifiable): array
@@ -34,7 +34,11 @@ class ResetPasswordQueued extends Notification implements ShouldQueue
 
         Log::info('Enviando reset password', ['to' => $notifiable->email, 'url' => $url]);
 
+        $replyTo = config('mail.to.contact', 'info@greenvacationscr.com');
+
         return (new MailMessage)
+            ->from('noreply@greenvacationscr.com', config('mail.from.name', 'Green Vacations CR'))
+            ->replyTo($replyTo)
             ->subject(__('adminlte::auth.reset_password'))
             ->line(__('adminlte::auth.password_reset_message'))
             ->action(__('adminlte::auth.reset_password'), $url)

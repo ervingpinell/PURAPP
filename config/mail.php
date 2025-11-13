@@ -3,6 +3,7 @@
 return [
 
     'default' => env('MAIL_MAILER', 'smtp'),
+    'booking_notify' => env('BOOKING_NOTIFY', ''),
 
     'mailers' => [
 
@@ -23,6 +24,11 @@ return [
             ),
         ],
 
+        // Microsoft Graph API Transport
+        'graph' => [
+            'transport' => 'graph',
+        ],
+
         'ses' => [ 'transport' => 'ses' ],
         'postmark' => [ 'transport' => 'postmark' ],
         'resend' => [ 'transport' => 'resend' ],
@@ -39,11 +45,11 @@ return [
 
         'array' => [ 'transport' => 'array' ],
 
+        'failover' => [
+            'transport' => 'failover',
+            'mailers' => ['graph', 'log'], // Primero intenta Graph, luego log
+        ],
 
-    'failover' => [
-        'transport' => 'failover',
-        'mailers' => ['smtp', 'log'],
-    ],
         'roundrobin' => [
             'transport' => 'roundrobin',
             'mailers' => ['ses', 'postmark'],
@@ -53,9 +59,5 @@ return [
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'info@greenvacationscr.com'),
         'name' => env('MAIL_FROM_NAME', 'Green Vacations CR'),
-    ],
-
-    'to' => [
-        'contact' => env('MAIL_TO_CONTACT', 'info@greenvacationscr.com'),
     ],
 ];

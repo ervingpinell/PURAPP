@@ -1,12 +1,10 @@
-@component('mail::message')
-# Nuevo mensaje de contacto
+{{ str_starts_with(app()->getLocale() ?? 'es', 'es') ? 'Nuevo mensaje de contacto' : 'New contact message' }}
 
-**Nombre:** {{ $name }}
-**Email:** {{ $email }}
-**Asunto:** {{ $subjectLine }}
+{{ (str_starts_with(app()->getLocale() ?? 'es', 'es') ? 'Nombre' : 'Name') }}: {{ $name }}
+Email: {{ $email }}
+{{ (str_starts_with(app()->getLocale() ?? 'es', 'es') ? 'Asunto' : 'Subject') }}: {{ $subjectLine }}
 
 ---
+{{ (str_starts_with(app()->getLocale() ?? 'es', 'es') ? 'Mensaje' : 'Message') }}:
 
 {{ $messageText }}
-
-@endcomponent

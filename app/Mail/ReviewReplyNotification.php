@@ -7,63 +7,70 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Mail\Concerns\EmbedsBrandAssets;
 
 class ReviewReplyNotification extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+use Queueable, SerializesModels, /* BookingMailHelpers, */ EmbedsBrandAssets;
 
     public ReviewReply $reply;
     public string $adminName;
     public ?string $tourName;
     public ?string $customerName;
 
+    /**
+     * @param ReviewReply $reply
+     * @param string      $adminName
+     * @param string|null $tourName
+     * @param string|null $customerName
+     */
     public function __construct(ReviewReply $reply, string $adminName, ?string $tourName = null, ?string $customerName = null)
     {
-        // Cargamos tour por si el blade lo necesita
+        // por si acaso, suma relación del tour
         $this->reply        = $reply->loadMissing('review.tour');
         $this->adminName    = $adminName;
         $this->tourName     = $tourName;
         $this->customerName = $customerName;
     }
 
-    public function build()
-    {
-        // Marca/branding (AdminLTE > app)
-        $brandName   = config('adminlte.logo', config('app.name', 'Green Vacations CR'));
-        $logoRelPath = config('adminlte.auth_logo.img.path')
-            ?? config('adminlte.logo_img')
-            ?? 'images/logoCompanyWhite.png';
-
-        // Datos de contacto
-        $contact = [
-            'site'  => 'https://greenvacationscr.com',
-            'email' => 'info@greenvacationscr.com',
-            'phone' => '+506 2479 1471',
-        ];
-
-        // Asunto traducido (si hay tour, lo agregamos al final)
-        $subject = __('reviews.emails.reply.subject');
-        if ($this->tourName) {
-            $subject .= ' — ' . $this->tourName;
-        }
-
-        return $this->subject($subject)
-            ->view('emails.reply_html', [
-                'brandName'    => $brandName,
-                'logoRelPath'  => $logoRelPath,
-                'adminName'    => $this->adminName,
-                'tourName'     => $this->tourName,
-                'customerName' => $this->customerName,
-                'body'         => $this->reply->body, // el blade usa {{ $body }}
-                'contact'      => $contact,
-            ])
-            ->text('emails.reply_text', [
-                'brandName'    => $brandName,
-                'adminName'    => $this->adminName,
-                'tourName'     => $this->tourName,
-                'customerName' => $this->customerName,
-                'body'         => $this->reply->body,
-                'contact'      => $contact,
-            ]);
+public function build()
+{
+    // SUBJECT
+    $subject = __('reviews.emails.reply.subject');
+    if ($this->tourName) {
+        $subject .= ' — ' . $this->tourName;
     }
+
+    // FROM (sin reply-to)
+    $fromAddress = config('mail.from.address', 'noreply@greenvacationscr.com');
+    $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));
+
+    // CID + fallback (logo)
+    $logoCid         = $this->embedLogoCid();
+    $appLogoFallback = $this->logoFallbackUrl();
+
+    // construir mailable sin BCC / sin replyTo
+    $mailable = $this
+        ->from($fromAddress, $fromName)
+        ->subject($subject);
+
+    return $mailable
+        ->view('emails.reviews.reply', [
+            'adminName'       => $this->adminName,
+            'tourName'        => $this->tourName,
+            'customerName'    => $this->customerName,
+            'body'            => $this->reply->body,
+            'logoCid'         => $logoCid,
+            'appLogoFallback' => $appLogoFallback,
+        ])
+        ->text('emails.reviews.reply_text', [
+            'adminName'    => $this->adminName,
+            'tourName'     => $this->tourName,
+            'customerName' => $this->customerName,
+            'body'         => $this->reply->body,
+        ]);
+}
+
+
+
 }

@@ -30,21 +30,83 @@
 
 @section('content')
 @php
-  $fmt2 = fn($n) => number_format((float)$n, 2, '.', '');
+  use App\Models\CustomerCategory;
 
-  $catLinesFromDetail = function($detail) {
-      $codeMap = [
-          'adult'    => __('adminlte::adminlte.adult'),
-          'adults'   => __('adminlte::adminlte.adults'),
-          'kid'      => __('adminlte::adminlte.kid'),
-          'kids'     => __('adminlte::adminlte.kids'),
-          'child'    => __('adminlte::adminlte.kid'),
-          'children' => __('adminlte::adminlte.kids'),
-          'senior'   => __('adminlte::adminlte.senior') ?? 'Senior',
-          'student'  => __('adminlte::adminlte.student') ?? 'Student',
-      ];
+  $fmt2   = fn($n) => number_format((float)$n, 2, '.', '');
+  $locale = app()->getLocale();
 
+  /**
+   * ===== 1) Preload diccionarios por ID y por SLUG para TODO el set de bookings =====
+   * Evita N+1 al resolver nombres traducidos cuando el payload no trae 'translated'
+   */
+  $allCatsRaw = collect($bookings ?? [])
+      ->map(fn($b) => optional($b->detail)->categories ?? [])
+      ->flatten(1);
+
+  $ids   = $allCatsRaw->pluck('category_id')->merge($allCatsRaw->pluck('id'))->filter()->unique()->values()->all();
+  $slugs = $allCatsRaw->pluck('slug')->filter()->unique()->values()->all();
+
+  $dict   = CustomerCategory::preloadDictionaries($ids, $slugs, $locale);
+  $byId   = $dict['byId']   ?? [];
+  $bySlug = $dict['bySlug'] ?? [];
+
+  /**
+   * ===== 2) Mapa para códigos “antiguos” si llegan solo como code =====
+   */
+  $codeMap = [
+      'adult'    => __('adminlte::adminlte.adult'),
+      'adults'   => __('adminlte::adminlte.adults'),
+      'kid'      => __('adminlte::adminlte.kid'),
+      'kids'     => __('adminlte::adminlte.kids'),
+      'child'    => __('adminlte::adminlte.kid'),
+      'children' => __('adminlte::adminlte.kids'),
+      'senior'   => __('adminlte::adminlte.senior')  ?: 'Senior',
+      'student'  => __('adminlte::adminlte.student') ?: 'Student',
+  ];
+
+  /**
+   * ===== 3) Resolución de nombre modular (usa clave estándar 'translated') =====
+   */
+  $resolveCategoryName = function(array $c) use ($byId, $bySlug, $codeMap): string {
+      // 3.1) Clave estándar pedida: 'translated' (o compat 'translation.name')
+      $inlineTranslated = data_get($c, 'translated')
+                       ?? data_get($c, 'translation.name');
+      if ($inlineTranslated) return (string) $inlineTranslated;
+
+      // 3.2) Aliases comunes si el payload trae texto
+      $inline = data_get($c, 'name')
+             ?? data_get($c, 'label')
+             ?? data_get($c, 'category_name')
+             ?? data_get($c, 'category.name');
+      if ($inline) return (string) $inline;
+
+      // 3.3) Diccionarios precargados por ID o SLUG
+      $cid = data_get($c, 'category_id') ?? data_get($c, 'id');
+      if ($cid && isset($byId[$cid])) return (string) $byId[$cid];
+
+      $slug = data_get($c, 'slug');
+      if ($slug && isset($bySlug[$slug])) return (string) $bySlug[$slug];
+
+      // 3.4) Por code (adult/kid/etc.) → traducción de llave o texto del code
+      $code = data_get($c, 'code');
+      if ($code) {
+          if (isset($codeMap[$code])) return (string) $codeMap[$code];
+          $tr = __($code);
+          if ($tr !== $code) return (string) $tr;
+          return (string) ucfirst(str_replace('_',' ', $code));
+      }
+
+      // 3.5) Fallback traducido para "category"
+      return __('adminlte::adminlte.category');
+  };
+
+  /**
+   * ===== 4) Construcción de líneas por detalle =====
+   * Si no hay estructura de categorías en el detalle, cae al fallback adults/kids
+   */
+  $catLinesFromDetail = function($detail) use ($resolveCategoryName) {
       $raw = collect($detail->categories ?? []);
+
       if ($raw->isEmpty()) {
           $fallback = [
               [
@@ -58,29 +120,18 @@
                   'price'    => (float)($detail->kid_price    ?? 0),
               ],
           ];
+
           return collect($fallback)->map(function($c){
-              $c['subtotal'] = $c['price'] * $c['quantity'];
+              $c['subtotal'] = (float)$c['price'] * (int)$c['quantity'];
               return $c;
-          })->filter(fn($c) => $c['quantity'] > 0)->values();
+          })->filter(fn($c)=>$c['quantity']>0)->values();
       }
 
-      return $raw->map(function($c) use ($codeMap) {
-          $q = (int)  data_get($c, 'quantity', 0);
-          $p = (float) data_get($c, 'price', 0);
-          $name =
-              data_get($c, 'name') ??
-              data_get($c, 'label') ??
-              data_get($c, 'category_name') ??
-              data_get($c, 'category.name') ??
-              (function() use ($c, $codeMap) {
-                  $code = data_get($c, 'code');
-                  if (!$code) return null;
-                  if (isset($codeMap[$code])) return $codeMap[$code];
-                  $tr = __($code);
-                  return $tr === $code ? (string)$code : $tr;
-              })();
-
-          if (!$name) $name = 'Category';
+      return $raw->map(function($c) use ($resolveCategoryName) {
+          $cArr = is_array($c) ? $c : (array)$c;
+          $q = (int)   data_get($cArr, 'quantity', 0);
+          $p = (float) data_get($cArr, 'price', 0.0);
+          $name = $resolveCategoryName($cArr);
 
           return [
               'name'     => (string)$name,
@@ -88,11 +139,11 @@
               'price'    => $p,
               'subtotal' => $p * $q,
           ];
-      })->filter(fn($c) => $c['quantity'] > 0)->values();
+      })->filter(fn($c)=>$c['quantity']>0)->values();
   };
 
   $detailSubtotal = fn($detail) => (float) collect($catLinesFromDetail($detail))->sum('subtotal');
-  $detailTotalPax = fn($detail) => (int) collect($catLinesFromDetail($detail))->sum('quantity');
+  $detailTotalPax = fn($detail) => (int)   collect($catLinesFromDetail($detail))->sum('quantity');
 @endphp
 
 <main class="container my-5">
@@ -172,14 +223,20 @@
                                               – {{ \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A') }}
                                           </p>
                                         @endif
+@php
+    // Prioridad: idioma del detalle → idioma del booking
+    $langName = optional($detail?->tourLanguage)->name
+             ?? optional($booking->tourLanguage)->name;
+@endphp
 
-                                        @if(optional($booking->language)->name)
-                                          <p class="card-text text-muted small mb-1">
-                                              <i class="fas fa-language"></i>
-                                              <strong>{{ __('adminlte::adminlte.language') }}:</strong>
-                                              {{ $booking->language->name }}
-                                          </p>
-                                        @endif
+@if(!empty($langName))
+  <p class="card-text text-muted small mb-1">
+      <i class="fas fa-language"></i>
+      <strong>{{ __('adminlte::adminlte.language') }}:</strong>
+      {{ $langName }}
+  </p>
+@endif
+
 
                                         <div class="card-text text-muted small mb-2">
                                             <i class="fas fa-users"></i>

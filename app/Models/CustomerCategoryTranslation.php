@@ -54,4 +54,10 @@ class CustomerCategoryTranslation extends Model
     return response()->json($data);
 }
 
+    public function scopeLocale($q, string $locale)
+    {
+        $locale = str_replace('_', '-', $locale);
+        return $q->where('locale', $locale);
+    }
+
 }

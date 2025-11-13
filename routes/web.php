@@ -49,6 +49,10 @@ use App\Http\Controllers\Admin\TranslationController;
 use App\Http\Controllers\Admin\CapacityController;
 use App\Http\Controllers\Admin\CustomerCategoryController;
 use App\Http\Controllers\Admin\Tours\TourAjaxController;
+use App\Http\Controllers\Admin\API\TourDataController;
+use App\Mail\BookingCreatedMail;
+use App\Models\Booking;
+
 
 // Public bookings controller (split)
 use App\Http\Controllers\Bookings\BookingController as PublicBookingController;
@@ -145,9 +149,12 @@ Route::middleware([SetLocale::class])->group(function () {
     // ============================
     // PUBLIC LOCALIZED ROUTES
     // ============================
+
+
     localizedRoutes(function () {
         // Home & Tours
         Route::get('/', [HomeController::class, 'index'])->name('home');
+        Route::get('/home', [HomeController::class, 'index'])->name('home');
         Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
         Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tours.show');
 
@@ -186,12 +193,15 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::post('/r/{token}', [PublicReviewController::class, 'submit'])->name('reviews.request.submit');
     Route::view('/reviews/thanks', 'reviews.thanks')->name('reviews.thanks');
 
-    // ============================
+// ============================
     // AUTH & VERIFICATION
     // ============================
+
+    // Account locked
     Route::view('/account/locked', 'auth.account-locked')->name('account.locked');
     Route::get('/auth/throttled', fn () => response()->view('errors.429'))->name('auth.throttled');
 
+    // Unlock account
     Route::get('/unlock-account', [UnlockAccountController::class, 'form'])->name('unlock.form');
     Route::post('/unlock-account', [UnlockAccountController::class, 'send'])
         ->middleware('throttle:3,1')
@@ -200,10 +210,17 @@ Route::middleware([SetLocale::class])->group(function () {
         ->middleware('signed')
         ->name('unlock.process');
 
+    // Email verification - Public verification URL (from email)
     Route::get('/email/verify/public/{id}/{hash}', PublicEmailVerificationController::class)
         ->middleware(['signed', 'throttle:6,1'])
         ->name('verification.public');
 
+    // 🆕 Email verification - Notice screen (after registration)
+    Route::get('/email/verify', function () {
+        return view('auth.verify-email');
+    })->middleware('guest')->name('verification.notice');
+
+    // Email verification - Resend link
     Route::post('/email/verify/public/resend', function (Request $request) {
         $request->validate(['email' => ['required', 'email']]);
 
@@ -221,24 +238,13 @@ Route::middleware([SetLocale::class])->group(function () {
             }
         }
 
-        return back()->with('status', __('adminlte::auth.verify.resent_link_if_exists'));
+        return back()->with('status', __('auth.verify.resent'));
     })->middleware('throttle:3,1')->name('verification.public.resend');
-
-    // ============================
-    // TEST EMAIL (DEV)
-    // ============================
-    Route::get('/send-test-email', function () {
-        $booking = \App\Models\Booking::latest()->with(['user', 'detail', 'tour'])->first();
-        if ($booking) {
-            Mail::to($booking->user->email)->queue(new \App\Mail\BookingCreatedMail($booking));
-        }
-        return 'Test email queued!';
-    });
 
     // ------------------------------
     // Profile & cart (private) — READONLY-BLOCKABLE
     // ------------------------------
-    Route::middleware(['auth', 'verified', 'public.readonly'])->group(function () {
+    Route::middleware(['auth', 'verified'])->group(function () {
         // Profile
         Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
         Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');

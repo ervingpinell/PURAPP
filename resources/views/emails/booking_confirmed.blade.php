@@ -1,51 +1,150 @@
-<!DOCTYPE html>
-<html lang="{{ $mailLocale }}">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ __('adminlte::email.booking_confirmed_title', [], $mailLocale) }}</title>
-</head>
-<body style="font-family: Arial, sans-serif; color: #333; line-height:1.5;">
-    <h2 style="color:#2E8B57; margin-bottom:8px;">
-        {{ __('adminlte::email.greeting', ['name' => $booking->user->full_name], $mailLocale) }}
-    </h2>
+@extends('emails.layouts.base')
 
-    <p style="margin-top:0;">
-        {{ __('adminlte::email.booking_confirmed_message', ['company' => $company, 'reference' => $reference], $mailLocale) }}
-    </p>
+@section('content')
+@php
+    $mailLocale = str_starts_with(($mailLocale ?? app()->getLocale()), 'es') ? 'es' : 'en';
+    $money = fn($n) => '$' . number_format((float)$n, 2);
+    $reference = $reference ?? ($booking->booking_reference ?? $booking->booking_id);
 
-    @php
-        $detail = $booking->detail;
-        $meetingValue = '—';
-        if ($detail) {
-            $mpName = $detail->meeting_point_name ?? null;
-            $mpTime = $detail->meeting_point_pickup_time ?? null;
-            if ($mpName) {
-                $meetingValue = $mpName . ($mpTime ? ' — ' . \Carbon\Carbon::parse($mpTime)->format('g:i A') : '');
-            }
+    $subtotal = $booking->subtotal ?? ($booking->amount_before_discounts ?? null);
+    if ($subtotal === null) {
+        $subtotal = collect($booking->details ?? [])->flatMap(fn($d) => collect($d->categories ?? []))
+            ->reduce(fn($c,$x)=> $c + ((float)($x['quantity']??0) * (float)($x['price']??0)), 0.0);
+    }
+
+    $promo          = $booking->redemption?->promoCode ?? $booking->promoCode ?? $booking->promoCodeLegacy;
+    $discountAmount = $promo->discount_amount ?? $promo?->discount ?? null;
+    $discountName   = $promo->code ?? $promo?->name ?? null;
+    $taxes          = $booking->taxes ?? ($booking->tax ?? null);
+    $total          = $booking->total  ?? ($booking->amount ?? null);
+
+    $tConfirmed = $mailLocale === 'es' ? 'Reserva confirmada'     : 'Booking confirmed';
+    $tRef       = $mailLocale === 'es' ? 'Referencia'              : 'Reference';
+    $tSummary   = $mailLocale === 'es' ? 'Resumen'                 : 'Summary';
+    $tBreakdown = $mailLocale === 'es' ? 'Desglose por cliente'    : 'Customer breakdown';
+    $tSubtotal  = $mailLocale === 'es' ? 'Subtotal'                : 'Subtotal';
+    $tDiscount  = $mailLocale === 'es' ? 'Descuento'               : 'Discount';
+    $tTaxes     = $mailLocale === 'es' ? 'Impuestos'               : 'Taxes';
+    $tTotal     = $mailLocale === 'es' ? 'Total'                   : 'Total';
+
+    $d = collect($booking->details ?? [])->first();
+
+    /* ===== Locale preferido para el nombre del tour ===== */
+    $preferredLoc = strtolower(
+        $booking->locale ?? $booking->language_code ?? $mailLocale ?? app()->getLocale()
+    );
+    $preferredLoc = \Illuminate\Support\Str::of($preferredLoc)->before('-')->lower()->value();
+
+    $tourName = $d?->tour_name;
+    if (!$tourName && $d?->relationLoaded('tour') && $d?->tour) {
+        $tour = $d->tour;
+        if (isset($tour->translated_name) && filled($tour->translated_name)) {
+            $tourName = $tour->translated_name;
         }
-    @endphp
+        if (!$tourName && method_exists($tour, 'getTranslated')) {
+            $tourName = $tour->getTranslated('name', $preferredLoc) ?? $tour->name ?? null;
+        }
+        if (!$tourName) {
+            $tr = $tour->relationLoaded('translations')
+                ? $tour->translations->firstWhere('locale', $preferredLoc)
+                : $tour->translations()->where('locale', $preferredLoc)->first();
+            $tourName = $tr->name ?? $tour->name ?? null;
+        }
+    }
+    $tourName = $tourName ?: ($mailLocale === 'es' ? 'Tour' : 'Tour');
 
-    <h3 style="margin-top:24px;">📅 {{ __('adminlte::email.booking_details', [], $mailLocale) }}</h3>
-    <ul style="padding-left:18px;">
-        <li><strong>{{ __('adminlte::email.booking_reference', [], $mailLocale) }}:</strong> {{ $reference }}</li>
-        <li><strong>{{ __('adminlte::email.tour', [], $mailLocale) }}:</strong> {{ $booking->tour->translated_name ?? $booking->tour->name }}</li>
-        <li><strong>{{ __('adminlte::email.tour_language', [], $mailLocale) }}:</strong> {{ $tourLangLabel }}</li>
-        <li><strong>{{ __('adminlte::email.date', [], $mailLocale) }}:</strong> {{ optional($booking->detail->tour_date)->format('d/m/Y') }}</li>
-        <li><strong>{{ __('adminlte::email.adults', [], $mailLocale) }}:</strong> {{ $booking->detail->adults_quantity }}</li>
-        <li><strong>{{ __('adminlte::email.kids', [], $mailLocale) }}:</strong> {{ $booking->detail->kids_quantity }}</li>
-        <li><strong>{{ __('adminlte::email.hotel', [], $mailLocale) }}:</strong> {{ $booking->detail->hotel->name ?? $booking->detail->other_hotel_name ?? '—' }}</li>
-        <li><strong>{{ __('adminlte::email.meeting_point', [], $mailLocale) }}:</strong> {{ $meetingValue }}</li>
-        <li><strong>{{ __('adminlte::email.total', [], $mailLocale) }}:</strong> ${{ number_format($booking->total, 2) }}</li>
-        <li><strong>{{ __('adminlte::email.status', [], $mailLocale) }}:</strong> {{ $statusLabel }}</li>
-    </ul>
+    $tourDate = $d?->tour_date ? \Illuminate\Support\Carbon::parse($d->tour_date)->format('Y-m-d') : null;
+    $scheduleTxt = $d?->schedule
+        ? \Illuminate\Support\Carbon::parse($d->schedule->start_time)->isoFormat('LT') . ' – ' . \Illuminate\Support\Carbon::parse($d->schedule->end_time)->isoFormat('LT')
+        : null;
 
-    <p style="margin-top:16px;">
-        {{ __('adminlte::email.contact_us', ['email' => $contactEmail], $mailLocale) }}
-    </p>
+    $tourLang = optional($d?->tourLanguage)->language_name
+        ?? optional($d?->tourLanguage)->name
+        ?? optional($booking->tourLanguage)->language_name
+        ?? optional($booking->tourLanguage)->language
+        ?? null;
 
-    <p style="margin-top:16px;">
-        {{ __('adminlte::email.enjoy_experience', [], $mailLocale) }}<br>
-        {{ __('adminlte::email.team_name', ['company' => $company], $mailLocale) }} 🌿
-    </p>
-</body>
-</html>
+    $meetingName = $d?->meeting_point_name;
+    $meetingUrl  = $d?->meeting_point_map_url;
+    if (!$meetingName) {
+        $mp = $d?->meetingPoint;
+        if ($mp) {
+            if (method_exists($mp, 'getTranslated')) {
+                $meetingName = $mp->getTranslated('name', app()->getLocale()) ?? $mp->name;
+            } else {
+                $loc = \Illuminate\Support\Str::of(app()->getLocale())->before('-')->lower()->value();
+                $tr  = $mp->relationLoaded('translations')
+                    ? $mp->translations->firstWhere('locale', $loc)
+                    : $mp->translations()->where('locale', $loc)->first();
+                $meetingName = $tr->name ?? $mp->name;
+            }
+            $meetingUrl = $meetingUrl ?: ($mp->map_url ?? null);
+        }
+    }
+
+    $hotelName = (($d?->is_other_hotel ?? false) && filled($d?->other_hotel_name))
+        ? $d->other_hotel_name
+        : (optional($d?->hotel)->name ?? optional($booking->hotel)->name ?? null);
+@endphp
+
+<div class="section-card" style="margin-bottom:14px;">
+  <div class="section-title" style="margin-bottom:4px;">{{ $tConfirmed }}</div>
+  <div style="font-size:13px;color:#6b7280;">{{ $tRef }}: {{ $reference }}</div>
+</div>
+
+<div class="section-card" style="margin-bottom:12px;">
+  <div class="section-title" style="margin-bottom:6px;font-weight:700;">{{ $tSummary }}</div>
+  <div style="font-size:14px;color:#374151;">
+    @if($tourName)<div><strong>Tour:</strong> {{ $tourName }}</div>@endif
+    @if($tourDate)<div><strong>{{ $mailLocale==='es'?'Fecha del tour':'Tour date' }}:</strong> {{ $tourDate }}</div>@endif
+    @if($scheduleTxt)<div><strong>{{ $mailLocale==='es'?'Horario':'Schedule' }}:</strong> {{ $scheduleTxt }}</div>@endif
+    @if($tourLang)<div><strong>{{ $mailLocale==='es'?'Idioma':'Language' }}:</strong> {{ $tourLang }}</div>@endif
+
+    @if($meetingName)
+      <div><strong>{{ $mailLocale==='es'?'Punto de encuentro':'Meeting point' }}:</strong>
+        @if($meetingUrl)
+          <a href="{{ $meetingUrl }}" target="_blank" rel="noopener" style="color:#0ea5e9;text-decoration:none;">{{ $meetingName }}</a>
+        @else
+          {{ $meetingName }}
+        @endif
+      </div>
+    @elseif($hotelName)
+      <div><strong>{{ $mailLocale==='es'?'Hotel pickup':'Hotel pickup' }}:</strong> {{ $hotelName }}</div>
+    @endif
+
+    @php $notes = trim((string)($booking->notes ?? '')); @endphp
+    @if($notes !== '')<div><strong>{{ $mailLocale==='es'?'Notas':'Notes' }}:</strong> {{ $notes }}</div>@endif
+  </div>
+</div>
+
+@include('emails.partials.booking-line-items', [
+  'booking'        => $booking,
+  'mailLocale'     => $mailLocale,
+  'suppressHeader' => true,
+])
+
+<div class="totals-inline">
+  <div class="row"><span class="label">{{ $tSubtotal }}:</span> <span class="amount">{{ $money($subtotal) }}</span></div>
+
+  @if($discountAmount && $discountAmount > 0)
+    <div class="row">
+      <span class="label">{{ $tDiscount }}:</span>
+      <span class="amount">-{{ $money($discountAmount) }}</span>
+      @if($discountName)
+        <span class="muted">({{ $discountName }})</span>
+      @endif
+    </div>
+  @endif
+
+  @if($taxes && $taxes > 0)
+    <div class="row"><span class="label">{{ $tTaxes }}:</span> <span class="amount">{{ $money($taxes) }}</span></div>
+  @endif
+
+  <div class="row total">
+    <span class="label">{{ $tTotal }}:</span>
+    <span class="amount">
+      {{ $total !== null ? $money($total) : $money(max(0, (float)$subtotal - (float)($discountAmount ?? 0) + (float)($taxes ?? 0))) }}
+    </span>
+  </div>
+</div>
+@endsection

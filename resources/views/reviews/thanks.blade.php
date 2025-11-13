@@ -11,7 +11,9 @@
           <p class="text-success mb-2">{{ session('ok') }}</p>
         @endif
         <p class="text-muted mb-4">{{ __('reviews.public.thanks_help') }}</p>
-        <a class="btn btn-primary" href="{{ route('home') }}">{{ __('reviews.public.back_home') }}</a>
+<a class="btn btn-primary" href="{{ route(app()->getLocale().'.home') }}">
+  {{ __('reviews.public.back_home') }}
+</a>
       </div>
     </div>
   </div>

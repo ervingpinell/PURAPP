@@ -1,4 +1,13 @@
-{{ $brandName }}
+@php
+  $company = $brandName ?? (config('mail.from.name', config('app.name', 'Green Vacations CR')));
+  $contact = [
+      'site'  => rtrim(env('COMPANY_SITE', config('app.url')), '/'),
+      'email' => env('MAIL_TO_CONTACT', config('mail.from.address')),
+      'phone' => env('COMPANY_PHONE', '+506 2479 1471'),
+  ];
+@endphp
+
+{{ $company }}
 
 {{ __('reviews.emails.reply.greeting', ['name' => $customerName ?: __('reviews.emails.traveler')]) }}
 

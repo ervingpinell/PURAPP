@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class CustomerCategory extends Model
 {
@@ -15,7 +16,6 @@ class CustomerCategory extends Model
 
     protected $fillable = [
         'slug',
-        // 'name',  // <-- eliminado
         'age_from',
         'age_to',
         'order',
@@ -28,6 +28,9 @@ class CustomerCategory extends Model
         'order'     => 'integer',
         'is_active' => 'boolean',
     ];
+
+    // === Appends útiles si serializas categorías directo a JSON ===
+    protected $appends = ['translated'];
 
     /* Scopes */
     public function scopeActive($q){ return $q->where('is_active', true); }
@@ -99,38 +102,119 @@ class CustomerCategory extends Model
             ->withTimestamps();
     }
 
-    public function getTranslatedName(?string $locale = null): string
-{
-    // 1) Locale actual (ej. 'pt-BR' → intenta 'pt-BR' y luego 'pt')
-    $locale = $locale ?: app()->getLocale();
-    $cands  = array_unique([
-        $locale,                        // 'pt-BR'
-        substr($locale, 0, 2),          // 'pt'
-        config('app.fallback_locale'),  // típico: 'en' o 'es'
-        'es',                           // forzamos español como fallback conocido
-    ]);
-
-    foreach ($cands as $lc) {
-        $t = $this->translations->firstWhere('locale', $lc);
-        if ($t && $t->name) return $t->name;
-    }
-
-    // Último recurso: cualquier traducción existente o slug “bonito”
-    if ($this->translations->isNotEmpty()) {
-        return (string) optional($this->translations->first())->name;
-    }
-
-    return $this->slug ? \Illuminate\Support\Str::of($this->slug)->replace(['_','-'],' ')->title() : '';
-}
-
-// Accessor para usar $category->display_name en las vistas
-public function getDisplayNameAttribute(): string
-{
-    return $this->getTranslatedName();
-}
-
     public function translations()
-{
-    return $this->hasMany(CustomerCategoryTranslation::class, 'category_id', 'category_id');
-}
+    {
+        return $this->hasMany(CustomerCategoryTranslation::class, 'category_id', 'category_id');
+    }
+
+    /** ===== LOCALIZACIÓN ===== */
+
+    /**
+     * Lista ordenada de locales candidatos a evaluar.
+     */
+    public static function candidateLocales(?string $preferred = null): array
+    {
+        $lc = $preferred ?: app()->getLocale() ?: 'es';
+        $lc = str_replace('_', '-', $lc);
+        $cands = [$lc];
+
+        $base = explode('-', $lc)[0] ?? null;
+        if ($base && !in_array($base, $cands, true)) $cands[] = $base;
+
+        $fallback = str_replace('_', '-', (string) config('app.fallback_locale', 'en'));
+        if (!in_array($fallback, $cands, true)) $cands[] = $fallback;
+
+        $fbBase = explode('-', $fallback)[0] ?? null;
+        if ($fbBase && !in_array($fbBase, $cands, true)) $cands[] = $fbBase;
+
+        if (!in_array('es', $cands, true)) $cands[] = 'es';
+
+        return array_values(array_unique($cands));
+    }
+
+    /**
+     * Devuelve el nombre traducido (igual que antes).
+     */
+    public function getTranslatedName(?string $locale = null): string
+    {
+        $cands = self::candidateLocales($locale);
+        $trs = $this->relationLoaded('translations')
+            ? $this->getRelation('translations')
+            : $this->translations()->get();
+
+        if ($trs->isNotEmpty()) {
+            // índices por exacto y por base
+            $byExact = [];
+            $byBase  = [];
+            foreach ($trs as $t) {
+                $loc = str_replace('_', '-', (string) $t->locale);
+                $byExact[$loc] = $t;
+                $base = explode('-', $loc)[0];
+                if (!isset($byBase[$base])) $byBase[$base] = $t;
+            }
+
+            foreach ($cands as $cand) {
+                if (isset($byExact[$cand]) && $byExact[$cand]->name) {
+                    return (string) $byExact[$cand]->name;
+                }
+                $lang = explode('-', $cand)[0];
+                if (isset($byBase[$lang]) && $byBase[$lang]->name) {
+                    return (string) $byBase[$lang]->name;
+                }
+            }
+
+            // cualquier traducción disponible
+            $any = $trs->firstWhere('name', '!=', null) ?? $trs->first();
+            if ($any && $any->name) return (string) $any->name;
+        }
+
+        return $this->slug
+            ? (string) Str::of($this->slug)->replace(['_','-'],' ')->title()
+            : '';
+    }
+
+    /**
+     * Accessor uniforme: $category->translated
+     * (clave estándar que pides para “el nombre traducido”)
+     */
+    public function getTranslatedAttribute(): string
+    {
+        return $this->getTranslatedName();
+    }
+
+    /**
+     * Carga un diccionario de nombres traducidos por ID y por SLUG para un set.
+     * Devuelve: ['byId'=>[id=>name], 'bySlug'=>[slug=>name]]
+     */
+    public static function preloadDictionaries(array $ids = [], array $slugs = [], ?string $locale = null): array
+    {
+        $ids   = array_values(array_unique(array_filter($ids)));
+        $slugs = array_values(array_unique(array_filter($slugs)));
+
+        if (empty($ids) && empty($slugs)) {
+            return ['byId'=>[], 'bySlug'=>[]];
+        }
+
+        $q = static::query()->with('translations');
+
+        if (!empty($ids))   $q->whereIn('category_id', $ids);
+        if (!empty($slugs)) {
+            $q->when(!empty($ids),
+                fn($qq) => $qq->orWhereIn('slug', $slugs),
+                fn($qq) => $qq->whereIn('slug', $slugs)
+            );
+        }
+
+        $rows = $q->get();
+
+        $byId   = [];
+        $bySlug = [];
+        foreach ($rows as $row) {
+            $name = $row->getTranslatedName($locale);
+            $byId[$row->category_id] = $name;
+            if ($row->slug) $bySlug[$row->slug] = $name;
+        }
+
+        return ['byId' => $byId, 'bySlug' => $bySlug];
+    }
 }

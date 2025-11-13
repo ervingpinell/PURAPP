@@ -5,6 +5,10 @@ return [
     'what_visitors_say' => '¿Qué opinan nuestros clientes?',
     'powered_by'        => 'Proporcionado por',
 
+        'generic' => [
+        'our_tour' => 'nuestro tour',
+    ],
+
     // =========================
     // Comunes
     // =========================
@@ -239,9 +243,12 @@ return [
     // Emails
     // =========================
     'emails' => [
+
         'brand_from'   => 'Green Vacations CR',
         'contact_line' => 'Si necesitas ayuda, contáctanos en :email o al :phone. Visítanos en :url.',
         'request' => [
+            'preheader_with_date' => 'Cuéntanos tu experiencia en :tour (:date). No te toma ni un minuto.',
+            'preheader'           => 'Cuéntanos tu experiencia en :tour. No te toma ni un minuto.',
             'subject'   => '¿Cómo te fue en :tour?',
             'cta'       => 'Dejar mi reseña',
             'footer'    => 'Gracias por apoyar al turismo local. ¡Te esperamos pronto de vuelta! 🌿',
