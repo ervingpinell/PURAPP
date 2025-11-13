@@ -78,7 +78,7 @@ class HomeController extends Controller
                 ->orderBy('name')
                 ->get();
 
-            return view('home', compact(
+            return view('public.home', compact(
                 'toursByType',
                 'typeMeta',
                 'homeReviews',
@@ -94,7 +94,7 @@ class HomeController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return view('home', [
+            return view('public.home', [
                 'toursByType'   => collect(),
                 'typeMeta'      => collect(),
                 'homeReviews'   => collect(),
