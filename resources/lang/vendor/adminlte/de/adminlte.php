@@ -251,6 +251,10 @@ return [
     'senior'    => 'Senior',
     'student'   => 'Student',
     'custom' => 'Benutzerdefiniert',
+    'notes'             => 'Hinweise',
+    'notes_placeholder' => 'Gibt es etwas, das wir wissen sollten? (Allergien, Mobilität, Feiern usw.)',
+    'notes_help'        => 'Diese Hinweise werden zusammen mit Ihrer Buchung an unser Team gesendet.',
+
 
     // 10. VALIDIERUNG
     'required_field' => 'Dieses Feld ist erforderlich.',

@@ -225,6 +225,7 @@ return [
             'subtotal'          => 'Zwischensumme',
             'discount'          => 'Rabatt',
             'total_persons'     => 'Personenanzahl',
+            'pickup_time' => 'Abholzeit',
         ],
 
         'placeholders' => [

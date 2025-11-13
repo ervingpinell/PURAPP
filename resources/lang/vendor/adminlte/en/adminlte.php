@@ -252,6 +252,10 @@ return [
     'senior'    => 'Senior',
     'student'   => 'Student',
     'custom' => 'Custom',
+    'notes'             => 'Notes',
+    'notes_placeholder' => 'Anything we should know? (allergies, mobility, celebrations, etc.)',
+    'notes_help'        => 'These notes will be sent to our team together with your booking.',
+
 
     // 10. VALIDATION
     'required_field' => 'This field is required.',

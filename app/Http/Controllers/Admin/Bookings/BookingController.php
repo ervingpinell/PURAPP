@@ -210,274 +210,318 @@ class BookingController extends Controller
         ));
     }
 
-    /** Crear una reserva (admin) */
-public function store(Request $request)
-{
-    // Normalizar pickup
-    $in = $request->all();
-    $in['is_other_hotel'] = (bool)($in['is_other_hotel'] ?? false);
-    if (!empty($in['meeting_point_id'])) {
-        $in['is_other_hotel']   = false;
-        $in['other_hotel_name'] = null;
-        $in['hotel_id']         = null;
-    } elseif (!empty($in['other_hotel_name'])) {
-        $in['is_other_hotel'] = true;
-        $in['hotel_id']       = null;
-    }
-    $request->replace($in);
+    public function store(Request $request)
+    {
+        // Normalizar pickup / hotel / meeting point
+        $in = $request->all();
+        $in['is_other_hotel'] = (bool)($in['is_other_hotel'] ?? false);
 
-    $validated = $request->validate([
-        'user_id'           => 'required|exists:users,user_id',
-        'tour_id'           => 'required|exists:tours,tour_id',
-        'schedule_id'       => 'required|exists:schedules,schedule_id',
-        'tour_language_id'  => 'required|exists:tour_languages,tour_language_id',
-        'tour_date'         => 'required|date|after_or_equal:today',
-        'booking_date'      => 'nullable|date',
-        'categories'        => 'required|array|min:1',
-        'categories.*'      => 'required|integer|min:0',
-        'hotel_id'          => 'nullable|integer|exists:hotels_list,hotel_id|exclude_if:is_other_hotel,1',
-        'is_other_hotel'    => 'nullable|boolean',
-        'other_hotel_name'  => 'nullable|string|max:255|required_if:is_other_hotel,1',
-        'status'            => 'required|in:pending,confirmed,cancelled',
-        'meeting_point_id'  => 'nullable|integer|exists:meeting_points,id',
-        'notes'             => 'nullable|string|max:1000',
-        'promo_code'        => 'nullable|string|max:100',
-    ]);
+        if (!empty($in['meeting_point_id'])) {
+            // Si hay punto de encuentro, anulamos hotel/other_hotel
+            $in['is_other_hotel']   = false;
+            $in['other_hotel_name'] = null;
+            $in['hotel_id']         = null;
+        } elseif (!empty($in['other_hotel_name'])) {
+            // Si hay "otro hotel", anulamos hotel_id normal
+            $in['is_other_hotel'] = true;
+            $in['hotel_id']       = null;
+        }
 
-    $totalPax = array_sum($validated['categories'] ?? []);
-    $maxTotal = (int) config('booking.max_persons_per_booking', 12);
-    if ($totalPax > $maxTotal) {
-        return back()->withInput()->withErrors([
-            'categories' => __('m_bookings.bookings.validation.max_persons_total', ['max' => $maxTotal])
+        $request->replace($in);
+
+        // Validación
+        $validated = $request->validate([
+            'user_id'           => 'required|exists:users,user_id',
+            'tour_id'           => 'required|exists:tours,tour_id',
+            'schedule_id'       => 'required|exists:schedules,schedule_id',
+            'tour_language_id'  => 'required|exists:tour_languages,tour_language_id',
+            'tour_date'         => 'required|date|after_or_equal:today',
+            'booking_date'      => 'nullable|date',
+            'categories'        => 'required|array|min:1',
+            'categories.*'      => 'required|integer|min:0',
+            'hotel_id'          => 'nullable|integer|exists:hotels_list,hotel_id|exclude_if:is_other_hotel,1',
+            'is_other_hotel'    => 'nullable|boolean',
+            'other_hotel_name'  => 'nullable|string|max:255|required_if:is_other_hotel,1',
+            'status'            => 'required|in:pending,confirmed,cancelled',
+            'meeting_point_id'  => 'nullable|integer|exists:meeting_points,id',
+            'pickup_time'       => 'nullable|date_format:H:i',
+            'notes'             => 'nullable|string|max:1000',
+            'promo_code'        => 'nullable|string|max:100',
         ]);
-    }
 
-    try {
-        $tour = Tour::with('prices.category')->findOrFail((int)$validated['tour_id']);
+        // Tope global de personas por reserva
+        $totalPax = array_sum($validated['categories'] ?? []);
+        $maxTotal = (int) config('booking.max_persons_per_booking', 12);
 
-        $schedule = $tour->schedules()
-            ->where('schedules.schedule_id', $validated['schedule_id'])
-            ->where('schedules.is_active', true)
-            ->wherePivot('is_active', true)
-            ->first();
-
-        if (!$schedule) {
-            return back()->withInput()->withErrors(['schedule_id' => __('carts.messages.schedule_unavailable')]);
-        }
-
-        $validationResult = $this->validation->validateQuantities($tour, $validated['categories']);
-        if (!$validationResult['valid']) {
-            $errorMsg = implode(' ', $validationResult['errors']);
-            return back()->withInput()->withErrors(['categories' => $errorMsg]);
-        }
-
-        $remaining = $this->capacity->remainingCapacity(
-            $tour,
-            $schedule,
-            $validated['tour_date'],
-            excludeBookingId: null,
-            countHolds: true
-        );
-        if ($totalPax > $remaining) {
-            $friendly = __('m_bookings.bookings.errors.insufficient_capacity', [
-                'tour'      => $tour->name,
-                'date'      => \Carbon\Carbon::parse($validated['tour_date'])->translatedFormat('M d, Y'),
-                'time'      => \Carbon\Carbon::parse($schedule->start_time)->format('g:i A'),
-                'requested' => $totalPax,
-                'available' => $remaining,
-                'max'       => $this->capacity->resolveMaxCapacity($tour, $schedule, $validated['tour_date']),
+        if ($totalPax > $maxTotal) {
+            return back()->withInput()->withErrors([
+                'categories' => __('m_bookings.bookings.validation.max_persons_total', ['max' => $maxTotal])
             ]);
-            return back()->withInput()->withErrors(['capacity' => $friendly]);
         }
 
-        // Crear booking
-        $payload = [
-            'user_id'           => (int)$validated['user_id'],
-            'tour_id'           => (int)$validated['tour_id'],
-            'schedule_id'       => (int)$validated['schedule_id'],
-            'tour_language_id'  => (int)$validated['tour_language_id'],
-            'tour_date'         => $validated['tour_date'],
-            'booking_date'      => $validated['booking_date'] ?? now(),
-            'categories'        => $validated['categories'],
-            'status'            => $validated['status'],
-            'promo_code'        => $validated['promo_code'] ?? null,
-            'meeting_point_id'  => $validated['meeting_point_id'] ?? null,
-            'hotel_id'          => !empty($validated['is_other_hotel']) ? null : ($validated['hotel_id'] ?? null),
-            'is_other_hotel'    => (bool)($validated['is_other_hotel'] ?? false),
-            'other_hotel_name'  => $validated['other_hotel_name'] ?? null,
-            'notes'             => $validated['notes'] ?? null,
-        ];
+        // =======================
+        // CREACIÓN DE LA RESERVA
+        // =======================
+        try {
+            // Cargar tour + precios
+            $tour = Tour::with('prices.category')->findOrFail((int)$validated['tour_id']);
 
-        $booking = $this->creator->create($payload, validateCapacity: true, countHolds: true);
+            // Verificar horario activo
+            $schedule = $tour->schedules()
+                ->where('schedules.schedule_id', $validated['schedule_id'])
+                ->where('schedules.is_active', true)
+                ->wherePivot('is_active', true)
+                ->first();
 
-        // Email (cliente + admins) con validaciones/fallbacks y "send" en local si usas sync
-        $this->dispatchMail(new \App\Mail\BookingCreatedMail($booking), optional($booking->user)->email, $booking);
+            if (!$schedule) {
+                return back()->withInput()->withErrors([
+                    'schedule_id' => __('carts.messages.schedule_unavailable')
+                ]);
+            }
+
+            // Validar cantidades por categoría (min/max, etc.)
+            $validationResult = $this->validation->validateQuantities($tour, $validated['categories']);
+            if (!$validationResult['valid']) {
+                $errorMsg = implode(' ', $validationResult['errors']);
+                return back()->withInput()->withErrors(['categories' => $errorMsg]);
+            }
+
+            // Validar capacidad restante
+            $remaining = $this->capacity->remainingCapacity(
+                $tour,
+                $schedule,
+                $validated['tour_date'],
+                excludeBookingId: null,
+                countHolds: true
+            );
+
+            if ($totalPax > $remaining) {
+                $friendly = __('m_bookings.bookings.errors.insufficient_capacity', [
+                    'tour'      => $tour->name,
+                    'date'      => \Carbon\Carbon::parse($validated['tour_date'])->translatedFormat('M d, Y'),
+                    'time'      => \Carbon\Carbon::parse($schedule->start_time)->format('g:i A'),
+                    'requested' => $totalPax,
+                    'available' => $remaining,
+                    'max'       => $this->capacity->resolveMaxCapacity($tour, $schedule, $validated['tour_date']),
+                ]);
+
+                return back()->withInput()->withErrors(['capacity' => $friendly]);
+            }
+
+            // Payload para BookingCreator
+            $payload = [
+                'user_id'           => (int)$validated['user_id'],
+                'tour_id'           => (int)$validated['tour_id'],
+                'schedule_id'       => (int)$validated['schedule_id'],
+                'tour_language_id'  => (int)$validated['tour_language_id'],
+                'tour_date'         => $validated['tour_date'],
+                'booking_date'      => $validated['booking_date'] ?? now(),
+                'categories'        => $validated['categories'],
+                'status'            => $validated['status'],
+                'promo_code'        => $validated['promo_code'] ?? null,
+                'meeting_point_id'  => $validated['meeting_point_id'] ?? null,
+                'pickup_time'       => $validated['pickup_time'] ?? null,
+                'hotel_id'          => !empty($validated['is_other_hotel']) ? null : ($validated['hotel_id'] ?? null),
+                'is_other_hotel'    => (bool)($validated['is_other_hotel'] ?? false),
+                'other_hotel_name'  => $validated['other_hotel_name'] ?? null,
+                'notes'             => $validated['notes'] ?? null,
+            ];
+
+            // Crear booking usando tu servicio
+            $booking = $this->creator->create($payload, validateCapacity: true, countHolds: true);
+
+        } catch (\Throwable $e) {
+            \Log::error('Admin booking store error (create): ' . $e->getMessage(), [
+                'trace'    => $e->getTraceAsString(),
+                'user_id'  => $request->input('user_id'),
+                'tour_id'  => $request->input('tour_id'),
+            ]);
+
+            return back()->withInput()->with('error', __('m_bookings.bookings.errors.create'));
+        }
+
+        // =======================
+        // ENVÍO DE CORREO (NO BLOQUEANTE)
+        // =======================
+        try {
+            $this->dispatchMail(
+                new \App\Mail\BookingCreatedMail($booking),
+                optional($booking->user)->email,
+                $booking
+            );
+        } catch (\Throwable $e) {
+            \Log::error('Admin booking store mail error (Graph): ' . $e->getMessage(), [
+                'booking_id' => $booking->booking_id,
+            ]);
+            // Importante: NO hacemos return con error aquí.
+        }
 
         return redirect()->route('admin.bookings.index')
             ->with('success', __('m_bookings.bookings.success.created'));
-
-    } catch (\Throwable $e) {
-        \Log::error('Admin booking store error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-        return back()->withInput()->with('error', __('m_bookings.bookings.errors.create'));
     }
-}
 
-/** Crear desde carrito (admin) */
-public function storeFromCart(Request $request)
-{
-    $user = Auth::user();
+    /** Crear desde carrito (admin) */
+    public function storeFromCart(Request $request)
+    {
+        $user = Auth::user();
 
-    $cart = $user->cart()
-        ->where('is_active', true)
-        ->with(['items' => function ($q) {
-            $q->with(['tour.prices.category', 'schedule', 'language', 'hotel', 'meetingPoint']);
-        }])
-        ->first();
+        // 👉 CORREGIDO: Leer notas desde input O sesión
+        $notes = trim((string) ($request->input('notes') ?? session('admin_cart_notes', '')));
 
-    if (!$cart || !$cart->items->count()) {
-        return back()->with('error', __('carts.messages.cart_empty'));
-    }
-    if ($cart->isExpired()) {
+        $cart = $user->cart()
+            ->where('is_active', true)
+            ->with(['items' => function ($q) {
+                $q->with(['tour.prices.category', 'schedule', 'language', 'hotel', 'meetingPoint']);
+            }])
+            ->first();
+
+        if (!$cart || !$cart->items->count()) {
+            return back()->with('error', __('carts.messages.cart_empty'));
+        }
+        if ($cart->isExpired()) {
+            DB::transaction(function () use ($cart) {
+                $cart->items()->delete();
+                $cart->forceFill(['is_active' => false, 'expires_at' => now()])->save();
+            });
+            return back()->with('error', __('carts.messages.cart_expired'));
+        }
+
+        // Prevalidación por grupo (tour+fecha+horario)
+        $groups = $cart->items->groupBy(fn($i) => $i->tour_id . '_' . $i->tour_date . '_' . $i->schedule_id);
+
+        foreach ($groups as $items) {
+            $first      = $items->first();
+            $tour       = $first->tour;
+            $tourDate   = $first->tour_date;
+            $scheduleId = (int)$first->schedule_id;
+
+            $schedule = $tour->schedules()
+                ->where('schedules.schedule_id', $scheduleId)
+                ->where('schedules.is_active', true)
+                ->wherePivot('is_active', true)
+                ->first();
+
+            if (!$schedule) {
+                return back()->with('error', __('carts.messages.schedule_unavailable'));
+            }
+
+            $totalPax = $items->sum(fn($item) => (int)$item->total_pax);
+
+            $remaining = $this->capacity->remainingCapacity(
+                $tour,
+                $schedule,
+                $tourDate,
+                excludeBookingId: null,
+                countHolds: true,
+                excludeCartId: (int)$cart->cart_id
+            );
+
+            if ($totalPax > $remaining) {
+                return back()->with('error', __('m_bookings.messages.limited_seats_available', [
+                    'available' => $remaining,
+                    'tour'      => $tour->name,
+                    'date'      => \Carbon\Carbon::parse($tourDate)->format('d/M/Y'),
+                ]));
+            }
+        }
+
+        // Cupón
+        $promoCodeValue   = session('admin_cart_promo.code') ?: $request->input('promo_code');
+        $promoCodeToApply = null;
+
+        if ($promoCodeValue) {
+            $clean = \App\Models\PromoCode::normalize($promoCodeValue);
+            $promoCodeToApply = \App\Models\PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$clean])
+                ->lockForUpdate()
+                ->first();
+
+            if ($promoCodeToApply && method_exists($promoCodeToApply, 'isValidToday') && !$promoCodeToApply->isValidToday())   $promoCodeToApply = null;
+            if ($promoCodeToApply && method_exists($promoCodeToApply, 'hasRemainingUses') && !$promoCodeToApply->hasRemainingUses()) $promoCodeToApply = null;
+        }
+
+        // Crear bookings
+        $created = [];
+        $promoApplied = false;
+
+        foreach ($cart->items as $item) {
+            // Construir cantidades por categoría desde snapshot
+            $quantities = [];
+            foreach ((array)($item->categories ?? []) as $cat) {
+                $cid = (int)($cat['category_id'] ?? 0);
+                $qty = (int)($cat['quantity'] ?? 0);
+                if ($cid > 0 && $qty > 0) $quantities[$cid] = $qty;
+            }
+
+            $payload = [
+                'user_id'           => (int)$cart->user_id,
+                'tour_id'           => (int)$item->tour_id,
+                'schedule_id'       => (int)$item->schedule_id,
+                'tour_language_id'  => (int)$item->tour_language_id,
+                'tour_date'         => $item->tour_date,
+                'booking_date'      => now(),
+                'categories'        => $quantities,
+                'status'            => 'pending',
+                'promo_code'        => $promoApplied ? null : ($promoCodeToApply?->code),
+                'meeting_point_id'  => $item->meeting_point_id ?: null,
+                'hotel_id'          => $item->is_other_hotel ? null : ($item->hotel_id ?: null),
+                'is_other_hotel'    => (bool)$item->is_other_hotel,
+                'other_hotel_name'  => $item->is_other_hotel ? ($item->other_hotel_name ?? null) : null,
+                // 👉 CORREGIDO: Usar notas capturadas
+                'notes'             => $notes !== '' ? $notes : null,
+                'exclude_cart_id'   => (int)$cart->cart_id,
+            ];
+
+            $booking = $this->creator->create($payload, validateCapacity: true, countHolds: true);
+
+            if (!$promoApplied && $promoCodeToApply) {
+                $promoCodeToApply->redeemForBooking($booking->booking_id, $cart->user_id);
+                $promoApplied = true;
+            }
+
+            $created[] = $booking;
+        }
+
         DB::transaction(function () use ($cart) {
             $cart->items()->delete();
             $cart->forceFill(['is_active' => false, 'expires_at' => now()])->save();
         });
-        return back()->with('error', __('carts.messages.cart_expired'));
-    }
+        session()->forget('admin_cart_promo');
+        // 👉 NUEVO: Limpiar notas de sesión después de crear bookings
+        session()->forget('admin_cart_notes');
 
-    // Prevalidación por grupo (tour+fecha+horario)
-    $groups = $cart->items->groupBy(fn($i) => $i->tour_id . '_' . $i->tour_date . '_' . $i->schedule_id);
+        // ===== Correos por booking (cliente + admins) =====
+        $notify = $this->notifyEmails();
+        $shouldSendDirect = app()->isLocal() && config('queue.default', env('QUEUE_CONNECTION')) === 'sync';
 
-    foreach ($groups as $items) {
-        $first      = $items->first();
-        $tour       = $first->tour;
-        $tourDate   = $first->tour_date;
-        $scheduleId = (int)$first->schedule_id;
+        foreach ($created as $booking) {
+            try {
+                $userMail = optional($booking->user)->email;
 
-        $schedule = $tour->schedules()
-            ->where('schedules.schedule_id', $scheduleId)
-            ->where('schedules.is_active', true)
-            ->wherePivot('is_active', true)
-            ->first();
+                if ($userMail) {
+                    $mailable = (new \App\Mail\BookingCreatedMail($booking))
+                        ->onQueue('mail')
+                        ->afterCommit();
 
-        if (!$schedule) {
-            return back()->with('error', __('carts.messages.schedule_unavailable'));
-        }
+                    $pending = \Mail::to($userMail);
+                    if (!empty($notify)) $pending->bcc($notify);
 
-        $totalPax = $items->sum(fn($item) => (int)$item->total_pax);
-
-        $remaining = $this->capacity->remainingCapacity(
-            $tour,
-            $schedule,
-            $tourDate,
-            excludeBookingId: null,
-            countHolds: true,
-            excludeCartId: (int)$cart->cart_id
-        );
-
-        if ($totalPax > $remaining) {
-            return back()->with('error', __('m_bookings.messages.limited_seats_available', [
-                'available' => $remaining,
-                'tour'      => $tour->name,
-                'date'      => \Carbon\Carbon::parse($tourDate)->format('d/M/Y'),
-            ]));
-        }
-    }
-
-    // Cupón
-    $promoCodeValue   = session('admin_cart_promo.code') ?: $request->input('promo_code');
-    $promoCodeToApply = null;
-
-    if ($promoCodeValue) {
-        $clean = \App\Models\PromoCode::normalize($promoCodeValue);
-        $promoCodeToApply = \App\Models\PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$clean])
-            ->lockForUpdate()
-            ->first();
-
-        if ($promoCodeToApply && method_exists($promoCodeToApply, 'isValidToday') && !$promoCodeToApply->isValidToday())   $promoCodeToApply = null;
-        if ($promoCodeToApply && method_exists($promoCodeToApply, 'hasRemainingUses') && !$promoCodeToApply->hasRemainingUses()) $promoCodeToApply = null;
-    }
-
-    // Crear bookings
-    $created = [];
-    $promoApplied = false;
-
-    foreach ($cart->items as $item) {
-        // Construir cantidades por categoría desde snapshot
-        $quantities = [];
-        foreach ((array)($item->categories ?? []) as $cat) {
-            $cid = (int)($cat['category_id'] ?? 0);
-            $qty = (int)($cat['quantity'] ?? 0);
-            if ($cid > 0 && $qty > 0) $quantities[$cid] = $qty;
-        }
-
-        $payload = [
-            'user_id'           => (int)$cart->user_id,
-            'tour_id'           => (int)$item->tour_id,
-            'schedule_id'       => (int)$item->schedule_id,
-            'tour_language_id'  => (int)$item->tour_language_id,
-            'tour_date'         => $item->tour_date,
-            'booking_date'      => now(),
-            'categories'        => $quantities,
-            'status'            => 'pending',
-            'promo_code'        => $promoApplied ? null : ($promoCodeToApply?->code),
-            'meeting_point_id'  => $item->meeting_point_id ?: null,
-            'hotel_id'          => $item->is_other_hotel ? null : ($item->hotel_id ?: null),
-            'is_other_hotel'    => (bool)$item->is_other_hotel,
-            'other_hotel_name'  => $item->is_other_hotel ? ($item->other_hotel_name ?? null) : null,
-            'notes'             => null,
-            'exclude_cart_id'   => (int)$cart->cart_id,
-        ];
-
-        $booking = $this->creator->create($payload, validateCapacity: true, countHolds: true);
-
-        if (!$promoApplied && $promoCodeToApply) {
-            $promoCodeToApply->redeemForBooking($booking->booking_id, $cart->user_id);
-            $promoApplied = true;
-        }
-
-        $created[] = $booking;
-    }
-
-    DB::transaction(function () use ($cart) {
-        $cart->items()->delete();
-        $cart->forceFill(['is_active' => false, 'expires_at' => now()])->save();
-    });
-    session()->forget('admin_cart_promo');
-
-    // ===== Correos por booking (cliente + admins) =====
-    $notify = $this->notifyEmails();
-    $shouldSendDirect = app()->isLocal() && config('queue.default', env('QUEUE_CONNECTION')) === 'sync';
-
-    foreach ($created as $booking) {
-        try {
-            $userMail = optional($booking->user)->email;
-
-            if ($userMail) {
-                $mailable = (new \App\Mail\BookingCreatedMail($booking))
-                    ->onQueue('mail')
-                    ->afterCommit();
-
-                $pending = \Mail::to($userMail);
-                if (!empty($notify)) $pending->bcc($notify);
-
-                $shouldSendDirect ? $pending->send($mailable) : $pending->queue($mailable);
-            } else {
-                // Sin correo de usuario: enviar solo a admins como fallback
-                if (!empty($notify)) {
-                    $mailer = \Mail::to($notify[0])->bcc(array_slice($notify, 1));
-                    $shouldSendDirect ? $mailer->send(new \App\Mail\BookingCreatedMail($booking))
-                                      : $mailer->queue(new \App\Mail\BookingCreatedMail($booking));
+                    $shouldSendDirect ? $pending->send($mailable) : $pending->queue($mailable);
+                } else {
+                    // Sin correo de usuario: enviar solo a admins como fallback
+                    if (!empty($notify)) {
+                        $mailer = \Mail::to($notify[0])->bcc(array_slice($notify, 1));
+                        $shouldSendDirect ? $mailer->send(new \App\Mail\BookingCreatedMail($booking))
+                                          : $mailer->queue(new \App\Mail\BookingCreatedMail($booking));
+                    }
                 }
+            } catch (\Throwable $e) {
+                \Log::warning('BookingCreatedMail (admin cart) failed: '.$e->getMessage(), ['booking_id' => $booking->booking_id]);
             }
-        } catch (\Throwable $e) {
-            \Log::warning('BookingCreatedMail (admin cart) failed: '.$e->getMessage(), ['booking_id' => $booking->booking_id]);
         }
-    }
 
-    return redirect()->route('admin.bookings.index')
-        ->with('success', __('m_bookings.bookings.success.created'));
-}
+        return redirect()->route('admin.bookings.index')
+            ->with('success', __('m_bookings.bookings.success.created'));
+    }
 
     /** Update (admin) */
     public function update(Request $request, Booking $booking)
@@ -509,6 +553,7 @@ public function storeFromCart(Request $request)
             'other_hotel_name'  => 'nullable|string|max:255|required_if:is_other_hotel,1',
             'status'            => 'required|in:pending,confirmed,cancelled',
             'meeting_point_id'  => 'nullable|integer|exists:meeting_points,id',
+            'pickup_time'       => 'nullable|date_format:H:i',
             'notes'             => 'nullable|string|max:1000',
             'promo_code'        => 'nullable|string|max:100',
         ]);
@@ -630,9 +675,10 @@ public function storeFromCart(Request $request)
                 'is_other_hotel'    => (bool)($validated['is_other_hotel'] ?? false),
                 'other_hotel_name'  => $validated['other_hotel_name'] ?? null,
                 'meeting_point_id'  => $validated['meeting_point_id'] ?? null,
+                'pickup_time'       => $validated['pickup_time'] ?? null,
             ]);
 
-            // Redención y conteos
+            // Redención y conteos (igual que tenías)
             $currentRedemption = $booking->redemption()->lockForUpdate()->first();
             if ($promo) {
                 $appliedAmount = 0.0;
@@ -720,6 +766,7 @@ public function storeFromCart(Request $request)
                 ->with('error', __('m_bookings.bookings.errors.update'));
         }
     }
+
 
     /** Cambiar status con validación de capacidad */
     public function updateStatus(Request $request, Booking $booking)
@@ -962,32 +1009,39 @@ public function storeFromCart(Request $request)
                     ? ($cat->getTranslatedName($locale) ?: ($cat->name ?? null))
                     : ($cat->name ?? null);
 
-                if (!$name) {
-                    if ($slug) {
-                        foreach ([
-                            "customer_categories.labels.$slug",
-                            "m_tours.customer_categories.labels.$slug",
-                        ] as $key) {
-                            $tr = __($key);
-                            if ($tr !== $key) { $name = $tr; break; }
+                if (!$name && $slug) {
+                    foreach ([
+                        "customer_categories.labels.$slug",
+                        "m_tours.customer_categories.labels.$slug",
+                    ] as $key) {
+                        $tr = __($key);
+                        if ($tr !== $key) {
+                            $name = $tr;
+                            break;
                         }
                     }
-                    if (!$name) $name = 'Category #' . (int)$price->category_id;
+                }
+
+                if (!$name) {
+                    $name = 'Category #' . (int)$price->category_id;
                 }
 
                 return [
-                    'id'        => (int)   $price->category_id,
+                    'id'        => (int)$price->category_id,
                     'slug'      => (string)$slug,
                     'name'      => (string)$name,
-                    'price'     => (float) $price->price,
-                    'min'       => (int)   $price->min_quantity,
-                    'max'       => (int)   $price->max_quantity,
-                    'is_active' => (bool)  $price->is_active,
+                    'price'     => (float)$price->price,
+                    'min'       => (int)$price->min_quantity,
+                    'max'       => (int)$price->max_quantity,
+                    'is_active' => (bool)$price->is_active,
                 ];
-            });
+            })
+            ->values()
+            ->all();
 
         return response()->json($categories);
     }
+
 
     /** Límites globales de reserva y reglas de fechas */
     private function buildBookingLimits(): array
@@ -1021,64 +1075,62 @@ public function storeFromCart(Request $request)
             ->all();
     }
 
-/**
- * Enviar SIEMPRE por Microsoft Graph (sin failover SMTP).
- * - To: cliente (si existe y es válido)
- * - BCC: admins de BOOKING_NOTIFY / MAIL_NOTIFICATIONS
- * - Lanza excepción para que la cola reintente si falla Graph.
- */
-private function dispatchMail(\Illuminate\Mail\Mailable $mailable, ?string $userMail, ?\App\Models\Booking $booking = null): void
-{
-    // Lista de admins
-    $notify = collect([env('BOOKING_NOTIFY'), env('MAIL_NOTIFICATIONS')])
-        ->filter()
-        ->flatMap(fn($v) => array_map('trim', explode(',', $v)))
-        ->filter()
-        ->unique()
-        ->values()
-        ->all();
+    /**
+     * Enviar SIEMPRE por Microsoft Graph (sin failover SMTP).
+     * - To: cliente (si existe y es válido)
+     * - BCC: admins de BOOKING_NOTIFY / MAIL_NOTIFICATIONS
+     * - Lanza excepción para que la cola reintente si falla Graph.
+     */
+    private function dispatchMail(\Illuminate\Mail\Mailable $mailable, ?string $userMail, ?\App\Models\Booking $booking = null): void
+    {
+        try {
+            // Lista de admins
+            $notify = collect([env('BOOKING_NOTIFY'), env('MAIL_NOTIFICATIONS')])
+                ->filter()
+                ->flatMap(fn($v) => array_map('trim', explode(',', $v)))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
 
-    // Cola y afterCommit
-    $mailable->onQueue('mail')->afterCommit();
+            // Elegir MAIL_MAILER desde el .env (smtp)
+            $mailer = \Mail::mailer(); // usa MAIL_MAILER del .env
 
-    // Destinatario cliente
-    $primaryTo = filter_var($userMail, FILTER_VALIDATE_EMAIL) ? $userMail : null;
-    if (!$primaryTo && $booking) {
-        $primaryTo = optional($booking->user)->email;
-        if (!filter_var($primaryTo, FILTER_VALIDATE_EMAIL)) {
-            $primaryTo = null;
-        }
-    }
+            // Resolver destinatario del cliente
+            $primaryTo = filter_var($userMail, FILTER_VALIDATE_EMAIL) ? $userMail : null;
+            if (!$primaryTo && $booking) {
+                $primaryTo = optional($booking->user)->email;
+                if (!filter_var($primaryTo, FILTER_VALIDATE_EMAIL)) {
+                    $primaryTo = null;
+                }
+            }
 
-    try {
-        $mailer = \Mail::mailer('graph'); // 🔒 Solo Graph
+            // Si no hay email del cliente → fallback admins
+            if (!$primaryTo && empty($notify)) {
+                \Log::warning("dispatchMail: no 'to' address and no admins to notify");
+                return;
+            }
 
-        if ($primaryTo) {
-            $pending = $mailer->to($primaryTo);
-            if (!empty($notify)) $pending->bcc($notify);
-            // Siempre queue; si usas sync, será inmediato igual
-            $pending->queue($mailable);
-        } elseif (!empty($notify)) {
-            // Sin email de cliente -> solo admins
-            $mailer->to($notify[0])
-                   ->bcc(array_slice($notify, 1))
-                   ->queue($mailable);
-        } else {
-            \Log::warning('dispatchMail(Graph): no customer email and no admin notify list; email dropped.', [
-                'booking_id' => $booking?->booking_id,
+            if ($primaryTo) {
+                $pending = $mailer->to($primaryTo);
+                if (!empty($notify)) $pending->bcc($notify);
+
+                // Enviar DIRECTO (NO queue)
+                $pending->send($mailable);
+            } else {
+                // Fallback: solo admins
+                $mailer->to($notify[0])
+                    ->bcc(array_slice($notify, 1))
+                    ->send($mailable);
+            }
+
+        } catch (\Throwable $e) {
+            \Log::error("dispatchMail FAILED: ".$e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'to'    => $userMail,
             ]);
         }
-    } catch (\Throwable $e) {
-        // Log amplio para depurar Graph
-        \Log::error('dispatchMail(Graph) failed: '.$e->getMessage(), [
-            'booking_id' => $booking?->booking_id,
-            'to'         => $primaryTo,
-            'notify'     => $notify,
-            'trace'      => $e->getTraceAsString(),
-        ]);
-        // Re-lanzar para que el worker reintente según tus políticas de queue
-        throw $e;
     }
-}
+
 
 }

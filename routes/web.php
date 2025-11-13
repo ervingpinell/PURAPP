@@ -152,31 +152,46 @@ Route::middleware([SetLocale::class])->group(function () {
 
 
     localizedRoutes(function () {
+        // ============================
         // Home & Tours
+        // ============================
+        // Ruta principal: /{locale}  -> es.home, en.home, etc.
         Route::get('/', [HomeController::class, 'index'])->name('home');
-        Route::get('/home', [HomeController::class, 'index'])->name('home');
+
+        // Alias opcional /{locale}/home, SIN name duplicado
+        Route::get('/home', [HomeController::class, 'index']);
+
         Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
         Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tours.show');
 
+        // ============================
         // Contact
+        // ============================
         Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
         Route::post('/contact', [HomeController::class, 'sendContact'])
             ->middleware('throttle:6,1')
             ->name('contact.send');
 
+        // ============================
         // FAQ
+        // ============================
         Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
 
+        // ============================
         // Policies
+        // ============================
         Route::get('/policies', [PoliciesController::class, 'index'])->name('policies.index');
         Route::get('/policies/{policy:slug}', [PoliciesController::class, 'show'])->name('policies.show');
         Route::get('/policies/id/{policy:policy_id}', [PoliciesController::class, 'showById'])
             ->name('policies.show.id');
 
+        // ============================
         // Public reviews
+        // ============================
         Route::get('/reviews', [ReviewsController::class, 'index'])->name('reviews.index');
         Route::get('/reviews/tours/{tour:slug}', [ReviewsController::class, 'tour'])->name('reviews.tour');
     });
+
 
     // ============================
     // REVIEWS (no prefix)

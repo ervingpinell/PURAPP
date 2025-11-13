@@ -14,8 +14,8 @@ class BookingDetail extends Model
         'tour_date'      => 'date',
         'categories'     => 'array',
         'is_other_hotel' => 'boolean',
-    'created_at'   => 'datetime',
-    'updated_at'   => 'datetime',
+        'created_at'     => 'datetime',
+        'updated_at'     => 'datetime',
     ];
 
     protected $fillable = [
@@ -34,15 +34,17 @@ class BookingDetail extends Model
         'meeting_point_pickup_time',
         'meeting_point_description',
         'meeting_point_map_url',
+        'pickup_time', // ← nuevo campo TIME nullable
     ];
 
     /* =======================
        Relaciones
        ======================= */
-public function booking()
-{
-    return $this->belongsTo(Booking::class, 'booking_id', 'booking_id');
-}
+
+    public function booking()
+    {
+        return $this->belongsTo(Booking::class, 'booking_id', 'booking_id');
+    }
 
     public function tour()
     {
@@ -76,40 +78,40 @@ public function booking()
     /** Personas totales (todas las categorías) */
     public function getTotalPaxAttribute(): int
     {
-        return collect($this->categories ?? [])->sum(fn($c) => (int)($c['quantity'] ?? 0));
+        return collect($this->categories ?? [])
+            ->sum(fn ($c) => (int) ($c['quantity'] ?? 0));
     }
 
     /** Subtotal calculado desde categories */
     public function getSubtotalAttribute(): float
     {
         $total = collect($this->categories ?? [])->sum(function ($c) {
-            $q = (int)($c['quantity'] ?? 0);
-            $p = (float)($c['price'] ?? 0);
+            $q = (int) ($c['quantity'] ?? 0);
+            $p = (float) ($c['price'] ?? 0);
             return $q * $p;
         });
-        return round((float)$total, 2);
+
+        return round((float) $total, 2);
     }
 
     /** Compat: adultos por slug=adult (si existe) */
     public function getAdultsQuantityAttribute(): int
     {
         $cat = collect($this->categories ?? [])->firstWhere('category_slug', 'adult');
-        return (int)($cat['quantity'] ?? 0);
+        return (int) ($cat['quantity'] ?? 0);
     }
 
     /** Compat: niños por slug=kid (si existe) */
     public function getKidsQuantityAttribute(): int
     {
         $cat = collect($this->categories ?? [])->firstWhere('category_slug', 'kid');
-        return (int)($cat['quantity'] ?? 0);
+        return (int) ($cat['quantity'] ?? 0);
     }
 
     /** Cantidad por category_id específico */
     public function getQuantityForCategory(int $categoryId): int
     {
         $cat = collect($this->categories ?? [])->firstWhere('category_id', $categoryId);
-        return (int)($cat['quantity'] ?? 0);
+        return (int) ($cat['quantity'] ?? 0);
     }
-
-
 }

@@ -185,6 +185,11 @@
             ? \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') . ' — ' . \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A')
             : __('m_bookings.bookings.messages.no_schedules');
 
+        // ====== Pickup time ======
+        $pickupTime = $detail->pickup_time
+            ? \Carbon\Carbon::parse($detail->pickup_time)->format('g:i A')
+            : $EM;
+
         // ====== PROMO (preferir snapshots de redención) ======
         $redemption  = $booking->redemption;
         $promo       = $booking->promoCode ?? optional($redemption)->promoCode;
@@ -222,6 +227,9 @@
         $statusKey  = 'm_bookings.bookings.statuses.' . ($booking->status ?? 'pending');
         $statusTr   = __($statusKey);
         if ($statusTr === $statusKey) { $statusTr = ucfirst((string)($booking->status ?? 'pending')); }
+
+        // ====== NOTAS ======
+        $notes = $booking->notes ?? $booking->special_requests ?? null;
       @endphp
 
       <div class="booking-page">
@@ -256,6 +264,11 @@
             <span>{{ $schedule }}</span>
           </div>
 
+          <div class="data-item">
+            <strong>{{ __('m_bookings.bookings.fields.pickup_time') }}</strong>
+            <span>{{ $pickupTime }}</span>
+          </div>
+
           @if($hotel)
             <div class="data-item">
               <strong>{{ __('m_bookings.bookings.fields.hotel') }}</strong>
@@ -267,6 +280,13 @@
             <div class="data-item">
               <strong>{{ __('m_bookings.bookings.fields.meeting_point') }}</strong>
               <span>{{ $meetingPoint }}</span>
+            </div>
+          @endif
+
+          @if(!empty($notes))
+            <div class="data-item">
+              <strong>{{ __('m_bookings.bookings.fields.notes') }}</strong>
+              <span>{{ $notes }}</span>
             </div>
           @endif
 

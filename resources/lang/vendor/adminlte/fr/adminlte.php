@@ -252,6 +252,10 @@ return [
     'senior'    => 'Senior',
     'student'   => 'Étudiant',
     'custom' => 'Personnalisé',
+    'notes'             => 'Remarques',
+    'notes_placeholder' => 'Quelque chose que nous devrions savoir ? (allergies, mobilité, célébrations, etc.)',
+    'notes_help'        => 'Ces remarques seront envoyées à notre équipe avec votre réservation.',
+
 
     // 10. VALIDATION
     'required_field' => 'Ce champ est obligatoire.',

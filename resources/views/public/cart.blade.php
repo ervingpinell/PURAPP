@@ -4,7 +4,6 @@
 
 @push('styles')
 <style>
-
   /* ===== Desglose bonito ===== */
   .cat-line{display:flex; align-items:center; justify-content:space-between; gap:.5rem; font-size:.92rem}
   .cat-left{display:flex; align-items:center; gap:.5rem}
@@ -186,6 +185,9 @@
       $op = (($promoSession['operation'] ?? 'subtract') === 'add') ? 1 : -1;
       $total = max(0, round($rawTotal + $op * (float)($promoSession['adjustment'] ?? 0), 2));
   }
+
+  // Notas iniciales (si el carrito ya las tiene o viene de old())
+  $initialNotes = old('notes', $cart->notes ?? '');
 @endphp
 
 {{-- ========== TIMER ========== --}}
@@ -530,8 +532,28 @@
       </div>
     </div>
 
-    {{-- Confirmar → Checkout --}}
+    {{-- Confirmar → Checkout (con notas) --}}
     <form action="{{ route('public.checkout.show') }}" method="GET" id="confirm-reserva-form">
+      {{-- Notas del cliente antes del cierre --}}
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <label for="notes" class="form-label fw-semibold">
+            <i class="fas fa-sticky-note me-1"></i>
+            {{ __('adminlte::adminlte.notes') }}
+          </label>
+          <textarea
+            name="notes"
+            id="notes"
+            class="form-control"
+            rows="3"
+            placeholder="{{ __('adminlte::adminlte.notes_placeholder') }}"
+          >{{ $initialNotes }}</textarea>
+          <div class="form-text">
+            {{ __('adminlte::adminlte.notes_help', [], app()->getLocale()) }}
+          </div>
+        </div>
+      </div>
+
       <div class="d-grid">
         <button type="submit" class="btn btn-success btn-lg">
           <i class="fas fa-check"></i> {{ __('adminlte::adminlte.confirmBooking') }}

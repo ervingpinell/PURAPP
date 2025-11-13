@@ -166,6 +166,18 @@
                             </div>
                         </div>
 
+                        {{-- Pickup time (solo hora, opcional) --}}
+                        <div class="form-group">
+                            <label for="pickup_time">{{ __('m_bookings.bookings.fields.pickup_time') }}</label>
+                            <input
+                                type="time"
+                                name="pickup_time"
+                                id="pickup_time"
+                                class="form-control"
+                                value="{{ old('pickup_time') }}"
+                            >
+                        </div>
+
                         {{-- Status oculto (siempre pending) --}}
                         <input type="hidden" name="status" value="pending">
 

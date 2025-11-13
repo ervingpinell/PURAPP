@@ -253,6 +253,9 @@ return [
     'senior'    => 'Adulto mayor',
     'student'   => 'Estudiante',
     'custom' => 'Personalizado',
+    'notes'             => 'Notas',
+    'notes_placeholder' => '¿Algo que debamos saber? (alergias, movilidad, celebraciones, etc.)',
+    'notes_help'        => 'Estas notas se enviarán a nuestro equipo junto con tu reserva.',
 
 
     // 10. VALIDACIÓN

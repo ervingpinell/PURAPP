@@ -114,6 +114,7 @@ class BookingCreator
                 'is_other_hotel'    => (bool) ($payload['is_other_hotel'] ?? false),
                 'other_hotel_name'  => $payload['other_hotel_name'] ?? null,
                 'meeting_point_id'  => $payload['meeting_point_id'] ?? null,
+                'pickup_time'         => $payload['pickup_time'] ?? null,
             ]);
 
             // Redimir promo

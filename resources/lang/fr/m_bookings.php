@@ -225,6 +225,7 @@ return [
             'subtotal'          => 'Sous-total',
             'discount'          => 'Remise',
             'total_persons'     => 'Personnes',
+            'pickup_time' => 'Heure de prise en charge',
         ],
 
         'placeholders' => [

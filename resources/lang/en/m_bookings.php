@@ -225,6 +225,7 @@ return [
             'subtotal'          => 'Subtotal',
             'discount'          => 'Discount',
             'total_persons'     => 'Persons',
+            'pickup_time' => 'Pickup time',
         ],
 
         'placeholders' => [

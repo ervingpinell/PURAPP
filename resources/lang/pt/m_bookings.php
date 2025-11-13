@@ -225,6 +225,7 @@ return [
             'subtotal'          => 'Subtotal',
             'discount'          => 'Desconto',
             'total_persons'     => 'Pessoas',
+            'pickup_time' => 'Horário de busca',
         ],
 
         'placeholders' => [

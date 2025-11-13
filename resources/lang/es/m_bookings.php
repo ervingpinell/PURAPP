@@ -229,8 +229,8 @@ return [
             'subtotal'       => 'Subtotal',
             'discount'       => 'Descuento',
             'total_persons'  => 'Personas',
-            'pickup_place'   => 'Lugar de recogida'
-
+            'pickup_place'   => 'Lugar de recogida',
+            'pickup_time' => 'Hora de recogida',
         ],
 
         'placeholders' => [

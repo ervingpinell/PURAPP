@@ -236,23 +236,23 @@
   $total=$raw; if($promo){$op=(($promo['operation']??'subtract')==='add')?1:-1;$total=max(0,round($raw+$op*(float)($promo['adjustment']??0),2));}
 
   // ===== Texto "Cancelación gratuita hasta :time el :date" (debajo del total)
-$freeCancelText = null;
-if (!empty($freeCancelUntil)) {
-    $tz = config('app.timezone', 'America/Costa_Rica');
-    $locCut = $freeCancelUntil->copy()->setTimezone($tz)->locale(app()->getLocale());
+  $freeCancelText = null;
+  if (!empty($freeCancelUntil)) {
+      $tz = config('app.timezone', 'America/Costa_Rica');
+      $locCut = $freeCancelUntil->copy()->setTimezone($tz)->locale(app()->getLocale());
 
-    // Usa Moment/ICU tokens válidos con isoFormat
-    $cutTime = $locCut->isoFormat('LT'); // ej: 3:15 p. m.
-    $cutDate = $locCut->isoFormat('LL'); // ej: 9 de noviembre de 2025
+      // Usa Moment/ICU tokens válidos con isoFormat
+      $cutTime = $locCut->isoFormat('LT'); // ej: 3:15 p. m.
+      $cutDate = $locCut->isoFormat('LL'); // ej: 9 de noviembre de 2025
 
-    $key = 'policies.checkout.free_cancellation_until';
-    if (\Illuminate\Support\Facades\Lang::has($key)) {
-        $freeCancelText = __($key, ['time' => $cutTime, 'date' => $cutDate]);
-    } else {
-        // Fallback legible si falta la traducción
-        $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTime . ' · ' . $cutDate;
-    }
-}
+      $key = 'policies.checkout.free_cancellation_until';
+      if (\Illuminate\Support\Facades\Lang::has($key)) {
+          $freeCancelText = __($key, ['time' => $cutTime, 'date' => $cutDate]);
+      } else {
+          // Fallback legible si falta la traducción
+          $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTime . ' · ' . $cutDate;
+      }
+  }
 
 @endphp
 
@@ -285,6 +285,13 @@ if (!empty($freeCancelUntil)) {
         <form method="POST" action="{{ route('public.checkout.process') }}" id="checkout-form">
           @csrf
           <input type="hidden" name="scroll_ok" id="scroll_ok" value="0">
+
+          {{-- 🔐 Notas que vienen del carrito: se preservan en el POST al process --}}
+          <input
+            type="hidden"
+            name="notes"
+            value="{{ old('notes', request('notes', $cart->notes ?? '')) }}"
+          >
 
           <div class="acceptance-box disabled" id="accept-box">
             <div class="acceptance-checkbox">

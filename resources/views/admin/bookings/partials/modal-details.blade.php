@@ -212,6 +212,11 @@
           } elseif ($hasMeetingPoint) {
             $meetingPointName = $detail?->meeting_point_name ?? optional($detail?->meetingPoint)->name ?? '—';
           }
+
+          // ✅ NUEVO: hora de recogida formateada
+          $pickupTime = $detail?->pickup_time
+              ? \Carbon\Carbon::parse($detail->pickup_time)->format('g:i A')
+              : null;
         @endphp
 
         {{-- Status Alert with Actions --}}
@@ -316,6 +321,10 @@
                       —
                     @endif
                   </dd>
+
+                  {{-- ✅ NUEVO: hora de recogida --}}
+                  <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.pickup_time') }}:</dt>
+                  <dd class="col-sm-8">{{ $pickupTime ?? '—' }}</dd>
 
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.language') }}:</dt>
                   <dd class="col-sm-8">{{ optional($detail?->tourLanguage)->name ?? '—' }}</dd>

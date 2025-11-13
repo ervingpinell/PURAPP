@@ -22,9 +22,7 @@
         ->groupBy('customer_category_id')
         ->map(fn($rows) => (float) ($rows->first()->unit_price ?? 0));
 
-    // Si tu controlador ya envía $categoryQuantitiesById / $initialCategories, esto lo complementa
     $categoryQuantitiesById = $categoryQuantitiesById ?? $qtyByCat;
-    // $initialCategories: idealmente [{id,slug,name,price,min,max,is_active}]
     $initialCategories = $initialCategories ?? [];
 @endphp
 
@@ -105,7 +103,7 @@
                         </div>
 
                         <div class="row">
-                            {{-- Date (corrige TZ para min/max y clamp) --}}
+                            {{-- Date --}}
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
                                     <label for="tour_date">{{ __('m_bookings.bookings.fields.tour_date') }} *</label>
@@ -121,7 +119,7 @@
                                 </div>
                             </div>
 
-                            {{-- Schedule (desde detalle) --}}
+                            {{-- Schedule --}}
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
                                     <label for="schedule_id">{{ __('m_bookings.bookings.fields.schedule') }} *</label>
@@ -220,6 +218,20 @@
                             </div>
                         </div>
 
+                        {{-- Pickup time (solo hora, opcional) --}}
+                        <div class="form-group">
+                            <label for="pickup_time">{{ __('m_bookings.bookings.fields.pickup_time') }}</label>
+                            <input
+                                type="time"
+                                name="pickup_time"
+                                id="pickup_time"
+                                class="form-control"
+                                value="{{ old('pickup_time', optional($booking->detail)->pickup_time
+                                    ? \Carbon\Carbon::parse($booking->detail->pickup_time)->format('H:i')
+                                    : '') }}"
+                            >
+                        </div>
+
                         {{-- Status --}}
                         <div class="form-group">
                             <label for="status">{{ __('m_bookings.bookings.fields.status') }} *</label>
@@ -255,7 +267,6 @@
                         </h3>
                     </div>
                     <div class="card-body">
-                        {{-- Resumen de límites globales (opcional visible) --}}
                         @if(!empty($bookingLimits ?? null))
                           <div class="alert alert-info py-2">
                             <div class="small">
@@ -293,7 +304,6 @@
                             </div>
 
                             <small id="promo-feedback" class="text-muted d-block mt-1"></small>
-                            {{-- estado promo inicial (snapshots) --}}
                             <input type="hidden" id="promo-operation" value="{{ $initOp }}">
                             <input type="hidden" id="promo-amount"     value="{{ $initAmount }}">
                             <input type="hidden" id="promo-percent"    value="{{ $initPercent }}">
@@ -339,10 +349,9 @@
 @stop
 
 @section('js')
-  {{-- Exponer límites de booking y por tour (incluye slugs adult/kid si los pasas en LIMITS_PER_TOUR.categories) --}}
   <script>
     window.BOOKING_LIMITS  = @json($bookingLimits ?? []);
-    window.LIMITS_PER_TOUR = @json($limitsPerTour ?? []); // ideal: [{category_id,slug,...}] para adult/kid
+    window.LIMITS_PER_TOUR = @json($limitsPerTour ?? []);
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -350,7 +359,6 @@
   $(function() {
     $('.select2').select2({ theme: 'bootstrap4', width: '100%' });
 
-    // ===== I18N mínimos para UI (fallbacks seguros) =====
     const I18N = {
       loading:        @json(__('m_bookings.bookings.ui.loading') ?? 'Cargando…'),
       no_results:     @json(__('m_bookings.bookings.ui.no_results') ?? 'Sin resultados'),
@@ -362,19 +370,15 @@
       max:            @json(__('m_bookings.bookings.ui.max') ?? 'Max'),
     };
 
-    // ===== Endpoints =====
     const apiBase = '/api/v1';
     const epSchedules  = tourId => `${apiBase}/tours/${tourId}/schedules`;
     const epLanguages  = tourId => `${apiBase}/tours/${tourId}/languages`;
     const epCategories = tourId => `${apiBase}/tours/${tourId}/categories`;
     const epVerify     =        `${apiBase}/bookings/verify-promo-code`;
 
-    // ===== Precarga desde servidor =====
     window.INIT_QTYS       = @json($categoryQuantitiesById ?? []);
     window.INIT_PRICES     = @json($priceByCat ?? []);
-    window.INIT_CATEGORIES = @json($initialCategories); // idealmente con 'name' YA traducido
-
-    // ===== PROMO inicial =====
+    window.INIT_CATEGORIES = @json($initialCategories);
     window.INIT_PROMO = {
         code:     @json($initPromoCode),
         operation:@json($initOp),
@@ -398,7 +402,6 @@
         }
     }
 
-    // ---------- Date limits from config (corrige TZ) ----------
     (function setupDateMinMax(){
       const minDays = Number(LIMITS.min_days_advance ?? 1);
       const maxDays = Number(LIMITS.max_days_advance ?? 365);
@@ -426,7 +429,6 @@
       }
     })();
 
-    // ---------- Loaders ----------
     function loadSchedules(tourId, preselect = '{{ old('schedule_id', optional($booking->detail)->schedule_id) }}') {
         const $sel = $('#schedule_id');
         resetSelect($sel, I18N.loading, true);
@@ -470,7 +472,6 @@
     }
 
     function safeName(cat) {
-        // Usa nombre traducido del endpoint; si no, intenta from INIT_CATEGORIES, si no, usa slug o fallback
         const init = (window.INIT_CATEGORIES || []).find(x => String(x.id) === String(cat.id));
         return (cat.name || init?.name || cat.slug || `Category #${cat.id}`);
     }
@@ -604,14 +605,11 @@
                 initPromoFromBooking();
             })
             .fail(() => {
-                // Si el endpoint falla, usa los datos existentes de la reserva (con nombres traducidos si vinieron)
                 bootstrapCategoriesFromInit();
             });
     }
 
-    // ---------- Helpers para límites globales ----------
     function getAdultsKidsFromInputs() {
-      // Si PER_TOUR.categories trae slugs adult/kid, úsalo
       const cats = (PER_TOUR.categories || []);
       const adultId = (cats.find(c => c.slug === 'adult') || {}).category_id;
       const kidId   = (cats.find(c => c.slug === 'kid')   || {}).category_id;
@@ -650,7 +648,6 @@
         const maxTotal = Number(LIMITS.max_persons_per_booking ?? LIMITS.max_persons_total ?? 12);
         let finalPersons = persons;
 
-        // Máx. personas por reserva
         if (persons > maxTotal) {
           if (lastChangedInputId !== null) {
             const sumOthers = persons - (parseInt($(`.category-input[data-category-id="${lastChangedInputId}"]`).val()) || 0);
@@ -662,7 +659,6 @@
           showLimitsWarning(`{{ __('m_bookings.validation.max_persons_exceeded') ?? 'Se excede el máximo de personas por reserva' }}: ${maxTotal}`);
         }
 
-        // Min adultos / Max niños
         const { adults, kids } = getAdultsKidsFromInputs();
         const minAdults = Number(LIMITS.min_adults_per_booking ?? LIMITS.min_adults ?? 0);
         const maxKids   = Number(LIMITS.max_kids_per_booking ?? LIMITS.max_kids ?? Number.MAX_SAFE_INTEGER);
@@ -692,7 +688,6 @@
         $('#total-price').text(fmtMoney(Math.max(total, 0)));
     }
 
-    // ---------- Categories interactions ----------
     function attachCategoryHandlers() {
         $('.category-minus').on('click', function() {
             const id = $(this).data('category-id');
@@ -724,7 +719,6 @@
         });
     }
 
-    // ===== PROMO =====
     const APPLY_LABEL  = @json(__('m_bookings.bookings.buttons.apply'));
     const REMOVE_LABEL = @json(__('m_bookings.bookings.buttons.delete') ?? 'Quitar');
 
@@ -835,9 +829,7 @@
                 }
             });
     });
-    // ===== /PROMO =====
 
-    // ---------- Locks Hotel vs Meeting Point ----------
     function lockHotel(msg){
         $('#hotel_group').addClass('d-none');
         $('#other_hotel_wrapper').hide();
@@ -878,7 +870,6 @@
         } else { unlockMeetingPoint(); }
     });
 
-    // ---------- Inicialización ----------
     if ($('#hotel_id').val() === 'other' || '{{ old('is_other_hotel', optional($booking->detail)->is_other_hotel) ? 1 : 0 }}' === '1') {
         $('#other_hotel_wrapper').show();
         $('#is_other_hotel').val('1');
@@ -899,27 +890,22 @@
         if (pickedOther) { $('#other_hotel_wrapper').show(); $('#is_other_hotel').val('1'); }
     })();
 
-    // Cargar selects + categorías según tour inicial
     const initialTourId = '{{ old('tour_id', $booking->tour_id) }}';
     if (initialTourId) {
         $('#tour_id').val(initialTourId).trigger('change.select2');
         loadSchedules(initialTourId, '{{ old('schedule_id', optional($booking->detail)->schedule_id) }}');
         loadLanguages(initialTourId, '{{ old('tour_language_id', $booking->tour_language_id) }}');
-
-        // 1) Render inmediato con datos de la reserva (incluso si no hay conexión, muestra algo)
         bootstrapCategoriesFromInit();
-        // 2) Refresca con datos live (trae nombres TRADUCIDOS del endpoint + min/max actuales)
         loadCategories(initialTourId);
     }
 
-    // Si cambia el tour, recargar y mantener UX
     $('#tour_id').on('change', function() {
         const tourId = $(this).val();
         resetSelect($('#schedule_id'), I18N.select_first, true);
         resetSelect($('#tour_language_id'), I18N.select_first, true);
         $('#categories-container').html(
           `<div class="alert alert-info mb-0">
-             ${@json(__('m_bookings.bookings.ui.select_tour_to_see_categories'))}
+             {{ __('m_bookings.bookings.ui.select_tour_to_see_categories') }}
            </div>`
         );
         currentCategories = [];
@@ -938,35 +924,26 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css" rel="stylesheet" />
 <style>
-/* Corrige fondo blanco solo en selects con clase .no-bg */
 select.no-bg + .select2-container--bootstrap4 .select2-selection--single { background: transparent !important; }
 select.no-bg + .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered { background: transparent !important; }
 select.no-bg + .select2-container--bootstrap4 .select2-selection--single .select2-selection__placeholder { color: inherit; }
 select.no-bg + .select2-container--bootstrap4 .select2-selection--single:focus { box-shadow: none; }
 
-/* Tema oscuro: texto del render del select2 y texto "plaintext" */
 .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered { color: white !important; }
 .form-control-plaintext { color: white; }
 
-/* Sticky solo en ≥LG para evitar solaparse en móviles */
 .sticky-lg-top { position: static; }
 @media (min-width: 992px) {
   .sticky-lg-top { position: sticky; top: 20px; z-index: 1020; }
 }
-
-/* Input-group responsive para promo: en XS el botón ocupa 100% */
 .w-sm-auto { width: auto; }
 @media (max-width: 575.98px) {
   .w-sm-auto { width: 100% !important; }
 }
-
-/* Mejoras touch XS en controles de categorías */
 @media (max-width: 575.98px) {
   .category-row .btn { padding: .45rem .6rem; }
   .category-row input { width: 68px !important; }
 }
-
-/* Botón de promo sin hacks de width, centrado */
 .btn-promo {
   display: inline-flex;
   align-items: center;
