@@ -2,21 +2,33 @@
 
 namespace App\Http\Responses;
 
+use Illuminate\Support\Facades\Auth;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 
 class RegisterResponse implements RegisterResponseContract
 {
     public function toResponse($request)
     {
-        // Guarda info útil para la UI (opcional)
-        if ($request->user()) {
-            session(['registered_email' => $request->user()->email]);
+        // Guardamos el correo para mostrarlo en la vista de "verifica tu email"
+        $email = optional($request->user())->email;
+
+        if ($email) {
+            session([
+                'registered_email' => $email,
+            ]);
             session()->flash('just_registered', true);
         }
 
-        // Lleva al aviso de verificación
+        // IMPORTANTE: cerrar sesión inmediatamente después del registro
+        if ($request->user()) {
+            Auth::guard('web')->logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
+        // Redirigir a la vista pública de verificación
         return redirect()->route('verification.notice');
-        // Si prefieres tu página de gracias:
-        // return redirect()->route('register.thanks');
+        // (ya tienes esa ruta como guest y mostrando auth.verify-email)
     }
 }

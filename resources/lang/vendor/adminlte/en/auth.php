@@ -20,6 +20,7 @@ return [
 
     // 1. Greetings
     'hello' => 'Hello',
+'captcha_failed' => 'Captcha verification failed.',
 
     // 2. Authentication Messages
     'login_message' => 'Sign in to start your session',
@@ -73,7 +74,7 @@ return [
         'unlock_mail_action'  => 'Unlock my account',
         'unlock_mail_outro'   => 'If this was not you, please ignore this email.',
         'unlocked'            => 'Your account has been unlocked. You can now sign in.',
-        'locked'              => 'Your account is locked.',
+        'locked'              => 'Your account is locked. Check your mail',
     ],
 
     // 7. Email Verification
@@ -82,6 +83,8 @@ return [
         'message'   => 'Before proceeding, please verify your email. We have sent you a verification link.',
         'resend'    => 'Resend verification email',
         'link_sent' => 'We have sent you a new verification link.',
+        'sent_to'      => 'We have sent a verification link to :email.',
+'email_label'  => 'Email address',
         'subject'   => 'Verify your email address',
         'intro'     => 'Please click the button to verify your email address.',
         'action'    => 'Verify email address',

@@ -20,6 +20,7 @@ return [
 
     // 1. Greetings
     'hello' => 'Bonjour',
+'captcha_failed' => 'La vérification du captcha a échoué.',
 
     // 2. Authentication Messages
     'login_message' => 'Connectez-vous pour démarrer votre session',
@@ -73,7 +74,7 @@ return [
         'unlock_mail_action'  => 'Déverrouiller mon compte',
         'unlock_mail_outro'   => 'Si vous n\'êtes pas à l\'origine de cette demande, veuillez ignorer cet e-mail.',
         'unlocked'            => 'Votre compte a été déverrouillé. Vous pouvez maintenant vous connecter.',
-        'locked'              => 'Votre compte est verrouillé.',
+        'locked'              => 'Votre compte est verrouillé. Vérifier vos e-mails.',
     ],
 
     // 7. Email Verification
@@ -82,6 +83,8 @@ return [
         'message'   => 'Veuillez vérifier votre e-mail avant de continuer. Nous vous avons envoyé un lien de vérification.',
         'resend'    => 'Renvoyer l\'e-mail de vérification',
         'link_sent' => 'Nous vous avons envoyé un nouveau lien de vérification.',
+        'sent_to'      => 'Nous avons envoyé un lien de vérification à :email.',
+'email_label'  => 'Adresse e-mail',
         'subject'   => 'Vérifiez votre adresse e-mail',
         'intro'     => 'Veuillez cliquer sur le bouton pour vérifier votre adresse e-mail.',
         'action'    => 'Vérifier l\'adresse e-mail',

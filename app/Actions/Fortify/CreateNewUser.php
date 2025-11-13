@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
-use Illuminate\Auth\Events\Registered; // ⬅️ necesario para disparar el correo
 
 class CreateNewUser implements CreatesNewUsers
 {
@@ -52,8 +51,6 @@ class CreateNewUser implements CreatesNewUsers
             'role_id'      => 3,   // cliente
             'is_locked'    => false,
         ]);
-
-        event(new Registered($user)); // ⬅️ envía el correo de verificación
 
         return $user;
     }

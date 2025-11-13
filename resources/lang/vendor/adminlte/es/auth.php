@@ -73,7 +73,7 @@ return [
         'unlock_mail_action'  => 'Desbloquear mi cuenta',
         'unlock_mail_outro'   => 'Si no fuiste tú, ignora este correo.',
         'unlocked'            => 'Tu cuenta ha sido desbloqueada. Ya puedes iniciar sesión.',
-        'locked'              => 'Tu cuenta está bloqueada.',
+        'locked'              => 'Tu cuenta está bloqueada. Revisa tu correo',
     ],
 
     // 7. Email Verification
@@ -82,6 +82,8 @@ return [
         'message'   => 'Antes de continuar, por favor verifica tu correo. Te hemos enviado un enlace de verificación.',
         'resend'    => 'Reenviar correo de verificación',
         'link_sent' => 'Te hemos enviado un nuevo enlace de verificación.',
+        'sent_to' => 'Te hemos enviado un enlace de verificación a :email.',
+        'email_label' => 'Correo electrónico',
         'subject'   => 'Verifica tu correo electrónico',
         'intro'     => 'Por favor haz clic en el botón para verificar tu dirección de correo electrónico.',
         'action'    => 'Verificar correo electrónico',

@@ -21,12 +21,10 @@ class PublicReadOnly
             $blocked = [
                 'apply-promo',
                 'api/apply-promo',
-                'cart/*',
                 'carrito/*',
-                'bookings/*',
-                'my-cart',
                 'mi-carrito',
                 'my-bookings*',
+                'register',
             ];
 
             foreach ($blocked as $pat) {

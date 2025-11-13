@@ -17,10 +17,11 @@
 */
 
 return [
+'captcha_failed' => 'A verificação do captcha falhou.',
 
     // 1. Greetings
     'hello' => 'Olá',
-
+    'captcha_failed' => 'Falló el captcha',
     // 2. Authentication Messages
     'login_message' => 'Faça login para iniciar sua sessão',
     'register_message' => 'Registrar uma nova conta',
@@ -73,7 +74,7 @@ return [
         'unlock_mail_action'  => 'Desbloquear minha conta',
         'unlock_mail_outro'   => 'Se não foi você, por favor ignore este e-mail.',
         'unlocked'            => 'Sua conta foi desbloqueada. Agora você pode fazer login.',
-        'locked'              => 'Sua conta está bloqueada.',
+        'locked' => 'Sua conta está bloqueada. Verifique seu e-mail.',
     ],
 
     // 7. Email Verification
@@ -82,6 +83,8 @@ return [
         'message'   => 'Por favor, confirme seu e-mail antes de continuar. Enviamos um link de confirmação para você.',
         'resend'    => 'Reenviar e-mail de confirmação',
         'link_sent' => 'Enviamos um novo link de confirmação para você.',
+        'sent_to'      => 'Enviamos um link de verificação para :email.',
+'email_label'  => 'E-mail',
         'subject'   => 'Confirme seu endereço de e-mail',
         'intro'     => 'Por favor, clique no botão para confirmar seu endereço de e-mail.',
         'action'    => 'Confirmar endereço de e-mail',

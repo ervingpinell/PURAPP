@@ -20,6 +20,7 @@ return [
 
     // 1. Greetings
     'hello' => 'Hallo',
+'captcha_failed' => 'Die Captcha-Überprüfung ist fehlgeschlagen.',
 
     // 2. Authentication Messages
     'login_message' => 'Melden Sie sich an, um Ihre Sitzung zu starten',
@@ -73,7 +74,7 @@ return [
         'unlock_mail_action'  => 'Mein Konto entsperren',
         'unlock_mail_outro'   => 'Falls Sie dies nicht waren, ignorieren Sie bitte diese E-Mail.',
         'unlocked'            => 'Ihr Konto wurde entsperrt. Sie können sich jetzt anmelden.',
-        'locked'              => 'Ihr Konto ist gesperrt.',
+        'locked' => 'Ihr Konto ist gesperrt. Überprüfen Sie Ihre E-Mails',
     ],
 
     // 7. Email Verification
@@ -82,6 +83,8 @@ return [
         'message'   => 'Bitte bestätigen Sie Ihre E-Mail, bevor Sie fortfahren. Wir haben Ihnen einen Bestätigungslink gesendet.',
         'resend'    => 'Bestätigungs-E-Mail erneut senden',
         'link_sent' => 'Wir haben Ihnen einen neuen Bestätigungslink gesendet.',
+        'sent_to'      => 'Wir haben einen Bestätigungslink an :email gesendet.',
+        'email_label'  => 'E-Mail-Adresse',
         'subject'   => 'Bestätigen Sie Ihre E-Mail-Adresse',
         'intro'     => 'Bitte klicken Sie auf die Schaltfläche, um Ihre E-Mail-Adresse zu bestätigen.',
         'action'    => 'E-Mail-Adresse bestätigen',
