@@ -1,6 +1,9 @@
 @php
   /**
-   * Estructura esperada (DB-first):
+   * Ahora este partial asume que SIEMPRE viene $policyBlocks
+   * desde el controlador, construido desde BD con buildPolicyBlocksFromDB().
+   *
+   * Estructura:
    * $policyBlocks = [
    *   ['key'=>'terms',        'title'=>'...', 'version'=>'vX', 'html'=>'<p>...</p>'],
    *   ['key'=>'privacy',      'title'=>'...', 'version'=>'vX', 'html'=>'<p>...</p>'],
@@ -8,35 +11,14 @@
    *   ['key'=>'refunds',      'title'=>'...', 'version'=>'vX', 'html'=>'<p>...</p>'],
    *   ['key'=>'warranty',     'title'=>'...', 'version'=>'vX', 'html'=>'<p>...</p>'],
    *   ['key'=>'payments',     'title'=>'...', 'version'=>'vX', 'html'=>'<p>...</p>'],
+   *   // ...cualquier otra policy activa
    * ];
    */
 
-  // Helpers de fallback a archivos de traducción
-  $T = fn($k) => __('policies.checkout.titles.' . $k);
-  $V = fn($k) => __('policies.checkout.version.' . $k);
-  $B = fn($k) => __('policies.checkout.bodies.' . $k . '_html');
-
-  // Si NO llega $policyBlocks, construimos con las claves actuales (archivos)
-  if (empty($policyBlocks) || !is_array($policyBlocks)) {
-    $policyBlocks = [
-      ['key'=>'terms',        'title'=> $T('terms'),        'version'=> $V('terms'),        'html'=> $B('terms')],
-      ['key'=>'privacy',      'title'=> $T('privacy'),      'version'=> $V('privacy'),      'html'=> $B('privacy')],
-      ['key'=>'cancellation', 'title'=> $T('cancellation'), 'version'=> 'v1',               'html'=> $B('cancellation')],
-      ['key'=>'refunds',      'title'=> $T('refunds'),      'version'=> 'v1',               'html'=> $B('refunds')],
-      ['key'=>'warranty',     'title'=> $T('warranty'),     'version'=> 'v1',               'html'=> $B('warranty')],
-      ['key'=>'payments',     'title'=> $T('payments'),     'version'=> 'v1',               'html'=> $B('payments')],
-    ];
-  } else {
-    // Si sí llega $policyBlocks desde BD, permite override de versions para términos/privacidad
-    if (!empty($termsVersion)) {
-      foreach ($policyBlocks as &$blk) if (($blk['key'] ?? null) === 'terms') $blk['version'] = $termsVersion;
-      unset($blk);
-    }
-    if (!empty($privacyVersion)) {
-      foreach ($policyBlocks as &$blk) if (($blk['key'] ?? null) === 'privacy') $blk['version'] = $privacyVersion;
-      unset($blk);
-    }
-  }
+  $policyBlocks = collect($policyBlocks ?? [])
+      ->filter(fn ($b) => !empty($b['html']))
+      ->values()
+      ->all();
 @endphp
 
 <style>
@@ -49,14 +31,21 @@
   .policy-body li{margin:.35rem 0}
 </style>
 
-@foreach($policyBlocks as $block)
-  <div class="policy-block">
-    <div class="policy-subheader">
-      <span class="title">{{ $block['title'] ?? '' }}</span>
-      <span class="version">{{ $block['version'] ?? 'v1' }}</span>
+@if(empty($policyBlocks))
+  {{-- Si por alguna razón no hay nada en BD, mostramos un mensajito en vez de hardcodear contenido --}}
+  <p class="text-muted small mb-0">
+    {{ __('m_checkout.panels.no_policies_configured') }}
+  </p>
+@else
+  @foreach($policyBlocks as $block)
+    <div class="policy-block">
+      <div class="policy-subheader">
+        <span class="title">{{ $block['title'] ?? '' }}</span>
+        <span class="version">{{ $block['version'] ?? 'v1' }}</span>
+      </div>
+      <div class="policy-body">
+        {!! $block['html'] ?? '' !!}
+      </div>
     </div>
-    <div class="policy-body">
-      {!! $block['html'] ?? '' !!}
-    </div>
-  </div>
-@endforeach
+  @endforeach
+@endif

@@ -66,107 +66,185 @@ class PublicCheckoutController extends Controller
     /**
      * Convierte un slug a una "key" canónica para el bloque (terms, privacy, etc.).
      */
-    private function canonicalKeyFromSlug(?string $slug): ?string
-    {
-        if (!$slug) return null;
-        $s = Str::of($slug)->lower()->replace(' ', '-')->replace('_', '-')->toString();
+private function canonicalKeyFromSlug(?string $slug): ?string
+{
+    if (!$slug) return null;
 
-        // Normalizaciones típicas
-        $map = [
-            'terms'             => ['terms', 'terminos', 't-and-c', 'tyc', 'terms-conditions', 'terms-and-conditions'],
-            'privacy'           => ['privacy', 'privacidad', 'privacy-policy'],
-            'cancellation'      => ['cancellation', 'cancelacion', 'cancellation-policy'],
-            'refunds'           => ['refunds', 'devoluciones', 'refund-policy'],
-            'warranty'          => ['warranty', 'garantia', 'guarantee'],
-            'payments'          => ['payments', 'metodos-de-pago', 'payment-methods'],
-        ];
-        foreach ($map as $key => $alts) {
-            foreach ($alts as $alt) {
-                if ($s === $alt || Str::contains($s, $alt)) {
-                    return $key;
-                }
+    $s = Str::of($slug)
+        ->lower()
+        ->replace(' ', '-')
+        ->replace('_', '-')
+        ->toString();
+
+    $map = [
+        'terms'        => ['terms', 'terms-and-conditions', 't-and-c', 'tyc'],
+        'privacy'      => ['privacy', 'privacy-policy'],
+        'cancellation' => ['cancellation', 'cancellation-policy'],
+        'refunds'      => ['refunds', 'refund', 'refund-policy', 'refunds-and-warranty', 'refunds-warranty'],
+        'warranty'     => ['warranty', 'guarantee', 'warranty-policy'],
+        'payments'     => ['payments', 'payment-methods', 'payment-policy'],
+    ];
+
+    foreach ($map as $key => $alts) {
+        foreach ($alts as $alt) {
+            if ($s === $alt || Str::contains($s, $alt)) {
+                return $key;
             }
         }
-        // Si no coincide, regresa un slug “limpio” como key
-        return Str::slug($s);
     }
+
+    return Str::slug($s);
+}
+
 
     /**
      * Construye bloques de políticas directamente desde BD.
      * Retorna [ 'blocks' => array, 'versions' => ['terms'=>?, 'privacy'=>?] ]
      */
-    private function buildPolicyBlocksFromDB(string $locale, string $fallback): array
-    {
-        // Traer políticas activas con sus secciones activas + traducciones
-        $policies = Policy::query()
-            ->with([
-                'translations',
-                'sections' => function ($q) {
-                    $q->orderBy('sort_order')->orderBy('section_id');
-                },
-                'sections.translations',
-            ])
-            ->where('is_active', true)
-            ->orderBy('policy_id')
-            ->get();
+  /**
+ * Construye bloques de políticas directamente desde BD.
+ * Retorna [ 'blocks' => array, 'versions' => ['terms'=>?, 'privacy'=>?] ]
+ */
+private function buildPolicyBlocksFromDB(string $locale, string $fallback): array
+{
+    // Traer políticas activas con sus secciones activas + traducciones
+    $policies = Policy::query()
+        ->with([
+            'translations',
+            'sections' => function ($q) {
+                $q->orderBy('sort_order')
+                  ->orderBy('section_id');
+            },
+            'sections.translations',
+        ])
+        ->where('is_active', true)
+        ->orderBy('policy_id')
+        ->get();
 
-        $blocks = [];
-        $versions = ['terms' => null, 'privacy' => null];
+    $blocks   = [];
+    $versions = ['terms' => null, 'privacy' => null];
 
-        foreach ($policies as $p) {
-            $pTr = $this->pickTranslation($p->translations, $locale, $fallback);
+    foreach ($policies as $p) {
+        $pTr = $this->pickTranslation($p->translations, $locale, $fallback);
 
-            // HTML armado con secciones activas
-            $htmlSections = [];
-            foreach ($p->sections ?? [] as $sec) {
-                if (!$sec->is_active) continue;
-                $sTr = $this->pickTranslation($sec->translations, $locale, $fallback);
-                $title   = trim((string)($sTr->name ?? ''));
-                $content = (string)($sTr->content ?? '');
+        $htmlParts = [];
 
-                if ($title !== '') {
-                    // título como <h4> para consistencia con tu estilo
-                    $htmlSections[] = '<h4>' . e($title) . '</h4>';
-                }
-                if ($content !== '') {
-                    $htmlSections[] = $content; // ya viene HTML administrado
-                }
-            }
+        // =========================
+        // 1) Contenido a nivel de Policy (policies_translations.content)
+        // =========================
+        $policyTitle   = trim((string) ($pTr->name ?? ''));
+        $policyContent = (string) ($pTr->content ?? '');
 
-            // Si no hubo secciones con contenido, saltamos
-            if (empty($htmlSections)) continue;
-
-            // Título del bloque (el de la policy)
-            $blockTitle = (string)($pTr->name ?? ($p->slug ?? ''));
-            // Versionado simple: si la policy tiene rango de vigencia, arma una "v" legible
-            $version = null;
-            if (!empty($p->effective_from) || !empty($p->effective_to)) {
-                $from = $p->effective_from ? Carbon::parse($p->effective_from)->format('Y-m-d') : '—';
-                $to   = $p->effective_to   ? Carbon::parse($p->effective_to)->format('Y-m-d') : '—';
-                $version = "v {$from} → {$to}";
-            }
-
-            $key = $this->canonicalKeyFromSlug($p->slug);
-            // si no hubo forma de deducir, crea algo estable
-            if (!$key) $key = 'policy_' . $p->policy_id;
-
-            $blocks[] = [
-                'key'     => $key,
-                'title'   => $blockTitle ?: Str::title(Str::of($key)->replace('-', ' ')),
-                'version' => $version ?: 'v1',
-                'html'    => implode("\n", $htmlSections),
-            ];
-
-            // Guardamos versiones “oficiales” para terms/privacy si aplica
-            if ($key === 'terms'  && !$versions['terms'])   $versions['terms']   = $version ?: 'v1';
-            if ($key === 'privacy'&& !$versions['privacy']) $versions['privacy'] = $version ?: 'v1';
+        if (trim(strip_tags($policyContent)) !== '') {
+            // NO metemos el título aquí porque ya lo muestra el header del bloque
+            $htmlParts[] = $policyContent;
         }
 
-        return [
-            'blocks'   => $blocks,
-            'versions' => $versions,
+        // =========================
+        // 2) Contenido por secciones activas (policy_sections + translations)
+        // =========================
+        foreach ($p->sections ?? [] as $sec) {
+            if (!$sec->is_active) {
+                continue;
+            }
+
+            $sTr     = $this->pickTranslation($sec->translations, $locale, $fallback);
+            $sTitle  = trim((string) ($sTr->name ?? ''));
+            $sBody   = (string) ($sTr->content ?? '');
+
+            if ($sTitle !== '') {
+                $htmlParts[] = '<h4>' . e($sTitle) . '</h4>';
+            }
+            if (trim(strip_tags($sBody)) !== '') {
+                $htmlParts[] = $sBody; // ya viene HTML administrado
+            }
+        }
+
+        // Si no hubo contenido NI en policy.content NI en sus secciones, la saltamos
+        $hasContent = collect($htmlParts)->contains(function ($chunk) {
+            return trim(strip_tags((string) $chunk)) !== '';
+        });
+
+        if (!$hasContent) {
+            continue;
+        }
+
+        // =========================
+        // 3) Título y versión del bloque
+        // =========================
+        $blockTitle = $policyTitle;
+        if ($blockTitle === '') {
+            $blockTitle = (string) ($p->slug ?? '');
+        }
+        if ($blockTitle === '') {
+            $blockTitle = 'Policy #' . $p->policy_id;
+        }
+
+        // Versionado legible si la policy tiene rango de vigencia
+        $version = null;
+        if (!empty($p->effective_from) || !empty($p->effective_to)) {
+            $from = $p->effective_from ? Carbon::parse($p->effective_from)->format('Y-m-d') : '—';
+            $to   = $p->effective_to   ? Carbon::parse($p->effective_to)->format('Y-m-d') : '—';
+            $version = "v {$from} → {$to}";
+        }
+
+        // =========================
+        // 4) Key canónica basada en el slug (siempre en inglés)
+        // =========================
+        $key = $this->canonicalKeyFromSlug($p->slug);
+        if (!$key) {
+            $key = 'policy_' . $p->policy_id;
+        }
+
+        $blocks[] = [
+            'key'     => $key,
+            'title'   => $blockTitle,
+            'version' => $version ?: 'v1',
+            'html'    => implode("\n", $htmlParts),
         ];
+
+        // Guardamos versiones oficiales para terms/privacy si aplica
+        if ($key === 'terms'   && !$versions['terms'])   {
+            $versions['terms'] = $version ?: 'v1';
+        }
+        if ($key === 'privacy' && !$versions['privacy']) {
+            $versions['privacy'] = $version ?: 'v1';
+        }
     }
+
+    // =========================
+    // 5) Orden lógico de los bloques en el checkout
+    // =========================
+    $preferredOrder = [
+        'terms',
+        'privacy',
+        'cancellation',
+        'refunds',
+        'warranty',
+        'payments',
+    ];
+    $orderIndex = array_flip($preferredOrder);
+
+    usort($blocks, function ($a, $b) use ($orderIndex) {
+        $ka = $a['key'] ?? '';
+        $kb = $b['key'] ?? '';
+
+        $ia = $orderIndex[$ka] ?? PHP_INT_MAX;
+        $ib = $orderIndex[$kb] ?? PHP_INT_MAX;
+
+        if ($ia === $ib) {
+            return strcmp($ka, $kb);
+        }
+
+        return $ia <=> $ib;
+    });
+
+    return [
+        'blocks'   => $blocks,
+        'versions' => $versions,
+    ];
+}
+
 
     /**
      * Calcula cutoff de cancelación gratuita: 24 h antes del inicio más cercano.
@@ -187,56 +265,57 @@ class PublicCheckoutController extends Controller
 
     /** ===================== Acciones ===================== */
 
-    public function show(Request $request, PolicySnapshotService $svc)
-    {
-        $userId = Auth::id();
-        if (!$userId) return redirect()->route('login');
-
-        $cart = $this->findActiveCartForUser($userId);
-        $itemsCount = $cart ? $cart->items()->count() : 0;
-        if (!$cart || $itemsCount === 0) {
-            return redirect()->route('public.carts.index')
-                ->with('error', __('adminlte::adminlte.emptyCart'));
-        }
-
-        $locale   = app()->getLocale();
-        $fallback = (string) config('app.fallback_locale', 'es');
-
-        // 1) Intentar armar desde BD
-        $dbPack   = $this->buildPolicyBlocksFromDB($locale, $fallback);
-        $blocks   = $dbPack['blocks'] ?? [];
-        $versions = $dbPack['versions'] ?? ['terms'=>null, 'privacy'=>null];
-
-        // 2) Snapshot de config como fallback
-        $cfgPack = $svc->make();
-
-        // Usamos BD si hay algo, si no, usamos config
-        $useDB = !empty($blocks);
-
-        // Calcular cutoff de cancelación
-        $freeCancelUntil = $this->computeFreeCancelUntil($cart);
-
-        return view('public.checkout', [
-            'cart'            => $cart,
-
-            // Para el include de content.blade.php:
-            'policyBlocks'    => $useDB ? $blocks : null,
-
-            // Versiones visibles
-            'termsVersion'    => $useDB
-                                  ? ($versions['terms']   ?? 'v1')
-                                  : ($cfgPack['versions']['terms']   ?? 'v1'),
-            'privacyVersion'  => $useDB
-                                  ? ($versions['privacy'] ?? 'v1')
-                                  : ($cfgPack['versions']['privacy'] ?? 'v1'),
-
-            // Para el chip dinámico "Cancelación gratuita hasta :time el :date"
-            'freeCancelUntil' => $freeCancelUntil,
-
-            // También pasamos el snapshot por compatibilidad (no lo usará el include si hay policyBlocks)
-            'policies'        => $cfgPack['snapshot'] ?? [],
-        ]);
+public function show(Request $request, PolicySnapshotService $svc)
+{
+    $userId = Auth::id();
+    if (!$userId) {
+        return redirect()->route('login');
     }
+
+    $cart = $this->findActiveCartForUser($userId);
+    $itemsCount = $cart ? $cart->items()->count() : 0;
+
+    if (!$cart || $itemsCount === 0) {
+        return redirect()->route('public.carts.index')
+            ->with('error', __('adminlte::adminlte.emptyCart'));
+    }
+
+    $locale   = app()->getLocale();
+    $fallback = (string) config('app.fallback_locale', 'es');
+
+    // 1) Siempre intentamos armar los bloques desde BD
+    $dbPack   = $this->buildPolicyBlocksFromDB($locale, $fallback);
+    $blocks   = $dbPack['blocks'] ?? [];
+    $versions = $dbPack['versions'] ?? ['terms' => null, 'privacy' => null];
+
+    // 2) Snapshot de config SOLO para versiones / compat (no para mostrar contenido)
+    $cfgPack = $svc->make();
+
+    // Calcular cutoff de cancelación gratuita (24h antes del primer tour)
+    $freeCancelUntil = $this->computeFreeCancelUntil($cart);
+
+    // Versiones visibles (si BD no trae nada, cae a config o v1)
+    $termsVersion = $versions['terms']
+        ?? ($cfgPack['versions']['terms']   ?? 'v1');
+
+    $privacyVersion = $versions['privacy']
+        ?? ($cfgPack['versions']['privacy'] ?? 'v1');
+
+    return view('public.checkout', [
+        'cart'            => $cart,
+
+        // === El partial ya no tiene fallback hardcode: siempre mostramos lo que venga de BD ===
+        'policyBlocks'    => $blocks,
+
+        'termsVersion'    => $termsVersion,
+        'privacyVersion'  => $privacyVersion,
+        'freeCancelUntil' => $freeCancelUntil,
+
+        // Se mantiene por compatibilidad con otros usos (no lo usa el include nuevo)
+        'policies'        => $cfgPack['snapshot'] ?? [],
+    ]);
+}
+
 
     public function process(Request $request, PolicySnapshotService $svc)
     {
