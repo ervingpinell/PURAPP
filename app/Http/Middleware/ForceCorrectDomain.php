@@ -4,28 +4,30 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 class ForceCorrectDomain
 {
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
-        // ✅ No redirigir en ambiente local o de desarrollo
-        if (app()->environment(['local', 'development'])) {
+        // En entornos no productivos (local, dev_test) NO forzamos dominio
+        if (! app()->environment('production')) {
             return $next($request);
         }
 
-        $correctDomain = 'greenvacationscr.com';
-        $currentHost = $request->getHost();
+        // === PRODUCCIÓN ===
+        // Dominio canónico
+        $canonicalHost = 'greenvacationscr.com';
 
-        // Si no es el dominio correcto, redirige
-        if ($currentHost !== $correctDomain && $currentHost !== 'www.' . $correctDomain) {
-            return redirect()->away(
-                'https://' . $correctDomain . $request->getRequestUri(),
-                301
-            );
+        $host = $request->getHost();
+
+        // Permitimos también www
+        if ($host === $canonicalHost || $host === 'www.' . $canonicalHost) {
+            return $next($request);
         }
 
-        return $next($request);
+        // Cualquier otro host -> redirige al dominio canonical
+        $uri = $request->getRequestUri();
+
+        return redirect()->to('https://' . $canonicalHost . $uri, 301);
     }
 }
