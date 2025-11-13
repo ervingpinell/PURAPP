@@ -50,8 +50,6 @@ use App\Http\Controllers\Admin\CapacityController;
 use App\Http\Controllers\Admin\CustomerCategoryController;
 use App\Http\Controllers\Admin\Tours\TourAjaxController;
 use App\Http\Controllers\Admin\API\TourDataController;
-use App\Mail\BookingCreatedMail;
-use App\Models\Booking;
 
 
 // Public bookings controller (split)
@@ -65,6 +63,57 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
+use App\Models\Booking;
+use App\Mail\{
+    BookingCreatedMail,
+    BookingConfirmedMail,
+    BookingCancelledMail,
+    BookingUpdatedMail
+};
+
+
+if (app()->isLocal()) {
+    Route::prefix('preview/mails/bookings')->group(function () {
+        // Helper: toma ultimo booking si no se pasa id
+        $resolveBooking = function (?int $id = null): Booking {
+            return $id
+                ? Booking::with(['detail','user','tour'])->findOrFail($id)
+                : Booking::with(['detail','user','tour'])->latest('booking_id')->firstOrFail();
+        };
+
+        // Booking Created
+        Route::get('/{id?}/created', function (?int $id = null) use ($resolveBooking) {
+            $booking = $resolveBooking($id);
+            $mailable = new BookingCreatedMail($booking);
+            if ($lang = request('lang')) { $mailable->locale($lang); }
+            return $mailable->render(); // HTML
+        })->name('preview.mail.booking.created');
+
+        // Booking Confirmed
+        Route::get('/{id?}/confirmed', function (?int $id = null) use ($resolveBooking) {
+            $booking = $resolveBooking($id);
+            $mailable = new BookingConfirmedMail($booking);
+            if ($lang = request('lang')) { $mailable->locale($lang); }
+            return $mailable->render();
+        })->name('preview.mail.booking.confirmed');
+
+        // Booking Cancelled
+        Route::get('/{id?}/cancelled', function (?int $id = null) use ($resolveBooking) {
+            $booking = $resolveBooking($id);
+            $mailable = new BookingCancelledMail($booking);
+            if ($lang = request('lang')) { $mailable->locale($lang); }
+            return $mailable->render();
+        })->name('preview.mail.booking.cancelled');
+
+        // Booking Updated
+        Route::get('/{id?}/updated', function (?int $id = null) use ($resolveBooking) {
+            $booking = $resolveBooking($id);
+            $mailable = new BookingUpdatedMail($booking);
+            if ($lang = request('lang')) { $mailable->locale($lang); }
+            return $mailable->render();
+        })->name('preview.mail.booking.updated');
+    });
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -141,11 +190,9 @@ Route::middleware([SetLocale::class])->group(function () {
     // PUBLIC LOCALIZED ROUTES
     // ============================
 
-
     localizedRoutes(function () {
         // Home & Tours
         Route::get('/', [HomeController::class, 'index'])->name('home');
-        Route::get('/home', [HomeController::class, 'index'])->name('home');
         Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
         Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tours.show');
 

@@ -6,7 +6,7 @@
         ? (str_starts_with($lang, 'es') ? 'es' : 'en')
         : (str_starts_with(app()->getLocale(), 'es') ? 'es' : 'en');
 
-    $money = fn($n) => '$' . number_format((float)$n, 2);
+    $money     = fn($n) => '$' . number_format((float)$n, 2);
     $reference = $booking->booking_reference ?? $booking->reference ?? $booking->booking_id;
 
     $subtotal = $booking->subtotal ?? ($booking->amount_before_discounts ?? null);
@@ -15,24 +15,51 @@
             ->reduce(fn($c,$x)=> $c + ((float)($x['quantity']??0) * (float)($x['price']??0)), 0.0);
     }
 
-    $promo           = $booking->redemption?->promoCode ?? $booking->promoCode ?? $booking->promoCodeLegacy;
-    $discountAmount  = $promo->discount_amount ?? $promo?->discount ?? null;
-    $discountName    = $promo->code ?? $promo?->name ?? null;
-    $taxes           = $booking->taxes ?? ($booking->tax ?? null);
-    $total           = $booking->total ?? ($booking->amount ?? null);
+    // Promo: puede ser descuento o recargo
+    $promo        = $booking->redemption?->promoCode ?? $booking->promoCode ?? $booking->promoCodeLegacy;
+    $discountName = null;
+    $adjustmentAmount = null;   // valor positivo
+    $adjustmentType   = null;   // 'discount' | 'surcharge'
 
-    $tTitle     = $mailLocale === 'es' ? 'Reserva creada'       : 'Booking created';
-    $tRef       = $mailLocale === 'es' ? 'Referencia'            : 'Reference';
-    $tSummary   = $mailLocale === 'es' ? 'Resumen'               : 'Summary';
-    $tBreakdown = $mailLocale === 'es' ? 'Desglose por cliente'  : 'Customer breakdown';
-    $tSubtotal  = $mailLocale === 'es' ? 'Subtotal'              : 'Subtotal';
-    $tDiscount  = $mailLocale === 'es' ? 'Descuento'             : 'Discount';
-    $tTaxes     = $mailLocale === 'es' ? 'Impuestos'             : 'Taxes';
-    $tTotal     = $mailLocale === 'es' ? 'Total'                 : 'Total';
+    if ($promo) {
+        $discountName = $promo->code ?? $promo->name ?? null;
+        $raw = $promo->discount_amount ?? $promo->discount ?? null;
+        $raw = $raw !== null ? (float)$raw : null;
+
+        if ($raw !== null && $raw != 0.0) {
+            $op = strtolower($promo->operation ?? 'subtract');
+            if ($op === 'add') {
+                $adjustmentType   = 'surcharge';
+                $adjustmentAmount = abs($raw);
+            } else {
+                $adjustmentType   = 'discount';
+                $adjustmentAmount = abs($raw);
+            }
+        }
+    }
+
+    $hasAdjustment = $adjustmentAmount !== null;
+
+    $taxes = $booking->taxes ?? ($booking->tax ?? null);
+    $total = $booking->total ?? ($booking->amount ?? null);
+
+    // Para fallback del total
+    $effectiveAdj = 0.0;
+    if ($hasAdjustment) {
+        $signForCalc = $adjustmentType === 'discount' ? 1 : -1;
+        $effectiveAdj = $signForCalc * (float)$adjustmentAmount;
+    }
+
+    $tTitle    = $mailLocale === 'es' ? 'Reserva creada'      : 'Booking created';
+    $tRef      = $mailLocale === 'es' ? 'Referencia'          : 'Reference';
+    $tSummary  = $mailLocale === 'es' ? 'Resumen'             : 'Summary';
+    $tSubtotal = $mailLocale === 'es' ? 'Subtotal'            : 'Subtotal';
+    $tTaxes    = $mailLocale === 'es' ? 'Impuestos'           : 'Taxes';
+    $tTotal    = $mailLocale === 'es' ? 'Total'               : 'Total';
 
     $d = collect($details ?? $booking->details ?? [])->first();
 
-    /* ===== Locale preferido para el nombre del tour ===== */
+    // Locale preferido para el nombre del tour
     $preferredLoc = strtolower(
         $booking->locale ?? $booking->language_code ?? $mailLocale ?? app()->getLocale()
     );
@@ -92,15 +119,17 @@
     $hotelName = (($d?->is_other_hotel ?? false) && filled($d?->other_hotel_name))
         ? $d->other_hotel_name
         : (optional($d?->hotel)->name ?? optional($booking->hotel)->name ?? null);
+
+    $notes = trim((string)($booking->notes ?? ''));
 @endphp
 
-{{-- Encabezado --}}
+{{-- 1. BOOKING STATUS --}}
 <div class="section-card" style="margin-bottom:14px;">
-  <div class="section-title" style="margin-bottom:4px;">{{ $tTitle }}</div>
+  <div class="section-title" style="margin-bottom:4px;color:#256d1b">{{ $tTitle }}</div>
   <div style="font-size:13px;color:#6b7280;">{{ $tRef }}: {{ $reference }}</div>
 </div>
 
-{{-- RESUMEN --}}
+{{-- 2. BOOKING SUMMARY --}}
 <div class="section-card" style="margin-bottom:12px;">
   <div class="section-title" style="margin-bottom:6px;font-weight:700;">{{ $tSummary }}</div>
   <div style="font-size:14px;color:#374151;">
@@ -121,41 +150,56 @@
       <div><strong>{{ $mailLocale==='es'?'Hotel pickup':'Hotel pickup' }}:</strong> {{ $hotelName }}</div>
     @endif
 
-    @php $notes = trim((string)($booking->notes ?? '')); @endphp
     @if($notes !== '')<div><strong>{{ $mailLocale==='es'?'Notas':'Notes' }}:</strong> {{ $notes }}</div>@endif
   </div>
 </div>
 
-{{-- DESGLOSE POR CLIENTE --}}
+{{-- 3. DESGLOSE CLIENTES --}}
 @include('emails.partials.booking-line-items', [
   'booking'        => $booking,
   'details'        => $details ?? null,
   'mailLocale'     => $mailLocale,
-  'suppressHeader' => true,
+  'showLineTotals' => true,
 ])
 
-{{-- TOTALES (inline) --}}
+{{-- 4. TOTALES --}}
 <div class="totals-inline">
-  <div class="row"><span class="label">{{ $tSubtotal }}:</span> <span class="amount">{{ $money($subtotal) }}</span></div>
+  <div class="row">
+    <span class="label">{{ $tSubtotal }}:</span>
+    <span class="amount">{{ $money($subtotal) }}</span>
+  </div>
 
-  @if($discountAmount && $discountAmount > 0)
+  @if($hasAdjustment)
+    @php
+        $isDiscount = $adjustmentType === 'discount';
+        $adjLabel   = $mailLocale === 'es'
+            ? ($isDiscount ? 'Descuento' : 'Recargo')
+            : ($isDiscount ? 'Discount' : 'Surcharge');
+        $adjPrefix  = $isDiscount ? '-' : '+';
+        $adjAmount  = $money($adjustmentAmount);
+    @endphp
     <div class="row">
-      <span class="label">{{ $tDiscount }}:</span>
-      <span class="amount">-{{ $money($discountAmount) }}</span>
+      <span class="label">{{ $adjLabel }}:</span>
+      <span class="amount">{{ $adjPrefix }}{{ $adjAmount }}</span>
       @if($discountName)
         <span class="muted">({{ $discountName }})</span>
       @endif
     </div>
   @endif
 
-  @if($taxes && $taxes > 0)
-    <div class="row"><span class="label">{{ $tTaxes }}:</span> <span class="amount">{{ $money($taxes) }}</span></div>
+  @if($taxes && $taxes != 0)
+    <div class="row">
+      <span class="label">{{ $tTaxes }}:</span>
+      <span class="amount">{{ $money($taxes) }}</span>
+    </div>
   @endif
 
   <div class="row total">
     <span class="label">{{ $tTotal }}:</span>
     <span class="amount">
-      {{ $total !== null ? $money($total) : $money(max(0, (float)$subtotal - (float)($discountAmount ?? 0) + (float)($taxes ?? 0))) }}
+      {{ $total !== null
+            ? $money($total)
+            : $money(max(0, (float)$subtotal - (float)$effectiveAdj + (float)($taxes ?? 0))) }}
     </span>
   </div>
 </div>

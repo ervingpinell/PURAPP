@@ -237,6 +237,7 @@ return [
         'used'         => 'Esta solicitud ya fue usada.',
         'used_help'    => 'Este enlace de reseña ya fue utilizado. Si crees que es un error o quieres actualizar tu comentario, contáctanos y con gusto te ayudamos.',
         'not_found'    => 'Solicitud no encontrada.',
+        'back_home'  => 'Regresar',
     ],
 
     // =========================

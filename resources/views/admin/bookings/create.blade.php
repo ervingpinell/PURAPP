@@ -126,7 +126,7 @@
                                                 </option>
                                             @endforeach
                                             <option value="other" {{ old('is_other_hotel') ? 'selected' : '' }}>
-                                                {{ __('m_bookings.bookings.ui.other_hotel') }}
+                                                {{ __('m_bookings.bookings.placeholders.other') }}
                                             </option>
                                         </select>
                                     </div>
