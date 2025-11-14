@@ -270,13 +270,6 @@
   </tbody>
 </table>
 
-{{-- Paginación (preserva filtros con withQueryString) --}}
-@if ($bookings instanceof \Illuminate\Contracts\Pagination\Paginator)
-  <div class="mt-3">
-    {{ $bookings->withQueryString()->links() }}
-  </div>
-@endif
-
 <style>
   .table-compact .gap-1 { gap: 0.25rem; }
 

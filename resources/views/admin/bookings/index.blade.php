@@ -37,6 +37,23 @@
 
   /* Details button hover */
   .btn-details:hover { transform: scale(1.1); transition: transform 0.2s; }
+
+  /* ===== Paginação numérica ===== */
+  .bookings-pagination {
+    margin-top: .75rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  .bookings-pagination .pagination {
+    margin-bottom: 0;
+  }
+
+  .bookings-pagination .page-link {
+    padding: .25rem .55rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
 </style>
 @endpush
 
@@ -116,6 +133,25 @@
   {{-- 📋 Compact Table --}}
   <div class="table-responsive mt-4" id="bookingsTableContainer">
     @include('admin.bookings.partials.table-compact')
+
+    {{-- 🔢 Paginación SOLO con números --}}
+    @if($bookings instanceof \Illuminate\Pagination\LengthAwarePaginator && $bookings->lastPage() > 1)
+      <div class="bookings-pagination">
+        <ul class="pagination pagination-sm">
+          @for ($page = 1; $page <= $bookings->lastPage(); $page++)
+            @if ($page == $bookings->currentPage())
+              <li class="page-item active" aria-current="page">
+                <span class="page-link">{{ $page }}</span>
+              </li>
+            @else
+              <li class="page-item">
+                <a class="page-link" href="{{ $bookings->url($page) }}">{{ $page }}</a>
+              </li>
+            @endif
+          @endfor
+        </ul>
+      </div>
+    @endif
   </div>
 </div>
 
