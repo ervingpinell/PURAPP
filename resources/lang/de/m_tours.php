@@ -258,6 +258,10 @@ return [
             'actions'       => 'Aktionen',
             'see_more'      => 'Mehr anzeigen',
             'see_less'      => 'Weniger anzeigen',
+            'assigned_items'       => 'Dem Ablauf zugewiesene Elemente',
+            'drag_to_order'        => 'Ziehe die Elemente, um ihre Reihenfolge festzulegen.',
+            'pool_hint'            => 'Markiere die verfügbaren Elemente, die du in diesen Ablauf aufnehmen möchtest.',
+            'register_item_hint'   => 'Erstelle neue Elemente, wenn du zusätzliche Schritte benötigst, die es noch nicht gibt.',
 
             'toggle_on'  => 'Element aktivieren',
             'toggle_off' => 'Element deaktivieren',
@@ -324,6 +328,8 @@ return [
             'page_title'    => 'Reisepläne und Elemente',
             'page_heading'  => 'Reisepläne und Verwaltung von Elementen',
             'new_itinerary' => 'Neuer Reiseplan',
+            'select_or_create_hint' => 'Wähle einen bestehenden Ablauf oder erstelle einen neuen für diese Tour.',
+            'save_changes'          => 'Speichere den Ablauf, um die Änderungen auf die Tour anzuwenden.',
 
             'assign'        => 'Zuweisen',
             'edit'          => 'Bearbeiten',

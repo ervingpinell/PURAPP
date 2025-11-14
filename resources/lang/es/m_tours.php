@@ -269,6 +269,10 @@ return [
             'actions'       => 'Acciones',
             'see_more'      => 'Ver más',
             'see_less'      => 'Ver menos',
+            'assigned_items'       => 'Ítems asignados al itinerario',
+        'drag_to_order'        => 'Arrastra los ítems para definir el orden.',
+        'pool_hint'            => 'Marca los ítems disponibles que quieras incluir en este itinerario.',
+        'register_item_hint'   => 'Registra nuevos ítems si necesitas pasos adicionales que aún no existen.',
 
             'toggle_on'  => 'Activar ítem',
             'toggle_off' => 'Desactivar ítem',
@@ -335,6 +339,8 @@ return [
             'page_title'    => 'Itinerarios y Ítems',
             'page_heading'  => 'Itinerarios y Gestión de Ítems',
             'new_itinerary' => 'Nuevo Itinerario',
+            'select_or_create_hint' => 'Selecciona un itinerario existente o crea uno nuevo para este tour.',
+        'save_changes'          => 'Guarda el itinerario para aplicar los cambios al tour.',
 
             'assign'        => 'Asignar',
             'edit'          => 'Editar',

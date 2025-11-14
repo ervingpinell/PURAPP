@@ -258,6 +258,10 @@ return [
             'actions'       => 'Actions',
             'see_more'      => 'See more',
             'see_less'      => 'See less',
+            'assigned_items'       => 'Assigned itinerary items',
+        'drag_to_order'        => 'Drag items to set their order.',
+        'pool_hint'            => 'Check the available items you want to include in this itinerary.',
+        'register_item_hint'   => 'Create new items if you need additional steps that do not exist yet.',
 
             'toggle_on'  => 'Activate item',
             'toggle_off' => 'Deactivate item',
@@ -324,6 +328,8 @@ return [
             'page_title'    => 'Itineraries and Items',
             'page_heading'  => 'Itineraries and Item Management',
             'new_itinerary' => 'New Itinerary',
+            'select_or_create_hint' => 'Select an existing itinerary or create a new one for this tour.',
+        'save_changes'          => 'Save the itinerary to apply the changes to the tour.',
 
             'assign'        => 'Assign',
             'edit'          => 'Edit',

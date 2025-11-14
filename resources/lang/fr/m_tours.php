@@ -258,6 +258,10 @@ return [
             'actions'       => 'Actions',
             'see_more'      => 'Voir plus',
             'see_less'      => 'Voir moins',
+            'assigned_items'       => 'Éléments affectés à l’itinéraire',
+            'drag_to_order'        => 'Faites glisser les éléments pour définir leur ordre.',
+            'pool_hint'            => 'Cochez les éléments disponibles que vous souhaitez inclure dans cet itinéraire.',
+            'register_item_hint'   => 'Créez de nouveaux éléments si vous avez besoin d’étapes supplémentaires qui n’existent pas encore.',
 
             'toggle_on'  => 'Activer l’élément',
             'toggle_off' => 'Désactiver l’élément',
@@ -324,6 +328,8 @@ return [
             'page_title'    => 'Itinéraires et éléments',
             'page_heading'  => 'Itinéraires et gestion des éléments',
             'new_itinerary' => 'Nouvel itinéraire',
+            'select_or_create_hint' => 'Sélectionnez un itinéraire existant ou créez-en un nouveau pour cette excursion.',
+            'save_changes'          => 'Enregistrez l’itinéraire pour appliquer les modifications à l’excursion.',
 
             'assign'        => 'Assigner',
             'edit'          => 'Modifier',

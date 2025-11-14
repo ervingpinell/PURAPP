@@ -258,6 +258,10 @@ return [
             'actions'       => 'Ações',
             'see_more'      => 'Ver mais',
             'see_less'      => 'Ver menos',
+            'assigned_items'       => 'Itens atribuídos ao itinerário',
+            'drag_to_order'        => 'Arraste os itens para definir a ordem.',
+            'pool_hint'            => 'Marque os itens disponíveis que você deseja incluir neste itinerário.',
+            'register_item_hint'   => 'Cadastre novos itens se precisar de etapas adicionais que ainda não existem.',
 
             'toggle_on'  => 'Ativar item',
             'toggle_off' => 'Desativar item',
@@ -324,6 +328,8 @@ return [
             'page_title'    => 'Itinerários e Itens',
             'page_heading'  => 'Itinerários e Gestão de Itens',
             'new_itinerary' => 'Novo Itinerário',
+            'select_or_create_hint' => 'Selecione um itinerário existente ou crie um novo para este passeio.',
+            'save_changes'          => 'Salve o itinerário para aplicar as alterações ao passeio.',
 
             'assign'        => 'Vincular',
             'edit'          => 'Editar',
