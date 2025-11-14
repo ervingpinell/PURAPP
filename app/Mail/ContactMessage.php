@@ -6,71 +6,72 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use App\Mail\Concerns\EmbedsBrandAssets;
 
 class ContactMessage extends Mailable implements ShouldQueue
 {
-use Queueable, SerializesModels, EmbedsBrandAssets;
+    use Queueable, SerializesModels;
 
     public string $name;
     public string $email;
     public string $subjectLine;
     public string $messageText;
+    public ?string $locale;
 
+    /**
+     * @param array $data [
+     *   'name'    => string,
+     *   'email'   => string,
+     *   'subject' => string|null,
+     *   'message' => string,
+     *   'locale'  => string|null ('es', 'en', etc.)
+     * ]
+     */
     public function __construct(array $data)
     {
-        $this->name        = (string) $data['name'];
-        $this->email       = (string) $data['email'];
-        $this->subjectLine = (string) $data['subject'];
-        $this->messageText = (string) $data['message'];
+        $this->name        = (string) ($data['name']    ?? '');
+        $this->email       = (string) ($data['email']   ?? '');
+        $this->subjectLine = (string) ($data['subject'] ?? '');
+        $this->messageText = (string) ($data['message'] ?? '');
+        $this->locale      = $data['locale'] ?? null;
     }
 
-public function build()
-{
-    $fromAddress = config('mail.from.address', 'noreply@greenvacationscr.com');
-    $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));
+    public function build()
+    {
+        // Forzamos locale a 'es' o 'en' de forma simple (puedes ajustar si tienes tu trait RestrictsEmailLocale)
+        $current = strtolower($this->locale ?? app()->getLocale());
+        $mailLocale = str_starts_with($current, 'es') ? 'es' : 'en';
 
-    $to = collect([
-        env('BOOKING_NOTIFY'),
-        env('MAIL_TO_CONTACT'),
-        data_get(config('mail.reply_to'), 'address'),
-        config('mail.from.address'),
-    ])->first(fn ($v) => filled($v));
+        // Subject: si viene desde el formulario se respeta, si no, usamos traducción
+        $subject = $this->subjectLine !== ''
+            ? $this->subjectLine
+            : __('emails.contact.subject', [], $mailLocale);
 
-    $bccRaw = env('MAIL_NOTIFICATIONS');
-    $bcc    = $bccRaw
-        ? array_values(array_filter(array_map('trim', explode(',', $bccRaw))))
-        : [];
+        $fromAddress = config('mail.from.address', 'noreply@greenvacationscr.com');
+        $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));
 
-    $subject = 'Contacto: ' . $this->subjectLine;
+        // Reply-To: al correo del cliente que llenó el formulario
+        $replyToAddress = $this->email ?: env('MAIL_TO_CONTACT', $fromAddress);
+        $replyToName    = $this->name  ?: $replyToAddress;
 
-    // CID + fallback
-    $logoCid         = $this->embedLogoCid();
-    $appLogoFallback = $this->logoFallbackUrl();
+        $contactEmail = env('MAIL_TO_CONTACT', $fromAddress);
 
-    $mailable = $this
-        ->from($fromAddress, $fromName)
-        ->subject($subject)
-        ->replyTo($this->email, $this->name);
-
-    if ($to)  $mailable->to($to);
-    if ($bcc) $mailable->bcc($bcc);
-
-    return $mailable
-        ->view('emails.contact.message', [
-            'name'            => $this->name,
-            'email'           => $this->email,
-            'subjectLine'     => $this->subjectLine,
-            'messageText'     => $this->messageText,
-            'logoCid'         => $logoCid,
-            'appLogoFallback' => $appLogoFallback,
-        ])
-        ->text('emails.contact.message_text', [
-            'name'        => $this->name,
-            'email'       => $this->email,
-            'subjectLine' => $this->subjectLine,
-            'messageText' => $this->messageText,
-        ]);
-}
-
+        return $this
+            ->locale($mailLocale)
+            ->from($fromAddress, $fromName)
+            ->replyTo($replyToAddress, $replyToName)
+            ->subject($subject)
+            ->view('emails.contact_message')
+            ->with([
+                'name'         => $this->name,
+                'email'        => $this->email,
+                'subjectLine'  => $this->subjectLine,
+                'messageText'  => $this->messageText,
+                'mailLocale'   => $mailLocale,
+                'company'      => $fromName,
+                'contactEmail' => $contactEmail,
+                'appUrl'       => rtrim(config('app.url'), '/'),
+                'companyPhone' => env('COMPANY_PHONE'),
+                // El layout usará env('COMPANY_LOGO_URL') para el logo
+            ]);
+    }
 }

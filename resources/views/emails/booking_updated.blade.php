@@ -2,20 +2,25 @@
 
 @section('content')
 @php
-    $mailLocale = str_starts_with(($mailLocale ?? app()->getLocale()), 'es') ? 'es' : 'en';
-    $money      = fn($n) => '$' . number_format((float) $n, 2);
-    $reference  = $reference ?? ($booking->booking_reference ?? $booking->booking_id);
+    $mailLocale = (isset($lang) && is_string($lang))
+        ? (str_starts_with($lang, 'es') ? 'es' : 'en')
+        : (str_starts_with(app()->getLocale(), 'es') ? 'es' : 'en');
 
+    $money     = fn($n) => '$' . number_format((float)$n, 2);
+    $reference = $booking->booking_reference ?? $booking->reference ?? $booking->booking_id;
+
+    // Subtotal
     $subtotal = $booking->subtotal ?? ($booking->amount_before_discounts ?? null);
     if ($subtotal === null) {
         $subtotal = collect($booking->details ?? [])->flatMap(fn($d) => collect($d->categories ?? []))
             ->reduce(fn($c,$x)=> $c + ((float)($x['quantity']??0) * (float)($x['price']??0)), 0.0);
     }
 
-    $promo        = $booking->redemption?->promoCode ?? $booking->promoCode ?? $booking->promoCodeLegacy;
-    $discountName = null;
-    $adjustmentAmount = null;
-    $adjustmentType   = null;
+    // Promo: descuento o recargo
+    $promo            = $booking->redemption?->promoCode ?? $booking->promoCode ?? $booking->promoCodeLegacy;
+    $discountName     = null;
+    $adjustmentAmount = null;   // valor positivo
+    $adjustmentType   = null;   // 'discount' | 'surcharge'
 
     if ($promo) {
         $discountName = $promo->code ?? $promo->name ?? null;
@@ -39,6 +44,7 @@
     $taxes = $booking->taxes ?? ($booking->tax ?? null);
     $total = $booking->total ?? ($booking->amount ?? null);
 
+    // Para fallback del total
     $effectiveAdj = 0.0;
     if ($hasAdjustment) {
         $signForCalc = $adjustmentType === 'discount' ? 1 : -1;
@@ -52,17 +58,21 @@
     $tTaxes    = $mailLocale === 'es' ? 'Impuestos'          : 'Taxes';
     $tTotal    = $mailLocale === 'es' ? 'Total'              : 'Total';
 
-    $d = collect($booking->details ?? [])->first();
+    $d = collect($details ?? $booking->details ?? [])->first();
 
-    // Locale preferido para nombre de tour
+    // Locale preferido para el nombre del tour
     $preferredLoc = strtolower(
         $booking->locale ?? $booking->language_code ?? $mailLocale ?? app()->getLocale()
     );
     $preferredLoc = \Illuminate\Support\Str::of($preferredLoc)->before('-')->lower()->value();
 
+    // 1) Snapshot
     $tourName = $d?->tour_name;
+
+    // 2) Relación Tour traducida
     if (!$tourName && $d?->relationLoaded('tour') && $d?->tour) {
         $tour = $d->tour;
+
         if (isset($tour->translated_name) && filled($tour->translated_name)) {
             $tourName = $tour->translated_name;
         }
@@ -114,14 +124,14 @@
     $notes = trim((string)($booking->notes ?? ''));
 @endphp
 
-
+{{-- si quieres mantener un color diferente para "updated", puedes dejar esto o quitarlo --}}
 <style>
-
-    .email-header { background: linear-gradient(135deg, #f3d632, #f1b669);}
+  .email-header { background: linear-gradient(135deg, #f3d632, #f1b669);!important }
 </style>
+
 {{-- 1. BOOKING STATUS --}}
-<div class="section-card" style="margin-bottom:18px;">
-  <div class="section-title" style="margin-bottom:4px;color:#f39f32">{{ $tTitle }}</div>
+<div class="section-card" style="margin-bottom:14px;">
+  <div class="section-title" style="margin-bottom:4px;color:#256d1b">{{ $tTitle }}</div>
   <div style="font-size:13px;color:#6b7280;">{{ $tRef }}: {{ $reference }}</div>
 </div>
 
@@ -146,14 +156,18 @@
       <div><strong>{{ $mailLocale==='es'?'Hotel pickup':'Hotel pickup' }}:</strong> {{ $hotelName }}</div>
     @endif
 
-    @if($notes !== '')<div><strong>{{ $mailLocale==='es'?'Notas':'Notes' }}:</strong> {{ $notes }}</div>@endif
+    @if($notes !== '')
+      <div><strong>{{ $mailLocale==='es'?'Notas':'Notes' }}:</strong> {{ $notes }}</div>
+    @endif
   </div>
 </div>
 
 {{-- 3. DESGLOSE CLIENTES --}}
 @include('emails.partials.booking-line-items', [
-  'booking'    => $booking,
-  'mailLocale' => $mailLocale,
+  'booking'        => $booking,
+  'details'        => $details ?? null,
+  'mailLocale'     => $mailLocale,
+  'showLineTotals' => true,
 ])
 
 {{-- 4. TOTALES --}}
@@ -176,7 +190,7 @@
       <span class="label">{{ $adjLabel }}:</span>
       <span class="amount">{{ $adjPrefix }}{{ $adjAmount }}</span>
       @if($discountName)
-        <span class="muted>({{ $discountName }})</span>
+        <span class="muted">({{ $discountName }})</span>
       @endif
     </div>
   @endif

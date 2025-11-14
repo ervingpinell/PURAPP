@@ -119,7 +119,7 @@
 @endphp
 
 <style>
-    .email-header { background: linear-gradient(135deg, #e74c3c, #dd6d60);}
+    .email-header { background: linear-gradient(135deg, #e74c3c, #dd6d60) !important;}
 </style>
 
 {{-- 1. BOOKING STATUS --}}

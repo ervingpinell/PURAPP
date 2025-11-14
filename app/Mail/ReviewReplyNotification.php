@@ -7,70 +7,98 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use App\Mail\Concerns\EmbedsBrandAssets;
 
 class ReviewReplyNotification extends Mailable implements ShouldQueue
 {
-use Queueable, SerializesModels, /* BookingMailHelpers, */ EmbedsBrandAssets;
+    use Queueable, SerializesModels;
 
     public ReviewReply $reply;
     public string $adminName;
     public ?string $tourName;
     public ?string $customerName;
+    public ?string $localeOverride;
+
+    protected string $mailLocale;
 
     /**
      * @param ReviewReply $reply
-     * @param string      $adminName
-     * @param string|null $tourName
-     * @param string|null $customerName
+     * @param string      $adminName      Nombre del admin que responde
+     * @param string|null $tourName       Nombre del tour (opcional)
+     * @param string|null $customerName   Nombre del cliente (opcional)
+     * @param string|null $locale         Locale forzado (opcional, ej. 'es', 'en')
      */
-    public function __construct(ReviewReply $reply, string $adminName, ?string $tourName = null, ?string $customerName = null)
+    public function __construct(
+        ReviewReply $reply,
+        string $adminName,
+        ?string $tourName = null,
+        ?string $customerName = null,
+        ?string $locale = null
+    ) {
+        $this->reply          = $reply->loadMissing('review');
+        $this->adminName      = $adminName;
+        $this->tourName       = $tourName;
+        $this->customerName   = $customerName;
+        $this->localeOverride = $locale;
+
+        // Forzar a es/en de forma simple (igual que en otros mailables)
+        $current = strtolower($this->localeOverride ?? app()->getLocale());
+        $this->mailLocale = str_starts_with($current, 'es') ? 'es' : 'en';
+    }
+
+    public function build()
     {
-        // por si acaso, suma relación del tour
-        $this->reply        = $reply->loadMissing('review.tour');
-        $this->adminName    = $adminName;
-        $this->tourName     = $tourName;
-        $this->customerName = $customerName;
+        $loc = $this->mailLocale;
+
+        // ===== SUBJECT =====
+        // Ajusta la key según tu lang:
+        // ej: "Hemos respondido a tu reseña" / "We've replied to your review"
+        $subject = __('reviews.emails.reply.subject', [], $loc);
+        if ($this->tourName) {
+            $subject .= ' — ' . $this->tourName;
+        }
+
+        // ===== FROM / REPLY-TO =====
+        $fromAddress = config('mail.from.address', 'noreply@greenvacationscr.com');
+        $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));
+
+        // Email del cliente para reply-to si lo tienes en la reseña
+        $customerEmail =
+            $this->reply->review->email
+            ?? optional($this->reply->review->user)->email
+            ?? env('MAIL_TO_CONTACT', $fromAddress);
+
+        $replyTo      = $customerEmail;
+        $replyToName  = $this->customerName
+            ?: ($this->reply->review->author_name ?? $customerEmail);
+
+        $company      = $fromName;
+        $contactEmail = env('MAIL_TO_CONTACT', $fromAddress);
+        $appUrl       = rtrim(config('app.url'), '/');
+        $companyPhone = env('COMPANY_PHONE');
+
+        return $this
+            ->locale($loc)
+            ->from($fromAddress, $fromName)
+            ->replyTo($replyTo, $replyToName)
+            ->subject($subject)
+            ->view('emails.reviews.reply')
+            ->with([
+                'adminName'    => $this->adminName,
+                'tourName'     => $this->tourName,
+                'customerName' => $this->customerName,
+                'body'         => $this->reply->body,
+                'mailLocale'   => $loc,
+                'company'      => $company,
+                'contactEmail' => $contactEmail,
+                'appUrl'       => $appUrl,
+                'companyPhone' => $companyPhone,
+                // El layout usa env('COMPANY_LOGO_URL') para el logo
+            ])
+            ->text('emails.reviews.reply_text', [
+                'adminName'    => $this->adminName,
+                'tourName'     => $this->tourName,
+                'customerName' => $this->customerName,
+                'body'         => $this->reply->body,
+            ]);
     }
-
-public function build()
-{
-    // SUBJECT
-    $subject = __('reviews.emails.reply.subject');
-    if ($this->tourName) {
-        $subject .= ' — ' . $this->tourName;
-    }
-
-    // FROM (sin reply-to)
-    $fromAddress = config('mail.from.address', 'noreply@greenvacationscr.com');
-    $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));
-
-    // CID + fallback (logo)
-    $logoCid         = $this->embedLogoCid();
-    $appLogoFallback = $this->logoFallbackUrl();
-
-    // construir mailable sin BCC / sin replyTo
-    $mailable = $this
-        ->from($fromAddress, $fromName)
-        ->subject($subject);
-
-    return $mailable
-        ->view('emails.reviews.reply', [
-            'adminName'       => $this->adminName,
-            'tourName'        => $this->tourName,
-            'customerName'    => $this->customerName,
-            'body'            => $this->reply->body,
-            'logoCid'         => $logoCid,
-            'appLogoFallback' => $appLogoFallback,
-        ])
-        ->text('emails.reviews.reply_text', [
-            'adminName'    => $this->adminName,
-            'tourName'     => $this->tourName,
-            'customerName' => $this->customerName,
-            'body'         => $this->reply->body,
-        ]);
-}
-
-
-
 }

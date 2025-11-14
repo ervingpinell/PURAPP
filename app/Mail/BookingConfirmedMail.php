@@ -8,11 +8,11 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Mail\Concerns\BookingMailHelpers;
-use App\Mail\Concerns\EmbedsBrandAssets;
 
 class BookingConfirmedMail extends Mailable implements ShouldQueue
 {
-use Queueable, SerializesModels, BookingMailHelpers, EmbedsBrandAssets;
+    use Queueable, SerializesModels, BookingMailHelpers;
+
     public Booking $booking;
 
     protected string $mailLocale;
@@ -38,64 +38,59 @@ use Queueable, SerializesModels, BookingMailHelpers, EmbedsBrandAssets;
         $this->booking = $booking;
     }
 
-public function build()
-{
-    $this->booking->loadMissing([
-        'user', 'tour', 'tourLanguage', 'hotel',
-        'details.tour', 'details.hotel', 'details.schedule', 'details.tourLanguage',
-        'details.meetingPoint', 'details.meetingPoint.translations',
-        'redemption.promoCode',
-    ]);
-
-    $this->mailLocale    = $this->mailLocaleFromBooking($this->booking);
-    $this->reference     = $this->bookingReference($this->booking);
-    $this->tourLangLabel = $this->humanTourLanguage($this->mailLocale, $this->booking);
-    $this->statusText    = $this->statusLabel($this->mailLocale, $this->booking);
-
-    $subject = __('adminlte::email.booking_confirmed_subject', [
-        'reference' => $this->reference,
-    ], $this->mailLocale);
-
-    $replyTo = collect([
-        env('MSFT_REPLY_TO'),
-        env('MAIL_TO_CONTACT'),
-        data_get(config('mail.reply_to'), 'address'),
-        config('mail.from.address'),
-    ])->first(fn($v) => filled($v));
-
-    $fromAddress = config('mail.from.address');
-    $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));
-
-    $logoCid         = $this->embedLogoCid();
-    $appLogoFallback = $this->logoFallbackUrl();
-
-    $mailable = $this
-        ->locale($this->mailLocale)
-        ->from($fromAddress, $fromName)
-        ->replyTo($replyTo)
-        ->subject($subject)
-        ->view('emails.booking_confirmed')
-        ->with([
-            'booking'         => $this->booking,
-            'mailLocale'      => $this->mailLocale,
-            'reference'       => $this->reference,
-            'tourLangLabel'   => $this->tourLangLabel,
-            'statusLabel'     => $this->statusText,
-            'company'         => $fromName,
-            'contactEmail'    => $replyTo,
-            'appUrl'          => rtrim(config('app.url'), '/'),
-            'companyPhone'    => env('COMPANY_PHONE'),
-            'appLogo'         => env('APP_LOGO', env('COMPANY_LOGO', 'images/logo.png')),
-            'logoCid'         => $logoCid,
-            'appLogoFallback' => $appLogoFallback,
+    public function build()
+    {
+        $this->booking->loadMissing([
+            'user', 'tour', 'tourLanguage', 'hotel',
+            'details.tour', 'details.hotel', 'details.schedule', 'details.tourLanguage',
+            'details.meetingPoint', 'details.meetingPoint.translations',
+            'redemption.promoCode',
         ]);
 
-    $bcc = $this->adminNotify();
-    if (!empty($bcc)) {
-        $mailable->bcc($bcc);
+        $this->mailLocale    = $this->mailLocaleFromBooking($this->booking);
+        $this->reference     = $this->bookingReference($this->booking);
+        $this->tourLangLabel = $this->humanTourLanguage($this->mailLocale, $this->booking);
+        $this->statusText    = $this->statusLabel($this->mailLocale, $this->booking);
+
+        $subject = __('adminlte::email.booking_confirmed_subject', [
+            'reference' => $this->reference,
+        ], $this->mailLocale);
+
+        $replyTo = collect([
+            env('MSFT_REPLY_TO'),
+            env('MAIL_TO_CONTACT'),
+            data_get(config('mail.reply_to'), 'address'),
+            config('mail.from.address'),
+        ])->first(fn($v) => filled($v));
+
+        $fromAddress = config('mail.from.address');
+        $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));
+
+        $mailable = $this
+            ->locale($this->mailLocale)
+            ->from($fromAddress, $fromName)
+            ->replyTo($replyTo)
+            ->subject($subject)
+            ->view('emails.booking_confirmed')
+            ->with([
+                'booking'         => $this->booking,
+                'mailLocale'      => $this->mailLocale,
+                'reference'       => $this->reference,
+                'tourLangLabel'   => $this->tourLangLabel,
+                'statusLabel'     => $this->statusText,
+                'company'         => $fromName,
+                'contactEmail'    => $replyTo,
+                'appUrl'          => rtrim(config('app.url'), '/'),
+                'companyPhone'    => env('COMPANY_PHONE'),
+                // ❌ YA NO necesitamos estas:
+                // 'logoPath', 'appLogoFallback', 'logoCid', 'appLogo'
+            ]);
+
+        $bcc = $this->adminNotify();
+        if (!empty($bcc)) {
+            $mailable->bcc($bcc);
+        }
+
+        return $mailable;
     }
-
-    return $mailable;
-}
-
 }

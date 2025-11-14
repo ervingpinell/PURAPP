@@ -7,16 +7,17 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use App\Mail\Concerns\EmbedsBrandAssets;
 
 class ReviewSubmittedNotification extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels, EmbedsBrandAssets;
+    use Queueable, SerializesModels;
 
     public Review $review;
     public ?string $tourName;
     public ?string $customerName;
     public ?string $adminPanelUrl;
+
+    protected string $mailLocale;
 
     /**
      * @param Review      $review
@@ -35,10 +36,43 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
         $this->tourName      = $tourName;
         $this->customerName  = $customerName;
         $this->adminPanelUrl = $adminPanelUrl;
+
+        $current = strtolower(app()->getLocale());
+        $this->mailLocale = str_starts_with($current, 'es') ? 'es' : 'en';
+    }
+
+    /**
+     * Resuelve los correos destino para notificaciones de admin.
+     */
+    protected function resolveAdminRecipients(string $fallback): array
+    {
+        // Igual que en tus mailables de booking
+        $raw = config('mail.booking_notify') ?? env('BOOKING_NOTIFY', '');
+
+        $items = preg_split('/[,\s;]+/', (string) $raw, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        $emails = collect($items)
+            ->map(fn($e) => trim($e))
+            ->filter(fn($e) => filter_var($e, FILTER_VALIDATE_EMAIL))
+            ->values()
+            ->all();
+
+        if (empty($emails)) {
+            // Log por si acaso:
+            \Log::warning('[ReviewSubmittedNotification] No valid admin notify emails, fallback to fromAddress', [
+                'raw' => $raw,
+            ]);
+
+            $emails = [$fallback];
+        }
+
+        return $emails;
     }
 
     public function build()
     {
+        $loc = $this->mailLocale;
+
         // ===== Resolver nombres =====
         $tour = $this->review->tour;
 
@@ -52,8 +86,7 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
             ?? null;
 
         // ===== Subject (con traducción si existe) =====
-        // Clave sugerida: reviews.emails.submitted.subject
-        $subject = __('reviews.emails.submitted.subject');
+        $subject = __('reviews.emails.submitted.subject', [], $loc);
         if ($resolvedTourName) {
             $subject .= ' — ' . $resolvedTourName;
         }
@@ -62,22 +95,14 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
         $fromAddress = config('mail.from.address', 'noreply@greenvacationscr.com');
         $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));
 
-        // DESTINO: correo de notificaciones
-        $notifyTo = env('BOOKING_NOTIFY')
-            ?: (config('reviews.admin_notify_to')
-                ?? config('mail.to.admin')
-                ?? $fromAddress);
-
-        // Logo CID + fallback
-        $logoCid         = $this->embedLogoCid();
-        $appLogoFallback = $this->logoFallbackUrl();
+        // DESTINO: lista de correos de admin (pueden ser varios)
+        $adminRecipients = $this->resolveAdminRecipients($fromAddress);
 
         // URL al panel admin (edit como preferencia, index como fallback)
         $adminUrl = $this->adminPanelUrl;
-        if (! $adminUrl) {
+        if (!$adminUrl) {
             try {
                 if (\function_exists('route')) {
-                    // Intenta ir directo al edit de esa review
                     $adminUrl = route('admin.reviews.edit', $this->review->id ?? $this->review);
                 }
             } catch (\Throwable $e) {
@@ -89,17 +114,28 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
             }
         }
 
+        $company      = $fromName;
+        $contactEmail = $adminRecipients[0] ?? $fromAddress;
+        $appUrl       = rtrim(config('app.url'), '/');
+        $companyPhone = env('COMPANY_PHONE');
+
         return $this
+            ->locale($loc)
             ->from($fromAddress, $fromName)
-            ->to($notifyTo)
+            ->to($adminRecipients)
             ->subject($subject)
             ->view('emails.reviews.submitted', [
-                'review'          => $this->review,
-                'tourName'        => $resolvedTourName,
-                'customerName'    => $resolvedCustomer,
-                'adminUrl'        => $adminUrl,
-                'logoCid'         => $logoCid,
-                'appLogoFallback' => $appLogoFallback,
+                'review'       => $this->review,
+                'tourName'     => $resolvedTourName,
+                'customerName' => $resolvedCustomer,
+                'adminUrl'     => $adminUrl,
+
+                // Para el layout base:
+                'mailLocale'   => $loc,
+                'company'      => $company,
+                'contactEmail' => $contactEmail,
+                'appUrl'       => $appUrl,
+                'companyPhone' => $companyPhone,
             ])
             ->text('emails.reviews.submitted_text', [
                 'review'       => $this->review,
