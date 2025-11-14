@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', function() {
     req_text:    @json(__('m_tours.common.required_fields_text')),
     success:     @json(__('m_tours.common.success')),
     error:       @json(__('m_tours.common.error')),
+    currency:    @json(config('app.currency_symbol', '$')), // 👈 NUEVO
+    no_prices:   @json(__('m_tours.tour.pricing.no_prices_preview') ?? 'No prices configured yet'),
   };
 
   // Pequeño helper para setear texto si el nodo existe
@@ -25,6 +27,74 @@ document.addEventListener('DOMContentLoaded', function() {
   function setHTML(id, html) {
     const el = document.getElementById(id);
     if (el) el.innerHTML = html;
+  }
+
+  // ===== Helper: construir resumen de precios =====
+  function updateSummaryPrices() {
+    const container = document.getElementById('summary-prices-body');
+    const pricesContainer = document.getElementById('prices-container');
+
+    if (!container || !pricesContainer) return;
+
+    const cards = pricesContainer.querySelectorAll('.card');
+    const items = [];
+
+    cards.forEach(card => {
+      const titleEl = card.querySelector('.card-title');
+      const name = titleEl ? titleEl.textContent.trim() : '';
+
+      const priceInput = card.querySelector('input[name^="prices["][name$="[price]"]');
+      const minInput   = card.querySelector('input[name^="prices["][name$="[min_quantity]"]');
+      const maxInput   = card.querySelector('input[name^="prices["][name$="[max_quantity]"]');
+      const activeInput= card.querySelector('input[name^="prices["][name$="[is_active]"]');
+
+      if (!priceInput) return; // si no hay precio, ignoramos
+
+      const rawPrice = priceInput.value || '0';
+      const price = parseFloat(rawPrice.replace(',', '.')) || 0;
+
+      const minQ = parseInt(minInput?.value ?? '0', 10);
+      const maxQ = parseInt(maxInput?.value ?? '0', 10);
+
+      const isActive = !!(activeInput && activeInput.checked);
+
+      items.push({
+        name,
+        price,
+        min: isNaN(minQ) ? 0 : minQ,
+        max: isNaN(maxQ) ? 0 : maxQ,
+        isActive,
+      });
+    });
+
+    if (!items.length) {
+      container.innerHTML = `
+        <tr>
+          <td colspan="4" class="text-muted small">${I18N.no_prices}</td>
+        </tr>
+      `;
+      return;
+    }
+
+    let html = '';
+    items.forEach(item => {
+      const priceStr = `${I18N.currency}${item.price.toFixed(2)}`;
+      const rangeStr = `${item.min} - ${item.max}`;
+      const statusBadge = item.isActive
+        ? `<span class="badge bg-success">${I18N.active}</span>`
+        : `<span class="badge bg-secondary">${I18N.inactive}</span>`;
+
+      html += `
+        <tr>
+          <td>${item.name || I18N.unspecified}</td>
+          <td>${priceStr}</td>
+          <td>${rangeStr}</td>
+          <td>${statusBadge}</td>
+        </tr>
+      `;
+    });
+
+    container.innerHTML = html;
   }
 
   // ===== Actualización dinámica del resumen =====
@@ -77,9 +147,15 @@ document.addEventListener('DOMContentLoaded', function() {
         ? `<span class="badge bg-success">${I18N.active}</span>`
         : `<span class="badge bg-secondary">${I18N.inactive}</span>`;
     }
+
+    // 👇 NUEVO: precios
+    updateSummaryPrices();
   }
 
-  // Listeners para actualizar el resumen
+  // Exponer para que inline-scripts pueda usarla
+  window.updateTourSummary = updateSummary;
+
+  // Listeners para actualizar el resumen (campos base)
   ['name','slug','overview','length','max_capacity','group_size','color','is_active'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
@@ -87,6 +163,21 @@ document.addEventListener('DOMContentLoaded', function() {
       el.addEventListener('change', updateSummary);
     }
   });
+
+  // Listener delegado para cambios en precios (price, min, max, activo)
+  const pricesContainer = document.getElementById('prices-container');
+  if (pricesContainer) {
+    pricesContainer.addEventListener('input', function(e) {
+      if (e.target.matches('input[name^="prices["]')) {
+        updateSummary();
+      }
+    });
+    pricesContainer.addEventListener('change', function(e) {
+      if (e.target.matches('input[name^="prices["]')) {
+        updateSummary();
+      }
+    });
+  }
 
   // Inicializar resumen una vez
   updateSummary();

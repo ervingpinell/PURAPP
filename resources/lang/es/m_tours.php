@@ -38,6 +38,12 @@ return [
         'notice' => 'Aviso',
         'na'    => 'No configurado',
         'create' => 'Crear',
+        'info'               => 'Información',
+        'close'              => 'Cerrar',
+        'required'           => 'Este campo es obligatorio.',
+        'add'                => 'Agregar',
+        'translating'        => 'Traduciendo...',
+        'error_translating'  => 'No se pudo traducir el texto.',
     ],
 
     // =========================================================
@@ -46,6 +52,8 @@ return [
     'amenity' => [
         'fields' => [
             'name' => 'Nombre',
+            'icon' => 'Ícono (FontAwesome)',
+
         ],
 
         'status' => [
@@ -112,6 +120,10 @@ return [
                 'string'   => 'El :attribute debe ser una cadena de texto.',
                 'max'      => 'El :attribute no puede exceder :max caracteres.',
             ],
+        ],
+
+        'hints' => [
+            'fontawesome' => 'Usa clases de FontAwesome, por ejemplo: "fas fa-check".',
         ],
     ],
 
@@ -225,6 +237,10 @@ return [
             'not_assigned_to_tour' => 'El horario no está asignado a este tour.',
             'delete'               => 'Hubo un problema al eliminar el horario.',
         ],
+
+        'placeholders' => [
+            'morning' => 'Ej: Mañana',
+        ],
     ],
 
     // =========================================================
@@ -305,6 +321,9 @@ return [
             'name'                 => 'Nombre del itinerario',
             'description'          => 'Descripción',
             'description_optional' => 'Descripción (opcional)',
+            'items'                => 'Ítems',
+            'item_title'           => 'Título del ítem',
+            'item_description'     => 'Descripción del ítem',
         ],
 
         'status' => [
@@ -354,6 +373,9 @@ return [
             'flash_error_title'       => 'Error',
             'validation_failed_title' => 'No se pudo procesar',
         ],
+        'modal' => [
+            'create_itinerary' => 'Crear itinerario',
+        ],
 
         'success' => [
             'created'        => 'Itinerario creado correctamente.',
@@ -373,6 +395,7 @@ return [
         ],
 
         'validation' => [
+            'name_required' => 'Debes indicar un nombre para el itinerario.',
             'name' => [
                 'required' => 'El nombre del itinerario es obligatorio.',
                 'string'   => 'El nombre debe ser texto.',
@@ -392,6 +415,7 @@ return [
                 'order_max'     => 'El orden no puede exceder 9999.',
             ],
         ],
+
     ],
 
     // =========================================================
@@ -400,6 +424,7 @@ return [
     'language' => [
         'fields' => [
             'name' => 'Idioma',
+            'code' => 'Código',
         ],
 
         'status' => [
@@ -482,6 +507,9 @@ return [
                 'unique'   => 'Ya existe un idioma con ese nombre.',
             ],
         ],
+        'hints' => [
+            'iso_639_1' => 'Código ISO 639-1, por ejemplo: es, en, fr.',
+        ],
     ],
 
     // =========================================================
@@ -559,18 +587,43 @@ return [
             'rule_only_active'   => 'Solo las categorías activas aparecen en el sitio público',
 
             'status_active'      => 'Activo',
-
+            'add_existing_category'      => 'Agregar categoría existente',
+            'choose_category_placeholder' => 'Selecciona una categoría…',
+            'add_button'                 => 'Agregar',
+            'add_existing_hint'          => 'Añade solo las categorías de cliente necesarias para este tour.',
+            'remove_category'            => 'Quitar categoría',
+            'category_already_added'     => 'Esta categoría ya está agregada al tour.',
+            'no_prices_preview'          => 'Aún no hay precios configurados.',
         ],
-        'modal' =>[
-            'create_category' => 'Crear categoría   ',
-            'fields' =>[
-                'name' => 'Nombre',
-                'age_range'=> 'Rango de Edad',
-                'min' => 'Minimo',
-                'max' => 'Maximo',
+        'modal' => [
+            'create_category' => 'Crear categoría',
+
+            'fields' => [
+                'name'          => 'Nombre',
+                'age_from'      => 'Edad desde',
+                'age_to'        => 'Edad hasta',
+                'age_range'     => 'Rango de edad',
+                'min'           => 'Mínimo',
+                'max'           => 'Máximo',
+                'order'         => 'Orden',
+                'is_active'     => 'Activo',
+                'auto_translate' => 'Traducir automáticamente',
             ],
-        ]
-        ,
+
+            'placeholders' => [
+                'name'              => 'Ej: Adulto, Niño, Infante',
+                'age_to_optional'   => 'Dejar vacío para "+"',
+            ],
+
+            'hints' => [
+                'age_to_empty_means_plus' => 'Si dejas la edad máxima vacía, se interpretará como "+" (por ejemplo 12+).',
+                'min_le_max'              => 'El mínimo debe ser menor o igual al máximo.',
+            ],
+
+            'errors' => [
+                'min_le_max' => 'El mínimo debe ser menor o igual al máximo.',
+            ],
+        ],
 
         'schedules_form' => [
             'available_title'        => 'Horarios Disponibles',
@@ -812,230 +865,230 @@ return [
 
     ],
 
-   // =========================================================
-// [08] IMAGES
-// =========================================================
-'image' => [
+    // =========================================================
+    // [08] IMAGES
+    // =========================================================
+    'image' => [
 
-    'limit_reached_title' => 'Límite alcanzado',
-    'limit_reached_text'  => 'Se alcanzó el límite de imágenes para este tour.',
-    'upload_success'      => 'Imágenes subidas correctamente.',
-    'upload_none'         => 'No se subieron imágenes.',
-    'upload_truncated'    => 'Algunos archivos se omitieron por el límite por tour.',
-    'done'                => 'Listo',
-    'notice'              => 'Aviso',
-    'saved'               => 'Guardar',
-    'caption_updated'     => 'Leyenda actualizada correctamente.',
-    'deleted'             => 'Eliminado',
-    'image_removed'       => 'Imagen eliminada correctamente.',
-    'invalid_order'       => 'Carga de orden inválida.',
-    'nothing_to_reorder'  => 'Nada que reordenar.',
-    'order_saved'         => 'Orden guardado.',
-    'cover_updated_title' => 'Actualizar portada',
-    'cover_updated_text'  => 'Esta imagen ahora es la portada.',
-    'deleting'            => 'Eliminando...',
+        'limit_reached_title' => 'Límite alcanzado',
+        'limit_reached_text'  => 'Se alcanzó el límite de imágenes para este tour.',
+        'upload_success'      => 'Imágenes subidas correctamente.',
+        'upload_none'         => 'No se subieron imágenes.',
+        'upload_truncated'    => 'Algunos archivos se omitieron por el límite por tour.',
+        'done'                => 'Listo',
+        'notice'              => 'Aviso',
+        'saved'               => 'Guardar',
+        'caption_updated'     => 'Leyenda actualizada correctamente.',
+        'deleted'             => 'Eliminado',
+        'image_removed'       => 'Imagen eliminada correctamente.',
+        'invalid_order'       => 'Carga de orden inválida.',
+        'nothing_to_reorder'  => 'Nada que reordenar.',
+        'order_saved'         => 'Orden guardado.',
+        'cover_updated_title' => 'Actualizar portada',
+        'cover_updated_text'  => 'Esta imagen ahora es la portada.',
+        'deleting'            => 'Eliminando...',
 
-    'ui' => [
-        // Página de selección de tour
-        'page_title_pick'     => 'Imágenes de Tours',
-        'page_heading'        => 'Imágenes de Tours',
-        'choose_tour'         => 'Elegir tour',
-        'search_placeholder'  => 'Buscar por ID o nombre…',
-        'search_button'       => 'Buscar',
-        'no_results'          => 'No se encontraron tours.',
-        'manage_images'       => 'Administrar imágenes',
-        'cover_alt'           => 'Portada',
-        'images_label'        => 'imágenes',
+        'ui' => [
+            // Página de selección de tour
+            'page_title_pick'     => 'Imágenes de Tours',
+            'page_heading'        => 'Imágenes de Tours',
+            'choose_tour'         => 'Elegir tour',
+            'search_placeholder'  => 'Buscar por ID o nombre…',
+            'search_button'       => 'Buscar',
+            'no_results'          => 'No se encontraron tours.',
+            'manage_images'       => 'Administrar imágenes',
+            'cover_alt'           => 'Portada',
+            'images_label'        => 'imágenes',
 
-        // Botones genéricos
-        'upload_btn'          => 'Subir',
-        'delete_btn'          => 'Eliminar',
-        'show_btn'            => 'Mostrar',
-        'close_btn'           => 'Cerrar',
-        'preview_title'       => 'Vista previa de la imagen',
+            // Botones genéricos
+            'upload_btn'          => 'Subir',
+            'delete_btn'          => 'Eliminar',
+            'show_btn'            => 'Mostrar',
+            'close_btn'           => 'Cerrar',
+            'preview_title'       => 'Vista previa de la imagen',
 
-        // Textos generales de estado
-        'error_title'         => 'Error',
-        'warning_title'       => 'Atención',
-        'success_title'       => 'Éxito',
-        'cancel_btn'          => 'Cancelar',
+            // Textos generales de estado
+            'error_title'         => 'Error',
+            'warning_title'       => 'Atención',
+            'success_title'       => 'Éxito',
+            'cancel_btn'          => 'Cancelar',
 
-        // Confirmaciones básicas
-        'confirm_delete_title' => '¿Eliminar esta imagen?',
-        'confirm_delete_text'  => 'Esta acción no se puede deshacer.',
+            // Confirmaciones básicas
+            'confirm_delete_title' => '¿Eliminar esta imagen?',
+            'confirm_delete_text'  => 'Esta acción no se puede deshacer.',
 
-        // Gestión de portada por formulario clásico
-        'cover_current_title'    => 'Portada actual',
-        'upload_new_cover_title' => 'Subir nueva portada',
-        'cover_file_label'       => 'Archivo de portada',
-        'file_help_cover'        => 'JPEG/PNG/WebP, 30 MB máx.',
-        'id_label'               => 'ID',
+            // Gestión de portada por formulario clásico
+            'cover_current_title'    => 'Portada actual',
+            'upload_new_cover_title' => 'Subir nueva portada',
+            'cover_file_label'       => 'Archivo de portada',
+            'file_help_cover'        => 'JPEG/PNG/WebP, 30 MB máx.',
+            'id_label'               => 'ID',
 
-        // Navegación / cabecera en vista de un tour
-        'back_btn'          => 'Volver a la lista',
+            // Navegación / cabecera en vista de un tour
+            'back_btn'          => 'Volver a la lista',
 
-        // Stats (barra superior)
-        'stats_images'      => 'Imágenes subidas',
-        'stats_cover'       => 'Portadas definidas',
-        'stats_selected'    => 'Seleccionadas',
+            // Stats (barra superior)
+            'stats_images'      => 'Imágenes subidas',
+            'stats_cover'       => 'Portadas definidas',
+            'stats_selected'    => 'Seleccionadas',
 
-        // Zona de subida
-        'drag_or_click'     => 'Arrastra y suelta tus imágenes o haz clic para seleccionar.',
-        'upload_help'       => 'Formatos permitidos: JPG, PNG, WebP. Tamaño máximo total 100 MB.',
-        'select_btn'        => 'Elegir archivos',
-        'limit_badge'       => 'Límite de :max imágenes alcanzado',
-        'files_word'        => 'archivos',
+            // Zona de subida
+            'drag_or_click'     => 'Arrastra y suelta tus imágenes o haz clic para seleccionar.',
+            'upload_help'       => 'Formatos permitidos: JPG, PNG, WebP. Tamaño máximo total 100 MB.',
+            'select_btn'        => 'Elegir archivos',
+            'limit_badge'       => 'Límite de :max imágenes alcanzado',
+            'files_word'        => 'archivos',
 
-        // Toolbar de selección múltiple
-        'select_all'        => 'Seleccionar todas',
-        'delete_selected'   => 'Eliminar seleccionadas',
-        'delete_all'        => 'Eliminar todas',
+            // Toolbar de selección múltiple
+            'select_all'        => 'Seleccionar todas',
+            'delete_selected'   => 'Eliminar seleccionadas',
+            'delete_all'        => 'Eliminar todas',
 
-        // Selector por imagen (chip)
-        'select_image_title' => 'Seleccionar esta imagen',
-        'select_image_aria'  => 'Seleccionar imagen :id',
+            // Selector por imagen (chip)
+            'select_image_title' => 'Seleccionar esta imagen',
+            'select_image_aria'  => 'Seleccionar imagen :id',
 
-        // Portada (chip / botón por tarjeta)
-        'cover_label'       => 'Portada',
-        'cover_btn'         => 'Hacer portada',
+            // Portada (chip / botón por tarjeta)
+            'cover_label'       => 'Portada',
+            'cover_btn'         => 'Hacer portada',
 
-        // Estados de guardado / helpers JS
-        'caption_placeholder' => 'Leyenda (opcional)',
-        'saving_label'        => 'Guardando…',
-        'saving_fallback'     => 'Guardando…',
-        'none_label'          => 'Sin leyenda',
-        'limit_word'          => 'Límite',
+            // Estados de guardado / helpers JS
+            'caption_placeholder' => 'Leyenda (opcional)',
+            'saving_label'        => 'Guardando…',
+            'saving_fallback'     => 'Guardando…',
+            'none_label'          => 'Sin leyenda',
+            'limit_word'          => 'Límite',
 
-        // Confirmaciones avanzadas (JS)
-        'confirm_set_cover_title' => '¿Establecer como portada?',
-        'confirm_set_cover_text'  => 'Esta imagen será la portada principal del tour.',
-        'confirm_btn'             => 'Sí, continuar',
+            // Confirmaciones avanzadas (JS)
+            'confirm_set_cover_title' => '¿Establecer como portada?',
+            'confirm_set_cover_text'  => 'Esta imagen será la portada principal del tour.',
+            'confirm_btn'             => 'Sí, continuar',
 
-        'confirm_bulk_delete_title' => '¿Eliminar las imágenes seleccionadas?',
-        'confirm_bulk_delete_text'  => 'Se eliminarán definitivamente las imágenes seleccionadas.',
+            'confirm_bulk_delete_title' => '¿Eliminar las imágenes seleccionadas?',
+            'confirm_bulk_delete_text'  => 'Se eliminarán definitivamente las imágenes seleccionadas.',
 
-        'confirm_delete_all_title'  => '¿Eliminar todas las imágenes?',
-        'confirm_delete_all_text'   => 'Se eliminarán todas las imágenes de este tour.',
+            'confirm_delete_all_title'  => '¿Eliminar todas las imágenes?',
+            'confirm_delete_all_text'   => 'Se eliminarán todas las imágenes de este tour.',
 
-        // Vista sin imágenes
-        'no_images'           => 'Aún no hay imágenes para este tour.',
+            // Vista sin imágenes
+            'no_images'           => 'Aún no hay imágenes para este tour.',
+        ],
+
+        'errors' => [
+            'validation'     => 'Los datos enviados no son válidos.',
+            'upload_generic' => 'No se pudieron subir algunas imágenes.',
+            'update_caption' => 'No se pudo actualizar la leyenda.',
+            'delete'         => 'No se pudo eliminar la imagen.',
+            'reorder'        => 'No se pudo guardar el orden.',
+            'set_cover'      => 'No se pudo establecer la portada.',
+            'load_list'      => 'No se pudo cargar el listado.',
+            'too_large'      => 'El archivo supera el tamaño máximo permitido. Intenta con una imagen más liviana.',
+        ],
     ],
-
-    'errors' => [
-        'validation'     => 'Los datos enviados no son válidos.',
-        'upload_generic' => 'No se pudieron subir algunas imágenes.',
-        'update_caption' => 'No se pudo actualizar la leyenda.',
-        'delete'         => 'No se pudo eliminar la imagen.',
-        'reorder'        => 'No se pudo guardar el orden.',
-        'set_cover'      => 'No se pudo establecer la portada.',
-        'load_list'      => 'No se pudo cargar el listado.',
-        'too_large'      => 'El archivo supera el tamaño máximo permitido. Intenta con una imagen más liviana.',
-    ],
-],
 
     'prices' => [
-    'ui' => [
-        'page_title'         => 'Precios - :name',
-        'header_title'       => 'Precios: :name',
-        'back_to_tours'      => 'Volver a los tours',
+        'ui' => [
+            'page_title'         => 'Precios - :name',
+            'header_title'       => 'Precios: :name',
+            'back_to_tours'      => 'Volver a los tours',
 
-        'configured_title'   => 'Categorías y precios configurados',
-        'empty_title'        => 'No hay categorías configuradas para este tour.',
-        'empty_hint'         => 'Usa el formulario a la derecha para agregar categorías.',
+            'configured_title'   => 'Categorías y precios configurados',
+            'empty_title'        => 'No hay categorías configuradas para este tour.',
+            'empty_hint'         => 'Usa el formulario a la derecha para agregar categorías.',
 
-        'save_changes'       => 'Guardar cambios',
-        'auto_disable_note'  => 'Los precios en $0 se desactivan automáticamente',
+            'save_changes'       => 'Guardar cambios',
+            'auto_disable_note'  => 'Los precios en $0 se desactivan automáticamente',
 
-        'add_category'       => 'Agregar categoría',
+            'add_category'       => 'Agregar categoría',
 
-        'all_assigned_title' => 'Todas las categorías están asignadas',
-        'all_assigned_text'  => 'No hay más categorías disponibles para este tour.',
+            'all_assigned_title' => 'Todas las categorías están asignadas',
+            'all_assigned_text'  => 'No hay más categorías disponibles para este tour.',
 
-        'info_title'         => 'Información',
-        'tour_label'         => 'Tour',
-        'configured_count'   => 'Categorías configuradas',
-        'active_count'       => 'Categorías activas',
+            'info_title'         => 'Información',
+            'tour_label'         => 'Tour',
+            'configured_count'   => 'Categorías configuradas',
+            'active_count'       => 'Categorías activas',
 
-        'fields_title'       => 'Campos',
-        'rules_title'        => 'Reglas',
+            'fields_title'       => 'Campos',
+            'rules_title'        => 'Reglas',
 
-        'field_price'        => 'Precio',
-        'field_min'          => 'Mínimo',
-        'field_max'          => 'Máximo',
-        'field_status'       => 'Estado',
+            'field_price'        => 'Precio',
+            'field_min'          => 'Mínimo',
+            'field_max'          => 'Máximo',
+            'field_status'       => 'Estado',
 
-        'rule_min_le_max'    => 'El mínimo debe ser menor o igual al máximo',
-        'rule_zero_disable'  => 'Los precios en $0 se desactivan automáticamente',
-        'rule_only_active'   => 'Solo las categorías activas aparecen en el sitio público',
+            'rule_min_le_max'    => 'El mínimo debe ser menor o igual al máximo',
+            'rule_zero_disable'  => 'Los precios en $0 se desactivan automáticamente',
+            'rule_only_active'   => 'Solo las categorías activas aparecen en el sitio público',
+        ],
+
+        'table' => [
+            'category'   => 'Categoría',
+            'age_range'  => 'Rango de edad',
+            'price_usd'  => 'Precio (USD)',
+            'min'        => 'Mín',
+            'max'        => 'Máx',
+            'status'     => 'Estado',
+            'action'     => 'Acción',
+            'active'     => 'Activo',
+            'inactive'   => 'Inactivo',
+        ],
+
+        'forms' => [
+            'select_placeholder'  => '-- Seleccionar --',
+            'category'            => 'Categoría',
+            'price_usd'           => 'Precio (USD)',
+            'min'                 => 'Mínimo',
+            'max'                 => 'Máximo',
+            'create_disabled_hint' => 'Si el precio es $0, la categoría se creará desactivada',
+            'add'                 => 'Agregar',
+        ],
+
+        'modal' => [
+            'delete_title'   => 'Eliminar categoría',
+            'delete_text'    => '¿Eliminar esta categoría de este tour?',
+            'cancel'         => 'Cancelar',
+            'delete'         => 'Eliminar',
+            'delete_tooltip' => 'Eliminar categoría',
+        ],
+
+        'flash' => [
+            'success' => 'Operación realizada con éxito.',
+            'error'   => 'Ocurrió un error.',
+        ],
+
+        'js' => [
+            'max_ge_min'            => 'El máximo debe ser mayor o igual al mínimo',
+            'auto_disabled_tooltip' => 'Precio en $0 – desactivado automáticamente',
+            'fix_errors'            => 'Corrige las cantidades mínimas y máximas',
+        ],
     ],
 
-    'table' => [
-        'category'   => 'Categoría',
-        'age_range'  => 'Rango de edad',
-        'price_usd'  => 'Precio (USD)',
-        'min'        => 'Mín',
-        'max'        => 'Máx',
-        'status'     => 'Estado',
-        'action'     => 'Acción',
-        'active'     => 'Activo',
-        'inactive'   => 'Inactivo',
-    ],
-
-    'forms' => [
-        'select_placeholder'  => '-- Seleccionar --',
-        'category'            => 'Categoría',
-        'price_usd'           => 'Precio (USD)',
-        'min'                 => 'Mínimo',
-        'max'                 => 'Máximo',
-        'create_disabled_hint'=> 'Si el precio es $0, la categoría se creará desactivada',
-        'add'                 => 'Agregar',
+    'ajax' => [
+        'category_created' => 'Categoría creada exitosamente',
+        'category_error' => 'Error al crear la categoría',
+        'language_created' => 'Idioma creado exitosamente',
+        'language_error' => 'Error al crear el idioma',
+        'amenity_created' => 'Amenidad creada exitosamente',
+        'amenity_error' => 'Error al crear la amenidad',
+        'schedule_created' => 'Horario creado exitosamente',
+        'schedule_error' => 'Error al crear el horario',
+        'itinerary_created' => 'Itinerario creado exitosamente',
+        'itinerary_error' => 'Error al crear el itinerario',
+        'translation_error' => 'Error al traducir',
     ],
 
     'modal' => [
-        'delete_title'   => 'Eliminar categoría',
-        'delete_text'    => '¿Eliminar esta categoría de este tour?',
-        'cancel'         => 'Cancelar',
-        'delete'         => 'Eliminar',
-        'delete_tooltip' => 'Eliminar categoría',
+        'create_category' => 'Crear Nueva Categoría',
+        'create_language' => 'Crear Nuevo Idioma',
+        'create_amenity' => 'Crear Nueva Amenidad',
+        'create_schedule' => 'Crear Nuevo Horario',
+        'create_itinerary' => 'Crear Nuevo Itinerario',
     ],
 
-    'flash' => [
-        'success' => 'Operación realizada con éxito.',
-        'error'   => 'Ocurrió un error.',
+    'validation' => [
+        'slug_taken' => 'Este slug ya está en uso',
+        'slug_available' => 'Slug disponible',
     ],
-
-    'js' => [
-        'max_ge_min'            => 'El máximo debe ser mayor o igual al mínimo',
-        'auto_disabled_tooltip' => 'Precio en $0 – desactivado automáticamente',
-        'fix_errors'            => 'Corrige las cantidades mínimas y máximas',
-    ],
-],
-
-'ajax' => [
-    'category_created' => 'Categoría creada exitosamente',
-    'category_error' => 'Error al crear la categoría',
-    'language_created' => 'Idioma creado exitosamente',
-    'language_error' => 'Error al crear el idioma',
-    'amenity_created' => 'Amenidad creada exitosamente',
-    'amenity_error' => 'Error al crear la amenidad',
-    'schedule_created' => 'Horario creado exitosamente',
-    'schedule_error' => 'Error al crear el horario',
-    'itinerary_created' => 'Itinerario creado exitosamente',
-    'itinerary_error' => 'Error al crear el itinerario',
-    'translation_error' => 'Error al traducir',
-],
-
-'modal' => [
-    'create_category' => 'Crear Nueva Categoría',
-    'create_language' => 'Crear Nuevo Idioma',
-    'create_amenity' => 'Crear Nueva Amenidad',
-    'create_schedule' => 'Crear Nuevo Horario',
-    'create_itinerary' => 'Crear Nuevo Itinerario',
-],
-
-'validation' => [
-    'slug_taken' => 'Este slug ya está en uso',
-    'slug_available' => 'Slug disponible',
-],
 
 ];

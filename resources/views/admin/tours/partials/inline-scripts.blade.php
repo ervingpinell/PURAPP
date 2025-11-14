@@ -1,3 +1,5 @@
+{{-- resources/views/admin/tours/partials/inline-scripts.blade.php --}}
+
 {{-- ===== Inline Scripts (creación rápida vía AJAX) ===== --}}
 <script>
 const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
@@ -16,26 +18,49 @@ async function ajaxPost(url, data) {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
+    // Intentar extraer primer mensaje de error de validación
+    if (error.errors) {
+      const firstKey = Object.keys(error.errors)[0];
+      const msg = error.errors[firstKey]?.[0] || 'Request failed';
+      throw new Error(msg);
+    }
     throw new Error(error.message || 'Request failed');
   }
 
   return response.json();
 }
 
+// Toast oscuro (para tema dark de AdminLTE)
 function showToast(icon, title, text = '') {
+  if (!window.Swal) {
+    alert(`${title}\n${text}`);
+    return;
+  }
+
   Swal.fire({
     icon,
     title,
     text,
-    timer: 2500,
+    timer: 2800,
     showConfirmButton: false,
     toast: true,
-    position: 'top-end'
+    position: 'top-end',
+    background: '#111827',    // gris muy oscuro
+    color: '#E5E7EB',         // texto claro
+    iconColor: icon === 'success'
+      ? '#22C55E'             // verde
+      : icon === 'error'
+        ? '#F87171'           // rojo
+        : '#60A5FA',          // azul info
+    customClass: {
+      popup: 'shadow-lg border-0',
+      title: 'fw-semibold',
+    }
   });
 }
 
+// Helper para validación simple Bootstrap 5
 function bs5Validate(form) {
-  // Simple validación Bootstrap 5
   if (!form) return true;
   let ok = true;
   form.querySelectorAll('[required]').forEach(el => {
@@ -45,15 +70,202 @@ function bs5Validate(form) {
   return ok;
 }
 
-// ========== Crear Categoría ==========
+// Helper para cerrar bien un modal (y limpiar el backdrop si se queda pegado)
+function hideModalById(id) {
+  const modalEl = document.getElementById(id);
+  if (!modalEl || !window.bootstrap) return;
+
+  const instance = bootstrap.Modal.getInstance(modalEl) ?? new bootstrap.Modal(modalEl);
+  instance.hide();
+
+  modalEl.addEventListener('hidden.bs.modal', () => {
+    document.body.classList.remove('modal-open');
+    document.querySelectorAll('.modal-backdrop').forEach(bd => bd.remove());
+  }, { once: true });
+}
+
+// ========== Helper: remover card de precios ==========
+function removePriceCard(categoryId) {
+  const card = document.getElementById('price-card-' + categoryId);
+  if (card) {
+    card.remove();
+    if (window.updateTourSummary) {
+      window.updateTourSummary();
+    }
+  }
+}
+
+// ========== Helper: construir card de precios en JS ==========
+function createPriceCard(category) {
+  const id        = category.id || category.category_id;
+  const name      = category.name || category.label || category.slug || ('ID ' + id);
+  const ageRange  = category.age_range || '';
+  const slug      = category.slug || '';
+  const price     = parseFloat(category.price ?? 0);
+  const minQty    = parseInt(category.min_quantity ?? 0, 10);
+  const maxQty    = parseInt(category.max_quantity ?? 12, 10);
+  const isActive  = (category.is_active ?? true) ? true : false;
+
+  return `
+    <div class="card mb-3 shadow-sm price-card" id="price-card-${id}" data-category-id="${id}">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+          <h4 class="card-title mb-0">
+            ${name}
+            ${ageRange ? `<small class="text-muted">(${ageRange})</small>` : ''}
+          </h4>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          ${slug ? `<span class="badge bg-secondary">${slug}</span>` : ''}
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-danger"
+            onclick="removePriceCard(${id})"
+            aria-label="{{ __('m_tours.tour.pricing.remove_category') }}"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-6 col-lg-4">
+            <label class="form-label">
+              {{ __('m_tours.tour.pricing.price_usd') }}
+            </label>
+            <div class="input-group">
+              <span class="input-group-text" aria-hidden="true">{{ config('app.currency_symbol', '$') }}</span>
+              <input
+                type="number"
+                name="prices[${id}][price]"
+                class="form-control"
+                value="${price.toFixed(2)}"
+                step="0.01"
+                min="0"
+                inputmode="decimal"
+              >
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3 col-lg-3">
+            <label class="form-label">
+              {{ __('m_tours.tour.pricing.min_quantity') }}
+            </label>
+            <input
+              type="number"
+              name="prices[${id}][min_quantity]"
+              class="form-control"
+              value="${isNaN(minQty) ? 0 : minQty}"
+              min="0"
+              max="255"
+              inputmode="numeric"
+            >
+          </div>
+
+          <div class="col-6 col-md-3 col-lg-3">
+            <label class="form-label">
+              {{ __('m_tours.tour.pricing.max_quantity') }}
+            </label>
+            <input
+              type="number"
+              name="prices[${id}][max_quantity]"
+              class="form-control"
+              value="${isNaN(maxQty) ? 12 : maxQty}"
+              min="0"
+              max="255"
+              inputmode="numeric"
+            >
+          </div>
+
+          <div class="col-12 col-md-6 col-lg-2">
+            <label class="form-label d-block">
+              {{ __('m_tours.tour.pricing.status') }}
+            </label>
+            <div class="form-check form-switch">
+              <input type="hidden" name="prices[${id}][is_active]" value="0">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                role="switch"
+                id="active_${id}"
+                name="prices[${id}][is_active]"
+                value="1"
+                ${isActive ? 'checked' : ''}
+              >
+              <label class="form-check-label" for="active_${id}">
+                {{ __('m_tours.tour.pricing.active') }}
+              </label>
+            </div>
+            <small class="text-muted d-block mt-1">
+              {{ __('m_tours.tour.pricing.hints.zero_disables') }}
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <input type="hidden" name="prices[${id}][category_id]" value="${id}">
+    </div>
+  `;
+}
+
+// ========== Asignar categoría existente desde el selector ==========
+document.addEventListener('DOMContentLoaded', () => {
+  const selector        = document.getElementById('category-selector');
+  const addBtn          = document.getElementById('btn-add-category');
+  const pricesContainer = document.getElementById('prices-container');
+
+  if (selector && addBtn && pricesContainer) {
+    addBtn.addEventListener('click', () => {
+      const id = selector.value;
+      if (!id) return;
+
+      // Evitar duplicados
+      if (document.getElementById('price-card-' + id)) {
+        showToast(
+          'info',
+          '{{ __('m_tours.common.info') }}',
+          '{{ __('m_tours.tour.pricing.category_already_added') }}'
+        );
+        return;
+      }
+
+      const opt = selector.options[selector.selectedIndex];
+      if (!opt) return;
+
+      const label    = opt.textContent.trim();
+      const ageRange = opt.dataset.ageRange || '';
+      const slug     = opt.dataset.slug || '';
+
+      const cat = {
+        id: id,
+        name: label,
+        age_range: ageRange,
+        slug: slug,
+        is_active: true,
+        min_quantity: 0,
+        max_quantity: 12,
+        price: 0
+      };
+
+      pricesContainer.insertAdjacentHTML('beforeend', createPriceCard(cat));
+
+      if (window.updateTourSummary) {
+        window.updateTourSummary();
+      }
+    });
+  }
+});
+
+// ========== Crear Categoría (AJAX) ==========
 async function submitCreateCategory() {
   const form = document.getElementById('formCreateCategory');
   if (!bs5Validate(form)) return;
 
-  // Validación min <= max
   const fd  = new FormData(form);
   const min = parseInt(fd.get('min_quantity') || '0', 10);
   const max = parseInt(fd.get('max_quantity') || '0', 10);
+
   if (max < min) {
     showToast('error', '{{ __("m_tours.common.error") }}', '{{ __("m_tours.tour.modal.errors.min_le_max") }}');
     return;
@@ -65,62 +277,34 @@ async function submitCreateCategory() {
     const response = await ajaxPost('{{ route("admin.tours.ajax.create-category") }}', data);
 
     if (response.ok) {
-      // Agregar tarjeta a precios (usa B5)
       const pricesContainer = document.getElementById('prices-container');
       if (pricesContainer) {
         pricesContainer.insertAdjacentHTML('beforeend', createPriceCard(response.category));
       }
 
+      // Añadir también la nueva categoría al selector
+      const selector = document.getElementById('category-selector');
+      if (selector) {
+        const opt = document.createElement('option');
+        opt.value = response.category.id;
+        opt.textContent = response.category.name;
+        opt.dataset.ageRange = response.category.age_range || '';
+        opt.dataset.slug = response.category.slug || '';
+        selector.appendChild(opt);
+        selector.value = response.category.id;
+      }
+
+      if (window.updateTourSummary) {
+        window.updateTourSummary();
+      }
+
       showToast('success', response.message);
-      bootstrap.Modal.getInstance(document.getElementById('modalCreateCategory')).hide();
+      hideModalById('modalCreateCategory');
       form.reset();
     }
   } catch (error) {
     showToast('error', '{{ __("m_tours.common.error") }}', error.message);
   }
-}
-
-function createPriceCard(category) {
-  // Usa form-switch en BS5 (no custom-control)
-  return `
-    <div class="card mb-3">
-      <div class="card-header">
-        <h4 class="card-title mb-0">
-          ${category.name}
-          ${category.age_range ? `<small class="text-muted">(${category.age_range})</small>` : ''}
-        </h4>
-      </div>
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="form-label">{{ __('m_tours.tour.prices.price_usd') }}</label>
-            <div class="input-group">
-              <span class="input-group-text">$</span>
-              <input type="number" name="prices[${category.id}][price]" class="form-control" value="0.00" step="0.01" min="0">
-            </div>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">{{ __('m_tours.tour.prices.min_quantity') }}</label>
-            <input type="number" name="prices[${category.id}][min_quantity]" class="form-control" value="${category.min_quantity ?? 0}" min="0">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">{{ __('m_tours.tour.prices.max_quantity') }}</label>
-            <input type="number" name="prices[${category.id}][max_quantity]" class="form-control" value="${category.max_quantity ?? 12}" min="0">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label d-block">{{ __('m_tours.tour.prices.status') }}</label>
-            <div class="form-check form-switch">
-              <input type="hidden" name="prices[${category.id}][is_active]" value="0">
-              <input class="form-check-input" type="checkbox" id="active_${category.id}"
-                     name="prices[${category.id}][is_active]" value="1" checked>
-              <label class="form-check-label" for="active_${category.id}">{{ __('m_tours.tour.prices.active') }}</label>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <input type="hidden" name="prices[${category.id}][category_id]" value="${category.id}">
-  `;
 }
 
 // ========== Crear Idioma ==========
@@ -134,7 +318,6 @@ async function submitCreateLanguage() {
     const response = await ajaxPost('{{ route("admin.tours.ajax.create-language") }}', data);
 
     if (response.ok) {
-      // Contenedor de idiomas: intenta por id semántico, luego fallback al primer form-group del tab
       const container =
         document.getElementById('languages-container') ||
         document.querySelector('#languages .card-body .form-group') ||
@@ -155,8 +338,12 @@ async function submitCreateLanguage() {
         container.insertAdjacentHTML('beforeend', newCheckbox);
       }
 
+      if (window.updateTourSummary) {
+        window.updateTourSummary();
+      }
+
       showToast('success', response.message);
-      bootstrap.Modal.getInstance(document.getElementById('modalCreateLanguage')).hide();
+      hideModalById('modalCreateLanguage');
       form.reset();
     }
   } catch (error) {
@@ -175,7 +362,6 @@ async function submitCreateAmenity() {
     const response = await ajaxPost('{{ route("admin.tours.ajax.create-amenity") }}', data);
 
     if (response.ok) {
-      // Intenta encontrar contenedores específicos; si no, usa dos columnas del tab
       const includedContainer =
         document.getElementById('amenities-included') ||
         document.querySelector('#amenities .col-md-6:nth-child(1) .form-group') ||
@@ -200,8 +386,12 @@ async function submitCreateAmenity() {
       if (includedContainer) includedContainer.insertAdjacentHTML('beforeend', checkboxHtml('included'));
       if (excludedContainer) excludedContainer.insertAdjacentHTML('beforeend', checkboxHtml('excluded'));
 
+      if (window.updateTourSummary) {
+        window.updateTourSummary();
+      }
+
       showToast('success', response.message);
-      bootstrap.Modal.getInstance(document.getElementById('modalCreateAmenity')).hide();
+      hideModalById('modalCreateAmenity');
       form.reset();
     }
   } catch (error) {
@@ -239,8 +429,12 @@ async function submitCreateSchedule() {
         container.insertAdjacentHTML('beforeend', newCheckbox);
       }
 
+      if (window.updateTourSummary) {
+        window.updateTourSummary();
+      }
+
       showToast('success', response.message);
-      bootstrap.Modal.getInstance(document.getElementById('modalCreateSchedule')).hide();
+      hideModalById('modalCreateSchedule');
       form.reset();
     }
   } catch (error) {
@@ -294,8 +488,12 @@ async function submitCreateItinerary() {
         itinerarySelect.dispatchEvent(new Event('change'));
       }
 
+      if (window.updateTourSummary) {
+        window.updateTourSummary();
+      }
+
       showToast('success', response.message);
-      bootstrap.Modal.getInstance(document.getElementById('modalCreateItinerary'))?.hide();
+      hideModalById('modalCreateItinerary');
       form.reset();
     }
   } catch (error) {
