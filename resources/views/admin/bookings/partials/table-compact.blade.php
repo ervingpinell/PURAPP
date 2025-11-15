@@ -64,14 +64,19 @@
             ? \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A')
             : '—';
 
-        // ===== Pickup Place (Hotel o Meeting Point) =====
+        // ===== Pickup Place (Hotel, Other Hotel o Meeting Point) =====
+        // prioridad: other_hotel_name → hotel → snapshot → meeting point → snapshot
+        $hotelName = $detail?->other_hotel_name
+            ?: optional($detail?->hotel)->name
+            ?: ($detail->hotel_name_snapshot ?? $booking->hotel_name_snapshot ?? null);
+
+        $mpName = optional($detail?->meetingPoint)->name
+            ?: ($detail->meeting_point_name_snapshot ?? $booking->meeting_point_name_snapshot ?? null);
+
+        $pickupSnap = $detail->pickup_place_snapshot ?? $booking->pickup_place_snapshot ?? null;
+
         $pickupLabel = null;
         $pickupIcon  = null;
-        $pickupSnap  = $detail->pickup_place_snapshot ?? $booking->pickup_place_snapshot ?? null;
-        $hotelName   = optional($detail?->hotel)->name
-                       ?? ($detail->hotel_name_snapshot ?? $booking->hotel_name_snapshot ?? null);
-        $mpName      = optional($detail?->meetingPoint)->name
-                       ?? ($detail->meeting_point_name_snapshot ?? $booking->meeting_point_name_snapshot ?? null);
 
         if ($hotelName) {
             $pickupLabel = $hotelName;
