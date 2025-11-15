@@ -446,30 +446,36 @@ class HomeController extends Controller
         }
     }
 
-    public function sendContact(Request $request)
-    {
-        try {
-            $validated = $request->validate([
-                'name'    => 'bail|required|string|min:2|max:100',
-                'email'   => 'bail|required|email',
-                'subject' => 'bail|required|string|min:3|max:150',
-                'message' => 'bail|required|string|min:5|max:1000',
-                'website' => 'nullable|string|max:50',
-            ]);
-
-            if (!empty($validated['website'])) {
-                return back()->with('success', 'Your message has been sent.');
-            }
-
-            $recipient = config('mail.to.contact', config('mail.from.address', 'info@greenvacationscr.com'));
-            Mail::to($recipient)->queue(new ContactMessage($validated));
-
-            return back()->with('success', 'Your message has been sent successfully. We will contact you soon.');
-        } catch (Throwable $e) {
-            Log::error('contact.send.failed', ['ip' => $request->ip(), 'error' => $e->getMessage()]);
-            return back()->withInput()->withErrors([
-                'email' => 'An error occurred while sending your message. Please try again in a few minutes.',
-            ]);
+public function sendContact(Request $request)
+{
+    try {
+        $validated = $request->validate([
+            'name'    => 'bail|required|string|min:2|max:100',
+            'email'   => 'bail|required|email',
+            'subject' => 'bail|required|string|min:3|max:150',
+            'message' => 'bail|required|string|min:5|max:1000',
+            'website' => 'nullable|string|max:50',
+        ]);
+        if (!empty($validated['website'])) {
+            return back()->with('success', 'Your message has been sent.');
         }
+        $recipient = env('MAIL_TO_CONTACT', config('mail.from.address', 'info@greenvacationscr.com'));
+
+        Mail::to($recipient)->queue(
+            new ContactMessage($validated + ['locale' => app()->getLocale()])
+        );
+
+        return back()->with('success', 'Your message has been sent successfully. We will contact you soon.');
+    } catch (Throwable $e) {
+        Log::error('contact.send.failed', [
+            'ip'    => $request->ip(),
+            'error' => $e->getMessage(),
+        ]);
+
+        return back()->withInput()->withErrors([
+            'email' => 'An error occurred while sending your message. Please try again in a few minutes.',
+        ]);
     }
+}
+
 }

@@ -33,6 +33,8 @@
  */
 
 return [
+    'contact_throttled' => "Você enviou muitas mensagens em um curto período. Por favor, aguarde um momento antes de tentar novamente.",
+
     'pending_email_title'  => 'Alteração de e-mail pendente',
 'pending_email_notice' => 'Você solicitou alterar seu e-mail de <strong>:current</strong> para <strong>:pending</strong>. Enviamos um link de confirmação para o seu novo e-mail. Até que você o confirme, continuaremos usando o seu e-mail atual.',
 'email_change_warning' => 'Se você alterar seu e-mail, enviaremos um link de confirmação para o novo endereço. Seu e-mail atual continuará ativo até que você confirme a alteração.',
@@ -340,6 +342,20 @@ return [
     'message_sent' => 'Mensagem enviada',
     'business_hours' => 'Horário de atendimento',
     'business_schedule' => 'Segunda a domingo, das 7h30 às 19h30',
+    'field_required'              => 'Este campo é obrigatório.',
+    'email_invalid'               => 'Informe um endereço de e-mail válido.',
+
+    // Placeholders
+    'contact_name_placeholder'    => 'Seu nome completo',
+    'contact_email_placeholder'   => 'seuemail@exemplo.com',
+    'contact_subject_placeholder' => 'Como podemos ajudar você?',
+    'contact_message_placeholder' => 'Conte para nós como podemos ajudar você…',
+
+    // SweetAlert
+    'message_sent'                => 'Mensagem enviada',
+    'validation_error'            => 'Verifique os campos destacados.',
+    'swal_ok'                     => 'OK',
+
 
     // 17. ERROS
     'access_denied' => 'Acesso negado',

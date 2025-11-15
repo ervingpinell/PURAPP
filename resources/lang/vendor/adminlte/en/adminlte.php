@@ -33,6 +33,7 @@
  */
 
 return [
+'contact_throttled' => 'You have sent too many messages in a short period. Please wait a moment before trying again.',
     'pending_email_title'  => 'Pending Email Change',
 'pending_email_notice' => 'You have requested to change your email from <strong>:current</strong> to <strong>:pending</strong>. We’ve sent a confirmation link to your new email. Until you confirm it, we will continue using your current email.',
 'email_change_warning' => 'If you change your email, we will send a confirmation link to the new address. Your current email will remain active until you confirm the change.',
@@ -341,6 +342,19 @@ return [
     'message_sent' => 'Message sent',
     'business_hours' => 'Business hours',
     'business_schedule' => 'Monday to Sunday, 7:30 a.m. – 7:30 p.m.',
+    'field_required'              => 'This field is required.',
+    'email_invalid'               => 'Please enter a valid email address.',
+
+    // Placeholders
+    'contact_name_placeholder'    => 'Your full name',
+    'contact_email_placeholder'   => 'yourmail@example.com',
+    'contact_subject_placeholder' => 'How can we help you?',
+    'contact_message_placeholder' => 'Tell us how we can help you...',
+
+    // SweetAlert
+    'validation_error'            => 'Please review the highlighted fields.',
+    'swal_ok'                     => 'OK',
+
 
     // 17. ERRORS
     'access_denied' => 'Access denied',

@@ -33,6 +33,8 @@
  */
 
 return [
+    'contact_throttled' => "Sie haben in kurzer Zeit zu viele Nachrichten gesendet. Bitte warten Sie einen Moment, bevor Sie es erneut versuchen.",
+
     'pending_email_title'  => 'Ausstehende E-Mail-Änderung',
 'pending_email_notice' => 'Du hast beantragt, deine E-Mail von <strong>:current</strong> auf <strong>:pending</strong> zu ändern. Wir haben dir einen Bestätigungslink an deine neue E-Mail gesendet. Bis du den Wechsel bestätigst, verwenden wir weiterhin deine aktuelle E-Mail.',
 'email_change_warning' => 'Wenn du deine E-Mail änderst, senden wir dir einen Bestätigungslink an die neue Adresse. Deine aktuelle E-Mail bleibt aktiv, bis du die Änderung bestätigst.',
@@ -340,6 +342,19 @@ return [
     'message_sent' => 'Nachricht gesendet',
     'business_hours' => 'Geschäftszeiten',
     'business_schedule' => 'Montag bis Sonntag, 07:30–19:30 Uhr',
+    'field_required'              => 'Dieses Feld ist erforderlich.',
+    'email_invalid'               => 'Bitte gib eine gültige E-Mail-Adresse ein.',
+
+    // Placeholders
+    'contact_name_placeholder'    => 'Ihr vollständiger Name',
+    'contact_email_placeholder'   => 'ihremail@beispiel.de',
+    'contact_subject_placeholder' => 'Wie können wir Ihnen helfen?',
+    'contact_message_placeholder' => 'Erzählen Sie uns, wie wir Ihnen helfen können …',
+
+    // SweetAlert
+    'message_sent'                => 'Nachricht gesendet',
+    'validation_error'            => 'Bitte überprüfen Sie die markierten Felder.',
+    'swal_ok'                     => 'OK',
 
     // 17. FEHLER
     'access_denied' => 'Zugriff verweigert',

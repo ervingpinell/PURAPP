@@ -33,8 +33,16 @@
 
               <div class="mb-3">
                 <label for="name" class="form-label">{{ __('adminlte::adminlte.name') }}</label>
-                <input type="text" class="form-control form-control-lg @error('name') is-invalid @enderror"
-                  name="name" id="name" required value="{{ old('name') }}" autocomplete="name">
+                <input
+                  type="text"
+                  class="form-control form-control-lg @error('name') is-invalid @enderror"
+                  name="name"
+                  id="name"
+                  required
+                  value="{{ old('name') }}"
+                  autocomplete="name"
+                  placeholder="{{ __('adminlte::adminlte.contact_name_placeholder') }}"
+                >
                 @error('name')
                   <div class="invalid-feedback">{{ $message }}</div>
                 @else
@@ -44,8 +52,17 @@
 
               <div class="mb-3">
                 <label for="email" class="form-label">{{ __('adminlte::adminlte.email') }}</label>
-                <input type="email" class="form-control form-control-lg @error('email') is-invalid @enderror"
-                  name="email" id="email" required value="{{ old('email') }}" autocomplete="email" inputmode="email">
+                <input
+                  type="email"
+                  class="form-control form-control-lg @error('email') is-invalid @enderror"
+                  name="email"
+                  id="email"
+                  required
+                  value="{{ old('email') }}"
+                  autocomplete="email"
+                  inputmode="email"
+                  placeholder="{{ __('adminlte::adminlte.contact_email_placeholder') }}"
+                >
                 @error('email')
                   <div class="invalid-feedback">{{ $message }}</div>
                 @else
@@ -55,8 +72,15 @@
 
               <div class="mb-3">
                 <label for="subject" class="form-label">{{ __('adminlte::adminlte.subject') }}</label>
-                <input type="text" class="form-control form-control-lg @error('subject') is-invalid @enderror"
-                  name="subject" id="subject" required value="{{ old('subject') }}">
+                <input
+                  type="text"
+                  class="form-control form-control-lg @error('subject') is-invalid @enderror"
+                  name="subject"
+                  id="subject"
+                  required
+                  value="{{ old('subject') }}"
+                  placeholder="{{ __('adminlte::adminlte.contact_subject_placeholder') }}"
+                >
                 @error('subject')
                   <div class="invalid-feedback">{{ $message }}</div>
                 @else
@@ -66,8 +90,15 @@
 
               <div class="mb-3">
                 <label for="message" class="form-label">{{ __('adminlte::adminlte.message') }}</label>
-                <textarea class="form-control form-control-lg @error('message') is-invalid @enderror"
-                  name="message" id="message" rows="6" required>{{ old('message') }}</textarea>
+                <textarea
+                  class="form-control form-control-lg @error('message') is-invalid @enderror"
+                  name="message"
+                  id="message"
+                  rows="6"
+                  required
+                  minlength="5"
+                  placeholder="{{ __('adminlte::adminlte.contact_message_placeholder') }}"
+                >{{ old('message') }}</textarea>
                 @error('message')
                   <div class="invalid-feedback">{{ $message }}</div>
                 @else
@@ -150,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
       icon: 'success',
       title: '{{ __('adminlte::adminlte.message_sent') }}',
       html: `{!! session('success') !!}`,
-      confirmButtonText: 'OK'
+      confirmButtonText: '{{ __('adminlte::adminlte.swal_ok') }}'
     });
   @endif
 
@@ -166,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
           @endforeach
         </ul>
       `,
-      confirmButtonText: 'OK'
+      confirmButtonText: '{{ __('adminlte::adminlte.swal_ok') }}'
     });
   @endif
 
