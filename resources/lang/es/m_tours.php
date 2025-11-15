@@ -522,6 +522,54 @@ return [
     // [07] TOUR
     // =========================================================
     'tour' => [
+
+
+        'wizard' => [
+        'title'   => 'Crear tour',
+        'heading' => 'Nuevo tour',
+
+        'badge_draft'     => 'Borrador',
+        'badge_published' => 'Publicado',
+
+        'sidebar_title' => 'Resumen del tour',
+
+        'steps' => [
+            'details'   => 'Detalles',
+            'itinerary' => 'Itinerario',
+            'languages' => 'Idiomas',
+            'schedules' => 'Horarios',
+            'amenities' => 'Amenidades',
+            'prices'    => 'Precios',
+            'summary'   => 'Resumen',
+        ],
+
+        // Botones / textos de navegación
+        'next_itinerary'  => 'Siguiente: Itinerario',
+        'next_languages'  => 'Siguiente: Idiomas',
+        'next_schedules'  => 'Siguiente: Horarios',
+        'next_amenities'  => 'Siguiente: Amenidades',
+        'next_prices'     => 'Siguiente: Precios',
+        'next_summary'    => 'Ir al resumen',
+
+        'back_details'    => 'Volver a detalles',
+        'back_itinerary'  => 'Volver a itinerario',
+        'back_languages'  => 'Volver a idiomas',
+        'back_schedules'  => 'Volver a horarios',
+        'back_amenities'  => 'Volver a amenidades',
+        'back_prices'     => 'Volver a precios',
+
+        'publish'        => 'Publicar tour',
+        'published_ok'   => 'El tour se ha publicado correctamente.',
+        'already_published' => 'Este tour ya está publicado.',
+        'invalid_step'   => 'Paso de creación de tour inválido.',
+        'saved_step_details'   => 'Detalles guardados.',
+        'saved_step_itinerary' => 'Itinerario guardado.',
+        'saved_step_languages' => 'Idiomas guardados.',
+        'saved_step_schedules' => 'Horarios guardados.',
+        'saved_step_amenities' => 'Amenidades guardadas.',
+        'saved_step_prices'    => 'Precios guardados.',
+    ],
+
         'title' => 'Tours',
 
         'fields' => [
