@@ -350,6 +350,9 @@ return [
     'contact_email_placeholder'   => 'ihremail@beispiel.de',
     'contact_subject_placeholder' => 'Wie können wir Ihnen helfen?',
     'contact_message_placeholder' => 'Erzählen Sie uns, wie wir Ihnen helfen können …',
+  'contact_spam_success' => 'Ihre Nachricht wurde gesendet.',
+    'contact_success'      => 'Ihre Nachricht wurde erfolgreich gesendet. Wir werden uns in Kürze bei Ihnen melden.',
+    'contact_error'        => 'Beim Senden Ihrer Nachricht ist ein Fehler aufgetreten. Bitte versuchen Sie es in ein paar Minuten erneut.',
 
     // SweetAlert
     'message_sent'                => 'Nachricht gesendet',

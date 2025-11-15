@@ -445,7 +445,6 @@ class HomeController extends Controller
             abort(500);
         }
     }
-
 public function sendContact(Request $request)
 {
     try {
@@ -456,16 +455,25 @@ public function sendContact(Request $request)
             'message' => 'bail|required|string|min:5|max:1000',
             'website' => 'nullable|string|max:50',
         ]);
+
+        // Honeypot: simulamos éxito pero no hacemos nada
         if (!empty($validated['website'])) {
-            return back()->with('success', 'Your message has been sent.');
+            return back()->with(
+                'success',
+                __('adminlte::adminlte.contact_spam_success')
+            );
         }
+
         $recipient = env('MAIL_TO_CONTACT', config('mail.from.address', 'info@greenvacationscr.com'));
 
         Mail::to($recipient)->queue(
             new ContactMessage($validated + ['locale' => app()->getLocale()])
         );
 
-        return back()->with('success', 'Your message has been sent successfully. We will contact you soon.');
+        return back()->with(
+            'success',
+            __('adminlte::adminlte.contact_success')
+        );
     } catch (Throwable $e) {
         Log::error('contact.send.failed', [
             'ip'    => $request->ip(),
@@ -473,7 +481,7 @@ public function sendContact(Request $request)
         ]);
 
         return back()->withInput()->withErrors([
-            'email' => 'An error occurred while sending your message. Please try again in a few minutes.',
+            'email' => __('adminlte::adminlte.contact_error'),
         ]);
     }
 }

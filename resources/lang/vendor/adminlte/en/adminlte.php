@@ -344,6 +344,10 @@ return [
     'business_schedule' => 'Monday to Sunday, 7:30 a.m. – 7:30 p.m.',
     'field_required'              => 'This field is required.',
     'email_invalid'               => 'Please enter a valid email address.',
+        'contact_spam_success' => 'Your message has been sent.',
+    'contact_success'      => 'Your message has been sent successfully. We will contact you soon.',
+    'contact_error'        => 'An error occurred while sending your message. Please try again in a few minutes.',
+
 
     // Placeholders
     'contact_name_placeholder'    => 'Your full name',

@@ -344,6 +344,10 @@ return [
     'business_schedule' => 'Du lundi au dimanche, de 7h30 à 19h30',
     'field_required'              => 'Ce champ est obligatoire.',
     'email_invalid'               => "Veuillez saisir une adresse e-mail valide.",
+     'contact_spam_success' => 'Votre message a été envoyé.',
+    'contact_success'      => 'Votre message a été envoyé avec succès. Nous vous contacterons très prochainement.',
+    'contact_error'        => "Une erreur s’est produite lors de l’envoi de votre message. Veuillez réessayer dans quelques minutes.",
+
 
     // Placeholders
     'contact_name_placeholder'    => 'Votre nom complet',
