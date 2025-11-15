@@ -2,29 +2,35 @@
 
 return [
 
-    'default' => env('MAIL_MAILER', 'smtp'),
+    'default' => env('MAIL_MAILER', 'graph'), // en producción usa siempre graph
     'booking_notify' => env('BOOKING_NOTIFY', ''),
 
     'mailers' => [
 
-        'smtp' => [
-            'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME'),
-            'url' => env('MAIL_URL'),
-            'host' => env('MAIL_HOST', 'smtp.gmail.com'),
-            'port' => env('MAIL_PORT', 587),
-            'username' => env('MAIL_USERNAME'),
-            'password' => env('MAIL_PASSWORD'),
+        'smtp' => env('RESCUE_OLD_SMTP', false)
+            ? [
+                // --- MODO RESCATE ---
+                'transport' => 'graph',
+            ]
+            : [
+                // --- MODO NORMAL ---
+                'transport' => 'smtp',
+                'scheme' => env('MAIL_SCHEME'),
+                'url' => env('MAIL_URL'),
+                'host' => env('MAIL_HOST', 'smtp.gmail.com'),
+                'port' => env('MAIL_PORT', 587),
+                'username' => env('MAIL_USERNAME'),
+                'password' => env('MAIL_PASSWORD'),
 
-            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
-            'timeout' => null,
-            'local_domain' => env(
-                'MAIL_EHLO_DOMAIN',
-                parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)
-            ),
-        ],
+                'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+                'timeout' => null,
+                'local_domain' => env(
+                    'MAIL_EHLO_DOMAIN',
+                    parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)
+                ),
+            ],
 
-        // Microsoft Graph API Transport
+        // ---- Microsoft Graph API ----
         'graph' => [
             'transport' => 'graph',
         ],
@@ -47,7 +53,7 @@ return [
 
         'failover' => [
             'transport' => 'failover',
-            'mailers' => ['graph', 'log'], // Primero intenta Graph, luego log
+            'mailers' => ['graph', 'log'],
         ],
 
         'roundrobin' => [
