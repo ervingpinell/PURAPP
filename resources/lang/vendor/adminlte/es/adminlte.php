@@ -33,6 +33,8 @@
  */
 
 return [
+    'contact_throttled' => 'Has enviado demasiados mensajes en poco tiempo. Por favor, espera un momento antes de volver a intentarlo.',
+
 'pending_email_title'  => 'Cambio de correo pendiente',
 'pending_email_notice' => 'Has solicitado cambiar tu correo de <strong>:current</strong> a <strong>:pending</strong>. Te enviamos un enlace a tu nuevo correo para confirmar el cambio. Hasta que lo confirmes, seguiremos usando tu correo actual.',
 'email_change_warning' => 'Si cambias tu correo, te enviaremos un enlace de confirmación al nuevo correo. Tu correo actual seguirá activo hasta que confirmes el cambio.',
@@ -341,6 +343,22 @@ return [
     'message_sent' => 'Mensaje enviado',
     'business_hours' => 'Horario de atención',
     'business_schedule' => 'Lunes a domingo, de 7:30 a.m. a 7:30 p.m.',
+    'field_required'              => 'Este campo es obligatorio.',
+    'email_invalid'               => 'Ingresa un correo electrónico válido.',
+      'contact_spam_success' => 'Tu mensaje ha sido enviado.',
+    'contact_success'      => 'Tu mensaje se ha enviado correctamente. Nos pondremos en contacto contigo muy pronto.',
+    'contact_error'        => 'Ocurrió un error al enviar tu mensaje. Por favor, inténtalo de nuevo en unos minutos.',
+
+
+    // Placeholders
+    'contact_name_placeholder'    => 'Tu nombre completo',
+    'contact_email_placeholder'   => 'tucorreo@ejemplo.com',
+    'contact_subject_placeholder' => '¿En qué podemos ayudarte?',
+    'contact_message_placeholder' => 'Cuéntanos en qué podemos ayudarte...',
+
+    // SweetAlert
+    'validation_error'            => 'Revisa los campos marcados.',
+    'swal_ok'                     => 'Aceptar',
 
     // 17. ERRORES
     'access_denied' => 'Acceso denegado',

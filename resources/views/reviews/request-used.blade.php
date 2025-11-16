@@ -12,7 +12,7 @@
           {{ __('reviews.public.used_help') }}
         </p>
 
-        <a class="btn btn-primary" href="{{ route('home') }}">
+<a class="btn btn-primary" href="{{ route(app()->getLocale() . '.home') }}">
           {{ __('reviews.common.back') }}
         </a>
       </div>

@@ -33,6 +33,8 @@
  */
 
 return [
+    'contact_throttled' => "Vous avez envoyé trop de messages en peu de temps. Veuillez patienter un instant avant de réessayer.",
+
 'pending_email_title'  => 'Changement d’e-mail en attente',
 'pending_email_notice' => 'Vous avez demandé à changer votre e-mail de <strong>:current</strong> à <strong>:pending</strong>. Nous avons envoyé un lien de confirmation à votre nouvel e-mail. Tant que vous ne confirmez pas, nous continuerons d’utiliser votre e-mail actuel.',
 'email_change_warning' => 'Si vous changez votre e-mail, nous enverrons un lien de confirmation à la nouvelle adresse. Votre e-mail actuel restera actif jusqu’à ce que vous confirmiez le changement.',
@@ -340,6 +342,23 @@ return [
     'message_sent' => 'Message envoyé',
     'business_hours' => 'Heures d’ouverture',
     'business_schedule' => 'Du lundi au dimanche, de 7h30 à 19h30',
+    'field_required'              => 'Ce champ est obligatoire.',
+    'email_invalid'               => "Veuillez saisir une adresse e-mail valide.",
+     'contact_spam_success' => 'Votre message a été envoyé.',
+    'contact_success'      => 'Votre message a été envoyé avec succès. Nous vous contacterons très prochainement.',
+    'contact_error'        => "Une erreur s’est produite lors de l’envoi de votre message. Veuillez réessayer dans quelques minutes.",
+
+
+    // Placeholders
+    'contact_name_placeholder'    => 'Votre nom complet',
+    'contact_email_placeholder'   => 'votreemail@exemple.com',
+    'contact_subject_placeholder' => 'Comment pouvons-nous vous aider ?',
+    'contact_message_placeholder' => 'Dites-nous comment nous pouvons vous aider…',
+
+    // SweetAlert
+    'message_sent'                => 'Message envoyé',
+    'validation_error'            => 'Veuillez vérifier les champs indiqués.',
+    'swal_ok'                     => 'OK',
 
     // 17. ERREURS
     'access_denied' => 'Accès refusé',

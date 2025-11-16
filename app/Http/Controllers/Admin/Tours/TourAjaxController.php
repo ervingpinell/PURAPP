@@ -288,69 +288,76 @@ class TourAjaxController extends Controller
      * Crear nuevo itinerario con items inline
      * POST /admin/tours/ajax/create-itinerary
      */
-    public function createItinerary(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'items' => 'nullable|array',
-            'items.*.title' => 'required_with:items|string|max:255',
-            'items.*.description' => 'nullable|string',
+public function createItinerary(Request $request)
+{
+    $request->validate([
+        'name'                  => 'required|string|max:255',
+        'description'           => 'nullable|string',
+        'items'                 => 'nullable|array',
+        'items.*.title'         => 'required_with:items|string|max:255',
+        'items.*.description'   => 'nullable|string',
+    ]);
+
+    try {
+        DB::beginTransaction();
+
+        $itinerary = Itinerary::create([
+            'name'       => $request->name,
+            'description'=> $request->description,
+            'is_active'  => true,
         ]);
 
-        try {
-            DB::beginTransaction();
-
-            $itinerary = Itinerary::create([
-                'name' => $request->name,
-                'description' => $request->description,
-                'is_active' => true,
-            ]);
-
-            if ($request->filled('items')) {
-                foreach ($request->items as $index => $itemData) {
-                    $item = ItineraryItem::create([
-                        'title' => $itemData['title'],
-                        'description' => $itemData['description'] ?? null,
-                        'is_active' => true,
-                    ]);
-
-                    DB::table('itinerary_item_itinerary')->insert([
-                        'itinerary_id' => $itinerary->itinerary_id,
-                        'itinerary_item_id' => $item->item_id,
-                        'item_order' => $index,
-                        'is_active' => true,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
+        if ($request->filled('items')) {
+            foreach ($request->items as $index => $itemData) {
+                // Por si viniera un item vacío por error
+                if (!isset($itemData['title']) || trim($itemData['title']) === '') {
+                    continue;
                 }
+
+                $item = ItineraryItem::create([
+                    'title'       => $itemData['title'],
+                    'description' => $itemData['description'] ?? null,
+                    'is_active'   => true,
+                ]);
+
+                DB::table('itinerary_item_itinerary')->insert([
+                    'itinerary_id'      => $itinerary->itinerary_id,
+                    'itinerary_item_id' => $item->item_id,
+                    'item_order'        => $index + 1, // 👈 orden 1-based
+                    'is_active'         => true,
+                    'created_at'        => now(),
+                    'updated_at'        => now(),
+                ]);
             }
-
-            DB::commit();
-
-            $itinerary->load('items');
-
-            return response()->json([
-                'ok' => true,
-                'itinerary' => [
-                    'id' => $itinerary->itinerary_id,
-                    'name' => $itinerary->name,
-                    'description' => $itinerary->description,
-                    'items' => $itinerary->items->map(fn($item) => [
-                        'title' => $item->title,
-                        'description' => $item->description,
-                    ]),
-                ],
-                'message' => __('m_tours.tour.ajax.itinerary_created')
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'ok' => false,
-                'message' => __('m_tours.tour.ajax.itinerary_error')
-            ], 500);
         }
+
+        DB::commit();
+
+        $itinerary->load('items');
+
+        return response()->json([
+            'ok' => true,
+            'itinerary' => [
+                'id'          => $itinerary->itinerary_id,
+                'name'        => $itinerary->name,
+                'description' => $itinerary->description,
+                'items'       => $itinerary->items->map(fn($item) => [
+                    'title'       => $item->title,
+                    'description' => $item->description,
+                ]),
+            ],
+            'message' => __('m_tours.tour.ajax.itinerary_created'),
+        ]);
+    } catch (\Throwable $e) {
+        DB::rollBack();
+        report($e);
+
+        return response()->json([
+            'ok'      => false,
+            'message' => __('m_tours.tour.ajax.itinerary_error'),
+        ], 500);
     }
+}
 
     /**
      * Previsualizar traducciones
