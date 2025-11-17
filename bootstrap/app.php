@@ -146,5 +146,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ->name('overrides:purge-old')
         ->onOneServer()
         ->withoutOverlapping();
+
+        // 6) Limpiar logs de auditoría de tours (> 365 días)
+        //    Comando: php artisan tours:audit:cleanup --days=365
+        $schedule->command('tours:audit:cleanup --days=365')
+            ->monthlyOn(1, '03:30')
+            ->name('tours:audit:cleanup')
+            ->onOneServer()
+            ->withoutOverlapping();
     })
     ->create();

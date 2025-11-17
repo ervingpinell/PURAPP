@@ -20,6 +20,7 @@ use App\Models\Schedule;
 use App\Models\TourTranslation;
 use App\Models\CustomerCategory;
 use App\Models\TourPrice;
+use App\Models\TourAuditLog;
 
 use App\Models\Booking;
 use App\Models\BookingDetail;
@@ -158,53 +159,55 @@ public function index()
         ));
     }
 
-    /** =========================================================
-     *  EDIT
-     *  ========================================================= */
-    public function edit(Tour $tour)
-    {
-        $tour->load([
-            'prices.category',
-            'schedules',
-            'languages',
-            'amenities',
-            'excludedAmenities',
-            'itinerary.items',
-            'tourType',
-            'translations'
-        ]);
 
-        $tourTypes   = TourType::where('is_active', true)->orderBy('name')->get();
-        $itineraries = Itinerary::where('is_active', true)
-            ->with('items')
-            ->orderBy('created_at', 'desc')
-            ->get();
-        $schedules = Schedule::where('is_active', true)->orderBy('start_time')->get();
-        $languages = TourLanguage::where('is_active', true)->orderBy('name')->get();
-        $amenities = Amenity::where('is_active', true)->orderBy('name')->get();
+    // /** =========================================================
+    //  *  EDIT
+    //  *  ========================================================= */
+    // public function edit(Tour $tour)
+    // {
+    //     $tour->load([
+    //         'prices.category',
+    //         'schedules',
+    //         'languages',
+    //         'amenities',
+    //         'excludedAmenities',
+    //         'itinerary.items',
+    //         'tourType',
+    //         'translations'
+    //     ]);
 
-        $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {
-            return [
-                'description' => $it->description ?? '',
-                'items' => $it->items->map(function ($item) {
-                    return [
-                        'title' => $item->title,
-                        'description' => $item->description ?? '',
-                    ];
-                })->toArray()
-            ];
-        });
+    //     $tourTypes   = TourType::where('is_active', true)->orderBy('name')->get();
+    //     $itineraries = Itinerary::where('is_active', true)
+    //         ->with('items')
+    //         ->orderBy('created_at', 'desc')
+    //         ->get();
+    //     $schedules = Schedule::where('is_active', true)->orderBy('start_time')->get();
+    //     $languages = TourLanguage::where('is_active', true)->orderBy('name')->get();
+    //     $amenities = Amenity::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.tours.edit', compact(
-            'tour',
-            'tourTypes',
-            'itineraries',
-            'itineraryJson',
-            'schedules',
-            'languages',
-            'amenities'
-        ));
-    }
+    //     $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {
+    //         return [
+    //             'description' => $it->description ?? '',
+    //             'items' => $it->items->map(function ($item) {
+    //                 return [
+    //                     'title' => $item->title,
+    //                     'description' => $item->description ?? '',
+    //                 ];
+    //             })->toArray()
+    //         ];
+    //     });
+
+    //     return view('admin.tours.edit', compact(
+    //         'tour',
+    //         'tourTypes',
+    //         'itineraries',
+    //         'itineraryJson',
+    //         'schedules',
+    //         'languages',
+    //         'amenities'
+    //     ));
+    // }
+
 
     /** =========================================================
      *  STORE
@@ -653,60 +656,87 @@ public function index()
     /** =========================================================
      *  PURGE (Force Delete)
      *  ========================================================= */
-    public function purge(Request $request, $tourId)
-    {
-        try {
-            $tour = Tour::onlyTrashed()->findOrFail($tourId);
 
-            DB::transaction(function () use ($tour) {
-                // Snapshot de nombre en reservas
-                DB::table('bookings')
-                    ->where('tour_id', $tour->tour_id)
-                    ->whereNull('tour_name_snapshot')
-                    ->update(['tour_name_snapshot' => $tour->name]);
+public function purge(Request $request, $tourId)
+{
+    $userId = optional($request->user())->getAuthIdentifier();
 
-                DB::table('booking_details')
-                    ->where('tour_id', $tour->tour_id)
-                    ->whereNull('tour_name_snapshot')
-                    ->update(['tour_name_snapshot' => $tour->name]);
+    try {
+        // Sólo tours archivados (soft deleted)
+        $tour = Tour::onlyTrashed()->findOrFail($tourId);
 
-                // Desasociar tour de reservas
-                BookingDetail::where('tour_id', $tour->tour_id)->update(['tour_id' => null]);
-                Booking::where('tour_id', $tour->tour_id)->update(['tour_id' => null]);
+        // Snapshots simples para el log de Laravel
+        $tourIdSnapshot   = $tour->tour_id;
+        $tourNameSnapshot = $tour->name;
 
-                // Limpiar precios
-                TourPrice::where('tour_id', $tour->tour_id)->delete();
+        DB::transaction(function () use ($tour) {
+            // 1) Hacer snapshot del nombre en reservas (si no lo tienen)
+            DB::table('bookings')
+                ->where('tour_id', $tour->tour_id)
+                ->whereNull('tour_name_snapshot')
+                ->update(['tour_name_snapshot' => $tour->name]);
 
-                // Limpiar relaciones
-                try {
-                    if (class_exists(\App\Models\TourImage::class)) {
-                        \App\Models\TourImage::where('tour_id', $tour->tour_id)->delete();
-                    }
-                } catch (\Throwable $e) {}
+            DB::table('booking_details')
+                ->where('tour_id', $tour->tour_id)
+                ->whereNull('tour_name_snapshot')
+                ->update(['tour_name_snapshot' => $tour->name]);
 
-                try { $tour->schedules()->detach(); } catch (\Throwable $e) {}
-                try { $tour->languages()->detach(); } catch (\Throwable $e) {}
-                try { $tour->amenities()->detach(); } catch (\Throwable $e) {}
-                try { $tour->excludedAmenities()->detach(); } catch (\Throwable $e) {}
-                try { TourTranslation::where('tour_id', $tour->tour_id)->delete(); } catch (\Throwable $e) {}
+            // 2) Desasociar tour de reservas
+            BookingDetail::where('tour_id', $tour->tour_id)->update(['tour_id' => null]);
+            Booking::where('tour_id', $tour->tour_id)->update(['tour_id' => null]);
 
-                // Force delete
+            // 3) Limpiar precios
+            TourPrice::where('tour_id', $tour->tour_id)->delete();
+
+            // 4) Limpiar relaciones adicionales (imágenes, pivotes, traducciones)
+            try {
+                if (class_exists(\App\Models\TourImage::class)) {
+                    \App\Models\TourImage::where('tour_id', $tour->tour_id)->delete();
+                }
+            } catch (\Throwable $e) {}
+
+            try { $tour->schedules()->detach(); } catch (\Throwable $e) {}
+            try { $tour->languages()->detach(); } catch (\Throwable $e) {}
+            try { $tour->amenities()->detach(); } catch (\Throwable $e) {}
+            try { $tour->excludedAmenities()->detach(); } catch (\Throwable $e) {}
+            try { TourTranslation::where('tour_id', $tour->tour_id)->delete(); } catch (\Throwable $e) {}
+
+            // 5) 🧹 Borrar logs de auditoría de este tour
+            //    (para que la FK/constraint no se dispare al borrar el tour)
+            try {
+                TourAuditLog::where('tour_id', $tour->tour_id)->delete();
+            } catch (\Throwable $e) {
+                // Si algo falla, lo dejamos registrar pero no rompemos el flujo
+                \Log::warning('No se pudieron borrar los tour_audit_logs antes del purge', [
+                    'tour_id' => $tour->tour_id,
+                    'error'   => $e->getMessage(),
+                ]);
+            }
+
+            // 6) Borrado definitivo SIN disparar eventos de modelo
+            Tour::withoutEvents(function () use ($tour) {
                 $tour->forceDelete();
             });
+        });
 
-            LoggerHelper::mutated($this->controller, 'purge(hard)', 'tour', $tourId, [
-                'user_id' => optional($request->user())->getAuthIdentifier(),
-            ]);
+        // Log normal de Laravel (archivo de logs)
+        \Log::info('Tour purged (hard delete)', [
+            'tour_id'   => $tourIdSnapshot,
+            'tour_name' => $tourNameSnapshot,
+            'user_id'   => $userId,
+        ]);
 
-            return redirect()
-                ->route('admin.tours.index')
-                ->with('success', 'Tour eliminado definitivamente.');
-        } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'purge(hard)', 'tour', $tourId, $e, [
-                'user_id' => optional($request->user())->getAuthIdentifier(),
-            ]);
+        return redirect()
+            ->route('admin.tours.index', ['status' => 'archived'])
+            ->with('success', 'Tour eliminado definitivamente.');
+    } catch (\Exception $e) {
+        LoggerHelper::exception($this->controller, 'purge(hard)', 'tour', $tourId, $e, [
+            'user_id' => $userId,
+        ]);
 
-            return back()->with('error', 'Error al purgar el tour.');
-        }
+        return back()->with('error', 'Error al purgar el tour.');
     }
+}
+
+
 }

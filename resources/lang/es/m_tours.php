@@ -38,18 +38,34 @@ return [
         'notice' => 'Aviso',
         'na'    => 'No configurado',
         'create' => 'Crear',
+        'previous' => 'Retroceder',
         'info'               => 'Información',
         'close'              => 'Cerrar',
+        'save'              => 'Guardar',
         'required'           => 'Este campo es obligatorio.',
         'add'                => 'Agregar',
         'translating'        => 'Traduciendo...',
         'error_translating'  => 'No se pudo traducir el texto.',
+        'confirm' => 'confirmar',
+        'yes' => 'Sí',
+        'form_errors_title' => 'Por favor corrige los siguientes errores:',
+        'delete' => 'Eliminar',
+        'delete_all' => 'Eliminar Todo',
+        'actions' => 'Acciones',
+        'updated_at' => 'Última Actualización',
+        'not_set' => 'No especificado',
+        'error_deleting' => 'Ocurrió un error al eliminar. Por favor intenta de nuevo.',
+        'error_saving' => 'Ocurrió un error al guardar. Por favor intenta de nuevo.',
+        'crud_go_to_index' => 'Administrar :element',
+
     ],
 
     // =========================================================
     // [02] AMENITY
     // =========================================================
     'amenity' => [
+    'singular' => 'amenidad',
+    'plural'   => 'amenidades',
         'fields' => [
             'name' => 'Nombre',
             'icon' => 'Ícono (FontAwesome)',
@@ -125,12 +141,32 @@ return [
         'hints' => [
             'fontawesome' => 'Usa clases de FontAwesome, por ejemplo: "fas fa-check".',
         ],
+        'quick_create' => [
+            'button'           => 'Nueva amenidad',
+            'title'            => 'Crear amenidad rápida',
+            'name_label'       => 'Nombre de la amenidad',
+            'icon_label'       => 'Icono (opcional)',
+            'icon_placeholder' => 'Ej: fas fa-utensils',
+            'icon_help'        => 'Usa una clase de icono de Font Awesome o déjalo en blanco.',
+            'save'             => 'Guardar amenidad',
+            'cancel'           => 'Cancelar',
+            'saving'           => 'Guardando...',
+            'error_generic'    => 'No se pudo crear la amenidad. Intenta de nuevo.',
+            'go_to_index'         => 'Ver todas',
+            'go_to_index_title'   => 'Ir al listado completo de amenidades',
+            'success_title'       => 'Amenidad creada',
+            'success_text'        => 'La amenidad se agregó a la lista del tour.',
+            'error_title'         => 'Error al crear la amenidad',
+            'error_duplicate'     => 'Ya existe una amenidad con ese nombre.',
+        ],
     ],
 
     // =========================================================
     // [03] SCHEDULE
     // =========================================================
     'schedule' => [
+        'plural'       => 'Horarios',
+        'singular'       => 'Horario',
         'fields' => [
             'start_time'     => 'Inicio',
             'end_time'       => 'Fin',
@@ -213,6 +249,21 @@ return [
             'missing_fields_title' => 'Faltan datos',
             'missing_fields_text'  => 'Revisa los campos requeridos (inicio, fin y capacidad).',
             'could_not_save'       => 'No se pudo guardar',
+            'base_capacity_tour'             => 'Capacidad base del tour:',
+            'capacity_not_defined'           => 'No definida',
+            'capacity_optional'              => 'Capacidad (opcional)',
+            'capacity_placeholder_with_value' => 'Ej: :capacity',
+            'capacity_placeholder_generic'   => 'Usar capacidad del tour',
+            'capacity_hint_with_value'       => 'Dejar vacío → :capacity',
+            'capacity_hint_generic'          => 'Dejar vacío → capacidad del tour',
+            'tip_label'                      => 'Tip:',
+            'capacity_tip'                   => 'Podés dejar vacía la capacidad para que el sistema use la capacidad general del tour (:capacity).',
+            'new_schedule_for_tour'            => 'Nuevo horario',
+            'modal_new_for_tour_title'         => 'Crear horario para :tour',
+            'modal_save'                       => 'Guardar horario',
+            'modal_cancel'                     => 'Cancelar',
+            'capacity_modal_info_with_value'   => 'La capacidad base del tour es :capacity. Si dejás vacío el campo de capacidad, se usará este valor.',
+            'capacity_modal_info_generic'      => 'Si dejás vacío el campo de capacidad, se usará la capacidad general del tour cuando esté definida.',
         ],
 
         'success' => [
@@ -270,9 +321,9 @@ return [
             'see_more'      => 'Ver más',
             'see_less'      => 'Ver menos',
             'assigned_items'       => 'Ítems asignados al itinerario',
-        'drag_to_order'        => 'Arrastra los ítems para definir el orden.',
-        'pool_hint'            => 'Marca los ítems disponibles que quieras incluir en este itinerario.',
-        'register_item_hint'   => 'Registra nuevos ítems si necesitas pasos adicionales que aún no existen.',
+            'drag_to_order'        => 'Arrastra los ítems para definir el orden.',
+            'pool_hint'            => 'Marca los ítems disponibles que quieras incluir en este itinerario.',
+            'register_item_hint'   => 'Registra nuevos ítems si necesitas pasos adicionales que aún no existen.',
 
             'toggle_on'  => 'Activar ítem',
             'toggle_off' => 'Desactivar ítem',
@@ -321,13 +372,17 @@ return [
     // [05] ITINERARY
     // =========================================================
     'itinerary' => [
+                    'plural'           => 'Itinerarios',
+            'singular'     => 'Itinerario',
+
         'fields' => [
             'name'                 => 'Nombre del itinerario',
             'description'          => 'Descripción',
             'description_optional' => 'Descripción (opcional)',
-            'items'                => 'Ítems',
+            'items'                    => 'Ítems',
             'item_title'           => 'Título del ítem',
             'item_description'     => 'Descripción del ítem',
+
         ],
 
         'status' => [
@@ -340,7 +395,12 @@ return [
             'page_heading'  => 'Itinerarios y Gestión de Ítems',
             'new_itinerary' => 'Nuevo Itinerario',
             'select_or_create_hint' => 'Selecciona un itinerario existente o crea uno nuevo para este tour.',
-        'save_changes'          => 'Guarda el itinerario para aplicar los cambios al tour.',
+            'save_changes'          => 'Guarda el itinerario para aplicar los cambios al tour.',
+            'select_existing' => 'Seleccionar itinerario existente',
+            'create_new' => 'Crear nuevo itinerario',
+            'add_item' => 'Agregar ítem',
+            'min_one_item' => 'Debe haber al menos un ítem en el itinerario',
+
 
             'assign'        => 'Asignar',
             'edit'          => 'Editar',
@@ -378,6 +438,7 @@ return [
             'flash_success_title'     => 'Éxito',
             'flash_error_title'       => 'Error',
             'validation_failed_title' => 'No se pudo procesar',
+            'go_to_crud' => 'Ir al Módulo',
         ],
         'modal' => [
             'create_itinerary' => 'Crear itinerario',
@@ -413,6 +474,7 @@ return [
                 'max'    => 'La descripción no puede exceder 1000 caracteres.',
             ],
             'items' => [
+                'item' => 'Ítem',
                 'required'      => 'Debes seleccionar al menos un ítem.',
                 'array'         => 'El formato de los ítems no es válido.',
                 'min'           => 'Debes seleccionar al menos un ítem.',
@@ -421,6 +483,8 @@ return [
                 'order_max'     => 'El orden no puede exceder 9999.',
             ],
         ],
+        'item' => 'Ítem',
+        'items' => 'Ítems',
 
     ],
 
@@ -523,52 +587,94 @@ return [
     // =========================================================
     'tour' => [
 
-
         'wizard' => [
-        'title'   => 'Crear tour',
-        'heading' => 'Nuevo tour',
+            // Títulos generales
+            'create_new_tour' => 'Crear Nuevo Tour',
+            'edit_tour' => 'Editar Tour',
+            'step_number' => 'Paso :number',
+            'edit_step' => 'Editar',
+            'leave_warning' => 'Tienes cambios sin guardar en el tour. Si sales ahora, el borrador quedará en la base de datos. ¿Seguro que deseas salir?',
 
-        'badge_draft'     => 'Borrador',
-        'badge_published' => 'Publicado',
+            // Pasos del wizard
+            'steps' => [
+                'details' => 'Detalles Básicos',
+                'itinerary' => 'Itinerario',
+                'schedules' => 'Horarios',
+                'amenities' => 'Amenidades',
+                'prices' => 'Precios',
+                'summary' => 'Resumen',
+            ],
 
-        'sidebar_title' => 'Resumen del tour',
+            // Acciones
+            'save_and_continue' => 'Guardar y Continuar',
+            'publish_tour' => 'Publicar Tour',
+            'delete_draft' => 'Eliminar Borrador',
+            'ready_to_publish' => '¿Listo para Publicar?',
 
-        'steps' => [
-            'details'   => 'Detalles',
-            'itinerary' => 'Itinerario',
-            'languages' => 'Idiomas',
-            'schedules' => 'Horarios',
-            'amenities' => 'Amenidades',
-            'prices'    => 'Precios',
-            'summary'   => 'Resumen',
+            // Mensajes
+            'details_saved' => 'Detalles guardados correctamente',
+            'itinerary_saved' => 'Itinerario guardado correctamente',
+            'schedules_saved' => 'Horarios guardados correctamente',
+            'amenities_saved' => 'Amenidades guardadas correctamente',
+            'prices_saved' => 'Precios guardados correctamente',
+            'published_successfully' => '¡Tour publicado exitosamente!',
+            'draft_cancelled' => 'Borrador eliminado',
+
+            // Estados
+            'draft_mode' => 'Modo Borrador',
+            'draft_explanation' => 'Este tour se guardará como borrador hasta que completes todos los pasos y lo publiques.',
+            'already_published' => 'Este tour ya ha sido publicado. Usa el editor normal para modificarlo.',
+            'cannot_cancel_published' => 'No puedes cancelar un tour ya publicado',
+
+            // Confirmaciones
+            'confirm_cancel' => '¿Estás seguro de que deseas cancelar y eliminar este borrador?',
+
+            // Summary
+            'publish_explanation' => 'Revisa toda la información antes de publicar. Una vez publicado, el tour estará disponible para reservas.',
+            'can_edit_later' => 'Podrás editar el tour después de publicarlo desde el panel de administración.',
+            'incomplete_warning' => 'Algunos pasos están incompletos. Puedes publicar de todas formas, pero se recomienda completar toda la información.',
+
+            // Checklist
+            'checklist' => 'Lista de Verificación',
+            'checklist_details' => 'Detalles básicos completados',
+            'checklist_itinerary' => 'Itinerario configurado',
+            'checklist_schedules' => 'Horarios agregados',
+            'checklist_amenities' => 'Amenidades configuradas',
+            'checklist_prices' => 'Precios establecidos',
+
+            // Hints
+            'hints' => [
+                'status' => 'El estado se puede cambiar después de publicar',
+            ],
+
+            // Modal de drafts existentes
+            'existing_drafts_title' => '¡Tienes tours en borrador sin terminar!',
+            'existing_drafts_message' => 'Encontramos :count tour(es) en borrador que no has completado.',
+            'current_step' => 'Paso Actual',
+            'step' => 'Paso',
+
+            // Acciones del modal
+            'continue_draft' => 'Continuar con este borrador',
+            'delete_all_drafts' => 'Eliminar Todos los Borradores',
+            'create_new_anyway' => 'Crear Nuevo Tour de Todos Modos',
+
+            // Información adicional
+            'drafts_info' => 'Puedes continuar editando un borrador existente, eliminarlo individualmente, eliminar todos los borradores, o crear un nuevo tour ignorando los borradores actuales.',
+
+            // Confirmaciones de eliminación
+            'confirm_delete_title' => '¿Eliminar este borrador?',
+            'confirm_delete_message' => 'Esta acción no se puede deshacer. Se eliminará permanentemente el borrador:',
+            'confirm_delete_all_title' => '¿Eliminar todos los borradores?',
+            'confirm_delete_all_message' => 'Se eliminarán permanentemente :count borrador(es). Esta acción no se puede deshacer.',
+
+            // Mensajes de éxito
+            'draft_deleted' => 'Borrador eliminado exitosamente.',
+            'all_drafts_deleted' => 'Se eliminaron :count borrador(es) exitosamente.',
+            'continuing_draft' => 'Continuando con tu borrador...',
+
+            // Mensajes de error
+            'not_a_draft' => 'Este tour ya no es un borrador y no puede ser editado mediante el wizard.',
         ],
-
-        // Botones / textos de navegación
-        'next_itinerary'  => 'Siguiente: Itinerario',
-        'next_languages'  => 'Siguiente: Idiomas',
-        'next_schedules'  => 'Siguiente: Horarios',
-        'next_amenities'  => 'Siguiente: Amenidades',
-        'next_prices'     => 'Siguiente: Precios',
-        'next_summary'    => 'Ir al resumen',
-
-        'back_details'    => 'Volver a detalles',
-        'back_itinerary'  => 'Volver a itinerario',
-        'back_languages'  => 'Volver a idiomas',
-        'back_schedules'  => 'Volver a horarios',
-        'back_amenities'  => 'Volver a amenidades',
-        'back_prices'     => 'Volver a precios',
-
-        'publish'        => 'Publicar tour',
-        'published_ok'   => 'El tour se ha publicado correctamente.',
-        'already_published' => 'Este tour ya está publicado.',
-        'invalid_step'   => 'Paso de creación de tour inválido.',
-        'saved_step_details'   => 'Detalles guardados.',
-        'saved_step_itinerary' => 'Itinerario guardado.',
-        'saved_step_languages' => 'Idiomas guardados.',
-        'saved_step_schedules' => 'Horarios guardados.',
-        'saved_step_amenities' => 'Amenidades guardadas.',
-        'saved_step_prices'    => 'Precios guardados.',
-    ],
 
         'title' => 'Tours',
 
@@ -594,6 +700,8 @@ return [
             'group_size' => 'Tamaño de grupo',
 
         ],
+
+
         'pricing' => [
             'configured_categories' => 'Categorías configuradas',
             'create_category' => 'Crear categoría',
@@ -648,6 +756,7 @@ return [
             'remove_category'            => 'Quitar categoría',
             'category_already_added'     => 'Esta categoría ya está agregada al tour.',
             'no_prices_preview'          => 'Aún no hay precios configurados.',
+            'already_added'               => 'Esta categoría ya está agregada al tour.',
         ],
         'modal' => [
             'create_category' => 'Crear categoría',
@@ -715,6 +824,7 @@ return [
                 'category' => 'Categoría',
                 'price'    => 'Precio',
                 'min_max'  => 'Mín-Máx',
+                'status' =>    'Estado'
             ],
 
             'not_specified'        => 'Sin especificar',
@@ -813,6 +923,8 @@ return [
         ],
 
         'ui' => [
+            'add_tour_type' => 'Añadir tipo de tour',
+            'back' => 'Regresar',
             'page_title'       => 'Gestión de Tours',
             'page_heading'     => 'Gestión de Tours',
             'create_title'     => 'Registrar Tour',
@@ -884,7 +996,13 @@ return [
             'edit' => 'Editar',
             'slug_auto' => 'Se generará automáticamente',
             'added_to_cart' => 'Añadido al carrito',
+                        'add_language' => 'Añadir idioma',
             'added_to_cart_text' => 'El tour se agregó al carrito correctamente.',
+            'amenities_excluded_auto_hint'    => 'Por defecto marcamos como “no incluidas” todas las amenidades que no seleccionaste como incluidas. Podés desmarcar las que no aplican al tour.',
+            "quick_create_language_hint" => "Agrega un nuevo idioma rápidamente si no aparece en la lista.",
+            "quick_create_type_hint" => "Agrega un nuevo tipo de tour rápidamente si no aparece en la lista.",
+
+
             'none' => [
                 'amenities'       => 'Sin amenidades',
                 'exclusions'      => 'Sin exclusiones',
@@ -893,6 +1011,7 @@ return [
                 'languages'       => 'Sin idiomas',
                 'schedules'       => 'Sin horarios',
             ],
+
 
             // NUEVO: acciones de archivado/restauración/purga
             'archive' => 'Archivar',
@@ -1116,6 +1235,23 @@ return [
             'auto_disabled_tooltip' => 'Precio en $0 – desactivado automáticamente',
             'fix_errors'            => 'Corrige las cantidades mínimas y máximas',
         ],
+        'quick_category' => [
+            'title'                 => 'Crear categoría rápida',
+            'button'                => 'Nueva categoría',
+            'go_to_index'           => 'Ver todas las categorías',
+            'go_to_index_title'     => 'Abrir el listado completo de categorías',
+            'name_label'            => 'Nombre de la categoría',
+            'age_from'              => 'Edad desde',
+            'age_to'                => 'Edad hasta',
+            'save'                  => 'Guardar categoría',
+            'cancel'                => 'Cancelar',
+            'saving'                => 'Guardando...',
+            'success_title'         => 'Categoría creada',
+            'success_text'          => 'La categoría se creó correctamente y se añadió al tour.',
+            'error_title'           => 'Error',
+            'error_generic'         => 'Ocurrió un problema al crear la categoría.',
+            'created_ok'            => 'Categoría creada correctamente.',
+        ],
     ],
 
     'ajax' => [
@@ -1144,5 +1280,13 @@ return [
         'slug_taken' => 'Este slug ya está en uso',
         'slug_available' => 'Slug disponible',
     ],
+'tour_type' => [
+        'fields' => [
+        'name' => 'Nombre',
+        'description' => 'Descripción',
+        'status' => 'Estado',
 
+        ],
+
+],
 ];

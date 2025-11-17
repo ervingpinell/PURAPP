@@ -170,6 +170,7 @@
           </td>
 
           {{-- Acciones --}}
+          {{-- Acciones --}}
           <td class="actions-cell">
             <div class="d-flex flex-wrap">
               {{-- Carrito --}}
@@ -241,9 +242,9 @@
                 </form>
               @endunless
 
-              {{-- Restaurar --}}
+              {{-- Restaurar (usar ID, no modelo) --}}
               @if($isArchived)
-                <form action="{{ route('admin.tours.restore', $tour) }}"
+                <form action="{{ route('admin.tours.restore', $tour->tour_id) }}"
                       method="POST"
                       class="d-inline">
                   @csrf
@@ -256,10 +257,10 @@
                 </form>
               @endif
 
-              {{-- Eliminar definitivamente (hard) --}}
+              {{-- Eliminar definitivamente (hard, usar ID) --}}
               @if($isArchived)
                 <form id="purge-form-{{ $tour->tour_id }}"
-                      action="{{ route('admin.tours.purge', $tour) }}"
+                      action="{{ route('admin.tours.purge', $tour->tour_id) }}"
                       method="POST"
                       class="d-inline">
                   @csrf

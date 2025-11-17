@@ -6,7 +6,8 @@
 @section('content_header')
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
     <h1 class="m-0">{{ __('m_tours.tour.ui.page_heading') }}</h1>
-    <a href="{{ route('admin.tours.create') }}" class="btn btn-success">
+    {{-- ANTES: route('admin.tours.create') --}}
+    <a href="{{ route('admin.tours.wizard.create') }}" class="btn btn-success">
       <i class="fas fa-plus"></i> {{ __('m_tours.tour.ui.add_tour') }}
     </a>
   </div>
