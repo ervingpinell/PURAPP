@@ -59,6 +59,10 @@ return [
         'crud_go_to_index' => 'Administrar :element',
         'validation_title' => 'Hay errores de validación',
         'ok'               => 'Aceptar',
+        'confirm_delete_title' => '¿Eliminar este item?',
+        'confirm_delete_text' => 'Esta acción no se puede deshacer',
+        'saving' => 'Guardando...',
+        'network_error' => 'Error de red',
 
     ],
 
@@ -177,6 +181,7 @@ return [
             'label_optional' => 'Etiqueta (opcional)',
             'max_capacity'   => 'Capacidad máx.',
             'active'         => 'Activo',
+
         ],
 
         'status' => [
@@ -267,6 +272,7 @@ return [
             'modal_cancel'                     => 'Cancelar',
             'capacity_modal_info_with_value'   => 'La capacidad base del tour es :capacity. Si dejás vacío el campo de capacidad, se usará este valor.',
             'capacity_modal_info_generic'      => 'Si dejás vacío el campo de capacidad, se usará la capacidad general del tour cuando esté definida.',
+
         ],
 
         'success' => [
@@ -279,6 +285,7 @@ return [
             'assignment_activated'   => 'Asignación activada para este tour.',
             'assignment_deactivated' => 'Asignación desactivada para este tour.',
             'deleted'                => 'Horario eliminado correctamente.',
+            'created_and_attached' => 'El horario se creó y asignó correctamente al tour',
         ],
 
         'error' => [
@@ -295,6 +302,11 @@ return [
         'placeholders' => [
             'morning' => 'Ej: Mañana',
         ],
+        'validation' => [
+        'no_schedule_selected' => 'Debes seleccionar al menos un horario',
+        'title' => 'Validación de Horarios',
+        'end_after_start' => 'La hora de fin debe ser posterior a la hora de inicio',
+    ],
     ],
 
     // =========================================================
@@ -403,7 +415,10 @@ return [
             'create_new' => 'Crear nuevo itinerario',
             'add_item' => 'Agregar ítem',
             'min_one_item' => 'Debe haber al menos un ítem en el itinerario',
-
+            'cannot_delete_item' => 'No se puede eliminar',
+            'item_added' => 'Item agregado',
+            'item_added_success' => 'El item se agregó correctamente al itinerario',
+            'error_creating_item' => 'Error de validación al crear el item.',
 
             'assign'        => 'Asignar',
             'edit'          => 'Editar',
@@ -466,6 +481,8 @@ return [
 
         'validation' => [
             'name_required' => 'Debes indicar un nombre para el itinerario.',
+            'must_add_items' => 'Debes agregar al menos un item al nuevo itinerario',
+            'title' => 'Validación de Itinerario',
             'name' => [
                 'required' => 'El nombre del itinerario es obligatorio.',
                 'string'   => 'El nombre debe ser texto.',
@@ -746,6 +763,7 @@ return [
 
 
         'pricing' => [
+            'already_added' => 'Esta categoría ya fue agregada',
             'configured_categories' => 'Categorías configuradas',
             'create_category' => 'Crear categoría',
             'note_title'              => 'Nota:',
@@ -1295,6 +1313,15 @@ return [
             'error_generic'         => 'Ocurrió un problema al crear la categoría.',
             'created_ok'            => 'Categoría creada correctamente.',
         ],
+
+            'validation' => [
+        'title' => 'Validación de Precios',
+        'no_categories' => 'Debes agregar al menos una categoría de precio',
+        'no_price_greater_zero' => 'Debe haber al menos una categoría con precio mayor a $0.00',
+        'price_required' => 'El precio es obligatorio',
+        'price_min' => 'El precio debe ser mayor o igual a 0',
+        'age_to_greater_equal' => 'La edad hasta debe ser mayor o igual a la edad desde',
+    ],
     ],
 
     'ajax' => [

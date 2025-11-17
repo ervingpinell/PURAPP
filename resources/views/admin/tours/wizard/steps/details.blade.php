@@ -86,6 +86,9 @@
         background: #4b5563;
         border-radius: 4px;
     }
+    #languages-container.border-danger {
+        border-color: #dc2626 !important;
+    }
 
     /* Contador de caracteres */
     .char-counter {
@@ -253,7 +256,10 @@
 
                         {{-- Slug --}}
                         <div class="form-group">
-                            <label for="slug">Slug</label>
+                            <label for="slug">
+                                Slug
+                                <span class="text-danger">*</span>
+                            </label>
                             <input
                                 type="text"
                                 name="slug"
@@ -263,7 +269,8 @@
                                 placeholder="{{ __('m_tours.tour.ui.generate_auto') }}"
                                 maxlength="255"
                                 pattern="[a-z0-9-]+"
-                                data-validate="slug|max:255">
+                                required
+                                data-validate="required|slug|max:255">
                             <small class="form-text text-muted">
                                 {{ __('m_tours.tour.ui.slug_help') }}
                             </small>
@@ -275,14 +282,18 @@
 
                         {{-- Overview --}}
                         <div class="form-group">
-                            <label for="overview">{{ __('m_tours.tour.fields.overview') }}</label>
+                            <label for="overview">
+                                {{ __('m_tours.tour.fields.overview') }}
+                                <span class="text-danger">*</span>
+                            </label>
                             <textarea
                                 name="overview"
                                 id="overview"
                                 class="form-control @error('overview') is-invalid @enderror"
                                 rows="5"
                                 maxlength="1000"
-                                data-validate="max:1000">{{ old('overview', $tour->overview ?? '') }}</textarea>
+                                required
+                                data-validate="required|max:1000">{{ old('overview', $tour->overview ?? '') }}</textarea>
                             <small class="char-counter" id="overview-counter">0 / 1000</small>
                             <div class="invalid-feedback" id="overview-error"></div>
                             @error('overview')
@@ -294,7 +305,10 @@
                             {{-- Duración --}}
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="length">{{ __('m_tours.tour.fields.length_hours') }}</label>
+                                    <label for="length">
+                                        {{ __('m_tours.tour.fields.length_hours') }}
+                                        <span class="text-danger">*</span>
+                                    </label>
                                     <input
                                         type="number"
                                         name="length"
@@ -302,9 +316,10 @@
                                         class="form-control @error('length') is-invalid @enderror"
                                         value="{{ old('length', $tour->length ?? '') }}"
                                         step="0.5"
-                                        min="0"
+                                        min="0.5"
                                         max="240"
-                                        data-validate="number|min:0|max:240">
+                                        required
+                                        data-validate="required|number|min:0.5|max:240">
                                     <small class="form-text text-muted">
                                         {{ __('m_tours.tour.validation.length_in_hours') }}
                                     </small>
@@ -345,7 +360,10 @@
 
                         {{-- Tamaño de grupo --}}
                         <div class="form-group">
-                            <label for="group_size">{{ __('m_tours.tour.fields.group_size') }}</label>
+                            <label for="group_size">
+                                {{ __('m_tours.tour.fields.group_size') }}
+                                <span class="text-danger">*</span>
+                            </label>
                             <input
                                 type="number"
                                 name="group_size"
@@ -354,7 +372,8 @@
                                 value="{{ old('group_size', $tour->group_size ?? '') }}"
                                 min="1"
                                 max="500"
-                                data-validate="number|min:1|max:500">
+                                required
+                                data-validate="required|number|min:1|max:500">
                             <small class="form-text text-muted">
                                 {{ __('m_tours.tour.hints.group_size') }}
                             </small>
@@ -367,7 +386,10 @@
                         {{-- Idiomas --}}
                         <div class="form-group">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label class="mb-0">{{ __('m_tours.tour.ui.available_languages') }}</label>
+                                <label class="mb-0">
+                                    {{ __('m_tours.tour.ui.available_languages') }}
+                                    <span class="text-danger">*</span>
+                                </label>
 
                                 <div class="btn-group btn-group-sm" role="group">
                                     <button
@@ -413,7 +435,10 @@
                                 @endforelse
                             </div>
 
-                            <div class="invalid-feedback" id="languages-error"></div>
+                            <small class="form-text text-muted">
+                                Selecciona al menos un idioma disponible para este tour
+                            </small>
+                            <div class="invalid-feedback" id="languages-error" style="display: none;"></div>
                             @error('languages')
                                 <span class="invalid-feedback d-block">{{ $message }}</span>
                             @enderror
@@ -427,14 +452,18 @@
                     <div class="col-md-4">
                         {{-- Color --}}
                         <div class="form-group">
-                            <label for="color">{{ __('m_tours.tour.ui.color') }}</label>
+                            <label for="color">
+                                {{ __('m_tours.tour.ui.color') }}
+                                <span class="text-danger">*</span>
+                            </label>
                             <input
                                 type="color"
                                 name="color"
                                 id="color"
                                 class="form-control form-control-color @error('color') is-invalid @enderror"
                                 value="{{ old('color', $tour->color ?? '#3490dc') }}"
-                                data-validate="color">
+                                required
+                                data-validate="required|color">
                             <div class="invalid-feedback" id="color-error"></div>
                             @error('color')
                                 <span class="invalid-feedback">{{ $message }}</span>
@@ -446,6 +475,7 @@
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <label for="tour_type_id" class="mb-0">
                                     {{ __('m_tours.tour.fields.type') }}
+                                    <span class="text-danger">*</span>
                                 </label>
 
                                 <div class="btn-group btn-group-sm" role="group">
@@ -470,7 +500,8 @@
                                 name="tour_type_id"
                                 id="tour_type_id"
                                 class="form-control @error('tour_type_id') is-invalid @enderror"
-                                data-validate="select">
+                                required
+                                data-validate="required|select">
                                 <option value="">{{ '-- ' . __('m_tours.tour.ui.select_type') . ' --' }}</option>
                                 @foreach($tourTypes ?? [] as $type)
                                     <option value="{{ $type->tour_type_id }}"
@@ -537,7 +568,10 @@
         <div id="tourTypeModalErrors" class="alert alert-danger d-none"></div>
 
         <div class="form-group">
-          <label for="new_tour_type_name">{{ __('m_tours.tour_type.fields.name') ?? 'Nombre' }}</label>
+          <label for="new_tour_type_name">
+            {{ __('m_tours.tour_type.fields.name') ?? 'Nombre' }}
+            <span class="text-danger">*</span>
+          </label>
           <input type="text" name="name" id="new_tour_type_name" class="form-control" required>
         </div>
 
@@ -590,7 +624,10 @@
         <div id="languageModalErrors" class="alert alert-danger d-none"></div>
 
         <div class="form-group">
-          <label for="new_language_name">{{ __('m_tours.language.fields.name') ?? 'Nombre' }}</label>
+          <label for="new_language_name">
+            {{ __('m_tours.language.fields.name') ?? 'Nombre' }}
+            <span class="text-danger">*</span>
+          </label>
           <input type="text" name="name" id="new_language_name" class="form-control" required>
         </div>
 
@@ -722,6 +759,9 @@ document.addEventListener('DOMContentLoaded', function () {
         select: @json(__('m_tours.tour.validation.select')),
     };
 
+    // ============================================================
+    // VALIDACIÓN DEL FORMULARIO PRINCIPAL
+    // ============================================================
     function validateField(field) {
         const rules = field.dataset.validate;
         if (!rules) return true;
@@ -745,7 +785,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     break;
                 case 'min': {
-                    const minLength = parseInt(ruleValue);
+                    const minLength = parseFloat(ruleValue);
                     if (field.type === 'number') {
                         if (value && parseFloat(value) < minLength) {
                             isValid = false;
@@ -789,6 +829,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     break;
                 case 'select':
+                    if (!value) {
+                        isValid = false;
+                        errorMessage = validationMessages.select;
+                    }
                     break;
             }
             if (!isValid) break;
@@ -824,12 +868,36 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Validación de idiomas (al menos uno debe estar seleccionado)
+    function validateLanguages() {
+        const languagesContainer = document.getElementById('languages-container');
+        const languagesError = document.getElementById('languages-error');
+        const checkedLanguages = languagesContainer.querySelectorAll('input[type="checkbox"]:checked');
+
+        if (checkedLanguages.length === 0) {
+            if (languagesError) {
+                languagesError.textContent = 'Debes seleccionar al menos un idioma';
+                languagesError.style.display = 'block';
+            }
+            languagesContainer.classList.add('border-danger');
+            return false;
+        }
+
+        if (languagesError) {
+            languagesError.textContent = '';
+            languagesError.style.display = 'none';
+        }
+        languagesContainer.classList.remove('border-danger');
+        return true;
+    }
+
     const nameField = document.getElementById('name');
     const slugField = document.getElementById('slug');
     const nameCounter = document.getElementById('name-counter');
     const overviewField = document.getElementById('overview');
     const overviewCounter = document.getElementById('overview-counter');
 
+    // Generación automática de slug
     if (nameField && slugField && !IS_EDITING) {
         nameField.addEventListener('input', function (e) {
             if (!slugField.value || slugField.dataset.autogenerated === 'true') {
@@ -851,6 +919,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Contadores de caracteres
     if (nameField && nameCounter) {
         updateCharCounter(nameField, nameCounter, 255);
         nameField.addEventListener('input', () => updateCharCounter(nameField, nameCounter, 255));
@@ -860,6 +929,7 @@ document.addEventListener('DOMContentLoaded', function () {
         overviewField.addEventListener('input', () => updateCharCounter(overviewField, overviewCounter, 1000));
     }
 
+    // Validación en tiempo real
     const formFields = document.querySelectorAll('[data-validate]');
     formFields.forEach(field => {
         field.addEventListener('blur', () => validateField(field));
@@ -870,6 +940,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Agregar listeners a los checkboxes de idiomas
+    const languageCheckboxes = document.querySelectorAll('#languages-container input[type="checkbox"]');
+    languageCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', validateLanguages);
+    });
+
+    // Submit del formulario principal
     const form = document.getElementById('tour-details-form');
     const submitBtn = document.getElementById('submit-btn');
 
@@ -882,11 +959,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!validateField(field)) isFormValid = false;
             });
 
+            // Validar idiomas
+            if (!validateLanguages()) {
+                isFormValid = false;
+            }
+
             if (!isFormValid) {
-                const firstInvalid = form.querySelector('.is-invalid');
+                const firstInvalid = form.querySelector('.is-invalid, .border-danger');
                 if (firstInvalid) {
                     firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    firstInvalid.focus();
+                    if (firstInvalid.tagName === 'INPUT' || firstInvalid.tagName === 'SELECT' || firstInvalid.tagName === 'TEXTAREA') {
+                        firstInvalid.focus();
+                    }
                 }
 
                 Swal.fire({
@@ -908,6 +992,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ============================================================
+    // UTILIDADES PARA MODALES QUICK-CREATE
+    // ============================================================
     function closeModalAndCleanup(modalId) {
         const modalEl = document.getElementById(modalId);
         if (modalEl && window.bootstrap && bootstrap.Modal) {
@@ -916,12 +1003,102 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function ajaxForm(formEl, onSuccess, onError) {
-        if (!formEl) return;
-        formEl.addEventListener('submit', function (e) {
+    function showModalErrors(errorDiv, errors) {
+        if (!errorDiv) return;
+
+        errorDiv.classList.remove('d-none');
+
+        if (Array.isArray(errors)) {
+            errorDiv.innerHTML = errors.map(err => `<div>${err}</div>`).join('');
+        } else if (typeof errors === 'string') {
+            errorDiv.innerHTML = `<div>${errors}</div>`;
+        } else if (errors && typeof errors === 'object') {
+            const messages = Object.values(errors).flat();
+            errorDiv.innerHTML = messages.map(msg => `<div>${msg}</div>`).join('');
+        }
+    }
+
+    function clearModalErrors(errorDiv) {
+        if (!errorDiv) return;
+        errorDiv.classList.add('d-none');
+        errorDiv.innerHTML = '';
+    }
+
+    function validateRequired(field, errorDiv, fieldName) {
+        const value = field.value.trim();
+
+        if (!value) {
+            field.classList.add('is-invalid');
+            field.classList.remove('is-valid');
+            if (errorDiv) {
+                errorDiv.textContent = validationMessages.required.replace(':attribute', fieldName);
+                errorDiv.style.display = 'block';
+            }
+            return false;
+        }
+
+        field.classList.remove('is-invalid');
+        field.classList.add('is-valid');
+        if (errorDiv) {
+            errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+        }
+        return true;
+    }
+
+    // ============================================================
+    // MODAL TIPO DE TOUR - CON VALIDACIONES
+    // ============================================================
+    const tourTypeForm = document.getElementById('formCreateTourType');
+    const tourTypeSelect = document.getElementById('tour_type_id');
+    const tourTypeErrors = document.getElementById('tourTypeModalErrors');
+    const tourTypeNameField = document.getElementById('new_tour_type_name');
+
+    if (tourTypeNameField) {
+        let tourTypeNameError = tourTypeNameField.nextElementSibling;
+        if (!tourTypeNameError || !tourTypeNameError.classList.contains('invalid-feedback')) {
+            tourTypeNameError = document.createElement('div');
+            tourTypeNameError.className = 'invalid-feedback';
+            tourTypeNameField.parentNode.insertBefore(tourTypeNameError, tourTypeNameField.nextSibling);
+        }
+
+        tourTypeNameField.addEventListener('input', function() {
+            validateRequired(this, tourTypeNameError, @json(__('m_tours.tour_type.fields.name') ?? 'Nombre'));
+        });
+
+        tourTypeNameField.addEventListener('blur', function() {
+            validateRequired(this, tourTypeNameError, @json(__('m_tours.tour_type.fields.name') ?? 'Nombre'));
+        });
+    }
+
+    if (tourTypeForm) {
+        tourTypeForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const url = formEl.action;
-            const formData = new FormData(formEl);
+
+            if (tourTypeErrors) {
+                clearModalErrors(tourTypeErrors);
+            }
+
+            const isNameValid = validateRequired(
+                tourTypeNameField,
+                tourTypeNameField.nextElementSibling,
+                @json(__('m_tours.tour_type.fields.name') ?? 'Nombre')
+            );
+
+            if (!isNameValid) {
+                tourTypeNameField.focus();
+                return false;
+            }
+
+            const submitBtn = tourTypeForm.querySelector('button[type="submit"]');
+            const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + @json(__('m_tours.tour.validation.saving') ?? 'Guardando...');
+            }
+
+            const url = tourTypeForm.action;
+            const formData = new FormData(tourTypeForm);
 
             fetch(url, {
                 method: 'POST',
@@ -932,124 +1109,231 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: formData
             })
             .then(async response => {
-                if (response.ok) return response.json();
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                }
+
+                if (response.ok) {
+                    return response.json();
+                }
+
                 if (response.status === 422) {
                     const data = await response.json();
-                    if (onError) onError(data);
+                    showModalErrors(tourTypeErrors, data.errors || data.message);
                     return null;
                 }
+
                 const text = await response.text();
-                if (onError) onError({ message: text });
+                showModalErrors(tourTypeErrors, text || 'Error al guardar');
                 return null;
             })
-            .then(data => { if (data && onSuccess) onSuccess(data); })
-            .catch(err => { if (onError) onError({ message: err.message || 'Network error' }); });
+            .then(data => {
+                if (!data) return;
+
+                if (tourTypeSelect && data.id && data.name) {
+                    const option = document.createElement('option');
+                    option.value = data.id;
+                    option.textContent = data.name;
+                    option.selected = true;
+                    tourTypeSelect.appendChild(option);
+                }
+
+                tourTypeForm.reset();
+                tourTypeNameField.classList.remove('is-valid', 'is-invalid');
+                closeModalAndCleanup('modalCreateTourType');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: @json(__('m_tours.tour.validation.success')),
+                    text: @json(__('m_tours.tour.validation.tour_type_created')),
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+            })
+            .catch(err => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                }
+
+                showModalErrors(tourTypeErrors, err.message || 'Error de red');
+            });
         });
     }
 
-    // Quick create tipo
-    const tourTypeForm = document.getElementById('formCreateTourType');
-    const tourTypeSelect = document.getElementById('tour_type_id');
-    const tourTypeErrors = document.getElementById('tourTypeModalErrors');
-
-    ajaxForm(tourTypeForm, function (data) {
-        if (tourTypeErrors) {
-            tourTypeErrors.classList.add('d-none');
-            tourTypeErrors.innerHTML = '';
-        }
-        if (!data || !data.id || !data.name) return;
-
-        if (tourTypeSelect) {
-            const option = document.createElement('option');
-            option.value = data.id;
-            option.textContent = data.name;
-            option.selected = true;
-            tourTypeSelect.appendChild(option);
-        }
-
-        tourTypeForm.reset();
-        closeModalAndCleanup('modalCreateTourType');
-
-        Swal.fire({
-            icon: 'success',
-            title: @json(__('m_tours.tour.validation.success')),
-            text: @json(__('m_tours.tour.validation.tour_type_created')),
-            timer: 2000,
-            showConfirmButton: false,
-        });
-    }, function (errorData) {
-        if (!tourTypeErrors) return;
-        tourTypeErrors.classList.remove('d-none');
-
-        if (errorData && errorData.errors) {
-            const msgs = Object.values(errorData.errors).flat();
-            tourTypeErrors.innerHTML = msgs.map(m => `<div>${m}</div>`).join('');
-        } else if (errorData && errorData.message) {
-            tourTypeErrors.innerHTML = `<div>${errorData.message}</div>`;
-        } else {
-            tourTypeErrors.innerHTML = `<div>{{ __('m_tours.tour.validation.tour_type_error') }}</div>`;
-        }
-    });
-
-    // Quick create idioma
+    // ============================================================
+    // MODAL IDIOMA - CON VALIDACIONES
+    // ============================================================
     const languageForm = document.getElementById('formCreateLanguage');
     const languagesContainer = document.getElementById('languages-container');
     const languagesEmptyState = document.getElementById('languages-empty-state');
     const languageErrors = document.getElementById('languageModalErrors');
+    const languageNameField = document.getElementById('new_language_name');
 
-    ajaxForm(languageForm, function (data) {
-        if (languageErrors) {
-            languageErrors.classList.add('d-none');
-            languageErrors.innerHTML = '';
-        }
-        if (!data || !data.id || !data.name) return;
-
-        if (languagesEmptyState) languagesEmptyState.remove();
-
-        if (languagesContainer) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'custom-control custom-checkbox mb-2';
-            const checkboxId = 'language_' + data.id;
-
-            wrapper.innerHTML = `
-                <input type="checkbox"
-                       class="custom-control-input"
-                       id="${checkboxId}"
-                       name="languages[]"
-                       value="${data.id}"
-                       checked>
-                <label class="custom-control-label" for="${checkboxId}">
-                    <i class="fas fa-language"></i> ${data.name}
-                </label>
-            `;
-            languagesContainer.appendChild(wrapper);
+    if (languageNameField) {
+        let languageNameError = languageNameField.nextElementSibling;
+        if (!languageNameError || !languageNameError.classList.contains('invalid-feedback')) {
+            languageNameError = document.createElement('div');
+            languageNameError.className = 'invalid-feedback';
+            languageNameField.parentNode.insertBefore(languageNameError, languageNameField.nextSibling);
         }
 
-        languageForm.reset();
-        closeModalAndCleanup('modalCreateLanguage');
-
-        Swal.fire({
-            icon: 'success',
-            title: @json(__('m_tours.tour.validation.success')),
-            text: @json(__('m_tours.tour.validation.language_created')),
-            timer: 2000,
-            showConfirmButton: false,
+        languageNameField.addEventListener('input', function() {
+            validateRequired(this, languageNameError, @json(__('m_tours.language.fields.name') ?? 'Nombre'));
         });
-    }, function (errorData) {
-        if (!languageErrors) return;
-        languageErrors.classList.remove('d-none');
 
-        if (errorData && errorData.errors) {
-            const msgs = Object.values(errorData.errors).flat();
-            languageErrors.innerHTML = msgs.map(m => `<div>${m}</div>`).join('');
-        } else if (errorData && errorData.message) {
-            languageErrors.innerHTML = `<div>${errorData.message}</div>`;
-        } else {
-            languageErrors.innerHTML = `<div>{{ __('m_tours.tour.validation.language_error') }}</div>`;
-        }
-    });
+        languageNameField.addEventListener('blur', function() {
+            validateRequired(this, languageNameError, @json(__('m_tours.language.fields.name') ?? 'Nombre'));
+        });
+    }
 
-    // Modal de borradores
+    if (languageForm) {
+        languageForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (languageErrors) {
+                clearModalErrors(languageErrors);
+            }
+
+            const isNameValid = validateRequired(
+                languageNameField,
+                languageNameField.nextElementSibling,
+                @json(__('m_tours.language.fields.name') ?? 'Nombre')
+            );
+
+            if (!isNameValid) {
+                languageNameField.focus();
+                return false;
+            }
+
+            const submitBtn = languageForm.querySelector('button[type="submit"]');
+            const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + @json(__('m_tours.tour.validation.saving') ?? 'Guardando...');
+            }
+
+            const url = languageForm.action;
+            const formData = new FormData(languageForm);
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: formData
+            })
+            .then(async response => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                }
+
+                if (response.ok) {
+                    return response.json();
+                }
+
+                if (response.status === 422) {
+                    const data = await response.json();
+                    showModalErrors(languageErrors, data.errors || data.message);
+                    return null;
+                }
+
+                const text = await response.text();
+                showModalErrors(languageErrors, text || 'Error al guardar');
+                return null;
+            })
+            .then(data => {
+                if (!data) return;
+
+                if (languagesEmptyState) languagesEmptyState.remove();
+
+                if (languagesContainer && data.id && data.name) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'custom-control custom-checkbox mb-2';
+                    const checkboxId = 'language_' + data.id;
+
+                    wrapper.innerHTML = `
+                        <input type="checkbox"
+                               class="custom-control-input"
+                               id="${checkboxId}"
+                               name="languages[]"
+                               value="${data.id}"
+                               checked>
+                        <label class="custom-control-label" for="${checkboxId}">
+                            <i class="fas fa-language"></i> ${data.name}
+                        </label>
+                    `;
+                    languagesContainer.appendChild(wrapper);
+
+                    // Agregar listener al nuevo checkbox
+                    const newCheckbox = wrapper.querySelector('input[type="checkbox"]');
+                    if (newCheckbox) {
+                        newCheckbox.addEventListener('change', validateLanguages);
+                    }
+                }
+
+                languageForm.reset();
+                languageNameField.classList.remove('is-valid', 'is-invalid');
+                closeModalAndCleanup('modalCreateLanguage');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: @json(__('m_tours.tour.validation.success')),
+                    text: @json(__('m_tours.tour.validation.language_created')),
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+            })
+            .catch(err => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                }
+
+                showModalErrors(languageErrors, err.message || 'Error de red');
+            });
+        });
+    }
+
+    // ============================================================
+    // LIMPIAR VALIDACIONES AL ABRIR MODALES
+    // ============================================================
+    const modalCreateTourType = document.getElementById('modalCreateTourType');
+    if (modalCreateTourType) {
+        modalCreateTourType.addEventListener('show.bs.modal', function() {
+            if (tourTypeErrors) clearModalErrors(tourTypeErrors);
+            if (tourTypeNameField) {
+                tourTypeNameField.classList.remove('is-valid', 'is-invalid');
+                const errorDiv = tourTypeNameField.nextElementSibling;
+                if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                    errorDiv.textContent = '';
+                    errorDiv.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    const modalCreateLanguage = document.getElementById('modalCreateLanguage');
+    if (modalCreateLanguage) {
+        modalCreateLanguage.addEventListener('show.bs.modal', function() {
+            if (languageErrors) clearModalErrors(languageErrors);
+            if (languageNameField) {
+                languageNameField.classList.remove('is-valid', 'is-invalid');
+                const errorDiv = languageNameField.nextElementSibling;
+                if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                    errorDiv.textContent = '';
+                    errorDiv.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    // ============================================================
+    // MODAL DE BORRADORES EXISTENTES
+    // ============================================================
     @if(isset($existingDrafts) && $existingDrafts->count() > 0)
         const draftsModalEl = document.getElementById('draftsModal');
         if (draftsModalEl && window.bootstrap && bootstrap.Modal) {

@@ -26,6 +26,61 @@
         opacity: 0.9;
     }
 
+    /* Alert de validación personalizado */
+    .validation-alert {
+        background: rgba(245, 101, 101, 0.15);
+        border: 2px solid #f56565;
+        color: #fc8181;
+        border-radius: 0.5rem;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    .validation-alert strong {
+        color: #fc8181;
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .validation-alert i {
+        margin-right: 0.5rem;
+    }
+
+    .validation-alert ul {
+        margin-bottom: 0;
+        padding-left: 1.5rem;
+    }
+
+    .validation-alert .close-alert {
+        float: right;
+        background: none;
+        border: none;
+        color: #fc8181;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        opacity: 0.7;
+        margin-left: 1rem;
+    }
+
+    .validation-alert .close-alert:hover {
+        opacity: 1;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
     /* Tarjetas con tema oscuro */
     .prices-card {
         border: none;
@@ -157,6 +212,10 @@
         box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
     }
 
+    .price-card input.is-invalid {
+        border-color: #f56565 !important;
+    }
+
     .price-card .input-group-text {
         color: #48bb78;
         font-weight: 600;
@@ -220,6 +279,10 @@
         background: #3a4556;
         border-color: #667eea;
         color: #e2e8f0;
+    }
+
+    .modal-body input.is-invalid {
+        border-color: #f56565 !important;
     }
 
     .modal-footer {
@@ -348,6 +411,9 @@
         <p>{{ $tour->name }}</p>
     </div>
 
+    {{-- Contenedor de alertas de validación --}}
+    <div id="validation-alerts-container"></div>
+
     <form method="POST" action="{{ route('admin.tours.wizard.store.prices', $tour) }}">
         @csrf
 
@@ -425,97 +491,97 @@
                     </div>
                 </div>
 
-                {{-- Contenedor de precios --}}
-                <div id="prices-container">
-                    @forelse($tour->prices as $price)
-                        @if($price->category)
-                            @php
-                                $category = $price->category;
-                                $catLabel = $category->getTranslatedName() ?: $category->name;
-                                $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
-                            @endphp
+{{-- Contenedor de precios --}}
+<div id="prices-container">
+    @forelse($tour->prices as $price)
+        @if($price->category)
+            @php
+                $category = $price->category;
+                $catLabel = $category->getTranslatedName() ?: $category->name;
+                $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
+            @endphp
 
-                            <div class="card mb-3 price-card" data-category-id="{{ $category->category_id }}">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5 class="card-title">
-                                            {{ $catLabel }}
-                                            <small>({{ $ageLabel }})</small>
-                                        </h5>
-                                    </div>
-                                    <button type="button" class="btn btn-sm btn-danger remove-price-card">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-
-                                <div class="card-body">
-                                    <div class="row">
-                                        {{-- Precio --}}
-                                        <div class="col-md-4">
-                                            <label class="form-label">{{ __('m_tours.tour.pricing.price_usd') }}</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">{{ $currency }}</span>
-                                                <input
-                                                    type="number"
-                                                    name="prices[{{ $category->category_id }}][price]"
-                                                    class="form-control"
-                                                    value="{{ old('prices.'.$category->category_id.'.price', number_format($price->price, 2, '.', '')) }}"
-                                                    step="0.01"
-                                                    min="0"
-                                                    required>
-                                            </div>
-                                        </div>
-
-                                        {{-- Cantidad Mínima --}}
-                                        <div class="col-md-3 col-6">
-                                            <label class="form-label">{{ __('m_tours.tour.pricing.min_quantity') }}</label>
-                                            <input
-                                                type="number"
-                                                name="prices[{{ $category->category_id }}][min_quantity]"
-                                                class="form-control"
-                                                value="{{ old('prices.'.$category->category_id.'.min_quantity', $price->min_quantity) }}"
-                                                min="0"
-                                                max="255">
-                                        </div>
-
-                                        {{-- Cantidad Máxima --}}
-                                        <div class="col-md-3 col-6">
-                                            <label class="form-label">{{ __('m_tours.tour.pricing.max_quantity') }}</label>
-                                            <input
-                                                type="number"
-                                                name="prices[{{ $category->category_id }}][max_quantity]"
-                                                class="form-control"
-                                                value="{{ old('prices.'.$category->category_id.'.max_quantity', $price->max_quantity) }}"
-                                                min="0"
-                                                max="255">
-                                        </div>
-
-                                        {{-- Estado Activo --}}
-                                        <div class="col-md-2 col-12">
-                                            <label class="form-label d-block">{{ __('m_tours.tour.pricing.status') }}</label>
-                                            <div class="form-check form-switch">
-                                                <input type="hidden" name="prices[{{ $category->category_id }}][is_active]" value="0">
-                                                <input
-                                                    class="form-check-input"
-                                                    type="checkbox"
-                                                    name="prices[{{ $category->category_id }}][is_active]"
-                                                    value="1"
-                                                    {{ old('prices.'.$category->category_id.'.is_active', $price->is_active) ? 'checked' : '' }}>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <input type="hidden" name="prices[{{ $category->category_id }}][category_id]" value="{{ $category->category_id }}">
-                                </div>
-                            </div>
-                        @endif
-                    @empty
-                        <div class="alert alert-warning" id="no-prices-alert">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            {{ __('m_tours.tour.pricing.no_categories') }}
-                        </div>
-                    @endforelse
+            <div class="card mb-3 price-card" data-category-id="{{ $category->category_id }}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">
+                            {{ $catLabel }}
+                            <small>({{ $ageLabel }})</small>
+                        </h5>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-danger remove-price-card">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
+
+                <div class="card-body">
+                    <div class="row">
+                        {{-- Precio --}}
+                        <div class="col-md-4">
+                            <label class="form-label">{{ __('m_tours.tour.pricing.price_usd') }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text">{{ $currency }}</span>
+                                <input
+                                    type="number"
+                                    name="prices[{{ $category->category_id }}][price]"
+                                    class="form-control price-input"
+                                    value="{{ old('prices.'.$category->category_id.'.price', number_format($price->price, 2, '.', '')) }}"
+                                    step="0.01"
+                                    min="0"
+                                    required>
+                            </div>
+                        </div>
+
+                        {{-- Cantidad Mínima --}}
+                        <div class="col-md-3 col-6">
+                            <label class="form-label">{{ __('m_tours.tour.pricing.min_quantity') }}</label>
+                            <input
+                                type="number"
+                                name="prices[{{ $category->category_id }}][min_quantity]"
+                                class="form-control"
+                                value="{{ old('prices.'.$category->category_id.'.min_quantity', $price->min_quantity) }}"
+                                min="0"
+                                max="255">
+                        </div>
+
+                        {{-- Cantidad Máxima --}}
+                        <div class="col-md-3 col-6">
+                            <label class="form-label">{{ __('m_tours.tour.pricing.max_quantity') }}</label>
+                            <input
+                                type="number"
+                                name="prices[{{ $category->category_id }}][max_quantity]"
+                                class="form-control"
+                                value="{{ old('prices.'.$category->category_id.'.max_quantity', $price->max_quantity) }}"
+                                min="0"
+                                max="255">
+                        </div>
+
+                        {{-- Estado Activo --}}
+                        <div class="col-md-2 col-12">
+                            <label class="form-label d-block">{{ __('m_tours.tour.pricing.status') }}</label>
+                            <div class="form-check form-switch">
+                                <input type="hidden" name="prices[{{ $category->category_id }}][is_active]" value="0">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="prices[{{ $category->category_id }}][is_active]"
+                                    value="1"
+                                    {{ old('prices.'.$category->category_id.'.is_active', $price->is_active) ? 'checked' : '' }}>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="prices[{{ $category->category_id }}][category_id]" value="{{ $category->category_id }}">
+                </div>
+            </div>
+        @endif
+    @empty
+        <div class="alert alert-warning" id="no-prices-alert">
+            <i class="fas fa-exclamation-triangle"></i>
+            {{ __('m_tours.tour.pricing.no_categories') }}
+        </div>
+    @endforelse
+</div>
             </div>
         </div>
 
@@ -529,20 +595,19 @@
                         {{ __('m_tours.common.previous') }}
                     </a>
 
-<div class="d-flex gap-2">
-    <a href="{{ route('admin.tours.wizard.cancel', $tour) }}"
-       class="btn btn-danger"
-       onclick="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
-        <i class="fas fa-trash"></i>
-        <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
-    </a>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('admin.tours.wizard.cancel', $tour) }}"
+                           class="btn btn-danger"
+                           onclick="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
+                            <i class="fas fa-trash"></i>
+                            <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
+                        </a>
 
-    <button type="submit" class="btn btn-primary ml-2">
-        {{ __('m_tours.tour.wizard.save_and_continue') }}
-        <i class="fas fa-arrow-right"></i>
-    </button>
-</div>
-
+                        <button type="submit" class="btn btn-primary ml-2">
+                            {{ __('m_tours.tour.wizard.save_and_continue') }}
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -576,6 +641,7 @@
                 <div class="form-group">
                     <label for="quick_category_name">
                         {{ __('m_tours.prices.quick_category.name_label') }}
+                        <span class="text-danger">*</span>
                     </label>
                     <input type="text"
                            id="quick_category_name"
@@ -589,6 +655,7 @@
                     <div class="form-group col-6">
                         <label for="quick_category_age_from">
                             {{ __('m_tours.prices.quick_category.age_from') }}
+                            <span class="text-danger">*</span>
                         </label>
                         <input type="number"
                                id="quick_category_age_from"
@@ -601,6 +668,7 @@
                     <div class="form-group col-6">
                         <label for="quick_category_age_to">
                             {{ __('m_tours.prices.quick_category.age_to') }}
+                            <span class="text-danger">*</span>
                         </label>
                         <input type="number"
                                id="quick_category_age_to"
@@ -630,6 +698,7 @@
 @endsection
 
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const categorySelector = document.getElementById('category-selector');
@@ -637,20 +706,73 @@ document.addEventListener('DOMContentLoaded', function () {
     const pricesContainer  = document.getElementById('prices-container');
     const noAlert          = document.getElementById('no-prices-alert');
     const quickForm        = document.getElementById('quickCategoryForm');
+    const mainForm         = document.querySelector('form[action*="store.prices"]');
     const currency         = @json(config('app.currency_symbol', '$'));
 
+    // ============================================================
+    // TRADUCCIONES
+    // ============================================================
     const i18n = {
-        alreadyAdded:  @json(__('m_tours.tour.pricing.already_added')),
-        saving:        @json(__('m_tours.prices.quick_category.saving')),
-        successTitle:  @json(__('m_tours.prices.quick_category.success_title')),
-        successText:   @json(__('m_tours.prices.quick_category.success_text')),
-        errorTitle:    @json(__('m_tours.prices.quick_category.error_title')),
-        errorGeneric:  @json(__('m_tours.prices.quick_category.error_generic')),
-        priceLabel:    @json(__('m_tours.tour.pricing.price_usd')),
-        minLabel:      @json(__('m_tours.tour.pricing.min_quantity')),
-        maxLabel:      @json(__('m_tours.tour.pricing.max_quantity')),
-        statusLabel:   @json(__('m_tours.tour.pricing.status')),
+        alreadyAdded:        @json(__('m_tours.tour.pricing.already_added') ?? 'Esta categoría ya fue agregada'),
+        saving:              @json(__('m_tours.prices.quick_category.saving') ?? 'Guardando...'),
+        successTitle:        @json(__('m_tours.prices.quick_category.success_title') ?? 'Éxito'),
+        successText:         @json(__('m_tours.prices.quick_category.success_text') ?? 'Categoría creada exitosamente'),
+        errorTitle:          @json(__('m_tours.prices.quick_category.error_title') ?? 'Error'),
+        errorGeneric:        @json(__('m_tours.prices.quick_category.error_generic') ?? 'Ocurrió un error al crear la categoría'),
+        priceLabel:          @json(__('m_tours.tour.pricing.price_usd') ?? 'Precio (USD)'),
+        minLabel:            @json(__('m_tours.tour.pricing.min_quantity') ?? 'Cantidad Mínima'),
+        maxLabel:            @json(__('m_tours.tour.pricing.max_quantity') ?? 'Cantidad Máxima'),
+        statusLabel:         @json(__('m_tours.tour.pricing.status') ?? 'Estado'),
+        validationTitle:     @json(__('m_tours.prices.validation.title') ?? 'Validación de Precios'),
+        noCategoriesError:   @json(__('m_tours.prices.validation.no_categories') ?? 'Debes agregar al menos una categoría de precio'),
+        noPriceGreaterZero:  @json(__('m_tours.prices.validation.no_price_greater_zero') ?? 'Debe haber al menos una categoría con precio mayor a $0.00'),
+        categoryNameRequired: @json(__('validation.required', ['attribute' => __('m_tours.prices.quick_category.name_label')]) ?? 'El nombre es obligatorio'),
+        ageFromRequired:     @json(__('validation.required', ['attribute' => __('m_tours.prices.quick_category.age_from')]) ?? 'La edad desde es obligatoria'),
+        ageToRequired:       @json(__('validation.required', ['attribute' => __('m_tours.prices.quick_category.age_to')]) ?? 'La edad hasta es obligatoria'),
+        ageToGreaterOrEqual: @json(__('m_tours.prices.validation.age_to_greater_equal') ?? 'La edad hasta debe ser mayor o igual a la edad desde'),
     };
+
+    // ============================================================
+    // FUNCIÓN PARA MOSTRAR ALERTA DEBAJO DEL HEADER
+    // ============================================================
+    function showValidationAlert(errors) {
+        const container = document.getElementById('validation-alerts-container');
+        if (!container) return;
+
+        // Limpiar alertas anteriores
+        container.innerHTML = '';
+
+        // Crear nueva alerta
+        const alert = document.createElement('div');
+        alert.className = 'validation-alert';
+        alert.innerHTML = `
+            <button type="button" class="close-alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <strong><i class="fas fa-exclamation-triangle"></i>${i18n.validationTitle}</strong>
+            <ul>${errors.map(err => '<li>' + err + '</li>').join('')}</ul>
+        `;
+
+        container.appendChild(alert);
+
+        // Agregar evento para cerrar
+        const closeBtn = alert.querySelector('.close-alert');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                alert.remove();
+            });
+        }
+
+        // Scroll a la alerta
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // Auto-cerrar después de 10 segundos
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.remove();
+            }
+        }, 10000);
+    }
 
     function showError(message) {
         const text = message || i18n.errorGeneric;
@@ -659,6 +781,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 icon: 'error',
                 title: i18n.errorTitle,
                 text: text,
+                confirmButtonColor: '#48bb78',
             });
         } else {
             alert(text);
@@ -695,7 +818,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <small>(${ageRange})</small>
                         </h5>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-light remove-price-card">
+                    <button type="button" class="btn btn-sm btn-danger remove-price-card">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -707,7 +830,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <span class="input-group-text">${currency}</span>
                                 <input type="number"
                                        name="prices[${categoryId}][price]"
-                                       class="form-control"
+                                       class="form-control price-input"
                                        step="0.01"
                                        min="0"
                                        value="0.00"
@@ -785,9 +908,138 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ============================================================
+    // VALIDACIÓN DEL FORMULARIO PRINCIPAL
+    // ============================================================
+    if (mainForm) {
+        mainForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            let errors = [];
+
+            // Validación 1: Al menos una categoría debe estar agregada
+            const priceCards = pricesContainer.querySelectorAll('.price-card');
+
+            if (priceCards.length === 0) {
+                errors.push(i18n.noCategoriesError);
+
+                if (pricesContainer) {
+                    pricesContainer.style.border = '2px solid #f56565';
+                    setTimeout(() => {
+                        pricesContainer.style.border = '';
+                    }, 3000);
+                }
+            } else {
+                // Validación 2: Al menos una categoría debe tener precio > 0
+                let hasPriceGreaterThanZero = false;
+
+                priceCards.forEach(card => {
+                    const priceInput = card.querySelector('.price-input');
+                    if (priceInput) {
+                        const priceValue = parseFloat(priceInput.value);
+                        if (!isNaN(priceValue) && priceValue > 0) {
+                            hasPriceGreaterThanZero = true;
+                        }
+                    }
+                });
+
+                if (!hasPriceGreaterThanZero) {
+                    errors.push(i18n.noPriceGreaterZero);
+
+                    // Resaltar inputs de precio
+                    priceCards.forEach(card => {
+                        const priceInput = card.querySelector('.price-input');
+                        if (priceInput) {
+                            priceInput.classList.add('is-invalid');
+                            setTimeout(() => {
+                                priceInput.classList.remove('is-invalid');
+                            }, 3000);
+                        }
+                    });
+                }
+            }
+
+            // Si hay errores, mostrarlos
+            if (errors.length > 0) {
+                showValidationAlert(errors);
+
+                // Scroll al contenedor de precios
+                if (pricesContainer) {
+                    pricesContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+
+                return false;
+            }
+
+            // Si todo está bien, deshabilitar botón y enviar
+            const submitBtn = mainForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + i18n.saving;
+            }
+
+            mainForm.submit();
+        });
+    }
+
+    // ============================================================
+    // VALIDACIÓN DEL MODAL DE QUICK CREATE
+    // ============================================================
     if (quickForm) {
+        const nameInput = document.getElementById('quick_category_name');
+        const ageFromInput = document.getElementById('quick_category_age_from');
+        const ageToInput = document.getElementById('quick_category_age_to');
+
         quickForm.addEventListener('submit', async function (e) {
             e.preventDefault();
+
+            let errors = [];
+
+            // Validar nombre
+            if (!nameInput.value.trim()) {
+                errors.push(i18n.categoryNameRequired);
+                nameInput.classList.add('is-invalid');
+            } else {
+                nameInput.classList.remove('is-invalid');
+            }
+
+            // Validar age_from
+            if (!ageFromInput.value.trim()) {
+                errors.push(i18n.ageFromRequired);
+                ageFromInput.classList.add('is-invalid');
+            } else {
+                ageFromInput.classList.remove('is-invalid');
+            }
+
+            // Validar age_to
+            if (!ageToInput.value.trim()) {
+                errors.push(i18n.ageToRequired);
+                ageToInput.classList.add('is-invalid');
+            } else {
+                ageToInput.classList.remove('is-invalid');
+            }
+
+            // Validar que age_to >= age_from
+            if (ageFromInput.value && ageToInput.value) {
+                const ageFrom = parseInt(ageFromInput.value);
+                const ageTo = parseInt(ageToInput.value);
+
+                if (ageTo < ageFrom) {
+                    errors.push(i18n.ageToGreaterOrEqual);
+                    ageToInput.classList.add('is-invalid');
+                }
+            }
+
+            // Si hay errores, mostrarlos
+            if (errors.length > 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: i18n.errorTitle,
+                    html: '<ul style="text-align: left;">' + errors.map(err => '<li>' + err + '</li>').join('') + '</ul>',
+                    confirmButtonColor: '#48bb78',
+                });
+                return false;
+            }
 
             const submitBtn    = quickForm.querySelector('button[type="submit"]');
             const originalHtml = submitBtn.innerHTML;
@@ -836,6 +1088,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 createPriceCard(id, name, ageRange);
                 quickForm.reset();
 
+                // Limpiar clases de validación
+                nameInput.classList.remove('is-invalid');
+                ageFromInput.classList.remove('is-invalid');
+                ageToInput.classList.remove('is-invalid');
+
                 if (window.$ && typeof window.$.fn.modal === 'function') {
                     window.$('#modalQuickCategory').modal('hide');
                 } else if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
@@ -859,6 +1116,42 @@ document.addEventListener('DOMContentLoaded', function () {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalHtml;
             }
+        });
+
+        // Limpiar errores al escribir
+        if (nameInput) {
+            nameInput.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+            });
+        }
+
+        if (ageFromInput) {
+            ageFromInput.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+            });
+        }
+
+        if (ageToInput) {
+            ageToInput.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+            });
+        }
+    }
+
+    // ============================================================
+    // LIMPIAR MODAL AL ABRIR
+    // ============================================================
+    const modal = document.getElementById('modalQuickCategory');
+    if (modal) {
+        modal.addEventListener('show.bs.modal', function() {
+            quickForm.reset();
+            const nameInput = document.getElementById('quick_category_name');
+            const ageFromInput = document.getElementById('quick_category_age_from');
+            const ageToInput = document.getElementById('quick_category_age_to');
+
+            if (nameInput) nameInput.classList.remove('is-invalid');
+            if (ageFromInput) ageFromInput.classList.remove('is-invalid');
+            if (ageToInput) ageToInput.classList.remove('is-invalid');
         });
     }
 });

@@ -720,4 +720,178 @@
             </form>
         </div>
     </div>
+
+    @push('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // ============================================================
+    // TRADUCCIONES
+    // ============================================================
+    const translations = {
+        noScheduleSelected: @json(__('m_tours.schedule.validation.no_schedule_selected') ?? 'Debes seleccionar al menos un horario'),
+        validationTitle: @json(__('m_tours.schedule.validation.title') ?? 'Validación de Horarios'),
+        saving: @json(__('m_tours.common.saving') ?? 'Guardando...'),
+        startTimeRequired: @json(__('validation.required', ['attribute' => __('m_tours.schedule.fields.start_time')]) ?? 'La hora de inicio es obligatoria'),
+        endTimeRequired: @json(__('validation.required', ['attribute' => __('m_tours.schedule.fields.end_time')]) ?? 'La hora de fin es obligatoria'),
+        endTimeAfterStart: @json(__('m_tours.schedule.validation.end_after_start') ?? 'La hora de fin debe ser posterior a la hora de inicio'),
+        scheduleCreated: @json(__('m_tours.schedule.success.created') ?? 'Horario creado'),
+        scheduleCreatedAndAttached: @json(__('m_tours.schedule.success.created_and_attached') ?? 'El horario se creó y asignó correctamente al tour'),
+        networkError: @json(__('m_tours.common.network_error') ?? 'Error de red'),
+    };
+
+    // ============================================================
+    // VALIDACIÓN DEL FORMULARIO PRINCIPAL
+    // ============================================================
+    const mainForm = document.querySelector('form[action*="store.schedules"]');
+
+    if (mainForm) {
+        mainForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Validar que al menos un horario esté seleccionado
+            const selectedSchedules = document.querySelectorAll('input[name="schedules[]"]:checked');
+
+            if (selectedSchedules.length === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: translations.validationTitle,
+                    text: translations.noScheduleSelected,
+                    confirmButtonColor: '#f6ad55',
+                });
+
+                // Scroll al contenedor de horarios
+                const schedulesCard = document.querySelector('.schedules-card');
+                if (schedulesCard) {
+                    schedulesCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    schedulesCard.style.border = '2px solid #f56565';
+                    setTimeout(() => {
+                        schedulesCard.style.border = '';
+                    }, 3000);
+                }
+
+                return false;
+            }
+
+            // Si todo está bien, deshabilitar botón y enviar
+            const submitBtn = mainForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + translations.saving;
+            }
+
+            mainForm.submit();
+        });
+    }
+
+    // ============================================================
+    // VALIDACIÓN DEL MODAL DE CREACIÓN RÁPIDA
+    // ============================================================
+    const modalForm = document.querySelector('#modalCreateScheduleForTour form');
+    const startTimeInput = document.getElementById('modal_schedule_start');
+    const endTimeInput = document.getElementById('modal_schedule_end');
+    const labelInput = document.getElementById('modal_schedule_label');
+    const capacityInput = document.getElementById('modal_schedule_capacity');
+
+    if (modalForm && startTimeInput && endTimeInput) {
+        modalForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            let errors = [];
+
+            // Validar hora de inicio
+            if (!startTimeInput.value.trim()) {
+                errors.push(translations.startTimeRequired);
+                startTimeInput.classList.add('is-invalid');
+            } else {
+                startTimeInput.classList.remove('is-invalid');
+            }
+
+            // Validar hora de fin
+            if (!endTimeInput.value.trim()) {
+                errors.push(translations.endTimeRequired);
+                endTimeInput.classList.add('is-invalid');
+            } else {
+                endTimeInput.classList.remove('is-invalid');
+            }
+
+            // Validar que end_time sea mayor que start_time
+            if (startTimeInput.value && endTimeInput.value) {
+                const start = new Date('2000-01-01 ' + startTimeInput.value);
+                const end = new Date('2000-01-01 ' + endTimeInput.value);
+
+                if (end <= start) {
+                    errors.push(translations.endTimeAfterStart);
+                    endTimeInput.classList.add('is-invalid');
+                }
+            }
+
+            // Si hay errores, mostrarlos
+            if (errors.length > 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: translations.validationTitle,
+                    html: '<ul style="text-align: left;">' + errors.map(err => '<li>' + err + '</li>').join('') + '</ul>',
+                    confirmButtonColor: '#f6ad55',
+                });
+                return false;
+            }
+
+            // Si todo está bien, enviar el formulario
+            const submitBtn = modalForm.querySelector('button[type="submit"]');
+            const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + translations.saving;
+            }
+
+            // Enviar formulario normalmente (no es AJAX en este caso)
+            modalForm.submit();
+        });
+    }
+
+    // Limpiar errores al cambiar valores
+    if (startTimeInput) {
+        startTimeInput.addEventListener('change', function() {
+            this.classList.remove('is-invalid');
+        });
+    }
+
+    if (endTimeInput) {
+        endTimeInput.addEventListener('change', function() {
+            this.classList.remove('is-invalid');
+        });
+    }
+
+    // ============================================================
+    // LIMPIAR FORMULARIO AL ABRIR MODAL
+    // ============================================================
+    const modal = document.getElementById('modalCreateScheduleForTour');
+    if (modal) {
+        modal.addEventListener('show.bs.modal', function() {
+            if (startTimeInput) {
+                startTimeInput.value = '';
+                startTimeInput.classList.remove('is-invalid');
+            }
+            if (endTimeInput) {
+                endTimeInput.value = '';
+                endTimeInput.classList.remove('is-invalid');
+            }
+            if (labelInput) {
+                labelInput.value = '';
+            }
+            if (capacityInput) {
+                capacityInput.value = '';
+            }
+
+            // Resetear checkbox is_active
+            const activeCheckbox = document.getElementById('modal_schedule_active');
+            if (activeCheckbox) {
+                activeCheckbox.checked = true;
+            }
+        });
+    }
+});
+</script>
+@endpush
 @endsection

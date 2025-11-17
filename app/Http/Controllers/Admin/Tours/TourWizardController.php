@@ -410,24 +410,24 @@ public function deleteDraft(Tour $tour)
                 ->with('showDraftsModal', true);
         }
 
-        $data = $request->validate([
-            'name'         => 'required|string|max:255',
-            'slug'         => [
-                'nullable',
-                'string',
-                'max:255',
-                Rule::unique('tours', 'slug')->whereNull('deleted_at'),
-            ],
-            'overview'     => 'nullable|string',
-            'length'       => 'nullable|numeric|min:0',
-            'max_capacity' => 'required|integer|min:1',
-            'group_size'   => 'nullable|integer|min:1',
-            'color'        => 'nullable|string|max:7',
-            'tour_type_id' => 'nullable|exists:tour_types,tour_type_id',
-            'is_active'    => 'boolean',
-            'languages'    => 'nullable|array',
-            'languages.*'  => 'exists:tour_languages,tour_language_id',
-        ]);
+    $data = $request->validate([
+        'name'         => 'required|string|max:255',
+        'slug'         => [
+            'required', // Ahora es requerido
+            'string',
+            'max:255',
+            Rule::unique('tours', 'slug')->whereNull('deleted_at'),
+        ],
+        'overview'     => 'required|string|max:1000', // Ahora requerido
+        'length'       => 'required|numeric|min:0.5|max:240', // Ahora requerido
+        'max_capacity' => 'required|integer|min:1|max:500',
+        'group_size'   => 'required|integer|min:1|max:500', // Ahora requerido
+        'color'        => 'required|string|max:7', // Ahora requerido
+        'tour_type_id' => 'required|exists:tour_types,tour_type_id', // Ahora requerido
+        'is_active'    => 'boolean',
+        'languages'    => 'required|array|min:1', // Ahora requerido con mínimo 1
+        'languages.*'  => 'exists:tour_languages,tour_language_id',
+    ]);
 
         $tour = null;
 
@@ -686,232 +686,244 @@ public function showStep(Tour $tour, int $step)
      * 🔄 RENOMBRADO: saveItinerary → storeItinerary
      * ============================================================
      */
-    public function storeItinerary(Request $request, Tour $tour)
-    {
-        $userId = optional($request->user())->user_id ?? $request->user()?->getAuthIdentifier();
+public function storeItinerary(Request $request, Tour $tour)
+{
+    $userId = optional($request->user())->user_id ?? $request->user()?->getAuthIdentifier();
 
-        // Validación básica
-        $data = $request->validate([
-            'itinerary_id'              => 'nullable|exists:itineraries,itinerary_id',
-            'new_itinerary_name'        => 'nullable|string|max:255',
-            'new_itinerary_description' => 'nullable|string',
-            'items'                     => 'nullable|array',
-            'items.*.title'             => 'nullable|string|max:255',
-            'items.*.description'       => 'nullable|string',
-        ]);
+    // Validación mejorada
+    $data = $request->validate([
+        'itinerary_id'              => 'nullable|exists:itineraries,itinerary_id',
+        'new_itinerary_name'        => 'required_without:itinerary_id|nullable|string|max:255',
+        'new_itinerary_description' => 'nullable|string',
+        'items'                     => 'required_without:itinerary_id|nullable|array|min:1',
+        'items.*.title'             => 'required|string|max:255',
+        'items.*.description'       => 'nullable|string',
+    ], [
+        'new_itinerary_name.required_without' => 'El nombre del itinerario es obligatorio cuando creas uno nuevo.',
+        'items.required_without' => 'Debes agregar al menos un item al nuevo itinerario.',
+        'items.min' => 'Debes agregar al menos un item al itinerario.',
+        'items.*.title.required' => 'Cada item debe tener un título.',
+    ]);
 
-        DB::beginTransaction();
+    DB::beginTransaction();
 
-        try {
-            $itineraryId = $tour->itinerary_id;
+    try {
+        $itineraryId = $tour->itinerary_id;
 
-            // CASO 1: Asignar itinerario existente
-            if (!empty($data['itinerary_id'])) {
-                $tour->update([
-                    'itinerary_id' => $data['itinerary_id'],
-                    'updated_by' => $userId,  // 🆕
-                ]);
-                $itineraryId = $data['itinerary_id'];
+        // CASO 1: Asignar itinerario existente
+        if (!empty($data['itinerary_id'])) {
+            $tour->update([
+                'itinerary_id' => $data['itinerary_id'],
+                'updated_by' => $userId,
+            ]);
+            $itineraryId = $data['itinerary_id'];
 
-            // CASO 2: Crear itinerario nuevo
-            } elseif (!empty($data['new_itinerary_name']) || !empty($data['items'])) {
+        // CASO 2: Crear itinerario nuevo
+        } elseif (!empty($data['new_itinerary_name'])) {
 
-                $itemsData = collect($data['items'] ?? [])
-                    ->filter(fn($item) => !empty($item['title']))
-                    ->values()
-                    ->all();
+            $itemsData = collect($data['items'] ?? [])
+                ->filter(fn($item) => !empty($item['title']))
+                ->values()
+                ->all();
 
-                if (empty($itemsData)) {
-                    return back()
-                        ->withInput()
-                        ->withErrors([
-                            'items' => __('m_tours.itinerary.ui.min_one_item') ?? 'Debes agregar al menos un ítem al itinerario.',
-                        ]);
-                }
-
-                $itinerary = Itinerary::create([
-                    'name'        => $data['new_itinerary_name'] ?: __('m_tours.itinerary.fields.name'),
-                    'description' => $data['new_itinerary_description'] ?? null,
-                    'is_active'   => true,
-                ]);
-
-                foreach ($itemsData as $index => $itemData) {
-                    $item = ItineraryItem::where('title', $itemData['title'])->first();
-
-                    if (!$item) {
-                        $item = ItineraryItem::create([
-                            'title'       => $itemData['title'],
-                            'description' => $itemData['description'] ?? null,
-                            'is_active'   => true,
-                        ]);
-                    } else {
-                        if (($itemData['description'] ?? null) && !$item->description) {
-                            $item->description = $itemData['description'];
-                            $item->save();
-                        }
-                    }
-
-                    DB::table('itinerary_item_itinerary')->updateOrInsert(
-                        [
-                            'itinerary_id'      => $itinerary->itinerary_id,
-                            'itinerary_item_id' => $item->item_id,
-                        ],
-                        [
-                            'item_order' => $index + 1,
-                            'is_active'  => true,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]
-                    );
-                }
-
-                $tour->update([
-                    'itinerary_id' => $itinerary->itinerary_id,
-                    'updated_by' => $userId,  // 🆕
-                ]);
-                $itineraryId = $itinerary->itinerary_id;
-            } else {
-                $itineraryId = $tour->itinerary_id;
+            if (empty($itemsData)) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'items' => __('m_tours.itinerary.ui.min_one_item') ?? 'Debes agregar al menos un ítem al itinerario.',
+                    ]);
             }
 
-            DB::commit();
+            $itinerary = Itinerary::create([
+                'name'        => $data['new_itinerary_name'],
+                'description' => $data['new_itinerary_description'] ?? null,
+                'is_active'   => true,
+            ]);
 
-            LoggerHelper::mutated(
-                'TourWizardController',
-                'storeItinerary',
-                'tour',
-                $tour->tour_id ?? $tour->getKey(),
-                [
-                    'user_id'      => $userId,
-                    'itinerary_id' => $itineraryId,
-                    'current_step' => $tour->current_step,
-                ]
-            );
+            foreach ($itemsData as $index => $itemData) {
+                $item = ItineraryItem::where('title', $itemData['title'])->first();
 
-            return redirect()
-                ->route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 3])
-                ->with('success', __('m_tours.tour.wizard.itinerary_saved'));
+                if (!$item) {
+                    $item = ItineraryItem::create([
+                        'title'       => $itemData['title'],
+                        'description' => $itemData['description'] ?? null,
+                        'is_active'   => true,
+                    ]);
+                } else {
+                    if (($itemData['description'] ?? null) && !$item->description) {
+                        $item->description = $itemData['description'];
+                        $item->save();
+                    }
+                }
 
-        } catch (\Throwable $e) {
-            DB::rollBack();
+                DB::table('itinerary_item_itinerary')->updateOrInsert(
+                    [
+                        'itinerary_id'      => $itinerary->itinerary_id,
+                        'itinerary_item_id' => $item->item_id,
+                    ],
+                    [
+                        'item_order' => $index + 1,
+                        'is_active'  => true,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]
+                );
+            }
 
-            LoggerHelper::exception(
-                'TourWizardController',
-                'storeItinerary',
-                'tour',
-                $tour->tour_id ?? $tour->getKey(),
-                $e,
-                ['user_id' => $userId]
-            );
-
-            report($e);
-
+            $tour->update([
+                'itinerary_id' => $itinerary->itinerary_id,
+                'updated_by' => $userId,
+            ]);
+            $itineraryId = $itinerary->itinerary_id;
+        } else {
+            // Si no hay itinerario seleccionado ni datos para crear uno nuevo
             return back()
                 ->withInput()
-                ->with('error', __('m_tours.common.error_saving'));
+                ->withErrors([
+                    'itinerary_id' => 'Debes seleccionar un itinerario existente o crear uno nuevo.',
+                ]);
         }
-    }
 
+        DB::commit();
+
+        LoggerHelper::mutated(
+            'TourWizardController',
+            'storeItinerary',
+            'tour',
+            $tour->tour_id ?? $tour->getKey(),
+            [
+                'user_id'      => $userId,
+                'itinerary_id' => $itineraryId,
+                'current_step' => $tour->current_step,
+            ]
+        );
+
+        return redirect()
+            ->route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 3])
+            ->with('success', __('m_tours.tour.wizard.itinerary_saved'));
+
+    } catch (\Throwable $e) {
+        DB::rollBack();
+
+        LoggerHelper::exception(
+            'TourWizardController',
+            'storeItinerary',
+            'tour',
+            $tour->tour_id ?? $tour->getKey(),
+            $e,
+            ['user_id' => $userId]
+        );
+
+        report($e);
+
+        return back()
+            ->withInput()
+            ->with('error', __('m_tours.common.error_saving'));
+    }
+}
     /**
      * ============================================================
      * GUARDAR HORARIOS (PASO 3)
      * 🔄 RENOMBRADO: saveSchedules → storeSchedules
      * ============================================================
      */
-    public function storeSchedules(Request $request, Tour $tour)
-    {
-        $userId = optional($request->user())->getAuthIdentifier();
+public function storeSchedules(Request $request, Tour $tour)
+{
+    $userId = optional($request->user())->getAuthIdentifier();
 
-        $data = $request->validate([
-            'schedules'                   => 'nullable|array',
-            'schedules.*'                 => 'exists:schedules,schedule_id',
-            'base_capacity'               => 'nullable|array',
-            'base_capacity.*'             => 'nullable|integer|min:1|max:999',
-            'new_schedule.create'         => 'nullable|boolean',
-            'new_schedule.start_time'     => 'required_if:new_schedule.create,1|date_format:H:i',
-            'new_schedule.end_time'       => 'required_if:new_schedule.create,1|date_format:H:i|after:new_schedule.start_time',
-            'new_schedule.label'          => 'nullable|string|max:100',
-            'new_schedule.base_capacity'  => 'nullable|integer|min:1|max:999',
-        ]);
+    $data = $request->validate([
+        'schedules'                   => 'required|array|min:1',
+        'schedules.*'                 => 'exists:schedules,schedule_id',
+        'base_capacity'               => 'nullable|array',
+        'base_capacity.*'             => 'nullable|integer|min:1|max:999',
+        'new_schedule.create'         => 'nullable|boolean',
+        'new_schedule.start_time'     => 'required_if:new_schedule.create,1|date_format:H:i',
+        'new_schedule.end_time'       => 'required_if:new_schedule.create,1|date_format:H:i|after:new_schedule.start_time',
+        'new_schedule.label'          => 'nullable|string|max:100',
+        'new_schedule.base_capacity'  => 'nullable|integer|min:1|max:999',
+    ], [
+        'schedules.required' => __('m_tours.schedule.validation.no_schedule_selected') ?? 'Debes seleccionar al menos un horario.',
+        'schedules.min' => __('m_tours.schedule.validation.no_schedule_selected') ?? 'Debes seleccionar al menos un horario.',
+        'new_schedule.end_time.after' => __('m_tours.schedule.validation.end_after_start') ?? 'La hora de fin debe ser posterior a la hora de inicio.',
+    ]);
 
-        DB::beginTransaction();
+    DB::beginTransaction();
 
-        try {
-            $selectedIds   = $data['schedules'] ?? [];
-            $baseCapacity  = $data['base_capacity'] ?? [];
+    try {
+        $selectedIds   = $data['schedules'] ?? [];
+        $baseCapacity  = $data['base_capacity'] ?? [];
 
-            // Crear nuevo horario si se solicitó
-            if (!empty($data['new_schedule']['create'])) {
-                $newSchedule = Schedule::create([
-                    'start_time' => $data['new_schedule']['start_time'],
-                    'end_time'   => $data['new_schedule']['end_time'],
-                    'label'      => $data['new_schedule']['label'] ?? null,
-                    'is_active'  => true,
-                ]);
+        // Crear nuevo horario si se solicitó
+        if (!empty($data['new_schedule']['create'])) {
+            $newSchedule = Schedule::create([
+                'start_time' => $data['new_schedule']['start_time'],
+                'end_time'   => $data['new_schedule']['end_time'],
+                'label'      => $data['new_schedule']['label'] ?? null,
+                'is_active'  => true,
+            ]);
 
-                $selectedIds[] = $newSchedule->schedule_id;
+            $selectedIds[] = $newSchedule->schedule_id;
 
-                if (!empty($data['new_schedule']['base_capacity'])) {
-                    $baseCapacity[$newSchedule->schedule_id] = (int) $data['new_schedule']['base_capacity'];
-                }
+            if (!empty($data['new_schedule']['base_capacity'])) {
+                $baseCapacity[$newSchedule->schedule_id] = (int) $data['new_schedule']['base_capacity'];
             }
-
-            // Armar payload de sync con datos de pivote
-            $pivotPayload = [];
-
-            foreach ($selectedIds as $scheduleId) {
-                $capacity = $baseCapacity[$scheduleId] ?? null;
-
-                $pivotPayload[$scheduleId] = [
-                    'is_active'     => true,
-                    'base_capacity' => $capacity !== null && $capacity !== '' ? (int) $capacity : null,
-                ];
-            }
-
-            // Sincronizar horarios
-            $tour->schedules()->sync($pivotPayload);
-
-            // 🆕 Actualizar updated_by
-            $tour->update(['updated_by' => $userId]);
-
-            DB::commit();
-
-            LoggerHelper::mutated(
-                'TourWizardController',
-                'storeSchedules',
-                'tour',
-                $tour->tour_id ?? $tour->getKey(),
-                [
-                    'user_id'        => $userId,
-                    'schedule_ids'   => array_values($selectedIds),
-                    'pivot_payload'  => $pivotPayload,
-                ]
-            );
-
-            return redirect()
-                ->route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 4])
-                ->with('success', __('m_tours.tour.wizard.schedules_saved'));
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            LoggerHelper::exception(
-                'TourWizardController',
-                'storeSchedules',
-                'tour',
-                $tour->tour_id ?? $tour->getKey(),
-                $e,
-                ['user_id' => $userId]
-            );
-
-            report($e);
-
-            return back()
-                ->withInput()
-                ->with('error', __('m_tours.common.error_saving'));
         }
-    }
 
+        // Armar payload de sync con datos de pivote
+        $pivotPayload = [];
+
+        foreach ($selectedIds as $scheduleId) {
+            $capacity = $baseCapacity[$scheduleId] ?? null;
+
+            $pivotPayload[$scheduleId] = [
+                'is_active'     => true,
+                'base_capacity' => $capacity !== null && $capacity !== '' ? (int) $capacity : null,
+            ];
+        }
+
+        // Sincronizar horarios
+        $tour->schedules()->sync($pivotPayload);
+
+        // Actualizar updated_by
+        $tour->update(['updated_by' => $userId]);
+
+        DB::commit();
+
+        LoggerHelper::mutated(
+            'TourWizardController',
+            'storeSchedules',
+            'tour',
+            $tour->tour_id ?? $tour->getKey(),
+            [
+                'user_id'        => $userId,
+                'schedule_ids'   => array_values($selectedIds),
+                'pivot_payload'  => $pivotPayload,
+            ]
+        );
+
+        return redirect()
+            ->route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 4])
+            ->with('success', __('m_tours.tour.wizard.schedules_saved'));
+
+    } catch (\Throwable $e) {
+        DB::rollBack();
+
+        LoggerHelper::exception(
+            'TourWizardController',
+            'storeSchedules',
+            'tour',
+            $tour->tour_id ?? $tour->getKey(),
+            $e,
+            ['user_id' => $userId]
+        );
+
+        report($e);
+
+        return back()
+            ->withInput()
+            ->with('error', __('m_tours.common.error_saving'));
+    }
+}
     /**
      * ============================================================
      * GUARDAR AMENIDADES (PASO 4)
@@ -985,71 +997,90 @@ public function showStep(Tour $tour, int $step)
      * 🔄 RENOMBRADO: savePrices → storePrices
      * ============================================================
      */
-    public function storePrices(Request $request, Tour $tour)
-    {
-        $data = $request->validate([
-            'prices'                => 'required|array',
-            'prices.*.category_id'  => 'required|exists:customer_categories,category_id',
-            'prices.*.price'        => 'required|numeric|min:0',
-            'prices.*.min_quantity' => 'nullable|integer|min:0',
-            'prices.*.max_quantity' => 'nullable|integer|min:0',
-            'prices.*.is_active'    => 'boolean',
-        ]);
+public function storePrices(Request $request, Tour $tour)
+{
+    $data = $request->validate([
+        'prices'                => 'required|array|min:1',
+        'prices.*.category_id'  => 'required|exists:customer_categories,category_id',
+        'prices.*.price'        => 'required|numeric|min:0',
+        'prices.*.min_quantity' => 'nullable|integer|min:0',
+        'prices.*.max_quantity' => 'nullable|integer|min:0',
+        'prices.*.is_active'    => 'boolean',
+    ], [
+        'prices.required' => __('m_tours.prices.validation.no_categories') ?? 'Debes agregar al menos una categoría de precio.',
+        'prices.min' => __('m_tours.prices.validation.no_categories') ?? 'Debes agregar al menos una categoría de precio.',
+        'prices.*.price.required' => __('m_tours.prices.validation.price_required') ?? 'El precio es obligatorio.',
+        'prices.*.price.min' => __('m_tours.prices.validation.price_min') ?? 'El precio debe ser mayor o igual a 0.',
+    ]);
 
-        $userId = optional($request->user())->user_id ?? $request->user()?->getAuthIdentifier();
+    $userId = optional($request->user())->user_id ?? $request->user()?->getAuthIdentifier();
 
-        DB::beginTransaction();
-        try {
-            // Eliminar precios existentes
-            $tour->prices()->delete();
+    // 🆕 VALIDACIÓN ADICIONAL: Al menos un precio debe ser mayor a 0
+    $hasPriceGreaterThanZero = collect($data['prices'])->some(function ($priceData) {
+        return isset($priceData['price']) && floatval($priceData['price']) > 0;
+    });
 
-            // Crear nuevos precios
-            foreach ($data['prices'] as $priceData) {
-                $tour->prices()->create([
-                    'category_id'  => $priceData['category_id'],
-                    'price'        => $priceData['price'],
-                    'min_quantity' => $priceData['min_quantity'] ?? 0,
-                    'max_quantity' => $priceData['max_quantity'] ?? 12,
-                    'is_active'    => $priceData['is_active'] ?? true,
-                ]);
-            }
-
-            // 🆕 Actualizar updated_by
-            $tour->update(['updated_by' => $userId]);
-
-            DB::commit();
-
-            LoggerHelper::mutated(
-                'TourWizardController',
-                'storePrices',
-                'tour',
-                $tour->tour_id ?? $tour->getKey(),
-                [
-                    'user_id' => $userId,
-                    'step'    => 5,
-                ]
-            );
-
-            return redirect()
-                ->route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 6])
-                ->with('success', __('m_tours.tour.wizard.prices_saved'));
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            LoggerHelper::exception(
-                'TourWizardController',
-                'storePrices',
-                'tour',
-                $tour->tour_id ?? $tour->getKey(),
-                $e,
-                ['user_id' => $userId]
-            );
-
-            report($e);
-            return back()->withInput()->with('error', __('m_tours.common.error_saving'));
-        }
+    if (!$hasPriceGreaterThanZero) {
+        return back()
+            ->withInput()
+            ->withErrors([
+                'prices' => __('m_tours.prices.validation.no_price_greater_zero') ?? 'Debe haber al menos una categoría con precio mayor a $0.00',
+            ]);
     }
+
+    DB::beginTransaction();
+    try {
+        // Eliminar precios existentes
+        $tour->prices()->delete();
+
+        // Crear nuevos precios
+        foreach ($data['prices'] as $priceData) {
+            $tour->prices()->create([
+                'category_id'  => $priceData['category_id'],
+                'price'        => $priceData['price'],
+                'min_quantity' => $priceData['min_quantity'] ?? 0,
+                'max_quantity' => $priceData['max_quantity'] ?? 12,
+                'is_active'    => $priceData['is_active'] ?? true,
+            ]);
+        }
+
+        // Actualizar updated_by
+        $tour->update(['updated_by' => $userId]);
+
+        DB::commit();
+
+        LoggerHelper::mutated(
+            'TourWizardController',
+            'storePrices',
+            'tour',
+            $tour->tour_id ?? $tour->getKey(),
+            [
+                'user_id'        => $userId,
+                'step'           => 5,
+                'prices_count'   => count($data['prices']),
+            ]
+        );
+
+        return redirect()
+            ->route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 6])
+            ->with('success', __('m_tours.tour.wizard.prices_saved'));
+
+    } catch (\Throwable $e) {
+        DB::rollBack();
+
+        LoggerHelper::exception(
+            'TourWizardController',
+            'storePrices',
+            'tour',
+            $tour->tour_id ?? $tour->getKey(),
+            $e,
+            ['user_id' => $userId]
+        );
+
+        report($e);
+        return back()->withInput()->with('error', __('m_tours.common.error_saving'));
+    }
+}
 
     /**
      * Publicar tour (finalizar wizard)

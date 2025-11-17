@@ -1012,9 +1012,31 @@
 
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const ITINERARY_DATA = @json($itineraryJson ?? []);
+
+    // ============================================================
+    // TRADUCCIONES
+    // ============================================================
+    const translations = {
+        cannotDelete: @json(__('m_tours.itinerary.ui.cannot_delete_item') ?? 'No se puede eliminar'),
+        minOneItem: @json(__('m_tours.itinerary.ui.min_one_item') ?? 'Debe existir al menos un item.'),
+        confirmDeleteTitle: @json(__('m_tours.common.confirm_delete_title') ?? '¿Eliminar este item?'),
+        confirmDeleteText: @json(__('m_tours.common.confirm_delete_text') ?? 'Esta acción no se puede deshacer'),
+        confirmDeleteButton: @json(__('m_tours.common.delete') ?? 'Sí, eliminar'),
+        cancelButton: @json(__('m_tours.common.cancel') ?? 'Cancelar'),
+        titleRequired: @json(__('validation.required', ['attribute' => __('m_tours.itinerary.fields.item_title')]) ?? 'El título es obligatorio'),
+        saving: @json(__('m_tours.common.saving') ?? 'Guardando...'),
+        itemAdded: @json(__('m_tours.itinerary.ui.item_added') ?? 'Item agregado'),
+        itemAddedSuccess: @json(__('m_tours.itinerary.ui.item_added_success') ?? 'El item se agregó correctamente al itinerario'),
+        itineraryNameRequired: @json(__('m_tours.itinerary.validation.name_required') ?? 'El nombre del itinerario es obligatorio'),
+        mustAddItems: @json(__('m_tours.itinerary.validation.must_add_items') ?? 'Debes agregar al menos un item al nuevo itinerario'),
+        validationTitle: @json(__('m_tours.itinerary.validation.title') ?? 'Validación de Itinerario'),
+        errorCreatingItem: @json(__('m_tours.itinerary.ui.error_creating_item') ?? 'Error de validación al crear el item.'),
+        networkError: @json(__('m_tours.common.network_error') ?? 'Error de red'),
+    };
 
     function openModal(modalId) {
         const modalEl = document.getElementById(modalId);
@@ -1094,7 +1116,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const container = document.getElementById('itinerary-items-container');
     const addNewBtn = document.getElementById('btn-add-new-itinerary-item');
-    const minItemsAlert = @json(__('m_tours.itinerary.ui.min_one_item') ?? 'Debe existir al menos un item.');
 
     function updateItemNumbersAndNames() {
         if (!container) return;
@@ -1169,13 +1190,32 @@ document.addEventListener('DOMContentLoaded', function () {
             if (removeBtn) {
                 const items = container.querySelectorAll('.itinerary-item');
                 if (items.length <= 1) {
-                    alert(minItemsAlert);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: translations.cannotDelete,
+                        text: translations.minOneItem,
+                        confirmButtonColor: '#38b2ac',
+                    });
                     return;
                 }
                 const card = removeBtn.closest('.itinerary-item');
                 if (!card) return;
-                card.remove();
-                updateItemNumbersAndNames();
+
+                Swal.fire({
+                    title: translations.confirmDeleteTitle,
+                    text: translations.confirmDeleteText,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#f56565',
+                    cancelButtonColor: '#4a5568',
+                    confirmButtonText: translations.confirmDeleteButton,
+                    cancelButtonText: translations.cancelButton
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        card.remove();
+                        updateItemNumbersAndNames();
+                    }
+                });
                 return;
             }
 
@@ -1217,6 +1257,17 @@ document.addEventListener('DOMContentLoaded', function () {
     if (formCreateItineraryItem && quickTitle && quickDescription) {
         formCreateItineraryItem.addEventListener('submit', function (e) {
             e.preventDefault();
+
+            // Validar título
+            if (!quickTitle.value.trim()) {
+                if (createItemModalErrors) {
+                    createItemModalErrors.classList.remove('d-none');
+                    createItemModalErrors.innerHTML = '<div>' + translations.titleRequired + '</div>';
+                }
+                quickTitle.focus();
+                return;
+            }
+
             const url = formCreateItineraryItem.action;
             const formData = new FormData(formCreateItineraryItem);
 
@@ -1225,12 +1276,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 createItemModalErrors.innerHTML = '';
             }
 
+            // Deshabilitar botón
+            const submitBtn = formCreateItineraryItem.querySelector('button[type="submit"]');
+            const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + translations.saving;
+            }
+
             fetch(url, {
                 method: 'POST',
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
             })
             .then(async (response) => {
+                // Re-habilitar botón
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                }
+
                 if (response.ok) return response.json();
                 if (response.status === 422) {
                     const data = await response.json();
@@ -1240,7 +1305,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             const msgs = Object.values(data.errors).flat();
                             createItemModalErrors.innerHTML = msgs.map(msg => '<div>' + msg + '</div>').join('');
                         } else {
-                            createItemModalErrors.innerHTML = '<div>{{ __('m_tours.itinerary.ui.error_creating_item') ?? 'Error de validación al crear el item.' }}</div>';
+                            createItemModalErrors.innerHTML = '<div>' + translations.errorCreatingItem + '</div>';
                         }
                     }
                     return null;
@@ -1258,11 +1323,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 quickTitle.value = '';
                 quickDescription.value = '';
                 closeModalAndCleanup('modalCreateItineraryItem');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: translations.itemAdded,
+                    text: translations.itemAddedSuccess,
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
             })
             .catch((err) => {
+                // Re-habilitar botón
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                }
+
                 if (createItemModalErrors) {
                     createItemModalErrors.classList.remove('d-none');
-                    createItemModalErrors.innerHTML = '<div>' + (err.message || 'Error de red') + '</div>';
+                    createItemModalErrors.innerHTML = '<div>' + (err.message || translations.networkError) + '</div>';
                 }
             });
         });
@@ -1296,8 +1375,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!newTitle) {
                 if (editErrors) {
                     editErrors.classList.remove('d-none');
-                    editErrors.innerHTML = '<div>{{ __('validation.required', ['attribute' => __('m_tours.itinerary.fields.item_title')]) }}</div>';
+                    editErrors.innerHTML = '<div>' + translations.titleRequired + '</div>';
                 }
+                editTitleInput.focus();
                 return;
             }
 
@@ -1321,6 +1401,80 @@ document.addEventListener('DOMContentLoaded', function () {
 
             closeModalAndCleanup('modalEditItineraryItem');
             currentEditingCard = null;
+        });
+    }
+
+    // ============================================================
+    // VALIDACIÓN DEL FORMULARIO PRINCIPAL
+    // ============================================================
+    const mainForm = document.getElementById('tour-itinerary-form');
+    const newItineraryNameInput = document.getElementById('new_itinerary_name');
+
+    if (mainForm) {
+        mainForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const selectedItineraryId = itinerarySelect ? itinerarySelect.value : '';
+            const isCreatingNew = !selectedItineraryId;
+
+            let errors = [];
+
+            // Validación 1: Si está creando nuevo itinerario, validar nombre
+            if (isCreatingNew) {
+                const newItineraryName = newItineraryNameInput ? newItineraryNameInput.value.trim() : '';
+
+                if (!newItineraryName) {
+                    errors.push(translations.itineraryNameRequired);
+                    if (newItineraryNameInput) {
+                        newItineraryNameInput.classList.add('is-invalid');
+                        newItineraryNameInput.focus();
+                    }
+                } else {
+                    if (newItineraryNameInput) {
+                        newItineraryNameInput.classList.remove('is-invalid');
+                    }
+                }
+
+                // Validación 2: Si está creando nuevo, debe tener al menos un item
+                const itemsCount = container ? container.querySelectorAll('.itinerary-item').length : 0;
+
+                if (itemsCount === 0) {
+                    errors.push(translations.mustAddItems);
+                    if (container) {
+                        container.style.border = '2px solid #f56565';
+                        setTimeout(() => {
+                            container.style.border = '2px dashed #4a5568';
+                        }, 3000);
+                    }
+                }
+            }
+
+            // Si hay errores, mostrarlos
+            if (errors.length > 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: translations.validationTitle,
+                    html: '<ul style="text-align: left;">' + errors.map(err => '<li>' + err + '</li>').join('') + '</ul>',
+                    confirmButtonColor: '#38b2ac',
+                });
+                return false;
+            }
+
+            // Si todo está bien, deshabilitar botón y enviar
+            const submitBtn = mainForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + translations.saving;
+            }
+
+            mainForm.submit();
+        });
+    }
+
+    // Limpiar error al escribir en el nombre del itinerario
+    if (newItineraryNameInput) {
+        newItineraryNameInput.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
         });
     }
 });
