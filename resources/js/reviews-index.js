@@ -25,18 +25,29 @@
     if (document.fonts?.ready) {
       document.fonts.ready.then(() => requestAnimationFrame(equalizeReviewTitles));
     } else {
-      window.addEventListener("load", () => requestAnimationFrame(equalizeReviewTitles), { once: true });
+      window.addEventListener(
+        "load",
+        () => requestAnimationFrame(equalizeReviewTitles),
+        { once: true }
+      );
     }
   }
   let _resizeTimer;
   window.addEventListener("resize", () => {
     clearTimeout(_resizeTimer);
-    _resizeTimer = setTimeout(() => { equalizeReviewTitles(); adjustAllTitles(); }, 150);
+    _resizeTimer = setTimeout(() => {
+      equalizeReviewTitles();
+      adjustAllTitles();
+    }, 150);
   });
 
   /* -------- Utils -------- */
   function getProvLabelFromSlide(slide) {
-    return slide.getAttribute("data-provider-label") || slide.getAttribute("data-prov-label") || "—";
+    return (
+      slide.getAttribute("data-provider-label") ||
+      slide.getAttribute("data-prov-label") ||
+      "—"
+    );
   }
 
   // clamp helper
@@ -98,31 +109,39 @@
 
   /* -------- Ajuste anti-overlap para tarjetas locales -------- */
   function adjustTitleLayoutFor(scope) {
-    const card  = (scope && (scope.closest?.(".hero-card") || scope)) || document;
+    const card = (scope && (scope.closest?.(".hero-card") || scope)) || document;
     const title = card.querySelector?.(".tour-title-abs");
     if (!title) return;
-    const who = card.querySelector?.(".who-when") || card.querySelector?.(".review-head") || card.querySelector?.(".review-meta");
+    const who =
+      card.querySelector?.(".who-when") ||
+      card.querySelector?.(".review-head") ||
+      card.querySelector?.(".review-meta");
 
     const cb = card.getBoundingClientRect();
-    const wb = who ? who.getBoundingClientRect() : { right: cb.left + cb.width * 0.32 };
-    let left = (wb.right - cb.left) + 8;
+    const wb = who
+      ? who.getBoundingClientRect()
+      : { right: cb.left + cb.width * 0.32 };
+    let left = wb.right - cb.left + 8;
     left = Math.max(left, cb.width * 0.34);
-    left = Math.min(left, cb.width * 0.70);
+    left = Math.min(left, cb.width * 0.7);
 
-    const vw = window.innerWidth || document.documentElement.clientWidth || 1024;
-    const lines = (vw <= 420) ? 4 : (vw < 768 ? 3 : 2);
+    const vw =
+      window.innerWidth || document.documentElement.clientWidth || 1024;
+    const lines = vw <= 420 ? 4 : vw < 768 ? 3 : 2;
 
-    card.style.setProperty("--title-left",  left + "px");
+    card.style.setProperty("--title-left", left + "px");
     card.style.setProperty("--title-lines", lines);
 
     requestAnimationFrame(() => {
       const h = title.scrollHeight;
-      card.style.setProperty("--title-h", (h + 6) + "px");
+      card.style.setProperty("--title-h", h + 6 + "px");
     });
   }
 
   function adjustAllTitles() {
-    document.querySelectorAll(".hero-card, .review-item").forEach(adjustTitleLayoutFor);
+    document
+      .querySelectorAll(".hero-card, .review-item")
+      .forEach(adjustTitleLayoutFor);
   }
 
   /* -------- Iframes -------- */
@@ -136,81 +155,113 @@
 
   function mountIframe(ifr) {
     if (!ifr || ifr.dataset.mounted === "1") return;
+
     const rawAttr = (ifr.getAttribute("data-src") || "").trim();
-    const src = rawAttr ? rawAttr.replace(/&amp;/g, "&").replace(/\s+/g, "") : "";
-    if (src) ifr.src = src;
+    const src = rawAttr
+      ? rawAttr.replace(/&amp;/g, "&").replace(/\s+/g, "")
+      : "";
+    if (src && !ifr.src) {
+      ifr.src = src;
+    }
     ifr.dataset.mounted = "1";
-    if (!ifr.dataset.uid) ifr.dataset.uid = "u" + Math.random().toString(36).slice(2, 10);
-    if (!ifr.classList.contains("review-embed")) ifr.classList.add("review-embed");
+    if (!ifr.dataset.uid)
+      ifr.dataset.uid = "u" + Math.random().toString(36).slice(2, 10);
+    if (!ifr.classList.contains("review-embed"))
+      ifr.classList.add("review-embed");
 
     const shell = ifr.closest(".iframe-shell");
     const skeleton = shell ? shell.querySelector(".iframe-skeleton") : null;
 
-    ifr.addEventListener("load", function(){
-      if (skeleton) skeleton.classList.add("is-hidden");
-      ifr.setAttribute("data-ready","1");
-      try { ifr.contentWindow?.postMessage({ type:"PING_HEIGHT", uid:ifr.dataset.uid }, "*"); } catch(e){}
-      setTimeout(() => { try { ifr.contentWindow?.postMessage({ type:"PING_HEIGHT", uid:ifr.dataset.uid }, "*"); } catch(e){} }, 250);
-    }, { once:true });
+    ifr.addEventListener(
+      "load",
+      function () {
+        if (skeleton) skeleton.classList.add("is-hidden");
+        ifr.setAttribute("data-ready", "1");
+        try {
+          ifr.contentWindow?.postMessage(
+            { type: "PING_HEIGHT", uid: ifr.dataset.uid },
+            "*"
+          );
+        } catch (e) {}
+        setTimeout(() => {
+          try {
+            ifr.contentWindow?.postMessage(
+              { type: "PING_HEIGHT", uid: ifr.dataset.uid },
+              "*"
+            );
+          } catch (e) {}
+        }, 250);
+      },
+      { once: true }
+    );
   }
 
   function observeAndMount() {
     const iframes = document.querySelectorAll("iframe.review-iframe");
     if (!iframes.length) return;
-    const vh = window.innerHeight || document.documentElement.clientHeight;
+    const vh =
+      window.innerHeight || document.documentElement.clientHeight;
 
     iframes.forEach((ifr) => {
       const rect = ifr.getBoundingClientRect();
-      const inView = rect.top < vh && rect.bottom > 0 && getComputedStyle(ifr).display !== "none";
+      const inView =
+        rect.top < vh &&
+        rect.bottom > 0 &&
+        getComputedStyle(ifr).display !== "none";
       if (inView) mountIframe(ifr);
     });
 
-    if (!("IntersectionObserver" in window)) { iframes.forEach(mountIframe); return; }
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => { if (entry.isIntersecting) { mountIframe(entry.target); io.unobserve(entry.target); } });
-    }, { root:null, rootMargin:"200px", threshold:0.01 });
+    if (!("IntersectionObserver" in window)) {
+      iframes.forEach(mountIframe);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            mountIframe(entry.target);
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { root: null, rootMargin: "200px", threshold: 0.01 }
+    );
     iframes.forEach((ifr) => io.observe(ifr));
   }
 
-  window.addEventListener("message", function onMessage(e){
-    const d = e.data || {};
-    if (!d) return;
-
-    const ifr = Array.from(document.querySelectorAll("iframe.review-iframe"))
-      .find(el => { try { return el.contentWindow === e.source; } catch(_) { return false; } });
-    if (!ifr) return;
-
-    const shell = ifr.closest(".iframe-shell");
-
-    if (d.type === "REVIEW_IFRAME_RESIZE" && typeof d.height === "number") {
-      _setShellAndIframeHeight(ifr, shell, d.height);
-      const sk = shell ? shell.querySelector(".iframe-skeleton") : null;
-      if (sk) sk.classList.add("is-hidden");
-      ifr.setAttribute("data-ready","1");
-    }
-
-    if (d.type === "REVIEW_IFRAME_READY") {
-      const sk = shell ? shell.querySelector(".iframe-skeleton") : null;
-      if (sk) sk.classList.add("is-hidden");
-      ifr.setAttribute("data-ready","1");
-    }
-  }, false);
-
   function advanceIframe(ifr, delta) {
     if (!ifr) return;
-    const limit = Math.max(1, parseInt(ifr.dataset.limit || "0", 10) || 8);
-    let nth = Math.max(1, parseInt(ifr.dataset.nth || "1", 10) || 1);
+    const limit = Math.max(
+      1,
+      parseInt(ifr.dataset.limit || "0", 10) || 8
+    );
+    let nth = Math.max(
+      1,
+      parseInt(ifr.dataset.nth || "1", 10) || 1
+    );
     nth = ((nth - 1 + delta) % limit + limit) % limit + 1;
-    const base = (ifr.getAttribute("data-src") || ifr.src || "").replace(/&amp;/g, "&").trim();
+
+    const base = (ifr.getAttribute("data-src") || ifr.src || "")
+      .replace(/&amp;/g, "&")
+      .trim();
     if (!base) return;
+
     const url = new URL(base, window.location.origin);
     url.searchParams.set("nth", String(nth));
-    url.searchParams.set("uid", "u" + Math.random().toString(36).slice(2, 10));
-    url.searchParams.set("r", Date.now().toString(36));
+    // mantenemos uid estable para este iframe; NO añadimos "r" para permitir cache HTTP
+    if (!url.searchParams.get("uid")) {
+      url.searchParams.set(
+        "uid",
+        ifr.dataset.uid ||
+          "u" + Math.random().toString(36).slice(2, 10)
+      );
+    }
     const next = url.pathname + "?" + url.searchParams.toString();
+
     ifr.setAttribute("data-src", next);
     ifr.dataset.nth = String(nth);
     ifr.dataset.mounted = "0";
+    // no tocamos el height ni nada, sólo recargamos a la nueva review
     ifr.removeAttribute("src");
     mountIframe(ifr);
   }
@@ -219,7 +270,17 @@
   function buildSegments(host, total, onJump) {
     // evita duplicar
     let bar = host.querySelector(":scope > .carousel-segments");
-    if (bar) return { bar, setActive: (i)=>{ bar.querySelectorAll(".carousel-segment").forEach((s,idx)=>s.classList.toggle("is-active", idx===i)); } };
+    if (bar)
+      return {
+        bar,
+        setActive: (i) => {
+          bar
+            .querySelectorAll(".carousel-segment")
+            .forEach((s, idx) =>
+              s.classList.toggle("is-active", idx === i)
+            );
+        },
+      };
 
     bar = document.createElement("div");
     bar.className = "carousel-segments";
@@ -250,11 +311,33 @@
 
     return {
       bar,
-      setActive(i){
-        segs.forEach((s,idx)=>s.classList.toggle("is-active", idx===i));
-        bar.setAttribute("data-current", `${i+1}/${total}`);
-      }
+      setActive(i) {
+        segs.forEach((s, idx) =>
+          s.classList.toggle("is-active", idx === i)
+        );
+        bar.setAttribute("data-current", `${i + 1}/${total}`);
+      },
     };
+  }
+
+  /* ======== Precarga de iframes remotos por tarjeta ======== */
+  function preloadRemoteSlides(slides, currentIndex) {
+    // Sólo slides con data-prov-key (remotos), excepto el visible
+    const remoteSlides = slides.filter((slide, idx) => {
+      const isRemote = slide.hasAttribute("data-prov-key");
+      return isRemote && idx !== currentIndex;
+    });
+
+    remoteSlides.forEach((slide, idx) => {
+      const delay = (idx + 1) * 300; // 300ms, 600ms, 900ms...
+      setTimeout(() => {
+        const ifr = slide.querySelector("iframe.review-iframe");
+        if (ifr) {
+          // Fuerza el montaje aun estando oculto → queda cacheado para cuando el usuario llegue
+          mountIframe(ifr);
+        }
+      }, delay);
+    });
   }
 
   /* -------- Carrusel simple (grid por tour) -------- */
@@ -268,20 +351,28 @@
 
     // ¿modo "múltiples slides" o "un iframe que rota nth"?
     const multipleSlides = slides.length > 1;
-    let idx = slides.findIndex(el => el.style.display !== "none");
+    let idx = slides.findIndex((el) => el.style.display !== "none");
     if (idx < 0) idx = 0;
 
     // Para iframe-only
     let iframeInfo = null;
     if (!multipleSlides) {
       const ifr = slides[0].querySelector("iframe.review-iframe");
-      const limit = Math.max(1, parseInt(ifr?.dataset.limit || "8", 10) || 8);
-      let nth = Math.max(1, parseInt(ifr?.dataset.nth || "1", 10) || 1);
+      const limit = Math.max(
+        1,
+        parseInt(ifr?.dataset.limit || "8", 10) || 8
+      );
+      let nth = Math.max(
+        1,
+        parseInt(ifr?.dataset.nth || "1", 10) || 1
+      );
       iframeInfo = { ifr, limit, nth };
     }
 
     // Segments
-    const totalSegments = multipleSlides ? slides.length : (iframeInfo?.limit || 1);
+    const totalSegments = multipleSlides
+      ? slides.length
+      : iframeInfo?.limit || 1;
     const { setActive } = buildSegments(carousel, totalSegments, (to) => {
       if (multipleSlides) {
         idx = to;
@@ -302,22 +393,28 @@
     }
 
     function renderSegmentsOnly() {
-      // actualizar segmento activo
-      const activeIndex = multipleSlides ? idx : ((iframeInfo?.nth || 1) - 1);
+      const activeIndex = multipleSlides
+        ? idx
+        : (iframeInfo?.nth || 1) - 1;
       setActive(activeIndex);
     }
 
     function render() {
       if (multipleSlides) {
-        slides.forEach((el, i) => (el.style.display = i === idx ? "" : "none"));
+        slides.forEach(
+          (el, i) => (el.style.display = i === idx ? "" : "none")
+        );
         const visible = slides[idx] || slides[0];
         setPoweredFromSlide(visible);
         ensureReadMore(visible);
         adjustTitleLayoutFor(visible);
         const ifr = visible.querySelector("iframe.review-iframe");
         if (ifr) mountIframe(ifr);
+
+        // 🔥 Pre-cargar de fondo los iframes remotos de las otras slides
+        preloadRemoteSlides(slides, idx);
       } else {
-        // solo iframe: asegurar montaje
+        // solo iframe: asegurar montaje del actual nth
         const ifr = iframeInfo?.ifr;
         if (ifr) mountIframe(ifr);
       }
@@ -326,85 +423,125 @@
     render();
 
     const tourId = carousel.dataset.tour;
-    const prev = document.querySelector(`.carousel-prev[data-tour="${tourId}"]`);
-    const next = document.querySelector(`.carousel-next[data-tour="${tourId}"]`);
+    const prev = document.querySelector(
+      `.carousel-prev[data-tour="${tourId}"]`
+    );
+    const next = document.querySelector(
+      `.carousel-next[data-tour="${tourId}"]`
+    );
 
-    if (prev) prev.addEventListener("click", () => {
-      if (multipleSlides) {
-        idx = (idx - 1 + slides.length) % slides.length;
-        render();
-      } else if (iframeInfo) {
-        iframeInfo.nth = ((iframeInfo.nth - 2 + iframeInfo.limit) % iframeInfo.limit) + 1;
-        if (iframeInfo.ifr) {
-          iframeInfo.ifr.dataset.nth = String(iframeInfo.nth);
-          advanceIframe(iframeInfo.ifr, 0);
+    if (prev)
+      prev.addEventListener("click", () => {
+        if (multipleSlides) {
+          idx = (idx - 1 + slides.length) % slides.length;
+          render();
+        } else if (iframeInfo) {
+          iframeInfo.nth =
+            ((iframeInfo.nth - 2 + iframeInfo.limit) %
+              iframeInfo.limit) +
+            1;
+          if (iframeInfo.ifr) {
+            iframeInfo.ifr.dataset.nth = String(iframeInfo.nth);
+            advanceIframe(iframeInfo.ifr, 0);
+          }
+          renderSegmentsOnly();
         }
-        renderSegmentsOnly();
-      }
-    });
+      });
 
-    if (next) next.addEventListener("click", () => {
-      if (multipleSlides) {
-        idx = (idx + 1) % slides.length;
-        render();
-      } else if (iframeInfo) {
-        iframeInfo.nth = (iframeInfo.nth % iframeInfo.limit) + 1;
-        if (iframeInfo.ifr) {
-          iframeInfo.ifr.dataset.nth = String(iframeInfo.nth);
-          advanceIframe(iframeInfo.ifr, 0);
+    if (next)
+      next.addEventListener("click", () => {
+        if (multipleSlides) {
+          idx = (idx + 1) % slides.length;
+          render();
+        } else if (iframeInfo) {
+          iframeInfo.nth =
+            (iframeInfo.nth % iframeInfo.limit) + 1;
+          if (iframeInfo.ifr) {
+            iframeInfo.ifr.dataset.nth = String(iframeInfo.nth);
+            advanceIframe(iframeInfo.ifr, 0);
+          }
+          renderSegmentsOnly();
         }
-        renderSegmentsOnly();
-      }
-    });
+      });
 
     window.addEventListener("resize", () => {
-      const visible = multipleSlides ? (slides[idx] || slides[0]) : slides[0];
+      const visible = multipleSlides
+        ? slides[idx] || slides[0]
+        : slides[0];
       ensureReadMore(visible);
       adjustTitleLayoutFor(visible);
     });
 
-    if (document.fonts?.ready) document.fonts.ready.then(() => {
-      const visible = multipleSlides ? (slides[idx] || slides[0]) : slides[0];
-      ensureReadMore(visible);
-      adjustTitleLayoutFor(visible);
-    });
+    if (document.fonts?.ready)
+      document.fonts.ready.then(() => {
+        const visible = multipleSlides
+          ? slides[idx] || slides[0]
+          : slides[0];
+        ensureReadMore(visible);
+        adjustTitleLayoutFor(visible);
+      });
   }
 
   /* -------- Start -------- */
   function start() {
-    document.querySelectorAll(".js-carousel").forEach(initCarousel);
+    document
+      .querySelectorAll(".js-carousel")
+      .forEach(initCarousel);
     observeAndMount();
     runEqualizeOnceReady();
     adjustAllTitles();
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", start);
+  else start();
 
   /* -------- Confirm abrir tour -------- */
   document.addEventListener("click", function (e) {
     const a = e.target.closest("a.tour-link");
     if (!a) return;
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+    if (
+      e.metaKey ||
+      e.ctrlKey ||
+      e.shiftKey ||
+      e.button === 1
+    )
+      return;
     e.preventDefault();
-    const href = a.getAttribute("href"); if (!href || href === "#") return;
+    const href = a.getAttribute("href");
+    if (!href || href === "#") return;
     const name = a.textContent.trim();
     if (window.Swal?.fire) {
       window.Swal.fire({
-        icon:"question",
-        title:TXT.swalTitle,
-        html:`${TXT.swalText} <strong>${escapeHtml(name)}</strong>.`,
-        showCancelButton:true,
-        confirmButtonText:TXT.swalOK,
-        cancelButtonText:TXT.swalCancel,
-        focusConfirm:true,
-      }).then((res)=>{ if(res.isConfirmed) window.location.assign(href); });
+        icon: "question",
+        title: TXT.swalTitle,
+        html: `${TXT.swalText} <strong>${escapeHtml(
+          name
+        )}</strong>.`,
+        showCancelButton: true,
+        confirmButtonText: TXT.swalOK,
+        cancelButtonText: TXT.swalCancel,
+        focusConfirm: true,
+      }).then((res) => {
+        if (res.isConfirmed) window.location.assign(href);
+      });
     } else {
-      if (confirm(`${TXT.swalTitle}\n\n${TXT.swalText} ${name ? `"${name}"` : ""}.`)) window.location.assign(href);
+      if (
+        confirm(
+          `${TXT.swalTitle}\n\n${TXT.swalText} ${
+            name ? `"${name}"` : ""
+          }.`
+        )
+      )
+        window.location.assign(href);
     }
   });
 
   function escapeHtml(str) {
     return String(str)
-      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">", "&gt;")
-      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 })();

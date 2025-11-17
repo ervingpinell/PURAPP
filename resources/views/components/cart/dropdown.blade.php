@@ -162,7 +162,7 @@
                   </div>
 
                   @if($itemCats->isNotEmpty())
-                    <ul class="mini-cart-cats">
+                    <div class="mini-cart-categories">
                       @foreach($itemCats as $c)
                         @php
                           $cid   = (int)($c['category_id'] ?? ($c['id'] ?? 0));
@@ -182,20 +182,10 @@
                           }
 
                           $cName  = $raw ?: ($fromMap ?: $fallbackSlug);
-                          $cQty   = (int)   ($c['quantity'] ?? 0);
-                          $cPrice = (float) ($c['price'] ?? 0);
-                          $cSub   = $cQty * $cPrice;
+                          $cQty   = (int) ($c['quantity'] ?? 0);
                         @endphp
-                        <li class="mini-cart-cat-row">
-                          <span class="mini-cart-cat-name">{{ $cName }}</span>
-                          <span class="mini-cart-cat-qty">x{{ $cQty }}</span>
-                          <span class="mini-cart-cat-price">${{ number_format($cPrice, 2) }}</span>
-                          <span class="mini-cart-cat-sub">=${{ number_format($cSub, 2) }}</span>
-                        </li>
+                        <span class="category-badge">{{ $cName }} x{{ $cQty }}</span>
                       @endforeach
-                    </ul>
-                    <div class="mini-cart-cat-total small text-muted">
-                      {{ trans_choice('adminlte::adminlte.persons.count', $pax, ['count' => $pax]) }}
                     </div>
                   @else
                     @php
@@ -204,8 +194,9 @@
                       $adultLabel = $adults === 1 ? __('adminlte::adminlte.adult') : __('adminlte::adminlte.adults');
                       $kidLabel   = $kids   === 1 ? __('adminlte::adminlte.kid')   : __('adminlte::adminlte.kids');
                     @endphp
-                    <div class="mini-cart-cat-total small text-muted">
-                      {{ $adults }} {{ $adultLabel }}@if($kids > 0) · {{ $kids }} {{ $kidLabel }}@endif
+                    <div class="mini-cart-categories">
+                      @if($adults > 0)<span class="category-badge">{{ $adultLabel }} x{{ $adults }}</span>@endif
+                      @if($kids > 0)<span class="category-badge">{{ $kidLabel }} x{{ $kids }}</span>@endif
                     </div>
                   @endif
                 </div>
@@ -261,6 +252,112 @@
 </div>
 
 @once
+  <style>
+    /* Category badges */
+    .mini-cart-categories {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .category-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #e9ecef;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      color: #495057;
+      white-space: nowrap;
+    }
+
+    /* Mobile optimizations */
+    @media (max-width: 576px) {
+      .mini-cart-menu-mobile {
+        max-width: 95vw !important;
+        min-width: 320px !important;
+      }
+
+      .mini-cart-item {
+        padding: 8px !important;
+        gap: 8px !important;
+      }
+
+      .mini-cart-img {
+        width: 50px !important;
+        height: 50px !important;
+        min-width: 50px !important;
+      }
+
+      .mini-cart-title {
+        font-size: 0.85rem !important;
+        line-height: 1.2 !important;
+        max-height: 2.4em !important;
+        -webkit-line-clamp: 2 !important;
+      }
+
+      .mini-cart-meta {
+        font-size: 0.7rem !important;
+        gap: 4px !important;
+        flex-wrap: wrap !important;
+      }
+
+      .mini-cart-meta i {
+        font-size: 0.65rem !important;
+      }
+
+      .mini-cart-price {
+        font-size: 0.9rem !important;
+        min-width: 70px !important;
+      }
+
+      .category-badge {
+        font-size: 0.7rem !important;
+        padding: 1px 6px !important;
+      }
+
+      .mini-cart-remove {
+        width: 20px !important;
+        height: 20px !important;
+        font-size: 0.7rem !important;
+      }
+
+      .mini-cart-timer-simple .timer-header {
+        padding: 8px 10px !important;
+      }
+
+      .timer-text {
+        font-size: 0.85rem !important;
+      }
+
+      .timer-extend-btn {
+        font-size: 0.75rem !important;
+        padding: 4px 8px !important;
+      }
+
+      .timer-extend-btn .btn-text {
+        display: none !important;
+      }
+
+      .timer-extend-btn i {
+        margin-right: 0 !important;
+      }
+
+      .mini-cart-total-label {
+        font-size: 0.85rem !important;
+      }
+
+      .mini-cart-total-amount {
+        font-size: 1.1rem !important;
+      }
+
+      .mini-cart-actions .btn {
+        font-size: 0.85rem !important;
+        padding: 8px 12px !important;
+      }
+    }
+  </style>
+
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     function askLoginWithSwal(e, loginUrl) {

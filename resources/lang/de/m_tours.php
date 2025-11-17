@@ -1,8 +1,18 @@
 <?php
 
 /*************************************************************
- *  MODUL FÜR ÜBERSETZUNGEN: TOURS
- *  Datei: resources/lang/de/m_tours.php
+ *  MÓDULO DE TRADUCCIONES: TOURS
+ *  Archivo: resources/lang/de/m_tours.php
+ *
+ *  Índice (sección y línea de inicio)
+ *  [01] COMMON           -> línea 23
+ *  [02] AMENITY          -> línea 31
+ *  [03] SCHEDULE         -> línea 106
+ *  [04] ITINERARY_ITEM   -> línea 218
+ *  [05] ITINERARY        -> línea 288
+ *  [06] LANGUAGE         -> línea 364
+ *  [07] TOUR             -> línea 453
+ *  [08] IMAGES           -> línea 579
  *************************************************************/
 
 return [
@@ -11,38 +21,59 @@ return [
     // [01] COMMON
     // =========================================================
     'common' => [
-        'success_title'      => 'Erfolg',
-        'error_title'        => 'Fehler',
-        'people'             => 'Personen',
-        'hours'              => 'Stunden',
-        'success'            => 'Erfolg',
-        'error'              => 'Fehler',
-        'cancel'             => 'Abbrechen',
-        'confirm_delete'     => 'Ja, löschen',
-        'unspecified'        => 'Ohne Angabe',
-        'no_description'     => 'Keine Beschreibung',
-        'required_fields_title' => 'Pflichtfelder',
-        'required_fields_text'  => 'Bitte fülle die Pflichtfelder aus: Name und maximale Kapazität',
-        'active'             => 'Aktiv',
-        'inactive'           => 'Inaktiv',
-        'notice'             => 'Hinweis',
-        'na'                 => 'Nicht konfiguriert',
-        'create'             => 'Erstellen',
+        'success_title' => 'Erfolg',
+        'error_title'   => 'Fehler',
+        'people' => 'Personen',
+        'hours' => 'Stunden',
+        'success' => 'Erfolg',
+        'error' => 'Fehler',
+        'cancel' => 'Abbrechen',
+        'confirm_delete' => 'Ja, löschen',
+        'unspecified' => 'Nicht angegeben',
+        'no_description' => 'Keine Beschreibung',
+        'required_fields_title' => 'Erforderliche Felder',
+        'required_fields_text' => 'Bitte füllen Sie die Pflichtfelder aus: Name und maximale Kapazität.',
+        'active' => 'Aktiv',
+        'inactive' => 'Inaktiv',
+        'notice' => 'Hinweis',
+        'na'    => 'Nicht konfiguriert',
+        'create' => 'Erstellen',
+        'previous' => 'Zurück',
         'info'               => 'Information',
         'close'              => 'Schließen',
+        'save'              => 'Speichern',
         'required'           => 'Dieses Feld ist erforderlich.',
         'add'                => 'Hinzufügen',
-        'translating'        => 'Wird übersetzt...',
+        'translating'        => 'Übersetze...',
         'error_translating'  => 'Der Text konnte nicht übersetzt werden.',
+        'confirm' => 'Bestätigen',
+        'yes' => 'Ja',
+        'form_errors_title' => 'Bitte korrigieren Sie die folgenden Fehler:',
+        'delete' => 'Löschen',
+        'delete_all' => 'Alle löschen',
+        'actions' => 'Aktionen',
+        'updated_at' => 'Letzte Aktualisierung',
+        'not_set' => 'Nicht angegeben',
+        'error_deleting' => 'Beim Löschen ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
+        'error_saving' => 'Beim Speichern ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
+        'crud_go_to_index' => ':element verwalten',
+        'validation_title' => 'Es liegen Validierungsfehler vor',
+        'ok'               => 'OK',
+        'confirm_delete_title' => 'Dieses Element löschen?',
+        'confirm_delete_text' => 'Diese Aktion kann nicht rückgängig gemacht werden.',
+        'saving' => 'Speichere...',
+        'network_error' => 'Netzwerkfehler',
     ],
 
     // =========================================================
     // [02] AMENITY
     // =========================================================
     'amenity' => [
+        'singular' => 'Ausstattung',
+        'plural'   => 'Ausstattungen',
         'fields' => [
             'name' => 'Name',
-            'icon' => 'Symbol (FontAwesome)',
+            'icon' => 'Icon (FontAwesome)',
         ],
 
         'status' => [
@@ -52,7 +83,7 @@ return [
 
         'ui' => [
             'page_title'    => 'Ausstattungen',
-            'page_heading'  => 'Verwaltung von Ausstattungen',
+            'page_heading'  => 'Verwaltung der Ausstattungen',
             'list_title'    => 'Liste der Ausstattungen',
 
             'add'            => 'Ausstattung hinzufügen',
@@ -66,9 +97,9 @@ return [
             'actions'        => 'Aktionen',
             'delete_forever' => 'Endgültig löschen',
 
-            'processing' => 'Wird verarbeitet...',
-            'applying'   => 'Wird angewendet...',
-            'deleting'   => 'Wird gelöscht...',
+            'processing' => 'Verarbeite...',
+            'applying'   => 'Wendet an...',
+            'deleting'   => 'Lösche...',
 
             'toggle_on'  => 'Ausstattung aktivieren',
             'toggle_off' => 'Ausstattung deaktivieren',
@@ -79,7 +110,7 @@ return [
             'toggle_confirm_off_html'  => 'Die Ausstattung <b>:label</b> wird deaktiviert.',
 
             'delete_confirm_title' => 'Endgültig löschen?',
-            'delete_confirm_html'  => '<b>:label</b> wird gelöscht und dies kann nicht rückgängig gemacht werden.',
+            'delete_confirm_html'  => '<b>:label</b> wird gelöscht und kann nicht rückgängig gemacht werden.',
 
             'yes_continue' => 'Ja, fortfahren',
             'yes_delete'   => 'Ja, löschen',
@@ -103,6 +134,7 @@ return [
         ],
 
         'validation' => [
+            'included_required' => 'Sie müssen mindestens eine inkludierte Ausstattung auswählen.',
             'name' => [
                 'title'    => 'Ungültiger Name',
                 'required' => 'Das Feld :attribute ist erforderlich.',
@@ -112,7 +144,25 @@ return [
         ],
 
         'hints' => [
-            'fontawesome' => 'Benutze FontAwesome-Klassen, z. B.: "fas fa-check".',
+            'fontawesome' => 'Verwenden Sie FontAwesome-Klassen, z. B.: "fas fa-check".',
+        ],
+        'quick_create' => [
+            'button'           => 'Neue Ausstattung',
+            'title'            => 'Schnelle Ausstattung erstellen',
+            'name_label'       => 'Name der Ausstattung',
+            'icon_label'       => 'Icon (optional)',
+            'icon_placeholder' => 'Z. B.: fas fa-utensils',
+            'icon_help'        => 'Verwenden Sie eine Icon-Klasse von Font Awesome oder lassen Sie das Feld leer.',
+            'save'             => 'Ausstattung speichern',
+            'cancel'           => 'Abbrechen',
+            'saving'           => 'Speichere...',
+            'error_generic'    => 'Die Ausstattung konnte nicht erstellt werden. Bitte versuchen Sie es erneut.',
+            'go_to_index'         => 'Alle anzeigen',
+            'go_to_index_title'   => 'Zur vollständigen Liste der Ausstattungen wechseln',
+            'success_title'       => 'Ausstattung erstellt',
+            'success_text'        => 'Die Ausstattung wurde zur Liste des Tours hinzugefügt.',
+            'error_title'         => 'Fehler beim Erstellen der Ausstattung',
+            'error_duplicate'     => 'Es gibt bereits eine Ausstattung mit diesem Namen.',
         ],
     ],
 
@@ -120,6 +170,8 @@ return [
     // [03] SCHEDULE
     // =========================================================
     'schedule' => [
+        'plural'       => 'Zeiten',
+        'singular'     => 'Zeit',
         'fields' => [
             'start_time'     => 'Beginn',
             'end_time'       => 'Ende',
@@ -135,8 +187,8 @@ return [
         ],
 
         'ui' => [
-            'page_title'        => 'Tourzeiten',
-            'page_heading'      => 'Verwaltung von Tourzeiten',
+            'page_title'        => 'Tour-Zeiten',
+            'page_heading'      => 'Verwaltung der Zeiten',
 
             'general_title'     => 'Allgemeine Zeiten',
             'new_schedule'      => 'Neue Zeit',
@@ -152,36 +204,36 @@ return [
             'assign'             => 'Zuweisen',
             'new_for_tour_title' => 'Neue Zeit für ":tour"',
 
-            'time_range'        => 'Zeitplan',
+            'time_range'        => 'Zeitspanne',
             'state'             => 'Status',
             'actions'           => 'Aktionen',
             'schedule_state'    => 'Zeit',
             'assignment_state'  => 'Zuweisung',
             'no_general'        => 'Es gibt keine allgemeinen Zeiten.',
             'no_tour_schedules' => 'Diese Tour hat noch keine Zeiten.',
-            'no_label'          => 'Ohne Bezeichnung',
+            'no_label'          => 'Keine Bezeichnung',
             'assigned_count'    => 'zugewiesene Zeit(en)',
 
             'toggle_global_title'     => 'Aktivieren/Deaktivieren (global)',
-            'toggle_global_on_title'  => 'Zeit (global) aktivieren?',
-            'toggle_global_off_title' => 'Zeit (global) deaktivieren?',
+            'toggle_global_on_title'  => 'Zeit global aktivieren?',
+            'toggle_global_off_title' => 'Zeit global deaktivieren?',
             'toggle_global_on_html'   => '<b>:label</b> wird für alle Touren aktiviert.',
             'toggle_global_off_html'  => '<b>:label</b> wird für alle Touren deaktiviert.',
 
-            'toggle_on_tour'          => 'Für diese Tour aktivieren',
-            'toggle_off_tour'         => 'Für diese Tour deaktivieren',
-            'toggle_assign_on_title'  => 'Für diese Tour aktivieren?',
-            'toggle_assign_off_title' => 'Für diese Tour deaktivieren?',
+            'toggle_on_tour'          => 'Auf dieser Tour aktivieren',
+            'toggle_off_tour'         => 'Auf dieser Tour deaktivieren',
+            'toggle_assign_on_title'  => 'Auf dieser Tour aktivieren?',
+            'toggle_assign_off_title' => 'Auf dieser Tour deaktivieren?',
             'toggle_assign_on_html'   => 'Die Zuweisung wird für <b>:tour</b> <b>aktiv</b> sein.',
             'toggle_assign_off_html'  => 'Die Zuweisung wird für <b>:tour</b> <b>inaktiv</b> sein.',
 
             'detach_from_tour'     => 'Von Tour entfernen',
-            'detach_confirm_title' => 'Von der Tour entfernen?',
+            'detach_confirm_title' => 'Von Tour entfernen?',
             'detach_confirm_html'  => 'Die Zeit wird von <b>:tour</b> <b>entfernt</b>.',
 
             'delete_forever'       => 'Löschen (global)',
             'delete_confirm_title' => 'Endgültig löschen?',
-            'delete_confirm_html'  => '<b>:label</b> (global) wird gelöscht und dies kann nicht rückgängig gemacht werden.',
+            'delete_confirm_html'  => '<b>:label</b> (global) wird gelöscht und kann nicht rückgängig gemacht werden.',
 
             'yes_continue' => 'Ja, fortfahren',
             'yes_delete'   => 'Ja, löschen',
@@ -190,30 +242,46 @@ return [
             'this_schedule' => 'diese Zeit',
             'this_tour'     => 'diese Tour',
 
-            'processing'     => 'Wird verarbeitet...',
-            'applying'       => 'Wird angewendet...',
-            'deleting'       => 'Wird gelöscht...',
-            'removing'       => 'Wird entfernt...',
-            'saving_changes' => 'Änderungen werden gespeichert...',
+            'processing'     => 'Verarbeite...',
+            'applying'       => 'Wendet an...',
+            'deleting'       => 'Lösche...',
+            'removing'       => 'Entferne...',
+            'saving_changes' => 'Speichere Änderungen...',
             'save'           => 'Speichern',
             'save_changes'   => 'Änderungen speichern',
             'cancel'         => 'Abbrechen',
 
-            'missing_fields_title' => 'Daten fehlen',
-            'missing_fields_text'  => 'Bitte prüfe die Pflichtfelder (Beginn, Ende und Kapazität).',
+            'missing_fields_title' => 'Fehlende Daten',
+            'missing_fields_text'  => 'Bitte prüfen Sie die Pflichtfelder (Beginn, Ende und Kapazität).',
             'could_not_save'       => 'Konnte nicht gespeichert werden',
+            'base_capacity_tour'             => 'Grundkapazität der Tour:',
+            'capacity_not_defined'           => 'Nicht definiert',
+            'capacity_optional'              => 'Kapazität (optional)',
+            'capacity_placeholder_with_value' => 'Z. B.: :capacity',
+            'capacity_placeholder_generic'   => 'Kapazität der Tour verwenden',
+            'capacity_hint_with_value'       => 'Leer lassen → :capacity',
+            'capacity_hint_generic'          => 'Leer lassen → Kapazität der Tour',
+            'tip_label'                      => 'Tipp:',
+            'capacity_tip'                   => 'Sie können die Kapazität leer lassen, damit das System die allgemeine Kapazität der Tour (:capacity) verwendet.',
+            'new_schedule_for_tour'            => 'Neue Zeit',
+            'modal_new_for_tour_title'         => 'Zeit für :tour erstellen',
+            'modal_save'                       => 'Zeit speichern',
+            'modal_cancel'                     => 'Abbrechen',
+            'capacity_modal_info_with_value'   => 'Die Grundkapazität der Tour beträgt :capacity. Wenn Sie das Kapazitätsfeld leer lassen, wird dieser Wert verwendet.',
+            'capacity_modal_info_generic'      => 'Wenn Sie das Kapazitätsfeld leer lassen, wird die allgemeine Kapazität der Tour verwendet, sofern definiert.',
         ],
 
         'success' => [
             'created'                => 'Zeit erfolgreich erstellt.',
             'updated'                => 'Zeit erfolgreich aktualisiert.',
-            'activated_global'       => 'Zeit erfolgreich aktiviert (global).',
-            'deactivated_global'     => 'Zeit erfolgreich deaktiviert (global).',
-            'attached'               => 'Zeit der Tour zugewiesen.',
-            'detached'               => 'Zeit erfolgreich von der Tour entfernt.',
+            'activated_global'       => 'Zeit erfolgreich global aktiviert.',
+            'deactivated_global'     => 'Zeit erfolgreich global deaktiviert.',
+            'attached'               => 'Zeit wurde der Tour zugewiesen.',
+            'detached'               => 'Zeit wurde erfolgreich von der Tour entfernt.',
             'assignment_activated'   => 'Zuweisung für diese Tour aktiviert.',
             'assignment_deactivated' => 'Zuweisung für diese Tour deaktiviert.',
             'deleted'                => 'Zeit erfolgreich gelöscht.',
+            'created_and_attached'   => 'Die Zeit wurde erstellt und der Tour erfolgreich zugewiesen.',
         ],
 
         'error' => [
@@ -228,7 +296,12 @@ return [
         ],
 
         'placeholders' => [
-            'morning' => 'z. B.: Morgen',
+            'morning' => 'Z. B.: Morgen',
+        ],
+        'validation' => [
+            'no_schedule_selected' => 'Sie müssen mindestens eine Zeit auswählen.',
+            'title' => 'Validierung der Zeiten',
+            'end_after_start' => 'Die Endzeit muss nach der Startzeit liegen.',
         ],
     ],
 
@@ -258,23 +331,23 @@ return [
             'actions'       => 'Aktionen',
             'see_more'      => 'Mehr anzeigen',
             'see_less'      => 'Weniger anzeigen',
-            'assigned_items'       => 'Dem Ablauf zugewiesene Elemente',
-            'drag_to_order'        => 'Ziehe die Elemente, um ihre Reihenfolge festzulegen.',
-            'pool_hint'            => 'Markiere die verfügbaren Elemente, die du in diesen Ablauf aufnehmen möchtest.',
-            'register_item_hint'   => 'Erstelle neue Elemente, wenn du zusätzliche Schritte benötigst, die es noch nicht gibt.',
+            'assigned_items'       => 'Dem Reiseplan zugewiesene Elemente',
+            'drag_to_order'        => 'Ziehen Sie die Elemente, um die Reihenfolge festzulegen.',
+            'pool_hint'            => 'Markieren Sie die verfügbaren Elemente, die Sie in diesen Reiseplan aufnehmen möchten.',
+            'register_item_hint'   => 'Registrieren Sie neue Elemente, wenn Sie zusätzliche Schritte benötigen, die noch nicht existieren.',
 
             'toggle_on'  => 'Element aktivieren',
             'toggle_off' => 'Element deaktivieren',
 
             'delete_forever'       => 'Endgültig löschen',
             'delete_confirm_title' => 'Endgültig löschen?',
-            'delete_confirm_html'  => '<b>:label</b> wird gelöscht und dies kann nicht rückgängig gemacht werden.',
+            'delete_confirm_html'  => '<b>:label</b> wird gelöscht und kann nicht rückgängig gemacht werden.',
             'yes_delete'           => 'Ja, löschen',
             'item_this'            => 'dieses Element',
 
-            'processing' => 'Wird verarbeitet...',
-            'applying'   => 'Wird angewendet...',
-            'deleting'   => 'Wird gelöscht...',
+            'processing' => 'Verarbeite...',
+            'applying'   => 'Wendet an...',
+            'deleting'   => 'Lösche...',
         ],
 
         'success' => [
@@ -310,6 +383,9 @@ return [
     // [05] ITINERARY
     // =========================================================
     'itinerary' => [
+        'plural'           => 'Reisepläne',
+        'singular'         => 'Reiseplan',
+
         'fields' => [
             'name'                 => 'Name des Reiseplans',
             'description'          => 'Beschreibung',
@@ -326,10 +402,18 @@ return [
 
         'ui' => [
             'page_title'    => 'Reisepläne und Elemente',
-            'page_heading'  => 'Reisepläne und Verwaltung von Elementen',
+            'page_heading'  => 'Reisepläne und Elementverwaltung',
             'new_itinerary' => 'Neuer Reiseplan',
-            'select_or_create_hint' => 'Wähle einen bestehenden Ablauf oder erstelle einen neuen für diese Tour.',
-            'save_changes'          => 'Speichere den Ablauf, um die Änderungen auf die Tour anzuwenden.',
+            'select_or_create_hint' => 'Wählen Sie einen vorhandenen Reiseplan oder erstellen Sie einen neuen für diese Tour.',
+            'save_changes'          => 'Speichern Sie den Reiseplan, um die Änderungen auf die Tour anzuwenden.',
+            'select_existing' => 'Bestehenden Reiseplan auswählen',
+            'create_new' => 'Neuen Reiseplan erstellen',
+            'add_item' => 'Element hinzufügen',
+            'min_one_item' => 'Der Reiseplan muss mindestens ein Element enthalten.',
+            'cannot_delete_item' => 'Kann nicht gelöscht werden',
+            'item_added' => 'Element hinzugefügt',
+            'item_added_success' => 'Das Element wurde erfolgreich zum Reiseplan hinzugefügt.',
+            'error_creating_item' => 'Validierungsfehler beim Erstellen des Elements.',
 
             'assign'        => 'Zuweisen',
             'edit'          => 'Bearbeiten',
@@ -348,25 +432,26 @@ return [
             'yes_continue' => 'Ja, fortfahren',
 
             'assign_title'          => 'Elemente :name zuweisen',
-            'drag_hint'             => 'Ziehe und lege die Elemente ab, um die Reihenfolge festzulegen.',
-            'drag_handle'           => 'Zum Neuordnen ziehen',
-            'select_one_title'      => 'Du musst mindestens ein Element auswählen',
-            'select_one_text'       => 'Bitte wähle mindestens ein Element aus, um fortzufahren.',
+            'drag_hint'             => 'Ziehen und ablegen, um die Reihenfolge der Elemente festzulegen.',
+            'drag_handle'           => 'Ziehen zum Neuordnen',
+            'select_one_title'      => 'Sie müssen mindestens ein Element auswählen',
+            'select_one_text'       => 'Bitte wählen Sie mindestens ein Element aus, um fortzufahren.',
             'assign_confirm_title'  => 'Ausgewählte Elemente zuweisen?',
             'assign_confirm_button' => 'Ja, zuweisen',
-            'assigning'             => 'Wird zugewiesen...',
+            'assigning'             => 'Weise zu...',
 
-            'no_items_assigned'       => 'Es sind keine Elemente diesem Reiseplan zugewiesen.',
+            'no_items_assigned'       => 'Diesem Reiseplan sind keine Elemente zugewiesen.',
             'itinerary_this'          => 'dieser Reiseplan',
-            'processing'              => 'Wird verarbeitet...',
-            'saving'                  => 'Wird gespeichert...',
-            'activating'              => 'Wird aktiviert...',
-            'deactivating'            => 'Wird deaktiviert...',
-            'applying'                => 'Wird angewendet...',
-            'deleting'                => 'Wird gelöscht...',
+            'processing'              => 'Verarbeite...',
+            'saving'                  => 'Speichere...',
+            'activating'              => 'Aktiviere...',
+            'deactivating'            => 'Deaktiviere...',
+            'applying'                => 'Wendet an...',
+            'deleting'                => 'Lösche...',
             'flash_success_title'     => 'Erfolg',
             'flash_error_title'       => 'Fehler',
             'validation_failed_title' => 'Konnte nicht verarbeitet werden',
+            'go_to_crud' => 'Zum Modul wechseln',
         ],
         'modal' => [
             'create_itinerary' => 'Reiseplan erstellen',
@@ -390,7 +475,9 @@ return [
         ],
 
         'validation' => [
-            'name_required' => 'Du musst einen Namen für den Reiseplan angeben.',
+            'name_required' => 'Sie müssen einen Namen für den Reiseplan angeben.',
+            'must_add_items' => 'Sie müssen dem neuen Reiseplan mindestens ein Element hinzufügen.',
+            'title' => 'Validierung des Reiseplans',
             'name' => [
                 'required' => 'Der Name des Reiseplans ist erforderlich.',
                 'string'   => 'Der Name muss Text sein.',
@@ -402,14 +489,17 @@ return [
                 'max'    => 'Die Beschreibung darf 1000 Zeichen nicht überschreiten.',
             ],
             'items' => [
-                'required'      => 'Du musst mindestens ein Element auswählen.',
+                'item' => 'Element',
+                'required'      => 'Sie müssen mindestens ein Element auswählen.',
                 'array'         => 'Das Format der Elemente ist ungültig.',
-                'min'           => 'Du musst mindestens ein Element auswählen.',
+                'min'           => 'Sie müssen mindestens ein Element auswählen.',
                 'order_integer' => 'Die Reihenfolge muss eine ganze Zahl sein.',
                 'order_min'     => 'Die Reihenfolge darf nicht negativ sein.',
                 'order_max'     => 'Die Reihenfolge darf 9999 nicht überschreiten.',
             ],
         ],
+        'item' => 'Element',
+        'items' => 'Elemente',
 
     ],
 
@@ -429,7 +519,7 @@ return [
 
         'ui' => [
             'page_title'   => 'Tour-Sprachen',
-            'page_heading' => 'Verwaltung von Sprachen',
+            'page_heading' => 'Sprachenverwaltung',
             'list_title'   => 'Sprachenliste',
 
             'table' => [
@@ -449,11 +539,11 @@ return [
             'actions'        => 'Aktionen',
             'delete_forever' => 'Endgültig löschen',
 
-            'processing'   => 'Wird verarbeitet...',
-            'saving'       => 'Wird gespeichert...',
-            'activating'   => 'Wird aktiviert...',
-            'deactivating' => 'Wird deaktiviert...',
-            'deleting'     => 'Wird gelöscht...',
+            'processing'   => 'Verarbeite...',
+            'saving'       => 'Speichere...',
+            'activating'   => 'Aktiviere...',
+            'deactivating' => 'Deaktiviere...',
+            'deleting'     => 'Lösche...',
 
             'toggle_on'  => 'Sprache aktivieren',
             'toggle_off' => 'Sprache deaktivieren',
@@ -511,6 +601,136 @@ return [
     // [07] TOUR
     // =========================================================
     'tour' => [
+
+        'validation' => [
+            // Mensajes generales
+            'required' => 'Dieses Feld ist erforderlich.',
+            'min' => 'Dieses Feld muss mindestens :min Zeichen haben.',
+            'max' => 'Dieses Feld darf :max Zeichen nicht überschreiten.',
+            'number' => 'Dieses Feld muss eine gültige Zahl sein.',
+            'slug' => 'Der Slug darf nur Kleinbuchstaben, Zahlen und Bindestriche enthalten.',
+            'color' => 'Bitte wählen Sie eine gültige Farbe aus.',
+            'select' => 'Bitte wählen Sie eine Option aus.',
+
+            // Mensajes específicos de campos
+            'length_in_hours' => 'Dauer in Stunden (z. B.: 2, 2.5, 4)',
+            'max_capacity_help' => 'Maximale Anzahl von Personen pro Tour',
+
+            // Formularios
+            'form_error_title' => 'Achtung!',
+            'form_error_message' => 'Bitte korrigieren Sie die Fehler im Formular, bevor Sie fortfahren.',
+            'saving' => 'Speichere...',
+
+            // Éxito
+            'success' => 'Erfolg!',
+            'tour_type_created' => 'Tourtyp erfolgreich erstellt.',
+            'language_created' => 'Sprache erfolgreich erstellt.',
+
+            // Errores
+            'tour_type_error' => 'Fehler beim Erstellen des Tourtyps.',
+            'language_error' => 'Fehler beim Erstellen der Sprache.',
+        ],
+
+        'wizard' => [
+            // Títulos generales
+            'create_new_tour' => 'Neue Tour erstellen',
+            'edit_tour' => 'Tour bearbeiten',
+            'step_number' => 'Schritt :number',
+            'edit_step' => 'Bearbeiten',
+            'leave_warning' => 'Sie haben ungespeicherte Änderungen an der Tour. Wenn Sie jetzt verlassen, bleibt der Entwurf in der Datenbank bestehen. Sind Sie sicher, dass Sie verlassen möchten?',
+            'cancel_title'   => 'Tour-Konfiguration abbrechen?',
+            'cancel_text'    => 'Wenn Sie diesen Assistenten verlassen, können Änderungen in diesem Schritt verloren gehen.',
+            'cancel_confirm' => 'Ja, Änderungen verwerfen',
+            'cancel_cancel'  => 'Nein, weiter bearbeiten',
+            'details_validation_text' => 'Bitte prüfen Sie die Pflichtfelder im Details-Formular, bevor Sie fortfahren.',
+            'most_recent'  => 'Neueste',
+            'last_modified'  => 'Zuletzt geändert',
+            'start_fresh'  => 'Neu beginnen',
+            'draft_details'  => 'Entwurfsdetails',
+            'drafts_found'  => 'Ein Entwurf wurde gefunden',
+            'basic_info'  => 'Details',
+
+            // Pasos del wizard
+            'steps' => [
+                'details' => 'Grundlegende Details',
+                'itinerary' => 'Reiseplan',
+                'schedules' => 'Zeiten',
+                'amenities' => 'Ausstattungen',
+                'prices' => 'Preise',
+                'summary' => 'Zusammenfassung',
+            ],
+
+            // Acciones
+            'save_and_continue' => 'Speichern und fortfahren',
+            'publish_tour' => 'Tour veröffentlichen',
+            'delete_draft' => 'Entwurf löschen',
+            'ready_to_publish' => 'Bereit zum Veröffentlichen?',
+
+            // Mensajes
+            'details_saved' => 'Details erfolgreich gespeichert.',
+            'itinerary_saved' => 'Reiseplan erfolgreich gespeichert.',
+            'schedules_saved' => 'Zeiten erfolgreich gespeichert.',
+            'amenities_saved' => 'Ausstattungen erfolgreich gespeichert.',
+            'prices_saved' => 'Preise erfolgreich gespeichert.',
+            'published_successfully' => 'Tour erfolgreich veröffentlicht!',
+            'draft_cancelled' => 'Entwurf gelöscht.',
+
+            // Estados
+            'draft_mode' => 'Entwurfsmodus',
+            'draft_explanation' => 'Diese Tour wird als Entwurf gespeichert, bis Sie alle Schritte abgeschlossen und sie veröffentlicht haben.',
+            'already_published' => 'Diese Tour wurde bereits veröffentlicht. Verwenden Sie den normalen Editor, um sie zu bearbeiten.',
+            'cannot_cancel_published' => 'Eine bereits veröffentlichte Tour kann nicht abgebrochen werden.',
+
+            // Confirmaciones
+            'confirm_cancel' => 'Sind Sie sicher, dass Sie abbrechen und diesen Entwurf löschen möchten?',
+
+            // Summary
+            'publish_explanation' => 'Überprüfen Sie alle Informationen, bevor Sie veröffentlichen. Nach der Veröffentlichung ist die Tour für Buchungen verfügbar.',
+            'can_edit_later' => 'Sie können die Tour nach der Veröffentlichung im Administrationsbereich bearbeiten.',
+            'incomplete_warning' => 'Einige Schritte sind unvollständig. Sie können trotzdem veröffentlichen, es wird jedoch empfohlen, alle Informationen zu vervollständigen.',
+
+            // Checklist
+            'checklist' => 'Checkliste',
+            'checklist_details' => 'Grundlegende Details abgeschlossen',
+            'checklist_itinerary' => 'Reiseplan konfiguriert',
+            'checklist_schedules' => 'Zeiten hinzugefügt',
+            'checklist_amenities' => 'Ausstattungen konfiguriert',
+            'checklist_prices' => 'Preise festgelegt',
+
+            // Hints
+            'hints' => [
+                'status' => 'Der Status kann nach der Veröffentlichung geändert werden.',
+            ],
+
+            // Modal de drafts existentes
+            'existing_drafts_title' => 'Sie haben unvollständige Tour-Entwürfe!',
+            'existing_drafts_message' => 'Wir haben :count Tour-Entwurf gefunden, den Sie noch nicht fertiggestellt haben.',
+            'current_step' => 'Aktueller Schritt',
+            'step' => 'Schritt',
+
+            // Acciones del modal
+            'continue_draft' => 'Mit diesem Entwurf fortfahren',
+            'delete_all_drafts' => 'Alle Entwürfe löschen',
+            'create_new_anyway' => 'Trotzdem neue Tour erstellen',
+
+            // Información adicional
+            'drafts_info' => 'Sie können einen bestehenden Entwurf weiter bearbeiten, ihn einzeln löschen, alle Entwürfe löschen oder eine neue Tour erstellen und die aktuellen Entwürfe ignorieren.',
+
+            // Confirmaciones de eliminación
+            'confirm_delete_title' => 'Diesen Entwurf löschen?',
+            'confirm_delete_message' => 'Diese Aktion kann nicht rückgängig gemacht werden. Der Entwurf wird dauerhaft gelöscht:',
+            'confirm_delete_all_title' => 'Alle Entwürfe löschen?',
+            'confirm_delete_all_message' => ':count Entwurf/Entwürfe werden dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.',
+
+            // Mensajes de éxito
+            'draft_deleted' => 'Entwurf erfolgreich gelöscht.',
+            'all_drafts_deleted' => ':count Entwurf/Entwürfe erfolgreich gelöscht.',
+            'continuing_draft' => 'Mit Ihrem Entwurf wird fortgefahren...',
+
+            // Mensajes de error
+            'not_a_draft' => 'Diese Tour ist kein Entwurf mehr und kann nicht über den Assistenten bearbeitet werden.',
+        ],
+
         'title' => 'Touren',
 
         'fields' => [
@@ -535,84 +755,86 @@ return [
             'group_size'    => 'Gruppengröße',
         ],
 
+
         'pricing' => [
+            'already_added' => 'Diese Kategorie wurde bereits hinzugefügt.',
             'configured_categories' => 'Konfigurierte Kategorien',
-            'create_category'       => 'Kategorie erstellen',
-            'note_title'            => 'Hinweis:',
-            'note_text'             => 'Definiere hier die Basispreise für jede Kundenkategorie.',
-            'manage_detailed_hint'  => 'Für eine detaillierte Verwaltung nutze oben die Schaltfläche "Detaillierte Preise verwalten".',
-            'price_usd'             => 'Preis (USD)',
-            'min_quantity'          => 'Mindestmenge',
-            'max_quantity'          => 'Höchstmenge',
-            'status'                => 'Status',
-            'active'                => 'Aktiv',
-            'no_categories'         => 'Es sind keine Kundenkategorien konfiguriert.',
-            'create_categories_first' => 'Zuerst Kategorien erstellen',
-            'page_title'            => 'Preise – :name',
-            'header_title'          => 'Preise: :name',
-            'back_to_tours'         => 'Zurück zu den Touren',
+            'create_category' => 'Kategorie erstellen',
+            'note_title'              => 'Hinweis:',
+            'note_text'               => 'Definieren Sie hier die Basispreise für jede Kundenkategorie.',
+            'manage_detailed_hint'    => 'Für eine detaillierte Verwaltung verwenden Sie oben die Schaltfläche „Detaillierte Preise verwalten“.',
+            'price_usd'               => 'Preis (USD)',
+            'min_quantity'            => 'Mindestmenge',
+            'max_quantity'            => 'Höchstmenge',
+            'status'                  => 'Status',
+            'active'                  => 'Aktiv',
+            'no_categories'           => 'Es sind keine Kundenkategorien konfiguriert.',
+            'create_categories_first' => 'Erstellen Sie zuerst Kategorien',
+            'page_title'         => 'Preise – :name',
+            'header_title'       => 'Preise: :name',
+            'back_to_tours'      => 'Zurück zu den Touren',
 
-            'configured_title'      => 'Konfigurierte Kategorien und Preise',
-            'empty_title'           => 'Es sind keine Kategorien für diese Tour konfiguriert.',
-            'empty_hint'            => 'Nutze das Formular rechts, um Kategorien hinzuzufügen.',
+            'configured_title'   => 'Konfigurierte Kategorien und Preise',
+            'empty_title'        => 'Für diese Tour sind keine Kategorien konfiguriert.',
+            'empty_hint'         => 'Verwenden Sie das Formular rechts, um Kategorien hinzuzufügen.',
 
-            'save_changes'          => 'Änderungen speichern',
-            'auto_disable_note'     => 'Preise von 0 $ werden automatisch deaktiviert',
+            'save_changes'       => 'Änderungen speichern',
+            'auto_disable_note'  => 'Preise von $0 werden automatisch deaktiviert.',
 
-            'add_category'          => 'Kategorie hinzufügen',
+            'add_category'       => 'Kategorie hinzufügen',
 
-            'all_assigned_title'    => 'Alle Kategorien sind zugewiesen',
-            'all_assigned_text'     => 'Es sind keine weiteren Kategorien für diese Tour verfügbar.',
+            'all_assigned_title' => 'Alle Kategorien sind zugewiesen',
+            'all_assigned_text'  => 'Es sind keine weiteren Kategorien für diese Tour verfügbar.',
 
-            'info_title'            => 'Informationen',
-            'tour_label'            => 'Tour',
-            'configured_count'      => 'Konfigurierte Kategorien',
-            'active_count'          => 'Aktive Kategorien',
+            'info_title'         => 'Informationen',
+            'tour_label'         => 'Tour',
+            'configured_count'   => 'Konfigurierte Kategorien',
+            'active_count'       => 'Aktive Kategorien',
 
-            'fields_title'          => 'Felder',
-            'rules_title'           => 'Regeln',
+            'fields_title'       => 'Felder',
+            'rules_title'        => 'Regeln',
 
-            'field_price'           => 'Preis',
-            'field_min'             => 'Minimum',
-            'field_max'             => 'Maximum',
-            'field_status'          => 'Status',
+            'field_price'        => 'Preis',
+            'field_min'          => 'Minimum',
+            'field_max'          => 'Maximum',
+            'field_status'       => 'Status',
 
-            'rule_min_le_max'       => 'Das Minimum muss kleiner oder gleich dem Maximum sein.',
-            'rule_zero_disable'     => 'Preise von 0 $ werden automatisch deaktiviert.',
-            'rule_only_active'      => 'Nur aktive Kategorien erscheinen auf der öffentlichen Website.',
+            'rule_min_le_max'    => 'Das Minimum muss kleiner oder gleich dem Maximum sein.',
+            'rule_zero_disable'  => 'Preise von $0 werden automatisch deaktiviert.',
+            'rule_only_active'   => 'Nur aktive Kategorien werden auf der öffentlichen Seite angezeigt.',
 
-            'status_active'         => 'Aktiv',
-            'add_existing_category'       => 'Bestehende Kategorie hinzufügen',
+            'status_active'      => 'Aktiv',
+            'add_existing_category'      => 'Bestehende Kategorie hinzufügen',
             'choose_category_placeholder' => 'Kategorie auswählen…',
-            'add_button'                  => 'Hinzufügen',
-            'add_existing_hint'           => 'Füge nur die benötigten Kundenkategorien für diese Tour hinzu.',
-            'remove_category'             => 'Kategorie entfernen',
-            'category_already_added'      => 'Diese Kategorie wurde der Tour bereits hinzugefügt.',
-            'no_prices_preview'           => 'Es sind noch keine Preise konfiguriert.',
+            'add_button'                 => 'Hinzufügen',
+            'add_existing_hint'          => 'Fügen Sie nur die Kundenkategorien hinzu, die für diese Tour benötigt werden.',
+            'remove_category'            => 'Kategorie entfernen',
+            'category_already_added'     => 'Diese Kategorie wurde der Tour bereits hinzugefügt.',
+            'no_prices_preview'          => 'Es sind noch keine Preise konfiguriert.',
+            'already_added'               => 'Diese Kategorie wurde bereits zur Tour hinzugefügt.',
         ],
-
         'modal' => [
             'create_category' => 'Kategorie erstellen',
 
             'fields' => [
-                'name'           => 'Name',
-                'age_from'       => 'Alter von',
-                'age_to'         => 'Alter bis',
-                'age_range'      => 'Altersbereich',
-                'min'            => 'Minimum',
-                'max'            => 'Maximum',
-                'order'          => 'Reihenfolge',
-                'is_active'      => 'Aktiv',
+                'name'          => 'Name',
+                'age_from'      => 'Alter von',
+                'age_to'        => 'Alter bis',
+                'age_range'     => 'Altersbereich',
+                'min'           => 'Minimum',
+                'max'           => 'Maximum',
+                'order'         => 'Reihenfolge',
+                'is_active'     => 'Aktiv',
                 'auto_translate' => 'Automatisch übersetzen',
             ],
 
             'placeholders' => [
-                'name'            => 'Z. B.: Erwachsener, Kind, Kleinkind',
-                'age_to_optional' => 'Leer lassen für "+"',
+                'name'              => 'Z. B.: Erwachsener, Kind, Kleinkind',
+                'age_to_optional'   => 'Leer lassen für „+“',
             ],
 
             'hints' => [
-                'age_to_empty_means_plus' => 'Wenn du das Höchstalter leer lässt, wird es als "+" interpretiert (z. B. 12+).',
+                'age_to_empty_means_plus' => 'Wenn Sie das Feld „Alter bis“ leer lassen, wird es als „+“ interpretiert (z. B. 12+).',
                 'min_le_max'              => 'Das Minimum muss kleiner oder gleich dem Maximum sein.',
             ],
 
@@ -623,7 +845,7 @@ return [
 
         'schedules_form' => [
             'available_title'        => 'Verfügbare Zeiten',
-            'select_hint'            => 'Wähle die Zeiten für diese Tour',
+            'select_hint'            => 'Wählen Sie die Zeiten für diese Tour aus.',
             'no_schedules'           => 'Es sind keine Zeiten verfügbar.',
             'create_schedules_link'  => 'Zeiten erstellen',
 
@@ -633,9 +855,9 @@ return [
 
             'info_title'             => 'Informationen',
             'schedules_title'        => 'Zeiten',
-            'schedules_text'         => 'Wähle eine oder mehrere Zeiten, in denen diese Tour verfügbar ist.',
+            'schedules_text'         => 'Wählen Sie eine oder mehrere Zeiten aus, zu denen diese Tour verfügbar sein wird.',
             'create_block_title'     => 'Neu erstellen',
-            'create_block_text'      => 'Wenn du eine Zeit benötigst, die es noch nicht gibt, kannst du sie hier erstellen, indem du das Kästchen „Diese Zeit erstellen und der Tour zuweisen“ aktivierst.',
+            'create_block_text'      => 'Wenn Sie eine Zeit benötigen, die noch nicht existiert, können Sie sie hier erstellen, indem Sie das Kontrollkästchen „Diese Zeit erstellen und der Tour zuweisen“ markieren.',
 
             'current_title'          => 'Aktuelle Zeiten',
             'none_assigned'          => 'Keine Zeiten zugewiesen',
@@ -643,8 +865,8 @@ return [
 
         'summary' => [
             'preview_title'        => 'Tour-Vorschau',
-            'preview_text_create'  => 'Überprüfe alle Informationen, bevor du die Tour erstellst.',
-            'preview_text_update'  => 'Überprüfe alle Informationen, bevor du die Tour aktualisierst.',
+            'preview_text_create'  => 'Überprüfen Sie alle Informationen, bevor Sie die Tour erstellen.',
+            'preview_text_update'  => 'Überprüfen Sie alle Informationen, bevor Sie die Tour aktualisieren.',
 
             'basic_details_title'  => 'Grundlegende Details',
             'description_title'    => 'Beschreibung',
@@ -657,34 +879,33 @@ return [
                 'category' => 'Kategorie',
                 'price'    => 'Preis',
                 'min_max'  => 'Min–Max',
+                'status'   => 'Status'
             ],
 
-            'not_specified'        => 'Ohne Angabe',
+            'not_specified'        => 'Nicht angegeben',
             'slug_autogenerated'   => 'Wird automatisch generiert',
             'no_description'       => 'Keine Beschreibung',
             'no_active_prices'     => 'Keine aktiven Preise konfiguriert',
             'no_languages'         => 'Keine Sprachen zugewiesen',
-            'none_included'        => 'Nichts als enthalten angegeben',
-            'none_excluded'        => 'Nichts als ausgeschlossen angegeben',
+            'none_included'        => 'Keine inkludierten Leistungen angegeben',
+            'none_excluded'        => 'Keine ausgeschlossenen Leistungen angegeben',
 
             'units' => [
                 'hours'  => 'Stunden',
                 'people' => 'Personen',
             ],
 
-            'create_note' => 'Zeiten, Preise, Sprachen und Ausstattungen werden hier angezeigt, nachdem die Tour gespeichert wurde.',
+            'create_note' => 'Zeiten, Preise, Sprachen und Ausstattungen werden hier angezeigt, nachdem Sie die Tour gespeichert haben.',
         ],
-
         'alerts' => [
             'delete_title' => 'Tour löschen?',
-            'delete_text'  => 'Die Tour wird in „Gelöscht“ verschoben. Du kannst sie später wiederherstellen.',
+            'delete_text'  => 'Die Tour wird in „Gelöscht“ verschoben. Sie können sie später wiederherstellen.',
             'purge_title'  => 'Endgültig löschen?',
-            'purge_text'   => 'Diese Aktion ist irreversibel.',
-            'purge_text_with_bookings' => 'Diese Tour hat :count Buchung(en). Sie werden nicht gelöscht, sondern bleiben ohne zugeordnete Tour.',
+            'purge_text'   => 'Diese Aktion ist unwiderruflich.',
+            'purge_text_with_bookings' => 'Diese Tour hat :count Buchung(en). Sie werden nicht gelöscht, bleiben aber ohne zugeordnete Tour.',
             'toggle_question_active'   => 'Tour deaktivieren?',
             'toggle_question_inactive' => 'Tour aktivieren?',
         ],
-
         'flash' => [
             'created'       => 'Tour erfolgreich erstellt.',
             'updated'       => 'Tour erfolgreich aktualisiert.',
@@ -715,7 +936,7 @@ return [
             'slug'          => 'URL',
             'prices'        => 'Preise',
             'capacity'      => 'Kapazität',
-            'group_size'    => 'Max. Gruppe',
+            'group_size'    => 'Max. Gruppe'
         ],
 
         'status' => [
@@ -723,13 +944,11 @@ return [
             'inactive' => 'Inaktiv',
             'archived' => 'Archiviert',
         ],
-
         'placeholders' => [
             'group_size' => 'Z. B.: 10',
         ],
-
         'hints' => [
-            'group_size' => 'Empfohlene Kapazität/Größe pro Gruppe für diese Tour.',
+            'group_size' => 'Gruppengröße pro Guide oder allgemein für diese Tour. (Diese Angabe wird in den Produktinformationen angezeigt.)',
         ],
 
         'success' => [
@@ -739,6 +958,7 @@ return [
             'toggled'     => 'Der Status der Tour wurde aktualisiert.',
             'activated'   => 'Tour erfolgreich aktiviert.',
             'deactivated' => 'Tour erfolgreich deaktiviert.',
+            // nuevos
             'archived'    => 'Tour erfolgreich archiviert.',
             'restored'    => 'Tour erfolgreich wiederhergestellt.',
             'purged'      => 'Tour dauerhaft gelöscht.',
@@ -750,14 +970,17 @@ return [
             'delete'    => 'Die Tour konnte nicht gelöscht werden.',
             'toggle'    => 'Der Status der Tour konnte nicht geändert werden.',
             'not_found' => 'Die Tour existiert nicht.',
+            // nuevos
             'restore'            => 'Die Tour konnte nicht wiederhergestellt werden.',
             'purge'              => 'Die Tour konnte nicht dauerhaft gelöscht werden.',
             'purge_has_bookings' => 'Dauerhaftes Löschen nicht möglich: Die Tour hat Buchungen.',
         ],
 
         'ui' => [
-            'page_title'       => 'Verwaltung von Touren',
-            'page_heading'     => 'Verwaltung von Touren',
+            'add_tour_type' => 'Tourtyp hinzufügen',
+            'back' => 'Zurück',
+            'page_title'       => 'Verwaltung der Touren',
+            'page_heading'     => 'Verwaltung der Touren',
             'create_title'     => 'Tour registrieren',
             'edit_title'       => 'Tour bearbeiten',
             'delete_title'     => 'Tour löschen',
@@ -770,64 +993,68 @@ return [
             'toggle_off'       => 'Deaktivieren',
             'toggle_on_title'  => 'Tour aktivieren?',
             'toggle_off_title' => 'Tour deaktivieren?',
-            'toggle_on_button'  => 'Ja, aktivieren',
+            'toggle_on_button' => 'Ja, aktivieren',
             'toggle_off_button' => 'Ja, deaktivieren',
             'see_more'         => 'Mehr anzeigen',
             'see_less'         => 'Weniger anzeigen',
             'load_more'        => 'Mehr laden',
-            'loading'          => 'Wird geladen...',
+            'loading'          => 'Lade...',
             'load_more_error'  => 'Weitere Touren konnten nicht geladen werden.',
             'confirm_title'    => 'Bestätigung',
-            'confirm_text'     => 'Möchtest du diese Aktion bestätigen?',
+            'confirm_text'     => 'Möchten Sie diese Aktion bestätigen?',
             'yes_confirm'      => 'Ja, bestätigen',
             'no_confirm'       => 'Nein, abbrechen',
             'add_tour'         => 'Tour hinzufügen',
             'edit_tour'        => 'Tour bearbeiten',
             'delete_tour'      => 'Tour löschen',
             'toggle_tour'      => 'Tour aktivieren/deaktivieren',
-            'view_cart'        => 'Warenkorb ansehen',
+            'view_cart'        => 'Warenkorb anzeigen',
             'add_to_cart'      => 'Zum Warenkorb hinzufügen',
-            'slug_help'        => 'Bezeichner der Tour in der URL (ohne Leerzeichen und Akzente)',
+            'slug_help'        => 'URL-Identifikator der Tour (ohne Leerzeichen und Akzente)',
             'generate_auto'       => 'Automatisch generieren',
             'slug_preview_label'  => 'Vorschau',
             'saved'               => 'Gespeichert',
-
+            // claves extra de UI (ya usadas en el Blade)
             'available_languages'    => 'Verfügbare Sprachen',
             'default_capacity'       => 'Standardkapazität',
             'create_new_schedules'   => 'Neue Zeiten erstellen',
-            'multiple_hint_ctrl_cmd' => 'Halte STRG/CMD gedrückt, um mehrere auszuwählen',
+            'multiple_hint_ctrl_cmd' => 'Strg/Cmd gedrückt halten, um mehrere auszuwählen.',
             'use_existing_schedules' => 'Bestehende Zeiten verwenden',
             'add_schedule'           => 'Zeit hinzufügen',
-            'schedules_title'        => 'Tourzeiten',
+            'schedules_title'        => 'Tour-Zeiten',
             'amenities_included'     => 'Inklusive Ausstattungen',
-            'amenities_excluded'     => 'Nicht enthaltene Ausstattungen',
-            'color'                  => 'Tourfarbe',
+            'amenities_excluded'     => 'Nicht inkludierte Ausstattungen',
+            'color'                  => 'Tour-Farbe',
             'remove'                 => 'Entfernen',
             'choose_itinerary'       => 'Reiseplan wählen',
             'select_type'            => 'Typ auswählen',
             'empty_means_default'    => 'Standard',
-            'actives'                => 'Aktive',
-            'inactives'              => 'Inaktive',
-            'archived'               => 'Archivierte',
-            'all'                    => 'Alle',
-            'help_title'             => 'Hilfe',
-            'amenities_included_hint' => 'Wähle aus, was in der Tour enthalten ist.',
-            'amenities_excluded_hint' => 'Wähle aus, was in der Tour NICHT enthalten ist.',
-            'help_included_title'     => 'Enthalten',
-            'help_included_text'      => 'Markiere alles, was im Tourpreis enthalten ist (Transport, Mahlzeiten, Eintrittsgelder, Ausrüstung, Guide usw.).',
-            'help_excluded_title'     => 'Nicht enthalten',
-            'help_excluded_text'      => 'Markiere alles, was der Kunde separat bezahlen oder mitbringen muss (Trinkgelder, alkoholische Getränke, Souvenirs usw.).',
-            'select_or_create_title' => 'Reiseplan wählen oder erstellen',
+            'actives'                 => 'Aktive',
+            'inactives'               => 'Inaktive',
+            'archived'                => 'Archivierte',
+            'all'                     => 'Alle',
+            'help_title'              => 'Hilfe',
+            'amenities_included_hint' => 'Wählen Sie aus, was in der Tour enthalten ist.',
+            'amenities_excluded_hint' => 'Wählen Sie aus, was in der Tour NICHT enthalten ist.',
+            'help_included_title'     => 'Inklusive',
+            'help_included_text'      => 'Markieren Sie alles, was im Tourpreis enthalten ist (Transport, Mahlzeiten, Eintrittsgelder, Ausrüstung, Guide usw.).',
+            'help_excluded_title'     => 'Nicht inklusive',
+            'help_excluded_text'      => 'Markieren Sie alles, was der Kunde separat bezahlen oder mitbringen muss (Trinkgelder, alkoholische Getränke, Souvenirs usw.).',
+            'select_or_create_title' => 'Reiseplan auswählen oder erstellen',
             'select_existing_items'  => 'Bestehende Elemente auswählen',
-            'name_hint'              => 'Identifizierender Name für diesen Reiseplan',
-            'click_add_item_hint'    => 'Klicke auf „Element hinzufügen“, um neue Elemente zu erstellen',
-            'scroll_hint'            => 'Horizontal scrollen, um mehr Spalten zu sehen',
-            'no_schedules'           => 'Keine Zeiten',
-            'no_prices'              => 'Keine Preise konfiguriert',
-            'edit'                   => 'Bearbeiten',
-            'slug_auto'              => 'Wird automatisch generiert',
-            'added_to_cart'          => 'Zum Warenkorb hinzugefügt',
-            'added_to_cart_text'     => 'Die Tour wurde erfolgreich zum Warenkorb hinzugefügt.',
+            'name_hint'              => 'Interner Name für diesen Reiseplan',
+            'click_add_item_hint'    => 'Klicken Sie auf „Element hinzufügen“, um neue Elemente zu erstellen.',
+            'scroll_hint' => 'Horizontal scrollen, um weitere Spalten zu sehen.',
+            'no_schedules' => 'Keine Zeiten',
+            'no_prices' => 'Keine Preise konfiguriert',
+            'edit' => 'Bearbeiten',
+            'slug_auto' => 'Wird automatisch generiert',
+            'added_to_cart' => 'Zum Warenkorb hinzugefügt',
+            'add_language' => 'Sprache hinzufügen',
+            'added_to_cart_text' => 'Die Tour wurde erfolgreich zum Warenkorb hinzugefügt.',
+            'amenities_excluded_auto_hint'    => 'Standardmäßig werden alle Ausstattungen, die Sie nicht als „inkludiert“ markiert haben, als „nicht inkludiert“ markiert. Sie können die Einträge anpassen.',
+            "quick_create_language_hint" => "Fügen Sie schnell eine neue Sprache hinzu, wenn sie nicht in der Liste erscheint.",
+            "quick_create_type_hint" => "Fügen Sie schnell einen neuen Tourtyp hinzu, wenn er nicht in der Liste erscheint.",
 
             'none' => [
                 'amenities'       => 'Keine Ausstattungen',
@@ -838,15 +1065,17 @@ return [
                 'schedules'       => 'Keine Zeiten',
             ],
 
+            // NUEVO: acciones de archivado/restauración/purga
             'archive' => 'Archivieren',
             'restore' => 'Wiederherstellen',
             'purge'   => 'Endgültig löschen',
 
             'confirm_archive_title' => 'Tour archivieren?',
-            'confirm_archive_text'  => 'Die Tour wird für neue Buchungen deaktiviert, aber bestehende Buchungen bleiben erhalten.',
+            'confirm_archive_text'  => 'Die Tour wird für neue Buchungen deaktiviert, bestehende Buchungen bleiben erhalten.',
             'confirm_purge_title'   => 'Endgültig löschen',
-            'confirm_purge_text'    => 'Diese Aktion ist irreversibel und nur erlaubt, wenn die Tour noch nie Buchungen hatte.',
+            'confirm_purge_text'    => 'Diese Aktion ist unwiderruflich und nur möglich, wenn die Tour nie Buchungen hatte.',
 
+            // Filtros de estado
             'filters' => [
                 'active'   => 'Aktive',
                 'inactive' => 'Inaktive',
@@ -854,8 +1083,9 @@ return [
                 'all'      => 'Alle',
             ],
 
-            'font_decrease_title' => 'Schriftgröße verkleinern',
-            'font_increase_title' => 'Schriftgröße vergrößern',
+            // Toolbar de fuente (usado en tourlist.blade.php)
+            'font_decrease_title' => 'Schriftgröße verringern',
+            'font_increase_title' => 'Schriftgröße erhöhen',
         ],
 
     ],
@@ -869,21 +1099,22 @@ return [
         'limit_reached_text'  => 'Das Bildlimit für diese Tour wurde erreicht.',
         'upload_success'      => 'Bilder erfolgreich hochgeladen.',
         'upload_none'         => 'Es wurden keine Bilder hochgeladen.',
-        'upload_truncated'    => 'Einige Dateien wurden aufgrund des Limits pro Tour ausgelassen.',
+        'upload_truncated'    => 'Einige Dateien wurden aufgrund des Tour-Limits ausgelassen.',
         'done'                => 'Fertig',
         'notice'              => 'Hinweis',
-        'saved'               => 'Speichern',
-        'caption_updated'     => 'Bildunterschrift erfolgreich aktualisiert.',
+        'saved'               => 'Gespeichert',
+        'caption_updated'     => 'Beschriftung erfolgreich aktualisiert.',
         'deleted'             => 'Gelöscht',
         'image_removed'       => 'Bild erfolgreich gelöscht.',
         'invalid_order'       => 'Ungültige Reihenfolge.',
         'nothing_to_reorder'  => 'Nichts zum Neuordnen.',
         'order_saved'         => 'Reihenfolge gespeichert.',
-        'cover_updated_title' => 'Titelfoto aktualisieren',
-        'cover_updated_text'  => 'Dieses Bild ist jetzt das Titelfoto.',
-        'deleting'            => 'Wird gelöscht...',
+        'cover_updated_title' => 'Titelbild aktualisieren',
+        'cover_updated_text'  => 'Dieses Bild ist jetzt das Titelbild.',
+        'deleting'            => 'Lösche...',
 
         'ui' => [
+            // Página de selección de tour
             'page_title_pick'     => 'Tour-Bilder',
             'page_heading'        => 'Tour-Bilder',
             'choose_tour'         => 'Tour auswählen',
@@ -891,79 +1122,92 @@ return [
             'search_button'       => 'Suchen',
             'no_results'          => 'Es wurden keine Touren gefunden.',
             'manage_images'       => 'Bilder verwalten',
-            'cover_alt'           => 'Titelfoto',
+            'cover_alt'           => 'Titelbild',
             'images_label'        => 'Bilder',
 
+            // Botones genéricos
             'upload_btn'          => 'Hochladen',
             'delete_btn'          => 'Löschen',
             'show_btn'            => 'Anzeigen',
             'close_btn'           => 'Schließen',
             'preview_title'       => 'Bildvorschau',
 
+            // Textos generales de estado
             'error_title'         => 'Fehler',
             'warning_title'       => 'Achtung',
             'success_title'       => 'Erfolg',
             'cancel_btn'          => 'Abbrechen',
 
+            // Confirmaciones básicas
             'confirm_delete_title' => 'Dieses Bild löschen?',
             'confirm_delete_text'  => 'Diese Aktion kann nicht rückgängig gemacht werden.',
 
-            'cover_current_title'    => 'Aktuelles Titelfoto',
-            'upload_new_cover_title' => 'Neues Titelfoto hochladen',
-            'cover_file_label'       => 'Titelfoto-Datei',
+            // Gestión de portada por formulario clásico
+            'cover_current_title'    => 'Aktuelles Titelbild',
+            'upload_new_cover_title' => 'Neues Titelbild hochladen',
+            'cover_file_label'       => 'Titelbild-Datei',
             'file_help_cover'        => 'JPEG/PNG/WebP, max. 30 MB.',
             'id_label'               => 'ID',
 
+            // Navegación / cabecera en vista de un tour
             'back_btn'          => 'Zurück zur Liste',
 
+            // Stats (barra superior)
             'stats_images'      => 'Hochgeladene Bilder',
-            'stats_cover'       => 'Definierte Titelfotos',
+            'stats_cover'       => 'Definierte Titelbilder',
             'stats_selected'    => 'Ausgewählt',
 
-            'drag_or_click'     => 'Ziehe deine Bilder hierher oder klicke, um sie auszuwählen.',
-            'upload_help'       => 'Erlaubte Formate: JPG, PNG, WebP. Maximale Gesamtgröße 100 MB.',
+            // Zona de subida
+            'drag_or_click'     => 'Ziehen Sie Ihre Bilder hierher oder klicken Sie, um auszuwählen.',
+            'upload_help'       => 'Erlaubte Formate: JPG, PNG, WebP. Gesamte Maximalgröße 100 MB.',
             'select_btn'        => 'Dateien auswählen',
             'limit_badge'       => 'Limit von :max Bildern erreicht',
             'files_word'        => 'Dateien',
 
+            // Toolbar de selección múltiple
             'select_all'        => 'Alle auswählen',
             'delete_selected'   => 'Ausgewählte löschen',
             'delete_all'        => 'Alle löschen',
 
+            // Selector por imagen (chip)
             'select_image_title' => 'Dieses Bild auswählen',
             'select_image_aria'  => 'Bild :id auswählen',
 
-            'cover_label'       => 'Titelfoto',
-            'cover_btn'         => 'Als Titelfoto festlegen',
+            // Portada (chip / botón por tarjeta)
+            'cover_label'       => 'Titelbild',
+            'cover_btn'         => 'Als Titelbild festlegen',
 
-            'caption_placeholder' => 'Bildunterschrift (optional)',
-            'saving_label'        => 'Wird gespeichert…',
-            'saving_fallback'     => 'Wird gespeichert…',
-            'none_label'          => 'Keine Bildunterschrift',
+            // Estados de guardado / helpers JS
+            'caption_placeholder' => 'Beschriftung (optional)',
+            'saving_label'        => 'Speichere…',
+            'saving_fallback'     => 'Speichere…',
+            'none_label'          => 'Keine Beschriftung',
             'limit_word'          => 'Limit',
 
-            'confirm_set_cover_title' => 'Als Titelfoto festlegen?',
-            'confirm_set_cover_text'  => 'Dieses Bild wird das Haupttitelfoto der Tour.',
+            // Confirmaciones avanzadas (JS)
+            'confirm_set_cover_title' => 'Als Titelbild festlegen?',
+            'confirm_set_cover_text'  => 'Dieses Bild wird das Haupttitelbild der Tour.',
             'confirm_btn'             => 'Ja, fortfahren',
 
             'confirm_bulk_delete_title' => 'Ausgewählte Bilder löschen?',
-            'confirm_bulk_delete_text'  => 'Die ausgewählten Bilder werden endgültig gelöscht.',
+            'confirm_bulk_delete_text'  => 'Die ausgewählten Bilder werden dauerhaft gelöscht.',
 
             'confirm_delete_all_title'  => 'Alle Bilder löschen?',
             'confirm_delete_all_text'   => 'Alle Bilder dieser Tour werden gelöscht.',
 
-            'no_images'           => 'Es gibt noch keine Bilder für diese Tour.',
+            // Vista sin imágenes
+            'no_images'           => 'Für diese Tour sind noch keine Bilder vorhanden.',
         ],
 
         'errors' => [
-            'validation'     => 'Die gesendeten Daten sind ungültig.',
+            'validation'     => 'Die übermittelten Daten sind ungültig.',
             'upload_generic' => 'Einige Bilder konnten nicht hochgeladen werden.',
-            'update_caption' => 'Die Bildunterschrift konnte nicht aktualisiert werden.',
+            'update_caption' => 'Die Beschriftung konnte nicht aktualisiert werden.',
             'delete'         => 'Das Bild konnte nicht gelöscht werden.',
             'reorder'        => 'Die Reihenfolge konnte nicht gespeichert werden.',
-            'set_cover'      => 'Das Titelfoto konnte nicht festgelegt werden.',
+            'set_cover'      => 'Das Titelbild konnte nicht festgelegt werden.',
             'load_list'      => 'Die Liste konnte nicht geladen werden.',
-            'too_large'      => 'Die Datei überschreitet die maximal zulässige Größe. Bitte verwende ein kleineres Bild.',
+            'too_large'      => 'Die Datei überschreitet die maximal zulässige Größe. Bitte verwenden Sie ein kleineres Bild.',
         ],
     ],
 
@@ -974,11 +1218,11 @@ return [
             'back_to_tours'      => 'Zurück zu den Touren',
 
             'configured_title'   => 'Konfigurierte Kategorien und Preise',
-            'empty_title'        => 'Es sind keine Kategorien für diese Tour konfiguriert.',
-            'empty_hint'         => 'Nutze das Formular rechts, um Kategorien hinzuzufügen.',
+            'empty_title'        => 'Für diese Tour sind keine Kategorien konfiguriert.',
+            'empty_hint'         => 'Verwenden Sie das Formular rechts, um Kategorien hinzuzufügen.',
 
             'save_changes'       => 'Änderungen speichern',
-            'auto_disable_note'  => 'Preise von 0 $ werden automatisch deaktiviert',
+            'auto_disable_note'  => 'Preise von $0 werden automatisch deaktiviert.',
 
             'add_category'       => 'Kategorie hinzufügen',
 
@@ -999,8 +1243,8 @@ return [
             'field_status'       => 'Status',
 
             'rule_min_le_max'    => 'Das Minimum muss kleiner oder gleich dem Maximum sein.',
-            'rule_zero_disable'  => 'Preise von 0 $ werden automatisch deaktiviert.',
-            'rule_only_active'   => 'Nur aktive Kategorien erscheinen auf der öffentlichen Website.',
+            'rule_zero_disable'  => 'Preise von $0 werden automatisch deaktiviert.',
+            'rule_only_active'   => 'Nur aktive Kategorien werden auf der öffentlichen Seite angezeigt.',
         ],
 
         'table' => [
@@ -1016,60 +1260,92 @@ return [
         ],
 
         'forms' => [
-            'select_placeholder'   => '-- Auswählen --',
-            'category'             => 'Kategorie',
-            'price_usd'            => 'Preis (USD)',
-            'min'                  => 'Minimum',
-            'max'                  => 'Maximum',
-            'create_disabled_hint' => 'Wenn der Preis 0 $ beträgt, wird die Kategorie deaktiviert erstellt',
-            'add'                  => 'Hinzufügen',
+            'select_placeholder'  => '-- Auswählen --',
+            'category'            => 'Kategorie',
+            'price_usd'           => 'Preis (USD)',
+            'min'                 => 'Minimum',
+            'max'                 => 'Maximum',
+            'create_disabled_hint' => 'Wenn der Preis $0 ist, wird die Kategorie deaktiviert erstellt.',
+            'add'                 => 'Hinzufügen',
         ],
 
         'modal' => [
             'delete_title'   => 'Kategorie löschen',
-            'delete_text'    => 'Diese Kategorie für diese Tour löschen?',
+            'delete_text'    => 'Diese Kategorie von dieser Tour entfernen?',
             'cancel'         => 'Abbrechen',
             'delete'         => 'Löschen',
             'delete_tooltip' => 'Kategorie löschen',
         ],
 
         'flash' => [
-            'success' => 'Operation erfolgreich durchgeführt.',
+            'success' => 'Vorgang erfolgreich abgeschlossen.',
             'error'   => 'Es ist ein Fehler aufgetreten.',
         ],
 
         'js' => [
             'max_ge_min'            => 'Das Maximum muss größer oder gleich dem Minimum sein.',
-            'auto_disabled_tooltip' => 'Preis 0 $ – automatisch deaktiviert',
-            'fix_errors'            => 'Bitte korrigiere die Minimal- und Maximalmengen.',
+            'auto_disabled_tooltip' => 'Preis $0 – automatisch deaktiviert',
+            'fix_errors'            => 'Bitte korrigieren Sie die Minimal- und Maximalwerte.',
+        ],
+        'quick_category' => [
+            'title'                 => 'Schnelle Kategorie erstellen',
+            'button'                => 'Neue Kategorie',
+            'go_to_index'           => 'Alle Kategorien anzeigen',
+            'go_to_index_title'     => 'Komplette Kategorienliste öffnen',
+            'name_label'            => 'Name der Kategorie',
+            'age_from'              => 'Alter von',
+            'age_to'                => 'Alter bis',
+            'save'                  => 'Kategorie speichern',
+            'cancel'                => 'Abbrechen',
+            'saving'                => 'Speichere...',
+            'success_title'         => 'Kategorie erstellt',
+            'success_text'          => 'Die Kategorie wurde erfolgreich erstellt und der Tour hinzugefügt.',
+            'error_title'           => 'Fehler',
+            'error_generic'         => 'Beim Erstellen der Kategorie ist ein Problem aufgetreten.',
+            'created_ok'            => 'Kategorie erfolgreich erstellt.',
+        ],
+
+        'validation' => [
+            'title' => 'Preisvalidierung',
+            'no_categories' => 'Sie müssen mindestens eine Preiskategorie hinzufügen.',
+            'no_price_greater_zero' => 'Es muss mindestens eine Kategorie mit einem Preis größer als $0,00 geben.',
+            'price_required' => 'Der Preis ist erforderlich.',
+            'price_min' => 'Der Preis muss größer oder gleich 0 sein.',
+            'age_to_greater_equal' => 'Das Feld „Alter bis“ muss größer oder gleich dem Feld „Alter von“ sein.',
         ],
     ],
 
     'ajax' => [
-        'category_created' => 'Kategorie erfolgreich erstellt',
-        'category_error'   => 'Fehler beim Erstellen der Kategorie',
-        'language_created' => 'Sprache erfolgreich erstellt',
-        'language_error'   => 'Fehler beim Erstellen der Sprache',
-        'amenity_created'  => 'Ausstattung erfolgreich erstellt',
-        'amenity_error'    => 'Fehler beim Erstellen der Ausstattung',
-        'schedule_created' => 'Zeit erfolgreich erstellt',
-        'schedule_error'   => 'Fehler beim Erstellen der Zeit',
-        'itinerary_created' => 'Reiseplan erfolgreich erstellt',
-        'itinerary_error'   => 'Fehler beim Erstellen des Reiseplans',
-        'translation_error' => 'Fehler beim Übersetzen',
+        'category_created' => 'Kategorie erfolgreich erstellt.',
+        'category_error' => 'Fehler beim Erstellen der Kategorie.',
+        'language_created' => 'Sprache erfolgreich erstellt.',
+        'language_error' => 'Fehler beim Erstellen der Sprache.',
+        'amenity_created' => 'Ausstattung erfolgreich erstellt.',
+        'amenity_error' => 'Fehler beim Erstellen der Ausstattung.',
+        'schedule_created' => 'Zeit erfolgreich erstellt.',
+        'schedule_error' => 'Fehler beim Erstellen der Zeit.',
+        'itinerary_created' => 'Reiseplan erfolgreich erstellt.',
+        'itinerary_error' => 'Fehler beim Erstellen des Reiseplans.',
+        'translation_error' => 'Fehler bei der Übersetzung.',
     ],
 
     'modal' => [
-        'create_category'  => 'Neue Kategorie erstellen',
-        'create_language'  => 'Neue Sprache erstellen',
-        'create_amenity'   => 'Neue Ausstattung erstellen',
-        'create_schedule'  => 'Neue Zeit erstellen',
+        'create_category' => 'Neue Kategorie erstellen',
+        'create_language' => 'Neue Sprache erstellen',
+        'create_amenity' => 'Neue Ausstattung erstellen',
+        'create_schedule' => 'Neue Zeit erstellen',
         'create_itinerary' => 'Neuen Reiseplan erstellen',
     ],
 
     'validation' => [
-        'slug_taken'     => 'Dieser Slug wird bereits verwendet',
-        'slug_available' => 'Slug verfügbar',
+        'slug_taken' => 'Dieser Slug wird bereits verwendet.',
+        'slug_available' => 'Slug verfügbar.',
     ],
-
+    'tour_type' => [
+        'fields' => [
+            'name' => 'Name',
+            'description' => 'Beschreibung',
+            'status' => 'Status',
+        ],
+    ],
 ];
