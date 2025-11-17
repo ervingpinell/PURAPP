@@ -171,75 +171,156 @@ public function edit(Tour $tour)
      * ELIMINAR DRAFT ESPECÍFICO
      * ============================================================
      */
-    public function deleteDraft(Tour $tour)
-    {
-        $userId = optional(auth()->user())->user_id ?? auth()->id();
+public function deleteDraft(Tour $tour)
+{
+    $userId = optional(auth()->user())->user_id ?? auth()->id();
 
-        // Verificar que sea draft
-        if (!$tour->is_draft) {
-            return redirect()
-                ->route('admin.tours.index')
-                ->with('error', __('m_tours.tour.wizard.not_a_draft'));
-        }
+    // 🔍 LOG DE ENTRADA
+    LoggerHelper::info(
+        'TourWizardController',
+        'deleteDraft',
+        'Entrada a deleteDraft desde UI',
+        [
+            'tour_route_param_id' => $tour->tour_id ?? $tour->getKey(),
+            'tour_slug'           => $tour->slug ?? null,
+            'is_draft'            => $tour->is_draft,
+            'created_by'          => $tour->created_by,
+            'user_id'             => $userId,
+            'http_method'         => request()->method(),
+            'route_name'          => optional(request()->route())->getName(),
+            'full_url'            => request()->fullUrl(),
+            'referer'             => request()->headers->get('referer'),
+        ]
+    );
 
-        // 🆕 VERIFICAR PROPIEDAD (seguridad)
-        if ($tour->created_by && $tour->created_by !== $userId) {
-            abort(403, 'No autorizado para eliminar este borrador');
-        }
+    // Verificar que sea draft
+    if (!$tour->is_draft) {
+        LoggerHelper::info(
+            'TourWizardController',
+            'deleteDraft',
+            'Intento de borrar tour que no es borrador',
+            [
+                'tour_id' => $tour->tour_id ?? $tour->getKey(),
+                'user_id' => $userId,
+            ]
+        );
 
-        DB::beginTransaction();
-        try {
-            $tourId = $tour->tour_id;
-            $tourName = $tour->name;
+        return redirect()
+            ->route('admin.tours.index')
+            ->with('error', __('m_tours.tour.wizard.not_a_draft'));
+    }
 
-            // Eliminar relaciones
-            $tour->languages()->detach();
-            $tour->amenities()->detach();
-            $tour->excludedAmenities()->detach();
-            $tour->schedules()->detach();
-            $tour->prices()->delete();
+    // Verificar propiedad (seguridad)
+    if ($tour->created_by && $tour->created_by !== $userId) {
+        LoggerHelper::info(
+            'TourWizardController',
+            'deleteDraft',
+            'Usuario no autorizado para eliminar este borrador',
+            [
+                'tour_id'      => $tour->tour_id ?? $tour->getKey(),
+                'created_by'   => $tour->created_by,
+                'current_user' => $userId,
+            ]
+        );
 
-            if ($tour->itinerary_id && $tour->itinerary) {
-                $tour->itinerary->delete();
-            }
+        abort(403, 'No autorizado para eliminar este borrador');
+    }
 
-            $tour->forceDelete();
+    DB::beginTransaction();
+    try {
+        $tourId   = $tour->tour_id;
+        $tourName = $tour->name;
 
-            // 🆕 LOG DE AUDITORÍA
-            TourAuditLog::logAction(
-                action: 'draft_deleted',
-                tourId: $tourId,
-                description: "Borrador '{$tourName}' eliminado por el usuario",
-                context: 'wizard',
-                tags: ['draft', 'deleted', 'user-action']
-            );
+        LoggerHelper::info(
+            'TourWizardController',
+            'deleteDraft',
+            'Comenzando eliminación de borrador y relaciones',
+            [
+                'tour_id'       => $tourId,
+                'user_id'       => $userId,
+                'has_itinerary' => (bool) $tour->itinerary_id,
+            ]
+        );
 
-            DB::commit();
+        // Eliminar relaciones
+        $tour->languages()->detach();
+        $tour->amenities()->detach();
+        $tour->excludedAmenities()->detach();
+        $tour->schedules()->detach();
+        $tour->prices()->delete();
 
-            LoggerHelper::mutated(
+        if ($tour->itinerary_id && $tour->itinerary) {
+            LoggerHelper::info(
                 'TourWizardController',
                 'deleteDraft',
-                'tour',
-                $tourId,
+                'Eliminando itinerario asociado al borrador',
                 [
-                    'user_id' => $userId,
-                    'action'  => 'draft_deleted',
+                    'tour_id'      => $tourId,
+                    'itinerary_id' => $tour->itinerary_id,
                 ]
             );
 
-            return redirect()
-                ->route('admin.tours.wizard.create')
-                ->with('success', __('m_tours.tour.wizard.draft_deleted'));
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            LoggerHelper::exception('TourWizardController', 'deleteDraft', 'tour', $tour->tour_id, $e, ['user_id' => $userId]);
-            report($e);
-            return redirect()
-                ->route('admin.tours.wizard.create')
-                ->with('error', __('m_tours.common.error_deleting'));
+            $tour->itinerary->delete();
         }
+
+        LoggerHelper::info(
+            'TourWizardController',
+            'deleteDraft',
+            'Ejecutando forceDelete del tour borrador SIN eventos',
+            [
+                'tour_id' => $tourId,
+                'user_id' => $userId,
+            ]
+        );
+
+        // 🔧 CLAVE: evitar que el trait Auditable dispare auditDeleted
+        // y trate de insertar en tour_audit_logs después de borrar el tour.
+        \App\Models\Tour::withoutEvents(function () use ($tour) {
+            $tour->forceDelete();
+        });
+
+        DB::commit();
+
+        LoggerHelper::mutated(
+            'TourWizardController',
+            'deleteDraft',
+            'tour',
+            $tourId,
+            [
+                'user_id' => $userId,
+                'action'  => 'draft_deleted',
+                'note'    => 'Borrador eliminado con forceDelete sin eventos Eloquent',
+            ]
+        );
+
+        return redirect()
+            ->route('admin.tours.wizard.create')
+            ->with('success', __('m_tours.tour.wizard.draft_deleted'));
+
+    } catch (\Throwable $e) {
+        DB::rollBack();
+
+        LoggerHelper::exception(
+            'TourWizardController',
+            'deleteDraft',
+            'tour',
+            $tour->tour_id ?? $tour->getKey(),
+            $e,
+            [
+                'user_id'    => $userId,
+                'route_name' => optional(request()->route())->getName(),
+                'full_url'   => request()->fullUrl(),
+            ]
+        );
+
+        report($e);
+
+        return redirect()
+            ->route('admin.tours.wizard.create')
+            ->with('error', __('m_tours.common.error_deleting'));
     }
+}
+
 
     /**
      * ============================================================

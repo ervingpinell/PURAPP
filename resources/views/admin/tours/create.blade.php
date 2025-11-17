@@ -133,28 +133,34 @@
             </div>
           </div>
 
-          <div class="modal-footer d-flex justify-content-around" style="background:#020617; border-top:1px solid #1f2937;">
-            {{-- Botón Eliminar Borrador --}}
-            @if($mainDraft)
-              <button type="button"
-                      class="btn btn-danger flex-fill mx-2"
-                      id="deleteMainDraft"
-                      data-draft-id="{{ $mainDraft->tour_id }}"
-                      data-draft-name="{{ $mainDraft->name }}">
-                <i class="fas fa-trash-alt"></i>
-                {{ __('m_tours.tour.wizard.delete_draft') }}
-              </button>
-            @endif
+<div class="modal-footer d-flex justify-content-around" style="background:#020617; border-top:1px solid #1f2937;">
+  {{-- Botón Regresar al Index --}}
+  <a href="{{ route('admin.tours.index') }}" class="btn btn-secondary flex-fill mx-2">
+    <i class="fas fa-arrow-left"></i>
+    {{ __('m_tours.tour.ui.back_to_list') }}
+  </a>
 
-            {{-- Botón Continuar Draft --}}
-            @if($mainDraft)
-              <a href="{{ route('admin.tours.wizard.continue', $mainDraft) }}"
-                 class="btn btn-success flex-fill mx-2">
-                <i class="fas fa-play"></i>
-                {{ __('m_tours.tour.wizard.continue_draft') }}
-              </a>
-            @endif
-          </div>
+  {{-- Botón Eliminar Borrador --}}
+  @if($mainDraft)
+    <button type="button"
+            class="btn btn-danger flex-fill mx-2"
+            id="deleteMainDraft"
+            data-draft-id="{{ $mainDraft->tour_id }}"
+            data-draft-name="{{ $mainDraft->name }}">
+      <i class="fas fa-trash-alt"></i>
+      {{ __('m_tours.tour.wizard.delete_draft') }}
+    </button>
+  @endif
+
+  {{-- Botón Continuar Draft --}}
+  @if($mainDraft)
+    <a href="{{ route('admin.tours.wizard.continue', $mainDraft) }}"
+       class="btn btn-success flex-fill mx-2">
+      <i class="fas fa-play"></i>
+      {{ __('m_tours.tour.wizard.continue_draft') }}
+    </a>
+  @endif
+</div>
         </div>
       </div>
     </div>

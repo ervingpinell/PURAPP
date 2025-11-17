@@ -57,6 +57,8 @@ return [
         'error_deleting' => 'Ocurrió un error al eliminar. Por favor intenta de nuevo.',
         'error_saving' => 'Ocurrió un error al guardar. Por favor intenta de nuevo.',
         'crud_go_to_index' => 'Administrar :element',
+        'validation_title' => 'Hay errores de validación',
+        'ok'               => 'Aceptar',
 
     ],
 
@@ -64,8 +66,8 @@ return [
     // [02] AMENITY
     // =========================================================
     'amenity' => [
-    'singular' => 'amenidad',
-    'plural'   => 'amenidades',
+        'singular' => 'amenidad',
+        'plural'   => 'amenidades',
         'fields' => [
             'name' => 'Nombre',
             'icon' => 'Ícono (FontAwesome)',
@@ -130,6 +132,7 @@ return [
         ],
 
         'validation' => [
+            'included_required' => 'Debes seleccionar al menos una amenidad incluida.',
             'name' => [
                 'title'    => 'Nombre inválido',
                 'required' => 'El :attribute es obligatorio.',
@@ -372,8 +375,8 @@ return [
     // [05] ITINERARY
     // =========================================================
     'itinerary' => [
-                    'plural'           => 'Itinerarios',
-            'singular'     => 'Itinerario',
+        'plural'           => 'Itinerarios',
+        'singular'     => 'Itinerario',
 
         'fields' => [
             'name'                 => 'Nombre del itinerario',
@@ -587,6 +590,35 @@ return [
     // =========================================================
     'tour' => [
 
+        'validation' => [
+            // Mensajes generales
+            'required' => 'Este campo es obligatorio.',
+            'min' => 'Este campo debe tener al menos :min caracteres.',
+            'max' => 'Este campo no puede exceder :max caracteres.',
+            'number' => 'Este campo debe ser un número válido.',
+            'slug' => 'El slug solo puede contener letras minúsculas, números y guiones.',
+            'color' => 'Por favor selecciona un color válido.',
+            'select' => 'Por favor selecciona una opción.',
+
+            // Mensajes específicos de campos
+            'length_in_hours' => 'Duración en horas (ej: 2, 2.5, 4)',
+            'max_capacity_help' => 'Número máximo de personas por tour',
+
+            // Formularios
+            'form_error_title' => '¡Atención!',
+            'form_error_message' => 'Por favor corrige los errores en el formulario antes de continuar.',
+            'saving' => 'Guardando...',
+
+            // Éxito
+            'success' => '¡Éxito!',
+            'tour_type_created' => 'Tipo de tour creado exitosamente.',
+            'language_created' => 'Idioma creado exitosamente.',
+
+            // Errores
+            'tour_type_error' => 'Error al crear el tipo de tour.',
+            'language_error' => 'Error al crear el idioma.',
+        ],
+
         'wizard' => [
             // Títulos generales
             'create_new_tour' => 'Crear Nuevo Tour',
@@ -594,6 +626,17 @@ return [
             'step_number' => 'Paso :number',
             'edit_step' => 'Editar',
             'leave_warning' => 'Tienes cambios sin guardar en el tour. Si sales ahora, el borrador quedará en la base de datos. ¿Seguro que deseas salir?',
+            'cancel_title'   => '¿Cancelar la configuración del tour?',
+            'cancel_text'    => 'Si sales de este asistente, podrías perder cambios no guardados en este paso.',
+            'cancel_confirm' => 'Sí, descartar cambios',
+            'cancel_cancel'  => 'No, seguir editando',
+            'details_validation_text' => 'Revisa los campos obligatorios del formulario de detalles antes de continuar.',
+            'most_recent'  => 'Más reciente',
+            'last_modified'  => 'Última modificación',
+            'start_fresh'  => 'Empezar nuevamente',
+            'draft_details'  => 'Detalles del borrador',
+            'drafts_found'  => 'Se ha encontrado un borrador',
+            'basic_info'  => 'Detalles',
 
             // Pasos del wizard
             'steps' => [
@@ -649,7 +692,7 @@ return [
 
             // Modal de drafts existentes
             'existing_drafts_title' => '¡Tienes tours en borrador sin terminar!',
-            'existing_drafts_message' => 'Encontramos :count tour(es) en borrador que no has completado.',
+            'existing_drafts_message' => 'Encontramos :count tour en borrador que no has completado.',
             'current_step' => 'Paso Actual',
             'step' => 'Paso',
 
@@ -894,7 +937,7 @@ return [
             'group_size' => 'Ej: 10',
         ],
         'hints' => [
-            'group_size' => 'Capacidad/grupo recomendada para este tour.',
+            'group_size' => 'Tamaño del grupo por cada guía o general para este tour. (Este dato se muestra en la información del producto',
         ],
 
         'success' => [
@@ -996,7 +1039,7 @@ return [
             'edit' => 'Editar',
             'slug_auto' => 'Se generará automáticamente',
             'added_to_cart' => 'Añadido al carrito',
-                        'add_language' => 'Añadir idioma',
+            'add_language' => 'Añadir idioma',
             'added_to_cart_text' => 'El tour se agregó al carrito correctamente.',
             'amenities_excluded_auto_hint'    => 'Por defecto marcamos como “no incluidas” todas las amenidades que no seleccionaste como incluidas. Podés desmarcar las que no aplican al tour.',
             "quick_create_language_hint" => "Agrega un nuevo idioma rápidamente si no aparece en la lista.",
@@ -1280,13 +1323,13 @@ return [
         'slug_taken' => 'Este slug ya está en uso',
         'slug_available' => 'Slug disponible',
     ],
-'tour_type' => [
+    'tour_type' => [
         'fields' => [
-        'name' => 'Nombre',
-        'description' => 'Descripción',
-        'status' => 'Estado',
+            'name' => 'Nombre',
+            'description' => 'Descripción',
+            'status' => 'Estado',
 
         ],
 
-],
+    ],
 ];

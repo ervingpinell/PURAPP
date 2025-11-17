@@ -43,7 +43,9 @@
 
         <div class="js-carousel" data-tour="{{ $tour->tour_id }}">
           @php
-            $hasMixed = isset($tour->slides) && $tour->slides instanceof \Illuminate\Support\Collection && $tour->slides->count() > 0;
+            $hasMixed = isset($tour->slides)
+              && $tour->slides instanceof \Illuminate\Support\Collection
+              && $tour->slides->count() > 0;
           @endphp
 
           @if($hasMixed)
@@ -85,7 +87,7 @@
                         <iframe
                           class="review-iframe"
                           title="Review"
-                          loading="lazy"
+                          {{-- Carga controlada por JS (mountIframe + precarga), por eso sin loading="lazy" --}}
                           referrerpolicy="no-referrer"
                           scrolling="no"
                           data-limit="{{ $limitForIframe }}"
@@ -101,8 +103,12 @@
 
             <div class="powered-by js-powered"></div>
             <div class="carousel-buttons-row">
-              <button class="carousel-prev"  data-tour="{{ $tour->tour_id }}" aria-label="{{ __('reviews.previous_review') }}">❮</button>
-              <button class="carousel-next"  data-tour="{{ $tour->tour_id }}" aria-label="{{ __('reviews.next_review') }}">❯</button>
+              <button class="carousel-prev"
+                      data-tour="{{ $tour->tour_id }}"
+                      aria-label="{{ __('reviews.previous_review') }}">❮</button>
+              <button class="carousel-next"
+                      data-tour="{{ $tour->tour_id }}"
+                      aria-label="{{ __('reviews.next_review') }}">❯</button>
             </div>
 
           @else
@@ -121,8 +127,12 @@
 
               <div class="powered-by js-powered"></div>
               <div class="carousel-buttons-row">
-                <button class="carousel-prev" data-tour="{{ $tour->tour_id }}" aria-label="{{ __('reviews.previous_review') }}">❮</button>
-                <button class="carousel-next" data-tour="{{ $tour->tour_id }}" aria-label="{{ __('reviews.next_review') }}">❯</button>
+                <button class="carousel-prev"
+                        data-tour="{{ $tour->tour_id }}"
+                        aria-label="{{ __('reviews.previous_review') }}">❮</button>
+                <button class="carousel-next"
+                        data-tour="{{ $tour->tour_id }}"
+                        aria-label="{{ __('reviews.next_review') }}">❯</button>
               </div>
 
             @elseif(!empty($tour->needs_iframe))
@@ -152,7 +162,6 @@
                       <iframe
                         class="review-iframe"
                         title="Review"
-                        loading="lazy"
                         referrerpolicy="no-referrer"
                         scrolling="no"
                         data-limit="{{ max(8, $poolLimit) }}"
@@ -166,8 +175,12 @@
 
               <div class="powered-by js-powered"></div>
               <div class="carousel-buttons-row">
-                <button class="carousel-prev" data-tour="{{ $tour->tour_id }}" aria-label="{{ __('reviews.previous_review') }}">❮</button>
-                <button class="carousel-next" data-tour="{{ $tour->tour_id }}" aria-label="{{ __('reviews.next_review') }}">❯</button>
+                <button class="carousel-prev"
+                        data-tour="{{ $tour->tour_id }}"
+                        aria-label="{{ __('reviews.previous_review') }}">❮</button>
+                <button class="carousel-next"
+                        data-tour="{{ $tour->tour_id }}"
+                        aria-label="{{ __('reviews.next_review') }}">❯</button>
               </div>
 
             @else
