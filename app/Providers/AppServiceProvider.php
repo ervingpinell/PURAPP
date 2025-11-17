@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Cache;
 
 use App\Services\Contracts\TranslatorInterface;
 use App\Services\DeepLTranslator;
+use App\Services\DraftLimitService;
+
 
 use App\Observers\ReviewObserver;
 use App\Models\Review;
@@ -29,6 +31,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(TranslatorInterface::class, function () {
             return new DeepLTranslator();
         });
+            $this->app->singleton(DraftLimitService::class, function ($app) {
+        return new DraftLimitService();
+    });
     }
 
     public function boot(): void

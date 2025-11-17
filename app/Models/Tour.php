@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+// 🆕 AGREGAR: Trait de auditoría
+use App\Traits\Auditable;
+
 // Relacionados
 use App\Models\{
     TourType,
@@ -21,12 +24,15 @@ use App\Models\{
     Booking,
     TourImage,
     TourPrice,
-    CustomerCategory
+    CustomerCategory,
+    User,              // 🆕 AGREGAR
+    TourAuditLog       // 🆕 AGREGAR
 };
 
 class Tour extends Model
 {
     use HasFactory, SoftDeletes;
+    use Auditable;  // 🆕 AGREGAR: Trait de auditoría automática
 
     protected $table = 'tours';
     protected $primaryKey = 'tour_id';
@@ -50,12 +56,42 @@ class Tour extends Model
         'viator_code',
         'cutoff_hour',
         'lead_days',
+
+        // 👇 CAMPOS DEL WIZARD
+        'is_draft',
+        'current_step',
+        'created_by',     // Usuario que creó
+        'updated_by',     // 🆕 AGREGAR: Usuario que actualizó
     ];
 
     protected $casts = [
         'length'       => 'float',
         'max_capacity' => 'int',
         'is_active'    => 'bool',
+
+        // 👇 CASTS DEL WIZARD
+        'is_draft'     => 'bool',
+        'current_step' => 'int',
+    ];
+
+    /**
+     * ============================================================
+     * 🆕 CONFIGURACIÓN DE AUDITORÍA
+     * ============================================================
+     * Define qué campos se deben auditar
+     */
+    protected $auditableFields = [
+        'name',
+        'slug',
+        'overview',
+        'length',
+        'max_capacity',
+        'group_size',
+        'tour_type_id',
+        'is_active',
+        'is_draft',
+        'current_step',
+        'color',
     ];
 
     /**
@@ -66,8 +102,22 @@ class Tour extends Model
         parent::boot();
 
         static::creating(function ($tour) {
+            // Si no viene slug, generarlo
             if (empty($tour->slug)) {
                 $tour->slug = static::generateUniqueSlug($tour->name);
+            }
+
+            // 👇 Asegurar defaults de borrador si no vienen
+            if (is_null($tour->is_draft)) {
+                $tour->is_draft = true;
+            }
+            if (is_null($tour->current_step)) {
+                $tour->current_step = 1;
+            }
+
+            // 🆕 AGREGAR: Auto-asignar created_by si está autenticado
+            if (is_null($tour->created_by) && auth()->check()) {
+                $tour->created_by = auth()->id();
             }
         });
 
@@ -75,6 +125,11 @@ class Tour extends Model
             // Solo regenerar si el nombre cambió Y el usuario no proveyó un slug personalizado
             if ($tour->isDirty('name') && !$tour->isDirty('slug')) {
                 $tour->slug = static::generateUniqueSlug($tour->name, $tour->tour_id);
+            }
+
+            // 🆕 AGREGAR: Auto-asignar updated_by si está autenticado
+            if ($tour->isDirty() && auth()->check()) {
+                $tour->updated_by = auth()->id();
             }
         });
     }
@@ -134,14 +189,184 @@ class Tour extends Model
         return $tour;
     }
 
+    /* =====================
+     * SCOPES - EXISTENTES
+     * ===================== */
+
+    /**
+     * Tours activos para la app (ya publicados)
+     * AHORA: no incluye borradores.
+     */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query
+            ->where('is_active', true)
+            ->where('is_draft', false);
+    }
+
+    /**
+     * Solo borradores (en proceso de wizard)
+     */
+    public function scopeDraft($query)
+    {
+        return $query->where('is_draft', true);
+    }
+
+    /**
+     * Publicados (sin importar si is_active está on/off)
+     * Útil si quieres distinguir "publicado pero inactivo".
+     */
+    public function scopePublished($query)
+    {
+        return $query->where('is_draft', false);
+    }
+
+    /**
+     * Borradores que están en un paso >= X (por ejemplo para UX)
+     */
+    public function scopeWizardStepAtLeast($query, int $step)
+    {
+        return $query->where('is_draft', true)
+                     ->where('current_step', '>=', $step);
     }
 
     /* =====================
-     * Relaciones
+     * 🆕 SCOPES NUEVOS
      * ===================== */
+
+    /**
+     * Borradores de un usuario específico
+     */
+    public function scopeUserDrafts($query, $userId)
+    {
+        return $query->where('is_draft', true)
+                    ->where('created_by', $userId);
+    }
+
+    /**
+     * Tours modificados recientemente
+     */
+    public function scopeRecentlyModified($query, $days = 7)
+    {
+        return $query->where('updated_at', '>=', now()->subDays($days));
+    }
+
+    /**
+     * Drafts antiguos (sin actividad)
+     */
+    public function scopeOldDrafts($query, $days = 30)
+    {
+        return $query->where('is_draft', true)
+                    ->where('updated_at', '<', now()->subDays($days));
+    }
+
+    /**
+     * Tours inactivos
+     */
+    public function scopeInactive($query)
+    {
+        return $query->where('is_active', false)
+                    ->where('is_draft', false);
+    }
+
+    /* =====================
+     * HELPERS WIZARD - EXISTENTES
+     * ===================== */
+
+    public function isDraft(): bool
+    {
+        return (bool) $this->is_draft;
+    }
+
+    public function isPublished(): bool
+    {
+        return !$this->is_draft && (bool) $this->is_active;
+    }
+
+    public function inStep(int $step): bool
+    {
+        return (int) $this->current_step === $step;
+    }
+
+    public function advanceToStep(int $step): void
+    {
+        // Útil si quieres centralizar la lógica
+        if ($step > (int) $this->current_step) {
+            $this->current_step = $step;
+            $this->save();
+        }
+    }
+
+    /* =====================
+     * 🆕 HELPERS NUEVOS
+     * ===================== */
+
+    /**
+     * Verificar si el tour es editable por un usuario
+     */
+    public function isEditableBy(?int $userId): bool
+    {
+        if (!$userId) {
+            return false;
+        }
+
+        // Si no es draft, cualquier admin puede editar
+        if (!$this->is_draft) {
+            return true;
+        }
+
+        // Si es draft y está configurado creator_only_edit_drafts
+        if (config('tours.permissions.creator_only_edit_drafts', true)) {
+            return $this->created_by === $userId;
+        }
+
+        return true;
+    }
+
+    /**
+     * Verificar si el draft está inactivo (sin cambios recientes)
+     */
+    public function isInactiveDraft(int $days = 7): bool
+    {
+        if (!$this->is_draft) {
+            return false;
+        }
+
+        return $this->updated_at->diffInDays(now()) >= $days;
+    }
+
+    /**
+     * Obtener porcentaje de completado del wizard
+     */
+    public function getWizardCompletionPercentage(): int
+    {
+        if (!$this->is_draft || !$this->current_step) {
+            return 100;
+        }
+
+        return (int) (($this->current_step / 6) * 100);
+    }
+
+    /**
+     * Obtener nombre del creador
+     */
+    public function getCreatorNameAttribute(): string
+    {
+        return $this->created_by_user?->name ?? 'Desconocido';
+    }
+
+    /**
+     * Obtener nombre del último editor
+     */
+    public function getLastEditorNameAttribute(): string
+    {
+        return $this->updated_by_user?->name ?? 'Desconocido';
+    }
+
+    /* =====================
+     * RELACIONES - EXISTENTES
+     * ===================== */
+
     public function tourType()
     {
         return $this->belongsTo(TourType::class, 'tour_type_id', 'tour_type_id');
@@ -252,7 +477,7 @@ class Tour extends Model
     /**
      * Precios activos con categorías cargadas
      */
- public function activePrices()
+    public function activePrices()
     {
         return $this->hasMany(TourPrice::class, 'tour_id', 'tour_id')
             ->where('is_active', true)
@@ -300,9 +525,59 @@ class Tour extends Model
         return $kid ? (float) $kid->price : null;
     }
 
+    public function images()
+    {
+        return $this->hasMany(TourImage::class, 'tour_id', 'tour_id')->orderBy('position');
+    }
+
+    public function coverImage()
+    {
+        return $this->hasOne(TourImage::class, 'tour_id', 'tour_id')->where('is_cover', true);
+    }
+
     /* =====================
-     * Traducciones helpers
+     * 🆕 RELACIONES NUEVAS - AUDITORÍA Y USUARIOS
      * ===================== */
+
+    /**
+     * Usuario que creó el tour
+     */
+    public function created_by_user()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'user_id');
+    }
+
+    /**
+     * Usuario que hizo la última actualización
+     */
+    public function updated_by_user()
+    {
+        return $this->belongsTo(User::class, 'updated_by', 'user_id');
+    }
+
+    /**
+     * Logs de auditoría del tour
+     * (Ya está definido en el trait Auditable, pero puedes personalizarlo aquí)
+     */
+    public function auditLogs()
+    {
+        return $this->hasMany(TourAuditLog::class, 'tour_id', 'tour_id')
+                    ->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Último log de auditoría
+     */
+    public function lastAuditLog()
+    {
+        return $this->hasOne(TourAuditLog::class, 'tour_id', 'tour_id')
+                    ->latest('created_at');
+    }
+
+    /* =====================
+     * Traducciones helpers - EXISTENTES
+     * ===================== */
+
     public function translate(?string $locale = null)
     {
         $locale = $locale ?: app()->getLocale() ?: 'es';
@@ -377,8 +652,9 @@ class Tour extends Model
     }
 
     /* =====================
-     * Imágenes helpers
+     * Imágenes helpers - EXISTENTES
      * ===================== */
+
     public function getImagesAttribute(): array
     {
         $dir = "tours/{$this->tour_id}/gallery";
@@ -401,16 +677,6 @@ class Tour extends Model
     {
         $images = $this->images;
         return $images[0] ?? asset('images/volcano.png');
-    }
-
-    public function images()
-    {
-        return $this->hasMany(TourImage::class, 'tour_id', 'tour_id')->orderBy('position');
-    }
-
-    public function coverImage()
-    {
-        return $this->hasOne(TourImage::class, 'tour_id', 'tour_id')->where('is_cover', true);
     }
 
     public function coverUrl(): string
@@ -439,7 +705,7 @@ class Tour extends Model
     }
 
     /* =====================
-     * Capacidad helpers
+     * Capacidad helpers - EXISTENTES
      * ===================== */
 
     /**

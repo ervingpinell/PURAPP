@@ -357,28 +357,98 @@ return [
         ],
     ],
 
-    // ✅ CARRITOS
+    // ✅ HOTELES / TRASLADOS
     [
-        'text'    => 'menu.carts',
-        'icon'    => 'fas fa-shopping-cart',
+        'text'    => 'menu.pickups',
+        'icon'    => 'fas fa-hotel',
         'trans'   => true,
         'submenu' => [
             [
-                'text'  => 'menu.my_cart',
-                'route' => 'admin.carts.index',
-                'icon'  => 'fas fa-shopping-cart',
+                'text'  => 'menu.hotels_list',
+                'route' => 'admin.hotels.index',
+                'icon'  => 'fas fa-list',
                 'trans' => true,
             ],
             [
-                'text'  => 'menu.active_carts',
-                'route' => 'admin.carts.all',
-                'icon'  => 'fas fa-list',
+                'text'  => 'menu.meeting_points',
+                'route' => 'admin.meetingpoints.index',
+                'icon'  => 'fas fa-map-marker-alt',
                 'trans' => true,
             ],
         ],
     ],
 
-    // ✅ CONFIGURACIÓN
+    // ✅ TOURS
+    [
+        'text'    => 'menu.tours',
+        'icon'    => 'fas fa-map-marked-alt',
+        'trans'   => true,
+        'submenu' => [
+            [
+                'text'  => 'menu.all_tours',
+                'route' => 'admin.tours.index',
+                'icon'  => 'fas fa-map-marked-alt',
+                'trans' => true,
+            ],
+            [
+                'text'  => 'menu.order_tours',
+                'route' => 'admin.tours.order.index',
+                'icon'  => 'fas fa-sort-amount-down',
+                'trans' => true,
+            ],
+        ],
+    ],
+
+    // ✅ IMÁGENES
+    [
+        'text'    => 'menu.images',
+        'icon'    => 'fas fa-camera',
+        'trans'   => true,
+        'submenu' => [
+            [
+                'text'  => 'menu.tour_images',
+                'route' => 'admin.tours.images.pick',
+                'icon'  => 'fas fa-images',
+                'trans' => true,
+            ],
+            [
+                'text'  => 'menu.category_covers',
+                'route' => 'admin.types.images.pick',
+                'icon'  => 'fas fa-image',
+                'trans' => true,
+            ],
+        ],
+    ],
+     // ✅ RESEÑAS
+    [
+        'text'    => 'menu.reviews',
+        'icon'    => 'fas fa-star',
+        'can'     => 'manage-reviews',
+        'trans'   => true,
+        'submenu' => [
+            [
+                'text'  => 'menu.all_reviews',
+                'route' => 'admin.reviews.index',
+                'icon'  => 'fas fa-star',
+                'trans' => true,
+            ],
+            [
+                'text'  => 'menu.providers',
+                'route' => 'admin.review-providers.index',
+                'icon'  => 'fas fa-plug',
+                'trans' => true,
+            ],
+            [
+                'text'  => 'menu.request_reviews',
+                'route' => 'admin.review-requests.index',
+                'icon'  => 'fas fa-envelope-open-text',
+                'trans' => true,
+            ],
+        ],
+    ],
+
+
+       // ✅ CONFIGURACIÓN
     [
         'text'    => 'menu.settings',
         'icon'    => 'fas fa-cogs',
@@ -420,31 +490,8 @@ return [
                 'icon'  => 'fas fa-tags',
                 'trans' => true,
             ],
-        ],
-    ],
 
-    // ✅ HOTELES / TRASLADOS
-    [
-        'text'    => 'menu.pickups',
-        'icon'    => 'fas fa-hotel',
-        'trans'   => true,
-        'submenu' => [
-            [
-                'text'  => 'menu.hotels_list',
-                'route' => 'admin.hotels.index',
-                'icon'  => 'fas fa-list',
-                'trans' => true,
-            ],
-            [
-                'text'  => 'menu.meeting_points',
-                'route' => 'admin.meetingpoints.index',
-                'icon'  => 'fas fa-map-marker-alt',
-                'trans' => true,
-            ],
-        ],
-    ],
-
-    // ✅ TOURS
+                // ✅ TOURS
     [
         'text'    => 'menu.tours',
         'icon'    => 'fas fa-map-marked-alt',
@@ -474,42 +521,31 @@ return [
                 'icon'  => 'fas fa-route',
                 'trans' => true,
             ],
-            [
-                'text'  => 'menu.all_tours',
-                'route' => 'admin.tours.index',
-                'icon'  => 'fas fa-map-marked-alt',
-                'trans' => true,
-            ],
-            [
-                'text'  => 'menu.order_tours',
-                'route' => 'admin.tours.order.index',
-                'icon'  => 'fas fa-sort-amount-down',
-                'trans' => true,
-            ],
+        ],
+    ],
         ],
     ],
 
-    // ✅ IMÁGENES
+    // ✅ CARRITOS
     [
-        'text'    => 'menu.images',
-        'icon'    => 'fas fa-camera',
+        'text'    => 'menu.carts',
+        'icon'    => 'fas fa-shopping-cart',
         'trans'   => true,
         'submenu' => [
             [
-                'text'  => 'menu.tour_images',
-                'route' => 'admin.tours.images.pick',
-                'icon'  => 'fas fa-images',
+                'text'  => 'menu.my_cart',
+                'route' => 'admin.carts.index',
+                'icon'  => 'fas fa-shopping-cart',
                 'trans' => true,
             ],
             [
-                'text'  => 'menu.category_covers',
-                'route' => 'admin.types.images.pick',
-                'icon'  => 'fas fa-image',
+                'text'  => 'menu.active_carts',
+                'route' => 'admin.carts.all',
+                'icon'  => 'fas fa-list',
                 'trans' => true,
             ],
         ],
     ],
-
     // ✅ USUARIOS
     [
         'text'    => 'menu.users',
@@ -528,34 +564,6 @@ return [
                 'route' => 'admin.roles.index',
                 'icon'  => 'fas fa-user-shield',
                 'can'   => 'is-admin',
-                'trans' => true,
-            ],
-        ],
-    ],
-
-    // ✅ RESEÑAS
-    [
-        'text'    => 'menu.reviews',
-        'icon'    => 'fas fa-star',
-        'can'     => 'manage-reviews',
-        'trans'   => true,
-        'submenu' => [
-            [
-                'text'  => 'menu.all_reviews',
-                'route' => 'admin.reviews.index',
-                'icon'  => 'fas fa-star',
-                'trans' => true,
-            ],
-            [
-                'text'  => 'menu.providers',
-                'route' => 'admin.review-providers.index',
-                'icon'  => 'fas fa-plug',
-                'trans' => true,
-            ],
-            [
-                'text'  => 'menu.request_reviews',
-                'route' => 'admin.review-requests.index',
-                'icon'  => 'fas fa-envelope-open-text',
                 'trans' => true,
             ],
         ],

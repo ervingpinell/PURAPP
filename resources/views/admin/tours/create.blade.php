@@ -25,126 +25,212 @@
     </div>
   @endif
 
-  <form action="{{ route('admin.tours.store') }}" method="POST" id="tourForm" novalidate>
+  {{-- Stepper / timeline del wizard (paso 1: Detalles) --}}
+  @include('admin.tours.wizard.partials.stepper', [
+      'currentStep' => 1,
+      'tour'        => null,
+  ])
+
+  {{-- Paso 1: Detalles del tour (crea draft vía wizard) --}}
+  <form action="{{ route('admin.tours.wizard.store.details') }}"
+        method="POST"
+        id="tourWizardForm"
+        novalidate>
     @csrf
 
-    <div class="card card-primary card-outline card-outline-tabs">
-      <div class="card-header p-0 border-bottom-0">
-        <ul class="nav nav-tabs" id="tourTabs" role="tablist">
-          <li class="nav-item" role="presentation">
-            <a class="nav-link active" id="details-tab" data-bs-toggle="pill" href="#details" role="tab" aria-controls="details" aria-selected="true" title="{{ __('m_tours.tour.fields.details') }}">
-              <i class="fas fa-info-circle"></i> {{ __('m_tours.tour.fields.details') }}
-            </a>
-          </li>
-          <li class="nav-item" role="presentation">
-            <a class="nav-link" id="prices-tab" data-bs-toggle="pill" href="#prices" role="tab" aria-controls="prices" aria-selected="false" title="{{ __('m_tours.tour.fields.price') }}">
-              <i class="fas fa-dollar-sign"></i> {{ __('m_tours.tour.fields.price') }}
-            </a>
-          </li>
-          <li class="nav-item" role="presentation">
-            <a class="nav-link" id="itinerary-tab" data-bs-toggle="pill" href="#itinerary" role="tab" aria-controls="itinerary" aria-selected="false" title="{{ __('m_tours.tour.fields.itinerary') }}">
-              <i class="fas fa-route"></i> {{ __('m_tours.tour.fields.itinerary') }}
-            </a>
-          </li>
-          <li class="nav-item" role="presentation">
-            <a class="nav-link" id="schedules-tab" data-bs-toggle="pill" href="#schedules" role="tab" aria-controls="schedules" aria-selected="false" title="{{ __('m_tours.tour.fields.schedules') }}">
-              <i class="fas fa-clock"></i> {{ __('m_tours.tour.fields.schedules') }}
-            </a>
-          </li>
-          <li class="nav-item" role="presentation">
-            <a class="nav-link" id="languages-tab" data-bs-toggle="pill" href="#languages" role="tab" aria-controls="languages" aria-selected="false" title="{{ __('m_tours.tour.fields.languages') }}">
-              <i class="fas fa-language"></i> {{ __('m_tours.tour.fields.languages') }}
-            </a>
-          </li>
-          <li class="nav-item" role="presentation">
-            <a class="nav-link" id="amenities-tab" data-bs-toggle="pill" href="#amenities" role="tab" aria-controls="amenities" aria-selected="false" title="{{ __('m_tours.tour.fields.amenities') }}">
-              <i class="fas fa-check-circle"></i> {{ __('m_tours.tour.fields.amenities') }}
-            </a>
-          </li>
-          <li class="nav-item" role="presentation">
-            <a class="nav-link" id="summary-tab" data-bs-toggle="pill" href="#summary" role="tab" aria-controls="summary" aria-selected="false" title="{{ __('m_tours.tour.fields.overview') }}">
-              <i class="fas fa-eye"></i> {{ __('m_tours.tour.fields.overview') }}
-            </a>
-          </li>
-        </ul>
+    <div class="card card-primary card-outline mt-3">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-info-circle"></i>
+          {{ __('m_tours.tour.fields.details') }}
+        </h3>
       </div>
 
       <div class="card-body">
-        <div class="tab-content" id="tourTabsContent">
-          {{-- Pestaña: Detalles --}}
-          <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
-            @include('admin.tours.partials.tab-details', ['tour' => null])
-          </div>
-
-          {{-- Pestaña: Precios --}}
-          <div class="tab-pane fade" id="prices" role="tabpanel" aria-labelledby="prices-tab">
-            @include('admin.tours.partials.tab-prices', ['tour' => null])
-          </div>
-
-          {{-- Pestaña: Itinerario --}}
-          <div class="tab-pane fade" id="itinerary" role="tabpanel" aria-labelledby="itinerary-tab">
-            @include('admin.tours.partials.tab-itinerary', ['tour' => null])
-          </div>
-
-          {{-- Pestaña: Horarios --}}
-          <div class="tab-pane fade" id="schedules" role="tabpanel" aria-labelledby="schedules-tab">
-            @include('admin.tours.partials.tab-schedules', ['tour' => null])
-          </div>
-
-          {{-- Pestaña: Idiomas --}}
-          <div class="tab-pane fade" id="languages" role="tabpanel" aria-labelledby="languages-tab">
-            @include('admin.tours.partials.tab-languages', ['tour' => null])
-          </div>
-
-          {{-- Pestaña: Amenidades --}}
-          <div class="tab-pane fade" id="amenities" role="tabpanel" aria-labelledby="amenities-tab">
-            @include('admin.tours.partials.tab-amenities', ['tour' => null])
-          </div>
-
-          {{-- Pestaña: Resumen --}}
-          <div class="tab-pane fade" id="summary" role="tabpanel" aria-labelledby="summary-tab">
-            @include('admin.tours.partials.tab-summary', ['tour' => null])
-          </div>
-        </div>
+        {{-- Aquí usas el nuevo partial de detalles del wizard --}}
+        @include('admin.tours.wizard.steps.details', ['tour' => null])
       </div>
 
-      <div class="card-footer d-flex gap-2">
-        <button type="submit" class="btn btn-success btn-lg" title="{{ __('m_tours.tour.ui.save') }}">
-          <i class="fas fa-save"></i> {{ __('m_tours.tour.ui.save') }}
-        </button>
-        <a href="{{ route('admin.tours.index') }}" class="btn btn-secondary btn-lg" title="{{ __('m_tours.tour.ui.cancel') }}">
+      <div class="card-footer d-flex gap-2 justify-content-between">
+        <a href="{{ route('admin.tours.index') }}" class="btn btn-secondary">
           <i class="fas fa-times"></i> {{ __('m_tours.tour.ui.cancel') }}
         </a>
+
+        <button type="submit" class="btn btn-success">
+          <i class="fas fa-arrow-right"></i>
+          {{ __('m_tours.tour.wizard.next_step') }}
+        </button>
       </div>
     </div>
   </form>
 
-  @include('admin.tours.partials.inline-modals')
+  {{-- ========================================
+       MODAL PARA MANEJAR DRAFTS EXISTENTES
+       ======================================== --}}
+  @if(isset($existingDrafts) && $existingDrafts->count() > 0)
+    @php
+      // Usamos el borrador más reciente como "borrador principal"
+      $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
+    @endphp
+
+    <div class="modal fade" id="draftsModal" tabindex="-1" aria-labelledby="draftsModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header" style="background: #facc15; color:#111827;">
+            <h5 class="modal-title" id="draftsModalLabel">
+              <i class="fas fa-exclamation-triangle"></i>
+              {{ __('m_tours.tour.wizard.existing_drafts_title') }}
+            </h5>
+          </div>
+
+          <div class="modal-body" style="background:#111827; color:#e5e7eb;">
+            <p class="lead mb-3">
+              {{ __('m_tours.tour.wizard.existing_drafts_message', ['count' => $existingDrafts->count()]) }}
+            </p>
+
+            <div class="table-responsive">
+              <table class="table table-hover table-sm mb-0" style="color:#e5e7eb;">
+                <thead style="background:#1f2937; color:#e5e7eb;">
+                  <tr>
+                    <th>{{ __('m_tours.tour.fields.name') }}</th>
+                    <th>{{ __('m_tours.tour.fields.type') }}</th>
+                    <th class="text-center">{{ __('m_tours.tour.wizard.current_step') }}</th>
+                    <th>{{ __('m_tours.common.updated_at') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach($existingDrafts as $draft)
+                    <tr>
+                      <td>
+                        <strong>{{ $draft->name }}</strong><br>
+                        <small class="text-muted">{{ $draft->slug }}</small>
+                      </td>
+                      <td>
+                        @if($draft->tourType)
+                          <span class="badge bg-info">{{ $draft->tourType->name }}</span>
+                        @else
+                          <span class="text-muted">{{ __('m_tours.common.not_set') }}</span>
+                        @endif
+                      </td>
+                      <td class="text-center">
+                        <span class="badge bg-primary">
+                          {{ __('m_tours.tour.wizard.step') }} {{ $draft->current_step ?? 1 }}/6
+                        </span>
+                      </td>
+                      <td>
+                        <small>{{ $draft->updated_at->diffForHumans() }}</small><br>
+                        <small class="text-muted">{{ $draft->updated_at->format('d/m/Y H:i') }}</small>
+                      </td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+
+            <div class="alert alert-info mt-3 mb-0" style="background:#1d2433; border-color:#374151; color:#e5e7eb;">
+              <i class="fas fa-info-circle"></i>
+              {{ __('m_tours.tour.wizard.drafts_info') }}
+            </div>
+          </div>
+
+          <div class="modal-footer d-flex justify-content-around" style="background:#020617; border-top:1px solid #1f2937;">
+            {{-- Botón Eliminar Borrador --}}
+            @if($mainDraft)
+              <button type="button"
+                      class="btn btn-danger flex-fill mx-2"
+                      id="deleteMainDraft"
+                      data-draft-id="{{ $mainDraft->tour_id }}"
+                      data-draft-name="{{ $mainDraft->name }}">
+                <i class="fas fa-trash-alt"></i>
+                {{ __('m_tours.tour.wizard.delete_draft') }}
+              </button>
+            @endif
+
+            {{-- Botón Continuar Draft --}}
+            @if($mainDraft)
+              <a href="{{ route('admin.tours.wizard.continue', $mainDraft) }}"
+                 class="btn btn-success flex-fill mx-2">
+                <i class="fas fa-play"></i>
+                {{ __('m_tours.tour.wizard.continue_draft') }}
+              </a>
+            @endif
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Formularios ocultos para acciones de drafts --}}
+    @foreach($existingDrafts as $draft)
+      <form id="deleteDraftForm{{ $draft->tour_id }}"
+            action="{{ route('admin.tours.wizard.delete-draft', $draft) }}"
+            method="POST"
+            style="display: none;">
+        @csrf
+        @method('DELETE')
+      </form>
+    @endforeach
+
+    {{-- Form de delete-all, por si lo usas en otro lugar, pero sin botón en el modal --}}
+    <form id="deleteAllDraftsForm"
+          action="{{ route('admin.tours.wizard.delete-all-drafts') }}"
+          method="POST"
+          style="display: none;">
+      @csrf
+      @method('DELETE')
+    </form>
+  @endif
+
+  {{-- Modales reutilizables, si siguen siendo útiles en el wizard --}}
+  @includeWhen(View::exists('admin.tours.partials.inline-modals'), 'admin.tours.partials.inline-modals')
 @stop
 
 @push('js')
-  {{-- Librerías (si no están ya en el layout) --}}
+  {{-- Librerías base (si no están ya en el layout) --}}
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  {{-- Persistir pestaña por hash (igual que en edit) --}}
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const tabs = Array.from(document.querySelectorAll('#tourTabs a[data-bs-toggle="pill"]'));
-      const urlHash = window.location.hash;
-      if (urlHash) {
-        const active = tabs.find(a => a.getAttribute('href') === urlHash);
-        if (active) new bootstrap.Tab(active).show();
-      }
-      tabs.forEach(el => {
-        el.addEventListener('shown.bs.tab', e => {
-          history.replaceState(null, '', e.target.getAttribute('href'));
-        });
-      });
-    });
-  </script>
+  {{-- Scripts propios del módulo de tours (validaciones, toasts, etc.) --}}
+  @includeIf('admin.tours.partials.scripts')
+  @includeIf('admin.tours.partials.inline-scripts')
 
-  {{-- Scripts de la pantalla (resumen dinámico, validación, toasts) --}}
-  @include('admin.tours.partials.scripts')
-  @include('admin.tours.partials.inline-scripts')
+  {{-- ================================================
+       SCRIPT PARA MANEJAR DRAFTS EXISTENTES
+       ================================================ --}}
+  @if(isset($existingDrafts) && $existingDrafts->count() > 0)
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Mostrar el modal automáticamente al cargar la página
+        const draftsModalEl = document.getElementById('draftsModal');
+        if (draftsModalEl && window.bootstrap && bootstrap.Modal) {
+          const draftsModal = new bootstrap.Modal(draftsModalEl);
+          draftsModal.show();
+        }
+
+        // 🗑️ Eliminar borrador principal (botón del footer)
+        const deleteMainDraftBtn = document.getElementById('deleteMainDraft');
+        if (deleteMainDraftBtn) {
+          deleteMainDraftBtn.addEventListener('click', function() {
+            const draftId = this.dataset.draftId;
+            const draftName = this.dataset.draftName;
+
+            Swal.fire({
+              title: '{{ __("m_tours.tour.wizard.confirm_delete_title") }}',
+              html: '<p>{{ __("m_tours.tour.wizard.confirm_delete_message") }}</p><p class="font-weight-bold">' + draftName + '</p>',
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#dc2626',
+              cancelButtonColor: '#4b5563',
+              confirmButtonText: '{{ __("m_tours.common.delete") }}',
+              cancelButtonText: '{{ __("m_tours.common.cancel") }}',
+            }).then((result) => {
+              if (result.isConfirmed) {
+                const form = document.getElementById('deleteDraftForm' + draftId);
+                if (form) form.submit();
+              }
+            });
+          });
+        }
+      });
+    </script>
+  @endif
 @endpush
