@@ -6,14 +6,14 @@
         ? (str_starts_with($lang, 'es') ? 'es' : 'en')
         : (str_starts_with(app()->getLocale(), 'es') ? 'es' : 'en');
 
-    $money     = fn($n) => '$' . number_format((float)$n, 2);
+    $money     = fn($n) => '$' . number_format((float) $n, 2);
     $reference = $booking->booking_reference ?? $booking->reference ?? $booking->booking_id;
 
     // Subtotal
     $subtotal = $booking->subtotal ?? ($booking->amount_before_discounts ?? null);
     if ($subtotal === null) {
         $subtotal = collect($booking->details ?? [])->flatMap(fn($d) => collect($d->categories ?? []))
-            ->reduce(fn($c,$x)=> $c + ((float)($x['quantity']??0) * (float)($x['price']??0)), 0.0);
+            ->reduce(fn($c, $x) => $c + ((float) ($x['quantity'] ?? 0) * (float) ($x['price'] ?? 0)), 0.0);
     }
 
     // Promo: descuento o recargo
@@ -25,7 +25,7 @@
     if ($promo) {
         $discountName = $promo->code ?? $promo->name ?? null;
         $raw = $promo->discount_amount ?? $promo->discount ?? null;
-        $raw = $raw !== null ? (float)$raw : null;
+        $raw = $raw !== null ? (float) $raw : null;
 
         if ($raw !== null && $raw != 0.0) {
             $op = strtolower($promo->operation ?? 'subtract');
@@ -48,7 +48,7 @@
     $effectiveAdj = 0.0;
     if ($hasAdjustment) {
         $signForCalc = $adjustmentType === 'discount' ? 1 : -1;
-        $effectiveAdj = $signForCalc * (float)$adjustmentAmount;
+        $effectiveAdj = $signForCalc * (float) $adjustmentAmount;
     }
 
     $tTitle    = $mailLocale === 'es' ? 'Reserva actualizada' : 'Booking updated';
@@ -121,12 +121,25 @@
         ? $d->other_hotel_name
         : (optional($d?->hotel)->name ?? optional($booking->hotel)->name ?? null);
 
-    $notes = trim((string)($booking->notes ?? ''));
+    // Pickup times (desde el detail, con fallback si no vienen del mailable)
+    $pickupTime        = $pickupTime        ?? null;
+    $meetingPickupTime = $meetingPickupTime ?? null;
+
+    if ($d) {
+        if ($pickupTime === null && !empty($d->pickup_time)) {
+            $pickupTime = \Illuminate\Support\Carbon::parse($d->pickup_time)->isoFormat('LT');
+        }
+        if ($meetingPickupTime === null && !empty($d->meeting_point_pickup_time)) {
+            $meetingPickupTime = \Illuminate\Support\Carbon::parse($d->meeting_point_pickup_time)->isoFormat('LT');
+        }
+    }
+
+    $notes = trim((string) ($booking->notes ?? ''));
 @endphp
 
 {{-- si quieres mantener un color diferente para "updated", puedes dejar esto o quitarlo --}}
 <style>
-  .email-header { background: linear-gradient(135deg, #f3d632, #f1b669);!important }
+  .email-header { background: linear-gradient(135deg, #f3d632, #f1b669) !important; }
 </style>
 
 {{-- 1. BOOKING STATUS --}}
@@ -139,21 +152,53 @@
 <div class="section-card" style="margin-bottom:12px;">
   <div class="section-title" style="margin-bottom:6px;font-weight:700;">{{ $tSummary }}</div>
   <div style="font-size:14px;color:#374151;">
-    @if($tourName)<div><strong>Tour:</strong> {{ $tourName }}</div>@endif
-    @if($tourDate)<div><strong>{{ $mailLocale==='es'?'Fecha del tour':'Tour date' }}:</strong> {{ $tourDate }}</div>@endif
-    @if($scheduleTxt)<div><strong>{{ $mailLocale==='es'?'Horario':'Schedule' }}:</strong> {{ $scheduleTxt }}</div>@endif
-    @if($tourLang)<div><strong>{{ $mailLocale==='es'?'Idioma':'Language' }}:</strong> {{ $tourLang }}</div>@endif
+    @if($tourName)
+      <div><strong>Tour:</strong> {{ $tourName }}</div>
+    @endif
+
+    @if($tourDate)
+      <div><strong>{{ $mailLocale==='es'?'Fecha del tour':'Tour date' }}:</strong> {{ $tourDate }}</div>
+    @endif
+
+    @if($scheduleTxt)
+      <div><strong>{{ $mailLocale==='es'?'Horario':'Schedule' }}:</strong> {{ $scheduleTxt }}</div>
+    @endif
+
+    @if($tourLang)
+      <div><strong>{{ $mailLocale==='es'?'Idioma':'Language' }}:</strong> {{ $tourLang }}</div>
+    @endif
 
     @if($meetingName)
-      <div><strong>{{ $mailLocale==='es'?'Punto de encuentro':'Meeting point' }}:</strong>
+      <div>
+        <strong>{{ $mailLocale==='es'?'Punto de encuentro':'Meeting point' }}:</strong>
         @if($meetingUrl)
-          <a href="{{ $meetingUrl }}" target="_blank" rel="noopener" style="color:#0ea5e9;text-decoration:none;">{{ $meetingName }}</a>
+          <a href="{{ $meetingUrl }}" target="_blank" rel="noopener" style="color:#0ea5e9;text-decoration:none;">
+            {{ $meetingName }}
+          </a>
         @else
           {{ $meetingName }}
         @endif
       </div>
+
+      @if(!empty($meetingPickupTime))
+        <div>
+          <strong>{{ $mailLocale==='es' ? 'Hora de recogida' : 'Pickup time' }}:</strong>
+          {{ $meetingPickupTime }}
+        </div>
+      @endif
+
     @elseif($hotelName)
-      <div><strong>{{ $mailLocale==='es'?'Hotel pickup':'Hotel pickup' }}:</strong> {{ $hotelName }}</div>
+      <div>
+        <strong>{{ $mailLocale==='es'?'Hotel pickup':'Hotel pickup' }}:</strong>
+        {{ $hotelName }}
+      </div>
+
+      @if(!empty($pickupTime))
+        <div>
+          <strong>{{ $mailLocale==='es' ? 'Hora de recogida' : 'Pickup time' }}:</strong>
+          {{ $pickupTime }}
+        </div>
+      @endif
     @endif
 
     @if($notes !== '')
@@ -207,7 +252,7 @@
     <span class="amount">
       {{ $total !== null
             ? $money($total)
-            : $money(max(0, (float)$subtotal - (float)$effectiveAdj + (float)($taxes ?? 0))) }}
+            : $money(max(0, (float) $subtotal - (float) $effectiveAdj + (float) ($taxes ?? 0))) }}
     </span>
   </div>
 </div>

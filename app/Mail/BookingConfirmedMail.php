@@ -8,6 +8,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Mail\Concerns\BookingMailHelpers;
+use Illuminate\Support\Carbon;
 
 class BookingConfirmedMail extends Mailable implements ShouldQueue
 {
@@ -52,6 +53,20 @@ class BookingConfirmedMail extends Mailable implements ShouldQueue
         $this->tourLangLabel = $this->humanTourLanguage($this->mailLocale, $this->booking);
         $this->statusText    = $this->statusLabel($this->mailLocale, $this->booking);
 
+        // === Pickup times desde el primer detalle ===
+        $firstDetail = $this->booking->details->first();
+        $pickupTime = null;
+        $meetingPickupTime = null;
+
+        if ($firstDetail) {
+            if (!empty($firstDetail->pickup_time)) {
+                $pickupTime = Carbon::parse($firstDetail->pickup_time)->isoFormat('LT');
+            }
+            if (!empty($firstDetail->meeting_point_pickup_time)) {
+                $meetingPickupTime = Carbon::parse($firstDetail->meeting_point_pickup_time)->isoFormat('LT');
+            }
+        }
+
         $subject = __('adminlte::email.booking_confirmed_subject', [
             'reference' => $this->reference,
         ], $this->mailLocale);
@@ -73,17 +88,17 @@ class BookingConfirmedMail extends Mailable implements ShouldQueue
             ->subject($subject)
             ->view('emails.booking_confirmed')
             ->with([
-                'booking'         => $this->booking,
-                'mailLocale'      => $this->mailLocale,
-                'reference'       => $this->reference,
-                'tourLangLabel'   => $this->tourLangLabel,
-                'statusLabel'     => $this->statusText,
-                'company'         => $fromName,
-                'contactEmail'    => $replyTo,
-                'appUrl'          => rtrim(config('app.url'), '/'),
-                'companyPhone'    => env('COMPANY_PHONE'),
-                // ❌ YA NO necesitamos estas:
-                // 'logoPath', 'appLogoFallback', 'logoCid', 'appLogo'
+                'booking'             => $this->booking,
+                'mailLocale'          => $this->mailLocale,
+                'reference'           => $this->reference,
+                'tourLangLabel'       => $this->tourLangLabel,
+                'statusLabel'         => $this->statusText,
+                'company'             => $fromName,
+                'contactEmail'        => $replyTo,
+                'appUrl'              => rtrim(config('app.url'), '/'),
+                'companyPhone'        => env('COMPANY_PHONE'),
+                'pickupTime'          => $pickupTime,
+                'meetingPickupTime'   => $meetingPickupTime,
             ]);
 
         $bcc = $this->adminNotify();
