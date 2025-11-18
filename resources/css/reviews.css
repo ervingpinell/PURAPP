@@ -9,7 +9,7 @@
   --gv-bg:#fff;
 
   /* Tipografía alineada a EMBED */
-  --fs-body:   0.9rem;
+  --fs-card-body:   0.9rem;
   --fs-sm:     0.85rem;
   --fs-xs:     0.75rem;
   --fs-stars:  1.1rem;
@@ -68,8 +68,11 @@
 .review-card .js-carousel{ display:flex; flex-direction:column; flex:1 1 auto; }
 .review-card .js-slides{  display:flex; flex-direction:column; flex:1 1 auto; }
 
-/* Al expandir, deja crecer */
-.review-card.expanded-card{ min-height:auto; }
+/* Al expandir, deja crecer (y anula alturas fijas si las hubiera) */
+.review-card.expanded-card{
+  min-height:auto;
+  height:auto !important;
+}
 
 /* Slide */
 .review-item{ width:100%; }
@@ -89,7 +92,7 @@
   min-width:0;
 }
 .review-author{
-  font-weight:800; font-size:var(--fs-body); color:#1f2937;
+  font-weight:800; font-size:var(--fs-card-body); color:#1f2937;
   overflow-wrap:anywhere;
   word-break:break-word;
   text-align:center;
@@ -98,7 +101,7 @@
 
 /* Estrellas (alineado a embed) */
 .review-stars{ color:#f1c40f; font-size:var(--fs-stars); line-height:1; letter-spacing:.02em; }
-.rating-number{ color:var(--gv-green-600); margin-left:.35rem; font-weight: 600; font-size:var(--fs-body); }
+.rating-number{ color:var(--gv-green-600); margin-left:.35rem; font-weight: 600; font-size:var(--fs-card-body); }
 
 /* Pill (alineado a embed) */
 .review-label{
@@ -117,7 +120,7 @@
   -webkit-line-clamp:var(--clamp-lines);
   max-height:calc(var(--lh) * var(--clamp-lines) * 1em);
   transition:max-height .25s ease;
-  font-size: var(--fs-body);
+  font-size: var(--fs-card-body);
 }
 .review-content p{ margin:0; }
 .review-content.expanded{
@@ -165,10 +168,32 @@
 }
 
 /* Iframes compactos (opt-in) */
-.iframe-shell.small{ position:relative; width:100%; height:var(--h,420px); transition:none; }
-.iframe-shell.small>iframe{ width:100%; height:100%; border:0; display:block; overflow:hidden; background:transparent; }
-.iframe-skeleton{ position:absolute; inset:0; border-radius:.75rem; background:#f4f4f4; animation:pulse 1.2s ease-in-out infinite; }
-@keyframes pulse{ 0%{opacity:.6} 50%{opacity:1} 100%{opacity:.6} }
+.iframe-shell.small{
+  position:relative;
+  width:100%;
+  height:var(--h,420px);
+  transition:none;
+}
+.iframe-shell.small>iframe{
+  width:100%;
+  height:100%;
+  border:0;
+  display:block;
+  overflow:hidden;
+  background:transparent;
+}
+.iframe-skeleton{
+  position:absolute;
+  inset:0;
+  border-radius:.75rem;
+  background:#f4f4f4;
+  animation:pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%{opacity:.6}
+  50%{opacity:1}
+  100%{opacity:.6}
+}
 
 /* =========================
    RESPONSIVE — SOLO EN EL SITIO (no dentro del iframe)
@@ -176,7 +201,7 @@
 @media (max-width:768px){
   body:not([data-embed="1"]) .review-grid{ grid-template-columns:1fr; gap:1.2rem; }
   body:not([data-embed="1"]) .review-title{ min-height:48px; font-size:.95rem; }
-  body:not([data-embed="1"]) .review-author{ font-size:var(--fs-body); }
+  body:not([data-embed="1"]) .review-author{ font-size:var(--fs-card-body); }
   body:not([data-embed="1"]) .review-date{ font-size:var(--fs-sm); }
   body:not([data-embed="1"]) .review-label{ font-size:var(--fs-sm); padding:.4rem .8rem; }
   body:not([data-embed="1"]) .review-stars{ font-size:var(--fs-stars); }

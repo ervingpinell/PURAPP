@@ -23,14 +23,15 @@
   const BASE     = parseInt(params.get("base") || body.dataset.base || "460", 10);
   const UID      = params.get("uid") || body.dataset.uid || "";
 
-  const rAF = (fn) => window.requestAnimationFrame ? requestAnimationFrame(fn) : setTimeout(fn, 0);
+  const rAF = (fn) =>
+    window.requestAnimationFrame ? requestAnimationFrame(fn) : setTimeout(fn, 0);
 
   function getClampClass(textEl) {
     if (!textEl) return null;
     const classes = Array.from(textEl.classList);
-    const clampNum = classes.find(c => /^clamp-\d+$/i.test(c));
+    const clampNum = classes.find((c) => /^clamp-\d+$/i.test(c));
     if (clampNum) return clampNum;
-    return classes.find(c => c === "clamp") || null;
+    return classes.find((c) => c === "clamp") || null;
   }
 
   function needsTruncate(textEl) {
@@ -41,20 +42,21 @@
     }
     const clone = textEl.cloneNode(true);
     const cs = getComputedStyle(textEl);
-    clone.style.visibility    = "hidden";
-    clone.style.position      = "absolute";
+    clone.style.visibility = "hidden";
+    clone.style.position = "absolute";
     clone.style.pointerEvents = "none";
-    clone.style.height        = "auto";
-    clone.style.maxHeight     = "none";
-    clone.style.overflow      = "visible";
-    clone.style.display       = "block";     // rompe -webkit-box
+    clone.style.height = "auto";
+    clone.style.maxHeight = "none";
+    clone.style.overflow = "visible";
+    clone.style.display = "block"; // rompe -webkit-box
     clone.style.webkitLineClamp = "unset";
-    clone.style.whiteSpace    = cs.whiteSpace;
-    clone.style.lineHeight    = cs.lineHeight;
-    clone.style.fontSize      = cs.fontSize;
-    clone.style.width         = textEl.clientWidth + "px";
+    clone.style.whiteSpace = cs.whiteSpace;
+    clone.style.lineHeight = cs.lineHeight;
+    clone.style.fontSize = cs.fontSize;
+    clone.style.width = textEl.clientWidth + "px";
     clone.classList.remove("expanded");
-    const cc = getClampClass(clone); if (cc) clone.classList.remove(cc);
+    const cc = getClampClass(clone);
+    if (cc) clone.classList.remove(cc);
     document.body.appendChild(clone);
     const full = clone.scrollHeight;
     document.body.removeChild(clone);
@@ -62,17 +64,42 @@
     return full > visible + 1;
   }
 
+  // 🔥 Medimos la ALTURA VISIBLE de la card (root),
+  // no el scrollHeight del documento (que siempre refleja el texto completo).
   function currentHeight() {
-    // Medición robusta sobre el documento completo para evitar picos por clones temporales
-    const docEl = document.documentElement;
-    const b = document.body;
-    const raw = Math.max(b.scrollHeight, b.offsetHeight, docEl.clientHeight, docEl.scrollHeight, docEl.offsetHeight);
-    const h = Math.max(BASE, raw);
-    return Math.min(1800, h);
+    let h = 0;
+    try {
+      const rect = root.getBoundingClientRect();
+      h = rect.height || 0;
+    } catch (_) {
+      h = 0;
+    }
+
+    if (!h || !isFinite(h)) {
+      h = BASE;
+    }
+
+    h = Math.max(BASE, h);
+    // límite razonable para no tener iframes gigantes
+    return Math.min(1800, h + 2);
   }
 
-  function postReady()  { try { window.parent?.postMessage({ type: "REVIEW_IFRAME_READY",  uid: UID }, "*"); } catch (_) {} }
-  function postResize() { try { window.parent?.postMessage({ type: "REVIEW_IFRAME_RESIZE", uid: UID, height: currentHeight() }, "*"); } catch (_) {} }
+  function postReady() {
+    try {
+      window.parent?.postMessage(
+        { type: "REVIEW_IFRAME_READY", uid: UID },
+        "*"
+      );
+    } catch (_) {}
+  }
+  function postResize() {
+    try {
+      window.parent?.postMessage(
+        { type: "REVIEW_IFRAME_RESIZE", uid: UID, height: currentHeight() },
+        "*"
+      );
+    } catch (_) {}
+  }
 
   /* ---------- Ajuste anti-overlap del título ---------- */
   function adjustTitleLayout() {
@@ -82,30 +109,33 @@
     if (!(card && title)) return;
 
     const cb = card.getBoundingClientRect();
-    const wb = who ? who.getBoundingClientRect() : { right: cb.left + cb.width * 0.32 };
+    const wb = who
+      ? who.getBoundingClientRect()
+      : { right: cb.left + cb.width * 0.32 };
 
     // Borde izquierdo del título: justo después del bloque del autor (+8px)
-    let left = (wb.right - cb.left) + 8;
-    left = Math.max(left, cb.width * 0.34);   // deja mínimo ~34% para autor/avatar
-    left = Math.min(left, cb.width * 0.70);   // nunca invadas demasiado
+    let left = wb.right - cb.left + 8;
+    left = Math.max(left, cb.width * 0.34); // deja mínimo ~34% para autor/avatar
+    left = Math.min(left, cb.width * 0.7);  // nunca invadas demasiado
 
     // Nº de líneas según viewport
-    const lines = (window.innerWidth <= 420) ? 4 : (window.innerWidth < 768 ? 3 : 2);
+    const lines =
+      window.innerWidth <= 420 ? 4 : window.innerWidth < 768 ? 3 : 2;
 
-    card.style.setProperty("--title-left",  left + "px");
+    card.style.setProperty("--title-left", left + "px");
     card.style.setProperty("--title-lines", lines);
 
     // Tras aplicar clamp, medimos altura real y la reservamos
     rAF(() => {
       const h = title.scrollHeight;
-      card.style.setProperty("--title-h", (h + 6) + "px");
+      card.style.setProperty("--title-h", h + 6 + "px");
       postResize(); // puede cambiar la altura del iframe
     });
   }
 
   function setupCard() {
     const isHero = !!qs(".review-textwrap", root); // sólo existe en HERO
-    const text   = qs(".review-content", root);
+    const text = qs(".review-content", root);
     if (!text) return;
 
     // Crea el botón si no existe (card/site llega sin él)
@@ -145,17 +175,36 @@
         btn.style.position = isHero ? "absolute" : "static";
         updateBtn();
       }
-      rAF(() => { adjustTitleLayout(); postResize(); });
+      rAF(() => {
+        adjustTitleLayout();
+        postResize();
+      });
     };
 
-    window.addEventListener("resize", () => { updateBtn(); adjustTitleLayout(); postResize(); }, { passive: true });
+    window.addEventListener(
+      "resize",
+      () => {
+        updateBtn();
+        adjustTitleLayout();
+        postResize();
+      },
+      { passive: true }
+    );
 
     if ("ResizeObserver" in window) {
-      const ro = new ResizeObserver(() => { updateBtn(); adjustTitleLayout(); postResize(); });
+      const ro = new ResizeObserver(() => {
+        updateBtn();
+        adjustTitleLayout();
+        postResize();
+      });
       ro.observe(text);
     }
     if (document.fonts?.ready) {
-      document.fonts.ready.then(() => { updateBtn(); adjustTitleLayout(); postResize(); });
+      document.fonts.ready.then(() => {
+        updateBtn();
+        adjustTitleLayout();
+        postResize();
+      });
     }
   }
 
@@ -165,26 +214,39 @@
     if (!a) return;
     ev.preventDefault();
     try {
-      window.parent?.postMessage({
-        type: "OPEN_TOUR",
-        uid: UID,
-        href: a.href,
-        name: a.dataset.name || a.textContent.trim()
-      }, "*");
+      window.parent?.postMessage(
+        {
+          type: "OPEN_TOUR",
+          uid: UID,
+          href: a.href,
+          name: a.dataset.name || a.textContent.trim(),
+        },
+        "*"
+      );
     } catch (_) {}
   });
 
-  window.addEventListener("message", (e) => {
-    const d = e?.data || {};
-    if (d?.type === "PING_HEIGHT") postResize();
-  }, false);
+  window.addEventListener(
+    "message",
+    (e) => {
+      const d = e?.data || {};
+      if (d?.type === "PING_HEIGHT") postResize();
+    },
+    false
+  );
 
   document.addEventListener("DOMContentLoaded", () => {
     setupCard();
     postReady();
     postResize();
-    setTimeout(() => { adjustTitleLayout(); postResize(); }, 150);
+    setTimeout(() => {
+      adjustTitleLayout();
+      postResize();
+    }, 150);
     setTimeout(postResize, 250);
-    window.addEventListener("load", () => { adjustTitleLayout(); postResize(); });
+    window.addEventListener("load", () => {
+      adjustTitleLayout();
+      postResize();
+    });
   });
 })();

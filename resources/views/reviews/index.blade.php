@@ -90,6 +90,7 @@
                           {{-- Carga controlada por JS (mountIframe + precarga), por eso sin loading="lazy" --}}
                           referrerpolicy="no-referrer"
                           scrolling="no"
+                          data-uid="{{ $uid }}"
                           data-limit="{{ $limitForIframe }}"
                           data-nth="1"
                           data-src="{{ $src }}"></iframe>
@@ -164,6 +165,7 @@
                         title="Review"
                         referrerpolicy="no-referrer"
                         scrolling="no"
+                        data-uid="{{ $uid }}"
                         data-limit="{{ max(8, $poolLimit) }}"
                         data-nth="1"
                         data-src="{{ $src }}"></iframe>
