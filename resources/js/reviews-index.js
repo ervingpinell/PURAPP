@@ -3,13 +3,13 @@
 
   const root = document.getElementById("reviews-page") || document.body;
   const TXT = {
-    more:       root?.dataset.more      || "Ver más",
-    less:       root?.dataset.less      || "Mostrar menos",
-    by:         root?.dataset.by        || "Proporcionado por",
-    swalTitle:  root?.dataset.swalTitle || "¿Abrir tour?",
-    swalText:   root?.dataset.swalText  || "Estás a punto de abrir la página del tour",
-    swalOK:     root?.dataset.swalOk    || "Abrir ahora",
-    swalCancel: root?.dataset.swalCancel|| "Cancelar",
+    more: root?.dataset.more || "Ver más",
+    less: root?.dataset.less || "Mostrar menos",
+    by: root?.dataset.by || "Proporcionado por",
+    swalTitle: root?.dataset.swalTitle || "¿Abrir tour?",
+    swalText: root?.dataset.swalText || "Estás a punto de abrir la página del tour",
+    swalOK: root?.dataset.swalOk || "Abrir ahora",
+    swalCancel: root?.dataset.swalCancel || "Cancelar",
   };
 
   /* -------- Títulos iguales -------- */
@@ -21,7 +21,6 @@
     titles.forEach((t) => (max = Math.max(max, t.offsetHeight)));
     titles.forEach((t) => (t.style.height = max + "px"));
   }
-
   function runEqualizeOnceReady() {
     if (document.fonts?.ready) {
       document.fonts.ready.then(() => requestAnimationFrame(equalizeReviewTitles));
@@ -33,7 +32,6 @@
       );
     }
   }
-
   let _resizeTimer;
   window.addEventListener("resize", () => {
     clearTimeout(_resizeTimer);
@@ -52,7 +50,7 @@
     );
   }
 
-  // clamp helper (para reviews locales, no iframes)
+  // clamp helper
   function needsTruncate(textEl) {
     if (!textEl) return false;
     const clone = textEl.cloneNode(true);
@@ -155,42 +153,6 @@
     ifr.style.height = newH + "px";
   }
 
-  function findIframeByUid(uid) {
-    if (!uid) return null;
-    const iframes = document.querySelectorAll("iframe.review-iframe");
-    for (const ifr of iframes) {
-      if (ifr.dataset.uid === uid) return ifr;
-      const src = ifr.getAttribute("data-src") || ifr.src || "";
-      if (src.includes("uid=" + uid)) return ifr;
-    }
-    return null;
-  }
-
-  // 🔥 Escucha mensajes del embed: altura del iframe
-  window.addEventListener("message", function (event) {
-    const data = event.data;
-    if (!data || typeof data !== "object") return;
-
-    // El embed manda: { type: "REVIEW_IFRAME_RESIZE", uid, height }
-    if (data.type !== "REVIEW_IFRAME_RESIZE") return;
-
-    const uid = data.uid;
-    const height = Number(data.height || 0);
-    if (!height) return;
-
-    const ifr = findIframeByUid(uid);
-    if (!ifr) return;
-
-    const shell = ifr.closest(".iframe-shell");
-    _setShellAndIframeHeight(ifr, shell, height);
-
-    const card = ifr.closest(".review-card");
-    if (card) {
-      card.classList.add("expanded-card");
-      card.style.minHeight = "auto";
-    }
-  });
-
   function mountIframe(ifr) {
     if (!ifr || ifr.dataset.mounted === "1") return;
 
@@ -202,17 +164,8 @@
       ifr.src = src;
     }
     ifr.dataset.mounted = "1";
-
-    // 👇 Importante: NO generamos uid random aquí.
-    // El uid viene del Blade y viaja en la URL para que embed y host coincidan.
-    if (!ifr.dataset.uid) {
-      try {
-        const url = new URL(src, window.location.origin);
-        const uidFromUrl = url.searchParams.get("uid");
-        if (uidFromUrl) ifr.dataset.uid = uidFromUrl;
-      } catch (e) {}
-    }
-
+    if (!ifr.dataset.uid)
+      ifr.dataset.uid = "u" + Math.random().toString(36).slice(2, 10);
     if (!ifr.classList.contains("review-embed"))
       ifr.classList.add("review-embed");
 
@@ -226,17 +179,17 @@
         ifr.setAttribute("data-ready", "1");
         try {
           ifr.contentWindow?.postMessage(
-            { type: "PING_HEIGHT", uid: ifr.dataset.uid || null },
+            { type: "PING_HEIGHT", uid: ifr.dataset.uid },
             "*"
           );
-        } catch (e) {}
+        } catch (e) { }
         setTimeout(() => {
           try {
             ifr.contentWindow?.postMessage(
-              { type: "PING_HEIGHT", uid: ifr.dataset.uid || null },
+              { type: "PING_HEIGHT", uid: ifr.dataset.uid },
               "*"
             );
-          } catch (e) {}
+          } catch (e) { }
         }, 250);
       },
       { once: true }
@@ -295,14 +248,20 @@
 
     const url = new URL(base, window.location.origin);
     url.searchParams.set("nth", String(nth));
-    if (!url.searchParams.get("uid") && ifr.dataset.uid) {
-      url.searchParams.set("uid", ifr.dataset.uid);
+    // mantenemos uid estable para este iframe; NO añadimos "r" para permitir cache HTTP
+    if (!url.searchParams.get("uid")) {
+      url.searchParams.set(
+        "uid",
+        ifr.dataset.uid ||
+        "u" + Math.random().toString(36).slice(2, 10)
+      );
     }
     const next = url.pathname + "?" + url.searchParams.toString();
 
     ifr.setAttribute("data-src", next);
     ifr.dataset.nth = String(nth);
     ifr.dataset.mounted = "0";
+    // no tocamos el height ni nada, sólo recargamos a la nueva review
     ifr.removeAttribute("src");
     mountIframe(ifr);
   }
@@ -363,16 +322,18 @@
 
   /* ======== Precarga de iframes remotos por tarjeta ======== */
   function preloadRemoteSlides(slides, currentIndex) {
+    // Sólo slides con data-prov-key (remotos), excepto el visible
     const remoteSlides = slides.filter((slide, idx) => {
       const isRemote = slide.hasAttribute("data-prov-key");
       return isRemote && idx !== currentIndex;
     });
 
     remoteSlides.forEach((slide, idx) => {
-      const delay = (idx + 1) * 300;
+      const delay = (idx + 1) * 300; // 300ms, 600ms, 900ms...
       setTimeout(() => {
         const ifr = slide.querySelector("iframe.review-iframe");
         if (ifr) {
+          // Fuerza el montaje aun estando oculto → queda cacheado para cuando el usuario llegue
           mountIframe(ifr);
         }
       }, delay);
@@ -388,10 +349,12 @@
 
     const poweredEl = carousel.querySelector(".js-powered");
 
+    // ¿modo "múltiples slides" o "un iframe que rota nth"?
     const multipleSlides = slides.length > 1;
     let idx = slides.findIndex((el) => el.style.display !== "none");
     if (idx < 0) idx = 0;
 
+    // Para iframe-only
     let iframeInfo = null;
     if (!multipleSlides) {
       const ifr = slides[0].querySelector("iframe.review-iframe");
@@ -406,6 +369,7 @@
       iframeInfo = { ifr, limit, nth };
     }
 
+    // Segments
     const totalSegments = multipleSlides
       ? slides.length
       : iframeInfo?.limit || 1;
@@ -446,8 +410,11 @@
         adjustTitleLayoutFor(visible);
         const ifr = visible.querySelector("iframe.review-iframe");
         if (ifr) mountIframe(ifr);
+
+        // 🔥 Pre-cargar de fondo los iframes remotos de las otras slides
         preloadRemoteSlides(slides, idx);
       } else {
+        // solo iframe: asegurar montaje del actual nth
         const ifr = iframeInfo?.ifr;
         if (ifr) mountIframe(ifr);
       }
@@ -524,7 +491,6 @@
     runEqualizeOnceReady();
     adjustAllTitles();
   }
-
   if (document.readyState === "loading")
     document.addEventListener("DOMContentLoaded", start);
   else start();
@@ -561,8 +527,7 @@
     } else {
       if (
         confirm(
-          `${TXT.swalTitle}\n\n${TXT.swalText} ${
-            name ? `"${name}"` : ""
+          `${TXT.swalTitle}\n\n${TXT.swalText} ${name ? `"${name}"` : ""
           }.`
         )
       )
