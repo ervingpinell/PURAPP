@@ -253,9 +253,16 @@
       ->unique()
       ->values();
       }
+
+      $tourUrl = localized_route('tours.show', $tour);
       @endphp
 
-      <article class="tours-index-card-wrapper">
+      {{-- *** AQUI HACEMOS LA CARD CLICKEABLE *** --}}
+      <article
+        class="tours-index-card-wrapper tour-card-clickable"
+        data-url="{{ $tourUrl }}"
+        tabindex="0"
+        aria-label="{{ $displayName }}">
         <div class="card tours-index-card h-100">
           {{-- Imagen con badge de duración --}}
           <div class="tour-image-container">
@@ -334,7 +341,7 @@
 
               {{-- Botón ver tour --}}
               <a
-                href="{{ localized_route('tours.show', $tour) }}"
+                href="{{ $tourUrl }}"
                 class="btn btn-success w-100 mt-2">
                 {{ __('adminlte::adminlte.see_tour') }}
               </a>
@@ -377,7 +384,6 @@
       const wrappers = Array.from(document.querySelectorAll('.tours-index-card-wrapper'));
       if (!wrappers.length) return;
 
-      // Ahora solo necesitamos igualar 3 secciones (sin duración)
       const selectors = [
         '.tour-card-header',
         '.tour-tags-container',
@@ -438,6 +444,83 @@
               const elem = w.querySelector(selector);
               if (elem) elem.style.minHeight = maxHeight + 'px';
             });
+          }
+        });
+      });
+    }
+
+    // *** NUEVO: Manejo de click/tap seguro en cards ***
+    function initCardClickHandlers() {
+      const wrappers = Array.from(document.querySelectorAll('.tours-index-card-wrapper[data-url]'));
+      if (!wrappers.length) return;
+
+      const DRAG_THRESHOLD = 10; // px
+      let startX = 0;
+      let startY = 0;
+
+      wrappers.forEach(wrapper => {
+        const url = wrapper.dataset.url;
+        if (!url) return;
+
+        // Click general (desktop + tap que no fue swipe)
+        wrapper.addEventListener('click', function(e) {
+          const tag = (e.target.tagName || '').toLowerCase();
+
+          // Deja que los links/botones internos funcionen normal
+          if (['a', 'button', 'input', 'select', 'textarea', 'label'].includes(tag)) {
+            return;
+          }
+
+          if (wrapper.dataset.suppressClick === 'true') {
+            // click generado después de un swipe → se ignora
+            wrapper.dataset.suppressClick = 'false';
+            return;
+          }
+
+          window.location.href = url;
+        });
+
+        // Touchstart: registramos posición inicial
+        wrapper.addEventListener('touchstart', function(e) {
+          if (!e.touches || !e.touches.length) return;
+          const t = e.touches[0];
+          startX = t.clientX;
+          startY = t.clientY;
+          wrapper.dataset.suppressClick = 'false';
+        }, {
+          passive: true
+        });
+
+        // Touchmove: si se movió más de cierto umbral, marcamos como swipe
+        wrapper.addEventListener('touchmove', function(e) {
+          if (!e.touches || !e.touches.length) return;
+          const t = e.touches[0];
+          const dx = Math.abs(t.clientX - startX);
+          const dy = Math.abs(t.clientY - startY);
+
+          if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
+            wrapper.dataset.suppressClick = 'true';
+          }
+        }, {
+          passive: true
+        });
+
+        // Touchend: el click sintético llegará después si no fue swipe
+        wrapper.addEventListener('touchend', function() {
+          // leve delay por cualquier click sintético pendiente
+          setTimeout(() => {
+            wrapper.dataset.suppressClick = 'false';
+          }, 0);
+        }, {
+          passive: true
+        });
+
+        // Accesibilidad teclado (Enter/Space)
+        wrapper.addEventListener('keydown', function(e) {
+          const key = e.key || e.code;
+          if (key === 'Enter' || key === ' ' || key === 'Spacebar') {
+            e.preventDefault();
+            window.location.href = url;
           }
         });
       });
@@ -540,6 +623,7 @@
     // Igualar cuando termina de cargar
     window.addEventListener('load', function() {
       setTimeout(equalizeTourSections, 100);
+      initCardClickHandlers(); // *** inicializamos aquí ***
     });
 
     // También después de que las imágenes se carguen
@@ -563,6 +647,9 @@
           });
         }
       });
+    } else {
+      // Por si no hay imágenes igualmente inicializamos handlers
+      initCardClickHandlers();
     }
   })();
 </script>
