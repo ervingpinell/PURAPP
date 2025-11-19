@@ -166,7 +166,8 @@ Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap
 |--------------------------------------------------------------------------
 */
 if (!function_exists('localizedRoutes')) {
-    function localizedRoutes(\Closure $callback) {
+    function localizedRoutes(\Closure $callback)
+    {
         $locales = array_keys(config('routes.locales', ['es' => []]));
         foreach ($locales as $locale) {
             Route::prefix($locale)
@@ -208,6 +209,18 @@ Route::get('/faqs', function () {
     $locale = session('locale', config('routes.default_locale', 'es'));
     return redirect("/{$locale}/faq");
 })->name('faqs.shortcut');
+
+// /reviews -> /{locale}/reviews
+Route::get('/reviews', function () {
+    $locale = session('locale', config('routes.default_locale', 'es'));
+    return redirect("/{$locale}/reviews");
+})->name('reviews.shortcut');
+
+// /home -> /{locale}/home
+Route::get('/home', function () {
+    $locale = session('locale', config('routes.default_locale', 'es'));
+    return redirect("/{$locale}");
+})->name('home.shortcut');
 
 // /contact -> /{locale}/contact
 Route::get('/contact', function () {
@@ -301,7 +314,7 @@ Route::middleware([SetLocale::class])->group(function () {
 
     // Account locked
     Route::view('/account/locked', 'auth.account-locked')->name('account.locked');
-    Route::get('/auth/throttled', fn () => response()->view('errors.429'))->name('auth.throttled');
+    Route::get('/auth/throttled', fn() => response()->view('errors.429'))->name('auth.throttled');
 
     // Unlock account
     Route::get('/unlock-account', [UnlockAccountController::class, 'form'])->name('unlock.form');
@@ -323,8 +336,8 @@ Route::middleware([SetLocale::class])->group(function () {
     })->middleware('guest')->name('verification.notice');
 
     Route::get('/email/change/confirm/{user}/{token}', [EmailChangeController::class, 'confirm'])
-    ->middleware('signed') // si quieres firma
-    ->name('email.change.confirm');
+        ->middleware('signed') // si quieres firma
+        ->name('email.change.confirm');
 
     // Email verification - Resend link
     Route::post('/email/verify/public/resend', function (Request $request) {
@@ -433,256 +446,256 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::get('tours/{tour}/languages', [TourDataController::class, 'languages'])->name('tours.languages');
                     Route::get('tours/{tour}/categories', [TourDataController::class, 'categories'])->name('tours.categories');
                 });
-// ============================
-// TOURS
-// ============================
-Route::prefix('tours')->name('tours.')->group(function () {
+                // ============================
+                // TOURS
+                // ============================
+                Route::prefix('tours')->name('tours.')->group(function () {
 
-    // -------------------- TOUR MAIN CRUD --------------------
-    Route::get('/', [TourController::class, 'index'])->name('index');
-    Route::get('/create', [TourWizardController::class, 'create'])->name('create');
-    Route::post('/', [TourController::class, 'store'])->name('store');
-Route::get('/{tour}/edit', [TourWizardController::class, 'edit'])->name('edit');
-        Route::put('/{tour}', [TourController::class, 'update'])->name('update');
-    Route::patch('/{tour}/toggle', [TourController::class, 'toggle'])->name('toggle');
-    Route::delete('/{tour}', [TourController::class, 'destroy'])->name('destroy');
-    Route::post('/{tour}/restore', [TourController::class, 'restore'])->name('restore');
-    Route::delete('/{tour}/purge', [TourController::class, 'purge'])->name('purge');
+                    // -------------------- TOUR MAIN CRUD --------------------
+                    Route::get('/', [TourController::class, 'index'])->name('index');
+                    Route::get('/create', [TourWizardController::class, 'create'])->name('create');
+                    Route::post('/', [TourController::class, 'store'])->name('store');
+                    Route::get('/{tour}/edit', [TourWizardController::class, 'edit'])->name('edit');
+                    Route::put('/{tour}', [TourController::class, 'update'])->name('update');
+                    Route::patch('/{tour}/toggle', [TourController::class, 'toggle'])->name('toggle');
+                    Route::delete('/{tour}', [TourController::class, 'destroy'])->name('destroy');
+                    Route::post('/{tour}/restore', [TourController::class, 'restore'])->name('restore');
+                    Route::delete('/{tour}/purge', [TourController::class, 'purge'])->name('purge');
 
-    /**
-     * ============================================================
-     * TOUR WIZARD - Creación paso a paso con gestión de drafts
-     * ============================================================
-     */
-    Route::prefix('wizard')->name('wizard.')->group(function () {
-        // 🔄 CAMBIO: 'tours.wizard.' → 'wizard.'
+                    /**
+                     * ============================================================
+                     * TOUR WIZARD - Creación paso a paso con gestión de drafts
+                     * ============================================================
+                     */
+                    Route::prefix('wizard')->name('wizard.')->group(function () {
+                        // 🔄 CAMBIO: 'tours.wizard.' → 'wizard.'
 
-        // Paso inicial - Detecta drafts existentes
-        Route::get('/create', [TourWizardController::class, 'create'])->name('create');
+                        // Paso inicial - Detecta drafts existentes
+                        Route::get('/create', [TourWizardController::class, 'create'])->name('create');
 
 
-        // 🆕 Gestión de drafts
-        Route::get('/continue/{tour}', [TourWizardController::class, 'continueDraft'])
-            ->name('continue');
-        Route::delete('/delete-draft/{tour}', [TourWizardController::class, 'deleteDraft'])
-            ->name('delete-draft');
-        Route::delete('/delete-all-drafts', [TourWizardController::class, 'deleteAllDrafts'])
-            ->name('delete-all-drafts');
+                        // 🆕 Gestión de drafts
+                        Route::get('/continue/{tour}', [TourWizardController::class, 'continueDraft'])
+                            ->name('continue');
+                        Route::delete('/delete-draft/{tour}', [TourWizardController::class, 'deleteDraft'])
+                            ->name('delete-draft');
+                        Route::delete('/delete-all-drafts', [TourWizardController::class, 'deleteAllDrafts'])
+                            ->name('delete-all-drafts');
                         Route::post('/{tour}/cancel', [TourWizardController::class, 'cancel'])->name('cancel');
 
 
-        // Paso 1: Detalles básicos
-Route::post('/store-details', [TourWizardController::class, 'storeDetails'])
-    ->middleware('throttle:10,1')
-    ->name('store.details');
+                        // Paso 1: Detalles básicos
+                        Route::post('/store-details', [TourWizardController::class, 'storeDetails'])
+                            ->middleware('throttle:10,1')
+                            ->name('store.details');
 
-Route::post('/{tour}/update-details', [TourWizardController::class, 'updateDetails'])
-    ->name('update.details');
+                        Route::post('/{tour}/update-details', [TourWizardController::class, 'updateDetails'])
+                            ->name('update.details');
 
-        // Navegación entre pasos
-        Route::get('/{tour}/step/{step}', [TourWizardController::class, 'showStep'])
-            ->name('step');
+                        // Navegación entre pasos
+                        Route::get('/{tour}/step/{step}', [TourWizardController::class, 'showStep'])
+                            ->name('step');
 
-        // Paso 2: Itinerario
-        Route::post('/{tour}/store-itinerary', [TourWizardController::class, 'storeItinerary'])
-            ->name('store.itinerary');
+                        // Paso 2: Itinerario
+                        Route::post('/{tour}/store-itinerary', [TourWizardController::class, 'storeItinerary'])
+                            ->name('store.itinerary');
 
-        // Paso 3: Horarios
-        Route::post('/{tour}/store-schedules', [TourWizardController::class, 'storeSchedules'])
-            ->name('store.schedules');
-        Route::post('/{tour}/quick-schedule', [TourWizardController::class, 'quickStoreSchedule'])
-            ->name('quick.schedule');
+                        // Paso 3: Horarios
+                        Route::post('/{tour}/store-schedules', [TourWizardController::class, 'storeSchedules'])
+                            ->name('store.schedules');
+                        Route::post('/{tour}/quick-schedule', [TourWizardController::class, 'quickStoreSchedule'])
+                            ->name('quick.schedule');
 
-        // Paso 4: Amenidades
-        Route::post('/{tour}/store-amenities', [TourWizardController::class, 'storeAmenities'])
-            ->name('store.amenities');
-        Route::post('/quick-amenity', [TourWizardController::class, 'quickStoreAmenity'])
-            ->name('quick.amenity');
+                        // Paso 4: Amenidades
+                        Route::post('/{tour}/store-amenities', [TourWizardController::class, 'storeAmenities'])
+                            ->name('store.amenities');
+                        Route::post('/quick-amenity', [TourWizardController::class, 'quickStoreAmenity'])
+                            ->name('quick.amenity');
 
-        // Paso 5: Precios
-        Route::post('/{tour}/store-prices', [TourWizardController::class, 'storePrices'])
-            ->name('store.prices');
-        Route::post('/quick-category', [TourWizardController::class, 'quickStoreCategory'])
-            ->name('quick.category');
+                        // Paso 5: Precios
+                        Route::post('/{tour}/store-prices', [TourWizardController::class, 'storePrices'])
+                            ->name('store.prices');
+                        Route::post('/quick-category', [TourWizardController::class, 'quickStoreCategory'])
+                            ->name('quick.category');
 
-        // Paso 6: Publicar
-        Route::post('/{tour}/publish', [TourWizardController::class, 'publish'])
-            ->name('publish');
+                        // Paso 6: Publicar
+                        Route::post('/{tour}/publish', [TourWizardController::class, 'publish'])
+                            ->name('publish');
 
-        // Quick creates (AJAX)
-        Route::post('/quick-tour-type', [TourWizardController::class, 'quickStoreTourType'])
-            ->name('quick.tour-type');
-        Route::post('/quick-language', [TourWizardController::class, 'quickStoreLanguage'])
-            ->name('quick.language');
-        Route::post('/quick-itinerary-item', [TourWizardController::class, 'quickCreateItineraryItem'])
-            ->name('quick.itinerary-item');
-    });
+                        // Quick creates (AJAX)
+                        Route::post('/quick-tour-type', [TourWizardController::class, 'quickStoreTourType'])
+                            ->name('quick.tour-type');
+                        Route::post('/quick-language', [TourWizardController::class, 'quickStoreLanguage'])
+                            ->name('quick.language');
+                        Route::post('/quick-itinerary-item', [TourWizardController::class, 'quickCreateItineraryItem'])
+                            ->name('quick.itinerary-item');
+                    });
 
-    /**
-     * ============================================================
-     * 🆕 AUDITORÍA
-     * ============================================================
-     */
-    Route::prefix('audit')->name('audit.')->middleware('can:view-audit')->group(function () {
-        // 🔄 CAMBIO: Quitamos el prefijo 'tours.' duplicado
+                    /**
+                     * ============================================================
+                     * 🆕 AUDITORÍA
+                     * ============================================================
+                     */
+                    Route::prefix('audit')->name('audit.')->middleware('can:view-audit')->group(function () {
+                        // 🔄 CAMBIO: Quitamos el prefijo 'tours.' duplicado
 
-        // Dashboard principal de auditoría
-        Route::get('/dashboard', [AuditController::class, 'dashboard'])
-            ->name('dashboard');
+                        // Dashboard principal de auditoría
+                        Route::get('/dashboard', [AuditController::class, 'dashboard'])
+                            ->name('dashboard');
 
-        // Listado de logs con filtros
-        Route::get('/', [AuditController::class, 'index'])
-            ->name('index');
+                        // Listado de logs con filtros
+                        Route::get('/', [AuditController::class, 'index'])
+                            ->name('index');
 
-        // Ver detalles de un log específico
-        Route::get('/log/{log}', [AuditController::class, 'show'])
-            ->name('show');
+                        // Ver detalles de un log específico
+                        Route::get('/log/{log}', [AuditController::class, 'show'])
+                            ->name('show');
 
-        // Historial completo de un tour
-        Route::get('/tour/{tour}/history', [AuditController::class, 'tourHistory'])
-            ->name('tour-history');
+                        // Historial completo de un tour
+                        Route::get('/tour/{tour}/history', [AuditController::class, 'tourHistory'])
+                            ->name('tour-history');
 
-        // Actividad de un usuario
-        Route::get('/user/{user}/activity', [AuditController::class, 'userActivity'])
-            ->name('user-activity');
+                        // Actividad de un usuario
+                        Route::get('/user/{user}/activity', [AuditController::class, 'userActivity'])
+                            ->name('user-activity');
 
-        // Exportar logs
-        Route::get('/export', [AuditController::class, 'export'])
-            ->name('export');
+                        // Exportar logs
+                        Route::get('/export', [AuditController::class, 'export'])
+                            ->name('export');
 
-        // Limpiar logs antiguos (solo administradores)
-        Route::delete('/purge', [AuditController::class, 'purge'])
-            ->middleware('can:purge-audit')
-            ->name('purge');
-    });
+                        // Limpiar logs antiguos (solo administradores)
+                        Route::delete('/purge', [AuditController::class, 'purge'])
+                            ->middleware('can:purge-audit')
+                            ->name('purge');
+                    });
 
-    /**
-     * ============================================================
-     * 🆕 ESTADÍSTICAS Y REPORTES
-     * ============================================================
-     */
-    Route::prefix('stats')->name('stats.')->group(function () {
-        // 🔄 CAMBIO: 'tours/stats' → 'stats' (ya estamos en el grupo 'tours')
+                    /**
+                     * ============================================================
+                     * 🆕 ESTADÍSTICAS Y REPORTES
+                     * ============================================================
+                     */
+                    Route::prefix('stats')->name('stats.')->group(function () {
+                        // 🔄 CAMBIO: 'tours/stats' → 'stats' (ya estamos en el grupo 'tours')
 
-        Route::get('/drafts', [TourController::class, 'draftsStats'])
-            ->name('drafts');
-        Route::get('/users', [TourController::class, 'usersStats'])
-            ->name('users');
-        Route::get('/activity', [TourController::class, 'activityStats'])
-            ->name('activity');
-    });
+                        Route::get('/drafts', [TourController::class, 'draftsStats'])
+                            ->name('drafts');
+                        Route::get('/users', [TourController::class, 'usersStats'])
+                            ->name('users');
+                        Route::get('/activity', [TourController::class, 'activityStats'])
+                            ->name('activity');
+                    });
 
-    // -------------------- TOUR ORDER --------------------
-    Route::get('/order', [TourOrderController::class, 'index'])->name('order.index');
-    Route::post('/order/{tourType}/save', [TourOrderController::class, 'save'])->name('order.save');
+                    // -------------------- TOUR ORDER --------------------
+                    Route::get('/order', [TourOrderController::class, 'index'])->name('order.index');
+                    Route::post('/order/{tourType}/save', [TourOrderController::class, 'save'])->name('order.save');
 
-    // -------------------- PRICES (por categoría) --------------------
-    Route::prefix('{tour}/prices')->name('prices.')->group(function () {
-        Route::get('/', [TourPriceController::class, 'index'])->name('index');
-        Route::post('/', [TourPriceController::class, 'store'])->name('store');
-        Route::post('/bulk-update', [TourPriceController::class, 'bulkUpdate'])->name('bulk-update');
-        Route::put('/{price}', [TourPriceController::class, 'update'])->name('update');
-        Route::post('/{price}/toggle', [TourPriceController::class, 'toggle'])->name('toggle');
-        Route::delete('/{price}', [TourPriceController::class, 'destroy'])->name('destroy');
-    });
+                    // -------------------- PRICES (por categoría) --------------------
+                    Route::prefix('{tour}/prices')->name('prices.')->group(function () {
+                        Route::get('/', [TourPriceController::class, 'index'])->name('index');
+                        Route::post('/', [TourPriceController::class, 'store'])->name('store');
+                        Route::post('/bulk-update', [TourPriceController::class, 'bulkUpdate'])->name('bulk-update');
+                        Route::put('/{price}', [TourPriceController::class, 'update'])->name('update');
+                        Route::post('/{price}/toggle', [TourPriceController::class, 'toggle'])->name('toggle');
+                        Route::delete('/{price}', [TourPriceController::class, 'destroy'])->name('destroy');
+                    });
 
-    // -------------------- IMAGES --------------------
-    Route::get('/images', [TourImageController::class, 'pick'])->name('images.pick');
-    Route::prefix('{tour}/images')->name('images.')->group(function () {
-        Route::get('/', [TourImageController::class, 'index'])->name('index');
-        Route::post('/', [TourImageController::class, 'store'])->name('store');
-        Route::delete('/', [TourImageController::class, 'bulkDestroy'])->name('bulk-destroy');
-        Route::delete('/all', [TourImageController::class, 'destroyAll'])->name('destroyAll');
-        Route::patch('/{image}', [TourImageController::class, 'update'])->name('update');
-        Route::delete('/{image}', [TourImageController::class, 'destroy'])->name('destroy');
-        Route::post('/{image}/cover', [TourImageController::class, 'setCover'])->name('cover');
-        Route::post('/reorder', [TourImageController::class, 'reorder'])->name('reorder');
-    });
+                    // -------------------- IMAGES --------------------
+                    Route::get('/images', [TourImageController::class, 'pick'])->name('images.pick');
+                    Route::prefix('{tour}/images')->name('images.')->group(function () {
+                        Route::get('/', [TourImageController::class, 'index'])->name('index');
+                        Route::post('/', [TourImageController::class, 'store'])->name('store');
+                        Route::delete('/', [TourImageController::class, 'bulkDestroy'])->name('bulk-destroy');
+                        Route::delete('/all', [TourImageController::class, 'destroyAll'])->name('destroyAll');
+                        Route::patch('/{image}', [TourImageController::class, 'update'])->name('update');
+                        Route::delete('/{image}', [TourImageController::class, 'destroy'])->name('destroy');
+                        Route::post('/{image}/cover', [TourImageController::class, 'setCover'])->name('cover');
+                        Route::post('/reorder', [TourImageController::class, 'reorder'])->name('reorder');
+                    });
 
-    // -------------------- SCHEDULES (Horarios) --------------------
-    Route::prefix('schedule')->name('schedule.')->group(function () {
-        Route::get('/', [TourScheduleController::class, 'index'])->name('index');
-        Route::post('/', [TourScheduleController::class, 'store'])->name('store');
-        Route::put('/{schedule}', [TourScheduleController::class, 'update'])->name('update');
-        Route::delete('/{schedule}', [TourScheduleController::class, 'destroy'])->name('destroy');
-        Route::put('/{schedule}/toggle', [TourScheduleController::class, 'toggle'])->name('toggle');
+                    // -------------------- SCHEDULES (Horarios) --------------------
+                    Route::prefix('schedule')->name('schedule.')->group(function () {
+                        Route::get('/', [TourScheduleController::class, 'index'])->name('index');
+                        Route::post('/', [TourScheduleController::class, 'store'])->name('store');
+                        Route::put('/{schedule}', [TourScheduleController::class, 'update'])->name('update');
+                        Route::delete('/{schedule}', [TourScheduleController::class, 'destroy'])->name('destroy');
+                        Route::put('/{schedule}/toggle', [TourScheduleController::class, 'toggle'])->name('toggle');
 
-        // Asignación a tours
-        Route::post('/{tour}/attach', [TourScheduleController::class, 'attach'])->name('attach');
-        Route::delete('/{tour}/{schedule}/detach', [TourScheduleController::class, 'detach'])->name('detach');
-        Route::patch('/{tour}/{schedule}/assignment-toggle', [TourScheduleController::class, 'toggleAssignment'])->name('assignment.toggle');
+                        // Asignación a tours
+                        Route::post('/{tour}/attach', [TourScheduleController::class, 'attach'])->name('attach');
+                        Route::delete('/{tour}/{schedule}/detach', [TourScheduleController::class, 'detach'])->name('detach');
+                        Route::patch('/{tour}/{schedule}/assignment-toggle', [TourScheduleController::class, 'toggleAssignment'])->name('assignment.toggle');
 
-        // 🆕 ACTUALIZAR CAPACIDAD DEL PIVOTE (tour+schedule)
-        Route::patch('/{tour}/{schedule}/pivot', [TourScheduleController::class, 'updatePivotCapacity'])
-            ->name('update-pivot-capacity');
-    });
+                        // 🆕 ACTUALIZAR CAPACIDAD DEL PIVOTE (tour+schedule)
+                        Route::patch('/{tour}/{schedule}/pivot', [TourScheduleController::class, 'updatePivotCapacity'])
+                            ->name('update-pivot-capacity');
+                    });
 
-    // -------------------- CAPACITY MANAGEMENT --------------------
-    Route::prefix('capacity')->name('capacity.')->group(function () {
-        // Vista principal con tabs
-        Route::get('/', [TourAvailabilityController::class, 'index'])->name('index');
+                    // -------------------- CAPACITY MANAGEMENT --------------------
+                    Route::prefix('capacity')->name('capacity.')->group(function () {
+                        // Vista principal con tabs
+                        Route::get('/', [TourAvailabilityController::class, 'index'])->name('index');
 
-        // Capacidad GLOBAL del tour
-        Route::patch('/tour/{tour}', [TourAvailabilityController::class, 'updateTourCapacity'])->name('update-tour');
+                        // Capacidad GLOBAL del tour
+                        Route::patch('/tour/{tour}', [TourAvailabilityController::class, 'updateTourCapacity'])->name('update-tour');
 
-        // Capacidad BASE por horario (pivot)
-        Route::patch('/tour/{tour}/schedule/base-capacity', [TourAvailabilityController::class, 'updateScheduleBaseCapacity'])->name('update-schedule-base');
+                        // Capacidad BASE por horario (pivot)
+                        Route::patch('/tour/{tour}/schedule/base-capacity', [TourAvailabilityController::class, 'updateScheduleBaseCapacity'])->name('update-schedule-base');
 
-        // Override puntual por día+horario
-        Route::post('/tour/{tour}/overrides/day-schedule', [TourAvailabilityController::class, 'upsertDayScheduleOverride'])->name('override-day-schedule');
+                        // Override puntual por día+horario
+                        Route::post('/tour/{tour}/overrides/day-schedule', [TourAvailabilityController::class, 'upsertDayScheduleOverride'])->name('override-day-schedule');
 
-        // Bloqueo puntual por día+horario
-        Route::post('/tour/{tour}/overrides/day-schedule/toggle-block', [TourAvailabilityController::class, 'toggleBlockDaySchedule'])->name('toggle-block-day-schedule');
+                        // Bloqueo puntual por día+horario
+                        Route::post('/tour/{tour}/overrides/day-schedule/toggle-block', [TourAvailabilityController::class, 'toggleBlockDaySchedule'])->name('toggle-block-day-schedule');
 
-        // ===== WIDGET DE ALERTAS (CapacityController) =====
-        Route::prefix('schedules/{schedule}')->group(function () {
-            Route::patch('/increase', [CapacityController::class, 'increase'])->name('increase');
-            Route::get('/details', [CapacityController::class, 'show'])->name('details');
-            Route::patch('/block', [CapacityController::class, 'block'])->name('block');
-        });
+                        // ===== WIDGET DE ALERTAS (CapacityController) =====
+                        Route::prefix('schedules/{schedule}')->group(function () {
+                            Route::patch('/increase', [CapacityController::class, 'increase'])->name('increase');
+                            Route::get('/details', [CapacityController::class, 'show'])->name('details');
+                            Route::patch('/block', [CapacityController::class, 'block'])->name('block');
+                        });
 
-        // Legacy CRUD directo
-        Route::post('/', [TourAvailabilityController::class, 'store'])->name('store');
-        Route::patch('/{availability}', [TourAvailabilityController::class, 'update'])->name('update');
-        Route::delete('/{availability}', [TourAvailabilityController::class, 'destroy'])->name('destroy');
-    });
+                        // Legacy CRUD directo
+                        Route::post('/', [TourAvailabilityController::class, 'store'])->name('store');
+                        Route::patch('/{availability}', [TourAvailabilityController::class, 'update'])->name('update');
+                        Route::delete('/{availability}', [TourAvailabilityController::class, 'destroy'])->name('destroy');
+                    });
 
-    // -------------------- EXCLUDED DATES --------------------
-    Route::prefix('excluded_dates')->name('excluded_dates.')->group(function () {
-        Route::get('/', [TourExcludedDateController::class, 'index'])->name('index');
-        Route::get('/blocked', [TourExcludedDateController::class, 'blocked'])->name('blocked');
-        Route::post('/', [TourExcludedDateController::class, 'store'])->name('store');
-        Route::put('/{excludedDate}', [TourExcludedDateController::class, 'update'])->name('update');
-        Route::delete('/{excludedDate}', [TourExcludedDateController::class, 'destroy'])->name('destroy');
-        Route::post('/toggle', [TourExcludedDateController::class, 'toggle'])->name('toggle');
-        Route::post('/bulk-toggle', [TourExcludedDateController::class, 'bulkToggle'])->name('bulkToggle');
-        Route::post('/block-all', [TourExcludedDateController::class, 'blockAll'])->name('blockAll');
-        Route::post('/store-multiple', [TourExcludedDateController::class, 'storeMultiple'])->name('storeMultiple');
-        Route::delete('/all', [TourExcludedDateController::class, 'destroyAll'])->name('destroyAll');
-        Route::post('/destroy-selected', [TourExcludedDateController::class, 'destroySelected'])->name('destroySelected');
-    });
+                    // -------------------- EXCLUDED DATES --------------------
+                    Route::prefix('excluded_dates')->name('excluded_dates.')->group(function () {
+                        Route::get('/', [TourExcludedDateController::class, 'index'])->name('index');
+                        Route::get('/blocked', [TourExcludedDateController::class, 'blocked'])->name('blocked');
+                        Route::post('/', [TourExcludedDateController::class, 'store'])->name('store');
+                        Route::put('/{excludedDate}', [TourExcludedDateController::class, 'update'])->name('update');
+                        Route::delete('/{excludedDate}', [TourExcludedDateController::class, 'destroy'])->name('destroy');
+                        Route::post('/toggle', [TourExcludedDateController::class, 'toggle'])->name('toggle');
+                        Route::post('/bulk-toggle', [TourExcludedDateController::class, 'bulkToggle'])->name('bulkToggle');
+                        Route::post('/block-all', [TourExcludedDateController::class, 'blockAll'])->name('blockAll');
+                        Route::post('/store-multiple', [TourExcludedDateController::class, 'storeMultiple'])->name('storeMultiple');
+                        Route::delete('/all', [TourExcludedDateController::class, 'destroyAll'])->name('destroyAll');
+                        Route::post('/destroy-selected', [TourExcludedDateController::class, 'destroySelected'])->name('destroySelected');
+                    });
 
-    // -------------------- CUTOFF --------------------
-    Route::prefix('cutoff')->name('cutoff.')->group(function () {
-        Route::get('/', [CutOffController::class, 'edit'])->name('edit');
-        Route::put('/', [CutOffController::class, 'update'])->name('update');
-        Route::put('/tour', [CutOffController::class, 'updateTourOverrides'])->name('tour.update');
-        Route::put('/schedule', [CutOffController::class, 'updateScheduleOverrides'])->name('schedule.update');
-    });
+                    // -------------------- CUTOFF --------------------
+                    Route::prefix('cutoff')->name('cutoff.')->group(function () {
+                        Route::get('/', [CutOffController::class, 'edit'])->name('edit');
+                        Route::put('/', [CutOffController::class, 'update'])->name('update');
+                        Route::put('/tour', [CutOffController::class, 'updateTourOverrides'])->name('tour.update');
+                        Route::put('/schedule', [CutOffController::class, 'updateScheduleOverrides'])->name('schedule.update');
+                    });
 
-    // -------------------- ITINERARY --------------------
-    Route::resource('itinerary', ItineraryController::class)->except(['show']);
-    Route::patch('itineraries/{itinerary}/toggle', [ItineraryController::class, 'toggle'])->name('itinerary.toggle');
-    Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');
+                    // -------------------- ITINERARY --------------------
+                    Route::resource('itinerary', ItineraryController::class)->except(['show']);
+                    Route::patch('itineraries/{itinerary}/toggle', [ItineraryController::class, 'toggle'])->name('itinerary.toggle');
+                    Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');
 
-    // -------------------- ITINERARY ITEMS --------------------
-    Route::resource('itinerary_items', ItineraryItemController::class)->except(['show', 'create', 'edit']);
-    Route::patch('itinerary_items/{itinerary_item}/toggle', [ItineraryItemController::class, 'toggle'])->name('itinerary_items.toggle');
+                    // -------------------- ITINERARY ITEMS --------------------
+                    Route::resource('itinerary_items', ItineraryItemController::class)->except(['show', 'create', 'edit']);
+                    Route::patch('itinerary_items/{itinerary_item}/toggle', [ItineraryItemController::class, 'toggle'])->name('itinerary_items.toggle');
 
-    // -------------------- AMENITIES --------------------
-    Route::resource('amenities', AmenityController::class)->except(['show']);
-    Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])->name('amenities.toggle');
-});
+                    // -------------------- AMENITIES --------------------
+                    Route::resource('amenities', AmenityController::class)->except(['show']);
+                    Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])->name('amenities.toggle');
+                });
 
 
                 // ============================
