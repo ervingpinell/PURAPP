@@ -536,5 +536,18 @@ return [
         'date'      => 'Fecha',
     ],
         'pickup'      => 'Lugar Recogida',
+'filters_title'            => 'Filtrar resultados',
+'filters_subtitle'         => 'Combina búsqueda por texto y categoría para encontrar el tour ideal.',
+'search_tours_placeholder' => 'Buscar por nombre o descripción…',
+
+'all_categories'           => 'Todas las categorías',
+'category_label'           => 'Categoría',
+
+'filters_active'           => 'Filtros activos',
+'clear_filters'            => 'Limpiar filtros',
+'clear_short'              => 'Limpiar',
+'all_tours_title'       => 'Todos los tours',
+'all_tours_subtitle'    => 'Explora todas nuestras experiencias disponibles y encuentra tu próxima aventura.',
+'filters_btn' => 'Filtrar',
 
 ];

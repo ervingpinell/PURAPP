@@ -537,4 +537,18 @@ return [
     ],
     'pickup'      => 'Pickup place',
 
+'filters_title'            => 'Filter results',
+'filters_subtitle'         => 'Combine text search and category filtering to find the perfect tour.',
+'search_tours_placeholder' => 'Search by name or description…',
+
+'all_categories'           => 'All categories',
+'category_label'           => 'Category',
+
+'filters_active'           => 'Active filters',
+'clear_filters'            => 'Clear filters',
+'clear_short'              => 'Clear',
+'all_tours_title'       => 'All tours',
+'all_tours_subtitle'    => 'Explore all our available experiences and find your next adventure.',
+'filters_btn' => 'Filter',
+
 ];

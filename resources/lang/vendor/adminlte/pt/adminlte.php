@@ -535,5 +535,18 @@ return [
         'date'      => 'Data',
     ],
     'pickup'      => 'Local de traslado',
+'filters_title'            => 'Filtrar resultados',
+'filters_subtitle'         => 'Combine busca por texto e categoria para encontrar o passeio ideal.',
+'search_tours_placeholder' => 'Buscar por nome ou descrição…',
+
+'all_categories'           => 'Todas as categorias',
+'category_label'           => 'Categoria',
+
+'filters_active'           => 'Filtros ativos',
+'clear_filters'            => 'Limpar filtros',
+'clear_short'              => 'Limpar',
+'all_tours_title'       => 'Todos os passeios',
+'all_tours_subtitle'    => 'Explore todas as nossas experiências disponíveis e encontre a sua próxima aventura.',
+'filters_btn' => 'Filtrar',
 
 ];

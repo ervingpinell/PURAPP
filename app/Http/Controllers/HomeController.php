@@ -242,6 +242,92 @@ class HomeController extends Controller
             abort(404);
         }
     }
+public function allTours(Request $request)
+{
+    $loc = app()->getLocale();
+    $fb  = config('app.fallback_locale', 'es');
+
+    $search   = trim((string) $request->get('q', ''));
+    $category = $request->get('category');
+
+    // Categorías / tipos de tour para el filtro
+    $categories = TourType::orderBy('name')->get();
+
+    $query = Tour::query()
+        ->with([
+            'tourType',
+            'translations',
+            'coverImage',
+            'prices' => function($q) {
+                $q->where('is_active', true)
+                  ->whereHas('category', fn($cq) => $cq->where('is_active', true))
+                  ->with(['category.translations'])
+                  ->orderBy('category_id');
+            }
+        ])
+        ->where('is_active', true)
+        ->where('is_draft', false);
+
+    if ($category) {
+        $query->where('tour_type_id', $category);
+    }
+
+    if ($search !== '') {
+        // Búsqueda case-insensitive portable (MySQL / Postgres) usando LOWER(...)
+        $needle = mb_strtolower($search);
+
+        $query->where(function ($q) use ($needle) {
+            $like = "%{$needle}%";
+
+            // Campos directos en la tabla tours
+            $q->whereRaw('LOWER(name) LIKE ?', [$like])
+              ->orWhereRaw('LOWER(slug) LIKE ?', [$like])
+
+              // Campos en la tabla de traducciones (name / overview)
+              ->orWhereHas('translations', function ($qt) use ($like) {
+                  $qt->whereRaw('LOWER(name) LIKE ?', [$like])
+                     ->orWhereRaw('LOWER(overview) LIKE ?', [$like]);
+              });
+        });
+    }
+
+    $tours = $query
+        ->orderBy('name')
+        ->paginate(12)
+        ->withQueryString();
+
+    // Transformamos la colección interna del paginator
+    $tours->getCollection()->transform(function ($tour) use ($loc, $fb) {
+        $tr = $this->pickTranslation($tour->translations, $loc, $fb);
+        $tour->translated_name = $tr->name ?? $tour->name;
+
+        // Etiqueta de duración más amigable
+        if (!empty($tour->length)) {
+            $unitLabel = __('adminlte::adminlte.horas');
+            $tour->duration_label = $tour->length . ' ' . $unitLabel;
+        } else {
+            $tour->duration_label = null;
+        }
+
+        // Colección de precios activos + categorías
+        $activePrices = collect($tour->prices ?? [])
+            ->filter(fn($p) => $p->is_active && $p->category && $p->category->is_active)
+            ->sortBy('category_id')
+            ->values();
+
+        $tour->price_categories = $activePrices;
+        $tour->from_price       = $activePrices->min('price') ?: null;
+
+        return $tour;
+    });
+
+    return view('public.tours.index', [
+        'tours'          => $tours,
+        'categories'     => $categories,
+        'activeCategory' => $category,
+        'search'         => $search,
+    ]);
+}
 
     /* ===========================
        HELPERS PRIVADOS

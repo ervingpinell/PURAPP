@@ -535,5 +535,18 @@ return [
         'date'      => 'Date',
     ],
     'pickup'      => 'Lieu de prise en charge',
+'filters_title'            => 'Filtrer les résultats',
+'filters_subtitle'         => 'Combinez recherche par texte et catégorie pour trouver la visite idéale.',
+'search_tours_placeholder' => 'Rechercher par nom ou description…',
+
+'all_categories'           => 'Toutes les catégories',
+'category_label'           => 'Catégorie',
+
+'filters_active'           => 'Filtres actifs',
+'clear_filters'            => 'Effacer les filtres',
+'clear_short'              => 'Effacer',
+'all_tours_title'       => 'Toutes les visites',
+'all_tours_subtitle'    => 'Découvrez toutes nos expériences disponibles et trouvez votre prochaine aventure.',
+'filters_btn' => 'Filtrer',
 
 ];

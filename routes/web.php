@@ -175,7 +175,6 @@ if (!function_exists('localizedRoutes')) {
         }
     }
 }
-
 /*
 |--------------------------------------------------------------------------
 | Root -> locale redirect
@@ -185,6 +184,36 @@ Route::get('/', function () {
     $locale = session('locale', config('routes.default_locale', 'es'));
     return redirect("/{$locale}");
 });
+
+/*
+|--------------------------------------------------------------------------
+| Shortcuts sin locale -> con locale
+|--------------------------------------------------------------------------
+*/
+
+// /tours -> /{locale}/tours
+Route::get('/tours', function () {
+    $locale = session('locale', config('routes.default_locale', 'es'));
+    return redirect("/{$locale}/tours");
+})->name('tours.shortcut');
+
+// /faq -> /{locale}/faq
+Route::get('/faq', function () {
+    $locale = session('locale', config('routes.default_locale', 'es'));
+    return redirect("/{$locale}/faq");
+})->name('faq.shortcut');
+
+// /faqs -> /{locale}/faq (alias)
+Route::get('/faqs', function () {
+    $locale = session('locale', config('routes.default_locale', 'es'));
+    return redirect("/{$locale}/faq");
+})->name('faqs.shortcut');
+
+// /contact -> /{locale}/contact
+Route::get('/contact', function () {
+    $locale = session('locale', config('routes.default_locale', 'es'));
+    return redirect("/{$locale}/contact");
+})->name('contact.shortcut');
 
 /*
 |--------------------------------------------------------------------------
@@ -220,7 +249,7 @@ Route::middleware([SetLocale::class])->group(function () {
         // Alias opcional /{locale}/home, SIN name duplicado
         Route::get('/home', [HomeController::class, 'index']);
 
-        Route::get('/tours', [HomeController::class, 'allTours'])->name('tours.index');
+        Route::get('/tours', action: [HomeController::class, 'allTours'])->name('tours.index');
         Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tours.show');
 
         // ============================

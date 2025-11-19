@@ -534,5 +534,18 @@ return [
         'date'      => 'Datum',
     ],
     'pickup'      => 'Abholort',
+'filters_title'            => 'Ergebnisse filtern',
+'filters_subtitle'         => 'Kombiniere Textsuche und Kategorien, um die passende Tour zu finden.',
+'search_tours_placeholder' => 'Nach Name oder Beschreibung suchen…',
+
+'all_categories'           => 'Alle Kategorien',
+'category_label'           => 'Kategorie',
+
+'filters_active'           => 'Aktive Filter',
+'clear_filters'            => 'Filter löschen',
+'clear_short'              => 'Löschen',
+'all_tours_title'       => 'Alle Touren',
+'all_tours_subtitle'    => 'Entdecke all unsere verfügbaren Erlebnisse und finde dein nächstes Abenteuer.',
+'filters_btn' => 'Filtern',
 
 ];
