@@ -203,7 +203,10 @@
                         @if(!empty($bookingLimits ?? null))
                           <div class="alert alert-info py-2">
                             <div class="small">
-                              <div><strong>{{ __('m_bookings.validation.max_persons_label') ?? 'Máx. personas por reserva' }}:</strong> {{ $bookingLimits['max_persons_total'] ?? ($bookingLimits['max_persons_per_booking'] ?? '—') }}</div>
+                              <div>
+                                  <strong>{{ __('m_bookings.validation.max_persons_label') ?? 'Máx. personas por reserva' }}:</strong>
+                                  {{ $bookingLimits['max_persons_total'] ?? ($bookingLimits['max_persons_per_booking'] ?? '—') }}
+                              </div>
                             </div>
                           </div>
                         @endif
@@ -231,7 +234,9 @@
                                             type="button"
                                             id="btn-verify-promo"
                                             data-mode="apply">
-                                        <span class="promo-label">{{ __('m_bookings.bookings.buttons.apply') }}</span>
+                                        <span class="promo-label">
+                                            {{ __('m_bookings.bookings.buttons.apply') }}
+                                        </span>
                                     </button>
                                 </div>
                             </div>
@@ -248,10 +253,15 @@
                                 <span>{{ __('m_bookings.bookings.fields.subtotal') }}:</span>
                                 <span id="subtotal-price">$0.00</span>
                             </div>
+
+                            {{-- Ajuste por promo: puede ser descuento o recargo --}}
                             <div class="d-flex justify-content-between mb-1" id="discount-row" style="display:none;">
-                                <span>{{ __('m_bookings.bookings.fields.discount') }}:</span>
+                                <span id="promo-adjust-label">
+                                    {{ __('m_bookings.bookings.fields.discount') }}:
+                                </span>
                                 <span id="discount-amount">-$0.00</span>
                             </div>
+
                             <hr class="my-2">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <strong class="mb-0">{{ __('m_bookings.bookings.fields.total_persons') }}:</strong>
@@ -302,15 +312,28 @@
     const epLanguages   = (tourId) => languagesTpl.replace('TOUR_ID', tourId);
     const epCategories  = (tourId) => categoriesTpl.replace('TOUR_ID', tourId);
 
-    // Si prefieres mantener la verificación de cupones por API, déjala así:
+    // Verificación de cupones por API
     const epVerify = '/api/v1/bookings/verify-promo-code';
 
-    let currentCategories = [];
-    let lastChangedInputId = null;
-    const LIMITS  = window.BOOKING_LIMITS || {};
-    const PER_TOUR= window.LIMITS_PER_TOUR || {};
-    const LOCALE  = window.APP_LOCALE || 'es';
-    const fmtMoney = n => '$' + (Number(n||0)).toFixed(2);
+    let currentCategories   = [];
+    let lastChangedInputId  = null;
+    let isInitializing      = true;                          // para no limpiar promo en el primer load
+    const LIMITS            = window.BOOKING_LIMITS || {};
+    const PER_TOUR          = window.LIMITS_PER_TOUR || {};
+    const LOCALE            = window.APP_LOCALE || 'es';
+    const OLD_PROMO         = @json(old('promo_code'));
+    let   pendingAutoPromo  = !!OLD_PROMO;                   // si venimos de un error, re-aplicar promo
+    const fmtMoney          = n => '$' + (Number(n||0)).toFixed(2);
+
+    // Labels para promo (recargo / descuento y botón)
+    const LABEL_DISCOUNT  = @json(__('m_config.promocode.operations.discount'));
+    const LABEL_SURCHARGE = @json(__('m_config.promocode.operations.surcharge'));
+    const APPLY_LABEL     = @json(__('m_bookings.bookings.buttons.apply'));
+    const REMOVE_LABEL    = @json(
+        __('m_bookings.bookings.buttons.remove_promo') !== 'm_bookings.bookings.buttons.remove_promo'
+            ? __('m_bookings.bookings.buttons.remove_promo')
+            : 'Eliminar código'
+    );
 
     function resetSelect($sel, placeholder, disabled=true) {
         $sel.html(`<option value="">${placeholder}</option>`).prop('disabled', !!disabled);
@@ -472,6 +495,14 @@
                 $c.html(html);
                 attachCategoryHandlers();
                 updateTotals();
+
+                // Re-aplicar promo automáticamente si venimos de un error
+                if (pendingAutoPromo && OLD_PROMO) {
+                    pendingAutoPromo = false;
+                    $('#promo_code').val(OLD_PROMO);
+                    setPromoButton('apply');
+                    $('#btn-verify-promo').trigger('click');
+                }
             })
             .fail(() => {
                 $c.html(
@@ -484,7 +515,7 @@
             });
     }
 
-    // ---------- Helpers límites ----------
+    // ---------- Helpers límites (SOLO para sumar, no para bloquear) ----------
     function getAdultsKidsFromInputs() {
       let adults = 0, kids = 0;
       $('.category-input').each(function(){
@@ -515,49 +546,51 @@
     }
 
     function updateTotals() {
+        // En admin: solo mostramos info, no bloqueamos nada
         hideLimitsWarning();
 
         const { persons, subtotal } = computeSubtotalAndPersons();
-        const maxTotal = Number(LIMITS.max_persons_per_booking ?? LIMITS.max_persons_total ?? 12);
-        let finalPersons = persons;
 
-        if (persons > maxTotal) {
-          if (lastChangedInputId !== null) {
-            const sumOthers = persons - (parseInt($(`.category-input[data-category-id="${lastChangedInputId}"]`).val()) || 0);
-            const allowedForLast = Math.max(0, maxTotal - sumOthers);
-            const $last = $(`.category-input[data-category-id="${lastChangedInputId}"]`);
-            $last.val(allowedForLast);
-            finalPersons = maxTotal;
-          }
-          showLimitsWarning(`{{ __('m_bookings.validation.max_persons_exceeded') ?? 'Se excede el máximo de personas por reserva' }}: ${maxTotal}`);
-        }
-
-        const { adults, kids } = getAdultsKidsFromInputs();
-        const minAdults = Number(LIMITS.min_adults_per_booking ?? LIMITS.min_adults ?? 0);
-        const maxKids   = Number(LIMITS.max_kids_per_booking ?? LIMITS.max_kids ?? Number.MAX_SAFE_INTEGER);
-
-        if (minAdults > 0 && adults < minAdults) {
-          showLimitsWarning(`{{ __('m_bookings.validation.min_adults_required') ?? 'Mínimo de adultos requerido' }}: ${minAdults}`);
-        }
-        if (kids > maxKids) {
-          showLimitsWarning(`{{ __('m_bookings.validation.max_kids_exceeded') ?? 'Máximo de niños excedido' }}: ${maxKids}`);
-        }
-
-        $('#total-persons').text(finalPersons);
+        // Pintar subtotal y personas (sin límite)
+        $('#total-persons').text(persons);
         $('#subtotal-price').text(fmtMoney(subtotal));
 
-        const op  = $('#promo-operation').val();
+        // ===== Promo (add/subtract con label y color) =====
+        const op  = $('#promo-operation').val();           // 'add' o 'subtract'
         const amt = parseFloat($('#promo-amount').val() || 0);
 
-        if (op === 'subtract' && amt > 0) {
-            $('#discount-row').show();
-            $('#discount-amount').text('-' + fmtMoney(amt).replace('$',''));
+        const $row   = $('#discount-row');
+        const $label = $('#promo-adjust-label');
+        const $amtEl = $('#discount-amount');
+
+        $amtEl.removeClass('text-success text-danger text-primary');
+
+        if ((op === 'subtract' || op === 'add') && amt > 0) {
+            $row.show();
+
+            if (op === 'subtract') {
+                // DESCUENTO (verde, signo -)
+                $label.text(LABEL_DISCOUNT + ':');
+                $amtEl.addClass('text-success')
+                      .text('-' + fmtMoney(amt).replace('$',''));
+            } else {
+                // RECARGO (rojo, signo +)
+                $label.text(LABEL_SURCHARGE + ':');
+                $amtEl.addClass('text-danger')
+                      .text('+' + fmtMoney(amt).replace('$',''));
+            }
         } else {
-            $('#discount-row').hide();
-            $('#discount-amount').text('-$0.00');
+            // Sin promo aplicada
+            $row.hide();
+            $label.text('{{ __('m_bookings.bookings.fields.discount') }}:');
+            $amtEl.text('-$0.00');
         }
 
-        const total = subtotal - (op === 'subtract' ? amt : 0) + (op === 'add' ? amt : 0);
+        // Total final (sin límites de capacidad)
+        const total = subtotal
+          - (op === 'subtract' ? amt : 0)
+          + (op === 'add'      ? amt : 0);
+
         $('#total-price').text(fmtMoney(Math.max(total, 0)));
     }
 
@@ -567,7 +600,7 @@
             const id = $(this).data('category-id');
             lastChangedInputId = String(id);
             const $i = $(`.category-input[data-category-id="${id}"]`);
-            const min = parseInt($i.attr('min'));
+            const min = parseInt($i.attr('min')) || 0;
             const cur = parseInt($i.val()) || 0;
             if (cur > min) { $i.val(cur - 1); updateTotals(); }
         });
@@ -576,38 +609,46 @@
             const id = $(this).data('category-id');
             lastChangedInputId = String(id);
             const $i = $(`.category-input[data-category-id="${id}"]`);
-            const max = parseInt($i.attr('max'));
             const cur = parseInt($i.val()) || 0;
-            if (cur < max) { $i.val(cur + 1); updateTotals(); }
+            // Admin puede pasarse del max sin problema
+            $i.val(cur + 1);
+            updateTotals();
         });
 
         $('.category-input').on('change keyup', function() {
             lastChangedInputId = String($(this).data('category-id'));
-            const min = parseInt($(this).attr('min'));
-            const max = parseInt($(this).attr('max'));
+            const min = parseInt($(this).attr('min')) || 0;
             let v = parseInt($(this).val()) || 0;
+            // Solo respetamos el mínimo, no el máximo
             if (v < min) v = min;
-            if (v > max) v = max;
             $(this).val(v);
             updateTotals();
         });
     }
 
     // ===== PROMO =====
-    const APPLY_LABEL  = @json(__('m_bookings.bookings.buttons.apply'));
-    const REMOVE_LABEL = @json(__('m_bookings.bookings.buttons.delete') ?? 'Quitar');
-
     function setPromoButton(mode) {
         const $btn   = $('#btn-verify-promo');
         const $label = $btn.find('.promo-label');
+
         if (mode === 'remove') {
+            // Modo ELIMINAR
             $btn.data('mode', 'remove')
-                .removeClass('btn-success').addClass('btn-danger');
-            $label.length ? $label.text(REMOVE_LABEL) : $btn.text(REMOVE_LABEL);
+                .removeClass('btn-success')
+                .addClass('btn-danger');
+
+            if ($label.length) {
+                $label.text(REMOVE_LABEL);
+            }
         } else {
+            // Modo APLICAR
             $btn.data('mode', 'apply')
-                .removeClass('btn-danger').addClass('btn-success');
-            $label.length ? $label.text(APPLY_LABEL) : $btn.text(APPLY_LABEL);
+                .removeClass('btn-danger')
+                .addClass('btn-success');
+
+            if ($label.length) {
+                $label.text(APPLY_LABEL);
+            }
         }
     }
 
@@ -651,11 +692,26 @@
 
         const code = ($('#promo_code').val() || '').trim();
         const { subtotal } = computeSubtotalAndPersons();
-        if (!code) { $('#promo-feedback').removeClass('text-success text-muted').addClass('text-danger').text('{{ __('m_bookings.bookings.validation.promo_empty') }}'); return; }
-        if (subtotal <= 0) { $('#promo-feedback').removeClass('text-success text-muted').addClass('text-danger').text('{{ __('m_bookings.bookings.validation.promo_needs_subtotal') }}'); return; }
+        if (!code) {
+            $('#promo-feedback')
+                .removeClass('text-success text-muted')
+                .addClass('text-danger')
+                .text('{{ __('m_bookings.bookings.validation.promo_empty') }}');
+            return;
+        }
+        if (subtotal <= 0) {
+            $('#promo-feedback')
+                .removeClass('text-success text-muted')
+                .addClass('text-danger')
+                .text('{{ __('m_bookings.bookings.validation.promo_needs_subtotal') }}');
+            return;
+        }
 
-        const originalHtml = $btn.html();
-        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span><span class="promo-label">{{ __('m_bookings.bookings.ui.verifying') ?? 'Verificando…' }}</span>');
+        // Spinner mientras verifica
+        $btn.prop('disabled', true).html(
+            '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
+            '<span class="promo-label">{{ __('m_bookings.bookings.ui.verifying') ?? 'Verificando…' }}</span>'
+        );
 
         $.get(epVerify, { code, subtotal })
             .done(function(resp) {
@@ -668,9 +724,10 @@
                     $('#promo-amount').val(resp.discount_amount || 0);
                     $('#promo-percent').val(resp.discount_percent ?? '');
                     $('#promo-feedback').removeClass('text-danger text-muted').addClass('text-success')
-                        .text(resp.operation === 'subtract'
-                            ? '{{ __('m_bookings.bookings.messages.promo_applied_subtract') }} ' + fmtMoney(resp.discount_amount)
-                            : '{{ __('m_bookings.bookings.messages.promo_applied_add') }} ' + fmtMoney(resp.discount_amount)
+                        .text(
+                            resp.operation === 'subtract'
+                                ? '{{ __('m_bookings.bookings.messages.promo_applied_subtract') }} ' + fmtMoney(resp.discount_amount)
+                                : '{{ __('m_bookings.bookings.messages.promo_applied_add') }} ' + fmtMoney(resp.discount_amount)
                         );
                     setPromoButton('remove');
                 }
@@ -681,7 +738,12 @@
                 $('#promo-feedback').removeClass('text-success text-muted').addClass('text-danger').text(msg);
             })
             .always(function() {
-                $btn.prop('disabled', false).html(originalHtml);
+                // Restaurar texto según el modo actual (apply/remove)
+                const modeNow   = $btn.data('mode');
+                const finalText = modeNow === 'remove' ? REMOVE_LABEL : APPLY_LABEL;
+                $btn.prop('disabled', false).html(
+                    `<span class="promo-label">${finalText}</span>`
+                );
             });
     });
     // ===== /PROMO =====
@@ -749,8 +811,13 @@
            </div>`
         );
         currentCategories = [];
-        clearPromoUI(false);
-        $('#promo_code').val('');
+
+        // Solo limpiar promo cuando el cambio lo hace el usuario, no en el init
+        if (!isInitializing) {
+            clearPromoUI(false);
+            $('#promo_code').val('');
+            pendingAutoPromo = false;
+        }
 
         if (!tourId) return;
         loadSchedules(tourId);
@@ -783,6 +850,9 @@
         loadLanguages(oldTourId, '{{ old('tour_language_id') }}');
         loadCategories(oldTourId, @json(old('categories', [])));
     }
+
+    // a partir de aquí, los cambios de tour sí limpian promo
+    isInitializing = false;
   });
   </script>
 @stop

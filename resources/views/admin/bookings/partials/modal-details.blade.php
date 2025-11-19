@@ -213,7 +213,7 @@
             $meetingPointName = $detail?->meeting_point_name ?? optional($detail?->meetingPoint)->name ?? '—';
           }
 
-          // ✅ NUEVO: hora de recogida formateada
+          // Hora de recogida formateada
           $pickupTime = $detail?->pickup_time
               ? \Carbon\Carbon::parse($detail->pickup_time)->format('g:i A')
               : null;
@@ -322,7 +322,7 @@
                     @endif
                   </dd>
 
-                  {{-- ✅ NUEVO: hora de recogida --}}
+                  {{-- Hora de recogida --}}
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.pickup_time') }}:</dt>
                   <dd class="col-sm-8">{{ $pickupTime ?? '—' }}</dd>
 
@@ -386,7 +386,7 @@
                         @endif
                       </span>
                     </dt>
-                    <dd class="col-sm-6 {{ $operation === 'add' ? 'text-primary' : 'text-success' }}">
+                    <dd class="col-sm-6 {{ $operation === 'add' ? 'text-danger' : 'text-success' }}">
                       {{ $sign }}{{ $currency }}{{ number_format($appliedAmount, 2) }}
                     </dd>
 
