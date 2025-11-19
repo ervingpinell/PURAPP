@@ -1,7 +1,7 @@
 <?php
 
 return [
-
+    'no_reviews' => 'Nenhuma avaliação disponível',
     'what_visitors_say' => 'O que nossos clientes dizem?',
     'powered_by'        => 'Fornecido por',
 
@@ -54,7 +54,7 @@ return [
         'deactivate'      => 'Desativar fornecedor',
         'activate_title'  => 'Ativar fornecedor?',
         'activate_text'   => 'O fornecedor será ativado.',
-        'deactivate_title'=> 'Desativar fornecedor?',
+        'deactivate_title' => 'Desativar fornecedor?',
         'deactivate_text' => 'O fornecedor será desativado.',
         'cancel'          => 'Cancelar',
         'test'            => 'Testar conexão',
@@ -265,7 +265,7 @@ return [
             'quote'    => '“:text”',
             'sign'     => '— :admin',
         ],
-        'submitted' =>[
+        'submitted' => [
             'subject' => 'Nova avaliação recebida',
         ],
     ],

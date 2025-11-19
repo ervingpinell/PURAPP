@@ -1,7 +1,7 @@
 <?php
 
 return [
-
+    'no_reviews' => 'Aucun avis disponible',
     'what_visitors_say' => 'Que disent nos clients ?',
     'powered_by'        => 'Propulsé par',
 
@@ -54,7 +54,7 @@ return [
         'deactivate'      => 'Désactiver le fournisseur',
         'activate_title'  => 'Activer le fournisseur ?',
         'activate_text'   => 'Le fournisseur sera activé.',
-        'deactivate_title'=> 'Désactiver le fournisseur ?',
+        'deactivate_title' => 'Désactiver le fournisseur ?',
         'deactivate_text' => 'Le fournisseur sera désactivé.',
         'cancel'          => 'Annuler',
         'test'            => 'Tester la connexion',

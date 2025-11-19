@@ -8,6 +8,7 @@ use App\Models\MeetingPoint;
 use App\Models\Tour;
 use App\Models\TourExcludedDate;
 use App\Models\TourType;
+use App\Models\CustomerCategory;
 use App\Services\Bookings\BookingCapacityService;
 use App\Services\Reviews\ReviewDistributor;
 use App\Services\Reviews\ReviewsCacheManager;
@@ -41,7 +42,7 @@ class HomeController extends Controller
                 });
 
             // Agrupa conservando el orden
-            $toursByType = $tours->groupBy(fn ($tour) => $tour->tour_type_id_group);
+            $toursByType = $tours->groupBy(fn($tour) => $tour->tour_type_id_group);
 
             // 3) Reviews para HOME usando ReviewDistributor
             $cacheKey = 'home_reviews:' . $currentLocale . ':' . $cacheManager->getRevision();
@@ -85,7 +86,6 @@ class HomeController extends Controller
                 'meetingPoints',
                 'hotels'
             ));
-
         } catch (Throwable $e) {
             Log::error('home.index.error', [
                 'msg'  => $e->getMessage(),
@@ -205,15 +205,15 @@ class HomeController extends Controller
             $tourReviews = Cache::remember($cacheKey, 86400, function () use ($agg, $tourId, $tourName) {
                 return $agg->aggregate(['tour_id' => $tourId, 'limit' => 100])
                     ->filter(fn($r) => (int)($r['tour_id'] ?? 0) === (int)$tourId)
-                    ->unique(function($r) {
+                    ->unique(function ($r) {
                         $provider = strtolower($r['provider'] ?? 'p');
                         if (!empty($r['provider_review_id'])) {
                             return $provider . '#' . $r['provider_review_id'];
                         }
                         return $provider . '#' . md5(
                             mb_strtolower(trim($r['body'] ?? '')) . '|' .
-                            mb_strtolower(trim($r['author_name'] ?? '')) . '|' .
-                            trim($r['date'] ?? '')
+                                mb_strtolower(trim($r['author_name'] ?? '')) . '|' .
+                                trim($r['date'] ?? '')
                         );
                     })
                     ->map(fn($r) => array_merge($r, ['tour_name' => $tourName, 'tour_id' => $tourId]))
@@ -232,7 +232,6 @@ class HomeController extends Controller
                 'refundPolicy'       => $tour->refund_policy ?? null,
                 'meetingPoints'      => $this->loadMeetingPoints(true),
             ]);
-
         } catch (Throwable $e) {
             Log::error('tour.show.failed', [
                 'tour_id' => $tour->tour_id ?? 'unknown',
@@ -242,92 +241,67 @@ class HomeController extends Controller
             abort(404);
         }
     }
-public function allTours(Request $request)
-{
-    $loc = app()->getLocale();
-    $fb  = config('app.fallback_locale', 'es');
 
-    $search   = trim((string) $request->get('q', ''));
-    $category = $request->get('category');
+    public function allTours(Request $request)
+    {
+        $loc = app()->getLocale();
+        $fb  = config('app.fallback_locale', 'es');
 
-    // Categorías / tipos de tour para el filtro
-    $categories = TourType::orderBy('name')->get();
+        // =========================
+        // QUERY DE TOURS
+        // =========================
+        $query = Tour::query()
+            ->active() // scopeActive: is_active = true & is_draft = false
+            ->with([
+                'coverImage',
+                'prices.category.translations',
+                'itinerary.items.translations',
+                'tourType.translations',
+            ]);
 
-    $query = Tour::query()
-        ->with([
-            'tourType',
-            'translations',
-            'coverImage',
-            'prices' => function($q) {
-                $q->where('is_active', true)
-                  ->whereHas('category', fn($cq) => $cq->where('is_active', true))
-                  ->with(['category.translations'])
-                  ->orderBy('category_id');
-            }
-        ])
-        ->where('is_active', true)
-        ->where('is_draft', false);
-
-    if ($category) {
-        $query->where('tour_type_id', $category);
-    }
-
-    if ($search !== '') {
-        // Búsqueda case-insensitive portable (MySQL / Postgres) usando LOWER(...)
-        $needle = mb_strtolower($search);
-
-        $query->where(function ($q) use ($needle) {
-            $like = "%{$needle}%";
-
-            // Campos directos en la tabla tours
-            $q->whereRaw('LOWER(name) LIKE ?', [$like])
-              ->orWhereRaw('LOWER(slug) LIKE ?', [$like])
-
-              // Campos en la tabla de traducciones (name / overview)
-              ->orWhereHas('translations', function ($qt) use ($like) {
-                  $qt->whereRaw('LOWER(name) LIKE ?', [$like])
-                     ->orWhereRaw('LOWER(overview) LIKE ?', [$like]);
-              });
-        });
-    }
-
-    $tours = $query
-        ->orderBy('name')
-        ->paginate(12)
-        ->withQueryString();
-
-    // Transformamos la colección interna del paginator
-    $tours->getCollection()->transform(function ($tour) use ($loc, $fb) {
-        $tr = $this->pickTranslation($tour->translations, $loc, $fb);
-        $tour->translated_name = $tr->name ?? $tour->name;
-
-        // Etiqueta de duración más amigable
-        if (!empty($tour->length)) {
-            $unitLabel = __('adminlte::adminlte.horas');
-            $tour->duration_label = $tour->length . ' ' . $unitLabel;
-        } else {
-            $tour->duration_label = null;
+        // Filtro por texto
+        if ($search = trim((string) $request->input('q', ''))) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'ilike', "%{$search}%")
+                    ->orWhereHas('translations', function ($t) use ($search) {
+                        $t->where('name', 'ilike', "%{$search}%");
+                    });
+            });
         }
 
-        // Colección de precios activos + categorías
-        $activePrices = collect($tour->prices ?? [])
-            ->filter(fn($p) => $p->is_active && $p->category && $p->category->is_active)
-            ->sortBy('category_id')
+        // 🟢 Filtro por categoría de TOUR (tour_type_id)
+        if ($typeId = $request->input('category')) {
+            $query->where('tour_type_id', (int) $typeId);
+        }
+
+        $tours = $query
+            ->orderBy('name')
+            ->paginate(12)
+            ->withQueryString();
+
+        // =========================
+        // CATEGORÍAS PARA EL SELECT
+        // =========================
+        $categories = TourType::query()
+            ->where('is_active', true)
+            ->with('translations')
+            ->get()
+            ->map(function (TourType $type) use ($loc, $fb) {
+                $tr = $type->translations
+                    ->firstWhere('locale', $loc)
+                    ?? $type->translations->firstWhere('locale', $fb);
+
+                $type->translated_name = $tr->name ?? $type->name;
+                return $type;
+            })
+            ->sortBy('translated_name')
             ->values();
 
-        $tour->price_categories = $activePrices;
-        $tour->from_price       = $activePrices->min('price') ?: null;
-
-        return $tour;
-    });
-
-    return view('public.tours.index', [
-        'tours'          => $tours,
-        'categories'     => $categories,
-        'activeCategory' => $category,
-        'search'         => $search,
-    ]);
-}
+        return view('public.tours.index', [
+            'tours'      => $tours,
+            'categories' => $categories,
+        ]);
+    }
 
     /* ===========================
        HELPERS PRIVADOS
@@ -362,16 +336,16 @@ public function allTours(Request $request)
                 'translations',
                 'coverImage',
                 // 👇 Aquí también cargamos translations de la categoría
-                'prices' => function($q) {
+                'prices' => function ($q) {
                     $q->where('is_active', true)
-                      ->whereHas('category', fn($cq) => $cq->where('is_active', true))
-                      ->with(['category.translations'])
-                      ->orderBy('category_id');
+                        ->whereHas('category', fn($cq) => $cq->where('is_active', true))
+                        ->with(['category.translations'])
+                        ->orderBy('category_id');
                 }
             ])
             ->leftJoin('tour_type_tour_order as o', function ($join) {
                 $join->on('o.tour_id', '=', 'tours.tour_id')
-                     ->on('o.tour_type_id', '=', 'tours.tour_type_id');
+                    ->on('o.tour_type_id', '=', 'tours.tour_type_id');
             })
             ->where('tours.is_active', true)
             ->orderBy('tours.tour_type_id')
@@ -393,22 +367,22 @@ public function allTours(Request $request)
                 $tour->tour_type_id_group  = optional($tour->tourType)->tour_type_id ?? 'uncategorized';
 
                 // Filtrar precios activos con categorías activas
-                $activePrices = $tour->prices->filter(function($price) {
+                $activePrices = $tour->prices->filter(function ($price) {
                     return $price->is_active &&
-                           $price->category &&
-                           $price->category->is_active;
+                        $price->category &&
+                        $price->category->is_active;
                 });
 
                 // Precio mínimo para mostrar en listados
                 $tour->min_price = $activePrices->min('price') ?? 0;
 
                 // Legacy: buscar adult/kid por slug para compatibilidad
-                $adultPrice = $activePrices->first(function($p) {
+                $adultPrice = $activePrices->first(function ($p) {
                     $slug = $p->category->slug ?? '';
                     return in_array($slug, ['adult', 'adulto', 'adults']);
                 });
 
-                $kidPrice = $activePrices->first(function($p) {
+                $kidPrice = $activePrices->first(function ($p) {
                     $slug = $p->category->slug ?? '';
                     return in_array($slug, ['kid', 'nino', 'child', 'kids', 'children']);
                 });
@@ -509,13 +483,24 @@ public function allTours(Request $request)
     {
         try {
             $localeMap = [
-                'es' => 'es', 'es-CR' => 'es',
-                'en' => 'en', 'en-US' => 'en', 'en-GB' => 'en',
-                'fr' => 'fr', 'fr-FR' => 'fr',
-                'pt' => 'pt', 'pt-PT' => 'pt', 'pt-BR' => 'pt-BR',
-                'de' => 'de', 'de-DE' => 'de',
-                'it' => 'it', 'nl' => 'nl', 'ru' => 'ru', 'ja' => 'ja',
-                'zh' => 'zh-CN', 'zh-TW' => 'zh-TW',
+                'es' => 'es',
+                'es-CR' => 'es',
+                'en' => 'en',
+                'en-US' => 'en',
+                'en-GB' => 'en',
+                'fr' => 'fr',
+                'fr-FR' => 'fr',
+                'pt' => 'pt',
+                'pt-PT' => 'pt',
+                'pt-BR' => 'pt-BR',
+                'de' => 'de',
+                'de-DE' => 'de',
+                'it' => 'it',
+                'nl' => 'nl',
+                'ru' => 'ru',
+                'ja' => 'ja',
+                'zh' => 'zh-CN',
+                'zh-TW' => 'zh-TW',
             ];
 
             $mapLang = $localeMap[app()->getLocale()] ?? 'en';
@@ -531,45 +516,44 @@ public function allTours(Request $request)
             abort(500);
         }
     }
-public function sendContact(Request $request)
-{
-    try {
-        $validated = $request->validate([
-            'name'    => 'bail|required|string|min:2|max:100',
-            'email'   => 'bail|required|email',
-            'subject' => 'bail|required|string|min:3|max:150',
-            'message' => 'bail|required|string|min:5|max:1000',
-            'website' => 'nullable|string|max:50',
-        ]);
+    public function sendContact(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'name'    => 'bail|required|string|min:2|max:100',
+                'email'   => 'bail|required|email',
+                'subject' => 'bail|required|string|min:3|max:150',
+                'message' => 'bail|required|string|min:5|max:1000',
+                'website' => 'nullable|string|max:50',
+            ]);
 
-        // Honeypot: simulamos éxito pero no hacemos nada
-        if (!empty($validated['website'])) {
+            // Honeypot: simulamos éxito pero no hacemos nada
+            if (!empty($validated['website'])) {
+                return back()->with(
+                    'success',
+                    __('adminlte::adminlte.contact_spam_success')
+                );
+            }
+
+            $recipient = env('MAIL_TO_CONTACT', config('mail.from.address', 'info@greenvacationscr.com'));
+
+            Mail::to($recipient)->queue(
+                new ContactMessage($validated + ['locale' => app()->getLocale()])
+            );
+
             return back()->with(
                 'success',
-                __('adminlte::adminlte.contact_spam_success')
+                __('adminlte::adminlte.contact_success')
             );
+        } catch (Throwable $e) {
+            Log::error('contact.send.failed', [
+                'ip'    => $request->ip(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->withInput()->withErrors([
+                'email' => __('adminlte::adminlte.contact_error'),
+            ]);
         }
-
-        $recipient = env('MAIL_TO_CONTACT', config('mail.from.address', 'info@greenvacationscr.com'));
-
-        Mail::to($recipient)->queue(
-            new ContactMessage($validated + ['locale' => app()->getLocale()])
-        );
-
-        return back()->with(
-            'success',
-            __('adminlte::adminlte.contact_success')
-        );
-    } catch (Throwable $e) {
-        Log::error('contact.send.failed', [
-            'ip'    => $request->ip(),
-            'error' => $e->getMessage(),
-        ]);
-
-        return back()->withInput()->withErrors([
-            'email' => __('adminlte::adminlte.contact_error'),
-        ]);
     }
-}
-
 }

@@ -1,7 +1,7 @@
 <?php
 
 return [
-
+    'no_reviews' => 'Keine Bewertungen verfügbar',
     'what_visitors_say' => 'Was sagen unsere Kunden?',
     'powered_by'        => 'Bereitgestellt von',
 
@@ -55,7 +55,7 @@ return [
         'deactivate'      => 'Anbieter deaktivieren',
         'activate_title'  => 'Anbieter aktivieren?',
         'activate_text'   => 'Der Anbieter wird aktiviert.',
-        'deactivate_title'=> 'Anbieter deaktivieren?',
+        'deactivate_title' => 'Anbieter deaktivieren?',
         'deactivate_text' => 'Der Anbieter wird deaktiviert.',
         'cancel'          => 'Abbrechen',
         'test'            => 'Verbindung testen',
@@ -266,7 +266,7 @@ return [
             'quote'    => '„:text“',
             'sign'     => '— :admin',
         ],
-        'submitted' =>[
+        'submitted' => [
             'subject' => 'Neue Bewertung erhalten',
         ],
     ],

@@ -1,11 +1,12 @@
 <?php
 
 return [
+    'no_reviews' => 'No hay reseñas',
 
     'what_visitors_say' => '¿Qué opinan nuestros clientes?',
     'powered_by'        => 'Proporcionado por',
 
-        'generic' => [
+    'generic' => [
         'our_tour' => 'nuestro tour',
     ],
 
@@ -55,7 +56,7 @@ return [
         'deactivate'      => 'Desactivar proveedor',
         'activate_title'  => '¿Activar proveedor?',
         'activate_text'   => 'El proveedor quedará activo.',
-        'deactivate_title'=> '¿Desactivar proveedor?',
+        'deactivate_title' => '¿Desactivar proveedor?',
         'deactivate_text' => 'El proveedor dejará de estar activo.',
         'cancel'          => 'Cancelar',
         'test'            => 'Probar conexión',
@@ -268,7 +269,7 @@ return [
             'quote'    => '“:text”',
             'sign'     => '— :admin',
         ],
-        'submitted' =>[
+        'submitted' => [
             'subject' => 'Nueva reseña recibida',
         ],
     ],
