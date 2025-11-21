@@ -10,16 +10,38 @@ use App\Services\Contracts\TranslatorInterface;
 
 class PolicyController extends Controller
 {
-    public function index()
+    /**
+     * Listado de categorías de políticas con filtros de estado:
+     * - active (por defecto)
+     * - inactive
+     * - archived (solo papelera)
+     * - all (incluye eliminadas)
+     */
+    public function index(Request $request)
     {
-        // Carga relaciones para usar accessors display_* en Blade
-        $policies = Policy::query()
+        $status = $request->get('status', 'active');
+
+        $base = Policy::query()
             ->with(['translations', 'sections'])
-            ->withCount('sections')
+            ->withCount('sections');
+
+        if ($status === 'archived') {
+            $base->onlyTrashed();
+        } elseif ($status === 'all') {
+            $base->withTrashed();
+        } elseif ($status === 'inactive') {
+            $base->where('is_active', false);
+        } else {
+            // default: active
+            $base->where('is_active', true);
+        }
+
+        $policies = $base
             ->orderByDesc('effective_from')
+            ->orderBy('policy_id')
             ->get();
 
-        return view('admin.policies.index', compact('policies'));
+        return view('admin.policies.index', compact('policies', 'status'));
     }
 
     /** Crear base + traducción ES y (opcional) propagar a otros idiomas */
@@ -172,6 +194,7 @@ class PolicyController extends Controller
         return back()->with('success', 'm_config.policies.updated');
     }
 
+    /** Activar / desactivar categoría */
     public function toggle($policyId)
     {
         $policy = Policy::where('policy_id', $policyId)->firstOrFail();
@@ -185,11 +208,57 @@ class PolicyController extends Controller
         );
     }
 
+    /**
+     * Destroy = Soft delete → mover a papelera
+     */
     public function destroy($policyId)
     {
         $policy = Policy::where('policy_id', $policyId)->firstOrFail();
-        $policy->delete();
+        $policy->delete(); // Soft delete
 
-        return back()->with('success', 'm_config.policies.deleted');
+        return redirect()
+            ->route('admin.policies.index', ['status' => 'archived'])
+            ->with('success', 'm_config.policies.moved_to_trash');
+    }
+
+    /**
+     * Restaurar una policy desde la papelera
+     */
+    public function restore($policyId)
+    {
+        $policy = Policy::withTrashed()
+            ->where('policy_id', $policyId)
+            ->firstOrFail();
+
+        $policy->restore();
+
+        return redirect()
+            ->route('admin.policies.index')
+            ->with('success', 'm_config.policies.restored_ok');
+    }
+
+    /**
+     * Borrado definitivo (solo admins, protegido por Gate y ruta)
+     */
+    public function forceDestroy($policyId)
+    {
+        $policy = Policy::onlyTrashed()
+            ->where('policy_id', $policyId)
+            ->firstOrFail();
+
+        // Limpiar relaciones dependientes antes del delete definitivo
+        try {
+            $policy->sections()->delete();
+        } catch (\Throwable $e) {}
+
+        try {
+            PolicyTranslation::where('policy_id', $policyId)->delete();
+        } catch (\Throwable $e) {}
+
+        $policy->forceDelete();
+
+        return redirect()
+            ->route('admin.policies.index', ['status' => 'archived'])
+            ->with('success', 'm_config.policies.deleted_permanently');
     }
 }

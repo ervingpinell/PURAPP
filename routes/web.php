@@ -855,6 +855,13 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::put('/{policy:policy_id}', [PolicyController::class, 'update'])->name('update');
                     Route::post('/{policy:policy_id}/toggle', [PolicyController::class, 'toggle'])->name('toggle');
                     Route::delete('/{policy:policy_id}', [PolicyController::class, 'destroy'])->name('destroy');
+                    // Restaurar desde papelera
+                    Route::post('/{policy:policy_id}/restore', [PolicyController::class, 'restore'])->name('restore');
+
+                    // Borrado definitivo SOLO para admins (can:policies.forceDelete)
+                    Route::delete('/{policy:policy_id}/force', [PolicyController::class, 'forceDestroy'])
+                        ->middleware('can:policies.forceDelete')
+                        ->name('forceDestroy');
 
                     // Policy Sections
                     Route::get('/{policy:policy_id}/sections', [PolicySectionController::class, 'index'])->name('sections.index');

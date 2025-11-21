@@ -43,7 +43,32 @@ return [
         'propagate_hint'         => 'Se traducirá automáticamente desde el texto actual y se sobrescribirán las traducciones existentes en esos idiomas.',
         'update_base_es'         => 'Actualizar también la base (ES)',
         'update_base_hint'       => 'Sobrescribe el nombre y el contenido de la política en la tabla base (español). Úsalo solo si quieres que el texto original también cambie.',
+        'filter_active'    => 'Activos',
+        'filter_inactive'  => 'Inactivos',
+        'filter_archived'  => 'Archivados',
+        'filter_all'       => 'Todos',
 
+        'slug_hint'      => 'minúsculas, sin espacios, separada-por-guiones',
+        'slug_auto_hint' => 'Si se deja vacío, se generará automáticamente a partir del título.',
+        'slug_edit_hint' => 'Cambiar esta URL puede afectar enlaces públicos existentes.',
+
+        'valid_from' => 'Válida desde',
+        'valid_to'   => 'Válida hasta',
+
+        'move_to_trash'  => 'Mover a papelera',
+        'in_trash'       => 'En la papelera',
+        'moved_to_trash' => 'La categoría se movió a la papelera.',
+
+        'restore_category'         => 'Restaurar',
+        'restore_category_confirm' => '¿Restaurar esta categoría y todas sus secciones?',
+        'restored_ok'              => 'La categoría se restauró correctamente.',
+
+        'delete_permanently'         => 'Eliminar permanentemente',
+        'delete_permanently_confirm' => '¿Eliminar permanentemente esta categoría y todas sus secciones? Esta acción no se puede deshacer.',
+        'deleted_permanently'        => 'La categoría y sus secciones se eliminaron permanentemente.',
+        'restore' => 'Restaurar',
+        'force_delete_confirm' => '¿Eliminar permanentemente esta categoría y todas sus secciones? Esta acción no se puede deshacer.',
+        'created' => 'Categoría de política creada correctamente.',
 
         // Lista de categorías: acciones
         'new_category'            => 'Nueva categoría',
