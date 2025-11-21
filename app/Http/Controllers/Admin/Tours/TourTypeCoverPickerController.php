@@ -17,28 +17,48 @@ class TourTypeCoverPickerController extends Controller
     {
         $q = trim((string) $request->query('q', ''));
 
-        $types = TourType::select('tour_type_id', 'name', 'cover_path')
+        // Cargar traducciones para poder buscar por nombre
+        $types = TourType::with(['translations' => fn($query) => $query->where('locale', app()->getLocale())])
+            ->select('tour_type_id', 'cover_path', 'is_active')
             ->when($q !== '', function ($qr) use ($q) {
-                $qr->where('name', 'ILIKE', "%{$q}%");
+                // Buscar en traducciones
+                $qr->whereHas('translations', function ($transQuery) use ($q) {
+                    $transQuery->where('name', 'ILIKE', "%{$q}%");
+                });
+
+                // O por ID si es numérico
                 if (is_numeric($q)) {
                     $qr->orWhere('tour_type_id', (int) $q);
                 }
             })
-            ->orderBy('name')
-            ->paginate(24)
-            ->withQueryString();
+            ->get()
+            ->sortBy('name'); // Ordenar por nombre usando el accessor
 
         // Mapear cover_url para el blade
-        $types->getCollection()->transform(function ($t) {
+        $types->transform(function ($t) {
             $t->cover_url = $t->cover_path
                 ? asset('storage/' . ltrim($t->cover_path, '/'))
                 : asset('images/volcano.png');
             return $t;
         });
 
+        // Paginar manualmente después de ordenar
+        $perPage = 24;
+        $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage();
+        $currentItems = $types->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
+        $paginatedTypes = new \Illuminate\Pagination\LengthAwarePaginator(
+            $currentItems,
+            $types->count(),
+            $perPage,
+            $currentPage,
+            ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
+        );
+        $paginatedTypes->appends($request->query());
+
         // Reutiliza tu blade genérico (usa $items/$manageRoute)
         return view('admin.tours.images.pick', [
-            'items'         => $types,
+            'items'         => $paginatedTypes,
             'q'             => $q,
             'idField'       => 'tour_type_id',
             'nameField'     => 'name',

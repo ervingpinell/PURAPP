@@ -14,8 +14,9 @@ class TourOrderController extends Controller
     {
         // Lista para el <select> de categorías
         $types = TourType::active()
-            ->orderBy('name')
-            ->get(['tour_type_id','name']);
+            ->withTranslation()
+            ->get(['tour_type_id'])
+            ->sortBy('name');
 
         $selectedId = $request->get('tour_type_id');
 
@@ -23,7 +24,7 @@ class TourOrderController extends Controller
         $tours    = collect();
 
         if ($selectedId) {
-            $selected = TourType::findOrFail($selectedId);
+            $selected = TourType::with('translations')->findOrFail($selectedId);
 
             // 1) Tours ya ordenados por la relación orderedTours()
             $ordered = $selected->orderedTours()
@@ -41,7 +42,7 @@ class TourOrderController extends Controller
             $missing = Tour::where('tour_type_id', $selected->tour_type_id)
                 ->whereNotIn('tour_id', $orderedIds)
                 ->orderBy('name') // quedarán al final en la vista
-                ->get(['tour_id','name','is_active'])
+                ->get(['tour_id', 'name', 'is_active'])
                 ->map(function ($t) {
                     $t->position = null; // marca visual para "sin posición"
                     return $t;
@@ -51,14 +52,14 @@ class TourOrderController extends Controller
             $tours = $ordered->concat($missing);
         }
 
-        return view('admin.tours.order.index', compact('types','selected','tours'));
+        return view('admin.tours.order.index', compact('types', 'selected', 'tours'));
     }
 
     public function save(Request $request, TourType $tourType)
     {
         $data = $request->validate([
-            'order'   => ['required','array','min:1'],
-            'order.*' => ['integer','distinct'], // IDs de tour en el orden deseado
+            'order'   => ['required', 'array', 'min:1'],
+            'order.*' => ['integer', 'distinct'], // IDs de tour en el orden deseado
         ]);
 
         $order = $data['order'];

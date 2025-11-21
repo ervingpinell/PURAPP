@@ -701,6 +701,12 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 // TOUR TYPES
                 // ============================
+                // Rutas de gestión de traducciones (antes del resource)
+                Route::get('tourtypes/{tourType}/translations', [TourTypeController::class, 'editTranslations'])
+                    ->name('tourtypes.translations.edit');
+                Route::put('tourtypes/{tourType}/translations/{locale}', [TourTypeController::class, 'updateTranslation'])
+                    ->name('tourtypes.translations.update');
+
                 Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);
                 Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
 

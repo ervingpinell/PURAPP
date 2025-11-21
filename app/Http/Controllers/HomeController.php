@@ -310,28 +310,27 @@ class HomeController extends Controller
     private function loadTypeMeta(string $loc, string $fb): Collection
     {
         return TourType::active()
-            ->with('translations')
-            ->orderBy('name')
+            ->withTranslation()
             ->get()
-            ->mapWithKeys(function ($type) use ($loc, $fb) {
+            ->map(function ($type) use ($loc, $fb) {
                 $tr = $this->pickTranslation($type->translations, $loc, $fb);
                 return [
-                    $type->tour_type_id => [
-                        'id'          => $type->tour_type_id,
-                        'title'       => $tr->name ?? $type->name,
-                        'duration'    => $tr->duration ?? $type->duration ?? '',
-                        'description' => $tr->description ?? $type->description ?? '',
-                        'cover_url'   => $type->cover_url,
-                    ],
+                    'id'          => $type->tour_type_id,
+                    'title'       => $tr->name ?? '',
+                    'duration'    => $tr->duration ?? '',
+                    'description' => $tr->description ?? '',
+                    'cover_url'   => $type->cover_url,
                 ];
-            });
+            })
+            ->sortBy('title')
+            ->keyBy('id');
     }
 
     private function loadActiveToursWithTranslations(string $loc, string $fb): Collection
     {
         return Tour::query()
             ->with([
-                'tourType:tour_type_id,name',
+                'tourType:tour_type_id',
                 'tourType.translations',
                 'translations',
                 'coverImage',

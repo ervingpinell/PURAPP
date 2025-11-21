@@ -54,7 +54,7 @@ class TranslationController extends Controller
         }
 
         $editLocale        = $request->query('edit_locale');
-        $availableLocales  = ['es','en','fr','pt','de'];
+        $availableLocales  = ['es', 'en', 'fr', 'pt', 'de'];
         if ($editLocale && in_array($editLocale, $availableLocales, true)) {
             session(['translation_editing_locale' => $editLocale]);
         }
@@ -180,14 +180,20 @@ class TranslationController extends Controller
                 if ($existing) {
                     $val = (string) ($existing->{$field} ?? '');
                     if ($val === '') {
-                        if ($type === 'policies' && $field === 'name') {
+                        // Fallback: obtener de la traducción en español si existe
+                        if ($type === 'tour_types') {
+                            $val = (string) ($entity->translate('es')?->{$field} ?? '');
+                        } elseif ($type === 'policies' && $field === 'name') {
                             $val = (string) ($entity->name ?? '');
                         } else {
                             $val = (string) ($entity->{$field} ?? '');
                         }
                     }
                 } else {
-                    if ($type === 'policies' && $field === 'name') {
+                    // No existe traducción: obtener de la traducción en español si existe
+                    if ($type === 'tour_types') {
+                        $val = (string) ($entity->translate('es')?->{$field} ?? '');
+                    } elseif ($type === 'policies' && $field === 'name') {
                         $val = (string) ($entity->name ?? '');
                     } else {
                         $val = (string) ($entity->{$field} ?? '');
@@ -301,9 +307,15 @@ class TranslationController extends Controller
             }
 
             DB::transaction(function () use (
-                $translationModel, $foreignKey, $entity, $locale,
-                $translatableFields, $mainFieldValues,
-                $type, $itineraryFieldValues, $itemFieldValuesById,
+                $translationModel,
+                $foreignKey,
+                $entity,
+                $locale,
+                $translatableFields,
+                $mainFieldValues,
+                $type,
+                $itineraryFieldValues,
+                $itemFieldValuesById,
                 $sectionFieldValuesById
             ) {
                 $translation = $translationModel::firstOrNew([
@@ -315,7 +327,10 @@ class TranslationController extends Controller
                     if (array_key_exists($field, $mainFieldValues)) {
                         $translation->{$field} = (string) $mainFieldValues[$field];
                     } elseif (!$translation->exists) {
-                        if ($type === 'policies' && $field === 'name') {
+                        // Fallback para nuevas traducciones
+                        if ($type === 'tour_types') {
+                            $translation->{$field} = (string) ($entity->translate('es')?->{$field} ?? '');
+                        } elseif ($type === 'policies' && $field === 'name') {
                             $translation->name = (string) ($entity->name ?? '');
                         } else {
                             $translation->{$field} = (string) ($entity->{$field} ?? '');
@@ -421,7 +436,6 @@ class TranslationController extends Controller
                     'edit_locale' => $locale,
                 ])
                 ->with('success', __('m_config.translations.updated_success'));
-
         } catch (Exception $e) {
             Log::error('Translations update failed', [
                 'type'   => $type,

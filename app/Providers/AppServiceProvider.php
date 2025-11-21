@@ -31,9 +31,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(TranslatorInterface::class, function () {
             return new DeepLTranslator();
         });
-            $this->app->singleton(DraftLimitService::class, function ($app) {
-        return new DraftLimitService();
-    });
+        $this->app->singleton(DraftLimitService::class, function ($app) {
+            return new DraftLimitService();
+        });
     }
 
     public function boot(): void
@@ -119,19 +119,18 @@ class AppServiceProvider extends ServiceProvider
                 $typeMeta = Cache::remember("footer:typeMeta:{$loc}", $ttl, function () use ($loc, $fb) {
                     return TourType::active()
                         ->with('translations')
-                        ->orderBy('name')
-                        ->get(['tour_type_id', 'name'])
-                        ->mapWithKeys(function ($type) use ($loc, $fb) {
+                        ->get(['tour_type_id'])
+                        ->map(function ($type) use ($loc, $fb) {
                             $tr = optional($type->translations)->firstWhere('locale', $loc)
                                 ?? optional($type->translations)->firstWhere('locale', $fb);
 
                             return [
-                                $type->tour_type_id => [
-                                    'id'    => $type->tour_type_id,
-                                    'title' => $tr->name ?? $type->name,
-                                ],
+                                'id'    => $type->tour_type_id,
+                                'title' => $tr->name ?? '',
                             ];
-                        });
+                        })
+                        ->sortBy('title')
+                        ->keyBy('id');
                 });
 
                 // Cache de tours agrupados
@@ -155,7 +154,7 @@ class AppServiceProvider extends ServiceProvider
                             return $tour;
                         });
 
-                    return $tours->groupBy(fn ($t) => $t->tour_type_id_group);
+                    return $tours->groupBy(fn($t) => $t->tour_type_id_group);
                 });
 
                 $view->with('typeMeta', $typeMeta);
@@ -192,9 +191,18 @@ class AppServiceProvider extends ServiceProvider
             }
 
             $dirty = false;
-            if (Schema::hasColumn($table, 'driver')     && $p->driver !== 'local') { $p->driver = 'local'; $dirty = true; }
-            if (Schema::hasColumn($table, 'is_active')  && ! $p->is_active)        { $p->is_active = true; $dirty = true; }
-            if (Schema::hasColumn($table, 'is_system')  && ! $p->is_system)        { $p->is_system = true; $dirty = true; }
+            if (Schema::hasColumn($table, 'driver')     && $p->driver !== 'local') {
+                $p->driver = 'local';
+                $dirty = true;
+            }
+            if (Schema::hasColumn($table, 'is_active')  && ! $p->is_active) {
+                $p->is_active = true;
+                $dirty = true;
+            }
+            if (Schema::hasColumn($table, 'is_system')  && ! $p->is_system) {
+                $p->is_system = true;
+                $dirty = true;
+            }
             if (Schema::hasColumn($table, 'settings')) {
                 $settings = is_array($p->settings) ? $p->settings : [];
                 if (! array_key_exists('min_stars', $settings)) {

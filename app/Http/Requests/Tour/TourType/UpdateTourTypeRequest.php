@@ -35,10 +35,17 @@ class UpdateTourTypeRequest extends FormRequest
         /** @var TourType|null $tourType */
         $tourType = $this->route('tourType');
 
+        // Obtener el ID de la traducción en español para ignorarla en la validación de unicidad
+        $translationId = $tourType?->translations()->where('locale', 'es')->first()?->id;
+
         return [
             'name'        => [
-                'required', 'string', 'max:255',
-                Rule::unique('tour_types', 'name')->ignore($tourType?->getKey(), 'tour_type_id'),
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('tour_type_translations', 'name')
+                    ->where('locale', 'es')
+                    ->ignore($translationId)
             ],
             'description' => ['nullable', 'string', 'max:1000'],
             'duration'    => ['nullable', 'string', 'max:255'],

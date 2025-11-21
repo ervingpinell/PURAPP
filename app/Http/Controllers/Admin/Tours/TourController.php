@@ -40,86 +40,89 @@ class TourController extends Controller
     /** =========================================================
      *  INDEX: lista con filtros (active | inactive | archived | all)
      *  ========================================================= */
-public function index()
-{
-    $status = request('status', 'active');
+    public function index()
+    {
+        $status = request('status', 'active');
 
-    $base = Tour::query()
-        ->with([
-            'tourType',
-            'translations',
-            // Eager load de precios y traducciones de categorías para evitar N+1
-            'prices' => function ($q) {
-                $q->where('is_active', true)
-                  ->with(['category' => function ($cq) {
-                      $cq->where('is_active', true)
-                         ->with('translations'); // <-- importante para getTranslatedName/fallbacks
-                  }]);
-            },
-            'languages' => function ($q) {
-                $q->wherePivot('is_active', true)
-                  ->where('tour_languages.is_active', true);
-            },
-            'amenities' => function ($q) {
-                $q->wherePivot('is_active', true)
-                  ->where('amenities.is_active', true);
-            },
-            'itinerary.items' => function ($q) {
-                $q->where('itinerary_items.is_active', true);
-            },
-            'schedules' => function ($q) {
-                $q->where('schedules.is_active', true)
-                  ->wherePivot('is_active', true)
-                  ->orderBy('schedules.start_time');
-            },
-        ])
-        ->withCount('bookings');
+        $base = Tour::query()
+            ->with([
+                'tourType',
+                'translations',
+                // Eager load de precios y traducciones de categorías para evitar N+1
+                'prices' => function ($q) {
+                    $q->where('is_active', true)
+                        ->with(['category' => function ($cq) {
+                            $cq->where('is_active', true)
+                                ->with('translations'); // <-- importante para getTranslatedName/fallbacks
+                        }]);
+                },
+                'languages' => function ($q) {
+                    $q->wherePivot('is_active', true)
+                        ->where('tour_languages.is_active', true);
+                },
+                'amenities' => function ($q) {
+                    $q->wherePivot('is_active', true)
+                        ->where('amenities.is_active', true);
+                },
+                'itinerary.items' => function ($q) {
+                    $q->where('itinerary_items.is_active', true);
+                },
+                'schedules' => function ($q) {
+                    $q->where('schedules.is_active', true)
+                        ->wherePivot('is_active', true)
+                        ->orderBy('schedules.start_time');
+                },
+            ])
+            ->withCount('bookings');
 
-    if ($status === 'archived') {
-        $base->onlyTrashed();
-    } elseif ($status === 'all') {
-        $base->withTrashed();
-    } elseif ($status === 'inactive') {
-        $base->where('is_active', false);
-    } else {
-        $base->where('is_active', true);
+        if ($status === 'archived') {
+            $base->onlyTrashed();
+        } elseif ($status === 'all') {
+            $base->withTrashed();
+        } elseif ($status === 'inactive') {
+            $base->where('is_active', false);
+        } else {
+            $base->where('is_active', true);
+        }
+
+        $tours = $base->orderBy('tour_id')->paginate(25)->withQueryString();
+
+        // Para la tabla de listado y modales
+        $tourTypes   = TourType::where('is_active', true)
+            ->withTranslation()
+            ->get()
+            ->sortBy('name');
+        $itineraries = Itinerary::where('is_active', true)->with('items')->orderBy('name')->get();
+        $languages   = TourLanguage::where('is_active', true)->orderBy('name')->get();
+        $amenities   = Amenity::where('is_active', true)->orderBy('name')->get();
+        $schedules   = Schedule::where('is_active', true)->orderBy('start_time')->get();
+        $hotels      = HotelList::where('is_active', true)->orderBy('name')->get();
+
+        // JSON para itinerarios (vista rápida en modales)
+        $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {
+            return [
+                'description' => $it->description,
+                'items' => $it->items->map(function ($item) {
+                    return [
+                        'title'       => $item->title,
+                        'description' => $item->description,
+                    ];
+                })->toArray()
+            ];
+        });
+
+        return view('admin.tours.index', compact(
+            'tours',
+            'tourTypes',
+            'itineraries',
+            'itineraryJson',
+            'languages',
+            'amenities',
+            'schedules',
+            'hotels',
+            'status'
+        ));
     }
-
-    $tours = $base->orderBy('tour_id')->paginate(25)->withQueryString();
-
-    // Para la tabla de listado y modales
-    $tourTypes   = TourType::where('is_active', true)->orderBy('name')->get();
-    $itineraries = Itinerary::where('is_active', true)->with('items')->orderBy('name')->get();
-    $languages   = TourLanguage::where('is_active', true)->orderBy('name')->get();
-    $amenities   = Amenity::where('is_active', true)->orderBy('name')->get();
-    $schedules   = Schedule::where('is_active', true)->orderBy('start_time')->get();
-    $hotels      = HotelList::where('is_active', true)->orderBy('name')->get();
-
-    // JSON para itinerarios (vista rápida en modales)
-    $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {
-        return [
-            'description' => $it->description,
-            'items' => $it->items->map(function ($item) {
-                return [
-                    'title'       => $item->title,
-                    'description' => $item->description,
-                ];
-            })->toArray()
-        ];
-    });
-
-    return view('admin.tours.index', compact(
-        'tours',
-        'tourTypes',
-        'itineraries',
-        'itineraryJson',
-        'languages',
-        'amenities',
-        'schedules',
-        'hotels',
-        'status'
-    ));
-}
 
 
     /** =========================================================
@@ -127,7 +130,10 @@ public function index()
      *  ========================================================= */
     public function create()
     {
-        $tourTypes   = TourType::where('is_active', true)->orderBy('name')->get();
+        $tourTypes   = TourType::where('is_active', true)
+            ->withTranslation()
+            ->get()
+            ->sortBy('name');
         $itineraries = Itinerary::where('is_active', true)
             ->with('items')
             ->orderBy('created_at', 'desc')
@@ -219,7 +225,7 @@ public function index()
             'slug'         => 'nullable|string|max:255|unique:tours,slug',
             'overview'     => 'nullable|string',
             'max_capacity' => 'required|integer|min:1',
-            'group_size'   => ['nullable','integer','min:1'], // <= FIX
+            'group_size'   => ['nullable', 'integer', 'min:1'], // <= FIX
             'length'       => 'nullable|numeric|min:0',
             'tour_type_id' => 'nullable|exists:tour_types,tour_type_id',
             'color'        => 'nullable|string|max:7',
@@ -253,9 +259,9 @@ public function index()
             'languages'           => 'nullable|array',
             'languages.*'         => 'exists:tour_languages,tour_language_id',
             'included_amenities'  => 'nullable|array',
-            'included_amenities.*'=> 'exists:amenities,amenity_id',
+            'included_amenities.*' => 'exists:amenities,amenity_id',
             'excluded_amenities'  => 'nullable|array',
-            'excluded_amenities.*'=> 'exists:amenities,amenity_id',
+            'excluded_amenities.*' => 'exists:amenities,amenity_id',
         ]);
 
         try {
@@ -413,7 +419,7 @@ public function index()
             'slug'         => 'nullable|string|max:255|unique:tours,slug,' . $tour->tour_id . ',tour_id',
             'overview'     => 'nullable|string',
             'max_capacity' => 'required|integer|min:1',
-            'group_size'   => ['nullable','integer','min:1'], // <= NUEVO
+            'group_size'   => ['nullable', 'integer', 'min:1'], // <= NUEVO
             'length'       => 'nullable|numeric|min:0',
             'tour_type_id' => 'nullable|exists:tour_types,tour_type_id',
             'color'        => 'nullable|string|max:7',
@@ -657,86 +663,100 @@ public function index()
      *  PURGE (Force Delete)
      *  ========================================================= */
 
-public function purge(Request $request, $tourId)
-{
-    $userId = optional($request->user())->getAuthIdentifier();
+    public function purge(Request $request, $tourId)
+    {
+        $userId = optional($request->user())->getAuthIdentifier();
 
-    try {
-        // Sólo tours archivados (soft deleted)
-        $tour = Tour::onlyTrashed()->findOrFail($tourId);
+        try {
+            // Sólo tours archivados (soft deleted)
+            $tour = Tour::onlyTrashed()->findOrFail($tourId);
 
-        // Snapshots simples para el log de Laravel
-        $tourIdSnapshot   = $tour->tour_id;
-        $tourNameSnapshot = $tour->name;
+            // Snapshots simples para el log de Laravel
+            $tourIdSnapshot   = $tour->tour_id;
+            $tourNameSnapshot = $tour->name;
 
-        DB::transaction(function () use ($tour) {
-            // 1) Hacer snapshot del nombre en reservas (si no lo tienen)
-            DB::table('bookings')
-                ->where('tour_id', $tour->tour_id)
-                ->whereNull('tour_name_snapshot')
-                ->update(['tour_name_snapshot' => $tour->name]);
+            DB::transaction(function () use ($tour) {
+                // 1) Hacer snapshot del nombre en reservas (si no lo tienen)
+                DB::table('bookings')
+                    ->where('tour_id', $tour->tour_id)
+                    ->whereNull('tour_name_snapshot')
+                    ->update(['tour_name_snapshot' => $tour->name]);
 
-            DB::table('booking_details')
-                ->where('tour_id', $tour->tour_id)
-                ->whereNull('tour_name_snapshot')
-                ->update(['tour_name_snapshot' => $tour->name]);
+                DB::table('booking_details')
+                    ->where('tour_id', $tour->tour_id)
+                    ->whereNull('tour_name_snapshot')
+                    ->update(['tour_name_snapshot' => $tour->name]);
 
-            // 2) Desasociar tour de reservas
-            BookingDetail::where('tour_id', $tour->tour_id)->update(['tour_id' => null]);
-            Booking::where('tour_id', $tour->tour_id)->update(['tour_id' => null]);
+                // 2) Desasociar tour de reservas
+                BookingDetail::where('tour_id', $tour->tour_id)->update(['tour_id' => null]);
+                Booking::where('tour_id', $tour->tour_id)->update(['tour_id' => null]);
 
-            // 3) Limpiar precios
-            TourPrice::where('tour_id', $tour->tour_id)->delete();
+                // 3) Limpiar precios
+                TourPrice::where('tour_id', $tour->tour_id)->delete();
 
-            // 4) Limpiar relaciones adicionales (imágenes, pivotes, traducciones)
-            try {
-                if (class_exists(\App\Models\TourImage::class)) {
-                    \App\Models\TourImage::where('tour_id', $tour->tour_id)->delete();
+                // 4) Limpiar relaciones adicionales (imágenes, pivotes, traducciones)
+                try {
+                    if (class_exists(\App\Models\TourImage::class)) {
+                        \App\Models\TourImage::where('tour_id', $tour->tour_id)->delete();
+                    }
+                } catch (\Throwable $e) {
                 }
-            } catch (\Throwable $e) {}
 
-            try { $tour->schedules()->detach(); } catch (\Throwable $e) {}
-            try { $tour->languages()->detach(); } catch (\Throwable $e) {}
-            try { $tour->amenities()->detach(); } catch (\Throwable $e) {}
-            try { $tour->excludedAmenities()->detach(); } catch (\Throwable $e) {}
-            try { TourTranslation::where('tour_id', $tour->tour_id)->delete(); } catch (\Throwable $e) {}
+                try {
+                    $tour->schedules()->detach();
+                } catch (\Throwable $e) {
+                }
+                try {
+                    $tour->languages()->detach();
+                } catch (\Throwable $e) {
+                }
+                try {
+                    $tour->amenities()->detach();
+                } catch (\Throwable $e) {
+                }
+                try {
+                    $tour->excludedAmenities()->detach();
+                } catch (\Throwable $e) {
+                }
+                try {
+                    TourTranslation::where('tour_id', $tour->tour_id)->delete();
+                } catch (\Throwable $e) {
+                }
 
-            // 5) 🧹 Borrar logs de auditoría de este tour
-            //    (para que la FK/constraint no se dispare al borrar el tour)
-            try {
-                TourAuditLog::where('tour_id', $tour->tour_id)->delete();
-            } catch (\Throwable $e) {
-                // Si algo falla, lo dejamos registrar pero no rompemos el flujo
-                \Log::warning('No se pudieron borrar los tour_audit_logs antes del purge', [
-                    'tour_id' => $tour->tour_id,
-                    'error'   => $e->getMessage(),
-                ]);
-            }
+                // 5) 🧹 Borrar logs de auditoría de este tour
+                //    (para que la FK/constraint no se dispare al borrar el tour)
+                try {
+                    TourAuditLog::where('tour_id', $tour->tour_id)->delete();
+                } catch (\Throwable $e) {
+                    // Si algo falla, lo dejamos registrar pero no rompemos el flujo
+                    \Log::warning('No se pudieron borrar los tour_audit_logs antes del purge', [
+                        'tour_id' => $tour->tour_id,
+                        'error'   => $e->getMessage(),
+                    ]);
+                }
 
-            // 6) Borrado definitivo SIN disparar eventos de modelo
-            Tour::withoutEvents(function () use ($tour) {
-                $tour->forceDelete();
+                // 6) Borrado definitivo SIN disparar eventos de modelo
+                Tour::withoutEvents(function () use ($tour) {
+                    $tour->forceDelete();
+                });
             });
-        });
 
-        // Log normal de Laravel (archivo de logs)
-        \Log::info('Tour purged (hard delete)', [
-            'tour_id'   => $tourIdSnapshot,
-            'tour_name' => $tourNameSnapshot,
-            'user_id'   => $userId,
-        ]);
+            // Log normal de Laravel (archivo de logs)
+            \Log::info('Tour purged (hard delete)', [
+                'tour_id'   => $tourIdSnapshot,
+                'tour_name' => $tourNameSnapshot,
+                'user_id'   => $userId,
+            ]);
 
-        return redirect()
-            ->route('admin.tours.index', ['status' => 'archived'])
-            ->with('success', 'Tour eliminado definitivamente.');
-    } catch (\Exception $e) {
-        LoggerHelper::exception($this->controller, 'purge(hard)', 'tour', $tourId, $e, [
-            'user_id' => $userId,
-        ]);
+            return redirect()
+                ->route('admin.tours.index', ['status' => 'archived'])
+                ->with('success', 'Tour eliminado definitivamente.');
+        } catch (\Exception $e) {
+            LoggerHelper::exception($this->controller, 'purge(hard)', 'tour', $tourId, $e, [
+                'user_id' => $userId,
+            ]);
 
-        return back()->with('error', 'Error al purgar el tour.');
+            return back()->with('error', 'Error al purgar el tour.');
+        }
     }
-}
-
-
 }
