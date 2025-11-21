@@ -68,7 +68,8 @@ return [
         'deleted_permanently'        => 'Die Kategorie und ihre Abschnitte wurden dauerhaft gelöscht.',
         'restore' => 'Wiederherstellen',
         'force_delete_confirm' => 'Diese Kategorie und alle ihre Abschnitte dauerhaft löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
-
+        'created' => 'Richtlinienkategorie erfolgreich erstellt.',
+        
         // Kategorien-Liste: Aktionen
         'new_category'            => 'Neue Kategorie',
         'view_sections'           => 'Abschnitte anzeigen',

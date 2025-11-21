@@ -68,7 +68,7 @@ return [
         'deleted_permanently'        => 'La categoría y sus secciones se eliminaron permanentemente.',
         'restore' => 'Restaurar',
         'force_delete_confirm' => '¿Eliminar permanentemente esta categoría y todas sus secciones? Esta acción no se puede deshacer.',
-
+        'created' => 'Categoría de política creada correctamente.',
 
         // Lista de categorías: acciones
         'new_category'            => 'Nueva categoría',

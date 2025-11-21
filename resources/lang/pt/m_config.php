@@ -68,7 +68,8 @@ return [
         'deleted_permanently'        => 'A categoria e suas seções foram excluídas permanentemente.',
         'restore' => 'Restaurar',
         'force_delete_confirm' => 'Excluir permanentemente esta categoria e todas as suas seções? Esta ação não pode ser desfeita.',
-
+        'created' => 'Categoria de política criada com sucesso.',
+        
         // Lista de categorias: ações
         'new_category'            => 'Nova categoria',
         'view_sections'           => 'Ver seções',

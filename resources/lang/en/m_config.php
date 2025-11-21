@@ -47,7 +47,7 @@ return [
         'filter_inactive'  => 'Inactive',
         'filter_archived'  => 'Archived',
         'filter_all'       => 'All',
-
+        'created' => 'Policy category created successfully.',
         'slug_hint'      => 'lowercase, no spaces, dash-separated',
         'slug_auto_hint' => 'If left empty, it will be generated automatically from the title.',
         'slug_edit_hint' => 'Changing this URL may affect existing public links.',

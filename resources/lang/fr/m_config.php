@@ -68,7 +68,8 @@ return [
         'deleted_permanently'        => 'La catégorie et ses sections ont été supprimées définitivement.',
         'restore' => 'Restaurer',
         'force_delete_confirm' => 'Supprimer définitivement cette catégorie et toutes ses sections ? Cette action est irréversible.',
-
+        'created' => 'Catégorie de politique créée avec succès.',
+        
         // Liste de catégories : actions
         'new_category'            => 'Nouvelle catégorie',
         'view_sections'           => 'Voir les sections',
