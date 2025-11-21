@@ -43,6 +43,29 @@ return [
         'propagate_hint'         => 'It will be automatically translated from the current text and overwrite existing translations in those languages.',
         'update_base_es'         => 'Also update base (ES)',
         'update_base_hint'       => 'Overwrites the name and content of the policy in the base table (Spanish). Use only if you want the original text to change as well.',
+        'filter_active'    => 'Active',
+        'filter_inactive'  => 'Inactive',
+        'filter_archived'  => 'Archived',
+        'filter_all'       => 'All',
+
+        'slug_hint'      => 'lowercase, no spaces, dash-separated',
+        'slug_auto_hint' => 'If left empty, it will be generated automatically from the title.',
+        'slug_edit_hint' => 'Changing this URL may affect existing public links.',
+
+        'valid_from' => 'Valid from',
+        'valid_to'   => 'Valid to',
+
+        'move_to_trash'  => 'Move to trash',
+        'in_trash'       => 'In trash',
+        'moved_to_trash' => 'The category was moved to the trash.',
+
+        'restore_category'         => 'Restore',
+        'restore_category_confirm' => 'Restore this category and all its sections?',
+        'restored_ok'              => 'The category was restored successfully.',
+
+        'delete_permanently'         => 'Delete permanently',
+        'delete_permanently_confirm' => 'Permanently delete this category and all its sections? This action cannot be undone.',
+        'deleted_permanently'        => 'The category and its sections were permanently deleted.',
 
         // Category list: actions
         'new_category'            => 'New category',

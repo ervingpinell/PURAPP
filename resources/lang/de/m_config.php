@@ -43,6 +43,31 @@ return [
         'propagate_hint'         => 'Wird automatisch aus dem aktuellen Text übersetzt und überschreibt vorhandene Übersetzungen in diesen Sprachen.',
         'update_base_es'         => 'Auch die Basis (ES) aktualisieren',
         'update_base_hint'       => 'Überschreibt Name und Inhalt der Richtlinie in der Basistabelle (Spanisch). Nur verwenden, wenn sich auch der Originaltext ändern soll.',
+        'filter_active'    => 'Aktiv',
+        'filter_inactive'  => 'Inaktiv',
+        'filter_archived'  => 'Archiviert',
+        'filter_all'       => 'Alle',
+
+        'slug_hint'      => 'kleingeschrieben, keine Leerzeichen, mit Bindestrichen getrennt',
+        'slug_auto_hint' => 'Wenn leer, wird es automatisch aus dem Titel erzeugt.',
+        'slug_edit_hint' => 'Das Ändern dieser URL kann vorhandene öffentliche Links beeinflussen.',
+
+        'valid_from' => 'Gültig ab',
+        'valid_to'   => 'Gültig bis',
+
+        'move_to_trash'  => 'In Papierkorb verschieben',
+        'in_trash'       => 'Im Papierkorb',
+        'moved_to_trash' => 'Die Kategorie wurde in den Papierkorb verschoben.',
+
+        'restore_category'         => 'Wiederherstellen',
+        'restore_category_confirm' => 'Diese Kategorie und alle ihre Abschnitte wiederherstellen?',
+        'restored_ok'              => 'Die Kategorie wurde erfolgreich wiederhergestellt.',
+
+        'delete_permanently'         => 'Dauerhaft löschen',
+        'delete_permanently_confirm' => 'Diese Kategorie und alle ihre Abschnitte dauerhaft löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+        'deleted_permanently'        => 'Die Kategorie und ihre Abschnitte wurden dauerhaft gelöscht.',
+        'restore' => 'Wiederherstellen',
+        'force_delete_confirm' => 'Diese Kategorie und alle ihre Abschnitte dauerhaft löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
 
         // Kategorien-Liste: Aktionen
         'new_category'            => 'Neue Kategorie',
