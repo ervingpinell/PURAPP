@@ -340,7 +340,7 @@ return [
             'drag_to_order'        => 'Faites glisser les éléments pour définir l’ordre.',
             'pool_hint'            => 'Cochez les éléments disponibles que vous souhaitez inclure dans cet itinéraire.',
             'register_item_hint'   => 'Enregistrez de nouveaux éléments si vous avez besoin d’étapes supplémentaires qui n’existent pas encore.',
-
+            'translations_updated' => 'Traduction mise à jour',
             'toggle_on'  => 'Activer l’élément',
             'toggle_off' => 'Désactiver l’élément',
 
@@ -419,6 +419,7 @@ return [
             'item_added'            => 'Élément ajouté',
             'item_added_success'    => 'L’élément a été ajouté à l’itinéraire avec succès.',
             'error_creating_item'   => 'Erreur de validation lors de la création de l’élément.',
+            'translations_updated' => 'Traduction mise à jour',
 
             'assign'        => 'Assigner',
             'edit'          => 'Modifier',
@@ -755,7 +756,7 @@ return [
             'status'                 => 'Statut',
             'active'                 => 'Actif',
             'no_categories'          => 'Aucune catégorie de clients configurée.',
-            'create_categories_first'=> 'Créez d’abord des catégories',
+            'create_categories_first' => 'Créez d’abord des catégories',
             'page_title'             => 'Tarifs - :name',
             'header_title'           => 'Tarifs : :name',
             'back_to_tours'          => 'Revenir aux tours',
@@ -812,7 +813,7 @@ return [
                 'max'           => 'Maximum',
                 'order'         => 'Ordre',
                 'is_active'     => 'Actif',
-                'auto_translate'=> 'Traduction automatique',
+                'auto_translate' => 'Traduction automatique',
             ],
 
             'placeholders' => [
@@ -962,7 +963,7 @@ return [
             'not_found'         => 'Le tour n’existe pas.',
             'restore'           => 'Impossible de restaurer le tour.',
             'purge'             => 'Impossible de supprimer définitivement le tour.',
-            'purge_has_bookings'=> 'Impossible de supprimer définitivement : le tour a des réservations.',
+            'purge_has_bookings' => 'Impossible de supprimer définitivement : le tour a des réservations.',
         ],
 
         'ui' => [
@@ -1001,7 +1002,7 @@ return [
             'add_to_cart'       => 'Ajouter au panier',
             'slug_help'         => 'Identifiant du tour dans l’URL (sans espaces ni accents)',
             'generate_auto'     => 'Générer automatiquement',
-            'slug_preview_label'=> 'Aperçu',
+            'slug_preview_label' => 'Aperçu',
             'saved'             => 'Enregistré',
 
             'available_languages'    => 'Langues disponibles',
@@ -1023,8 +1024,8 @@ return [
             'archived'               => 'Archivés',
             'all'                    => 'Tous',
             'help_title'             => 'Aide',
-            'amenities_included_hint'=> 'Sélectionnez ce qui est inclus dans le tour.',
-            'amenities_excluded_hint'=> 'Sélectionnez ce qui n’est PAS inclus dans le tour.',
+            'amenities_included_hint' => 'Sélectionnez ce qui est inclus dans le tour.',
+            'amenities_excluded_hint' => 'Sélectionnez ce qui n’est PAS inclus dans le tour.',
             'help_included_title'    => 'Inclus',
             'help_included_text'     => 'Cochez tout ce qui est inclus dans le prix du tour (transport, repas, entrées, équipement, guide, etc.).',
             'help_excluded_title'    => 'Non inclus',

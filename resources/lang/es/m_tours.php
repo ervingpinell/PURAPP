@@ -303,10 +303,10 @@ return [
             'morning' => 'Ej: Mañana',
         ],
         'validation' => [
-        'no_schedule_selected' => 'Debes seleccionar al menos un horario',
-        'title' => 'Validación de Horarios',
-        'end_after_start' => 'La hora de fin debe ser posterior a la hora de inicio',
-    ],
+            'no_schedule_selected' => 'Debes seleccionar al menos un horario',
+            'title' => 'Validación de Horarios',
+            'end_after_start' => 'La hora de fin debe ser posterior a la hora de inicio',
+        ],
     ],
 
     // =========================================================
@@ -339,7 +339,7 @@ return [
             'drag_to_order'        => 'Arrastra los ítems para definir el orden.',
             'pool_hint'            => 'Marca los ítems disponibles que quieras incluir en este itinerario.',
             'register_item_hint'   => 'Registra nuevos ítems si necesitas pasos adicionales que aún no existen.',
-
+            'translations_updated' => 'Traducción actualizada',
             'toggle_on'  => 'Activar ítem',
             'toggle_off' => 'Desactivar ítem',
 
@@ -409,6 +409,7 @@ return [
             'page_title'    => 'Itinerarios y Ítems',
             'page_heading'  => 'Itinerarios y Gestión de Ítems',
             'new_itinerary' => 'Nuevo Itinerario',
+            'translations_updated' => 'Traducción actualizada',
             'select_or_create_hint' => 'Selecciona un itinerario existente o crea uno nuevo para este tour.',
             'save_changes'          => 'Guarda el itinerario para aplicar los cambios al tour.',
             'select_existing' => 'Seleccionar itinerario existente',
@@ -1314,14 +1315,14 @@ return [
             'created_ok'            => 'Categoría creada correctamente.',
         ],
 
-            'validation' => [
-        'title' => 'Validación de Precios',
-        'no_categories' => 'Debes agregar al menos una categoría de precio',
-        'no_price_greater_zero' => 'Debe haber al menos una categoría con precio mayor a $0.00',
-        'price_required' => 'El precio es obligatorio',
-        'price_min' => 'El precio debe ser mayor o igual a 0',
-        'age_to_greater_equal' => 'La edad hasta debe ser mayor o igual a la edad desde',
-    ],
+        'validation' => [
+            'title' => 'Validación de Precios',
+            'no_categories' => 'Debes agregar al menos una categoría de precio',
+            'no_price_greater_zero' => 'Debe haber al menos una categoría con precio mayor a $0.00',
+            'price_required' => 'El precio es obligatorio',
+            'price_min' => 'El precio debe ser mayor o igual a 0',
+            'age_to_greater_equal' => 'La edad hasta debe ser mayor o igual a la edad desde',
+        ],
     ],
 
     'ajax' => [

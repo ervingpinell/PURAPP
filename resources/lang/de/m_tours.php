@@ -335,7 +335,7 @@ return [
             'drag_to_order'        => 'Ziehen Sie die Elemente, um die Reihenfolge festzulegen.',
             'pool_hint'            => 'Markieren Sie die verfügbaren Elemente, die Sie in diesen Reiseplan aufnehmen möchten.',
             'register_item_hint'   => 'Registrieren Sie neue Elemente, wenn Sie zusätzliche Schritte benötigen, die noch nicht existieren.',
-
+            'translations_updated' => 'Übersetzung aktualisiert',
             'toggle_on'  => 'Element aktivieren',
             'toggle_off' => 'Element deaktivieren',
 
@@ -414,6 +414,7 @@ return [
             'item_added' => 'Element hinzugefügt',
             'item_added_success' => 'Das Element wurde erfolgreich zum Reiseplan hinzugefügt.',
             'error_creating_item' => 'Validierungsfehler beim Erstellen des Elements.',
+            'translations_updated' => 'Übersetzung aktualisiert',
 
             'assign'        => 'Zuweisen',
             'edit'          => 'Bearbeiten',

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Tours;
 
 use App\Http\Controllers\Controller;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\ItineraryItem;
 use App\Models\ItineraryItemTranslation;
@@ -20,8 +21,9 @@ class ItineraryItemController extends Controller
     public function index()
     {
         $activeItems = ItineraryItem::where('is_active', true)
-            ->orderBy('title')
-            ->get();
+            ->with('translations')
+            ->get()
+            ->sortBy('title');
 
         return view('admin.tours.itinerary.items.crud', ['items' => $activeItems]);
     }
@@ -36,8 +38,6 @@ class ItineraryItemController extends Controller
 
             $item = DB::transaction(function () use ($title, $desc, $locales, $translator) {
                 $item = ItineraryItem::create([
-                    'title'       => $title,
-                    'description' => $desc,
                     'is_active'   => true,
                 ]);
 
@@ -83,17 +83,27 @@ class ItineraryItemController extends Controller
         try {
             $data = $request->validated();
 
-            $payload = [
-                'title'       => $data['title'],
-                'description' => $data['description'],
-            ];
-
-            // Si viene is_active en el payload, lo aplicamos
-            if (array_key_exists('is_active', $data)) {
-                $payload['is_active'] = (bool) $data['is_active'];
+            // Update only Spanish translation for now
+            $translation = $itinerary_item->translations()->where('locale', 'es')->first();
+            if ($translation) {
+                $translation->update([
+                    'title'       => $data['title'],
+                    'description' => $data['description'],
+                ]);
+            } else {
+                // Create Spanish translation if it doesn't exist
+                $itinerary_item->translations()->create([
+                    'locale'      => 'es',
+                    'title'       => $data['title'],
+                    'description' => $data['description'],
+                ]);
             }
 
-            $itinerary_item->update($payload);
+            // If is_active is in the payload, apply it to the parent model
+            if (array_key_exists('is_active', $data)) {
+                $itinerary_item->update(['is_active' => (bool) $data['is_active']]);
+            }
+
             $itinerary_item->refresh();
 
             // Si quedó inactivo (ya sea por update o por toggle), lo desasignamos
@@ -141,8 +151,57 @@ class ItineraryItemController extends Controller
             LoggerHelper::exception($this->controller, 'toggle', 'itinerary_item', $itinerary_item->item_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', __('m_tours.itinerary_item.error.toggle'));
+            return back()
+                ->withErrors(['error' => __('m_tours.itinerary_item.error.toggle')])
+                ->with('error', __('m_tours.itinerary_item.error.toggle'));
         }
+    }
+
+    /**
+     * Update translations for an itinerary item across multiple locales.
+     */
+    public function updateTranslations(Request $request, ItineraryItem $itinerary_item)
+    {
+        $locales = config('app.supported_locales', ['es', 'en', 'fr', 'de', 'pt']);
+
+        // Build validation rules dynamically
+        $rules = [];
+        foreach ($locales as $locale) {
+            $rules["translations.{$locale}.title"] = $locale === 'es'
+                ? 'required|string|max:255'
+                : 'nullable|string|max:255';
+            $rules["translations.{$locale}.description"] = 'nullable|string|max:1000';
+        }
+
+        $validated = $request->validate($rules);
+
+        // Update or create translations for each locale
+        foreach ($locales as $locale) {
+            $translationData = $validated['translations'][$locale] ?? null;
+
+            if (!$translationData) {
+                continue;
+            }
+
+            // Skip if both fields are empty (except for Spanish which is required)
+            if (empty($translationData['title']) && empty($translationData['description'])) {
+                if ($locale !== 'es') {
+                    continue;
+                }
+            }
+
+            $itinerary_item->translations()->updateOrCreate(
+                ['locale' => $locale],
+                [
+                    'title' => $translationData['title'] ?? '',
+                    'description' => $translationData['description'] ?? '',
+                ]
+            );
+        }
+
+        return redirect()
+            ->route('admin.tours.itinerary.index')
+            ->with('success', __('m_tours.itinerary_item.ui.translations_updated'));
     }
 
     /** DELETE: Eliminación definitiva */

@@ -641,7 +641,7 @@ class TourWizardController extends Controller
                 break;
 
             case 'itinerary':
-                $data['itineraries'] = Itinerary::active()->with('items')->get();
+                $data['itineraries'] = Itinerary::active()->with(['allItems.translations', 'translations'])->get();
                 break;
 
             case 'schedules':
@@ -731,24 +731,44 @@ class TourWizardController extends Controller
                 }
 
                 $itinerary = Itinerary::create([
-                    'name'        => $data['new_itinerary_name'],
-                    'description' => $data['new_itinerary_description'] ?? null,
                     'is_active'   => true,
                 ]);
 
+                // Create Spanish translation
+                $itinerary->translations()->create([
+                    'locale'      => 'es',
+                    'name'        => $data['new_itinerary_name'],
+                    'description' => $data['new_itinerary_description'] ?? null,
+                ]);
+
                 foreach ($itemsData as $index => $itemData) {
-                    $item = ItineraryItem::where('title', $itemData['title'])->first();
+                    // Check if item exists by looking for a Spanish translation with this title
+                    $existingTranslation = \App\Models\ItineraryItemTranslation::where('locale', 'es')
+                        ->where('title', $itemData['title'])
+                        ->first();
+
+                    if ($existingTranslation) {
+                        $item = ItineraryItem::find($existingTranslation->item_id);
+                    } else {
+                        $item = null;
+                    }
 
                     if (!$item) {
                         $item = ItineraryItem::create([
-                            'title'       => $itemData['title'],
-                            'description' => $itemData['description'] ?? null,
                             'is_active'   => true,
                         ]);
+
+                        // Create Spanish translation
+                        $item->translations()->create([
+                            'locale'      => 'es',
+                            'title'       => $itemData['title'],
+                            'description' => $itemData['description'] ?? null,
+                        ]);
                     } else {
-                        if (($itemData['description'] ?? null) && !$item->description) {
-                            $item->description = $itemData['description'];
-                            $item->save();
+                        // Update existing translation if description is provided and current is empty
+                        $translation = $item->translations()->where('locale', 'es')->first();
+                        if ($translation && ($itemData['description'] ?? null) && !$translation->description) {
+                            $translation->update(['description' => $itemData['description']]);
                         }
                     }
 

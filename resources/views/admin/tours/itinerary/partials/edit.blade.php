@@ -1,9 +1,9 @@
-<!-- Modal editar itinerario -->
+<!-- Modal editar itinerario con pestañas de traducción -->
 <div class="modal fade" id="modalEditar{{ $itinerary->itinerary_id }}" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <form action="{{ route('admin.tours.itinerary.update', $itinerary->itinerary_id) }}"
-          method="POST"
-          class="form-edit-itinerary">
+  <div class="modal-dialog modal-lg">
+    <form action="{{ route('admin.tours.itinerary.updateTranslations', $itinerary->itinerary_id) }}"
+      method="POST"
+      class="form-edit-itinerary-translations">
       @csrf
       @method('PUT')
       <div class="modal-content">
@@ -12,26 +12,63 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_tours.itinerary.ui.close') }}"></button>
         </div>
         <div class="modal-body">
-          <div class="mb-3">
-            <label for="it-name-{{ $itinerary->itinerary_id }}" class="form-label">
-              {{ __('m_tours.itinerary.fields.name') }}
-            </label>
-            <input type="text"
-                   name="name"
-                   id="it-name-{{ $itinerary->itinerary_id }}"
-                   class="form-control"
-                   value="{{ $itinerary->name }}"
-                   required maxlength="255">
-          </div>
-          <div class="mb-3">
-            <label for="it-desc-{{ $itinerary->itinerary_id }}" class="form-label">
-              {{ __('m_tours.itinerary.fields.description') }}
-            </label>
-            <textarea name="description"
-                      id="it-desc-{{ $itinerary->itinerary_id }}"
-                      class="form-control"
-                      rows="3"
-                      maxlength="1000">{{ $itinerary->description }}</textarea>
+          <!-- Tabs de idiomas -->
+          <ul class="nav nav-tabs mb-3" id="itineraryTabs{{ $itinerary->itinerary_id }}" role="tablist">
+            @foreach(config('app.supported_locales', ['es', 'en', 'fr', 'de', 'pt']) as $index => $locale)
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {{ $index === 0 ? 'active' : '' }}"
+                id="tab-{{ $locale }}-{{ $itinerary->itinerary_id }}"
+                data-bs-toggle="tab"
+                data-bs-target="#content-{{ $locale }}-{{ $itinerary->itinerary_id }}"
+                type="button"
+                role="tab">
+                {{ strtoupper($locale) }}
+                @if($locale === 'es')
+                <span class="text-danger">*</span>
+                @endif
+              </button>
+            </li>
+            @endforeach
+          </ul>
+
+          <!-- Contenido de las pestañas -->
+          <div class="tab-content" id="itineraryTabContent{{ $itinerary->itinerary_id }}">
+            @foreach(config('app.supported_locales', ['es', 'en', 'fr', 'de', 'pt']) as $index => $locale)
+            @php
+            $translation = $itinerary->translations->where('locale', $locale)->first();
+            @endphp
+            <div class="tab-pane fade {{ $index === 0 ? 'show active' : '' }}"
+              id="content-{{ $locale }}-{{ $itinerary->itinerary_id }}"
+              role="tabpanel">
+
+              <div class="mb-3">
+                <label for="it-name-{{ $locale }}-{{ $itinerary->itinerary_id }}" class="form-label">
+                  {{ __('m_tours.itinerary.fields.name') }}
+                  @if($locale === 'es')
+                  <span class="text-danger">*</span>
+                  @endif
+                </label>
+                <input type="text"
+                  name="translations[{{ $locale }}][name]"
+                  id="it-name-{{ $locale }}-{{ $itinerary->itinerary_id }}"
+                  class="form-control"
+                  value="{{ $translation->name ?? '' }}"
+                  {{ $locale === 'es' ? 'required' : '' }}
+                  maxlength="255">
+              </div>
+
+              <div class="mb-3">
+                <label for="it-desc-{{ $locale }}-{{ $itinerary->itinerary_id }}" class="form-label">
+                  {{ __('m_tours.itinerary.fields.description') }}
+                </label>
+                <textarea name="translations[{{ $locale }}][description]"
+                  id="it-desc-{{ $locale }}-{{ $itinerary->itinerary_id }}"
+                  class="form-control"
+                  rows="4"
+                  maxlength="1000">{{ $translation->description ?? '' }}</textarea>
+              </div>
+            </div>
+            @endforeach
           </div>
         </div>
         <div class="modal-footer">

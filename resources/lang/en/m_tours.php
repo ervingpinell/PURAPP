@@ -340,6 +340,7 @@ return [
             'drag_to_order'        => 'Drag items to set the order.',
             'pool_hint'            => 'Check the available items you want to include in this itinerary.',
             'register_item_hint'   => 'Register new items if you need additional steps that don’t exist yet.',
+            'translations_updated' => 'Translation updated',
 
             'toggle_on'  => 'Activate item',
             'toggle_off' => 'Deactivate item',
@@ -419,6 +420,7 @@ return [
             'item_added'            => 'Item added',
             'item_added_success'    => 'The item was successfully added to the itinerary.',
             'error_creating_item'   => 'Validation error while creating the item.',
+            'translations_updated' => 'Translation updated',
 
             'assign'        => 'Assign',
             'edit'          => 'Edit',
@@ -775,7 +777,7 @@ return [
             'status'                 => 'Status',
             'active'                 => 'Active',
             'no_categories'          => 'No customer categories configured.',
-            'create_categories_first'=> 'Create categories first',
+            'create_categories_first' => 'Create categories first',
             'page_title'             => 'Prices - :name',
             'header_title'           => 'Prices: :name',
             'back_to_tours'          => 'Back to tours',
@@ -832,7 +834,7 @@ return [
                 'max'           => 'Maximum',
                 'order'         => 'Order',
                 'is_active'     => 'Active',
-                'auto_translate'=> 'Auto translate',
+                'auto_translate' => 'Auto translate',
             ],
 
             'placeholders' => [
@@ -982,7 +984,7 @@ return [
             'not_found'         => 'The tour does not exist.',
             'restore'           => 'Could not restore the tour.',
             'purge'             => 'Could not permanently delete the tour.',
-            'purge_has_bookings'=> 'Cannot permanently delete: the tour has bookings.',
+            'purge_has_bookings' => 'Cannot permanently delete: the tour has bookings.',
         ],
 
         'ui' => [
@@ -1021,7 +1023,7 @@ return [
             'add_to_cart'       => 'Add to Cart',
             'slug_help'         => 'Tour identifier in the URL (no spaces or accents)',
             'generate_auto'     => 'Generate automatically',
-            'slug_preview_label'=> 'Preview',
+            'slug_preview_label' => 'Preview',
             'saved'             => 'Saved',
 
             'available_languages'    => 'Available languages',
@@ -1043,8 +1045,8 @@ return [
             'archived'               => 'Archived',
             'all'                    => 'All',
             'help_title'             => 'Help',
-            'amenities_included_hint'=> 'Select what is included in the tour.',
-            'amenities_excluded_hint'=> 'Select what is NOT included in the tour.',
+            'amenities_included_hint' => 'Select what is included in the tour.',
+            'amenities_excluded_hint' => 'Select what is NOT included in the tour.',
             'help_included_title'    => 'Included',
             'help_included_text'     => 'Check everything that is included in the tour price (transport, meals, tickets, equipment, guide, etc.).',
             'help_excluded_title'    => 'Not Included',

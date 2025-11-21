@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Tours;
 
 use App\Http\Controllers\Controller;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Itinerary;
 use App\Models\ItineraryTranslation;
@@ -20,7 +21,7 @@ class ItineraryController extends Controller
 
     public function index(ItineraryService $service)
     {
-        $itineraryList  = Itinerary::with('items')->orderBy('name')->get();
+        $itineraryList  = Itinerary::with(['allItems.translations', 'translations'])->get();
         $availableItems = $service->getAvailableItems();
 
         return view('admin.tours.itinerary.index', [
@@ -39,8 +40,6 @@ class ItineraryController extends Controller
 
             $itinerary = DB::transaction(function () use ($name, $description, $locales, $translator) {
                 $itinerary = Itinerary::create([
-                    'name'        => $name,
-                    'description' => $description,
                     'is_active'   => true,
                 ]);
 
@@ -74,7 +73,6 @@ class ItineraryController extends Controller
             ]);
 
             return back()->with('success', __('m_tours.itinerary.success.created'));
-
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'itinerary', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -89,10 +87,21 @@ class ItineraryController extends Controller
         try {
             $data = $request->validated();
 
-            $itinerary->update([
-                'name'        => $data['name'],
-                'description' => $data['description'] ?? null,
-            ]);
+            // Update only Spanish translation for now
+            $translation = $itinerary->translations()->where('locale', 'es')->first();
+            if ($translation) {
+                $translation->update([
+                    'name'        => $data['name'],
+                    'description' => $data['description'] ?? null,
+                ]);
+            } else {
+                // Create Spanish translation if it doesn't exist
+                $itinerary->translations()->create([
+                    'locale'      => 'es',
+                    'name'        => $data['name'],
+                    'description' => $data['description'] ?? null,
+                ]);
+            }
 
             LoggerHelper::mutated($this->controller, 'update', 'itinerary', $itinerary->itinerary_id, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -101,7 +110,6 @@ class ItineraryController extends Controller
             return redirect()
                 ->route('admin.tours.itinerary.index')
                 ->with('success', __('m_tours.itinerary.success.updated'));
-
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'update', 'itinerary', $itinerary->itinerary_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -131,7 +139,6 @@ class ItineraryController extends Controller
                 : __('m_tours.itinerary.success.deactivated');
 
             return back()->with('success', $msg);
-
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'toggle', 'itinerary', $itinerary->itinerary_id ?? null, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
@@ -195,7 +202,6 @@ class ItineraryController extends Controller
             return redirect()
                 ->route('admin.tours.itinerary.index')
                 ->with('success', __('m_tours.itinerary.success.items_assigned'));
-
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'assignItems', 'itinerary', $itinerary->itinerary_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -206,5 +212,52 @@ class ItineraryController extends Controller
                 ->with('error', __('m_tours.itinerary.error.assign'))
                 ->with('showAssignModal', $itinerary->itinerary_id);
         }
+    }
+
+    /**
+     * Update translations for an itinerary across multiple locales.
+     */
+    public function updateTranslations(Request $request, Itinerary $itinerary)
+    {
+        $locales = config('app.supported_locales', ['es', 'en', 'fr', 'de', 'pt']);
+
+        // Build validation rules dynamically
+        $rules = [];
+        foreach ($locales as $locale) {
+            $rules["translations.{$locale}.name"] = $locale === 'es'
+                ? 'required|string|max:255'
+                : 'nullable|string|max:255';
+            $rules["translations.{$locale}.description"] = 'nullable|string|max:1000';
+        }
+
+        $validated = $request->validate($rules);
+
+        // Update or create translations for each locale
+        foreach ($locales as $locale) {
+            $translationData = $validated['translations'][$locale] ?? null;
+
+            if (!$translationData) {
+                continue;
+            }
+
+            // Skip if both fields are empty (except for Spanish which is required)
+            if (empty($translationData['name']) && empty($translationData['description'])) {
+                if ($locale !== 'es') {
+                    continue;
+                }
+            }
+
+            $itinerary->translations()->updateOrCreate(
+                ['locale' => $locale],
+                [
+                    'name' => $translationData['name'] ?? '',
+                    'description' => $translationData['description'] ?? '',
+                ]
+            );
+        }
+
+        return redirect()
+            ->route('admin.tours.itinerary.index')
+            ->with('success', __('m_tours.itinerary.ui.translations_updated'));
     }
 }

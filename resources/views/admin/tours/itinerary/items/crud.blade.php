@@ -20,9 +20,9 @@
     <tbody>
       @foreach ($items as $item)
       @php
-        $active  = (bool) $item->is_active;
-        $icon    = $active ? 'fa-toggle-on' : 'fa-toggle-off';
-        $titleTg = $active ? __('m_tours.itinerary_item.ui.toggle_off') : __('m_tours.itinerary_item.ui.toggle_on');
+      $active = (bool) $item->is_active;
+      $icon = $active ? 'fa-toggle-on' : 'fa-toggle-off';
+      $titleTg = $active ? __('m_tours.itinerary_item.ui.toggle_off') : __('m_tours.itinerary_item.ui.toggle_on');
       @endphp
       <tr>
         <td class="text-nowrap">{{ $item->item_id }}</td>
@@ -39,38 +39,38 @@
         </td>
         <td class="text-nowrap">
           @if ($active)
-            <span class="badge bg-success">{{ __('m_tours.itinerary_item.status.active') }}</span>
+          <span class="badge bg-success">{{ __('m_tours.itinerary_item.status.active') }}</span>
           @else
-            <span class="badge bg-secondary">{{ __('m_tours.itinerary_item.status.inactive') }}</span>
+          <span class="badge bg-secondary">{{ __('m_tours.itinerary_item.status.inactive') }}</span>
           @endif
         </td>
         <td class="text-nowrap">
           {{-- Editar --}}
           <a href="#" class="btn btn-edit btn-sm"
-             data-bs-toggle="modal"
-             data-bs-target="#modalEditarItem{{ $item->item_id }}"
-             title="{{ __('m_tours.itinerary_item.ui.edit_item') }}">
+            data-bs-toggle="modal"
+            data-bs-target="#modalEditarItem{{ $item->item_id }}"
+            title="{{ __('m_tours.itinerary_item.ui.edit_item') }}">
             <i class="fas fa-edit"></i>
           </a>
 
           {{-- Toggle (PATCH) --}}
           <form action="{{ route('admin.tours.itinerary_items.toggle', $item->item_id) }}"
-                method="POST"
-                class="d-inline">
+            method="POST"
+            class="d-inline">
             @csrf
             @method('PATCH')
             <button type="submit"
-                    class="btn btn-sm {{ $active ? 'btn-toggle' : 'btn-secondary' }}"
-                    title="{{ $titleTg }}">
+              class="btn btn-sm {{ $active ? 'btn-toggle' : 'btn-secondary' }}"
+              title="{{ $titleTg }}">
               <i class="fas {{ $icon }}"></i>
             </button>
           </form>
 
           {{-- Delete (DELETE definitivo) + SweetAlert --}}
           <form action="{{ route('admin.tours.itinerary_items.destroy', $item->item_id) }}"
-                method="POST"
-                class="d-inline form-delete-item"
-                data-label="{{ $item->title }}">
+            method="POST"
+            class="d-inline form-delete-item"
+            data-label="{{ $item->title }}">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn btn-delete btn-sm" title="{{ __('m_tours.itinerary_item.ui.delete_forever') }}">
@@ -80,12 +80,12 @@
         </td>
       </tr>
 
-      {{-- Modal editar ítem --}}
+      {{-- Modal editar ítem con pestañas de traducción --}}
       <div class="modal fade" id="modalEditarItem{{ $item->item_id }}" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-          <form action="{{ route('admin.tours.itinerary_items.update', $item->item_id) }}"
-                method="POST"
-                class="form-edit-item">
+        <div class="modal-dialog modal-lg">
+          <form action="{{ route('admin.tours.itinerary_items.updateTranslations', $item->item_id) }}"
+            method="POST"
+            class="form-edit-item-translations">
             @csrf
             @method('PUT')
             <div class="modal-content">
@@ -94,18 +94,72 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
               </div>
               <div class="modal-body">
-                <div class="mb-3">
-                  <label class="form-label">{{ __('m_tours.itinerary_item.fields.title') }}</label>
-                  <input type="text" name="title" class="form-control" value="{{ $item->title }}" required>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">{{ __('m_tours.itinerary_item.fields.description') }}</label>
-                  <textarea name="description" class="form-control" required>{{ $item->description }}</textarea>
+                <!-- Tabs de idiomas -->
+                <ul class="nav nav-tabs mb-3" id="itemTabs{{ $item->item_id }}" role="tablist">
+                  @foreach(config('app.supported_locales', ['es', 'en', 'fr', 'de', 'pt']) as $index => $locale)
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link {{ $index === 0 ? 'active' : '' }}"
+                      id="tab-{{ $locale }}-item-{{ $item->item_id }}"
+                      data-bs-toggle="tab"
+                      data-bs-target="#content-{{ $locale }}-item-{{ $item->item_id }}"
+                      type="button"
+                      role="tab">
+                      {{ strtoupper($locale) }}
+                      @if($locale === 'es')
+                      <span class="text-danger">*</span>
+                      @endif
+                    </button>
+                  </li>
+                  @endforeach
+                </ul>
+
+                <!-- Contenido de las pestañas -->
+                <div class="tab-content" id="itemTabContent{{ $item->item_id }}">
+                  @foreach(config('app.supported_locales', ['es', 'en', 'fr', 'de', 'pt']) as $index => $locale)
+                  @php
+                  $translation = $item->translations->where('locale', $locale)->first();
+                  @endphp
+                  <div class="tab-pane fade {{ $index === 0 ? 'show active' : '' }}"
+                    id="content-{{ $locale }}-item-{{ $item->item_id }}"
+                    role="tabpanel">
+
+                    <div class="mb-3">
+                      <label for="item-title-{{ $locale }}-{{ $item->item_id }}" class="form-label">
+                        {{ __('m_tours.itinerary_item.fields.title') }}
+                        @if($locale === 'es')
+                        <span class="text-danger">*</span>
+                        @endif
+                      </label>
+                      <input type="text"
+                        name="translations[{{ $locale }}][title]"
+                        id="item-title-{{ $locale }}-{{ $item->item_id }}"
+                        class="form-control"
+                        value="{{ $translation->title ?? '' }}"
+                        {{ $locale === 'es' ? 'required' : '' }}
+                        maxlength="255">
+                    </div>
+
+                    <div class="mb-3">
+                      <label for="item-desc-{{ $locale }}-{{ $item->item_id }}" class="form-label">
+                        {{ __('m_tours.itinerary_item.fields.description') }}
+                      </label>
+                      <textarea name="translations[{{ $locale }}][description]"
+                        id="item-desc-{{ $locale }}-{{ $item->item_id }}"
+                        class="form-control"
+                        rows="4"
+                        maxlength="1000">{{ $translation->description ?? '' }}</textarea>
+                    </div>
+                  </div>
+                  @endforeach
                 </div>
               </div>
               <div class="modal-footer">
-                <button type="submit" class="btn btn-warning">{{ __('m_tours.itinerary_item.ui.update') }}</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.itinerary_item.ui.cancel') }}</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                  {{ __('m_tours.itinerary_item.ui.cancel') }}
+                </button>
+                <button type="submit" class="btn btn-warning">
+                  {{ __('m_tours.itinerary_item.ui.update') }}
+                </button>
               </div>
             </div>
           </form>
@@ -116,12 +170,12 @@
   </table>
 </div>
 
-{{-- Modal registrar ítem --}}
+{{-- Modal registrar ítem (solo español) --}}
 <div class="modal fade" id="modalRegistrarItem" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <form action="{{ route('admin.tours.itinerary_items.store') }}"
-          method="POST"
-          class="form-create-item">
+      method="POST"
+      class="form-create-item">
       @csrf
       <div class="modal-content">
         <div class="modal-header">
@@ -149,19 +203,50 @@
 
 @push('css')
 <style>
-  .desc-wrapper { max-width: 240px; min-width: 100px; word-wrap: break-word; }
-  .desc-truncate {
-    overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
-    -webkit-line-clamp: 1; -webkit-box-orient: vertical;
-    max-height: 2em; transition: all 0.3s ease;
-    word-break: break-word; white-space: normal;
+  .desc-wrapper {
+    max-width: 240px;
+    min-width: 100px;
+    word-wrap: break-word;
   }
-  .desc-expanded { -webkit-line-clamp: unset !important; max-height: none !important; }
-  .btn-toggle-desc { font-size: 0.75rem; color: #007bff; background: none; border: none; padding: 0; cursor: pointer; }
+
+  .desc-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    max-height: 2em;
+    transition: all 0.3s ease;
+    word-break: break-word;
+    white-space: normal;
+  }
+
+  .desc-expanded {
+    -webkit-line-clamp: unset !important;
+    max-height: none !important;
+  }
+
+  .btn-toggle-desc {
+    font-size: 0.75rem;
+    color: #007bff;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+
   @media (max-width: 768px) {
-    .desc-wrapper { max-width: 140px; }
-    .desc-truncate { font-size: 0.8rem; }
-    .btn-toggle-desc { font-size: 0.7rem; }
+    .desc-wrapper {
+      max-width: 140px;
+    }
+
+    .desc-truncate {
+      font-size: 0.8rem;
+    }
+
+    .btn-toggle-desc {
+      font-size: 0.7rem;
+    }
   }
 </style>
 @endpush
@@ -175,9 +260,9 @@
       const id = btn.getAttribute('data-target');
       const el = document.getElementById(id);
       el.classList.toggle('desc-expanded');
-      btn.textContent = el.classList.contains('desc-expanded')
-        ? @json(__('m_tours.itinerary_item.ui.see_less'))
-        : @json(__('m_tours.itinerary_item.ui.see_more'));
+      btn.textContent = el.classList.contains('desc-expanded') ?
+        @json(__('m_tours.itinerary_item.ui.see_less')) :
+        @json(__('m_tours.itinerary_item.ui.see_more'));
     });
   });
 

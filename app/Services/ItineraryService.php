@@ -10,60 +10,75 @@ use Exception;
 
 class ItineraryService
 {
-public function createWithItems(string $name, array $items, string $description = null): Itinerary
-{
-    if (empty($items)) {
-        Log::error('❌ No se proporcionaron ítems válidos para el itinerario.', [
+    public function createWithItems(string $name, array $items, string $description = null): Itinerary
+    {
+        if (empty($items)) {
+            Log::error('❌ No se proporcionaron ítems válidos para el itinerario.', [
+                'name' => $name,
+                'description' => $description,
+            ]);
+            throw new \Exception('No se proporcionaron ítems válidos para el itinerario.');
+        }
+
+        Log::info('📌 Creando itinerario con ítems:', [
             'name' => $name,
             'description' => $description,
-        ]);
-        throw new \Exception('No se proporcionaron ítems válidos para el itinerario.');
-    }
-
-    Log::info('📌 Creando itinerario con ítems:', [
-        'name' => $name,
-        'description' => $description,
-        'items' => $items
-    ]);
-
-    return DB::transaction(function () use ($name, $items, $description) {
-        $itinerary = Itinerary::create([
-            'name' => $name,
-            'description' => $description ?? '',
+            'items' => $items
         ]);
 
-        foreach ($items as $index => $itemData) {
-            if (is_numeric($itemData)) {
-                $item = ItineraryItem::find($itemData);
-                if ($item) {
-                    $itinerary->items()->attach($item->item_id, [
+        return DB::transaction(function () use ($name, $items, $description) {
+            $itinerary = Itinerary::create([
+                'is_active' => true,
+            ]);
+
+            // Create Spanish translation
+            $itinerary->translations()->create([
+                'locale' => 'es',
+                'name' => $name,
+                'description' => $description ?? '',
+            ]);
+
+            foreach ($items as $index => $itemData) {
+                if (is_numeric($itemData)) {
+                    $item = ItineraryItem::find($itemData);
+                    if ($item) {
+                        $itinerary->items()->attach($item->item_id, [
+                            'item_order' => $index,
+                            'is_active' => true
+                        ]);
+                    }
+                } elseif (is_array($itemData) && !empty($itemData['title'])) {
+                    // Check if item exists by looking for a Spanish translation with this title
+                    $existingTranslation = \App\Models\ItineraryItemTranslation::where('locale', 'es')
+                        ->where('title', $itemData['title'])
+                        ->first();
+
+                    if ($existingTranslation) {
+                        $itemId = $existingTranslation->item_id;
+                    } else {
+                        $newItem = ItineraryItem::create([
+                            'is_active' => true
+                        ]);
+
+                        // Create Spanish translation
+                        $newItem->translations()->create([
+                            'locale' => 'es',
+                            'title' => $itemData['title'],
+                            'description' => $itemData['description'] ?? '',
+                        ]);
+
+                        $itemId = $newItem->item_id;
+                    }
+                    $itinerary->items()->attach($itemId, [
                         'item_order' => $index,
                         'is_active' => true
                     ]);
                 }
-            } elseif (is_array($itemData) && !empty($itemData['title'])) {
-                $existing = ItineraryItem::where('title', $itemData['title'])->first();
-                if ($existing) {
-                    $itemId = $existing->item_id;
-                } else {
-                    $newItem = ItineraryItem::create([
-                        'title' => $itemData['title'],
-                        'description' => $itemData['description'] ?? '',
-                        'is_active' => true
-                    ]);
-                    $itemId = $newItem->item_id;
-                }
-
-                $itinerary->items()->attach($itemId, [
-                    'item_order' => $index,
-                    'is_active' => true
-                ]);
             }
-        }
 
-        return $itinerary;
-    });
-}
+            return $itinerary;
+        });
+    }
 
 
     public function handleCreationOrAssignment(array $requestData): ?Itinerary
@@ -76,7 +91,7 @@ public function createWithItems(string $name, array $items, string $description 
                 $requestData['new_itinerary_description'] ?? ''
             );
         } elseif (!empty($requestData['itinerary_id']) && is_numeric($requestData['itinerary_id'])) {
-            return Itinerary::with('items')->find($requestData['itinerary_id']);
+            return Itinerary::with(['items.translations', 'translations'])->find($requestData['itinerary_id']);
         }
 
         return null;
@@ -96,22 +111,31 @@ public function createWithItems(string $name, array $items, string $description 
         });
     }
 
-public function getAvailableItems()
-{
-    $query = ItineraryItem::query()->orderBy('title');
+    public function getAvailableItems()
+    {
+        $query = ItineraryItem::query()->with('translations');
 
+        if (request('estado') === 'activos') {
+            $query->where('is_active', true);
+        } elseif (request('estado') === 'inactivos') {
+            $query->where('is_active', false);
+        }
 
-    if (request('estado') === 'activos') {
-        $query->where('is_active', true);
-    } elseif (request('estado') === 'inactivos') {
-        $query->where('is_active', false);
+        // Get items and sort by translated title in memory
+        return $query->get()->sortBy(function ($item) {
+            return $item->title; // Uses magic accessor
+        })->values();
     }
-
-    return $query->get();
-}
 
     public function getAvailableItinerariesWithItems()
     {
-        return Itinerary::with('items')->whereHas('items')->orderBy('name')->get();
+        // Get itineraries with translations and sort by translated name in memory
+        return Itinerary::with(['items.translations', 'translations'])
+            ->whereHas('items')
+            ->get()
+            ->sortBy(function ($itinerary) {
+                return $itinerary->name; // Uses magic accessor
+            })
+            ->values();
     }
 }

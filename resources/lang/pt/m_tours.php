@@ -340,6 +340,7 @@ return [
             'drag_to_order'        => 'Arraste os itens para definir a ordem.',
             'pool_hint'            => 'Marque os itens disponíveis que você deseja incluir neste itinerário.',
             'register_item_hint'   => 'Registre novos itens se precisar de etapas adicionais que ainda não existem.',
+            'translations_updated' => 'Tradução atualizada',
 
             'toggle_on'  => 'Ativar item',
             'toggle_off' => 'Desativar item',
@@ -419,6 +420,7 @@ return [
             'item_added'            => 'Item adicionado',
             'item_added_success'    => 'O item foi adicionado ao itinerário com sucesso.',
             'error_creating_item'   => 'Erro de validação ao criar o item.',
+            'translations_updated' => 'Tradução atualizada',
 
             'assign'        => 'Atribuir',
             'edit'          => 'Editar',

@@ -64,9 +64,8 @@ class TourController extends Controller
                     $q->wherePivot('is_active', true)
                         ->where('amenities.is_active', true);
                 },
-                'itinerary.items' => function ($q) {
-                    $q->where('itinerary_items.is_active', true);
-                },
+                'itinerary.translations',
+                'itinerary.allItems.translations',
                 'schedules' => function ($q) {
                     $q->where('schedules.is_active', true)
                         ->wherePivot('is_active', true)
@@ -92,7 +91,7 @@ class TourController extends Controller
             ->withTranslation()
             ->get()
             ->sortBy('name');
-        $itineraries = Itinerary::where('is_active', true)->with('items')->orderBy('name')->get();
+        $itineraries = Itinerary::where('is_active', true)->with(['allItems.translations', 'translations'])->get();
         $languages   = TourLanguage::where('is_active', true)->orderBy('name')->get();
         $amenities   = Amenity::where('is_active', true)->orderBy('name')->get();
         $schedules   = Schedule::where('is_active', true)->orderBy('start_time')->get();
@@ -135,7 +134,7 @@ class TourController extends Controller
             ->get()
             ->sortBy('name');
         $itineraries = Itinerary::where('is_active', true)
-            ->with('items')
+            ->with(['allItems.translations', 'translations'])
             ->orderBy('created_at', 'desc')
             ->get();
         $schedules = Schedule::where('is_active', true)->orderBy('start_time')->get();
@@ -278,18 +277,28 @@ class TourController extends Controller
                     $itineraryId = $request->itinerary_id;
                 } elseif ($request->filled('new_itinerary.description') || $request->filled('new_itinerary.items')) {
                     $itinerary = Itinerary::create([
+                        'is_active' => true,
+                    ]);
+
+                    // Create Spanish translation
+                    $itinerary->translations()->create([
+                        'locale' => 'es',
                         'name' => 'Itinerario - ' . $request->name,
                         'description' => $request->input('new_itinerary.description'),
-                        'is_active' => true,
                     ]);
 
                     if ($request->filled('new_itinerary.items')) {
                         foreach ($request->input('new_itinerary.items') as $index => $itemData) {
                             if (!empty($itemData['title'])) {
                                 $item = ItineraryItem::create([
+                                    'is_active' => true,
+                                ]);
+
+                                // Create Spanish translation
+                                $item->translations()->create([
+                                    'locale' => 'es',
                                     'title' => $itemData['title'],
                                     'description' => $itemData['description'] ?? null,
-                                    'is_active' => true,
                                 ]);
 
                                 // Attach item to itinerary
@@ -461,18 +470,28 @@ class TourController extends Controller
                     $itineraryId = $request->itinerary_id;
                 } elseif ($request->filled('new_itinerary.description') || $request->filled('new_itinerary.items')) {
                     $itinerary = Itinerary::create([
+                        'is_active' => true,
+                    ]);
+
+                    // Create Spanish translation
+                    $itinerary->translations()->create([
+                        'locale' => 'es',
                         'name' => 'Itinerario - ' . $request->name,
                         'description' => $request->input('new_itinerary.description'),
-                        'is_active' => true,
                     ]);
 
                     if ($request->filled('new_itinerary.items')) {
                         foreach ($request->input('new_itinerary.items') as $index => $itemData) {
                             if (!empty($itemData['title'])) {
                                 $item = ItineraryItem::create([
+                                    'is_active' => true,
+                                ]);
+
+                                // Create Spanish translation
+                                $item->translations()->create([
+                                    'locale' => 'es',
                                     'title' => $itemData['title'],
                                     'description' => $itemData['description'] ?? null,
-                                    'is_active' => true,
                                 ]);
 
                                 DB::table('itinerary_item_itinerary')->insert([

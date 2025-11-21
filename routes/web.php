@@ -687,10 +687,12 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::resource('itinerary', ItineraryController::class)->except(['show']);
                     Route::patch('itineraries/{itinerary}/toggle', [ItineraryController::class, 'toggle'])->name('itinerary.toggle');
                     Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');
+                    Route::put('itinerary/{itinerary}/translations', [ItineraryController::class, 'updateTranslations'])->name('itinerary.updateTranslations');
 
                     // -------------------- ITINERARY ITEMS --------------------
                     Route::resource('itinerary_items', ItineraryItemController::class)->except(['show', 'create', 'edit']);
                     Route::patch('itinerary_items/{itinerary_item}/toggle', [ItineraryItemController::class, 'toggle'])->name('itinerary_items.toggle');
+                    Route::put('itinerary_items/{itinerary_item}/translations', [ItineraryItemController::class, 'updateTranslations'])->name('itinerary_items.updateTranslations');
 
                     // -------------------- AMENITIES --------------------
                     Route::resource('amenities', AmenityController::class)->except(['show']);
