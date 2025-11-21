@@ -884,6 +884,7 @@ return [
             'schedules_title'      => 'Schedules',
             'languages_title'      => 'Languages',
             'itinerary_title'      => 'Itinerary',
+            'amenities_title'      => 'Amenities',
 
             'table' => [
                 'category' => 'Category',

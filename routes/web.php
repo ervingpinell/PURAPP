@@ -481,7 +481,6 @@ Route::middleware([SetLocale::class])->group(function () {
                             ->name('delete-draft');
                         Route::delete('/delete-all-drafts', [TourWizardController::class, 'deleteAllDrafts'])
                             ->name('delete-all-drafts');
-                        Route::post('/{tour}/cancel', [TourWizardController::class, 'cancel'])->name('cancel');
 
 
                         // Paso 1: Detalles básicos

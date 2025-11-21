@@ -40,7 +40,7 @@
     /* Tarjetas de amenidades */
     .amenity-card {
         border: none;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         border-radius: 0.5rem;
         overflow: hidden;
         height: 100%;
@@ -91,7 +91,7 @@
 
     .amenity-row-included:hover,
     .amenity-row-excluded:hover {
-        background: rgba(255,255,255,0.05);
+        background: rgba(255, 255, 255, 0.05);
     }
 
     /* Fix para que los checkboxes se vean completos */
@@ -146,34 +146,34 @@
         opacity: 0;
     }
 
-    .custom-control-input:checked ~ .custom-control-label::before {
+    .custom-control-input:checked~.custom-control-label::before {
         background-color: #48bb78;
         border-color: #48bb78;
     }
 
-    .custom-control-input:checked ~ .custom-control-label::after {
+    .custom-control-input:checked~.custom-control-label::after {
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%23fff' d='M6.564.75l-3.59 3.612-1.538-1.55L0 4.26l2.974 2.99L8 2.193z'/%3e%3c/svg%3e");
     }
 
-    .amenity-card.card-danger .custom-control-input:checked ~ .custom-control-label::before {
+    .amenity-card.card-danger .custom-control-input:checked~.custom-control-label::before {
         background-color: #f56565;
         border-color: #f56565;
     }
 
-    .custom-control-input:checked ~ .custom-control-label {
+    .custom-control-input:checked~.custom-control-label {
         font-weight: 600;
         color: #90cdf4;
     }
 
-    .amenity-card.card-danger .custom-control-input:checked ~ .custom-control-label {
+    .amenity-card.card-danger .custom-control-input:checked~.custom-control-label {
         color: #fc8181;
     }
 
-    .custom-control-input:focus ~ .custom-control-label::before {
+    .custom-control-input:focus~.custom-control-label::before {
         box-shadow: 0 0 0 0.2rem rgba(66, 153, 225, 0.25);
     }
 
-    .custom-control-input:not(:disabled):active ~ .custom-control-label::before {
+    .custom-control-input:not(:disabled):active~.custom-control-label::before {
         background-color: #4a5568;
         border-color: #667eea;
     }
@@ -206,7 +206,7 @@
     .navigation-footer {
         background: #2d3748;
         border: none;
-        box-shadow: 0 -2px 8px rgba(0,0,0,0.15);
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
         padding: 1.25rem;
         border-radius: 0.5rem;
         margin-top: 2rem;
@@ -220,7 +220,7 @@
 
     .modal-header {
         background: #3a4556;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         color: #e2e8f0;
     }
 
@@ -258,7 +258,7 @@
 
     .modal-footer {
         background: #3a4556;
-        border-top: 1px solid rgba(255,255,255,0.1);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     /* Lista de amenidades scrollable si es muy larga */
@@ -303,7 +303,7 @@
         background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
         color: white;
         transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
 
     .btn-success {
@@ -317,7 +317,7 @@
         background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
         color: white;
         transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
 
     .btn-secondary {
@@ -331,7 +331,7 @@
         background: #5a6778;
         color: white;
         transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
 
     .btn-danger,
@@ -347,7 +347,7 @@
         background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
         color: white;
         transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
 
     /* Responsive */
@@ -405,27 +405,27 @@
     </div>
 
     @php
-        $oldIncluded = old(
-            'included_amenities',
-            $tour->amenities->pluck('amenity_id')->toArray()
-        );
+    $oldIncluded = old(
+    'included_amenities',
+    $tour->amenities->pluck('amenity_id')->toArray()
+    );
 
-        $oldExcludedRaw = old(
-            'excluded_amenities',
-            $tour->excludedAmenities->pluck('amenity_id')->toArray()
-        );
+    $oldExcludedRaw = old(
+    'excluded_amenities',
+    $tour->excludedAmenities->pluck('amenity_id')->toArray()
+    );
 
-        if (empty($oldExcludedRaw)) {
-            $oldExcluded = $amenities
-                ->pluck('amenity_id')
-                ->reject(fn ($id) => in_array($id, $oldIncluded))
-                ->values()
-                ->all();
-            $autoExcluded = true;
-        } else {
-            $oldExcluded = $oldExcludedRaw;
-            $autoExcluded = false;
-        }
+    if (empty($oldExcludedRaw)) {
+    $oldExcluded = $amenities
+    ->pluck('amenity_id')
+    ->reject(fn ($id) => in_array($id, $oldIncluded))
+    ->values()
+    ->all();
+    $autoExcluded = true;
+    } else {
+    $oldExcluded = $oldExcludedRaw;
+    $autoExcluded = false;
+    }
     @endphp
 
     <form method="POST" action="{{ route('admin.tours.wizard.store.amenities', $tour) }}">
@@ -434,23 +434,22 @@
         {{-- Botones de acción --}}
         <div class="action-buttons">
             <a href="{{ route('admin.tours.amenities.index') }}"
-               class="btn btn-primary btn-sm"
-               title="{{ __('m_tours.common.crud_go_to_index', [
-    'element' => __('m_tours.amenity.plural'),
-]) }}
-">
+                class="btn btn-primary btn-sm"
+                title="{{ __('m_tours.common.crud_go_to_index', [
+                    'element' => __('m_tours.amenity.plural'),
+               ]) }}">
                 <i class="fas fa-list"></i>
                 <span class="d-none d-md-inline">
-                  {{ __('m_tours.common.crud_go_to_index', [
-    'element' => __('m_tours.amenity.plural'),
-]) }}
+                    {{ __('m_tours.common.crud_go_to_index', [
+                        'element' => __('m_tours.amenity.plural'),
+                  ]) }}
                 </span>
             </a>
 
             <button type="button"
-                    class="btn btn-success btn-sm"
-                    data-toggle="modal"
-                    data-target="#modalQuickAmenity">
+                class="btn btn-success btn-sm"
+                data-toggle="modal"
+                data-target="#modalQuickAmenity">
                 <i class="fas fa-plus"></i>
                 <span class="d-none d-md-inline">
                     {{ __('m_tours.amenity.quick_create.button') }}
@@ -476,33 +475,33 @@
 
                         <div id="amenities-included-list">
                             @foreach($amenities ?? [] as $amenity)
-                                @php
-                                    $id = $amenity->amenity_id;
-                                    $isIncluded = in_array($id, $oldIncluded);
-                                @endphp
+                            @php
+                            $id = $amenity->amenity_id;
+                            $isIncluded = in_array($id, $oldIncluded);
+                            @endphp
 
-                                <div class="custom-control custom-checkbox amenity-row-included"
-                                     data-amenity-id="{{ $id }}">
-                                    <input
-                                        type="checkbox"
-                                        class="custom-control-input amenity-included"
-                                        id="included_{{ $id }}"
-                                        name="included_amenities[]"
-                                        value="{{ $id }}"
-                                        data-amenity-id="{{ $id }}"
-                                        {{ $isIncluded ? 'checked' : '' }}>
-                                    <label class="custom-control-label" for="included_{{ $id }}">
-                                        {{ $amenity->name }}
-                                    </label>
-                                </div>
+                            <div class="custom-control custom-checkbox amenity-row-included"
+                                data-amenity-id="{{ $id }}">
+                                <input
+                                    type="checkbox"
+                                    class="custom-control-input amenity-included"
+                                    id="included_{{ $id }}"
+                                    name="included_amenities[]"
+                                    value="{{ $id }}"
+                                    data-amenity-id="{{ $id }}"
+                                    {{ $isIncluded ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="included_{{ $id }}">
+                                    {{ $amenity->name }}
+                                </label>
+                            </div>
                             @endforeach
                         </div>
 
                         @error('included_amenities')
-                            <div class="alert alert-danger mt-2">{{ $message }}</div>
+                        <div class="alert alert-danger mt-2">{{ $message }}</div>
                         @enderror
                         @error('included_amenities.*')
-                            <div class="alert alert-danger mt-2">{{ $message }}</div>
+                        <div class="alert alert-danger mt-2">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
@@ -529,37 +528,37 @@
 
                         <div id="amenities-excluded-list">
                             @foreach($amenities ?? [] as $amenity)
-                                @php
-                                    $id = $amenity->amenity_id;
-                                    $isIncluded = in_array($id, $oldIncluded);
-                                    $isExcluded = in_array($id, $oldExcluded) && ! $isIncluded;
-                                    $autoCheck = $autoExcluded && ! $isIncluded ? '1' : '0';
-                                @endphp
+                            @php
+                            $id = $amenity->amenity_id;
+                            $isIncluded = in_array($id, $oldIncluded);
+                            $isExcluded = in_array($id, $oldExcluded) && ! $isIncluded;
+                            $autoCheck = $autoExcluded && ! $isIncluded ? '1' : '0';
+                            @endphp
 
-                                <div class="custom-control custom-checkbox amenity-row-excluded"
-                                     data-amenity-id="{{ $id }}"
-                                     data-autocheck="{{ $autoCheck }}"
-                                     style="{{ $isIncluded ? 'display:none;' : '' }}">
-                                    <input
-                                        type="checkbox"
-                                        class="custom-control-input amenity-excluded"
-                                        id="excluded_{{ $id }}"
-                                        name="excluded_amenities[]"
-                                        value="{{ $id }}"
-                                        data-amenity-id="{{ $id }}"
-                                        {{ $isExcluded ? 'checked' : '' }}>
-                                    <label class="custom-control-label" for="excluded_{{ $id }}">
-                                        {{ $amenity->name }}
-                                    </label>
-                                </div>
+                            <div class="custom-control custom-checkbox amenity-row-excluded"
+                                data-amenity-id="{{ $id }}"
+                                data-autocheck="{{ $autoCheck }}"
+                                style="{{ $isIncluded ? 'display:none;' : '' }}">
+                                <input
+                                    type="checkbox"
+                                    class="custom-control-input amenity-excluded"
+                                    id="excluded_{{ $id }}"
+                                    name="excluded_amenities[]"
+                                    value="{{ $id }}"
+                                    data-amenity-id="{{ $id }}"
+                                    {{ $isExcluded ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="excluded_{{ $id }}">
+                                    {{ $amenity->name }}
+                                </label>
+                            </div>
                             @endforeach
                         </div>
 
                         @error('excluded_amenities')
-                            <div class="alert alert-danger mt-2">{{ $message }}</div>
+                        <div class="alert alert-danger mt-2">{{ $message }}</div>
                         @enderror
                         @error('excluded_amenities.*')
-                            <div class="alert alert-danger mt-2">{{ $message }}</div>
+                        <div class="alert alert-danger mt-2">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
@@ -568,38 +567,42 @@
 
         {{-- Ayuda --}}
         <div class="alert alert-info">
-            <i class="fas fa-info-circle me-1"></i>
+            <i class="fas fa-info-circle mr-1"></i>
             <strong>{{ __('m_tours.tour.ui.help_title') }}</strong>
             <span>{{ __('m_tours.tour.ui.help_included_text') }}</span>
         </div>
 
-        {{-- Footer navegación --}}
-        <div class="card">
-            <div class="card-footer navigation-footer">
-                <div class="d-flex justify-content-between align-items-center">
-                    <a href="{{ route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 3]) }}"
-                       class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i>
-                        {{ __('m_tours.common.previous') }}
-                    </a>
+        <div class="card-footer navigation-footer">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{{ route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 1]) }}"
+                    class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    {{ __('m_tours.common.previous') }}
+                </a>
 
-<div class="d-flex gap-2">
-    <a href="{{ route('admin.tours.wizard.cancel', $tour) }}"
-       class="btn btn-danger"
-       onclick="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
-        <i class="fas fa-trash"></i>
-        <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
-    </a>
+                <div class="d-flex">
+                    @if($tour->is_draft)
+                    <form action="{{ route('admin.tours.wizard.delete-draft', $tour) }}"
+                        method="POST"
+                        class="d-inline"
+                        onsubmit="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i>
+                            <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
+                        </button>
+                    </form>
+                    @endif
 
-    <button type="submit" class="btn btn-primary ml-2">
-        {{ __('m_tours.tour.wizard.save_and_continue') }}
-        <i class="fas fa-arrow-right"></i>
-    </button>
-</div>
-
+                    <button type="submit" class="btn btn-primary ml-2">
+                        {{ __('m_tours.tour.wizard.save_and_continue') }}
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>
             </div>
         </div>
+
     </form>
 </div>
 
@@ -607,10 +610,10 @@
 <div class="modal fade" id="modalQuickAmenity" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <form id="quickAmenityForm"
-              action="{{ route('admin.tours.wizard.quick.amenity') }}"
-              method="POST"
-              class="modal-content"
-              autocomplete="off">
+            action="{{ route('admin.tours.wizard.quick.amenity') }}"
+            method="POST"
+            class="modal-content"
+            autocomplete="off">
             @csrf
 
             <div class="modal-header">
@@ -619,9 +622,9 @@
                     {{ __('m_tours.amenity.quick_create.title') }}
                 </h5>
                 <button type="button"
-                        class="close"
-                        data-dismiss="modal"
-                        aria-label="{{ __('m_tours.common.close') }}">
+                    class="close"
+                    data-dismiss="modal"
+                    aria-label="{{ __('m_tours.common.close') }}">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -632,11 +635,11 @@
                         {{ __('m_tours.amenity.quick_create.name_label') }}
                     </label>
                     <input type="text"
-                           id="quick_amenity_name"
-                           name="name"
-                           class="form-control"
-                           maxlength="255"
-                           required>
+                        id="quick_amenity_name"
+                        name="name"
+                        class="form-control"
+                        maxlength="255"
+                        required>
                 </div>
             </div>
 
@@ -646,8 +649,8 @@
                     {{ __('m_tours.amenity.quick_create.save') }}
                 </button>
                 <button type="button"
-                        class="btn btn-secondary"
-                        data-dismiss="modal">
+                    class="btn btn-secondary"
+                    data-dismiss="modal">
                     {{ __('m_tours.amenity.quick_create.cancel') }}
                 </button>
             </div>
@@ -657,119 +660,124 @@
 @endsection
 
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const i18n = {
-        saving:        @json(__('m_tours.amenity.quick_create.saving')),
-        successTitle:  @json(__('m_tours.amenity.quick_create.success_title')),
-        successText:   @json(__('m_tours.amenity.quick_create.success_text')),
-        errorTitle:    @json(__('m_tours.amenity.quick_create.error_title')),
-        errorGeneric:  @json(__('m_tours.amenity.quick_create.error_generic')),
-    };
+    document.addEventListener('DOMContentLoaded', function() {
+        const i18n = {
+            saving: @json(__('m_tours.amenity.quick_create.saving')),
+            successTitle: @json(__('m_tours.amenity.quick_create.success_title')),
+            successText: @json(__('m_tours.amenity.quick_create.success_text')),
+            errorTitle: @json(__('m_tours.amenity.quick_create.error_title')),
+            errorGeneric: @json(__('m_tours.amenity.quick_create.error_generic')),
+        };
 
-    function showError(message) {
-        const text = message || i18n.errorGeneric;
-        if (window.Swal) {
-            Swal.fire({
-                icon: 'error',
-                title: i18n.errorTitle,
-                text: text,
-            });
-        } else {
-            alert(text);
-        }
-    }
-
-    function showSuccess(message) {
-        const text = message || i18n.successText;
-        if (window.Swal) {
-            Swal.fire({
-                icon: 'success',
-                title: i18n.successTitle,
-                text: text,
-                timer: 1600,
-                showConfirmButton: false
-            });
-        }
-    }
-
-    function syncAmenity(id) {
-        const included    = document.querySelector('.amenity-included[data-amenity-id="' + id + '"]');
-        const excludedRow = document.querySelector('.amenity-row-excluded[data-amenity-id="' + id + '"]');
-        const excluded    = document.querySelector('.amenity-excluded[data-amenity-id="' + id + '"]');
-
-        if (!excludedRow || !excluded) return;
-
-        if (included && included.checked) {
-            excluded.checked = false;
-            excludedRow.style.display = 'none';
-        } else {
-            excludedRow.style.display = '';
-            if (excludedRow.dataset.autocheck === '1' && !excluded.dataset.touched) {
-                excluded.checked = true;
+        function showError(message) {
+            const text = message || i18n.errorGeneric;
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'error',
+                    title: i18n.errorTitle,
+                    text: text,
+                });
+            } else {
+                alert(text);
             }
         }
-    }
 
-    document.querySelectorAll('.amenity-included').forEach(function (input) {
-        input.addEventListener('change', function () {
-            const id = this.dataset.amenityId;
-            syncAmenity(id);
-        });
-        syncAmenity(input.dataset.amenityId);
-    });
-
-    document.querySelectorAll('.amenity-excluded').forEach(function (input) {
-        input.addEventListener('change', function () {
-            this.dataset.touched = '1';
-        });
-    });
-
-    const quickForm   = document.getElementById('quickAmenityForm');
-    const includedBox = document.getElementById('amenities-included-list');
-    const excludedBox = document.getElementById('amenities-excluded-list');
-
-    if (quickForm && includedBox && excludedBox) {
-        quickForm.addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            const submitBtn    = quickForm.querySelector('button[type="submit"]');
-            const originalHtml = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>' + i18n.saving;
-
-            try {
-                const formData = new FormData(quickForm);
-                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-                const res = await fetch(quickForm.action, {
-                    method: 'POST',
-                    headers: token ? {'X-CSRF-TOKEN': token} : {},
-                    body: formData
+        function showSuccess(message) {
+            const text = message || i18n.successText;
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'success',
+                    title: i18n.successTitle,
+                    text: text,
+                    timer: 1600,
+                    showConfirmButton: false
                 });
+            }
+        }
 
-                const raw = await res.text();
-                let payload = null;
-                try { payload = raw ? JSON.parse(raw) : null; } catch (e) {}
+        function syncAmenity(id) {
+            const included = document.querySelector('.amenity-included[data-amenity-id="' + id + '"]');
+            const excludedRow = document.querySelector('.amenity-row-excluded[data-amenity-id="' + id + '"]');
+            const excluded = document.querySelector('.amenity-excluded[data-amenity-id="' + id + '"]');
 
-                if (!res.ok) {
-                    if (res.status === 422 && payload && payload.errors) {
-                        const firstFieldErrors = Object.values(payload.errors)[0] || [];
-                        const firstMessage = firstFieldErrors[0] || i18n.errorGeneric;
-                        showError(firstMessage);
-                    } else if (payload && payload.message) {
-                        showError(payload.message);
-                    } else {
-                        showError();
-                    }
-                    return;
+            if (!excludedRow || !excluded) return;
+
+            if (included && included.checked) {
+                excluded.checked = false;
+                excludedRow.style.display = 'none';
+            } else {
+                excludedRow.style.display = '';
+                if (excludedRow.dataset.autocheck === '1' && !excluded.dataset.touched) {
+                    excluded.checked = true;
                 }
+            }
+        }
 
-                const id   = payload.id;
-                const name = payload.name;
-                const msg  = payload.message || null;
+        document.querySelectorAll('.amenity-included').forEach(function(input) {
+            input.addEventListener('change', function() {
+                const id = this.dataset.amenityId;
+                syncAmenity(id);
+            });
+            syncAmenity(input.dataset.amenityId);
+        });
 
-                const includedHtml = `
+        document.querySelectorAll('.amenity-excluded').forEach(function(input) {
+            input.addEventListener('change', function() {
+                this.dataset.touched = '1';
+            });
+        });
+
+        const quickForm = document.getElementById('quickAmenityForm');
+        const includedBox = document.getElementById('amenities-included-list');
+        const excludedBox = document.getElementById('amenities-excluded-list');
+
+        if (quickForm && includedBox && excludedBox) {
+            quickForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const submitBtn = quickForm.querySelector('button[type="submit"]');
+                const originalHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>' + i18n.saving;
+
+                try {
+                    const formData = new FormData(quickForm);
+                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+                    const res = await fetch(quickForm.action, {
+                        method: 'POST',
+                        headers: token ? {
+                            'X-CSRF-TOKEN': token
+                        } : {},
+                        body: formData
+                    });
+
+                    const raw = await res.text();
+                    let payload = null;
+                    try {
+                        payload = raw ? JSON.parse(raw) : null;
+                    } catch (e) {}
+
+                    if (!res.ok) {
+                        if (res.status === 422 && payload && payload.errors) {
+                            const firstFieldErrors = Object.values(payload.errors)[0] || [];
+                            const firstMessage = firstFieldErrors[0] || i18n.errorGeneric;
+                            showError(firstMessage);
+                        } else if (payload && payload.message) {
+                            showError(payload.message);
+                        } else {
+                            showError();
+                        }
+                        return;
+                    }
+
+                    const id = payload.id;
+                    const name = payload.name;
+                    const msg = payload.message || null;
+
+                    const includedHtml = `
                     <div class="custom-control custom-checkbox amenity-row-included"
                          data-amenity-id="${id}">
                         <input
@@ -785,9 +793,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         </label>
                     </div>
                 `;
-                includedBox.insertAdjacentHTML('beforeend', includedHtml);
+                    includedBox.insertAdjacentHTML('beforeend', includedHtml);
 
-                const excludedHtml = `
+                    const excludedHtml = `
                     <div class="custom-control custom-checkbox amenity-row-excluded"
                          data-amenity-id="${id}"
                          data-autocheck="0"
@@ -804,51 +812,53 @@ document.addEventListener('DOMContentLoaded', function () {
                         </label>
                     </div>
                 `;
-                excludedBox.insertAdjacentHTML('beforeend', excludedHtml);
+                    excludedBox.insertAdjacentHTML('beforeend', excludedHtml);
 
-                const newIncluded = includedBox.querySelector('.amenity-included[data-amenity-id="' + id + '"]');
-                const newExcluded = excludedBox.querySelector('.amenity-excluded[data-amenity-id="' + id + '"]');
+                    const newIncluded = includedBox.querySelector('.amenity-included[data-amenity-id="' + id + '"]');
+                    const newExcluded = excludedBox.querySelector('.amenity-excluded[data-amenity-id="' + id + '"]');
 
-                if (newIncluded) {
-                    newIncluded.addEventListener('change', function () {
+                    if (newIncluded) {
+                        newIncluded.addEventListener('change', function() {
+                            syncAmenity(id);
+                        });
                         syncAmenity(id);
-                    });
-                    syncAmenity(id);
-                }
-
-                if (newExcluded) {
-                    newExcluded.addEventListener('change', function () {
-                        this.dataset.touched = '1';
-                    });
-                }
-
-                quickForm.reset();
-
-                if (window.$ && typeof window.$.fn.modal === 'function') {
-                    window.$('#modalQuickAmenity').modal('hide');
-                } else if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-                    window.jQuery('#modalQuickAmenity').modal('hide');
-                } else {
-                    const modalEl = document.getElementById('modalQuickAmenity');
-                    if (modalEl) {
-                        modalEl.classList.remove('show');
-                        modalEl.style.display = 'none';
                     }
-                    document.body.classList.remove('modal-open');
-                    document.querySelectorAll('.modal-backdrop').forEach(function (bd) { bd.remove(); });
+
+                    if (newExcluded) {
+                        newExcluded.addEventListener('change', function() {
+                            this.dataset.touched = '1';
+                        });
+                    }
+
+                    quickForm.reset();
+
+                    if (window.$ && typeof window.$.fn.modal === 'function') {
+                        window.$('#modalQuickAmenity').modal('hide');
+                    } else if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+                        window.jQuery('#modalQuickAmenity').modal('hide');
+                    } else {
+                        const modalEl = document.getElementById('modalQuickAmenity');
+                        if (modalEl) {
+                            modalEl.classList.remove('show');
+                            modalEl.style.display = 'none';
+                        }
+                        document.body.classList.remove('modal-open');
+                        document.querySelectorAll('.modal-backdrop').forEach(function(bd) {
+                            bd.remove();
+                        });
+                    }
+
+                    showSuccess(msg);
+
+                } catch (error) {
+                    console.error(error);
+                    showError();
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
                 }
-
-                showSuccess(msg);
-
-            } catch (error) {
-                console.error(error);
-                showError();
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalHtml;
-            }
-        });
-    }
-});
+            });
+        }
+    });
 </script>
 @endpush

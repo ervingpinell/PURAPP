@@ -278,6 +278,37 @@
 @endpush
 
 @section('content')
+@php
+    $currentLocale = app()->getLocale();
+
+    // Traducciones del tour
+    $tourTr = $tour->translations->firstWhere('locale', $currentLocale)
+        ?? $tour->translations->first();
+
+    $tourName     = $tourTr->name      ?? $tour->name      ?? '';
+    $tourOverview = $tourTr->overview  ?? $tour->overview  ?? null;
+
+    // Traducción del tipo de tour
+    $tourTypeName = null;
+    if ($tour->tourType) {
+        $ttTranslations = $tour->tourType->translations ?? collect();
+        $ttTr = $ttTranslations->firstWhere('locale', $currentLocale)
+            ?? $ttTranslations->first();
+        $tourTypeName = $ttTr->name ?? $tour->tourType->name ?? null;
+    }
+
+    // Traducción de itinerario (si existe)
+    $itineraryName = null;
+    $itineraryDesc = null;
+    if ($tour->itinerary) {
+        $itTranslations = $tour->itinerary->translations ?? collect();
+        $itTr = $itTranslations->firstWhere('locale', $currentLocale)
+            ?? $itTranslations->first();
+        $itineraryName = $itTr->name        ?? null;
+        $itineraryDesc = $itTr->description ?? null;
+    }
+@endphp
+
 <div class="container-fluid">
     @include('admin.tours.wizard.partials.stepper')
 
@@ -287,7 +318,7 @@
             <i class="fas fa-eye"></i>
             {{ __('m_tours.tour.wizard.steps.summary') }}
         </h1>
-        <p>{{ $tour->name }}</p>
+        <p>{{ $tourName }}</p>
     </div>
 
     <div class="row">
@@ -303,7 +334,7 @@
                     <div class="info-grid">
                         <div class="info-item">
                             <div class="label">{{ __('m_tours.tour.fields.name') }}</div>
-                            <div class="value">{{ $tour->name }}</div>
+                            <div class="value">{{ $tourName }}</div>
                         </div>
 
                         <div class="info-item">
@@ -311,35 +342,43 @@
                             <div class="value"><code>{{ $tour->slug }}</code></div>
                         </div>
 
-                        @if($tour->tourType)
+                        @if($tour->tourType && $tourTypeName)
                         <div class="info-item">
                             <div class="label">{{ __('m_tours.tour.fields.type') }}</div>
-                            <div class="value">{{ $tour->tourType->name }}</div>
+                            <div class="value">{{ $tourTypeName }}</div>
                         </div>
                         @endif
 
                         <div class="info-item">
                             <div class="label">{{ __('m_tours.tour.fields.length_hours') }}</div>
-                            <div class="value">{{ $tour->length ?? 'N/A' }} {{ __('m_tours.common.hours') }}</div>
+                            <div class="value">
+                                {{ $tour->length ?? 'N/A' }} {{ __('m_tours.common.hours') }}
+                            </div>
                         </div>
 
                         <div class="info-item">
                             <div class="label">{{ __('m_tours.tour.fields.max_capacity') }}</div>
-                            <div class="value">{{ $tour->max_capacity }} {{ __('m_tours.common.people') }}</div>
+                            <div class="value">
+                                {{ $tour->max_capacity }} {{ __('m_tours.common.people') }}
+                            </div>
                         </div>
 
                         @if($tour->group_size)
                         <div class="info-item">
                             <div class="label">{{ __('m_tours.tour.fields.group_size') }}</div>
-                            <div class="value">{{ $tour->group_size }} {{ __('m_tours.common.people') }}</div>
+                            <div class="value">
+                                {{ $tour->group_size }} {{ __('m_tours.common.people') }}
+                            </div>
                         </div>
                         @endif
                     </div>
 
-                    @if($tour->overview)
+                    @if($tourOverview)
                     <div class="mt-3 pt-3 border-top">
-                        <div class="label mb-2" style="color: #a0aec0; font-size: 0.8rem; text-transform: uppercase;">{{ __('m_tours.tour.fields.overview') }}</div>
-                        <p class="mb-0 text-muted">{{ $tour->overview }}</p>
+                        <div class="label mb-2" style="color: #a0aec0; font-size: 0.8rem; text-transform: uppercase;">
+                            {{ __('m_tours.tour.fields.overview') }}
+                        </div>
+                        <p class="mb-0 text-muted">{{ $tourOverview }}</p>
                     </div>
                     @endif
                 </div>
@@ -368,7 +407,7 @@
                         @if($tour->amenities->isNotEmpty() || $tour->excludedAmenities->isNotEmpty())
                         <li class="nav-item">
                             <a class="nav-link {{ !$tour->itinerary && $tour->schedules->isEmpty() ? 'active' : '' }}" data-toggle="tab" href="#amenities-tab">
-                                <i class="fas fa-star"></i> Amenidades
+                                <i class="fas fa-star"></i> {{ __('m_tours.tour.summary.amenities_title') ?? 'Amenidades' }}
                             </a>
                         </li>
                         @endif
@@ -387,18 +426,25 @@
                         {{-- Tab de Itinerario --}}
                         @if($tour->itinerary)
                         <div class="tab-pane fade show active" id="itinerary-tab">
-                            <h5 class="mb-3">{{ $tour->itinerary->name }}</h5>
-                            @if($tour->itinerary->description)
-                                <p class="text-muted">{{ $tour->itinerary->description }}</p>
+                            <h5 class="mb-3">{{ $itineraryName ?? __('m_tours.itinerary.fields.name') }}</h5>
+                            @if($itineraryDesc)
+                                <p class="text-muted">{{ $itineraryDesc }}</p>
                             @endif
 
                             @if($tour->itinerary->items->isNotEmpty())
                                 <ol class="pl-3">
                                     @foreach($tour->itinerary->items as $item)
+                                        @php
+                                            $itemTranslations = $item->translations ?? collect();
+                                            $itr = $itemTranslations->firstWhere('locale', $currentLocale)
+                                                ?? $itemTranslations->first();
+                                            $itemTitle = $itr->title ?? $item->title ?? '';
+                                            $itemDesc  = $itr->description ?? $item->description ?? null;
+                                        @endphp
                                         <li class="mb-3">
-                                            <strong style="color: #e2e8f0;">{{ $item->title }}</strong>
-                                            @if($item->description)
-                                                <p class="text-muted small mb-0 mt-1">{{ $item->description }}</p>
+                                            <strong style="color: #e2e8f0;">{{ $itemTitle }}</strong>
+                                            @if($itemDesc)
+                                                <p class="text-muted small mb-0 mt-1">{{ $itemDesc }}</p>
                                             @endif
                                         </li>
                                     @endforeach
@@ -421,7 +467,9 @@
                                                 {{ date('g:i A', strtotime($schedule->end_time)) }}
                                             </strong>
                                             @if($schedule->label)
-                                                <span class="badge badge-info custom-badge ml-2">{{ $schedule->label }}</span>
+                                                <span class="badge badge-info custom-badge ml-2">
+                                                    {{ $schedule->label }}
+                                                </span>
                                             @endif
                                         </div>
                                     </li>
@@ -442,13 +490,19 @@
                                     </h6>
                                     <ul class="icon-list">
                                         @foreach($tour->amenities as $amenity)
+                                            @php
+                                                $amTranslations = $amenity->translations ?? collect();
+                                                $amTr = $amTranslations->firstWhere('locale', $currentLocale)
+                                                    ?? $amTranslations->first();
+                                                $amenName = $amTr->name ?? $amenity->name ?? '';
+                                            @endphp
                                             <li>
                                                 @if($amenity->icon)
                                                     <i class="{{ $amenity->icon }} text-success"></i>
                                                 @else
                                                     <i class="fas fa-check text-success"></i>
                                                 @endif
-                                                <span>{{ $amenity->name }}</span>
+                                                <span>{{ $amenName }}</span>
                                             </li>
                                         @endforeach
                                     </ul>
@@ -463,13 +517,19 @@
                                     </h6>
                                     <ul class="icon-list">
                                         @foreach($tour->excludedAmenities as $amenity)
+                                            @php
+                                                $amTranslations = $amenity->translations ?? collect();
+                                                $amTr = $amTranslations->firstWhere('locale', $currentLocale)
+                                                    ?? $amTranslations->first();
+                                                $amenName = $amTr->name ?? $amenity->name ?? '';
+                                            @endphp
                                             <li>
                                                 @if($amenity->icon)
                                                     <i class="{{ $amenity->icon }} text-danger"></i>
                                                 @else
                                                     <i class="fas fa-times text-danger"></i>
                                                 @endif
-                                                <span>{{ $amenity->name }}</span>
+                                                <span>{{ $amenName }}</span>
                                             </li>
                                         @endforeach
                                     </ul>
@@ -484,9 +544,15 @@
                         <div class="tab-pane fade" id="languages-tab">
                             <ul class="icon-list">
                                 @foreach($tour->languages as $language)
+                                    @php
+                                        $langTranslations = $language->translations ?? collect();
+                                        $langTr = $langTranslations->firstWhere('locale', $currentLocale)
+                                            ?? $langTranslations->first();
+                                        $langName = $langTr->name ?? $language->name ?? '';
+                                    @endphp
                                     <li>
                                         <i class="fas fa-language text-primary"></i>
-                                        <span>{{ $language->name }}</span>
+                                        <span>{{ $langName }}</span>
                                     </li>
                                 @endforeach
                             </ul>
@@ -519,8 +585,12 @@
                                     @if($price->category)
                                         <tr>
                                             <td>{{ $price->category->getTranslatedName() }}</td>
-                                            <td class="text-right font-weight-bold">{{ config('app.currency_symbol', '$') }}{{ number_format($price->price, 2) }}</td>
-                                            <td class="text-center">{{ $price->min_quantity }} - {{ $price->max_quantity }}</td>
+                                            <td class="text-right font-weight-bold">
+                                                {{ config('app.currency_symbol', '$') }}{{ number_format($price->price, 2) }}
+                                            </td>
+                                            <td class="text-center">
+                                                {{ $price->min_quantity }} - {{ $price->max_quantity }}
+                                            </td>
                                             <td class="text-center">
                                                 <span class="badge custom-badge badge-{{ $price->is_active ? 'success' : 'secondary' }}">
                                                     {{ $price->is_active ? __('m_tours.common.active') : __('m_tours.common.inactive') }}
@@ -572,12 +642,14 @@
                             {{ __('m_tours.common.previous') }}
                         </a>
 
-                        <a href="{{ route('admin.tours.wizard.cancel', $tour) }}"
-                           class="btn btn-danger btn-block mt-2"
-                           onclick="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
-                            <i class="fas fa-trash"></i>
-                            {{ __('m_tours.tour.wizard.delete_draft') }}
-                        </a>
+                        @if($tour->is_draft)
+                            <button type="button"
+                                    class="btn btn-danger btn-block mt-2"
+                                    onclick="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}') && document.getElementById('delete-draft-form').submit();">
+                                <i class="fas fa-trash"></i>
+                                {{ __('m_tours.tour.wizard.delete_draft') }}
+                            </button>
+                        @endif
                     </div>
                 </div>
 
@@ -612,7 +684,8 @@
                         </div>
 
                         @if(!$tour->itinerary || $tour->schedules->isEmpty() || $tour->prices->isEmpty())
-                            <div class="alert alert-warning mt-3 mb-0" style="background: rgba(255, 193, 7, 0.2); border-color: #ffc107; color: #ffc107;">
+                            <div class="alert alert-warning mt-3 mb-0"
+                                 style="background: rgba(255, 193, 7, 0.2); border-color: #ffc107; color: #ffc107;">
                                 <i class="fas fa-exclamation-triangle"></i>
                                 <small>{{ __('m_tours.tour.wizard.incomplete_warning') }}</small>
                             </div>
@@ -622,5 +695,16 @@
             </div>
         </div>
     </div>
+
+    {{-- FORM OCULTO PARA ELIMINAR DRAFT --}}
+    @if($tour->is_draft)
+        <form id="delete-draft-form"
+              action="{{ route('admin.tours.wizard.delete-draft', $tour) }}"
+              method="POST"
+              style="display:none;">
+            @csrf
+            @method('DELETE')
+        </form>
+    @endif
 </div>
 @endsection

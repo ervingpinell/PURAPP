@@ -876,6 +876,7 @@ return [
             'schedules_title'      => 'Zeiten',
             'languages_title'      => 'Sprachen',
             'itinerary_title'      => 'Reiseplan',
+            'amenities_title' => 'Ausstattung',
 
             'table' => [
                 'category' => 'Kategorie',

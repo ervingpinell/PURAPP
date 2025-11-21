@@ -291,7 +291,7 @@
         border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* Switch mejorado */
+    /* Switch mejorado (checkbox estilo BS4) */
     .form-check-input:checked {
         background-color: #48bb78;
         border-color: #48bb78;
@@ -427,8 +427,8 @@
 
                 <div class="header-actions">
                     <a href="{{ route('admin.customer_categories.index') }}"
-                        class="btn btn-primary btn-sm"
-                        title="{{ __('m_tours.prices.quick_category.go_to_index_title') }}">
+                       class="btn btn-primary btn-sm"
+                       title="{{ __('m_tours.prices.quick_category.go_to_index_title') }}">
                         <i class="fas fa-list"></i>
                         <span class="d-none d-md-inline">
                             {{ __('m_tours.prices.quick_category.go_to_index') }}
@@ -436,9 +436,9 @@
                     </a>
 
                     <button type="button"
-                        class="btn btn-success btn-sm"
-                        data-toggle="modal"
-                        data-target="#modalQuickCategory">
+                            class="btn btn-success btn-sm"
+                            data-toggle="modal"
+                            data-target="#modalQuickCategory">
                         <i class="fas fa-plus"></i>
                         <span class="d-none d-md-inline">
                             {{ __('m_tours.prices.quick_category.button') }}
@@ -455,8 +455,8 @@
                 </div>
 
                 @php
-                $existingPrices = $tour->prices->keyBy('category_id');
-                $currency = config('app.currency_symbol', '$');
+                    $existingPrices = $tour->prices->keyBy('category_id');
+                    $currency = config('app.currency_symbol', '$');
                 @endphp
 
                 {{-- Selector para agregar categorías --}}
@@ -465,27 +465,27 @@
                         <i class="fas fa-plus-circle"></i>
                         {{ __('m_tours.tour.pricing.add_existing_category') }}
                     </label>
-                    <div class="d-flex flex-column flex-sm-row gap-2">
+                    <div class="d-flex flex-column flex-sm-row">
                         <select id="category-selector" class="form-control mb-2 mb-sm-0 mr-sm-2 flex-grow-1">
                             <option value="">{{ __('m_tours.tour.pricing.choose_category_placeholder') }}</option>
                             @foreach($categories ?? [] as $category)
-                            @php
-                            $catLabel = $category->getTranslatedName() ?: $category->name;
-                            $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
-                            @endphp
-                            <option
-                                value="{{ $category->category_id }}"
-                                data-name="{{ $catLabel }}"
-                                data-age-range="{{ $ageLabel }}"
-                                data-slug="{{ $category->slug }}">
-                                {{ $catLabel }} ({{ $ageLabel }})
-                            </option>
+                                @php
+                                    $catLabel = $category->getTranslatedName() ?: $category->name;
+                                    $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
+                                @endphp
+                                <option
+                                    value="{{ $category->category_id }}"
+                                    data-name="{{ $catLabel }}"
+                                    data-age-range="{{ $ageLabel }}"
+                                    data-slug="{{ $category->slug }}">
+                                    {{ $catLabel }} ({{ $ageLabel }})
+                                </option>
                             @endforeach
                         </select>
 
                         <button type="button"
-                            class="btn btn-primary"
-                            id="btn-add-category">
+                                class="btn btn-primary"
+                                id="btn-add-category">
                             <i class="fas fa-plus-circle"></i>
                             {{ __('m_tours.tour.pricing.add_button') }}
                         </button>
@@ -495,123 +495,129 @@
                 {{-- Contenedor de precios --}}
                 <div id="prices-container">
                     @forelse($tour->prices as $price)
-                    @if($price->category)
-                    @php
-                    $category = $price->category;
-                    $catLabel = $category->getTranslatedName() ?: $category->name;
-                    $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
-                    @endphp
+                        @if($price->category)
+                            @php
+                                $category = $price->category;
+                                $catLabel = $category->getTranslatedName() ?: $category->name;
+                                $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
+                            @endphp
 
-                    <div class="card mb-3 price-card" data-category-id="{{ $category->category_id }}">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="card-title">
-                                    {{ $catLabel }}
-                                    <small>({{ $ageLabel }})</small>
-                                </h5>
-                            </div>
-                            <button type="button" class="btn btn-sm btn-danger remove-price-card">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-
-                        <div class="card-body">
-                            <div class="row">
-                                {{-- Precio --}}
-                                <div class="col-md-4">
-                                    <label class="form-label">{{ __('m_tours.tour.pricing.price_usd') }}</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">{{ $currency }}</span>
-                                        <input
-                                            type="number"
-                                            name="prices[{{ $category->category_id }}][price]"
-                                            class="form-control price-input"
-                                            value="{{ old('prices.'.$category->category_id.'.price', number_format($price->price, 2, '.', '')) }}"
-                                            step="0.01"
-                                            min="0"
-                                            required>
+                            <div class="card mb-3 price-card" data-category-id="{{ $category->category_id }}">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="card-title">
+                                            {{ $catLabel }}
+                                            <small>({{ $ageLabel }})</small>
+                                        </h5>
                                     </div>
+                                    <button type="button" class="btn btn-sm btn-danger remove-price-card">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                 </div>
 
-                                {{-- Cantidad Mínima --}}
-                                <div class="col-md-3 col-6">
-                                    <label class="form-label">{{ __('m_tours.tour.pricing.min_quantity') }}</label>
-                                    <input
-                                        type="number"
-                                        name="prices[{{ $category->category_id }}][min_quantity]"
-                                        class="form-control"
-                                        value="{{ old('prices.'.$category->category_id.'.min_quantity', $price->min_quantity) }}"
-                                        min="0"
-                                        max="255">
-                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        {{-- Precio --}}
+                                        <div class="col-md-4">
+                                            <label class="form-label">{{ __('m_tours.tour.pricing.price_usd') }}</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">{{ $currency }}</span>
+                                                <input
+                                                    type="number"
+                                                    name="prices[{{ $category->category_id }}][price]"
+                                                    class="form-control price-input"
+                                                    value="{{ old('prices.'.$category->category_id.'.price', number_format($price->price, 2, '.', '')) }}"
+                                                    step="0.01"
+                                                    min="0"
+                                                    required>
+                                            </div>
+                                        </div>
 
-                                {{-- Cantidad Máxima --}}
-                                <div class="col-md-3 col-6">
-                                    <label class="form-label">{{ __('m_tours.tour.pricing.max_quantity') }}</label>
-                                    <input
-                                        type="number"
-                                        name="prices[{{ $category->category_id }}][max_quantity]"
-                                        class="form-control"
-                                        value="{{ old('prices.'.$category->category_id.'.max_quantity', $price->max_quantity) }}"
-                                        min="0"
-                                        max="255">
-                                </div>
+                                        {{-- Cantidad Mínima --}}
+                                        <div class="col-md-3 col-6">
+                                            <label class="form-label">{{ __('m_tours.tour.pricing.min_quantity') }}</label>
+                                            <input
+                                                type="number"
+                                                name="prices[{{ $category->category_id }}][min_quantity]"
+                                                class="form-control"
+                                                value="{{ old('prices.'.$category->category_id.'.min_quantity', $price->min_quantity) }}"
+                                                min="0"
+                                                max="255">
+                                        </div>
 
-                                {{-- Estado Activo --}}
-                                <div class="col-md-2 col-12">
-                                    <label class="form-label d-block">{{ __('m_tours.tour.pricing.status') }}</label>
-                                    <div class="form-check form-switch">
-                                        <input type="hidden" name="prices[{{ $category->category_id }}][is_active]" value="0">
-                                        <input
-                                            class="form-check-input"
-                                            type="checkbox"
-                                            name="prices[{{ $category->category_id }}][is_active]"
-                                            value="1"
-                                            {{ old('prices.'.$category->category_id.'.is_active', $price->is_active) ? 'checked' : '' }}>
+                                        {{-- Cantidad Máxima --}}
+                                        <div class="col-md-3 col-6">
+                                            <label class="form-label">{{ __('m_tours.tour.pricing.max_quantity') }}</label>
+                                            <input
+                                                type="number"
+                                                name="prices[{{ $category->category_id }}][max_quantity]"
+                                                class="form-control"
+                                                value="{{ old('prices.'.$category->category_id.'.max_quantity', $price->max_quantity) }}"
+                                                min="0"
+                                                max="255">
+                                        </div>
+
+                                        {{-- Estado Activo --}}
+                                        <div class="col-md-2 col-12">
+                                            <label class="form-label d-block">{{ __('m_tours.tour.pricing.status') }}</label>
+                                            <div class="form-check">
+                                                <input type="hidden" name="prices[{{ $category->category_id }}][is_active]" value="0">
+                                                <input
+                                                    class="form-check-input"
+                                                    type="checkbox"
+                                                    name="prices[{{ $category->category_id }}][is_active]"
+                                                    value="1"
+                                                    {{ old('prices.'.$category->category_id.'.is_active', $price->is_active) ? 'checked' : '' }}>
+                                            </div>
+                                        </div>
                                     </div>
+
+                                    <input type="hidden" name="prices[{{ $category->category_id }}][category_id]" value="{{ $category->category_id }}">
                                 </div>
                             </div>
-
-                            <input type="hidden" name="prices[{{ $category->category_id }}][category_id]" value="{{ $category->category_id }}">
-                        </div>
-                    </div>
-                    @endif
+                        @endif
                     @empty
-                    <div class="alert alert-warning" id="no-prices-alert">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        {{ __('m_tours.tour.pricing.no_categories') }}
-                    </div>
+                        <div class="alert alert-warning" id="no-prices-alert">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            {{ __('m_tours.tour.pricing.no_categories') }}
+                        </div>
                     @endforelse
                 </div>
             </div>
         </div>
 
         {{-- Footer de navegación --}}
-        <div class="card">
-            <div class="card-footer navigation-footer">
-                <div class="d-flex justify-content-between align-items-center">
-                    <a href="{{ route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 4]) }}"
-                        class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i>
-                        {{ __('m_tours.common.previous') }}
-                    </a>
+        <div class="card-footer navigation-footer">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{{ route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 1]) }}"
+                   class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    {{ __('m_tours.common.previous') }}
+                </a>
 
-                    <div class="d-flex gap-2">
-                        <a href="{{ route('admin.tours.wizard.cancel', $tour) }}"
-                            class="btn btn-danger"
-                            onclick="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
-                            <i class="fas fa-trash"></i>
-                            <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
-                        </a>
+                <div class="d-flex">
+                    @if($tour->is_draft)
+                        <form action="{{ route('admin.tours.wizard.delete-draft', $tour) }}"
+                              method="POST"
+                              class="d-inline"
+                              onsubmit="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i>
+                                <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
+                            </button>
+                        </form>
+                    @endif
 
-                        <button type="submit" class="btn btn-primary ml-2">
-                            {{ __('m_tours.tour.wizard.save_and_continue') }}
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
+                    <button type="submit" class="btn btn-primary ml-2">
+                        {{ __('m_tours.tour.wizard.save_and_continue') }}
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>
             </div>
         </div>
+
     </form>
 </div>
 
@@ -619,10 +625,10 @@
 <div class="modal fade" id="modalQuickCategory" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <form id="quickCategoryForm"
-            action="{{ route('admin.tours.wizard.quick.category') }}"
-            method="POST"
-            class="modal-content"
-            autocomplete="off">
+              action="{{ route('admin.tours.wizard.quick.category') }}"
+              method="POST"
+              class="modal-content"
+              autocomplete="off">
             @csrf
 
             <div class="modal-header">
@@ -631,9 +637,9 @@
                     {{ __('m_tours.prices.quick_category.title') }}
                 </h5>
                 <button type="button"
-                    class="close"
-                    data-dismiss="modal"
-                    aria-label="{{ __('m_tours.common.close') }}">
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="{{ __('m_tours.common.close') }}">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -645,11 +651,11 @@
                         <span class="text-danger">*</span>
                     </label>
                     <input type="text"
-                        id="quick_category_name"
-                        name="name"
-                        class="form-control"
-                        maxlength="255"
-                        required>
+                           id="quick_category_name"
+                           name="name"
+                           class="form-control"
+                           maxlength="255"
+                           required>
                 </div>
 
                 <div class="form-group">
@@ -658,28 +664,28 @@
                         <span class="text-danger">*</span>
                     </label>
                     <input type="text"
-                        id="quick_category_slug"
-                        name="slug"
-                        class="form-control"
-                        maxlength="255"
-                        required>
+                           id="quick_category_slug"
+                           name="slug"
+                           class="form-control"
+                           maxlength="255"
+                           required>
                     <small class="form-text text-muted">
                         {{ __('m_tours.tour.ui.slug_help') ?? 'Identificador único URL amigable' }}
                     </small>
 
-                    <div class="form-row">
+                    <div class="form-row mt-3">
                         <div class="form-group col-6">
                             <label for="quick_category_age_from">
                                 {{ __('m_tours.prices.quick_category.age_from') }}
                                 <span class="text-danger">*</span>
                             </label>
                             <input type="number"
-                                id="quick_category_age_from"
-                                name="age_from"
-                                class="form-control"
-                                min="0"
-                                max="120"
-                                required>
+                                   id="quick_category_age_from"
+                                   name="age_from"
+                                   class="form-control"
+                                   min="0"
+                                   max="120"
+                                   required>
                         </div>
                         <div class="form-group col-6">
                             <label for="quick_category_age_to">
@@ -687,12 +693,12 @@
                                 <small class="text-muted">({{ __('m_tours.common.optional') ?? 'Opcional' }})</small>
                             </label>
                             <input type="number"
-                                id="quick_category_age_to"
-                                name="age_to"
-                                class="form-control"
-                                min="0"
-                                max="120"
-                                placeholder="{{ __('m_tours.prices.quick_category.no_limit') ?? 'Sin límite' }}">
+                                   id="quick_category_age_to"
+                                   name="age_to"
+                                   class="form-control"
+                                   min="0"
+                                   max="120"
+                                   placeholder="{{ __('m_tours.prices.quick_category.no_limit') ?? 'Sin límite' }}">
                         </div>
                     </div>
                 </div>
@@ -703,8 +709,8 @@
                         {{ __('m_tours.prices.quick_category.save') }}
                     </button>
                     <button type="button"
-                        class="btn btn-secondary"
-                        data-dismiss="modal">
+                            class="btn btn-secondary"
+                            data-dismiss="modal">
                         {{ __('m_tours.prices.quick_category.cancel') }}
                     </button>
                 </div>
@@ -755,23 +761,20 @@
             const container = document.getElementById('validation-alerts-container');
             if (!container) return;
 
-            // Limpiar alertas anteriores
             container.innerHTML = '';
 
-            // Crear nueva alerta
             const alert = document.createElement('div');
             alert.className = 'validation-alert';
             alert.innerHTML = `
-            <button type="button" class="close-alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-            <strong><i class="fas fa-exclamation-triangle"></i>${i18n.validationTitle}</strong>
-            <ul>${errors.map(err => '<li>' + err + '</li>').join('')}</ul>
-        `;
+                <button type="button" class="close-alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <strong><i class="fas fa-exclamation-triangle"></i>${i18n.validationTitle}</strong>
+                <ul>${errors.map(err => '<li>' + err + '</li>').join('')}</ul>
+            `;
 
             container.appendChild(alert);
 
-            // Agregar evento para cerrar
             const closeBtn = alert.querySelector('.close-alert');
             if (closeBtn) {
                 closeBtn.addEventListener('click', function() {
@@ -779,13 +782,11 @@
                 });
             }
 
-            // Scroll a la alerta
             container.scrollIntoView({
                 behavior: 'smooth',
                 block: 'start'
             });
 
-            // Auto-cerrar después de 10 segundos
             setTimeout(() => {
                 if (alert.parentNode) {
                     alert.remove();
@@ -829,69 +830,69 @@
             if (noAlert) noAlert.style.display = 'none';
 
             const cardHTML = `
-            <div class="card mb-3 price-card" data-category-id="${categoryId}">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="card-title">
-                            ${categoryName}
-                            <small>(${ageRange})</small>
-                        </h5>
+                <div class="card mb-3 price-card" data-category-id="${categoryId}">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">
+                                ${categoryName}
+                                <small>(${ageRange})</small>
+                            </h5>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger remove-price-card">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
-                    <button type="button" class="btn btn-sm btn-danger remove-price-card">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label class="form-label">${i18n.priceLabel}</label>
-                            <div class="input-group">
-                                <span class="input-group-text">${currency}</span>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">${i18n.priceLabel}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">${currency}</span>
+                                    <input type="number"
+                                           name="prices[${categoryId}][price]"
+                                           class="form-control price-input"
+                                           step="0.01"
+                                           min="0"
+                                           value="0.00"
+                                           required>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <label class="form-label">${i18n.minLabel}</label>
                                 <input type="number"
-                                       name="prices[${categoryId}][price]"
-                                       class="form-control price-input"
-                                       step="0.01"
+                                       name="prices[${categoryId}][min_quantity]"
+                                       class="form-control"
+                                       value="0"
                                        min="0"
-                                       value="0.00"
-                                       required>
+                                       max="255">
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <label class="form-label">${i18n.maxLabel}</label>
+                                <input type="number"
+                                       name="prices[${categoryId}][max_quantity]"
+                                       class="form-control"
+                                       value="12"
+                                       min="0"
+                                       max="255">
+                            </div>
+                            <div class="col-md-2 col-12">
+                                <label class="form-label d-block">${i18n.statusLabel}</label>
+                                <div class="form-check">
+                                    <input type="hidden" name="prices[${categoryId}][is_active]" value="0">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="prices[${categoryId}][is_active]"
+                                           value="1"
+                                           checked>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-3 col-6">
-                            <label class="form-label">${i18n.minLabel}</label>
-                            <input type="number"
-                                   name="prices[${categoryId}][min_quantity]"
-                                   class="form-control"
-                                   value="0"
-                                   min="0"
-                                   max="255">
-                        </div>
-                        <div class="col-md-3 col-6">
-                            <label class="form-label">${i18n.maxLabel}</label>
-                            <input type="number"
-                                   name="prices[${categoryId}][max_quantity]"
-                                   class="form-control"
-                                   value="12"
-                                   min="0"
-                                   max="255">
-                        </div>
-                        <div class="col-md-2 col-12">
-                            <label class="form-label d-block">${i18n.statusLabel}</label>
-                            <div class="form-check form-switch">
-                                <input type="hidden" name="prices[${categoryId}][is_active]" value="0">
-                                <input class="form-check-input"
-                                       type="checkbox"
-                                       name="prices[${categoryId}][is_active]"
-                                       value="1"
-                                       checked>
-                            </div>
-                        </div>
+                        <input type="hidden"
+                               name="prices[${categoryId}][category_id]"
+                               value="${categoryId}">
                     </div>
-                    <input type="hidden"
-                           name="prices[${categoryId}][category_id]"
-                           value="${categoryId}">
                 </div>
-            </div>
-        `;
+            `;
 
             pricesContainer.insertAdjacentHTML('beforeend', cardHTML);
         }
@@ -936,7 +937,6 @@
 
                 let errors = [];
 
-                // Validación 1: Al menos una categoría debe estar agregada
                 const priceCards = pricesContainer.querySelectorAll('.price-card');
 
                 if (priceCards.length === 0) {
@@ -949,7 +949,6 @@
                         }, 3000);
                     }
                 } else {
-                    // Validación 2: Al menos una categoría debe tener precio > 0
                     let hasPriceGreaterThanZero = false;
 
                     priceCards.forEach(card => {
@@ -965,7 +964,6 @@
                     if (!hasPriceGreaterThanZero) {
                         errors.push(i18n.noPriceGreaterZero);
 
-                        // Resaltar inputs de precio
                         priceCards.forEach(card => {
                             const priceInput = card.querySelector('.price-input');
                             if (priceInput) {
@@ -978,11 +976,9 @@
                     }
                 }
 
-                // Si hay errores, mostrarlos
                 if (errors.length > 0) {
                     showValidationAlert(errors);
 
-                    // Scroll al contenedor de precios
                     if (pricesContainer) {
                         pricesContainer.scrollIntoView({
                             behavior: 'smooth',
@@ -993,11 +989,10 @@
                     return false;
                 }
 
-                // Si todo está bien, deshabilitar botón y enviar
                 const submitBtn = mainForm.querySelector('button[type="submit"]');
                 if (submitBtn) {
                     submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + i18n.saving;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>' + i18n.saving;
                 }
 
                 mainForm.submit();
@@ -1017,7 +1012,6 @@
 
                 let errors = [];
 
-                // Validar nombre
                 if (!nameInput.value.trim()) {
                     errors.push(i18n.categoryNameRequired);
                     nameInput.classList.add('is-invalid');
@@ -1025,16 +1019,12 @@
                     nameInput.classList.remove('is-invalid');
                 }
 
-                // Validar age_from
                 if (!ageFromInput.value.trim()) {
                     errors.push(i18n.ageFromRequired);
                     ageFromInput.classList.add('is-invalid');
                 } else {
                     ageFromInput.classList.remove('is-invalid');
                 }
-
-                // Validar age_to
-                // ageTo es opcional, no validamos required
 
                 const ageTo = ageToInput.value.trim();
                 const ageFrom = ageFromInput.value.trim();
@@ -1044,7 +1034,6 @@
                     ageToInput.classList.add('is-invalid');
                 }
 
-                // Si hay errores, mostrarlos
                 if (errors.length > 0) {
                     Swal.fire({
                         icon: 'error',
@@ -1106,7 +1095,6 @@
                     createPriceCard(id, name, ageRange);
                     quickForm.reset();
 
-                    // Limpiar clases de validación
                     nameInput.classList.remove('is-invalid');
                     ageFromInput.classList.remove('is-invalid');
                     ageToInput.classList.remove('is-invalid');
@@ -1138,7 +1126,6 @@
                 }
             });
 
-            // Limpiar errores al escribir
             if (nameInput) {
                 nameInput.addEventListener('input', function() {
                     this.classList.remove('is-invalid');
@@ -1158,13 +1145,7 @@
             }
         }
 
-        // ============================================================
-        // LIMPIAR MODAL AL ABRIR
-        // ============================================================
-
-        // ============================================================
         // AUTO-GENERACIÓN DE SLUG
-        // ============================================================
         const quickNameField = document.getElementById('quick_category_name');
         const quickSlugField = document.getElementById('quick_category_slug');
 
@@ -1189,7 +1170,6 @@
             });
         }
 
-        // Limpiar modal al abrir
         const modal = document.getElementById('modalQuickCategory');
         if (modal) {
             modal.addEventListener('show.bs.modal', function() {

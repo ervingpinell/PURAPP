@@ -862,6 +862,7 @@ return [
             'schedules_title'      => 'Horaires',
             'languages_title'      => 'Langues',
             'itinerary_title'      => 'Itinéraire',
+            'amenities_title' => 'Équipements',
 
             'table' => [
                 'category' => 'Catégorie',

@@ -864,6 +864,7 @@ return [
             'schedules_title'      => 'Horários',
             'languages_title'      => 'Idiomas',
             'itinerary_title'      => 'Itinerário',
+            'amenities_title' => 'Comodidades',
 
             'table' => [
                 'category' => 'Categoria',

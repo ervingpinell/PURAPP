@@ -169,21 +169,21 @@
             opacity: 0;
         }
 
-        .custom-control-input:checked~.custom-control-label::before {
+        .custom-control-input:checked ~ .custom-control-label::before {
             background-color: #f6ad55;
             border-color: #f6ad55;
         }
 
-        .custom-control-input:checked~.custom-control-label::after {
+        .custom-control-input:checked ~ .custom-control-label::after {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%23fff' d='M6.564.75l-3.59 3.612-1.538-1.55L0 4.26l2.974 2.99L8 2.193z'/%3e%3c/svg%3e");
         }
 
-        .custom-control-input:checked~.custom-control-label {
+        .custom-control-input:checked ~ .custom-control-label {
             font-weight: 600;
             color: #fbd38d;
         }
 
-        .custom-control-input:focus~.custom-control-label::before {
+        .custom-control-input:focus ~ .custom-control-label::before {
             box-shadow: 0 0 0 0.2rem rgba(246, 173, 85, 0.25);
         }
 
@@ -266,14 +266,12 @@
             color: #e2e8f0;
         }
 
-        .modal-header .close,
-        .modal-header .btn-close {
+        .modal-header .close {
             color: #e2e8f0;
             opacity: 0.8;
         }
 
-        .modal-header .close:hover,
-        .modal-header .btn-close:hover {
+        .modal-header .close:hover {
             opacity: 1;
         }
 
@@ -464,19 +462,23 @@
 
             {{-- Botones de acción --}}
             <div class="action-buttons">
-                <a href="{{ route('admin.tours.schedule.index') }}" class="btn btn-primary btn-sm" title="                    {{ __('m_tours.common.crud_go_to_index', [
-        'element' => __('m_tours.schedule.plural'),
-    ]) }}">
+                <a href="{{ route('admin.tours.schedule.index') }}"
+                   class="btn btn-primary btn-sm"
+                   title="{{ __('m_tours.common.crud_go_to_index', [
+                        'element' => __('m_tours.schedule.plural'),
+                    ]) }}">
                     <i class="fas fa-list"></i>
                     <span class="d-none d-md-inline">
                         {{ __('m_tours.common.crud_go_to_index', [
-        'element' => __('m_tours.schedule.plural'),
-    ]) }}
+                            'element' => __('m_tours.schedule.plural'),
+                        ]) }}
                     </span>
                 </a>
 
-                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
-                    data-bs-target="#modalCreateScheduleForTour">
+                <button type="button"
+                        class="btn btn-sm btn-success"
+                        data-toggle="modal"
+                        data-target="#modalCreateScheduleForTour">
                     <i class="fas fa-plus"></i>
                     {{ __('m_tours.schedule.ui.new_schedule_for_tour') }}
                 </button>
@@ -500,61 +502,68 @@
                             </div>
 
                             @foreach($schedules ?? [] as $schedule)
-                                                @php
-                                                    $isChecked = in_array(
-                                                        $schedule->schedule_id,
-                                                        old(
-                                                            'schedules',
-                                                            $tour->schedules->pluck('schedule_id')->toArray()
-                                                        )
-                                                    );
+                                @php
+                                    $isChecked = in_array(
+                                        $schedule->schedule_id,
+                                        old(
+                                            'schedules',
+                                            $tour->schedules->pluck('schedule_id')->toArray()
+                                        )
+                                    );
 
-                                                    $pivot = $tour->schedules
-                                                        ->firstWhere('schedule_id', $schedule->schedule_id);
+                                    $pivot = $tour->schedules
+                                        ->firstWhere('schedule_id', $schedule->schedule_id);
 
-                                                    $existingCapacity = $pivot?->pivot?->base_capacity;
-                                                    $oldCapacity = old('base_capacity.' . $schedule->schedule_id, $existingCapacity);
-                                                @endphp
+                                    $existingCapacity = $pivot?->pivot?->base_capacity;
+                                    $oldCapacity = old('base_capacity.' . $schedule->schedule_id, $existingCapacity);
+                                @endphp
 
-                                                <div class="schedule-item">
-                                                    <div class="d-flex flex-wrap align-items-center justify-content-between">
-                                                        <div class="custom-control custom-checkbox">
-                                                            <input type="checkbox" class="custom-control-input"
-                                                                id="schedule_{{ $schedule->schedule_id }}" name="schedules[]"
-                                                                value="{{ $schedule->schedule_id }}" {{ $isChecked ? 'checked' : '' }}>
-                                                            <label class="custom-control-label" for="schedule_{{ $schedule->schedule_id }}">
-                                                                <strong>
-                                                                    {{ date('g:i A', strtotime($schedule->start_time)) }}
-                                                                    -
-                                                                    {{ date('g:i A', strtotime($schedule->end_time)) }}
-                                                                </strong>
-                                                                @if($schedule->label)
-                                                                    <span class="badge badge-info">
-                                                                        {{ $schedule->label }}
-                                                                    </span>
-                                                                @endif
-                                                            </label>
-                                                        </div>
+                                <div class="schedule-item">
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox"
+                                                   class="custom-control-input"
+                                                   id="schedule_{{ $schedule->schedule_id }}"
+                                                   name="schedules[]"
+                                                   value="{{ $schedule->schedule_id }}"
+                                                   {{ $isChecked ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="schedule_{{ $schedule->schedule_id }}">
+                                                <strong>
+                                                    {{ date('g:i A', strtotime($schedule->start_time)) }}
+                                                    -
+                                                    {{ date('g:i A', strtotime($schedule->end_time)) }}
+                                                </strong>
+                                                @if($schedule->label)
+                                                    <span class="badge badge-info">
+                                                        {{ $schedule->label }}
+                                                    </span>
+                                                @endif
+                                            </label>
+                                        </div>
 
-                                                        <div class="mt-2 mt-md-0" style="min-width: 180px;">
-                                                            <label class="mb-0 small">
-                                                                {{ __('m_tours.schedule.ui.capacity_optional') }}
-                                                            </label>
-                                                            <input type="number" name="base_capacity[{{ $schedule->schedule_id }}]"
-                                                                class="form-control form-control-sm" min="1" max="999"
-                                                                value="{{ $oldCapacity }}" placeholder="{{ $tour->max_capacity
-                                ? __('m_tours.schedule.ui.capacity_placeholder_with_value', ['capacity' => $tour->max_capacity])
-                                : __('m_tours.schedule.ui.capacity_placeholder_generic') }}">
-                                                            <small class="text-muted d-block">
-                                                                @if($tour->max_capacity)
-                                                                    {{ __('m_tours.schedule.ui.capacity_hint_with_value', ['capacity' => $tour->max_capacity]) }}
-                                                                @else
-                                                                    {{ __('m_tours.schedule.ui.capacity_hint_generic') }}
-                                                                @endif
-                                                            </small>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                        <div class="mt-2 mt-md-0" style="min-width: 180px;">
+                                            <label class="mb-0 small">
+                                                {{ __('m_tours.schedule.ui.capacity_optional') }}
+                                            </label>
+                                            <input type="number"
+                                                   name="base_capacity[{{ $schedule->schedule_id }}]"
+                                                   class="form-control form-control-sm"
+                                                   min="1"
+                                                   max="999"
+                                                   value="{{ $oldCapacity }}"
+                                                   placeholder="{{ $tour->max_capacity
+                                                        ? __('m_tours.schedule.ui.capacity_placeholder_with_value', ['capacity' => $tour->max_capacity])
+                                                        : __('m_tours.schedule.ui.capacity_placeholder_generic') }}">
+                                            <small class="text-muted d-block">
+                                                @if($tour->max_capacity)
+                                                    {{ __('m_tours.schedule.ui.capacity_hint_with_value', ['capacity' => $tour->max_capacity]) }}
+                                                @else
+                                                    {{ __('m_tours.schedule.ui.capacity_hint_generic') }}
+                                                @endif
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
                             @endforeach
 
                             @error('schedules')
@@ -587,9 +596,9 @@
                             <p class="small mb-0">
                                 <strong>{{ __('m_tours.schedule.ui.tip_label') }}</strong>
                                 {{ __('m_tours.schedule.ui.capacity_tip', [
-        'capacity' => $tour->max_capacity
-            ?? __('m_tours.schedule.ui.capacity_not_defined')
-    ]) }}
+                                    'capacity' => $tour->max_capacity
+                                        ?? __('m_tours.schedule.ui.capacity_not_defined')
+                                ]) }}
                             </p>
                         </div>
                     </div>
@@ -597,39 +606,43 @@
             </div>
 
             {{-- Footer navegación --}}
-            <div class="card">
-                <div class="card-footer navigation-footer">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <a href="{{ route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 2]) }}"
-                            class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i>
-                            {{ __('m_tours.common.previous') }}
-                        </a>
+            <div class="card-footer navigation-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 1]) }}"
+                       class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        {{ __('m_tours.common.previous') }}
+                    </a>
 
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('admin.tours.wizard.cancel', $tour) }}" class="btn btn-danger"
-                                onclick="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
+                    <div class="d-flex">
+                        @if($tour->is_draft)
+                            {{-- IMPORTANTE: este botón NO envía este form; llama al form oculto de delete-draft --}}
+                            <button type="button"
+                                    class="btn btn-danger"
+                                    onclick="if (confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')) { document.getElementById('delete-draft-form').submit(); }">
                                 <i class="fas fa-trash"></i>
                                 <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
-                            </a>
-
-                            <button type="submit" class="btn btn-primary ml-2">
-                                {{ __('m_tours.tour.wizard.save_and_continue') }}
-                                <i class="fas fa-arrow-right"></i>
                             </button>
-                        </div>
+                        @endif
 
+                        <button type="submit" class="btn btn-primary ml-2">
+                            {{ __('m_tours.tour.wizard.save_and_continue') }}
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
                     </div>
                 </div>
             </div>
+
         </form>
     </div>
 
     {{-- Modal crear horario --}}
-    <div class="modal fade" id="modalCreateScheduleForTour" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <form action="{{ route('admin.tours.wizard.quick.schedule', $tour) }}" method="POST" class="modal-content"
-                autocomplete="off">
+    <div class="modal fade" id="modalCreateScheduleForTour" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <form action="{{ route('admin.tours.wizard.quick.schedule', $tour) }}"
+                  method="POST"
+                  class="modal-content"
+                  autocomplete="off">
                 @csrf
                 <input type="hidden" name="tour_id" value="{{ $tour->tour_id }}">
 
@@ -638,8 +651,10 @@
                         <i class="fas fa-plus"></i>
                         {{ __('m_tours.schedule.ui.modal_new_for_tour_title', ['tour' => $tour->name]) }}
                     </h5>
-                    <button type="button" class="close btn-close" data-bs-dismiss="modal"
-                        aria-label="{{ __('m_tours.common.close') }}">
+                    <button type="button"
+                            class="close"
+                            data-dismiss="modal"
+                            aria-label="{{ __('m_tours.common.close') }}">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -651,8 +666,11 @@
                                 <label for="modal_schedule_start">
                                     {{ __('m_tours.schedule.fields.start_time') }}
                                 </label>
-                                <input type="time" name="start_time" id="modal_schedule_start" class="form-control"
-                                    required>
+                                <input type="time"
+                                       name="start_time"
+                                       id="modal_schedule_start"
+                                       class="form-control"
+                                       required>
                             </div>
                         </div>
 
@@ -661,7 +679,11 @@
                                 <label for="modal_schedule_end">
                                     {{ __('m_tours.schedule.fields.end_time') }}
                                 </label>
-                                <input type="time" name="end_time" id="modal_schedule_end" class="form-control" required>
+                                <input type="time"
+                                       name="end_time"
+                                       id="modal_schedule_end"
+                                       class="form-control"
+                                       required>
                             </div>
                         </div>
                     </div>
@@ -670,11 +692,15 @@
                         <label for="modal_schedule_label">
                             {{ __('m_tours.schedule.fields.label_optional') }}
                         </label>
-                        <input type="text" name="label" id="modal_schedule_label" class="form-control" maxlength="255">
+                        <input type="text"
+                               name="label"
+                               id="modal_schedule_label"
+                               class="form-control"
+                               maxlength="255">
                     </div>
 
                     <div class="alert alert-info small mt-3">
-                        <i class="fas fa-info-circle me-1"></i>
+                        <i class="fas fa-info-circle mr-1"></i>
                         @if($tour->max_capacity)
                             {{ __('m_tours.schedule.ui.capacity_modal_info_with_value', ['capacity' => $tour->max_capacity]) }}
                         @else
@@ -686,10 +712,15 @@
                         <label for="modal_schedule_capacity">
                             {{ __('m_tours.schedule.ui.capacity_optional') }}
                         </label>
-                        <input type="number" name="base_capacity" id="modal_schedule_capacity" class="form-control" min="1"
-                            max="999" placeholder="{{ $tour->max_capacity
-        ? __('m_tours.schedule.ui.capacity_placeholder_with_value', ['capacity' => $tour->max_capacity])
-        : __('m_tours.schedule.ui.capacity_placeholder_generic') }}">
+                        <input type="number"
+                               name="base_capacity"
+                               id="modal_schedule_capacity"
+                               class="form-control"
+                               min="1"
+                               max="999"
+                               placeholder="{{ $tour->max_capacity
+                                    ? __('m_tours.schedule.ui.capacity_placeholder_with_value', ['capacity' => $tour->max_capacity])
+                                    : __('m_tours.schedule.ui.capacity_placeholder_generic') }}">
                         <small class="text-muted">
                             @if($tour->max_capacity)
                                 {{ __('m_tours.schedule.ui.capacity_hint_with_value', ['capacity' => $tour->max_capacity]) }}
@@ -700,8 +731,12 @@
                     </div>
 
                     <div class="form-check mt-3">
-                        <input class="form-check-input" type="checkbox" id="modal_schedule_active" name="is_active"
-                            value="1" checked>
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="modal_schedule_active"
+                               name="is_active"
+                               value="1"
+                               checked>
                         <label class="form-check-label" for="modal_schedule_active">
                             {{ __('m_tours.schedule.fields.active') }}
                         </label>
@@ -713,7 +748,9 @@
                         <i class="fas fa-save"></i>
                         {{ __('m_tours.schedule.ui.modal_save') }}
                     </button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-dismiss="modal">
                         {{ __('m_tours.schedule.ui.modal_cancel') }}
                     </button>
                 </div>
@@ -722,176 +759,175 @@
     </div>
 
     @push('js')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    // ============================================================
-    // TRADUCCIONES
-    // ============================================================
-    const translations = {
-        noScheduleSelected: @json(__('m_tours.schedule.validation.no_schedule_selected') ?? 'Debes seleccionar al menos un horario'),
-        validationTitle: @json(__('m_tours.schedule.validation.title') ?? 'Validación de Horarios'),
-        saving: @json(__('m_tours.common.saving') ?? 'Guardando...'),
-        startTimeRequired: @json(__('validation.required', ['attribute' => __('m_tours.schedule.fields.start_time')]) ?? 'La hora de inicio es obligatoria'),
-        endTimeRequired: @json(__('validation.required', ['attribute' => __('m_tours.schedule.fields.end_time')]) ?? 'La hora de fin es obligatoria'),
-        endTimeAfterStart: @json(__('m_tours.schedule.validation.end_after_start') ?? 'La hora de fin debe ser posterior a la hora de inicio'),
-        scheduleCreated: @json(__('m_tours.schedule.success.created') ?? 'Horario creado'),
-        scheduleCreatedAndAttached: @json(__('m_tours.schedule.success.created_and_attached') ?? 'El horario se creó y asignó correctamente al tour'),
-        networkError: @json(__('m_tours.common.network_error') ?? 'Error de red'),
-    };
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // ============================================================
+                // TRADUCCIONES
+                // ============================================================
+                const translations = {
+                    noScheduleSelected: @json(__('m_tours.schedule.validation.no_schedule_selected') ?? 'Debes seleccionar al menos un horario'),
+                    validationTitle: @json(__('m_tours.schedule.validation.title') ?? 'Validación de Horarios'),
+                    saving: @json(__('m_tours.common.saving') ?? 'Guardando...'),
+                    startTimeRequired: @json(__('validation.required', ['attribute' => __('m_tours.schedule.fields.start_time')]) ?? 'La hora de inicio es obligatoria'),
+                    endTimeRequired: @json(__('validation.required', ['attribute' => __('m_tours.schedule.fields.end_time')]) ?? 'La hora de fin es obligatoria'),
+                    endTimeAfterStart: @json(__('m_tours.schedule.validation.end_after_start') ?? 'La hora de fin debe ser posterior a la hora de inicio'),
+                    scheduleCreated: @json(__('m_tours.schedule.success.created') ?? 'Horario creado'),
+                    scheduleCreatedAndAttached: @json(__('m_tours.schedule.success.created_and_attached') ?? 'El horario se creó y asignó correctamente al tour'),
+                    networkError: @json(__('m_tours.common.network_error') ?? 'Error de red'),
+                };
 
-    // ============================================================
-    // VALIDACIÓN DEL FORMULARIO PRINCIPAL
-    // ============================================================
-    const mainForm = document.querySelector('form[action*="store.schedules"]');
+                // ============================================================
+                // VALIDACIÓN DEL FORMULARIO PRINCIPAL
+                // ============================================================
+                const mainForm = document.querySelector('form[action*="store.schedules"]');
 
-    if (mainForm) {
-        mainForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+                if (mainForm) {
+                    mainForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
 
-            // Validar que al menos un horario esté seleccionado
-            const selectedSchedules = document.querySelectorAll('input[name="schedules[]"]:checked');
+                        // Validar que al menos un horario esté seleccionado
+                        const selectedSchedules = document.querySelectorAll('input[name="schedules[]"]:checked');
 
-            if (selectedSchedules.length === 0) {
-                Swal.fire({
-                    icon: 'error',
-                    title: translations.validationTitle,
-                    text: translations.noScheduleSelected,
-                    confirmButtonColor: '#f6ad55',
-                });
+                        if (selectedSchedules.length === 0) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: translations.validationTitle,
+                                text: translations.noScheduleSelected,
+                                confirmButtonColor: '#f6ad55',
+                            });
 
-                // Scroll al contenedor de horarios
-                const schedulesCard = document.querySelector('.schedules-card');
-                if (schedulesCard) {
-                    schedulesCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    schedulesCard.style.border = '2px solid #f56565';
-                    setTimeout(() => {
-                        schedulesCard.style.border = '';
-                    }, 3000);
+                            // Scroll al contenedor de horarios
+                            const schedulesCard = document.querySelector('.schedules-card');
+                            if (schedulesCard) {
+                                schedulesCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                schedulesCard.style.border = '2px solid #f56565';
+                                setTimeout(() => {
+                                    schedulesCard.style.border = '';
+                                }, 3000);
+                            }
+
+                            return false;
+                        }
+
+                        // Si todo está bien, deshabilitar botón y enviar
+                        const submitBtn = mainForm.querySelector('button[type="submit"]');
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>' + translations.saving;
+                        }
+
+                        mainForm.submit();
+                    });
                 }
 
-                return false;
-            }
+                // ============================================================
+                // VALIDACIÓN DEL MODAL DE CREACIÓN RÁPIDA
+                // ============================================================
+                const modalForm = document.querySelector('#modalCreateScheduleForTour form');
+                const startTimeInput = document.getElementById('modal_schedule_start');
+                const endTimeInput = document.getElementById('modal_schedule_end');
+                const labelInput = document.getElementById('modal_schedule_label');
+                const capacityInput = document.getElementById('modal_schedule_capacity');
 
-            // Si todo está bien, deshabilitar botón y enviar
-            const submitBtn = mainForm.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + translations.saving;
-            }
+                if (modalForm && startTimeInput && endTimeInput) {
+                    modalForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
 
-            mainForm.submit();
-        });
-    }
+                        let errors = [];
 
-    // ============================================================
-    // VALIDACIÓN DEL MODAL DE CREACIÓN RÁPIDA
-    // ============================================================
-    const modalForm = document.querySelector('#modalCreateScheduleForTour form');
-    const startTimeInput = document.getElementById('modal_schedule_start');
-    const endTimeInput = document.getElementById('modal_schedule_end');
-    const labelInput = document.getElementById('modal_schedule_label');
-    const capacityInput = document.getElementById('modal_schedule_capacity');
+                        // Validar hora de inicio
+                        if (!startTimeInput.value.trim()) {
+                            errors.push(translations.startTimeRequired);
+                            startTimeInput.classList.add('is-invalid');
+                        } else {
+                            startTimeInput.classList.remove('is-invalid');
+                        }
 
-    if (modalForm && startTimeInput && endTimeInput) {
-        modalForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+                        // Validar hora de fin
+                        if (!endTimeInput.value.trim()) {
+                            errors.push(translations.endTimeRequired);
+                            endTimeInput.classList.add('is-invalid');
+                        } else {
+                            endTimeInput.classList.remove('is-invalid');
+                        }
 
-            let errors = [];
+                        // Validar que end_time sea mayor que start_time
+                        if (startTimeInput.value && endTimeInput.value) {
+                            const start = new Date('2000-01-01 ' + startTimeInput.value);
+                            const end = new Date('2000-01-01 ' + endTimeInput.value);
 
-            // Validar hora de inicio
-            if (!startTimeInput.value.trim()) {
-                errors.push(translations.startTimeRequired);
-                startTimeInput.classList.add('is-invalid');
-            } else {
-                startTimeInput.classList.remove('is-invalid');
-            }
+                            if (end <= start) {
+                                errors.push(translations.endTimeAfterStart);
+                                endTimeInput.classList.add('is-invalid');
+                            }
+                        }
 
-            // Validar hora de fin
-            if (!endTimeInput.value.trim()) {
-                errors.push(translations.endTimeRequired);
-                endTimeInput.classList.add('is-invalid');
-            } else {
-                endTimeInput.classList.remove('is-invalid');
-            }
+                        // Si hay errores, mostrarlos
+                        if (errors.length > 0) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: translations.validationTitle,
+                                html: '<ul style="text-align: left;">' + errors.map(err => '<li>' + err + '</li>').join('') + '</ul>',
+                                confirmButtonColor: '#f6ad55',
+                            });
+                            return false;
+                        }
 
-            // Validar que end_time sea mayor que start_time
-            if (startTimeInput.value && endTimeInput.value) {
-                const start = new Date('2000-01-01 ' + startTimeInput.value);
-                const end = new Date('2000-01-01 ' + endTimeInput.value);
+                        const submitBtn = modalForm.querySelector('button[type="submit"]');
+                        const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>' + translations.saving;
+                        }
 
-                if (end <= start) {
-                    errors.push(translations.endTimeAfterStart);
-                    endTimeInput.classList.add('is-invalid');
+                        // Enviar formulario normalmente (no es AJAX en este caso)
+                        modalForm.submit();
+                    });
                 }
-            }
 
-            // Si hay errores, mostrarlos
-            if (errors.length > 0) {
-                Swal.fire({
-                    icon: 'error',
-                    title: translations.validationTitle,
-                    html: '<ul style="text-align: left;">' + errors.map(err => '<li>' + err + '</li>').join('') + '</ul>',
-                    confirmButtonColor: '#f6ad55',
-                });
-                return false;
-            }
+                // Limpiar errores al cambiar valores
+                if (startTimeInput) {
+                    startTimeInput.addEventListener('change', function() {
+                        this.classList.remove('is-invalid');
+                    });
+                }
 
-            // Si todo está bien, enviar el formulario
-            const submitBtn = modalForm.querySelector('button[type="submit"]');
-            const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + translations.saving;
-            }
+                if (endTimeInput) {
+                    endTimeInput.addEventListener('change', function() {
+                        this.classList.remove('is-invalid');
+                    });
+                }
 
-            // Enviar formulario normalmente (no es AJAX en este caso)
-            modalForm.submit();
-        });
-    }
+                // ============================================================
+                // LIMPIAR FORMULARIO AL ABRIR MODAL
+                // ============================================================
+                const modal = document.getElementById('modalCreateScheduleForTour');
+                if (modal) {
+                    modal.addEventListener('show.bs.modal', function() {
+                        if (startTimeInput) {
+                            startTimeInput.value = '';
+                            startTimeInput.classList.remove('is-invalid');
+                        }
+                        if (endTimeInput) {
+                            endTimeInput.value = '';
+                            endTimeInput.classList.remove('is-invalid');
+                        }
+                        if (labelInput) {
+                            labelInput.value = '';
+                        }
+                        if (capacityInput) {
+                            capacityInput.value = '';
+                        }
 
-    // Limpiar errores al cambiar valores
-    if (startTimeInput) {
-        startTimeInput.addEventListener('change', function() {
-            this.classList.remove('is-invalid');
-        });
-    }
-
-    if (endTimeInput) {
-        endTimeInput.addEventListener('change', function() {
-            this.classList.remove('is-invalid');
-        });
-    }
-
-    // ============================================================
-    // LIMPIAR FORMULARIO AL ABRIR MODAL
-    // ============================================================
-    const modal = document.getElementById('modalCreateScheduleForTour');
-    if (modal) {
-        modal.addEventListener('show.bs.modal', function() {
-            if (startTimeInput) {
-                startTimeInput.value = '';
-                startTimeInput.classList.remove('is-invalid');
-            }
-            if (endTimeInput) {
-                endTimeInput.value = '';
-                endTimeInput.classList.remove('is-invalid');
-            }
-            if (labelInput) {
-                labelInput.value = '';
-            }
-            if (capacityInput) {
-                capacityInput.value = '';
-            }
-
-            // Resetear checkbox is_active
-            const activeCheckbox = document.getElementById('modal_schedule_active');
-            if (activeCheckbox) {
-                activeCheckbox.checked = true;
-            }
-        });
-    }
-});
-</script>
-@endpush
+                        // Resetear checkbox is_active
+                        const activeCheckbox = document.getElementById('modal_schedule_active');
+                        if (activeCheckbox) {
+                            activeCheckbox.checked = true;
+                        }
+                    });
+                }
+            });
+        </script>
+    @endpush
 @endsection
