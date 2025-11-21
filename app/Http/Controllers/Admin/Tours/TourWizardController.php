@@ -17,7 +17,13 @@ use App\Models\{
 use App\Services\{LoggerHelper, DraftLimitService};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use App\Services\Contracts\TranslatorInterface;
+use App\Models\TourTypeTranslation;
+use App\Models\ItineraryItemTranslation;
+use App\Models\AmenityTranslation;
+use App\Models\CustomerCategoryTranslation;
 
 class TourWizardController extends Controller
 {
@@ -1135,7 +1141,7 @@ class TourWizardController extends Controller
     /**
      * QUICK CREATE: Tipo de Tour (AJAX)
      */
-    public function quickStoreTourType(Request $request)
+    public function quickStoreTourType(Request $request, TranslatorInterface $translator)
     {
         $data = $request->validate([
             'name'        => 'required|string|max:255',
@@ -1146,19 +1152,26 @@ class TourWizardController extends Controller
 
         $userId = optional($request->user())->user_id ?? $request->user()?->getAuthIdentifier();
 
-        $type = DB::transaction(function () use ($data) {
+        $type = DB::transaction(function () use ($data, $translator) {
             // 1. Crear TourType solo con campos no traducibles
             $type = TourType::create([
                 'is_active' => $data['is_active'] ?? true,
             ]);
 
-            // 2. Crear traducción en español (locale por defecto)
-            $type->translations()->create([
-                'locale'      => 'es',
-                'name'        => $data['name'],
-                'description' => $data['description'] ?? null,
-                'duration'    => $data['duration'] ?? null,
-            ]);
+            // 2. Traducir campos
+            $nameTr = $translator->translateAll($data['name']);
+            $descTr = isset($data['description']) ? $translator->translateAll($data['description']) : [];
+            $durTr  = isset($data['duration']) ? $translator->translateAll($data['duration']) : [];
+
+            // 3. Crear traducciones para todos los locales
+            foreach (supported_locales() as $locale) {
+                $type->translations()->create([
+                    'locale'      => $locale,
+                    'name'        => $nameTr[$locale] ?? $data['name'],
+                    'description' => $descTr[$locale] ?? ($data['description'] ?? null),
+                    'duration'    => $durTr[$locale] ?? ($data['duration'] ?? null),
+                ]);
+            }
 
             return $type;
         });
@@ -1210,7 +1223,7 @@ class TourWizardController extends Controller
     /**
      * QUICK CREATE: Itinerary Item suelto (AJAX)
      */
-    public function quickCreateItineraryItem(Request $request)
+    public function quickCreateItineraryItem(Request $request, TranslatorInterface $translator)
     {
         if (!$request->ajax() && !$request->wantsJson()) {
             abort(404);
@@ -1223,11 +1236,25 @@ class TourWizardController extends Controller
 
         $userId = optional($request->user())->user_id ?? $request->user()?->getAuthIdentifier();
 
-        $item = ItineraryItem::create([
-            'title'       => $data['title'],
-            'description' => $data['description'] ?? null,
-            'is_active'   => true,
-        ]);
+        $item = DB::transaction(function () use ($data, $translator) {
+            $item = ItineraryItem::create([
+                'is_active'   => true,
+            ]);
+
+            $titleTr = $translator->translateAll($data['title']);
+            $descTr  = isset($data['description']) ? $translator->translateAll($data['description']) : [];
+
+            foreach (supported_locales() as $locale) {
+                ItineraryItemTranslation::create([
+                    'item_id'     => $item->item_id,
+                    'locale'      => $locale,
+                    'title'       => $titleTr[$locale] ?? $data['title'],
+                    'description' => $descTr[$locale] ?? ($data['description'] ?? null),
+                ]);
+            }
+
+            return $item;
+        });
 
         LoggerHelper::mutated(
             'TourWizardController',
@@ -1239,8 +1266,8 @@ class TourWizardController extends Controller
 
         return response()->json([
             'id'          => $item->item_id,
-            'title'       => $item->title,
-            'description' => $item->description,
+            'title'       => $item->title, // Magic accessor
+            'description' => $item->description, // Magic accessor
         ], 201);
     }
 
@@ -1332,20 +1359,40 @@ class TourWizardController extends Controller
     /**
      * QUICK CREATE: Amenidad (AJAX)
      */
-    public function quickStoreAmenity(Request $request)
+    public function quickStoreAmenity(Request $request, TranslatorInterface $translator)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255|unique:amenities,name',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('amenity_translations', 'name')->where('locale', 'es'),
+            ],
         ]);
 
         $userId = optional($request->user())->user_id ?? $request->user()?->getAuthIdentifier();
 
         try {
-            $amenity = Amenity::create([
-                'name'      => $data['name'],
-                'icon'      => null,
-                'is_active' => true,
-            ]);
+            $amenity = DB::transaction(function () use ($data, $translator) {
+                // Create amenity without name field
+                $amenity = Amenity::create([
+                    'is_active' => true,
+                ]);
+
+                // Translate name
+                $nameTr = $translator->translateAll($data['name']);
+
+                // Create translations for all locales
+                foreach (supported_locales() as $locale) {
+                    AmenityTranslation::create([
+                        'amenity_id' => $amenity->amenity_id,
+                        'locale'     => $locale,
+                        'name'       => $nameTr[$locale] ?? $data['name'],
+                    ]);
+                }
+
+                return $amenity;
+            });
 
             LoggerHelper::mutated(
                 'TourWizardController',
@@ -1357,74 +1404,141 @@ class TourWizardController extends Controller
 
             return response()->json([
                 'id'      => $amenity->amenity_id,
-                'name'    => $amenity->name,
+                'name'    => $amenity->name, // Magic accessor will get from translation
                 'message' => __('m_tours.amenity.quick_create.success_text'),
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e;
-        } catch (\Throwable $e) {
-            report($e);
-
-            return response()->json([
-                'message' => __('m_tours.amenity.quick_create.error_generic'),
-            ], 500);
+        } catch (\Exception $e) {
+            LoggerHelper::exception(
+                'TourWizardController',
+                'quickStoreAmenity',
+                'amenity',
+                null,
+                $e,
+                ['user_id' => $userId]
+            );
+            return response()->json(['message' => 'Error creating amenity'], 500);
         }
     }
 
     /**
      * QUICK CREATE: Customer Category (AJAX)
      */
-    public function quickStoreCategory(Request $request)
+    public function quickStoreCategory(Request $request, TranslatorInterface $translator)
     {
-        if (!$request->ajax() && !$request->wantsJson()) {
-            abort(404);
-        }
+        Log::info('quickStoreCategory: Start', $request->all());
 
-        $data = $request->validate([
-            'name'      => ['required', 'string', 'max:255', 'unique:customer_categories,name'],
-            'age_from'  => ['required', 'integer', 'min:0', 'max:120'],
-            'age_to'    => ['required', 'integer', 'min:0', 'max:120', 'gte:age_from'],
-            'is_active' => ['nullable', 'boolean'],
-        ]);
+        // if (!$request->ajax() && !$request->wantsJson()) {
+        //     Log::warning('quickStoreCategory: Not AJAX/JSON request');
+        //     abort(404);
+        // }
+
+        try {
+            $data = $request->validate([
+                'name'      => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('customer_category_translations', 'name')->where('locale', 'es'),
+                ],
+                'slug'      => [
+                    'required',
+                    'string',
+                    'max:50',
+                    'unique:customer_categories,slug',
+                ],
+                'age_from'  => ['required', 'integer', 'min:0', 'max:120'],
+                'age_to'    => [
+                    'nullable',
+                    'integer',
+                    'min:0',
+                    'max:120',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if (!is_null($value) && $value < $request->input('age_from')) {
+                            $fail(__('m_tours.prices.validation.age_to_greater_equal'));
+                        }
+                    },
+                ],
+                'is_active' => ['nullable', 'boolean'],
+            ]);
+            Log::info('quickStoreCategory: Validation passed', $data);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('quickStoreCategory: Validation failed', $e->errors());
+            throw $e;
+        }
 
         $userId = optional($request->user())->user_id ?? $request->user()?->getAuthIdentifier();
 
-        $baseSlug = \Illuminate\Support\Str::slug($data['name']);
-        $slug = $baseSlug;
-        $i = 1;
-        while (\App\Models\CustomerCategory::where('slug', $slug)->exists()) {
-            $slug = $baseSlug . '-' . $i++;
+        // Slug is now provided by the user
+        $slug = $data['slug'];
+        Log::info('quickStoreCategory: Using provided slug', ['slug' => $slug]);
+
+        try {
+            $category = DB::transaction(function () use ($data, $slug, $translator) {
+                Log::info('quickStoreCategory: Creating category base');
+                $category = \App\Models\CustomerCategory::create([
+                    'slug'      => $slug,
+                    'age_from'  => $data['age_from'],
+                    'age_to'    => $data['age_to'], // Can be null
+                    'is_active' => $data['is_active'] ?? true,
+                ]);
+                Log::info('quickStoreCategory: Category base created', ['id' => $category->category_id]);
+
+                Log::info('quickStoreCategory: Translating name');
+                $nameTr = $translator->translateAll($data['name']);
+                Log::info('quickStoreCategory: Translations received', $nameTr);
+
+                foreach (supported_locales() as $locale) {
+                    CustomerCategoryTranslation::create([
+                        'category_id' => $category->category_id,
+                        'locale'      => $locale,
+                        'name'        => $nameTr[$locale] ?? $data['name'],
+                    ]);
+                }
+                Log::info('quickStoreCategory: Translations saved');
+
+                return $category;
+            });
+
+            LoggerHelper::mutated(
+                'TourWizardController',
+                'quickStoreCategory',
+                'customer_category',
+                $category->category_id ?? $category->getKey(),
+                [
+                    'user_id'   => $userId,
+                    'age_from'  => $category->age_from,
+                    'age_to'    => $category->age_to,
+                    'is_active' => $category->is_active,
+                ]
+            );
+
+            $ageLabel = $category->age_from . ' - ' . $category->age_to;
+
+            Log::info('quickStoreCategory: Success', ['id' => $category->category_id]);
+
+            return response()->json([
+                'id'        => $category->category_id,
+                'name'      => $category->getTranslatedName(), // Use helper method
+                'age_range' => $ageLabel,
+                'slug'      => $category->slug,
+                'message'   => __('m_tours.prices.quick_category.created_ok'),
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('quickStoreCategory: Exception caught', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            LoggerHelper::exception(
+                'TourWizardController',
+                'quickStoreCategory',
+                'customer_category',
+                null,
+                $e,
+                ['user_id' => $userId]
+            );
+            return response()->json(['message' => 'Error creating category: ' . $e->getMessage()], 500);
         }
-
-        $category = \App\Models\CustomerCategory::create([
-            'name'      => $data['name'],
-            'slug'      => $slug,
-            'age_from'  => $data['age_from'],
-            'age_to'    => $data['age_to'],
-            'is_active' => $data['is_active'] ?? true,
-        ]);
-
-        LoggerHelper::mutated(
-            'TourWizardController',
-            'quickStoreCategory',
-            'customer_category',
-            $category->category_id ?? $category->getKey(),
-            [
-                'user_id'   => $userId,
-                'age_from'  => $category->age_from,
-                'age_to'    => $category->age_to,
-                'is_active' => $category->is_active,
-            ]
-        );
-
-        $ageLabel = $category->age_from . ' - ' . $category->age_to;
-
-        return response()->json([
-            'id'        => $category->category_id,
-            'name'      => $category->name,
-            'age_range' => $ageLabel,
-            'slug'      => $category->slug,
-            'message'   => __('m_tours.pricing.quick_category.created_ok'),
-        ], 201);
     }
 }

@@ -21,6 +21,7 @@ return [
     // [01] COMMON
     // =========================================================
     'common' => [
+        'optional' => 'Optional',
         'success_title' => 'Success',
         'error_title'   => 'Error',
         'people' => 'people',
@@ -1315,6 +1316,7 @@ return [
             'error_title'           => 'Error',
             'error_generic'         => 'There was a problem creating the category.',
             'created_ok'            => 'Category created successfully.',
+            'no_limit'              => 'Empty for no limit',
         ],
 
         'validation' => [

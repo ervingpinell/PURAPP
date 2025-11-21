@@ -28,7 +28,13 @@ class StoreAmenityRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['bail', 'required', 'string', 'max:255', Rule::unique('amenities', 'name')],
+            'name' => [
+                'bail',
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('amenity_translations', 'name')->where('locale', 'es'),
+            ],
         ];
     }
 

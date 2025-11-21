@@ -75,6 +75,7 @@
             opacity: 0;
             transform: translateY(-20px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
@@ -84,7 +85,7 @@
     /* Tarjetas con tema oscuro */
     .prices-card {
         border: none;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         margin-bottom: 1.25rem;
         border-radius: 0.5rem;
         overflow: hidden;
@@ -95,7 +96,7 @@
         padding: 0.75rem 1rem;
         font-weight: 600;
         font-size: 0.95rem;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         background: #3a4556;
         color: #e2e8f0;
     }
@@ -167,7 +168,7 @@
     .price-card {
         background: #3a4556;
         border: 1px solid #4a5568;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     .price-card .card-header {
@@ -232,7 +233,7 @@
     .navigation-footer {
         background: #2d3748;
         border: none;
-        box-shadow: 0 -2px 8px rgba(0,0,0,0.15);
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
         padding: 1.25rem;
         border-radius: 0.5rem;
         margin-top: 2rem;
@@ -246,7 +247,7 @@
 
     .modal-header {
         background: #3a4556;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         color: #e2e8f0;
     }
 
@@ -287,7 +288,7 @@
 
     .modal-footer {
         background: #3a4556;
-        border-top: 1px solid rgba(255,255,255,0.1);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     /* Switch mejorado */
@@ -312,7 +313,7 @@
         background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
         color: white;
         transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
 
     .btn-success {
@@ -326,7 +327,7 @@
         background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
         color: white;
         transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
 
     .btn-secondary {
@@ -340,7 +341,7 @@
         background: #5a6778;
         color: white;
         transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
 
     .btn-danger {
@@ -354,7 +355,7 @@
         background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
         color: white;
         transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
 
     /* Responsive */
@@ -382,7 +383,7 @@
             padding: 0.75rem;
         }
 
-        .price-card .row > div {
+        .price-card .row>div {
             margin-bottom: 1rem;
         }
 
@@ -426,8 +427,8 @@
 
                 <div class="header-actions">
                     <a href="{{ route('admin.customer_categories.index') }}"
-                       class="btn btn-primary btn-sm"
-                       title="{{ __('m_tours.prices.quick_category.go_to_index_title') }}">
+                        class="btn btn-primary btn-sm"
+                        title="{{ __('m_tours.prices.quick_category.go_to_index_title') }}">
                         <i class="fas fa-list"></i>
                         <span class="d-none d-md-inline">
                             {{ __('m_tours.prices.quick_category.go_to_index') }}
@@ -435,9 +436,9 @@
                     </a>
 
                     <button type="button"
-                            class="btn btn-success btn-sm"
-                            data-toggle="modal"
-                            data-target="#modalQuickCategory">
+                        class="btn btn-success btn-sm"
+                        data-toggle="modal"
+                        data-target="#modalQuickCategory">
                         <i class="fas fa-plus"></i>
                         <span class="d-none d-md-inline">
                             {{ __('m_tours.prices.quick_category.button') }}
@@ -454,8 +455,8 @@
                 </div>
 
                 @php
-                    $existingPrices = $tour->prices->keyBy('category_id');
-                    $currency = config('app.currency_symbol', '$');
+                $existingPrices = $tour->prices->keyBy('category_id');
+                $currency = config('app.currency_symbol', '$');
                 @endphp
 
                 {{-- Selector para agregar categorías --}}
@@ -468,120 +469,120 @@
                         <select id="category-selector" class="form-control mb-2 mb-sm-0 mr-sm-2 flex-grow-1">
                             <option value="">{{ __('m_tours.tour.pricing.choose_category_placeholder') }}</option>
                             @foreach($categories ?? [] as $category)
-                                @php
-                                    $catLabel = $category->getTranslatedName() ?: $category->name;
-                                    $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
-                                @endphp
-                                <option
-                                    value="{{ $category->category_id }}"
-                                    data-name="{{ $catLabel }}"
-                                    data-age-range="{{ $ageLabel }}"
-                                    data-slug="{{ $category->slug }}">
-                                    {{ $catLabel }} ({{ $ageLabel }})
-                                </option>
+                            @php
+                            $catLabel = $category->getTranslatedName() ?: $category->name;
+                            $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
+                            @endphp
+                            <option
+                                value="{{ $category->category_id }}"
+                                data-name="{{ $catLabel }}"
+                                data-age-range="{{ $ageLabel }}"
+                                data-slug="{{ $category->slug }}">
+                                {{ $catLabel }} ({{ $ageLabel }})
+                            </option>
                             @endforeach
                         </select>
 
                         <button type="button"
-                                class="btn btn-primary"
-                                id="btn-add-category">
+                            class="btn btn-primary"
+                            id="btn-add-category">
                             <i class="fas fa-plus-circle"></i>
                             {{ __('m_tours.tour.pricing.add_button') }}
                         </button>
                     </div>
                 </div>
 
-{{-- Contenedor de precios --}}
-<div id="prices-container">
-    @forelse($tour->prices as $price)
-        @if($price->category)
-            @php
-                $category = $price->category;
-                $catLabel = $category->getTranslatedName() ?: $category->name;
-                $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
-            @endphp
+                {{-- Contenedor de precios --}}
+                <div id="prices-container">
+                    @forelse($tour->prices as $price)
+                    @if($price->category)
+                    @php
+                    $category = $price->category;
+                    $catLabel = $category->getTranslatedName() ?: $category->name;
+                    $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
+                    @endphp
 
-            <div class="card mb-3 price-card" data-category-id="{{ $category->category_id }}">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="card-title">
-                            {{ $catLabel }}
-                            <small>({{ $ageLabel }})</small>
-                        </h5>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-danger remove-price-card">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-
-                <div class="card-body">
-                    <div class="row">
-                        {{-- Precio --}}
-                        <div class="col-md-4">
-                            <label class="form-label">{{ __('m_tours.tour.pricing.price_usd') }}</label>
-                            <div class="input-group">
-                                <span class="input-group-text">{{ $currency }}</span>
-                                <input
-                                    type="number"
-                                    name="prices[{{ $category->category_id }}][price]"
-                                    class="form-control price-input"
-                                    value="{{ old('prices.'.$category->category_id.'.price', number_format($price->price, 2, '.', '')) }}"
-                                    step="0.01"
-                                    min="0"
-                                    required>
+                    <div class="card mb-3 price-card" data-category-id="{{ $category->category_id }}">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title">
+                                    {{ $catLabel }}
+                                    <small>({{ $ageLabel }})</small>
+                                </h5>
                             </div>
+                            <button type="button" class="btn btn-sm btn-danger remove-price-card">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
 
-                        {{-- Cantidad Mínima --}}
-                        <div class="col-md-3 col-6">
-                            <label class="form-label">{{ __('m_tours.tour.pricing.min_quantity') }}</label>
-                            <input
-                                type="number"
-                                name="prices[{{ $category->category_id }}][min_quantity]"
-                                class="form-control"
-                                value="{{ old('prices.'.$category->category_id.'.min_quantity', $price->min_quantity) }}"
-                                min="0"
-                                max="255">
-                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {{-- Precio --}}
+                                <div class="col-md-4">
+                                    <label class="form-label">{{ __('m_tours.tour.pricing.price_usd') }}</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">{{ $currency }}</span>
+                                        <input
+                                            type="number"
+                                            name="prices[{{ $category->category_id }}][price]"
+                                            class="form-control price-input"
+                                            value="{{ old('prices.'.$category->category_id.'.price', number_format($price->price, 2, '.', '')) }}"
+                                            step="0.01"
+                                            min="0"
+                                            required>
+                                    </div>
+                                </div>
 
-                        {{-- Cantidad Máxima --}}
-                        <div class="col-md-3 col-6">
-                            <label class="form-label">{{ __('m_tours.tour.pricing.max_quantity') }}</label>
-                            <input
-                                type="number"
-                                name="prices[{{ $category->category_id }}][max_quantity]"
-                                class="form-control"
-                                value="{{ old('prices.'.$category->category_id.'.max_quantity', $price->max_quantity) }}"
-                                min="0"
-                                max="255">
-                        </div>
+                                {{-- Cantidad Mínima --}}
+                                <div class="col-md-3 col-6">
+                                    <label class="form-label">{{ __('m_tours.tour.pricing.min_quantity') }}</label>
+                                    <input
+                                        type="number"
+                                        name="prices[{{ $category->category_id }}][min_quantity]"
+                                        class="form-control"
+                                        value="{{ old('prices.'.$category->category_id.'.min_quantity', $price->min_quantity) }}"
+                                        min="0"
+                                        max="255">
+                                </div>
 
-                        {{-- Estado Activo --}}
-                        <div class="col-md-2 col-12">
-                            <label class="form-label d-block">{{ __('m_tours.tour.pricing.status') }}</label>
-                            <div class="form-check form-switch">
-                                <input type="hidden" name="prices[{{ $category->category_id }}][is_active]" value="0">
-                                <input
-                                    class="form-check-input"
-                                    type="checkbox"
-                                    name="prices[{{ $category->category_id }}][is_active]"
-                                    value="1"
-                                    {{ old('prices.'.$category->category_id.'.is_active', $price->is_active) ? 'checked' : '' }}>
+                                {{-- Cantidad Máxima --}}
+                                <div class="col-md-3 col-6">
+                                    <label class="form-label">{{ __('m_tours.tour.pricing.max_quantity') }}</label>
+                                    <input
+                                        type="number"
+                                        name="prices[{{ $category->category_id }}][max_quantity]"
+                                        class="form-control"
+                                        value="{{ old('prices.'.$category->category_id.'.max_quantity', $price->max_quantity) }}"
+                                        min="0"
+                                        max="255">
+                                </div>
+
+                                {{-- Estado Activo --}}
+                                <div class="col-md-2 col-12">
+                                    <label class="form-label d-block">{{ __('m_tours.tour.pricing.status') }}</label>
+                                    <div class="form-check form-switch">
+                                        <input type="hidden" name="prices[{{ $category->category_id }}][is_active]" value="0">
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="prices[{{ $category->category_id }}][is_active]"
+                                            value="1"
+                                            {{ old('prices.'.$category->category_id.'.is_active', $price->is_active) ? 'checked' : '' }}>
+                                    </div>
+                                </div>
                             </div>
+
+                            <input type="hidden" name="prices[{{ $category->category_id }}][category_id]" value="{{ $category->category_id }}">
                         </div>
                     </div>
-
-                    <input type="hidden" name="prices[{{ $category->category_id }}][category_id]" value="{{ $category->category_id }}">
+                    @endif
+                    @empty
+                    <div class="alert alert-warning" id="no-prices-alert">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        {{ __('m_tours.tour.pricing.no_categories') }}
+                    </div>
+                    @endforelse
                 </div>
-            </div>
-        @endif
-    @empty
-        <div class="alert alert-warning" id="no-prices-alert">
-            <i class="fas fa-exclamation-triangle"></i>
-            {{ __('m_tours.tour.pricing.no_categories') }}
-        </div>
-    @endforelse
-</div>
             </div>
         </div>
 
@@ -590,15 +591,15 @@
             <div class="card-footer navigation-footer">
                 <div class="d-flex justify-content-between align-items-center">
                     <a href="{{ route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 4]) }}"
-                       class="btn btn-secondary">
+                        class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i>
                         {{ __('m_tours.common.previous') }}
                     </a>
 
                     <div class="d-flex gap-2">
                         <a href="{{ route('admin.tours.wizard.cancel', $tour) }}"
-                           class="btn btn-danger"
-                           onclick="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
+                            class="btn btn-danger"
+                            onclick="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
                             <i class="fas fa-trash"></i>
                             <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
                         </a>
@@ -618,10 +619,10 @@
 <div class="modal fade" id="modalQuickCategory" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <form id="quickCategoryForm"
-              action="{{ route('admin.tours.wizard.quick.category') }}"
-              method="POST"
-              class="modal-content"
-              autocomplete="off">
+            action="{{ route('admin.tours.wizard.quick.category') }}"
+            method="POST"
+            class="modal-content"
+            autocomplete="off">
             @csrf
 
             <div class="modal-header">
@@ -630,9 +631,9 @@
                     {{ __('m_tours.prices.quick_category.title') }}
                 </h5>
                 <button type="button"
-                        class="close"
-                        data-dismiss="modal"
-                        aria-label="{{ __('m_tours.common.close') }}">
+                    class="close"
+                    data-dismiss="modal"
+                    aria-label="{{ __('m_tours.common.close') }}">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -644,54 +645,69 @@
                         <span class="text-danger">*</span>
                     </label>
                     <input type="text"
-                           id="quick_category_name"
-                           name="name"
-                           class="form-control"
-                           maxlength="255"
-                           required>
+                        id="quick_category_name"
+                        name="name"
+                        class="form-control"
+                        maxlength="255"
+                        required>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group col-6">
-                        <label for="quick_category_age_from">
-                            {{ __('m_tours.prices.quick_category.age_from') }}
-                            <span class="text-danger">*</span>
-                        </label>
-                        <input type="number"
-                               id="quick_category_age_from"
-                               name="age_from"
-                               class="form-control"
-                               min="0"
-                               max="120"
-                               required>
-                    </div>
-                    <div class="form-group col-6">
-                        <label for="quick_category_age_to">
-                            {{ __('m_tours.prices.quick_category.age_to') }}
-                            <span class="text-danger">*</span>
-                        </label>
-                        <input type="number"
-                               id="quick_category_age_to"
-                               name="age_to"
-                               class="form-control"
-                               min="0"
-                               max="120"
-                               required>
+                <div class="form-group">
+                    <label for="quick_category_slug">
+                        Slug
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input type="text"
+                        id="quick_category_slug"
+                        name="slug"
+                        class="form-control"
+                        maxlength="255"
+                        required>
+                    <small class="form-text text-muted">
+                        {{ __('m_tours.tour.ui.slug_help') ?? 'Identificador único URL amigable' }}
+                    </small>
+
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label for="quick_category_age_from">
+                                {{ __('m_tours.prices.quick_category.age_from') }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="number"
+                                id="quick_category_age_from"
+                                name="age_from"
+                                class="form-control"
+                                min="0"
+                                max="120"
+                                required>
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="quick_category_age_to">
+                                {{ __('m_tours.prices.quick_category.age_to') }}
+                                <small class="text-muted">({{ __('m_tours.common.optional') ?? 'Opcional' }})</small>
+                            </label>
+                            <input type="number"
+                                id="quick_category_age_to"
+                                name="age_to"
+                                class="form-control"
+                                min="0"
+                                max="120"
+                                placeholder="{{ __('m_tours.prices.quick_category.no_limit') ?? 'Sin límite' }}">
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-save"></i>
-                    {{ __('m_tours.prices.quick_category.save') }}
-                </button>
-                <button type="button"
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i>
+                        {{ __('m_tours.prices.quick_category.save') }}
+                    </button>
+                    <button type="button"
                         class="btn btn-secondary"
                         data-dismiss="modal">
-                    {{ __('m_tours.prices.quick_category.cancel') }}
-                </button>
-            </div>
+                        {{ __('m_tours.prices.quick_category.cancel') }}
+                    </button>
+                </div>
         </form>
     </div>
 </div>
@@ -700,52 +716,52 @@
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const categorySelector = document.getElementById('category-selector');
-    const addCategoryBtn   = document.getElementById('btn-add-category');
-    const pricesContainer  = document.getElementById('prices-container');
-    const noAlert          = document.getElementById('no-prices-alert');
-    const quickForm        = document.getElementById('quickCategoryForm');
-    const mainForm         = document.querySelector('form[action*="store.prices"]');
-    const currency         = @json(config('app.currency_symbol', '$'));
+    document.addEventListener('DOMContentLoaded', function() {
+        const categorySelector = document.getElementById('category-selector');
+        const addCategoryBtn = document.getElementById('btn-add-category');
+        const pricesContainer = document.getElementById('prices-container');
+        const noAlert = document.getElementById('no-prices-alert');
+        const quickForm = document.getElementById('quickCategoryForm');
+        const mainForm = document.querySelector('form[action*="store.prices"]');
+        const currency = @json(config('app.currency_symbol', '$'));
 
-    // ============================================================
-    // TRADUCCIONES
-    // ============================================================
-    const i18n = {
-        alreadyAdded:        @json(__('m_tours.tour.pricing.already_added') ?? 'Esta categoría ya fue agregada'),
-        saving:              @json(__('m_tours.prices.quick_category.saving') ?? 'Guardando...'),
-        successTitle:        @json(__('m_tours.prices.quick_category.success_title') ?? 'Éxito'),
-        successText:         @json(__('m_tours.prices.quick_category.success_text') ?? 'Categoría creada exitosamente'),
-        errorTitle:          @json(__('m_tours.prices.quick_category.error_title') ?? 'Error'),
-        errorGeneric:        @json(__('m_tours.prices.quick_category.error_generic') ?? 'Ocurrió un error al crear la categoría'),
-        priceLabel:          @json(__('m_tours.tour.pricing.price_usd') ?? 'Precio (USD)'),
-        minLabel:            @json(__('m_tours.tour.pricing.min_quantity') ?? 'Cantidad Mínima'),
-        maxLabel:            @json(__('m_tours.tour.pricing.max_quantity') ?? 'Cantidad Máxima'),
-        statusLabel:         @json(__('m_tours.tour.pricing.status') ?? 'Estado'),
-        validationTitle:     @json(__('m_tours.prices.validation.title') ?? 'Validación de Precios'),
-        noCategoriesError:   @json(__('m_tours.prices.validation.no_categories') ?? 'Debes agregar al menos una categoría de precio'),
-        noPriceGreaterZero:  @json(__('m_tours.prices.validation.no_price_greater_zero') ?? 'Debe haber al menos una categoría con precio mayor a $0.00'),
-        categoryNameRequired: @json(__('validation.required', ['attribute' => __('m_tours.prices.quick_category.name_label')]) ?? 'El nombre es obligatorio'),
-        ageFromRequired:     @json(__('validation.required', ['attribute' => __('m_tours.prices.quick_category.age_from')]) ?? 'La edad desde es obligatoria'),
-        ageToRequired:       @json(__('validation.required', ['attribute' => __('m_tours.prices.quick_category.age_to')]) ?? 'La edad hasta es obligatoria'),
-        ageToGreaterOrEqual: @json(__('m_tours.prices.validation.age_to_greater_equal') ?? 'La edad hasta debe ser mayor o igual a la edad desde'),
-    };
+        // ============================================================
+        // TRADUCCIONES
+        // ============================================================
+        const i18n = {
+            alreadyAdded: @json(__('m_tours.tour.pricing.already_added') ?? 'Esta categoría ya fue agregada'),
+            saving: @json(__('m_tours.prices.quick_category.saving') ?? 'Guardando...'),
+            successTitle: @json(__('m_tours.prices.quick_category.success_title') ?? 'Éxito'),
+            successText: @json(__('m_tours.prices.quick_category.success_text') ?? 'Categoría creada exitosamente'),
+            errorTitle: @json(__('m_tours.prices.quick_category.error_title') ?? 'Error'),
+            errorGeneric: @json(__('m_tours.prices.quick_category.error_generic') ?? 'Ocurrió un error al crear la categoría'),
+            priceLabel: @json(__('m_tours.tour.pricing.price_usd') ?? 'Precio (USD)'),
+            minLabel: @json(__('m_tours.tour.pricing.min_quantity') ?? 'Cantidad Mínima'),
+            maxLabel: @json(__('m_tours.tour.pricing.max_quantity') ?? 'Cantidad Máxima'),
+            statusLabel: @json(__('m_tours.tour.pricing.status') ?? 'Estado'),
+            validationTitle: @json(__('m_tours.prices.validation.title') ?? 'Validación de Precios'),
+            noCategoriesError: @json(__('m_tours.prices.validation.no_categories') ?? 'Debes agregar al menos una categoría de precio'),
+            noPriceGreaterZero: @json(__('m_tours.prices.validation.no_price_greater_zero') ?? 'Debe haber al menos una categoría con precio mayor a $0.00'),
+            categoryNameRequired: @json(__('validation.required', ['attribute' => __('m_tours.prices.quick_category.name_label')]) ?? 'El nombre es obligatorio'),
+            ageFromRequired: @json(__('validation.required', ['attribute' => __('m_tours.prices.quick_category.age_from')]) ?? 'La edad desde es obligatoria'),
+            ageToRequired: @json(__('validation.required', ['attribute' => __('m_tours.prices.quick_category.age_to')]) ?? 'La edad hasta es obligatoria'),
+            ageToGreaterOrEqual: @json(__('m_tours.prices.validation.age_to_greater_equal') ?? 'La edad hasta debe ser mayor o igual a la edad desde'),
+        };
 
-    // ============================================================
-    // FUNCIÓN PARA MOSTRAR ALERTA DEBAJO DEL HEADER
-    // ============================================================
-    function showValidationAlert(errors) {
-        const container = document.getElementById('validation-alerts-container');
-        if (!container) return;
+        // ============================================================
+        // FUNCIÓN PARA MOSTRAR ALERTA DEBAJO DEL HEADER
+        // ============================================================
+        function showValidationAlert(errors) {
+            const container = document.getElementById('validation-alerts-container');
+            if (!container) return;
 
-        // Limpiar alertas anteriores
-        container.innerHTML = '';
+            // Limpiar alertas anteriores
+            container.innerHTML = '';
 
-        // Crear nueva alerta
-        const alert = document.createElement('div');
-        alert.className = 'validation-alert';
-        alert.innerHTML = `
+            // Crear nueva alerta
+            const alert = document.createElement('div');
+            alert.className = 'validation-alert';
+            alert.innerHTML = `
             <button type="button" class="close-alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -753,63 +769,66 @@ document.addEventListener('DOMContentLoaded', function () {
             <ul>${errors.map(err => '<li>' + err + '</li>').join('')}</ul>
         `;
 
-        container.appendChild(alert);
+            container.appendChild(alert);
 
-        // Agregar evento para cerrar
-        const closeBtn = alert.querySelector('.close-alert');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', function() {
-                alert.remove();
-            });
-        }
-
-        // Scroll a la alerta
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-        // Auto-cerrar después de 10 segundos
-        setTimeout(() => {
-            if (alert.parentNode) {
-                alert.remove();
+            // Agregar evento para cerrar
+            const closeBtn = alert.querySelector('.close-alert');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    alert.remove();
+                });
             }
-        }, 10000);
-    }
 
-    function showError(message) {
-        const text = message || i18n.errorGeneric;
-        if (window.Swal) {
-            Swal.fire({
-                icon: 'error',
-                title: i18n.errorTitle,
-                text: text,
-                confirmButtonColor: '#48bb78',
+            // Scroll a la alerta
+            container.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
             });
-        } else {
-            alert(text);
-        }
-    }
 
-    function showSuccess(message) {
-        const text = message || i18n.successText;
-        if (window.Swal) {
-            Swal.fire({
-                icon: 'success',
-                title: i18n.successTitle,
-                text: text,
-                timer: 1600,
-                showConfirmButton: false
-            });
-        }
-    }
-
-    function createPriceCard(categoryId, categoryName, ageRange) {
-        if (document.querySelector(`[data-category-id="${categoryId}"]`)) {
-            showError(i18n.alreadyAdded);
-            return;
+            // Auto-cerrar después de 10 segundos
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 10000);
         }
 
-        if (noAlert) noAlert.style.display = 'none';
+        function showError(message) {
+            const text = message || i18n.errorGeneric;
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'error',
+                    title: i18n.errorTitle,
+                    text: text,
+                    confirmButtonColor: '#48bb78',
+                });
+            } else {
+                alert(text);
+            }
+        }
 
-        const cardHTML = `
+        function showSuccess(message) {
+            const text = message || i18n.successText;
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'success',
+                    title: i18n.successTitle,
+                    text: text,
+                    timer: 1600,
+                    showConfirmButton: false
+                });
+            }
+        }
+
+        function createPriceCard(categoryId, categoryName, ageRange) {
+            if (document.querySelector(`[data-category-id="${categoryId}"]`)) {
+                showError(i18n.alreadyAdded);
+                return;
+            }
+
+            if (noAlert) noAlert.style.display = 'none';
+
+            const cardHTML = `
             <div class="card mb-3 price-card" data-category-id="${categoryId}">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <div>
@@ -874,286 +893,320 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `;
 
-        pricesContainer.insertAdjacentHTML('beforeend', cardHTML);
-    }
+            pricesContainer.insertAdjacentHTML('beforeend', cardHTML);
+        }
 
-    if (addCategoryBtn) {
-        addCategoryBtn.addEventListener('click', function () {
-            const selectedOption = categorySelector.options[categorySelector.selectedIndex];
-            if (!selectedOption || !selectedOption.value) {
-                return;
-            }
-
-            const categoryId   = selectedOption.value;
-            const categoryName = selectedOption.dataset.name;
-            const ageRange     = selectedOption.dataset.ageRange;
-
-            createPriceCard(categoryId, categoryName, ageRange);
-            categorySelector.value = '';
-        });
-    }
-
-    if (pricesContainer) {
-        pricesContainer.addEventListener('click', function (e) {
-            if (e.target.closest('.remove-price-card')) {
-                const card = e.target.closest('.price-card');
-                if (card) {
-                    card.remove();
-                }
-
-                if (pricesContainer.querySelectorAll('.price-card').length === 0) {
-                    if (noAlert) noAlert.style.display = 'block';
-                }
-            }
-        });
-    }
-
-    // ============================================================
-    // VALIDACIÓN DEL FORMULARIO PRINCIPAL
-    // ============================================================
-    if (mainForm) {
-        mainForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            let errors = [];
-
-            // Validación 1: Al menos una categoría debe estar agregada
-            const priceCards = pricesContainer.querySelectorAll('.price-card');
-
-            if (priceCards.length === 0) {
-                errors.push(i18n.noCategoriesError);
-
-                if (pricesContainer) {
-                    pricesContainer.style.border = '2px solid #f56565';
-                    setTimeout(() => {
-                        pricesContainer.style.border = '';
-                    }, 3000);
-                }
-            } else {
-                // Validación 2: Al menos una categoría debe tener precio > 0
-                let hasPriceGreaterThanZero = false;
-
-                priceCards.forEach(card => {
-                    const priceInput = card.querySelector('.price-input');
-                    if (priceInput) {
-                        const priceValue = parseFloat(priceInput.value);
-                        if (!isNaN(priceValue) && priceValue > 0) {
-                            hasPriceGreaterThanZero = true;
-                        }
-                    }
-                });
-
-                if (!hasPriceGreaterThanZero) {
-                    errors.push(i18n.noPriceGreaterZero);
-
-                    // Resaltar inputs de precio
-                    priceCards.forEach(card => {
-                        const priceInput = card.querySelector('.price-input');
-                        if (priceInput) {
-                            priceInput.classList.add('is-invalid');
-                            setTimeout(() => {
-                                priceInput.classList.remove('is-invalid');
-                            }, 3000);
-                        }
-                    });
-                }
-            }
-
-            // Si hay errores, mostrarlos
-            if (errors.length > 0) {
-                showValidationAlert(errors);
-
-                // Scroll al contenedor de precios
-                if (pricesContainer) {
-                    pricesContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-
-                return false;
-            }
-
-            // Si todo está bien, deshabilitar botón y enviar
-            const submitBtn = mainForm.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + i18n.saving;
-            }
-
-            mainForm.submit();
-        });
-    }
-
-    // ============================================================
-    // VALIDACIÓN DEL MODAL DE QUICK CREATE
-    // ============================================================
-    if (quickForm) {
-        const nameInput = document.getElementById('quick_category_name');
-        const ageFromInput = document.getElementById('quick_category_age_from');
-        const ageToInput = document.getElementById('quick_category_age_to');
-
-        quickForm.addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            let errors = [];
-
-            // Validar nombre
-            if (!nameInput.value.trim()) {
-                errors.push(i18n.categoryNameRequired);
-                nameInput.classList.add('is-invalid');
-            } else {
-                nameInput.classList.remove('is-invalid');
-            }
-
-            // Validar age_from
-            if (!ageFromInput.value.trim()) {
-                errors.push(i18n.ageFromRequired);
-                ageFromInput.classList.add('is-invalid');
-            } else {
-                ageFromInput.classList.remove('is-invalid');
-            }
-
-            // Validar age_to
-            if (!ageToInput.value.trim()) {
-                errors.push(i18n.ageToRequired);
-                ageToInput.classList.add('is-invalid');
-            } else {
-                ageToInput.classList.remove('is-invalid');
-            }
-
-            // Validar que age_to >= age_from
-            if (ageFromInput.value && ageToInput.value) {
-                const ageFrom = parseInt(ageFromInput.value);
-                const ageTo = parseInt(ageToInput.value);
-
-                if (ageTo < ageFrom) {
-                    errors.push(i18n.ageToGreaterOrEqual);
-                    ageToInput.classList.add('is-invalid');
-                }
-            }
-
-            // Si hay errores, mostrarlos
-            if (errors.length > 0) {
-                Swal.fire({
-                    icon: 'error',
-                    title: i18n.errorTitle,
-                    html: '<ul style="text-align: left;">' + errors.map(err => '<li>' + err + '</li>').join('') + '</ul>',
-                    confirmButtonColor: '#48bb78',
-                });
-                return false;
-            }
-
-            const submitBtn    = quickForm.querySelector('button[type="submit"]');
-            const originalHtml = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>' + i18n.saving;
-
-            try {
-                const formData = new FormData(quickForm);
-                const token    = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-                const res  = await fetch(quickForm.action, {
-                    method: 'POST',
-                    headers: token ? {'X-CSRF-TOKEN': token} : {},
-                    body: formData
-                });
-
-                const raw = await res.text();
-                let payload = null;
-                try { payload = raw ? JSON.parse(raw) : null; } catch (e) {}
-
-                if (!res.ok) {
-                    if (res.status === 422 && payload && payload.errors) {
-                        const firstFieldErrors = Object.values(payload.errors)[0] || [];
-                        const firstMessage = firstFieldErrors[0] || i18n.errorGeneric;
-                        showError(firstMessage);
-                    } else if (payload && payload.message) {
-                        showError(payload.message);
-                    } else {
-                        showError();
-                    }
+        if (addCategoryBtn) {
+            addCategoryBtn.addEventListener('click', function() {
+                const selectedOption = categorySelector.options[categorySelector.selectedIndex];
+                if (!selectedOption || !selectedOption.value) {
                     return;
                 }
 
-                const id        = payload.id;
-                const name      = payload.name;
-                const ageRange  = payload.age_range;
-                const message   = payload.message || null;
+                const categoryId = selectedOption.value;
+                const categoryName = selectedOption.dataset.name;
+                const ageRange = selectedOption.dataset.ageRange;
 
-                const opt = document.createElement('option');
-                opt.value        = id;
-                opt.dataset.name = name;
-                opt.dataset.ageRange = ageRange;
-                opt.textContent  = `${name} (${ageRange})`;
-                categorySelector.appendChild(opt);
+                createPriceCard(categoryId, categoryName, ageRange);
+                categorySelector.value = '';
+            });
+        }
 
-                createPriceCard(id, name, ageRange);
-                quickForm.reset();
-
-                // Limpiar clases de validación
-                nameInput.classList.remove('is-invalid');
-                ageFromInput.classList.remove('is-invalid');
-                ageToInput.classList.remove('is-invalid');
-
-                if (window.$ && typeof window.$.fn.modal === 'function') {
-                    window.$('#modalQuickCategory').modal('hide');
-                } else if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-                    window.jQuery('#modalQuickCategory').modal('hide');
-                } else {
-                    const modalEl = document.getElementById('modalQuickCategory');
-                    if (modalEl) {
-                        modalEl.classList.remove('show');
-                        modalEl.style.display = 'none';
+        if (pricesContainer) {
+            pricesContainer.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-price-card')) {
+                    const card = e.target.closest('.price-card');
+                    if (card) {
+                        card.remove();
                     }
-                    document.body.classList.remove('modal-open');
-                    document.querySelectorAll('.modal-backdrop').forEach(function (bd) { bd.remove(); });
+
+                    if (pricesContainer.querySelectorAll('.price-card').length === 0) {
+                        if (noAlert) noAlert.style.display = 'block';
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        // VALIDACIÓN DEL FORMULARIO PRINCIPAL
+        // ============================================================
+        if (mainForm) {
+            mainForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                let errors = [];
+
+                // Validación 1: Al menos una categoría debe estar agregada
+                const priceCards = pricesContainer.querySelectorAll('.price-card');
+
+                if (priceCards.length === 0) {
+                    errors.push(i18n.noCategoriesError);
+
+                    if (pricesContainer) {
+                        pricesContainer.style.border = '2px solid #f56565';
+                        setTimeout(() => {
+                            pricesContainer.style.border = '';
+                        }, 3000);
+                    }
+                } else {
+                    // Validación 2: Al menos una categoría debe tener precio > 0
+                    let hasPriceGreaterThanZero = false;
+
+                    priceCards.forEach(card => {
+                        const priceInput = card.querySelector('.price-input');
+                        if (priceInput) {
+                            const priceValue = parseFloat(priceInput.value);
+                            if (!isNaN(priceValue) && priceValue > 0) {
+                                hasPriceGreaterThanZero = true;
+                            }
+                        }
+                    });
+
+                    if (!hasPriceGreaterThanZero) {
+                        errors.push(i18n.noPriceGreaterZero);
+
+                        // Resaltar inputs de precio
+                        priceCards.forEach(card => {
+                            const priceInput = card.querySelector('.price-input');
+                            if (priceInput) {
+                                priceInput.classList.add('is-invalid');
+                                setTimeout(() => {
+                                    priceInput.classList.remove('is-invalid');
+                                }, 3000);
+                            }
+                        });
+                    }
                 }
 
-                showSuccess(message);
+                // Si hay errores, mostrarlos
+                if (errors.length > 0) {
+                    showValidationAlert(errors);
 
-            } catch (error) {
-                console.error(error);
-                showError();
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalHtml;
-            }
-        });
+                    // Scroll al contenedor de precios
+                    if (pricesContainer) {
+                        pricesContainer.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+                    }
 
-        // Limpiar errores al escribir
-        if (nameInput) {
-            nameInput.addEventListener('input', function() {
-                this.classList.remove('is-invalid');
+                    return false;
+                }
+
+                // Si todo está bien, deshabilitar botón y enviar
+                const submitBtn = mainForm.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + i18n.saving;
+                }
+
+                mainForm.submit();
             });
         }
 
-        if (ageFromInput) {
-            ageFromInput.addEventListener('input', function() {
-                this.classList.remove('is-invalid');
-            });
-        }
-
-        if (ageToInput) {
-            ageToInput.addEventListener('input', function() {
-                this.classList.remove('is-invalid');
-            });
-        }
-    }
-
-    // ============================================================
-    // LIMPIAR MODAL AL ABRIR
-    // ============================================================
-    const modal = document.getElementById('modalQuickCategory');
-    if (modal) {
-        modal.addEventListener('show.bs.modal', function() {
-            quickForm.reset();
+        // ============================================================
+        // VALIDACIÓN DEL MODAL DE QUICK CREATE
+        // ============================================================
+        if (quickForm) {
             const nameInput = document.getElementById('quick_category_name');
             const ageFromInput = document.getElementById('quick_category_age_from');
             const ageToInput = document.getElementById('quick_category_age_to');
 
-            if (nameInput) nameInput.classList.remove('is-invalid');
-            if (ageFromInput) ageFromInput.classList.remove('is-invalid');
-            if (ageToInput) ageToInput.classList.remove('is-invalid');
-        });
-    }
-});
+            quickForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                let errors = [];
+
+                // Validar nombre
+                if (!nameInput.value.trim()) {
+                    errors.push(i18n.categoryNameRequired);
+                    nameInput.classList.add('is-invalid');
+                } else {
+                    nameInput.classList.remove('is-invalid');
+                }
+
+                // Validar age_from
+                if (!ageFromInput.value.trim()) {
+                    errors.push(i18n.ageFromRequired);
+                    ageFromInput.classList.add('is-invalid');
+                } else {
+                    ageFromInput.classList.remove('is-invalid');
+                }
+
+                // Validar age_to
+                // ageTo es opcional, no validamos required
+
+                const ageTo = ageToInput.value.trim();
+                const ageFrom = ageFromInput.value.trim();
+
+                if (ageTo && ageFrom && parseInt(ageTo) < parseInt(ageFrom)) {
+                    errors.push(i18n.ageToGreaterOrEqual);
+                    ageToInput.classList.add('is-invalid');
+                }
+
+                // Si hay errores, mostrarlos
+                if (errors.length > 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: i18n.errorTitle,
+                        html: '<ul style="text-align: left;">' + errors.map(err => '<li>' + err + '</li>').join('') + '</ul>',
+                        confirmButtonColor: '#48bb78',
+                    });
+                    return false;
+                }
+
+                const submitBtn = quickForm.querySelector('button[type="submit"]');
+                const originalHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>' + i18n.saving;
+
+                try {
+                    const formData = new FormData(quickForm);
+                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+                    const res = await fetch(quickForm.action, {
+                        method: 'POST',
+                        headers: token ? {
+                            'X-CSRF-TOKEN': token
+                        } : {},
+                        body: formData
+                    });
+
+                    const raw = await res.text();
+                    let payload = null;
+                    try {
+                        payload = raw ? JSON.parse(raw) : null;
+                    } catch (e) {}
+
+                    if (!res.ok) {
+                        if (res.status === 422 && payload && payload.errors) {
+                            const firstFieldErrors = Object.values(payload.errors)[0] || [];
+                            const firstMessage = firstFieldErrors[0] || i18n.errorGeneric;
+                            showError(firstMessage);
+                        } else if (payload && payload.message) {
+                            showError(payload.message);
+                        } else {
+                            showError();
+                        }
+                        return;
+                    }
+
+                    const id = payload.id;
+                    const name = payload.name;
+                    const ageRange = payload.age_range;
+                    const message = payload.message || null;
+
+                    const opt = document.createElement('option');
+                    opt.value = id;
+                    opt.dataset.name = name;
+                    opt.dataset.ageRange = ageRange;
+                    opt.textContent = `${name} (${ageRange})`;
+                    categorySelector.appendChild(opt);
+
+                    createPriceCard(id, name, ageRange);
+                    quickForm.reset();
+
+                    // Limpiar clases de validación
+                    nameInput.classList.remove('is-invalid');
+                    ageFromInput.classList.remove('is-invalid');
+                    ageToInput.classList.remove('is-invalid');
+
+                    if (window.$ && typeof window.$.fn.modal === 'function') {
+                        window.$('#modalQuickCategory').modal('hide');
+                    } else if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+                        window.jQuery('#modalQuickCategory').modal('hide');
+                    } else {
+                        const modalEl = document.getElementById('modalQuickCategory');
+                        if (modalEl) {
+                            modalEl.classList.remove('show');
+                            modalEl.style.display = 'none';
+                        }
+                        document.body.classList.remove('modal-open');
+                        document.querySelectorAll('.modal-backdrop').forEach(function(bd) {
+                            bd.remove();
+                        });
+                    }
+
+                    showSuccess(message);
+
+                } catch (error) {
+                    console.error(error);
+                    showError();
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
+                }
+            });
+
+            // Limpiar errores al escribir
+            if (nameInput) {
+                nameInput.addEventListener('input', function() {
+                    this.classList.remove('is-invalid');
+                });
+            }
+
+            if (ageFromInput) {
+                ageFromInput.addEventListener('input', function() {
+                    this.classList.remove('is-invalid');
+                });
+            }
+
+            if (ageToInput) {
+                ageToInput.addEventListener('input', function() {
+                    this.classList.remove('is-invalid');
+                });
+            }
+        }
+
+        // ============================================================
+        // LIMPIAR MODAL AL ABRIR
+        // ============================================================
+
+        // ============================================================
+        // AUTO-GENERACIÓN DE SLUG
+        // ============================================================
+        const quickNameField = document.getElementById('quick_category_name');
+        const quickSlugField = document.getElementById('quick_category_slug');
+
+        if (quickNameField && quickSlugField) {
+            quickNameField.addEventListener('input', function(e) {
+                if (!quickSlugField.value || quickSlugField.dataset.autogenerated === 'true') {
+                    const slug = e.target.value
+                        .toLowerCase()
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                    quickSlugField.value = slug;
+                    quickSlugField.dataset.autogenerated = 'true';
+                }
+            });
+
+            quickSlugField.addEventListener('input', function() {
+                if (this.value) {
+                    this.dataset.autogenerated = 'false';
+                }
+            });
+        }
+
+        // Limpiar modal al abrir
+        const modal = document.getElementById('modalQuickCategory');
+        if (modal) {
+            modal.addEventListener('show.bs.modal', function() {
+                const form = document.getElementById('quickCategoryForm');
+                if (form) form.reset();
+
+                if (quickSlugField) quickSlugField.dataset.autogenerated = 'true';
+
+                const nameInput = document.getElementById('quick_category_name');
+                const ageFromInput = document.getElementById('quick_category_age_from');
+                const ageToInput = document.getElementById('quick_category_age_to');
+
+                if (nameInput) nameInput.classList.remove('is-invalid');
+                if (ageFromInput) ageFromInput.classList.remove('is-invalid');
+                if (ageToInput) ageToInput.classList.remove('is-invalid');
+            });
+        }
+    });
 </script>
 @endpush

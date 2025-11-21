@@ -1277,6 +1277,7 @@ return [
             'error_title'           => 'Erreur',
             'error_generic'         => 'Un problème est survenu lors de la création de la catégorie.',
             'created_ok'            => 'Catégorie créée avec succès.',
+            'no_limit'              => 'Vide pour sans limite',
         ],
 
         'validation' => [

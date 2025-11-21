@@ -17,44 +17,48 @@ class UpdateAmenityRequest extends FormRequest
         return true;
     }
 
-    protected function prepareForValidation(): void
-    {
-        $name = (string) $this->string('name')->trim()->squish();
 
-        $this->merge([
-            'name' => $name,
-        ]);
-    }
 
     public function rules(): array
     {
         /** @var Amenity|null $amenity */
         $amenity = $this->route('amenity');
-
-        return [
-            'name' => [
-                'bail', 'required', 'string', 'max:255',
-                Rule::unique('amenities', 'name')
-                    ->ignore($amenity?->getKey(), $amenity?->getKeyName() ?? 'amenity_id'),
-            ],
+        $rules = [
+            'translations' => ['required', 'array'],
         ];
+
+        foreach (supported_locales() as $locale) {
+            $rules["translations.$locale"] = [
+                'bail',
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('amenity_translations', 'name')
+                    ->where('locale', $locale)
+                    ->ignore($amenity?->amenity_id, 'amenity_id'),
+            ];
+        }
+
+        return $rules;
     }
 
     public function messages(): array
     {
         return [
-            'name.required' => 'El nombre de la amenidad es obligatorio.',
-            'name.string'   => 'El nombre debe ser texto.',
-            'name.max'      => 'El nombre no puede superar 255 caracteres.',
-            'name.unique'   => 'Ya existe una amenidad con ese nombre.',
+            'translations.*.required' => 'El nombre de la amenidad es obligatorio para todos los idiomas.',
+            'translations.*.string'   => 'El nombre debe ser texto.',
+            'translations.*.max'      => 'El nombre no puede superar 255 caracteres.',
+            'translations.*.unique'   => 'Ya existe una amenidad con ese nombre en ese idioma.',
         ];
     }
 
     public function attributes(): array
     {
-        return [
-            'name' => 'Nombre de la amenidad',
-        ];
+        $attributes = [];
+        foreach (supported_locales() as $locale) {
+            $attributes["translations.$locale"] = "Nombre ($locale)";
+        }
+        return $attributes;
     }
 
     protected function failedValidation(Validator $validator)

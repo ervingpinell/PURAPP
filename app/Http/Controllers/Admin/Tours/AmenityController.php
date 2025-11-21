@@ -18,7 +18,7 @@ class AmenityController extends Controller
 
     public function index()
     {
-        $amenities = Amenity::orderBy('name')->get();
+        $amenities = Amenity::with('translations')->get()->sortBy('name');
         return view('admin.tours.amenities.index', compact('amenities'));
     }
 
@@ -30,13 +30,15 @@ class AmenityController extends Controller
             $amenity = DB::transaction(function () use ($request, $translator, $locales) {
                 $name = $request->string('name')->trim();
 
+                // Create amenity without name field
                 $amenity = Amenity::create([
-                    'name'      => $name,
                     'is_active' => true,
                 ]);
 
+                // Translate to all locales
                 $translated = $translator->translateAll($name);
 
+                // Create translations for all locales
                 foreach ($locales as $locale) {
                     AmenityTranslation::create([
                         'amenity_id' => $amenity->amenity_id,
@@ -67,7 +69,6 @@ class AmenityController extends Controller
             return redirect()
                 ->route('admin.tours.amenities.index')
                 ->with('success', __('m_tours.amenity.success.created'));
-
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'amenity', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -80,9 +81,13 @@ class AmenityController extends Controller
     public function update(UpdateAmenityRequest $request, Amenity $amenity)
     {
         try {
-            $amenity->update([
-                'name' => $request->string('name')->trim(),
-            ]);
+            // Update translations for each locale
+            foreach ($request->input('translations', []) as $locale => $name) {
+                $amenity->translations()->updateOrCreate(
+                    ['locale' => $locale],
+                    ['name' => trim($name)]
+                );
+            }
 
             LoggerHelper::mutated($this->controller, 'update', 'amenity', $amenity->amenity_id, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -91,7 +96,6 @@ class AmenityController extends Controller
             return redirect()
                 ->route('admin.tours.amenities.index')
                 ->with('success', __('m_tours.amenity.success.updated'));
-
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'update', 'amenity', $amenity->amenity_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -120,7 +124,6 @@ class AmenityController extends Controller
             return redirect()
                 ->route('admin.tours.amenities.index')
                 ->with('success', $msg);
-
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'toggle', 'amenity', $amenity->amenity_id, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
@@ -144,7 +147,6 @@ class AmenityController extends Controller
             return redirect()
                 ->route('admin.tours.amenities.index')
                 ->with('success', __('m_tours.amenity.success.deleted'));
-
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy', 'amenity', $amenity->amenity_id ?? null, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),

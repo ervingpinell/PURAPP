@@ -93,7 +93,7 @@ class TourController extends Controller
             ->sortBy('name');
         $itineraries = Itinerary::where('is_active', true)->with(['allItems.translations', 'translations'])->get();
         $languages   = TourLanguage::where('is_active', true)->orderBy('name')->get();
-        $amenities   = Amenity::where('is_active', true)->orderBy('name')->get();
+        $amenities   = Amenity::where('is_active', true)->with('translations')->get()->sortBy('name');
         $schedules   = Schedule::where('is_active', true)->orderBy('start_time')->get();
         $hotels      = HotelList::where('is_active', true)->orderBy('name')->get();
 
@@ -139,7 +139,7 @@ class TourController extends Controller
             ->get();
         $schedules = Schedule::where('is_active', true)->orderBy('start_time')->get();
         $languages = TourLanguage::where('is_active', true)->orderBy('name')->get();
-        $amenities = Amenity::where('is_active', true)->orderBy('name')->get();
+        $amenities = Amenity::where('is_active', true)->with('translations')->get()->sortBy('name');
 
         // JSON para el manejo dinámico de itinerarios
         $itineraryJson = $itineraries->keyBy('itinerary_id')->map(function ($it) {

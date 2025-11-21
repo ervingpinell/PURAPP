@@ -21,6 +21,7 @@ return [
     // [01] COMMON
     // =========================================================
     'common' => [
+        'open' => 'Öffnen',
         'success_title' => 'Erfolg',
         'error_title'   => 'Fehler',
         'people' => 'Personen',
@@ -1304,6 +1305,7 @@ return [
             'error_title'           => 'Fehler',
             'error_generic'         => 'Beim Erstellen der Kategorie ist ein Problem aufgetreten.',
             'created_ok'            => 'Kategorie erfolgreich erstellt.',
+            'no_limit'              => 'Leer für ohne Limit',
         ],
 
         'validation' => [

@@ -22,6 +22,7 @@ return [
     // =========================================================
     'common' => [
         'success_title' => 'Éxito',
+        'optional' => 'opcional',
         'error_title'   => 'Error',
         'people' => 'personas',
         'hours' => 'horas',
@@ -1313,6 +1314,7 @@ return [
             'error_title'           => 'Error',
             'error_generic'         => 'Ocurrió un problema al crear la categoría.',
             'created_ok'            => 'Categoría creada correctamente.',
+            'no_limit'              => 'Dejar vacío para sin límite',
         ],
 
         'validation' => [
