@@ -55,6 +55,7 @@ use App\Http\Controllers\Admin\API\TourDataController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\EmailChangeController;
 use App\Http\Controllers\Admin\Tours\TourWizardController;
+use App\Http\Controllers\Admin\TaxController;
 
 
 // Public bookings controller (split)
@@ -463,6 +464,12 @@ Route::middleware([SetLocale::class])->group(function () {
                     ->name('customer_categories.toggle');
 
                 // ============================
+                // TAXES
+                // ============================
+                Route::resource('taxes', TaxController::class);
+                Route::post('taxes/{tax}/toggle', [TaxController::class, 'toggle'])->name('taxes.toggle');
+
+                // ============================
                 // API AJAX (tours data) — UNIFICADO
                 // ============================
                 Route::prefix('api')->name('api.')->group(function () {
@@ -629,6 +636,7 @@ Route::middleware([SetLocale::class])->group(function () {
                         Route::put('/{price}', [TourPriceController::class, 'update'])->name('update');
                         Route::post('/{price}/toggle', [TourPriceController::class, 'toggle'])->name('toggle');
                         Route::delete('/{price}', [TourPriceController::class, 'destroy'])->name('destroy');
+                        Route::post('/update-taxes', [TourPriceController::class, 'updateTaxes'])->name('update-taxes');
                     });
 
                     // -------------------- IMAGES --------------------

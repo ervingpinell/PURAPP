@@ -317,7 +317,7 @@
                   $category = $priceRecord->category;
                   $label = $catName($category);
                   $ageText = $ageRangeText($category);
-                  $amount = (float) $priceRecord->price;
+                  $amount = (float) $priceRecord->price_with_tax;
                   @endphp
                   <div class="d-flex justify-content-between tours-index-price-row">
                     <div class="tours-index-price-label">

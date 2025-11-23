@@ -72,6 +72,7 @@ return [
         'review_settings' => 'Review Settings',
         'tour_settings' => 'Tour Settings',
         'general' => 'General',
+        'taxes' => 'Taxes',
         'app_settings' => 'App Settings',
         'app' => 'App',
 ];

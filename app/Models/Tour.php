@@ -512,7 +512,7 @@ class Tour extends Model
     public function getAdultPriceAttribute(): ?float
     {
         $adultPrice = $this->getPriceForCategory('adult');
-        return $adultPrice ? (float) $adultPrice->price : null;
+        return $adultPrice ? (float) $adultPrice->price_with_tax : null;
     }
 
     /**
@@ -522,7 +522,17 @@ class Tour extends Model
     public function getKidPriceAttribute(): ?float
     {
         $kid = $this->getPriceForCategory('kid') ?: $this->getPriceForCategory('child');
-        return $kid ? (float) $kid->price : null;
+        return $kid ? (float) $kid->price_with_tax : null;
+    }
+
+    /**
+     * Relación polimórfica con impuestos
+     */
+    public function taxes()
+    {
+        return $this->morphToMany(Tax::class, 'taxable', 'taxables', 'taxable_id', 'tax_id')
+            ->where('is_active', true)
+            ->orderBy('sort_order');
     }
 
     public function images()

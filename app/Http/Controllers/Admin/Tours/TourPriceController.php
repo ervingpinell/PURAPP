@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Tour;
 use App\Models\TourPrice;
 use App\Models\CustomerCategory;
+use App\Models\Tax;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -29,7 +30,9 @@ class TourPriceController extends Controller
             ->whereNotIn('category_id', $tour->prices()->pluck('category_id'))
             ->get();
 
-        return view('admin.tours.prices.index', compact('tour', 'availableCategories'));
+        $taxes = Tax::active()->orderBy('sort_order')->get();
+
+        return view('admin.tours.prices.index', compact('tour', 'availableCategories', 'taxes'));
     }
 
     /**
@@ -236,6 +239,34 @@ class TourPriceController extends Controller
             ]);
 
             return back()->with('error', 'Error al eliminar categoría.');
+        }
+    }
+
+    /**
+     * Actualiza los impuestos asignados al tour
+     */
+    public function updateTaxes(Request $request, Tour $tour)
+    {
+        $validated = $request->validate([
+            'taxes' => 'array',
+            'taxes.*' => 'exists:taxes,tax_id',
+        ]);
+
+        try {
+            $tour->taxes()->sync($validated['taxes'] ?? []);
+
+            LoggerHelper::mutated($this->controller, 'updateTaxes', 'tours', $tour->tour_id, [
+                'taxes' => $validated['taxes'] ?? [],
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('success', 'Impuestos actualizados exitosamente.');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'updateTaxes', 'tours', $tour->tour_id, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('error', 'Error al actualizar impuestos: ' . $e->getMessage());
         }
     }
 }

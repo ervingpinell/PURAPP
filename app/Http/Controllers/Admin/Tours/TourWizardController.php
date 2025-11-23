@@ -12,7 +12,8 @@ use App\Models\{
     Schedule,
     Itinerary,
     ItineraryItem,
-    CustomerCategory
+    CustomerCategory,
+    Tax
 };
 use App\Services\{LoggerHelper, DraftLimitService};
 use Illuminate\Http\Request;
@@ -663,6 +664,7 @@ class TourWizardController extends Controller
                     ->ordered()
                     ->with('translations')
                     ->get();
+                $data['taxes'] = Tax::where('is_active', true)->orderBy('sort_order')->get();
                 break;
         }
 
@@ -1025,6 +1027,8 @@ class TourWizardController extends Controller
             'prices.*.min_quantity' => 'nullable|integer|min:0',
             'prices.*.max_quantity' => 'nullable|integer|min:0',
             'prices.*.is_active'    => 'boolean',
+            'taxes'                 => 'nullable|array',
+            'taxes.*'               => 'exists:taxes,tax_id',
         ], [
             'prices.required' => __('m_tours.prices.validation.no_categories') ?? 'Debes agregar al menos una categoría de precio.',
             'prices.min' => __('m_tours.prices.validation.no_categories') ?? 'Debes agregar al menos una categoría de precio.',
@@ -1061,6 +1065,13 @@ class TourWizardController extends Controller
                     'max_quantity' => $priceData['max_quantity'] ?? 12,
                     'is_active'    => $priceData['is_active'] ?? true,
                 ]);
+            }
+
+            // Sincronizar impuestos
+            if (isset($data['taxes'])) {
+                $tour->taxes()->sync($data['taxes']);
+            } else {
+                $tour->taxes()->detach();
             }
 
             // Actualizar updated_by

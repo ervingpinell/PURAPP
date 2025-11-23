@@ -15,7 +15,12 @@ class TourPrice extends Model
     protected $appends = ['category_translated', 'quantity_range'];
 
     protected $fillable = [
-        'tour_id','category_id','price','min_quantity','max_quantity','is_active',
+        'tour_id',
+        'category_id',
+        'price',
+        'min_quantity',
+        'max_quantity',
+        'is_active',
     ];
 
     protected $casts = [
@@ -26,21 +31,36 @@ class TourPrice extends Model
     ];
 
     /** Relaciones */
-    public function tour(){ return $this->belongsTo(Tour::class, 'tour_id', 'tour_id'); }
-    public function category(){ return $this->belongsTo(CustomerCategory::class, 'category_id', 'category_id'); }
+    public function tour()
+    {
+        return $this->belongsTo(Tour::class, 'tour_id', 'tour_id');
+    }
+    public function category()
+    {
+        return $this->belongsTo(CustomerCategory::class, 'category_id', 'category_id');
+    }
 
     /** Scopes */
-    public function scopeActive($q){ return $q->where('is_active', true); }
-    public function scopeForTour($q, int $tourId){ return $q->where('tour_id', $tourId); }
-    public function scopeForCategory($q, int $categoryId){ return $q->where('category_id', $categoryId); }
+    public function scopeActive($q)
+    {
+        return $q->where('is_active', true);
+    }
+    public function scopeForTour($q, int $tourId)
+    {
+        return $q->where('tour_id', $tourId);
+    }
+    public function scopeForCategory($q, int $categoryId)
+    {
+        return $q->where('category_id', $categoryId);
+    }
 
     public function scopeOrderByCategoryTranslatedName($q, ?string $locale = null)
     {
         $locale = $locale ? substr($locale, 0, 2) : substr(app()->getLocale() ?? 'es', 0, 2);
         return $q->leftJoin('customer_category_translations as cct', function ($j) use ($locale) {
-                $j->on('cct.category_id', '=', 'tour_prices.category_id')
-                  ->where('cct.locale', '=', $locale);
-            })
+            $j->on('cct.category_id', '=', 'tour_prices.category_id')
+                ->where('cct.locale', '=', $locale);
+        })
             ->orderBy('cct.name')
             ->select('tour_prices.*');
     }
@@ -80,5 +100,33 @@ class TourPrice extends Model
             'min' => $this->min_quantity,
             'max' => $this->max_quantity,
         ]);
+    }
+
+    /**
+     * Obtiene el precio con impuestos incluidos
+     */
+    public function getPriceWithTaxAttribute(): float
+    {
+        $price = (float) $this->price;
+
+        // Evitar N+1 si es posible cargando 'tour.taxes' previamente
+        $tour = $this->tour;
+
+        if (!$tour) {
+            return $price;
+        }
+
+        $taxes = $tour->taxes;
+
+        $totalTax = 0;
+        foreach ($taxes as $tax) {
+            if ($tax->type === 'percentage') {
+                $totalTax += $price * ($tax->rate / 100);
+            } elseif ($tax->type === 'fixed') {
+                $totalTax += $tax->rate;
+            }
+        }
+
+        return round($price + $totalTax, 2);
     }
 }

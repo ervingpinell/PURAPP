@@ -196,9 +196,10 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
         $sign = $operation === 'add' ? '+' : '−';
 
         // Total (preferir el guardado si existe)
-        $grandTotal = (float) ($booking->total ?? max(0, $operation === 'add'
+        $taxesTotal = (float) ($detail->taxes_total ?? 0);
+        $grandTotal = (float) ($booking->total ?? max(0, ($operation === 'add'
         ? $subtotalSnap + $appliedAmount
-        : $subtotalSnap - $appliedAmount));
+        : $subtotalSnap - $appliedAmount) + $taxesTotal));
 
         // ========== HOTEL O MEETING POINT ==========
         $hasHotel = !empty($detail?->hotel_id) || !empty($detail?->other_hotel_name);
@@ -416,6 +417,19 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
                   </dd>
                   @endif
 
+                  {{-- Impuestos --}}
+                  @if(!empty($detail->taxes_breakdown))
+                  @foreach($detail->taxes_breakdown as $tax)
+                  <dt class="col-sm-6 text-muted">
+                    {{ $tax['name'] }}
+                    <small>({{ $tax['rate'] }}{{ $tax['type'] == 'percentage' ? '%' : '' }})</small>:
+                  </dt>
+                  <dd class="col-sm-6 text-muted">
+                    +{{ $currency }}{{ number_format($tax['amount'], 2) }}
+                  </dd>
+                  @endforeach
+                  @endif
+
                   <dt class="col-sm-6"><strong>{{ __('m_bookings.bookings.fields.total') }}:</strong></dt>
                   <dd class="col-sm-6">
                     <strong class="text-success fs-5">{{ $currency }}{{ number_format($grandTotal, 2) }}</strong>
@@ -596,7 +610,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
 <script>
   function togglePickupFields {
     {
-      $booking->booking_id
+      $booking - > booking_id
     }
   }() {
     const hotelRadio = document.getElementById('pickup_hotel_{{ $booking->booking_id }}');
@@ -613,7 +627,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
     }
   }
 
-  @if($detail ?->schedule)
+  @if($detail ? - > schedule)
   // Validate pickup time against tour schedule
   (function() {
     const pickupInput = document.getElementById('pickup_time_{{ $booking->booking_id }}');
@@ -623,7 +637,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
 
     const tourStartHour = {
       {
-        $scheduleStart->hour
+        $scheduleStart - > hour
       }
     };
     const tourPeriod = '{{ $tourPeriod }}';

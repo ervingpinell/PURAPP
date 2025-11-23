@@ -161,6 +161,18 @@ class AppServiceProvider extends ServiceProvider
                 $view->with('toursByType', $toursByType);
             });
         }
+
+        // =========================
+        // Override PayPal config from DB settings
+        // =========================
+        try {
+            // Only if not running in console to avoid migration issues if table doesn't exist
+            if (! $this->app->runningInConsole() || ! $this->app->runningUnitTests()) {
+                config(['payment.gateways.paypal.enabled' => (bool) setting('payment.gateway.paypal', false)]);
+            }
+        } catch (\Throwable $e) {
+            // Ignore errors during bootstrap (e.g. DB not ready)
+        }
     }
 
     /**

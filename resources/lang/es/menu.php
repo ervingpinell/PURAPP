@@ -75,5 +75,5 @@ return [
         'tour_settings' => 'Configuración de tours',
         'app_settings' => 'Configuración de la app',
         'app' => 'App',
-
+        'taxes' => 'Impuestos',
 ];

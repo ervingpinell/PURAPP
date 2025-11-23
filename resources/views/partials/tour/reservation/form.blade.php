@@ -58,7 +58,7 @@ return [
 'id' => (int) $priceRecord->category_id,
 'slug' => $cat?->slug ?? \Illuminate\Support\Str::slug($translatedName),
 'label' => $translatedName, // 👉 nombre traducido disponible para el JS
-'price' => (float) $priceRecord->price,
+'price' => (float) $priceRecord->price_with_tax,
 'min' => (int) $priceRecord->min_quantity,
 'max' => (int) $priceRecord->max_quantity,
 ];

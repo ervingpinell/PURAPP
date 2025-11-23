@@ -427,8 +427,8 @@
 
                 <div class="header-actions">
                     <a href="{{ route('admin.customer_categories.index') }}"
-                       class="btn btn-primary btn-sm"
-                       title="{{ __('m_tours.prices.quick_category.go_to_index_title') }}">
+                        class="btn btn-primary btn-sm"
+                        title="{{ __('m_tours.prices.quick_category.go_to_index_title') }}">
                         <i class="fas fa-list"></i>
                         <span class="d-none d-md-inline">
                             {{ __('m_tours.prices.quick_category.go_to_index') }}
@@ -436,9 +436,9 @@
                     </a>
 
                     <button type="button"
-                            class="btn btn-success btn-sm"
-                            data-toggle="modal"
-                            data-target="#modalQuickCategory">
+                        class="btn btn-success btn-sm"
+                        data-toggle="modal"
+                        data-target="#modalQuickCategory">
                         <i class="fas fa-plus"></i>
                         <span class="d-none d-md-inline">
                             {{ __('m_tours.prices.quick_category.button') }}
@@ -455,8 +455,8 @@
                 </div>
 
                 @php
-                    $existingPrices = $tour->prices->keyBy('category_id');
-                    $currency = config('app.currency_symbol', '$');
+                $existingPrices = $tour->prices->keyBy('category_id');
+                $currency = config('app.currency_symbol', '$');
                 @endphp
 
                 {{-- Selector para agregar categorías --}}
@@ -469,23 +469,23 @@
                         <select id="category-selector" class="form-control mb-2 mb-sm-0 mr-sm-2 flex-grow-1">
                             <option value="">{{ __('m_tours.tour.pricing.choose_category_placeholder') }}</option>
                             @foreach($categories ?? [] as $category)
-                                @php
-                                    $catLabel = $category->getTranslatedName() ?: $category->name;
-                                    $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
-                                @endphp
-                                <option
-                                    value="{{ $category->category_id }}"
-                                    data-name="{{ $catLabel }}"
-                                    data-age-range="{{ $ageLabel }}"
-                                    data-slug="{{ $category->slug }}">
-                                    {{ $catLabel }} ({{ $ageLabel }})
-                                </option>
+                            @php
+                            $catLabel = $category->getTranslatedName() ?: $category->name;
+                            $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
+                            @endphp
+                            <option
+                                value="{{ $category->category_id }}"
+                                data-name="{{ $catLabel }}"
+                                data-age-range="{{ $ageLabel }}"
+                                data-slug="{{ $category->slug }}">
+                                {{ $catLabel }} ({{ $ageLabel }})
+                            </option>
                             @endforeach
                         </select>
 
                         <button type="button"
-                                class="btn btn-primary"
-                                id="btn-add-category">
+                            class="btn btn-primary"
+                            id="btn-add-category">
                             <i class="fas fa-plus-circle"></i>
                             {{ __('m_tours.tour.pricing.add_button') }}
                         </button>
@@ -495,92 +495,135 @@
                 {{-- Contenedor de precios --}}
                 <div id="prices-container">
                     @forelse($tour->prices as $price)
-                        @if($price->category)
-                            @php
-                                $category = $price->category;
-                                $catLabel = $category->getTranslatedName() ?: $category->name;
-                                $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
-                            @endphp
+                    @if($price->category)
+                    @php
+                    $category = $price->category;
+                    $catLabel = $category->getTranslatedName() ?: $category->name;
+                    $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
+                    @endphp
 
-                            <div class="card mb-3 price-card" data-category-id="{{ $category->category_id }}">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5 class="card-title">
-                                            {{ $catLabel }}
-                                            <small>({{ $ageLabel }})</small>
-                                        </h5>
+                    <div class="card mb-3 price-card" data-category-id="{{ $category->category_id }}">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title">
+                                    {{ $catLabel }}
+                                    <small>({{ $ageLabel }})</small>
+                                </h5>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-danger remove-price-card">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                {{-- Precio --}}
+                                <div class="col-md-4">
+                                    <label class="form-label">{{ __('m_tours.tour.pricing.price_usd') }}</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">{{ $currency }}</span>
+                                        <input
+                                            type="number"
+                                            name="prices[{{ $category->category_id }}][price]"
+                                            class="form-control price-input"
+                                            value="{{ old('prices.'.$category->category_id.'.price', number_format($price->price, 2, '.', '')) }}"
+                                            step="0.01"
+                                            min="0"
+                                            required>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-danger remove-price-card">
-                                        <i class="fas fa-times"></i>
-                                    </button>
                                 </div>
 
-                                <div class="card-body">
-                                    <div class="row">
-                                        {{-- Precio --}}
-                                        <div class="col-md-4">
-                                            <label class="form-label">{{ __('m_tours.tour.pricing.price_usd') }}</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">{{ $currency }}</span>
-                                                <input
-                                                    type="number"
-                                                    name="prices[{{ $category->category_id }}][price]"
-                                                    class="form-control price-input"
-                                                    value="{{ old('prices.'.$category->category_id.'.price', number_format($price->price, 2, '.', '')) }}"
-                                                    step="0.01"
-                                                    min="0"
-                                                    required>
-                                            </div>
-                                        </div>
+                                {{-- Cantidad Mínima --}}
+                                <div class="col-md-3 col-6">
+                                    <label class="form-label">{{ __('m_tours.tour.pricing.min_quantity') }}</label>
+                                    <input
+                                        type="number"
+                                        name="prices[{{ $category->category_id }}][min_quantity]"
+                                        class="form-control"
+                                        value="{{ old('prices.'.$category->category_id.'.min_quantity', $price->min_quantity) }}"
+                                        min="0"
+                                        max="255">
+                                </div>
 
-                                        {{-- Cantidad Mínima --}}
-                                        <div class="col-md-3 col-6">
-                                            <label class="form-label">{{ __('m_tours.tour.pricing.min_quantity') }}</label>
-                                            <input
-                                                type="number"
-                                                name="prices[{{ $category->category_id }}][min_quantity]"
-                                                class="form-control"
-                                                value="{{ old('prices.'.$category->category_id.'.min_quantity', $price->min_quantity) }}"
-                                                min="0"
-                                                max="255">
-                                        </div>
+                                {{-- Cantidad Máxima --}}
+                                <div class="col-md-3 col-6">
+                                    <label class="form-label">{{ __('m_tours.tour.pricing.max_quantity') }}</label>
+                                    <input
+                                        type="number"
+                                        name="prices[{{ $category->category_id }}][max_quantity]"
+                                        class="form-control"
+                                        value="{{ old('prices.'.$category->category_id.'.max_quantity', $price->max_quantity) }}"
+                                        min="0"
+                                        max="255">
+                                </div>
 
-                                        {{-- Cantidad Máxima --}}
-                                        <div class="col-md-3 col-6">
-                                            <label class="form-label">{{ __('m_tours.tour.pricing.max_quantity') }}</label>
-                                            <input
-                                                type="number"
-                                                name="prices[{{ $category->category_id }}][max_quantity]"
-                                                class="form-control"
-                                                value="{{ old('prices.'.$category->category_id.'.max_quantity', $price->max_quantity) }}"
-                                                min="0"
-                                                max="255">
-                                        </div>
-
-                                        {{-- Estado Activo --}}
-                                        <div class="col-md-2 col-12">
-                                            <label class="form-label d-block">{{ __('m_tours.tour.pricing.status') }}</label>
-                                            <div class="form-check">
-                                                <input type="hidden" name="prices[{{ $category->category_id }}][is_active]" value="0">
-                                                <input
-                                                    class="form-check-input"
-                                                    type="checkbox"
-                                                    name="prices[{{ $category->category_id }}][is_active]"
-                                                    value="1"
-                                                    {{ old('prices.'.$category->category_id.'.is_active', $price->is_active) ? 'checked' : '' }}>
-                                            </div>
-                                        </div>
+                                {{-- Estado Activo --}}
+                                <div class="col-md-2 col-12">
+                                    <label class="form-label d-block">{{ __('m_tours.tour.pricing.status') }}</label>
+                                    <div class="form-check">
+                                        <input type="hidden" name="prices[{{ $category->category_id }}][is_active]" value="0">
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="prices[{{ $category->category_id }}][is_active]"
+                                            value="1"
+                                            {{ old('prices.'.$category->category_id.'.is_active', $price->is_active) ? 'checked' : '' }}>
                                     </div>
-
-                                    <input type="hidden" name="prices[{{ $category->category_id }}][category_id]" value="{{ $category->category_id }}">
                                 </div>
                             </div>
-                        @endif
-                    @empty
-                        <div class="alert alert-warning" id="no-prices-alert">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            {{ __('m_tours.tour.pricing.no_categories') }}
+
+                            <input type="hidden" name="prices[{{ $category->category_id }}][category_id]" value="{{ $category->category_id }}">
                         </div>
+                    </div>
+                    @endif
+                    @empty
+                    <div class="alert alert-warning" id="no-prices-alert">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        {{ __('m_tours.tour.pricing.no_categories') }}
+                    </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        {{-- IMPUESTOS --}}
+        <div class="card prices-card mt-4">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-percentage"></i>
+                    {{ __('taxes.title') }}
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    {{ __('taxes.messages.select_taxes') ?? 'Seleccione los impuestos que aplican a este tour.' }}
+                </div>
+
+                <div class="row">
+                    @forelse($taxes as $tax)
+                    <div class="col-md-4 col-sm-6 mb-3">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox"
+                                class="custom-control-input"
+                                id="tax_{{ $tax->tax_id }}"
+                                name="taxes[]"
+                                value="{{ $tax->tax_id }}"
+                                {{ $tour->taxes->contains($tax->tax_id) ? 'checked' : '' }}>
+                            <label class="custom-control-label" for="tax_{{ $tax->tax_id }}">
+                                <strong>{{ $tax->name }}</strong> ({{ $tax->rate }}% {{ $tax->type == 'percentage' ? '' : '$' }})
+                                <br>
+                                <small class="text-muted">
+                                    {{ $tax->code }} -
+                                    {{ __('taxes.apply_to_options.' . $tax->apply_to) }}
+                                </small>
+                            </label>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="col-12">
+                        <p class="text-muted">{{ __('m_general.no_records') }}</p>
+                    </div>
                     @endforelse
                 </div>
             </div>
@@ -590,24 +633,24 @@
         <div class="card-footer navigation-footer">
             <div class="d-flex justify-content-between align-items-center">
                 <a href="{{ route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 1]) }}"
-                   class="btn btn-secondary">
+                    class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i>
                     {{ __('m_tours.common.previous') }}
                 </a>
 
                 <div class="d-flex">
                     @if($tour->is_draft)
-                        <form action="{{ route('admin.tours.wizard.delete-draft', $tour) }}"
-                              method="POST"
-                              class="d-inline"
-                              onsubmit="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">
-                                <i class="fas fa-trash"></i>
-                                <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
-                            </button>
-                        </form>
+                    <form action="{{ route('admin.tours.wizard.delete-draft', $tour) }}"
+                        method="POST"
+                        class="d-inline"
+                        onsubmit="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i>
+                            <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
+                        </button>
+                    </form>
                     @endif
 
                     <button type="submit" class="btn btn-primary ml-2">
@@ -625,10 +668,10 @@
 <div class="modal fade" id="modalQuickCategory" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <form id="quickCategoryForm"
-              action="{{ route('admin.tours.wizard.quick.category') }}"
-              method="POST"
-              class="modal-content"
-              autocomplete="off">
+            action="{{ route('admin.tours.wizard.quick.category') }}"
+            method="POST"
+            class="modal-content"
+            autocomplete="off">
             @csrf
 
             <div class="modal-header">
@@ -637,9 +680,9 @@
                     {{ __('m_tours.prices.quick_category.title') }}
                 </h5>
                 <button type="button"
-                        class="close"
-                        data-dismiss="modal"
-                        aria-label="{{ __('m_tours.common.close') }}">
+                    class="close"
+                    data-dismiss="modal"
+                    aria-label="{{ __('m_tours.common.close') }}">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -651,11 +694,11 @@
                         <span class="text-danger">*</span>
                     </label>
                     <input type="text"
-                           id="quick_category_name"
-                           name="name"
-                           class="form-control"
-                           maxlength="255"
-                           required>
+                        id="quick_category_name"
+                        name="name"
+                        class="form-control"
+                        maxlength="255"
+                        required>
                 </div>
 
                 <div class="form-group">
@@ -664,11 +707,11 @@
                         <span class="text-danger">*</span>
                     </label>
                     <input type="text"
-                           id="quick_category_slug"
-                           name="slug"
-                           class="form-control"
-                           maxlength="255"
-                           required>
+                        id="quick_category_slug"
+                        name="slug"
+                        class="form-control"
+                        maxlength="255"
+                        required>
                     <small class="form-text text-muted">
                         {{ __('m_tours.tour.ui.slug_help') ?? 'Identificador único URL amigable' }}
                     </small>
@@ -680,12 +723,12 @@
                                 <span class="text-danger">*</span>
                             </label>
                             <input type="number"
-                                   id="quick_category_age_from"
-                                   name="age_from"
-                                   class="form-control"
-                                   min="0"
-                                   max="120"
-                                   required>
+                                id="quick_category_age_from"
+                                name="age_from"
+                                class="form-control"
+                                min="0"
+                                max="120"
+                                required>
                         </div>
                         <div class="form-group col-6">
                             <label for="quick_category_age_to">
@@ -693,12 +736,12 @@
                                 <small class="text-muted">({{ __('m_tours.common.optional') ?? 'Opcional' }})</small>
                             </label>
                             <input type="number"
-                                   id="quick_category_age_to"
-                                   name="age_to"
-                                   class="form-control"
-                                   min="0"
-                                   max="120"
-                                   placeholder="{{ __('m_tours.prices.quick_category.no_limit') ?? 'Sin límite' }}">
+                                id="quick_category_age_to"
+                                name="age_to"
+                                class="form-control"
+                                min="0"
+                                max="120"
+                                placeholder="{{ __('m_tours.prices.quick_category.no_limit') ?? 'Sin límite' }}">
                         </div>
                     </div>
                 </div>
@@ -709,8 +752,8 @@
                         {{ __('m_tours.prices.quick_category.save') }}
                     </button>
                     <button type="button"
-                            class="btn btn-secondary"
-                            data-dismiss="modal">
+                        class="btn btn-secondary"
+                        data-dismiss="modal">
                         {{ __('m_tours.prices.quick_category.cancel') }}
                     </button>
                 </div>

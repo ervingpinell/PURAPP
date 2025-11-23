@@ -184,9 +184,10 @@ $adjustLabel = $operation === 'add'
 $sign = $operation === 'add' ? '+' : '−';
 
 // Total (preferir el guardado si existe)
-$grandTotal = (float) ($booking->total ?? max(0, $operation === 'add'
+$taxesTotal = (float) ($detail->taxes_total ?? 0);
+$grandTotal = (float) ($booking->total ?? max(0, ($operation === 'add'
 ? $subtotalSnap + $appliedAmount
-: $subtotalSnap - $appliedAmount));
+: $subtotalSnap - $appliedAmount) + $taxesTotal));
 
 // ========== HOTEL O MEETING POINT ==========
 $hasHotel = !empty($detail?->hotel_id) || !empty($detail?->other_hotel_name);
@@ -448,6 +449,19 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                         </dd>
                         @endif
 
+                        {{-- Impuestos --}}
+                        @if(!empty($detail->taxes_breakdown))
+                        @foreach($detail->taxes_breakdown as $tax)
+                        <dt class="col-sm-6 text-muted">
+                            {{ $tax['name'] }}
+                            <small>({{ $tax['rate'] }}{{ $tax['type'] == 'percentage' ? '%' : '' }})</small>:
+                        </dt>
+                        <dd class="col-sm-6 text-muted">
+                            +{{ $currency }}{{ number_format($tax['amount'], 2) }}
+                        </dd>
+                        @endforeach
+                        @endif
+
                         <dt class="col-sm-6"><strong>{{ __('m_bookings.bookings.fields.total') }}:</strong></dt>
                         <dd class="col-sm-6">
                             <strong class="text-success" style="font-size: 1.2em;">{{ $currency }}{{ number_format($grandTotal, 2) }}</strong>
@@ -621,7 +635,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
 
             const tourStartHour = {
                 {
-                    $scheduleStart->hour
+                    $scheduleStart - > hour
                 }
             };
             const tourPeriod = '{{ $tourPeriod }}';

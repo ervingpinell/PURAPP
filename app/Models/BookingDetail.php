@@ -10,13 +10,7 @@ class BookingDetail extends Model
     protected $primaryKey = 'details_id';
     public $timestamps = true;
 
-    protected $casts = [
-        'tour_date'      => 'date',
-        'categories'     => 'array',
-        'is_other_hotel' => 'boolean',
-        'created_at'     => 'datetime',
-        'updated_at'     => 'datetime',
-    ];
+    // Casts moved below to include new fields
 
     protected $fillable = [
         'booking_id',
@@ -35,11 +29,75 @@ class BookingDetail extends Model
         'meeting_point_description',
         'meeting_point_map_url',
         'pickup_time', // ← nuevo campo TIME nullable
+        'taxes_breakdown', // JSON
+        'taxes_total',     // Decimal
     ];
 
-    /* =======================
-       Relaciones
-       ======================= */
+    protected $casts = [
+        'tour_date'       => 'date',
+        'categories'      => 'array',
+        'is_other_hotel'  => 'boolean',
+        'created_at'      => 'datetime',
+        'updated_at'      => 'datetime',
+        'taxes_breakdown' => 'array',
+        'taxes_total'     => 'decimal:2',
+    ];
+
+    /**
+     * Calculate taxes based on current subtotal and tour configuration
+     *
+     * @return array ['breakdown' => [], 'total' => float]
+     */
+    public function calculateTaxes(): array
+    {
+        // Ensure tour relation is loaded
+        if (!$this->relationLoaded('tour')) {
+            $this->load('tour.taxes');
+        }
+
+        $taxes = $this->tour->taxes ?? collect();
+        $subtotal = $this->subtotal;
+        $totalPersons = $this->total_pax;
+
+        $taxesBreakdown = [];
+        $taxesTotal = 0;
+        $runningTotal = $subtotal;
+
+        foreach ($taxes as $tax) {
+            $base = match ($tax->apply_to) {
+                'per_person' => $subtotal, // Base is subtotal, but calculation uses quantity
+                'subtotal' => $subtotal,
+                'total' => $runningTotal,
+                default => $subtotal,
+            };
+
+            // For per_person, we pass the base amount (subtotal) and quantity
+            // The model method handles the logic
+            $amount = $tax->calculateAmount($base, $totalPersons);
+
+            $taxesBreakdown[] = [
+                'tax_id' => $tax->tax_id,
+                'name' => $tax->name,
+                'code' => $tax->code,
+                'rate' => $tax->rate,
+                'type' => $tax->type,
+                'amount' => round($amount, 2),
+            ];
+
+            $taxesTotal += $amount;
+
+            // If tax applies to total, it increases the base for subsequent "total" taxes
+            // (Cascading taxes)
+            if ($tax->apply_to === 'total') {
+                $runningTotal += $amount;
+            }
+        }
+
+        return [
+            'breakdown' => $taxesBreakdown,
+            'total' => round($taxesTotal, 2),
+        ];
+    }
 
     public function booking()
     {
@@ -79,7 +137,7 @@ class BookingDetail extends Model
     public function getTotalPaxAttribute(): int
     {
         return collect($this->categories ?? [])
-            ->sum(fn ($c) => (int) ($c['quantity'] ?? 0));
+            ->sum(fn($c) => (int) ($c['quantity'] ?? 0));
     }
 
     /** Subtotal calculado desde categories */

@@ -544,6 +544,12 @@ return [
                     'icon'  => 'fas fa-cogs',
                     'trans' => true,
                 ],
+                [
+                    'text'  => 'menu.taxes',
+                    'route' => 'admin.taxes.index',
+                    'icon'  => 'fas fa-info-circle',
+                    'trans' => true,
+                ],
             ],
         ],
 

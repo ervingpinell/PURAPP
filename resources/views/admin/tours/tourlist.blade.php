@@ -103,12 +103,19 @@
   }
 
   @media (max-width: 992px) {
-    :root { --btn-cell-mult: 2.0; }
+    :root {
+      --btn-cell-mult: 2.0;
+    }
   }
 
   @media (max-width: 768px) {
-    :root { --btn-cell-mult: 1.8; }
-    .actions-cell { min-width: 240px; }
+    :root {
+      --btn-cell-mult: 1.8;
+    }
+
+    .actions-cell {
+      min-width: 240px;
+    }
   }
 
   .table-responsive-custom::-webkit-scrollbar {
@@ -141,7 +148,9 @@
   }
 
   @media (max-width: 992px) {
-    .scroll-hint { display: block; }
+    .scroll-hint {
+      display: block;
+    }
   }
 
   /* ======== MOBILE / TABLET CARDS (tipo app) ======== */
@@ -335,27 +344,27 @@
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Portada del tour (igual que índice público)
- */
+* Portada del tour (igual que índice público)
+*/
 $coverFromFolder = function (?int $tourId): string {
-    if (!$tourId) {
-        return asset('images/volcano.png');
-    }
+if (!$tourId) {
+return asset('images/volcano.png');
+}
 
-    $folder = "tours/{$tourId}/gallery";
+$folder = "tours/{$tourId}/gallery";
 
-    if (!Storage::disk('public')->exists($folder)) {
-        return asset('images/volcano.png');
-    }
+if (!Storage::disk('public')->exists($folder)) {
+return asset('images/volcano.png');
+}
 
-    $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+$allowed = ['jpg', 'jpeg', 'png', 'webp'];
 
-    $first = collect(Storage::disk('public')->files($folder))
-        ->filter(fn ($p) => in_array(strtolower(pathinfo($p, PATHINFO_EXTENSION)), $allowed, true))
-        ->sort(fn ($a, $b) => strnatcasecmp($a, $b))
-        ->first();
+$first = collect(Storage::disk('public')->files($folder))
+->filter(fn ($p) => in_array(strtolower(pathinfo($p, PATHINFO_EXTENSION)), $allowed, true))
+->sort(fn ($a, $b) => strnatcasecmp($a, $b))
+->first();
 
-    return $first ? asset('storage/' . $first) : asset('images/volcano.png');
+return $first ? asset('storage/' . $first) : asset('images/volcano.png');
 };
 @endphp
 
@@ -363,14 +372,14 @@ $coverFromFolder = function (?int $tourId): string {
 @once
 <div class="font-toolbar">
   <button class="btn btn-outline-secondary btn-sm" id="fontSmaller" type="button"
-          title="{{ __('m_tours.common.font_decrease') }}"
-          aria-label="{{ __('m_tours.common.font_decrease') }}">
+    title="{{ __('m_tours.common.font_decrease') }}"
+    aria-label="{{ __('m_tours.common.font_decrease') }}">
     A−
   </button>
   <div class="size-indicator" id="fontIndicator" aria-live="polite">100%</div>
   <button class="btn btn-outline-secondary btn-sm" id="fontBigger" type="button"
-          title="{{ __('m_tours.common.font_increase') }}"
-          aria-label="{{ __('m_tours.common.font_increase') }}">
+    title="{{ __('m_tours.common.font_increase') }}"
+    aria-label="{{ __('m_tours.common.font_increase') }}">
     A+
   </button>
 </div>
@@ -400,493 +409,493 @@ $coverFromFolder = function (?int $tourId): string {
       </thead>
       <tbody id="toursTbody">
         @foreach($tours as $tour)
-          @php
-            $isArchived  = !is_null($tour->deleted_at ?? null);
-            $hasBookings = (int) ($tour->bookings_count ?? 0);
-            $currency    = config('app.currency_symbol', '$');
-            $locale      = app()->getLocale();
+        @php
+        $isArchived = !is_null($tour->deleted_at ?? null);
+        $hasBookings = (int) ($tour->bookings_count ?? 0);
+        $currency = config('app.currency_symbol', '$');
+        $locale = app()->getLocale();
 
-            $activePrices = $tour->prices
-              ->filter(fn($p) => $p->is_active && $p->category && $p->category->is_active)
-              ->sortBy('category.order');
+        $activePrices = $tour->prices
+        ->filter(fn($p) => $p->is_active && $p->category && $p->category->is_active)
+        ->sortBy('category.order');
 
-            $mainPrice      = $activePrices->first();
-            $mainPriceLabel = null;
-            $mainPriceValue = null;
+        $mainPrice = $activePrices->first();
+        $mainPriceLabel = null;
+        $mainPriceValue = null;
 
-            if ($mainPrice) {
-                $cat = $mainPrice->category;
+        if ($mainPrice) {
+        $cat = $mainPrice->category;
 
-                $mainPriceLabel = method_exists($cat, 'getTranslatedName')
-                    ? ($cat->getTranslatedName($locale) ?: null)
-                    : null;
+        $mainPriceLabel = method_exists($cat, 'getTranslatedName')
+        ? ($cat->getTranslatedName($locale) ?: null)
+        : null;
 
-                if (!$mainPriceLabel && !empty($cat->slug)) {
-                    foreach ([
-                        'customer_categories.labels.' . $cat->slug,
-                        'm_tours.customer_categories.labels.' . $cat->slug,
-                    ] as $k) {
-                        $tr = __($k);
-                        if ($tr !== $k) { $mainPriceLabel = $tr; break; }
-                    }
-                }
+        if (!$mainPriceLabel && !empty($cat->slug)) {
+        foreach ([
+        'customer_categories.labels.' . $cat->slug,
+        'm_tours.customer_categories.labels.' . $cat->slug,
+        ] as $k) {
+        $tr = __($k);
+        if ($tr !== $k) { $mainPriceLabel = $tr; break; }
+        }
+        }
 
-                if (!$mainPriceLabel) {
-                    $mainPriceLabel = $cat->name ?? $cat->slug ?? '';
-                }
+        if (!$mainPriceLabel) {
+        $mainPriceLabel = $cat->name ?? $cat->slug ?? '';
+        }
 
-                $mainPriceValue = $currency . number_format($mainPrice->price, 2);
+        $mainPriceValue = $currency . number_format($mainPrice->price, 2);
+        }
+
+        $slug = $tour->slug ?? $tour->tour_slug ?? null;
+
+        $thumb = optional($tour->coverImage)->url
+        ?? $coverFromFolder($tour->tour_id ?? $tour->id ?? null);
+        @endphp
+
+        <tr>
+          <td>{{ $tour->tour_id }}</td>
+
+          <td>
+            <strong>
+              {{ method_exists($tour, 'getTranslatedName') ? $tour->getTranslatedName($locale) : $tour->name }}
+            </strong>
+            @if($tour->tourType)
+            <br>
+            <small class="text-muted">{{ $tour->tourType->name }}</small>
+            @endif
+          </td>
+
+          <td>
+            @forelse($tour->schedules->sortBy('start_time') as $schedule)
+            <span class="badge bg-success schedule-badge">
+              {{ date('g:i A', strtotime($schedule->start_time)) }}
+            </span>
+            @empty
+            <span class="text-muted">{{ __('m_tours.tour.ui.no_schedules') }}</span>
+            @endforelse
+          </td>
+
+          <td>
+            @if($activePrices->isNotEmpty())
+            @foreach($activePrices as $price)
+            @php
+            $cat = $price->category;
+
+            $catLabel = method_exists($cat, 'getTranslatedName')
+            ? ($cat->getTranslatedName($locale) ?: null)
+            : null;
+
+            if (!$catLabel && !empty($cat->slug)) {
+            foreach ([
+            'customer_categories.labels.' . $cat->slug,
+            'm_tours.customer_categories.labels.' . $cat->slug,
+            ] as $k) {
+            $tr = __($k);
+            if ($tr !== $k) { $catLabel = $tr; break; }
+            }
             }
 
-            $slug = $tour->slug ?? $tour->tour_slug ?? null;
+            if (!$catLabel) { $catLabel = $cat->name ?? $cat->slug ?? ''; }
+            @endphp
 
-            $thumb = optional($tour->coverImage)->url
-              ?? $coverFromFolder($tour->tour_id ?? $tour->id ?? null);
-          @endphp
-
-          <tr>
-            <td>{{ $tour->tour_id }}</td>
-
-            <td>
-              <strong>
-                {{ method_exists($tour, 'getTranslatedName') ? $tour->getTranslatedName($locale) : $tour->name }}
-              </strong>
-              @if($tour->tourType)
-                <br>
-                <small class="text-muted">{{ $tour->tourType->name }}</small>
-              @endif
-            </td>
-
-            <td>
-              @forelse($tour->schedules->sortBy('start_time') as $schedule)
-                <span class="badge bg-success schedule-badge">
-                  {{ date('g:i A', strtotime($schedule->start_time)) }}
-                </span>
-              @empty
-                <span class="text-muted">{{ __('m_tours.tour.ui.no_schedules') }}</span>
-              @endforelse
-            </td>
-
-            <td>
-              @if($activePrices->isNotEmpty())
-                @foreach($activePrices as $price)
-                  @php
-                    $cat = $price->category;
-
-                    $catLabel = method_exists($cat, 'getTranslatedName')
-                        ? ($cat->getTranslatedName($locale) ?: null)
-                        : null;
-
-                    if (!$catLabel && !empty($cat->slug)) {
-                        foreach ([
-                          'customer_categories.labels.' . $cat->slug,
-                          'm_tours.customer_categories.labels.' . $cat->slug,
-                        ] as $k) {
-                          $tr = __($k);
-                          if ($tr !== $k) { $catLabel = $tr; break; }
-                        }
-                    }
-
-                    if (!$catLabel) { $catLabel = $cat->name ?? $cat->slug ?? ''; }
-                  @endphp
-
-                  <div class="price-item">
-                    <span class="price-label">
-                      {{ $catLabel }}
-                      <span class="price-range">({{ $price->min_quantity }}-{{ $price->max_quantity }})</span>
-                    </span>
-                    <span class="price-value">{{ $currency }}{{ number_format($price->price, 2) }}</span>
-                  </div>
-                @endforeach
-              @else
-                <span class="text-muted">{{ __('m_tours.tour.ui.no_prices') }}</span>
-              @endif
-            </td>
-
-            <td class="text-center">
-              <span class="badge bg-info">
-                {{ $tour->max_capacity }} {{ __('m_tours.common.people') }}
+            <div class="price-item">
+              <span class="price-label">
+                {{ $catLabel }}
+                <span class="price-range">({{ $price->min_quantity }}-{{ $price->max_quantity }})</span>
               </span>
-            </td>
+              <span class="price-value">{{ $currency }}{{ number_format($price->price, 2) }}</span>
+            </div>
+            @endforeach
+            @else
+            <span class="text-muted">{{ __('m_tours.tour.ui.no_prices') }}</span>
+            @endif
+          </td>
 
-            <td class="text-center">
-              <span class="badge text-bg-light">
-                {{ $tour->group_size ? $tour->group_size.' '. __('m_tours.common.people') : __('m_tours.common.na') }}
-              </span>
-            </td>
+          <td class="text-center">
+            <span class="badge bg-info">
+              {{ $tour->max_capacity }} {{ __('m_tours.common.people') }}
+            </span>
+          </td>
 
-            <td class="text-center">
-              <span class="badge {{ $tour->is_active ? 'bg-success' : 'bg-secondary' }}">
-                {{ $tour->is_active ? __('m_tours.common.active') : __('m_tours.common.inactive') }}
-              </span>
-            </td>
+          <td class="text-center">
+            <span class="badge text-bg-light">
+              {{ $tour->group_size ? $tour->group_size.' '. __('m_tours.common.people') : __('m_tours.common.na') }}
+            </span>
+          </td>
 
-            <td class="actions-cell">
-              <div class="d-flex flex-wrap">
-                <button type="button"
-                  class="btn btn-primary btn-sm"
-                  data-toggle="modal"
-                  data-target="#modalCart{{ $tour->tour_id }}"
-                  title="{{ __('m_tours.tour.ui.add_to_cart') }}"
-                  aria-label="{{ __('m_tours.tour.ui.add_to_cart') }}">
-                  <i class="fas fa-cart-plus"></i>
+          <td class="text-center">
+            <span class="badge {{ $tour->is_active ? 'bg-success' : 'bg-secondary' }}">
+              {{ $tour->is_active ? __('m_tours.common.active') : __('m_tours.common.inactive') }}
+            </span>
+          </td>
+
+          <td class="actions-cell">
+            <div class="d-flex flex-wrap">
+              <button type="button"
+                class="btn btn-primary btn-sm"
+                data-toggle="modal"
+                data-target="#modalCart{{ $tour->tour_id }}"
+                title="{{ __('m_tours.tour.ui.add_to_cart') }}"
+                aria-label="{{ __('m_tours.tour.ui.add_to_cart') }}">
+                <i class="fas fa-cart-plus"></i>
+              </button>
+
+              <a href="{{ route('admin.tours.edit', $tour) }}"
+                class="btn btn-warning btn-sm"
+                title="{{ __('m_tours.tour.ui.edit') }}"
+                aria-label="{{ __('m_tours.tour.ui.edit') }}">
+                <i class="fas fa-edit"></i>
+              </a>
+
+              @unless($isArchived)
+              <form action="{{ route('admin.tours.toggle', $tour) }}"
+                method="POST"
+                class="d-inline js-toggle-form"
+                data-question="{{ $tour->is_active ? __('m_tours.tour.alerts.toggle_question_active') : __('m_tours.tour.alerts.toggle_question_inactive') }}">
+                @csrf
+                @method('PATCH')
+                <button type="submit"
+                  class="btn btn-sm btn-{{ $tour->is_active ? 'success' : 'secondary' }}"
+                  title="{{ $tour->is_active ? __('m_tours.tour.ui.deactivate') : __('m_tours.tour.ui.activate') }}"
+                  aria-label="{{ $tour->is_active ? __('m_tours.tour.ui.deactivate') : __('m_tours.tour.ui.activate') }}">
+                  <i class="fas fa-toggle-{{ $tour->is_active ? 'on' : 'off' }}"></i>
                 </button>
+              </form>
+              @endunless
 
-                <a href="{{ route('admin.tours.edit', $tour) }}"
-                   class="btn btn-warning btn-sm"
-                   title="{{ __('m_tours.tour.ui.edit') }}"
-                   aria-label="{{ __('m_tours.tour.ui.edit') }}">
-                  <i class="fas fa-edit"></i>
-                </a>
+              <a href="{{ route('admin.tours.prices.index', $tour) }}"
+                class="btn btn-info btn-sm"
+                title="{{ __('m_tours.tour.ui.manage_prices') }}"
+                aria-label="{{ __('m_tours.tour.ui.manage_prices') }}">
+                <i class="fas fa-dollar-sign"></i>
+              </a>
 
-                @unless($isArchived)
-                  <form action="{{ route('admin.tours.toggle', $tour) }}"
-                        method="POST"
-                        class="d-inline js-toggle-form"
-                        data-question="{{ $tour->is_active ? __('m_tours.tour.alerts.toggle_question_active') : __('m_tours.tour.alerts.toggle_question_inactive') }}">
-                    @csrf
-                    @method('PATCH')
-                    <button type="submit"
-                            class="btn btn-sm btn-{{ $tour->is_active ? 'success' : 'secondary' }}"
-                            title="{{ $tour->is_active ? __('m_tours.tour.ui.deactivate') : __('m_tours.tour.ui.activate') }}"
-                            aria-label="{{ $tour->is_active ? __('m_tours.tour.ui.deactivate') : __('m_tours.tour.ui.activate') }}">
-                      <i class="fas fa-toggle-{{ $tour->is_active ? 'on' : 'off' }}"></i>
-                    </button>
-                  </form>
-                @endunless
+              <a href="{{ route('admin.tours.images.index', $tour) }}"
+                class="btn btn-secondary btn-sm"
+                title="{{ __('m_tours.tour.ui.manage_images') }}"
+                aria-label="{{ __('m_tours.tour.ui.manage_images') }}">
+                <i class="fas fa-images"></i>
+              </a>
 
-                <a href="{{ route('admin.tours.prices.index', $tour) }}"
-                   class="btn btn-info btn-sm"
-                   title="{{ __('m_tours.tour.ui.manage_prices') }}"
-                   aria-label="{{ __('m_tours.tour.ui.manage_prices') }}">
-                  <i class="fas fa-dollar-sign"></i>
-                </a>
+              @unless($isArchived)
+              <form id="delete-form-{{ $tour->tour_id }}"
+                action="{{ route('admin.tours.destroy', $tour) }}"
+                method="POST"
+                class="d-inline">
+                @csrf
+                @method('DELETE')
+                <button type="button"
+                  class="btn btn-danger btn-sm"
+                  title="{{ __('m_tours.tour.ui.delete') }}"
+                  aria-label="{{ __('m_tours.tour.ui.delete') }}"
+                  onclick="confirmDelete({{ $tour->tour_id }})">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </form>
+              @endunless
 
-                <a href="{{ route('admin.tours.images.index', $tour) }}"
-                   class="btn btn-secondary btn-sm"
-                   title="{{ __('m_tours.tour.ui.manage_images') }}"
-                   aria-label="{{ __('m_tours.tour.ui.manage_images') }}">
-                  <i class="fas fa-images"></i>
-                </a>
+              @if($isArchived)
+              <form action="{{ route('admin.tours.restore', $tour->tour_id) }}"
+                method="POST"
+                class="d-inline">
+                @csrf
+                <button type="submit"
+                  class="btn btn-success btn-sm"
+                  title="{{ __('m_tours.tour.ui.restore') }}"
+                  aria-label="{{ __('m_tours.tour.ui.restore') }}">
+                  <i class="fas fa-undo"></i>
+                </button>
+              </form>
 
-                @unless($isArchived)
-                  <form id="delete-form-{{ $tour->tour_id }}"
-                        action="{{ route('admin.tours.destroy', $tour) }}"
-                        method="POST"
-                        class="d-inline">
-                    @csrf
-                    @method('DELETE')
-                    <button type="button"
-                            class="btn btn-danger btn-sm"
-                            title="{{ __('m_tours.tour.ui.delete') }}"
-                            aria-label="{{ __('m_tours.tour.ui.delete') }}"
-                            onclick="confirmDelete({{ $tour->tour_id }})">
-                      <i class="fas fa-trash-alt"></i>
-                    </button>
-                  </form>
-                @endunless
-
-                @if($isArchived)
-                  <form action="{{ route('admin.tours.restore', $tour->tour_id) }}"
-                        method="POST"
-                        class="d-inline">
-                    @csrf
-                    <button type="submit"
-                            class="btn btn-success btn-sm"
-                            title="{{ __('m_tours.tour.ui.restore') }}"
-                            aria-label="{{ __('m_tours.tour.ui.restore') }}">
-                      <i class="fas fa-undo"></i>
-                    </button>
-                  </form>
-
-                  <form id="purge-form-{{ $tour->tour_id }}"
-                        action="{{ route('admin.tours.purge', $tour->tour_id) }}"
-                        method="POST"
-                        class="d-inline">
-                    @csrf
-                    @method('DELETE')
-                    <button type="button"
-                            class="btn btn-outline-danger btn-sm"
-                            title="{{ __('m_tours.tour.ui.purge') }}"
-                            aria-label="{{ __('m_tours.tour.ui.purge') }}"
-                            onclick="confirmPurge({{ $tour->tour_id }}, {{ $hasBookings }})">
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </form>
-                @endif
-              </div>
-            </td>
-          </tr>
+              <form id="purge-form-{{ $tour->tour_id }}"
+                action="{{ route('admin.tours.purge', $tour->tour_id) }}"
+                method="POST"
+                class="d-inline">
+                @csrf
+                @method('DELETE')
+                <button type="button"
+                  class="btn btn-outline-danger btn-sm"
+                  title="{{ __('m_tours.tour.ui.purge') }}"
+                  aria-label="{{ __('m_tours.tour.ui.purge') }}"
+                  onclick="confirmPurge({{ $tour->tour_id }}, {{ $hasBookings }})">
+                  <i class="fas fa-times"></i>
+                </button>
+              </form>
+              @endif
+            </div>
+          </td>
+        </tr>
         @endforeach
       </tbody>
     </table>
   </div>
 
   @if($tours instanceof \Illuminate\Contracts\Pagination\Paginator)
-    <div class="mt-3" id="paginationLinks">
-      {{ $tours->withQueryString()->links() }}
-    </div>
+  <div class="mt-3" id="paginationLinks">
+    {{ $tours->withQueryString()->links() }}
+  </div>
   @endif
 </div>
 
 {{-- ================= MOBILE/TABLET LIST (CARDS) ================= --}}
 <div class="tour-mobile-list">
   @foreach($tours as $tour)
-    @php
-      $isArchived  = !is_null($tour->deleted_at ?? null);
-      $hasBookings = (int) ($tour->bookings_count ?? 0);
-      $currency    = config('app.currency_symbol', '$');
-      $locale      = app()->getLocale();
+  @php
+  $isArchived = !is_null($tour->deleted_at ?? null);
+  $hasBookings = (int) ($tour->bookings_count ?? 0);
+  $currency = config('app.currency_symbol', '$');
+  $locale = app()->getLocale();
 
-      $activePrices = $tour->prices
-        ->filter(fn($p) => $p->is_active && $p->category && $p->category->is_active)
-        ->sortBy('category.order');
+  $activePrices = $tour->prices
+  ->filter(fn($p) => $p->is_active && $p->category && $p->category->is_active)
+  ->sortBy('category.order');
 
-      // ==== NUEVO: resumen con TODAS las categorías ====
-      $pricesSummary = null;
-      if ($activePrices->isNotEmpty()) {
-          $chunks = [];
-          foreach ($activePrices as $p) {
-              $cat = $p->category;
+  // ==== NUEVO: resumen con TODAS las categorías ====
+  $pricesSummary = null;
+  if ($activePrices->isNotEmpty()) {
+  $chunks = [];
+  foreach ($activePrices as $p) {
+  $cat = $p->category;
 
-              $label = method_exists($cat, 'getTranslatedName')
-                  ? ($cat->getTranslatedName($locale) ?: null)
-                  : null;
+  $label = method_exists($cat, 'getTranslatedName')
+  ? ($cat->getTranslatedName($locale) ?: null)
+  : null;
 
-              if (!$label && !empty($cat->slug)) {
-                  foreach ([
-                      'customer_categories.labels.' . $cat->slug,
-                      'm_tours.customer_categories.labels.' . $cat->slug,
-                  ] as $k) {
-                      $tr = __($k);
-                      if ($tr !== $k) { $label = $tr; break; }
-                  }
-              }
+  if (!$label && !empty($cat->slug)) {
+  foreach ([
+  'customer_categories.labels.' . $cat->slug,
+  'm_tours.customer_categories.labels.' . $cat->slug,
+  ] as $k) {
+  $tr = __($k);
+  if ($tr !== $k) { $label = $tr; break; }
+  }
+  }
 
-              if (!$label) { $label = $cat->name ?? $cat->slug ?? ''; }
+  if (!$label) { $label = $cat->name ?? $cat->slug ?? ''; }
 
-              $amount = $currency . number_format($p->price, 2);
-              $chunks[] = "{$label}: {$amount}";
-          }
-          $pricesSummary = implode(' · ', $chunks);
-      }
+  $amount = $currency . number_format($p->price, 2);
+  $chunks[] = "{$label}: {$amount}";
+  }
+  $pricesSummary = implode(' · ', $chunks);
+  }
 
-      $slug = $tour->slug ?? $tour->tour_slug ?? null;
+  $slug = $tour->slug ?? $tour->tour_slug ?? null;
 
-      $thumb = optional($tour->coverImage)->url
-        ?? $coverFromFolder($tour->tour_id ?? $tour->id ?? null);
+  $thumb = optional($tour->coverImage)->url
+  ?? $coverFromFolder($tour->tour_id ?? $tour->id ?? null);
 
-      $title = method_exists($tour, 'getTranslatedName')
-        ? ($tour->getTranslatedName($locale) ?: $tour->name)
-        : ($tour->name ?? '');
+  $title = method_exists($tour, 'getTranslatedName')
+  ? ($tour->getTranslatedName($locale) ?: $tour->name)
+  : ($tour->name ?? '');
 
-      $initials = mb_substr($title ?: 'T', 0, 2);
-    @endphp
+  $initials = mb_substr($title ?: 'T', 0, 2);
+  @endphp
 
-    <div class="tour-mobile-card">
-      {{-- HEADER / MAIN --}}
-      <div class="tour-mobile-main"
-           data-toggle="collapse"
-           data-target="#tourMobileDetails{{ $tour->tour_id }}"
-           aria-expanded="false"
-           aria-controls="tourMobileDetails{{ $tour->tour_id }}">
-        <div class="tour-mobile-thumb">
-          @if($thumb)
-            <img src="{{ $thumb }}" alt="{{ $title }}">
-          @else
-            {{ $initials }}
-          @endif
-        </div>
+  <div class="tour-mobile-card">
+    {{-- HEADER / MAIN --}}
+    <div class="tour-mobile-main"
+      data-toggle="collapse"
+      data-target="#tourMobileDetails{{ $tour->tour_id }}"
+      aria-expanded="false"
+      aria-controls="tourMobileDetails{{ $tour->tour_id }}">
+      <div class="tour-mobile-thumb">
+        @if($thumb)
+        <img src="{{ $thumb }}" alt="{{ $title }}">
+        @else
+        {{ $initials }}
+        @endif
+      </div>
 
-        <div class="tour-mobile-info">
-          <div class="tour-mobile-title">{{ $title }}</div>
-          @if($tour->tourType)
-            <div class="tour-mobile-type">{{ $tour->tourType->name }}</div>
-          @endif
-          @if($slug)
-            <div class="tour-mobile-slug">{{ $slug }}</div>
-          @endif
-          <div class="tour-mobile-meta">
-            <span class="tour-mobile-status-badge badge
+      <div class="tour-mobile-info">
+        <div class="tour-mobile-title">{{ $title }}</div>
+        @if($tour->tourType)
+        <div class="tour-mobile-type">{{ $tour->tourType->name }}</div>
+        @endif
+        @if($slug)
+        <div class="tour-mobile-slug">{{ $slug }}</div>
+        @endif
+        <div class="tour-mobile-meta">
+          <span class="tour-mobile-status-badge badge
               {{ $tour->is_active ? 'bg-success' : 'bg-secondary' }}">
-              {{ $tour->is_active ? __('m_tours.common.active') : __('m_tours.common.inactive') }}
-            </span>
+            {{ $tour->is_active ? __('m_tours.common.active') : __('m_tours.common.inactive') }}
+          </span>
 
-            @if($pricesSummary)
-              <span class="tour-mobile-price">
-                {{ $pricesSummary }}
-              </span>
-            @else
-              <span class="text-muted" style="font-size:.7rem;">
-                {{ __('m_tours.tour.ui.no_prices') }}
-              </span>
-            @endif
-          </div>
-        </div>
-
-        <div class="tour-mobile-chevron" id="chevron-{{ $tour->tour_id }}">
-          <i class="fas fa-chevron-down"></i>
+          @if($pricesSummary)
+          <span class="tour-mobile-price">
+            {{ $pricesSummary }}
+          </span>
+          @else
+          <span class="text-muted" style="font-size:.7rem;">
+            {{ __('m_tours.tour.ui.no_prices') }}
+          </span>
+          @endif
         </div>
       </div>
 
-      {{-- BODY / DETAILS --}}
-      <div id="tourMobileDetails{{ $tour->tour_id }}" class="collapse">
-        <div class="tour-mobile-body">
-          {{-- Horarios --}}
-          <div class="mb-2">
-            <div class="section-label">{{ __('m_tours.tour.table.schedules') }}</div>
-            @forelse($tour->schedules->sortBy('start_time') as $schedule)
-              <span class="badge bg-success me-1 mb-1">
-                {{ date('g:i A', strtotime($schedule->start_time)) }}
-              </span>
-            @empty
-              <span class="text-muted">{{ __('m_tours.tour.ui.no_schedules') }}</span>
-            @endforelse
-          </div>
+      <div class="tour-mobile-chevron" id="chevron-{{ $tour->tour_id }}">
+        <i class="fas fa-chevron-down"></i>
+      </div>
+    </div>
 
-          {{-- Precios detallados --}}
-          <div class="mb-2">
-            <div class="section-label">{{ __('m_tours.tour.table.prices') }}</div>
-            @if($activePrices->isNotEmpty())
-              @foreach($activePrices as $p)
-                @php
-                  $cat = $p->category;
+    {{-- BODY / DETAILS --}}
+    <div id="tourMobileDetails{{ $tour->tour_id }}" class="collapse">
+      <div class="tour-mobile-body">
+        {{-- Horarios --}}
+        <div class="mb-2">
+          <div class="section-label">{{ __('m_tours.tour.table.schedules') }}</div>
+          @forelse($tour->schedules->sortBy('start_time') as $schedule)
+          <span class="badge bg-success me-1 mb-1">
+            {{ date('g:i A', strtotime($schedule->start_time)) }}
+          </span>
+          @empty
+          <span class="text-muted">{{ __('m_tours.tour.ui.no_schedules') }}</span>
+          @endforelse
+        </div>
 
-                  $label = method_exists($cat, 'getTranslatedName')
-                      ? ($cat->getTranslatedName($locale) ?: null)
-                      : null;
+        {{-- Precios detallados --}}
+        <div class="mb-2">
+          <div class="section-label">{{ __('m_tours.tour.table.prices') }}</div>
+          @if($activePrices->isNotEmpty())
+          @foreach($activePrices as $p)
+          @php
+          $cat = $p->category;
 
-                  if (!$label && !empty($cat->slug)) {
-                      foreach ([
-                          'customer_categories.labels.' . $cat->slug,
-                          'm_tours.customer_categories.labels.' . $cat->slug,
-                      ] as $k) {
-                          $tr = __($k);
-                          if ($tr !== $k) { $label = $tr; break; }
-                      }
-                  }
+          $label = method_exists($cat, 'getTranslatedName')
+          ? ($cat->getTranslatedName($locale) ?: null)
+          : null;
 
-                  if (!$label) { $label = $cat->name ?? $cat->slug ?? ''; }
+          if (!$label && !empty($cat->slug)) {
+          foreach ([
+          'customer_categories.labels.' . $cat->slug,
+          'm_tours.customer_categories.labels.' . $cat->slug,
+          ] as $k) {
+          $tr = __($k);
+          if ($tr !== $k) { $label = $tr; break; }
+          }
+          }
 
-                  $amount = $currency . number_format($p->price, 2);
-                @endphp
-                <span class="tour-mobile-meta-chip mb-1">
-                  {{ $label }}: {{ $amount }}
-                  ({{ $p->min_quantity }}-{{ $p->max_quantity }})
-                </span>
-              @endforeach
-            @else
-              <span class="text-muted">{{ __('m_tours.tour.ui.no_prices') }}</span>
-            @endif
-          </div>
+          if (!$label) { $label = $cat->name ?? $cat->slug ?? ''; }
 
-          {{-- Capacidades --}}
-          <div class="tour-mobile-meta-row">
-            <span class="tour-mobile-meta-chip">
-              {{ __('m_tours.tour.table.capacity') }}:
-              {{ $tour->max_capacity }} {{ __('m_tours.common.people') }}
-            </span>
-            <span class="tour-mobile-meta-chip">
-              {{ __('m_tours.tour.table.group_size') }}:
-              {{ $tour->group_size ? $tour->group_size.' '. __('m_tours.common.people') : __('m_tours.common.na') }}
-            </span>
-          </div>
+          $amount = $currency . number_format($p->price, 2);
+          @endphp
+          <span class="tour-mobile-meta-chip mb-1">
+            {{ $label }}: {{ $amount }}
+            ({{ $p->min_quantity }}-{{ $p->max_quantity }})
+          </span>
+          @endforeach
+          @else
+          <span class="text-muted">{{ __('m_tours.tour.ui.no_prices') }}</span>
+          @endif
+        </div>
 
-          {{-- Acciones --}}
-          <div class="tour-mobile-actions">
-            <button type="button"
-                    class="btn btn-primary btn-sm"
-                    data-toggle="modal"
-                    data-target="#modalCart{{ $tour->tour_id }}">
-              <i class="fas fa-cart-plus"></i>
-              {{ __('m_tours.tour.ui.add_to_cart') }}
+        {{-- Capacidades --}}
+        <div class="tour-mobile-meta-row">
+          <span class="tour-mobile-meta-chip">
+            {{ __('m_tours.tour.table.capacity') }}:
+            {{ $tour->max_capacity }} {{ __('m_tours.common.people') }}
+          </span>
+          <span class="tour-mobile-meta-chip">
+            {{ __('m_tours.tour.table.group_size') }}:
+            {{ $tour->group_size ? $tour->group_size.' '. __('m_tours.common.people') : __('m_tours.common.na') }}
+          </span>
+        </div>
+
+        {{-- Acciones --}}
+        <div class="tour-mobile-actions">
+          <button type="button"
+            class="btn btn-primary btn-sm"
+            data-toggle="modal"
+            data-target="#modalCart{{ $tour->tour_id }}">
+            <i class="fas fa-cart-plus"></i>
+            {{ __('m_tours.tour.ui.add_to_cart') }}
+          </button>
+
+          <a href="{{ route('admin.tours.edit', $tour) }}"
+            class="btn btn-warning btn-sm">
+            <i class="fas fa-edit"></i>
+            {{ __('m_tours.tour.ui.edit') }}
+          </a>
+
+          @unless($isArchived)
+          <form action="{{ route('admin.tours.toggle', $tour) }}"
+            method="POST"
+            class="d-inline js-toggle-form"
+            data-question="{{ $tour->is_active ? __('m_tours.tour.alerts.toggle_question_active') : __('m_tours.tour.alerts.toggle_question_inactive') }}">
+            @csrf
+            @method('PATCH')
+            <button type="submit"
+              class="btn btn-sm btn-{{ $tour->is_active ? 'success' : 'secondary' }}">
+              <i class="fas fa-toggle-{{ $tour->is_active ? 'on' : 'off' }}"></i>
+              {{ $tour->is_active ? __('m_tours.tour.ui.deactivate') : __('m_tours.tour.ui.activate') }}
             </button>
+          </form>
+          @endunless
 
-            <a href="{{ route('admin.tours.edit', $tour) }}"
-               class="btn btn-warning btn-sm">
-              <i class="fas fa-edit"></i>
-              {{ __('m_tours.tour.ui.edit') }}
-            </a>
+          <a href="{{ route('admin.tours.prices.index', $tour) }}"
+            class="btn btn-info btn-sm">
+            <i class="fas fa-dollar-sign"></i>
+            {{ __('m_tours.tour.ui.manage_prices') }}
+          </a>
 
-            @unless($isArchived)
-              <form action="{{ route('admin.tours.toggle', $tour) }}"
-                    method="POST"
-                    class="d-inline js-toggle-form"
-                    data-question="{{ $tour->is_active ? __('m_tours.tour.alerts.toggle_question_active') : __('m_tours.tour.alerts.toggle_question_inactive') }}">
-                @csrf
-                @method('PATCH')
-                <button type="submit"
-                        class="btn btn-sm btn-{{ $tour->is_active ? 'success' : 'secondary' }}">
-                  <i class="fas fa-toggle-{{ $tour->is_active ? 'on' : 'off' }}"></i>
-                  {{ $tour->is_active ? __('m_tours.tour.ui.deactivate') : __('m_tours.tour.ui.activate') }}
-                </button>
-              </form>
-            @endunless
+          <a href="{{ route('admin.tours.images.index', $tour) }}"
+            class="btn btn-secondary btn-sm">
+            <i class="fas fa-images"></i>
+            {{ __('m_tours.tour.ui.manage_images') }}
+          </a>
 
-            <a href="{{ route('admin.tours.prices.index', $tour) }}"
-               class="btn btn-info btn-sm">
-              <i class="fas fa-dollar-sign"></i>
-              {{ __('m_tours.tour.ui.manage_prices') }}
-            </a>
+          @unless($isArchived)
+          <form id="delete-form-mobile-{{ $tour->tour_id }}"
+            action="{{ route('admin.tours.destroy', $tour) }}"
+            method="POST"
+            class="d-inline">
+            @csrf
+            @method('DELETE')
+            <button type="button"
+              class="btn btn-danger btn-sm"
+              onclick="confirmDelete({{ $tour->tour_id }})">
+              <i class="fas fa-trash-alt"></i>
+              {{ __('m_tours.tour.ui.delete') }}
+            </button>
+          </form>
+          @endunless
 
-            <a href="{{ route('admin.tours.images.index', $tour) }}"
-               class="btn btn-secondary btn-sm">
-              <i class="fas fa-images"></i>
-              {{ __('m_tours.tour.ui.manage_images') }}
-            </a>
+          @if($isArchived)
+          <form action="{{ route('admin.tours.restore', $tour->tour_id) }}"
+            method="POST"
+            class="d-inline">
+            @csrf
+            <button type="submit"
+              class="btn btn-success btn-sm">
+              <i class="fas fa-undo"></i>
+              {{ __('m_tours.tour.ui.restore') }}
+            </button>
+          </form>
 
-            @unless($isArchived)
-              <form id="delete-form-mobile-{{ $tour->tour_id }}"
-                    action="{{ route('admin.tours.destroy', $tour) }}"
-                    method="POST"
-                    class="d-inline">
-                @csrf
-                @method('DELETE')
-                <button type="button"
-                        class="btn btn-danger btn-sm"
-                        onclick="confirmDelete({{ $tour->tour_id }})">
-                  <i class="fas fa-trash-alt"></i>
-                  {{ __('m_tours.tour.ui.delete') }}
-                </button>
-              </form>
-            @endunless
-
-            @if($isArchived)
-              <form action="{{ route('admin.tours.restore', $tour->tour_id) }}"
-                    method="POST"
-                    class="d-inline">
-                @csrf
-                <button type="submit"
-                        class="btn btn-success btn-sm">
-                  <i class="fas fa-undo"></i>
-                  {{ __('m_tours.tour.ui.restore') }}
-                </button>
-              </form>
-
-              <form id="purge-form-mobile-{{ $tour->tour_id }}"
-                    action="{{ route('admin.tours.purge', $tour->tour_id) }}"
-                    method="POST"
-                    class="d-inline">
-                @csrf
-                @method('DELETE')
-                <button type="button"
-                        class="btn btn-outline-danger btn-sm"
-                        onclick="confirmPurge({{ $tour->tour_id }}, {{ $hasBookings }})">
-                  <i class="fas fa-times"></i>
-                  {{ __('m_tours.tour.ui.purge') }}
-                </button>
-              </form>
-            @endif
-          </div>
+          <form id="purge-form-mobile-{{ $tour->tour_id }}"
+            action="{{ route('admin.tours.purge', $tour->tour_id) }}"
+            method="POST"
+            class="d-inline">
+            @csrf
+            @method('DELETE')
+            <button type="button"
+              class="btn btn-outline-danger btn-sm"
+              onclick="confirmPurge({{ $tour->tour_id }}, {{ $hasBookings }})">
+              <i class="fas fa-times"></i>
+              {{ __('m_tours.tour.ui.purge') }}
+            </button>
+          </form>
+          @endif
         </div>
       </div>
     </div>
+  </div>
   @endforeach
 
   @if($tours instanceof \Illuminate\Contracts\Pagination\Paginator)
-    <div class="mt-3" id="paginationLinksMobile">
-      {{ $tours->withQueryString()->links() }}
-    </div>
+  <div class="mt-3" id="paginationLinksMobile">
+    {{ $tours->withQueryString()->links() }}
+  </div>
   @endif
 </div>
 
@@ -902,11 +911,11 @@ $coverFromFolder = function (?int $tourId): string {
     const run = () => {
       Swal.fire({
         title: @json(__('m_tours.tour.alerts.delete_title')),
-        text:  @json(__('m_tours.tour.alerts.delete_text')),
+        text: @json(__('m_tours.tour.alerts.delete_text')),
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: @json(__('m_tours.common.confirm_delete')),
-        cancelButtonText:  @json(__('m_tours.common.cancel')),
+        cancelButtonText: @json(__('m_tours.common.cancel')),
         confirmButtonColor: '#dc3545',
         cancelButtonColor: '#6c757d'
       }).then((result) => {
@@ -915,7 +924,8 @@ $coverFromFolder = function (?int $tourId): string {
         }
       });
     };
-    if (window.Swal) run(); else setTimeout(run, 300);
+    if (window.Swal) run();
+    else setTimeout(run, 300);
   }
 
   function confirmPurge(id, hasBookings) {
@@ -925,21 +935,21 @@ $coverFromFolder = function (?int $tourId): string {
 
     if (!form) return;
 
-    const extra = hasBookings > 0
-      ? `<div class="mt-2 text-start">
+    const extra = hasBookings > 0 ?
+      `<div class="mt-2 text-start">
            <strong>{{ __('m_tours.common.warning') }}:</strong>
            {{ __('m_tours.tour.alerts.purge_text_with_bookings', ['count' => '___COUNT___']) }}
-         </div>`.replace('___COUNT___', hasBookings)
-      : '';
+         </div>`.replace('___COUNT___', hasBookings) :
+      '';
 
     const run = () => {
       Swal.fire({
         title: @json(__('m_tours.tour.alerts.purge_title')),
-        html:  @json(__('m_tours.tour.alerts.purge_text')) + extra,
+        html: @json(__('m_tours.tour.alerts.purge_text')) + extra,
         icon: 'error',
         showCancelButton: true,
         confirmButtonText: @json(__('m_tours.common.confirm_delete')),
-        cancelButtonText:  @json(__('m_tours.common.cancel')),
+        cancelButtonText: @json(__('m_tours.common.cancel')),
         confirmButtonColor: '#dc3545',
         cancelButtonColor: '#6c757d'
       }).then((result) => {
@@ -948,7 +958,8 @@ $coverFromFolder = function (?int $tourId): string {
         }
       });
     };
-    if (window.Swal) run(); else setTimeout(run, 300);
+    if (window.Swal) run();
+    else setTimeout(run, 300);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -964,14 +975,15 @@ $coverFromFolder = function (?int $tourId): string {
           text: question,
           showCancelButton: true,
           confirmButtonText: @json(__('m_tours.common.yes')),
-          cancelButtonText:  @json(__('m_tours.common.cancel')),
+          cancelButtonText: @json(__('m_tours.common.cancel')),
           confirmButtonColor: '#0d6efd',
           cancelButtonColor: '#6c757d'
         }).then(res => {
           if (res.isConfirmed) form.submit();
         });
       };
-      if (window.Swal) run(); else setTimeout(run, 300);
+      if (window.Swal) run();
+      else setTimeout(run, 300);
     });
 
     const root = document.documentElement;
