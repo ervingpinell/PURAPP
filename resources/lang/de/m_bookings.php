@@ -163,6 +163,8 @@ return [
     // [02] BUCHUNGEN
     // =========================================================
     'bookings' => [
+        'singular' => 'Buchung',
+        'plural' => 'Buchungen',
         'ui' => [
             'page_title'        => 'Buchungen',
             'page_heading'      => 'Buchungsverwaltung',
@@ -200,6 +202,7 @@ return [
             'booking_date'      => 'Buchungsdatum',
             'booking_origin'    => 'Buchungsdatum (Ursprung)',
             'reference'         => 'Referenz',
+            'booking_reference' => 'Buchungsreferenz',
             'customer'          => 'Kunde',
             'email'             => 'E-Mail',
             'phone'             => 'Telefon',
@@ -281,7 +284,7 @@ return [
             'tour_archived'         => '(archiviert)',
             'meeting_point_hint'    => 'In der Liste wird nur der Name des Treffpunkts angezeigt.',
             'customer_locked'       => 'Der Kunde ist gesperrt und kann nicht bearbeitet werden.',
-            'promo_applied_subtract'=> 'Rabatt angewendet:',
+            'promo_applied_subtract' => 'Rabatt angewendet:',
             'promo_applied_add'     => 'Aufschlag angewendet:',
             'hotel_locked_by_meeting_point'   => 'Ein Treffpunkt wurde ausgewählt; ein Hotel kann nicht ausgewählt werden.',
             'meeting_point_locked_by_hotel'   => 'Ein Hotel wurde ausgewählt; ein Treffpunkt kann nicht ausgewählt werden.',
@@ -331,11 +334,29 @@ return [
             'status_update_failed' => 'Der Buchungsstatus konnte nicht aktualisiert werden.',
             'detail_not_found'     => 'Buchungsdetails nicht gefunden.',
             'schedule_not_found'   => 'Uhrzeit nicht gefunden.',
-            'insufficient_capacity'=> 'Nicht genügend Kapazität für „:tour“ am :date um :time. Angefragt: :requested, verfügbar: :available (max: :max).',
+            'insufficient_capacity' => 'Nicht genügend Kapazität für „:tour“ am :date um :time. Angefragt: :requested, verfügbar: :available (max: :max).',
         ],
 
         'confirm' => [
             'delete' => 'Möchtest du diese Buchung wirklich löschen?',
+        ],
+
+        // SoftDelete & Papierkorb
+        'trash' => [
+            'active_bookings' => 'Aktive Buchungen',
+            'trash' => 'Papierkorb',
+            'restore_booking' => 'Buchung wiederherstellen',
+            'permanently_delete' => 'Endgültig löschen',
+            'force_delete_title' => 'ENDGÜLTIGES LÖSCHEN',
+            'force_delete_warning' => 'Diese Aktion KANN NICHT rückgängig gemacht werden!',
+            'force_delete_message' => 'wird endgültig gelöscht.',
+            'force_delete_data_loss' => 'Alle zugehörigen Daten gehen für immer verloren.',
+            'force_delete_confirm' => 'Ja, ENDGÜLTIG LÖSCHEN',
+            'booking_deleted' => 'Buchung gelöscht.',
+            'booking_restored' => 'Buchung erfolgreich wiederhergestellt.',
+            'booking_force_deleted' => 'Buchung endgültig gelöscht. Zahlungsaufzeichnungen für Audit aufbewahrt.',
+            'force_delete_failed' => 'Buchung konnte nicht endgültig gelöscht werden.',
+            'deleted_booking_indicator' => '(GELÖSCHT)',
         ],
     ],
 
@@ -416,6 +437,7 @@ return [
         'qr_alt'        => 'QR-Code',
         'qr_scan'       => 'Scanne, um die Buchung zu sehen',
         'thanks'        => 'Danke, dass du dich für :company entschieden hast!',
+        'payment_status' => 'Zahlungsstatus:',
     ],
 
     // =========================================================
@@ -605,7 +627,7 @@ return [
                 'schedule'    => 'Uhrzeit',
                 'capacity'    => 'Override-Kapazität',
                 'level'       => 'Level',
-                'no_schedules'=> 'Diese Tour hat keine zugewiesenen Uhrzeiten',
+                'no_schedules' => 'Diese Tour hat keine zugewiesenen Uhrzeiten',
             ],
             'day_schedules' => [
                 'date'        => 'Datum',
@@ -613,7 +635,7 @@ return [
                 'schedule'    => 'Uhrzeit',
                 'capacity'    => 'Kapazität',
                 'actions'     => 'Aktionen',
-                'no_overrides'=> 'Es gibt keine Overrides für Tag + Uhrzeit',
+                'no_overrides' => 'Es gibt keine Overrides für Tag + Uhrzeit',
             ],
         ],
 

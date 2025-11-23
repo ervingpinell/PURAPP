@@ -6,9 +6,15 @@ return [
         'terms_title'        => 'Politiques et Conditions',
         'secure_subtitle'    => 'Le paiement est rapide et sécurisé',
         'required_title'     => 'Champs obligatoires',
-        'required_read_accept'=> 'Vous devez lire et accepter toutes les politiques pour poursuivre le paiement',
+        'required_read_accept' => 'Vous devez lire et accepter toutes les politiques pour poursuivre le paiement',
         'terms_block_title'  => 'Termes, Conditions et Politiques',
         'version'            => 'v',
+    ],
+
+    'steps' => [
+        'review'             => 'Révision',
+        'payment'            => 'Paiement',
+        'confirmation'       => 'Confirmation',
     ],
 
     'buttons' => [

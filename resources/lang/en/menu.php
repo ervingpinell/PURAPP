@@ -63,5 +63,15 @@ return [
         // Other
         'reports'         => 'Reports',
         'my_profile'      => 'My Profile',
-
+        'payments'        => 'Payments',
+        'settings_general' => 'General Settings',
+        'settings_pricing' => 'Pricing and Types',
+        'settings_tours'   => 'Tour Settings',
+        'review_providers' => 'Review Providers',
+        'availability' => 'Availability',
+        'review_settings' => 'Review Settings',
+        'tour_settings' => 'Tour Settings',
+        'general' => 'General',
+        'app_settings' => 'App Settings',
+        'app' => 'App',
 ];

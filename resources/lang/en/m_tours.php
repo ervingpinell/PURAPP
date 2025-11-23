@@ -1359,9 +1359,12 @@ return [
 
     'tour_type' => [
         'fields' => [
-            'name'        => 'Name',
-            'description' => 'Description',
-            'status'      => 'Status',
+        'name' => 'Name',
+        'description' => 'Description',
+        'status' => 'Status',
+        'duration' => 'Duration',
+        'duration_hint' => 'Suggested tour duration (optional)',
+        'duration_placeholder' => 'Example: 4 hours, 6 hours, etc.',
         ],
     ],
 ];

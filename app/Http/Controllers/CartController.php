@@ -152,7 +152,7 @@ class CartController extends Controller
             $cart = Cart::create([
                 'user_id'   => $user->user_id,
                 'is_active' => true,
-            ])->ensureExpiry((int) config('cart.expiry_minutes', 15));
+            ])->ensureExpiry((int) config('cart.expiration_minutes', 15));
         }
 
         // Pickup - CORREGIDO: usar meeting_point_id directamente

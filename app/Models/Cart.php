@@ -17,15 +17,11 @@ class Cart extends Model
         'user_id',
         'is_active',
         'expires_at',
-        'extended_count',
-        'last_extended_at',
     ];
 
     protected $casts = [
-        'expires_at'       => 'datetime',
-        'last_extended_at' => 'datetime',
-        'is_active'        => 'boolean',
-        'extended_count'   => 'integer',
+        'expires_at' => 'datetime',
+        'is_active'  => 'boolean',
     ];
 
     /* ---------------- Relationships ---------------- */
@@ -42,24 +38,9 @@ class Cart extends Model
     /* ---------------- Config helpers ---------------- */
     public function expiryMinutes(): int
     {
-        return (int) config('cart.expiry_minutes', 15);
-    }
-
-    public function extendMinutes(): int
-    {
-        // Unificado con frontend/controlador (15 por defecto)
-        return (int) config('cart.extend_minutes', 15);
-    }
-
-    public function maxExtensions(): int
-    {
-        return (int) config('cart.max_extensions', 1);
-    }
-
-    /* ---------------- Helper de límite ---------------- */
-    public function isExtensionLimitReached(): bool
-    {
-        return (int) $this->extended_count >= $this->maxExtensions();
+        // Try to get from database settings first, then fall back to config
+        $setting = \App\Models\Setting::where('key', 'cart.expiration_minutes')->value('value');
+        return (int) ($setting ?? config('cart.expiration_minutes', 30));
     }
 
     /* ---------------- Expiration helpers ---------------- */
@@ -103,53 +84,6 @@ class Cart extends Model
         return $this->ensureExpiry($minutes ?? $this->expiryMinutes());
     }
 
-    /** ¿Aún puede extenderse (botón “Extender” del timer)? */
-    public function canExtend(): bool
-    {
-        if ($this->isExpired()) return false;
-        return !$this->isExtensionLimitReached();
-    }
-
-    /**
-     * Extiende el hold UNA vez respetando límites (cuenta en extended_count).
-     * Versión segura frente a clics concurrentes (UPDATE condicional).
-     *
-     * @return bool true si extendió, false si no pudo
-     */
-    public function extendOnce(?int $minutes = null): bool
-    {
-        if ($this->isExpired()) {
-            return false;
-        }
-
-        $minutes   = $minutes ?? $this->extendMinutes();
-        $now       = now();
-        $base      = $this->expires_at && $this->expires_at->gt($now) ? $this->expires_at->copy() : $now;
-        $newExpiry = $base->addMinutes($minutes);
-
-        // Intento atómico: solo si no rebasamos el límite
-        $affected = DB::table($this->getTable())
-            ->where($this->getKeyName(), $this->getKey())
-            ->where('is_active', true)
-            ->where('extended_count', '<', $this->maxExtensions())
-            ->update([
-                'expires_at'       => $newExpiry,
-                'extended_count'   => DB::raw('extended_count + 1'),
-                'last_extended_at' => $now,
-                'updated_at'       => $now,
-            ]);
-
-        if ($affected === 1) {
-            // refrescar el modelo en memoria
-            $this->expires_at       = $newExpiry;
-            $this->extended_count   = ((int) $this->extended_count) + 1;
-            $this->last_extended_at = $now;
-            return true;
-        }
-
-        return false;
-    }
-
     /** Marca el carrito como expirado y lo limpia. */
     public function forceExpire(): void
     {
@@ -157,17 +91,6 @@ class Cart extends Model
         $this->is_active  = false;
         $this->expires_at = now();
         $this->save();
-    }
-
-    /* ---------------- Helper de estado (para Blade o API) ---------------- */
-    public function extensionState(): array
-    {
-        return [
-            'used'       => (int) $this->extended_count,
-            'max'        => $this->maxExtensions(),
-            'remaining'  => max(0, $this->maxExtensions() - (int) $this->extended_count),
-            'can_extend' => $this->canExtend(),
-        ];
     }
 
     /* ---------------- Scopes útiles ---------------- */

@@ -163,6 +163,8 @@ return [
     // [02] RESERVAS
     // =========================================================
     'bookings' => [
+        'singular' => 'Reserva',
+        'plural' => 'Reservas',
         'ui' => [
             'page_title'        => 'Reservas',
             'page_heading'      => 'Gestão de Reservas',
@@ -200,6 +202,7 @@ return [
             'booking_date'      => 'Data da reserva',
             'booking_origin'    => 'Data da reserva (origem)',
             'reference'         => 'Referência',
+            'booking_reference' => 'Referência da Reserva',
             'customer'          => 'Cliente',
             'email'             => 'E-mail',
             'phone'             => 'Telefone',
@@ -281,7 +284,7 @@ return [
             'tour_archived'         => '(arquivado)',
             'meeting_point_hint'    => 'Na lista é exibido apenas o nome do ponto.',
             'customer_locked'       => 'O cliente está bloqueado e não pode ser editado.',
-            'promo_applied_subtract'=> 'Desconto aplicado:',
+            'promo_applied_subtract' => 'Desconto aplicado:',
             'promo_applied_add'     => 'Acréscimo aplicado:',
             'hotel_locked_by_meeting_point'   => 'Foi selecionado um ponto de encontro; não é possível selecionar um hotel.',
             'meeting_point_locked_by_hotel'   => 'Foi selecionado um hotel; não é possível selecionar um ponto de encontro.',
@@ -331,7 +334,7 @@ return [
             'status_update_failed' => 'Não foi possível atualizar o status da reserva.',
             'detail_not_found'     => 'Detalhes da reserva não encontrados.',
             'schedule_not_found'   => 'Horário não encontrado.',
-            'insufficient_capacity'=> 'Capacidade insuficiente para ":tour" em :date às :time. Solicitado: :requested, disponível: :available (máx: :max).',
+            'insufficient_capacity' => 'Capacidade insuficiente para ":tour" em :date às :time. Solicitado: :requested, disponível: :available (máx: :max).',
         ],
 
         'confirm' => [
@@ -416,6 +419,7 @@ return [
         'qr_alt'        => 'Código QR',
         'qr_scan'       => 'Escaneie para ver a reserva',
         'thanks'        => 'Obrigado por escolher :company!',
+        'payment_status' => 'Estado de pagamento:',
     ],
 
     // =========================================================
@@ -605,7 +609,7 @@ return [
                 'schedule'    => 'Horário',
                 'capacity'    => 'Capacidade override',
                 'level'       => 'Nível',
-                'no_schedules'=> 'Este tour não possui horários atribuídos',
+                'no_schedules' => 'Este tour não possui horários atribuídos',
             ],
             'day_schedules' => [
                 'date'        => 'Data',
@@ -613,7 +617,7 @@ return [
                 'schedule'    => 'Horário',
                 'capacity'    => 'Capacidade',
                 'actions'     => 'Ações',
-                'no_overrides'=> 'Não há overrides de dia + horário',
+                'no_overrides' => 'Não há overrides de dia + horário',
             ],
         ],
 

@@ -163,6 +163,8 @@ return [
     // [02] BOOKINGS
     // =========================================================
     'bookings' => [
+        'singular' => 'Booking',
+        'plural' => 'Bookings',
         'ui' => [
             'page_title'        => 'Bookings',
             'page_heading'      => 'Booking Management',
@@ -200,6 +202,7 @@ return [
             'booking_date'      => 'Booking date',
             'booking_origin'    => 'Booking date (origin)',
             'reference'         => 'Reference',
+            'booking_reference' => 'Booking Reference',
             'customer'          => 'Customer',
             'email'             => 'Email',
             'phone'             => 'Phone',
@@ -281,7 +284,7 @@ return [
             'tour_archived'         => '(archived)',
             'meeting_point_hint'    => 'Only the point name is shown in the list.',
             'customer_locked'       => 'The customer is locked and cannot be edited.',
-            'promo_applied_subtract'=> 'Discount applied:',
+            'promo_applied_subtract' => 'Discount applied:',
             'promo_applied_add'     => 'Surcharge applied:',
             'hotel_locked_by_meeting_point' => 'A meeting point was selected; a hotel cannot be selected.',
             'meeting_point_locked_by_hotel' => 'A hotel was selected; a meeting point cannot be selected.',
@@ -331,11 +334,29 @@ return [
             'status_update_failed' => 'The booking status could not be updated.',
             'detail_not_found'     => 'Booking details not found.',
             'schedule_not_found'   => 'Schedule not found.',
-            'insufficient_capacity'=> 'Not enough capacity for ":tour" on :date at :time. Requested: :requested, available: :available (max: :max).',
+            'insufficient_capacity' => 'Not enough capacity for ":tour" on :date at :time. Requested: :requested, available: :available (max: :max).',
         ],
 
         'confirm' => [
             'delete' => 'Are you sure you want to delete this booking?',
+        ],
+
+        // SoftDelete & Trash
+        'trash' => [
+            'active_bookings' => 'Active Bookings',
+            'trash' => 'Trash',
+            'restore_booking' => 'Restore booking',
+            'permanently_delete' => 'Permanently delete',
+            'force_delete_title' => 'PERMANENT DELETE',
+            'force_delete_warning' => 'This action CANNOT be undone!',
+            'force_delete_message' => 'will be permanently deleted.',
+            'force_delete_data_loss' => 'All related data will be lost forever.',
+            'force_delete_confirm' => 'Yes, DELETE FOREVER',
+            'booking_deleted' => 'Booking deleted.',
+            'booking_restored' => 'Booking restored successfully.',
+            'booking_force_deleted' => 'Booking permanently deleted. Payment records preserved for audit.',
+            'force_delete_failed' => 'Failed to permanently delete booking.',
+            'deleted_booking_indicator' => '(DELETED)',
         ],
     ],
 
@@ -416,6 +437,7 @@ return [
         'qr_alt'        => 'QR Code',
         'qr_scan'       => 'Scan to view the booking',
         'thanks'        => 'Thank you for choosing :company!',
+        'payment_status' => 'Payment Status:',
     ],
 
     // =========================================================
@@ -604,7 +626,7 @@ return [
                 'schedule'    => 'Schedule',
                 'capacity'    => 'Override Capacity',
                 'level'       => 'Level',
-                'no_schedules'=> 'This tour has no assigned schedules',
+                'no_schedules' => 'This tour has no assigned schedules',
             ],
             'day_schedules' => [
                 'date'        => 'Date',
@@ -612,7 +634,7 @@ return [
                 'schedule'    => 'Schedule',
                 'capacity'    => 'Capacity',
                 'actions'     => 'Actions',
-                'no_overrides'=> 'There are no day + schedule overrides',
+                'no_overrides' => 'There are no day + schedule overrides',
             ],
         ],
 

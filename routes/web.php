@@ -52,6 +52,7 @@ use App\Http\Controllers\Admin\CapacityController;
 use App\Http\Controllers\Admin\CustomerCategoryController;
 use App\Http\Controllers\Admin\Tours\TourAjaxController;
 use App\Http\Controllers\Admin\API\TourDataController;
+use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\EmailChangeController;
 use App\Http\Controllers\Admin\Tours\TourWizardController;
 
@@ -239,6 +240,19 @@ Route::get('/cart/count', [PublicCartController::class, 'count'])
 
 /*
 |--------------------------------------------------------------------------
+| Payment Webhooks (no auth required)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('webhooks/payment')->name('webhooks.payment.')->group(function () {
+    Route::post('/stripe', [\App\Http\Controllers\Webhooks\PaymentWebhookController::class, 'stripe'])->name('stripe');
+    Route::post('/tilopay', [\App\Http\Controllers\Webhooks\PaymentWebhookController::class, 'tilopay'])->name('tilopay');
+    Route::post('/banco-nacional', [\App\Http\Controllers\Webhooks\PaymentWebhookController::class, 'bancoNacional'])->name('banco_nacional');
+    Route::post('/bac', [\App\Http\Controllers\Webhooks\PaymentWebhookController::class, 'bac'])->name('bac');
+    Route::post('/bcr', [\App\Http\Controllers\Webhooks\PaymentWebhookController::class, 'bcr'])->name('bcr');
+});
+
+/*
+|--------------------------------------------------------------------------
 | Localized group
 |--------------------------------------------------------------------------
 */
@@ -394,6 +408,15 @@ Route::middleware([SetLocale::class])->group(function () {
         // Checkout: vista de términos + proceso de aceptación (desplazar/leer + checkbox)
         Route::get('/checkout', [PublicCheckoutController::class, 'show'])->name('public.checkout.show');
         Route::post('/checkout/process', [PublicCheckoutController::class, 'process'])->name('public.checkout.process');
+
+        // Payment routes
+        Route::prefix('payment')->name('payment.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\PaymentController::class, 'show'])->name('show');
+            Route::post('/initiate', [\App\Http\Controllers\PaymentController::class, 'initiate'])->name('initiate');
+            Route::get('/confirm', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('confirm');
+            Route::get('/cancel', [\App\Http\Controllers\PaymentController::class, 'cancel'])->name('cancel');
+            Route::get('/{payment}/status', [\App\Http\Controllers\PaymentController::class, 'status'])->name('status');
+        });
     });
 
     // ------------------------------
@@ -417,6 +440,7 @@ Route::middleware([SetLocale::class])->group(function () {
             Route::middleware('2fa.admin')->group(function () {
 
                 // Dashboard
+
                 Route::get('/', [DashBoardController::class, 'dashboard'])->name('home');
 
                 // ============================
@@ -450,6 +474,15 @@ Route::middleware([SetLocale::class])->group(function () {
                 // TOURS
                 // ============================
                 Route::prefix('tours')->name('tours.')->group(function () {
+
+                    // -------------------- CUTOFF --------------------
+                    // Moved here to avoid collision with /{tour} wildcard
+                    Route::prefix('cutoff')->name('cutoff.')->group(function () {
+                        Route::get('/', [CutOffController::class, 'edit'])->name('edit');
+                        Route::match(['put', 'post'], '/', [CutOffController::class, 'update'])->name('update');
+                        Route::match(['put', 'post'], '/tour', [CutOffController::class, 'updateTourOverrides'])->name('tour.update');
+                        Route::match(['put', 'post'], '/schedule', [CutOffController::class, 'updateScheduleOverrides'])->name('schedule.update');
+                    });
 
                     // -------------------- TOUR MAIN CRUD --------------------
                     Route::get('/', [TourController::class, 'index'])->name('index');
@@ -674,13 +707,7 @@ Route::middleware([SetLocale::class])->group(function () {
                         Route::post('/destroy-selected', [TourExcludedDateController::class, 'destroySelected'])->name('destroySelected');
                     });
 
-                    // -------------------- CUTOFF --------------------
-                    Route::prefix('cutoff')->name('cutoff.')->group(function () {
-                        Route::get('/', [CutOffController::class, 'edit'])->name('edit');
-                        Route::put('/', [CutOffController::class, 'update'])->name('update');
-                        Route::put('/tour', [CutOffController::class, 'updateTourOverrides'])->name('tour.update');
-                        Route::put('/schedule', [CutOffController::class, 'updateScheduleOverrides'])->name('schedule.update');
-                    });
+
 
                     // -------------------- ITINERARY --------------------
                     Route::resource('itinerary', ItineraryController::class)->except(['show']);
@@ -765,9 +792,34 @@ Route::middleware([SetLocale::class])->group(function () {
                         Route::match(['put', 'patch'], '{booking}', 'update')->name('update');
                         Route::delete('{booking}', 'destroy')->name('destroy');
 
+                        // NUEVO: detalle (show)
+                        Route::get('{booking}', 'show')->name('show');
+
+                        // SoftDelete actions
+                        Route::post('{id}/restore', 'restore')->name('restore');
+                        Route::delete('{id}/force', 'forceDelete')->name('forceDelete');
+
                         // Estado y recibo
                         Route::patch('{booking}/status', 'updateStatus')->name('update-status');
                         Route::get('{booking}/receipt', 'generateReceipt')->name('receipt');
+                    });
+
+                // ============================
+                // PAYMENTS (ADMIN)
+                // ============================
+                Route::prefix('payments')
+                    ->name('payments.')
+                    ->controller(\App\Http\Controllers\Admin\PaymentController::class)
+                    ->group(function () {
+                        // Export
+                        Route::get('export', 'export')->name('export');
+
+                        // List and details
+                        Route::get('', 'index')->name('index');
+                        Route::get('{payment}', 'show')->name('show');
+
+                        // Refund
+                        Route::post('{payment}/refund', 'refund')->name('refund');
                     });
 
                 // ============================
@@ -795,6 +847,14 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::post('/', [PromoCodeController::class, 'store'])->name('store');
                     Route::delete('/{promo}', [PromoCodeController::class, 'destroy'])->name('destroy');
                     Route::patch('/{promo}/operation', [PromoCodeController::class, 'updateOperation'])->name('updateOperation');
+                });
+
+                // ============================
+                // SETTINGS
+                // ============================
+                Route::prefix('settings')->name('settings.')->group(function () {
+                    Route::get('/', [SettingsController::class, 'index'])->name('index');
+                    Route::post('/', [SettingsController::class, 'update'])->name('update');
                 });
 
                 // ============================

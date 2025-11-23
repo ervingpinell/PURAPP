@@ -69,7 +69,7 @@ class BookingValidationService
         }
 
         // Máximo de niños (si aplica)
-        $maxKids = (int) config('booking.max_kids_per_booking', PHP_INT_MAX);
+        $maxKids = PHP_INT_MAX;
         if ($maxKids < PHP_INT_MAX) {
             $kid = $active->firstWhere('slug', 'kid');
             if ($kid) {
@@ -118,7 +118,7 @@ class BookingValidationService
 
                 // Slug seguro
                 $slug = $catModel->slug ?? (isset($catModel->name) ? \Str::slug($catModel->name) : null);
-                $slug = $slug ?: 'category-'.$catModel->category_id;
+                $slug = $slug ?: 'category-' . $catModel->category_id;
 
                 return (object) [
                     'category_id'  => (int) $price->category_id,
@@ -173,10 +173,12 @@ class BookingValidationService
         // 2) Claves de lang por slug
         $slug = $categoryModel->slug ?? (isset($categoryModel->name) ? \Str::slug($categoryModel->name) : null);
         if (!empty($slug)) {
-            foreach ([
-                "customer_categories.labels.$slug",
-                "m_tours.customer_categories.labels.$slug",
-            ] as $key) {
+            foreach (
+                [
+                    "customer_categories.labels.$slug",
+                    "m_tours.customer_categories.labels.$slug",
+                ] as $key
+            ) {
                 $tr = __($key);
                 if ($tr !== $key) return $tr;
             }

@@ -179,9 +179,21 @@ class BookingController extends Controller
                 $created[] = $booking;
             }
 
-            // Cerrar carrito
-            $cart->items()->delete();
-            $cart->update(['is_active' => false, 'expires_at' => now()]);
+            // 🔄 NUEVO FLUJO: Marcar items como reservados en lugar de eliminarlos
+            // Esto permite que el usuario pueda volver si abandona el pago
+            $reservationToken = \Illuminate\Support\Str::random(32);
+            $cart->items()->update([
+                'is_reserved' => true,
+                'reserved_at' => now(),
+                'reservation_token' => $reservationToken,
+            ]);
+
+            // Guardar token de reserva en sesión para limpieza posterior
+            $request->session()->put('cart_reservation_token', $reservationToken);
+
+            // NO desactivar el carrito aún - se hará después del pago exitoso
+            // $cart->update(['is_active' => false, 'expires_at' => now()]);
+
             $request->session()->forget('public_cart_promo');
             // 👉 NUEVO: Limpiar notas de sesión después de crear bookings
             $request->session()->forget('checkout_notes');
@@ -189,69 +201,32 @@ class BookingController extends Controller
             return $created;
         });
 
-        // ===== Emails (cliente + admins) =====
-        $createdBookings = collect($createdBookings);
+        // ===== Store booking IDs in session for payment =====
+        $bookingIds = collect($createdBookings)->pluck('booking_id')->toArray();
 
-        $details = \App\Models\BookingDetail::with(['tour', 'schedule', 'hotel', 'tourLanguage', 'booking.user'])
-            ->whereIn('booking_id', $createdBookings->pluck('booking_id'))
-            ->get();
+        // Store in session for payment page
+        $request->session()->put('pending_booking_ids', $bookingIds);
 
-        if ($details->isNotEmpty()) {
-            $notify = $this->notifyEmails();
-            $byLang = $details->groupBy('tour_language_id');
-            $shouldSendDirect = app()->isLocal() && (config('queue.default', env('QUEUE_CONNECTION')) === 'sync');
+        // 🔄 NUEVO: Limpiar rate limiter después de crear bookings exitosamente
+        $key = 'booking:cart:' . $user->user_id;
+        RateLimiter::clear($key);
 
-            foreach ($byLang as $langId => $langDetails) {
-                $firstDetail  = $langDetails->first();
-                $firstBooking = $createdBookings->firstWhere('booking_id', $firstDetail->booking_id);
-
-                $primaryTo = optional($firstBooking->user)->email
-                    ?: optional($firstDetail->booking?->user)->email;
-
-                $mailable = (new \App\Mail\BookingCreatedMail($firstBooking, $langDetails))
-                    ->onQueue('mail')
-                    ->afterCommit();
-
-                try {
-                    if (filter_var($primaryTo, FILTER_VALIDATE_EMAIL)) {
-                        $pending = \Mail::to($primaryTo);
-                        if (!empty($notify)) $pending->bcc($notify);
-
-                        $shouldSendDirect ? $pending->send($mailable) : $pending->queue($mailable);
-                    } else {
-                        \Log::warning('BookingCreatedMail: cliente sin email válido; enviando solo a admins', [
-                            'booking_ids' => $langDetails->pluck('booking_id')->unique()->values()->all(),
-                        ]);
-
-                        if (!empty($notify)) {
-                            $mailer = \Mail::to($notify[0])->bcc(array_slice($notify, 1));
-                            $shouldSendDirect ? $mailer->send($mailable) : $mailer->queue($mailable);
-                        }
-                    }
-                } catch (\Throwable $e) {
-                    \Log::error('BookingCreatedMail dispatch error: '.$e->getMessage(), [
-                        'booking_id' => $firstBooking->booking_id,
-                        'to'         => $primaryTo,
-                        'lang_id'    => $langId,
-                    ]);
-                }
-            }
-        }
-
-        return redirect()->route('my-bookings')
-            ->with('success', __('m_bookings.messages.bookings_created_from_cart'));
+        // Redirect to payment page
+        return redirect()->route('payment.show')
+            ->with('info', __('Please complete payment to confirm your booking'));
     }
 
     /** Mis reservas (público) */
     public function myBookings()
     {
         $bookings = Booking::with([
-                'user',
-                'tour.prices.category',
-                'detail.hotel',
-                'detail.meetingPoint.translations',
-                'detail.schedule'
-            ])
+            'user',
+            'tour.prices.category',
+            'detail.hotel',
+            'detail.meetingPoint.translations',
+            'detail.schedule',
+            'payments'
+        ])
             ->where('user_id', Auth::id())
             ->orderByDesc('booking_date')
             ->get();
@@ -269,7 +244,8 @@ class BookingController extends Controller
             'detail.hotel',
             'detail.meetingPoint',
             'user',
-            'tour.prices.category'
+            'tour.prices.category',
+            'payments'
         ]);
 
         $locale = app()->getLocale();
@@ -284,10 +260,12 @@ class BookingController extends Controller
                     : ($cat->name ?? null);
 
                 if (!$name && ($slug = $cat->slug ?? null)) {
-                    foreach ([
-                        "customer_categories.labels.$slug",
-                        "m_tours.customer_categories.labels.$slug",
-                    ] as $key) {
+                    foreach (
+                        [
+                            "customer_categories.labels.$slug",
+                            "m_tours.customer_categories.labels.$slug",
+                        ] as $key
+                    ) {
                         $tr = __($key);
                         if ($tr !== $key) {
                             $name = $tr;
@@ -349,8 +327,10 @@ class BookingController extends Controller
         $startDateTime = null;
         if ($detail->tour_date && $scheduleStart) {
             try {
-                $startDateTime = \Carbon\Carbon::parse($detail->tour_date.' '.$scheduleStart);
-            } catch (\Throwable $e) { $startDateTime = null; }
+                $startDateTime = \Carbon\Carbon::parse($detail->tour_date . ' ' . $scheduleStart);
+            } catch (\Throwable $e) {
+                $startDateTime = null;
+            }
         } elseif ($detail->tour_date) {
             $startDateTime = \Carbon\Carbon::parse($detail->tour_date)->startOfDay();
         }
@@ -546,7 +526,7 @@ class BookingController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            \Log::error("Public booking update error #{$booking->booking_id}: ".$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            \Log::error("Public booking update error #{$booking->booking_id}: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return back()->withInput()->with('error', __('m_bookings.bookings.errors.update'));
         }
 
@@ -569,7 +549,7 @@ class BookingController extends Controller
                 }
             }
         } catch (\Throwable $e) {
-            \Log::warning('BookingUpdatedMail (public) failed: '.$e->getMessage(), ['booking_id' => $booking->booking_id]);
+            \Log::warning('BookingUpdatedMail (public) failed: ' . $e->getMessage(), ['booking_id' => $booking->booking_id]);
         }
 
         return redirect()->route('my-bookings')

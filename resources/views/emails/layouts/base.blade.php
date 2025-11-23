@@ -1,24 +1,27 @@
 {{-- resources/views/emails/layouts/base.blade.php --}}
 <!DOCTYPE html>
 <html lang="{{ $mailLocale ?? app()->getLocale() }}">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
   @php
-    // Marca / nombre de la app
-    $brand = $company
-      ?? config('mail.from.name', config('app.name', 'Green Vacations CR'));
+  // Marca / nombre de la app
+  $brand = $company
+  ?? config('mail.from.name', config('app.name', 'Green Vacations CR'));
 
-    // Título que se muestra en la pestaña del cliente de correo
-    $viewTitle = $title ?? $brand;
+  // Título que se muestra en la pestaña del cliente de correo
+  $viewTitle = $title ?? $brand;
   @endphp
 
   <title>{{ $viewTitle }}</title>
 
   <style>
     /* ===== Reset & Email-safe base ===== */
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
       height: 100%;
@@ -26,8 +29,9 @@
 
     body {
       width: 100% !important;
-      background: #f4f5f7;
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #ffffff !important;
+      /* Blanco para Outlook */
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #1f2937;
       -webkit-font-smoothing: antialiased;
       -ms-text-size-adjust: 100%;
@@ -39,6 +43,7 @@
       outline: none;
       text-decoration: none;
       -ms-interpolation-mode: bicubic;
+      display: block;
     }
 
     table {
@@ -47,142 +52,149 @@
       mso-table-rspace: 0pt;
     }
 
-    .root {
-      --primary-color:#60a862;
-      --primary-dark:#256d1b;
-      --primary-header:#0f2419;
-      --primary-red:#e74c3c;
-      --text-dark:#333;
-      --white:#fff;
-    }
-
     /* ===== Wrapper & container ===== */
     .email-wrapper {
       width: 100%;
-      background: #f4f5f7;
-      padding: 20px 0;
+      background-color: #ffffff;
+      padding: 0;
+      margin: 0;
     }
 
     .email-container {
       width: 100%;
-      max-width: 680px;
+      max-width: 600px;
       margin: 0 auto;
-      background: #ffffff;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      background-color: #ffffff;
     }
 
     /* ===== Header ===== */
     .email-header {
-      background: linear-gradient(135deg, #256d1b, #60a862);
-      padding: 18px 16px;
+      background-color: #256d1b;
+      padding: 20px;
       text-align: center;
     }
 
     .email-header img {
       display: block;
       margin: 0 auto;
-      max-width: 190px;     /* límite horizontal */
-      max-height: 70px;     /* límite vertical */
+      max-width: 180px;
       height: auto;
-      width: auto;
     }
 
     /* ===== Body ===== */
     .email-body {
-      padding: 24px 28px;
+      padding: 30px 20px;
       font-size: 14px;
-      line-height: 1.5;
+      line-height: 1.6;
+      color: #333333;
     }
 
     .section-card {
-      background: #f9fafb;
-      border-radius: 8px;
-      padding: 14px 18px;
-      margin-bottom: 16px;
+      background-color: #f9fafb;
       border: 1px solid #e5e7eb;
+      padding: 15px;
+      margin-bottom: 15px;
     }
 
     .section-title {
       font-size: 16px;
-      font-weight: 600;
-      color: #111827;
-      margin-bottom: 4px;
-    }
-
-    .title {
-      font-size: 17px;
       font-weight: 700;
       color: #111827;
-      margin: 0 0 6px;
-      padding: 0 12px;
+      margin: 0 0 10px 0;
     }
 
-    /* ===== Tablas de datos genéricas ===== */
+    /* Payment Status Badge */
+    .payment-status {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-top: 5px;
+    }
+
+    .payment-status.pending {
+      background-color: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fbbf24;
+    }
+
+    .payment-status.paid {
+      background-color: #d1fae5;
+      color: #065f46;
+      border: 1px solid #10b981;
+    }
+
+    /* ===== Tables ===== */
     table.data-table {
       width: 100%;
       border-collapse: collapse;
-      border-spacing: 0;
-      margin-top: 8px;
+      margin-top: 10px;
       font-size: 13px;
     }
 
     table.data-table th {
-      background: #f3f4f6;
+      background-color: #f3f4f6;
       color: #374151;
       font-size: 13px;
-      padding: 8px 6px;
+      font-weight: 600;
+      padding: 10px 8px;
       text-align: left;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 2px solid #e5e7eb;
     }
 
     table.data-table td {
-      padding: 7px 6px;
+      padding: 10px 8px;
       font-size: 13px;
       text-align: left;
-      border: none;
+      border-bottom: 1px solid #f1f5f9;
     }
 
-    /* Línea suave solo ENTRE filas (evita rayas fantasma al final) */
-    table.data-table tr + tr td {
-      border-top: 1px solid #f1f5f9;
-    }
-
-    /* ===== Totales en línea ===== */
+    /* ===== Totals ===== */
     .totals-inline {
-      padding: 6px 12px 0;
+      padding: 15px 0;
+      border-top: 2px solid #e5e7eb;
+      margin-top: 10px;
     }
 
     .totals-inline .row {
-      margin: 4px 0;
+      margin: 8px 0;
+      display: table;
+      width: 100%;
     }
 
     .totals-inline .label {
-      font-weight: 500;
-      color: #111827;
+      font-weight: 600;
+      color: #374151;
+      display: table-cell;
     }
 
     .totals-inline .amount {
-      font-weight: 600;
-    }
-
-    .totals-inline .muted {
-      color: #6b7280;
-      font-weight: 500;
+      font-weight: 700;
+      text-align: right;
+      display: table-cell;
     }
 
     .totals-inline .total {
-      margin-top: 4px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 2px solid #e5e7eb;
+      font-size: 16px;
+    }
+
+    .totals-inline .total .label,
+    .totals-inline .total .amount {
       font-weight: 800;
+      color: #111827;
     }
 
     /* ===== Footer ===== */
     .email-footer {
-      background: #f9fafb;
-      padding: 18px 22px;
+      background-color: #f9fafb;
+      padding: 20px;
       text-align: center;
-      border-top: 1px solid #e5e7eb;
+      border-top: 2px solid #e5e7eb;
       color: #6b7280;
       font-size: 12px;
     }
@@ -190,7 +202,6 @@
     .email-footer a {
       color: #059669;
       text-decoration: none;
-      margin: 0 6px;
     }
 
     .email-footer a:hover {
@@ -198,77 +209,94 @@
     }
 
     .email-copyright {
-      margin-top: 10px;
+      margin-top: 15px;
       font-size: 11px;
       color: #9ca3af;
     }
 
-    /* ===== Responsive ===== */
-    @media only screen and (max-width: 600px) {
-      .email-body {
-        padding: 18px 18px;
-      }
+    /* ===== Outlook specific fixes ===== */
+    /* Prevent Outlook from adding extra spacing */
+    table td {
+      border-collapse: collapse;
+    }
 
-      .section-card {
-        padding: 12px 14px;
-      }
-
-      .title {
-        padding: 0 10px;
-      }
-
-      .totals-inline {
-        padding: 6px 10px 0;
-      }
+    /* Force Outlook to provide a "view in browser" menu link */
+    #outlook a {
+      padding: 0;
     }
   </style>
+
+  <!--[if mso]>
+  <style type="text/css">
+    body, table, td {
+      font-family: Arial, sans-serif !important;
+    }
+    .email-container {
+      width: 600px !important;
+    }
+  </style>
+  <![endif]-->
 </head>
 
 @php
-  // Locale efectivo del correo
-  $mailLocale = $mailLocale ?? app()->getLocale();
+// Locale efectivo del correo
+$mailLocale = $mailLocale ?? app()->getLocale();
 
-  // Valores base
-  $appUrl       = rtrim($appUrl ?? config('app.url'), '/');
-  $brand        = $brand ?? $company ?? config('mail.from.name', config('app.name', 'Green Vacations CR'));
-  $supportEmail = env('MAIL_TO_CONTACT', 'info@greenvacationscr.com');
-  $phone        = env('COMPANY_PHONE', '+506 2479 1471');
+// Valores base
+$appUrl = rtrim($appUrl ?? config('app.url'), '/');
+$brand = $brand ?? $company ?? config('mail.from.name', config('app.name', 'Green Vacations CR'));
+$supportEmail = env('MAIL_TO_CONTACT', 'info@greenvacationscr.com');
+$phone = env('COMPANY_PHONE', '+506 2479 1471');
 
-  // Logo: simple y directo desde la URL pública
-  $logoUrl = env('COMPANY_LOGO_URL', $appUrl . '/images/logo.png');
+// Logo: simple y directo desde la URL pública
+$logoUrl = env('COMPANY_LOGO_URL', $appUrl . '/images/logo.png');
 @endphp
 
-<body class="root">
-  <div class="email-wrapper">
-    <div class="email-container">
-      {{-- HEADER --}}
-      <div class="email-header">
-        <img
-          src="{{ $logoUrl }}"
-          alt="{{ $brand }}"
-          width="190"
-          style="max-width:190px; max-height:70px; height:auto; display:block; margin:0 auto;"
-        >
-      </div>
+<body style="margin:0; padding:0; background-color:#ffffff;">
+  <!-- Wrapper table for Outlook -->
+  <table role="presentation" class="email-wrapper" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td align="center" style="padding:0;">
+        <!-- Container table -->
+        <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%;">
 
-      {{-- BODY --}}
-      <div class="email-body">
-        @yield('content')
-      </div>
+          <!-- HEADER -->
+          <tr>
+            <td class="email-header" style="background-color:#256d1b; padding:20px; text-align:center;">
+              <img
+                src="{{ $logoUrl }}"
+                alt="{{ $brand }}"
+                width="180"
+                style="max-width:180px; height:auto; display:block; margin:0 auto;">
+            </td>
+          </tr>
 
-      {{-- FOOTER --}}
-      <div class="email-footer">
-        <p>
-          📧 <a href="mailto:{{ $supportEmail }}">{{ $supportEmail }}</a> &nbsp; | &nbsp;
-          📞 <a href="tel:{{ $phone }}">{{ $phone }}</a> &nbsp; | &nbsp;
-          🌐 <a href="{{ $appUrl }}">greenvacationscr.com</a>
-        </p>
-        <div class="email-copyright">
-          © {{ date('Y') }} {{ $brand }}.
-          {{ str_starts_with(strtolower($mailLocale), 'es') ? 'Todos los derechos reservados.' : 'All rights reserved.' }}
-        </div>
-      </div>
-    </div>
-  </div>
+          <!-- BODY -->
+          <tr>
+            <td class="email-body" style="padding:30px 20px; font-size:14px; line-height:1.6; color:#333333;">
+              @yield('content')
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td class="email-footer" style="background-color:#f9fafb; padding:20px; text-align:center; border-top:2px solid #e5e7eb; color:#6b7280; font-size:12px;">
+              <p style="margin:0 0 10px 0;">
+                📧 <a href="mailto:{{ $supportEmail }}" style="color:#059669; text-decoration:none;">{{ $supportEmail }}</a> &nbsp; | &nbsp;
+                📞 <a href="tel:{{ $phone }}" style="color:#059669; text-decoration:none;">{{ $phone }}</a> &nbsp; | &nbsp;
+                🌐 <a href="{{ $appUrl }}" style="color:#059669; text-decoration:none;">greenvacationscr.com</a>
+              </p>
+              <div class="email-copyright" style="margin-top:15px; font-size:11px; color:#9ca3af;">
+                © {{ date('Y') }} {{ $brand }}.
+                {{ str_starts_with(strtolower($mailLocale), 'es') ? 'Todos los derechos reservados.' : 'All rights reserved.' }}
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
+
 </html>

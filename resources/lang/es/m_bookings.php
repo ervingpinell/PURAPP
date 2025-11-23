@@ -10,7 +10,7 @@ return [
         'meeting_point_hint' => 'Solo se muestra el nombre del punto en la lista.',
     ],
 
-      'validation' => [
+    'validation' => [
         'max_persons_exceeded' => 'Máximo :max personas por reserva en total.',
         'min_adults_required' => 'Se requieren mínimo :min adultos por reserva.',
         'max_kids_exceeded' => 'Máximo :max niños por reserva.',
@@ -164,6 +164,8 @@ return [
     // [02] RESERVAS
     // =========================================================
     'bookings' => [
+        'singular' => 'Reserva',
+        'plural' => 'Reservas',
         'ui' => [
             'page_title'         => 'Reservas',
             'page_heading'       => 'Gestión de Reservas',
@@ -202,6 +204,7 @@ return [
             'booking_date'      => 'Fecha de Reserva',
             'booking_origin'    => 'Fecha de Reserva (origen)',
             'reference'         => 'Referencia',
+            'booking_reference' => 'Referencia de Reserva',
             'customer'          => 'Cliente',
             'email'             => 'Correo',
             'phone'             => 'Teléfono',
@@ -283,12 +286,12 @@ return [
             'deleted_tour_snapshot' => 'Tour Eliminado (:name)',
             'tour_archived'         => '(archivado)',
             'meeting_point_hint'    => 'Solo se muestra el nombre del punto en la lista.',
-        'customer_locked'       => 'El cliente está bloqueado y no puede ser editado.',
-        'promo_applied_subtract' => 'Descuento aplicado:',
+            'customer_locked'       => 'El cliente está bloqueado y no puede ser editado.',
+            'promo_applied_subtract' => 'Descuento aplicado:',
             'promo_applied_add'      => 'Cargo aplicado:',
-                 'hotel_locked_by_meeting_point'   => 'Se seleccionó un punto de encuentro; no se puede seleccionar hotel.',
-      'meeting_point_locked_by_hotel'   => 'Se seleccionó un hotel; no se puede seleccionar punto de encuentro.',
-      'promo_removed' => 'Código promocional eliminado',
+            'hotel_locked_by_meeting_point'   => 'Se seleccionó un punto de encuentro; no se puede seleccionar hotel.',
+            'meeting_point_locked_by_hotel'   => 'Se seleccionó un hotel; no se puede seleccionar punto de encuentro.',
+            'promo_removed' => 'Código promocional eliminado',
         ],
 
         'alerts' => [
@@ -301,7 +304,7 @@ return [
             'promo_checking' => 'Verificando código…',
             'promo_invalid'  => 'Código promocional inválido.',
             'promo_error'    => 'No se pudo validar el código.',
-               'promo_empty'          => 'Ingresa un código primero.',
+            'promo_empty'          => 'Ingresa un código primero.',
             'promo_needs_subtotal' => 'Agrega al menos 1 pasajero para calcular el descuento.',
         ],
 
@@ -339,6 +342,24 @@ return [
 
         'confirm' => [
             'delete' => '¿Estás seguro de que deseas eliminar esta reserva?',
+        ],
+
+        // SoftDelete & Trash
+        'trash' => [
+            'active_bookings' => 'Reservas Activas',
+            'trash' => 'Papelera',
+            'restore_booking' => 'Restaurar reserva',
+            'permanently_delete' => 'Eliminar permanentemente',
+            'force_delete_title' => 'ELIMINACIÓN PERMANENTE',
+            'force_delete_warning' => '¡Esta acción NO se puede deshacer!',
+            'force_delete_message' => 'La reserva será eliminada permanentemente.',
+            'force_delete_data_loss' => 'Todos los datos relacionados se perderán para siempre.',
+            'force_delete_confirm' => 'Sí, ELIMINAR PARA SIEMPRE',
+            'booking_deleted' => 'Reserva eliminada.',
+            'booking_restored' => 'Reserva restaurada exitosamente.',
+            'booking_force_deleted' => 'Reserva eliminada permanentemente. Registros de pago preservados para auditoría.',
+            'force_delete_failed' => 'No se pudo eliminar permanentemente la reserva.',
+            'deleted_booking_indicator' => '(ELIMINADA)',
         ],
     ],
 
@@ -419,6 +440,7 @@ return [
         'qr_alt'        => 'Código QR',
         'qr_scan'       => 'Escanea para ver la reserva',
         'thanks'        => '¡Gracias por elegir :company!',
+        'payment_status' => 'Estado de pago:',
     ],
 
     // =========================================================
@@ -431,7 +453,7 @@ return [
         'pricing_info'  => 'Información de Precios',
         'subtotal'      => 'Subtotal',
         'discount'      => 'Descuento',
-        'total_persons' =>'Total de personas',
+        'total_persons' => 'Total de personas',
     ],
 
     // =========================================================
@@ -500,7 +522,7 @@ return [
             'set_capacity'     => 'Ajustar Capacidad',
             'capacity'         => 'Capacidad',
             'view_blocked'     => 'Ver Bloqueados',
-            'capacity_settings'=> 'Configuración Capacidades',
+            'capacity_settings' => 'Configuración Capacidades',
             'block'            => 'Bloquear',
             'unblock'          => 'Desbloquear',
             'apply'            => 'Aplicar',
@@ -566,7 +588,7 @@ return [
 
     ],
 
-     'capacity' => [
+    'capacity' => [
 
         // =========================================================
         // [01] UI TITLES & HEADINGS

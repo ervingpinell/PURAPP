@@ -2,7 +2,6 @@
 
 namespace App\Support;
 
-use App\Models\AppSetting;
 use App\Models\Tour;
 use App\Models\Schedule;
 use Carbon\Carbon;
@@ -10,16 +9,16 @@ use Carbon\Carbon;
 class BookingRules
 {
     /**
-     * Obtiene valores “globales” (panel o config) con fallback a config/booking.php
+     * Obtiene valores "globales" (settings DB o config) con fallback a config/booking.php
      */
     public static function global(): array
     {
         $cfgCutoff = config('booking.cutoff_hour', '18:00');
         $cfgLead   = (int) config('booking.lead_days', 1);
 
-        // Si usas AppSetting (ya lo tienes en el panel)
-        $cutoff = AppSetting::get('booking.cutoff_hour', $cfgCutoff);
-        $lead   = (int) AppSetting::get('booking.lead_days', $cfgLead);
+        // Usa el nuevo sistema de settings
+        $cutoff = setting('booking.cutoff_hour', $cfgCutoff);
+        $lead   = (int) setting('booking.lead_days', $cfgLead);
 
         return ['cutoff_hour' => $cutoff, 'lead_days' => $lead];
     }

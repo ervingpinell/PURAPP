@@ -4,7 +4,17 @@ namespace App\Http\Controllers\Admin\Bookings;
 
 use App\Http\Controllers\Controller;
 use App\Models\{
-    Booking, BookingDetail, Schedule, Tour, TourLanguage, User, HotelList, PromoCode, MeetingPoint, Cart
+    Booking,
+    BookingDetail,
+    Schedule,
+    Tour,
+    TourLanguage,
+    User,
+    HotelList,
+    PromoCode,
+    MeetingPoint,
+    Cart,
+    Payment
 };
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{DB, Log, Auth, Mail};
@@ -32,11 +42,25 @@ class BookingController extends Controller
     public function index(Request $request)
     {
         $query = Booking::with([
-            'user', 'tour',
-            'detail.schedule', 'detail.hotel', 'detail.tourLanguage', 'detail.meetingPoint',
+            'user',
+            'tour',
+            'payments',
+            'detail.schedule',
+            'detail.hotel',
+            'detail.tourLanguage',
+            'detail.meetingPoint',
             'redemption.promoCode',
             'promoCodeLegacy',
         ]);
+
+        // Handle view parameter: 'active' (default) or 'trash'
+        $view = $request->get('view', 'active');
+
+        if ($view === 'trash') {
+            // Show only trashed bookings
+            $query->onlyTrashed();
+        }
+        // else: default behavior shows only active (non-trashed) bookings
 
         if ($request->filled('reference'))         $query->where('booking_reference', 'ilike', '%' . $request->reference . '%');
         if ($request->filled('status'))            $query->where('status', $request->status);
@@ -67,6 +91,27 @@ class BookingController extends Controller
         return view('admin.bookings.index', compact('bookings', 'tours', 'schedules', 'hotels', 'meetingPoints'));
     }
 
+    public function show(Booking $booking)
+    {
+        // Cargamos todas las relaciones necesarias para mostrar detalles completos
+        $booking->loadMissing([
+            'user',
+            'tour',
+            'tourLanguage',
+            'hotel',
+            'payments',
+            'detail.tour',
+            'detail.hotel',
+            'detail.schedule',
+            'detail.tourLanguage',
+            'detail.meetingPoint',
+            'detail.meetingPoint.translations',
+            'redemption.promoCode',
+        ]);
+
+        return view('admin.bookings.show', compact('booking'));
+    }
+
     /** Form create (admin) */
     public function create()
     {
@@ -88,8 +133,14 @@ class BookingController extends Controller
     public function edit(Booking $booking)
     {
         $booking->load([
-            'detail.schedule', 'detail.tourLanguage', 'detail.hotel', 'detail.meetingPoint',
-            'user', 'tour.prices.category', 'tour.schedules', 'tour.languages',
+            'detail.schedule',
+            'detail.tourLanguage',
+            'detail.hotel',
+            'detail.meetingPoint',
+            'user',
+            'tour.prices.category',
+            'tour.schedules',
+            'tour.languages',
             'redemption.promoCode',
         ]);
 
@@ -107,7 +158,11 @@ class BookingController extends Controller
         $rawCategories          = $booking->detail?->categories;
 
         if (is_string($rawCategories)) {
-            try { $categoriesSnapshot = json_decode($rawCategories, true); } catch (\Throwable $e) { $categoriesSnapshot = null; }
+            try {
+                $categoriesSnapshot = json_decode($rawCategories, true);
+            } catch (\Throwable $e) {
+                $categoriesSnapshot = null;
+            }
         } elseif (is_array($rawCategories)) {
             $categoriesSnapshot = $rawCategories;
         }
@@ -166,12 +221,17 @@ class BookingController extends Controller
                     if (!$name) {
                         $slug = $cat->slug ?? null;
                         if ($slug) {
-                            foreach ([
-                                "customer_categories.labels.$slug",
-                                "m_tours.customer_categories.labels.$slug",
-                            ] as $key) {
+                            foreach (
+                                [
+                                    "customer_categories.labels.$slug",
+                                    "m_tours.customer_categories.labels.$slug",
+                                ] as $key
+                            ) {
                                 $tr = __($key);
-                                if ($tr !== $key) { $name = $tr; break; }
+                                if ($tr !== $key) {
+                                    $name = $tr;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -329,7 +389,6 @@ class BookingController extends Controller
 
             // Crear booking usando tu servicio
             $booking = $this->creator->create($payload, validateCapacity: true, countHolds: true);
-
         } catch (\Throwable $e) {
             \Log::error('Admin booking store error (create): ' . $e->getMessage(), [
                 'trace'    => $e->getTraceAsString(),
@@ -511,11 +570,11 @@ class BookingController extends Controller
                     if (!empty($notify)) {
                         $mailer = \Mail::to($notify[0])->bcc(array_slice($notify, 1));
                         $shouldSendDirect ? $mailer->send(new \App\Mail\BookingCreatedMail($booking))
-                                          : $mailer->queue(new \App\Mail\BookingCreatedMail($booking));
+                            : $mailer->queue(new \App\Mail\BookingCreatedMail($booking));
                     }
                 }
             } catch (\Throwable $e) {
-                \Log::warning('BookingCreatedMail (admin cart) failed: '.$e->getMessage(), ['booking_id' => $booking->booking_id]);
+                \Log::warning('BookingCreatedMail (admin cart) failed: ' . $e->getMessage(), ['booking_id' => $booking->booking_id]);
             }
         }
 
@@ -756,7 +815,6 @@ class BookingController extends Controller
 
             return redirect()->route('admin.bookings.index')
                 ->with('success', __('m_bookings.bookings.success.updated'));
-
         } catch (\Throwable $e) {
             DB::rollBack();
             \Log::error("Error updating booking #{$booking->booking_id}: " . $e->getMessage());
@@ -772,7 +830,12 @@ class BookingController extends Controller
     public function updateStatus(Request $request, Booking $booking)
     {
         $request->validate([
-            'status' => 'required|in:pending,confirmed,cancelled'
+            'status' => 'required|in:pending,confirmed,cancelled',
+            'pickup_time' => 'nullable|date_format:H:i',
+            'pickup_type' => 'nullable|in:hotel,meeting_point',
+            'hotel_id' => 'nullable|exists:hotels_list,hotel_id',
+            'other_hotel_name' => 'nullable|string|max:255',
+            'meeting_point_id' => 'nullable|exists:meeting_points,meeting_point_id',
         ]);
 
         try {
@@ -811,6 +874,39 @@ class BookingController extends Controller
                         'max'       => $snap['max'],
                     ]));
                 }
+
+                // Update pickup location
+                if ($request->filled('pickup_type')) {
+                    if ($request->pickup_type === 'hotel') {
+                        $detail->meeting_point_id = null;
+                        $detail->meeting_point_name = null;
+
+                        if ($request->filled('hotel_id')) {
+                            $detail->hotel_id = $request->hotel_id;
+                            $detail->is_other_hotel = false;
+                            $detail->other_hotel_name = null;
+                        } elseif ($request->filled('other_hotel_name')) {
+                            $detail->hotel_id = null;
+                            $detail->is_other_hotel = true;
+                            $detail->other_hotel_name = $request->other_hotel_name;
+                        }
+                    } elseif ($request->pickup_type === 'meeting_point') {
+                        $detail->hotel_id = null;
+                        $detail->is_other_hotel = false;
+                        $detail->other_hotel_name = null;
+
+                        if ($request->filled('meeting_point_id')) {
+                            $detail->meeting_point_id = $request->meeting_point_id;
+                        }
+                    }
+                }
+
+                // Update pickup time if provided
+                if ($request->filled('pickup_time')) {
+                    $detail->pickup_time = $request->pickup_time;
+                }
+
+                $detail->save();
             }
 
             $booking->status = $new;
@@ -834,35 +930,129 @@ class BookingController extends Controller
             };
 
             return back()->with('success', __("m_bookings.bookings.success.{$messageKey}"));
-
         } catch (\Throwable $e) {
             \Log::error("Error updating booking status for booking #{$booking->booking_id}: " . $e->getMessage());
             return back()->with('error', __('m_bookings.bookings.errors.status_update_failed'));
         }
     }
 
-    /** Delete */
+    /** Soft Delete (default delete action) */
     public function destroy(Booking $booking)
     {
         try {
             $id = $booking->booking_id;
+            $ref = $booking->booking_reference;
 
-            DB::beginTransaction();
-            if ($booking->redemption) {
-                $booking->redemption->promoCode?->revokeRedemptionForBooking($booking->booking_id);
-            }
-            $booking->detail()->delete();
-            $booking->delete();
-            DB::commit();
+            // Soft delete the booking
+            $booking->deleted_by = auth()->id();
+            $booking->save();
+            $booking->delete(); // This triggers soft delete
 
-            Log::info("Booking deleted successfully: #{$id} by user ID: " . auth()->id());
+            Log::info("Booking soft deleted: #{$id} ({$ref}) by user ID: " . auth()->id());
 
             return redirect()->route('admin.bookings.index')
                 ->with('success', __('m_bookings.bookings.success.deleted'));
         } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error("Delete error #{$booking->booking_id}: " . $e->getMessage());
+            Log::error("Soft delete error #{$booking->booking_id}: " . $e->getMessage());
             return back()->with('error', __('m_bookings.bookings.errors.delete'));
+        }
+    }
+
+    /** Restore soft-deleted booking */
+    public function restore($id)
+    {
+        try {
+            $booking = Booking::withTrashed()->findOrFail($id);
+
+            if (!$booking->trashed()) {
+                return back()->with('info', __('Booking is not deleted.'));
+            }
+
+            $booking->deleted_by = null;
+            $booking->save();
+            $booking->restore();
+
+            Log::info("Booking restored: #{$booking->booking_id} ({$booking->booking_reference}) by user ID: " . auth()->id());
+
+            return redirect()->route('admin.bookings.index', ['view' => 'active'])
+                ->with('success', __('m_bookings.bookings.trash.booking_restored'));
+        } catch (\Throwable $e) {
+            Log::error("Restore error for booking #{$id}: " . $e->getMessage());
+            return back()->with('error', __('Failed to restore booking.'));
+        }
+    }
+
+    /** Force Delete (permanent deletion) - Future: Admin only with permission */
+    public function forceDelete($id)
+    {
+        try {
+            $booking = Booking::withTrashed()->findOrFail($id);
+            $bookingId = $booking->booking_id;
+            $ref = $booking->booking_reference;
+
+            DB::beginTransaction();
+
+            // IMPORTANT: Save booking snapshot in payment metadata BEFORE deleting
+            // This preserves audit trail information
+            $payments = Payment::where('booking_id', $bookingId)->get();
+            foreach ($payments as $payment) {
+                $currentMetadata = $payment->metadata ?? [];
+
+                // Add deleted booking snapshot
+                $currentMetadata['deleted_booking_snapshot'] = [
+                    'booking_id' => $booking->booking_id,
+                    'booking_reference' => $booking->booking_reference,
+                    'status' => $booking->status,
+                    'total' => $booking->total,
+                    'booking_date' => $booking->booking_date?->format('Y-m-d H:i:s'),
+                    'user' => [
+                        'user_id' => $booking->user?->user_id,
+                        'name' => $booking->user?->name,
+                        'email' => $booking->user?->email,
+                    ],
+                    'tour' => [
+                        'tour_id' => $booking->tour?->tour_id,
+                        'name' => $booking->tour?->name,
+                    ],
+                    'detail' => $booking->detail ? [
+                        'tour_date' => $booking->detail->tour_date?->format('Y-m-d'),
+                        'total_pax' => $booking->detail->total_pax,
+                        'language' => $booking->detail->tourLanguage?->name,
+                    ] : null,
+                    'deleted_at' => now()->format('Y-m-d H:i:s'),
+                    'deleted_by' => auth()->id(),
+                ];
+
+                $payment->metadata = $currentMetadata;
+                $payment->save();
+            }
+
+            // Revoke promo code if exists
+            if ($booking->redemption) {
+                $booking->redemption->promoCode?->revokeRedemptionForBooking($booking->booking_id);
+            }
+
+            // Delete detail
+            $booking->detail()->forceDelete();
+
+            // NOTE: Payments are NOT deleted (foreign key is SET NULL)
+            // This preserves payment records for audit trail and accounting
+            // Payments will have booking_id = NULL but metadata contains snapshot
+
+            // Permanently delete booking
+            $booking->forceDelete();
+
+            DB::commit();
+
+            Log::warning("Booking PERMANENTLY deleted: #{$bookingId} ({$ref}) by user ID: " . auth()->id() . " - Payment records preserved with snapshot in metadata");
+
+            // Redirect back to trash tab
+            return redirect()->route('admin.bookings.index', ['view' => 'trash'])
+                ->with('success', __('m_bookings.bookings.trash.booking_force_deleted'));
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error("Force delete error for booking #{$id}: " . $e->getMessage());
+            return back()->with('error', __('m_bookings.bookings.trash.force_delete_failed'));
         }
     }
 
@@ -870,8 +1060,12 @@ class BookingController extends Controller
     public function generateReceipt(Booking $booking)
     {
         $booking->load([
-            'user', 'tour',
-            'detail.schedule', 'detail.hotel', 'detail.tourLanguage', 'detail.meetingPoint',
+            'user',
+            'tour',
+            'detail.schedule',
+            'detail.hotel',
+            'detail.tourLanguage',
+            'detail.meetingPoint',
             'redemption.promoCode',
             'promoCodeLegacy',
             'tour.prices.category',
@@ -896,8 +1090,11 @@ class BookingController extends Controller
     public function exportPdf(Request $request)
     {
         $query = Booking::with([
-            'user', 'tour',
-            'detail.schedule', 'detail.hotel', 'detail.tourLanguage',
+            'user',
+            'tour',
+            'detail.schedule',
+            'detail.hotel',
+            'detail.tourLanguage',
             'redemption.promoCode',
             'promoCodeLegacy',
         ]);
@@ -1010,10 +1207,12 @@ class BookingController extends Controller
                     : ($cat->name ?? null);
 
                 if (!$name && $slug) {
-                    foreach ([
-                        "customer_categories.labels.$slug",
-                        "m_tours.customer_categories.labels.$slug",
-                    ] as $key) {
+                    foreach (
+                        [
+                            "customer_categories.labels.$slug",
+                            "m_tours.customer_categories.labels.$slug",
+                        ] as $key
+                    ) {
                         $tr = __($key);
                         if ($tr !== $key) {
                             $name = $tr;
@@ -1049,7 +1248,7 @@ class BookingController extends Controller
         return [
             'max_persons_total'         => (int)  config('booking.max_persons_per_booking', 12),
             'min_adults'                => (int)  config('booking.min_adults_per_booking', 0),
-            'max_kids'                  => (int)  config('booking.max_kids_per_booking', PHP_INT_MAX),
+            'max_kids'                  => PHP_INT_MAX,
             'min_days_advance'          => (int)  config('booking.min_days_advance', 1),
             'max_days_advance'          => (int)  config('booking.max_days_advance', 365),
             'payment_timeout_minutes'   => (int)  config('booking.payment_timeout_minutes', 30),
@@ -1123,14 +1322,11 @@ class BookingController extends Controller
                     ->bcc(array_slice($notify, 1))
                     ->send($mailable);
             }
-
         } catch (\Throwable $e) {
-            \Log::error("dispatchMail FAILED: ".$e->getMessage(), [
+            \Log::error("dispatchMail FAILED: " . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'to'    => $userMail,
             ]);
         }
     }
-
-
 }

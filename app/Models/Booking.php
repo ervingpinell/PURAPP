@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Booking extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'bookings';
     protected $primaryKey = 'booking_id';
@@ -26,6 +27,7 @@ class Booking extends Model
         'is_active',
         'schedule_id',
         'notes',
+        'deleted_by',
     ];
     protected $casts = [
         'booking_date' => 'datetime',
@@ -71,7 +73,7 @@ class Booking extends Model
     public function redemption()
     {
         return $this->hasOne(PromoCodeRedemption::class, 'booking_id', 'booking_id')
-                    ->with('promoCode');
+            ->with('promoCode');
     }
 
     /**
@@ -91,13 +93,93 @@ class Booking extends Model
 
     public function reviews()
     {
-        return $this->hasMany(Review::class, 'tour_id','tour_id')
-                    ->whereColumn('user_id', 'bookings.user_id');
+        return $this->hasMany(Review::class, 'tour_id', 'tour_id')
+            ->whereColumn('user_id', 'bookings.user_id');
     }
 
     public function reviewRequests()
     {
-        return $this->hasMany(ReviewRequest::class, 'booking_id','booking_id');
+        return $this->hasMany(ReviewRequest::class, 'booking_id', 'booking_id');
+    }
+
+    /**
+     * User who soft-deleted this booking
+     */
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
+    }
+
+    /**
+     * All payments for this booking
+     */
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'booking_id', 'booking_id');
+    }
+
+    /**
+     * Latest payment (most recent)
+     */
+    public function latestPayment()
+    {
+        return $this->hasOne(Payment::class, 'booking_id', 'booking_id')
+            ->latestOfMany();
+    }
+
+    /**
+     * Successful payments only
+     */
+    public function successfulPayments()
+    {
+        return $this->hasMany(Payment::class, 'booking_id', 'booking_id')
+            ->where('status', 'completed');
+    }
+
+    // ---------------- Payment Helpers ----------------
+
+    /**
+     * Check if booking is fully paid
+     */
+    public function isPaid(): bool
+    {
+        return $this->successfulPayments()
+            ->sum('amount') >= $this->total;
+    }
+
+    /**
+     * Get total amount paid
+     */
+    public function getTotalPaidAttribute(): float
+    {
+        return (float) $this->successfulPayments()
+            ->sum('amount');
+    }
+
+    /**
+     * Get remaining balance to be paid
+     */
+    public function getRemainingBalanceAttribute(): float
+    {
+        return max(0, $this->total - $this->total_paid);
+    }
+
+    /**
+     * Check if booking has any pending payment
+     */
+    public function hasPendingPayment(): bool
+    {
+        return $this->payments()
+            ->whereIn('status', ['pending', 'processing'])
+            ->exists();
+    }
+
+    /**
+     * Check if booking is paid but awaiting admin confirmation
+     */
+    public function awaitingConfirmation(): bool
+    {
+        return $this->status === 'pending' && $this->isPaid();
     }
 
     // ---------------- Mutators/Accesors ----------------

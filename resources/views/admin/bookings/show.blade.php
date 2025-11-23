@@ -1,0 +1,653 @@
+{{-- resources/views/admin/bookings/show.blade.php --}}
+@extends('adminlte::page')
+
+@php
+use App\Models\CustomerCategory;
+
+$currency = config('app.currency_symbol', '$');
+$locale = app()->getLocale();
+
+// Resolver nombres de categorías (cache simple por request)
+static $CAT_NAME_BY_ID = null;
+static $CAT_NAME_BY_SLUG = null;
+
+if ($CAT_NAME_BY_ID === null || $CAT_NAME_BY_SLUG === null) {
+$allCats = CustomerCategory::active()->with('translations')->get();
+$CAT_NAME_BY_ID = $allCats->mapWithKeys(function($c) use ($locale) {
+return [$c->category_id => ($c->getTranslatedName($locale) ?: $c->slug ?: '')];
+})->all();
+$CAT_NAME_BY_SLUG = $allCats->filter(fn($c) => $c->slug)->mapWithKeys(function($c) use ($locale) {
+$label = $c->getTranslatedName($locale);
+if (!$label && $c->slug) {
+$try = __('customer_categories.labels.' . $c->slug);
+if ($try !== 'customer_categories.labels.' . $c->slug) $label = $try;
+if (!$label) {
+$try2 = __('m_tours.customer_categories.labels.' . $c->slug);
+if ($try2 !== 'm_tours.customer_categories.labels.' . $c->slug) $label = $try2;
+}
+}
+return [$c->slug => ($label ?: $c->slug)];
+})->all();
+}
+
+$resolveCatName = function(array $cat) use ($CAT_NAME_BY_ID, $CAT_NAME_BY_SLUG) {
+// 1) por id
+$id = $cat['category_id'] ?? $cat['id'] ?? null;
+if ($id && isset($CAT_NAME_BY_ID[$id]) && $CAT_NAME_BY_ID[$id]) {
+return $CAT_NAME_BY_ID[$id];
+}
+// 2) por slug
+$slug = $cat['slug'] ?? null;
+if ($slug && isset($CAT_NAME_BY_SLUG[$slug]) && $CAT_NAME_BY_SLUG[$slug]) {
+return $CAT_NAME_BY_SLUG[$slug];
+}
+// 3) por archivos de idioma (si vino el slug pero no está en mapa)
+if ($slug) {
+$tr = __('customer_categories.labels.' . $slug);
+if ($tr !== 'customer_categories.labels.' . $slug) return $tr;
+$tr2 = __('m_tours.customer_categories.labels.' . $slug);
+if ($tr2 !== 'm_tours.customer_categories.labels.' . $slug) return $tr2;
+}
+// 4) fallback al snapshot
+return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.category');
+};
+
+// ===== Datos base
+$detail = $booking->detail;
+$tour = $booking->tour;
+
+// Nombre del tour (live o snapshot) con i18n
+$liveName = optional($tour)->name;
+$snapName = $detail->tour_name_snapshot ?? ($booking->tour_name_snapshot ?? null);
+$tourName = $liveName
+?? ($snapName
+? __('m_bookings.bookings.messages.deleted_tour_snapshot', ['name' => $snapName])
+: __('m_bookings.bookings.messages.deleted_tour'));
+
+// ========== CATEGORÍAS DINÁMICAS ==========
+$categoriesData = [];
+$subtotalSnap = 0.0;
+$totalPersons = 0;
+
+if ($detail?->categories && is_string($detail->categories)) {
+try { $categoriesData = json_decode($detail->categories, true) ?: []; }
+catch (\Exception $e) {
+\Log::error('Error decoding categories JSON', ['booking_id' => $booking->booking_id, 'error' => $e->getMessage()]);
+}
+} elseif (is_array($detail?->categories)) {
+$categoriesData = $detail->categories;
+}
+
+$categories = [];
+if (!empty($categoriesData)) {
+// Lista
+if (isset($categoriesData[0]) && is_array($categoriesData[0])) {
+foreach ($categoriesData as $cat) {
+$qty = (int)($cat['quantity'] ?? 0);
+$price = (float)($cat['price'] ?? 0);
+if ($qty > 0) {
+$name = $resolveCatName($cat);
+$categories[] = [
+'name' => $name,
+'quantity' => $qty,
+'price' => $price,
+'total' => $qty * $price
+];
+$subtotalSnap += $qty * $price;
+$totalPersons += $qty;
+}
+}
+} else {
+// Mapa
+foreach ($categoriesData as $catId => $cat) {
+$qty = (int)($cat['quantity'] ?? 0);
+$price = (float)($cat['price'] ?? 0);
+if ($qty > 0) {
+if (!isset($cat['category_id']) && is_numeric($catId)) $cat['category_id'] = (int)$catId;
+$name = $resolveCatName($cat);
+$categories[] = [
+'name' => $name,
+'quantity' => $qty,
+'price' => $price,
+'total' => $qty * $price
+];
+$subtotalSnap += $qty * $price;
+$totalPersons += $qty;
+}
+}
+}
+}
+
+// Fallback legacy (adults/kids)
+if (empty($categories)) {
+$adultsQty = (int)($detail->adults_quantity ?? 0);
+$kidsQty = (int)($detail->kids_quantity ?? 0);
+$adultPrice = (float)($detail->adult_price ?? $tour?->adult_price ?? 0);
+$kidPrice = (float)($detail->kid_price ?? $tour?->kid_price ?? 0);
+
+if ($adultsQty > 0) {
+$name = __('customer_categories.labels.adult');
+if ($name === 'customer_categories.labels.adult') $name = 'Adults';
+$categories[] = [
+'name' => $name,
+'quantity' => $adultsQty,
+'price' => $adultPrice,
+'total' => $adultsQty * $adultPrice
+];
+$subtotalSnap += $adultsQty * $adultPrice;
+$totalPersons += $adultsQty;
+}
+
+if ($kidsQty > 0) {
+$name = __('customer_categories.labels.child');
+if ($name === 'customer_categories.labels.child') $name = 'Kids';
+$categories[] = [
+'name' => $name,
+'quantity' => $kidsQty,
+'price' => $kidPrice,
+'total' => $kidsQty * $kidPrice
+];
+$subtotalSnap += $kidsQty * $kidPrice;
+$totalPersons += $kidsQty;
+}
+}
+
+// ===== Promo / ajuste desde pivot con snapshots
+$booking->loadMissing('redemption.promoCode');
+$redemption = $booking->redemption;
+$promoModel = optional($redemption)->promoCode ?: $booking->promoCode;
+$promoCode = $promoModel?->code;
+
+// Operación aplicada
+$operation = ($redemption && $redemption->operation_snapshot === 'add') ? 'add' : 'subtract';
+
+// Monto aplicado
+$appliedAmount = (float) ($redemption->applied_amount ?? 0.0);
+if (!$appliedAmount && $promoModel) {
+if ($promoModel->discount_percent) {
+$appliedAmount = round($subtotalSnap * ($promoModel->discount_percent/100), 2);
+} elseif ($promoModel->discount_amount) {
+$appliedAmount = (float)$promoModel->discount_amount;
+}
+}
+
+// Badges de valor
+$percentSnapshot = $redemption->percent_snapshot ?? $promoModel->discount_percent ?? null;
+$amountSnapshot = $redemption->amount_snapshot ?? $promoModel->discount_amount ?? null;
+
+// Etiqueta según operación
+$adjustLabel = $operation === 'add'
+? __('m_config.promocode.operations.surcharge')
+: __('m_config.promocode.operations.discount');
+
+// Signo para el display
+$sign = $operation === 'add' ? '+' : '−';
+
+// Total (preferir el guardado si existe)
+$grandTotal = (float) ($booking->total ?? max(0, $operation === 'add'
+? $subtotalSnap + $appliedAmount
+: $subtotalSnap - $appliedAmount));
+
+// ========== HOTEL O MEETING POINT ==========
+$hasHotel = !empty($detail?->hotel_id) || !empty($detail?->other_hotel_name);
+$hasMeetingPoint = !empty($detail?->meeting_point_id) || !empty($detail?->meeting_point_name);
+
+$hotelName = null;
+$meetingPointName = null;
+
+if ($hasHotel) {
+$hotelName = $detail?->other_hotel_name ?? optional($detail?->hotel)->name ?? '—';
+} elseif ($hasMeetingPoint) {
+$meetingPointName = $detail?->meeting_point_name ?? optional($detail?->meetingPoint)->name ?? '—';
+}
+
+// Hora de recogida formateada
+$pickupTime = $detail?->pickup_time
+? \Carbon\Carbon::parse($detail->pickup_time)->format('g:i A')
+: null;
+
+// Schedule info for validation
+$scheduleStart = null;
+$scheduleEnd = null;
+$tourPeriod = null;
+if ($detail?->schedule) {
+$scheduleStart = \Carbon\Carbon::parse($detail->schedule->start_time);
+$scheduleEnd = $detail->schedule->end_time ? \Carbon\Carbon::parse($detail->schedule->end_time) : null;
+$tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
+    }
+    @endphp
+
+    @section('title', 'Detalle de Reserva #' . ($booking->booking_reference ?? $booking->booking_id))
+
+    @section('content_header')
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h1 class="m-0">
+                <i class="fas fa-ticket-alt"></i>
+                {{ __('m_bookings.bookings.ui.booking_details') }} #{{ $booking->booking_reference ?? $booking->booking_id }}
+            </h1>
+            <small class="text-muted">
+                {{ __('m_bookings.bookings.fields.booking_date') }}: {{ \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') }}
+            </small>
+        </div>
+
+        <div class="btn-group">
+            <a href="{{ route('admin.bookings.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> {{ __('m_bookings.bookings.buttons.back') }}
+            </a>
+            <a href="{{ route('admin.bookings.receipt', $booking->booking_id) }}" class="btn btn-primary" target="_blank">
+                <i class="fas fa-file-pdf"></i> {{ __('m_bookings.bookings.ui.download_receipt') }}
+            </a>
+            <a href="{{ route('admin.bookings.edit', $booking) }}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> {{ __('m_bookings.bookings.buttons.edit') }}
+            </a>
+        </div>
+    </div>
+    @stop
+
+    @section('content')
+    {{-- Status Alert with Actions --}}
+    <div class="alert alert-{{ $booking->status === 'pending' ? 'warning' : ($booking->status === 'confirmed' ? 'success' : 'danger') }} d-flex justify-content-between align-items-center">
+        <div>
+            <div class="mb-2">
+                <strong>{{ __('m_bookings.bookings.fields.status') }}:</strong>
+                <span class="ms-2">{{ __('m_bookings.bookings.statuses.' . $booking->status) }}</span>
+            </div>
+            @php
+            // Determinar estado de pago
+            $paymentStatus = 'pending';
+            $paymentBadgeClass = 'warning';
+            $paymentText = __('Pending');
+
+            if ($booking->relationLoaded('payments') && $booking->payments->isNotEmpty()) {
+            $latestPayment = $booking->payments->sortByDesc('created_at')->first();
+            if ($latestPayment && $latestPayment->status === 'completed') {
+            $paymentStatus = 'paid';
+            $paymentBadgeClass = 'success';
+            $paymentText = __('Paid');
+            }
+            }
+            @endphp
+            <div>
+                <strong>{{ __('Payment Status') }}:</strong>
+                <span class="badge badge-{{ $paymentBadgeClass }} ml-2">{{ $paymentText }}</span>
+                @if(isset($latestPayment))
+                <a href="{{ route('admin.payments.show', $latestPayment->payment_id) }}" class="btn btn-sm btn-info ml-2" title="View Payment Details">
+                    <i class="fas fa-credit-card"></i> {{ __('View Payment') }}
+                </a>
+                @if($latestPayment->card_brand && $latestPayment->card_last4)
+                <br><small class="text-muted ml-2">{{ ucfirst($latestPayment->card_brand) }} •••• {{ $latestPayment->card_last4 }}</small>
+                @endif
+                @endif
+            </div>
+        </div>
+        <div class="btn-group btn-group-sm" role="group">
+            @if($booking->status !== 'confirmed')
+            <button type="button" class="btn btn-success btn-sm" onclick="document.getElementById('confirmSection').scrollIntoView({behavior: 'smooth'})">
+                <i class="fas fa-check-circle"></i> {{ __('m_bookings.actions.confirm') }}
+            </button>
+            @endif
+            @if($booking->status !== 'cancelled')
+            <form action="{{ route('admin.bookings.update-status', $booking->booking_id) }}" method="POST" class="d-inline">
+                @csrf @method('PATCH')
+                <input type="hidden" name="status" value="cancelled">
+                <button type="submit" class="btn btn-danger btn-sm"
+                    onclick="return confirm('{{ __('m_bookings.actions.confirm_cancel') }}')">
+                    <i class="fas fa-times-circle"></i> {{ __('m_bookings.actions.cancel') }}
+                </button>
+            </form>
+            @endif
+        </div>
+    </div>
+
+    <div class="row">
+        {{-- Booking Information --}}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title"><strong>{{ __('m_bookings.details.booking_info') }}</strong></h3>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">{{ __('m_bookings.bookings.fields.reference') }}:</dt>
+                        <dd class="col-sm-7"><strong>{{ $booking->booking_reference }}</strong></dd>
+
+                        <dt class="col-sm-5">{{ __('m_bookings.bookings.fields.booking_date') }}:</dt>
+                        <dd class="col-sm-7">{{ \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        {{-- Customer Information --}}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="card-title"><strong>{{ __('m_bookings.details.customer_info') }}</strong></h3>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.customer') }}:</dt>
+                        <dd class="col-sm-8">{{ $booking->user->full_name ?? $booking->user->name ?? '—' }}</dd>
+
+                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.email') }}:</dt>
+                        <dd class="col-sm-8">
+                            @if(!empty($booking->user->email))
+                            <a href="mailto:{{ $booking->user->email }}">{{ $booking->user->email }}</a>
+                            @else
+                            —
+                            @endif
+                        </dd>
+
+                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.phone') }}:</dt>
+                        <dd class="col-sm-8">{{ $booking->user->phone ?? '—' }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Tour Information --}}
+    <div class="card">
+        <div class="card-header bg-warning">
+            <h3 class="card-title"><strong>{{ __('m_bookings.details.tour_info') }}</strong></h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.tour') }}:</dt>
+                        <dd class="col-sm-8">{{ $tourName }}</dd>
+
+                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.tour_date') }}:</dt>
+                        <dd class="col-sm-8">{{ optional($detail?->tour_date)?->format('M d, Y') ?? '—' }}</dd>
+
+                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.schedule') }}:</dt>
+                        <dd class="col-sm-8">
+                            @if($detail?->schedule)
+                            {{ \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') }}
+                            @if($detail?->schedule?->end_time)
+                            - {{ \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A') }}
+                            @endif
+                            @else
+                            —
+                            @endif
+                        </dd>
+
+                        {{-- Hora de recogida --}}
+                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.pickup_time') }}:</dt>
+                        <dd class="col-sm-8">{{ $pickupTime ?? '—' }}</dd>
+
+                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.language') }}:</dt>
+                        <dd class="col-sm-8">{{ optional($detail?->tourLanguage)->name ?? '—' }}</dd>
+                    </dl>
+                </div>
+
+                <div class="col-md-6">
+                    <dl class="row">
+                        @if($hasHotel && $hotelName)
+                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.hotel') }}:</dt>
+                        <dd class="col-sm-8">{{ $hotelName }}</dd>
+                        @endif
+
+                        @if(!$hasHotel && $hasMeetingPoint && $meetingPointName)
+                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.meeting_point') }}:</dt>
+                        <dd class="col-sm-8">{{ $meetingPointName }}</dd>
+                        @endif
+
+                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.type') }}:</dt>
+                        <dd class="col-sm-8">{{ optional($tour?->tourType)->name ?? '—' }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Pricing Information --}}
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h3 class="card-title"><strong>{{ __('m_bookings.details.pricing_info') }}</strong></h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="row">
+                        @foreach($categories as $cat)
+                        <dt class="col-sm-6">{{ $cat['name'] }}:</dt>
+                        <dd class="col-sm-6">{{ $cat['quantity'] }} × {{ $currency }}{{ number_format((float)$cat['price'], 2) }}</dd>
+                        @endforeach
+
+                        <dt class="col-sm-6"><strong>{{ __('m_bookings.details.total_persons') }}:</strong></dt>
+                        <dd class="col-sm-6"><strong>{{ $totalPersons }}</strong></dd>
+                    </dl>
+                </div>
+
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-6">{{ __('m_bookings.details.subtotal') }}:</dt>
+                        <dd class="col-sm-6">{{ $currency }}{{ number_format($subtotalSnap, 2) }}</dd>
+
+                        @if($promoCode && $appliedAmount > 0)
+                        <dt class="col-sm-6">
+                            {{ $adjustLabel }}:
+                            <span class="ml-1">
+                                @if(!is_null($percentSnapshot))
+                                <span class="badge badge-secondary">{{ number_format($percentSnapshot,0) }}%</span>
+                                @elseif(!is_null($amountSnapshot))
+                                <span class="badge badge-secondary">{{ $currency }}{{ number_format($amountSnapshot,2) }}</span>
+                                @endif
+                            </span>
+                        </dt>
+                        <dd class="col-sm-6 {{ $operation === 'add' ? 'text-danger' : 'text-success' }}">
+                            {{ $sign }}{{ $currency }}{{ number_format($appliedAmount, 2) }}
+                        </dd>
+
+                        <dt class="col-sm-6">{{ __('m_bookings.bookings.fields.promo_code') }}:</dt>
+                        <dd class="col-sm-6">
+                            <span class="badge badge-success">{{ $promoCode }}</span>
+                        </dd>
+                        @endif
+
+                        <dt class="col-sm-6"><strong>{{ __('m_bookings.bookings.fields.total') }}:</strong></dt>
+                        <dd class="col-sm-6">
+                            <strong class="text-success" style="font-size: 1.2em;">{{ $currency }}{{ number_format($grandTotal, 2) }}</strong>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Notes --}}
+    @if($booking->notes)
+    <div class="alert alert-info">
+        <strong><i class="fas fa-sticky-note mr-2"></i>{{ __('m_bookings.bookings.fields.notes') }}:</strong>
+        <p class="mb-0 mt-2">{{ $booking->notes }}</p>
+    </div>
+    @endif
+
+    {{-- Confirm Booking Section (Inline, no modal) --}}
+    @if($booking->status !== 'confirmed')
+    <div class="card" id="confirmSection">
+        <div class="card-header bg-success text-white">
+            <h3 class="card-title">
+                <i class="fas fa-check-circle mr-2"></i>{{ __('m_bookings.actions.confirm') }} {{ __('m_bookings.bookings.singular') }}
+            </h3>
+        </div>
+        <div class="card-body">
+            <form action="{{ route('admin.bookings.update-status', $booking->booking_id) }}\" method="POST" id="confirmBookingForm">
+                @csrf @method('PATCH')
+                <input type="hidden" name="status" value="confirmed">
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <strong>{{ __('m_bookings.bookings.fields.booking_reference') }}:</strong> {{ $booking->booking_reference }}
+                </div>
+
+                {{-- Tour Schedule Info --}}
+                @if($scheduleStart)
+                <div class="alert alert-warning mb-3">
+                    <i class="fas fa-clock mr-2"></i>
+                    <strong>{{ __('m_bookings.bookings.fields.schedule') }}:</strong>
+                    {{ $scheduleStart->format('g:i A') }}
+                    @if($scheduleEnd)
+                    - {{ $scheduleEnd->format('g:i A') }}
+                    @endif
+                    <span class="badge badge-{{ $tourPeriod === 'AM' ? 'info' : 'warning' }} ml-2">{{ $tourPeriod }} Tour</span>
+                </div>
+                @endif
+
+                {{-- Pickup Location --}}
+                <div class="form-group">
+                    <label><i class="fas fa-map-marker-alt mr-1"></i>{{ __('Pickup Location') }}</label>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="custom-control custom-radio">
+                                <input class="custom-control-input" type="radio" name="pickup_type" id="pickup_hotel" value="hotel"
+                                    {{ $booking->detail?->hotel_id || $booking->detail?->other_hotel_name ? 'checked' : '' }}
+                                    onchange="togglePickupFields()">
+                                <label class="custom-control-label" for="pickup_hotel">
+                                    {{ __('Hotel Pickup') }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="custom-control custom-radio">
+                                <input class="custom-control-input" type="radio" name="pickup_type" id="pickup_meeting" value="meeting_point"
+                                    {{ $booking->detail?->meeting_point_id ? 'checked' : '' }}
+                                    onchange="togglePickupFields()">
+                                <label class="custom-control-label" for="pickup_meeting">
+                                    {{ __('Meeting Point') }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Hotel Selection --}}
+                    <div id="hotel_section" class="mt-2" style="display: {{ $booking->detail?->hotel_id || $booking->detail?->other_hotel_name ? 'block' : 'none' }};">
+                        <select name="hotel_id" class="form-control">
+                            <option value="">{{ __('Select Hotel') }}</option>
+                            @php
+                            $hotels = \App\Models\HotelList::where('is_active', true)->orderBy('name')->get();
+                            @endphp
+                            @foreach($hotels as $hotel)
+                            <option value="{{ $hotel->hotel_id }}" {{ $booking->detail?->hotel_id == $hotel->hotel_id ? 'selected' : '' }}>
+                                {{ $hotel->name }}
+                            </option>
+                            @endforeach
+                        </select>
+                        <input type="text" name="other_hotel_name" class="form-control mt-2" placeholder="{{ __('Or enter hotel name') }}"
+                            value="{{ $booking->detail?->other_hotel_name }}">
+                    </div>
+
+                    {{-- Meeting Point Selection --}}
+                    <div id="meeting_section" class="mt-2" style="display: {{ $booking->detail?->meeting_point_id ? 'block' : 'none' }};">
+                        <select name="meeting_point_id" class="form-control">
+                            <option value="">{{ __('Select Meeting Point') }}</option>
+                            @php
+                            $meetingPoints = \App\Models\MeetingPoint::where('is_active', true)->orderBy('name')->get();
+                            @endphp
+                            @foreach($meetingPoints as $mp)
+                            <option value="{{ $mp->meeting_point_id }}" {{ $booking->detail?->meeting_point_id == $mp->meeting_point_id ? 'selected' : '' }}>
+                                {{ $mp->name }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                {{-- Pickup Time --}}
+                <div class="form-group">
+                    <label for="pickup_time">
+                        <i class="fas fa-clock mr-1"></i>{{ __('m_bookings.bookings.fields.pickup_time') }}
+                        <span class="text-muted">({{ __('Optional') }})</span>
+                    </label>
+                    <input type="time"
+                        class="form-control"
+                        id="pickup_time"
+                        name="pickup_time"
+                        value="{{ $booking->detail?->pickup_time ? \Carbon\Carbon::parse($booking->detail->pickup_time)->format('H:i') : '' }}">
+                    <small class="form-text text-muted">
+                        {{ __('Set the pickup time for this booking.') }}
+                    </small>
+                    <div id="pickup_time_warning" class="alert alert-danger mt-2" style="display: none;">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        <span id="pickup_time_warning_text"></span>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <small>
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        {{ __('Confirming this booking will send a confirmation email to the customer.') }}
+                    </small>
+                </div>
+
+                <div class="text-right">
+                    <button type="submit" class="btn btn-success btn-lg" id="confirm_btn">
+                        <i class="fas fa-check-circle mr-1"></i>{{ __('m_bookings.actions.confirm') }} {{ __('m_bookings.bookings.singular') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+    @endsection
+
+    @section('js')
+    <script>
+        function togglePickupFields() {
+            const hotelRadio = document.getElementById('pickup_hotel');
+            const meetingRadio = document.getElementById('pickup_meeting');
+            const hotelSection = document.getElementById('hotel_section');
+            const meetingSection = document.getElementById('meeting_section');
+
+            if (hotelRadio.checked) {
+                hotelSection.style.display = 'block';
+                meetingSection.style.display = 'none';
+            } else if (meetingRadio.checked) {
+                hotelSection.style.display = 'none';
+                meetingSection.style.display = 'block';
+            }
+        }
+
+        @if($scheduleStart)
+        // Validate pickup time against tour schedule
+        (function() {
+            const pickupInput = document.getElementById('pickup_time');
+            const warningDiv = document.getElementById('pickup_time_warning');
+            const warningText = document.getElementById('pickup_time_warning_text');
+            const confirmBtn = document.getElementById('confirm_btn');
+
+            const tourStartHour = {
+                {
+                    $scheduleStart->hour
+                }
+            };
+            const tourPeriod = '{{ $tourPeriod }}';
+
+            pickupInput.addEventListener('change', function() {
+                if (!this.value) {
+                    warningDiv.style.display = 'none';
+                    confirmBtn.disabled = false;
+                    return;
+                }
+
+                const [hours, minutes] = this.value.split(':').map(Number);
+                const pickupPeriod = hours < 12 ? 'AM' : 'PM';
+
+                if (pickupPeriod !== tourPeriod) {
+                    warningText.textContent = `Warning: Pickup time is ${pickupPeriod} but tour starts at ${tourPeriod}. Please verify this is correct.`;
+                    warningDiv.style.display = 'block';
+                    warningDiv.classList.remove('alert-danger');
+                    warningDiv.classList.add('alert-warning');
+                    confirmBtn.disabled = false;
+                } else {
+                    warningDiv.style.display = 'none';
+                    confirmBtn.disabled = false;
+                }
+            });
+        })();
+        @endif
+    </script>
+    @endsection

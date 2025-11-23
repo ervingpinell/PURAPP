@@ -5,12 +5,15 @@ return [
     |--------------------------------------------------------------------------
     | Booking Configuration
     |--------------------------------------------------------------------------
+    | 
+    | IMPORTANTE: No usar setting() aquí porque config se carga antes que DB
+    | Usar setting() directamente en los controladores/servicios donde se necesite
     */
 
     // Capacidad de reserva
     'max_persons_per_booking' => env('BOOKING_MAX_PERSONS', 12),
-    'min_adults_per_booking'  => env('BOOKING_MIN_ADULTS', 2),
-    'max_kids_per_booking'    => env('BOOKING_MAX_KIDS', 2),
+    'min_adults_per_booking'  => env('BOOKING_MIN_ADULTS', 0),
+
 
     // Estados que cuentan para capacidad
     'count_statuses' => ['confirmed', 'pending'],
@@ -21,7 +24,6 @@ return [
 
     // Payment & Confirmation
     'auto_confirm_on_payment' => env('BOOKING_AUTO_CONFIRM', true),
-    'payment_timeout_minutes' => env('BOOKING_PAYMENT_TIMEOUT', 30),
 
     // Notifications
     'send_confirmation_email' => env('BOOKING_SEND_CONFIRMATION', true),
@@ -37,7 +39,11 @@ return [
     'allow_modification'        => env('BOOKING_ALLOW_MODIFICATION', true),
     'modification_hours_before' => env('BOOKING_MODIFICATION_HOURS', 48),
 
-    // Cleanup
+    // Cleanup (legacy - now handled by cart cleanup)
     'auto_cancel_pending_after_hours' => env('BOOKING_AUTO_CANCEL_PENDING', 24),
     'purge_cancelled_after_days'      => env('BOOKING_PURGE_CANCELLED', 90),
+
+    // Cutoff (usado como fallback si no existe en settings)
+    'cutoff_hour' => env('BOOKING_CUTOFF_HOUR', '18:00'),
+    'lead_days'   => env('BOOKING_LEAD_DAYS', 1),
 ];

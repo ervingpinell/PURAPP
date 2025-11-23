@@ -7,8 +7,7 @@ use App\Models\Policy;
 use App\Models\PolicySection;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{Auth, DB, Log};
 use Illuminate\Support\Str;
 use App\Services\Policies\PolicySnapshotService;
 
@@ -371,26 +370,43 @@ class PublicCheckoutController extends Controller
             'policies_sha256'   => $sha,
         ])->save();
 
-        DB::table('terms_acceptances')->insert([
-            'user_id'           => $userId,
-            'cart_ref'          => $cart->cart_id ?? $cart->id ?? null,
-            'booking_ref'       => null,
-            'accepted_at'       => now(),
-            'terms_version'     => $termsVersion,
-            'privacy_version'   => $privacyVersion,
-            'policies_snapshot' => is_array($persistSnapshot)
-                ? json_encode($persistSnapshot, JSON_UNESCAPED_UNICODE)
-                : json_encode((array) $persistSnapshot, JSON_UNESCAPED_UNICODE),
-            'policies_sha256'   => $sha,
-            'ip_address'        => $request->ip(),
-            'user_agent'        => (string) $request->userAgent(),
-            'locale'            => $locale,
-            'timezone'          => config('app.timezone'),
-            'consent_source'    => 'checkout',
-            'referrer'          => $request->headers->get('referer'),
-            'created_at'        => now(),
-            'updated_at'        => now(),
-        ]);
+
+        // Guardar evidencia de aceptación de términos
+        try {
+            DB::table('terms_acceptances')->insert([
+                'user_id'           => $userId,
+                'cart_ref'          => $cart->cart_id ?? $cart->id ?? null,
+                'booking_ref'       => null,
+                'accepted_at'       => now(),
+                'terms_version'     => $termsVersion,
+                'privacy_version'   => $privacyVersion,
+                'policies_snapshot' => is_array($persistSnapshot)
+                    ? json_encode($persistSnapshot, JSON_UNESCAPED_UNICODE)
+                    : json_encode((array) $persistSnapshot, JSON_UNESCAPED_UNICODE),
+                'policies_sha256'   => $sha,
+                'ip_address'        => $request->ip(),
+                'user_agent'        => (string) $request->userAgent(),
+                'locale'            => $locale,
+                'timezone'          => config('app.timezone'),
+                'consent_source'    => 'checkout',
+                'referrer'          => $request->headers->get('referer'),
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ]);
+
+            Log::info('Terms acceptance recorded', [
+                'user_id' => $userId,
+                'cart_id' => $cart->cart_id ?? $cart->id,
+                'terms_version' => $termsVersion,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to record terms acceptance', [
+                'error' => $e->getMessage(),
+                'user_id' => $userId,
+                'cart_id' => $cart->cart_id ?? $cart->id,
+            ]);
+            // No bloqueamos el flujo si falla el registro
+        }
 
         // 🔄 NUEVO FLUJO: Guardar snapshot del carrito en sesión (NO crear bookings aún)
         return $this->processCartSnapshot($request, $cart);

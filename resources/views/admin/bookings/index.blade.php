@@ -4,7 +4,7 @@
 @section('title', __('m_bookings.bookings.ui.page_title'))
 
 @section('content_header')
-  <h1>{{ __('m_bookings.bookings.ui.page_heading') }}</h1>
+<h1>{{ __('m_bookings.bookings.ui.page_heading') }}</h1>
 @stop
 
 @push('css')
@@ -16,27 +16,52 @@
   }
 
   /* Compact table styling */
-  .table-compact { font-size: 0.875rem; }
-  .table-compact td,
-  .table-compact th { padding: 0.5rem; white-space: nowrap; }
+  .table-compact {
+    font-size: 0.875rem;
+  }
 
-  .badge-compact { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
+  .table-compact td,
+  .table-compact th {
+    padding: 0.5rem;
+    white-space: nowrap;
+  }
+
+  .badge-compact {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
 
   /* Interactive badge styling */
-  .badge-interactive { transition: all 0.2s ease; cursor: pointer; }
-  .badge-interactive:hover { transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,0,0,.2); opacity:.9; }
-  .badge-interactive:active { transform: scale(0.98); }
+  .badge-interactive {
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .badge-interactive:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
+    opacity: .9;
+  }
+
+  .badge-interactive:active {
+    transform: scale(0.98);
+  }
 
   /* Badge color legibility */
-  .badge.bg-warning.text-dark { color: #000 !important; }
-  .badge.bg-success.text-white,
-  .badge.bg-danger.text-white { color: #fff !important; }
+  .badge.bg-warning.text-dark {
+    color: #000 !important;
+  }
 
-  /* Responsive */
-  @media (max-width: 768px) { .table-compact { font-size: 0.75rem; } }
+  .badge.bg-success.text-white,
+  .badge.bg-danger.text-white {
+    color: #fff !important;
+  }
 
   /* Details button hover */
-  .btn-details:hover { transform: scale(1.1); transition: transform 0.2s; }
+  .btn-details:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s;
+  }
 
   /* ===== Paginação numérica ===== */
   .bookings-pagination {
@@ -54,17 +79,63 @@
     font-size: 0.875rem;
     line-height: 1.4;
   }
+
+  /* ===== MOBILE RESPONSIVE ===== */
+  @media (max-width: 768px) {
+
+    /* Smaller table font on mobile */
+    .table-compact {
+      font-size: 0.75rem;
+    }
+
+    .table-compact td,
+    .table-compact th {
+      padding: 0.35rem;
+    }
+
+    /* Tabs responsive */
+    .nav-tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .nav-tabs .nav-link {
+      white-space: nowrap;
+      font-size: 0.875rem;
+      padding: 0.5rem 0.75rem;
+    }
+
+    /* Larger touch targets for buttons */
+    .btn-sm {
+      min-width: 36px;
+      min-height: 36px;
+      padding: 0.4rem 0.6rem;
+    }
+
+    /* Stack action buttons vertically on very small screens */
+    @media (max-width: 576px) {
+      .gap-2 {
+        flex-direction: column !important;
+        align-items: stretch !important;
+      }
+
+      .gap-2>* {
+        width: 100% !important;
+      }
+    }
+  }
 </style>
 @endpush
 
 @section('content')
 @php
-  $activeFilters = request()->hasAny([
-    'reference', 'status',
-    'booking_date_from', 'booking_date_to',
-    'tour_date_from', 'tour_date_to',
-    'tour_id', 'schedule_id'
-  ]);
+$activeFilters = request()->hasAny([
+'reference', 'status',
+'booking_date_from', 'booking_date_to',
+'tour_date_from', 'tour_date_to',
+'tour_id', 'schedule_id'
+]);
 @endphp
 
 <div class="container-fluid">
@@ -89,6 +160,9 @@
 
     {{-- 🔍 Quick reference filter --}}
     <form method="GET" action="{{ route('admin.bookings.index') }}" class="d-flex">
+      {{-- Preserve view parameter --}}
+      <input type="hidden" name="view" value="{{ request('view', 'active') }}">
+
       <div class="input-group" style="width: 280px;">
         <input
           type="text"
@@ -96,8 +170,7 @@
           class="form-control"
           placeholder="{{ __('m_bookings.filters.search_reference') }}"
           value="{{ request('reference') }}"
-          aria-label="{{ __('m_bookings.filters.search_reference') }}"
-        >
+          aria-label="{{ __('m_bookings.filters.search_reference') }}">
         <button class="btn btn-outline-secondary" type="submit" title="{{ __('m_bookings.ui.search') }}">
           <i class="fas fa-search"></i>
         </button>
@@ -106,10 +179,10 @@
 
     {{-- Advanced Filters Button --}}
     <button class="btn btn-secondary" type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#advancedFilters"
-            aria-expanded="{{ $activeFilters ? 'true' : 'false' }}"
-            aria-controls="advancedFilters">
+      data-bs-toggle="collapse"
+      data-bs-target="#advancedFilters"
+      aria-expanded="{{ $activeFilters ? 'true' : 'false' }}"
+      aria-controls="advancedFilters">
       <i class="fas fa-filter"></i> {{ __('m_bookings.filters.advanced_filters') }}
     </button>
 
@@ -119,13 +192,35 @@
         <i class="fas fa-search-minus"></i>
       </button>
       <button type="button" class="btn btn-outline-secondary" id="zoomReset" title="{{ __('m_bookings.ui.zoom_reset') }}">
-        <i class="fas fa-compress"></i>
+        <i class="fas fa-search"></i>
       </button>
       <button type="button" class="btn btn-outline-secondary" id="zoomIn" title="{{ __('m_bookings.ui.zoom_in') }}">
         <i class="fas fa-search-plus"></i>
       </button>
     </div>
   </div>
+
+  {{-- 📑 TABS: Active / Trash --}}
+  <ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item" role="presentation">
+      <a class="nav-link {{ request('view', 'active') === 'active' ? 'active' : '' }}"
+        href="{{ route('admin.bookings.index', array_merge(request()->except('view'), ['view' => 'active'])) }}">
+        <i class="fas fa-list"></i> {{ __('m_bookings.bookings.trash.active_bookings') }}
+        @if(request('view', 'active') === 'active')
+        <span class="badge bg-primary ms-1">{{ $bookings->total() }}</span>
+        @endif
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link {{ request('view') === 'trash' ? 'active' : '' }}"
+        href="{{ route('admin.bookings.index', array_merge(request()->except('view'), ['view' => 'trash'])) }}">
+        <i class="fas fa-trash"></i> {{ __('m_bookings.bookings.trash.trash') }}
+        @if(request('view') === 'trash')
+        <span class="badge bg-danger ms-1">{{ $bookings->total() }}</span>
+        @endif
+      </a>
+    </li>
+  </ul>
 
   {{-- 🧪 Advanced filters --}}
   @include('admin.bookings.partials.advanced-filters')
@@ -136,32 +231,29 @@
 
     {{-- 🔢 Paginación SOLO con números --}}
     @if($bookings instanceof \Illuminate\Pagination\LengthAwarePaginator && $bookings->lastPage() > 1)
-      <div class="bookings-pagination">
-        <ul class="pagination pagination-sm">
-          @for ($page = 1; $page <= $bookings->lastPage(); $page++)
-            @if ($page == $bookings->currentPage())
-              <li class="page-item active" aria-current="page">
-                <span class="page-link">{{ $page }}</span>
-              </li>
-            @else
-              <li class="page-item">
-                <a class="page-link" href="{{ $bookings->url($page) }}">{{ $page }}</a>
-              </li>
-            @endif
+    <div class="bookings-pagination">
+      <ul class="pagination pagination-sm">
+        @for ($page = 1; $page <= $bookings->lastPage(); $page++)
+          @if ($page == $bookings->currentPage())
+          <li class="page-item active" aria-current="page">
+            <span class="page-link">{{ $page }}</span>
+          </li>
+          @else
+          <li class="page-item">
+            <a class="page-link" href="{{ $bookings->url($page) }}">{{ $page }}</a>
+          </li>
+          @endif
           @endfor
-        </ul>
-      </div>
+      </ul>
+    </div>
     @endif
   </div>
 </div>
 
-{{-- ✨ Modals por booking (detalles) --}}
-@foreach ($bookings as $booking)
-  @include('admin.bookings.partials.modal-details', ['booking' => $booking])
-@endforeach
+
 @endsection
 
 @push('js')
-  {{-- Scripts propios (incluye handlers de zoom y filtros) --}}
-  @include('admin.bookings.partials.scripts')
+{{-- Scripts propios (incluye handlers de zoom y filtros) --}}
+@include('admin.bookings.partials.scripts')
 @endpush

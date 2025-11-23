@@ -163,6 +163,8 @@ return [
     // [02] RÉSERVATIONS
     // =========================================================
     'bookings' => [
+        'singular' => 'Réservation',
+        'plural' => 'Réservations',
         'ui' => [
             'page_title'        => 'Réservations',
             'page_heading'      => 'Gestion des réservations',
@@ -200,6 +202,7 @@ return [
             'booking_date'      => 'Date de réservation',
             'booking_origin'    => 'Date de réservation (origine)',
             'reference'         => 'Référence',
+            'booking_reference' => 'Référence de Réservation',
             'customer'          => 'Client',
             'email'             => 'E-mail',
             'phone'             => 'Téléphone',
@@ -281,7 +284,7 @@ return [
             'tour_archived'         => '(archivée)',
             'meeting_point_hint'    => 'Seul le nom du point est affiché dans la liste.',
             'customer_locked'       => 'Le client est bloqué et ne peut pas être modifié.',
-            'promo_applied_subtract'=> 'Remise appliquée :',
+            'promo_applied_subtract' => 'Remise appliquée :',
             'promo_applied_add'     => 'Supplément appliqué :',
             'hotel_locked_by_meeting_point'   => 'Un point de rendez-vous a été sélectionné ; il n’est pas possible de sélectionner un hôtel.',
             'meeting_point_locked_by_hotel'   => 'Un hôtel a été sélectionné ; il n’est pas possible de sélectionner un point de rendez-vous.',
@@ -331,11 +334,29 @@ return [
             'status_update_failed' => 'Impossible de mettre à jour le statut de la réservation.',
             'detail_not_found'     => 'Détails de la réservation introuvables.',
             'schedule_not_found'   => 'Horaire introuvable.',
-            'insufficient_capacity'=> 'Capacité insuffisante pour « :tour » le :date à :time. Demandé : :requested, disponible : :available (max : :max).',
+            'insufficient_capacity' => 'Capacité insuffisante pour « :tour » le :date à :time. Demandé : :requested, disponible : :available (max : :max).',
         ],
 
         'confirm' => [
             'delete' => 'Êtes-vous sûr de vouloir supprimer cette réservation ?',
+        ],
+
+        // SoftDelete & Corbeille
+        'trash' => [
+            'active_bookings' => 'Réservations actives',
+            'trash' => 'Corbeille',
+            'restore_booking' => 'Restaurer la réservation',
+            'permanently_delete' => 'Supprimer définitivement',
+            'force_delete_title' => 'SUPPRESSION DÉFINITIVE',
+            'force_delete_warning' => 'Cette action NE PEUT PAS être annulée !',
+            'force_delete_message' => 'sera supprimée définitivement.',
+            'force_delete_data_loss' => 'Toutes les données associées seront perdues à jamais.',
+            'force_delete_confirm' => 'Oui, SUPPRIMER DÉFINITIVEMENT',
+            'booking_deleted' => 'Réservation supprimée.',
+            'booking_restored' => 'Réservation restaurée avec succès.',
+            'booking_force_deleted' => 'Réservation supprimée définitivement. Enregistrements de paiement conservés pour audit.',
+            'force_delete_failed' => 'Impossible de supprimer définitivement la réservation.',
+            'deleted_booking_indicator' => '(SUPPRIMÉE)',
         ],
     ],
 
@@ -416,6 +437,7 @@ return [
         'qr_alt'        => 'Code QR',
         'qr_scan'       => 'Scannez pour voir la réservation',
         'thanks'        => 'Merci d’avoir choisi :company !',
+        'payment_status' => 'État de paiement:',
     ],
 
     // =========================================================
@@ -606,7 +628,7 @@ return [
                 'schedule'    => 'Horaire',
                 'capacity'    => 'Capacité override',
                 'level'       => 'Niveau',
-                'no_schedules'=> 'Cette excursion n’a pas d’horaires assignés',
+                'no_schedules' => 'Cette excursion n’a pas d’horaires assignés',
             ],
             'day_schedules' => [
                 'date'        => 'Date',
@@ -614,7 +636,7 @@ return [
                 'schedule'    => 'Horaire',
                 'capacity'    => 'Capacité',
                 'actions'     => 'Actions',
-                'no_overrides'=> 'Aucun override jour + horaire',
+                'no_overrides' => 'Aucun override jour + horaire',
             ],
         ],
 

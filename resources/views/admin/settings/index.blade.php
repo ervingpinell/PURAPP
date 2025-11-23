@@ -1,0 +1,364 @@
+@extends('adminlte::page')
+
+@section('title', 'Configuraciones del Sistema')
+
+@section('content_header')
+<h1>
+    <i class="fas fa-cog"></i> Configuraciones del Sistema
+</h1>
+@stop
+
+@section('content')
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Gestión de Configuraciones</h3>
+                </div>
+
+                <form action="{{ route('admin.settings.update') }}" method="POST">
+                    @csrf
+
+                    <div class="card-body">
+                        @if(session('success'))
+                        <div class="alert alert-success alert-dismissible">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            {{ session('success') }}
+                        </div>
+                        @endif
+
+                        @if(session('warning'))
+                        <div class="alert alert-warning alert-dismissible">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            {{ session('warning') }}
+                        </div>
+                        @endif
+
+                        @if($errors->any())
+                        <div class="alert alert-danger alert-dismissible">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            <ul class="mb-0">
+                                @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        @endif
+
+                        @foreach($settings as $category => $categorySettings)
+                        <div class="mb-4">
+                            <h4 class="text-primary border-bottom pb-2">
+                                <i class="fas fa-{{ $category === 'cart' ? 'shopping-cart' : ($category === 'booking' ? 'calendar-check' : ($category === 'email' ? 'envelope' : ($category === 'payment' ? 'credit-card' : 'cog'))) }}"></i>
+                                {{ $categoryLabels[$category] ?? ucfirst($category) }}
+                            </h4>
+
+                            @if($category === 'payment')
+                            {{-- Special layout for payment settings --}}
+                            <div class="row">
+                                {{-- Gateways Column --}}
+                                <div class="col-md-6">
+                                    <div class="card card-outline card-primary">
+                                        <div class="card-header">
+                                            <h5 class="card-title"><i class="fas fa-university"></i> Métodos de Pago</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            @foreach($categorySettings as $setting)
+                                            @if(str_contains($setting->key, 'gateway.'))
+                                            <div class="form-group">
+                                                <div class="custom-control custom-switch">
+                                                    <input type="hidden" name="settings[{{ $setting->key }}]" value="0">
+                                                    <input type="checkbox"
+                                                        class="custom-control-input"
+                                                        id="setting_{{ $setting->key }}"
+                                                        name="settings[{{ $setting->key }}]"
+                                                        value="1"
+                                                        {{ $setting->value ? 'checked' : '' }}>
+                                                    <label class="custom-control-label" for="setting_{{ $setting->key }}">
+                                                        <strong>{{ $setting->label }}</strong>
+                                                        @if($setting->description)
+                                                        <br><small class="text-muted">{{ $setting->description }}</small>
+                                                        @endif
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            @endif
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Currencies Column --}}
+                                <div class="col-md-6">
+                                    <div class="card card-outline card-success">
+                                        <div class="card-header">
+                                            <h5 class="card-title"><i class="fas fa-money-bill-wave"></i> Monedas Disponibles</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            @foreach($categorySettings as $setting)
+                                            @if(str_contains($setting->key, 'currency.'))
+                                            <div class="form-group">
+                                                <div class="custom-control custom-switch">
+                                                    <input type="hidden" name="settings[{{ $setting->key }}]" value="0">
+                                                    <input type="checkbox"
+                                                        class="custom-control-input currency-toggle"
+                                                        id="setting_{{ $setting->key }}"
+                                                        name="settings[{{ $setting->key }}]"
+                                                        value="1"
+                                                        data-currency="{{ str_replace('payment.currency.', '', $setting->key) }}"
+                                                        {{ $setting->value ? 'checked' : '' }}>
+                                                    <label class="custom-control-label" for="setting_{{ $setting->key }}">
+                                                        <strong>{{ $setting->label }}</strong>
+                                                        @if($setting->description)
+                                                        <br><small class="text-muted">{{ $setting->description }}</small>
+                                                        @endif
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            @endif
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Exchange Rates --}}
+                            <div class="card card-outline card-warning">
+                                <div class="card-header">
+                                    <h5 class="card-title"><i class="fas fa-exchange-alt"></i> Tipos de Cambio</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        @foreach($categorySettings as $setting)
+                                        @if(str_contains($setting->key, 'exchange_rate'))
+                                        @php
+                                        $showField = false;
+                                        if (str_contains($setting->key, 'usd_to_crc')) {
+                                        $usdEnabled = $categorySettings->firstWhere('key', 'payment.currency.usd')?->value ?? false;
+                                        $crcEnabled = $categorySettings->firstWhere('key', 'payment.currency.crc')?->value ?? false;
+                                        $showField = $usdEnabled && $crcEnabled;
+                                        } elseif (str_contains($setting->key, 'eur_to_usd')) {
+                                        $eurEnabled = $categorySettings->firstWhere('key', 'payment.currency.eur')?->value ?? false;
+                                        $usdEnabled = $categorySettings->firstWhere('key', 'payment.currency.usd')?->value ?? false;
+                                        $showField = $eurEnabled && $usdEnabled;
+                                        }
+                                        @endphp
+                                        <div class="col-md-6 exchange-rate-field" data-rate="{{ str_replace('payment.exchange_rate.', '', $setting->key) }}" style="{{ $showField ? '' : 'display:none;' }}">
+                                            <div class="form-group">
+                                                <label for="setting_{{ $setting->key }}">
+                                                    {{ $setting->label }}
+                                                    @if($setting->description)
+                                                    <small class="text-muted d-block">{{ $setting->description }}</small>
+                                                    @endif
+                                                </label>
+                                                <input type="text"
+                                                    class="form-control"
+                                                    id="setting_{{ $setting->key }}"
+                                                    name="settings[{{ $setting->key }}]"
+                                                    value="{{ $setting->value }}"
+                                                    placeholder="Ej: 520">
+                                            </div>
+                                        </div>
+                                        @endif
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Defaults --}}
+                            <div class="row">
+                                @foreach($categorySettings as $setting)
+                                @if($setting->key === 'payment.default_gateway')
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="setting_{{ $setting->key }}">
+                                            {{ $setting->label }}
+                                            @if($setting->description)
+                                            <small class="text-muted d-block">{{ $setting->description }}</small>
+                                            @endif
+                                        </label>
+                                        <select class="form-control"
+                                            id="setting_{{ $setting->key }}"
+                                            name="settings[{{ $setting->key }}]">
+                                            @foreach($categorySettings as $gatewaySetting)
+                                            @if(str_contains($gatewaySetting->key, 'gateway.') && $gatewaySetting->value)
+                                            @php
+                                            $gatewayValue = str_replace('payment.gateway.', '', $gatewaySetting->key);
+                                            @endphp
+                                            <option value="{{ $gatewayValue }}" {{ $setting->value === $gatewayValue ? 'selected' : '' }}>
+                                                {{ $gatewaySetting->label }}
+                                            </option>
+                                            @endif
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                @elseif($setting->key === 'payment.default_currency')
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="setting_{{ $setting->key }}">
+                                            {{ $setting->label }}
+                                            @if($setting->description)
+                                            <small class="text-muted d-block">{{ $setting->description }}</small>
+                                            @endif
+                                        </label>
+                                        <select class="form-control"
+                                            id="setting_{{ $setting->key }}"
+                                            name="settings[{{ $setting->key }}]">
+                                            @foreach($categorySettings as $currencySetting)
+                                            @if(str_contains($currencySetting->key, 'currency.') && $currencySetting->value)
+                                            @php
+                                            $currencyValue = strtoupper(str_replace('payment.currency.', '', $currencySetting->key));
+                                            @endphp
+                                            <option value="{{ $currencyValue }}" {{ $setting->value === $currencyValue ? 'selected' : '' }}>
+                                                {{ $currencySetting->label }}
+                                            </option>
+                                            @endif
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                @endif
+                                @endforeach
+                            </div>
+                            @else
+                            {{-- Standard layout for other categories --}}
+                            <div class="row">
+                                @foreach($categorySettings as $setting)
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="setting_{{ $setting->key }}">
+                                            {{ $setting->label }}
+                                            @if($setting->description)
+                                            <small class="text-muted d-block">{{ $setting->description }}</small>
+                                            @endif
+                                        </label>
+
+                                        @if($setting->type === 'boolean')
+                                        <div class="custom-control custom-switch">
+                                            <input type="hidden" name="settings[{{ $setting->key }}]" value="0">
+                                            <input type="checkbox"
+                                                class="custom-control-input"
+                                                id="setting_{{ $setting->key }}"
+                                                name="settings[{{ $setting->key }}]"
+                                                value="1"
+                                                {{ $setting->value ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="setting_{{ $setting->key }}">
+                                                {{ $setting->value ? 'Activado' : 'Desactivado' }}
+                                            </label>
+                                        </div>
+                                        @elseif($setting->type === 'integer')
+                                        <input type="number"
+                                            class="form-control"
+                                            id="setting_{{ $setting->key }}"
+                                            name="settings[{{ $setting->key }}]"
+                                            value="{{ $setting->value }}"
+                                            min="0">
+                                        @elseif($setting->type === 'email')
+                                        <input type="email"
+                                            class="form-control"
+                                            id="setting_{{ $setting->key }}"
+                                            name="settings[{{ $setting->key }}]"
+                                            value="{{ $setting->value }}">
+                                        @elseif($setting->type === 'json')
+                                        {{-- Hide JSON fields from user view --}}
+                                        <input type="hidden"
+                                            name="settings[{{ $setting->key }}]"
+                                            value="{{ is_array($setting->value) ? json_encode($setting->value) : $setting->value }}">
+                                        @else
+                                        <input type="text"
+                                            class="form-control"
+                                            id="setting_{{ $setting->key }}"
+                                            name="settings[{{ $setting->key }}]"
+                                            value="{{ $setting->value }}">
+                                        @endif
+
+                                        @error("settings.{$setting->key}")
+                                        <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                            @endif
+                        </div>
+                        @endforeach
+                    </div>
+
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                        <a href="{{ route('admin.home') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@stop
+
+@section('css')
+<style>
+    .form-group label {
+        font-weight: 600;
+    }
+
+    .custom-control-label {
+        font-weight: normal;
+    }
+
+    .card-outline {
+        border-top: 3px solid;
+    }
+
+    .card-outline.card-primary {
+        border-top-color: #007bff;
+    }
+
+    .card-outline.card-success {
+        border-top-color: #28a745;
+    }
+
+    .card-outline.card-warning {
+        border-top-color: #ffc107;
+    }
+</style>
+@stop
+
+@section('js')
+<script>
+    $(document).ready(function() {
+        // Toggle exchange rate fields based on currency selection
+        $('.currency-toggle').on('change', function() {
+            updateExchangeRateVisibility();
+        });
+
+        function updateExchangeRateVisibility() {
+            const usdEnabled = $('#setting_payment\\.currency\\.usd').is(':checked');
+            const crcEnabled = $('#setting_payment\\.currency\\.crc').is(':checked');
+            const eurEnabled = $('#setting_payment\\.currency\\.eur').is(':checked');
+
+            // USD to CRC
+            if (usdEnabled && crcEnabled) {
+                $('[data-rate="usd_to_crc"]').slideDown();
+            } else {
+                $('[data-rate="usd_to_crc"]').slideUp();
+            }
+
+            // EUR to USD
+            if (eurEnabled && usdEnabled) {
+                $('[data-rate="eur_to_usd"]').slideDown();
+            } else {
+                $('[data-rate="eur_to_usd"]').slideUp();
+            }
+        }
+
+        // Initialize on page load
+        updateExchangeRateVisibility();
+    });
+</script>
+@stop

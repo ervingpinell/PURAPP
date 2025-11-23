@@ -22,7 +22,7 @@
         <select class="form-select" id="tourSelect">
           <option value="">{{ __('m_config.cut-off.selects.tour') }}</option>
           @foreach($tours as $t)
-            <option value="{{ $t->tour_id }}" data-cutoff="{{ $t->cutoff_hour }}" data-lead="{{ $t->lead_days }}">{{ $t->name }}</option>
+          <option value="{{ $t->tour_id }}" data-cutoff="{{ $t->cutoff_hour }}" data-lead="{{ $t->lead_days }}">{{ $t->name }}</option>
           @endforeach
         </select>
         <div class="form-hint mt-1">{{ __('m_config.cut-off.hints.pick_tour') }}</div>
@@ -34,7 +34,8 @@
 
     {{-- Form override por tour --}}
     <form method="POST" action="{{ route('admin.tours.cutoff.tour.update') }}" id="form-tour">
-      @csrf @method('PUT')
+      @csrf
+      @method('PUT')
       <input type="hidden" name="tour_id" id="tourIdHiddenForTour" value="">
       <div class="row g-3">
         <div class="col-md-3">
@@ -65,52 +66,58 @@
 
 @push('js')
 <script>
-(() => {
-  const tourSelect=document.getElementById('tourSelect');
-  const tourCutoff=document.getElementById('tourCutoff');
-  const tourLead=document.getElementById('tourLead');
-  const tourBadge=document.getElementById('tourBadge');
-  const tourIdHidden=document.getElementById('tourIdHiddenForTour');
-  const clearBtn=document.getElementById('clearTourOverride');
+  (() => {
+    const tourSelect = document.getElementById('tourSelect');
+    const tourCutoff = document.getElementById('tourCutoff');
+    const tourLead = document.getElementById('tourLead');
+    const tourBadge = document.getElementById('tourBadge');
+    const tourIdHidden = document.getElementById('tourIdHiddenForTour');
+    const clearBtn = document.getElementById('clearTourOverride');
 
-  const setBadge=(text,cls)=>{
-    if(!tourBadge) return;
-    tourBadge.className='badge badge-chip '+cls;
-    const icon=(cls==='badge-override')?'fa-bolt':'fa-arrow-turn-down-left';
-    tourBadge.innerHTML=`<i class="fas ${icon} me-1"></i>${text}`;
-  };
+    const setBadge = (text, cls) => {
+      if (!tourBadge) return;
+      tourBadge.className = 'badge badge-chip ' + cls;
+      const icon = (cls === 'badge-override') ? 'fa-bolt' : 'fa-arrow-turn-down-left';
+      tourBadge.innerHTML = `<i class="fas ${icon} me-1"></i>${text}`;
+    };
 
-  function refresh(){
-    const opt=tourSelect?.selectedOptions[0];
-    tourIdHidden.value=opt?opt.value:'';
-    if(!opt){
-      tourCutoff.value=''; tourLead.value='';
-      setBadge(@json(__('m_config.cut-off.badges.inherits')),'badge-inherit');
-      return;
+    function refresh() {
+      const opt = tourSelect?.selectedOptions[0];
+      tourIdHidden.value = opt ? opt.value : '';
+      if (!opt) {
+        tourCutoff.value = '';
+        tourLead.value = '';
+        setBadge(@json(__('m_config.cut-off.badges.inherits')), 'badge-inherit');
+        return;
+      }
+      const c = opt.dataset.cutoff || '';
+      const l = opt.dataset.lead || '';
+      tourCutoff.value = c;
+      tourLead.value = l;
+      (c || l) ? setBadge(@json(__('m_config.cut-off.badges.override')), 'badge-override'): setBadge(@json(__('m_config.cut-off.badges.inherits')), 'badge-inherit');
     }
-    const c=opt.dataset.cutoff||'';
-    const l=opt.dataset.lead||'';
-    tourCutoff.value=c; tourLead.value=l;
-    (c||l)? setBadge(@json(__('m_config.cut-off.badges.override')),'badge-override')
-          : setBadge(@json(__('m_config.cut-off.badges.inherits')),'badge-inherit');
-  }
 
-  tourSelect?.addEventListener('change', refresh);
-  clearBtn?.addEventListener('click', ()=>{ tourCutoff.value=''; tourLead.value=''; });
-  refresh();
+    tourSelect?.addEventListener('change', refresh);
+    clearBtn?.addEventListener('click', () => {
+      tourCutoff.value = '';
+      tourLead.value = '';
+    });
+    refresh();
 
-  // Confirm al enviar
-  document.getElementById('form-tour')?.addEventListener('submit', function(e){
-    e.preventDefault();
-    Swal.fire({
-      icon:'question',
-      title:@json(__('m_config.cut-off.confirm.tour.title')),
-      text:@json(__('m_config.cut-off.confirm.tour.text')),
-      showCancelButton:true,
-      confirmButtonText:@json(__('m_config.cut-off.actions.confirm')),
-      cancelButtonText:@json(__('m_config.cut-off.actions.cancel')),
-    }).then(r=>{ if(r.isConfirmed) this.submit(); });
-  });
-})();
+    // Confirm al enviar
+    document.getElementById('form-tour')?.addEventListener('submit', function(e) {
+      e.preventDefault();
+      Swal.fire({
+        icon: 'question',
+        title: @json(__('m_config.cut-off.confirm.tour.title')),
+        text: @json(__('m_config.cut-off.confirm.tour.text')),
+        showCancelButton: true,
+        confirmButtonText: @json(__('m_config.cut-off.actions.confirm')),
+        cancelButtonText: @json(__('m_config.cut-off.actions.cancel')),
+      }).then(r => {
+        if (r.isConfirmed) this.submit();
+      });
+    });
+  })();
 </script>
 @endpush

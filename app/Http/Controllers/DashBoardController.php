@@ -50,20 +50,35 @@ class DashBoardController extends Controller
         $prev   = (string) ($request->headers->get('referer') ?: url()->previous() ?: $request->fullUrl());
         $parsed = parse_url($prev) ?: [];
         $path   = $parsed['path'] ?? '/';
-        $query  = isset($parsed['query']) ? ('?'.$parsed['query']) : '';
+        $query  = isset($parsed['query']) ? ('?' . $parsed['query']) : '';
 
         $segments     = array_values(array_filter(explode('/', $path)));
         $pathNoLocale = $path;
         if (!empty($segments) && in_array($segments[0], $supported, true)) {
             $pathNoLocale = '/' . implode('/', array_slice($segments, 1));
-            if ($pathNoLocale === '/') { $pathNoLocale = ''; }
+            if ($pathNoLocale === '/') {
+                $pathNoLocale = '';
+            }
         }
 
         $unlocalized = [
-            'login','register','password','password-reset','email','verify',
-            'auth','two-factor-challenge','two-factor','unlock-account','account',
+            'login',
+            'register',
+            'password',
+            'password-reset',
+            'email',
+            'verify',
+            'auth',
+            'two-factor-challenge',
+            'two-factor',
+            'unlock-account',
+            'account',
             'admin',
-            'profile','my-bookings','my-cart','checkout'
+            'profile',
+            'my-bookings',
+            'my-cart',
+            'checkout',
+            'payment'
         ];
 
         $first = ltrim($pathNoLocale, '/');
@@ -108,7 +123,7 @@ class DashBoardController extends Controller
         $tomorrowC = Carbon::now($tz)->addDay();
 
         $upcomingBookings = Booking::with(['user', 'detail.tour'])
-            ->whereHas('detail', fn ($q) => $q->whereDate('tour_date', $tomorrow))
+            ->whereHas('detail', fn($q) => $q->whereDate('tour_date', $tomorrow))
             ->orderBy('booking_date')
             ->get();
 
@@ -118,11 +133,11 @@ class DashBoardController extends Controller
 
         // ✅ Traemos TODO: booking completo + detail con categories
         $details = BookingDetail::with([
-                'booking', // ✅ Traer toda la info del booking
-                'tour:tour_id,name',
-                'schedule:schedule_id,start_time',
-            ])
-            ->whereHas('booking', fn ($q) => $q->whereIn('status', ['confirmed', 'paid']))
+            'booking', // ✅ Traer toda la info del booking
+            'tour:tour_id,name',
+            'schedule:schedule_id,start_time',
+        ])
+            ->whereHas('booking', fn($q) => $q->whereIn('status', ['confirmed', 'paid']))
             ->whereDate('tour_date', '>=', $start)
             ->whereDate('tour_date', '<=', $end)
             ->get(); // ✅ Traer TODO, no solo campos específicos
@@ -141,7 +156,7 @@ class DashBoardController extends Controller
         $buckets = [];
         foreach ($details as $d) {
             $date = Carbon::parse($d->tour_date, $tz)->toDateString();
-            $key  = $d->tour_id.'|'.$d->schedule_id.'|'.$date;
+            $key  = $d->tour_id . '|' . $d->schedule_id . '|' . $date;
 
             if (!isset($buckets[$key])) {
                 $buckets[$key] = [
@@ -190,7 +205,7 @@ class DashBoardController extends Controller
         Log::info('[DASHBOARD] Capacity buckets summary', [
             'total_buckets' => count($buckets),
             'buckets' => array_map(fn($b) => [
-                'key' => $b['tour_id'].'|'.$b['schedule_id'].'|'.$b['date'],
+                'key' => $b['tour_id'] . '|' . $b['schedule_id'] . '|' . $b['date'],
                 'tour' => $b['tour_name'],
                 'used' => $b['used'],
                 'detail_count' => count($b['detail_ids']),
@@ -227,7 +242,7 @@ class DashBoardController extends Controller
                 : (($remaining <= 3 || $pct >= 80) ? 'near_capacity' : 'info');
 
             $alerts->push([
-                'key'         => (string) ($g['tour_id'].'|'.$g['schedule_id'].'|'.$g['date']),
+                'key'         => (string) ($g['tour_id'] . '|' . $g['schedule_id'] . '|' . $g['date']),
                 'tour_id'     => (int) $g['tour_id'],
                 'schedule_id' => (int) $g['schedule_id'],
                 'date'        => (string) $g['date'],
@@ -246,7 +261,7 @@ class DashBoardController extends Controller
             ['tour', 'asc'],
         ])->values();
 
-        $criticalCount = $alerts->whereIn('type', ['near_capacity','sold_out'])->count();
+        $criticalCount = $alerts->whereIn('type', ['near_capacity', 'sold_out'])->count();
 
         return view('admin.dashboard', compact(
             'totalUsers',
@@ -262,6 +277,6 @@ class DashBoardController extends Controller
             'upcomingBookings',
             'tomorrowC',
         ))->with('capAlerts', $alerts)
-          ->with('capCritical', $criticalCount);
+            ->with('capCritical', $criticalCount);
     }
 }

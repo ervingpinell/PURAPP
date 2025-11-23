@@ -6,9 +6,15 @@ return [
         'terms_title'        => 'Richtlinien & Bedingungen',
         'secure_subtitle'    => 'Der Checkout ist schnell und sicher',
         'required_title'     => 'Pflichtfelder',
-        'required_read_accept'=> 'Sie müssen alle Richtlinien lesen und akzeptieren, um mit der Zahlung fortzufahren',
+        'required_read_accept' => 'Sie müssen alle Richtlinien lesen und akzeptieren, um mit der Zahlung fortzufahren',
         'terms_block_title'  => 'Allgemeine Geschäftsbedingungen & Richtlinien',
         'version'            => 'v',
+    ],
+
+    'steps' => [
+        'review'             => 'Überprüfung',
+        'payment'            => 'Zahlung',
+        'confirmation'       => 'Bestätigung',
     ],
 
     'buttons' => [

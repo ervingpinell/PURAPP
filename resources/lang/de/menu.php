@@ -63,5 +63,15 @@ return [
         // Sonstiges
         'reports'         => 'Berichte',
         'my_profile'      => 'Mein Profil',
-
+        'payments'        => 'Zahlungen',
+        'settings_general' => 'Allgemeine Einstellungen',
+        'settings_pricing' => 'Preise und Typen',
+        'settings_tours'   => 'Tour-Einstellungen',
+        'review_providers' => 'Bewertungsanbieter',
+        'availability' => 'Verfügbarkeit',
+        'general' => 'Allgemein',
+        'review_settings' => 'Bewertungseinstellungen',
+        'tour_settings' => 'Tour-Einstellungen',
+        'app_settings' => 'App-Einstellungen',
+        'app' => 'App',
 ];

@@ -1,0 +1,22 @@
+/* Headers del sidebar (incluye los que están dentro de submenús) */
+.main-sidebar .nav-sidebar .nav-header {
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;              /* Negrita */
+    text-transform: uppercase !important;
+    color: #f4f6f9 !important;
+    padding: 0.75rem 1rem 0.35rem !important;
+    margin-top: 0.75rem !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.15) !important; /* Línea separadora */
+    opacity: 0.9 !important;
+}
+
+/* Headers dentro de submenús (settings_general, settings_tours, etc.) */
+.main-sidebar .nav-sidebar .nav-treeview > .nav-header {
+    padding-left: 1.75rem !important;              /* Más indentado */
+    background: rgba(0, 0, 0, 0.35) !important;    /* Fondo más oscuro */
+}
+
+/* Links dentro de submenús: un poco más sangrados para reforzar jerarquía */
+.main-sidebar .nav-sidebar .nav-treeview > .nav-item > .nav-link {
+    padding-left: 2.25rem !important;
+}

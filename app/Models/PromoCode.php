@@ -25,7 +25,7 @@ class PromoCode extends Model
         'valid_until',
         'usage_limit',
         'usage_count',
-        'operation', // 'add' | 'subtract'
+        'operation',
     ];
 
     protected $casts = [

@@ -16,14 +16,15 @@
     </div>
 
     <form method="POST" action="{{ route('admin.tours.cutoff.schedule.update') }}" id="form-schedule">
-      @csrf @method('PUT')
+      @csrf
+      @method('PUT')
 
       <div class="mb-3">
         <label class="form-label">{{ __('m_config.cut-off.fields.tour') }}</label>
         <select class="form-select" id="tourForSchedule">
           <option value="">{{ __('m_config.cut-off.selects.tour') }}</option>
           @foreach($tours as $t)
-            <option value="{{ $t->tour_id }}">{{ $t->name }}</option>
+          <option value="{{ $t->tour_id }}">{{ $t->name }}</option>
           @endforeach
         </select>
         <div class="form-hint mt-1">1) {{ __('m_config.cut-off.hints.pick_tour') }}</div>
@@ -63,73 +64,83 @@
 
 @push('js')
 <script>
-(() => {
-  const toursData = @json($toursPayload);
-  const tourForSchedule=document.getElementById('tourForSchedule');
-  const scheduleSelect=document.getElementById('scheduleSelect');
-  const schCutoff=document.getElementById('schCutoff');
-  const schLead=document.getElementById('schLead');
-  const schBadge=document.getElementById('schBadge');
-  const clearSchBtn=document.getElementById('clearScheduleOverride');
-  const tourIdHidden=document.getElementById('tourIdHidden');
+  (() => {
+    const toursData = @json($toursPayload);
+    const tourForSchedule = document.getElementById('tourForSchedule');
+    const scheduleSelect = document.getElementById('scheduleSelect');
+    const schCutoff = document.getElementById('schCutoff');
+    const schLead = document.getElementById('schLead');
+    const schBadge = document.getElementById('schBadge');
+    const clearSchBtn = document.getElementById('clearScheduleOverride');
+    const tourIdHidden = document.getElementById('tourIdHidden');
 
-  const setSch=(text,cls)=>{
-    if(!schBadge) return;
-    schBadge.className='badge badge-chip '+cls;
-    const icon=(cls==='badge-override')?'fa-bolt':'fa-arrow-turn-down-left';
-    schBadge.innerHTML=`<i class="fas ${icon} me-1"></i>${text}`;
-  };
+    const setSch = (text, cls) => {
+      if (!schBadge) return;
+      schBadge.className = 'badge badge-chip ' + cls;
+      const icon = (cls === 'badge-override') ? 'fa-bolt' : 'fa-arrow-turn-down-left';
+      schBadge.innerHTML = `<i class="fas ${icon} me-1"></i>${text}`;
+    };
 
-  function rebuild(){
-    const tourId=tourForSchedule.value;
-    tourIdHidden.value=tourId||'';
-    scheduleSelect.innerHTML=`<option value="">${@json(__('m_config.cut-off.selects.time'))}</option>`;
-    scheduleSelect.disabled=!tourId;
-    schCutoff.value=''; schLead.value='';
-    setSch(@json(__('m_config.cut-off.badges.inherit_tour_global')),'badge-global');
+    function rebuild() {
+      const tourId = tourForSchedule.value;
+      tourIdHidden.value = tourId || '';
+      scheduleSelect.innerHTML = `<option value="">${@json(__('m_config.cut-off.selects.time'))}</option>`;
+      scheduleSelect.disabled = !tourId;
+      schCutoff.value = '';
+      schLead.value = '';
+      setSch(@json(__('m_config.cut-off.badges.inherit_tour_global')), 'badge-global');
 
-    if(!tourId) return;
-    const t=toursData.find(x=>String(x.id)===String(tourId)); if(!t) return;
-    t.schedules.forEach(s=>{
-      const opt=document.createElement('option');
-      opt.value=s.id; opt.textContent=s.label;
-      opt.dataset.cutoff=s.cutoff||''; opt.dataset.lead=(s.lead??'')===null?'':s.lead;
-      scheduleSelect.appendChild(opt);
-    });
-  }
-
-  function loadValues(){
-    const opt=scheduleSelect?.selectedOptions[0];
-    if(!opt){
-      schCutoff.value=''; schLead.value='';
-      setSch(@json(__('m_config.cut-off.badges.inherit_tour_global')),'badge-global');
-      return;
+      if (!tourId) return;
+      const t = toursData.find(x => String(x.id) === String(tourId));
+      if (!t) return;
+      t.schedules.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.label;
+        opt.dataset.cutoff = s.cutoff || '';
+        opt.dataset.lead = (s.lead ?? '') === null ? '' : s.lead;
+        scheduleSelect.appendChild(opt);
+      });
     }
-    const c=opt.dataset.cutoff||'';
-    const l=opt.dataset.lead||'';
-    schCutoff.value=c; schLead.value=l;
-    (c||l)? setSch(@json(__('m_config.cut-off.badges.override')),'badge-override')
-          : setSch(@json(__('m_config.cut-off.badges.inherit_tour_global')),'badge-global');
-  }
 
-  tourForSchedule?.addEventListener('change', rebuild);
-  scheduleSelect?.addEventListener('change', loadValues);
-  clearSchBtn?.addEventListener('click', ()=>{ schCutoff.value=''; schLead.value=''; });
+    function loadValues() {
+      const opt = scheduleSelect?.selectedOptions[0];
+      if (!opt) {
+        schCutoff.value = '';
+        schLead.value = '';
+        setSch(@json(__('m_config.cut-off.badges.inherit_tour_global')), 'badge-global');
+        return;
+      }
+      const c = opt.dataset.cutoff || '';
+      const l = opt.dataset.lead || '';
+      schCutoff.value = c;
+      schLead.value = l;
+      (c || l) ? setSch(@json(__('m_config.cut-off.badges.override')), 'badge-override'): setSch(@json(__('m_config.cut-off.badges.inherit_tour_global')), 'badge-global');
+    }
 
-  rebuild();
+    tourForSchedule?.addEventListener('change', rebuild);
+    scheduleSelect?.addEventListener('change', loadValues);
+    clearSchBtn?.addEventListener('click', () => {
+      schCutoff.value = '';
+      schLead.value = '';
+    });
 
-  // Confirm al enviar
-  document.getElementById('form-schedule')?.addEventListener('submit', function(e){
-    e.preventDefault();
-    Swal.fire({
-      icon:'question',
-      title:@json(__('m_config.cut-off.confirm.schedule.title')),
-      text:@json(__('m_config.cut-off.confirm.schedule.text')),
-      showCancelButton:true,
-      confirmButtonText:@json(__('m_config.cut-off.actions.confirm')),
-      cancelButtonText:@json(__('m_config.cut-off.actions.cancel')),
-    }).then(r=>{ if(r.isConfirmed) this.submit(); });
-  });
-})();
+    rebuild();
+
+    // Confirm al enviar
+    document.getElementById('form-schedule')?.addEventListener('submit', function(e) {
+      e.preventDefault();
+      Swal.fire({
+        icon: 'question',
+        title: @json(__('m_config.cut-off.confirm.schedule.title')),
+        text: @json(__('m_config.cut-off.confirm.schedule.text')),
+        showCancelButton: true,
+        confirmButtonText: @json(__('m_config.cut-off.actions.confirm')),
+        cancelButtonText: @json(__('m_config.cut-off.actions.cancel')),
+      }).then(r => {
+        if (r.isConfirmed) this.submit();
+      });
+    });
+  })();
 </script>
 @endpush

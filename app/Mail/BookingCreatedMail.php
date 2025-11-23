@@ -44,9 +44,17 @@ class BookingCreatedMail extends Mailable implements ShouldQueue
     public function build()
     {
         $this->booking->loadMissing([
-            'user', 'tour', 'tourLanguage', 'hotel',
-            'details.tour', 'details.hotel', 'details.schedule', 'details.tourLanguage',
-            'details.meetingPoint', 'details.meetingPoint.translations',
+            'user',
+            'tour',
+            'tourLanguage',
+            'hotel',
+            'payments',
+            'details.tour',
+            'details.hotel',
+            'details.schedule',
+            'details.tourLanguage',
+            'details.meetingPoint',
+            'details.meetingPoint.translations',
             'redemption.promoCode',
         ]);
 
@@ -85,6 +93,7 @@ class BookingCreatedMail extends Mailable implements ShouldQueue
                 'contactEmail'  => $replyTo,
                 'appUrl'        => rtrim(config('app.url'), '/'),
                 'companyPhone'  => env('COMPANY_PHONE'),
+                'formatEmailDate' => $this->getDateFormatter($this->mailLocale),
                 // El layout tomará el logo desde env('COMPANY_LOGO_URL')
             ]);
 
@@ -94,5 +103,32 @@ class BookingCreatedMail extends Mailable implements ShouldQueue
         }
 
         return $mailable;
+    }
+
+    /**
+     * Get date formatter closure for email templates
+     * Format: DD/MMM/YYYY (e.g., 21/NOV/2025)
+     */
+    protected function getDateFormatter(string $locale): \Closure
+    {
+        return function ($date) use ($locale) {
+            if (!$date) return '—';
+
+            $carbon = $date instanceof \Carbon\Carbon ? $date : \Carbon\Carbon::parse($date);
+
+            // Get month abbreviation in correct language
+            $monthMap = [
+                'es' => ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'],
+                'en' => ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
+                'de' => ['JAN', 'FEB', 'MÄR', 'APR', 'MAI', 'JUN', 'JUL', 'AOÛ', 'SEP', 'OKT', 'NOV', 'DEZ'],
+                'fr' => ['JAN', 'FÉV', 'MAR', 'AVR', 'MAI', 'JUN', 'JUL', 'AOÛ', 'SEP', 'OCT', 'NOV', 'DÉC'],
+                'pt' => ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'],
+            ];
+
+            $months = $monthMap[$locale] ?? $monthMap['en'];
+            $monthAbbr = $months[$carbon->month - 1];
+
+            return $carbon->format('d') . '/' . $monthAbbr . '/' . $carbon->format('Y');
+        };
     }
 }

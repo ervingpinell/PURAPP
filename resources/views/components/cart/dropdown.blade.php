@@ -47,10 +47,7 @@ $headerTotal = max(0, $headerTotal);
 }
 
 $expiresIso = optional($headerCart?->expires_at)->toIso8601String();
-$totalMinutesCfg = (int) config('cart.expiry_minutes', 15);
-$extendMinutes = (int) config('cart.extend_minutes', 10);
-$maxExt = (int) config('cart.max_extensions', 1);
-$extendedCount = (int) ($headerCart->extended_count ?? 0);
+$totalMinutesCfg = (int) config('cart.expiration_minutes', 30);
 
 $coverFromTour = function ($tour) {
 if (!$tour) return asset('images/volcano.png');
@@ -99,11 +96,7 @@ return asset('images/volcano.png');
     data-expires-at="{{ $expiresIso }}"
     data-now="{{ now()->toIso8601String() }}"
     data-total-minutes="{{ $totalMinutesCfg }}"
-    data-extend-minutes="{{ $extendMinutes }}"
-    data-extended-count="{{ $extendedCount }}"
-    data-max-extensions="{{ $maxExt }}"
-    data-expire-endpoint="{{ route('public.carts.expire') }}"
-    data-refresh-endpoint="{{ route('public.carts.refreshExpiry') }}">
+    data-expire-endpoint="{{ route('public.carts.expire') }}">
 
     @if($headerCart && $headerCount)
     @if($expiresIso)
@@ -113,13 +106,6 @@ return asset('images/volcano.png');
           <i class="fas fa-clock"></i>
           <span id="{{ $menuId }}-remaining">--:--</span>
         </div>
-        <button id="{{ $menuId }}-extend"
-          type="button"
-          class="timer-extend-btn"
-          data-menu-id="{{ $menuId }}">
-          <i class="fas fa-plus-circle"></i>
-          <span class="btn-text">{{ trans_choice('carts.timer.extend', $extendMinutes, ['count'=>$extendMinutes]) }}</span>
-        </button>
       </div>
       <div class="timer-bar-container">
         <div id="{{ $menuId }}-bar" class="timer-bar"></div>
@@ -594,9 +580,8 @@ return asset('images/volcano.png');
     const nowStr = menu.getAttribute('data-now') || '';
     const totalM = Number(menu.getAttribute('data-total-minutes') || '15');
     const expireEndpoint = menu.getAttribute('data-expire-endpoint') || '';
-    const refreshEndpoint = menu.getAttribute('data-refresh-endpoint') || '';
-    let extendedCount = Number(menu.getAttribute('data-extended-count') || '0');
-    const maxExt = Number(menu.getAttribute('data-max-extensions') || '1');
+    let extendedCount = 0;
+    const maxExt = 0;
 
     if (!expStr) {
       if (timerBox) timerBox.style.display = 'none';
@@ -609,14 +594,6 @@ return asset('images/volcano.png');
     const skewMs = isNaN(serverNow) ? 0 : (serverNow - clientNow);
 
     let intervalId = null;
-
-    const disableExtendIfNeeded = () => {
-      if (!btnExtend) return;
-      const can = extendedCount < maxExt;
-      btnExtend.disabled = !can;
-      btnExtend.style.opacity = can ? '1' : '.5';
-      btnExtend.style.cursor = can ? 'pointer' : 'not-allowed';
-    };
 
     const handleExpire = async () => {
       try {
@@ -669,7 +646,6 @@ return asset('images/volcano.png');
 
     const startTick = () => {
       stopTick();
-      disableExtendIfNeeded();
       updateOnce(serverExpires);
       intervalId = setInterval(() => updateOnce(serverExpires), 1000);
     };
@@ -680,65 +656,6 @@ return asset('images/volcano.png');
         intervalId = null;
       }
     };
-
-    if (btnExtend) {
-      btnExtend.addEventListener('click', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (extendedCount >= maxExt) {
-          disableExtendIfNeeded();
-          return;
-        }
-
-        try {
-          btnExtend.disabled = true;
-          const originalHTML = btnExtend.innerHTML;
-          btnExtend.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-          const res = await fetch(refreshEndpoint, {
-            method: 'POST',
-            headers: {
-              'X-CSRF-TOKEN': csrf,
-              'Accept': 'application/json'
-            }
-          });
-          const data = await res.json();
-
-          if (data?.ok && data?.expires_at) {
-            const next = parseIsoSafe(String(data.expires_at));
-            if (!isNaN(next)) {
-              serverExpires = next;
-              extendedCount = Number(data.extended_count ?? (extendedCount + 1));
-              menu.setAttribute('data-extended-count', extendedCount);
-              disableExtendIfNeeded();
-              updateOnce(serverExpires);
-              stopTick();
-              intervalId = setInterval(() => updateOnce(serverExpires), 1000);
-            }
-            if (window.Swal) Swal.fire({
-              icon: 'success',
-              title: @json(__('carts.messages.extend_success')),
-              timer: 1200,
-              showConfirmButton: false
-            });
-          } else if (data?.expired) {
-            stopTick();
-            await handleExpire();
-          }
-
-          btnExtend.innerHTML = originalHTML;
-        } catch (err) {
-          if (window.Swal) Swal.fire({
-            icon: 'error',
-            title: @json(__('carts.messages.code_apply_failed')),
-            timer: 1500,
-            showConfirmButton: false
-          });
-        } finally {
-          btnExtend.disabled = extendedCount >= maxExt;
-        }
-      });
-    }
 
     if (triggerEl) {
       triggerEl.addEventListener('shown.bs.dropdown', startTick);

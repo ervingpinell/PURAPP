@@ -2,131 +2,174 @@
 
 @section('content')
 @php
-    $mailLocale = (isset($lang) && is_string($lang))
-        ? (str_starts_with($lang, 'es') ? 'es' : 'en')
-        : (str_starts_with(app()->getLocale(), 'es') ? 'es' : 'en');
+// Use the mailLocale passed from the Mailable (already determined by tour language)
+// DO NOT recalculate it here - it's already set correctly in BookingCreatedMail
+$mailLocale = $mailLocale ?? 'en'; // Fallback only if not provided
 
-    $money     = fn($n) => '$' . number_format((float)$n, 2);
-    $reference = $booking->booking_reference ?? $booking->reference ?? $booking->booking_id;
+$money = fn($n) => '$' . number_format((float)$n, 2);
+$reference = $booking->booking_reference ?? $booking->reference ?? $booking->booking_id;
 
-    $subtotal = $booking->subtotal ?? ($booking->amount_before_discounts ?? null);
-    if ($subtotal === null) {
-        $subtotal = collect($booking->details ?? [])->flatMap(fn($d) => collect($d->categories ?? []))
-            ->reduce(fn($c,$x)=> $c + ((float)($x['quantity']??0) * (float)($x['price']??0)), 0.0);
-    }
+$subtotal = $booking->subtotal ?? ($booking->amount_before_discounts ?? null);
+if ($subtotal === null) {
+$subtotal = collect($booking->details ?? [])->flatMap(fn($d) => collect($d->categories ?? []))
+->reduce(fn($c,$x)=> $c + ((float)($x['quantity']??0) * (float)($x['price']??0)), 0.0);
+}
 
-    // Promo: puede ser descuento o recargo
-    $promo        = $booking->redemption?->promoCode ?? $booking->promoCode ?? $booking->promoCodeLegacy;
-    $discountName = null;
-    $adjustmentAmount = null;   // valor positivo
-    $adjustmentType   = null;   // 'discount' | 'surcharge'
 
-    if ($promo) {
-        $discountName = $promo->code ?? $promo->name ?? null;
-        $raw = $promo->discount_amount ?? $promo->discount ?? null;
-        $raw = $raw !== null ? (float)$raw : null;
+// Promo: puede ser descuento o recargo
+$promo = $booking->redemption?->promoCode ?? $booking->promoCode ?? $booking->promoCodeLegacy;
+$discountName = null;
+$adjustmentAmount = null; // valor positivo
+$adjustmentType = null; // 'discount' | 'surcharge'
 
-        if ($raw !== null && $raw != 0.0) {
-            $op = strtolower($promo->operation ?? 'subtract');
-            if ($op === 'add') {
-                $adjustmentType   = 'surcharge';
-                $adjustmentAmount = abs($raw);
-            } else {
-                $adjustmentType   = 'discount';
-                $adjustmentAmount = abs($raw);
-            }
-        }
-    }
+if ($promo) {
+$discountName = $promo->code ?? $promo->name ?? null;
 
-    $hasAdjustment = $adjustmentAmount !== null;
+// Check for both discount_percent and discount_amount
+$percentValue = $promo->discount_percent ?? null;
+$amountValue = $promo->discount_amount ?? $promo->discount ?? null;
 
-    $taxes = $booking->taxes ?? ($booking->tax ?? null);
-    $total = $booking->total ?? ($booking->amount ?? null);
+// Calculate actual discount amount
+if ($percentValue !== null && $percentValue != 0.0) {
+// Percentage discount - calculate from subtotal
+$adjustmentAmount = abs(($subtotal * (float)$percentValue) / 100);
+$op = strtolower($promo->operation ?? 'subtract');
+$adjustmentType = ($op === 'add') ? 'surcharge' : 'discount';
+} elseif ($amountValue !== null && $amountValue != 0.0) {
+// Fixed amount discount
+$adjustmentAmount = abs((float)$amountValue);
+$op = strtolower($promo->operation ?? 'subtract');
+$adjustmentType = ($op === 'add') ? 'surcharge' : 'discount';
+}
+}
 
-    // Para fallback del total
-    $effectiveAdj = 0.0;
-    if ($hasAdjustment) {
-        $signForCalc = $adjustmentType === 'discount' ? 1 : -1;
-        $effectiveAdj = $signForCalc * (float)$adjustmentAmount;
-    }
+$hasAdjustment = $adjustmentAmount !== null && $adjustmentAmount > 0;
 
-    $tTitle    = $mailLocale === 'es' ? 'Reserva creada'      : 'Booking created';
-    $tRef      = $mailLocale === 'es' ? 'Referencia'          : 'Reference';
-    $tSummary  = $mailLocale === 'es' ? 'Resumen'             : 'Summary';
-    $tSubtotal = $mailLocale === 'es' ? 'Subtotal'            : 'Subtotal';
-    $tTaxes    = $mailLocale === 'es' ? 'Impuestos'           : 'Taxes';
-    $tTotal    = $mailLocale === 'es' ? 'Total'               : 'Total';
+$taxes = $booking->taxes ?? ($booking->tax ?? null);
+$total = $booking->total ?? ($booking->amount ?? null);
 
-    $d = collect($details ?? $booking->details ?? [])->first();
+// Para fallback del total
+$effectiveAdj = 0.0;
+if ($hasAdjustment) {
+$signForCalc = $adjustmentType === 'discount' ? 1 : -1;
+$effectiveAdj = $signForCalc * (float)$adjustmentAmount;
+}
 
-    // Locale preferido para el nombre del tour
-    $preferredLoc = strtolower(
-        $booking->locale ?? $booking->language_code ?? $mailLocale ?? app()->getLocale()
-    );
-    $preferredLoc = \Illuminate\Support\Str::of($preferredLoc)->before('-')->lower()->value();
+$tTitle = $mailLocale === 'es' ? 'Reserva creada' : 'Booking created';
+$tRef = $mailLocale === 'es' ? 'Referencia' : 'Reference';
+$tSummary = $mailLocale === 'es' ? 'Resumen' : 'Summary';
+$tSubtotal = $mailLocale === 'es' ? 'Subtotal' : 'Subtotal';
+$tTaxes = $mailLocale === 'es' ? 'Impuestos' : 'Taxes';
+$tTotal = $mailLocale === 'es' ? 'Total' : 'Total';
 
-    // 1) Snapshot
-    $tourName = $d?->tour_name;
+$d = collect($details ?? $booking->details ?? [])->first();
 
-    // 2) Relación Tour traducida
-    if (!$tourName && $d?->relationLoaded('tour') && $d?->tour) {
-        $tour = $d->tour;
+// Use mailLocale for tour name translation (already set from tour language)
+$preferredLoc = $mailLocale;
 
-        if (isset($tour->translated_name) && filled($tour->translated_name)) {
-            $tourName = $tour->translated_name;
-        }
-        if (!$tourName && method_exists($tour, 'getTranslated')) {
-            $tourName = $tour->getTranslated('name', $preferredLoc) ?? $tour->name ?? null;
-        }
-        if (!$tourName) {
-            $tr = $tour->relationLoaded('translations')
-                ? $tour->translations->firstWhere('locale', $preferredLoc)
-                : $tour->translations()->where('locale', $preferredLoc)->first();
-            $tourName = $tr->name ?? $tour->name ?? null;
-        }
-    }
-    $tourName = $tourName ?: ($mailLocale === 'es' ? 'Tour' : 'Tour');
+// 1) Snapshot
+$tourName = $d?->tour_name;
 
-    $tourDate = $d?->tour_date ? \Illuminate\Support\Carbon::parse($d->tour_date)->format('Y-m-d') : null;
-    $scheduleTxt = $d?->schedule
-        ? \Illuminate\Support\Carbon::parse($d->schedule->start_time)->isoFormat('LT') . ' – ' . \Illuminate\Support\Carbon::parse($d->schedule->end_time)->isoFormat('LT')
-        : null;
+// 2) Relación Tour traducida
+if (!$tourName && $d?->relationLoaded('tour') && $d?->tour) {
+$tour = $d->tour;
 
-    $tourLang = optional($d?->tourLanguage)->language_name
-        ?? optional($d?->tourLanguage)->name
-        ?? optional($booking->tourLanguage)->language_name
-        ?? optional($booking->tourLanguage)->language
-        ?? null;
+if (isset($tour->translated_name) && filled($tour->translated_name)) {
+$tourName = $tour->translated_name;
+}
+if (!$tourName && method_exists($tour, 'getTranslated')) {
+$tourName = $tour->getTranslated('name', $preferredLoc) ?? $tour->name ?? null;
+}
+if (!$tourName) {
+$tr = $tour->relationLoaded('translations')
+? $tour->translations->firstWhere('locale', $preferredLoc)
+: $tour->translations()->where('locale', $preferredLoc)->first();
+$tourName = $tr->name ?? $tour->name ?? null;
+}
+}
+$tourName = $tourName ?: ($mailLocale === 'es' ? 'Tour' : 'Tour');
 
-    $meetingName = $d?->meeting_point_name;
-    $meetingUrl  = $d?->meeting_point_map_url;
-    if (!$meetingName) {
-        $mp = $d?->meetingPoint;
-        if ($mp) {
-            if (method_exists($mp, 'getTranslated')) {
-                $meetingName = $mp->getTranslated('name', app()->getLocale()) ?? $mp->name;
-            } else {
-                $loc = \Illuminate\Support\Str::of(app()->getLocale())->before('-')->lower()->value();
-                $tr  = $mp->relationLoaded('translations')
-                    ? $mp->translations->firstWhere('locale', $loc)
-                    : $mp->translations()->where('locale', $loc)->first();
-                $meetingName = $tr->name ?? $mp->name;
-            }
-            $meetingUrl = $meetingUrl ?: ($mp->map_url ?? null);
-        }
-    }
 
-    $hotelName = (($d?->is_other_hotel ?? false) && filled($d?->other_hotel_name))
-        ? $d->other_hotel_name
-        : (optional($d?->hotel)->name ?? optional($booking->hotel)->name ?? null);
+$tourDate = $d?->tour_date ? $formatEmailDate($d->tour_date) : null;
+$scheduleTxt = $d?->schedule
+? \Illuminate\Support\Carbon::parse($d->schedule->start_time)->isoFormat('LT') . ' – ' . \Illuminate\Support\Carbon::parse($d->schedule->end_time)->isoFormat('LT')
+: null;
 
-    $notes = trim((string)($booking->notes ?? ''));
+$tourLang = optional($d?->tourLanguage)->language_name
+?? optional($d?->tourLanguage)->name
+?? optional($booking->tourLanguage)->language_name
+?? optional($booking->tourLanguage)->language
+?? null;
+
+$meetingName = $d?->meeting_point_name;
+$meetingUrl = $d?->meeting_point_map_url;
+if (!$meetingName) {
+$mp = $d?->meetingPoint;
+if ($mp) {
+if (method_exists($mp, 'getTranslated')) {
+$meetingName = $mp->getTranslated('name', $mailLocale) ?? $mp->name;
+} else {
+$tr = $mp->relationLoaded('translations')
+? $mp->translations->firstWhere('locale', $mailLocale)
+: $mp->translations()->where('locale', $mailLocale)->first();
+$meetingName = $tr->name ?? $mp->name;
+}
+$meetingUrl = $meetingUrl ?: ($mp->map_url ?? null);
+}
+}
+
+$hotelName = (($d?->is_other_hotel ?? false) && filled($d?->other_hotel_name))
+? $d->other_hotel_name
+: (optional($d?->hotel)->name ?? optional($booking->hotel)->name ?? null);
+
+$notes = trim((string)($booking->notes ?? ''));
 @endphp
 
 {{-- 1. BOOKING STATUS --}}
-<div class="section-card" style="margin-bottom:14px;">
-  <div class="section-title" style="margin-bottom:4px;color:#256d1b">{{ $tTitle }}</div>
-  <div style="font-size:13px;color:#6b7280;">{{ $tRef }}: {{ $reference }}</div>
+<div class="section-card" style="margin-bottom:14px; background-color:#f9fafb; border:1px solid #e5e7eb; padding:15px;">
+  <div class="section-title" style="margin:0 0 10px 0; font-weight:700; color:#111827;">{{ $tTitle }}</div>
+  <div style="font-size:13px;color:#6b7280;">{{ $tRef }}: <strong>{{ $reference }}</strong></div>
+
+  @php
+  // Determinar estado de pago
+  $paymentStatus = 'pending'; // default
+  $paymentStatusText = $mailLocale === 'es' ? 'Pendiente' : 'Pending';
+
+  // Verificar si hay pagos asociados
+  if ($booking->relationLoaded('payments') && $booking->payments->isNotEmpty()) {
+  $latestPayment = $booking->payments->sortByDesc('created_at')->first();
+  if ($latestPayment && $latestPayment->status === 'completed') {
+  $paymentStatus = 'paid';
+  $paymentStatusText = $mailLocale === 'es' ? 'Pagado' : 'Paid';
+  }
+  } elseif (isset($booking->payment_status)) {
+  // Fallback a campo directo si existe
+  if (in_array($booking->payment_status, ['completed', 'paid'])) {
+  $paymentStatus = 'paid';
+  $paymentStatusText = $mailLocale === 'es' ? 'Pagado' : 'Paid';
+  }
+  }
+  @endphp
+
+  <div style="margin-top:8px;">
+    <span style="font-size:12px; color:#6b7280;">{{ $mailLocale === 'es' ? 'Estado de pago' : 'Payment status' }}:</span>
+    <span class="payment-status {{ $paymentStatus }}" style="display:inline-block; padding:6px 12px; border-radius:4px; font-size:12px; font-weight:600; text-transform:uppercase; margin-left:8px; {{ $paymentStatus === 'paid' ? 'background-color:#d1fae5; color:#065f46; border:1px solid #10b981;' : 'background-color:#fef3c7; color:#92400e; border:1px solid #fbbf24;' }}">
+      {{ $paymentStatusText }}
+    </span>
+  </div>
+
+  {{-- Payment validation message --}}
+  @if($paymentStatus === 'paid')
+  <div style="margin-top:12px; padding:12px; background-color:#f0f9ff; border-left:4px solid #0ea5e9; border-radius:4px;">
+    <p style="margin:0; font-size:13px; color:#0c4a6e; line-height:1.5;">
+      @if($mailLocale === 'es')
+      <strong>✓ Pago recibido.</strong> Nuestro equipo validará el pago y se contactará con usted lo antes posible para confirmar los detalles de su reserva.
+      @else
+      <strong>✓ Payment received.</strong> Our team will validate the payment and contact you as soon as possible to confirm your booking details.
+      @endif
+    </p>
+  </div>
+  @endif
 </div>
 
 {{-- 2. BOOKING SUMMARY --}}
@@ -139,15 +182,15 @@
     @if($tourLang)<div><strong>{{ $mailLocale==='es'?'Idioma':'Language' }}:</strong> {{ $tourLang }}</div>@endif
 
     @if($meetingName)
-      <div><strong>{{ $mailLocale==='es'?'Punto de encuentro':'Meeting point' }}:</strong>
-        @if($meetingUrl)
-          <a href="{{ $meetingUrl }}" target="_blank" rel="noopener" style="color:#0ea5e9;text-decoration:none;">{{ $meetingName }}</a>
-        @else
-          {{ $meetingName }}
-        @endif
-      </div>
+    <div><strong>{{ $mailLocale==='es'?'Punto de encuentro':'Meeting point' }}:</strong>
+      @if($meetingUrl)
+      <a href="{{ $meetingUrl }}" target="_blank" rel="noopener" style="color:#0ea5e9;text-decoration:none;">{{ $meetingName }}</a>
+      @else
+      {{ $meetingName }}
+      @endif
+    </div>
     @elseif($hotelName)
-      <div><strong>{{ $mailLocale==='es'?'Hotel pickup':'Hotel pickup' }}:</strong> {{ $hotelName }}</div>
+    <div><strong>{{ $mailLocale==='es'?'Hotel pickup':'Hotel pickup' }}:</strong> {{ $hotelName }}</div>
     @endif
 
     @if($notes !== '')<div><strong>{{ $mailLocale==='es'?'Notas':'Notes' }}:</strong> {{ $notes }}</div>@endif
@@ -156,10 +199,10 @@
 
 {{-- 3. DESGLOSE CLIENTES --}}
 @include('emails.partials.booking-line-items', [
-  'booking'        => $booking,
-  'details'        => $details ?? null,
-  'mailLocale'     => $mailLocale,
-  'showLineTotals' => true,
+'booking' => $booking,
+'details' => $details ?? null,
+'mailLocale' => $mailLocale,
+'showLineTotals' => true,
 ])
 
 {{-- 4. TOTALES --}}
@@ -170,28 +213,28 @@
   </div>
 
   @if($hasAdjustment)
-    @php
-        $isDiscount = $adjustmentType === 'discount';
-        $adjLabel   = $mailLocale === 'es'
-            ? ($isDiscount ? 'Descuento' : 'Recargo')
-            : ($isDiscount ? 'Discount' : 'Surcharge');
-        $adjPrefix  = $isDiscount ? '-' : '+';
-        $adjAmount  = $money($adjustmentAmount);
-    @endphp
-    <div class="row">
-      <span class="label">{{ $adjLabel }}:</span>
-      <span class="amount">{{ $adjPrefix }}{{ $adjAmount }}</span>
-      @if($discountName)
-        <span class="muted">({{ $discountName }})</span>
-      @endif
-    </div>
+  @php
+  $isDiscount = $adjustmentType === 'discount';
+  $adjLabel = $mailLocale === 'es'
+  ? ($isDiscount ? 'Descuento' : 'Recargo')
+  : ($isDiscount ? 'Discount' : 'Surcharge');
+  $adjPrefix = $isDiscount ? '-' : '+';
+  $adjAmount = $money($adjustmentAmount);
+  @endphp
+  <div class="row">
+    <span class="label">{{ $adjLabel }}:</span>
+    <span class="amount">{{ $adjPrefix }}{{ $adjAmount }}</span>
+    @if($discountName)
+    <span class="muted">({{ $discountName }})</span>
+    @endif
+  </div>
   @endif
 
   @if($taxes && $taxes != 0)
-    <div class="row">
-      <span class="label">{{ $tTaxes }}:</span>
-      <span class="amount">{{ $money($taxes) }}</span>
-    </div>
+  <div class="row">
+    <span class="label">{{ $tTaxes }}:</span>
+    <span class="amount">{{ $money($taxes) }}</span>
+  </div>
   @endif
 
   <div class="row total">

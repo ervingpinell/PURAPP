@@ -1,0 +1,1684 @@
+/* =========================
+   OCULTAR WIDGETS EN CHECKOUT/PAYMENT
+   ========================= */
+body.checkout-page .cart-timer-widget,
+body.checkout-page .whatsapp-float-btn,
+body.checkout-page .whatsapp-panel,
+body.payment-page .cart-timer-widget,
+body.payment-page .whatsapp-float-btn,
+body.payment-page .whatsapp-panel {
+    display: none !important;
+}
+
+/* =========================
+   PAYMENT PAGE - RESPONSIVE
+   ========================= */
+:root {
+    --payment-primary: var(--primary-color, #60a862);
+    --payment-primary-dark: var(--primary-dark, #256d1b);
+    --payment-header: var(--primary-header, #0f2419);
+    --payment-danger: var(--primary-red, #e74c3c);
+    --payment-success: var(--primary-color, #60a862);
+    --payment-warning: #f0ad4e;
+}
+
+.payment-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+/* Progress Steps */
+.progress-steps {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 3rem;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    background: #f3f4f6;
+    color: #6b7280;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.step .num {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.step.active {
+    background: linear-gradient(135deg, var(--payment-primary), var(--payment-primary-dark));
+    color: #fff;
+    box-shadow: 0 4px 6px -1px rgba(96, 168, 98, 0.3);
+}
+
+.step.completed {
+    background: var(--payment-success);
+    color: #fff;
+}
+
+.step-connector {
+    width: 3rem;
+    height: 2px;
+    background: #d1d5db;
+}
+
+/* Payment Grid */
+.payment-grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+    align-items: start;
+}
+
+.payment-panel,
+.summary-panel {
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+}
+
+.panel-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.panel-subtitle {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Stripe Elements */
+.stripe-element-container {
+    margin: 2rem 0;
+}
+
+#payment-element {
+    padding: 1rem;
+    background: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    min-height: 200px;
+}
+
+.payment-message {
+    color: var(--payment-danger);
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #fee;
+    border-left: 4px solid var(--payment-danger);
+    border-radius: 0.5rem;
+    display: none;
+}
+
+.payment-message.show {
+    display: block;
+}
+
+/* Secure Badge */
+.secure-badge {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border: 1px solid var(--payment-success);
+    padding: 1rem;
+    border-radius: 0.75rem;
+    margin: 1.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.secure-badge i {
+    color: var(--payment-success);
+    font-size: 1.5rem;
+}
+
+.secure-badge strong {
+    display: block;
+    color: #111827;
+    margin-bottom: 0.25rem;
+}
+
+/* Summary Panel (payment + checkout) */
+.summary-panel {
+    position: sticky;
+    top: 2rem;
+    border: 1px solid #e5e7eb;
+}
+
+.summary-header {
+    background: linear-gradient(135deg, var(--payment-header), #111);
+    color: #fff;
+    padding: 1rem 1.25rem;
+    margin: -2rem -2rem 1.5rem;
+    border-radius: 1rem 1rem 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: .75rem;
+}
+
+.summary-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.summary-header .count {
+    font-size: .85rem;
+    opacity: .9;
+}
+
+/* Payment “booking” card (STEP 2) */
+.booking-item {
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.75rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid #e5e7eb;
+}
+
+.booking-name {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+.booking-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.86rem;
+    color: #6b7280;
+}
+
+.totals-section {
+    background: #f9fafb;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.total-row.final {
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+    border-top: 2px solid #d1d5db;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+/* Buttons */
+.btn-pay {
+    flex: 1;
+    background: linear-gradient(135deg, var(--payment-primary), var(--payment-primary-dark));
+    color: #fff;
+    box-shadow: 0 4px 6px -1px rgba(96, 168, 98, 0.3);
+    padding: 0.9rem 1.25rem;
+    border-radius: 0.65rem;
+    font-weight: 600;
+    border: 0;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-pay:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(96, 168, 98, 0.4);
+}
+
+.btn-pay:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.btn-back {
+    background: #fff;
+    color: #374151;
+    border: 2px solid #d1d5db;
+    padding: 0.9rem 1.25rem;
+    border-radius: 0.65rem;
+    font-weight: 600;
+}
+
+/* Countdown Timer */
+.countdown-timer {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border: 2px solid #f59e0b;
+    border-radius: 0.75rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.countdown-timer.warning {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    border-color: #ef4444;
+    animation: pulse-countdown 2s ease-in-out infinite;
+}
+
+@keyframes pulse-countdown {
+    0%, 100 { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+.countdown-icon {
+    width: 3rem;
+    height: 3rem;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #f59e0b;
+}
+
+.countdown-timer.warning .countdown-icon {
+    color: #ef4444;
+}
+
+.countdown-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #78350f;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.countdown-display {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #92400e;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.1em;
+}
+
+/* =========================
+   RESPONSIVE: TABLET (768px - 1023px)
+   ========================= */
+@media (max-width: 1023px) {
+    .payment-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .summary-panel {
+        position: relative;
+        top: 0;
+    }
+
+    .payment-container {
+        margin: 1.5rem auto;
+    }
+}
+
+/* =========================
+   RESPONSIVE: MOBILE GRANDE (576px - 767px)
+   ========================= */
+@media (max-width: 767px) {
+    .payment-container {
+        margin: 1rem auto;
+        padding: 0 0.75rem;
+    }
+
+    .progress-steps {
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .step {
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .step .num {
+        width: 1.75rem;
+        height: 1.75rem;
+        font-size: 0.9rem;
+    }
+
+    .step-connector {
+        width: 2rem;
+    }
+
+    .payment-panel,
+    .summary-panel {
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+    }
+
+    .summary-header {
+        margin: -1.5rem -1.5rem 1.25rem;
+        padding: .9rem 1.1rem;
+    }
+
+    .panel-title {
+        font-size: 1.25rem;
+    }
+
+    .panel-subtitle {
+        font-size: 0.875rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .secure-badge {
+        padding: 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .secure-badge i {
+        font-size: 1.25rem;
+    }
+
+    #payment-element {
+        min-height: 180px;
+        padding: 0.875rem;
+    }
+
+    .countdown-timer {
+        padding: 0.875rem 1.25rem;
+        gap: 0.875rem;
+    }
+
+    .countdown-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1.25rem;
+    }
+
+    .countdown-label {
+        font-size: 0.75rem;
+    }
+
+    .countdown-display {
+        font-size: 1.5rem;
+    }
+
+    .booking-item {
+        padding: 0.875rem;
+    }
+
+    .booking-name {
+        font-size: 0.95rem;
+    }
+
+    .booking-details {
+        font-size: 0.8rem;
+    }
+
+    .total-row {
+        font-size: 0.9rem;
+    }
+
+    .total-row.final {
+        font-size: 1.1rem;
+    }
+}
+
+/* =========================
+   RESPONSIVE: MOBILE PEQUEÑO (≤575px)
+   ========================= */
+@media (max-width: 575px) {
+    .payment-container {
+        margin: 0.75rem auto;
+        padding: 0 0.5rem;
+    }
+
+    /* Progress Steps - Vertical en móviles pequeños */
+    .progress-steps {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.875rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .step {
+        width: 100%;
+        padding: 0.5rem 0.875rem;
+        font-size: 0.8rem;
+    }
+
+    .step .num {
+        width: 1.5rem;
+        height: 1.5rem;
+        font-size: 0.8rem;
+    }
+
+    .step-connector {
+        display: none;
+    }
+
+    /* Panels */
+    .payment-panel,
+    .summary-panel {
+        padding: 1.25rem 1rem;
+        border-radius: 0.5rem;
+    }
+
+    .summary-header {
+        margin: -1.25rem -1rem 1.25rem;
+        padding: .8rem .9rem;
+    }
+
+    .panel-title {
+        font-size: 1.1rem;
+        gap: 0.5rem;
+    }
+
+    .panel-title i {
+        font-size: 1rem;
+    }
+
+    .panel-subtitle {
+        font-size: 0.8rem;
+        margin-bottom: 1.25rem;
+    }
+
+    /* Secure Badge */
+    .secure-badge {
+        padding: 0.625rem;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        margin: 1rem 0;
+    }
+
+    .secure-badge i {
+        font-size: 1.1rem;
+    }
+
+    .secure-badge strong {
+        font-size: 0.85rem;
+    }
+
+    .secure-badge small {
+        font-size: 0.75rem;
+    }
+
+    /* Stripe Element */
+    #payment-element {
+        min-height: 160px;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+    }
+
+    .stripe-element-container {
+        margin: 1.5rem 0;
+    }
+
+    /* Countdown Timer - Compacto */
+    .countdown-timer {
+        padding: 0.75rem 1rem;
+        gap: 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .countdown-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        font-size: 1.1rem;
+    }
+
+    .countdown-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .countdown-label {
+        font-size: 0.7rem;
+        margin-bottom: 0.15rem;
+    }
+
+    .countdown-display {
+        font-size: 1.35rem;
+        letter-spacing: 0.05em;
+    }
+
+    /* Booking Items */
+    .booking-item {
+        padding: 0.75rem;
+        margin-bottom: 0.625rem;
+        border-radius: 0.5rem;
+    }
+
+    .booking-name {
+        font-size: 0.9rem;
+        margin-bottom: 0.375rem;
+        line-height: 1.3;
+    }
+
+    .booking-details {
+        font-size: 0.75rem;
+        gap: 0.25rem;
+    }
+
+    .booking-details i {
+        width: 0.875rem;
+        font-size: 0.7rem;
+    }
+
+    /* Totals */
+    .totals-section {
+        padding: 0.875rem;
+        margin-top: 1.25rem;
+        border-radius: 0.5rem;
+    }
+
+    .total-row {
+        font-size: 0.85rem;
+        margin-bottom: 0.375rem;
+    }
+
+    .total-row.final {
+        font-size: 1rem;
+        padding-top: 0.625rem;
+        margin-top: 0.625rem;
+    }
+
+    /* Buttons */
+    .btn-pay,
+    .btn-back {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 0.5rem;
+    }
+
+    .payment-panel form > .d-flex {
+        flex-direction: column;
+        gap: 0.75rem !important;
+    }
+
+    .spinner {
+        width: 0.875rem;
+        height: 0.875rem;
+    }
+
+    /* Payment Message */
+    .payment-message {
+        font-size: 0.8rem;
+        padding: 0.75rem;
+        margin-top: 0.875rem;
+    }
+
+    /* Bottom Text */
+    .payment-panel .mt-4.text-center {
+        margin-top: 1rem !important;
+    }
+
+    .payment-panel .text-muted {
+        font-size: 0.75rem;
+    }
+
+    .summary-panel .mt-3.text-center {
+        margin-top: 0.875rem !important;
+    }
+
+    .summary-panel .text-muted {
+        font-size: 0.75rem;
+    }
+}
+
+/* =========================
+   RESPONSIVE: MÓVILES MUY PEQUEÑOS (≤374px)
+   ========================= */
+@media (max-width: 374px) {
+    .payment-container {
+        padding: 0 0.375rem;
+    }
+
+    .progress-steps {
+        padding: 0.75rem 0.625rem;
+    }
+
+    .step {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+    }
+
+    .payment-panel,
+    .summary-panel {
+        padding: 1rem 0.875rem;
+    }
+
+    .panel-title {
+        font-size: 1rem;
+    }
+
+    .secure-badge {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.375rem;
+    }
+
+    .countdown-timer {
+        padding: 0.625rem 0.875rem;
+    }
+
+    .countdown-display {
+        font-size: 1.25rem;
+    }
+
+    .booking-item {
+        padding: 0.625rem;
+    }
+
+    .booking-name {
+        font-size: 0.85rem;
+    }
+
+    .total-row.final {
+        font-size: 0.95rem;
+    }
+
+    .btn-pay,
+    .btn-back {
+        padding: 0.75rem 0.875rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* =========================
+   FIX: Evitar overflow horizontal
+   ========================= */
+.payment-container,
+.payment-grid,
+.payment-panel,
+.summary-panel {
+    overflow-x: hidden;
+}
+
+/* Asegurar que los elementos no se salgan */
+.countdown-display,
+.booking-name,
+.total-row {
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+/* =========================
+   MEJORAS DE ACCESIBILIDAD
+   ========================= */
+@media (prefers-reduced-motion: reduce) {
+    .countdown-timer.warning,
+    .step {
+        animation: none;
+    }
+
+    .btn-pay:hover {
+        transform: none;
+    }
+}
+
+/* =========================
+   CHECKOUT PAGE (STEP 1) - RESPONSIVE
+   ========================= */
+
+/* Contenedor principal */
+.checkout-container {
+  max-width: 1200px;
+  margin: 1.5rem auto 2.5rem;
+  padding: 0 1rem;
+}
+
+/* Grid: términos (izq) + resumen (der) */
+.checkout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.1fr);
+  gap: 1.75rem;
+  align-items: flex-start;
+}
+
+/* Panel de términos y panel de resumen reutilizan .form-panel / .summary-panel */
+.form-panel,
+.summary-panel {
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+}
+
+/* Panel de términos */
+.form-panel {
+  padding: 1.75rem 1.75rem 1.5rem;
+}
+
+.form-panel .panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.35rem;
+}
+
+.form-panel .panel-title i {
+  font-size: 1.1rem;
+}
+
+.form-panel .panel-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 1.25rem;
+}
+
+.required-notice {
+  background: #fff7ed;
+  border-radius: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #fed7aa;
+  font-size: 0.86rem;
+  margin-bottom: 1rem;
+  color: #7c2d12;
+}
+
+/* Bloque de políticas */
+.policy-section {
+  border-radius: 0.85rem;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  overflow: hidden;
+  margin-bottom: 1.1rem;
+}
+
+.policy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  background: #f3f4f6;
+}
+
+.policy-header h3 {
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 600;
+  color: #111827;
+}
+
+.policy-version {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+/* Contenido scrolleable de términos */
+.policy-content {
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 0.9rem 1rem;
+  background: #fff;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.policy-warning {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: #b91c1c;
+}
+
+/* Bloque de aceptación */
+.acceptance-box {
+  border-radius: 0.85rem;
+  padding: 0.9rem 1rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.acceptance-box.disabled {
+  opacity: 0.6;
+}
+
+.acceptance-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+}
+
+.acceptance-checkbox input[type="checkbox"] {
+  margin-top: 0.2rem;
+}
+
+/* Botones de acción en el checkout */
+.btn-back,
+.btn-payment {
+  border-radius: 0.65rem;
+  padding: 0.8rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.btn-back {
+  background: #fff;
+  color: #374151;
+  border: 2px solid #e5e7eb;
+}
+
+.btn-back:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.btn-payment {
+  background: linear-gradient(135deg, var(--primary-color, #60a862), var(--primary-dark, #256d1b));
+  border: 0;
+  color: #fff;
+  box-shadow: 0 4px 8px rgba(37, 109, 27, 0.35);
+}
+
+.btn-payment:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Panel de resumen del checkout */
+.checkout-container .summary-panel {
+  padding: 1.5rem 1.5rem 1.25rem;
+}
+
+/* Scroll interno de ítems */
+.summary-panel .items-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
+/* ======= TARJETAS DEL RESUMEN (STEP 1) ======= */
+.tour-item {
+  border-radius: .75rem;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: .75rem .9rem .8rem;
+  margin-bottom: .75rem;
+}
+
+.tour-name {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: .35rem;
+  font-size: .95rem;
+  word-break: break-word;
+}
+
+.tour-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem .75rem;
+  font-size: .8rem;
+  color: #6b7280;
+  margin-bottom: .25rem;
+}
+
+.tour-details span {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+}
+
+.tour-details i {
+  font-size: .75rem;
+}
+
+/* Bloques secundarios (pickup, addons, etc.) */
+.secondary-block {
+  margin-top: .45rem;
+  padding: .5rem .6rem;
+  border-radius: .6rem;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.block-title {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .8rem;
+  font-weight: 600;
+  margin-bottom: .25rem;
+  color: #111827;
+}
+
+/* Categorías / pax */
+.categories-section {
+  margin-top: .45rem;
+}
+
+.category-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .5rem;
+  font-size: .8rem;
+  padding: .3rem 0;
+}
+
+.category-left {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  flex-wrap: wrap;
+  max-width: 70%;
+}
+
+.category-left i {
+  font-size: .8rem;
+}
+
+.qty-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 .4rem;
+  border-radius: 999px;
+  background: #e5e7eb;
+  font-size: .75rem;
+  color: #374151;
+}
+
+.price-detail {
+  font-size: .75rem;
+  color: #6b7280;
+}
+
+.category-total {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Total por tour */
+.tour-price {
+  margin-top: .45rem;
+  text-align: right;
+  font-weight: 700;
+  color: #111827;
+  font-size: .95rem;
+}
+
+/* Footer del resumen */
+.summary-footer {
+  border-top: 1px solid #e5e7eb;
+  padding-top: .75rem;
+  margin-top: .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.total-note {
+  font-size: .78rem;
+  color: #6b7280;
+  margin-top: .2rem;
+}
+
+/* Badge de cancelación gratuita */
+.cancellation-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  padding: .5rem .6rem;
+  border-radius: .75rem;
+  background: #ecfdf3;
+  border: 1px solid #bbf7d0;
+  font-size: .8rem;
+  margin-top: .4rem;
+}
+
+.cancellation-badge i {
+  color: #16a34a;
+  margin-top: .05rem;
+}
+
+.cancellation-badge small {
+  display: block;
+  font-size: .75rem;
+  color: #4b5563;
+}
+
+/* Botones inferiores del resumen */
+.btn.btn-details,
+.btn.btn-edit {
+  width: 100%;
+  padding: .7rem 1rem;
+  border-radius: .65rem;
+  font-size: .9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+}
+
+.btn.btn-details {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+.btn.btn-edit {
+  background: transparent;
+  border: 1px dashed #d1d5db;
+  color: #374151;
+}
+
+/* Badge ghost reutilizado */
+.badge-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  padding: .1rem .55rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: .75rem;
+}
+
+/* Modal de detalles (orderModal) */
+.item-detail {
+  padding-bottom: .85rem;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: .85rem;
+}
+
+.item-detail:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.item-header .price {
+  font-weight: 600;
+}
+
+.item-meta {
+  font-size: .82rem;
+  color: #6b7280;
+}
+
+.item-meta i {
+  margin-right: .25rem;
+}
+
+/* =========================
+   BREAKPOINTS CHECKOUT
+   ========================= */
+
+@media (max-width: 1023px) {
+  .checkout-container {
+    margin: 1.25rem auto 2rem;
+  }
+  .checkout-grid {
+    grid-template-columns: 1fr;
+  }
+  .checkout-container .summary-panel {
+    position: relative;
+    top: 0;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .checkout-container {
+    margin: 1rem auto 1.5rem;
+    padding: 0 0.75rem;
+  }
+
+  .form-panel,
+  .checkout-container .summary-panel {
+    padding: 1.25rem 1.1rem;
+    border-radius: 0.75rem;
+  }
+
+  .form-panel .panel-title {
+    font-size: 1.1rem;
+  }
+
+  .form-panel .panel-subtitle {
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .policy-content {
+    max-height: 220px;
+    font-size: 0.8rem;
+  }
+
+  .acceptance-checkbox {
+    font-size: 0.82rem;
+  }
+
+  .btn-back,
+  .btn-payment {
+    width: 100%;
+    justify-content: center;
+    display: inline-flex;
+  }
+
+  .checkout-container .d-flex.gap-3 {
+    flex-direction: column;
+    gap: 0.6rem !important;
+  }
+
+  .summary-panel .items-scroll {
+    max-height: 260px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .checkout-container {
+    margin: 0.75rem auto 1.25rem;
+    padding: 0 0.5rem;
+  }
+
+  .form-panel,
+  .checkout-container .summary-panel {
+    padding: 1.1rem 0.9rem;
+    border-radius: 0.6rem;
+  }
+
+  .required-notice {
+    font-size: 0.78rem;
+  }
+
+  .policy-header h3 {
+    font-size: 0.9rem;
+  }
+
+  .policy-content {
+    max-height: 200px;
+  }
+
+  .tour-item {
+    padding: .7rem .75rem;
+  }
+
+  .category-left {
+    max-width: 100%;
+  }
+}
+
+/* Muy pequeños: ZFlip cerrado / iPhone SE-like */
+@media (max-width: 374px) {
+  .checkout-container {
+    padding: 0 0.375rem;
+  }
+
+  .form-panel,
+  .checkout-container .summary-panel {
+    padding: 1rem 0.75rem;
+  }
+
+  .form-panel .panel-title {
+    font-size: 1.02rem;
+  }
+
+  .policy-content {
+    max-height: 180px;
+  }
+
+  .tour-details {
+    font-size: .78rem;
+  }
+}
+
+/* =========================
+   PAYMENT CONFIRMATION PAGE
+   ========================= */
+
+.confirmation-container {
+  max-width: 800px;
+  margin: 1.75rem auto 2.5rem;
+  padding: 0 1rem;
+}
+
+.confirmation-card {
+  background: #ffffff;
+  border-radius: 1.25rem;
+  padding: 2rem 2.25rem;
+  box-shadow: 0 16px 40px rgba(15, 36, 25, 0.16);
+  text-align: center;
+}
+
+/* Ícono de éxito */
+.success-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  margin: 0 auto 1rem;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: #fff;
+  font-size: 2rem;
+}
+
+/* Titular y subtítulos */
+.confirmation-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.4rem;
+}
+
+.confirmation-subtitle {
+  font-size: 0.96rem;
+  color: #4b5563;
+  margin-bottom: 1.25rem;
+}
+
+/* Bloque de booking */
+.booking-info,
+.booking-reference {
+  background: #f9fafb;
+  border-radius: 0.9rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+
+.booking-info h2,
+.booking-reference h2 {
+  font-size: 1.05rem;
+  margin-bottom: 0.75rem;
+  color: #111827;
+}
+
+/* Referencia de reserva */
+.booking-reference-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+.booking-reference-code {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--primary-color, #60a862);
+  font-family: "SF Mono", "Menlo", "Roboto Mono", monospace;
+}
+
+/* Totales compactos */
+.booking-totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.booking-totals-item {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.booking-totals-item span {
+  display: block;
+}
+
+.booking-totals-item .label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  margin-bottom: 0.15rem;
+}
+
+.booking-totals-item .value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Lista de siguientes pasos */
+.next-steps {
+  text-align: left;
+  background: #f3f4f6;
+  border-radius: 0.9rem;
+  padding: 1rem 1.1rem;
+  margin-top: 1.25rem;
+}
+
+.next-steps h3 {
+  font-size: 1.05rem;
+  margin-bottom: 0.75rem;
+  color: #111827;
+}
+
+.next-steps ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.next-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.next-steps li:last-child {
+  border-bottom: none;
+}
+
+.next-steps li i {
+  color: #16a34a;
+  margin-top: 0.2rem;
+}
+
+.next-steps li span {
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+/* Botones inferiores de acción */
+.confirmation-card .btn-primary,
+.confirmation-card .btn-secondary {
+  padding: 0.85rem 1.5rem;
+  border-radius: 0.7rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 0.25rem 0.35rem 0;
+}
+
+.confirmation-card .btn-primary i,
+.confirmation-card .btn-secondary i {
+  margin-right: 0.35rem;
+}
+
+/* Ajustes responsive */
+@media (max-width: 767.98px) {
+  .confirmation-container {
+    margin: 1.25rem auto 1.75rem;
+    padding: 0 0.75rem;
+  }
+
+  .confirmation-card {
+    padding: 1.5rem 1.25rem;
+    border-radius: 1rem;
+  }
+
+  .success-icon {
+    width: 64px;
+    height: 64px;
+    font-size: 1.8rem;
+  }
+
+  .confirmation-title {
+    font-size: 1.4rem;
+  }
+
+  .confirmation-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .booking-info,
+  .booking-reference {
+    padding: 0.85rem 0.9rem;
+  }
+
+  .booking-reference-code {
+    font-size: 1.25rem;
+  }
+
+  .next-steps h3 {
+    font-size: 1rem;
+  }
+
+  .next-steps li span {
+    font-size: 0.86rem;
+  }
+
+  .confirmation-card .btn-primary,
+  .confirmation-card .btn-secondary {
+    width: 100%;
+    justify-content: center;
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .confirmation-container {
+    margin: 1rem auto 1.5rem;
+    padding: 0 0.5rem;
+  }
+
+  .confirmation-card {
+    padding: 1.25rem 1rem;
+  }
+
+  .next-steps {
+    padding: 0.9rem 0.85rem;
+  }
+}
+
+@media (max-width: 374px) {
+  .confirmation-card {
+    padding: 1.1rem 0.85rem;
+  }
+
+  .confirmation-title {
+    font-size: 1.25rem;
+  }
+
+  .booking-reference-code {
+    font-size: 1.15rem;
+  }
+}
+
+/* =========================
+   CHECKOUT – cabecera de políticas y DE
+   ========================= */
+
+/* Header de la tarjeta de políticas */
+.checkout-page .policy-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;              /* badge puede bajar a 2ª línea */
+    gap: 0.5rem;
+}
+
+/* Título largo: romper palabras y permitir guiones */
+.checkout-page .policy-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    word-break: break-word;
+    hyphens: auto;
+}
+
+/* Badge de versión */
+.checkout-page .policy-version {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.7rem;
+}
+
+/* Contenido del include de políticas */
+.checkout-page .policy-content {
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+
+/* Encabezados dentro del texto de políticas */
+.checkout-page .policy-content h1,
+.checkout-page .policy-content h2,
+.checkout-page .policy-content h3,
+.checkout-page .policy-content h4 {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+/* Bloque de aceptación: texto un poco más pequeño y rompiendo bien */
+.checkout-page .acceptance-box {
+    font-size: 0.9rem;
+}
+
+.checkout-page .acceptance-checkbox label {
+    font-size: 0.9rem;
+    word-break: break-word;
+    hyphens: auto;
+}
+
+/* Header del resumen en lateral (Bestellübersicht en DE) */
+.checkout-page .summary-header h3 {
+    word-break: break-word;
+    hyphens: auto;
+}
+
+/* ===== Móviles (iPhone SE, etc.) ===== */
+@media (max-width: 480px) {
+    .checkout-page .panel-title {
+        font-size: 1.15rem;
+    }
+
+    .checkout-page .panel-subtitle {
+        font-size: 0.85rem;
+    }
+
+    .checkout-page .policy-content {
+        max-height: 260px; /* un poco menos alta para que el checkbox sea visible */
+    }
+}
+
+@media (max-width: 374px) {
+    .checkout-page .panel-title {
+        font-size: 1.05rem;
+    }
+
+    .checkout-page .policy-content {
+        font-size: 0.85rem;
+    }
+
+    .checkout-page .acceptance-box {
+        padding: 1rem;
+    }
+}
+
+/* =========================
+   HARDENING – long German words extra
+   ========================= */
+.checkout-page .summary-header h3,
+.checkout-page .tour-name,
+.checkout-page .badge-ghost,
+.checkout-page .cancellation-badge small {
+  word-break: break-word;
+  hyphens: auto;
+}
+
+.checkout-page .policy-content p,
+.checkout-page .policy-content li {
+  word-break: break-word;
+}
+/* =======================================
+   FIX ESPECÍFICO PARA ALEMÁN EN VIEWPORTS XS
+   ======================================= */
+
+/* Evitar overflow horizontal en DE */
+html[lang^="de"] .checkout-container,
+html[lang^="de"] .checkout-grid,
+html[lang^="de"] .checkout-container .summary-panel,
+html[lang^="de"] .checkout-container .form-panel,
+html[lang^="de"] .checkout-page .progress-steps {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Permitir que textos largos se partan y no estiren el flex */
+html[lang^="de"] .checkout-page .progress-steps .step span,
+html[lang^="de"] .checkout-page .policy-header h3,
+html[lang^="de"] .checkout-page .policy-content,
+html[lang^="de"] .checkout-page .acceptance-box,
+html[lang^="de"] .checkout-page .summary-header h3,
+html[lang^="de"] .checkout-page .tour-name,
+html[lang^="de"] .checkout-page .badge-ghost,
+html[lang^="de"] .checkout-page .cancellation-badge small,
+html[lang^="de"] .checkout-page .total-row span:first-child,
+html[lang^="de"] .checkout-page .btn-payment,
+html[lang^="de"] .checkout-page .btn-back,
+html[lang^="de"] .checkout-page .btn-details,
+html[lang^="de"] .checkout-page .btn-edit {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+/* En las filas de total, que la etiqueta sea flexible y deje espacio al monto */
+html[lang^="de"] .checkout-page .total-row span:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* El header del resumen puede envolver el contador a segunda línea */
+html[lang^="de"] .checkout-page .summary-header {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+/* En XS bajamos un pelín el tamaño de botones para textos kilométricos */
+@media (max-width: 430px) {
+  html[lang^="de"] .checkout-page .btn-payment,
+  html[lang^="de"] .checkout-page .btn-back,
+  html[lang^="de"] .checkout-page .btn-details,
+  html[lang^="de"] .checkout-page .btn-edit {
+    font-size: 0.8rem;
+    padding-inline: 0.75rem;
+  }
+
+  html[lang^="de"] .checkout-page .progress-steps .step {
+    padding-inline: 0.7rem;
+  }
+
+
+}

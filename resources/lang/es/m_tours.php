@@ -1359,7 +1359,9 @@ return [
             'name' => 'Nombre',
             'description' => 'Descripción',
             'status' => 'Estado',
-
+            'duration' => 'Duración',
+            'duration_hint'        => 'Duración sugerida del tour (opcional)',
+            'duration_placeholder' => 'Ej: 4 horas, 6 horas, etc.',
         ],
 
     ],

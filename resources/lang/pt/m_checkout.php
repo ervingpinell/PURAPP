@@ -6,9 +6,15 @@ return [
         'terms_title'        => 'Políticas e Termos',
         'secure_subtitle'    => 'O checkout é rápido e seguro',
         'required_title'     => 'Campos obrigatórios',
-        'required_read_accept'=> 'Você deve ler e aceitar todas as políticas para continuar com o pagamento',
+        'required_read_accept' => 'Você deve ler e aceitar todas as políticas para continuar com o pagamento',
         'terms_block_title'  => 'Termos, Condições e Políticas',
         'version'            => 'v',
+    ],
+
+    'steps' => [
+        'review'             => 'Revisão',
+        'payment'            => 'Pagamento',
+        'confirmation'       => 'Confirmação',
     ],
 
     'buttons' => [

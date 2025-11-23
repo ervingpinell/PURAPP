@@ -154,7 +154,17 @@ class PaymentService
     public function handleSuccessfulPayment(Payment $payment, array $gatewayResponse = []): bool
     {
         return DB::transaction(function () use ($payment, $gatewayResponse) {
-            // Update payment
+            // 🔒 IDEMPOTENCY CHECK - Skip if bookings already created
+            if ($payment->bookings_created) {
+                Log::info('Bookings already created for this payment, skipping duplicate creation', [
+                    'payment_id' => $payment->payment_id,
+                    'bookings_created_at' => $payment->bookings_created_at,
+                    'booking_id' => $payment->booking_id,
+                ]);
+                return true;
+            }
+
+            // Update payment status
             $payment->update([
                 'status' => 'completed',
                 'paid_at' => now(),
@@ -165,119 +175,100 @@ class PaymentService
                 'gateway_response' => array_merge($payment->gateway_response ?? [], $gatewayResponse),
             ]);
 
-            // Update booking status based on configuration
-            $booking = $payment->booking;
-
-            // Check if admin confirmation is required
+            // Determine booking status based on configuration
             $requireAdminConfirmation = config('booking.require_admin_confirmation', true);
+            $bookingStatus = $requireAdminConfirmation ? 'pending' : 'confirmed';
 
-            if ($booking && !$requireAdminConfirmation) {
-                // Auto-confirm only if admin confirmation is NOT required
-                $booking->update(['status' => 'confirmed']);
+            Log::info('Processing payment with booking status', [
+                'payment_id' => $payment->payment_id,
+                'booking_status' => $bookingStatus,
+                'require_admin_confirmation' => $requireAdminConfirmation,
+            ]);
 
-                Log::info('Booking auto-confirmed after payment', [
-                    'booking_id' => $booking->booking_id,
-                    'payment_id' => $payment->payment_id,
-                ]);
-            } elseif ($booking && $requireAdminConfirmation) {
-                // Keep as pending for admin review
-                Log::info('Booking payment completed, awaiting admin confirmation', [
-                    'booking_id' => $booking->booking_id,
-                    'payment_id' => $payment->payment_id,
-                    'status' => 'pending',
-                ]);
-            }
-
-            // 🔄 NUEVO: Crear bookings desde cart snapshot DESPUÉS del pago exitoso
+            // 🔄 Create bookings from cart snapshot AFTER successful payment
             $cartSnapshot = $payment->metadata['cart_snapshot'] ?? session('cart_snapshot');
             $createdBookings = collect();
 
             if ($cartSnapshot && !empty($cartSnapshot['items'])) {
-                $createdBookings = $this->createBookingsFromSnapshot($cartSnapshot, $payment);
+                $createdBookings = $this->createBookingsFromSnapshot($cartSnapshot, $payment, $bookingStatus);
 
-                // Link first booking to payment
-                if ($createdBookings->isNotEmpty()) {
-                    $payment->update(['booking_id' => $createdBookings->first()->booking_id]);
+                if ($createdBookings->isEmpty()) {
+                    Log::error('Failed to create bookings from snapshot', [
+                        'payment_id' => $payment->payment_id,
+                        'cart_snapshot_items' => count($cartSnapshot['items'] ?? []),
+                    ]);
+                    return false;
                 }
 
-                Log::info('Bookings created after successful payment', [
+                // Link first booking to payment
+                $payment->update([
+                    'booking_id' => $createdBookings->first()->booking_id,
+                    'bookings_created' => true,
+                    'bookings_created_at' => now(),
+                ]);
+
+                Log::info('Bookings created successfully after payment', [
                     'payment_id' => $payment->payment_id,
                     'booking_count' => $createdBookings->count(),
                     'booking_ids' => $createdBookings->pluck('booking_id')->toArray(),
+                    'status' => $bookingStatus,
                 ]);
-            }
 
-            // 🔄 NUEVO: Limpiar carrito después de crear bookings
-            if ($cartSnapshot) {
-                $userId = $cartSnapshot['user_id'] ?? null;
+                // Clean up cart and session
+                $this->cleanupAfterPayment($cartSnapshot);
 
-                if ($userId) {
-                    // Buscar carrito activo del usuario con items reservados
-                    $cart = \App\Models\Cart::where('user_id', $userId)
-                        ->where('is_active', true)
-                        ->whereHas('items', function ($q) {
-                            $q->where('is_reserved', true);
-                        })
-                        ->first();
-
-                    if ($cart) {
-                        // Eliminar items reservados
-                        $cart->items()->where('is_reserved', true)->delete();
-
-                        // Si no quedan items, desactivar el carrito
-                        if ($cart->items()->count() === 0) {
-                            $cart->update([
-                                'is_active' => false,
-                                'expires_at' => now()
-                            ]);
-
-                            Log::info('Cart cleared after successful payment', [
-                                'cart_id' => $cart->cart_id,
-                                'user_id' => $userId,
+                // Send confirmation emails
+                if (config('booking.send_confirmation_email', true)) {
+                    foreach ($createdBookings as $booking) {
+                        try {
+                            $this->sendConfirmationEmail($booking, $payment);
+                        } catch (\Exception $e) {
+                            Log::error('Failed to send confirmation email', [
+                                'booking_id' => $booking->booking_id,
+                                'error' => $e->getMessage(),
                             ]);
                         }
-
-                        // Crear nuevo carrito para futuras compras con timer fresco
-                        $newCart = \App\Models\Cart::create([
-                            'user_id' => $userId,
-                            'is_active' => true,
-                            'expires_at' => now()->addMinutes(config('cart.expiration_minutes', 30)),
-                        ]);
-
-                        Log::info('New cart created with fresh timer', [
-                            'cart_id' => $newCart->cart_id,
-                            'user_id' => $userId,
-                            'expires_at' => $newCart->expires_at,
-                        ]);
                     }
                 }
+            } else {
+                // Backwards compatibility: Handle existing booking (if payment was created with booking_id)
+                $booking = $payment->booking;
 
-                // Clear session data
-                session()->forget(['cart_snapshot', 'cart_reservation_token', 'payment_start_time']);
-            }
-
-            // Send confirmation emails for all created bookings
-            if ($createdBookings->isNotEmpty() && config('booking.send_confirmation_email', true)) {
-                foreach ($createdBookings as $createdBooking) {
-                    try {
-                        $this->sendConfirmationEmail($createdBooking, $payment);
-                    } catch (\Exception $e) {
-                        Log::error('Failed to send confirmation email', [
-                            'booking_id' => $createdBooking->booking_id,
-                            'error' => $e->getMessage(),
+                if ($booking) {
+                    if (!$requireAdminConfirmation) {
+                        $booking->update(['status' => 'confirmed']);
+                        Log::info('Existing booking auto-confirmed after payment', [
+                            'booking_id' => $booking->booking_id,
+                            'payment_id' => $payment->payment_id,
+                        ]);
+                    } else {
+                        Log::info('Existing booking payment completed, awaiting admin confirmation', [
+                            'booking_id' => $booking->booking_id,
+                            'payment_id' => $payment->payment_id,
+                            'status' => 'pending',
                         ]);
                     }
-                }
-            }
 
-            // Send confirmation email for original booking (backwards compatibility)
-            if ($booking && config('booking.send_confirmation_email', true)) {
-                try {
-                    $this->sendConfirmationEmail($booking, $payment);
-                } catch (\Exception $e) {
-                    Log::error('Failed to send confirmation email', [
-                        'booking_id' => $booking->booking_id,
-                        'error' => $e->getMessage(),
+                    // Mark as created to prevent re-processing
+                    $payment->update([
+                        'bookings_created' => true,
+                        'bookings_created_at' => now(),
+                    ]);
+
+                    // Send confirmation email
+                    if (config('booking.send_confirmation_email', true)) {
+                        try {
+                            $this->sendConfirmationEmail($booking, $payment);
+                        } catch (\Exception $e) {
+                            Log::error('Failed to send confirmation email', [
+                                'booking_id' => $booking->booking_id,
+                                'error' => $e->getMessage(),
+                            ]);
+                        }
+                    }
+                } else {
+                    Log::warning('No cart snapshot and no existing booking found for payment', [
+                        'payment_id' => $payment->payment_id,
                     ]);
                 }
             }
@@ -289,7 +280,7 @@ class PaymentService
     /**
      * Create bookings from cart snapshot
      */
-    private function createBookingsFromSnapshot(array $cartSnapshot, Payment $payment)
+    private function createBookingsFromSnapshot(array $cartSnapshot, Payment $payment, string $status = 'pending')
     {
         $bookingCreator = app(\App\Services\Bookings\BookingCreator::class);
         $bookings = collect();
@@ -327,7 +318,7 @@ class PaymentService
                 'hotel_id'          => $item['hotel_id'],
                 'is_other_hotel'    => (bool) ($item['is_other_hotel'] ?? false),
                 'other_hotel_name'  => $item['other_hotel_name'] ?? null,
-                'status'            => 'confirmed', // Confirmed immediately since payment succeeded
+                'status'            => $status, // Use passed status instead of hardcoded
                 'meeting_point_id'  => $item['meeting_point_id'] ?? null,
                 'notes'             => $cartSnapshot['notes'] ?? null,
                 // Only apply promo code to first booking
@@ -347,6 +338,43 @@ class PaymentService
         }
 
         return $bookings;
+    }
+
+    /**
+     * Clean up cart and session after successful payment
+     */
+    private function cleanupAfterPayment(array $cartSnapshot): void
+    {
+        $userId = $cartSnapshot['user_id'] ?? null;
+
+        if (!$userId) {
+            session()->forget(['cart_snapshot', 'cart_reservation_token', 'payment_start_time']);
+            return;
+        }
+
+        // Find active cart
+        $cart = \App\Models\Cart::where('user_id', $userId)
+            ->where('is_active', true)
+            ->first();
+
+        if ($cart) {
+            // Delete all items
+            $cart->items()->delete();
+
+            // Deactivate cart
+            $cart->update([
+                'is_active' => false,
+                'expires_at' => now()
+            ]);
+
+            Log::info('Cart cleared after successful payment', [
+                'cart_id' => $cart->cart_id,
+                'user_id' => $userId,
+            ]);
+        }
+
+        // Clear session data
+        session()->forget(['cart_snapshot', 'cart_reservation_token', 'payment_start_time']);
     }
 
     /**

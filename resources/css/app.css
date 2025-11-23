@@ -648,17 +648,93 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
 /* ===== Utilidades numéricas ===== */
 .currency-symbol{ font-weight:600; margin-right:2px; font-variant-numeric:tabular-nums; }
 .gv-total{ color: var(--primary-red); font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+/* =========================
+   MINI-CART – MOBILE XS (≤575px)
+   ========================= */
+@media (max-width: 575.98px) {
+  /* Dropdown del carrito: ocupar casi todo el ancho y centrado respecto a la pantalla */
+  .navbar-custom .navbar-actions .dropdown-menu {
+    position: fixed !important;
+    z-index: 1100;
+    left: 0.75rem !important;
+    right: 0.75rem !important;
+    top: calc(var(--navbar-height, 60px) + 0.25rem) !important;
+    width: auto;
+    max-width: none;
+    margin: 0 auto;
+    transform: none !important;
+    border-radius: 12px;
+  }
 
-/* ===== Responsive ajustes finos ===== */
-@media (max-width: 575.98px){
-  .mini-cart-item{ grid-template-columns: 48px 1fr auto; gap:8px; padding:8px 10px; }
-  .mini-cart-img{ width:48px; height:48px; border-radius:6px; }
-  .mini-cart-title{ font-size:12.5px; -webkit-line-clamp:2; }
-  .mini-cart-meta{ font-size:11px; }
-  .mini-cart-cat-row{ font-size:11px; gap:.2rem .4rem; }
-  .mini-cart-footer{ padding:10px; }
-  .mini-cart-total-amount{ font-size:15px; }
+  /* Mini-cart más compacto en texto (xs) */
+  .mini-cart-timer-simple .timer-text {
+    font-size: 11px;
+  }
+  .mini-cart-timer-simple .timer-extend-btn {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+
+  .mini-cart-item {
+    grid-template-columns: 48px 1fr auto;
+    gap: 6px;
+    padding: 7px 9px;
+  }
+  .mini-cart-img {
+    width: 48px;
+    height: 48px;
+  }
+
+  .mini-cart-title {
+    font-size: 12px;
+    -webkit-line-clamp: 2;
+  }
+  .mini-cart-meta {
+    font-size: 10.5px;
+  }
+
+  .mini-cart-cat-row {
+    font-size: 10.5px;
+    gap: .2rem .3rem;
+  }
+
+  .mini-cart-price {
+    font-size: 12px;
+  }
+
+  .mini-cart-footer {
+    padding: 9px 10px;
+  }
+  .mini-cart-total-label {
+    font-size: 12px;
+  }
+  .mini-cart-total-amount {
+    font-size: 14px;
+  }
+  .mini-cart-actions .btn {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
 }
+
+
+/* Extra-mini (tipo iPhone SE / ZFlip muy estrecho) */
+@media (max-width: 360px) {
+  .navbar-custom .navbar-actions .dropdown-menu {
+    left: 0.5rem !important;
+    right: 0.5rem !important;
+  }
+
+  .mini-cart-item {
+    grid-template-columns: 40px 1fr auto;
+    padding: 7px 8px;
+  }
+
+  .mini-cart-title {
+    font-size: 11.5px;
+  }
+}
+
 
 
 /* ===== Timer minimal ===== */
@@ -760,7 +836,6 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
   .gv-timer-remaining {
     font-size: 1.05rem;
   }
-
 }
 
 
@@ -772,6 +847,116 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
 .gv-total {
   color: var(--primary-red);
   font-weight: 700;
-    text-decoration: underline;
+  text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/* =========================
+   CART TIMER WIDGET (GLOBAL)
+   ========================= */
+.cart-timer-widget {
+  position: fixed;
+  bottom: 5.5rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.9rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+  z-index: 1050;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+}
+
+.cart-timer-widget:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.32);
+}
+
+.cart-timer-widget .timer-icon {
+  position: relative;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.cart-timer-widget .timer-badge {
+  position: absolute;
+  top: -0.4rem;
+  right: -0.4rem;
+  background: rgba(255, 255, 255, 0.96);
+  color: #667eea;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  min-width: 2.1rem;
+  text-align: center;
+}
+
+.cart-timer-widget .timer-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cart-timer-widget .timer-text small {
+  font-size: var(--fs-xs, 11px);
+  line-height: 1.2;
+  opacity: 0.9;
+}
+
+.cart-timer-widget .timer-text strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  font-family: "SF Mono", "Menlo", "Roboto Mono", monospace;
+}
+
+/* Estados */
+.cart-timer-widget.warning {
+  background: linear-gradient(135deg, #f97316 0%, #fb7185 100%);
+}
+
+.cart-timer-widget.critical {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.cart-timer-widget.expired {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Micro animación para llamar la atención si falta poco */
+@keyframes pulse-widget {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+
+.cart-timer-widget.warning,
+.cart-timer-widget.critical {
+  animation: pulse-widget 1.25s ease-in-out infinite;
+}
+
+/* RESPONSIVE – móviles */
+@media (max-width: 575.98px) {
+  .cart-timer-widget {
+    right: 0.75rem;
+    bottom: 4.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+  .cart-timer-widget .timer-text strong {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 374px) {
+  .cart-timer-widget {
+    left: 0.5rem;
+    right: 0.5rem;
+    justify-content: center;
+    bottom: 4rem;
+  }
 }

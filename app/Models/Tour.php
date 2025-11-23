@@ -227,7 +227,7 @@ class Tour extends Model
     public function scopeWizardStepAtLeast($query, int $step)
     {
         return $query->where('is_draft', true)
-                     ->where('current_step', '>=', $step);
+            ->where('current_step', '>=', $step);
     }
 
     /* =====================
@@ -240,7 +240,7 @@ class Tour extends Model
     public function scopeUserDrafts($query, $userId)
     {
         return $query->where('is_draft', true)
-                    ->where('created_by', $userId);
+            ->where('created_by', $userId);
     }
 
     /**
@@ -257,7 +257,7 @@ class Tour extends Model
     public function scopeOldDrafts($query, $days = 30)
     {
         return $query->where('is_draft', true)
-                    ->where('updated_at', '<', now()->subDays($days));
+            ->where('updated_at', '<', now()->subDays($days));
     }
 
     /**
@@ -266,7 +266,7 @@ class Tour extends Model
     public function scopeInactive($query)
     {
         return $query->where('is_active', false)
-                    ->where('is_draft', false);
+            ->where('is_draft', false);
     }
 
     /* =====================
@@ -562,7 +562,7 @@ class Tour extends Model
     public function auditLogs()
     {
         return $this->hasMany(TourAuditLog::class, 'tour_id', 'tour_id')
-                    ->orderBy('created_at', 'desc');
+            ->orderBy('created_at', 'desc');
     }
 
     /**
@@ -571,7 +571,7 @@ class Tour extends Model
     public function lastAuditLog()
     {
         return $this->hasOne(TourAuditLog::class, 'tour_id', 'tour_id')
-                    ->latest('created_at');
+            ->latest('created_at');
     }
 
     /* =====================
