@@ -618,21 +618,17 @@ return [
             'icon'  => 'fas fa-money-bill-wave',
             'trans' => true,
         ],
-        [
-            'header' => '',
-
-        ],
         // 🌐 Selector de idioma (texto literal; sin 'trans')
         [
             'text'         => '🌐',
             'icon'         => false,
             'topnav_right' => true,
             'submenu'      => [
-                ['text' => 'Español',   'route' => ['switch.language', ['language' => 'es']]],
-                ['text' => 'English',   'route' => ['switch.language', ['language' => 'en']]],
-                ['text' => 'Français',  'route' => ['switch.language', ['language' => 'fr']]],
-                ['text' => 'Português', 'route' => ['switch.language', ['language' => 'pt']]],
-                ['text' => 'Deutsch',   'route' => ['switch.language', ['language' => 'de']]],
+                ['text' => 'Español',   'url' => '/language/es'],
+                ['text' => 'English',   'url' => '/language/en'],
+                ['text' => 'Français',  'url' => '/language/fr'],
+                ['text' => 'Português', 'url' => '/language/pt'],
+                ['text' => 'Deutsch',   'url' => '/language/de'],
             ],
         ],
 

@@ -962,6 +962,15 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::get('/', [ReportsController::class, 'index'])->name('index');
                     Route::get('/chart/monthly-sales', [ReportsController::class, 'chartMonthlySales'])->name('chart.monthly');
                     Route::get('/chart/by-language', [ReportsController::class, 'chartByLanguage'])->name('chart.language');
+
+                    // 🆕 Category Reports
+                    Route::get('/by-category', [ReportsController::class, 'byCategory'])->name('by-category');
+                    Route::get('/chart/category-trends', [ReportsController::class, 'chartCategoryTrends'])->name('chart.category-trends');
+                    Route::get('/chart/category-breakdown', [ReportsController::class, 'chartCategoryBreakdown'])->name('chart.category-breakdown');
+
+                    // 🆕 Exports
+                    Route::get('/export/categories-excel', [ReportsController::class, 'exportCategoriesExcel'])->name('export.categories.excel');
+                    Route::get('/export/categories-csv', [ReportsController::class, 'exportCategoriesCsv'])->name('export.categories.csv');
                 });
             });
         });
