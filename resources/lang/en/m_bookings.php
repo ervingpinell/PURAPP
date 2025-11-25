@@ -229,8 +229,9 @@ return [
             'travelers'         => 'Travelers',
             'subtotal'          => 'Subtotal',
             'discount'          => 'Discount',
-            'total_persons'     => 'Persons',
-            'pickup_time' => 'Pickup time',
+            'total_persons'     => 'Total persons',
+            'pickup_place'      => 'Pickup place',
+            'pickup_time'       => 'Pickup time',
         ],
 
         'placeholders' => [
@@ -451,6 +452,7 @@ return [
         'subtotal'      => 'Subtotal',
         'discount'      => 'Discount',
         'total_persons' => 'Total people',
+        'pickup_place'   => 'Pickup place',
     ],
 
     // =========================================================

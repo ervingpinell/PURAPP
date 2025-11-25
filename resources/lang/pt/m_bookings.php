@@ -230,7 +230,7 @@ return [
             'subtotal'          => 'Subtotal',
             'discount'          => 'Desconto',
             'total_persons'     => 'Pessoas',
-            'pickup_place'      => 'Local de pickup',
+            'pickup_place'      => 'Local de coleta',
         ],
 
         'placeholders' => [

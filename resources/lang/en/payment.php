@@ -67,4 +67,6 @@ return [
     'complete_payment_message' => 'Please complete payment to confirm your booking',
     'payment_cancelled' => 'Payment was cancelled. You can try again when ready.',
     'redirect_paypal' => 'Redirecting to PayPal...',
+    'no_cart_data' => 'No cart data found',
+            'no_cart_data' => 'No cart data found',
 ];

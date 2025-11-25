@@ -9,6 +9,7 @@ return [
         'required_read_accept' => 'You must read and accept all policies to proceed with payment',
         'terms_block_title'  => 'Terms, Conditions & Policies',
         'version'            => 'v',
+        'no_policies_configured' => 'No policies configured. Please contact the administrator.',
     ],
 
     'steps' => [

@@ -9,6 +9,7 @@ return [
         'required_read_accept' => 'Sie müssen alle Richtlinien lesen und akzeptieren, um mit der Zahlung fortzufahren',
         'terms_block_title'  => 'Allgemeine Geschäftsbedingungen & Richtlinien',
         'version'            => 'v',
+        'no_policies_configured' => 'Keine Richtlinien konfiguriert. Bitte kontaktieren Sie den Administrator.',
     ],
 
     'steps' => [
