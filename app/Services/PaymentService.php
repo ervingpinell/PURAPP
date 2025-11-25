@@ -227,6 +227,31 @@ class PaymentService
                     'bookings_created_at' => now(),
                 ]);
 
+                // 🔄 Actualizar terms_acceptances con booking_ref
+                try {
+                    $cartId = $cartSnapshot['cart_id'] ?? null;
+                    if ($cartId) {
+                        DB::table('terms_acceptances')
+                            ->where('cart_ref', $cartId)
+                            ->whereNull('booking_ref')
+                            ->update([
+                                'booking_ref' => $createdBookings->first()->booking_id,
+                                'updated_at'  => now(),
+                            ]);
+
+                        Log::info('Updated terms_acceptances with booking_ref', [
+                            'cart_id'     => $cartId,
+                            'booking_id'  => $createdBookings->first()->booking_id,
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Failed to update terms_acceptances booking_ref', [
+                        'cart_id' => $cartSnapshot['cart_id'] ?? null,
+                        'error'   => $e->getMessage(),
+                    ]);
+                    // No bloqueamos el flujo si falla la actualización
+                }
+
                 Log::info('Bookings created successfully after payment', [
                     'payment_id'  => $payment->payment_id,
                     'booking_count' => $createdBookings->count(),

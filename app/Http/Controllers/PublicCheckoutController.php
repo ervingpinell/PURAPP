@@ -371,30 +371,33 @@ class PublicCheckoutController extends Controller
         ])->save();
 
 
-        // Guardar evidencia de aceptación de términos
+        // Guardar evidencia de aceptación de términos (updateOrInsert para evitar duplicados)
         try {
-            DB::table('terms_acceptances')->insert([
-                'user_id'           => $userId,
-                'cart_ref'          => $cart->cart_id ?? $cart->id ?? null,
-                'booking_ref'       => null,
-                'accepted_at'       => now(),
-                'terms_version'     => $termsVersion,
-                'privacy_version'   => $privacyVersion,
-                'policies_snapshot' => is_array($persistSnapshot)
-                    ? json_encode($persistSnapshot, JSON_UNESCAPED_UNICODE)
-                    : json_encode((array) $persistSnapshot, JSON_UNESCAPED_UNICODE),
-                'policies_sha256'   => $sha,
-                'ip_address'        => $request->ip(),
-                'user_agent'        => (string) $request->userAgent(),
-                'locale'            => $locale,
-                'timezone'          => config('app.timezone'),
-                'consent_source'    => 'checkout',
-                'referrer'          => $request->headers->get('referer'),
-                'created_at'        => now(),
-                'updated_at'        => now(),
-            ]);
+            DB::table('terms_acceptances')->updateOrInsert(
+                // Match condition: find existing record by cart_ref
+                ['cart_ref' => $cart->cart_id ?? $cart->id ?? null],
+                // Values to update or insert
+                [
+                    'user_id'           => $userId,
+                    'booking_ref'       => null, // Will be updated after payment
+                    'accepted_at'       => now(),
+                    'terms_version'     => $termsVersion,
+                    'privacy_version'   => $privacyVersion,
+                    'policies_snapshot' => is_array($persistSnapshot)
+                        ? json_encode($persistSnapshot, JSON_UNESCAPED_UNICODE)
+                        : json_encode((array) $persistSnapshot, JSON_UNESCAPED_UNICODE),
+                    'policies_sha256'   => $sha,
+                    'ip_address'        => $request->ip(),
+                    'user_agent'        => (string) $request->userAgent(),
+                    'locale'            => $locale,
+                    'timezone'          => config('app.timezone'),
+                    'consent_source'    => 'checkout',
+                    'referrer'          => $request->headers->get('referer'),
+                    'updated_at'        => now(),
+                ]
+            );
 
-            Log::info('Terms acceptance recorded', [
+            Log::info('Terms acceptance recorded/updated', [
                 'user_id' => $userId,
                 'cart_id' => $cart->cart_id ?? $cart->id,
                 'terms_version' => $termsVersion,
