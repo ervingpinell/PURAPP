@@ -104,29 +104,139 @@ class TourPrice extends Model
 
     /**
      * Obtiene el precio con impuestos incluidos
+     * Alias de final_price para mantener compatibilidad
      */
     public function getPriceWithTaxAttribute(): float
     {
-        $price = (float) $this->price;
+        return $this->final_price;
+    }
 
-        // Evitar N+1 si es posible cargando 'tour.taxes' previamente
+    /**
+     * Calculate tax breakdown for this price
+     * Returns array with subtotal, tax_amount, and total
+     * 
+     * @param int $quantity Number of persons/items
+     * @param bool|null $taxIncluded Deprecated, ignored in favor of tax->is_inclusive
+     * @return array ['subtotal' => float, 'tax_amount' => float, 'total' => float, 'taxes' => array]
+     */
+    public function calculateTaxBreakdown(int $quantity = 1, ?bool $taxIncluded = null): array
+    {
+        $basePrice = (float) $this->price;
         $tour = $this->tour;
 
+        // Note: $taxIncluded parameter is ignored. We use $tax->is_inclusive for each tax.
+
         if (!$tour) {
-            return $price;
+            return [
+                'subtotal' => round($basePrice * $quantity, 2),
+                'tax_amount' => 0,
+                'total' => round($basePrice * $quantity, 2),
+                'taxes' => [],
+            ];
         }
 
         $taxes = $tour->taxes;
+        $taxDetails = [];
 
-        $totalTax = 0;
-        foreach ($taxes as $tax) {
-            if ($tax->type === 'percentage') {
-                $totalTax += $price * ($tax->rate / 100);
-            } elseif ($tax->type === 'fixed') {
-                $totalTax += $tax->rate;
+        // Separate taxes into inclusive and exclusive
+        $inclusiveTaxes = $taxes->filter(fn($t) => $t->is_inclusive);
+        $exclusiveTaxes = $taxes->filter(fn($t) => !$t->is_inclusive);
+
+        // 1. Calculate Base Price
+        // If there are inclusive taxes, the stored price includes them.
+        // Base = Price / (1 + sum(rates))
+        $basePriceTotal = $basePrice * $quantity;
+
+        if ($inclusiveTaxes->isNotEmpty()) {
+            $totalRate = 0;
+            $fixedDeduction = 0;
+
+            foreach ($inclusiveTaxes as $tax) {
+                if ($tax->type === 'percentage') {
+                    $totalRate += $tax->rate;
+                } elseif ($tax->type === 'fixed') {
+                    $fixedDeduction += ($tax->apply_to === 'per_person' ? $tax->rate * $quantity : $tax->rate);
+                }
             }
+
+            // Remove fixed taxes first (usually)
+            $tempTotal = $basePriceTotal - $fixedDeduction;
+            // Then remove percentage taxes
+            $basePriceTotal = $tempTotal / (1 + ($totalRate / 100));
         }
 
-        return round($price + $totalTax, 2);
+        $taxDetails = [];
+        $totalTaxAmount = 0;
+
+        // 2. Calculate Inclusive Tax Amounts
+        foreach ($inclusiveTaxes as $tax) {
+            // Re-calculate based on the derived base price
+            // For inclusive, the amount is the difference between what it would be and the base
+            // Or simply: Base * Rate
+            $amount = 0;
+            if ($tax->type === 'percentage') {
+                $amount = $basePriceTotal * ($tax->rate / 100);
+            } elseif ($tax->type === 'fixed') {
+                $amount = ($tax->apply_to === 'per_person' ? $tax->rate * $quantity : $tax->rate);
+            }
+
+            $taxDetails[] = [
+                'name' => $tax->name,
+                'code' => $tax->code,
+                'rate' => $tax->formatted_rate,
+                'amount' => round($amount, 2),
+                'included' => true
+            ];
+            $totalTaxAmount += $amount;
+        }
+
+        // 3. Calculate Exclusive Tax Amounts
+        foreach ($exclusiveTaxes as $tax) {
+            $amount = 0;
+            if ($tax->type === 'percentage') {
+                $amount = $basePriceTotal * ($tax->rate / 100);
+            } elseif ($tax->type === 'fixed') {
+                $amount = ($tax->apply_to === 'per_person' ? $tax->rate * $quantity : $tax->rate);
+            }
+
+            $taxDetails[] = [
+                'name' => $tax->name,
+                'code' => $tax->code,
+                'rate' => $tax->formatted_rate,
+                'amount' => round($amount, 2),
+                'included' => false
+            ];
+            $totalTaxAmount += $amount;
+        }
+
+        // Final totals
+        // Subtotal should be the Base Price
+        // Total should be Base + All Taxes
+
+        return [
+            'subtotal' => round($basePriceTotal, 2),
+            'tax_amount' => round($totalTaxAmount, 2),
+            'total' => round($basePriceTotal + $totalTaxAmount, 2),
+            'taxes' => $taxDetails,
+        ];
+    }
+
+    /**
+     * Get the final price to display (respects tax_included setting)
+     * This is what should be shown to customers
+     */
+    public function getFinalPriceAttribute(): float
+    {
+        $breakdown = $this->calculateTaxBreakdown(1);
+        return $breakdown['total'];
+    }
+
+    /**
+     * Get price without tax (subtotal)
+     */
+    public function getPriceWithoutTaxAttribute(): float
+    {
+        $breakdown = $this->calculateTaxBreakdown(1);
+        return $breakdown['subtotal'];
     }
 }

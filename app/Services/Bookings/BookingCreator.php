@@ -40,8 +40,12 @@ class BookingCreator
             }
 
             // Subtotales y pax
-            $detailSubtotal = $this->pricing->calculateSubtotal($categoriesSnapshot);
-            $totalPax       = $this->pricing->getTotalPaxFromCategories($categoriesSnapshot);
+            $totals = $this->pricing->calculateTotals($categoriesSnapshot);
+            $detailSubtotal = $totals['subtotal'];
+            $taxesTotal = $totals['tax_amount'];
+            $taxesBreakdown = $totals['taxes_breakdown'];
+
+            $totalPax = $this->pricing->getTotalPaxFromCategories($categoriesSnapshot);
 
             // Promo (opcional)
             $promo = null;
@@ -79,14 +83,15 @@ class BookingCreator
                         'held'       => (int) $snap['held'],
                         'requested'  => (int) $totalPax,
                         'tour_id'    => (int) $tour->tour_id,
-                        'schedule_id'=> (int) $schedule->schedule_id,
+                        'schedule_id' => (int) $schedule->schedule_id,
                         'date'       => $date,
                     ]));
                 }
             }
 
-            // Total final (con promo)
-            $totalBooking = $this->pricing->applyPromo($detailSubtotal, $promo);
+            // Total final (con promo aplicada al subtotal)
+            $discountedSubtotal = $this->pricing->applyPromo($detailSubtotal, $promo);
+            $totalBooking = $discountedSubtotal + $taxesTotal;
 
             // BOOKING
             $booking = Booking::create([
@@ -108,7 +113,9 @@ class BookingCreator
                 'tour_date'         => $payload['tour_date'],
                 'tour_language_id'  => (int) $payload['tour_language_id'],
                 'categories'        => $categoriesSnapshot,
-                'total'             => $detailSubtotal,
+                'total'             => $detailSubtotal, // Base price (Subtotal)
+                'taxes_breakdown'   => $taxesBreakdown,
+                'taxes_total'       => $taxesTotal,
                 // Pickup
                 'hotel_id'          => !empty($payload['is_other_hotel']) ? null : ($payload['hotel_id'] ?? null),
                 'is_other_hotel'    => (bool) ($payload['is_other_hotel'] ?? false),
@@ -133,7 +140,7 @@ class BookingCreator
                         'booking_id'        => (int) $booking->booking_id,
                         'user_id'           => (int) ($payload['user_id'] ?? null),
                         'applied_amount'    => $appliedAmount,
-                        'operation_snapshot'=> $promo->operation ?? 'subtract',
+                        'operation_snapshot' => $promo->operation ?? 'subtract',
                         'percent_snapshot'  => $promo->discount_percent,
                         'amount_snapshot'   => $promo->discount_amount,
                         'used_at'           => now(),

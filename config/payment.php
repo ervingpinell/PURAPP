@@ -90,7 +90,7 @@ return [
         ],
 
         'paypal' => [
-            'enabled' => false, // Controlled via AppServiceProvider from DB setting
+            'enabled' => env('PAYPAL_ENABLED', false),
             'mode' => env('PAYPAL_MODE', 'sandbox'), // sandbox or live
             'client_id' => env('PAYPAL_CLIENT_ID'),
             'client_secret' => env('PAYPAL_CLIENT_SECRET'),

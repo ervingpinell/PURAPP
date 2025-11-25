@@ -3,22 +3,26 @@
 namespace App\Services\PaymentGateway\Gateways;
 
 use App\Services\PaymentGateway\AbstractPaymentGateway;
-use PaypalServerSDKLib\PaypalServerSDKClient;
-use PaypalServerSDKLib\PaypalServerSDKClientBuilder;
-use PaypalServerSDKLib\Models\OrderRequest;
-use PaypalServerSDKLib\Models\PurchaseUnitRequest;
-use PaypalServerSDKLib\Models\AmountWithBreakdown;
-use PaypalServerSDKLib\Models\Money;
-use PaypalServerSDKLib\Controllers\OrdersController;
-use PaypalServerSDKLib\Controllers\PaymentsController;
-use PaypalServerSDKLib\Exceptions\ApiException;
-use PaypalServerSDKLib\Authentication\ClientCredentialsAuthCredentials;
-use PaypalServerSDKLib\Environment;
+use App\Services\PaymentGateway\Contracts\PaymentGatewayInterface;
+use PaypalServerSdkLib\PaypalServerSdkClient;
+use PaypalServerSdkLib\PaypalServerSdkClientBuilder;
+use PaypalServerSdkLib\Models\OrderRequest;
+use PaypalServerSdkLib\Models\PurchaseUnitRequest;
+use PaypalServerSdkLib\Models\AmountWithBreakdown;
+use PaypalServerSdkLib\Models\Money;
+use PaypalServerSdkLib\Models\OrderApplicationContext;
+use PaypalServerSdkLib\Models\RefundRequest;
+use PaypalServerSdkLib\Controllers\OrdersController;
+use PaypalServerSdkLib\Controllers\PaymentsController;
+use PaypalServerSdkLib\Exceptions\ApiException;
+use PaypalServerSdkLib\Authentication\ClientCredentialsAuthCredentialsBuilder;
+use PaypalServerSdkLib\Environment;
+use Illuminate\Support\Facades\Log;
 
-class PayPalGateway extends AbstractPaymentGateway
+class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInterface
 {
     protected string $gatewayName = 'paypal';
-    protected PaypalServerSDKClient $client;
+    protected PaypalServerSdkClient $client;
     protected OrdersController $ordersController;
     protected PaymentsController $paymentsController;
 
@@ -26,17 +30,28 @@ class PayPalGateway extends AbstractPaymentGateway
     {
         parent::__construct($config);
 
-        // Validate required config
+        Log::info('PayPalGateway: Initializing', [
+            'config_keys' => array_keys($config),
+            'enabled'     => $config['enabled'] ?? null,
+            'mode'        => $config['mode'] ?? null,
+        ]);
+
+        // Validar config mínima
         $this->validateConfig(['client_id', 'client_secret', 'mode']);
 
-        // Initialize PayPal client
+        // Entorno: sandbox / live
         $environment = $this->config['mode'] === 'live'
             ? Environment::PRODUCTION
             : Environment::SANDBOX;
 
-        $this->client = PaypalServerSDKClientBuilder::init()
+        Log::info('PayPalGateway: Environment selected', [
+            'mode'      => $this->config['mode'],
+            'env_const' => $environment,
+        ]);
+
+        $this->client = PaypalServerSdkClientBuilder::init()
             ->clientCredentialsAuthCredentials(
-                new ClientCredentialsAuthCredentials(
+                ClientCredentialsAuthCredentialsBuilder::init(
                     $this->config['client_id'],
                     $this->config['client_secret']
                 )
@@ -44,387 +59,460 @@ class PayPalGateway extends AbstractPaymentGateway
             ->environment($environment)
             ->build();
 
-        $this->ordersController = $this->client->getOrdersController();
+        $this->ordersController   = $this->client->getOrdersController();
         $this->paymentsController = $this->client->getPaymentsController();
+
+        Log::info('PayPalGateway: Client built successfully');
     }
 
-    /**
-     * Create a PayPal Order (equivalent to payment intent)
-     */
-    public function createPaymentIntent(array $data): array
+    public function createPaymentIntent(array $data): \App\Services\PaymentGateway\DTO\PaymentIntentResponse
     {
+        $amount   = $data['amount']   ?? 0;
+        $currency = $data['currency'] ?? 'USD';
+        $options  = $data['options']  ?? [];
+
+        // Validaciones base del AbstractPaymentGateway
+        $this->validateAmount($amount);
+        $this->validateCurrency($currency);
+
+        Log::info('PayPalGateway:createPaymentIntent: incoming data', [
+            'amount'   => $amount,
+            'currency' => $currency,
+            'options'  => $options,
+        ]);
+
         try {
-            $this->validateAmount($data['amount']);
-            $this->validateCurrency($data['currency']);
+            // ====== Monto ======
+            $amountObj = new AmountWithBreakdown($currency, (string) $amount);
 
-            // Build order request
-            $orderRequest = new OrderRequest();
-            $orderRequest->intent = 'CAPTURE';
+            // ====== Purchase Unit ======
+            $purchaseUnit = new PurchaseUnitRequest($amountObj);
 
-            // Create purchase unit
-            $purchaseUnit = new PurchaseUnitRequest();
-            $purchaseUnit->referenceId = $data['booking_reference'] ?? 'booking_' . time();
-            $purchaseUnit->description = $data['description'] ?? 'Tour Booking';
-            $purchaseUnit->customId = $data['payment_id'] ?? null;
-
-            // Set amount
-            $amount = new AmountWithBreakdown();
-            $amount->currencyCode = strtoupper($data['currency']);
-            $amount->value = number_format($data['amount'], 2, '.', '');
-            $purchaseUnit->amount = $amount;
-
-            $orderRequest->purchaseUnits = [$purchaseUnit];
-
-            // Set application context (return URLs, etc.)
-            if (!empty($data['return_url']) || !empty($data['cancel_url'])) {
-                $appContext = new \PaypalServerSDKLib\Models\OrderApplicationContext();
-                $appContext->returnUrl = $data['return_url'] ?? url('/payment/success');
-                $appContext->cancelUrl = $data['cancel_url'] ?? url('/payment/cancel');
-                $appContext->brandName = $this->config['brand_name'] ?? config('app.name');
-                $appContext->landingPage = $this->config['landing_page'] ?? 'LOGIN';
-                $appContext->userAction = 'PAY_NOW';
-                $orderRequest->applicationContext = $appContext;
+            if (!empty($options['description'])) {
+                $purchaseUnit->setDescription($options['description']);
             }
 
-            // Create order
-            $response = $this->ordersController->ordersCreate($orderRequest);
-            $order = $response->getResult();
+            if (!empty($options['reference_id'])) {
+                $purchaseUnit->setReferenceId($options['reference_id']);
+            }
 
-            $this->logActivity('order_created', [
-                'order_id' => $order->id,
-                'amount' => $data['amount'],
-                'currency' => $data['currency'],
+            // ====== Application Context ======
+            $appContext = new OrderApplicationContext();
+            $appContext->setBrandName($this->config['brand_name'] ?? 'Green Vacations CR');
+            $appContext->setLandingPage($this->config['landing_page'] ?? 'LOGIN');
+            $appContext->setUserAction('PAY_NOW');
+
+            if (!empty($options['return_url'])) {
+                $appContext->setReturnUrl($options['return_url']);
+            }
+
+            if (!empty($options['cancel_url'])) {
+                $appContext->setCancelUrl($options['cancel_url']);
+            }
+
+            // ====== Order Request ======
+            $orderRequest = new OrderRequest('CAPTURE', [$purchaseUnit]);
+            $orderRequest->setApplicationContext($appContext);
+
+            Log::info('PayPalGateway:createPaymentIntent: built OrderRequest', [
+                'orderRequest' => json_decode(json_encode($orderRequest), true),
             ]);
 
-            // Get approval URL
+            // ====== Call API ======
+            $response = $this->ordersController->createOrder([
+                'body' => $orderRequest,
+            ]);
+
+            $result = method_exists($response, 'getResult')
+                ? $response->getResult()
+                : $response;
+
+            // Normalizar a array SIEMPRE
+            $resultArray = is_array($result)
+                ? $result
+                : json_decode(json_encode($result), true);
+
+            Log::info('PayPalGateway: createPaymentIntent raw result', [
+                'raw_type' => gettype($result),
+                'keys'     => is_array($resultArray) ? array_keys($resultArray) : null,
+                'result'   => $resultArray,
+            ]);
+
+            // ====== ID, status, links ======
+            $id =
+                ($resultArray['id'] ?? null)
+                ?? ($resultArray['result']['id'] ?? null)
+                ?? ($resultArray['order']['id'] ?? null)
+                ?? ($resultArray[0]['id'] ?? null);
+
+            $status =
+                ($resultArray['status'] ?? null)
+                ?? ($resultArray['result']['status'] ?? null)
+                ?? ($resultArray['order']['status'] ?? null)
+                ?? ($resultArray[0]['status'] ?? null);
+
+            $links =
+                ($resultArray['links'] ?? null)
+                ?? ($resultArray['result']['links'] ?? null)
+                ?? ($resultArray['order']['links'] ?? null)
+                ?? [];
+
+            // 🔑 EXTRAER approval_url
             $approvalUrl = null;
-            if ($order->links) {
-                foreach ($order->links as $link) {
-                    if ($link->rel === 'approve') {
-                        $approvalUrl = $link->href;
+            if (is_array($links)) {
+                foreach ($links as $link) {
+                    if (($link['rel'] ?? null) === 'approve') {
+                        $approvalUrl = $link['href'] ?? null;
                         break;
                     }
                 }
             }
 
-            return [
-                'success' => true,
-                'payment_intent_id' => $order->id,
-                'client_secret' => null, // PayPal doesn't use client secrets
+            Log::info('PayPalGateway:createPaymentIntent: extracted approval_url', [
                 'approval_url' => $approvalUrl,
-                'status' => strtolower($order->status),
-                'amount' => $data['amount'],
-                'currency' => strtoupper($data['currency']),
-            ];
-        } catch (ApiException $e) {
-            $this->handleException($e, 'create_payment_intent');
-        } catch (\Exception $e) {
-            $this->handleException($e, 'create_payment_intent');
-        }
-    }
-
-    /**
-     * Capture a PayPal Order
-     */
-    public function capturePayment(string $paymentIntentId, array $data = []): array
-    {
-        try {
-            $response = $this->ordersController->ordersCapture($paymentIntentId);
-            $order = $response->getResult();
-
-            $this->logActivity('payment_captured', [
-                'order_id' => $order->id,
-                'status' => $order->status,
             ]);
 
-            // Extract payment method details
-            $paymentMethod = $this->extractPaymentMethodDetails($order);
+            if (!$id) {
+                Log::error('PayPalGateway: Unable to determine order ID from response', [
+                    'result' => $resultArray,
+                ]);
+                throw new \RuntimeException('PayPal did not return a valid order ID');
+            }
 
-            return [
-                'success' => $order->status === 'COMPLETED',
-                'transaction_id' => $order->id,
-                'status' => strtolower($order->status),
-                'amount' => $this->getOrderAmount($order),
-                'currency' => $this->getOrderCurrency($order),
-                'payment_method' => $paymentMethod,
-            ];
+            // ====== Retornar DTO normalizado ======
+            return new \App\Services\PaymentGateway\DTO\PaymentIntentResponse(
+                paymentIntentId: $id,
+                status: $status ?? 'created',
+                clientSecret: $id, // PayPal uses order ID as "secret"
+                redirectUrl: $approvalUrl,
+                metadata: [
+                    'amount' => $amount,
+                    'currency' => $currency,
+                    'links' => $links,
+                ],
+                raw: $resultArray
+            );
         } catch (ApiException $e) {
-            $this->handleException($e, 'capture_payment');
-        } catch (\Exception $e) {
-            $this->handleException($e, 'capture_payment');
-        }
-    }
+            $rawBody    = null;
+            $statusCode = null;
 
-    /**
-     * Refund a PayPal payment
-     */
-    public function refundPayment(string $transactionId, float $amount, array $data = []): array
-    {
-        try {
-            $this->validateAmount($amount);
-
-            // Get the order to find the capture ID
-            $orderResponse = $this->ordersController->ordersGet($transactionId);
-            $order = $orderResponse->getResult();
-
-            // Find the capture ID from purchase units
-            $captureId = null;
-            if ($order->purchaseUnits && count($order->purchaseUnits) > 0) {
-                $purchaseUnit = $order->purchaseUnits[0];
-                if ($purchaseUnit->payments && $purchaseUnit->payments->captures && count($purchaseUnit->payments->captures) > 0) {
-                    $captureId = $purchaseUnit->payments->captures[0]->id;
+            if (method_exists($e, 'getHttpContext') && $e->getHttpContext()) {
+                $ctx = $e->getHttpContext();
+                if (method_exists($ctx, 'getResponse') && $ctx->getResponse()) {
+                    $resp = $ctx->getResponse();
+                    if (method_exists($resp, 'getBody')) {
+                        $rawBody = (string) $resp->getBody();
+                    }
+                    if (method_exists($resp, 'getStatusCode')) {
+                        $statusCode = $resp->getStatusCode();
+                    }
                 }
             }
 
-            if (!$captureId) {
-                throw new \Exception('No capture found for this order');
-            }
-
-            // Create refund request
-            $refundRequest = new \PaypalServerSDKLib\Models\RefundRequest();
-            $refundAmount = new Money();
-            $refundAmount->currencyCode = $this->getOrderCurrency($order);
-            $refundAmount->value = number_format($amount, 2, '.', '');
-            $refundRequest->amount = $refundAmount;
-
-            if (!empty($data['note'])) {
-                $refundRequest->noteToPayer = $data['note'];
-            }
-
-            // Process refund
-            $response = $this->paymentsController->capturesRefund($captureId, $refundRequest);
-            $refund = $response->getResult();
-
-            $this->logActivity('payment_refunded', [
-                'refund_id' => $refund->id,
-                'capture_id' => $captureId,
-                'amount' => $amount,
+            Log::error('PayPal Create Order Error', [
+                'message'     => $e->getMessage(),
+                'status_code' => $statusCode,
+                'raw_body'    => $rawBody,
+                'trace'       => $e->getTraceAsString(),
             ]);
 
-            return [
-                'success' => true,
-                'refund_id' => $refund->id,
-                'status' => strtolower($refund->status),
-                'amount' => $amount,
-                'currency' => $refundAmount->currencyCode,
-            ];
-        } catch (ApiException $e) {
-            $this->handleException($e, 'refund_payment');
-        } catch (\Exception $e) {
-            $this->handleException($e, 'refund_payment');
+            throw new \Exception('Error creating PayPal order: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('PayPal Create Order - Generic Error', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+
+            throw $e;
         }
     }
 
-    /**
-     * Get PayPal Order status
-     */
+    public function capturePayment(string $paymentIntentId, array $data = []): array
+    {
+        Log::info('PayPalGateway:capturePayment: starting', [
+            'paymentIntentId' => $paymentIntentId,
+            'data'            => $data,
+        ]);
+
+        try {
+            $response = $this->ordersController->captureOrder([
+                'id'     => $paymentIntentId,
+                'header' => ['Content-Type' => 'application/json'],
+            ]);
+
+            $result = method_exists($response, 'getResult')
+                ? $response->getResult()
+                : $response;
+
+            $resultArray = is_array($result)
+                ? $result
+                : json_decode(json_encode($result), true);
+
+            Log::info('PayPalGateway:capturePayment raw result', [
+                'raw_type' => gettype($result),
+                'keys'     => is_array($resultArray) ? array_keys($resultArray) : null,
+                'result'   => $resultArray,
+            ]);
+
+            $id     = $resultArray['id']     ?? null;
+            $status = $resultArray['status'] ?? null;
+
+            $capture     = $resultArray['purchase_units'][0]['payments']['captures'][0] ?? [];
+            $amountValue = $capture['amount']['value']         ?? 0;
+            $currency    = $capture['amount']['currency_code'] ?? 'USD';
+
+            $normalized = [
+                'id'       => $id,
+                'status'   => $status,
+                'amount'   => (float) $amountValue,
+                'currency' => $currency,
+                'raw'      => $resultArray,
+            ];
+
+            Log::info('PayPalGateway:capturePayment normalized result', $normalized);
+
+            return $normalized;
+        } catch (ApiException $e) {
+            $rawBody    = null;
+            $statusCode = null;
+
+            if (method_exists($e, 'getHttpContext') && $e->getHttpContext()) {
+                $ctx = $e->getHttpContext();
+                if (method_exists($ctx, 'getResponse') && $ctx->getResponse()) {
+                    $resp = $ctx->getResponse();
+                    if (method_exists($resp, 'getBody')) {
+                        $rawBody = (string) $resp->getBody();
+                    }
+                    if (method_exists($resp, 'getStatusCode')) {
+                        $statusCode = $resp->getStatusCode();
+                    }
+                }
+            }
+
+            Log::error('PayPal Capture Error', [
+                'message'     => $e->getMessage(),
+                'status_code' => $statusCode,
+                'raw_body'    => $rawBody,
+                'trace'       => $e->getTraceAsString(),
+            ]);
+
+            throw new \Exception('Error capturing PayPal payment: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('PayPal Capture - Generic Error', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+            throw $e;
+        }
+    }
+
+    public function refundPayment(string $transactionId, float $amount, array $data = []): array
+    {
+        Log::info('PayPalGateway:refundPayment: starting', [
+            'transactionId' => $transactionId,
+            'amount'        => $amount,
+            'data'          => $data,
+        ]);
+
+        try {
+            $currency      = $data['currency'] ?? 'USD';
+            $money         = new Money($currency, (string) $amount);
+            $refundRequest = new RefundRequest();
+            $refundRequest->setAmount($money);
+
+            if (isset($data['reason'])) {
+                $refundRequest->setNoteToPayer($data['reason']);
+            }
+
+            $apiOptions = [
+                'capture_id' => $transactionId,
+                'body'       => $refundRequest,
+            ];
+
+            $response = $this->paymentsController->refundCapturedPayment($apiOptions);
+
+            $result = method_exists($response, 'getResult')
+                ? $response->getResult()
+                : $response;
+
+            $resultArray = is_array($result)
+                ? $result
+                : json_decode(json_encode($result), true);
+
+            Log::info('PayPalGateway:refundPayment raw result', [
+                'raw_type' => gettype($result),
+                'keys'     => is_array($resultArray) ? array_keys($resultArray) : null,
+                'result'   => $resultArray,
+            ]);
+
+            $id     = $resultArray['id']     ?? null;
+            $status = $resultArray['status'] ?? null;
+
+            $normalized = [
+                'id'     => $id,
+                'status' => $status,
+                'raw'    => $resultArray,
+            ];
+
+            Log::info('PayPalGateway:refundPayment normalized result', $normalized);
+
+            return $normalized;
+        } catch (ApiException $e) {
+            $rawBody    = null;
+            $statusCode = null;
+
+            if (method_exists($e, 'getHttpContext') && $e->getHttpContext()) {
+                $ctx = $e->getHttpContext();
+                if (method_exists($ctx, 'getResponse') && $ctx->getResponse()) {
+                    $resp = $ctx->getResponse();
+                    if (method_exists($resp, 'getBody')) {
+                        $rawBody = (string) $resp->getBody();
+                    }
+                    if (method_exists($resp, 'getStatusCode')) {
+                        $statusCode = $resp->getStatusCode();
+                    }
+                }
+            }
+
+            Log::error('PayPal Refund Error', [
+                'message'     => $e->getMessage(),
+                'status_code' => $statusCode,
+                'raw_body'    => $rawBody,
+                'trace'       => $e->getTraceAsString(),
+            ]);
+
+            throw new \Exception('Error refunding PayPal payment: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('PayPal Refund - Generic Error', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+            throw $e;
+        }
+    }
+
     public function getPaymentStatus(string $paymentIntentId): array
     {
-        try {
-            $response = $this->ordersController->ordersGet($paymentIntentId);
-            $order = $response->getResult();
+        Log::info('PayPalGateway:getPaymentStatus: starting', [
+            'paymentIntentId' => $paymentIntentId,
+        ]);
 
-            $paymentMethod = $this->extractPaymentMethodDetails($order);
+        try {
+            $response = $this->ordersController->getOrder(['id' => $paymentIntentId]);
+
+            $result = method_exists($response, 'getResult')
+                ? $response->getResult()
+                : $response;
+
+            $resultArray = is_array($result)
+                ? $result
+                : json_decode(json_encode($result), true);
+
+            Log::info('PayPalGateway:getPaymentStatus raw result', [
+                'raw_type' => gettype($result),
+                'keys'     => is_array($resultArray) ? array_keys($resultArray) : null,
+                'result'   => $resultArray,
+            ]);
+
+            $rawStatus = $resultArray['status'] ?? null;
+
+            $status = match ($rawStatus) {
+                'COMPLETED', 'APPROVED' => 'succeeded',
+                'PAYER_ACTION_REQUIRED' => 'requires_action',
+                'VOIDED'                => 'canceled',
+                default                 => 'pending',
+            };
 
             return [
-                'success' => true,
-                'status' => strtolower($order->status),
-                'amount' => $this->getOrderAmount($order),
-                'currency' => $this->getOrderCurrency($order),
-                'payment_method' => $paymentMethod,
+                'status'     => $status,
+                'raw_status' => $rawStatus,
+                'raw'        => $resultArray,
             ];
         } catch (ApiException $e) {
-            $this->handleException($e, 'get_payment_status');
-        } catch (\Exception $e) {
-            $this->handleException($e, 'get_payment_status');
-        }
-    }
+            $rawBody    = null;
+            $statusCode = null;
 
-    /**
-     * Handle PayPal webhook
-     */
-    public function handleWebhook(array $payload, ?string $signature = null): array
-    {
-        try {
-            // PayPal webhook verification would go here
-            // For now, we'll just log and return the event
+            if (method_exists($e, 'getHttpContext') && $e->getHttpContext()) {
+                $ctx = $e->getHttpContext();
+                if (method_exists($ctx, 'getResponse') && $ctx->getResponse()) {
+                    $resp = $ctx->getResponse();
+                    if (method_exists($resp, 'getBody')) {
+                        $rawBody = (string) $resp->getBody();
+                    }
+                    if (method_exists($resp, 'getStatusCode')) {
+                        $statusCode = $resp->getStatusCode();
+                    }
+                }
+            }
 
-            $eventType = $payload['event_type'] ?? 'unknown';
-
-            $this->logActivity('webhook_received', [
-                'event_type' => $eventType,
-                'resource_type' => $payload['resource_type'] ?? null,
+            Log::error('PayPal Get Status Error', [
+                'message'     => $e->getMessage(),
+                'status_code' => $statusCode,
+                'raw_body'    => $rawBody,
+                'trace'       => $e->getTraceAsString(),
             ]);
 
             return [
-                'success' => true,
-                'event_type' => $eventType,
-                'event_id' => $payload['id'] ?? null,
-                'data' => $payload['resource'] ?? null,
+                'status' => 'unknown',
+                'error'  => $e->getMessage(),
             ];
-        } catch (\Exception $e) {
-            $this->handleException($e, 'handle_webhook');
+        } catch (\Throwable $e) {
+            Log::error('PayPal Get Status - Generic Error', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+
+            return [
+                'status' => 'unknown',
+                'error'  => $e->getMessage(),
+            ];
         }
     }
 
-    /**
-     * Validate PayPal credentials
-     */
+    public function handleWebhook(array $payload, ?string $signature = null): array
+    {
+        Log::info('PayPal Webhook received', [
+            'payload'   => $payload,
+            'signature' => $signature,
+        ]);
+
+        // TODO: verificación de firma PayPal
+        return ['status' => 'processed'];
+    }
+
     public function validateCredentials(): bool
     {
         try {
-            // Try to create a minimal order to test credentials
-            $testData = [
-                'amount' => 1.00,
-                'currency' => 'USD',
-                'description' => 'Credential validation test',
-            ];
-
-            $result = $this->createPaymentIntent($testData);
-            return $result['success'] ?? false;
+            // Si llegó al constructor sin explotar, damos OK por ahora
+            return true;
         } catch (\Exception $e) {
-            $this->logActivity('credential_validation_failed', [
-                'error' => $e->getMessage(),
-            ], 'error');
+            Log::error('PayPal validateCredentials error', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
             return false;
         }
     }
 
-    /**
-     * PayPal supports many currencies
-     */
+    public function getGatewayName(): string
+    {
+        return $this->gatewayName;
+    }
+
     public function supportsCurrency(string $currency): bool
     {
-        $supported = [
-            'USD',
-            'EUR',
-            'GBP',
-            'CAD',
-            'AUD',
-            'JPY',
-            'CNY',
-            'CHF',
-            'SEK',
-            'NZD',
-            'MXN',
-            'SGD',
-            'HKD',
-            'NOK',
-            'DKK',
-            'PLN',
-            'CZK',
-            'HUF',
-            'ILS',
-            'BRL',
-            'MYR',
-            'PHP',
-            'TWD',
-            'THB',
-            'CRC', // Costa Rican Colón
-        ];
-
-        return in_array(strtoupper($currency), $supported);
+        return in_array(strtoupper($currency), ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'CRC']);
     }
 
-    /**
-     * Create PayPal customer (not commonly used in PayPal Orders API)
-     */
     public function createCustomer(array $customerData): array
     {
-        // PayPal Orders API doesn't require pre-creating customers
-        // Customer info is passed with each order
-        return [
-            'success' => true,
-            'gateway_customer_id' => null,
-            'message' => 'PayPal does not require customer pre-creation',
-        ];
+        // No aplicable en este flujo
+        return ['id' => null];
     }
 
-    /**
-     * Save payment method (not commonly used in PayPal Orders API)
-     */
     public function savePaymentMethod(string $customerId, string $paymentMethodId): array
     {
-        // PayPal Orders API doesn't use saved payment methods in the same way
-        // This would require PayPal Vault API
-        return [
-            'success' => true,
-            'gateway_payment_method_id' => null,
-            'message' => 'PayPal payment method saving requires Vault API',
-        ];
-    }
-
-    /**
-     * Extract payment method details from order
-     */
-    protected function extractPaymentMethodDetails($order): ?array
-    {
-        if (!$order->purchaseUnits || count($order->purchaseUnits) === 0) {
-            return null;
-        }
-
-        $purchaseUnit = $order->purchaseUnits[0];
-        if (!$purchaseUnit->payments) {
-            return null;
-        }
-
-        $payments = $purchaseUnit->payments;
-
-        // Check for card payment
-        if ($payments->captures && count($payments->captures) > 0) {
-            $capture = $payments->captures[0];
-
-            if (isset($capture->paymentSource)) {
-                $paymentSource = $capture->paymentSource;
-
-                // Card payment
-                if (isset($paymentSource->card)) {
-                    return [
-                        'type' => 'card',
-                        'card_brand' => strtolower($paymentSource->card->brand ?? 'unknown'),
-                        'card_last4' => $paymentSource->card->lastDigits ?? null,
-                    ];
-                }
-
-                // PayPal account
-                if (isset($paymentSource->paypal)) {
-                    return [
-                        'type' => 'paypal',
-                        'card_brand' => null,
-                        'card_last4' => null,
-                    ];
-                }
-            }
-        }
-
-        return [
-            'type' => 'paypal',
-            'card_brand' => null,
-            'card_last4' => null,
-        ];
-    }
-
-    /**
-     * Get order amount
-     */
-    protected function getOrderAmount($order): float
-    {
-        if ($order->purchaseUnits && count($order->purchaseUnits) > 0) {
-            $amount = $order->purchaseUnits[0]->amount;
-            return (float) $amount->value;
-        }
-        return 0.0;
-    }
-
-    /**
-     * Get order currency
-     */
-    protected function getOrderCurrency($order): string
-    {
-        if ($order->purchaseUnits && count($order->purchaseUnits) > 0) {
-            $amount = $order->purchaseUnits[0]->amount;
-            return strtoupper($amount->currencyCode);
-        }
-        return 'USD';
+        // No implementado para este flujo
+        return [];
     }
 }

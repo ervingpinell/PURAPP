@@ -610,7 +610,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
 <script>
   function togglePickupFields {
     {
-      $booking - > booking_id
+      $booking->booking_id
     }
   }() {
     const hotelRadio = document.getElementById('pickup_hotel_{{ $booking->booking_id }}');
@@ -627,7 +627,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
     }
   }
 
-  @if($detail ? - > schedule)
+  @if($detail ?->schedule)
   // Validate pickup time against tour schedule
   (function() {
     const pickupInput = document.getElementById('pickup_time_{{ $booking->booking_id }}');
@@ -637,7 +637,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
 
     const tourStartHour = {
       {
-        $scheduleStart - > hour
+        $scheduleStart->hour
       }
     };
     const tourPeriod = '{{ $tourPeriod }}';

@@ -40,43 +40,53 @@ class RouteServiceProvider extends ServiceProvider
         // ===== tours-admin =====
         RateLimiter::for('tours-admin', function (Request $request) use ($byUserOrIp, $rpmToursAdmin) {
             $key = $byUserOrIp($request);
-            return [ Limit::perMinute($rpmToursAdmin)->by($key) ];
+            return [Limit::perMinute($rpmToursAdmin)->by($key)];
         });
-        RateLimiter::for(User::class.'::tours-admin', function (Request $request, User $user) use ($rpmToursAdmin) {
-            return [ Limit::perMinute($rpmToursAdmin)->by('u:'.$user->user_id) ];
+        RateLimiter::for(User::class . '::tours-admin', function (Request $request, User $user) use ($rpmToursAdmin) {
+            return [Limit::perMinute($rpmToursAdmin)->by('u:' . $user->user_id)];
         });
 
         // ===== admin-light =====
         RateLimiter::for('admin-light', function (Request $request) use ($byUserOrIp, $rpmAdminLight) {
             $key = $byUserOrIp($request);
-            return [ Limit::perMinute($rpmAdminLight)->by($key) ];
+            return [Limit::perMinute($rpmAdminLight)->by($key)];
         });
-        RateLimiter::for(User::class.'::admin-light', function (Request $request, User $user) use ($rpmAdminLight) {
-            return [ Limit::perMinute($rpmAdminLight)->by('u:'.$user->user_id) ];
+        RateLimiter::for(User::class . '::admin-light', function (Request $request, User $user) use ($rpmAdminLight) {
+            return [Limit::perMinute($rpmAdminLight)->by('u:' . $user->user_id)];
         });
 
         // ===== capacity-admin (PATCH increase/block) =====
         RateLimiter::for('capacity-admin', function (Request $request) use ($byUserOrIp, $withSchedule, $rpmCapAdmin) {
             $base = $byUserOrIp($request);
             $key  = $withSchedule($request, $base);
-            return [ Limit::perMinute($rpmCapAdmin)->by($key) ];
+            return [Limit::perMinute($rpmCapAdmin)->by($key)];
         });
-        RateLimiter::for(User::class.'::capacity-admin', function (Request $request, User $user) use ($withSchedule, $rpmCapAdmin) {
-            $base = 'u:'.$user->user_id;
+        RateLimiter::for(User::class . '::capacity-admin', function (Request $request, User $user) use ($withSchedule, $rpmCapAdmin) {
+            $base = 'u:' . $user->user_id;
             $key  = $withSchedule($request, $base);
-            return [ Limit::perMinute($rpmCapAdmin)->by($key) ];
+            return [Limit::perMinute($rpmCapAdmin)->by($key)];
         });
 
         // ===== capacity-details (GET details) =====
         RateLimiter::for('capacity-details', function (Request $request) use ($byUserOrIp, $withSchedule, $rpmCapDetails) {
             $base = $byUserOrIp($request);
             $key  = $withSchedule($request, $base);
-            return [ Limit::perMinute($rpmCapDetails)->by($key) ];
+            return [Limit::perMinute($rpmCapDetails)->by($key)];
         });
-        RateLimiter::for(User::class.'::capacity-details', function (Request $request, User $user) use ($withSchedule, $rpmCapDetails) {
-            $base = 'u:'.$user->user_id;
+        RateLimiter::for(User::class . '::capacity-details', function (Request $request, User $user) use ($withSchedule, $rpmCapDetails) {
+            $base = 'u:' . $user->user_id;
             $key  = $withSchedule($request, $base);
-            return [ Limit::perMinute($rpmCapDetails)->by($key) ];
+            return [Limit::perMinute($rpmCapDetails)->by($key)];
+        });
+
+        // ===== checkout (prevent bot spam) =====
+        $rpmCheckout = (int) env('RATE_CHECKOUT_RPM', 10);
+        RateLimiter::for('checkout', function (Request $request) use ($byUserOrIp, $rpmCheckout) {
+            $key = $byUserOrIp($request);
+            return [Limit::perMinute($rpmCheckout)->by($key)];
+        });
+        RateLimiter::for(User::class . '::checkout', function (Request $request, User $user) use ($rpmCheckout) {
+            return [Limit::perMinute($rpmCheckout)->by('u:' . $user->user_id)];
         });
 
         // ===== Registro de rutas =====

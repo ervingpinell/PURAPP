@@ -4,6 +4,7 @@ namespace App\Services\PaymentGateway;
 
 use App\Services\PaymentGateway\Contracts\PaymentGatewayInterface;
 use App\Services\PaymentGateway\Gateways\StripeGateway;
+use App\Services\PaymentGateway\Gateways\PayPalGateway;
 use App\Services\PaymentGateway\Gateways\TiloPayGateway;
 use App\Services\PaymentGateway\Gateways\BancoNacionalGateway;
 use App\Services\PaymentGateway\Gateways\BACGateway;
@@ -46,6 +47,8 @@ class PaymentGatewayManager
      *
      * @param string $gateway
      * @return PaymentGatewayInterface
+     * @throws \App\Services\PaymentGateway\Exceptions\GatewayNotEnabledException
+     * @throws \App\Services\PaymentGateway\Exceptions\GatewayNotImplementedException
      * @throws \Exception
      */
     protected function createGateway(string $gateway): PaymentGatewayInterface
@@ -56,16 +59,29 @@ class PaymentGatewayManager
             throw new \Exception("Payment gateway configuration not found: {$gateway}");
         }
 
+        // Check if gateway is enabled in config
         if (!($config['enabled'] ?? false)) {
-            throw new \Exception("Payment gateway is not enabled: {$gateway}");
+            throw new \App\Services\PaymentGateway\Exceptions\GatewayNotEnabledException($gateway);
+        }
+
+        // Also check Settings table for dynamic configuration
+        $settingKey = "payment.gateway.{$gateway}";
+        $settingEnabled = \App\Models\Setting::where('key', $settingKey)->value('value');
+
+        if ($settingEnabled !== null) {
+            $settingEnabled = filter_var($settingEnabled, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? (bool)$settingEnabled;
+            if (!$settingEnabled) {
+                throw new \App\Services\PaymentGateway\Exceptions\GatewayNotEnabledException($gateway);
+            }
         }
 
         return match ($gateway) {
             'stripe' => new StripeGateway($config),
-            'tilopay' => new TiloPayGateway($config),
-            'banco_nacional' => new BancoNacionalGateway($config),
-            'bac' => new BACGateway($config),
-            'bcr' => new BCRGateway($config),
+            'paypal' => new PayPalGateway($config),
+            'tilopay' => throw new \App\Services\PaymentGateway\Exceptions\GatewayNotImplementedException($gateway),
+            'banco_nacional' => throw new \App\Services\PaymentGateway\Exceptions\GatewayNotImplementedException($gateway),
+            'bac' => throw new \App\Services\PaymentGateway\Exceptions\GatewayNotImplementedException($gateway),
+            'bcr' => throw new \App\Services\PaymentGateway\Exceptions\GatewayNotImplementedException($gateway),
             default => throw new \Exception("Unknown payment gateway: {$gateway}"),
         };
     }

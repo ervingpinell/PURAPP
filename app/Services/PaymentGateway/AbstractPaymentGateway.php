@@ -88,7 +88,7 @@ abstract class AbstractPaymentGateway implements PaymentGatewayInterface
      * @param string $action
      * @throws \Exception
      */
-    protected function handleException(\Exception $e, string $action): void
+    protected function handleException(\Exception $e, string $action): never
     {
         $this->logActivity($action, [
             'error' => $e->getMessage(),

@@ -602,21 +602,30 @@
 
                 <div class="row">
                     @forelse($taxes as $tax)
-                    <div class="col-md-4 col-sm-6 mb-3">
-                        <div class="custom-control custom-checkbox">
+                    <div class="col-md-6 mb-3">
+                        <div class="custom-control custom-checkbox p-3 rounded" style="background: #3a4556; border: 1px solid #4a5568;">
                             <input type="checkbox"
                                 class="custom-control-input"
                                 id="tax_{{ $tax->tax_id }}"
                                 name="taxes[]"
                                 value="{{ $tax->tax_id }}"
                                 {{ $tour->taxes->contains($tax->tax_id) ? 'checked' : '' }}>
-                            <label class="custom-control-label" for="tax_{{ $tax->tax_id }}">
-                                <strong>{{ $tax->name }}</strong> ({{ $tax->rate }}% {{ $tax->type == 'percentage' ? '' : '$' }})
-                                <br>
-                                <small class="text-muted">
-                                    {{ $tax->code }} -
-                                    {{ __('taxes.apply_to_options.' . $tax->apply_to) }}
-                                </small>
+                            <label class="custom-control-label w-100" for="tax_{{ $tax->tax_id }}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <strong style="color: #e2e8f0;">{{ $tax->name }}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            <code style="background: #1a202c; color: #68d391; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">{{ $tax->code }}</code>
+                                            - {{ $tax->type == 'percentage' ? number_format($tax->rate, 2) . '%' : '$' . number_format($tax->rate, 2) }}
+                                            <br>
+                                            {{ __('taxes.apply_to_options.' . $tax->apply_to) }}
+                                        </small>
+                                    </div>
+                                    <span class="badge {{ $tax->is_inclusive ? 'badge-success' : 'badge-warning' }}">
+                                        {{ $tax->is_inclusive ? __('taxes.included') : __('taxes.not_included') }}
+                                    </span>
+                                </div>
                             </label>
                         </div>
                     </div>

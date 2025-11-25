@@ -74,6 +74,63 @@ class Tax extends Model
     }
 
     /**
+     * Calculate tax amount when tax is INCLUDED in the total price
+     * Formula: tax = total - (total / (1 + rate/100))
+     *
+     * @param float $totalWithTax Total price including tax
+     * @param int $quantity Number of items/persons
+     * @return float Calculated tax amount
+     */
+    public function calculateTaxFromTotal(float $totalWithTax, int $quantity = 1): float
+    {
+        if ($this->type === 'fixed') {
+            return $this->apply_to === 'per_person'
+                ? $this->rate * $quantity
+                : $this->rate;
+        }
+
+        // For percentage: tax = total - (total / (1 + rate/100))
+        $divisor = 1 + ($this->rate / 100);
+        $subtotal = $totalWithTax / $divisor;
+        return $totalWithTax - $subtotal;
+    }
+
+    /**
+     * Calculate subtotal when tax is INCLUDED in the total price
+     * Formula: subtotal = total / (1 + rate/100)
+     *
+     * @param float $totalWithTax Total price including tax
+     * @param int $quantity Number of items/persons
+     * @return float Calculated subtotal (price without tax)
+     */
+    public function calculateSubtotalFromTotal(float $totalWithTax, int $quantity = 1): float
+    {
+        if ($this->type === 'fixed') {
+            $fixedTax = $this->apply_to === 'per_person'
+                ? $this->rate * $quantity
+                : $this->rate;
+            return $totalWithTax - $fixedTax;
+        }
+
+        // For percentage: subtotal = total / (1 + rate/100)
+        $divisor = 1 + ($this->rate / 100);
+        return $totalWithTax / $divisor;
+    }
+
+    /**
+     * Calculate total when tax is NOT INCLUDED (added on top)
+     *
+     * @param float $subtotal Base price without tax
+     * @param int $quantity Number of items/persons
+     * @return float Total price (subtotal + tax)
+     */
+    public function calculateTotalFromSubtotal(float $subtotal, int $quantity = 1): float
+    {
+        $taxAmount = $this->calculateAmount($subtotal, $quantity);
+        return $subtotal + $taxAmount;
+    }
+
+    /**
      * Scope to get only active taxes
      */
     public function scopeActive($query)
@@ -95,10 +152,10 @@ class Tax extends Model
     public function getFormattedRateAttribute(): string
     {
         if ($this->type === 'percentage') {
-            return number_format($this->rate, 2) . '%';
+            return number_format((float) $this->rate, 2) . '%';
         }
 
-        return '₡' . number_format($this->rate, 2);
+        return '₡' . number_format((float) $this->rate, 2);
     }
 
     /**

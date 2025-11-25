@@ -64,6 +64,7 @@
                                     <th>{{ __('m_tours.prices.table.category') }}</th>
                                     <th>{{ __('m_tours.prices.table.age_range') }}</th>
                                     <th style="width: 150px">{{ __('m_tours.prices.table.price_usd') }}</th>
+                                    <th style="width: 150px">Precio Final</th>
                                     <th style="width: 100px">{{ __('m_tours.prices.table.min') }}</th>
                                     <th style="width: 100px">{{ __('m_tours.prices.table.max') }}</th>
                                     <th style="width: 120px" class="text-center">{{ __('m_tours.prices.table.status') }}</th>
@@ -72,6 +73,10 @@
                             </thead>
                             <tbody>
                                 @foreach($tour->prices as $index => $price)
+                                @php
+                                $taxIncluded = (bool) config('settings.taxes.included', false);
+                                $breakdown = $price->calculateTaxBreakdown(1, $taxIncluded);
+                                @endphp
                                 <tr>
                                     <td>
                                         <strong>{{ $price->category->name }}</strong>
@@ -89,16 +94,40 @@
                                         <input type="hidden"
                                             name="prices[{{ $index }}][category_id]"
                                             value="{{ $price->category_id }}">
+                                        <input type="hidden"
+                                            name="prices[{{ $index }}][tour_price_id]"
+                                            value="{{ $price->tour_price_id }}">
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text">$</span>
                                             <input type="number"
-                                                class="form-control price-input"
+                                                class="form-control form-control-sm price-input"
                                                 name="prices[{{ $index }}][price]"
                                                 value="{{ number_format($price->price, 2, '.', '') }}"
                                                 step="0.01"
                                                 min="0"
                                                 data-index="{{ $index }}"
                                                 required>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <strong class="text-success">${{ number_format($breakdown['total'], 2) }}</strong>
+                                            @if($tour->taxes->isNotEmpty())
+                                            <small class="text-muted">
+                                                @php
+                                                $hasInclusive = collect($breakdown['taxes'])->contains('included', true);
+                                                $hasExclusive = collect($breakdown['taxes'])->contains('included', false);
+                                                @endphp
+
+                                                @if($hasInclusive && !$hasExclusive)
+                                                <span class="badge badge-success badge-sm">{{ __('taxes.included') }}</span>
+                                                @elseif($hasExclusive && !$hasInclusive)
+                                                <span class="badge badge-warning badge-sm">+ Tax</span>
+                                                @elseif($hasInclusive && $hasExclusive)
+                                                <span class="badge badge-info badge-sm">{{ __('taxes.mixed') }}</span>
+                                                @endif
+                                            </small>
+                                            @endif
                                         </div>
                                     </td>
                                     <td>
@@ -170,127 +199,28 @@
     </div>
 
     <div class="col-lg-4">
-        {{-- Formulario de Impuestos --}}
-        <div class="card card-primary mb-3">
+        {{-- Quick Actions --}}
+        <div class="card card-outline card-primary mb-3">
             <div class="card-header">
-                <h3 class="card-title">{{ __('taxes.title') }}</h3>
+                <h3 class="card-title">{{ __('m_general.quick_actions') }}</h3>
             </div>
-            <form action="{{ route('admin.tours.prices.update-taxes', $tour) }}" method="POST">
-                @csrf
-                <div class="card-body">
-                    <p class="small text-muted">{{ __('taxes.messages.select_taxes') }}</p>
-                    @if($taxes->isEmpty())
-                    <p class="text-muted small">{{ __('m_general.no_records') }}</p>
-                    @else
-                    @foreach($taxes as $tax)
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="taxes[]" value="{{ $tax->tax_id }}" id="tax_{{ $tax->tax_id }}"
-                            {{ $tour->taxes->contains($tax->tax_id) ? 'checked' : '' }}>
-                        <label class="form-check-label" for="tax_{{ $tax->tax_id }}">
-                            {{ $tax->name }}
-                            <small class="text-muted">
-                                ({{ $tax->type == 'percentage' ? number_format($tax->rate, 2) . '%' : '$' . number_format($tax->rate, 2) }})
-                            </small>
-                        </label>
-                    </div>
-                    @endforeach
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#manageTaxesModal">
+                        <i class="fas fa-percentage"></i> {{ __('taxes.title') }}
+                        @if($tour->taxes->isNotEmpty())
+                        <span class="badge bg-light text-dark ms-2">{{ $tour->taxes->count() }}</span>
+                        @endif
+                    </button>
+
+                    @if($availableCategories->isNotEmpty())
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                        <i class="fas fa-plus"></i> {{ __('m_tours.prices.ui.add_category') }}
+                    </button>
                     @endif
                 </div>
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-save"></i> {{ __('m_general.save') }}
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        {{-- Formulario para agregar nueva categoría --}}
-        @if($availableCategories->isNotEmpty())
-        <div class="card card-success">
-            <div class="card-header">
-                <h3 class="card-title">{{ __('m_tours.prices.ui.add_category') }}</h3>
-            </div>
-
-            <form action="{{ route('admin.tours.prices.store', $tour) }}" method="POST" id="addCategoryForm">
-                @csrf
-
-                <div class="card-body">
-                    <div class="form-group mb-3">
-                        <label for="category_id">{{ __('m_tours.prices.forms.category') }}</label>
-                        <select name="category_id" id="category_id" class="form-control" required>
-                            <option value="">{{ __('m_tours.prices.forms.select_placeholder') }}</option>
-                            @foreach($availableCategories as $category)
-                            <option value="{{ $category->category_id }}">
-                                {{ $category->name }} ({{ $category->age_range }})
-                            </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="form-group mb-3">
-                        <label for="price">{{ __('m_tours.prices.forms.price_usd') }}</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number"
-                                name="price"
-                                id="price"
-                                class="form-control"
-                                step="0.01"
-                                min="0"
-                                value="0"
-                                required>
-                        </div>
-                        <small class="form-text text-muted">
-                            {{ __('m_tours.prices.forms.create_disabled_hint') }}
-                        </small>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label for="min_quantity">{{ __('m_tours.prices.forms.min') }}</label>
-                                <input type="number"
-                                    name="min_quantity"
-                                    id="min_quantity"
-                                    class="form-control"
-                                    min="0"
-                                    max="255"
-                                    value="0"
-                                    required>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label for="max_quantity">{{ __('m_tours.prices.forms.max') }}</label>
-                                <input type="number"
-                                    name="max_quantity"
-                                    id="max_quantity"
-                                    class="form-control"
-                                    min="0"
-                                    max="255"
-                                    value="12"
-                                    required>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-success w-100">
-                        <i class="fas fa-plus"></i> {{ __('m_tours.prices.forms.add') }}
-                    </button>
-                </div>
-            </form>
-        </div>
-        @else
-        <div class="card card-info">
-            <div class="card-body text-center">
-                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                <p><strong>{{ __('m_tours.prices.ui.all_assigned_title') }}</strong></p>
-                <p class="small text-muted">{{ __('m_tours.prices.ui.all_assigned_text') }}</p>
             </div>
         </div>
-        @endif
 
         {{-- Información --}}
         <div class="card card-info">
@@ -322,6 +252,129 @@
         </div>
     </div>
 </div>
+
+{{-- Modal: Manage Taxes --}}
+<div class="modal fade" id="manageTaxesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form action="{{ route('admin.tours.prices.update-taxes', $tour) }}" method="POST">
+                @csrf
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-percentage"></i> {{ __('taxes.title') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted">{{ __('taxes.messages.select_taxes') }}</p>
+
+                    @if($taxes->isEmpty())
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> {{ __('m_general.no_records') }}
+                    </div>
+                    @else
+                    <div class="list-group">
+                        @foreach($taxes as $tax)
+                        <label class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
+                            <div class="form-check">
+                                <input class="form-check-input tax-checkbox me-2" type="checkbox" name="taxes[]"
+                                    value="{{ $tax->tax_id }}"
+                                    id="modal_tax_{{ $tax->tax_id }}"
+                                    data-type="{{ $tax->type }}"
+                                    data-rate="{{ $tax->rate }}"
+                                    {{ $tour->taxes->contains($tax->tax_id) ? 'checked' : '' }}>
+                                <div>
+                                    <div class="fw-bold">{{ $tax->name }}</div>
+                                    <small class="text-muted">
+                                        <code>{{ $tax->code }}</code> -
+                                        {{ $tax->type == 'percentage' ? number_format($tax->rate, 2) . '%' : '$' . number_format($tax->rate, 2) }}
+                                    </small>
+                                </div>
+                            </div>
+                            <span class="badge {{ $tax->is_inclusive ? 'bg-success' : 'bg-warning text-dark' }}">
+                                {{ $tax->is_inclusive ? __('taxes.included') : __('taxes.not_included') }}
+                            </span>
+                        </label>
+                        @endforeach
+                    </div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        {{ __('m_general.cancel') }}
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> {{ __('m_general.save') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- Modal: Add Category --}}
+@if($availableCategories->isNotEmpty())
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form action="{{ route('admin.tours.prices.store', $tour) }}" method="POST" id="addCategoryFormModal">
+                @csrf
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-plus"></i> {{ __('m_tours.prices.ui.add_category') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label for="modal_category_id">{{ __('m_tours.prices.forms.category') }} <span class="text-danger">*</span></label>
+                        <select name="category_id" id="modal_category_id" class="form-control" required>
+                            <option value="">{{ __('m_tours.prices.forms.select_placeholder') }}</option>
+                            @foreach($availableCategories as $category)
+                            <option value="{{ $category->category_id }}">
+                                {{ $category->name }} ({{ $category->age_range }})
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="modal_price">{{ __('m_tours.prices.forms.price_usd') }} <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" name="price" id="modal_price" class="form-control" step="0.01" min="0" value="0" required>
+                        </div>
+                        <small class="form-text text-muted">{{ __('m_tours.prices.forms.create_disabled_hint') }}</small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="modal_min_quantity">{{ __('m_tours.prices.forms.min') }} <span class="text-danger">*</span></label>
+                                <input type="number" name="min_quantity" id="modal_min_quantity" class="form-control" min="0" max="255" value="0" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="modal_max_quantity">{{ __('m_tours.prices.forms.max') }} <span class="text-danger">*</span></label>
+                                <input type="number" name="max_quantity" id="modal_max_quantity" class="form-control" min="0" max="255" value="12" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        {{ __('m_general.cancel') }}
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus"></i> {{ __('m_tours.prices.forms.add') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 
 {{-- Modal de confirmación global (fuera de cualquier form) --}}
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
@@ -418,6 +471,111 @@
             return false;
         }
     });
+
+    // ============================
+    // Tax Breakdown Preview Calculator
+    // ============================
+    function calculateTaxBreakdown() {
+        const priceInput = document.getElementById('preview-price');
+        const taxIncludedCheckbox = document.getElementById('tax-included-preview');
+        const breakdownSubtotal = document.getElementById('breakdown-subtotal');
+        const breakdownTaxes = document.getElementById('breakdown-taxes');
+        const breakdownTotal = document.getElementById('breakdown-total');
+
+        if (!priceInput || !taxIncludedCheckbox) return;
+
+        const basePrice = parseFloat(priceInput.value) || 0;
+        const taxIncluded = taxIncludedCheckbox.checked;
+
+        // Get selected taxes
+        const selectedTaxes = [];
+        document.querySelectorAll('.tax-checkbox:checked').forEach(checkbox => {
+            selectedTaxes.push({
+                type: checkbox.dataset.type,
+                rate: parseFloat(checkbox.dataset.rate) || 0,
+                name: checkbox.parentElement.querySelector('label').textContent.trim().split('(')[0].trim()
+            });
+        });
+
+        let subtotal, taxAmountTotal, total;
+        const taxDetails = [];
+
+        if (taxIncluded) {
+            // Tax is INCLUDED in the base price
+            total = basePrice;
+            subtotal = basePrice;
+            taxAmountTotal = 0;
+
+            selectedTaxes.forEach(tax => {
+                let taxAmount = 0;
+                if (tax.type === 'percentage') {
+                    const divisor = 1 + (tax.rate / 100);
+                    const currentSubtotal = subtotal / divisor;
+                    taxAmount = subtotal - currentSubtotal;
+                    subtotal = currentSubtotal;
+                } else {
+                    taxAmount = tax.rate;
+                    subtotal -= taxAmount;
+                }
+                taxAmountTotal += taxAmount;
+                taxDetails.push({
+                    name: tax.name,
+                    amount: taxAmount,
+                    rate: tax.rate,
+                    type: tax.type
+                });
+            });
+        } else {
+            // Tax is NOT INCLUDED - add on top
+            subtotal = basePrice;
+            taxAmountTotal = 0;
+
+            selectedTaxes.forEach(tax => {
+                let taxAmount = 0;
+                if (tax.type === 'percentage') {
+                    taxAmount = subtotal * (tax.rate / 100);
+                } else {
+                    taxAmount = tax.rate;
+                }
+                taxAmountTotal += taxAmount;
+                taxDetails.push({
+                    name: tax.name,
+                    amount: taxAmount,
+                    rate: tax.rate,
+                    type: tax.type
+                });
+            });
+
+            total = subtotal + taxAmountTotal;
+        }
+
+        // Update display
+        if (breakdownSubtotal) breakdownSubtotal.textContent = '$' + subtotal.toFixed(2);
+        if (breakdownTotal) breakdownTotal.textContent = '$' + total.toFixed(2);
+
+        if (breakdownTaxes) {
+            breakdownTaxes.innerHTML = '';
+            taxDetails.forEach(tax => {
+                const rateDisplay = tax.type === 'percentage' ? tax.rate.toFixed(2) + '%' : '$' + tax.rate.toFixed(2);
+                breakdownTaxes.innerHTML += `
+                    <div class="d-flex justify-content-between mb-1 text-muted small">
+                        <span class="ml-2">${tax.name} (${rateDisplay}):</span>
+                        <span>$${tax.amount.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+        }
+    }
+
+    // Attach event listeners for tax breakdown
+    document.getElementById('preview-price')?.addEventListener('input', calculateTaxBreakdown);
+    document.getElementById('tax-included-preview')?.addEventListener('change', calculateTaxBreakdown);
+    document.querySelectorAll('.tax-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', calculateTaxBreakdown);
+    });
+
+    // Initial calculation
+    calculateTaxBreakdown();
 
     // ============================
     // Modal delete: setear action dinámico (Bootstrap 5)

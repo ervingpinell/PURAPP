@@ -511,11 +511,90 @@ $initialNotes = old('notes', $cart->notes ?? '');
   {{-- Total + Promo code --}}
   <div class="card shadow-sm mb-4">
     <div class="card-body">
-      <h4 class="mb-3">
-        <strong>{{ __('adminlte::adminlte.totalEstimated') }}:</strong>
-        <span class="currency-symbol">$</span>
-        <span id="cart-total" class="gv-total">{{ number_format($total, 2) }}</span>
-      </h4>
+      @php
+      // Calculate tax breakdown for cart (Hidden for user, used for total)
+      $calculatedTotal = 0;
+
+      if ($cart && $cart->items) {
+      foreach($cart->items as $item) {
+      $cats = collect($item->categories ?? []);
+
+      if ($cats->isNotEmpty()) {
+      foreach($cats as $cat) {
+      $catId = $cat['category_id'] ?? null;
+      if ($catId) {
+      $tourPrice = \App\Models\TourPrice::where('tour_id', $item->tour_id)
+      ->where('category_id', $catId)
+      ->first();
+
+      if ($tourPrice) {
+      $catQty = (int)($cat['quantity'] ?? 0);
+      $breakdown = $tourPrice->calculateTaxBreakdown($catQty);
+      $calculatedTotal += $breakdown['total'];
+      }
+      }
+      }
+      } else {
+      // Legacy: adult/kid prices
+      $adultQty = (int)($item->adults_quantity ?? 0);
+      $kidQty = (int)($item->kids_quantity ?? 0);
+
+      if ($adultQty > 0) {
+      $adultPrice = $item->tour->prices->where('category.slug', 'adult')->first();
+      if ($adultPrice) {
+      $breakdown = $adultPrice->calculateTaxBreakdown($adultQty);
+      $calculatedTotal += $breakdown['total'];
+      }
+      }
+
+      if ($kidQty > 0) {
+      $kidPrice = $item->tour->prices->whereIn('category.slug', ['kid', 'child'])->first();
+      if ($kidPrice) {
+      $breakdown = $kidPrice->calculateTaxBreakdown($kidQty);
+      $calculatedTotal += $breakdown['total'];
+      }
+      }
+      }
+      }
+      }
+
+      $displaySubtotal = $calculatedTotal;
+      @endphp
+
+      {{-- Subtotal --}}
+      <div class="d-flex justify-content-between mb-2">
+        <span class="fw-semibold">{{ __('adminlte::adminlte.subtotal') }}:</span>
+        <span class="fw-semibold">${{ number_format($displaySubtotal, 2) }}</span>
+      </div>
+
+      {{-- Promo Code Adjustment --}}
+      @if($promoSession)
+      <div class="d-flex justify-content-between text-{{ $promoSession['operation'] === 'add' ? 'danger' : 'success' }} mb-2">
+        <span>
+          <i class="fas fa-tag"></i> {{ $promoSession['code'] ?? 'PROMO' }}
+        </span>
+        <span>
+          {{ $promoSession['operation'] === 'add' ? '+' : '-' }}${{ number_format($promoSession['adjustment'] ?? 0, 2) }}
+        </span>
+      </div>
+      @endif
+
+      @php
+      // Apply promo to calculated total
+      if ($promoSession) {
+      $op = (($promoSession['operation'] ?? 'subtract') === 'add') ? 1 : -1;
+      $calculatedTotal = max(0, round($calculatedTotal + $op * (float)($promoSession['adjustment'] ?? 0), 2));
+      }
+      @endphp
+
+      {{-- Total --}}
+      <div class="border-top pt-3 mt-2">
+        <h4 class="mb-3">
+          <strong>{{ __('adminlte::adminlte.totalEstimated') }}:</strong>
+          <span class="currency-symbol">$</span>
+          <span id="cart-total" class="gv-total">{{ number_format($calculatedTotal, 2) }}</span>
+        </h4>
+      </div>
 
       <label for="promo-code" class="form-label fw-semibold">{{ __('adminlte::adminlte.promoCode') }}</label>
       <div class="d-flex flex-column flex-sm-row gap-2">

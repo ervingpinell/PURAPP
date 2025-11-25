@@ -211,25 +211,59 @@ return asset('images/volcano.png');
     </div>
 
     <div class="mini-cart-footer">
+      {{-- Tax Breakdown Calculation (Hidden for user, used for total) --}}
       @php
-      // Calculate subtotal without promo
-      $subtotal = $headerCart->items->sum(function ($i) {
-      $cats = collect($i->categories ?? []);
+      $calculatedTotal = 0;
+
+      foreach($headerCart->items as $item) {
+      $cats = collect($item->categories ?? []);
+
       if ($cats->isNotEmpty()) {
-      return (float) $cats->sum(fn($c) =>
-      ((float)($c['price'] ?? 0)) * ((int)($c['quantity'] ?? 0))
-      );
+      foreach($cats as $cat) {
+      $catId = $cat['category_id'] ?? null;
+      if ($catId) {
+      $tourPrice = \App\Models\TourPrice::where('tour_id', $item->tour_id)
+      ->where('category_id', $catId)
+      ->first();
+
+      if ($tourPrice) {
+      $catQty = (int)($cat['quantity'] ?? 0);
+      // We just need the total
+      $breakdown = $tourPrice->calculateTaxBreakdown($catQty);
+      $calculatedTotal += $breakdown['total'];
       }
-      return (float) (
-      (($i->tour->adult_price ?? 0) * ($i->adults_quantity ?? 0)) +
-      (($i->tour->kid_price ?? 0) * ($i->kids_quantity ?? 0))
-      );
-      });
+      }
+      }
+      } else {
+      // Legacy: adult/kid prices
+      $adultQty = (int)($item->adults_quantity ?? 0);
+      $kidQty = (int)($item->kids_quantity ?? 0);
+
+      if ($adultQty > 0) {
+      $adultPrice = $item->tour->prices->where('category.slug', 'adult')->first();
+      if ($adultPrice) {
+      $breakdown = $adultPrice->calculateTaxBreakdown($adultQty);
+      $calculatedTotal += $breakdown['total'];
+      }
+      }
+
+      if ($kidQty > 0) {
+      $kidPrice = $item->tour->prices->whereIn('category.slug', ['kid', 'child'])->first();
+      if ($kidPrice) {
+      $breakdown = $kidPrice->calculateTaxBreakdown($kidQty);
+      $calculatedTotal += $breakdown['total'];
+      }
+      }
+      }
+      }
+
+      // Display Subtotal is now the same as Total (All taxes included in display)
+      $displaySubtotal = $calculatedTotal;
       @endphp
 
       <div class="mini-cart-total">
         <span class="mini-cart-total-label">{{ __('adminlte::adminlte.subtotal') }}</span>
-        <span class="mini-cart-total-amount">${{ number_format($subtotal, 2) }}</span>
+        <span class="mini-cart-total-amount">${{ number_format($displaySubtotal, 2) }}</span>
       </div>
 
       @if($promoData)
@@ -245,9 +279,17 @@ return asset('images/volcano.png');
       </div>
       @endif
 
+      @php
+      // Apply promo to calculated total
+      if ($promoData) {
+      $op = (($promoData['operation'] ?? 'subtract') === 'add') ? 1 : -1;
+      $calculatedTotal = max(0, round($calculatedTotal + $op * (float)($promoData['adjustment'] ?? 0), 2));
+      }
+      @endphp
+
       <div class="mini-cart-total mini-cart-final-total">
         <span class="mini-cart-total-label">{{ __('adminlte::adminlte.total') }}</span>
-        <span class="mini-cart-total-amount">${{ number_format($headerTotal, 2) }}</span>
+        <span class="mini-cart-total-amount">${{ number_format($calculatedTotal, 2) }}</span>
       </div>
 
       <div class="mini-cart-actions">
@@ -346,6 +388,32 @@ return asset('images/volcano.png');
   .promo-amount.text-danger {
     color: #dc3545 !important;
     /* primary-red for surcharge */
+  }
+
+  /* Tax breakdown section */
+  .mini-cart-taxes {
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    margin: 8px 0;
+  }
+
+  .tax-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    padding: 4px 0;
+    color: #6c757d;
+  }
+
+  .tax-name {
+    font-weight: 500;
+  }
+
+  .tax-amount {
+    font-weight: 600;
+    color: #495057;
   }
 
   .mini-cart-final-total {

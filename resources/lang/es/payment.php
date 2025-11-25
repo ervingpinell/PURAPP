@@ -4,6 +4,7 @@ return [
     // Payment Page
     'payment' => 'Pago',
     'payment_information' => 'Información de Pago',
+    'select_payment_method' => 'Selecciona tu método de pago',
     'secure_payment' => 'Pago Seguro',
     'payment_secure_encrypted' => 'Tu pago es seguro y está encriptado',
     'powered_by_stripe' => 'Powered by Stripe. La información de tu tarjeta nunca se almacena en nuestros servidores.',
@@ -57,4 +58,5 @@ return [
     // Messages
     'complete_payment_message' => 'Por favor completa el pago para confirmar tu reserva',
     'payment_cancelled' => 'El pago fue cancelado. Puedes intentar nuevamente cuando estés listo.',
+    'redirect_paypal' => 'Redirigiendo a PayPal...',
 ];

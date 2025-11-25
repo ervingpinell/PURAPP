@@ -406,18 +406,21 @@ Route::middleware([SetLocale::class])->group(function () {
         // Checkout desde carrito (público)
         Route::post('/bookings/from-cart', [PublicBookingController::class, 'storeFromCart'])->name('public.bookings.storeFromCart');
 
-        // Checkout: vista de términos + proceso de aceptación (desplazar/leer + checkbox)
+        // Checkout
         Route::get('/checkout', [PublicCheckoutController::class, 'show'])->name('public.checkout.show');
-        Route::post('/checkout/process', [PublicCheckoutController::class, 'process'])->name('public.checkout.process');
+        Route::post('/checkout/process', [PublicCheckoutController::class, 'process'])
+            ->name('public.checkout.process');
+        Route::post('/checkout/accept-terms', [PublicCheckoutController::class, 'acceptTerms'])->name('public.checkout.accept-terms');
 
-        // Payment routes
-        Route::prefix('payment')->name('payment.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\PaymentController::class, 'show'])->name('show');
-            Route::post('/initiate', [\App\Http\Controllers\PaymentController::class, 'initiate'])->name('initiate');
-            Route::get('/confirm', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('confirm');
-            Route::get('/cancel', [\App\Http\Controllers\PaymentController::class, 'cancel'])->name('cancel');
-            Route::get('/{payment}/status', [\App\Http\Controllers\PaymentController::class, 'status'])->name('status');
-        });
+        // Payment
+        Route::get('/payment', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payment.show');
+        Route::post('/payment/initiate', [\App\Http\Controllers\PaymentController::class, 'initiate'])
+            ->middleware('throttle:10,1')
+            ->name('payment.initiate');
+        Route::get('/payment/confirm', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.confirm');
+        Route::get('/payment/return', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.return'); // PayPal return URL
+        Route::get('/payment/cancel', [\App\Http\Controllers\PaymentController::class, 'cancel'])->name('payment.cancel');
+        Route::get('/payment/{payment}/status', [\App\Http\Controllers\PaymentController::class, 'status'])->name('payment.status');
     });
 
     // ------------------------------
@@ -974,3 +977,13 @@ Route::post('/cookies/accept', [CookieConsentController::class, 'accept'])
 Route::post('/cookies/reject', [CookieConsentController::class, 'reject'])
     ->name('cookies.reject')
     ->middleware('throttle:10,1');
+
+// Temporary Test Route for PayPal
+Route::get('/test-paypal', function () {
+    try {
+        $gateway = app(\App\Services\PaymentGateway\PaymentGatewayManager::class)->driver('paypal');
+        return 'PayPal Gateway Initialized Successfully. Check logs for details.';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage() . '<br>' . $e->getTraceAsString();
+    }
+});

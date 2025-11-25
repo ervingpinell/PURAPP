@@ -57,4 +57,5 @@ return [
     // Messages
     'complete_payment_message' => 'Bitte schließen Sie die Zahlung ab, um Ihre Buchung zu bestätigen',
     'payment_cancelled' => 'Die Zahlung wurde storniert. Sie können es erneut versuchen, wenn Sie bereit sind.',
+    'redirect_paypal' => 'Weiterleitung zu PayPal...',
 ];

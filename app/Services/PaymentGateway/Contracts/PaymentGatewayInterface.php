@@ -2,16 +2,18 @@
 
 namespace App\Services\PaymentGateway\Contracts;
 
+use App\Services\PaymentGateway\DTO\PaymentIntentResponse;
+
 interface PaymentGatewayInterface
 {
     /**
      * Create a payment intent/session
      *
      * @param array $data Payment data including amount, currency, booking info
-     * @return array Payment intent data with client_secret, intent_id, etc.
+     * @return PaymentIntentResponse Standardized payment intent response
      * @throws \Exception
      */
-    public function createPaymentIntent(array $data): array;
+    public function createPaymentIntent(array $data): PaymentIntentResponse;
 
     /**
      * Capture/confirm a payment

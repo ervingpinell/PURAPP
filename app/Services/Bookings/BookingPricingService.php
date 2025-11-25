@@ -9,11 +9,13 @@ class BookingPricingService
     /** Suma quantity * price en el snapshot */
     public function calculateSubtotal(array $categories): float
     {
-        $total = collect($categories)->sum(function ($cat) {
+        // Legacy support: if no tax_breakdown, use simple math
+        return collect($categories)->sum(function ($cat) {
+            if (isset($cat['tax_breakdown']['subtotal'])) {
+                return $cat['tax_breakdown']['subtotal'];
+            }
             return ((float)($cat['price'] ?? 0)) * ((int)($cat['quantity'] ?? 0));
         });
-
-        return round($total, 2);
     }
 
     /**
@@ -36,17 +38,66 @@ class BookingPricingService
                 ->first();
 
             if ($price) {
+                // Calculate tax breakdown for this line item
+                $breakdown = $price->calculateTaxBreakdown($quantity);
+
                 $snapshot[] = [
                     'category_id'   => (int)$categoryId,
                     'category_name' => $price->category->name,
                     'category_slug' => $price->category->slug ?? strtolower($price->category->name),
                     'quantity'      => $quantity,
                     'price'         => (float)$price->price,
+                    'tax_breakdown' => $breakdown, // Store full breakdown
                 ];
             }
         }
 
         return $snapshot;
+    }
+
+    /**
+     * Calcula totales agregados (subtotal, impuestos, total) desde el snapshot
+     */
+    public function calculateTotals(array $categories): array
+    {
+        $subtotal = 0.0;
+        $taxTotal = 0.0;
+        $total = 0.0;
+        $taxesBreakdown = [];
+
+        foreach ($categories as $cat) {
+            if (isset($cat['tax_breakdown'])) {
+                $bd = $cat['tax_breakdown'];
+                $subtotal += $bd['subtotal'];
+                $taxTotal += $bd['tax_amount'];
+                $total += $bd['total'];
+
+                // Aggregate individual taxes
+                foreach ($bd['taxes'] as $tax) {
+                    $code = $tax['code'];
+                    if (!isset($taxesBreakdown[$code])) {
+                        $taxesBreakdown[$code] = [
+                            'name' => $tax['name'],
+                            'amount' => 0.0,
+                            'included' => $tax['included']
+                        ];
+                    }
+                    $taxesBreakdown[$code]['amount'] += $tax['amount'];
+                }
+            } else {
+                // Fallback
+                $lineTotal = ((float)($cat['price'] ?? 0)) * ((int)($cat['quantity'] ?? 0));
+                $subtotal += $lineTotal;
+                $total += $lineTotal;
+            }
+        }
+
+        return [
+            'subtotal' => round($subtotal, 2),
+            'tax_amount' => round($taxTotal, 2),
+            'total' => round($total, 2),
+            'taxes_breakdown' => $taxesBreakdown
+        ];
     }
 
     /** Aplica promo al subtotal */

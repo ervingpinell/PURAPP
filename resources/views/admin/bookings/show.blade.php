@@ -635,7 +635,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
 
             const tourStartHour = {
                 {
-                    $scheduleStart - > hour
+                    $scheduleStart->hour
                 }
             };
             const tourPeriod = '{{ $tourPeriod }}';

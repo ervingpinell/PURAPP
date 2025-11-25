@@ -512,7 +512,7 @@ class Tour extends Model
     public function getAdultPriceAttribute(): ?float
     {
         $adultPrice = $this->getPriceForCategory('adult');
-        return $adultPrice ? (float) $adultPrice->price_with_tax : null;
+        return $adultPrice ? (float) $adultPrice->final_price : null;
     }
 
     /**
@@ -522,7 +522,7 @@ class Tour extends Model
     public function getKidPriceAttribute(): ?float
     {
         $kid = $this->getPriceForCategory('kid') ?: $this->getPriceForCategory('child');
-        return $kid ? (float) $kid->price_with_tax : null;
+        return $kid ? (float) $kid->final_price : null;
     }
 
     /**

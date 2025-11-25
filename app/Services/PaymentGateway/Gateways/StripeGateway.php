@@ -34,11 +34,18 @@ class StripeGateway extends AbstractPaymentGateway
     /**
      * Create a payment intent
      */
-    public function createPaymentIntent(array $data): array
+    public function createPaymentIntent(array $data): \App\Services\PaymentGateway\DTO\PaymentIntentResponse
     {
         try {
             $this->validateAmount($data['amount']);
             $this->validateCurrency($data['currency']);
+
+            $this->logActivity('create_payment_intent:incoming', [
+                'amount'   => $data['amount'],
+                'currency' => $data['currency'],
+                'email'    => $data['receipt_email'] ?? null,
+                'customer_id' => $data['customer_id'] ?? null,
+            ]);
 
             $amount = $this->formatAmountForGateway($data['amount'], $data['currency']);
 
@@ -51,69 +58,69 @@ class StripeGateway extends AbstractPaymentGateway
                 'metadata' => $this->buildMetadata($data),
             ];
 
-            // Add customer if provided
             if (!empty($data['customer_id'])) {
                 $intentData['customer'] = $data['customer_id'];
             }
 
-            // Add description
             if (!empty($data['description'])) {
                 $intentData['description'] = $data['description'];
             }
 
-            // Add receipt email
             if (!empty($data['receipt_email'])) {
                 $intentData['receipt_email'] = $data['receipt_email'];
             }
 
-            // Set capture method
             $intentData['capture_method'] = $this->config['capture_method'] ?? 'automatic';
 
             $intent = PaymentIntent::create($intentData);
 
             $this->logActivity('payment_intent_created', [
                 'intent_id' => $intent->id,
-                'amount' => $data['amount'],
-                'currency' => $data['currency'],
+                'amount'    => $data['amount'],
+                'currency'  => $data['currency'],
             ]);
 
-            return [
-                'success' => true,
-                'payment_intent_id' => $intent->id,
-                'client_secret' => $intent->client_secret,
-                'status' => $intent->status,
-                'amount' => $this->formatAmountFromGateway($intent->amount, $data['currency']),
-                'currency' => strtoupper($intent->currency),
-            ];
+            return new \App\Services\PaymentGateway\DTO\PaymentIntentResponse(
+                paymentIntentId: $intent->id,
+                status: $intent->status,
+                clientSecret: $intent->client_secret,
+                redirectUrl: null, // Stripe doesn't use redirect
+                metadata: [
+                    'amount' => $this->formatAmountFromGateway($intent->amount, $data['currency']),
+                    'currency' => strtoupper($intent->currency),
+                ],
+                raw: [
+                    'id' => $intent->id,
+                    'status' => $intent->status,
+                    'amount' => $intent->amount,
+                    'currency' => $intent->currency,
+                ]
+            );
         } catch (ApiErrorException $e) {
             $this->handleException($e, 'create_payment_intent');
         }
     }
 
-    /**
-     * Capture/confirm a payment
-     */
     public function capturePayment(string $paymentIntentId, array $data = []): array
     {
         try {
             $intent = PaymentIntent::retrieve($paymentIntentId);
 
-            // If manual capture is enabled and payment requires capture
             if ($intent->capture_method === 'manual' && $intent->status === 'requires_capture') {
                 $intent = $intent->capture();
             }
 
             $this->logActivity('payment_captured', [
                 'intent_id' => $intent->id,
-                'status' => $intent->status,
+                'status'    => $intent->status,
             ]);
 
             return [
-                'success' => $intent->status === 'succeeded',
+                'success'        => $intent->status === 'succeeded',
                 'transaction_id' => $intent->id,
-                'status' => $intent->status,
-                'amount' => $this->formatAmountFromGateway($intent->amount, $intent->currency),
-                'currency' => strtoupper($intent->currency),
+                'status'         => $intent->status,
+                'amount'         => $this->formatAmountFromGateway($intent->amount, $intent->currency),
+                'currency'       => strtoupper($intent->currency),
                 'payment_method' => $this->extractPaymentMethodDetails($intent),
             ];
         } catch (ApiErrorException $e) {
@@ -121,25 +128,21 @@ class StripeGateway extends AbstractPaymentGateway
         }
     }
 
-    /**
-     * Refund a payment
-     */
     public function refundPayment(string $transactionId, float $amount, array $data = []): array
     {
         try {
             $this->validateAmount($amount);
 
-            // Get the original payment intent to get currency
-            $intent = PaymentIntent::retrieve($transactionId);
+            $intent       = PaymentIntent::retrieve($transactionId);
             $refundAmount = $this->formatAmountForGateway($amount, $intent->currency);
 
             $refundData = [
                 'payment_intent' => $transactionId,
-                'amount' => $refundAmount,
+                'amount'         => $refundAmount,
             ];
 
             if (!empty($data['reason'])) {
-                $refundData['reason'] = $data['reason']; // requested_by_customer, duplicate, fraudulent
+                $refundData['reason'] = $data['reason'];
             }
 
             if (!empty($data['metadata'])) {
@@ -149,16 +152,16 @@ class StripeGateway extends AbstractPaymentGateway
             $refund = Refund::create($refundData);
 
             $this->logActivity('payment_refunded', [
-                'refund_id' => $refund->id,
+                'refund_id'         => $refund->id,
                 'payment_intent_id' => $transactionId,
-                'amount' => $amount,
+                'amount'            => $amount,
             ]);
 
             return [
-                'success' => true,
+                'success'  => true,
                 'refund_id' => $refund->id,
-                'status' => $refund->status,
-                'amount' => $this->formatAmountFromGateway($refund->amount, $intent->currency),
+                'status'   => $refund->status,
+                'amount'   => $this->formatAmountFromGateway($refund->amount, $intent->currency),
                 'currency' => strtoupper($intent->currency),
             ];
         } catch (ApiErrorException $e) {
@@ -166,19 +169,16 @@ class StripeGateway extends AbstractPaymentGateway
         }
     }
 
-    /**
-     * Get payment status
-     */
     public function getPaymentStatus(string $paymentIntentId): array
     {
         try {
             $intent = PaymentIntent::retrieve($paymentIntentId);
 
             return [
-                'success' => true,
-                'status' => $intent->status,
-                'amount' => $this->formatAmountFromGateway($intent->amount, $intent->currency),
-                'currency' => strtoupper($intent->currency),
+                'success'        => true,
+                'status'         => $intent->status,
+                'amount'         => $this->formatAmountFromGateway($intent->amount, $intent->currency),
+                'currency'       => strtoupper($intent->currency),
                 'payment_method' => $this->extractPaymentMethodDetails($intent),
             ];
         } catch (ApiErrorException $e) {
@@ -186,13 +186,9 @@ class StripeGateway extends AbstractPaymentGateway
         }
     }
 
-    /**
-     * Handle Stripe webhook
-     */
     public function handleWebhook(array $payload, ?string $signature = null): array
     {
         try {
-            // Verify webhook signature if secret is configured
             if (!empty($this->config['webhook_secret']) && $signature) {
                 $event = Webhook::constructEvent(
                     json_encode($payload),
@@ -200,33 +196,28 @@ class StripeGateway extends AbstractPaymentGateway
                     $this->config['webhook_secret']
                 );
             } else {
-                // For development/testing without signature verification
                 $event = (object) $payload;
             }
 
             $this->logActivity('webhook_received', [
                 'type' => $event->type ?? 'unknown',
-                'id' => $event->id ?? null,
+                'id'   => $event->id ?? null,
             ]);
 
             return [
-                'success' => true,
+                'success'    => true,
                 'event_type' => $event->type ?? 'unknown',
-                'event_id' => $event->id ?? null,
-                'data' => $event->data ?? null,
+                'event_id'   => $event->id ?? null,
+                'data'       => $event->data ?? null,
             ];
         } catch (\Exception $e) {
             $this->handleException($e, 'handle_webhook');
         }
     }
 
-    /**
-     * Validate Stripe credentials
-     */
     public function validateCredentials(): bool
     {
         try {
-            // Try to retrieve account information
             $account = \Stripe\Account::retrieve();
             return !empty($account->id);
         } catch (ApiErrorException $e) {
@@ -237,17 +228,11 @@ class StripeGateway extends AbstractPaymentGateway
         }
     }
 
-    /**
-     * Stripe supports USD and CRC
-     */
     public function supportsCurrency(string $currency): bool
     {
         return in_array(strtoupper($currency), ['USD', 'CRC']);
     }
 
-    /**
-     * Create a Stripe customer
-     */
     public function createCustomer(array $customerData): array
     {
         try {
@@ -273,44 +258,40 @@ class StripeGateway extends AbstractPaymentGateway
 
             $this->logActivity('customer_created', [
                 'customer_id' => $customer->id,
-                'email' => $customer->email,
+                'email'       => $customer->email,
             ]);
 
             return [
-                'success' => true,
+                'success'             => true,
                 'gateway_customer_id' => $customer->id,
-                'email' => $customer->email,
-                'name' => $customer->name,
+                'email'               => $customer->email,
+                'name'                => $customer->name,
             ];
         } catch (ApiErrorException $e) {
             $this->handleException($e, 'create_customer');
         }
     }
 
-    /**
-     * Save a payment method
-     */
     public function savePaymentMethod(string $customerId, string $paymentMethodId): array
     {
         try {
-            // Attach payment method to customer
             $paymentMethod = PaymentMethod::retrieve($paymentMethodId);
             $paymentMethod->attach(['customer' => $customerId]);
 
             $this->logActivity('payment_method_saved', [
-                'customer_id' => $customerId,
+                'customer_id'       => $customerId,
                 'payment_method_id' => $paymentMethodId,
             ]);
 
             return [
-                'success' => true,
+                'success'                 => true,
                 'gateway_payment_method_id' => $paymentMethod->id,
-                'type' => $paymentMethod->type,
-                'card' => $paymentMethod->card ? [
-                    'brand' => $paymentMethod->card->brand,
-                    'last4' => $paymentMethod->card->last4,
-                    'exp_month' => $paymentMethod->card->exp_month,
-                    'exp_year' => $paymentMethod->card->exp_year,
+                'type'                    => $paymentMethod->type,
+                'card'                    => $paymentMethod->card ? [
+                    'brand'       => $paymentMethod->card->brand,
+                    'last4'       => $paymentMethod->card->last4,
+                    'exp_month'   => $paymentMethod->card->exp_month,
+                    'exp_year'    => $paymentMethod->card->exp_year,
                     'fingerprint' => $paymentMethod->card->fingerprint,
                 ] : null,
             ];
@@ -319,9 +300,6 @@ class StripeGateway extends AbstractPaymentGateway
         }
     }
 
-    /**
-     * Extract payment method details from payment intent
-     */
     protected function extractPaymentMethodDetails(PaymentIntent $intent): ?array
     {
         if (!$intent->payment_method) {
@@ -334,7 +312,7 @@ class StripeGateway extends AbstractPaymentGateway
                 : $intent->payment_method;
 
             return [
-                'type' => $pm->type ?? null,
+                'type'       => $pm->type ?? null,
                 'card_brand' => $pm->card->brand ?? null,
                 'card_last4' => $pm->card->last4 ?? null,
             ];
