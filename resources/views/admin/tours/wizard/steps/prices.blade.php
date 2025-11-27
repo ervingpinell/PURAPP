@@ -1,4 +1,5 @@
 {{-- resources/views/admin/tours/wizard/steps/prices.blade.php --}}
+{{-- NUEVA VERSIÓN COMPACTA: Precios agrupados por periodos de fechas --}}
 
 @extends('adminlte::page')
 
@@ -6,393 +7,199 @@
 
 @push('css')
 <style>
-    /* Header mejorado */
-    .prices-header {
-        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 0.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .prices-header h1 {
-        margin: 0;
-        font-size: 1.75rem;
-        font-weight: 600;
-    }
-
-    .prices-header p {
-        margin: 0.5rem 0 0 0;
-        opacity: 0.9;
-    }
-
-    /* Alert de validación personalizado */
-    .validation-alert {
-        background: rgba(245, 101, 101, 0.15);
-        border: 2px solid #f56565;
-        color: #fc8181;
-        border-radius: 0.5rem;
-        padding: 1rem 1.5rem;
+    /* Dark theme compatible styles */
+    .pricing-period-card {
         margin-bottom: 1.5rem;
-        animation: slideDown 0.3s ease-out;
-    }
-
-    .validation-alert strong {
-        color: #fc8181;
-        display: block;
-        margin-bottom: 0.5rem;
-        font-size: 1.1rem;
-    }
-
-    .validation-alert i {
-        margin-right: 0.5rem;
-    }
-
-    .validation-alert ul {
-        margin-bottom: 0;
-        padding-left: 1.5rem;
-    }
-
-    .validation-alert .close-alert {
-        float: right;
-        background: none;
-        border: none;
-        color: #fc8181;
-        font-size: 1.5rem;
-        cursor: pointer;
-        padding: 0;
-        line-height: 1;
-        opacity: 0.7;
-        margin-left: 1rem;
-    }
-
-    .validation-alert .close-alert:hover {
-        opacity: 1;
-    }
-
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Tarjetas con tema oscuro */
-    .prices-card {
-        border: none;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-        margin-bottom: 1.25rem;
+        border: 1px solid #454d55;
         border-radius: 0.5rem;
         overflow: hidden;
-        background: #2d3748;
+        background: #343a40;
     }
 
-    .prices-card .card-header {
-        padding: 0.75rem 1rem;
-        font-weight: 600;
-        font-size: 0.95rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        background: #3a4556;
-        color: #e2e8f0;
-    }
-
-    .prices-card .card-body {
-        padding: 1rem;
-        background: #2d3748;
-        color: #cbd5e0;
-    }
-
-    /* Alert info mejorado */
-    .alert-info {
-        background: rgba(66, 153, 225, 0.15);
-        border: 1px solid rgba(66, 153, 225, 0.3);
-        color: #90cdf4;
-        border-radius: 0.375rem;
-    }
-
-    .alert-info i {
-        color: #63b3ed;
-    }
-
-    .alert-info strong {
-        color: #bee3f8;
-    }
-
-    /* Alert warning */
-    .alert-warning {
-        background: rgba(237, 137, 54, 0.15);
-        border: 1px solid rgba(237, 137, 54, 0.3);
-        color: #fbd38d;
-        border-radius: 0.375rem;
-    }
-
-    /* Selector de categorías */
-    .category-selector-wrapper {
-        background: #3a4556;
-        padding: 1rem;
-        border-radius: 0.375rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .category-selector-wrapper label {
-        color: #e2e8f0;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .category-selector-wrapper select,
-    .category-selector-wrapper input {
-        background: #2d3748;
-        border: 1px solid #4a5568;
-        color: #e2e8f0;
-    }
-
-    .category-selector-wrapper select:focus,
-    .category-selector-wrapper input:focus {
-        background: #2d3748;
-        border-color: #667eea;
-        color: #e2e8f0;
-    }
-
-    .category-selector-wrapper select option {
-        background: #2d3748;
-        color: #e2e8f0;
-    }
-
-    /* Price cards individuales */
-    .price-card {
-        background: #3a4556;
-        border: 1px solid #4a5568;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-
-    .price-card .card-header {
+    .period-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-bottom: none;
-        padding: 0.75rem 1rem;
-    }
-
-    .price-card .card-title {
         color: white;
-        margin: 0;
-    }
-
-    .price-card .card-title small {
-        opacity: 0.8;
-    }
-
-    .price-card .card-body {
-        background: #2d3748;
-        padding: 1rem;
-    }
-
-    .price-card label {
-        color: #a0aec0;
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .price-card input,
-    .price-card .input-group-text {
-        background: #3a4556;
-        border: 1px solid #4a5568;
-        color: #e2e8f0;
-    }
-
-    .price-card input:focus {
-        background: #3a4556;
-        border-color: #667eea;
-        color: #e2e8f0;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    }
-
-    .price-card input.is-invalid {
-        border-color: #f56565 !important;
-    }
-
-    .price-card .input-group-text {
-        color: #48bb78;
-        font-weight: 600;
-    }
-
-    /* Botones header */
-    .header-actions {
+        padding: 1rem 1.25rem;
         display: flex;
-        gap: 0.5rem;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .period-header.default {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    }
+
+    /* Listado de periodos en el SweetAlert de solapamiento */
+    .price-conflict-list {
+        list-style-type: disc;
+        list-style-position: inside; /* Clave para que el texto quede cerca del punto */
+        padding-left: 0;
+        margin: .75rem 0 0;
+        text-align: left;
+    }
+
+    .price-conflict-list li {
+        margin: .15rem 0;
+    }
+
+    .period-dates {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
         flex-wrap: wrap;
     }
 
-    /* Footer de navegación */
-    .navigation-footer {
-        background: #2d3748;
+    .period-dates input[type="date"] {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+    }
+
+    .period-dates input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+    }
+
+    .period-dates input[type="date"].is-invalid {
+        border-color: #f56565;
+        background: rgba(245, 101, 101, 0.2);
+    }
+
+    .categories-table {
+        margin: 0;
+        background: #343a40;
+    }
+
+    .categories-table thead {
+        background: #454d55;
+    }
+
+    .categories-table th {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        padding: 0.5rem;
+        border-bottom: 2px solid #454d55;
+        color: #c2c7d0;
+    }
+
+    .categories-table td {
+        padding: 0.5rem;
+        vertical-align: middle;
+        border-top: 1px solid #454d55;
+        color: #c2c7d0;
+    }
+
+    .categories-table tbody tr:hover {
+        background: #3a4047;
+    }
+
+    .categories-table input[type="number"],
+    .categories-table input[type="text"] {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.5rem;
+        background: #3d444b;
+        border: 1px solid #6c757d;
+        color: #fff;
+    }
+
+    .categories-table input[type="number"].is-invalid {
+        border-color: #f56565;
+    }
+
+    .categories-table input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .add-category-section {
+        padding: 1rem 1.25rem;
+        background: #3d444b;
+        border-top: 1px solid #454d55;
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .add-category-section select {
+        background: #343a40;
+        border: 1px solid #6c757d;
+        color: #c2c7d0;
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .btn-add-period {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white !important;
         border: none;
-        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
-        padding: 1.25rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
         border-radius: 0.5rem;
-        margin-top: 2rem;
+        transition: all 0.3s;
     }
 
-    /* Modal mejorado */
-    .modal-content {
-        background: #2d3748;
-        border: 1px solid #4a5568;
+    .btn-add-period:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        color: white !important;
     }
 
-    .modal-header {
-        background: #3a4556;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        color: #e2e8f0;
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+        background: #343a40;
+        border: 1px solid #454d55;
+        border-radius: 0.5rem;
     }
 
-    .modal-header .close {
-        color: #e2e8f0;
-        opacity: 0.8;
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
     }
 
-    .modal-header .close:hover {
-        opacity: 1;
+    .input-group-text {
+        background: #3d444b;
+        border: 1px solid #6c757d;
+        color: #c2c7d0;
     }
 
-    .modal-body {
-        background: #2d3748;
-        color: #cbd5e0;
-    }
-
-    .modal-body label {
-        color: #e2e8f0;
-        font-weight: 600;
-    }
-
-    .modal-body input {
-        background: #3a4556;
-        border: 1px solid #4a5568;
-        color: #e2e8f0;
-    }
-
-    .modal-body input:focus {
-        background: #3a4556;
-        border-color: #667eea;
-        color: #e2e8f0;
-    }
-
-    .modal-body input.is-invalid {
-        border-color: #f56565 !important;
-    }
-
-    .modal-footer {
-        background: #3a4556;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    /* Switch mejorado (checkbox estilo BS4) */
-    .form-check-input:checked {
-        background-color: #48bb78;
-        border-color: #48bb78;
-    }
-
-    .form-check-input:focus {
-        box-shadow: 0 0 0 0.2rem rgba(72, 187, 120, 0.25);
-    }
-
-    /* Estilos de botones */
-    .btn-primary {
-        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-        border: none;
-        color: white;
-        font-weight: 600;
-    }
-
-    .btn-primary:hover {
-        background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
-        color: white;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    }
-
-    .btn-success {
-        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-        border: none;
-        color: white;
-        font-weight: 600;
-    }
-
-    .btn-success:hover {
-        background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
-        color: white;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    }
-
-    .btn-secondary {
-        background: #4a5568;
-        border: none;
-        color: #e2e8f0;
-        font-weight: 600;
-    }
-
-    .btn-secondary:hover {
-        background: #5a6778;
-        color: white;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    }
-
-    .btn-danger {
-        background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
-        border: none;
-        color: white;
-        font-weight: 600;
-    }
-
-    .btn-danger:hover {
-        background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
-        color: white;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Responsive */
-    @media (max-width: 991.98px) {
-        .prices-header {
-            padding: 1.5rem;
-        }
-
-        .prices-header h1 {
-            font-size: 1.5rem;
-        }
-
-        .header-actions {
-            width: 100%;
-            margin-top: 0.5rem;
-        }
-
-        .header-actions .btn {
-            flex: 1;
-        }
-    }
-
-    @media (max-width: 767.98px) {
-        .category-selector-wrapper {
-            padding: 0.75rem;
-        }
-
-        .price-card .row>div {
-            margin-bottom: 1rem;
-        }
-
-        .navigation-footer .d-flex {
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+        .period-dates {
             flex-direction: column;
-            gap: 0.75rem;
+            align-items: flex-start;
+            width: 100%;
         }
 
-        .navigation-footer .btn {
+        .period-dates > div {
+            display: flex;
+            flex-direction: column;
+            min-width: 180px;
+        }
+
+        .period-dates label {
+            margin-bottom: 0.25rem;
+            font-size: 0.75rem;
+            opacity: 0.9;
+            white-space: nowrap;
+        }
+
+        .period-dates input[type="date"] {
+            width: 100%;
+        }
+
+        .add-category-section {
+            flex-direction: column;
+        }
+
+        .add-category-section select,
+        .add-category-section button {
             width: 100%;
         }
     }
@@ -401,372 +208,264 @@
 
 @section('content')
 <div class="container-fluid">
-    @include('admin.tours.wizard.partials.stepper')
+    {{-- Wizard Stepper --}}
+    @include('admin.tours.wizard.partials.stepper', ['currentStep' => $step])
 
-    {{-- Header mejorado --}}
-    <div class="prices-header">
-        <h1>
-            <i class="fas fa-dollar-sign"></i>
-            {{ __('m_tours.tour.wizard.steps.prices') }}
-        </h1>
-        <p>{{ $tour->name }}</p>
+    {{-- Header --}}
+    <div class="card mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+        <div class="card-body">
+            <h1 class="mb-2" style="font-size: 1.75rem; font-weight: 600;">
+                <i class="fas fa-dollar-sign mr-2"></i>
+                {{ __('m_tours.tour.wizard.steps.prices') }}
+            </h1>
+            <p class="mb-0" style="opacity: 0.9;">
+                {{ __('m_tours.tour.pricing.wizard_description') ?? 'Define los precios por temporada y categoría de cliente' }}
+            </p>
+        </div>
     </div>
 
-    {{-- Contenedor de alertas de validación --}}
-    <div id="validation-alerts-container"></div>
+    {{-- Validation Errors --}}
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <h5><i class="icon fas fa-ban"></i> {{ __('m_tours.common.validation_errors') }}</h5>
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-    <form method="POST" action="{{ route('admin.tours.wizard.store.prices', $tour) }}">
+    <form action="{{ route('admin.tours.wizard.store.prices', $tour) }}" method="POST" id="prices-form">
         @csrf
 
-        <div class="card prices-card">
-            <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
-                <h3 class="card-title mb-2 mb-md-0">
-                    <i class="fas fa-list-ul"></i>
-                    {{ __('m_tours.tour.pricing.configured_categories') }}
-                </h3>
+        {{-- Add Period Button --}}
+        <div class="mb-3">
+            <button type="button" class="btn btn-add-period" id="add-period-btn">
+                <i class="fas fa-plus-circle mr-2"></i>
+                {{ __('m_tours.tour.pricing.add_period') ?? 'Agregar Periodo de Precios' }}
+            </button>
+        </div>
 
-                <div class="header-actions">
-                    <a href="{{ route('admin.customer_categories.index') }}"
-                        class="btn btn-primary btn-sm"
-                        title="{{ __('m_tours.prices.quick_category.go_to_index_title') }}">
-                        <i class="fas fa-list"></i>
-                        <span class="d-none d-md-inline">
-                            {{ __('m_tours.prices.quick_category.go_to_index') }}
-                        </span>
-                    </a>
+        {{-- Pricing Periods Container --}}
+        <div id="pricing-periods-container">
+            @forelse($pricingPeriods ?? [] as $periodIndex => $period)
+                <div class="card pricing-period-card" data-period-index="{{ $periodIndex }}">
+                    <div class="period-header {{ ($period['is_default'] ?? false) ? 'default' : '' }}">
+                        <div class="period-dates">
+                            @if(!($period['is_default'] ?? false))
+                                <div>
+                                    <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
+                                        {{ __('m_tours.tour.pricing.valid_from') }}
+                                    </label>
+                                    <input type="date"
+                                           name="periods[{{ $periodIndex }}][valid_from]"
+                                           value="{{ $period['valid_from'] ?? '' }}"
+                                           class="form-control form-control-sm period-date-input"
+                                           data-period-index="{{ $periodIndex }}">
+                                </div>
+                                <div>
+                                    <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
+                                        {{ __('m_tours.tour.pricing.valid_until') }}
+                                    </label>
+                                    <input type="date"
+                                           name="periods[{{ $periodIndex }}][valid_until]"
+                                           value="{{ $period['valid_until'] ?? '' }}"
+                                           class="form-control form-control-sm period-date-input"
+                                           data-period-index="{{ $periodIndex }}">
+                                    <small class="text-muted" style="font-size: 0.7rem;">
+                                        {{ __('m_tours.tour.pricing.leave_empty_no_limit') }}
+                                    </small>
+                                </div>
+                            @else
+                                <h5 class="mb-0">
+                                    <i class="fas fa-infinity mr-2"></i>
+                                    {{ $period['label'] ?? 'Precio Base' }}
+                                </h5>
+                                <input type="hidden" name="periods[{{ $periodIndex }}][valid_from]" value="">
+                                <input type="hidden" name="periods[{{ $periodIndex }}][valid_until]" value="">
+                            @endif
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger remove-period-btn">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
 
-                    <button type="button"
-                        class="btn btn-success btn-sm"
-                        data-toggle="modal"
-                        data-target="#modalQuickCategory">
-                        <i class="fas fa-plus"></i>
-                        <span class="d-none d-md-inline">
-                            {{ __('m_tours.prices.quick_category.button') }}
-                        </span>
-                    </button>
-                </div>
-            </div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm table-hover categories-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 25%;">{{ __('m_tours.tour.pricing.category') }}</th>
+                                    <th style="width: 15%;">{{ __('m_tours.tour.pricing.age_range') }}</th>
+                                    <th style="width: 15%;">{{ __('m_tours.tour.pricing.price_usd') }}</th>
+                                    <th style="width: 12%;">{{ __('m_tours.tour.pricing.min_quantity') }}</th>
+                                    <th style="width: 12%;">{{ __('m_tours.tour.pricing.max_quantity') }}</th>
+                                    <th style="width: 10%;" class="text-center">{{ __('m_tours.tour.pricing.active') }}</th>
+                                    <th style="width: 11%;"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="categories-tbody">
+                                @foreach(($period['categories'] ?? []) as $catIndex => $cat)
+                                    <tr data-category-id="{{ $cat['id'] ?? '' }}">
+                                        <td>
+                                            <strong>{{ $cat['name'] ?? '' }}</strong>
+                                            <input type="hidden"
+                                                   name="periods[{{ $periodIndex }}][categories][{{ $catIndex }}][category_id]"
+                                                   value="{{ $cat['id'] ?? '' }}">
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ $cat['age_range'] ?? '' }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="input-group input-group-sm">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">$</span>
+                                                </div>
+                                                <input type="number"
+                                                       name="periods[{{ $periodIndex }}][categories][{{ $catIndex }}][price]"
+                                                       value="{{ $cat['price'] ?? '0.00' }}"
+                                                       class="form-control price-input"
+                                                       step="0.01"
+                                                       min="0"
+                                                       required>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <input type="number"
+                                                   name="periods[{{ $periodIndex }}][categories][{{ $catIndex }}][min_quantity]"
+                                                   value="{{ $cat['min_quantity'] ?? '0' }}"
+                                                   class="form-control form-control-sm"
+                                                   min="0">
+                                        </td>
+                                        <td>
+                                            <input type="number"
+                                                   name="periods[{{ $periodIndex }}][categories][{{ $catIndex }}][max_quantity]"
+                                                   value="{{ $cat['max_quantity'] ?? '12' }}"
+                                                   class="form-control form-control-sm"
+                                                   min="0">
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox"
+                                                   name="periods[{{ $periodIndex }}][categories][{{ $catIndex }}][is_active]"
+                                                   value="1"
+                                                   {{ ($cat['is_active'] ?? true) ? 'checked' : '' }}>
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-danger remove-category-btn">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
 
-            <div class="card-body">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i>
-                    <strong>{{ __('m_tours.tour.pricing.note_title') }}</strong>
-                    {{ __('m_tours.tour.pricing.note_text') }}
-                </div>
-
-                @php
-                $existingPrices = $tour->prices->keyBy('category_id');
-                $currency = config('app.currency_symbol', '$');
-                @endphp
-
-                {{-- Selector para agregar categorías --}}
-                <div class="category-selector-wrapper">
-                    <label for="category-selector" class="form-label">
-                        <i class="fas fa-plus-circle"></i>
-                        {{ __('m_tours.tour.pricing.add_existing_category') }}
-                    </label>
-                    <div class="d-flex flex-column flex-sm-row">
-                        <select id="category-selector" class="form-control mb-2 mb-sm-0 mr-sm-2 flex-grow-1">
+                    <div class="add-category-section">
+                        <select class="form-control form-control-sm add-category-select">
                             <option value="">{{ __('m_tours.tour.pricing.choose_category_placeholder') }}</option>
                             @foreach($categories ?? [] as $category)
-                            @php
-                            $catLabel = $category->getTranslatedName() ?: $category->name;
-                            $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
-                            @endphp
-                            <option
-                                value="{{ $category->category_id }}"
-                                data-name="{{ $catLabel }}"
-                                data-age-range="{{ $ageLabel }}"
-                                data-slug="{{ $category->slug }}">
-                                {{ $catLabel }} ({{ $ageLabel }})
-                            </option>
+                                <option value="{{ $category->category_id }}"
+                                        data-name="{{ $category->getTranslatedName() ?? $category->name }}"
+                                        data-age-range="{{ $category->age_range ?? ($category->age_from . '-' . $category->age_to) }}">
+                                    {{ $category->getTranslatedName() ?? $category->name }}
+                                    ({{ $category->age_range ?? ($category->age_from . '-' . $category->age_to) }})
+                                </option>
                             @endforeach
                         </select>
-
-                        <button type="button"
-                            class="btn btn-primary"
-                            id="btn-add-category">
-                            <i class="fas fa-plus-circle"></i>
-                            {{ __('m_tours.tour.pricing.add_button') }}
+                        <button type="button" class="btn btn-sm btn-primary add-category-btn">
+                            <i class="fas fa-plus mr-1"></i> {{ __('m_tours.tour.pricing.add_button') }}
                         </button>
                     </div>
                 </div>
-
-                {{-- Contenedor de precios --}}
-                <div id="prices-container">
-                    @forelse($tour->prices as $price)
-                    @if($price->category)
-                    @php
-                    $category = $price->category;
-                    $catLabel = $category->getTranslatedName() ?: $category->name;
-                    $ageLabel = $category->age_range ?? ($category->age_from . '-' . $category->age_to);
-                    @endphp
-
-                    <div class="card mb-3 price-card" data-category-id="{{ $category->category_id }}">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="card-title">
-                                    {{ $catLabel }}
-                                    <small>({{ $ageLabel }})</small>
-                                </h5>
-                            </div>
-                            <button type="button" class="btn btn-sm btn-danger remove-price-card">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-
-                        <div class="card-body">
-                            <div class="row">
-                                {{-- Precio --}}
-                                <div class="col-md-4">
-                                    <label class="form-label">{{ __('m_tours.tour.pricing.price_usd') }}</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">{{ $currency }}</span>
-                                        <input
-                                            type="number"
-                                            name="prices[{{ $category->category_id }}][price]"
-                                            class="form-control price-input"
-                                            value="{{ old('prices.'.$category->category_id.'.price', number_format($price->price, 2, '.', '')) }}"
-                                            step="0.01"
-                                            min="0"
-                                            required>
-                                    </div>
-                                </div>
-
-                                {{-- Cantidad Mínima --}}
-                                <div class="col-md-3 col-6">
-                                    <label class="form-label">{{ __('m_tours.tour.pricing.min_quantity') }}</label>
-                                    <input
-                                        type="number"
-                                        name="prices[{{ $category->category_id }}][min_quantity]"
-                                        class="form-control"
-                                        value="{{ old('prices.'.$category->category_id.'.min_quantity', $price->min_quantity) }}"
-                                        min="0"
-                                        max="255">
-                                </div>
-
-                                {{-- Cantidad Máxima --}}
-                                <div class="col-md-3 col-6">
-                                    <label class="form-label">{{ __('m_tours.tour.pricing.max_quantity') }}</label>
-                                    <input
-                                        type="number"
-                                        name="prices[{{ $category->category_id }}][max_quantity]"
-                                        class="form-control"
-                                        value="{{ old('prices.'.$category->category_id.'.max_quantity', $price->max_quantity) }}"
-                                        min="0"
-                                        max="255">
-                                </div>
-
-                                {{-- Estado Activo --}}
-                                <div class="col-md-2 col-12">
-                                    <label class="form-label d-block">{{ __('m_tours.tour.pricing.status') }}</label>
-                                    <div class="form-check">
-                                        <input type="hidden" name="prices[{{ $category->category_id }}][is_active]" value="0">
-                                        <input
-                                            class="form-check-input"
-                                            type="checkbox"
-                                            name="prices[{{ $category->category_id }}][is_active]"
-                                            value="1"
-                                            {{ old('prices.'.$category->category_id.'.is_active', $price->is_active) ? 'checked' : '' }}>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <input type="hidden" name="prices[{{ $category->category_id }}][category_id]" value="{{ $category->category_id }}">
-                        </div>
+            @empty
+                <div class="card empty-state" id="empty-state">
+                    <div class="card-body">
+                        <i class="fas fa-calendar-times"></i>
+                        <h5>{{ __('m_tours.tour.pricing.no_periods') ?? 'No hay periodos de precios definidos' }}</h5>
+                        <p class="text-muted">
+                            {{ __('m_tours.tour.pricing.click_add_period') ?? 'Haz clic en "Agregar Periodo de Precios" para comenzar' }}
+                        </p>
                     </div>
-                    @endif
-                    @empty
-                    <div class="alert alert-warning" id="no-prices-alert">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        {{ __('m_tours.tour.pricing.no_categories') }}
-                    </div>
-                    @endforelse
                 </div>
-            </div>
+            @endforelse
         </div>
 
-        {{-- IMPUESTOS --}}
-        <div class="card prices-card mt-4">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-percentage"></i>
-                    {{ __('taxes.title') }}
-                </h3>
+        {{-- Taxes Section --}}
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-percentage mr-2"></i>
+                    {{ __('m_tours.tour.pricing.taxes') }}
+                </h5>
             </div>
             <div class="card-body">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i>
-                    {{ __('taxes.messages.select_taxes') ?? 'Seleccione los impuestos que aplican a este tour.' }}
-                </div>
-
                 <div class="row">
-                    @forelse($taxes as $tax)
-                    <div class="col-md-6 mb-3">
-                        <div class="custom-control custom-checkbox p-3 rounded" style="background: #3a4556; border: 1px solid #4a5568;">
-                            <input type="checkbox"
-                                class="custom-control-input"
-                                id="tax_{{ $tax->tax_id }}"
-                                name="taxes[]"
-                                value="{{ $tax->tax_id }}"
-                                {{ $tour->taxes->contains($tax->tax_id) ? 'checked' : '' }}>
-                            <label class="custom-control-label w-100" for="tax_{{ $tax->tax_id }}">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <strong style="color: #e2e8f0;">{{ $tax->name }}</strong>
-                                        <br>
-                                        <small class="text-muted">
-                                            <code style="background: #1a202c; color: #68d391; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">{{ $tax->code }}</code>
-                                            - {{ $tax->type == 'percentage' ? number_format($tax->rate, 2) . '%' : '$' . number_format($tax->rate, 2) }}
-                                            <br>
-                                            {{ __('taxes.apply_to_options.' . $tax->apply_to) }}
-                                        </small>
-                                    </div>
-                                    <span class="badge {{ $tax->is_inclusive ? 'badge-success' : 'badge-warning' }}">
-                                        {{ $tax->is_inclusive ? __('taxes.included') : __('taxes.not_included') }}
-                                    </span>
-                                </div>
-                            </label>
+                    @forelse($taxes ?? [] as $tax)
+                        <div class="col-md-4 col-sm-6">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox"
+                                       class="custom-control-input"
+                                       id="tax-{{ $tax->tax_id }}"
+                                       name="taxes[]
+                                       " value="{{ $tax->tax_id }}"
+                                       {{ $tour->taxes->contains($tax->tax_id) ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="tax-{{ $tax->tax_id }}">
+                                    {{ $tax->name }} ({{ $tax->rate }}%)
+                                </label>
+                            </div>
                         </div>
-                    </div>
                     @empty
-                    <div class="col-12">
-                        <p class="text-muted">{{ __('m_general.no_records') }}</p>
-                    </div>
+                        <div class="col-12">
+                            <p class="text-muted mb-0">
+                                {{ __('m_tours.tour.pricing.no_taxes') ?? 'No hay impuestos disponibles' }}
+                            </p>
+                        </div>
                     @endforelse
                 </div>
             </div>
         </div>
 
-        {{-- Footer de navegación --}}
-        <div class="card-footer navigation-footer">
-            <div class="d-flex justify-content-between align-items-center">
-                <a href="{{ route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 1]) }}"
-                    class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i>
-                    {{ __('m_tours.common.previous') }}
-                </a>
-
-                <div class="d-flex">
-                    @if($tour->is_draft)
-                    <form action="{{ route('admin.tours.wizard.delete-draft', $tour) }}"
-                        method="POST"
-                        class="d-inline"
-                        onsubmit="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash"></i>
-                            <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
-                        </button>
-                    </form>
-                    @endif
-
-                    <button type="submit" class="btn btn-primary ml-2">
-                        {{ __('m_tours.tour.wizard.save_and_continue') }}
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
-            </div>
+        {{-- Navigation Buttons --}}
+        <div class="d-flex justify-content-between mt-4 mb-5">
+            <a href="{{ route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 4]) }}"
+               class="btn btn-secondary">
+                <i class="fas fa-arrow-left mr-2"></i>
+                {{ __('m_tours.tour.wizard.previous') }}
+            </a>
+            <button type="submit" class="btn btn-success btn-lg" id="submit-btn">
+                {{ __('m_tours.tour.wizard.save_and_continue') }}
+                <i class="fas fa-arrow-right ml-2"></i>
+            </button>
         </div>
-
     </form>
 </div>
 
-{{-- Modal Quick Create Category --}}
-<div class="modal fade" id="modalQuickCategory" tabindex="-1" role="dialog" aria-hidden="true">
+{{-- Modal de Confirmación de Solapamiento (si lo quieres seguir usando para categorías) --}}
+<div class="modal fade" id="overlapModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
-        <form id="quickCategoryForm"
-            action="{{ route('admin.tours.wizard.quick.category') }}"
-            method="POST"
-            class="modal-content"
-            autocomplete="off">
-            @csrf
-
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-plus-circle"></i>
-                    {{ __('m_tours.prices.quick_category.title') }}
+        <div class="modal-content bg-dark">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title text-dark">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Solapamiento de Fechas Detectado
                 </h5>
-                <button type="button"
-                    class="close"
-                    data-dismiss="modal"
-                    aria-label="{{ __('m_tours.common.close') }}">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
                 </button>
             </div>
-
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="quick_category_name">
-                        {{ __('m_tours.prices.quick_category.name_label') }}
-                        <span class="text-danger">*</span>
-                    </label>
-                    <input type="text"
-                        id="quick_category_name"
-                        name="name"
-                        class="form-control"
-                        maxlength="255"
-                        required>
-                </div>
-
-                <div class="form-group">
-                    <label for="quick_category_slug">
-                        Slug
-                        <span class="text-danger">*</span>
-                    </label>
-                    <input type="text"
-                        id="quick_category_slug"
-                        name="slug"
-                        class="form-control"
-                        maxlength="255"
-                        required>
-                    <small class="form-text text-muted">
-                        {{ __('m_tours.tour.ui.slug_help') ?? 'Identificador único URL amigable' }}
-                    </small>
-
-                    <div class="form-row mt-3">
-                        <div class="form-group col-6">
-                            <label for="quick_category_age_from">
-                                {{ __('m_tours.prices.quick_category.age_from') }}
-                                <span class="text-danger">*</span>
-                            </label>
-                            <input type="number"
-                                id="quick_category_age_from"
-                                name="age_from"
-                                class="form-control"
-                                min="0"
-                                max="120"
-                                required>
-                        </div>
-                        <div class="form-group col-6">
-                            <label for="quick_category_age_to">
-                                {{ __('m_tours.prices.quick_category.age_to') }}
-                                <small class="text-muted">({{ __('m_tours.common.optional') ?? 'Opcional' }})</small>
-                            </label>
-                            <input type="number"
-                                id="quick_category_age_to"
-                                name="age_to"
-                                class="form-control"
-                                min="0"
-                                max="120"
-                                placeholder="{{ __('m_tours.prices.quick_category.no_limit') ?? 'Sin límite' }}">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-save"></i>
-                        {{ __('m_tours.prices.quick_category.save') }}
-                    </button>
-                    <button type="button"
-                        class="btn btn-secondary"
-                        data-dismiss="modal">
-                        {{ __('m_tours.prices.quick_category.cancel') }}
-                    </button>
-                </div>
-        </form>
+                <p id="overlap-message"></p>
+                <div id="overlap-suggestions"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" id="confirm-overlap">
+                    Continuar de Todas Formas
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
@@ -774,471 +473,568 @@
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const categorySelector = document.getElementById('category-selector');
-        const addCategoryBtn = document.getElementById('btn-add-category');
-        const pricesContainer = document.getElementById('prices-container');
-        const noAlert = document.getElementById('no-prices-alert');
-        const quickForm = document.getElementById('quickCategoryForm');
-        const mainForm = document.querySelector('form[action*="store.prices"]');
-        const currency = @json(config('app.currency_symbol', '$'));
+    $(document).ready(function () {
+        console.log('Pricing periods script loaded');
 
-        // ============================================================
-        // TRADUCCIONES
-        // ============================================================
-        const i18n = {
-            alreadyAdded: @json(__('m_tours.tour.pricing.already_added') ?? 'Esta categoría ya fue agregada'),
-            saving: @json(__('m_tours.prices.quick_category.saving') ?? 'Guardando...'),
-            successTitle: @json(__('m_tours.prices.quick_category.success_title') ?? 'Éxito'),
-            successText: @json(__('m_tours.prices.quick_category.success_text') ?? 'Categoría creada exitosamente'),
-            errorTitle: @json(__('m_tours.prices.quick_category.error_title') ?? 'Error'),
-            errorGeneric: @json(__('m_tours.prices.quick_category.error_generic') ?? 'Ocurrió un error al crear la categoría'),
-            priceLabel: @json(__('m_tours.tour.pricing.price_usd') ?? 'Precio (USD)'),
-            minLabel: @json(__('m_tours.tour.pricing.min_quantity') ?? 'Cantidad Mínima'),
-            maxLabel: @json(__('m_tours.tour.pricing.max_quantity') ?? 'Cantidad Máxima'),
-            statusLabel: @json(__('m_tours.tour.pricing.status') ?? 'Estado'),
-            validationTitle: @json(__('m_tours.prices.validation.title') ?? 'Validación de Precios'),
-            noCategoriesError: @json(__('m_tours.prices.validation.no_categories') ?? 'Debes agregar al menos una categoría de precio'),
+        // contador inicial de periodos existentes
+        let periodCounter = {{ count($pricingPeriods ?? []) }};
+        console.log('Initial period counter:', periodCounter);
+
+        // Translations
+        const translations = {
+            defaultPrice: @json(__('m_tours.tour.pricing.default_price') ?? 'Precio Base'),
+            allYear: @json(__('m_tours.tour.pricing.all_year') ?? 'Todo el año'),
+            validFrom: @json(__('m_tours.tour.pricing.valid_from') ?? 'Válido desde'),
+            validUntil: @json(__('m_tours.tour.pricing.valid_until') ?? 'Válido hasta'),
+            category: @json(__('m_tours.tour.pricing.category') ?? 'Categoría'),
+            ageRange: @json(__('m_tours.tour.pricing.age_range') ?? 'Rango de edad'),
+            priceUsd: @json(__('m_tours.tour.pricing.price_usd') ?? 'Precio (USD)'),
+            minQuantity: @json(__('m_tours.tour.pricing.min_quantity') ?? 'Cantidad Mínima'),
+            maxQuantity: @json(__('m_tours.tour.pricing.max_quantity') ?? 'Cantidad Máxima'),
+            active: @json(__('m_tours.tour.pricing.active') ?? 'Activo'),
+            addButton: @json(__('m_tours.tour.pricing.add_button') ?? 'Agregar'),
+            chooseCategoryPlaceholder: @json(__('m_tours.tour.pricing.choose_category_placeholder') ?? 'Selecciona una categoría'),
+            confirmRemovePeriod: @json(__('m_tours.tour.pricing.confirm_remove_period') ?? '¿Estás seguro de eliminar este periodo?'),
+            noPeriods: @json(__('m_tours.tour.pricing.no_periods') ?? 'No hay periodos de precios definidos'),
+            clickAddPeriod: @json(__('m_tours.tour.pricing.click_add_period') ?? 'Haz clic en "Agregar Periodo de Precios" para comenzar'),
+            selectCategoryFirst: @json(__('m_tours.tour.pricing.select_category_first') ?? 'Por favor selecciona una categoría primero'),
+            categoryAlreadyAdded: @json(__('m_tours.tour.pricing.category_already_in_period') ?? 'Esta categoría ya está agregada en este periodo'),
+            addAtLeastOnePeriod: @json(__('m_tours.tour.pricing.add_at_least_one_period') ?? 'Debes agregar al menos un periodo de precios'),
+            addAtLeastOneCategory: @json(__('m_tours.tour.pricing.add_at_least_one_category') ?? 'Debes agregar al menos una categoría a cada periodo'),
             noPriceGreaterZero: @json(__('m_tours.prices.validation.no_price_greater_zero') ?? 'Debe haber al menos una categoría con precio mayor a $0.00'),
-            categoryNameRequired: @json(__('validation.required', ['attribute' => __('m_tours.prices.quick_category.name_label')]) ?? 'El nombre es obligatorio'),
-            ageFromRequired: @json(__('validation.required', ['attribute' => __('m_tours.prices.quick_category.age_from')]) ?? 'La edad desde es obligatoria'),
-            ageToRequired: @json(__('validation.required', ['attribute' => __('m_tours.prices.quick_category.age_to')]) ?? 'La edad hasta es obligatoria'),
-            ageToGreaterOrEqual: @json(__('m_tours.prices.validation.age_to_greater_equal') ?? 'La edad hasta debe ser mayor o igual a la edad desde'),
+            invalidDateRange: @json(__('m_tours.tour.pricing.invalid_date_range') ?? 'La fecha de fin debe ser posterior a la fecha de inicio'),
+            categoryAddedSuccess: @json(__('m_tours.tour.pricing.category_added_success') ?? 'Categoría agregada exitosamente'),
+            periodRemovedSuccess: @json(__('m_tours.tour.pricing.period_removed_success') ?? 'Periodo eliminado exitosamente'),
+            categoryRemovedSuccess: @json(__('m_tours.tour.pricing.category_removed_success') ?? 'Categoría eliminada exitosamente'),
+            duplicateCategoryTitle: @json(__('m_tours.tour.pricing.duplicate_category_title') ?? 'Categoría duplicada'),
+            invalidDateRangeTitle: @json(__('m_tours.tour.pricing.invalid_date_range_title') ?? 'Rango de fechas inválido'),
+            removeCategoryConfirmText: @json(__('m_tours.tour.pricing.remove_category_confirm_text') ?? 'Se eliminará esta categoría del periodo'),
+            validationFailed: @json(__('m_tours.tour.pricing.validation_failed') ?? 'Validación fallida'),
+            areYouSure: @json(__('m_tours.tour.pricing.are_you_sure') ?? '¿Estás seguro?'),
+            yesDelete: @json(__('m_tours.tour.pricing.yes_delete') ?? 'Sí, eliminar'),
+            cancel: @json(__('m_tours.tour.pricing.cancel') ?? 'Cancelar'),
+            attention: @json(__('m_tours.tour.pricing.attention') ?? 'Atención'),
+            periodAddedSuccess: @json(__('m_tours.tour.pricing.period_added_success') ?? 'Periodo agregado correctamente'),
+            overlapNotAllowedTitle: @json(__('m_tours.tour.pricing.overlap_not_allowed_title') ?? 'Rango de fechas no permitido'),
+            overlapNotAllowedText: @json(__('m_tours.tour.pricing.overlap_not_allowed_text') ?? 'Las fechas seleccionadas se solapan con otro periodo de precios. Ajusta el rango para que no se crucen.'),
+            overlapConflictWith: @json(__('m_tours.tour.pricing.overlap_conflict_with') ?? 'Conflicto con los siguientes periodos:')
         };
 
-        // ============================================================
-        // FUNCIÓN PARA MOSTRAR ALERTA DEBAJO DEL HEADER
-        // ============================================================
-        function showValidationAlert(errors) {
-            const container = document.getElementById('validation-alerts-container');
-            if (!container) return;
+        // Categories data
+        const categoriesData = [
+            @foreach($categories ?? [] as $category)
+                {
+                    id: '{{ $category->category_id }}',
+                    name: @json($category->getTranslatedName() ?? $category->name),
+                    ageRange: @json($category->age_range ?? ($category->age_from . '-' . $category->age_to)),
+                },
+            @endforeach
+        ];
 
-            container.innerHTML = '';
-
-            const alert = document.createElement('div');
-            alert.className = 'validation-alert';
-            alert.innerHTML = `
-                <button type="button" class="close-alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                <strong><i class="fas fa-exclamation-triangle"></i>${i18n.validationTitle}</strong>
-                <ul>${errors.map(err => '<li>' + err + '</li>').join('')}</ul>
-            `;
-
-            container.appendChild(alert);
-
-            const closeBtn = alert.querySelector('.close-alert');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', function() {
-                    alert.remove();
-                });
-            }
-
-            container.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-
-            setTimeout(() => {
-                if (alert.parentNode) {
-                    alert.remove();
-                }
-            }, 10000);
+        // === Helpers de fechas / solapamiento ===
+        function parseDate(value) {
+            if (!value) return null;
+            const d = new Date(value + 'T00:00:00');
+            return isNaN(d.getTime()) ? null : d;
         }
 
-        function showError(message) {
-            const text = message || i18n.errorGeneric;
-            if (window.Swal) {
-                Swal.fire({
-                    icon: 'error',
-                    title: i18n.errorTitle,
-                    text: text,
-                    confirmButtonColor: '#48bb78',
-                });
-            } else {
-                alert(text);
-            }
+        // Considera null como -∞ / +∞ para rangos abiertos
+        function rangesOverlap(aFrom, aUntil, bFrom, bUntil) {
+            const startA = aFrom ? aFrom.getTime() : -Infinity;
+            const endA = aUntil ? aUntil.getTime() : +Infinity;
+            const startB = bFrom ? bFrom.getTime() : -Infinity;
+            const endB = bUntil ? bUntil.getTime() : +Infinity;
+
+            // Inclusivo: si comparten un día ya se consideran solapados
+            return startA <= endB && startB <= endA;
         }
 
-        function showSuccess(message) {
-            const text = message || i18n.successText;
-            if (window.Swal) {
-                Swal.fire({
-                    icon: 'success',
-                    title: i18n.successTitle,
-                    text: text,
-                    timer: 1600,
-                    showConfirmButton: false
-                });
-            }
-        }
+        // Devuelve lista de otros periodos que se solapan con el actual
+        function findOverlapsForPeriod($period) {
+            const thisFrom = parseDate($period.find('input[name*="[valid_from]"]').val());
+            const thisUntil = parseDate($period.find('input[name*="[valid_until]"]').val());
 
-        function createPriceCard(categoryId, categoryName, ageRange) {
-            if (document.querySelector(`[data-category-id="${categoryId}"]`)) {
-                showError(i18n.alreadyAdded);
-                return;
+            // Si no hay ninguna fecha en este periodo, no hay nada que validar
+            if (!thisFrom && !thisUntil) {
+                return [];
             }
 
-            if (noAlert) noAlert.style.display = 'none';
+            const conflicts = [];
 
-            const cardHTML = `
-                <div class="card mb-3 price-card" data-category-id="${categoryId}">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="card-title">
-                                ${categoryName}
-                                <small>(${ageRange})</small>
-                            </h5>
-                        </div>
-                        <button type="button" class="btn btn-sm btn-danger remove-price-card">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <label class="form-label">${i18n.priceLabel}</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">${currency}</span>
-                                    <input type="number"
-                                           name="prices[${categoryId}][price]"
-                                           class="form-control price-input"
-                                           step="0.01"
-                                           min="0"
-                                           value="0.00"
-                                           required>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <label class="form-label">${i18n.minLabel}</label>
-                                <input type="number"
-                                       name="prices[${categoryId}][min_quantity]"
-                                       class="form-control"
-                                       value="0"
-                                       min="0"
-                                       max="255">
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <label class="form-label">${i18n.maxLabel}</label>
-                                <input type="number"
-                                       name="prices[${categoryId}][max_quantity]"
-                                       class="form-control"
-                                       value="12"
-                                       min="0"
-                                       max="255">
-                            </div>
-                            <div class="col-md-2 col-12">
-                                <label class="form-label d-block">${i18n.statusLabel}</label>
-                                <div class="form-check">
-                                    <input type="hidden" name="prices[${categoryId}][is_active]" value="0">
-                                    <input class="form-check-input"
-                                           type="checkbox"
-                                           name="prices[${categoryId}][is_active]"
-                                           value="1"
-                                           checked>
-                                </div>
-                            </div>
-                        </div>
-                        <input type="hidden"
-                               name="prices[${categoryId}][category_id]"
-                               value="${categoryId}">
-                    </div>
-                </div>
-            `;
+            $('.pricing-period-card').each(function () {
+                const $other = $(this);
+                if ($other.is($period)) return; // saltar el mismo periodo
 
-            pricesContainer.insertAdjacentHTML('beforeend', cardHTML);
-        }
+                const otherFrom = parseDate($other.find('input[name*="[valid_from]"]').val());
+                const otherUntil = parseDate($other.find('input[name*="[valid_until]"]').val());
 
-        if (addCategoryBtn) {
-            addCategoryBtn.addEventListener('click', function() {
-                const selectedOption = categorySelector.options[categorySelector.selectedIndex];
-                if (!selectedOption || !selectedOption.value) {
+                // Si el otro periodo tampoco tiene fechas, no lo consideramos (periodo base)
+                if (!otherFrom && !otherUntil) {
                     return;
                 }
 
-                const categoryId = selectedOption.value;
-                const categoryName = selectedOption.dataset.name;
-                const ageRange = selectedOption.dataset.ageRange;
-
-                createPriceCard(categoryId, categoryName, ageRange);
-                categorySelector.value = '';
-            });
-        }
-
-        if (pricesContainer) {
-            pricesContainer.addEventListener('click', function(e) {
-                if (e.target.closest('.remove-price-card')) {
-                    const card = e.target.closest('.price-card');
-                    if (card) {
-                        card.remove();
-                    }
-
-                    if (pricesContainer.querySelectorAll('.price-card').length === 0) {
-                        if (noAlert) noAlert.style.display = 'block';
-                    }
-                }
-            });
-        }
-
-        // ============================================================
-        // VALIDACIÓN DEL FORMULARIO PRINCIPAL
-        // ============================================================
-        if (mainForm) {
-            mainForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                let errors = [];
-
-                const priceCards = pricesContainer.querySelectorAll('.price-card');
-
-                if (priceCards.length === 0) {
-                    errors.push(i18n.noCategoriesError);
-
-                    if (pricesContainer) {
-                        pricesContainer.style.border = '2px solid #f56565';
-                        setTimeout(() => {
-                            pricesContainer.style.border = '';
-                        }, 3000);
-                    }
-                } else {
-                    let hasPriceGreaterThanZero = false;
-
-                    priceCards.forEach(card => {
-                        const priceInput = card.querySelector('.price-input');
-                        if (priceInput) {
-                            const priceValue = parseFloat(priceInput.value);
-                            if (!isNaN(priceValue) && priceValue > 0) {
-                                hasPriceGreaterThanZero = true;
-                            }
-                        }
+                if (rangesOverlap(thisFrom, thisUntil, otherFrom, otherUntil)) {
+                    conflicts.push({
+                        from: otherFrom,
+                        until: otherUntil
                     });
-
-                    if (!hasPriceGreaterThanZero) {
-                        errors.push(i18n.noPriceGreaterZero);
-
-                        priceCards.forEach(card => {
-                            const priceInput = card.querySelector('.price-input');
-                            if (priceInput) {
-                                priceInput.classList.add('is-invalid');
-                                setTimeout(() => {
-                                    priceInput.classList.remove('is-invalid');
-                                }, 3000);
-                            }
-                        });
-                    }
                 }
-
-                if (errors.length > 0) {
-                    showValidationAlert(errors);
-
-                    if (pricesContainer) {
-                        pricesContainer.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'center'
-                        });
-                    }
-
-                    return false;
-                }
-
-                const submitBtn = mainForm.querySelector('button[type="submit"]');
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>' + i18n.saving;
-                }
-
-                mainForm.submit();
             });
+
+            return conflicts;
         }
 
-        // ============================================================
-        // VALIDACIÓN DEL MODAL DE QUICK CREATE
-        // ============================================================
-        if (quickForm) {
-            const nameInput = document.getElementById('quick_category_name');
-            const ageFromInput = document.getElementById('quick_category_age_from');
-            const ageToInput = document.getElementById('quick_category_age_to');
+        // Template for new period
+        function getPeriodTemplate(index, isDefault = false) {
+            const headerClass = isDefault ? 'default' : '';
+            let headerContent = '';
 
-            quickForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
+            if (isDefault) {
+                headerContent = `
+                    <h5 class="mb-0">
+                        <i class="fas fa-infinity mr-2"></i>
+                        ${translations.defaultPrice} (${translations.allYear})
+                    </h5>
+                    <input type="hidden" name="periods[${index}][valid_from]" value="">
+                    <input type="hidden" name="periods[${index}][valid_until]" value="">
+                `;
+            } else {
+                headerContent = `
+                    <div>
+                        <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">${translations.validFrom}</label>
+                        <input type="date"
+                               name="periods[${index}][valid_from]"
+                               class="form-control form-control-sm period-date-input"
+                               data-period-index="${index}">
+                    </div>
+                    <div>
+                        <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">${translations.validUntil}</label>
+                        <input type="date"
+                               name="periods[${index}][valid_until]"
+                               class="form-control form-control-sm period-date-input"
+                               data-period-index="${index}">
+                        <small class="text-muted" style="font-size: 0.7rem;">
+                            {{ __('m_tours.tour.pricing.leave_empty_no_limit') }}
+                        </small>
+                    </div>
+                `;
+            }
 
-                let errors = [];
+            let categoriesOptions = `<option value="">${translations.chooseCategoryPlaceholder}</option>`;
+            categoriesData.forEach(cat => {
+                categoriesOptions += `<option value="${cat.id}" data-name="${cat.name}" data-age-range="${cat.ageRange}">
+                    ${cat.name} (${cat.ageRange})
+                </option>`;
+            });
 
-                if (!nameInput.value.trim()) {
-                    errors.push(i18n.categoryNameRequired);
-                    nameInput.classList.add('is-invalid');
-                } else {
-                    nameInput.classList.remove('is-invalid');
-                }
+            return `
+                <div class="card pricing-period-card" data-period-index="${index}">
+                    <div class="period-header ${headerClass}">
+                        <div class="period-dates">
+                            ${headerContent}
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger remove-period-btn">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm table-hover categories-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 25%;">${translations.category}</th>
+                                    <th style="width: 15%;">${translations.ageRange}</th>
+                                    <th style="width: 15%;">${translations.priceUsd}</th>
+                                    <th style="width: 12%;">${translations.minQuantity}</th>
+                                    <th style="width: 12%;">${translations.maxQuantity}</th>
+                                    <th style="width: 10%;" class="text-center">${translations.active}</th>
+                                    <th style="width: 11%;"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="categories-tbody"></tbody>
+                        </table>
+                    </div>
+                    <div class="add-category-section">
+                        <select class="form-control form-control-sm add-category-select">
+                            ${categoriesOptions}
+                        </select>
+                        <button type="button" class="btn btn-sm btn-primary add-category-btn">
+                            <i class="fas fa-plus mr-1"></i> ${translations.addButton}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
 
-                if (!ageFromInput.value.trim()) {
-                    errors.push(i18n.ageFromRequired);
-                    ageFromInput.classList.add('is-invalid');
-                } else {
-                    ageFromInput.classList.remove('is-invalid');
-                }
+        // Add new period
+        $('#add-period-btn').on('click', function () {
+            const newPeriod = getPeriodTemplate(periodCounter, false);
+            const $container = $('#pricing-periods-container');
 
-                const ageTo = ageToInput.value.trim();
-                const ageFrom = ageFromInput.value.trim();
+            if ($('#empty-state').length) {
+                $('#empty-state').remove();
+            }
 
-                if (ageTo && ageFrom && parseInt(ageTo) < parseInt(ageFrom)) {
-                    errors.push(i18n.ageToGreaterOrEqual);
-                    ageToInput.classList.add('is-invalid');
-                }
+            $container.prepend(newPeriod);
+            periodCounter++;
 
-                if (errors.length > 0) {
+            Swal.fire({
+                icon: 'success',
+                title: translations.periodAddedSuccess,
+                showConfirmButton: false,
+                timer: 1500
+            });
+        });
+
+        // Remove period
+        $(document).on('click', '.remove-period-btn', function () {
+            const $card = $(this).closest('.pricing-period-card');
+
+            Swal.fire({
+                title: translations.areYouSure,
+                text: translations.confirmRemovePeriod,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#48bb78',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: translations.yesDelete,
+                cancelButtonText: translations.cancel
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $card.remove();
+
+                    if ($('.pricing-period-card').length === 0) {
+                        $('#pricing-periods-container').html(`
+                            <div class="card empty-state" id="empty-state">
+                                <div class="card-body">
+                                    <i class="fas fa-calendar-times"></i>
+                                    <h5>${translations.noPeriods}</h5>
+                                    <p class="text-muted">${translations.clickAddPeriod}</p>
+                                </div>
+                            </div>
+                        `);
+                    }
+
                     Swal.fire({
-                        icon: 'error',
-                        title: i18n.errorTitle,
-                        html: '<ul style="text-align: left;">' + errors.map(err => '<li>' + err + '</li>').join('') + '</ul>',
-                        confirmButtonColor: '#48bb78',
+                        icon: 'success',
+                        title: translations.periodRemovedSuccess,
+                        showConfirmButton: false,
+                        timer: 1500
                     });
-                    return false;
                 }
+            });
+        });
 
-                const submitBtn = quickForm.querySelector('button[type="submit"]');
-                const originalHtml = submitBtn.innerHTML;
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>' + i18n.saving;
+        // Guardar valor previo para poder revertir si hay solapamiento
+        $(document).on('focus', '.period-date-input', function () {
+            $(this).data('prev-value', $(this).val());
+        });
 
-                try {
-                    const formData = new FormData(quickForm);
-                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        // Validación de fechas en cada cambio (rango correcto + sin solapamientos)
+        $(document).on('change', '.period-date-input', function () {
+            const $input = $(this);
+            const prevValue = $input.data('prev-value') || '';
+            const $period = $input.closest('.pricing-period-card');
+            const $fromInput = $period.find('input[name*="[valid_from]"]');
+            const $untilInput = $period.find('input[name*="[valid_until]"]');
 
-                    const res = await fetch(quickForm.action, {
-                        method: 'POST',
-                        headers: token ? {
-                            'X-CSRF-TOKEN': token
-                        } : {},
-                        body: formData
+            const validFrom = $fromInput.val();
+            const validUntil = $untilInput.val();
+
+            // Limpiar estados previos
+            $fromInput.removeClass('is-invalid');
+            $untilInput.removeClass('is-invalid');
+            $input.removeClass('is-invalid');
+
+            // 1) Validar que el rango propio tenga sentido (from <= until)
+            if (validFrom && validUntil && validFrom > validUntil) {
+                $fromInput.addClass('is-invalid');
+                $untilInput.addClass('is-invalid');
+
+                Swal.fire({
+                    icon: 'error',
+                    title: translations.invalidDateRangeTitle,
+                    text: translations.invalidDateRange,
+                    confirmButtonColor: '#48bb78'
+                });
+
+                $input.val(prevValue);
+                return;
+            }
+
+            // 2) Comprobar solapamiento con otros periodos
+            const conflicts = findOverlapsForPeriod($period);
+
+            if (conflicts.length > 0) {
+                $input.addClass('is-invalid');
+
+                const listHtml = conflicts.map(c => {
+                    const from = c.from ? c.from.toISOString().slice(0, 10) : '∞';
+                    const until = c.until ? c.until.toISOString().slice(0, 10) : '∞';
+                    return `<li>${from} — ${until}</li>`;
+                }).join('');
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: translations.overlapNotAllowedTitle,
+                    html: `
+                        <p>${translations.overlapNotAllowedText}</p>
+                        <p>${translations.overlapConflictWith}</p>
+                        <ul class="price-conflict-list">
+                            ${listHtml}
+                        </ul>
+                    `,
+                    confirmButtonColor: '#48bb78'
+                }).then(() => {
+                    $input.removeClass('is-invalid');
+                });
+
+                $input.val(prevValue);
+                return;
+            }
+
+            // Si todo está bien, actualizar valor previo
+            $input.data('prev-value', $input.val());
+        });
+
+        // Add category to period
+        $(document).on('click', '.add-category-btn', function () {
+            const $period = $(this).closest('.pricing-period-card');
+            const periodIndex = $period.data('period-index');
+            const $select = $period.find('.add-category-select');
+            const categoryId = $select.val();
+
+            if (!categoryId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: translations.attention,
+                    text: translations.selectCategoryFirst,
+                    confirmButtonColor: '#48bb78'
+                });
+                return;
+            }
+
+            if ($period.find(`tr[data-category-id="${categoryId}"]`).length > 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: translations.duplicateCategoryTitle,
+                    text: translations.categoryAlreadyAdded,
+                    confirmButtonColor: '#48bb78'
+                });
+                return;
+            }
+
+            const validFrom = $period.find('input[name*="[valid_from]"]').val();
+            const validUntil = $period.find('input[name*="[valid_until]"]').val();
+
+            if (validFrom && validUntil && validFrom > validUntil) {
+                Swal.fire({
+                    icon: 'error',
+                    title: translations.invalidDateRangeTitle,
+                    text: translations.invalidDateRange,
+                    confirmButtonColor: '#48bb78'
+                });
+
+                $period.find('input[name*="[valid_from]"]').addClass('is-invalid');
+                $period.find('input[name*="[valid_until]"]').addClass('is-invalid');
+                return;
+            }
+
+            $period.find('.period-date-input').removeClass('is-invalid');
+
+            addCategoryRow($period, $select, categoryId, periodIndex);
+        });
+
+        function addCategoryRow($period, $select, categoryId, periodIndex) {
+            const $option = $select.find('option:selected');
+            const categoryName = $option.data('name');
+            const ageRange = $option.data('age-range');
+            const catIndex = $period.find('.categories-tbody tr').length;
+
+            const newRow = `
+                <tr data-category-id="${categoryId}">
+                    <td>
+                        <strong>${categoryName}</strong>
+                        <input type="hidden"
+                               name="periods[${periodIndex}][categories][${catIndex}][category_id]"
+                               value="${categoryId}">
+                    </td>
+                    <td><small class="text-muted">${ageRange}</small></td>
+                    <td>
+                        <div class="input-group input-group-sm">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">$</span>
+                            </div>
+                            <input type="number"
+                                   name="periods[${periodIndex}][categories][${catIndex}][price]"
+                                   value="0.00"
+                                   class="form-control price-input"
+                                   step="0.01"
+                                   min="0"
+                                   required>
+                        </div>
+                    </td>
+                    <td>
+                        <input type="number"
+                               name="periods[${periodIndex}][categories][${catIndex}][min_quantity]"
+                               value="0"
+                               class="form-control form-control-sm"
+                               min="0">
+                    </td>
+                    <td>
+                        <input type="number"
+                               name="periods[${periodIndex}][categories][${catIndex}][max_quantity]"
+                               value="12"
+                               class="form-control form-control-sm"
+                               min="0">
+                    </td>
+                    <td class="text-center">
+                        <input type="checkbox"
+                               name="periods[${periodIndex}][categories][${catIndex}][is_active]"
+                               value="1"
+                               checked>
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-danger remove-category-btn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+
+            $period.find('.categories-tbody').append(newRow);
+            $select.val('');
+
+            Swal.fire({
+                icon: 'success',
+                title: translations.categoryAddedSuccess,
+                showConfirmButton: false,
+                timer: 1500
+            });
+        }
+
+        // Remove category from period
+        $(document).on('click', '.remove-category-btn', function () {
+            const $row = $(this).closest('tr');
+
+            Swal.fire({
+                title: translations.areYouSure,
+                text: translations.removeCategoryConfirmText,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#48bb78',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: translations.yesDelete,
+                cancelButtonText: translations.cancel
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $row.remove();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: translations.categoryRemovedSuccess,
+                        showConfirmButton: false,
+                        timer: 1500
                     });
+                }
+            });
+        });
 
-                    const raw = await res.text();
-                    let payload = null;
-                    try {
-                        payload = raw ? JSON.parse(raw) : null;
-                    } catch (e) {}
+        // Form validation
+        $('#prices-form').submit(function (e) {
+            e.preventDefault();
 
-                    if (!res.ok) {
-                        if (res.status === 422 && payload && payload.errors) {
-                            const firstFieldErrors = Object.values(payload.errors)[0] || [];
-                            const firstMessage = firstFieldErrors[0] || i18n.errorGeneric;
-                            showError(firstMessage);
-                        } else if (payload && payload.message) {
-                            showError(payload.message);
-                        } else {
-                            showError();
-                        }
-                        return;
+            const periods = $('.pricing-period-card').length;
+
+            if (periods === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: translations.validationFailed,
+                    text: translations.addAtLeastOnePeriod,
+                    confirmButtonColor: '#48bb78'
+                });
+                return false;
+            }
+
+            let hasCategories = false;
+            let hasInvalidDates = false;
+            let hasPriceGreaterThanZero = false;
+
+            $('.pricing-period-card').each(function () {
+                const $period = $(this);
+
+                if ($period.find('.categories-tbody tr').length > 0) {
+                    hasCategories = true;
+                }
+
+                const validFrom = $period.find('input[name*="[valid_from]"]').val();
+                const validUntil = $period.find('input[name*="[valid_until]"]').val();
+
+                if (validFrom && validUntil && validFrom > validUntil) {
+                    hasInvalidDates = true;
+                    $period.find('input[name*="[valid_from]"]').addClass('is-invalid');
+                    $period.find('input[name*="[valid_until]"]').addClass('is-invalid');
+                }
+
+                $period.find('.price-input').each(function () {
+                    const price = parseFloat($(this).val());
+                    if (!isNaN(price) && price > 0) {
+                        hasPriceGreaterThanZero = true;
                     }
+                });
 
-                    const id = payload.id;
-                    const name = payload.name;
-                    const ageRange = payload.age_range;
-                    const message = payload.message || null;
-
-                    const opt = document.createElement('option');
-                    opt.value = id;
-                    opt.dataset.name = name;
-                    opt.dataset.ageRange = ageRange;
-                    opt.textContent = `${name} (${ageRange})`;
-                    categorySelector.appendChild(opt);
-
-                    createPriceCard(id, name, ageRange);
-                    quickForm.reset();
-
-                    nameInput.classList.remove('is-invalid');
-                    ageFromInput.classList.remove('is-invalid');
-                    ageToInput.classList.remove('is-invalid');
-
-                    if (window.$ && typeof window.$.fn.modal === 'function') {
-                        window.$('#modalQuickCategory').modal('hide');
-                    } else if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-                        window.jQuery('#modalQuickCategory').modal('hide');
-                    } else {
-                        const modalEl = document.getElementById('modalQuickCategory');
-                        if (modalEl) {
-                            modalEl.classList.remove('show');
-                            modalEl.style.display = 'none';
-                        }
-                        document.body.classList.remove('modal-open');
-                        document.querySelectorAll('.modal-backdrop').forEach(function(bd) {
-                            bd.remove();
-                        });
-                    }
-
-                    showSuccess(message);
-
-                } catch (error) {
-                    console.error(error);
-                    showError();
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalHtml;
+                // doble check de solapamientos al enviar
+                const conflicts = findOverlapsForPeriod($period);
+                if (conflicts.length > 0) {
+                    hasInvalidDates = true;
                 }
             });
 
-            if (nameInput) {
-                nameInput.addEventListener('input', function() {
-                    this.classList.remove('is-invalid');
+            if (hasInvalidDates) {
+                Swal.fire({
+                    icon: 'error',
+                    title: translations.overlapNotAllowedTitle,
+                    text: translations.overlapNotAllowedText,
+                    confirmButtonColor: '#48bb78'
                 });
+                return false;
             }
 
-            if (ageFromInput) {
-                ageFromInput.addEventListener('input', function() {
-                    this.classList.remove('is-invalid');
+            if (!hasCategories) {
+                Swal.fire({
+                    icon: 'error',
+                    title: translations.validationFailed,
+                    text: translations.addAtLeastOneCategory,
+                    confirmButtonColor: '#48bb78'
                 });
+                return false;
             }
 
-            if (ageToInput) {
-                ageToInput.addEventListener('input', function() {
-                    this.classList.remove('is-invalid');
+            if (!hasPriceGreaterThanZero) {
+                $('.price-input').addClass('is-invalid');
+
+                Swal.fire({
+                    icon: 'error',
+                    title: translations.validationFailed,
+                    text: translations.noPriceGreaterZero,
+                    confirmButtonColor: '#48bb78'
+                }).then(() => {
+                    setTimeout(() => {
+                        $('.price-input').removeClass('is-invalid');
+                    }, 3000);
                 });
+                return false;
             }
-        }
 
-        // AUTO-GENERACIÓN DE SLUG
-        const quickNameField = document.getElementById('quick_category_name');
-        const quickSlugField = document.getElementById('quick_category_slug');
+            const $submitBtn = $('#submit-btn');
+            $submitBtn.prop('disabled', true)
+                .html('<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...');
 
-        if (quickNameField && quickSlugField) {
-            quickNameField.addEventListener('input', function(e) {
-                if (!quickSlugField.value || quickSlugField.dataset.autogenerated === 'true') {
-                    const slug = e.target.value
-                        .toLowerCase()
-                        .normalize('NFD')
-                        .replace(/[\u0300-\u036f]/g, '')
-                        .replace(/[^a-z0-9]+/g, '-')
-                        .replace(/^-+|-+$/g, '');
-                    quickSlugField.value = slug;
-                    quickSlugField.dataset.autogenerated = 'true';
-                }
-            });
+            this.submit();
+        });
 
-            quickSlugField.addEventListener('input', function() {
-                if (this.value) {
-                    this.dataset.autogenerated = 'false';
-                }
-            });
-        }
-
-        const modal = document.getElementById('modalQuickCategory');
-        if (modal) {
-            modal.addEventListener('show.bs.modal', function() {
-                const form = document.getElementById('quickCategoryForm');
-                if (form) form.reset();
-
-                if (quickSlugField) quickSlugField.dataset.autogenerated = 'true';
-
-                const nameInput = document.getElementById('quick_category_name');
-                const ageFromInput = document.getElementById('quick_category_age_from');
-                const ageToInput = document.getElementById('quick_category_age_to');
-
-                if (nameInput) nameInput.classList.remove('is-invalid');
-                if (ageFromInput) ageFromInput.classList.remove('is-invalid');
-                if (ageToInput) ageToInput.classList.remove('is-invalid');
-            });
-        }
+        $(document).on('input', '.price-input', function () {
+            $(this).removeClass('is-invalid');
+        });
     });
 </script>
 @endpush

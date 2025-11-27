@@ -4,6 +4,9 @@ return [
     'title' => 'Tax Management',
     'create' => 'Create Tax',
     'edit' => 'Edit Tax',
+    'included' => 'Included',
+    'not_included' => 'Not Included',
+    'mixed' => 'Mixed',
     'fields' => [
         'name' => 'Name',
         'code' => 'Code',
@@ -29,5 +32,11 @@ return [
         'deleted' => 'Tax deleted successfully.',
         'toggled' => 'Tax status updated.',
         'select_taxes' => 'Select the taxes that apply to this tour.',
+    ],
+    'breakdown' => [
+        'title' => 'Price Breakdown',
+        'subtotal' => 'Subtotal',
+        'tax' => 'Tax',
+        'total' => 'Total',
     ],
 ];

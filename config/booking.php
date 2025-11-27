@@ -20,7 +20,7 @@ return [
 
     // Días de anticipación
     'min_days_advance' => env('BOOKING_MIN_DAYS_ADVANCE', 1),
-    'max_days_advance' => env('BOOKING_MAX_DAYS_ADVANCE', 365),
+    'max_days_advance' => env('BOOKING_MAX_DAYS_ADVANCE', 730),
 
     // Payment & Confirmation
     'auto_confirm_on_payment' => env('BOOKING_AUTO_CONFIRM', true),

@@ -211,53 +211,10 @@ return asset('images/volcano.png');
     </div>
 
     <div class="mini-cart-footer">
-      {{-- Tax Breakdown Calculation (Hidden for user, used for total) --}}
+      {{-- Use the centralized Cart::calculateTotal() method --}}
       @php
-      $calculatedTotal = 0;
-
-      foreach($headerCart->items as $item) {
-      $cats = collect($item->categories ?? []);
-
-      if ($cats->isNotEmpty()) {
-      foreach($cats as $cat) {
-      $catId = $cat['category_id'] ?? null;
-      if ($catId) {
-      $tourPrice = \App\Models\TourPrice::where('tour_id', $item->tour_id)
-      ->where('category_id', $catId)
-      ->first();
-
-      if ($tourPrice) {
-      $catQty = (int)($cat['quantity'] ?? 0);
-      // We just need the total
-      $breakdown = $tourPrice->calculateTaxBreakdown($catQty);
-      $calculatedTotal += $breakdown['total'];
-      }
-      }
-      }
-      } else {
-      // Legacy: adult/kid prices
-      $adultQty = (int)($item->adults_quantity ?? 0);
-      $kidQty = (int)($item->kids_quantity ?? 0);
-
-      if ($adultQty > 0) {
-      $adultPrice = $item->tour->prices->where('category.slug', 'adult')->first();
-      if ($adultPrice) {
-      $breakdown = $adultPrice->calculateTaxBreakdown($adultQty);
-      $calculatedTotal += $breakdown['total'];
-      }
-      }
-
-      if ($kidQty > 0) {
-      $kidPrice = $item->tour->prices->whereIn('category.slug', ['kid', 'child'])->first();
-      if ($kidPrice) {
-      $breakdown = $kidPrice->calculateTaxBreakdown($kidQty);
-      $calculatedTotal += $breakdown['total'];
-      }
-      }
-      }
-      }
-
-      // Display Subtotal is now the same as Total (All taxes included in display)
+      // This uses prices from the stored snapshot (already calculated with correct date)
+      $calculatedTotal = $headerCart->calculateTotal();
       $displaySubtotal = $calculatedTotal;
       @endphp
 

@@ -57,6 +57,6 @@ return [
     // Messages
     'complete_payment_message' => 'Veuillez compléter le paiement pour confirmer votre réservation',
     'payment_cancelled' => 'Le paiement a été annulé. Vous pouvez réessayer quand vous êtes prêt.',
-    'redirect_paypal' => 'Redirection vers PayPal...',
+    'redirect_paypal' => 'Cliquez sur Payer pour être redirigé vers PayPal et finaliser votre paiement en toute sécurité.',
     'no_cart_data' => 'Aucune donnée de panier trouvée',
 ];

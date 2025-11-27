@@ -1,11 +1,9 @@
 @php
-  // Obtener categorías activas con precios
-  $activeCategories = $tour->prices()
-      ->where('is_active', true)
-      ->whereHas('category', fn($q) => $q->where('is_active', true))
-      ->with('category')
-      ->orderBy('category_id')
-      ->get();
+  // Helper para traducciones
+  $tr = function(string $key, string $fallback) {
+      $t = __($key);
+      return ($t === $key) ? $fallback : $t;
+  };
 @endphp
 
 <div class="form-header">
@@ -13,62 +11,156 @@
     <div class="alert alert-warning d-flex align-items-center gap-2 mb-3">
       <i class="fas fa-lock me-2"></i>
       <div class="flex-grow-1">
-        <strong>{{ __('adminlte::adminlte.auth_required_title') ?? 'Debes iniciar sesión para reservar' }}</strong>
+        <strong>{{ $tr('adminlte::adminlte.auth_required_title', 'Debes iniciar sesión para reservar') }}</strong>
         <div class="small">
-          {{ __('adminlte::adminlte.auth_required_body') ?? 'Inicia sesión o regístrate para completar tu compra. Los campos se desbloquean al iniciar sesión.' }}
+          {{ $tr('adminlte::adminlte.auth_required_body', 'Inicia sesión o regístrate para completar tu compra.') }}
         </div>
       </div>
       <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="btn btn-success ms-auto">
-        {{ __('adminlte::adminlte.login_now') }}
+        {{ $tr('adminlte::adminlte.login_now', 'Iniciar sesión') }}
       </a>
     </div>
   @endguest
 
-  <h4 class="mb-2">{{ __('adminlte::adminlte.price') }}</h4>
+  <h4 class="mb-2">{{ $tr('adminlte::adminlte.price', 'Precio') }}</h4>
 
-  @if($activeCategories->isNotEmpty())
-    <div class="price-breakdown d-flex flex-wrap align-items-center gap-2 mb-2">
-      @foreach($activeCategories as $index => $priceRecord)
-        @php
-          $category      = $priceRecord->category;
-          $categoryName  = optional($category)->getTranslatedName() ?? 'N/A';
-          $categorySlug  = $category->slug ?? \Illuminate\Support\Str::slug($categoryName);
-          $price         = $priceRecord->price;
+  {{-- Contenedor dinámico de precios --}}
+  <div id="priceBreakdownContainer" class="price-breakdown d-flex flex-wrap align-items-center gap-2 mb-2">
+    {{-- Se llenará dinámicamente con JavaScript --}}
+  </div>
 
-          // Construir rango de edad si existe (localizable)
-          $ageRange = '';
-          if ($category?->age_min || $category?->age_max) {
-              if ($category?->age_min && $category?->age_max) {
-                  $ageRange = ' ('.__(':min-:max years', ['min' => $category->age_min, 'max' => $category->age_max]).')';
-              } elseif ($category?->age_min) {
-                  $ageRange = ' ('.__(':min+ years', ['min' => $category->age_min]).')';
-              } elseif ($category?->age_max) {
-                  $ageRange = ' ('.__('up to :max years', ['max' => $category->age_max]).')';
-              }
-          }
-
-          $showSeparator = $index < $activeCategories->count() - 1;
-        @endphp
-
-        <span class="price-item d-inline-flex align-items-baseline gap-1">
-          <strong class="text-dark">{{ $categoryName }}{{ $ageRange }}:</strong>
-          <span class="price-{{ $categorySlug }} fw-bold text-danger">${{ number_format($price, 2) }}</span>
-          @if($showSeparator)
-            <span class="text-muted mx-1">|</span>
-          @endif
-        </span>
-      @endforeach
-    </div>
-  @else
-    <div class="alert alert-warning small mb-2">
-      {{ __('adminlte::adminlte.no_prices_available') ?? 'No hay precios disponibles para este tour.' }}
-    </div>
-  @endif
+  <div id="noPricesWarning" class="alert alert-warning small mb-2 d-none">
+    {{ $tr('adminlte::adminlte.no_prices_available', 'No hay precios disponibles para este tour.') }}
+  </div>
 </div>
 
 <style>
-  .price-breakdown { line-height: 1.6; }
+  .price-breakdown { line-height: 1.6; min-height: 30px; }
   .price-item { white-space: nowrap; }
   .price-item strong { font-size: 0.95rem; }
-  @media (max-width: 576px) { .price-breakdown { font-size: 0.9rem; } }
+  @media (max-width: 576px) {
+    .price-breakdown { font-size: 0.9rem; }
+    .price-breakdown .price-item { flex-basis: 100%; }
+  }
 </style>
+
+@push('scripts')
+<script>
+(function() {
+    if (window.__gvPriceHeaderInit) return;
+    window.__gvPriceHeaderInit = true;
+
+    const priceContainer = document.getElementById('priceBreakdownContainer');
+    const noPricesWarning = document.getElementById('noPricesWarning');
+    const dateInput = document.getElementById('tourDateInput');
+
+    if (!priceContainer || !dateInput) return;
+
+    // Obtener datos de categorías del travelers
+    const travelersContainer = document.querySelector('.gv-travelers');
+    if (!travelersContainer) return;
+
+    let allCategories = [];
+    try {
+        allCategories = JSON.parse(travelersContainer.getAttribute('data-categories') || '[]');
+    } catch (_) {
+        console.error('Failed to parse categories data');
+        return;
+    }
+
+    // Función para obtener precio para una fecha
+    function getPriceForDate(rules, dateStr) {
+        if (!dateStr || !rules || !rules.length) return null;
+
+        // Buscar regla específica
+        const specificRule = rules.find(r => {
+            if (r.is_default) return false;
+            const from = r.valid_from;
+            const until = r.valid_until;
+            if (from && until) return dateStr >= from && dateStr <= until;
+            if (from) return dateStr >= from;
+            if (until) return dateStr <= until;
+            return false;
+        });
+        if (specificRule) return specificRule;
+
+        // Fallback a default
+        return rules.find(r => r.is_default) || null;
+    }
+
+    // Función para actualizar el header de precios
+    function updatePriceHeader(dateStr) {
+        if (!dateStr) {
+            // Sin fecha, usar hoy como referencia
+            const today = new Date().toISOString().split('T')[0];
+            dateStr = today;
+        }
+
+        const categoriesWithPrices = [];
+
+        allCategories.forEach(cat => {
+            const priceRule = getPriceForDate(cat.rules, dateStr);
+            if (priceRule) {
+                categoriesWithPrices.push({
+                    name: cat.name,
+                    price: priceRule.price,
+                    slug: cat.slug
+                });
+            }
+        });
+
+        // Limpiar container
+        priceContainer.innerHTML = '';
+
+        if (categoriesWithPrices.length === 0) {
+            noPricesWarning.classList.remove('d-none');
+            return;
+        }
+
+        noPricesWarning.classList.add('d-none');
+
+       // Renderizar precios
+categoriesWithPrices.forEach((cat, index) => {
+    const span = document.createElement('span');
+    span.className = 'price-item d-inline-flex align-items-baseline gap-1';
+
+    const strong = document.createElement('strong');
+    strong.className = 'text-dark';
+    strong.textContent = cat.name + ':';
+
+    const priceSpan = document.createElement('span');
+    // AQUÍ forzamos la clase roja para todos
+    priceSpan.className = 'price-amount fw-bold text-danger';
+    priceSpan.textContent = '$' + parseFloat(cat.price).toFixed(2);
+
+    span.appendChild(strong);
+    span.appendChild(priceSpan);
+
+    if (index < categoriesWithPrices.length - 1) {
+        const separator = document.createElement('span');
+        separator.className = 'text-muted mx-1';
+        separator.textContent = '|';
+        span.appendChild(separator);
+    }
+
+    priceContainer.appendChild(span);
+});
+    }
+
+    // Inicializar con fecha de hoy
+    updatePriceHeader(null);
+
+    // Escuchar cambios de fecha
+    dateInput.addEventListener('change', (e) => {
+        updatePriceHeader(e.target.value);
+    });
+
+    // También escuchar cuando Flatpickr cambia la fecha
+    if (dateInput._flatpickr) {
+        dateInput._flatpickr.config.onChange.push((selectedDates, dateStr) => {
+            updatePriceHeader(dateStr);
+        });
+    }
+})();
+</script>
+@endpush

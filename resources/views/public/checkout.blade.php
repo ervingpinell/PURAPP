@@ -471,52 +471,9 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
       <div class="summary-footer">
         <div class="totals-section">
           @php
-          // Calculate tax breakdown for checkout (Hidden for user, used for total)
-          $calculatedTotal = 0;
-
-          if ($cart && $cart->items) {
-          foreach($cart->items as $item) {
-          $cats = collect($item->categories ?? []);
-
-          if ($cats->isNotEmpty()) {
-          foreach($cats as $cat) {
-          $catId = $cat['category_id'] ?? null;
-          if ($catId) {
-          $tourPrice = \App\Models\TourPrice::where('tour_id', $item->tour_id)
-          ->where('category_id', $catId)
-          ->first();
-
-          if ($tourPrice) {
-          $catQty = (int)($cat['quantity'] ?? 0);
-          $breakdown = $tourPrice->calculateTaxBreakdown($catQty);
-          $calculatedTotal += $breakdown['total'];
-          }
-          }
-          }
-          } else {
-          // Legacy: adult/kid prices
-          $adultQty = (int)($item->adults_quantity ?? 0);
-          $kidQty = (int)($item->kids_quantity ?? 0);
-
-          if ($adultQty > 0) {
-          $adultPrice = $item->tour->prices->where('category.slug', 'adult')->first();
-          if ($adultPrice) {
-          $breakdown = $adultPrice->calculateTaxBreakdown($adultQty);
-          $calculatedTotal += $breakdown['total'];
-          }
-          }
-
-          if ($kidQty > 0) {
-          $kidPrice = $item->tour->prices->whereIn('category.slug', ['kid', 'child'])->first();
-          if ($kidPrice) {
-          $breakdown = $kidPrice->calculateTaxBreakdown($kidQty);
-          $calculatedTotal += $breakdown['total'];
-          }
-          }
-          }
-          }
-          }
-
+          // Use the centralized Cart::calculateTotal() method
+          // This uses prices from the stored snapshot (already calculated with correct date)
+          $calculatedTotal = $cart->calculateTotal();
           $displaySubtotal = $calculatedTotal;
           @endphp
 

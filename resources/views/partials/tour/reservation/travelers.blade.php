@@ -1,222 +1,332 @@
+{{-- ===== VIAJEROS: CANTIDADES Y TOTAL ===== --}}
+
 @php
-// ===== CATEGORÍAS ACTIVAS (precios y límites) =====
-$activeCategories = $tour->prices()
-->where('is_active', true)
-->whereHas('category', fn($q) => $q->where('is_active', true))
-->with('category')
-->orderBy('category_id')
-->get();
+$trans = function(string $key, string $fallback) {
+    $t = __($key);
+    return ($t === $key) ? $fallback : $t;
+};
+@endphp
 
-// Límites globales (del config/booking.php)
-$maxPersonsGlobal = (int) config('booking.max_persons_per_booking', 12);
-$minAdultsGlobal = (int) config('booking.min_adults_per_booking', 0);
-$maxKidsGlobal = PHP_INT_MAX;
+<div class="mb-3 gv-travelers"
+  data-categories='@json($categoriesData)'
+  data-max-total="{{ $maxPersonsGlobal }}"
+  data-i18n='@json($travI18n)'>
 
-// Estructura para JS con textos YA traducidos
-$categoriesData = $activeCategories->map(function($priceRecord) use ($minAdultsGlobal, $maxKidsGlobal, $maxPersonsGlobal) {
-$category = $priceRecord->category;
-$slug = $category->slug ?? strtolower($category->name ?? '');
-
-$min = (int) $priceRecord->min_quantity;
-$max = (int) $priceRecord->max_quantity;
-
-// Reglas globales por slug
-if (in_array($slug, ['adult','adulto','adults'])) {
-$min = max($min, $minAdultsGlobal);
-} elseif (in_array($slug, ['kid','nino','child','kids','children'])) {
-$max = min($max, $maxKidsGlobal);
-}
-
-// Ninguna categoría debe superar el global
-$max = min($max, $maxPersonsGlobal);
-
-// Valor inicial
-$initial = in_array($slug, ['adult','adulto','adults']) ? max($min, 2) : 0;
-
-// Texto de rango de edad (traducido) desde m_bookings.travelers.*
-$ageMin = $category->age_min;
-$ageMax = $category->age_max;
-$ageRangeText = null;
-if ($ageMin && $ageMax) {
-$ageRangeText = __('m_bookings.travelers.age_between', ['min' => $ageMin, 'max' => $ageMax]);
-} elseif ($ageMin) {
-$ageRangeText = __('m_bookings.travelers.age_from', ['min' => $ageMin]);
-} elseif ($ageMax) {
-$ageRangeText = __('m_bookings.travelers.age_to', ['max' => $ageMax]);
-}
-
-return [
-'id' => (int) $priceRecord->category_id,
-'name' => $category->getTranslatedName() ?? 'N/A',
-'slug' => $slug,
-'price' => (float) $priceRecord->price,
-'min' => $min,
-'max' => $max,
-'initial' => $initial,
-'age_text' => $ageRangeText, // <-- ya traducido
-  ];
-  })->values()->toArray();
-
-  // Paquete i18n para el JS (títulos y plantillas de mensajes)
-  // Asegúrate de tener estas claves en resources/lang/{locale}/m_bookings.php -> travelers.*
-  $travI18n = [
-  'title_warning' => __('m_bookings.travelers.title_warning'), // p.ej. "Atención"
-  'title_info' => __('m_bookings.travelers.title_info'), // p.ej. "Información"
-  'title_error' => __('m_bookings.travelers.title_error'), // p.ej. "Error"
-  'max_persons_reached' => __('m_bookings.travelers.max_persons_reached'), // "Máximo :max personas por reserva"
-  'max_category_reached' => __('m_bookings.travelers.max_category_reached'), // "Máximo :max para esta categoría"
-  'invalid_quantity' => __('m_bookings.travelers.invalid_quantity'), // "Cantidad inválida. Ingresa un número válido."
-  ];
-  @endphp
-
-  {{-- ===== VIAJEROS: CANTIDADES Y TOTAL ===== --}}
-  <div class="mb-3 gv-travelers"
-    data-categories='@json($categoriesData)'
-    data-max-total="{{ $maxPersonsGlobal }}"
-    data-i18n='@json($travI18n)'>
-
-    @if($activeCategories->isNotEmpty())
-    <div class="gv-trav-rows mt-2">
-      @foreach($categoriesData as $cat)
-      @php
-      $catId = $cat['id'];
-      $catName = $cat['name'];
-      $catSlug = $cat['slug'];
-      $catMin = $cat['min'];
-      $catMax = $cat['max'];
-      $catInitial = $cat['initial'];
-      $catAgeText = $cat['age_text'] ?? null;
-
-      $icon = match(true) {
-      in_array($catSlug, ['adult','adulto','adults']) => 'fa-male',
-      in_array($catSlug, ['kid','child','nino','kids','children']) => 'fa-child',
-      $catSlug === 'senior' => 'fa-user-tie',
-      $catSlug === 'student' => 'fa-user-graduate',
-      in_array($catSlug, ['infant','infante','baby']) => 'fa-baby',
-      default => 'fa-user',
-      };
-      @endphp
-
-      <div class="gv-trav-row d-flex align-items-center justify-content-between py-2 border rounded px-2 mb-2"
-        data-category-id="{{ $catId }}"
-        data-category-slug="{{ $catSlug }}">
-        <div class="d-flex align-items-center gap-2">
-          <i class="fas {{ $icon }}" aria-hidden="true"></i>
-          <div class="d-flex flex-column">
-            <span class="fw-semibold">{{ $catName }}</span>
-            @if($catAgeText)
-            <small class="text-muted">({{ $catAgeText }})</small>
-            @endif
-            @if($catMin > 0)
-            <small class="text-muted">{{ __('adminlte::adminlte.min') }}: {{ $catMin }}</small>
-            @endif
-          </div>
-        </div>
-
-        <div class="d-flex align-items-center gap-2">
-          <button type="button"
-            class="btn btn-outline-secondary btn-sm category-minus-btn"
-            data-category-id="{{ $catId }}"
-            aria-label="{{ __('adminlte::adminlte.decrease') }} {{ $catName }}">−</button>
-
-          <input class="form-control form-control-sm text-center category-input"
-            type="number" inputmode="numeric" pattern="[0-9]*"
-            data-category-id="{{ $catId }}" data-category-slug="{{ $catSlug }}"
-            min="{{ $catMin }}" max="{{ $catMax }}" step="1"
-            value="{{ $catInitial }}" style="width: 60px;"
-            aria-label="{{ __('adminlte::adminlte.quantity') }} {{ $catName }}">
-
-          <button type="button"
-            class="btn btn-outline-secondary btn-sm category-plus-btn"
-            data-category-id="{{ $catId }}"
-            aria-label="{{ __('adminlte::adminlte.increase') }} {{ $catName }}">+</button>
-        </div>
-      </div>
-
-      {{-- hidden para request --}}
-      <input type="hidden" name="categories[{{ $catId }}]"
-        id="category_quantity_{{ $catId }}" value="{{ $catInitial }}">
-      @endforeach
-    </div>
-
-    {{-- Total --}}
-    <div class="gv-total-inline mt-3 p-2 bg-light border rounded">
-      <div class="d-flex justify-content-between align-items-center mb-1">
-        <span class="fw-bold">{{ __('adminlte::adminlte.total') }}:</span>
-        <strong id="reservation-total-price-inline" class="text-success fs-5">$0.00</strong>
-      </div>
-      <div class="d-flex justify-content-between text-muted small">
-        <span>{{ __('adminlte::adminlte.total_persons') }}:</span>
-        <span id="reservation-total-pax">0</span>
-      </div>
-    </div>
-    @else
-    <div class="alert alert-danger">
-      {{ __('adminlte::adminlte.no_prices_configured') }}
-    </div>
-    @endif
+  {{-- Contenedor de categorías (vacío hasta seleccionar fecha) --}}
+  <div class="gv-trav-rows mt-2" id="categoriesContainer">
+    {{-- Las categorías se insertarán aquí dinámicamente SOLO después de seleccionar fecha --}}
   </div>
 
-  @once
-  {{-- SweetAlert2 para los avisos --}}
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  @endonce
+  {{-- Total (oculto hasta que haya categorías) --}}
+  <div class="gv-total-inline mt-3 p-2 bg-light border rounded d-none" id="totalSection">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <span class="fw-bold">{{ __('adminlte::adminlte.total') }}:</span>
+      <strong id="reservation-total-price-inline" class="text-success fs-5">$0.00</strong>
+    </div>
+    <div class="d-flex justify-content-between text-muted small">
+      <span>{{ __('adminlte::adminlte.total_persons') }}:</span>
+      <span id="reservation-total-pax">0</span>
+    </div>
+  </div>
+</div>
 
-  @push('scripts')
-  <script>
-    (function() {
-      if (window.__gvTravelersInit) return;
-      window.__gvTravelersInit = true;
+@once
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@endonce
 
-      // ===== i18n =====
-      const container = document.querySelector('.gv-travelers');
-      if (!container) return;
+@push('scripts')
+<script>
+(function() {
+    if (window.__gvTravelersInit) return;
+    window.__gvTravelersInit = true;
 
-      let i18n = {};
-      try {
+    const container = document.querySelector('.gv-travelers');
+    if (!container) return;
+
+    // ===== i18n =====
+    let i18n = {};
+    try {
         i18n = JSON.parse(container.getAttribute('data-i18n') || '{}');
-      } catch (_) {
+    } catch (_) {
         i18n = {};
-      }
+    }
 
-      // Helper para avisos (usa títulos traducidos si existen)
-      function gvAlert(message, type = 'warning') {
+    // Helper para avisos
+    function gvAlert(message, type = 'warning') {
         if (!window.Swal) {
-          alert(message);
-          return;
+            alert(message);
+            return;
         }
         const title =
-          type === 'error' ? (i18n.title_error || 'Error') :
-          type === 'info' ? (i18n.title_info || 'Info') :
-          (i18n.title_warning || 'Attention');
+            type === 'error' ? (i18n.title_error || 'Error') :
+            type === 'info' ? (i18n.title_info || 'Info') :
+            (i18n.title_warning || 'Atención');
         Swal.fire({
-          icon: type,
-          title,
-          text: message,
-          confirmButtonColor: '#198754'
+            icon: type,
+            title,
+            text: message,
+            confirmButtonColor: '#198754'
         });
-      }
+    }
 
-      const maxTotal = parseInt(container.getAttribute('data-max-total') || '12', 10);
-      let categories = [];
-      try {
-        categories = JSON.parse(container.getAttribute('data-categories') || '[]');
-      } catch (_) {
-        categories = [];
-      }
+    const maxTotal = parseInt(container.getAttribute('data-max-total') || '12', 10);
+    let allCategories = [];
+    try {
+        allCategories = JSON.parse(container.getAttribute('data-categories') || '[]');
+    } catch (_) {
+        allCategories = [];
+    }
 
-      if (!Array.isArray(categories) || !categories.length) return;
+    if (!Array.isArray(allCategories) || !allCategories.length) {
+        console.warn('No categories data provided');
+        return;
+    }
 
-      function updateTotals() {
-        let totalPax = 0,
-          totalPrice = 0;
+    // Variables globales
+    let activeCategories = [];
+    const dateInput = document.getElementById('tourDateInput');
+    const categoriesContainer = document.getElementById('categoriesContainer');
+    const totalSection = document.getElementById('totalSection');
 
-        categories.forEach(cat => {
-          const input = document.querySelector(`.category-input[data-category-id="${cat.id}"]`);
-          if (!input) return;
-          const qty = parseInt(input.value || '0', 10);
-          totalPax += qty;
-          totalPrice += (cat.price || 0) * qty;
+    // ===== TEMPLATE DE CATEGORÍA =====
+    function createCategoryRow(cat) {
+        const icon = getCategoryIcon(cat.slug);
+
+        const row = document.createElement('div');
+        row.className = 'gv-trav-row d-flex align-items-center justify-content-between py-2 border rounded px-2 mb-2';
+        row.setAttribute('data-category-id', cat.id);
+        row.setAttribute('data-category-slug', cat.slug);
+
+        row.innerHTML = `
+            <div class="d-flex align-items-center gap-2">
+                <i class="fas ${icon}" aria-hidden="true"></i>
+                <div class="d-flex flex-column">
+                    <span class="fw-semibold">${cat.name}</span>
+                    ${cat.age_text ? `<small class="text-muted">(${cat.age_text})</small>` : ''}
+                    <small class="text-muted price-display">$${cat.price.toFixed(2)}</small>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button"
+                    class="btn btn-outline-secondary btn-sm category-minus-btn"
+                    data-category-id="${cat.id}"
+                    aria-label="Disminuir ${cat.name}">−</button>
+
+                <input class="form-control form-control-sm text-center category-input"
+                    type="number" inputmode="numeric" pattern="[0-9]*"
+                    data-category-id="${cat.id}"
+                    data-category-slug="${cat.slug}"
+                    min="${cat.min}"
+                    max="${cat.max}"
+                    step="1"
+                    value="${cat.initial}"
+                    style="width: 60px;"
+                    aria-label="Cantidad ${cat.name}">
+
+                <button type="button"
+                    class="btn btn-outline-secondary btn-sm category-plus-btn"
+                    data-category-id="${cat.id}"
+                    aria-label="Aumentar ${cat.name}">+</button>
+            </div>
+        `;
+
+        return row;
+    }
+
+    function createHiddenInput(cat) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = `categories[${cat.id}]`;
+        input.id = `category_quantity_${cat.id}`;
+        input.value = cat.initial;
+        return input;
+    }
+
+    function getCategoryIcon(slug) {
+        if (['adult', 'adulto', 'adults'].includes(slug)) return 'fa-male';
+        if (['kid', 'child', 'nino', 'kids', 'children'].includes(slug)) return 'fa-child';
+        if (slug === 'senior') return 'fa-user-tie';
+        if (slug === 'student') return 'fa-user-graduate';
+        if (['infant', 'infante', 'baby'].includes(slug)) return 'fa-baby';
+        return 'fa-user';
+    }
+
+    // ===== LÓGICA DE PRECIOS POR FECHA =====
+    function getPriceForDate(rules, dateStr) {
+        if (!dateStr) return null;
+
+        // 1. Buscar regla específica para la fecha
+        const specificRule = rules.find(r => {
+            if (r.is_default) return false;
+            const from = r.valid_from;
+            const until = r.valid_until;
+            if (from && until) return dateStr >= from && dateStr <= until;
+            if (from) return dateStr >= from;
+            if (until) return dateStr <= until;
+            return false;
+        });
+        if (specificRule) return specificRule;
+
+        // 2. Fallback a default
+        return rules.find(r => r.is_default) || null;
+    }
+
+    function getCategoriesForDate(dateStr) {
+        if (!dateStr) return [];
+
+        return allCategories
+            .map(cat => {
+                const activeRule = getPriceForDate(cat.rules, dateStr);
+                if (!activeRule) return null;
+
+                return {
+                    ...cat,
+                    price: activeRule.price,
+                    min: activeRule.min,
+                    max: activeRule.max,
+                };
+            })
+            .filter(cat => cat !== null);
+    }
+
+    // ===== RENDERIZAR CATEGORÍAS =====
+    function renderCategories(dateStr) {
+        // Limpiar contenedor
+        categoriesContainer.innerHTML = '';
+
+        // Limpiar inputs ocultos previos
+        document.querySelectorAll('input[name^="categories["]').forEach(inp => inp.remove());
+
+        if (!dateStr) {
+            // No hay fecha = no mostrar nada
+            totalSection.classList.add('d-none');
+            activeCategories = [];
+            return;
+        }
+
+        // Obtener categorías disponibles para esta fecha
+        const availableCategories = getCategoriesForDate(dateStr);
+
+        if (availableCategories.length === 0) {
+            // No hay precios para esta fecha (esto no debería pasar si el calendario bloqueó correctamente)
+            totalSection.classList.add('d-none');
+            activeCategories = [];
+            console.warn('No prices available for date:', dateStr);
+            return;
+        }
+
+        // Hay categorías disponibles
+        totalSection.classList.remove('d-none');
+        activeCategories = availableCategories;
+
+        // Renderizar cada categoría
+        availableCategories.forEach(cat => {
+            const row = createCategoryRow(cat);
+            categoriesContainer.appendChild(row);
+
+            const hidden = createHiddenInput(cat);
+            categoriesContainer.appendChild(hidden);
+        });
+
+        // Configurar event listeners
+        setupEventListeners();
+
+        // Calcular totales iniciales
+        updateTotals();
+    }
+
+    // ===== EVENT LISTENERS =====
+    function setupEventListeners() {
+        // Minus buttons
+        document.querySelectorAll('.category-minus-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                e.stopPropagation();
+                const id = parseInt(btn.getAttribute('data-category-id'), 10);
+                const inp = document.querySelector(`.category-input[data-category-id="${id}"]`);
+                if (!inp || inp.disabled) return;
+
+                const min = parseInt(inp.getAttribute('min') || '0', 10);
+                const cur = parseInt(inp.value || '0', 10);
+                if (cur > min) {
+                    inp.value = cur - 1;
+                    updateTotals();
+                }
+            });
+        });
+
+        // Plus buttons
+        document.querySelectorAll('.category-plus-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                e.stopPropagation();
+                const id = parseInt(btn.getAttribute('data-category-id'), 10);
+                const inp = document.querySelector(`.category-input[data-category-id="${id}"]`);
+                if (!inp || inp.disabled) return;
+
+                const cur = parseInt(inp.value || '0', 10);
+                const max = parseInt(inp.getAttribute('max') || '12', 10);
+
+                // Total actual antes de sumar
+                const totalPax = activeCategories.reduce((sum, cat) => {
+                    const i = document.querySelector(`.category-input[data-category-id="${cat.id}"]`);
+                    return sum + parseInt(i?.value || '0', 10);
+                }, 0);
+
+                if (cur < max && totalPax < maxTotal) {
+                    inp.value = cur + 1;
+                    updateTotals();
+                } else if (totalPax >= maxTotal) {
+                    const tpl = i18n.max_persons_reached || 'Máximo de personas alcanzado (:max).';
+                    gvAlert(tpl.replace(':max', String(maxTotal)), 'warning');
+                } else {
+                    const tpl = i18n.max_category_reached || 'El máximo para esta categoría es :max.';
+                    gvAlert(tpl.replace(':max', String(max)), 'info');
+                }
+            });
+        });
+
+        // Edición manual
+        document.querySelectorAll('.category-input').forEach(inp => {
+            inp.addEventListener('change', () => {
+                if (inp.disabled) return;
+                const min = parseInt(inp.getAttribute('min') || '0', 10);
+                const max = parseInt(inp.getAttribute('max') || '12', 10);
+                let val = parseInt(inp.value || '0', 10);
+
+                if (Number.isNaN(val)) {
+                    const msg = i18n.invalid_quantity || 'Cantidad inválida.';
+                    gvAlert(msg, 'warning');
+                    val = min;
+                }
+
+                if (val < min) val = min;
+                if (val > max) val = max;
+                inp.value = val;
+
+                const total = updateTotals();
+                if (total > maxTotal) {
+                    inp.value = Math.max(min, val - (total - maxTotal));
+                    updateTotals();
+                    const tpl = i18n.max_persons_reached || 'Máximo de personas alcanzado (:max).';
+                    gvAlert(tpl.replace(':max', String(maxTotal)), 'warning');
+                }
+            });
+        });
+    }
+
+    // ===== ACTUALIZAR TOTALES =====
+    function updateTotals() {
+        let totalPax = 0;
+        let totalPrice = 0;
+
+        activeCategories.forEach(cat => {
+            const input = document.querySelector(`.category-input[data-category-id="${cat.id}"]`);
+            if (!input || input.disabled) return;
+
+            const qty = parseInt(input.value || '0', 10);
+            totalPax += qty;
+            totalPrice += (cat.price || 0) * qty;
         });
 
         const priceEl = document.getElementById('reservation-total-price-inline');
@@ -225,96 +335,57 @@ return [
         if (paxEl) paxEl.textContent = totalPax;
 
         // Sincronizar inputs ocultos y recalcular máximos dinámicos
-        categories.forEach(cat => {
-          const input = document.querySelector(`.category-input[data-category-id="${cat.id}"]`);
-          const hidden = document.getElementById(`category_quantity_${cat.id}`);
-          if (input && hidden) hidden.value = input.value;
+        activeCategories.forEach(cat => {
+            const input = document.querySelector(`.category-input[data-category-id="${cat.id}"]`);
+            const hidden = document.getElementById(`category_quantity_${cat.id}`);
+            if (input && hidden) hidden.value = input.value;
 
-          if (input) {
-            const current = parseInt(input.value || '0', 10);
-            const otherTotal = totalPax - current;
-            const maxAllowed = Math.min(cat.max, Math.max(0, maxTotal - otherTotal));
-            input.setAttribute('max', maxAllowed);
-          }
+            if (input && !input.disabled) {
+                const current = parseInt(input.value || '0', 10);
+                const otherTotal = totalPax - current;
+                const maxAllowed = Math.min(cat.max, Math.max(0, maxTotal - otherTotal));
+                input.setAttribute('max', maxAllowed);
+            }
         });
 
         return totalPax;
-      }
+    }
 
-      // Minus
-      document.querySelectorAll('.category-minus-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.preventDefault();
-          e.stopPropagation();
-          const id = parseInt(btn.getAttribute('data-category-id'), 10);
-          const inp = document.querySelector(`.category-input[data-category-id="${id}"]`);
-          if (!inp) return;
-          const min = parseInt(inp.getAttribute('min') || '0', 10);
-          const cur = parseInt(inp.value || '0', 10);
-          if (cur > min) {
-            inp.value = cur - 1;
-            updateTotals();
-          }
+    // ===== ESCUCHAR CAMBIOS DE FECHA =====
+    if (dateInput) {
+        dateInput.addEventListener('change', (e) => {
+            renderCategories(e.target.value);
         });
-      });
 
-      // Plus
-      document.querySelectorAll('.category-plus-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.preventDefault();
-          e.stopPropagation();
-          const id = parseInt(btn.getAttribute('data-category-id'), 10);
-          const inp = document.querySelector(`.category-input[data-category-id="${id}"]`);
-          if (!inp) return;
+        // Inicializar con fecha de referencia si no hay OLD.date
+        // Esto muestra las categorías pero NO preselecciona la fecha en el input
+        if (dateInput.value) {
+            // Si ya tiene valor (old input por validation error), renderizar
+            renderCategories(dateInput.value);
+        } else {
+            // Calcular fecha de referencia (hoy o mañana)
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
 
-          const cur = parseInt(inp.value || '0', 10);
-          const max = parseInt(inp.getAttribute('max') || '12', 10);
+            // Verificar si hoy tiene precios
+            const categoriesForToday = getCategoriesForDate(todayStr);
 
-          // total actual antes de sumar
-          const totalPax = categories.reduce((sum, cat) => {
-            const i = document.querySelector(`.category-input[data-category-id="${cat.id}"]`);
-            return sum + parseInt(i?.value || '0', 10);
-          }, 0);
+            if (categoriesForToday.length > 0) {
+                // Renderizar con precios de hoy PERO sin setear el input
+                renderCategories(todayStr);
+            } else {
+                // Intentar mañana
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-          if (cur < max && totalPax < maxTotal) {
-            inp.value = cur + 1;
-            updateTotals();
-          } else if (totalPax >= maxTotal) {
-            const tpl = i18n.max_persons_reached || 'Maximum people reached (:max).';
-            gvAlert(tpl.replace(':max', String(maxTotal)), 'warning');
-          } else {
-            const tpl = i18n.max_category_reached || 'The maximum for this category is :max.';
-            gvAlert(tpl.replace(':max', String(max)), 'info');
-          }
-        });
-      });
-
-      // Edición manual
-      document.querySelectorAll('.category-input').forEach(inp => {
-        inp.addEventListener('change', () => {
-          const min = parseInt(inp.getAttribute('min') || '0', 10);
-          const max = parseInt(inp.getAttribute('max') || '12', 10);
-          let val = parseInt(inp.value || '0', 10);
-          if (Number.isNaN(val)) {
-            const msg = i18n.invalid_quantity || 'Invalid quantity. Please enter a valid number.';
-            gvAlert(msg, 'warning');
-            val = min;
-          }
-          if (val < min) val = min;
-          if (val > max) val = max;
-          inp.value = val;
-          const total = updateTotals();
-          if (total > maxTotal) {
-            inp.value = Math.max(min, val - (total - maxTotal));
-            updateTotals();
-            const tpl = i18n.max_persons_reached || 'Maximum people reached (:max).';
-            gvAlert(tpl.replace(':max', String(maxTotal)), 'warning');
-          }
-        });
-      });
-
-      // Inicial
-      updateTotals();
-    })();
-  </script>
-  @endpush
+                const categoriesForTomorrow = getCategoriesForDate(tomorrowStr);
+                if (categoriesForTomorrow.length > 0) {
+                    renderCategories(tomorrowStr);
+                }
+            }
+        }
+    }
+})();
+</script>
+@endpush

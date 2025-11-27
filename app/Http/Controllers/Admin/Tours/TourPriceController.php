@@ -21,25 +21,75 @@ class TourPriceController extends Controller
      */
     public function index(Tour $tour)
     {
-        $tour->load(['prices.category' => function ($q) {
-            $q->orderBy('order');
-        }]);
+        $tour->load(['prices.category']);
 
+        // 🆕 Agrupar precios por periodos de fechas
+        $pricingPeriods = \App\Models\TourPrice::groupByPeriods($tour->prices);
+
+        // ✅ TODAS las categorías disponibles (la misma categoría puede tener múltiples precios con diferentes fechas)
         $availableCategories = CustomerCategory::active()
             ->ordered()
-            ->whereNotIn('category_id', $tour->prices()->pluck('category_id'))
             ->get();
 
         $taxes = Tax::active()->orderBy('sort_order')->get();
 
-        return view('admin.tours.prices.index', compact('tour', 'availableCategories', 'taxes'));
+        return view('admin.tours.prices.index', compact('tour', 'pricingPeriods', 'availableCategories', 'taxes'));
     }
 
     /**
      * Agrega o actualiza múltiples precios de una vez
+     * Soporta dos modos:
+     * 1. Actualización completa de precios (modo original)
+     * 2. Actualización de fechas de periodo (nuevo)
      */
     public function bulkUpdate(Request $request, Tour $tour)
     {
+        // Modo 1: Actualizar fechas de periodo (nuevo)
+        if ($request->has('price_ids')) {
+            $validated = $request->validate([
+                'price_ids'    => 'required|array',
+                'price_ids.*'  => 'exists:tour_prices,tour_price_id',
+                'valid_from'   => 'nullable|date',
+                'valid_until'  => 'nullable|date|after_or_equal:valid_from',
+            ]);
+
+            try {
+                DB::transaction(function () use ($validated, $tour, $request) {
+                    TourPrice::whereIn('tour_price_id', $validated['price_ids'])
+                        ->where('tour_id', $tour->tour_id)
+                        ->update([
+                            'valid_from'  => $validated['valid_from'] ?? null,
+                            'valid_until' => $validated['valid_until'] ?? null,
+                        ]);
+
+                    LoggerHelper::mutated($this->controller, 'bulkUpdate', 'tour_prices', $tour->tour_id, [
+                        'tour_id'    => $tour->tour_id,
+                        'price_ids'  => $validated['price_ids'],
+                        'valid_from' => $validated['valid_from'] ?? null,
+                        'valid_until' => $validated['valid_until'] ?? null,
+                        'user_id'    => optional($request->user())->getAuthIdentifier(),
+                    ]);
+                });
+
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => true, 'message' => 'Fechas actualizadas exitosamente.']);
+                }
+
+                return back()->with('success', 'Fechas del periodo actualizadas exitosamente.');
+            } catch (Exception $e) {
+                LoggerHelper::exception($this->controller, 'bulkUpdate', 'tour_prices', $tour->tour_id, $e, [
+                    'user_id' => optional($request->user())->getAuthIdentifier(),
+                ]);
+
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+                }
+
+                return back()->with('error', 'Error al actualizar fechas: ' . $e->getMessage());
+            }
+        }
+
+        // Modo 2: Actualización completa de precios (original)
         $validated = $request->validate([
             'prices'                    => 'required|array',
             'prices.*.category_id'      => 'required|exists:customer_categories,category_id',
@@ -47,6 +97,8 @@ class TourPriceController extends Controller
             'prices.*.min_quantity'     => 'required|integer|min:0|max:255',
             'prices.*.max_quantity'     => 'required|integer|min:0|max:255',
             'prices.*.is_active'        => 'nullable|boolean',
+            'prices.*.valid_from'       => 'nullable|date',
+            'prices.*.valid_until'      => 'nullable|date|after_or_equal:prices.*.valid_from',
         ]);
 
         try {
@@ -55,6 +107,13 @@ class TourPriceController extends Controller
                     // Validar que min <= max
                     if ($priceData['min_quantity'] > $priceData['max_quantity']) {
                         throw new Exception("Min quantity cannot be greater than max quantity for category ID {$priceData['category_id']}");
+                    }
+
+                    // Validar fechas
+                    if (isset($priceData['valid_from']) && isset($priceData['valid_until'])) {
+                        if ($priceData['valid_from'] > $priceData['valid_until']) {
+                            throw new Exception(__("m_tours.tour.pricing.invalid_date_range"));
+                        }
                     }
 
                     // Si el precio es 0, desactivar automáticamente
@@ -72,6 +131,8 @@ class TourPriceController extends Controller
                             'min_quantity' => $priceData['min_quantity'],
                             'max_quantity' => $priceData['max_quantity'],
                             'is_active'    => $priceData['is_active'] ?? true,
+                            'valid_from'   => $priceData['valid_from'] ?? null,
+                            'valid_until'  => $priceData['valid_until'] ?? null,
                         ]
                     );
                 }
@@ -103,18 +164,47 @@ class TourPriceController extends Controller
             'price'        => 'required|numeric|min:0',
             'min_quantity' => 'required|integer|min:0|max:255',
             'max_quantity' => 'required|integer|min:0|max:255',
+            'valid_from'   => 'nullable|date',
+            'valid_until'  => 'nullable|date|after_or_equal:valid_from',
         ]);
 
         try {
-            // Validar que no exista ya
-            $exists = TourPrice::where('tour_id', $tour->tour_id)
-                ->where('category_id', $validated['category_id'])
-                ->exists();
+            // Validar fechas
+            if (isset($validated['valid_from']) && isset($validated['valid_until'])) {
+                if ($validated['valid_from'] > $validated['valid_until']) {
+                    return back()
+                        ->withInput()
+                        ->with('error', __('m_tours.tour.pricing.invalid_date_range'));
+                }
+            }
 
-            if ($exists) {
+            // Validar solapamiento de fechas
+            $overlap = $this->validateDateOverlap(
+                $tour->tour_id,
+                $validated['category_id'],
+                $validated['valid_from'] ?? null,
+                $validated['valid_until'] ?? null
+            );
+
+            if ($overlap) {
                 return back()
                     ->withInput()
-                    ->with('error', 'Esta categoría ya está asignada a este tour.');
+                    ->with('error', __('m_tours.tour.pricing.date_overlap_warning'));
+            }
+
+            // Validar que no exista ya (solo si no tiene fechas)
+            if (!isset($validated['valid_from']) && !isset($validated['valid_until'])) {
+                $exists = TourPrice::where('tour_id', $tour->tour_id)
+                    ->where('category_id', $validated['category_id'])
+                    ->whereNull('valid_from')
+                    ->whereNull('valid_until')
+                    ->exists();
+
+                if ($exists) {
+                    return back()
+                        ->withInput()
+                        ->with('error', 'Esta categoría ya tiene un precio por defecto asignado.');
+                }
             }
 
             // Validar que min <= max
@@ -134,6 +224,8 @@ class TourPriceController extends Controller
                 'min_quantity' => $validated['min_quantity'],
                 'max_quantity' => $validated['max_quantity'],
                 'is_active'    => $isActive,
+                'valid_from'   => $validated['valid_from'] ?? null,
+                'valid_until'  => $validated['valid_until'] ?? null,
             ]);
 
             LoggerHelper::mutated($this->controller, 'store', 'tour_prices', $tourPrice->tour_price_id, [
@@ -163,6 +255,8 @@ class TourPriceController extends Controller
             'min_quantity' => 'required|integer|min:0|max:255',
             'max_quantity' => 'required|integer|min:0|max:255',
             'is_active'    => 'nullable|boolean',
+            'valid_from'   => 'nullable|date',
+            'valid_until'  => 'nullable|date|after_or_equal:valid_from',
         ]);
 
         try {
@@ -171,6 +265,30 @@ class TourPriceController extends Controller
                 return back()
                     ->withInput()
                     ->with('error', 'La cantidad mínima no puede ser mayor que la máxima.');
+            }
+
+            // Validar fechas
+            if (isset($validated['valid_from']) && isset($validated['valid_until'])) {
+                if ($validated['valid_from'] > $validated['valid_until']) {
+                    return back()
+                        ->withInput()
+                        ->with('error', __('m_tours.tour.pricing.invalid_date_range'));
+                }
+            }
+
+            // Validar solapamiento de fechas (excluyendo el precio actual)
+            $overlap = $this->validateDateOverlap(
+                $price->tour_id,
+                $price->category_id,
+                $validated['valid_from'] ?? null,
+                $validated['valid_until'] ?? null,
+                $price->tour_price_id
+            );
+
+            if ($overlap) {
+                return back()
+                    ->withInput()
+                    ->with('error', __('m_tours.tour.pricing.date_overlap_warning'));
             }
 
             // Si el precio es 0, desactivar automáticamente
@@ -268,5 +386,71 @@ class TourPriceController extends Controller
 
             return back()->with('error', 'Error al actualizar impuestos: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Valida que no haya solapamiento de fechas para la misma categoría
+     * 
+     * @param int $tourId
+     * @param int $categoryId
+     * @param string|null $validFrom
+     * @param string|null $validUntil
+     * @param int|null $excludePriceId ID del precio a excluir de la validación
+     * @return bool True si hay solapamiento, false si no
+     */
+    protected function validateDateOverlap(
+        int $tourId,
+        int $categoryId,
+        ?string $validFrom,
+        ?string $validUntil,
+        ?int $excludePriceId = null
+    ): bool {
+        // Si no hay fechas, no puede haber solapamiento con precios temporales
+        // (pero solo puede haber un precio sin fechas por categoría)
+        if (!$validFrom && !$validUntil) {
+            return false;
+        }
+
+        $query = TourPrice::where('tour_id', $tourId)
+            ->where('category_id', $categoryId);
+
+        if ($excludePriceId) {
+            $query->where('tour_price_id', '!=', $excludePriceId);
+        }
+
+        // Buscar precios que se solapen
+        $overlapping = $query->where(function ($q) use ($validFrom, $validUntil) {
+            // Caso 1: El nuevo rango contiene el inicio de un rango existente
+            $q->where(function ($subQ) use ($validFrom, $validUntil) {
+                if ($validFrom) {
+                    $subQ->where(function ($dateQ) use ($validFrom, $validUntil) {
+                        $dateQ->where('valid_from', '>=', $validFrom);
+                        if ($validUntil) {
+                            $dateQ->where('valid_from', '<=', $validUntil);
+                        }
+                    });
+                }
+            })
+                // Caso 2: El nuevo rango contiene el fin de un rango existente
+                ->orWhere(function ($subQ) use ($validFrom, $validUntil) {
+                    if ($validUntil) {
+                        $subQ->where(function ($dateQ) use ($validFrom, $validUntil) {
+                            if ($validFrom) {
+                                $dateQ->where('valid_until', '>=', $validFrom);
+                            }
+                            $dateQ->where('valid_until', '<=', $validUntil);
+                        });
+                    }
+                })
+                // Caso 3: Un rango existente contiene completamente el nuevo rango
+                ->orWhere(function ($subQ) use ($validFrom, $validUntil) {
+                    if ($validFrom && $validUntil) {
+                        $subQ->where('valid_from', '<=', $validFrom)
+                            ->where('valid_until', '>=', $validUntil);
+                    }
+                });
+        })->exists();
+
+        return $overlapping;
     }
 }

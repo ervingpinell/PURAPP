@@ -98,6 +98,24 @@
     margin-left: .5rem;
   }
 
+  /* NUEVO: badge compacto por regla de precio (desktop) */
+  .price-rule-badge {
+    font-size: .75rem;
+    padding: .2rem .55rem;
+    border-radius: 999px;
+    margin: .15rem .25rem .15rem 0;
+    cursor: default;
+    background-color: #2563eb;
+    color: #f9fafb;
+    border: none;
+  }
+
+  .price-rule-badge i {
+    font-size: .8em;
+    margin-right: .25rem;
+    color: #bfdbfe;
+  }
+
   .table-striped tbody tr:hover {
     background-color: rgba(0, 0, 0, .03);
   }
@@ -259,12 +277,6 @@
     flex-wrap: wrap;
   }
 
-  .tour-mobile-price {
-    font-weight: 600;
-    font-size: .88rem;
-    color: #f97316;
-  }
-
   .tour-mobile-status-badge {
     font-size: .7rem;
     padding: .15rem .45rem;
@@ -419,33 +431,31 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
         ->filter(fn($p) => $p->is_active && $p->category && $p->category->is_active)
         ->sortBy('category.order');
 
-        $mainPrice = $activePrices->first();
-        $mainPriceLabel = null;
-        $mainPriceValue = null;
+        // ====== Agrupar precios por regla (default / rango de fechas) ======
+        $groupedPriceRules = $activePrices
+        ->groupBy(function ($p) {
+        $from = $p->valid_from ?? null;
+        $until = $p->valid_until ?? null;
 
-        if ($mainPrice) {
-        $cat = $mainPrice->category;
-
-        $mainPriceLabel = method_exists($cat, 'getTranslatedName')
-        ? ($cat->getTranslatedName($locale) ?: null)
-        : null;
-
-        if (!$mainPriceLabel && !empty($cat->slug)) {
-        foreach ([
-        'customer_categories.labels.' . $cat->slug,
-        'm_tours.customer_categories.labels.' . $cat->slug,
-        ] as $k) {
-        $tr = __($k);
-        if ($tr !== $k) { $mainPriceLabel = $tr; break; }
-        }
+        if ($p->is_default) {
+        return 'default';
         }
 
-        if (!$mainPriceLabel) {
-        $mainPriceLabel = $cat->name ?? $cat->slug ?? '';
-        }
+        $fromStr = $from instanceof \Carbon\Carbon ? $from->format('Y-m-d') : $from;
+        $untilStr = $until instanceof \Carbon\Carbon ? $until->format('Y-m-d') : $until;
 
-        $mainPriceValue = $currency . number_format($mainPrice->price, 2);
+        return ($fromStr ?: 'null') . '_' . ($untilStr ?: 'null');
+        })
+        ->sortBy(function ($prices, $key) {
+        /** @var \Illuminate\Support\Collection $prices */
+        $first = $prices->first();
+        if ($first->is_default) {
+        // que el default quede al final
+        return '9999-12-31';
         }
+        $from = $first->valid_from ?? null;
+        return $from instanceof \Carbon\Carbon ? $from->format('Y-m-d') : ($from ?: '0000-01-01');
+        });
 
         $slug = $tour->slug ?? $tour->tour_slug ?? null;
 
@@ -476,11 +486,39 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
             @endforelse
           </td>
 
+          {{-- ====== PRECIOS DESKTOP: badges por regla con tooltip ====== --}}
           <td>
-            @if($activePrices->isNotEmpty())
-            @foreach($activePrices as $price)
+            @if($groupedPriceRules->isNotEmpty())
+            @foreach($groupedPriceRules as $key => $pricesGroup)
             @php
-            $cat = $price->category;
+            /** @var \App\Models\TourPrice $first */
+            $first = $pricesGroup->first();
+            $from = $first->valid_from ?? null;
+            $until = $first->valid_until ?? null;
+
+            $fromStr = $from instanceof \Carbon\Carbon ? $from->format('Y-m-d') : $from;
+            $untilStr = $until instanceof \Carbon\Carbon ? $until->format('Y-m-d') : $until;
+
+            if ($first->is_default) {
+            $label = __('m_tours.tour.summary.default_price_rule') !== 'm_tours.tour.summary.default_price_rule'
+            ? __('m_tours.tour.summary.default_price_rule')
+            : 'Precio por defecto';
+            } else {
+            if ($fromStr && $untilStr) {
+            $label = "{$fromStr} → {$untilStr}";
+            } elseif ($fromStr) {
+            $label = "Desde {$fromStr}";
+            } elseif ($untilStr) {
+            $label = "Hasta {$untilStr}";
+            } else {
+            $label = 'Rango sin fechas';
+            }
+            }
+
+            // resumen para tooltip
+            $summaryLines = [];
+            foreach ($pricesGroup as $p) {
+            $cat = $p->category;
 
             $catLabel = method_exists($cat, 'getTranslatedName')
             ? ($cat->getTranslatedName($locale) ?: null)
@@ -497,15 +535,24 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
             }
 
             if (!$catLabel) { $catLabel = $cat->name ?? $cat->slug ?? ''; }
+
+            $amount = $currency . number_format($p->price, 2);
+
+            $summaryLines[] = e($catLabel) . ': ' . $amount .
+            ' (' . $p->min_quantity . '-' . $p->max_quantity . ')';
+            }
+
+            $tooltipHtml = implode('<br>', $summaryLines);
             @endphp
 
-            <div class="price-item">
-              <span class="price-label">
-                {{ $catLabel }}
-                <span class="price-range">({{ $price->min_quantity }}-{{ $price->max_quantity }})</span>
-              </span>
-              <span class="price-value">{{ $currency }}{{ number_format($price->price, 2) }}</span>
-            </div>
+            <span class="badge badge-primary price-rule-badge"
+              data-toggle="tooltip"
+              data-html="true"
+              data-placement="top"
+              title="{!! $tooltipHtml !!}">
+              <i class="fas fa-calendar-alt mr-1 text-primary"></i>
+              {{ $label }}
+            </span>
             @endforeach
             @else
             <span class="text-muted">{{ __('m_tours.tour.ui.no_prices') }}</span>
@@ -651,34 +698,29 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
   ->filter(fn($p) => $p->is_active && $p->category && $p->category->is_active)
   ->sortBy('category.order');
 
-  // ==== NUEVO: resumen con TODAS las categorías ====
-  $pricesSummary = null;
-  if ($activePrices->isNotEmpty()) {
-  $chunks = [];
-  foreach ($activePrices as $p) {
-  $cat = $p->category;
+  // Agrupamos igual que en desktop, para mostrar por regla con fechas
+  $groupedPriceRulesMobile = $activePrices
+  ->groupBy(function ($p) {
+  $from = $p->valid_from ?? null;
+  $until = $p->valid_until ?? null;
 
-  $label = method_exists($cat, 'getTranslatedName')
-  ? ($cat->getTranslatedName($locale) ?: null)
-  : null;
-
-  if (!$label && !empty($cat->slug)) {
-  foreach ([
-  'customer_categories.labels.' . $cat->slug,
-  'm_tours.customer_categories.labels.' . $cat->slug,
-  ] as $k) {
-  $tr = __($k);
-  if ($tr !== $k) { $label = $tr; break; }
-  }
+  if ($p->is_default) {
+  return 'default';
   }
 
-  if (!$label) { $label = $cat->name ?? $cat->slug ?? ''; }
+  $fromStr = $from instanceof \Carbon\Carbon ? $from->format('Y-m-d') : $from;
+  $untilStr = $until instanceof \Carbon\Carbon ? $until->format('Y-m-d') : $until;
 
-  $amount = $currency . number_format($p->price, 2);
-  $chunks[] = "{$label}: {$amount}";
+  return ($fromStr ?: 'null') . '_' . ($untilStr ?: 'null');
+  })
+  ->sortBy(function ($prices, $key) {
+  $first = $prices->first();
+  if ($first->is_default) {
+  return '9999-12-31';
   }
-  $pricesSummary = implode(' · ', $chunks);
-  }
+  $from = $first->valid_from ?? null;
+  return $from instanceof \Carbon\Carbon ? $from->format('Y-m-d') : ($from ?: '0000-01-01');
+  });
 
   $slug = $tour->slug ?? $tour->tour_slug ?? null;
 
@@ -717,15 +759,13 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
         @endif
         <div class="tour-mobile-meta">
           <span class="tour-mobile-status-badge badge
-              {{ $tour->is_active ? 'bg-success' : 'bg-secondary' }}">
+                {{ $tour->is_active ? 'bg-success' : 'bg-secondary' }}">
             {{ $tour->is_active ? __('m_tours.common.active') : __('m_tours.common.inactive') }}
           </span>
 
-          @if($pricesSummary)
-          <span class="tour-mobile-price">
-            {{ $pricesSummary }}
-          </span>
-          @else
+          {{-- Ya no mostramos el resumen naranja aquí.
+                 Si no hay precios, mostramos sólo el mensaje --}}
+          @if($groupedPriceRulesMobile->isEmpty())
           <span class="text-muted" style="font-size:.7rem;">
             {{ __('m_tours.tour.ui.no_prices') }}
           </span>
@@ -753,36 +793,69 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
           @endforelse
         </div>
 
-        {{-- Precios detallados --}}
+        {{-- Precios detallados agrupados por regla/fechas (como desktop) --}}
         <div class="mb-2">
           <div class="section-label">{{ __('m_tours.tour.table.prices') }}</div>
-          @if($activePrices->isNotEmpty())
-          @foreach($activePrices as $p)
+          @if($groupedPriceRulesMobile->isNotEmpty())
+          @foreach($groupedPriceRulesMobile as $key => $pricesGroup)
           @php
-          $cat = $p->category;
+          $first = $pricesGroup->first();
+          $from = $first->valid_from ?? null;
+          $until = $first->valid_until ?? null;
 
-          $label = method_exists($cat, 'getTranslatedName')
-          ? ($cat->getTranslatedName($locale) ?: null)
-          : null;
+          $fromStr = $from instanceof \Carbon\Carbon ? $from->format('Y-m-d') : $from;
+          $untilStr = $until instanceof \Carbon\Carbon ? $until->format('Y-m-d') : $until;
 
-          if (!$label && !empty($cat->slug)) {
-          foreach ([
-          'customer_categories.labels.' . $cat->slug,
-          'm_tours.customer_categories.labels.' . $cat->slug,
-          ] as $k) {
-          $tr = __($k);
-          if ($tr !== $k) { $label = $tr; break; }
+          if ($first->is_default) {
+          $ruleLabel = __('m_tours.tour.summary.default_price_rule') !== 'm_tours.tour.summary.default_price_rule'
+          ? __('m_tours.tour.summary.default_price_rule')
+          : 'Precio por defecto';
+          } else {
+          if ($fromStr && $untilStr) {
+          $ruleLabel = "{$fromStr} → {$untilStr}";
+          } elseif ($fromStr) {
+          $ruleLabel = "Desde {$fromStr}";
+          } elseif ($untilStr) {
+          $ruleLabel = "Hasta {$untilStr}";
+          } else {
+          $ruleLabel = 'Rango sin fechas';
           }
           }
-
-          if (!$label) { $label = $cat->name ?? $cat->slug ?? ''; }
-
-          $amount = $currency . number_format($p->price, 2);
           @endphp
-          <span class="tour-mobile-meta-chip mb-1">
-            {{ $label }}: {{ $amount }}
-            ({{ $p->min_quantity }}-{{ $p->max_quantity }})
-          </span>
+          <div class="mb-2">
+            <span class="badge badge-primary mb-1">
+              <i class="fas fa-calendar-alt mr-1"></i>{{ $ruleLabel }}
+            </span>
+            <div class="tour-mobile-meta-row">
+              @foreach($pricesGroup as $p)
+              @php
+              $cat = $p->category;
+
+              $label = method_exists($cat, 'getTranslatedName')
+              ? ($cat->getTranslatedName($locale) ?: null)
+              : null;
+
+              if (!$label && !empty($cat->slug)) {
+              foreach ([
+              'customer_categories.labels.' . $cat->slug,
+              'm_tours.customer_categories.labels.' . $cat->slug,
+              ] as $k) {
+              $tr = __($k);
+              if ($tr !== $k) { $label = $tr; break; }
+              }
+              }
+
+              if (!$label) { $label = $cat->name ?? $cat->slug ?? ''; }
+
+              $amount = $currency . number_format($p->price, 2);
+              @endphp
+              <span class="tour-mobile-meta-chip mb-1">
+                {{ $label }}: {{ $amount }}
+                ({{ $p->min_quantity }}-{{ $p->max_quantity }})
+              </span>
+              @endforeach
+            </div>
+          </div>
           @endforeach
           @else
           <span class="text-muted">{{ __('m_tours.tour.ui.no_prices') }}</span>
@@ -791,18 +864,18 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
 
         {{-- Capacidades --}}
         <div class="tour-mobile-meta-row">
-          <span class="tour-mobile-meta-chip">
+          <span class="tour-mobile-meta-chip bg-success">
             {{ __('m_tours.tour.table.capacity') }}:
             {{ $tour->max_capacity }} {{ __('m_tours.common.people') }}
           </span>
-          <span class="tour-mobile-meta-chip">
+          <span class="tour-mobile-meta-chip bg-success">
             {{ __('m_tours.tour.table.group_size') }}:
             {{ $tour->group_size ? $tour->group_size.' '. __('m_tours.common.people') : __('m_tours.common.na') }}
           </span>
         </div>
 
         {{-- Acciones --}}
-        <div class="tour-mobile-actions">
+        <div class="tour-mobile-actions border-top pt-2 pb-2">
           <button type="button"
             class="btn btn-primary btn-sm"
             data-toggle="modal"
@@ -827,7 +900,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
             <button type="submit"
               class="btn btn-sm btn-{{ $tour->is_active ? 'success' : 'secondary' }}">
               <i class="fas fa-toggle-{{ $tour->is_active ? 'on' : 'off' }}"></i>
-              {{ $tour->is_active ? __('m_tours.tour.ui.deactivate') : __('m_tours.tour.ui.activate') }}
+              {{ __('m_tours.tour.ui.deactivate') }}
             </button>
           </form>
           @endunless
@@ -1032,6 +1105,13 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
         chevron.classList.remove('rotated');
       });
     });
+
+    // Tooltips Bootstrap 4
+    if (window.jQuery && $.fn.tooltip) {
+      $('[data-toggle="tooltip"]').tooltip({
+        html: true
+      });
+    }
   });
 </script>
 @endpush

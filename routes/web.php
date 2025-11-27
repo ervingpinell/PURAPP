@@ -731,6 +731,12 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::patch('itinerary_items/{itinerary_item}/toggle', [ItineraryItemController::class, 'toggle'])->name('itinerary_items.toggle');
                     Route::put('itinerary_items/{itinerary_item}/translations', [ItineraryItemController::class, 'updateTranslations'])->name('itinerary_items.updateTranslations');
 
+                    // -------------------- PRICES --------------------
+                    Route::post('prices/check-overlap', [TourPriceController::class, 'checkOverlap'])
+                        ->name('prices.check-overlap');
+                    Route::resource('prices', TourPriceController::class)->except(['show', 'edit', 'create']);
+                    Route::put('prices/{price}/toggle', [TourPriceController::class, 'toggle'])->name('prices.toggle');
+
                     // -------------------- AMENITIES --------------------
                     Route::resource('amenities', AmenityController::class)->except(['show']);
                     Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])->name('amenities.toggle');

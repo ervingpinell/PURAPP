@@ -1,273 +1,374 @@
 {{-- resources/views/admin/tours/prices/index.blade.php --}}
+{{-- NUEVA VERSIÓN: Precios agrupados por periodos de fechas --}}
+
 @extends('adminlte::page')
 
 @section('title', __('m_tours.prices.ui.page_title', ['name' => $tour->name]))
 
-@section('content_header')
-<div class="d-flex justify-content-between align-items-center">
-    <h1>{{ __('m_tours.prices.ui.header_title', ['name' => $tour->name]) }}</h1>
-    <a href="{{ route('admin.tours.index') }}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> {{ __('m_tours.prices.ui.back_to_tours') }}
-    </a>
-</div>
-@stop
+@push('css')
+<style>
+    /* Dark theme compatible styles */
+    .tour-info-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .pricing-period-card {
+        margin-bottom: 1.5rem;
+        border: 1px solid #454d55;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        background: #343a40;
+    }
+
+    .period-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .period-header.default {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    }
+
+.period-dates {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+.period-dates > div {
+    display: flex;
+    flex-direction: column;
+    min-width: 180px;
+}
+
+    .period-dates input[type="date"] {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+    }
+
+    .period-dates input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+    }
+
+    .period-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .categories-table {
+        margin: 0;
+        background: #343a40;
+    }
+
+    .categories-table thead {
+        background: #454d55;
+    }
+
+    .categories-table th {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        padding: 0.5rem;
+        border-bottom: 2px solid #454d55;
+        color: #c2c7d0;
+    }
+
+    .categories-table td {
+        padding: 0.5rem;
+        vertical-align: middle;
+        border-top: 1px solid #454d55;
+        color: #c2c7d0;
+    }
+
+    .categories-table tbody tr:hover {
+        background: #3a4047;
+    }
+
+    .categories-table input[type="number"],
+    .categories-table input[type="text"] {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.5rem;
+        background: #3d444b;
+        border: 1px solid #6c757d;
+        color: #fff;
+    }
+
+    .categories-table input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .add-category-section {
+        padding: 1rem 1.25rem;
+        background: #3d444b;
+        border-top: 1px solid #454d55;
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .add-category-section select {
+        background: #343a40;
+        border: 1px solid #6c757d;
+        color: #c2c7d0;
+        flex: 1;
+    }
+
+    .btn-add-period {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white !important;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        transition: all 0.3s;
+    }
+
+    .btn-add-period:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        color: white !important;
+    }
+
+    .input-group-text {
+        background: #3d444b;
+        border: 1px solid #6c757d;
+        color: #c2c7d0;
+    }
+
+    .price-changed {
+        background: #ffc107 !important;
+        border-color: #ffc107 !important;
+    }
+
+    .save-indicator {
+        display: none;
+        color: #28a745;
+        font-size: 0.875rem;
+    }
+
+    .save-indicator.show {
+        display: inline-block;
+    }
+</style>
+@endpush
 
 @section('content')
-@if(session('success'))
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-    {{ session('success') }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('m_tours.common.cancel') }}"></button>
-</div>
-@endif
-
-@if(session('error'))
-<div class="alert alert-danger alert-dismissible fade show" role="alert">
-    {{ session('error') }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('m_tours.common.cancel') }}"></button>
-</div>
-@endif
-
-@if($errors->any())
-<div class="alert alert-danger alert-dismissible fade show" role="alert">
-    <ul class="mb-0">
-        @foreach($errors->all() as $error)
-        <li>{{ $error }}</li>
-        @endforeach
-    </ul>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('m_tours.common.cancel') }}"></button>
-</div>
-@endif
-
-<div class="row">
-    <div class="col-lg-8">
-        {{-- Formulario de actualización masiva --}}
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">{{ __('m_tours.prices.ui.configured_title') }}</h3>
+<div class="container-fluid">
+    {{-- Tour Info Header --}}
+    <div class="tour-info-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-2" style="font-size: 1.75rem; font-weight: 600;">
+                    <i class="fas fa-dollar-sign mr-2"></i>
+                    {{ $tour->name }} - {{ __('m_tours.prices.ui.configured_title') }}
+                </h1>
+                <p class="mb-0" style="opacity: 0.9;">
+                    {{ __('m_tours.prices.ui.configured_count') }}: {{ $tour->prices->count() }} |
+                    {{ __('m_tours.prices.ui.active_count') }}: {{ $tour->prices->where('is_active', true)->count() }}
+                </p>
             </div>
-
-            <form action="{{ route('admin.tours.prices.bulk-update', $tour) }}" method="POST" id="bulkUpdateForm">
-                @csrf
-
-                <div class="card-body p-0">
-                    @if($tour->prices->isEmpty())
-                    <div class="p-4 text-center text-muted">
-                        <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
-                        <p>{{ __('m_tours.prices.ui.empty_title') }}</p>
-                        <p class="small">{{ __('m_tours.prices.ui.empty_hint') }}</p>
-                    </div>
-                    @else
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>{{ __('m_tours.prices.table.category') }}</th>
-                                    <th>{{ __('m_tours.prices.table.age_range') }}</th>
-                                    <th style="width: 150px">{{ __('m_tours.prices.table.price_usd') }}</th>
-                                    <th style="width: 150px">Precio Final</th>
-                                    <th style="width: 100px">{{ __('m_tours.prices.table.min') }}</th>
-                                    <th style="width: 100px">{{ __('m_tours.prices.table.max') }}</th>
-                                    <th style="width: 120px" class="text-center">{{ __('m_tours.prices.table.status') }}</th>
-                                    <th style="width: 80px" class="text-center">{{ __('m_tours.prices.table.action') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($tour->prices as $index => $price)
-                                @php
-                                $taxIncluded = (bool) config('settings.taxes.included', false);
-                                $breakdown = $price->calculateTaxBreakdown(1, $taxIncluded);
-                                @endphp
-                                <tr>
-                                    <td>
-                                        <strong>{{ $price->category->name }}</strong>
-                                        <br>
-                                        <small class="text-muted">
-                                            <code>{{ $price->category->slug }}</code>
-                                        </small>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">
-                                            {{ $price->category->age_range }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <input type="hidden"
-                                            name="prices[{{ $index }}][category_id]"
-                                            value="{{ $price->category_id }}">
-                                        <input type="hidden"
-                                            name="prices[{{ $index }}][tour_price_id]"
-                                            value="{{ $price->tour_price_id }}">
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text">$</span>
-                                            <input type="number"
-                                                class="form-control form-control-sm price-input"
-                                                name="prices[{{ $index }}][price]"
-                                                value="{{ number_format($price->price, 2, '.', '') }}"
-                                                step="0.01"
-                                                min="0"
-                                                data-index="{{ $index }}"
-                                                required>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex flex-column">
-                                            <strong class="text-success">${{ number_format($breakdown['total'], 2) }}</strong>
-                                            @if($tour->taxes->isNotEmpty())
-                                            <small class="text-muted">
-                                                @php
-                                                $hasInclusive = collect($breakdown['taxes'])->contains('included', true);
-                                                $hasExclusive = collect($breakdown['taxes'])->contains('included', false);
-                                                @endphp
-
-                                                @if($hasInclusive && !$hasExclusive)
-                                                <span class="badge badge-success badge-sm">{{ __('taxes.included') }}</span>
-                                                @elseif($hasExclusive && !$hasInclusive)
-                                                <span class="badge badge-warning badge-sm">+ Tax</span>
-                                                @elseif($hasInclusive && $hasExclusive)
-                                                <span class="badge badge-info badge-sm">{{ __('taxes.mixed') }}</span>
-                                                @endif
-                                            </small>
-                                            @endif
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <input type="number"
-                                            class="form-control form-control-sm min-quantity"
-                                            name="prices[{{ $index }}][min_quantity]"
-                                            value="{{ $price->min_quantity }}"
-                                            min="0"
-                                            max="255"
-                                            data-index="{{ $index }}"
-                                            required>
-                                    </td>
-                                    <td>
-                                        <input type="number"
-                                            class="form-control form-control-sm max-quantity"
-                                            name="prices[{{ $index }}][max_quantity]"
-                                            value="{{ $price->max_quantity }}"
-                                            min="0"
-                                            max="255"
-                                            data-index="{{ $index }}"
-                                            required>
-                                    </td>
-                                    <td class="text-center">
-                                        <input type="hidden" name="prices[{{ $index }}][is_active]" value="0">
-                                        <div class="form-check form-switch d-inline-flex justify-content-center">
-                                            <input
-                                                class="form-check-input is-active-toggle"
-                                                type="checkbox"
-                                                role="switch"
-                                                id="active_{{ $price->tour_price_id }}"
-                                                name="prices[{{ $index }}][is_active]"
-                                                value="1"
-                                                data-index="{{ $index }}"
-                                                {{ $price->is_active ? 'checked' : '' }}>
-                                            <label class="form-check-label ms-1" for="active_{{ $price->tour_price_id }}"></label>
-                                        </div>
-                                    </td>
-                                    <td class="text-center">
-                                        <button type="button"
-                                            class="btn btn-sm btn-danger"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#confirmDeleteModal"
-                                            data-action="{{ route('admin.tours.prices.destroy', ['tour' => $tour->tour_id, 'price' => $price->getKey()]) }}"
-                                            title="{{ __('m_tours.prices.modal.delete_tooltip') }}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                    @endif
-                </div>
-
-                @if($tour->prices->isNotEmpty())
-                <div class="card-footer d-flex align-items-center gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> {{ __('m_tours.prices.ui.save_changes') }}
-                    </button>
-                    <span class="ms-2 text-muted small">
-                        <i class="fas fa-info-circle"></i>
-                        {{ __('m_tours.prices.ui.auto_disable_note') }}
-                    </span>
-                </div>
-                @endif
-            </form>
+            <a href="{{ route('admin.tours.index') }}" class="btn btn-light">
+                <i class="fas fa-arrow-left mr-2"></i>
+                {{ __('m_tours.prices.ui.back_to_tours') }}
+            </a>
         </div>
     </div>
 
-    <div class="col-lg-4">
-        {{-- Quick Actions --}}
-        <div class="card card-outline card-primary mb-3">
-            <div class="card-header">
-                <h3 class="card-title">{{ __('m_general.quick_actions') }}</h3>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#manageTaxesModal">
-                        <i class="fas fa-percentage"></i> {{ __('taxes.title') }}
-                        @if($tour->taxes->isNotEmpty())
-                        <span class="badge bg-light text-dark ms-2">{{ $tour->taxes->count() }}</span>
-                        @endif
-                    </button>
+    {{-- Alerts --}}
+    @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        {{ session('success') }}
+    </div>
+    @endif
 
-                    @if($availableCategories->isNotEmpty())
-                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-                        <i class="fas fa-plus"></i> {{ __('m_tours.prices.ui.add_category') }}
-                    </button>
+    @if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        {{ session('error') }}
+    </div>
+    @endif
+
+    {{-- Add Period Button --}}
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+        <button type="button" class="btn btn-add-period" id="add-period-btn">
+            <i class="fas fa-plus-circle mr-2"></i>
+            {{ __('m_tours.tour.pricing.add_period') ?? 'Agregar Periodo de Precios' }}
+        </button>
+        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#manageTaxesModal">
+            <i class="fas fa-percentage mr-2"></i>
+            {{ __('taxes.title') }}
+            @if($tour->taxes->isNotEmpty())
+            <span class="badge badge-light ml-2">{{ $tour->taxes->count() }}</span>
+            @endif
+        </button>
+    </div>
+
+    {{-- Pricing Periods Container --}}
+    <div id="pricing-periods-container">
+        @forelse($pricingPeriods as $periodIndex => $period)
+        <div class="card pricing-period-card" data-period-index="{{ $periodIndex }}">
+            <div class="period-header {{ $period['is_default'] ? 'default' : '' }}">
+                <div class="period-dates">
+                    @if(!$period['is_default'])
+                    <div>
+                        <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">{{ __('m_tours.tour.pricing.valid_from') }}</label>
+                        <input type="date"
+                            class="form-control form-control-sm period-date-input"
+                            data-field="valid_from"
+                            value="{{ $period['valid_from'] }}">
+                    </div>
+                    <div>
+                        <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">{{ __('m_tours.tour.pricing.valid_until') }}</label>
+                        <input type="date"
+                            class="form-control form-control-sm period-date-input"
+                            data-field="valid_until"
+                            value="{{ $period['valid_until'] }}">
+                    </div>
+                    @else
+                    <h5 class="mb-0">
+                        <i class="fas fa-infinity mr-2"></i>
+                        {{ $period['label'] }}
+                    </h5>
                     @endif
                 </div>
+                <div class="period-actions">
+                    @if(!$period['is_default'])
+                    <button type="button" class="btn btn-sm btn-light save-period-dates-btn">
+                        <i class="fas fa-save"></i> {{ __('m_general.save') }}
+                    </button>
+                    @endif
+                    <button type="button" class="btn btn-sm btn-danger remove-period-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </div>
-        </div>
 
-        {{-- Información --}}
-        <div class="card card-info">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-info-circle"></i> {{ __('m_tours.prices.ui.info_title') }}
-                </h3>
+            <div class="card-body p-0">
+                <table class="table table-sm table-hover categories-table mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">{{ __('m_tours.tour.pricing.category') }}</th>
+                            <th style="width: 12%;">{{ __('m_tours.tour.pricing.age_range') }}</th>
+                            <th style="width: 15%;">{{ __('m_tours.tour.pricing.price_usd') }}</th>
+                            <th style="width: 12%;">{{ __('m_tours.tour.pricing.min_quantity') }}</th>
+                            <th style="width: 12%;">{{ __('m_tours.tour.pricing.max_quantity') }}</th>
+                            <th style="width: 10%;" class="text-center">{{ __('m_tours.tour.pricing.active') }}</th>
+                            <th style="width: 19%;" class="text-center">{{ __('m_tours.prices.table.action') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="categories-tbody">
+                        @foreach($period['categories'] as $cat)
+                        <tr data-price-id="{{ $cat['price_id'] }}" data-category-id="{{ $cat['id'] }}">
+                            <td><strong>{{ $cat['name'] }}</strong></td>
+                            <td><small class="text-muted">{{ $cat['age_range'] }}</small></td>
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">$</span>
+                                    </div>
+                                    <input type="number"
+                                        class="form-control price-input"
+                                        value="{{ $cat['price'] }}"
+                                        data-field="price"
+                                        step="0.01"
+                                        min="0">
+                                </div>
+                            </td>
+                            <td>
+                                <input type="number"
+                                    class="form-control form-control-sm quantity-input"
+                                    value="{{ $cat['min_quantity'] }}"
+                                    data-field="min_quantity"
+                                    min="0">
+                            </td>
+                            <td>
+                                <input type="number"
+                                    class="form-control form-control-sm quantity-input"
+                                    value="{{ $cat['max_quantity'] }}"
+                                    data-field="max_quantity"
+                                    min="0">
+                            </td>
+                            <td class="text-center">
+                                <input type="checkbox"
+                                    class="active-toggle"
+                                    data-field="is_active"
+                                    {{ $cat['is_active'] ? 'checked' : '' }}>
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-success save-price-btn" style="display: none;">
+                                    <i class="fas fa-save"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger remove-category-btn">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <span class="save-indicator ml-2">
+                                    <i class="fas fa-check-circle"></i> Guardado
+                                </span>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-            <div class="card-body">
-                <p><strong>{{ __('m_tours.prices.ui.tour_label') }}:</strong> {{ $tour->name }}</p>
-                <p><strong>{{ __('m_tours.prices.ui.configured_count') }}:</strong> {{ $tour->prices->count() }}</p>
-                <p><strong>{{ __('m_tours.prices.ui.active_count') }}:</strong> {{ $tour->prices->where('is_active', true)->count() }}</p>
-                <hr>
-                <h5>{{ __('m_tours.prices.ui.fields_title') }}</h5>
-                <ul class="small">
-                    <li><strong>{{ __('m_tours.prices.ui.field_price') }}:</strong> {{ __('m_tours.prices.forms.price_usd') }}</li>
-                    <li><strong>{{ __('m_tours.prices.ui.field_min') }}:</strong> {{ __('m_tours.prices.forms.min') }}</li>
-                    <li><strong>{{ __('m_tours.prices.ui.field_max') }}:</strong> {{ __('m_tours.prices.forms.max') }}</li>
-                    <li><strong>{{ __('m_tours.prices.ui.field_status') }}:</strong> {{ __('m_tours.prices.table.active') }}/{{ __('m_tours.prices.table.inactive') }}</li>
-                </ul>
-                <hr>
-                <h5>{{ __('m_tours.prices.ui.rules_title') }}</h5>
-                <ul class="small">
-                    <li>{{ __('m_tours.prices.ui.rule_min_le_max') }}</li>
-                    <li>{{ __('m_tours.prices.ui.rule_zero_disable') }}</li>
-                    <li>{{ __('m_tours.prices.ui.rule_only_active') }}</li>
-                </ul>
+
+            <div class="add-category-section">
+                <select class="form-control form-control-sm add-category-select">
+                    <option value="">{{ __('m_tours.tour.pricing.choose_category_placeholder') }}</option>
+                    @foreach($availableCategories as $category)
+                    <option value="{{ $category->category_id }}"
+                        data-name="{{ $category->getTranslatedName() ?? $category->name }}"
+                        data-age-range="{{ $category->age_range ?? ($category->age_from . '-' . $category->age_to) }}">
+                        {{ $category->getTranslatedName() ?? $category->name }}
+                        ({{ $category->age_range ?? ($category->age_from . '-' . $category->age_to) }})
+                    </option>
+                    @endforeach
+                </select>
+                <button type="button" class="btn btn-sm btn-primary add-category-btn">
+                    <i class="fas fa-plus mr-1"></i> {{ __('m_tours.tour.pricing.add_button') }}
+                </button>
             </div>
         </div>
+        @empty
+        <div class="card" style="background: #343a40; border: 1px solid #454d55;">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-calendar-times fa-3x mb-3" style="opacity: 0.5; color: #6c757d;"></i>
+                <h5 style="color: #6c757d;">{{ __('m_tours.tour.pricing.no_periods') ?? 'No hay periodos de precios definidos' }}</h5>
+                <p class="text-muted">{{ __('m_tours.tour.pricing.click_add_period') ?? 'Haz clic en "Agregar Periodo de Precios" para comenzar' }}</p>
+            </div>
+        </div>
+        @endforelse
     </div>
 </div>
 
 {{-- Modal: Manage Taxes --}}
-<div class="modal fade" id="manageTaxesModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="manageTaxesModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form action="{{ route('admin.tours.prices.update-taxes', $tour) }}" method="POST">
                 @csrf
-                <div class="modal-header bg-primary text-white">
+                <div class="modal-header bg-info text-white">
                     <h5 class="modal-title">
                         <i class="fas fa-percentage"></i> {{ __('taxes.title') }}
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <p class="small text-muted">{{ __('taxes.messages.select_taxes') }}</p>
-
                     @if($taxes->isEmpty())
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle"></i> {{ __('m_general.no_records') }}
@@ -275,23 +376,22 @@
                     @else
                     <div class="list-group">
                         @foreach($taxes as $tax)
-                        <label class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
-                            <div class="form-check">
-                                <input class="form-check-input tax-checkbox me-2" type="checkbox" name="taxes[]"
+                        <label class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="custom-control custom-checkbox">
+                                <input class="custom-control-input"
+                                    type="checkbox"
+                                    name="taxes[]"
+                                    id="tax_{{ $tax->tax_id }}"
                                     value="{{ $tax->tax_id }}"
-                                    id="modal_tax_{{ $tax->tax_id }}"
-                                    data-type="{{ $tax->type }}"
-                                    data-rate="{{ $tax->rate }}"
                                     {{ $tour->taxes->contains($tax->tax_id) ? 'checked' : '' }}>
-                                <div>
-                                    <div class="fw-bold">{{ $tax->name }}</div>
+                                <label class="custom-control-label" for="tax_{{ $tax->tax_id }}">
+                                    <strong>{{ $tax->name }}</strong><br>
                                     <small class="text-muted">
-                                        <code>{{ $tax->code }}</code> -
                                         {{ $tax->type == 'percentage' ? number_format($tax->rate, 2) . '%' : '$' . number_format($tax->rate, 2) }}
                                     </small>
-                                </div>
+                                </label>
                             </div>
-                            <span class="badge {{ $tax->is_inclusive ? 'bg-success' : 'bg-warning text-dark' }}">
+                            <span class="badge {{ $tax->is_inclusive ? 'badge-success' : 'badge-warning' }}">
                                 {{ $tax->is_inclusive ? __('taxes.included') : __('taxes.not_included') }}
                             </span>
                         </label>
@@ -300,10 +400,10 @@
                     @endif
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
                         {{ __('m_general.cancel') }}
                     </button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-info">
                         <i class="fas fa-save"></i> {{ __('m_general.save') }}
                     </button>
                 </div>
@@ -311,280 +411,222 @@
         </div>
     </div>
 </div>
+@endsection
 
-{{-- Modal: Add Category --}}
-@if($availableCategories->isNotEmpty())
-<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form action="{{ route('admin.tours.prices.store', $tour) }}" method="POST" id="addCategoryFormModal">
-                @csrf
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">
-                        <i class="fas fa-plus"></i> {{ __('m_tours.prices.ui.add_category') }}
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group mb-3">
-                        <label for="modal_category_id">{{ __('m_tours.prices.forms.category') }} <span class="text-danger">*</span></label>
-                        <select name="category_id" id="modal_category_id" class="form-control" required>
-                            <option value="">{{ __('m_tours.prices.forms.select_placeholder') }}</option>
-                            @foreach($availableCategories as $category)
-                            <option value="{{ $category->category_id }}">
-                                {{ $category->name }} ({{ $category->age_range }})
-                            </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="form-group mb-3">
-                        <label for="modal_price">{{ __('m_tours.prices.forms.price_usd') }} <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number" name="price" id="modal_price" class="form-control" step="0.01" min="0" value="0" required>
-                        </div>
-                        <small class="form-text text-muted">{{ __('m_tours.prices.forms.create_disabled_hint') }}</small>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label for="modal_min_quantity">{{ __('m_tours.prices.forms.min') }} <span class="text-danger">*</span></label>
-                                <input type="number" name="min_quantity" id="modal_min_quantity" class="form-control" min="0" max="255" value="0" required>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label for="modal_max_quantity">{{ __('m_tours.prices.forms.max') }} <span class="text-danger">*</span></label>
-                                <input type="number" name="max_quantity" id="modal_max_quantity" class="form-control" min="0" max="255" value="12" required>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        {{ __('m_general.cancel') }}
-                    </button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-plus"></i> {{ __('m_tours.prices.forms.add') }}
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-@endif
-
-{{-- Modal de confirmación global (fuera de cualquier form) --}}
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <form id="confirmDeleteForm" method="POST" action="">
-            @csrf
-            @method('DELETE')
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">{{ __('m_tours.prices.modal.delete_title') }}</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('m_tours.common.cancel') }}"></button>
-                </div>
-                <div class="modal-body">
-                    {{ __('m_tours.prices.modal.delete_text') }}
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.prices.modal.cancel') }}</button>
-                    <button type="submit" class="btn btn-danger">{{ __('m_tours.prices.modal.delete') }}</button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-@stop
-
-@section('js')
+@push('js')
 <script>
-    // ============================
-    // Validación de cantidades min/max
-    // ============================
-    function validateQuantities(minInput, maxInput) {
-        const min = parseInt(minInput.value) || 0;
-        const max = parseInt(maxInput.value) || 0;
-
-        if (max < min) {
-            maxInput.setCustomValidity(@json(__('m_tours.prices.js.max_ge_min')));
-            return false;
-        } else {
-            maxInput.setCustomValidity('');
-            return true;
-        }
-    }
-
-    // Formulario de agregar categoría
-    const minInput = document.getElementById('min_quantity');
-    const maxInput = document.getElementById('max_quantity');
-
-    if (minInput && maxInput) {
-        minInput.addEventListener('input', () => validateQuantities(minInput, maxInput));
-        maxInput.addEventListener('input', () => validateQuantities(minInput, maxInput));
-    }
-
-    // Validación en formulario bulk
-    document.querySelectorAll('.min-quantity').forEach(minEl => {
-        const index = minEl.getAttribute('data-index');
-        const maxEl = document.querySelector(`.max-quantity[data-index="${index}"]`);
-
-        if (maxEl) {
-            minEl.addEventListener('input', () => validateQuantities(minEl, maxEl));
-            maxEl.addEventListener('input', () => validateQuantities(minEl, maxEl));
-        }
-    });
-
-    // Auto-desactivar si precio es 0
-    document.querySelectorAll('.price-input').forEach(priceInput => {
-        priceInput.addEventListener('change', function() {
-            const index = this.getAttribute('data-index');
-            const checkbox = document.querySelector(`.is-active-toggle[data-index="${index}"]`);
-
-            if (parseFloat(this.value) === 0 && checkbox) {
-                checkbox.checked = false;
-                // Tooltip/ayuda (opcional)
-                checkbox.title = @json(__('m_tours.prices.js.auto_disabled_tooltip'));
+    $(document).ready(function() {
+        const tourId = {
+            {
+                $tour->tour_id
             }
-        });
-    });
+        };
 
-    // Validación antes de submit del formulario bulk
-    document.getElementById('bulkUpdateForm')?.addEventListener('submit', function(e) {
-        let hasErrors = false;
-
-        document.querySelectorAll('.min-quantity').forEach(minEl => {
-            const index = minEl.getAttribute('data-index');
-            const maxEl = document.querySelector(`.max-quantity[data-index="${index}"]`);
-
-            if (maxEl && !validateQuantities(minEl, maxEl)) {
-                hasErrors = true;
-            }
+        // Track changes in inputs
+        $(document).on('input change', '.price-input, .quantity-input', function() {
+            const $row = $(this).closest('tr');
+            const $saveBtn = $row.find('.save-price-btn');
+            $(this).addClass('price-changed');
+            $saveBtn.show();
         });
 
-        if (hasErrors) {
-            e.preventDefault();
-            alert(@json(__('m_tours.prices.js.fix_errors')));
-            return false;
-        }
-    });
+        // Save individual price
+        $(document).on('click', '.save-price-btn', function() {
+            const $btn = $(this);
+            const $row = $btn.closest('tr');
+            const priceId = $row.data('price-id');
 
-    // ============================
-    // Tax Breakdown Preview Calculator
-    // ============================
-    function calculateTaxBreakdown() {
-        const priceInput = document.getElementById('preview-price');
-        const taxIncludedCheckbox = document.getElementById('tax-included-preview');
-        const breakdownSubtotal = document.getElementById('breakdown-subtotal');
-        const breakdownTaxes = document.getElementById('breakdown-taxes');
-        const breakdownTotal = document.getElementById('breakdown-total');
+            const data = {
+                price: $row.find('[data-field="price"]').val(),
+                min_quantity: $row.find('[data-field="min_quantity"]').val(),
+                max_quantity: $row.find('[data-field="max_quantity"]').val(),
+                is_active: $row.find('[data-field="is_active"]').is(':checked') ? 1 : 0,
+                _token: '{{ csrf_token() }}',
+                _method: 'PUT'
+            };
 
-        if (!priceInput || !taxIncludedCheckbox) return;
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
-        const basePrice = parseFloat(priceInput.value) || 0;
-        const taxIncluded = taxIncludedCheckbox.checked;
-
-        // Get selected taxes
-        const selectedTaxes = [];
-        document.querySelectorAll('.tax-checkbox:checked').forEach(checkbox => {
-            selectedTaxes.push({
-                type: checkbox.dataset.type,
-                rate: parseFloat(checkbox.dataset.rate) || 0,
-                name: checkbox.parentElement.querySelector('label').textContent.trim().split('(')[0].trim()
+            $.ajax({
+                url: `/admin/tours/${tourId}/prices/${priceId}`,
+                method: 'POST',
+                data: data,
+                success: function(response) {
+                    $row.find('.price-input, .quantity-input').removeClass('price-changed');
+                    $btn.hide();
+                    $row.find('.save-indicator').addClass('show');
+                    setTimeout(() => $row.find('.save-indicator').removeClass('show'), 2000);
+                },
+                error: function(xhr) {
+                    alert('Error al guardar: ' + (xhr.responseJSON?.message || 'Error desconocido'));
+                },
+                complete: function() {
+                    $btn.prop('disabled', false).html('<i class="fas fa-save"></i>');
+                }
             });
         });
 
-        let subtotal, taxAmountTotal, total;
-        const taxDetails = [];
+        // Toggle active status
+        $(document).on('change', '.active-toggle', function() {
+            const $row = $(this).closest('tr');
+            const priceId = $row.data('price-id');
 
-        if (taxIncluded) {
-            // Tax is INCLUDED in the base price
-            total = basePrice;
-            subtotal = basePrice;
-            taxAmountTotal = 0;
-
-            selectedTaxes.forEach(tax => {
-                let taxAmount = 0;
-                if (tax.type === 'percentage') {
-                    const divisor = 1 + (tax.rate / 100);
-                    const currentSubtotal = subtotal / divisor;
-                    taxAmount = subtotal - currentSubtotal;
-                    subtotal = currentSubtotal;
-                } else {
-                    taxAmount = tax.rate;
-                    subtotal -= taxAmount;
+            $.ajax({
+                url: `/admin/tours/${tourId}/prices/${priceId}/toggle`,
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    $row.find('.save-indicator').addClass('show');
+                    setTimeout(() => $row.find('.save-indicator').removeClass('show'), 2000);
+                },
+                error: function(xhr) {
+                    alert('Error al cambiar estado');
+                    $(this).prop('checked', !$(this).is(':checked'));
                 }
-                taxAmountTotal += taxAmount;
-                taxDetails.push({
-                    name: tax.name,
-                    amount: taxAmount,
-                    rate: tax.rate,
-                    type: tax.type
+            });
+        });
+
+        // Remove category
+        $(document).on('click', '.remove-category-btn', function() {
+            if (!confirm('{{ __("m_tours.prices.modal.delete_text") }}')) return;
+
+            const $row = $(this).closest('tr');
+            const priceId = $row.data('price-id');
+
+            $.ajax({
+                url: `/admin/tours/${tourId}/prices/${priceId}`,
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    _method: 'DELETE'
+                },
+                success: function() {
+                    $row.fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                },
+                error: function(xhr) {
+                    alert('Error al eliminar');
+                }
+            });
+        });
+
+        // Add category to period
+        $(document).on('click', '.add-category-btn', function() {
+            const $period = $(this).closest('.pricing-period-card');
+            const $select = $period.find('.add-category-select');
+            const categoryId = $select.val();
+
+            if (!categoryId) {
+                alert('{{ __("m_tours.tour.pricing.select_category_first") }}');
+                return;
+            }
+
+            // Check if already exists
+            if ($period.find(`tr[data-category-id="${categoryId}"]`).length > 0) {
+                alert('{{ __("m_tours.tour.pricing.category_already_in_period") }}');
+                return;
+            }
+
+            const $option = $select.find('option:selected');
+            const validFrom = $period.find('[data-field="valid_from"]').val() || null;
+            const validUntil = $period.find('[data-field="valid_until"]').val() || null;
+
+            $.ajax({
+                url: `/admin/tours/${tourId}/prices`,
+                method: 'POST',
+                data: {
+                    category_id: categoryId,
+                    price: 0,
+                    min_quantity: 0,
+                    max_quantity: 12,
+                    is_active: 0,
+                    valid_from: validFrom,
+                    valid_until: validUntil,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Error al agregar categoría');
+                }
+            });
+        });
+
+        // Save period dates
+        $(document).on('click', '.save-period-dates-btn', function() {
+            const $period = $(this).closest('.pricing-period-card');
+            const validFrom = $period.find('[data-field="valid_from"]').val();
+            const validUntil = $period.find('[data-field="valid_until"]').val();
+            const priceIds = [];
+
+            $period.find('tr[data-price-id]').each(function() {
+                priceIds.push($(this).data('price-id'));
+            });
+
+            if (priceIds.length === 0) {
+                alert('Este periodo no tiene categorías');
+                return;
+            }
+
+            $.ajax({
+                url: `/admin/tours/${tourId}/prices/bulk-update`,
+                method: 'POST',
+                data: {
+                    price_ids: priceIds,
+                    valid_from: validFrom,
+                    valid_until: validUntil,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function() {
+                    alert('Fechas actualizadas correctamente');
+                },
+                error: function(xhr) {
+                    alert('Error al actualizar fechas');
+                }
+            });
+        });
+
+        // Remove period
+        $(document).on('click', '.remove-period-btn', function() {
+            if (!confirm('{{ __("m_tours.tour.pricing.confirm_remove_period") }}')) return;
+
+            const $period = $(this).closest('.pricing-period-card');
+            const priceIds = [];
+
+            $period.find('tr[data-price-id]').each(function() {
+                priceIds.push($(this).data('price-id'));
+            });
+
+            if (priceIds.length === 0) {
+                $period.remove();
+                return;
+            }
+
+            // Delete all prices in this period
+            let completed = 0;
+            priceIds.forEach(priceId => {
+                $.ajax({
+                    url: `/admin/tours/${tourId}/prices/${priceId}`,
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        _method: 'DELETE'
+                    },
+                    complete: function() {
+                        completed++;
+                        if (completed === priceIds.length) {
+                            $period.fadeOut(300, function() {
+                                $(this).remove();
+                            });
+                        }
+                    }
                 });
             });
-        } else {
-            // Tax is NOT INCLUDED - add on top
-            subtotal = basePrice;
-            taxAmountTotal = 0;
-
-            selectedTaxes.forEach(tax => {
-                let taxAmount = 0;
-                if (tax.type === 'percentage') {
-                    taxAmount = subtotal * (tax.rate / 100);
-                } else {
-                    taxAmount = tax.rate;
-                }
-                taxAmountTotal += taxAmount;
-                taxDetails.push({
-                    name: tax.name,
-                    amount: taxAmount,
-                    rate: tax.rate,
-                    type: tax.type
-                });
-            });
-
-            total = subtotal + taxAmountTotal;
-        }
-
-        // Update display
-        if (breakdownSubtotal) breakdownSubtotal.textContent = '$' + subtotal.toFixed(2);
-        if (breakdownTotal) breakdownTotal.textContent = '$' + total.toFixed(2);
-
-        if (breakdownTaxes) {
-            breakdownTaxes.innerHTML = '';
-            taxDetails.forEach(tax => {
-                const rateDisplay = tax.type === 'percentage' ? tax.rate.toFixed(2) + '%' : '$' + tax.rate.toFixed(2);
-                breakdownTaxes.innerHTML += `
-                    <div class="d-flex justify-content-between mb-1 text-muted small">
-                        <span class="ml-2">${tax.name} (${rateDisplay}):</span>
-                        <span>$${tax.amount.toFixed(2)}</span>
-                    </div>
-                `;
-            });
-        }
-    }
-
-    // Attach event listeners for tax breakdown
-    document.getElementById('preview-price')?.addEventListener('input', calculateTaxBreakdown);
-    document.getElementById('tax-included-preview')?.addEventListener('change', calculateTaxBreakdown);
-    document.querySelectorAll('.tax-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', calculateTaxBreakdown);
-    });
-
-    // Initial calculation
-    calculateTaxBreakdown();
-
-    // ============================
-    // Modal delete: setear action dinámico (Bootstrap 5)
-    // ============================
-    document.getElementById('confirmDeleteModal')?.addEventListener('show.bs.modal', function(e) {
-        const trigger = e.relatedTarget;
-        if (!trigger) return;
-        const action = trigger.getAttribute('data-action');
-        document.getElementById('confirmDeleteForm')?.setAttribute('action', action || '');
+        });
     });
 </script>
-@stop
+@endpush

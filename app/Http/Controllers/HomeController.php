@@ -220,7 +220,10 @@ class HomeController extends Controller
                     ->values();
             });
 
-            return view('public.tour-show', [
+            // [4] Datos para el formulario de reserva (Refactorizado)
+            $reservationData = $this->prepareReservationData($tour);
+
+            return view('public.tour-show', array_merge([
                 'tour'               => $tour,
                 'blockedGeneral'     => $blockedGeneral,
                 'blockedBySchedule'  => $blockedBySchedule,
@@ -231,7 +234,7 @@ class HomeController extends Controller
                 'cancelPolicy'       => $tour->cancel_policy ?? null,
                 'refundPolicy'       => $tour->refund_policy ?? null,
                 'meetingPoints'      => $this->loadMeetingPoints(true),
-            ]);
+            ], $reservationData));
         } catch (Throwable $e) {
             Log::error('tour.show.failed', [
                 'tour_id' => $tour->tour_id ?? 'unknown',
@@ -472,6 +475,237 @@ class HomeController extends Controller
         $collection = $translations ?? collect();
         return $collection->firstWhere('locale', $locale)
             ?: $collection->firstWhere('locale', $fallback);
+    }
+
+    /**
+     * Prepara los datos necesarios para el formulario de reserva (precios, categorías, traducciones)
+     * Refactorizado desde las vistas travelers.blade.php y fields.blade.php
+     */
+    private function prepareReservationData(Tour $tour): array
+    {
+        // 1. Configuración de ventana de reserva
+        $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_days_advance', 730));
+
+        // 2. Obtener precios activos y categorías
+        $allPrices = $tour->prices()
+            ->where('is_active', true)
+            ->whereHas('category', fn($q) => $q->where('is_active', true))
+            ->with('category.translations')
+            ->orderBy('category_id')
+            ->get();
+
+        // 3. Preparar indicadores de precios para el calendario
+        $priceIndicators = [];
+        foreach ($allPrices as $price) {
+            if ($price->valid_from && $price->valid_until) {
+                $priceIndicators[] = [
+                    'from' => $price->valid_from->format('Y-m-d'),
+                    'until' => $price->valid_until->format('Y-m-d'),
+                    'price' => (float) $price->price,
+                ];
+            }
+        }
+
+        // Calcular niveles de precios (lower/higher)
+        $allPricesValues = collect($priceIndicators)->pluck('price')->filter(fn($p) => $p > 0);
+        if ($allPricesValues->count() > 0) {
+            $avgPrice = $allPricesValues->average();
+
+            $priceIndicators = collect($priceIndicators)->map(function ($indicator) use ($avgPrice) {
+                if ($indicator['price'] <= 0) {
+                    $indicator['level'] = 'normal';
+                    return $indicator;
+                }
+
+                $diff = (($indicator['price'] - $avgPrice) / $avgPrice) * 100;
+
+                if ($diff < -10) {
+                    $indicator['level'] = 'lower'; // 10%+ más barato
+                } elseif ($diff > 10) {
+                    $indicator['level'] = 'higher'; // 10%+ más caro
+                } else {
+                    $indicator['level'] = 'normal';
+                }
+
+                return $indicator;
+            })->toArray();
+        } else {
+            $priceIndicators = [];
+        }
+
+     // 4. Preparar datos de categorías para JS (travelers.blade.php logic)
+    $groupedCategories = $allPrices->groupBy('category_id');
+    $maxPersonsGlobal = (int) config('booking.max_persons_per_booking', 12);
+    $minAdultsGlobal  = (int) config('booking.min_adults_per_booking', 0);
+    $maxKidsGlobal    = PHP_INT_MAX;
+
+    $categoriesData = [];
+    $loc = app()->getLocale();
+    $fb  = config('app.fallback_locale', 'es');
+
+    foreach ($groupedCategories as $catId => $prices) {
+        $firstPrice = $prices->first();
+        $category   = $firstPrice->category;
+        $slug       = $category->slug ?? strtolower($category->name ?? '');
+
+        // Traducción del nombre de la categoría
+        $catTr   = $this->pickTranslation($category->translations, $loc, $fb);
+        $catName = $catTr->name ?? $category->name;
+
+        // Reglas de precios crudas desde DB
+        $priceRules = $prices->map(function ($price) {
+            return [
+                'price'       => (float) $price->price,
+                'min'         => (int) $price->min_quantity,
+                'max'         => (int) $price->max_quantity,
+                'valid_from'  => $price->valid_from ? $price->valid_from->format('Y-m-d') : null,
+                'valid_until' => $price->valid_until ? $price->valid_until->format('Y-m-d') : null,
+                'is_default'  => is_null($price->valid_from) && is_null($price->valid_until),
+            ];
+        })->values();
+
+        // Aplicar restricciones globales a CADA regla
+        $priceRules = $priceRules->map(function (array $rule) use (
+            $slug,
+            $minAdultsGlobal,
+            $maxKidsGlobal,
+            $maxPersonsGlobal
+        ) {
+            if (in_array($slug, ['adult', 'adulto', 'adults'], true)) {
+                $rule['min'] = max($rule['min'], $minAdultsGlobal);
+            } elseif (in_array($slug, ['kid', 'nino', 'child', 'kids', 'children'], true)) {
+                $rule['max'] = min($rule['max'], $maxKidsGlobal);
+            }
+
+            // Nunca más que el máximo global por reserva
+            $rule['max'] = min($rule['max'], $maxPersonsGlobal);
+
+            // Evitar casos raros min > max
+            if ($rule['max'] < $rule['min']) {
+                $rule['max'] = $rule['min'];
+            }
+
+            return $rule;
+        });
+
+        // Elegir regla default DESPUÉS de ajustar los límites
+        $defaultRule = $priceRules->firstWhere('is_default', true) ?? $priceRules->first();
+
+        $min = $defaultRule['min'];
+        $max = $defaultRule['max'];
+
+        // Inicial por categoría (ej: 2 adultos)
+        if (in_array($slug, ['adult', 'adulto', 'adults'], true)) {
+            $min = max($min, $minAdultsGlobal);
+        } elseif (in_array($slug, ['kid', 'nino', 'child', 'kids', 'children'], true)) {
+            $max = min($max, $maxKidsGlobal);
+        }
+
+        $max     = min($max, $maxPersonsGlobal);
+        $initial = in_array($slug, ['adult', 'adulto', 'adults'], true) ? max($min, 2) : 0;
+
+        // Texto de rango de edad
+        $ageMin       = $category->age_min;
+        $ageMax       = $category->age_max;
+        $ageRangeText = null;
+        if ($ageMin && $ageMax) {
+            $ageRangeText = __('m_bookings.travelers.age_between', ['min' => $ageMin, 'max' => $ageMax]);
+        } elseif ($ageMin) {
+            $ageRangeText = __('m_bookings.travelers.age_from', ['min' => $ageMin]);
+        } elseif ($ageMax) {
+            $ageRangeText = __('m_bookings.travelers.age_to', ['max' => $ageMax]);
+        }
+
+        $categoriesData[] = [
+            'id'        => (int) $catId,
+            'name'      => $catName,
+            'slug'      => $slug,
+            'price'     => (float) $defaultRule['price'],
+            'min'       => $min,
+            'max'       => $max,
+            'initial'   => $initial,
+            'age_text'  => $ageRangeText,
+            'rules'     => $priceRules,
+        ];
+    }
+
+
+        // 5. Calcular reglas de fechas (Cutoff & Lead Days)
+        $tz = config('app.timezone', 'America/Costa_Rica');
+        $gCutoff = (string) setting('booking.cutoff_hour', config('booking.cutoff_hour', '18:00'));
+        $gLead = (int) setting('booking.lead_days', (int) config('booking.lead_days', 1));
+
+        $calc = function (string $cutoff, int $lead) use ($tz) {
+            $now = Carbon::now($tz);
+            [$hh, $mm] = array_pad(explode(':', $cutoff, 2), 2, '00');
+            $cutoffToday = Carbon::create($now->year, $now->month, $now->day, (int)$hh, (int)$mm, 0, $tz);
+            $passed = $now->gte($cutoffToday);
+            $days = max(0, (int)$lead) + ($passed ? 1 : 0);
+            return [
+                'cutoff' => sprintf('%02d:%02d', (int)$hh, (int)$mm),
+                'lead_days' => (int)$lead,
+                'after_cutoff' => $passed,
+                'min' => $now->copy()->addDays($days)->toDateString(),
+            ];
+        };
+
+        $tCutoff = $tour->cutoff_hour ?: $gCutoff;
+        $tLead = is_null($tour->lead_days) ? $gLead : (int) $tour->lead_days;
+        $tourRule = $calc($tCutoff, $tLead);
+
+        $scheduleRules = [];
+        foreach ($tour->schedules->sortBy('start_time') as $s) {
+            $pCut = optional($s->pivot)->cutoff_hour;
+            $pLd = optional($s->pivot)->lead_days;
+            $sCut = $pCut ?: $tCutoff;
+            $sLd = is_null($pLd) ? $tLead : (int)$pLd;
+            $scheduleRules[$s->schedule_id] = $calc($sCut, $sLd);
+        }
+
+        $mins = array_map(fn($r) => $r['min'], $scheduleRules);
+        $mins[] = $tourRule['min'];
+        $initialMin = min($mins);
+
+        $rulesPayload = [
+            'tz' => $tz,
+            'tour' => $tourRule,
+            'schedules' => $scheduleRules,
+            'initialMin' => $initialMin,
+        ];
+
+        // 6. Traducciones para el calendario
+        $calendarTranslations = [
+            'price_lower' => __('m_tours.tour.pricing.price_lower'),
+            'price_higher' => __('m_tours.tour.pricing.price_higher'),
+            'price_normal' => __('m_tours.tour.pricing.price_normal'),
+            'price_legend' => __('m_tours.tour.pricing.price_legend'),
+        ];
+
+        // 7. Textos i18n para viajeros
+        $travI18n = [
+            'title_warning' => __('m_bookings.travelers.title_warning'),
+            'title_info' => __('m_bookings.travelers.title_info'),
+            'title_error' => __('m_bookings.travelers.title_error'),
+            'max_persons_reached' => __('m_bookings.travelers.max_persons_reached'),
+            'max_category_reached' => __('m_bookings.travelers.max_category_reached'),
+            'invalid_quantity' => __('m_bookings.travelers.invalid_quantity'),
+            'price_not_available' => __('m_tours.tour.pricing.not_available_for_date') ?? 'No disponible para esta fecha',
+            // Validaciones submit
+            'min_category_required' => __('adminlte::adminlte.min_category_required'),
+            'max_category_exceeded' => __('adminlte::adminlte.max_category_exceeded'),
+            'max_persons_exceeded' => __('adminlte::adminlte.max_persons_exceeded'),
+            'min_one_person' => __('adminlte::adminlte.min_one_person'),
+        ];
+
+        return [
+            'maxFutureDays' => $maxFutureDays,
+            'priceIndicators' => $priceIndicators,
+            'categoriesData' => $categoriesData,
+            'calendarTranslations' => $calendarTranslations,
+            'travI18n' => $travI18n,
+            'maxPersonsGlobal' => $maxPersonsGlobal,
+            'rulesPayload' => $rulesPayload,
+        ];
     }
 
     /* ===========================

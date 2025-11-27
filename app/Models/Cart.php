@@ -93,6 +93,61 @@ class Cart extends Model
         $this->save();
     }
 
+    /* ---------------- Pricing helpers ---------------- */
+    /**
+     * Calculate the total price from the cart's stored snapshot.
+     * This uses the prices that were saved when items were added to the cart,
+     * which were calculated with the correct tour_date.
+     * 
+     * @return float Total price including taxes
+     */
+    public function calculateTotal(): float
+    {
+        $total = 0.0;
+
+        foreach ($this->items as $item) {
+            $cats = collect($item->categories ?? []);
+
+            if ($cats->isNotEmpty()) {
+                foreach ($cats as $cat) {
+                    // Use the price already stored in the cart snapshot
+                    $catQty = (int)($cat['quantity'] ?? 0);
+                    $catPrice = (float)($cat['price'] ?? 0);
+
+                    // If tax_breakdown exists in snapshot, use it
+                    if (isset($cat['tax_breakdown']) && is_array($cat['tax_breakdown'])) {
+                        $total += (float)($cat['tax_breakdown']['total'] ?? 0);
+                    } else {
+                        // Fallback: calculate from stored price
+                        $total += $catPrice * $catQty;
+                    }
+                }
+            } else {
+                // Legacy: adult/kid prices (should not happen with new system)
+                $adultQty = (int)($item->adults_quantity ?? 0);
+                $kidQty = (int)($item->kids_quantity ?? 0);
+
+                if ($adultQty > 0) {
+                    $adultPrice = $item->tour->prices->where('category.slug', 'adult')->first();
+                    if ($adultPrice) {
+                        $breakdown = $adultPrice->calculateTaxBreakdown($adultQty);
+                        $total += $breakdown['total'];
+                    }
+                }
+
+                if ($kidQty > 0) {
+                    $kidPrice = $item->tour->prices->whereIn('category.slug', ['kid', 'child'])->first();
+                    if ($kidPrice) {
+                        $breakdown = $kidPrice->calculateTaxBreakdown($kidQty);
+                        $total += $breakdown['total'];
+                    }
+                }
+            }
+        }
+
+        return $total;
+    }
+
     /* ---------------- Scopes útiles ---------------- */
     public function scopeActiveNotExpired($query)
     {

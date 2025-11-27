@@ -599,7 +599,7 @@
 
         {{-- Botones de acción --}}
         <div class="action-buttons">
-            <a href="{{ route('admin.tours.schedule.index') }}"
+            <a href="{{ route('admin.tours.itinerary.index') }}"
                class="btn btn-primary btn-sm"
                title="{{ __('m_tours.common.crud_go_to_index', ['element' => __('m_tours.itinerary.plural')]) }}">
                 <i class="fas fa-list"></i>

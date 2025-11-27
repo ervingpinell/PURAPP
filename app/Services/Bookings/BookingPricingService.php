@@ -21,8 +21,9 @@ class BookingPricingService
     /**
      * Construye snapshot de categorías activas para el tour a partir de quantities
      * $quantities = ['category_id' => quantity, ...]
+     * $date = Fecha del tour para seleccionar precio correcto (opcional)
      */
-    public function buildCategoriesSnapshot(Tour $tour, array $quantities): array
+    public function buildCategoriesSnapshot(Tour $tour, array $quantities, $date = null): array
     {
         $snapshot = [];
 
@@ -30,12 +31,22 @@ class BookingPricingService
             $quantity = (int) $quantity;
             if ($quantity <= 0) continue;
 
-            $price = $tour->prices()
+            $query = $tour->prices()
                 ->where('category_id', $categoryId)
                 ->where('is_active', true)
                 ->whereHas('category', fn($q) => $q->where('is_active', true))
-                ->with('category')
-                ->first();
+                ->with('category');
+
+            // Si hay fecha, filtrar por precios válidos para esa fecha
+            if ($date) {
+                $query->validForDate($date);
+
+                // Priorizar precios con temporada sobre precios por defecto
+                // Ordenar: primero los que tienen fechas, luego los que no
+                $query->orderByRaw('CASE WHEN valid_from IS NOT NULL OR valid_until IS NOT NULL THEN 0 ELSE 1 END');
+            }
+
+            $price = $query->first();
 
             if ($price) {
                 // Calculate tax breakdown for this line item
@@ -48,6 +59,7 @@ class BookingPricingService
                     'quantity'      => $quantity,
                     'price'         => (float)$price->price,
                     'tax_breakdown' => $breakdown, // Store full breakdown
+                    'season_label'  => $price->season_label, // Add season info
                 ];
             }
         }

@@ -33,8 +33,8 @@ class BookingCreator
                 throw new \InvalidArgumentException('No categories provided');
             }
 
-            // Snapshot (price + quantity + slug + name)
-            $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $quantities);
+            // Snapshot (price + quantity + slug + name) - usar fecha del tour para precios temporales
+            $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $quantities, $payload['tour_date'] ?? null);
             if (empty($categoriesSnapshot)) {
                 throw new \RuntimeException('No valid active categories found for this tour');
             }

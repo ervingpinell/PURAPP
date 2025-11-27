@@ -133,7 +133,7 @@ class CartController extends Controller
         }
 
         // Snapshot de categorías con precios
-        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $request->categories);
+        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $request->categories, $tourDate);
 
         if (empty($categoriesSnapshot)) {
             return $this->backOrJsonError($request, __('m_bookings.validation.no_active_categories'));
@@ -235,7 +235,7 @@ class CartController extends Controller
         }
         $requestedCategories = array_filter(
             array_map('intval', (array) $requestedCategories),
-            fn ($q) => $q > 0
+            fn($q) => $q > 0
         );
 
         // Validación de negocio por categorías
@@ -248,7 +248,8 @@ class CartController extends Controller
         // 6) Bloqueos
         if ($this->capacity->isDateBlocked($tour, $schedule, $tourDate)) {
             return back()->with('error', __('carts.messages.date_no_longer_available', [
-                'date' => $this->fmtDateEn($tourDate), 'min' => 1
+                'date' => $this->fmtDateEn($tourDate),
+                'min' => 1
             ]));
         }
 
@@ -281,7 +282,7 @@ class CartController extends Controller
         [$hotelId, $isOther, $other, $mpId] = $this->resolvePickupForUpdate($request);
 
         // 9) Recalcular snapshot
-        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $requestedCategories);
+        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $requestedCategories, $tourDate);
 
         if (empty($categoriesSnapshot)) {
             return back()->with('error', __('m_bookings.validation.no_active_categories'));
@@ -515,10 +516,12 @@ class CartController extends Controller
                     : ($cat->name ?? null);
 
                 if (!$name && $slug) {
-                    foreach ([
-                        "customer_categories.labels.$slug",
-                        "m_tours.customer_categories.labels.$slug",
-                    ] as $key) {
+                    foreach (
+                        [
+                            "customer_categories.labels.$slug",
+                            "m_tours.customer_categories.labels.$slug",
+                        ] as $key
+                    ) {
                         $tr = __($key);
                         if ($tr !== $key) {
                             $name = $tr;
@@ -628,10 +631,10 @@ class CartController extends Controller
         $hotelId = $isOther ? null : ($request->hotel_id ?: null);
         $other   = $isOther ? ($request->other_hotel_name ?: null) : null;
 
-        if ($mpId) { 
-            $hotelId = null; 
-            $isOther = false; 
-            $other = null; 
+        if ($mpId) {
+            $hotelId = null;
+            $isOther = false;
+            $other = null;
         }
 
         return [$hotelId, $isOther, $other, $mpId];
@@ -646,9 +649,18 @@ class CartController extends Controller
         $hotelId = $isOther ? null : ($request->hotel_id ?: null);
         $other   = $isOther ? ($request->other_hotel_name ?: null) : null;
 
-        if ($mpId)       { $hotelId = null; $isOther = false; $other = null; }
-        elseif ($isOther){ $mpId = null; $hotelId = null; }
-        elseif ($hotelId){ $mpId = null; $isOther = false; $other = null; }
+        if ($mpId) {
+            $hotelId = null;
+            $isOther = false;
+            $other = null;
+        } elseif ($isOther) {
+            $mpId = null;
+            $hotelId = null;
+        } elseif ($hotelId) {
+            $mpId = null;
+            $isOther = false;
+            $other = null;
+        }
 
         return [$hotelId, $isOther, $other, $mpId];
     }

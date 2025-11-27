@@ -235,8 +235,8 @@
       $rawName = $tour->translated_name ?? $tour->name;
       $displayName = preg_replace('/\s*\(.*?\)\s*/', '', (string) $rawName) ?: $rawName;
 
-      $activeCategories = collect($tour->prices ?? [])
-      ->filter(fn($p) => $p->is_active && $p->category && $p->category->is_active)
+      // ✅ NUEVO: Obtener solo UN PRECIO por categoría (válido para HOY)
+      $activeCategories = $tour->activePricesForDate(now())
       ->sortBy('category_id')
       ->values();
 
@@ -318,12 +318,18 @@
                   $label = $catName($category);
                   $ageText = $ageRangeText($category);
                   $amount = (float) $priceRecord->price_with_tax;
+                  $isSeasonal = $priceRecord->valid_from || $priceRecord->valid_until;
                   @endphp
                   <div class="d-flex justify-content-between tours-index-price-row">
                     <div class="tours-index-price-label">
                       <strong>{{ $label }}</strong>
                       @if($ageText)
                       <small> ({{ $ageText }})</small>
+                      @endif
+                      @if($isSeasonal)
+                      <span class="badge badge-info badge-sm ml-1" style="font-size: 0.65rem;" title="Precio de temporada">
+                        <i class="fas fa-calendar-alt"></i>
+                      </span>
                       @endif
                     </div>
                     <div class="tours-index-price-amount">

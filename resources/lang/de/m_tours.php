@@ -64,6 +64,7 @@ return [
         'confirm_delete_text' => 'Diese Aktion kann nicht rückgängig gemacht werden.',
         'saving' => 'Speichere...',
         'network_error' => 'Netzwerkfehler',
+        'custom' => 'Benutzerdefiniert',
     ],
 
     // =========================================================
@@ -782,6 +783,13 @@ return [
 
             'save_changes'       => 'Änderungen speichern',
             'auto_disable_note'  => 'Preise von $0 werden automatisch deaktiviert.',
+            'not_available_for_date' => 'Für dieses Datum nicht verfügbar',
+
+            // Calendar price indicators
+            'price_lower' => 'Niedrigerer Preis',
+            'price_higher' => 'Höherer Preis',
+            'price_normal' => 'Normaler Preis',
+            'price_legend' => 'Preislegende',
 
             'add_category'       => 'Kategorie hinzufügen',
 
@@ -813,7 +821,40 @@ return [
             'remove_category'            => 'Kategorie entfernen',
             'category_already_added'     => 'Diese Kategorie wurde der Tour bereits hinzugefügt.',
             'no_prices_preview'          => 'Es sind noch keine Preise konfiguriert.',
-            'already_added'               => 'Diese Kategorie wurde bereits zur Tour hinzugefügt.',
+            'already_added'              => 'Diese Kategorie wurde bereits zur Tour hinzugefügt.',
+
+            // Seasonal pricing
+            'valid_from'                  => 'Gültig ab',
+            'valid_until'                 => 'Gültig bis',
+            'default_price'               => 'Standardpreis',
+            'seasonal_price'              => 'Saisonpreis',
+            'season_label'                => 'Saison',
+            'all_year'                    => 'Ganzjährig',
+            'date_overlap_warning'        => 'Die Daten überschneiden sich mit einem anderen Preis für diese Kategorie',
+            'invalid_date_range'          => 'Das Startdatum muss vor dem Enddatum liegen',
+            'wizard_description'          => 'Preise nach Saison und Kundenkategorie festlegen',
+            'add_period'                  => 'Preisperiode hinzufügen',
+            'confirm_remove_period'       => 'Diese Preisperiode entfernen?',
+            'category_already_in_period'  => 'Diese Kategorie ist bereits zu dieser Periode hinzugefügt',
+            'category'                    => 'Kategorie',
+            'age_range'                   => 'Alter',
+            'taxes'                       => 'Steuern',
+            'category_removed_success'    => 'Kategorie erfolgreich entfernt',
+            'leave_empty_no_limit'        => 'Leer lassen für kein Limit',
+            'category_added_success'      => 'Kategorie erfolgreich hinzugefügt',
+            'period_removed_success'      => 'Zeitraum erfolgreich entfernt',
+            'period_added_success'        => 'Zeitraum erfolgreich hinzugefügt',
+            'overlap_not_allowed_title'   => 'Datumsbereich nicht zulässig',
+            'overlap_not_allowed_text'    => 'Die ausgewählten Daten überschneiden sich mit einem anderen Preiszeitraum. Bitte passen Sie den Bereich an, um Konflikte zu vermeiden.',
+            'overlap_conflict_with'       => 'Konflikt mit folgenden Zeiträumen:',
+            'duplicate_category_title'    => 'Doppelte Kategorie',
+            'invalid_date_range_title'    => 'Ungültiger Datumsbereich',
+            'remove_category_confirm_text' => 'Diese Kategorie wird aus dem Zeitraum entfernt',
+            'validation_failed'           => 'Validierung fehlgeschlagen',
+            'are_you_sure'                => 'Sind Sie sicher?',
+            'yes_delete'                  => 'Ja, löschen',
+            'cancel'                      => 'Abbrechen',
+            'attention'                   => 'Achtung',
         ],
         'modal' => [
             'create_category' => 'Kategorie erstellen',
@@ -896,6 +937,7 @@ return [
             'no_languages'         => 'Keine Sprachen zugewiesen',
             'none_included'        => 'Keine inkludierten Leistungen angegeben',
             'none_excluded'        => 'Keine ausgeschlossenen Leistungen angegeben',
+            'date_range'           => 'Datumsbereich',
 
             'units' => [
                 'hours'  => 'Stunden',
@@ -1033,6 +1075,7 @@ return [
             'amenities_excluded'     => 'Nicht inkludierte Ausstattungen',
             'color'                  => 'Tour-Farbe',
             'remove'                 => 'Entfernen',
+            'delete'                 => 'Löschen',
             'choose_itinerary'       => 'Reiseplan wählen',
             'select_type'            => 'Typ auswählen',
             'empty_means_default'    => 'Standard',
@@ -1054,6 +1097,16 @@ return [
             'scroll_hint' => 'Horizontal scrollen, um weitere Spalten zu sehen.',
             'no_schedules' => 'Keine Zeiten',
             'no_prices' => 'Keine Preise konfiguriert',
+
+            // Preis-Badges
+            'prices_by_period' => 'Preise nach Zeitraum',
+            'period' => 'Zeitraum',
+            'periods' => 'Zeiträume',
+            'all_year' => 'Ganzjährig',
+            'from' => 'Von',
+            'until' => 'Bis',
+            'no_prices' => 'Keine Preise',
+
             'edit' => 'Bearbeiten',
             'slug_auto' => 'Wird automatisch generiert',
             'deactivate' => 'Deaktivieren',

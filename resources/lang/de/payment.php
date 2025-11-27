@@ -57,6 +57,6 @@ return [
     // Messages
     'complete_payment_message' => 'Bitte schließen Sie die Zahlung ab, um Ihre Buchung zu bestätigen',
     'payment_cancelled' => 'Die Zahlung wurde storniert. Sie können es erneut versuchen, wenn Sie bereit sind.',
-    'redirect_paypal' => 'Weiterleitung zu PayPal...',
+    'redirect_paypal' => 'Klicken Sie auf Bezahlen, um zu PayPal weitergeleitet zu werden und Ihre Zahlung sicher abzuschließen.',
     'no_cart_data' => 'Keine Warenkorbdaten gefunden',
 ];

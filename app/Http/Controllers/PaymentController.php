@@ -124,28 +124,30 @@ class PaymentController extends Controller
 
 
     /**
-     * Calculate total
+     * Calculate total from cart snapshot
+     * Uses the prices already stored in the snapshot (calculated with correct date)
      */
     private function calculateTotalFromSnapshot(array $cartSnapshot): float
     {
         $total = 0;
 
         foreach ($cartSnapshot['items'] as $item) {
-            $tour = Tour::find($item['tour_id']);
-            if (!$tour) continue;
-
+            // Use prices from the snapshot - they were calculated with the correct tour_date
             foreach ($item['categories'] as $cat) {
-                $price = $tour->prices()
-                    ->where('category_id', $cat['category_id'])
-                    ->where('is_active', true)
-                    ->first();
+                $quantity = (int)($cat['quantity'] ?? 0);
+                $price = (float)($cat['price'] ?? 0);
 
-                if ($price) {
-                    $total += $price->price * $cat['quantity'];
+                // If tax_breakdown exists, use the total from there
+                if (isset($cat['tax_breakdown']) && is_array($cat['tax_breakdown'])) {
+                    $total += (float)($cat['tax_breakdown']['total'] ?? 0);
+                } else {
+                    // Fallback: price * quantity
+                    $total += $price * $quantity;
                 }
             }
         }
 
+        // Apply promo code if exists
         if (!empty($cartSnapshot['promo_code_id'])) {
             $promo = PromoCode::find($cartSnapshot['promo_code_id']);
 

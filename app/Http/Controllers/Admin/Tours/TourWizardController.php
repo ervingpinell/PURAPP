@@ -25,6 +25,7 @@ use App\Models\TourTypeTranslation;
 use App\Models\ItineraryItemTranslation;
 use App\Models\AmenityTranslation;
 use App\Models\CustomerCategoryTranslation;
+use Carbon\Carbon;
 
 class TourWizardController extends Controller
 {
@@ -493,98 +494,91 @@ class TourWizardController extends Controller
     /**
      * Actualizar detalles de un tour en borrador (volver del paso 2, 3, etc.)
      */
-    public function updateDetails(Request $request, Tour $tour)
-    {
-        // Solo permitir actualización vía wizard si sigue siendo borrador
-        if (!$tour->is_draft) {
-            return redirect()
-                ->route('admin.tours.edit', $tour)
-                ->with('info', __('m_tours.tour.wizard.already_published'));
-        }
+public function updateDetails(Request $request, Tour $tour)
+{
+    LoggerHelper::info(
+        'TourWizardController',
+        'updateDetails',
+        'Entrada a updateDetails',
+        [
+            'tour_id'   => $tour->tour_id ?? null,
+            'slug'      => $tour->slug ?? null,
+            'is_draft'  => $tour->is_draft,
+            'step'      => 1,
+        ]
+    );
 
-        $data = $request->validate([
-            'name'         => 'required|string|max:255',
-            'slug'         => [
-                'nullable',
-                'string',
-                'max:255',
-                Rule::unique('tours', 'slug')
-                    ->ignore($tour->getKey(), $tour->getKeyName())
-                    ->whereNull('deleted_at'),
-            ],
-            'overview'     => 'nullable|string',
-            'length'       => 'nullable|numeric|min:0',
-            'max_capacity' => 'required|integer|min:1',
-            'group_size'   => 'nullable|integer|min:1',
-            'color'        => 'nullable|string|max:7',
-            'tour_type_id' => 'nullable|exists:tour_types,tour_type_id',
-            'is_active'    => 'boolean',
-            'languages'    => 'nullable|array',
-            'languages.*'  => 'exists:tour_languages,tour_language_id',
+    $userId = optional(auth()->user())->user_id ?? auth()->id();
+
+    // ==========================
+    // Validación Paso 1
+    // ==========================
+    $data = $request->validate([
+        'name'         => ['required', 'string', 'min:3', 'max:255'],
+        'slug'         => [
+            'required',
+            'string',
+            'min:3',
+            'max:255',
+            'regex:/^[a-z0-9-]+$/',
+            Rule::unique('tours', 'slug')
+                ->ignore($tour->getKey(), $tour->getKeyName())
+                ->whereNull('deleted_at'),
+        ],
+        'overview'     => ['required', 'string', 'max:1000'],
+        'length'       => ['required', 'numeric', 'min:0.5', 'max:240'],
+        'max_capacity' => ['required', 'integer', 'min:1', 'max:500'],
+        'group_size'   => ['required', 'integer', 'min:1', 'max:500'],
+        'tour_type_id' => ['required', 'integer', 'exists:tour_types,tour_type_id'],
+        'color'        => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+        'languages'    => ['required', 'array', 'min:1'],
+        'languages.*'  => ['integer', 'exists:tour_languages,tour_language_id'],
+    ]);
+
+    $data['overview'] = trim($data['overview'] ?? '');
+
+    DB::transaction(function () use ($tour, $data, $userId) {
+        $previousStep = (int) ($tour->current_step ?? 1);
+
+        // Actualizar campos básicos (NO tocamos is_draft aquí)
+        $tour->fill([
+            'name'         => $data['name'],
+            'slug'         => $data['slug'],
+            'overview'     => $data['overview'],
+            'length'       => $data['length'],
+            'max_capacity' => $data['max_capacity'],
+            'group_size'   => $data['group_size'],
+            'tour_type_id' => $data['tour_type_id'],
+            'color'        => $data['color'] ?? '#3490dc',
         ]);
 
-        $userId = optional($request->user())->user_id ?? $request->user()?->getAuthIdentifier();
-
-        DB::beginTransaction();
-        try {
-            // Generar slug si no viene, respetando el actual
-            if (empty($data['slug'])) {
-                $data['slug'] = $tour->slug ?: Tour::generateUniqueSlug($data['name'], $tour->tour_id ?? null);
-            }
-
-            // 🆕 AGREGAR updated_by
-            $tour->update([
-                'name'         => $data['name'],
-                'slug'         => $data['slug'],
-                'overview'     => $data['overview'] ?? null,
-                'length'       => $data['length'] ?? null,
-                'max_capacity' => $data['max_capacity'],
-                'group_size'   => $data['group_size'] ?? null,
-                'color'        => $data['color'] ?? '#3490dc',
-                'tour_type_id' => $data['tour_type_id'] ?? null,
-                'is_active'    => $data['is_active'] ?? $tour->is_active,
-                'updated_by'   => $userId,  // 🆕
-            ]);
-
-            if (!empty($data['languages'])) {
-                $tour->languages()->sync($data['languages']);
-            } else {
-                $tour->languages()->sync([]);
-            }
-
-            DB::commit();
-
-            LoggerHelper::mutated(
-                'TourWizardController',
-                'updateDetails',
-                'tour',
-                $tour->tour_id ?? $tour->getKey(),
-                [
-                    'user_id'      => $userId,
-                    'current_step' => $tour->current_step,
-                    'is_draft'     => $tour->is_draft,
-                ]
-            );
-
-            return redirect()
-                ->route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 2])
-                ->with('success', __('m_tours.tour.wizard.details_saved'));
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            LoggerHelper::exception(
-                'TourWizardController',
-                'updateDetails',
-                'tour',
-                $tour->tour_id ?? $tour->getKey(),
-                $e,
-                ['user_id' => $userId]
-            );
-
-            report($e);
-            return back()->withInput()->with('error', __('m_tours.common.error_saving'));
+        // Si sigue siendo draft, respetamos el current_step del wizard
+        if ($tour->is_draft) {
+            $tour->current_step = max($previousStep, 1);
         }
-    }
+
+        $tour->updated_by = $userId;
+        $tour->save();
+
+        // Sincronizar idiomas
+        if (!empty($data['languages'])) {
+            $tour->languages()->sync($data['languages']);
+        }
+    });
+
+    // Si es draft, seguimos el flujo normal del wizard (paso 2).
+    // Si ya no es draft, lo más lógico es mandarlo al resumen (paso 6).
+    $nextStep = $tour->is_draft ? 2 : 6;
+
+    return redirect()
+        ->route('admin.tours.wizard.step', [
+            'tour' => $tour,
+            'step' => $nextStep,
+        ])
+        ->with('success', __('m_tours.tour.wizard.details_saved'));
+}
+
+
 
     public function showStep(Tour $tour, int $step)
     {
@@ -665,6 +659,11 @@ class TourWizardController extends Controller
                     ->with('translations')
                     ->get();
                 $data['taxes'] = Tax::where('is_active', true)->orderBy('sort_order')->get();
+
+                // Group existing prices by periods
+                $tour->load(['prices.category']);
+                $data['pricingPeriods'] = \App\Models\TourPrice::groupByPeriods($tour->prices);
+
                 break;
         }
 
@@ -1014,40 +1013,51 @@ class TourWizardController extends Controller
 
     /**
      * ============================================================
-     * GUARDAR PRECIOS (PASO 5)
-     * 🔄 RENOMBRADO: savePrices → storePrices
+     * GUARDAR PRECIOS (PASO 5) - NUEVA ESTRUCTURA POR PERIODOS
      * ============================================================
      */
     public function storePrices(Request $request, Tour $tour)
     {
         $data = $request->validate([
-            'prices'                => 'required|array|min:1',
-            'prices.*.category_id'  => 'required|exists:customer_categories,category_id',
-            'prices.*.price'        => 'required|numeric|min:0',
-            'prices.*.min_quantity' => 'nullable|integer|min:0',
-            'prices.*.max_quantity' => 'nullable|integer|min:0',
-            'prices.*.is_active'    => 'boolean',
-            'taxes'                 => 'nullable|array',
-            'taxes.*'               => 'exists:taxes,tax_id',
+            'periods'                            => 'required|array|min:1',
+            'periods.*.valid_from'               => 'nullable|date',
+            'periods.*.valid_until'              => 'nullable|date|after_or_equal:periods.*.valid_from',
+            'periods.*.categories'               => 'required|array|min:1',
+            'periods.*.categories.*.category_id' => 'required|exists:customer_categories,category_id',
+            'periods.*.categories.*.price'       => 'required|numeric|min:0',
+            'periods.*.categories.*.min_quantity' => 'nullable|integer|min:0',
+            'periods.*.categories.*.max_quantity' => 'nullable|integer|min:0',
+            'periods.*.categories.*.is_active'   => 'nullable|boolean',
+            'taxes'                              => 'nullable|array',
+            'taxes.*'                            => 'exists:taxes,tax_id',
         ], [
-            'prices.required' => __('m_tours.prices.validation.no_categories') ?? 'Debes agregar al menos una categoría de precio.',
-            'prices.min' => __('m_tours.prices.validation.no_categories') ?? 'Debes agregar al menos una categoría de precio.',
-            'prices.*.price.required' => __('m_tours.prices.validation.price_required') ?? 'El precio es obligatorio.',
-            'prices.*.price.min' => __('m_tours.prices.validation.price_min') ?? 'El precio debe ser mayor o igual a 0.',
+            'periods.required' => __('m_tours.tour.pricing.add_at_least_one_period') ?? 'Debes agregar al menos un periodo de precios.',
+            'periods.min' => __('m_tours.tour.pricing.add_at_least_one_period') ?? 'Debes agregar al menos un periodo de precios.',
+            'periods.*.categories.required' => __('m_tours.tour.pricing.add_at_least_one_category') ?? 'Debes agregar al menos una categoría a cada periodo.',
+            'periods.*.categories.min' => __('m_tours.tour.pricing.add_at_least_one_category') ?? 'Debes agregar al menos una categoría a cada periodo.',
+            'periods.*.categories.*.price.required' => __('m_tours.prices.validation.price_required') ?? 'El precio es obligatorio.',
+            'periods.*.categories.*.price.min' => __('m_tours.prices.validation.price_min') ?? 'El precio debe ser mayor o igual a 0.',
+            'periods.*.valid_until.after_or_equal' => __('m_tours.tour.pricing.invalid_date_range') ?? 'La fecha de fin debe ser posterior o igual a la fecha de inicio.',
         ]);
 
         $userId = optional($request->user())->user_id ?? $request->user()?->getAuthIdentifier();
 
-        // 🆕 VALIDACIÓN ADICIONAL: Al menos un precio debe ser mayor a 0
-        $hasPriceGreaterThanZero = collect($data['prices'])->some(function ($priceData) {
-            return isset($priceData['price']) && floatval($priceData['price']) > 0;
-        });
+        // Validar que al menos un precio sea mayor a 0
+        $hasPriceGreaterThanZero = false;
+        foreach ($data['periods'] as $period) {
+            foreach ($period['categories'] as $category) {
+                if (isset($category['price']) && floatval($category['price']) > 0) {
+                    $hasPriceGreaterThanZero = true;
+                    break 2;
+                }
+            }
+        }
 
         if (!$hasPriceGreaterThanZero) {
             return back()
                 ->withInput()
                 ->withErrors([
-                    'prices' => __('m_tours.prices.validation.no_price_greater_zero') ?? 'Debe haber al menos una categoría con precio mayor a $0.00',
+                    'periods' => __('m_tours.prices.validation.no_price_greater_zero') ?? 'Debe haber al menos una categoría con precio mayor a $0.00',
                 ]);
         }
 
@@ -1056,15 +1066,25 @@ class TourWizardController extends Controller
             // Eliminar precios existentes
             $tour->prices()->delete();
 
-            // Crear nuevos precios
-            foreach ($data['prices'] as $priceData) {
-                $tour->prices()->create([
-                    'category_id'  => $priceData['category_id'],
-                    'price'        => $priceData['price'],
-                    'min_quantity' => $priceData['min_quantity'] ?? 0,
-                    'max_quantity' => $priceData['max_quantity'] ?? 12,
-                    'is_active'    => $priceData['is_active'] ?? true,
-                ]);
+            $totalPricesCreated = 0;
+
+            // Crear precios por periodo
+            foreach ($data['periods'] as $period) {
+                $validFrom = !empty($period['valid_from']) ? $period['valid_from'] : null;
+                $validUntil = !empty($period['valid_until']) ? $period['valid_until'] : null;
+
+                foreach ($period['categories'] as $categoryData) {
+                    $tour->prices()->create([
+                        'category_id'  => $categoryData['category_id'],
+                        'price'        => $categoryData['price'],
+                        'min_quantity' => $categoryData['min_quantity'] ?? 0,
+                        'max_quantity' => $categoryData['max_quantity'] ?? 12,
+                        'is_active'    => isset($categoryData['is_active']) ? (bool)$categoryData['is_active'] : true,
+                        'valid_from'   => $validFrom,
+                        'valid_until'  => $validUntil,
+                    ]);
+                    $totalPricesCreated++;
+                }
             }
 
             // Sincronizar impuestos
@@ -1087,7 +1107,8 @@ class TourWizardController extends Controller
                 [
                     'user_id'        => $userId,
                     'step'           => 5,
-                    'prices_count'   => count($data['prices']),
+                    'periods_count'  => count($data['periods']),
+                    'prices_count'   => $totalPricesCreated,
                 ]
             );
 

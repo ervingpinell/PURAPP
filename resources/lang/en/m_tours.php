@@ -64,6 +64,7 @@ return [
         'confirm_delete_text' => 'This action cannot be undone.',
         'saving' => 'Saving...',
         'network_error' => 'Network error',
+        'custom' => 'Custom',
     ],
 
     // =========================================================
@@ -659,6 +660,7 @@ return [
             'draft_details'   => 'Draft details',
             'drafts_found'    => 'A draft has been found',
             'basic_info'      => 'Details',
+            'previous'        => 'Previous',
 
             // Wizard steps
             'steps' => [
@@ -821,6 +823,35 @@ return [
             'category_already_added' => 'This category has already been added to the tour.',
             'no_prices_preview'      => 'No prices have been configured yet.',
             'already_added'          => 'This category has already been added to the tour.',
+
+            // Seasonal pricing
+            'wizard_description'          => 'Define prices by season and customer category',
+            'add_period'                  => 'Add Price Period',
+            'confirm_remove_period'       => 'Remove this price period?',
+            'category_already_in_period'  => 'This category is already added to this period',
+            'category'                    => 'Category',
+            'age_range'                   => 'Age',
+            'taxes'                       => 'Taxes',
+            'category_removed_success'    => 'Category removed successfully',
+            'leave_empty_no_limit'        => 'Leave empty for no limit',
+            'valid_from'                  => 'Valid from',
+            'valid_until'                 => 'Valid until',
+            'default_price'               => 'Default Price',
+            'all_year'                    => 'All Year',
+            'category_added_success'      => 'Category added successfully',
+            'period_removed_success'      => 'Period removed successfully',
+            'period_added_success'        => 'Period added successfully',
+            'overlap_not_allowed_title'   => 'Date Range Not Allowed',
+            'overlap_not_allowed_text'    => 'The selected dates overlap with another pricing period. Please adjust the range to avoid conflicts.',
+            'overlap_conflict_with'       => 'Conflict with the following periods:',
+            'duplicate_category_title'    => 'Duplicate Category',
+            'invalid_date_range_title'    => 'Invalid Date Range',
+            'remove_category_confirm_text' => 'This category will be removed from the period',
+            'validation_failed'           => 'Validation Failed',
+            'are_you_sure'                => 'Are you sure?',
+            'yes_delete'                  => 'Yes, delete',
+            'cancel'                      => 'Cancel',
+            'attention'                   => 'Attention',
         ],
 
         'modal' => [
@@ -904,6 +935,7 @@ return [
             'no_languages'       => 'No languages assigned',
             'none_included'      => 'Nothing included specified',
             'none_excluded'      => 'Nothing excluded specified',
+            'date_range'         => 'Date Range',
 
             'units' => [
                 'hours'  => 'hours',
@@ -1043,6 +1075,7 @@ return [
             'amenities_excluded'     => 'Not included amenities',
             'color'                  => 'Tour color',
             'remove'                 => 'Remove',
+            'delete'                 => 'Delete',
             'choose_itinerary'       => 'Choose itinerary',
             'select_type'            => 'Select type',
             'empty_means_default'    => 'Default',
@@ -1064,13 +1097,23 @@ return [
             'scroll_hint'            => 'Scroll horizontally to see more columns',
             'no_schedules'           => 'No schedules',
             'no_prices'              => 'No prices configured',
+
+            // Price badges
+            'prices_by_period' => 'Prices by Period',
+            'period' => 'period',
+            'periods' => 'periods',
+            'all_year' => 'All year',
+            'from' => 'From',
+            'until' => 'Until',
+            'no_prices' => 'No prices',
+
             'edit'                   => 'Edit',
             'slug_auto'              => 'Will be generated automatically',
             'deactivate' => 'Deactivate',
             'manage_prices' => 'Manage prices',
             'manage_images' => 'Manage images',
             'manage_delete' => 'Delete',
-                    'deactivate' => 'Deactivate',
+            'deactivate' => 'Deactivate',
             'manage_prices' => 'Manage prices',
             'manage_images' => 'Manage images',
             'manage_delete' => 'Delete',
@@ -1371,12 +1414,12 @@ return [
 
     'tour_type' => [
         'fields' => [
-        'name' => 'Name',
-        'description' => 'Description',
-        'status' => 'Status',
-        'duration' => 'Duration',
-        'duration_hint' => 'Suggested tour duration (optional)',
-        'duration_placeholder' => 'Example: 4 hours, 6 hours, etc.',
+            'name' => 'Name',
+            'description' => 'Description',
+            'status' => 'Status',
+            'duration' => 'Duration',
+            'duration_hint' => 'Suggested tour duration (optional)',
+            'duration_placeholder' => 'Example: 4 hours, 6 hours, etc.',
         ],
     ],
 ];

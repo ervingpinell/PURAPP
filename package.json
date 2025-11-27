@@ -8,6 +8,7 @@
     "dependencies": {
         "autoprefixer": "^10.4.20",
         "axios": "1.13.1",
+        "flatpickr": "4.6.13",
         "swiper": "11.2.10"
     },
     "optionalDependencies": {

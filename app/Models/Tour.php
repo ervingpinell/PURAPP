@@ -535,6 +535,37 @@ class Tour extends Model
             ->orderBy('sort_order');
     }
 
+    /**
+     * 🆕 Obtiene precios activos para una fecha específica
+     * Retorna SOLO UN PRECIO por categoría (el válido para la fecha)
+     * 
+     * @param string|Carbon|null $date Fecha para filtrar (default: hoy)
+     * @return \Illuminate\Support\Collection
+     */
+    public function activePricesForDate($date = null)
+    {
+        $date = $date ?? now();
+
+        // Obtener todas las categorías activas con precios
+        $allPrices = $this->prices()
+            ->where('is_active', true)
+            ->with(['category.translations'])
+            ->whereHas('category', fn($q) => $q->where('is_active', true))
+            ->validForDate($date)
+            ->get();
+
+        // Agrupar por categoría y tomar solo el primero (prioridad: con fechas > sin fechas)
+        $uniquePrices = $allPrices->groupBy('category_id')->map(function ($prices) {
+            // Ordenar: primero los que tienen fechas (seasonal), luego los por defecto
+            return $prices->sortBy(function ($price) {
+                // Precios con fechas tienen prioridad (0), sin fechas van después (1)
+                return ($price->valid_from || $price->valid_until) ? 0 : 1;
+            })->first();
+        })->values();
+
+        return $uniquePrices;
+    }
+
     public function images()
     {
         return $this->hasMany(TourImage::class, 'tour_id', 'tour_id')->orderBy('position');

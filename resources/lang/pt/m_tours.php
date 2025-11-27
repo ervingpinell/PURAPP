@@ -64,6 +64,7 @@ return [
         'confirm_delete_text' => 'Esta ação não pode ser desfeita',
         'saving' => 'Salvando...',
         'network_error' => 'Erro de rede',
+        'custom' => 'Personalizado',
     ],
 
     // =========================================================
@@ -769,6 +770,13 @@ return [
 
             'save_changes'       => 'Salvar alterações',
             'auto_disable_note'  => 'Preços em $0 são desativados automaticamente',
+            'not_available_for_date' => 'Não disponível para esta data',
+
+            // Calendar price indicators
+            'price_lower' => 'Preço mais baixo',
+            'price_higher' => 'Preço mais alto',
+            'price_normal' => 'Preço normal',
+            'price_legend' => 'Legenda de preços',
 
             'add_category'       => 'Adicionar categoria',
 
@@ -800,7 +808,40 @@ return [
             'remove_category'            => 'Remover categoria',
             'category_already_added'     => 'Esta categoria já está adicionada ao tour.',
             'no_prices_preview'          => 'Ainda não há preços configurados.',
-            'already_added'               => 'Esta categoria já está adicionada ao tour.',
+            'already_added'              => 'Esta categoria já está adicionada ao tour.',
+
+            // Seasonal pricing
+            'valid_from'                  => 'Válido a partir de',
+            'valid_until'                 => 'Válido até',
+            'default_price'               => 'Preço padrão',
+            'seasonal_price'              => 'Preço sazonal',
+            'season_label'                => 'Temporada',
+            'all_year'                    => 'Todo o ano',
+            'date_overlap_warning'        => 'As datas se sobrepõem a outro preço desta categoria',
+            'invalid_date_range'          => 'A data de início deve ser anterior à data de término',
+            'wizard_description'          => 'Definir preços por temporada e categoria de cliente',
+            'add_period'                  => 'Adicionar Período de Preço',
+            'confirm_remove_period'       => 'Remover este período de preço?',
+            'category_already_in_period'  => 'Esta categoria já está adicionada a este período',
+            'category'                    => 'Categoria',
+            'age_range'                   => 'Idade',
+            'taxes'                       => 'Impostos',
+            'category_removed_success'    => 'Categoria removida com sucesso',
+            'leave_empty_no_limit'        => 'Deixar vazio para sem limite',
+            'category_added_success'      => 'Categoria adicionada com sucesso',
+            'period_removed_success'      => 'Período removido com sucesso',
+            'period_added_success'        => 'Período adicionado com sucesso',
+            'overlap_not_allowed_title'   => 'Intervalo de datas não permitido',
+            'overlap_not_allowed_text'    => 'As datas selecionadas coincidem com outro período de preços. Ajuste o intervalo para evitar conflitos.',
+            'overlap_conflict_with'       => 'Conflito com os seguintes períodos:',
+            'duplicate_category_title'    => 'Categoria duplicada',
+            'invalid_date_range_title'    => 'Intervalo de datas inválido',
+            'remove_category_confirm_text' => 'Esta categoria será removida do período',
+            'validation_failed'           => 'Falha na validação',
+            'are_you_sure'                => 'Tem certeza?',
+            'yes_delete'                  => 'Sim, excluir',
+            'cancel'                      => 'Cancelar',
+            'attention'                   => 'Atenção',
         ],
 
         'modal' => [
@@ -884,6 +925,7 @@ return [
             'no_languages'         => 'Nenhum idioma atribuído',
             'none_included'        => 'Nada incluído especificado',
             'none_excluded'        => 'Nada excluído especificado',
+            'date_range'           => 'Intervalo de Datas',
 
             'units' => [
                 'hours'  => 'horas',
@@ -1022,6 +1064,7 @@ return [
             'amenities_excluded'     => 'Comodidades não incluídas',
             'color'                  => 'Cor do Tour',
             'remove'                 => 'Remover',
+            'delete'                 => 'Excluir',
             'choose_itinerary'       => 'Escolher itinerário',
             'select_type'            => 'Selecionar tipo',
             'empty_means_default'    => 'Padrão',
@@ -1043,6 +1086,16 @@ return [
             'scroll_hint' => 'Deslize horizontalmente para ver mais colunas',
             'no_schedules' => 'Sem horários',
             'no_prices' => 'Sem preços configurados',
+
+            // Badges de preços
+            'prices_by_period' => 'Preços por Período',
+            'period' => 'período',
+            'periods' => 'períodos',
+            'all_year' => 'Todo o ano',
+            'from' => 'Desde',
+            'until' => 'Até',
+            'no_prices' => 'Sem preços',
+
             'edit' => 'Editar',
             'slug_auto' => 'Será gerado automaticamente',
             'deactivate' => 'Desativar',

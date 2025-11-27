@@ -58,6 +58,6 @@ return [
     // Messages
     'complete_payment_message' => 'Por favor completa el pago para confirmar tu reserva',
     'payment_cancelled' => 'El pago fue cancelado. Puedes intentar nuevamente cuando estés listo.',
-    'redirect_paypal' => 'Redirigiendo a PayPal...',
+    'redirect_paypal' => 'Haz clic en Pagar para ser redirigido a PayPal y completar tu pago de forma segura.',
     'no_cart_data' => 'No se encontraron datos del carrito',
 ];
