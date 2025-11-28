@@ -1350,6 +1350,35 @@ return [
             'price_min'             => 'Le prix doit être supérieur ou égal à 0.',
             'age_to_greater_equal'  => 'L’âge "jusqu’à" doit être supérieur ou égal à l’âge "à partir de".',
         ],
+
+        'alerts' => [
+            'price_updated' => 'Prix mis à jour avec succès',
+            'price_created' => 'Catégorie ajoutée à la période avec succès',
+            'price_deleted' => 'Prix supprimé avec succès',
+            'status_updated' => 'Statut mis à jour',
+            'period_updated' => 'Dates de la période mises à jour',
+            'period_deleted' => 'Période supprimée avec succès',
+
+            'error_title' => 'Erreur',
+            'error_unexpected' => 'Une erreur inattendue est survenue',
+            'error_delete_price' => 'Impossible de supprimer le prix',
+            'error_add_category' => 'Impossible d\'ajouter la catégorie',
+            'error_update_period' => 'Impossible de mettre à jour les dates de la période',
+
+            'attention' => 'Attention',
+            'select_category_first' => 'Sélectionnez d\'abord une catégorie',
+            'duplicate_category_title' => 'Catégorie en double',
+            'duplicate_category_text' => 'Cette catégorie est déjà ajoutée à cette période',
+
+            'confirm_delete_price_title' => 'Supprimer le prix ?',
+            'confirm_delete_price_text' => 'Cette action est irréversible.',
+            'confirm_delete_period_title' => 'Supprimer cette période ?',
+            'confirm_delete_period_text' => 'Tous les prix associés à cette période seront supprimés.',
+            'confirm_yes_delete' => 'Oui, supprimer',
+            'confirm_cancel' => 'Annuler',
+
+            'no_categories' => 'Cette période n\'a pas de catégories',
+        ],
     ],
 
     'ajax' => [

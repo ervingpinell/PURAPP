@@ -1378,6 +1378,35 @@ return [
             'price_min' => 'Der Preis muss größer oder gleich 0 sein.',
             'age_to_greater_equal' => 'Das Feld „Alter bis“ muss größer oder gleich dem Feld „Alter von“ sein.',
         ],
+
+        'alerts' => [
+            'price_updated' => 'Preis erfolgreich aktualisiert',
+            'price_created' => 'Kategorie erfolgreich zum Zeitraum hinzugefügt',
+            'price_deleted' => 'Preis erfolgreich gelöscht',
+            'status_updated' => 'Status aktualisiert',
+            'period_updated' => 'Zeitraumdaten aktualisiert',
+            'period_deleted' => 'Zeitraum erfolgreich gelöscht',
+
+            'error_title' => 'Fehler',
+            'error_unexpected' => 'Ein unerwarteter Fehler ist aufgetreten',
+            'error_delete_price' => 'Der Preis konnte nicht gelöscht werden',
+            'error_add_category' => 'Die Kategorie konnte nicht hinzugefügt werden',
+            'error_update_period' => 'Die Zeitraumdaten konnten nicht aktualisiert werden',
+
+            'attention' => 'Achtung',
+            'select_category_first' => 'Wählen Sie zuerst eine Kategorie aus',
+            'duplicate_category_title' => 'Doppelte Kategorie',
+            'duplicate_category_text' => 'Diese Kategorie ist bereits in diesem Zeitraum enthalten',
+
+            'confirm_delete_price_title' => 'Preis löschen?',
+            'confirm_delete_price_text' => 'Diese Aktion kann nicht rückgängig gemacht werden.',
+            'confirm_delete_period_title' => 'Diesen Zeitraum löschen?',
+            'confirm_delete_period_text' => 'Alle mit diesem Zeitraum verbundenen Preise werden gelöscht.',
+            'confirm_yes_delete' => 'Ja, löschen',
+            'confirm_cancel' => 'Abbrechen',
+
+            'no_categories' => 'Dieser Zeitraum hat keine Kategorien',
+        ],
     ],
 
     'ajax' => [

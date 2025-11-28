@@ -9,7 +9,6 @@
 <style>
     /* Dark theme compatible styles */
     .tour-info-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 1.5rem;
         border-radius: 0.5rem;
@@ -25,7 +24,6 @@
     }
 
     .period-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 1rem 1.25rem;
         display: flex;
@@ -39,17 +37,18 @@
         background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
     }
 
-.period-dates {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-    flex-wrap: wrap;
-}
-.period-dates > div {
-    display: flex;
-    flex-direction: column;
-    min-width: 180px;
-}
+    .period-dates {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .period-dates > div {
+        display: flex;
+        flex-direction: column;
+        min-width: 180px;
+    }
 
     .period-dates input[type="date"] {
         background: rgba(255, 255, 255, 0.2);
@@ -129,7 +128,6 @@
     }
 
     .btn-add-period {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white !important;
         border: none;
         padding: 0.75rem 1.5rem;
@@ -170,7 +168,7 @@
 @section('content')
 <div class="container-fluid">
     {{-- Tour Info Header --}}
-    <div class="tour-info-header">
+    <div class="tour-info-header bg-secondary">
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <h1 class="mb-2" style="font-size: 1.75rem; font-weight: 600;">
@@ -189,32 +187,32 @@
         </div>
     </div>
 
-    {{-- Alerts --}}
+    {{-- Alerts flash --}}
     @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-        {{ session('success') }}
-    </div>
+        <div class="alert alert-success alert-dismissible fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ session('success') }}
+        </div>
     @endif
 
     @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-        {{ session('error') }}
-    </div>
+        <div class="alert alert-danger alert-dismissible fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ session('error') }}
+        </div>
     @endif
 
-    {{-- Add Period Button --}}
+    {{-- Add Period Button + Taxes --}}
     <div class="mb-3 d-flex justify-content-between align-items-center">
-        <button type="button" class="btn btn-add-period" id="add-period-btn">
+        <button type="button" class="btn btn-add-period bg-success" id="add-period-btn">
             <i class="fas fa-plus-circle mr-2"></i>
             {{ __('m_tours.tour.pricing.add_period') ?? 'Agregar Periodo de Precios' }}
         </button>
-        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#manageTaxesModal">
+        <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#manageTaxesModal">
             <i class="fas fa-percentage mr-2"></i>
             {{ __('taxes.title') }}
             @if($tour->taxes->isNotEmpty())
-            <span class="badge badge-light ml-2">{{ $tour->taxes->count() }}</span>
+                <span class="badge badge-light ml-2">{{ $tour->taxes->count() }}</span>
             @endif
         </button>
     </div>
@@ -222,136 +220,163 @@
     {{-- Pricing Periods Container --}}
     <div id="pricing-periods-container">
         @forelse($pricingPeriods as $periodIndex => $period)
-        <div class="card pricing-period-card" data-period-index="{{ $periodIndex }}">
-            <div class="period-header {{ $period['is_default'] ? 'default' : '' }}">
-                <div class="period-dates">
-                    @if(!$period['is_default'])
-                    <div>
-                        <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">{{ __('m_tours.tour.pricing.valid_from') }}</label>
-                        <input type="date"
-                            class="form-control form-control-sm period-date-input"
-                            data-field="valid_from"
-                            value="{{ $period['valid_from'] }}">
+            <div class="card pricing-period-card" data-period-index="{{ $periodIndex }}">
+                <div class="period-header bg-secondary {{ $period['is_default'] ? 'default' : '' }}">
+                    <div class="period-dates">
+                        @if(!$period['is_default'])
+                            <div>
+                                <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
+                                    {{ __('m_tours.tour.pricing.valid_from') }}
+                                </label>
+                                <input
+                                    type="date"
+                                    class="form-control form-control-sm period-date-input"
+                                    data-field="valid_from"
+                                    value="{{ $period['valid_from'] }}"
+                                >
+                            </div>
+                            <div>
+                                <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
+                                    {{ __('m_tours.tour.pricing.valid_until') }}
+                                </label>
+                                <input
+                                    type="date"
+                                    class="form-control form-control-sm period-date-input"
+                                    data-field="valid_until"
+                                    value="{{ $period['valid_until'] }}"
+                                >
+                            </div>
+                        @else
+                            <h5 class="mb-0">
+                                <i class="fas fa-infinity mr-2"></i>
+                                {{ $period['label'] }}
+                            </h5>
+                        @endif
                     </div>
-                    <div>
-                        <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">{{ __('m_tours.tour.pricing.valid_until') }}</label>
-                        <input type="date"
-                            class="form-control form-control-sm period-date-input"
-                            data-field="valid_until"
-                            value="{{ $period['valid_until'] }}">
+                    <div class="period-actions">
+                        @if(!$period['is_default'])
+                            <button type="button" class="btn btn-sm btn-success save-period-dates-btn">
+                                <i class="fas fa-save"></i> {{ __('m_general.save') }}
+                            </button>
+                        @endif
+                        <button type="button" class="btn btn-sm btn-danger remove-period-btn">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
-                    @else
-                    <h5 class="mb-0">
-                        <i class="fas fa-infinity mr-2"></i>
-                        {{ $period['label'] }}
-                    </h5>
-                    @endif
                 </div>
-                <div class="period-actions">
-                    @if(!$period['is_default'])
-                    <button type="button" class="btn btn-sm btn-light save-period-dates-btn">
-                        <i class="fas fa-save"></i> {{ __('m_general.save') }}
-                    </button>
-                    @endif
-                    <button type="button" class="btn btn-sm btn-danger remove-period-btn">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
 
-            <div class="card-body p-0">
-                <table class="table table-sm table-hover categories-table mb-0">
-                    <thead>
-                        <tr>
-                            <th style="width: 20%;">{{ __('m_tours.tour.pricing.category') }}</th>
-                            <th style="width: 12%;">{{ __('m_tours.tour.pricing.age_range') }}</th>
-                            <th style="width: 15%;">{{ __('m_tours.tour.pricing.price_usd') }}</th>
-                            <th style="width: 12%;">{{ __('m_tours.tour.pricing.min_quantity') }}</th>
-                            <th style="width: 12%;">{{ __('m_tours.tour.pricing.max_quantity') }}</th>
-                            <th style="width: 10%;" class="text-center">{{ __('m_tours.tour.pricing.active') }}</th>
-                            <th style="width: 19%;" class="text-center">{{ __('m_tours.prices.table.action') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="categories-tbody">
-                        @foreach($period['categories'] as $cat)
-                        <tr data-price-id="{{ $cat['price_id'] }}" data-category-id="{{ $cat['id'] }}">
-                            <td><strong>{{ $cat['name'] }}</strong></td>
-                            <td><small class="text-muted">{{ $cat['age_range'] }}</small></td>
-                            <td>
-                                <div class="input-group input-group-sm">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">$</span>
-                                    </div>
-                                    <input type="number"
-                                        class="form-control price-input"
-                                        value="{{ $cat['price'] }}"
-                                        data-field="price"
-                                        step="0.01"
-                                        min="0">
-                                </div>
-                            </td>
-                            <td>
-                                <input type="number"
-                                    class="form-control form-control-sm quantity-input"
-                                    value="{{ $cat['min_quantity'] }}"
-                                    data-field="min_quantity"
-                                    min="0">
-                            </td>
-                            <td>
-                                <input type="number"
-                                    class="form-control form-control-sm quantity-input"
-                                    value="{{ $cat['max_quantity'] }}"
-                                    data-field="max_quantity"
-                                    min="0">
-                            </td>
-                            <td class="text-center">
-                                <input type="checkbox"
-                                    class="active-toggle"
-                                    data-field="is_active"
-                                    {{ $cat['is_active'] ? 'checked' : '' }}>
-                            </td>
-                            <td class="text-center">
-                                <button type="button" class="btn btn-sm btn-success save-price-btn" style="display: none;">
-                                    <i class="fas fa-save"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-danger remove-category-btn">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                                <span class="save-indicator ml-2">
-                                    <i class="fas fa-check-circle"></i> Guardado
-                                </span>
-                            </td>
-                        </tr>
+                <div class="card-body p-0">
+                    <table class="table table-sm table-hover categories-table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 20%;">{{ __('m_tours.tour.pricing.category') }}</th>
+                                <th style="width: 12%;">{{ __('m_tours.tour.pricing.age_range') }}</th>
+                                <th style="width: 15%;">{{ __('m_tours.tour.pricing.price_usd') }}</th>
+                                <th style="width: 12%;">{{ __('m_tours.tour.pricing.min_quantity') }}</th>
+                                <th style="width: 12%;">{{ __('m_tours.tour.pricing.max_quantity') }}</th>
+                                <th style="width: 10%;" class="text-center">{{ __('m_tours.tour.pricing.active') }}</th>
+                                <th style="width: 19%;" class="text-center">{{ __('m_tours.prices.table.action') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="categories-tbody">
+                            @foreach($period['categories'] as $cat)
+                                <tr
+                                    data-price-id="{{ $cat['price_id'] }}"
+                                    data-category-id="{{ $cat['id'] }}"
+                                >
+                                    <td><strong>{{ $cat['name'] }}</strong></td>
+                                    <td><small class="text-muted">{{ $cat['age_range'] }}</small></td>
+                                    <td>
+                                        <div class="input-group input-group-sm">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">$</span>
+                                            </div>
+                                            <input
+                                                type="number"
+                                                class="form-control price-input"
+                                                value="{{ $cat['price'] }}"
+                                                data-field="price"
+                                                step="0.01"
+                                                min="0"
+                                            >
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm quantity-input"
+                                            value="{{ $cat['min_quantity'] }}"
+                                            data-field="min_quantity"
+                                            min="0"
+                                        >
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm quantity-input"
+                                            value="{{ $cat['max_quantity'] }}"
+                                            data-field="max_quantity"
+                                            min="0"
+                                        >
+                                    </td>
+                                    <td class="text-center">
+                                        <input
+                                            type="checkbox"
+                                            class="active-toggle"
+                                            data-field="is_active"
+                                            {{ $cat['is_active'] ? 'checked' : '' }}
+                                        >
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-success save-price-btn" style="display: none;">
+                                            <i class="fas fa-save"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger remove-category-btn">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        <span class="save-indicator ml-2">
+                                            <i class="fas fa-check-circle"></i> {{ __('m_general.saved') ?? 'Guardado' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="add-category-section">
+                    <select class="form-control form-control-sm add-category-select">
+                        <option value="">
+                            {{ __('m_tours.tour.pricing.choose_category_placeholder') }}
+                        </option>
+                        @foreach($availableCategories as $category)
+                            <option
+                                value="{{ $category->category_id }}"
+                                data-name="{{ $category->getTranslatedName() ?? $category->name }}"
+                                data-age-range="{{ $category->age_range ?? ($category->age_from . '-' . $category->age_to) }}"
+                            >
+                                {{ $category->getTranslatedName() ?? $category->name }}
+                                ({{ $category->age_range ?? ($category->age_from . '-' . $category->age_to) }})
+                            </option>
                         @endforeach
-                    </tbody>
-                </table>
+                    </select>
+                    <button type="button" class="btn btn-sm btn-primary add-category-btn">
+                        <i class="fas fa-plus mr-1"></i> {{ __('m_tours.tour.pricing.add_button') }}
+                    </button>
+                </div>
             </div>
-
-            <div class="add-category-section">
-                <select class="form-control form-control-sm add-category-select">
-                    <option value="">{{ __('m_tours.tour.pricing.choose_category_placeholder') }}</option>
-                    @foreach($availableCategories as $category)
-                    <option value="{{ $category->category_id }}"
-                        data-name="{{ $category->getTranslatedName() ?? $category->name }}"
-                        data-age-range="{{ $category->age_range ?? ($category->age_from . '-' . $category->age_to) }}">
-                        {{ $category->getTranslatedName() ?? $category->name }}
-                        ({{ $category->age_range ?? ($category->age_from . '-' . $category->age_to) }})
-                    </option>
-                    @endforeach
-                </select>
-                <button type="button" class="btn btn-sm btn-primary add-category-btn">
-                    <i class="fas fa-plus mr-1"></i> {{ __('m_tours.tour.pricing.add_button') }}
-                </button>
-            </div>
-        </div>
         @empty
-        <div class="card" style="background: #343a40; border: 1px solid #454d55;">
-            <div class="card-body text-center py-5">
-                <i class="fas fa-calendar-times fa-3x mb-3" style="opacity: 0.5; color: #6c757d;"></i>
-                <h5 style="color: #6c757d;">{{ __('m_tours.tour.pricing.no_periods') ?? 'No hay periodos de precios definidos' }}</h5>
-                <p class="text-muted">{{ __('m_tours.tour.pricing.click_add_period') ?? 'Haz clic en "Agregar Periodo de Precios" para comenzar' }}</p>
+            <div class="card" style="background: #343a40; border: 1px solid #454d55;">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-calendar-times fa-3x mb-3" style="opacity: 0.5; color: #6c757d;"></i>
+                    <h5 style="color: #6c757d;">
+                        {{ __('m_tours.tour.pricing.no_periods') ?? 'No hay periodos de precios definidos' }}
+                    </h5>
+                    <p class="text-muted">
+                        {{ __('m_tours.tour.pricing.click_add_period') ?? 'Haz clic en "Agregar Periodo de Precios" para comenzar' }}
+                    </p>
+                </div>
             </div>
-        </div>
         @endforelse
     </div>
 </div>
@@ -370,33 +395,37 @@
                 </div>
                 <div class="modal-body">
                     @if($taxes->isEmpty())
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> {{ __('m_general.no_records') }}
-                    </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> {{ __('m_general.no_records') }}
+                        </div>
                     @else
-                    <div class="list-group">
-                        @foreach($taxes as $tax)
-                        <label class="list-group-item d-flex justify-content-between align-items-center">
-                            <div class="custom-control custom-checkbox">
-                                <input class="custom-control-input"
-                                    type="checkbox"
-                                    name="taxes[]"
-                                    id="tax_{{ $tax->tax_id }}"
-                                    value="{{ $tax->tax_id }}"
-                                    {{ $tour->taxes->contains($tax->tax_id) ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="tax_{{ $tax->tax_id }}">
-                                    <strong>{{ $tax->name }}</strong><br>
-                                    <small class="text-muted">
-                                        {{ $tax->type == 'percentage' ? number_format($tax->rate, 2) . '%' : '$' . number_format($tax->rate, 2) }}
-                                    </small>
+                        <div class="list-group">
+                            @foreach($taxes as $tax)
+                                <label class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div class="custom-control custom-checkbox">
+                                        <input
+                                            class="custom-control-input"
+                                            type="checkbox"
+                                            name="taxes[]"
+                                            id="tax_{{ $tax->tax_id }}"
+                                            value="{{ $tax->tax_id }}"
+                                            {{ $tour->taxes->contains($tax->tax_id) ? 'checked' : '' }}
+                                        >
+                                        <label class="custom-control-label" for="tax_{{ $tax->tax_id }}">
+                                            <strong>{{ $tax->name }}</strong><br>
+                                            <small class="text-muted">
+                                                {{ $tax->type == 'percentage'
+                                                    ? number_format($tax->rate, 2) . '%'
+                                                    : '$' . number_format($tax->rate, 2) }}
+                                            </small>
+                                        </label>
+                                    </div>
+                                    <span class="badge {{ $tax->is_inclusive ? 'badge-success' : 'badge-warning' }}">
+                                        {{ $tax->is_inclusive ? __('taxes.included') : __('taxes.not_included') }}
+                                    </span>
                                 </label>
-                            </div>
-                            <span class="badge {{ $tax->is_inclusive ? 'badge-success' : 'badge-warning' }}">
-                                {{ $tax->is_inclusive ? __('taxes.included') : __('taxes.not_included') }}
-                            </span>
-                        </label>
-                        @endforeach
-                    </div>
+                            @endforeach
+                        </div>
                     @endif
                 </div>
                 <div class="modal-footer">
@@ -414,15 +443,24 @@
 @endsection
 
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    $(document).ready(function() {
-        const tourId = {
-            {
-                $tour->tour_id
-            }
-        };
+    $(function () {
+        const tourId   = @json($tour->tour_id);
+        const csrfToken = @json(csrf_token());
 
-        // Track changes in inputs
+        // Toast genérico
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+
+        // ==========
+        // TRACK CAMBIOS EN INPUTS
+        // ==========
         $(document).on('input change', '.price-input, .quantity-input', function() {
             const $row = $(this).closest('tr');
             const $saveBtn = $row.find('.save-price-btn');
@@ -430,7 +468,9 @@
             $saveBtn.show();
         });
 
-        // Save individual price
+        // ==========
+        // GUARDAR PRECIO INDIVIDUAL
+        // ==========
         $(document).on('click', '.save-price-btn', function() {
             const $btn = $(this);
             const $row = $btn.closest('tr');
@@ -441,7 +481,7 @@
                 min_quantity: $row.find('[data-field="min_quantity"]').val(),
                 max_quantity: $row.find('[data-field="max_quantity"]').val(),
                 is_active: $row.find('[data-field="is_active"]').is(':checked') ? 1 : 0,
-                _token: '{{ csrf_token() }}',
+                _token: csrfToken,
                 _method: 'PUT'
             };
 
@@ -451,14 +491,22 @@
                 url: `/admin/tours/${tourId}/prices/${priceId}`,
                 method: 'POST',
                 data: data,
-                success: function(response) {
+                success: function() {
                     $row.find('.price-input, .quantity-input').removeClass('price-changed');
                     $btn.hide();
                     $row.find('.save-indicator').addClass('show');
+                    Toast.fire({
+                        icon: 'success',
+                        title: @json(__('m_tours.prices.alerts.price_updated'))
+                    });
                     setTimeout(() => $row.find('.save-indicator').removeClass('show'), 2000);
                 },
                 error: function(xhr) {
-                    alert('Error al guardar: ' + (xhr.responseJSON?.message || 'Error desconocido'));
+                    Swal.fire({
+                        icon: 'error',
+                        title: @json(__('m_tours.prices.alerts.error_title')),
+                        text: xhr.responseJSON?.message || @json(__('m_tours.prices.alerts.error_unexpected'))
+                    });
                 },
                 complete: function() {
                     $btn.prop('disabled', false).html('<i class="fas fa-save"></i>');
@@ -466,67 +514,110 @@
             });
         });
 
-        // Toggle active status
+        // ==========
+        // TOGGLE ACTIVO / INACTIVO
+        // ==========
         $(document).on('change', '.active-toggle', function() {
-            const $row = $(this).closest('tr');
+            const $checkbox = $(this);
+            const $row = $checkbox.closest('tr');
             const priceId = $row.data('price-id');
 
             $.ajax({
                 url: `/admin/tours/${tourId}/prices/${priceId}/toggle`,
                 method: 'POST',
                 data: {
-                    _token: '{{ csrf_token() }}'
+                    _token: csrfToken
                 },
-                success: function(response) {
+                success: function() {
                     $row.find('.save-indicator').addClass('show');
+                    Toast.fire({
+                        icon: 'success',
+                        title: @json(__('m_tours.prices.alerts.status_updated'))
+                    });
                     setTimeout(() => $row.find('.save-indicator').removeClass('show'), 2000);
                 },
-                error: function(xhr) {
-                    alert('Error al cambiar estado');
-                    $(this).prop('checked', !$(this).is(':checked'));
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: @json(__('m_tours.prices.alerts.error_title')),
+                        text: @json(__('m_tours.prices.alerts.error_unexpected'))
+                    });
+                    // revert checkbox
+                    $checkbox.prop('checked', !$checkbox.is(':checked'));
                 }
             });
         });
 
-        // Remove category
+        // ==========
+        // ELIMINAR CATEGORÍA (PRECIO)
+        // ==========
         $(document).on('click', '.remove-category-btn', function() {
-            if (!confirm('{{ __("m_tours.prices.modal.delete_text") }}')) return;
-
             const $row = $(this).closest('tr');
             const priceId = $row.data('price-id');
 
-            $.ajax({
-                url: `/admin/tours/${tourId}/prices/${priceId}`,
-                method: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    _method: 'DELETE'
-                },
-                success: function() {
-                    $row.fadeOut(300, function() {
-                        $(this).remove();
-                    });
-                },
-                error: function(xhr) {
-                    alert('Error al eliminar');
-                }
+            Swal.fire({
+                title: @json(__('m_tours.prices.alerts.confirm_delete_price_title')),
+                text: @json(__('m_tours.prices.alerts.confirm_delete_price_text')),
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e3342f',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: @json(__('m_tours.prices.alerts.confirm_yes_delete')),
+                cancelButtonText: @json(__('m_tours.prices.alerts.confirm_cancel'))
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $.ajax({
+                    url: `/admin/tours/${tourId}/prices/${priceId}`,
+                    method: 'POST',
+                    data: {
+                        _token: csrfToken,
+                        _method: 'DELETE'
+                    },
+                    success: function() {
+                        $row.fadeOut(300, function() {
+                            $(this).remove();
+                        });
+                        Toast.fire({
+                            icon: 'success',
+                            title: @json(__('m_tours.prices.alerts.price_deleted'))
+                        });
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: @json(__('m_tours.prices.alerts.error_title')),
+                            text: @json(__('m_tours.prices.alerts.error_delete_price'))
+                        });
+                    }
+                });
             });
         });
 
-        // Add category to period
+        // ==========
+        // AGREGAR CATEGORÍA A UN PERIODO
+        // ==========
         $(document).on('click', '.add-category-btn', function() {
             const $period = $(this).closest('.pricing-period-card');
             const $select = $period.find('.add-category-select');
             const categoryId = $select.val();
 
             if (!categoryId) {
-                alert('{{ __("m_tours.tour.pricing.select_category_first") }}');
+                Swal.fire({
+                    icon: 'warning',
+                    title: @json(__('m_tours.prices.alerts.attention')),
+                    text: @json(__('m_tours.prices.alerts.select_category_first'))
+                });
                 return;
             }
 
             // Check if already exists
             if ($period.find(`tr[data-category-id="${categoryId}"]`).length > 0) {
-                alert('{{ __("m_tours.tour.pricing.category_already_in_period") }}');
+                Swal.fire({
+                    icon: 'warning',
+                    title: @json(__('m_tours.prices.alerts.duplicate_category_title')),
+                    text: @json(__('m_tours.prices.alerts.duplicate_category_text'))
+                });
                 return;
             }
 
@@ -545,18 +636,29 @@
                     is_active: 0,
                     valid_from: validFrom,
                     valid_until: validUntil,
-                    _token: '{{ csrf_token() }}'
+                    _token: csrfToken
                 },
-                success: function(response) {
-                    location.reload();
+                success: function() {
+                    Swal.fire({
+                        icon: 'success',
+                        title: @json(__('m_tours.prices.alerts.price_created'))
+                    }).then(() => {
+                        location.reload();
+                    });
                 },
-                error: function(xhr) {
-                    alert('Error al agregar categoría');
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: @json(__('m_tours.prices.alerts.error_title')),
+                        text: @json(__('m_tours.prices.alerts.error_add_category'))
+                    });
                 }
             });
         });
 
-        // Save period dates
+        // ==========
+        // GUARDAR FECHAS DEL PERIODO (BULK UPDATE)
+        // ==========
         $(document).on('click', '.save-period-dates-btn', function() {
             const $period = $(this).closest('.pricing-period-card');
             const validFrom = $period.find('[data-field="valid_from"]').val();
@@ -568,7 +670,11 @@
             });
 
             if (priceIds.length === 0) {
-                alert('Este periodo no tiene categorías');
+                Swal.fire({
+                    icon: 'warning',
+                    title: @json(__('m_tours.prices.alerts.attention')),
+                    text: @json(__('m_tours.prices.alerts.no_categories'))
+                });
                 return;
             }
 
@@ -579,21 +685,28 @@
                     price_ids: priceIds,
                     valid_from: validFrom,
                     valid_until: validUntil,
-                    _token: '{{ csrf_token() }}'
+                    _token: csrfToken
                 },
                 success: function() {
-                    alert('Fechas actualizadas correctamente');
+                    Toast.fire({
+                        icon: 'success',
+                        title: @json(__('m_tours.prices.alerts.period_updated'))
+                    });
                 },
-                error: function(xhr) {
-                    alert('Error al actualizar fechas');
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: @json(__('m_tours.prices.alerts.error_title')),
+                        text: @json(__('m_tours.prices.alerts.error_update_period'))
+                    });
                 }
             });
         });
 
-        // Remove period
+        // ==========
+        // ELIMINAR PERIODO COMPLETO
+        // ==========
         $(document).on('click', '.remove-period-btn', function() {
-            if (!confirm('{{ __("m_tours.tour.pricing.confirm_remove_period") }}')) return;
-
             const $period = $(this).closest('.pricing-period-card');
             const priceIds = [];
 
@@ -601,30 +714,68 @@
                 priceIds.push($(this).data('price-id'));
             });
 
-            if (priceIds.length === 0) {
-                $period.remove();
-                return;
-            }
+            Swal.fire({
+                title: @json(__('m_tours.prices.alerts.confirm_delete_period_title')),
+                text: @json(__('m_tours.prices.alerts.confirm_delete_period_text')),
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e3342f',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: @json(__('m_tours.prices.alerts.confirm_yes_delete')),
+                cancelButtonText: @json(__('m_tours.prices.alerts.confirm_cancel'))
+            }).then((result) => {
+                if (!result.isConfirmed) return;
 
-            // Delete all prices in this period
-            let completed = 0;
-            priceIds.forEach(priceId => {
-                $.ajax({
-                    url: `/admin/tours/${tourId}/prices/${priceId}`,
-                    method: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        _method: 'DELETE'
-                    },
-                    complete: function() {
-                        completed++;
-                        if (completed === priceIds.length) {
-                            $period.fadeOut(300, function() {
-                                $(this).remove();
-                            });
+                if (priceIds.length === 0) {
+                    $period.fadeOut(300, function () {
+                        $(this).remove();
+                    });
+                    Toast.fire({
+                        icon: 'success',
+                        title: @json(__('m_tours.prices.alerts.period_deleted'))
+                    });
+                    return;
+                }
+
+                let completed = 0;
+                priceIds.forEach(priceId => {
+                    $.ajax({
+                        url: `/admin/tours/${tourId}/prices/${priceId}`,
+                        method: 'POST',
+                        data: {
+                            _token: csrfToken,
+                            _method: 'DELETE'
+                        },
+                        complete: function() {
+                            completed++;
+                            if (completed === priceIds.length) {
+                                $period.fadeOut(300, function() {
+                                    $(this).remove();
+                                });
+                                Toast.fire({
+                                    icon: 'success',
+                                    title: @json(__('m_tours.prices.alerts.period_deleted'))
+                                });
+                            }
                         }
-                    }
+                    });
                 });
+            });
+        });
+
+        // ==========
+        // (OPCIONAL) BOTÓN "AGREGAR PERIODO" PARA CREAR UN PERIODO NUEVO VACÍO
+        // Aquí podrías redirigir a wizard o abrir modal; de momento solo aviso.
+        // ==========
+        $('#add-period-btn').on('click', function () {
+            // Aquí decides si:
+            // - Redirigir a wizard de precios
+            // - O abrir un modal para crear periodo nuevo
+            // Por ahora, solo aviso para que no parezca roto:
+            Swal.fire({
+                icon: 'info',
+                title: @json(__('m_tours.prices.alerts.attention')),
+                text: 'La creación de nuevos periodos está manejada desde el wizard del tour.'
             });
         });
     });

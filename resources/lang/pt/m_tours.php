@@ -1351,6 +1351,35 @@ return [
             'price_min' => 'O preço deve ser maior ou igual a 0',
             'age_to_greater_equal' => 'A idade até deve ser maior ou igual à idade a partir de',
         ],
+
+        'alerts' => [
+            'price_updated' => 'Preço atualizado com sucesso',
+            'price_created' => 'Categoria adicionada ao período com sucesso',
+            'price_deleted' => 'Preço excluído com sucesso',
+            'status_updated' => 'Status atualizado',
+            'period_updated' => 'Datas do período atualizadas',
+            'period_deleted' => 'Período excluído com sucesso',
+
+            'error_title' => 'Erro',
+            'error_unexpected' => 'Ocorreu um erro inesperado',
+            'error_delete_price' => 'Não foi possível excluir o preço',
+            'error_add_category' => 'Não foi possível adicionar a categoria',
+            'error_update_period' => 'Não foi possível atualizar as datas do período',
+
+            'attention' => 'Atenção',
+            'select_category_first' => 'Selecione uma categoria primeiro',
+            'duplicate_category_title' => 'Categoria duplicada',
+            'duplicate_category_text' => 'Esta categoria já está adicionada neste período',
+
+            'confirm_delete_price_title' => 'Excluir preço?',
+            'confirm_delete_price_text' => 'Esta ação não pode ser desfeita.',
+            'confirm_delete_period_title' => 'Excluir este período?',
+            'confirm_delete_period_text' => 'Todos os preços associados a este período serão excluídos.',
+            'confirm_yes_delete' => 'Sim, excluir',
+            'confirm_cancel' => 'Cancelar',
+
+            'no_categories' => 'Este período não tem categorias',
+        ],
     ],
 
     'ajax' => [

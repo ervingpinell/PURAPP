@@ -1357,6 +1357,34 @@ return [
             'success' => 'Operación realizada con éxito.',
             'error'   => 'Ocurrió un error.',
         ],
+'alerts' => [
+    'price_updated' => 'Precio actualizado correctamente',
+    'price_created' => 'Categoría agregada al periodo correctamente',
+    'price_deleted' => 'Precio eliminado correctamente',
+    'status_updated' => 'Estado actualizado',
+    'period_updated' => 'Fechas del periodo actualizadas',
+    'period_deleted' => 'Periodo eliminado correctamente',
+
+    'error_title' => 'Error',
+    'error_unexpected' => 'Ha ocurrido un error inesperado',
+    'error_delete_price' => 'No se pudo eliminar el precio',
+    'error_add_category' => 'No se pudo agregar la categoría',
+    'error_update_period' => 'No se pudieron actualizar las fechas del periodo',
+
+    'attention' => 'Atención',
+    'select_category_first' => 'Selecciona una categoría primero',
+    'duplicate_category_title' => 'Categoría duplicada',
+    'duplicate_category_text' => 'Esta categoría ya está agregada en este periodo',
+
+    'confirm_delete_price_title' => '¿Eliminar precio?',
+    'confirm_delete_price_text' => 'Esta acción no se puede deshacer.',
+    'confirm_delete_period_title' => '¿Eliminar este periodo?',
+    'confirm_delete_period_text' => 'Se eliminarán todos los precios asociados a este periodo.',
+    'confirm_yes_delete' => 'Sí, eliminar',
+    'confirm_cancel' => 'Cancelar',
+
+    'no_categories' => 'Este periodo no tiene categorías',
+],
 
         'js' => [
             'max_ge_min'            => 'El máximo debe ser mayor o igual al mínimo',

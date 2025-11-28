@@ -1383,6 +1383,35 @@ return [
             'price_min'             => 'Price must be greater than or equal to 0.',
             'age_to_greater_equal'  => '"Age to" must be greater than or equal to "Age from".',
         ],
+
+        'alerts' => [
+            'price_updated' => 'Price updated successfully',
+            'price_created' => 'Category added to period successfully',
+            'price_deleted' => 'Price deleted successfully',
+            'status_updated' => 'Status updated',
+            'period_updated' => 'Period dates updated',
+            'period_deleted' => 'Period deleted successfully',
+
+            'error_title' => 'Error',
+            'error_unexpected' => 'An unexpected error occurred',
+            'error_delete_price' => 'Could not delete the price',
+            'error_add_category' => 'Could not add the category',
+            'error_update_period' => 'Could not update period dates',
+
+            'attention' => 'Attention',
+            'select_category_first' => 'Select a category first',
+            'duplicate_category_title' => 'Duplicate Category',
+            'duplicate_category_text' => 'This category is already added to this period',
+
+            'confirm_delete_price_title' => 'Delete price?',
+            'confirm_delete_price_text' => 'This action cannot be undone.',
+            'confirm_delete_period_title' => 'Delete this period?',
+            'confirm_delete_period_text' => 'All prices associated with this period will be deleted.',
+            'confirm_yes_delete' => 'Yes, delete',
+            'confirm_cancel' => 'Cancel',
+
+            'no_categories' => 'This period has no categories',
+        ],
     ],
 
     'ajax' => [

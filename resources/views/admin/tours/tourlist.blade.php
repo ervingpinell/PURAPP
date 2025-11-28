@@ -105,7 +105,7 @@
     border-radius: 999px;
     margin: .15rem .25rem .15rem 0;
     cursor: default;
-    background-color: #2563eb;
+    background-color: #3f6791;
     color: #f9fafb;
     border: none;
   }
