@@ -633,6 +633,7 @@ return [
 
             'tour_type_error' => 'Erreur lors de la création du type de tour.',
             'language_error'  => 'Erreur lors de la création de la langue.',
+            'languages_hint' => 'Sélectionnez les langues disponibles pour ce tour.',
         ],
 
         'wizard' => [

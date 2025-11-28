@@ -635,6 +635,7 @@ return [
 
             'tour_type_error' => 'Erro ao criar o tipo de tour.',
             'language_error'  => 'Erro ao criar o idioma.',
+            'languages_hint' => 'Selecione os idiomas disponíveis para este tour.',
         ],
 
         'wizard' => [

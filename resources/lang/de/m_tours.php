@@ -632,6 +632,7 @@ return [
             // Errores
             'tour_type_error' => 'Fehler beim Erstellen des Tourtyps.',
             'language_error' => 'Fehler beim Erstellen der Sprache.',
+            'languages_hint' => 'Wählen Sie die für diesen Tour verfügbaren Sprachen aus.',
         ],
 
         'wizard' => [

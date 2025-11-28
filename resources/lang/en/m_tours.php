@@ -640,6 +640,7 @@ return [
             // Errors
             'tour_type_error' => 'Error creating tour type.',
             'language_error'  => 'Error creating language.',
+            'languages_hint' => 'Select the languages available for this tour.',
         ],
 
         'wizard' => [
