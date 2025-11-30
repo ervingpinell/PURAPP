@@ -470,6 +470,17 @@
         };
 
         const handleExpire = async () => {
+          // 1. Anunciar expiración
+          await Swal.fire({
+            icon: 'warning',
+            title: @json(__('carts.timer.expired_title') ?? 'Tiempo agotado'),
+            text: @json(__('carts.timer.expired_text') ?? 'Tu carrito ha expirado. Serás redirigido al inicio.'),
+            confirmButtonText: 'OK',
+            allowOutsideClick: false,
+            allowEscapeKey: false
+          });
+
+          // 2. Llamar al endpoint para limpiar backend
           try {
             await fetch(expireEndpoint, {
               method: 'POST',
@@ -479,7 +490,9 @@
               }
             });
           } catch (_) {}
-          location.reload();
+
+          // 3. Redirigir al home reemplazando el historial para evitar "Atrás"
+          window.location.replace('/');
         };
 
         // Expose countdown for timer widget

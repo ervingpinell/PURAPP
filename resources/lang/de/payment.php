@@ -5,6 +5,7 @@ return [
     'payment' => 'Zahlung',
     'payment_information' => 'Zahlungsinformationen',
     'secure_payment' => 'Sichere Zahlung',
+    'select_payment_method' => 'Zahlungsmethode auswählen',
     'payment_secure_encrypted' => 'Ihre Zahlung ist sicher und verschlüsselt',
     'powered_by_stripe' => 'Powered by Stripe. Ihre Karteninformationen werden niemals auf unseren Servern gespeichert.',
     'pay' => 'Bezahlen',

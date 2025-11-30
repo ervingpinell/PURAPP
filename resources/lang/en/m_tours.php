@@ -1294,6 +1294,8 @@ return [
             'auto_disable_note'  => 'Prices set to $0 are automatically disabled.',
 
             'add_category'       => 'Add category',
+            'period_name'        => 'Period Name',
+            'period_name_placeholder' => 'Ex. High Season',
 
             'all_assigned_title' => 'All categories are assigned',
             'all_assigned_text'  => 'There are no more categories available for this tour.',

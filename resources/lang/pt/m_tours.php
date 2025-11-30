@@ -780,6 +780,8 @@ return [
             'price_legend' => 'Legenda de preços',
 
             'add_category'       => 'Adicionar categoria',
+            'period_name'        => 'Nome do Período',
+            'period_name_placeholder' => 'Ex. Alta Temporada',
 
             'all_assigned_title' => 'Todas as categorias estão atribuídas',
             'all_assigned_text'  => 'Não há mais categorias disponíveis para este tour.',

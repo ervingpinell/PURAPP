@@ -73,8 +73,8 @@
             @forelse ($policies as $p)
               @php
                 $t         = $p->translation();
-                $from      = $p->effective_from ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('Y-m-d') : null;
-                $to        = $p->effective_to   ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('Y-m-d')   : null;
+                $from      = $p->effective_from ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('d-M-Y') : null;
+                $to        = $p->effective_to   ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('d-M-Y')   : null;
                 $isTrashed = method_exists($p, 'trashed') && $p->trashed();
               @endphp
               {{-- Quitamos el fondo amarillo: todas las filas con mismo color --}}
@@ -249,8 +249,8 @@
   {{-- MODALES: Editar categoría (traducción del locale actual + propagación opcional) --}}
   @foreach ($policies as $p)
     @php
-      $fromVal = $p->effective_from ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('Y-m-d') : '';
-      $toVal   = $p->effective_to   ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('Y-m-d')   : '';
+      $fromVal = $p->effective_from ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('d-M-Y') : '';
+      $toVal   = $p->effective_to   ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('d-M-Y')   : '';
       $t       = $p->translation();
     @endphp
     <div class="modal fade" id="editPolicyModal-{{ $p->policy_id }}" tabindex="-1" aria-hidden="true">

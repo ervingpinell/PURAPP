@@ -92,7 +92,7 @@
           @forelse($review->replies as $rep)
             @php $vis = isset($rep->public) ? (bool)$rep->public : (bool)($rep->is_public ?? true); @endphp
             <tr>
-              <td class="align-middle">{{ $rep->created_at->format('Y-m-d H:i') }}</td>
+              <td class="align-middle">{{ $rep->created_at->format('d-M-Y H:i') }}</td>
               <td class="align-middle">#{{ $rep->admin_user_id ?? '—' }}</td>
               <td class="align-middle">
                 <span class="badge {{ $vis ? 'badge-success' : 'badge-secondary' }}">

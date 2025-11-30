@@ -246,6 +246,10 @@ body.payment-page .whatsapp-panel {
 /* Buttons */
 .btn-pay {
     flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     background: linear-gradient(135deg, var(--payment-primary), var(--payment-primary-dark));
     color: #fff;
     box-shadow: 0 4px 6px -1px rgba(96, 168, 98, 0.3);
@@ -715,6 +719,8 @@ body.payment-page .whatsapp-panel {
     .btn-back {
         padding: 0.75rem 0.875rem;
         font-size: 0.85rem;
+        justify-content: center;
+        text-align: center;
     }
 }
 

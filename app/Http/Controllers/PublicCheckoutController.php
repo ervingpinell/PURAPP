@@ -246,11 +246,12 @@ class PublicCheckoutController extends Controller
 
 
     /**
-     * Calcula cutoff de cancelación gratuita: 24 h antes del inicio más cercano.
+     * Calcula cutoff de cancelación gratuita usando el setting booking.allow_cancellation
      */
     private function computeFreeCancelUntil(Cart $cart): ?Carbon
     {
         $tz = config('app.timezone', 'America/Costa_Rica');
+        $cancellationHours = (int) setting('booking.cancellation_hours', 24); // Default 24h si no existe
 
         $starts = $cart->items->map(function ($it) use ($tz) {
             $date = $it->tour_date ?? null;
@@ -259,7 +260,7 @@ class PublicCheckoutController extends Controller
             return Carbon::parse("{$date} {$time}", $tz);
         })->filter();
 
-        return $starts->isNotEmpty() ? $starts->min()->copy()->subHours(24) : null;
+        return $starts->isNotEmpty() ? $starts->min()->copy()->subHours($cancellationHours) : null;
     }
 
     /** ===================== Acciones ===================== */
@@ -484,23 +485,40 @@ class PublicCheckoutController extends Controller
 
         // Get promo code if exists
         $promoCodeValue = $request->input('promo_code') ?? $request->session()->get('public_cart_promo.code');
+
+        Log::info('Checkout Process - Promo Code Value:', ['value' => $promoCodeValue, 'source' => $request->input('promo_code') ? 'input' : 'session']);
+
         $promoCode = null;
 
         if ($promoCodeValue) {
             $clean = \App\Models\PromoCode::normalize($promoCodeValue);
             $promoCode = \App\Models\PromoCode::whereRaw("UPPER(TRIM(REPLACE(code, ' ', ''))) = ?", [$clean])
-                ->where(function ($q) {
-                    $q->where('is_used', false)->orWhereNull('is_used');
-                })
                 ->first();
 
+            Log::info('Checkout Process - Promo Code Found:', ['found' => (bool)$promoCode, 'id' => $promoCode?->id]);
+
             if ($promoCode && method_exists($promoCode, 'isValidToday') && !$promoCode->isValidToday()) {
+                Log::info("Promo code {$promoCode->code} rejected: not valid today");
                 $promoCode = null;
             }
             if ($promoCode && method_exists($promoCode, 'hasRemainingUses') && !$promoCode->hasRemainingUses()) {
+                Log::info("Promo code {$promoCode->code} rejected: no remaining uses");
                 $promoCode = null;
             }
+            if ($promoCode) {
+                Log::info('Checkout Process - Promo Code Accepted:', ['code' => $promoCode->code]);
+            }
         }
+
+        // Get full promo session data
+        $promoSession = $request->session()->get('public_cart_promo');
+
+        // Calculate subtotal for snapshot metadata
+        $subtotal = $cart->items->sum(function ($item) {
+            return collect($item->categories ?? [])->sum(function ($cat) {
+                return ((float)($cat['price'] ?? 0)) * ((int)($cat['quantity'] ?? 0));
+            });
+        });
 
         // Create cart snapshot for session
         $cartSnapshot = [
@@ -509,6 +527,7 @@ class PublicCheckoutController extends Controller
             'notes' => $notes !== '' ? $notes : null,
             'promo_code' => $promoCode?->code,
             'promo_code_id' => $promoCode?->promo_code_id,
+            'promo_snapshot' => ($promoCode && isset($promoSession['code']) && $promoSession['code'] === $promoCode->code) ? $promoSession : null,
             'items' => $cart->items->map(function ($item) {
                 return [
                     'cart_item_id' => $item->cart_item_id,
@@ -523,10 +542,23 @@ class PublicCheckoutController extends Controller
                     'meeting_point_id' => $item->meeting_point_id,
                 ];
             })->toArray(),
+            'subtotal' => $subtotal,
+            'total' => $subtotal,
+            'currency' => config('payment.default_currency', 'USD'),
+            'created_at' => now()->toIso8601String(),
         ];
+
+        Log::info('Checkout Process - Snapshot Created:', [
+            'cart_id' => $cartSnapshot['cart_id'],
+            'item_count' => count($cartSnapshot['items']),
+            'promo_code' => $cartSnapshot['promo_code'],
+            'subtotal' => $cartSnapshot['subtotal'],
+            'keys' => array_keys($cartSnapshot)
+        ]);
 
         // Store snapshot in session
         $request->session()->put('cart_snapshot', $cartSnapshot);
+        $request->session()->save();
 
         // Mark cart items as reserved (for capacity hold)
         $reservationToken = \Illuminate\Support\Str::random(32);
@@ -537,7 +569,7 @@ class PublicCheckoutController extends Controller
         ]);
 
         $request->session()->put('cart_reservation_token', $reservationToken);
-        $request->session()->forget('public_cart_promo');
+        // $request->session()->forget('public_cart_promo'); // Keep promo code in session for back navigation
         $request->session()->forget('checkout_notes');
 
         // Redirect to payment page (bookings will be created after payment success)

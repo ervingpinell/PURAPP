@@ -177,9 +177,9 @@ Swal.fire({
 
           <td>
             @if($promo->valid_from || $promo->valid_until)
-              {{ $promo->valid_from ? \Carbon\Carbon::parse($promo->valid_from)->format('Y-m-d') : '—' }}
+              {{ $promo->valid_from ? \Carbon\Carbon::parse($promo->valid_from)->format('d-M-Y') : '—' }}
               —
-              {{ $promo->valid_until ? \Carbon\Carbon::parse($promo->valid_until)->format('Y-m-d') : '—' }}
+              {{ $promo->valid_until ? \Carbon\Carbon::parse($promo->valid_until)->format('d-M-Y') : '—' }}
             @else
               — {{ __('m_config.promocode.labels.no_limit') }}
             @endif

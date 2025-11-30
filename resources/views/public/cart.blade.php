@@ -652,8 +652,8 @@ $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom'
               <input type="date"
                 name="tour_date"
                 class="form-control"
-                value="{{ \Carbon\Carbon::parse($item->tour_date)->format('Y-m-d') }}"
-                min="{{ now()->format('Y-m-d') }}"
+                value="{{ \Carbon\Carbon::parse($item->tour_date)->format('d-M-Y') }}"
+                min="{{ now()->format('d-M-Y') }}"
                 required>
             </div>
 

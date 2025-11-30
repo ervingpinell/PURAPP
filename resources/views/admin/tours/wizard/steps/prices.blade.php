@@ -32,7 +32,8 @@
     /* Listado de periodos en el SweetAlert de solapamiento */
     .price-conflict-list {
         list-style-type: disc;
-        list-style-position: inside; /* Clave para que el texto quede cerca del punto */
+        list-style-position: inside;
+        /* Clave para que el texto quede cerca del punto */
         padding-left: 0;
         margin: .75rem 0 0;
         text-align: left;
@@ -177,7 +178,7 @@
             width: 100%;
         }
 
-        .period-dates > div {
+        .period-dates>div {
             display: flex;
             flex-direction: column;
             min-width: 180px;
@@ -226,15 +227,15 @@
 
     {{-- Validation Errors --}}
     @if ($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-            <h5><i class="icon fas fa-ban"></i> {{ __('m_tours.common.validation_errors') }}</h5>
-            <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
+    <div class="alert alert-danger alert-dismissible fade show">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <h5><i class="icon fas fa-ban"></i> {{ __('m_tours.common.validation_errors') }}</h5>
+        <ul class="mb-0">
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
     @endif
 
     <form action="{{ route('admin.tours.wizard.store.prices', $tour) }}" method="POST" id="prices-form">
@@ -251,144 +252,154 @@
         {{-- Pricing Periods Container --}}
         <div id="pricing-periods-container">
             @forelse($pricingPeriods ?? [] as $periodIndex => $period)
-                <div class="card pricing-period-card" data-period-index="{{ $periodIndex }}">
-                    <div class="period-header {{ ($period['is_default'] ?? false) ? 'default' : '' }}">
-                        <div class="period-dates">
-                            @if(!($period['is_default'] ?? false))
-                                <div>
-                                    <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
-                                        {{ __('m_tours.tour.pricing.valid_from') }}
-                                    </label>
-                                    <input type="date"
-                                           name="periods[{{ $periodIndex }}][valid_from]"
-                                           value="{{ $period['valid_from'] ?? '' }}"
-                                           class="form-control form-control-sm period-date-input"
-                                           data-period-index="{{ $periodIndex }}">
-                                </div>
-                                <div>
-                                    <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
-                                        {{ __('m_tours.tour.pricing.valid_until') }}
-                                    </label>
-                                    <input type="date"
-                                           name="periods[{{ $periodIndex }}][valid_until]"
-                                           value="{{ $period['valid_until'] ?? '' }}"
-                                           class="form-control form-control-sm period-date-input"
-                                           data-period-index="{{ $periodIndex }}">
-                                    <small class="text-muted" style="font-size: 0.7rem;">
-                                        {{ __('m_tours.tour.pricing.leave_empty_no_limit') }}
-                                    </small>
-                                </div>
-                            @else
-                                <h5 class="mb-0">
-                                    <i class="fas fa-infinity mr-2"></i>
-                                    {{ $period['label'] ?? 'Precio Base' }}
-                                </h5>
-                                <input type="hidden" name="periods[{{ $periodIndex }}][valid_from]" value="">
-                                <input type="hidden" name="periods[{{ $periodIndex }}][valid_until]" value="">
-                            @endif
+            <div class="card pricing-period-card" data-period-index="{{ $periodIndex }}">
+                <div class="period-header {{ ($period['is_default'] ?? false) ? 'default' : '' }}">
+                    <div class="period-dates">
+                        @if(!($period['is_default'] ?? false))
+                        <div>
+                            <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
+                                {{ __('m_tours.tour.pricing.valid_from') }}
+                            </label>
+                            <input type="date"
+                                name="periods[{{ $periodIndex }}][valid_from]"
+                                value="{{ $period['valid_from'] ?? '' }}"
+                                class="form-control form-control-sm period-date-input"
+                                data-period-index="{{ $periodIndex }}">
                         </div>
-                        <button type="button" class="btn btn-sm btn-danger remove-period-btn">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <div>
+                            <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
+                                {{ __('m_tours.tour.pricing.valid_until') }}
+                            </label>
+                            <input type="date"
+                                name="periods[{{ $periodIndex }}][valid_until]"
+                                value="{{ $period['valid_until'] ?? '' }}"
+                                class="form-control form-control-sm period-date-input"
+                                data-period-index="{{ $periodIndex }}">
+                            <small class="text-muted" style="font-size: 0.7rem;">
+                                {{ __('m_tours.tour.pricing.leave_empty_no_limit') }}
+                            </small>
+                        </div>
+                        <div style="min-width: 200px;">
+                            <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
+                                {{ __('m_tours.tour.pricing.period_name') ?? 'Nombre (Opcional)' }}
+                            </label>
+                            <input type="text"
+                                name="periods[{{ $periodIndex }}][label]"
+                                value="{{ $period['label'] !== \App\Models\TourPrice::getPeriodLabel($period['valid_from'], $period['valid_until']) ? $period['label'] : '' }}"
+                                class="form-control form-control-sm"
+                                placeholder="{{ __('m_tours.tour.pricing.period_name_placeholder') ?? 'Ej. Temporada Alta' }}">
+                        </div>
+                        @else
+                        <h5 class="mb-0">
+                            <i class="fas fa-infinity mr-2"></i>
+                            {{ $period['label'] ?? 'Precio Base' }}
+                        </h5>
+                        <input type="hidden" name="periods[{{ $periodIndex }}][valid_from]" value="">
+                        <input type="hidden" name="periods[{{ $periodIndex }}][valid_until]" value="">
+                        @endif
                     </div>
+                    <button type="button" class="btn btn-sm btn-danger remove-period-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
 
-                    <div class="card-body p-0">
-                        <table class="table table-sm table-hover categories-table mb-0">
-                            <thead>
-                                <tr>
-                                    <th style="width: 25%;">{{ __('m_tours.tour.pricing.category') }}</th>
-                                    <th style="width: 15%;">{{ __('m_tours.tour.pricing.age_range') }}</th>
-                                    <th style="width: 15%;">{{ __('m_tours.tour.pricing.price_usd') }}</th>
-                                    <th style="width: 12%;">{{ __('m_tours.tour.pricing.min_quantity') }}</th>
-                                    <th style="width: 12%;">{{ __('m_tours.tour.pricing.max_quantity') }}</th>
-                                    <th style="width: 10%;" class="text-center">{{ __('m_tours.tour.pricing.active') }}</th>
-                                    <th style="width: 11%;"></th>
-                                </tr>
-                            </thead>
-                            <tbody class="categories-tbody">
-                                @foreach(($period['categories'] ?? []) as $catIndex => $cat)
-                                    <tr data-category-id="{{ $cat['id'] ?? '' }}">
-                                        <td>
-                                            <strong>{{ $cat['name'] ?? '' }}</strong>
-                                            <input type="hidden"
-                                                   name="periods[{{ $periodIndex }}][categories][{{ $catIndex }}][category_id]"
-                                                   value="{{ $cat['id'] ?? '' }}">
-                                        </td>
-                                        <td>
-                                            <small class="text-muted">{{ $cat['age_range'] ?? '' }}</small>
-                                        </td>
-                                        <td>
-                                            <div class="input-group input-group-sm">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text">$</span>
-                                                </div>
-                                                <input type="number"
-                                                       name="periods[{{ $periodIndex }}][categories][{{ $catIndex }}][price]"
-                                                       value="{{ $cat['price'] ?? '0.00' }}"
-                                                       class="form-control price-input"
-                                                       step="0.01"
-                                                       min="0"
-                                                       required>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <input type="number"
-                                                   name="periods[{{ $periodIndex }}][categories][{{ $catIndex }}][min_quantity]"
-                                                   value="{{ $cat['min_quantity'] ?? '0' }}"
-                                                   class="form-control form-control-sm"
-                                                   min="0">
-                                        </td>
-                                        <td>
-                                            <input type="number"
-                                                   name="periods[{{ $periodIndex }}][categories][{{ $catIndex }}][max_quantity]"
-                                                   value="{{ $cat['max_quantity'] ?? '12' }}"
-                                                   class="form-control form-control-sm"
-                                                   min="0">
-                                        </td>
-                                        <td class="text-center">
-                                            <input type="checkbox"
-                                                   name="periods[{{ $periodIndex }}][categories][{{ $catIndex }}][is_active]"
-                                                   value="1"
-                                                   {{ ($cat['is_active'] ?? true) ? 'checked' : '' }}>
-                                        </td>
-                                        <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-danger remove-category-btn">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="add-category-section">
-                        <select class="form-control form-control-sm add-category-select">
-                            <option value="">{{ __('m_tours.tour.pricing.choose_category_placeholder') }}</option>
-                            @foreach($categories ?? [] as $category)
-                                <option value="{{ $category->category_id }}"
-                                        data-name="{{ $category->getTranslatedName() ?? $category->name }}"
-                                        data-age-range="{{ $category->age_range ?? ($category->age_from . '-' . $category->age_to) }}">
-                                    {{ $category->getTranslatedName() ?? $category->name }}
-                                    ({{ $category->age_range ?? ($category->age_from . '-' . $category->age_to) }})
-                                </option>
+                <div class="card-body p-0">
+                    <table class="table table-sm table-hover categories-table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 25%;">{{ __('m_tours.tour.pricing.category') }}</th>
+                                <th style="width: 15%;">{{ __('m_tours.tour.pricing.age_range') }}</th>
+                                <th style="width: 15%;">{{ __('m_tours.tour.pricing.price_usd') }}</th>
+                                <th style="width: 12%;">{{ __('m_tours.tour.pricing.min_quantity') }}</th>
+                                <th style="width: 12%;">{{ __('m_tours.tour.pricing.max_quantity') }}</th>
+                                <th style="width: 10%;" class="text-center">{{ __('m_tours.tour.pricing.active') }}</th>
+                                <th style="width: 11%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="categories-tbody">
+                            @foreach(($period['categories'] ?? []) as $catIndex => $cat)
+                            <tr data-category-id="{{ $cat['id'] ?? '' }}">
+                                <td>
+                                    <strong>{{ $cat['name'] ?? '' }}</strong>
+                                    <input type="hidden"
+                                        name="periods[{{ $periodIndex }}][categories][{{ $catIndex }}][category_id]"
+                                        value="{{ $cat['id'] ?? '' }}">
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ $cat['age_range'] ?? '' }}</small>
+                                </td>
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">$</span>
+                                        </div>
+                                        <input type="number"
+                                            name="periods[{{ $periodIndex }}][categories][{{ $catIndex }}][price]"
+                                            value="{{ $cat['price'] ?? '0.00' }}"
+                                            class="form-control price-input"
+                                            step="0.01"
+                                            min="0"
+                                            required>
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="number"
+                                        name="periods[{{ $periodIndex }}][categories][{{ $catIndex }}][min_quantity]"
+                                        value="{{ $cat['min_quantity'] ?? '0' }}"
+                                        class="form-control form-control-sm"
+                                        min="0">
+                                </td>
+                                <td>
+                                    <input type="number"
+                                        name="periods[{{ $periodIndex }}][categories][{{ $catIndex }}][max_quantity]"
+                                        value="{{ $cat['max_quantity'] ?? '12' }}"
+                                        class="form-control form-control-sm"
+                                        min="0">
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox"
+                                        name="periods[{{ $periodIndex }}][categories][{{ $catIndex }}][is_active]"
+                                        value="1"
+                                        {{ ($cat['is_active'] ?? true) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-danger remove-category-btn">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </td>
+                            </tr>
                             @endforeach
-                        </select>
-                        <button type="button" class="btn btn-sm btn-primary add-category-btn">
-                            <i class="fas fa-plus mr-1"></i> {{ __('m_tours.tour.pricing.add_button') }}
-                        </button>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
+
+                <div class="add-category-section">
+                    <select class="form-control form-control-sm add-category-select">
+                        <option value="">{{ __('m_tours.tour.pricing.choose_category_placeholder') }}</option>
+                        @foreach($categories ?? [] as $category)
+                        <option value="{{ $category->category_id }}"
+                            data-name="{{ $category->getTranslatedName() ?? $category->name }}"
+                            data-age-range="{{ $category->age_range ?? ($category->age_from . '-' . $category->age_to) }}">
+                            {{ $category->getTranslatedName() ?? $category->name }}
+                            ({{ $category->age_range ?? ($category->age_from . '-' . $category->age_to) }})
+                        </option>
+                        @endforeach
+                    </select>
+                    <button type="button" class="btn btn-sm btn-primary add-category-btn">
+                        <i class="fas fa-plus mr-1"></i> {{ __('m_tours.tour.pricing.add_button') }}
+                    </button>
+                </div>
+            </div>
             @empty
-                <div class="card empty-state" id="empty-state">
-                    <div class="card-body">
-                        <i class="fas fa-calendar-times"></i>
-                        <h5>{{ __('m_tours.tour.pricing.no_periods') ?? 'No hay periodos de precios definidos' }}</h5>
-                        <p class="text-muted">
-                            {{ __('m_tours.tour.pricing.click_add_period') ?? 'Haz clic en "Agregar Periodo de Precios" para comenzar' }}
-                        </p>
-                    </div>
+            <div class="card empty-state" id="empty-state">
+                <div class="card-body">
+                    <i class="fas fa-calendar-times"></i>
+                    <h5>{{ __('m_tours.tour.pricing.no_periods') ?? 'No hay periodos de precios definidos' }}</h5>
+                    <p class="text-muted">
+                        {{ __('m_tours.tour.pricing.click_add_period') ?? 'Haz clic en "Agregar Periodo de Precios" para comenzar' }}
+                    </p>
                 </div>
+            </div>
             @endforelse
         </div>
 
@@ -403,25 +414,25 @@
             <div class="card-body">
                 <div class="row">
                     @forelse($taxes ?? [] as $tax)
-                        <div class="col-md-4 col-sm-6">
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox"
-                                       class="custom-control-input"
-                                       id="tax-{{ $tax->tax_id }}"
-                                       name="taxes[]
+                    <div class="col-md-4 col-sm-6">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox"
+                                class="custom-control-input"
+                                id="tax-{{ $tax->tax_id }}"
+                                name="taxes[]
                                        " value="{{ $tax->tax_id }}"
-                                       {{ $tour->taxes->contains($tax->tax_id) ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="tax-{{ $tax->tax_id }}">
-                                    {{ $tax->name }} ({{ $tax->rate }}%)
-                                </label>
-                            </div>
+                                {{ $tour->taxes->contains($tax->tax_id) ? 'checked' : '' }}>
+                            <label class="custom-control-label" for="tax-{{ $tax->tax_id }}">
+                                {{ $tax->name }} ({{ $tax->rate }}%)
+                            </label>
                         </div>
+                    </div>
                     @empty
-                        <div class="col-12">
-                            <p class="text-muted mb-0">
-                                {{ __('m_tours.tour.pricing.no_taxes') ?? 'No hay impuestos disponibles' }}
-                            </p>
-                        </div>
+                    <div class="col-12">
+                        <p class="text-muted mb-0">
+                            {{ __('m_tours.tour.pricing.no_taxes') ?? 'No hay impuestos disponibles' }}
+                        </p>
+                    </div>
                     @endforelse
                 </div>
             </div>
@@ -430,7 +441,7 @@
         {{-- Navigation Buttons --}}
         <div class="d-flex justify-content-between mt-4 mb-5">
             <a href="{{ route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 4]) }}"
-               class="btn btn-secondary">
+                class="btn btn-secondary">
                 <i class="fas fa-arrow-left mr-2"></i>
                 {{ __('m_tours.tour.wizard.previous') }}
             </a>
@@ -473,11 +484,15 @@
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    $(document).ready(function () {
+    $(document).ready(function() {
         console.log('Pricing periods script loaded');
 
         // contador inicial de periodos existentes
-        let periodCounter = {{ count($pricingPeriods ?? []) }};
+        let periodCounter = {
+            {
+                count($pricingPeriods ?? [])
+            }
+        };
         console.log('Initial period counter:', periodCounter);
 
         // Translations
@@ -522,12 +537,12 @@
 
         // Categories data
         const categoriesData = [
-            @foreach($categories ?? [] as $category)
-                {
-                    id: '{{ $category->category_id }}',
-                    name: @json($category->getTranslatedName() ?? $category->name),
-                    ageRange: @json($category->age_range ?? ($category->age_from . '-' . $category->age_to)),
-                },
+            @foreach($categories ?? [] as $category) {
+                id: '{{ $category->category_id }}',
+                name: @json($category-> getTranslatedName() ?? $category-> name),
+                ageRange: @json($category-> age_range ?? ($category-> age_from.
+                    '-'.$category-> age_to)),
+            },
             @endforeach
         ];
 
@@ -561,7 +576,7 @@
 
             const conflicts = [];
 
-            $('.pricing-period-card').each(function () {
+            $('.pricing-period-card').each(function() {
                 const $other = $(this);
                 if ($other.is($period)) return; // saltar el mismo periodo
 
@@ -617,6 +632,15 @@
                             {{ __('m_tours.tour.pricing.leave_empty_no_limit') }}
                         </small>
                     </div>
+                    <div style="min-width: 200px;">
+                        <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
+                            {{ __('m_tours.tour.pricing.period_name') ?? 'Nombre (Opcional)' }}
+                        </label>
+                        <input type="text"
+                               name="periods[${index}][label]"
+                               class="form-control form-control-sm"
+                               placeholder="{{ __('m_tours.tour.pricing.period_name_placeholder') ?? 'Ej. Temporada Alta' }}">
+                    </div>
                 `;
             }
 
@@ -666,7 +690,7 @@
         }
 
         // Add new period
-        $('#add-period-btn').on('click', function () {
+        $('#add-period-btn').on('click', function() {
             const newPeriod = getPeriodTemplate(periodCounter, false);
             const $container = $('#pricing-periods-container');
 
@@ -686,7 +710,7 @@
         });
 
         // Remove period
-        $(document).on('click', '.remove-period-btn', function () {
+        $(document).on('click', '.remove-period-btn', function() {
             const $card = $(this).closest('.pricing-period-card');
 
             Swal.fire({
@@ -725,12 +749,12 @@
         });
 
         // Guardar valor previo para poder revertir si hay solapamiento
-        $(document).on('focus', '.period-date-input', function () {
+        $(document).on('focus', '.period-date-input', function() {
             $(this).data('prev-value', $(this).val());
         });
 
         // Validación de fechas en cada cambio (rango correcto + sin solapamientos)
-        $(document).on('change', '.period-date-input', function () {
+        $(document).on('change', '.period-date-input', function() {
             const $input = $(this);
             const prevValue = $input.data('prev-value') || '';
             const $period = $input.closest('.pricing-period-card');
@@ -797,7 +821,7 @@
         });
 
         // Add category to period
-        $(document).on('click', '.add-category-btn', function () {
+        $(document).on('click', '.add-category-btn', function() {
             const $period = $(this).closest('.pricing-period-card');
             const periodIndex = $period.data('period-index');
             const $select = $period.find('.add-category-select');
@@ -913,7 +937,7 @@
         }
 
         // Remove category from period
-        $(document).on('click', '.remove-category-btn', function () {
+        $(document).on('click', '.remove-category-btn', function() {
             const $row = $(this).closest('tr');
 
             Swal.fire({
@@ -940,7 +964,7 @@
         });
 
         // Form validation
-        $('#prices-form').submit(function (e) {
+        $('#prices-form').submit(function(e) {
             e.preventDefault();
 
             const periods = $('.pricing-period-card').length;
@@ -959,7 +983,7 @@
             let hasInvalidDates = false;
             let hasPriceGreaterThanZero = false;
 
-            $('.pricing-period-card').each(function () {
+            $('.pricing-period-card').each(function() {
                 const $period = $(this);
 
                 if ($period.find('.categories-tbody tr').length > 0) {
@@ -975,7 +999,7 @@
                     $period.find('input[name*="[valid_until]"]').addClass('is-invalid');
                 }
 
-                $period.find('.price-input').each(function () {
+                $period.find('.price-input').each(function() {
                     const price = parseFloat($(this).val());
                     if (!isNaN(price) && price > 0) {
                         hasPriceGreaterThanZero = true;
@@ -1032,7 +1056,7 @@
             this.submit();
         });
 
-        $(document).on('input', '.price-input', function () {
+        $(document).on('input', '.price-input', function() {
             $(this).removeClass('is-invalid');
         });
     });

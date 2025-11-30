@@ -441,8 +441,8 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
         return 'default';
         }
 
-        $fromStr = $from instanceof \Carbon\Carbon ? $from->format('Y-m-d') : $from;
-        $untilStr = $until instanceof \Carbon\Carbon ? $until->format('Y-m-d') : $until;
+        $fromStr = $from instanceof \Carbon\Carbon ? $from->format('d-M-Y') : $from;
+        $untilStr = $until instanceof \Carbon\Carbon ? $until->format('d-M-Y') : $until;
 
         return ($fromStr ?: 'null') . '_' . ($untilStr ?: 'null');
         })
@@ -454,7 +454,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
         return '9999-12-31';
         }
         $from = $first->valid_from ?? null;
-        return $from instanceof \Carbon\Carbon ? $from->format('Y-m-d') : ($from ?: '0000-01-01');
+        return $from instanceof \Carbon\Carbon ? $from->format('d-M-Y') : ($from ?: '0000-01-01');
         });
 
         $slug = $tour->slug ?? $tour->tour_slug ?? null;
@@ -496,27 +496,39 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
             $from = $first->valid_from ?? null;
             $until = $first->valid_until ?? null;
 
-            $fromStr = $from instanceof \Carbon\Carbon ? $from->format('Y-m-d') : $from;
-            $untilStr = $until instanceof \Carbon\Carbon ? $until->format('Y-m-d') : $until;
+            $fromStr = $from instanceof \Carbon\Carbon ? $from->format('d-M-Y') : $from;
+            $untilStr = $until instanceof \Carbon\Carbon ? $until->format('d-M-Y') : $until;
 
-            if ($first->is_default) {
+            // Calcular rango de fechas para tooltip o fallback
+            $dateRangeStr = '';
+            if ($fromStr && $untilStr) {
+            $dateRangeStr = "{$fromStr} → {$untilStr}";
+            } elseif ($fromStr) {
+            $dateRangeStr = "Desde {$fromStr}";
+            } elseif ($untilStr) {
+            $dateRangeStr = "Hasta {$untilStr}";
+            }
+
+            // Determinar etiqueta a mostrar
+            if (!empty($first->label)) {
+            $label = $first->label;
+            } elseif ($first->is_default) {
             $label = __('m_tours.tour.summary.default_price_rule') !== 'm_tours.tour.summary.default_price_rule'
             ? __('m_tours.tour.summary.default_price_rule')
             : 'Precio por defecto';
             } else {
-            if ($fromStr && $untilStr) {
-            $label = "{$fromStr} → {$untilStr}";
-            } elseif ($fromStr) {
-            $label = "Desde {$fromStr}";
-            } elseif ($untilStr) {
-            $label = "Hasta {$untilStr}";
-            } else {
-            $label = 'Rango sin fechas';
-            }
+            $label = $dateRangeStr ?: 'Rango sin fechas';
             }
 
             // resumen para tooltip
             $summaryLines = [];
+
+            // Agregar rango de fechas al inicio del tooltip si existe
+            if ($dateRangeStr) {
+            $summaryLines[] = "<strong>{$dateRangeStr}</strong>";
+            $summaryLines[] = ""; // Línea vacía para separar
+            }
+
             foreach ($pricesGroup as $p) {
             $cat = $p->category;
 
@@ -708,8 +720,8 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
   return 'default';
   }
 
-  $fromStr = $from instanceof \Carbon\Carbon ? $from->format('Y-m-d') : $from;
-  $untilStr = $until instanceof \Carbon\Carbon ? $until->format('Y-m-d') : $until;
+  $fromStr = $from instanceof \Carbon\Carbon ? $from->format('d-M-Y') : $from;
+  $untilStr = $until instanceof \Carbon\Carbon ? $until->format('d-M-Y') : $until;
 
   return ($fromStr ?: 'null') . '_' . ($untilStr ?: 'null');
   })
@@ -719,7 +731,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
   return '9999-12-31';
   }
   $from = $first->valid_from ?? null;
-  return $from instanceof \Carbon\Carbon ? $from->format('Y-m-d') : ($from ?: '0000-01-01');
+  return $from instanceof \Carbon\Carbon ? $from->format('d-M-Y') : ($from ?: '0000-01-01');
   });
 
   $slug = $tour->slug ?? $tour->tour_slug ?? null;
@@ -803,23 +815,30 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
           $from = $first->valid_from ?? null;
           $until = $first->valid_until ?? null;
 
-          $fromStr = $from instanceof \Carbon\Carbon ? $from->format('Y-m-d') : $from;
-          $untilStr = $until instanceof \Carbon\Carbon ? $until->format('Y-m-d') : $until;
+          $fromStr = $from instanceof \Carbon\Carbon ? $from->format('d-M-Y') : $from;
+          $untilStr = $until instanceof \Carbon\Carbon ? $until->format('d-M-Y') : $until;
 
-          if ($first->is_default) {
+          // Calcular rango de fechas
+          $dateRangeStr = '';
+          if ($fromStr && $untilStr) {
+          $dateRangeStr = "{$fromStr} → {$untilStr}";
+          } elseif ($fromStr) {
+          $dateRangeStr = "Desde {$fromStr}";
+          } elseif ($untilStr) {
+          $dateRangeStr = "Hasta {$untilStr}";
+          }
+
+          if (!empty($first->label)) {
+          $ruleLabel = $first->label;
+          if ($dateRangeStr) {
+          $ruleLabel .= " ({$dateRangeStr})";
+          }
+          } elseif ($first->is_default) {
           $ruleLabel = __('m_tours.tour.summary.default_price_rule') !== 'm_tours.tour.summary.default_price_rule'
           ? __('m_tours.tour.summary.default_price_rule')
           : 'Precio por defecto';
           } else {
-          if ($fromStr && $untilStr) {
-          $ruleLabel = "{$fromStr} → {$untilStr}";
-          } elseif ($fromStr) {
-          $ruleLabel = "Desde {$fromStr}";
-          } elseif ($untilStr) {
-          $ruleLabel = "Hasta {$untilStr}";
-          } else {
-          $ruleLabel = 'Rango sin fechas';
-          }
+          $ruleLabel = $dateRangeStr ?: 'Rango sin fechas';
           }
           @endphp
           <div class="mb-2">

@@ -247,7 +247,7 @@
             if ($statusTr === $statusKey) { $statusTr = ucfirst((string)($booking->status ?? 'pending')); }
 
             $bookingDateStr = $booking->booking_date instanceof \Carbon\Carbon
-                              ? $booking->booking_date->format('Y-m-d H:i')
+                              ? $booking->booking_date->format('d-M-Y H:i')
                               : ($booking->booking_date ?: $EM);
 
             $tourName = $tour ? preg_replace('/\s*\([^)]*\)/', '', (string)($tour->name ?? '')) : $EM;

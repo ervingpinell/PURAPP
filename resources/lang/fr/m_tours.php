@@ -1261,6 +1261,8 @@ return [
             'auto_disable_note'  => 'Les tarifs à 0 $ sont automatiquement désactivés.',
 
             'add_category'       => 'Ajouter une catégorie',
+            'period_name'        => 'Nom de la Période',
+            'period_name_placeholder' => 'Ex. Haute Saison',
 
             'all_assigned_title' => 'Toutes les catégories sont assignées',
             'all_assigned_text'  => 'Il n’y a plus de catégories disponibles pour ce tour.',

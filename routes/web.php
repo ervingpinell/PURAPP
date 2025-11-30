@@ -414,8 +414,11 @@ Route::middleware([SetLocale::class])->group(function () {
 
         // Payment
         Route::get('/payment', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payment.show');
+
+        // Dynamic throttle: 100 req/min in local, 20 req/min in production
+        $paymentThrottle = app()->environment('local') ? '100,1' : '20,1';
         Route::post('/payment/initiate', [\App\Http\Controllers\PaymentController::class, 'initiate'])
-            ->middleware('throttle:10,1')
+            ->middleware("throttle:{$paymentThrottle}")
             ->name('payment.initiate');
         Route::get('/payment/confirm', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.confirm');
         Route::get('/payment/return', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.return'); // PayPal return URL

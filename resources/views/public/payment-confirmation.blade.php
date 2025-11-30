@@ -48,7 +48,7 @@
 
             @if (!empty($booking->created_at))
               <div class="text-right small text-muted">
-                <div>{{ $booking->created_at->format('Y-m-d') }}</div>
+                <div>{{ $booking->created_at->format('d-M-Y') }}</div>
                 <div>{{ $booking->created_at->format('H:i') }}</div>
               </div>
             @endif

@@ -854,22 +854,7 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
 /* =========================
    CART TIMER WIDGET (GLOBAL)
    ========================= */
-.cart-timer-widget {
-  position: fixed;
-  bottom: 5.5rem;
-  right: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.6rem 0.9rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
-  border-radius: 999px;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
-  z-index: 1050;
-  cursor: pointer;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
-}
+
 
 .cart-timer-widget:hover {
   transform: translateY(-1px);
@@ -887,7 +872,7 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
   top: -0.4rem;
   right: -0.4rem;
   background: rgba(255, 255, 255, 0.96);
-  color: #667eea;
+  color: #000000;
   font-size: 0.65rem;
   font-weight: 700;
   padding: 2px 6px;
@@ -915,14 +900,34 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
   font-family: "SF Mono", "Menlo", "Roboto Mono", monospace;
 }
 
-/* Estados */
-.cart-timer-widget.warning {
-  background: linear-gradient(135deg, #f97316 0%, #fb7185 100%);
-}
+/* Estilo base del widget */
+      .cart-timer-widget {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 1030;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: #fff;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.45);
+        cursor: pointer;
+        font-size: 0.875rem;
+      }
 
-.cart-timer-widget.critical {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-}
+      .cart-timer-widget.warning {
+        background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+        animation: pulse-warning 1s infinite;
+      }
+
+      .cart-timer-widget.critical {
+        background: linear-gradient(135deg, #ff6b6b 0%, var(--primary-red) 100%);
+        animation: shake 0.5s infinite;
+      }
 
 .cart-timer-widget.expired {
   opacity: 0.6;

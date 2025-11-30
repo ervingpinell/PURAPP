@@ -623,8 +623,8 @@
                                                 return 'default';
                                             }
 
-                                            $fromStr  = $from instanceof \Carbon\Carbon ? $from->format('Y-m-d') : $from;
-                                            $untilStr = $until instanceof \Carbon\Carbon ? $until->format('Y-m-d') : $until;
+                                            $fromStr  = $from instanceof \Carbon\Carbon ? $from->format('d-M-Y') : $from;
+                                            $untilStr = $until instanceof \Carbon\Carbon ? $until->format('d-M-Y') : $until;
 
                                             return ($fromStr ?: 'null') . '_' . ($untilStr ?: 'null');
                                         })
@@ -635,7 +635,7 @@
                                                 return '9999-12-31';
                                             }
                                             $from = $first->valid_from ?? null;
-                                            return $from instanceof \Carbon\Carbon ? $from->format('Y-m-d') : ($from ?: '0000-01-01');
+                                            return $from instanceof \Carbon\Carbon ? $from->format('d-M-Y') : ($from ?: '0000-01-01');
                                         });
 
                                     $noPriceMsg = __('m_tours.tour.summary.no_price_rules');
@@ -657,8 +657,8 @@
                                                 $from  = $first->valid_from ?? null;
                                                 $until = $first->valid_until ?? null;
 
-                                                $fromStr  = $from instanceof \Carbon\Carbon ? $from->format('Y-m-d') : $from;
-                                                $untilStr = $until instanceof \Carbon\Carbon ? $until->format('Y-m-d') : $until;
+                                                $fromStr  = $from instanceof \Carbon\Carbon ? $from->format('d-M-Y') : $from;
+                                                $untilStr = $until instanceof \Carbon\Carbon ? $until->format('d-M-Y') : $until;
 
                                                 $accordionId = 'priceRule_' . md5($key);
                                             @endphp

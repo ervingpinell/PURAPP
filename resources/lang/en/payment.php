@@ -14,6 +14,7 @@ return [
     'payment' => 'Payment',
     'payment_information' => 'Payment Information',
     'secure_payment' => 'Secure Payment',
+    'select_payment_method' => 'Select Payment Method',
     'payment_secure_encrypted' => 'Your payment is secure and encrypted',
     'powered_by_stripe' => 'Powered by Stripe. Your card information is never stored on our servers.',
     'pay' => 'Pay',
@@ -67,6 +68,5 @@ return [
     'complete_payment_message' => 'Please complete payment to confirm your booking',
     'payment_cancelled' => 'Payment was cancelled. You can try again when ready.',
     'redirect_paypal' => 'Click Pay to be redirected to PayPal and complete your payment securely.',
-    'no_cart_data' => 'No cart data found',
     'no_cart_data' => 'No cart data found',
 ];

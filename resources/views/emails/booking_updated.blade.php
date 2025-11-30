@@ -88,7 +88,7 @@ $tourName = $tr->name ?? $tour->name ?? null;
 }
 $tourName = $tourName ?: ($mailLocale === 'es' ? 'Tour' : 'Tour');
 
-$tourDate = $d?->tour_date ? \Illuminate\Support\Carbon::parse($d->tour_date)->format('Y-m-d') : null;
+$tourDate = $d?->tour_date ? \Illuminate\Support\Carbon::parse($d->tour_date)->format('d-M-Y') : null;
 $scheduleTxt = $d?->schedule
 ? \Illuminate\Support\Carbon::parse($d->schedule->start_time)->isoFormat('LT') . ' – ' . \Illuminate\Support\Carbon::parse($d->schedule->end_time)->isoFormat('LT')
 : null;

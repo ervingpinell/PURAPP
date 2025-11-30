@@ -51,6 +51,7 @@ class TourPriceController extends Controller
                 'price_ids.*'  => 'exists:tour_prices,tour_price_id',
                 'valid_from'   => 'nullable|date',
                 'valid_until'  => 'nullable|date|after_or_equal:valid_from',
+                'label'        => 'nullable|string|max:255',
             ]);
 
             try {
@@ -60,6 +61,7 @@ class TourPriceController extends Controller
                         ->update([
                             'valid_from'  => $validated['valid_from'] ?? null,
                             'valid_until' => $validated['valid_until'] ?? null,
+                            'label'       => $validated['label'] ?? null,
                         ]);
 
                     LoggerHelper::mutated($this->controller, 'bulkUpdate', 'tour_prices', $tour->tour_id, [
@@ -99,6 +101,7 @@ class TourPriceController extends Controller
             'prices.*.is_active'        => 'nullable|boolean',
             'prices.*.valid_from'       => 'nullable|date',
             'prices.*.valid_until'      => 'nullable|date|after_or_equal:prices.*.valid_from',
+            'prices.*.label'            => 'nullable|string|max:255',
         ]);
 
         try {
@@ -133,6 +136,7 @@ class TourPriceController extends Controller
                             'is_active'    => $priceData['is_active'] ?? true,
                             'valid_from'   => $priceData['valid_from'] ?? null,
                             'valid_until'  => $priceData['valid_until'] ?? null,
+                            'label'        => $priceData['label'] ?? null,
                         ]
                     );
                 }
@@ -166,6 +170,7 @@ class TourPriceController extends Controller
             'max_quantity' => 'required|integer|min:0|max:255',
             'valid_from'   => 'nullable|date',
             'valid_until'  => 'nullable|date|after_or_equal:valid_from',
+            'label'        => 'nullable|string|max:255',
         ]);
 
         try {
@@ -226,6 +231,7 @@ class TourPriceController extends Controller
                 'is_active'    => $isActive,
                 'valid_from'   => $validated['valid_from'] ?? null,
                 'valid_until'  => $validated['valid_until'] ?? null,
+                'label'        => $validated['label'] ?? null,
             ]);
 
             LoggerHelper::mutated($this->controller, 'store', 'tour_prices', $tourPrice->tour_price_id, [
@@ -257,6 +263,7 @@ class TourPriceController extends Controller
             'is_active'    => 'nullable|boolean',
             'valid_from'   => 'nullable|date',
             'valid_until'  => 'nullable|date|after_or_equal:valid_from',
+            'label'        => 'nullable|string|max:255',
         ]);
 
         try {

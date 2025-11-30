@@ -314,6 +314,7 @@ class CartController extends Controller
 
             if ($cart->items()->count() === 0) {
                 $cart->forceExpire();
+                session()->forget('public_cart_promo');
                 return back()->with('success', __('carts.messages.cart_deleted'));
             }
         }
@@ -559,6 +560,7 @@ class CartController extends Controller
                 'is_active'  => false,
                 'expires_at' => now(),
             ])->save();
+            session()->forget('public_cart_promo');
         });
     }
 

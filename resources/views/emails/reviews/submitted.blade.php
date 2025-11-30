@@ -7,7 +7,7 @@
     $rating   = (int) ($review->rating ?? 0);
     $title    = trim((string) ($review->title ?? ''));
     $body     = trim((string) ($review->body ?? ''));
-    $created  = $review->created_at ? $review->created_at->format('Y-m-d H:i') : null;
+    $created  = $review->created_at ? $review->created_at->format('d-M-Y H:i') : null;
     $provider = $review->provider ?? 'local';
 
     $tourLabel = $tourName ?: ($mailLocale === 'es' ? 'Tour' : 'Tour');

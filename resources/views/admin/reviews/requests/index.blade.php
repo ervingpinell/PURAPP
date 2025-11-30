@@ -178,7 +178,7 @@
             @endphp
             <tr>
               <td>
-                {{ optional($r->sent_at ?? $r->created_at)->format('Y-m-d') }}
+                {{ optional($r->sent_at ?? $r->created_at)->format('d-M-Y') }}
                 <div><small class="text-muted">{{ optional($r->sent_at ?? $r->created_at)->format('H:i') }}</small></div>
               </td>
               <td>

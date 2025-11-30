@@ -793,6 +793,8 @@ return [
             'price_legend' => 'Preislegende',
 
             'add_category'       => 'Kategorie hinzufügen',
+            'period_name'        => 'Name des Zeitraums',
+            'period_name_placeholder' => 'z. B. Hochsaison',
 
             'all_assigned_title' => 'Alle Kategorien sind zugewiesen',
             'all_assigned_text'  => 'Es sind keine weiteren Kategorien für diese Tour verfügbar.',

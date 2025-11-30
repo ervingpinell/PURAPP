@@ -24,6 +24,7 @@ class TourPrice extends Model
         'is_active',
         'valid_from',
         'valid_until',
+        'label',
     ];
 
     protected $casts = [
@@ -231,9 +232,9 @@ class TourPrice extends Model
                 'valid_from' => $validFrom === 'null' ? null : $validFrom,
                 'valid_until' => $validUntil === 'null' ? null : $validUntil,
                 'is_default' => $isDefault,
-                'label' => $isDefault
+                'label' => $periodPrices->first()->label ?? ($isDefault
                     ? __('m_tours.tour.pricing.default_price') . ' (' . __('m_tours.tour.pricing.all_year') . ')'
-                    : self::getPeriodLabel($validFrom, $validUntil),
+                    : self::getPeriodLabel($validFrom, $validUntil)),
                 'categories' => $periodPrices->map(function ($price) {
                     return [
                         'id' => $price->category_id,
@@ -259,7 +260,7 @@ class TourPrice extends Model
     /**
      * Get a human-readable label for a period
      */
-    private static function getPeriodLabel($validFrom, $validUntil): string
+    public static function getPeriodLabel($validFrom, $validUntil): string
     {
         if ($validFrom === 'null' && $validUntil === 'null') {
             return __('m_tours.tour.pricing.all_year');

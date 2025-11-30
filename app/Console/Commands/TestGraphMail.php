@@ -88,12 +88,11 @@ class TestGraphMail extends Command
                 '- Mailer: graph' . PHP_EOL .
                 '- Sender UPN: ' . $senderUpn . PHP_EOL .
                 '- Tenant ID: ' . substr($tenantId, 0, 8) . '...' . PHP_EOL .
-                '- Fecha: ' . now()->format('Y-m-d H:i:s'),
+                '- Fecha: ' . now()->format('d-M-Y H:i:s'),
                 function ($message) use ($recipientEmail, $senderUpn, $replyTo) {
                     $message->to($recipientEmail)
                             ->from($senderUpn, config('mail.from.name', 'Green Vacations CR'))
-                            ->subject('Test de Microsoft Graph Mail - ' . now()->format('Y-m-d H:i:s'));
-
+                            ->subject('Test de Microsoft Graph Mail - ' . now()->format('d-M-Y H:i:s'));
                     if ($replyTo) {
                         $message->replyTo($replyTo);
                     }

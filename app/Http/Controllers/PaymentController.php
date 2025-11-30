@@ -8,6 +8,7 @@ use App\Models\Setting;
 use App\Models\Tour;
 use App\Models\PromoCode;
 use App\Services\PaymentService;
+use App\Models\Cart;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -23,8 +24,15 @@ class PaymentController extends Controller
      */
     public function show(Request $request)
     {
-        // 🔄 Usar cart snapshot en lugar de booking IDs
+        // 🔄 Usar cart snapshot como fuente de verdad para importe
         $cartSnapshot = session('cart_snapshot');
+
+        Log::info('Payment Show - Snapshot Received:', [
+            'exists'      => (bool) $cartSnapshot,
+            'is_array'    => is_array($cartSnapshot),
+            'item_count'  => isset($cartSnapshot['items']) ? count($cartSnapshot['items']) : 0,
+            'keys'        => $cartSnapshot ? array_keys($cartSnapshot) : [],
+        ]);
 
         if (!$cartSnapshot || empty($cartSnapshot['items'])) {
             return redirect()->route('public.carts.index')
@@ -41,7 +49,8 @@ class PaymentController extends Controller
             session(['payment_start_time' => $paymentStartTime]);
         }
 
-        $expiresAt = \Carbon\Carbon::parse($paymentStartTime)->addMinutes($timeoutMinutes);
+        $expiresAt = \Carbon\Carbon::parse($paymentStartTime)
+            ->addMinutes($timeoutMinutes);
 
         // Si ya se venció la sesión de pago
         if (now()->greaterThan($expiresAt)) {
@@ -51,9 +60,11 @@ class PaymentController extends Controller
                 ->with('error', __('payment.session_expired'));
         }
 
-        // Total desde el snapshot
-        $total    = $this->calculateTotalFromSnapshot($cartSnapshot);
-        $currency = config('payment.default_currency', 'USD');
+        // ========================
+        // Total SIEMPRE desde el snapshot
+        // ========================
+        $total        = $this->calculateTotalFromSnapshot($cartSnapshot);
+        $currency     = config('payment.default_currency', 'USD');
         $defaultGateway = config('payment.default_gateway', 'stripe');
 
         // ========================
@@ -62,7 +73,7 @@ class PaymentController extends Controller
         $enabledGateways = [];
 
         // STRIPE
-        $stripeSetting  = \App\Models\Setting::where('key', 'payment.gateway.stripe')->first();
+        $stripeSetting  = Setting::where('key', 'payment.gateway.stripe')->first();
         $stripeEnabled  = $stripeSetting?->value;
 
         // Si no hay setting en DB, asumimos Stripe habilitado por defecto
@@ -71,7 +82,8 @@ class PaymentController extends Controller
         }
 
         // Normalizar a bool por si en DB guardás '0'/'1'/'true'/'false'
-        $stripeEnabled = filter_var($stripeEnabled, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? (bool)$stripeEnabled;
+        $stripeEnabled = filter_var($stripeEnabled, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE)
+            ?? (bool) $stripeEnabled;
 
         if ($stripeEnabled) {
             $enabledGateways[] = [
@@ -83,9 +95,10 @@ class PaymentController extends Controller
         }
 
         // PAYPAL
-        $paypalSetting  = \App\Models\Setting::where('key', 'payment.gateway.paypal')->first();
+        $paypalSetting  = Setting::where('key', 'payment.gateway.paypal')->first();
         $paypalEnabled  = $paypalSetting?->value ?? false;
-        $paypalEnabled  = filter_var($paypalEnabled, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? (bool)$paypalEnabled;
+        $paypalEnabled  = filter_var($paypalEnabled, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE)
+            ?? (bool) $paypalEnabled;
 
         if ($paypalEnabled) {
             $enabledGateways[] = [
@@ -99,16 +112,82 @@ class PaymentController extends Controller
         // Clave pública de Stripe (solo para el JS de Stripe)
         $stripeKey = config('payment.gateways.stripe.publishable_key');
 
-        // Items para mostrar en el resumen
-        $items = collect($cartSnapshot['items'])->map(function ($item) {
-            $tour = \App\Models\Tour::find($item['tour_id']);
+        // ========================
+        // Re-hidratar carrito real SOLO para mostrar detalles
+        // ========================
+        $cartId = $cartSnapshot['cart_id'] ?? null;
+        $cart   = null;
+        $items  = collect();
 
-            return [
-                'tour'       => $tour,
-                'tour_date'  => $item['tour_date'],
-                'categories' => $item['categories'],
-            ];
-        });
+        if ($cartId) {
+            $cart = Cart::query()
+                ->where('cart_id', $cartId)
+                ->with([
+                    'items.tour',
+                    'items.schedule',
+                    'items.language',
+                    'items.hotel',
+                    'items.meetingPoint',
+                ])
+                ->first();
+        }
+
+        if ($cart && $cart->items->isNotEmpty()) {
+            // Usamos el Cart real para enriquecer los datos visuales del summary
+            $items = $cart->items->map(function ($it) {
+                return [
+                    'tour'         => $it->tour,
+                    'tour_date'    => $it->tour_date,
+                    // precios/cantidades vienen del snapshot original del Cart (campo JSON categories)
+                    'categories'   => $it->categories ?? [],
+                    'schedule'     => $it->schedule,
+                    'language'     => $it->language,
+                    'hotel'        => $it->hotel,
+                    'meetingPoint' => $it->meetingPoint,
+                    'addons'       => $it->addons ?? [],
+                    'notes'        => $it->notes ?? $it->special_requests,
+                    'duration'     => data_get($it, 'tour.length') ?? $it->duration,
+                    'guide'        => data_get($it, 'guide.name'),
+                ];
+            });
+        } else {
+            // Fallback: si el Cart ya no existe, armamos items mínimos desde el snapshot
+            Log::warning('Payment Show - Cart not found or empty for snapshot', [
+                'cart_id' => $cartId,
+            ]);
+
+            $items = collect($cartSnapshot['items'])->map(function ($item) {
+                return [
+                    'tour'         => Tour::find($item['tour_id'] ?? null),
+                    'tour_date'    => $item['tour_date'] ?? null,
+                    'categories'   => $item['categories'] ?? [],
+                    'schedule'     => null,
+                    'language'     => null,
+                    'hotel'        => null,
+                    'meetingPoint' => null,
+                    'addons'       => [],
+                    'notes'        => null,
+                    'duration'     => null,
+                    'guide'        => null,
+                ];
+            });
+        }
+
+        // Calcular cutoff de cancelación gratuita usando el setting booking.allow_cancellation
+        $freeCancelUntil = null;
+        if ($cart) {
+            $tz = config('app.timezone', 'America/Costa_Rica');
+            $cancellationHours = (int) setting('booking.cancellation_hours', 24); // Default 24h si no existe
+
+            $starts = $cart->items->map(function ($it) use ($tz) {
+                $date = $it->tour_date ?? null;
+                $time = optional($it->schedule)->start_time;
+                if (!$date || !$time) return null;
+                return \Carbon\Carbon::parse("{$date} {$time}", $tz);
+            })->filter();
+
+            $freeCancelUntil = $starts->isNotEmpty() ? $starts->min()->copy()->subHours($cancellationHours) : null;
+        }
 
         return view('public.checkout-payment', compact(
             'items',
@@ -118,10 +197,11 @@ class PaymentController extends Controller
             'enabledGateways',
             'stripeKey',
             'expiresAt',
-            'cartSnapshot'
+            'cartSnapshot',
+            'cart',
+            'freeCancelUntil'
         ));
     }
-
 
     /**
      * Calculate total from cart snapshot
@@ -147,8 +227,24 @@ class PaymentController extends Controller
             }
         }
 
-        // Apply promo code if exists
-        if (!empty($cartSnapshot['promo_code_id'])) {
+        // Apply promo code from snapshot if available (preferred)
+        if (!empty($cartSnapshot['promo_snapshot'])) {
+            $promoData = $cartSnapshot['promo_snapshot'];
+            $adjustment = (float)($promoData['adjustment'] ?? 0);
+            $operation = $promoData['operation'] ?? 'subtract';
+
+            $op = $operation === 'add' ? 1 : -1;
+            $total = max(0, round($total + $op * $adjustment, 2));
+
+            Log::info('Payment Total - Applied Snapshot Promo:', [
+                'code' => $promoData['code'] ?? 'N/A',
+                'adjustment' => $adjustment,
+                'operation' => $operation,
+                'new_total' => $total
+            ]);
+        }
+        // Fallback: Apply promo code by ID lookup
+        elseif (!empty($cartSnapshot['promo_code_id'])) {
             $promo = PromoCode::find($cartSnapshot['promo_code_id']);
 
             if ($promo) {
@@ -163,6 +259,13 @@ class PaymentController extends Controller
                 $total = $promo->operation === 'add'
                     ? $total + $discount
                     : $total - $discount;
+
+                Log::info('Payment Total - Applied DB Promo:', [
+                    'code' => $promo->code,
+                    'discount' => $discount,
+                    'operation' => $promo->operation,
+                    'new_total' => $total
+                ]);
             }
         }
 
@@ -176,6 +279,17 @@ class PaymentController extends Controller
 
     public function initiate(Request $request)
     {
+        Log::info('Payment Initiate - Request received', [
+            'gateway' => $request->input('gateway'),
+            'user_id' => Auth::id(),
+            'session_id' => session()->getId(),
+        ]);
+
+        // Validate request input
+        $validated = $request->validate([
+            'gateway' => 'required|string|in:stripe,paypal,tilopay,banco_nacional,bac,bcr',
+        ]);
+
         try {
             $cartSnapshot = session('cart_snapshot');
 
@@ -187,13 +301,16 @@ class PaymentController extends Controller
             }
 
             // 1) Gateway solicitado o por defecto
-            $gateway = $request->input('gateway', config('payment.default_gateway', 'stripe'));
+            $gateway = $validated['gateway'];
 
             // 2) Total + moneda
             $total    = $this->calculateTotalFromSnapshot($cartSnapshot);
             $currency = config('payment.default_currency', 'USD');
 
             // 3) Buscar pago pendiente existente para ESTE carrito + gateway
+            // DISABLED: Reusing payment intents can cause issues with stale/expired intents
+            // Always create a fresh payment intent to avoid Stripe 400 errors
+            /*
             $existingPayment = Payment::where('user_id', Auth::id())
                 ->whereIn('status', ['pending', 'processing'])
                 ->where('gateway', $gateway)
@@ -205,22 +322,28 @@ class PaymentController extends Controller
             if ($existingPayment && $existingPayment->gateway_payment_intent_id) {
                 $existingResponse = $existingPayment->gateway_response ?? [];
 
-                \Log::info('Reusing existing payment intent', [
+                Log::info('Reusing existing payment intent', [
                     'payment_id'        => $existingPayment->payment_id,
                     'gateway'           => $gateway,
                     'existing_response' => $existingResponse,
                 ]);
 
-                // Retornar datos existentes
-                return response()->json([
+                $responseData = [
                     'success'        => true,
                     'client_secret'  => $existingResponse['client_secret'] ?? null,
                     'redirect_url'   => $existingResponse['redirect_url'] ?? $existingResponse['approval_url'] ?? null,
                     'approval_url'   => $existingResponse['redirect_url'] ?? $existingResponse['approval_url'] ?? null,
                     'payment_id'     => $existingPayment->payment_id,
                     'reused'         => true,
-                ]);
+                ];
+
+                Log::info('Returning reused payment response', $responseData);
+
+                // Retornar datos existentes
+                return response()->json($responseData);
             }
+            */
+
 
             // 4) Crear nuevo registro de pago
             $payment = Payment::create([
@@ -275,7 +398,7 @@ class PaymentController extends Controller
                 'gateway_response'          => $result->toArray(),
             ]);
 
-            \Log::info('Gateway intent created successfully', [
+            Log::info('Gateway intent created successfully', [
                 'gateway' => $gateway,
                 'intent'  => $result->toArray(),
             ]);
@@ -289,7 +412,7 @@ class PaymentController extends Controller
                 'reused'        => false,
             ]);
         } catch (\Exception $e) {
-            \Log::error('Payment initiation failed', [
+            Log::error('Payment initiation failed', [
                 'user_id' => Auth::id(),
                 'error'   => $e->getMessage(),
                 'trace'   => $e->getTraceAsString(),
