@@ -737,8 +737,6 @@ Route::middleware([SetLocale::class])->group(function () {
                     // -------------------- PRICES --------------------
                     Route::post('prices/check-overlap', [TourPriceController::class, 'checkOverlap'])
                         ->name('prices.check-overlap');
-                    Route::resource('prices', TourPriceController::class)->except(['show', 'edit', 'create']);
-                    Route::put('prices/{price}/toggle', [TourPriceController::class, 'toggle'])->name('prices.toggle');
 
                     // -------------------- AMENITIES --------------------
                     Route::resource('amenities', AmenityController::class)->except(['show']);

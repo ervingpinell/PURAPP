@@ -564,46 +564,42 @@
                 </div>
             </div>
         </div>
+    </form>
 
-        {{-- Ayuda --}}
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle mr-1"></i>
-            <strong>{{ __('m_tours.tour.ui.help_title') }}</strong>
-            <span>{{ __('m_tours.tour.ui.help_included_text') }}</span>
-        </div>
+    {{-- Navigation Footer --}}
+    <div class="card-footer navigation-footer">
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="{{ route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 1]) }}"
+                class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                {{ __('m_tours.common.previous') }}
+            </a>
 
-        <div class="card-footer navigation-footer">
-            <div class="d-flex justify-content-between align-items-center">
-                <a href="{{ route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 1]) }}"
-                    class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i>
-                    {{ __('m_tours.common.previous') }}
-                </a>
+            <div class="d-flex">
+                @if($tour->is_draft)
+                <form action="{{ route('admin.tours.wizard.delete-draft', $tour) }}"
+                    method="POST"
+                    class="d-inline"
+                    onsubmit="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i>
+                        <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
+                    </button>
+                </form>
+                @endif
 
-                <div class="d-flex">
-                    @if($tour->is_draft)
-                    <form action="{{ route('admin.tours.wizard.delete-draft', $tour) }}"
-                        method="POST"
-                        class="d-inline"
-                        onsubmit="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash"></i>
-                            <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
-                        </button>
-                    </form>
-                    @endif
-
-                    <button type="submit" class="btn btn-primary ml-2">
+                <form method="POST" action="{{ route('admin.tours.wizard.store.amenities', $tour) }}" class="d-inline ml-2">
+                    @csrf
+                    <button type="submit" class="btn btn-primary">
                         {{ __('m_tours.tour.wizard.save_and_continue') }}
                         <i class="fas fa-arrow-right"></i>
                     </button>
-                </div>
+                </form>
             </div>
         </div>
-
-    </form>
+    </div>
 </div>
 
 {{-- Modal Quick Create Amenity --}}
