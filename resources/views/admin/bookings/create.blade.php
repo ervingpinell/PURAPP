@@ -288,12 +288,18 @@
 </form>
 @stop
 
+
 @section('js')
 <script>
     // Locale actual para elegir traducciones correctas
     window.APP_LOCALE = @json(app()->getLocale());
     window.BOOKING_LIMITS = @json($bookingLimits ?? []);
-    window.LIMITS_PER_TOUR = @json($limitsPerTour ?? []);
+    window.TOURS_DATA = @json($toursData ?? []);
+
+    // DEBUG: Log loaded data
+    console.log('=== BOOKING FORM DEBUG ===');
+    console.log('TOURS_DATA loaded:', window.TOURS_DATA);
+    console.log('Number of tours:', Object.keys(window.TOURS_DATA || {}).length);
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -303,15 +309,6 @@
             theme: 'bootstrap4',
             width: '100%'
         });
-
-        // ===== Endpoints (WEB) =====
-        const schedulesTpl = @json(route('admin.api.tours.schedules', ['tour' => 'TOUR_ID']));
-        const languagesTpl = @json(route('admin.api.tours.languages', ['tour' => 'TOUR_ID']));
-        const categoriesTpl = @json(route('admin.api.tours.categories', ['tour' => 'TOUR_ID']));
-
-        const epSchedules = (tourId) => schedulesTpl.replace('TOUR_ID', tourId);
-        const epLanguages = (tourId) => languagesTpl.replace('TOUR_ID', tourId);
-        const epCategories = (tourId) => categoriesTpl.replace('TOUR_ID', tourId);
 
         // Verificación de cupones por API
         const epVerify = '/api/v1/bookings/verify-promo-code';
@@ -378,155 +375,170 @@
         })();
 
         // ---------- Loaders ----------
-        function loadSchedules(tourId, preselect = '{{ old('
-            schedule_id ') }}') {
+
+        function loadSchedules(tourId, preselect = '{{ old("schedule_id") }}') {
+            console.log('loadSchedules called with tourId:', tourId);
             const $sel = $('#schedule_id');
-            resetSelect($sel, @json(__('m_bookings.bookings.ui.loading')), true);
-            $.get(epSchedules(tourId))
-                .done(list => {
-                    if (!Array.isArray(list) || !list.length) {
-                        resetSelect($sel, @json(__('m_bookings.bookings.ui.no_results')), true);
-                        return;
-                    }
-                    let html = `<option value="">${@json(__('m_bookings.bookings.ui.select_option'))}</option>`;
-                    list.forEach(s => {
-                        const sid = s.schedule_id ?? s.id;
-                        html += `<option value="${sid}">${s.start_time} - ${s.end_time}</option>`;
-                    });
-                    $sel.html(html).prop('disabled', false);
-                    applyOldValue($sel, preselect);
-                })
-                .fail(() => resetSelect($sel, @json(__('m_bookings.bookings.ui.error_loading')), true));
+            $sel.empty().append(`<option value="">{{ __('m_bookings.bookings.fields.schedule_placeholder') }}</option>`);
+            $sel.prop('disabled', true);
+
+            if (!tourId) {
+                console.log('No tourId provided');
+                return;
+            }
+
+            if (!window.TOURS_DATA[tourId]) {
+                console.error('Tour not found in TOURS_DATA:', tourId);
+                console.log('Available tour IDs:', Object.keys(window.TOURS_DATA || {}));
+                return;
+            }
+
+            const tour = window.TOURS_DATA[tourId];
+            console.log('Tour data:', tour);
+
+            if (!tour.schedules || !tour.schedules.length) {
+                console.log('No schedules found for tour');
+                return;
+            }
+
+            console.log('Loading', tour.schedules.length, 'schedules');
+            let html = `<option value="">{{ __('m_bookings.bookings.fields.schedule_placeholder') }}</option>`;
+            tour.schedules.forEach(s => {
+                const label = `${s.start_time} - ${s.end_time}`;
+                const sel = (String(s.id) === String(preselect)) ? 'selected' : '';
+                html += `<option value="${s.id}" ${sel}>${label}</option>`;
+            });
+
+            $sel.html(html).prop('disabled', false);
+            console.log('Schedules loaded successfully');
         }
 
-        function loadLanguages(tourId, preselect = '{{ old('
-            tour_language_id ') }}') {
+        function loadLanguages(tourId, preselect = '{{ old("tour_language_id") }}') {
+            console.log('loadLanguages called with tourId:', tourId);
             const $sel = $('#tour_language_id');
-            resetSelect($sel, @json(__('m_bookings.bookings.ui.loading')), true);
-            $.get(epLanguages(tourId))
-                .done(list => {
-                    if (!Array.isArray(list) || !list.length) {
-                        resetSelect($sel, @json(__('m_bookings.bookings.ui.no_results')), true);
-                        return;
-                    }
-                    let html = `<option value="">${@json(__('m_bookings.bookings.ui.select_option'))}</option>`;
-                    list.forEach(l => {
-                        const lid = l.tour_language_id ?? l.id;
-                        html += `<option value="${lid}">${l.name}</option>`;
-                    });
-                    $sel.html(html).prop('disabled', false);
-                    applyOldValue($sel, preselect);
-                })
-                .fail(() => resetSelect($sel, @json(__('m_bookings.bookings.ui.error_loading')), true));
+            $sel.empty().append(`<option value="">{{ __('m_bookings.bookings.fields.language_placeholder') }}</option>`);
+            $sel.prop('disabled', true);
+
+            if (!tourId || !window.TOURS_DATA[tourId]) {
+                console.log('No tour data available');
+                return;
+            }
+
+            const tour = window.TOURS_DATA[tourId];
+            if (!tour.languages || !tour.languages.length) {
+                console.log('No languages found for tour');
+                return;
+            }
+
+            console.log('Loading', tour.languages.length, 'languages');
+            let html = `<option value="">{{ __('m_bookings.bookings.fields.language_placeholder') }}</option>`;
+            tour.languages.forEach(l => {
+                const sel = (String(l.id) === String(preselect)) ? 'selected' : '';
+                html += `<option value="${l.id}" ${sel}>${l.name}</option>`;
+            });
+
+            $sel.html(html).prop('disabled', false);
+            console.log('Languages loaded successfully');
         }
 
-        // === Mapeo seguro de categorías con traducciones ===
-        function mapCategory(catRaw) {
-            const id = catRaw.category_id ?? catRaw.id;
-            const slug = catRaw.slug ?? catRaw.code ?? '';
-            const price = Number(catRaw.price_usd ?? catRaw.price ?? 0);
-            const min = parseInt(catRaw.min ?? catRaw.min_quantity ?? 0);
-            const max = parseInt(catRaw.max ?? catRaw.max_quantity ?? 99);
-
-            // nombre traducido: primero `translation.name`, luego `translations[]`, luego name/slug
-            let tname = '';
-            if (catRaw.translation && typeof catRaw.translation === 'object') {
-                tname = catRaw.translation.name || '';
-            }
-            if (!tname && Array.isArray(catRaw.translations)) {
-                const found = catRaw.translations.find(tr => (tr.locale ?? tr.language_code) === LOCALE);
-                tname = found?.name || '';
-            }
-            if (!tname) tname = catRaw.name || slug || '—';
-
-            return {
-                id,
-                slug,
-                name: tname,
-                price,
-                min,
-                max,
-                is_active: !!catRaw.is_active
-            };
-        }
-
-        function loadCategories(tourId, oldCategories = @json(old('categories', []))) {
+        function loadCategories(tourId, tourDate, oldCategories = @json(old('categories', []))) {
             const $c = $('#categories-container');
-            $c.html(
-                `<div class="alert alert-info mb-0">
-              <i class="fas fa-spinner fa-spin me-2"></i>{{ __('m_bookings.bookings.ui.loading') }}
-           </div>`
-            );
+            $c.html('');
 
-            $.get(epCategories(tourId))
-                .done(list => {
-                    const mapped = (Array.isArray(list) ? list : []).map(mapCategory).filter(c => c.is_active !== false);
-                    currentCategories = mapped;
+            if (!tourId || !window.TOURS_DATA[tourId]) {
+                currentCategories = [];
+                updateTotals();
+                return;
+            }
 
-                    if (!currentCategories.length) {
-                        $c.html(
-                            `<div class="alert alert-warning mb-0">
-                          {{ __('m_bookings.bookings.ui.tour_without_categories') }}
-                       </div>`
-                        );
-                        updateTotals();
-                        return;
+            const tour = window.TOURS_DATA[tourId];
+            if (!tour.prices || !tour.prices.length) {
+                $c.html(`<div class="alert alert-warning mb-0">{{ __('m_bookings.bookings.ui.tour_without_categories') }}</div>`);
+                currentCategories = [];
+                updateTotals();
+                return;
+            }
+
+            // Filter prices by date
+            let validPrices = tour.prices;
+            if (tourDate) {
+                const selectedDate = new Date(tourDate);
+                validPrices = tour.prices.filter(p => {
+                    // If no date range, it's a default price (always valid)
+                    if (!p.valid_from && !p.valid_until) return true;
+
+                    // If has date range, check if selected date falls within
+                    if (p.valid_from && p.valid_until) {
+                        const from = new Date(p.valid_from);
+                        const until = new Date(p.valid_until);
+                        return selectedDate >= from && selectedDate <= until;
                     }
 
-                    let html = '';
-                    currentCategories.forEach(cat => {
-                        const oldVal = parseInt(oldCategories[cat.id]) || cat.min;
-                        const clamped = Math.max(cat.min, Math.min(cat.max, oldVal));
-
-                        html += `
-                      <div class="category-row mb-3 p-2 border rounded">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                          <strong>${cat.name}</strong>
-                          <span class="text-muted small">${fmtMoney(cat.price)}</span>
-                        </div>
-                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                          <button type="button" class="btn btn-sm btn-secondary category-minus" data-category-id="${cat.id}">
-                            <i class="fas fa-minus"></i>
-                          </button>
-                          <input type="number"
-                                 name="categories[${cat.id}]"
-                                 class="form-control form-control-sm text-center category-input mx-2"
-                                 data-category-id="${cat.id}"
-                                 data-price="${cat.price}"
-                                 data-slug="${cat.slug}"
-                                 min="${cat.min}"
-                                 max="${cat.max}"
-                                 value="${clamped}"
-                                 style="width: 72px;">
-                          <button type="button" class="btn btn-sm btn-secondary category-plus" data-category-id="${cat.id}">
-                            <i class="fas fa-plus"></i>
-                          </button>
-                        </div>
-                        <small class="text-muted d-block mt-1">Min: ${cat.min}, Max: ${cat.max}</small>
-                      </div>`;
-                    });
-
-                    $c.html(html);
-                    attachCategoryHandlers();
-                    updateTotals();
-
-                    // Re-aplicar promo automáticamente si venimos de un error
-                    if (pendingAutoPromo && OLD_PROMO) {
-                        pendingAutoPromo = false;
-                        $('#promo_code').val(OLD_PROMO);
-                        setPromoButton('apply');
-                        $('#btn-verify-promo').trigger('click');
-                    }
-                })
-                .fail(() => {
-                    $c.html(
-                        `<div class="alert alert-danger mb-0">
-                      {{ __('m_bookings.bookings.ui.error_loading') }}
-                   </div>`
-                    );
-                    currentCategories = [];
-                    updateTotals();
+                    return false;
                 });
+
+                // Group by category_id and keep only one price per category (prioritize date-specific)
+                const categoryMap = {};
+                validPrices.forEach(p => {
+                    const hasDateRange = p.valid_from && p.valid_until;
+                    if (!categoryMap[p.category_id] || hasDateRange) {
+                        categoryMap[p.category_id] = p;
+                    }
+                });
+                validPrices = Object.values(categoryMap);
+            }
+
+            if (!validPrices.length) {
+                $c.html(`<div class="alert alert-warning mb-0">{{ __('m_bookings.bookings.ui.tour_without_categories') }}</div>`);
+                currentCategories = [];
+                updateTotals();
+                return;
+            }
+
+            currentCategories = validPrices;
+
+            let html = '';
+            currentCategories.forEach(cat => {
+                const oldVal = parseInt(oldCategories[cat.category_id]) || 0;
+                const price = parseFloat(cat.price) || 0;
+
+                html += `
+                  <div class="category-row mb-3 p-2 border rounded">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <strong>${cat.name}</strong>
+                      <span class="text-muted small">${fmtMoney(price)}</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                      <button type="button" class="btn btn-sm btn-secondary category-minus" data-category-id="${cat.category_id}">
+                        <i class="fas fa-minus"></i>
+                      </button>
+                      <input type="number"
+                             name="categories[${cat.category_id}]"
+                             class="form-control form-control-sm text-center category-input mx-2"
+                             data-category-id="${cat.category_id}"
+                             data-price="${price}"
+                             data-slug="${cat.slug}"
+                             min="0"
+                             value="${oldVal}"
+                             style="width: 72px;">
+                      <button type="button" class="btn btn-sm btn-secondary category-plus" data-category-id="${cat.category_id}">
+                        <i class="fas fa-plus"></i>
+                      </button>
+                    </div>
+                  </div>`;
+            });
+
+            $c.html(html);
+            attachCategoryHandlers();
+            updateTotals();
+
+            // Re-aplicar promo automáticamente si venimos de un error
+            if (pendingAutoPromo && OLD_PROMO) {
+                pendingAutoPromo = false;
+                $('#promo_code').val(OLD_PROMO);
+                setPromoButton('apply');
+                $('#btn-verify-promo').trigger('click');
+            }
         }
 
         // ---------- Helpers límites (SOLO para sumar, no para bloquear) ----------
@@ -627,9 +639,9 @@
                 const id = $(this).data('category-id');
                 lastChangedInputId = String(id);
                 const $i = $(`.category-input[data-category-id="${id}"]`);
-                const min = parseInt($i.attr('min')) || 0;
                 const cur = parseInt($i.val()) || 0;
-                if (cur > min) {
+                // Admin: allow going down to 0
+                if (cur > 0) {
                     $i.val(cur - 1);
                     updateTotals();
                 }
@@ -640,17 +652,16 @@
                 lastChangedInputId = String(id);
                 const $i = $(`.category-input[data-category-id="${id}"]`);
                 const cur = parseInt($i.val()) || 0;
-                // Admin puede pasarse del max sin problema
+                // Admin: no max limit
                 $i.val(cur + 1);
                 updateTotals();
             });
 
             $('.category-input').on('change keyup', function() {
                 lastChangedInputId = String($(this).data('category-id'));
-                const min = parseInt($(this).attr('min')) || 0;
                 let v = parseInt($(this).val()) || 0;
-                // Solo respetamos el mínimo, no el máximo
-                if (v < min) v = min;
+                // Admin: only ensure non-negative
+                if (v < 0) v = 0;
                 $(this).val(v);
                 updateTotals();
             });
@@ -818,7 +829,7 @@
         $('#meeting_point_id').on('change', function() {
             const hasMP = ($(this).val() || '') !== '';
             if (hasMP) {
-                lockHotel('{{ __("m_bookings.bookings.messages.hotel_locked_by_meeting_point") ?? "Se seleccionó un punto de encuentro; no se puede seleccionar hotel." }}');
+                lockHotel(@json(__("m_bookings.bookings.messages.hotel_locked_by_meeting_point")));
             } else {
                 unlockHotel();
             }
@@ -839,21 +850,25 @@
             }
 
             if (pickedHotel || pickedOther) {
-                lockMeetingPoint('{{ __("m_bookings.bookings.messages.meeting_point_locked_by_hotel") ?? "Se seleccionó un hotel; no se puede seleccionar punto de encuentro." }}');
+                lockMeetingPoint(@json(__("m_bookings.bookings.messages.meeting_point_locked_by_hotel")));
             } else {
                 unlockMeetingPoint();
             }
         });
 
-        // ---------- Tour change ----------
+        // ---------- Tour change event ----------
         $('#tour_id').on('change', function() {
             const tourId = $(this).val();
-            resetSelect($('#schedule_id'), @json(__('m_bookings.bookings.ui.select_tour_first')), true);
-            resetSelect($('#tour_language_id'), @json(__('m_bookings.bookings.ui.select_tour_first')), true);
+            console.log('=== TOUR CHANGED ===');
+            console.log('Selected tour ID:', tourId);
+
+            // Limpiar campos dependientes
+            resetSelect($('#schedule_id'), '{{ __("m_bookings.bookings.fields.schedule_placeholder") }}');
+            resetSelect($('#tour_language_id'), '{{ __("m_bookings.bookings.fields.language_placeholder") }}');
             $('#categories-container').html(
                 `<div class="alert alert-info mb-0">
-             {{ __('m_bookings.bookings.ui.select_tour_to_see_categories') }}
-           </div>`
+              {{ __('m_bookings.bookings.ui.select_tour_to_see_categories') }}
+            </div>`
             );
             currentCategories = [];
 
@@ -864,10 +879,30 @@
                 pendingAutoPromo = false;
             }
 
-            if (!tourId) return;
+            if (!tourId) {
+                console.log('No tour selected, skipping load');
+                return;
+            }
+
+            console.log('Calling loadSchedules...');
             loadSchedules(tourId);
+
+            console.log('Calling loadLanguages...');
             loadLanguages(tourId);
-            loadCategories(tourId);
+
+            const tourDate = $('#tour_date').val();
+            console.log('Tour date:', tourDate);
+            console.log('Calling loadCategories...');
+            loadCategories(tourId, tourDate);
+        });
+
+        // Reload categories when date changes
+        $('#tour_date').on('change', function() {
+            const tourId = $('#tour_id').val();
+            const tourDate = $(this).val();
+            if (tourId) {
+                loadCategories(tourId, tourDate);
+            }
         });
 
         // ---------- Inicialización ----------
@@ -882,10 +917,10 @@
             const pickedOther = hVal === 'other';
 
             if (hasMP) {
-                lockHotel('{{ __("m_bookings.bookings.messages.hotel_locked_by_meeting_point") ?? "Se seleccionó un punto de encuentro; no se puede seleccionar hotel." }}');
+                lockHotel(@json(__("m_bookings.bookings.messages.hotel_locked_by_meeting_point")));
             }
             if (pickedHotel || pickedOther) {
-                lockMeetingPoint('{{ __("m_bookings.bookings.messages.meeting_point_locked_by_hotel") ?? "Se seleccionó un hotel; no se puede seleccionar punto de encuentro." }}');
+                lockMeetingPoint(@json(__("m_bookings.bookings.messages.meeting_point_locked_by_hotel")));
             }
             if (pickedOther) {
                 $('#other_hotel_wrapper').show();
@@ -901,7 +936,9 @@
                 schedule_id ') }}');
             loadLanguages(oldTourId, '{{ old('
                 tour_language_id ') }}');
-            loadCategories(oldTourId, @json(old('categories', [])));
+
+            const oldDate = $('#tour_date').val();
+            loadCategories(oldTourId, oldDate, @json(old('categories', [])));
         }
 
         // a partir de aquí, los cambios de tour sí limpian promo

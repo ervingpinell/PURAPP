@@ -94,6 +94,7 @@ class BookingCreatedMail extends Mailable implements ShouldQueue
                 'appUrl'        => rtrim(config('app.url'), '/'),
                 'companyPhone'  => env('COMPANY_PHONE'),
                 'formatEmailDate' => $this->getDateFormatter($this->mailLocale),
+                'paymentUrl'      => $this->booking->getCheckoutUrl(),
                 // El layout tomará el logo desde env('COMPANY_LOGO_URL')
             ]);
 

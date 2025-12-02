@@ -112,21 +112,30 @@ class BookingController extends Controller
         return view('admin.bookings.show', compact('booking'));
     }
 
-    /** Form create (admin) */
+    /** Form create (admin) - Simplified version */
     public function create()
     {
-        $tours = Tour::with(['prices.category', 'schedules', 'languages'])
+        // Load ALL necessary data upfront - simple and clean
+        $tours = Tour::with([
+            'schedules' => fn($q) => $q->orderBy('start_time'),
+            'languages' => fn($q) => $q->orderBy('name'),
+            'prices' => fn($q) => $q->where('is_active', true)
+                ->with('category.translations')
+                ->orderBy('category_id'),
+            'taxes' => fn($q) => $q->where('is_active', true)
+        ])
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
 
-        $users         = User::where('is_active', true)->orderBy('full_name')->get();
-        $hotels        = HotelList::where('is_active', true)->orderBy('name')->get();
+        $customers = User::whereHas('role', fn($q) => $q->where('role_name', 'Customer'))
+            ->orderBy('full_name')
+            ->get();
+
+        $hotels = HotelList::where('is_active', true)->orderBy('name')->get();
         $meetingPoints = MeetingPoint::where('is_active', true)->orderBy('name')->get();
 
-        $bookingLimits = $this->buildBookingLimits();
-
-        return view('admin.bookings.create', compact('tours', 'users', 'hotels', 'meetingPoints', 'bookingLimits'));
+        return view('admin.bookings.create-simple', compact('tours', 'customers', 'hotels', 'meetingPoints'));
     }
 
     /** Form edit (admin) */
@@ -415,7 +424,7 @@ class BookingController extends Controller
             // Importante: NO hacemos return con error aquí.
         }
 
-        return redirect()->route('admin.bookings.index')
+        return redirect()->route('admin.bookings.show', $booking->booking_id)
             ->with('success', __('m_bookings.bookings.success.created'));
     }
 
@@ -1188,15 +1197,34 @@ class BookingController extends Controller
     }
 
     /** API: categorías/precios por tour (AJAX) */
-    public function getCategories(Tour $tour)
+    public function getCategories(Request $request, Tour $tour)
     {
         $locale = app()->getLocale();
+        $tourDate = $request->input('tour_date');
 
-        $categories = $tour->prices()
+        $query = $tour->prices()
             ->where('tour_prices.is_active', true)
             ->with('category')
-            ->orderBy('category_id')
-            ->get()
+            ->orderBy('category_id');
+
+        // Filter by date range if tour_date provided
+        if ($tourDate) {
+            $query->where(function ($q) use ($tourDate) {
+                $q->where(function ($sub) use ($tourDate) {
+                    // Prices with date range
+                    $sub->whereNotNull('valid_from')
+                        ->whereNotNull('valid_until')
+                        ->whereDate('valid_from', '<=', $tourDate)
+                        ->whereDate('valid_until', '>=', $tourDate);
+                })->orWhere(function ($sub) {
+                    // Default prices (no date range)
+                    $sub->whereNull('valid_from')
+                        ->whereNull('valid_until');
+                });
+            });
+        }
+
+        $categories = $query->get()
             ->map(function ($price) use ($locale) {
                 $cat  = $price->category;
                 $slug = $cat->slug ?? '';

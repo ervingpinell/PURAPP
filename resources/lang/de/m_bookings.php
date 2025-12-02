@@ -165,6 +165,13 @@ return [
     'bookings' => [
         'singular' => 'Buchung',
         'plural' => 'Buchungen',
+        'steps' => [
+            'customer' => 'Kunde',
+            'select_tour_date' => 'Tour und Datum auswählen',
+            'select_schedule_language' => 'Uhrzeit und Sprache auswählen',
+            'select_participants' => 'Teilnehmer auswählen',
+            'customer_details' => 'Kunde und Details',
+        ],
         'ui' => [
             'page_title'        => 'Buchungen',
             'page_heading'      => 'Buchungsverwaltung',
@@ -181,6 +188,7 @@ return [
             'zoom_reset'        => 'Zoom zurücksetzen',
             'no_promo'          => 'Kein Promo-Code angewendet',
             'create_booking'    => 'Buchung erstellen',
+            'create_title'      => 'Neue Buchung Erstellen',
             'booking_info'      => 'Buchungsinformationen',
             'select_customer'   => 'Kunden auswählen',
             'select_tour'       => 'Tour auswählen',
@@ -194,6 +202,19 @@ return [
             'verifying'         => 'Wird überprüft...',
             'min'               => 'Minimum',
             'max'               => 'Maximum',
+            'confirm_booking' => 'Buchung bestätigen',
+            'subtotal' => 'Zwischensumme',
+            'total' => 'Gesamt',
+            'select_meeting_point' => 'Treffpunkt auswählen',
+            'no_pickup' => 'Keine Abholung',
+            'hotel' => 'Hotel',
+            'meeting_point' => 'Treffpunkt',
+            'surcharge' => 'Aufschlag',
+            'discount' => 'Rabatt',
+            'participants' => 'Teilnehmer',
+            'price_breakdown' => 'Preisübersicht',
+            'enter_promo' => 'Promo-Code eingeben',
+            'select_hotel' => 'Hotel auswählen',
         ],
 
         'fields' => [
@@ -232,6 +253,11 @@ return [
             'total_persons'     => 'Personenanzahl',
             'pickup_place'      => 'Abholort',
             'pickup_time'       => 'Abholzeit',
+            'date'              => 'Datum',
+            'category'          => 'Kategorie',
+            'quantity'          => 'Menge',
+            'price'             => 'Preis',
+            'pickup'            => 'Abholung',
         ],
 
         'placeholders' => [
@@ -302,6 +328,7 @@ return [
             'promo_checking'     => 'Code wird überprüft…',
             'promo_invalid'      => 'Ungültiger Promo-Code.',
             'promo_error'        => 'Der Code konnte nicht validiert werden.',
+            'promo_apply_required' => 'Bitte klicke auf Anwenden, um deinen Promo-Code zuerst zu validieren.',
             'promo_empty'        => 'Gib zuerst einen Code ein.',
             'promo_needs_subtotal' => 'Füge mindestens 1 Passagier hinzu, um den Rabatt zu berechnen.',
         ],
@@ -359,6 +386,16 @@ return [
             'force_delete_failed' => 'Buchung konnte nicht endgültig gelöscht werden.',
             'deleted_booking_indicator' => '(GELÖSCHT)',
         ],
+
+        // Checkout Links (for admin-created bookings)
+        'checkout_link_label' => 'Kunden-Zahlungslink',
+        'checkout_link_description' => 'Senden Sie diesen Link an den Kunden, damit er die Zahlung für seine Buchung abschließen kann.',
+        'checkout_link_copy' => 'Link kopieren',
+        'checkout_link_copied' => 'Link kopiert!',
+        'checkout_link_copy_failed' => 'Link konnte nicht kopiert werden. Bitte manuell kopieren.',
+        'checkout_link_valid_until' => 'Gültig bis',
+        'checkout_link_expired' => 'Dieser Zahlungslink ist abgelaufen oder nicht mehr gültig.',
+        'checkout_link_accessed' => 'Kunde hat auf Checkout zugegriffen',
     ],
 
     // =========================================================
@@ -368,6 +405,10 @@ return [
         'confirm'        => 'Bestätigen',
         'cancel'         => 'Buchung stornieren',
         'confirm_cancel' => 'Möchtest du diese Buchung wirklich stornieren?',
+        'remove' => 'Entfernen',
+        'confirm_create' => 'Bestätigen und erstellen',
+        'review_booking' => 'Buchung überprüfen',
+        'apply'          => 'Anwenden',
     ],
 
     // =========================================================

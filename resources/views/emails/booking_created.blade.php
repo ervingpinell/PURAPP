@@ -170,6 +170,18 @@ $notes = trim((string)($booking->notes ?? ''));
     </p>
   </div>
   @endif
+
+  {{-- Payment Link Button --}}
+  @if($paymentStatus === 'pending' && !empty($paymentUrl))
+  <div style="margin-top:16px; text-align:center;">
+    <a href="{{ $paymentUrl }}" target="_blank" style="display:inline-block; background-color:#0ea5e9; color:#ffffff; padding:12px 24px; border-radius:6px; text-decoration:none; font-weight:600; font-size:14px;">
+      {{ $mailLocale === 'es' ? 'Pagar Ahora' : 'Pay Now' }}
+    </a>
+    <div style="margin-top:8px; font-size:12px; color:#6b7280;">
+      {{ $mailLocale === 'es' ? 'Haga clic para completar su pago de forma segura.' : 'Click to complete your payment securely.' }}
+    </div>
+  </div>
+  @endif
 </div>
 
 {{-- 2. BOOKING SUMMARY --}}

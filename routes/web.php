@@ -406,6 +406,9 @@ Route::middleware([SetLocale::class])->group(function () {
         // Checkout desde carrito (público)
         Route::post('/bookings/from-cart', [PublicBookingController::class, 'storeFromCart'])->name('public.bookings.storeFromCart');
 
+        // Checkout por token (para reservas creadas por admin)
+        Route::get('/checkout/{token}', [PublicCheckoutController::class, 'showByToken'])->name('public.checkout.token');
+
         // Checkout
         Route::get('/checkout', [PublicCheckoutController::class, 'show'])->name('public.checkout.show');
         Route::post('/checkout/process', [PublicCheckoutController::class, 'process'])

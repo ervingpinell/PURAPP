@@ -155,6 +155,9 @@ class BookingCreator
                 }
             }
 
+            // Generar token de checkout para pagos públicos
+            $booking->generateCheckoutToken();
+
             return $booking;
         });
     }

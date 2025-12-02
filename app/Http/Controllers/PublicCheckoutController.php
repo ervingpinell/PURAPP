@@ -576,4 +576,44 @@ class PublicCheckoutController extends Controller
         return redirect()->route('payment.show')
             ->with('info', __('Please complete payment to confirm your booking'));
     }
+
+    /**
+     * Show checkout via token (for admin-created bookings)
+     */
+    public function showByToken(string $token)
+    {
+        $booking = \App\Models\Booking::where('checkout_token', $token)
+            ->with(['detail', 'tour', 'user', 'detail.schedule'])
+            ->firstOrFail();
+
+        if (!$booking->isCheckoutTokenValid()) {
+            return redirect()->route('home')
+                ->with('error', __('m_bookings.checkout_link_expired'));
+        }
+
+        // Mark checkout as accessed (start timer)
+        if (!$booking->checkout_accessed_at) {
+            $booking->checkout_accessed_at = now();
+            $booking->save();
+
+            // Create/activate cart for timer
+            $cart = Cart::firstOrCreate(
+                ['user_id' => $booking->user_id],
+                [
+                    'is_active' => true,
+                    'expires_at' => now()->addMinutes((int) setting('cart.expiration_minutes', 30))
+                ]
+            );
+
+            if (!$cart->is_active) {
+                $cart->is_active = true;
+                $cart->expires_at = now()->addMinutes((int) setting('cart.expiration_minutes', 30));
+                $cart->save();
+            }
+        }
+
+        // Redirect to payment page with booking
+        return redirect()->route('payment.show', ['booking_id' => $booking->booking_id])
+            ->with('info', __('Please complete payment to confirm your booking'));
+    }
 }

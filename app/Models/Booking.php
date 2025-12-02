@@ -28,11 +28,16 @@ class Booking extends Model
         'schedule_id',
         'notes',
         'deleted_by',
+        'checkout_token',
+        'checkout_token_expires_at',
+        'checkout_accessed_at',
     ];
     protected $casts = [
-        'booking_date' => 'datetime',
-        'is_active'    => 'boolean',
-        'total'        => 'decimal:2',
+        'booking_date'              => 'datetime',
+        'is_active'                 => 'boolean',
+        'total'                     => 'decimal:2',
+        'checkout_token_expires_at' => 'datetime',
+        'checkout_accessed_at'      => 'datetime',
     ];
     // ---------------- Relaciones ----------------
     public function user()
@@ -191,5 +196,42 @@ class Booking extends Model
     public function getReferenceAttribute()
     {
         return $this->booking_reference;
+    }
+
+    // ---------------- Checkout Token Methods ----------------
+
+    /**
+     * Generate a unique checkout token for this booking
+     */
+    public function generateCheckoutToken(): string
+    {
+        $this->checkout_token = \Illuminate\Support\Str::random(64);
+        $this->checkout_token_expires_at = now()->addHours(48); // 48h to access
+        $this->save();
+
+        return $this->checkout_token;
+    }
+
+    /**
+     * Get the checkout URL for this booking
+     */
+    public function getCheckoutUrl(): string
+    {
+        if (!$this->checkout_token) {
+            $this->generateCheckoutToken();
+        }
+
+        return route('public.checkout.token', ['token' => $this->checkout_token]);
+    }
+
+    /**
+     * Check if the checkout token is still valid
+     */
+    public function isCheckoutTokenValid(): bool
+    {
+        return $this->checkout_token
+            && $this->checkout_token_expires_at
+            && $this->checkout_token_expires_at->isFuture()
+            && $this->status === 'pending';
     }
 }

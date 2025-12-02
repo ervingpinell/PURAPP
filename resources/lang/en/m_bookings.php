@@ -165,6 +165,13 @@ return [
     'bookings' => [
         'singular' => 'Booking',
         'plural' => 'Bookings',
+        'steps' => [
+            'customer' => 'Customer',
+            'select_tour_date' => 'Select Tour & Date',
+            'select_schedule_language' => 'Select Schedule & Language',
+            'select_participants' => 'Select Participants',
+            'customer_details' => 'Customer & Details',
+        ],
         'ui' => [
             'page_title'        => 'Bookings',
             'page_heading'      => 'Booking Management',
@@ -181,6 +188,7 @@ return [
             'zoom_reset'        => 'Reset zoom',
             'no_promo'          => 'No promotional code applied',
             'create_booking'    => 'Create Booking',
+            'create_title'      => 'Create New Booking',
             'booking_info'      => 'Booking Information',
             'select_customer'   => 'Select customer',
             'select_tour'       => 'Select tour',
@@ -194,6 +202,19 @@ return [
             'verifying'         => 'Verifying...',
             'min'               => 'Minimum',
             'max'               => 'Maximum',
+            'confirm_booking' => 'Confirm Booking',
+            'subtotal' => 'Subtotal',
+            'total' => 'Total',
+            'select_meeting_point' => 'Select meeting point',
+            'no_pickup' => 'No pickup',
+            'hotel' => 'Hotel',
+            'meeting_point' => 'Meeting Point',
+            'surcharge' => 'Surcharge',
+            'discount' => 'Discount',
+            'participants' => 'Participants',
+            'price_breakdown' => 'Price Breakdown',
+            'enter_promo' => 'Enter promo code',
+            'select_hotel' => 'Select hotel',
         ],
 
         'fields' => [
@@ -229,8 +250,13 @@ return [
             'travelers'         => 'Travelers',
             'subtotal'          => 'Subtotal',
             'discount'          => 'Discount',
-            'total_persons'     => 'Total persons',
-            'pickup_place'      => 'Pickup place',
+            'total_persons'     => 'Persons',
+            'pickup_place'      => 'Pickup Place',
+            'date'              => 'Date',
+            'category'          => 'Category',
+            'quantity'          => 'Quantity',
+            'price'             => 'Price',
+            'pickup'            => 'Pickup',
             'pickup_time'       => 'Pickup time',
         ],
 
@@ -243,8 +269,9 @@ return [
             'select_point'     => 'Select meeting point',
             'select_status'    => 'Select status',
             'enter_hotel_name' => 'Enter hotel name',
-            'enter_promo_code' => 'Enter promotional code',
+            'enter_promo_code' => 'Enter promo code',
             'other'            => 'Other…',
+            'select_hotel'     => 'Select hotel',
         ],
 
         'statuses' => [
@@ -302,6 +329,7 @@ return [
             'promo_checking'     => 'Checking code…',
             'promo_invalid'      => 'Invalid promotional code.',
             'promo_error'        => 'The code could not be validated.',
+            'promo_apply_required' => 'Please click Apply to validate your promo code first.',
             'promo_empty'        => 'Enter a code first.',
             'promo_needs_subtotal' => 'Add at least 1 passenger to calculate the discount.',
         ],
@@ -359,6 +387,16 @@ return [
             'force_delete_failed' => 'Failed to permanently delete booking.',
             'deleted_booking_indicator' => '(DELETED)',
         ],
+
+        // Checkout Links (for admin-created bookings)
+        'checkout_link_label' => 'Customer Payment Link',
+        'checkout_link_description' => 'Send this link to the customer so they can complete payment for their booking.',
+        'checkout_link_copy' => 'Copy Link',
+        'checkout_link_copied' => 'Link copied!',
+        'checkout_link_copy_failed' => 'Could not copy link. Please copy it manually.',
+        'checkout_link_valid_until' => 'Valid until',
+        'checkout_link_expired' => 'This payment link has expired or is no longer valid.',
+        'checkout_link_accessed' => 'Customer accessed checkout',
     ],
 
     // =========================================================
@@ -366,8 +404,12 @@ return [
     // =========================================================
     'actions' => [
         'confirm'        => 'Confirm',
-        'cancel'         => 'Cancel Booking',
+        'cancel'         => 'Cancel',
         'confirm_cancel' => 'Are you sure you want to cancel this booking?',
+        'remove' => 'Remove',
+        'confirm_create' => 'Confirm & Create',
+        'review_booking' => 'Review Booking',
+        'apply'          => 'Apply',
     ],
 
     // =========================================================

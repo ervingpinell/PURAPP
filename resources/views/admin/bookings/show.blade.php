@@ -301,6 +301,37 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
         </div>
     </div>
 
+    {{-- Checkout Link for Pending Bookings --}}
+    @if($booking->status === 'pending')
+    <div class="alert alert-info">
+        <h5 class="alert-heading">
+            <i class="fas fa-link mr-2"></i>{{ __('m_bookings.checkout_link_label') }}
+        </h5>
+        <p class="mb-2">{{ __('m_bookings.checkout_link_description') }}</p>
+        <div class="input-group">
+            <input type="text" class="form-control" id="checkout-link"
+                value="{{ $booking->getCheckoutUrl() }}" readonly>
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="button" onclick="copyCheckoutLink()">
+                    <i class="fas fa-copy"></i> {{ __('m_bookings.checkout_link_copy') }}
+                </button>
+            </div>
+        </div>
+        @if($booking->checkout_token_expires_at)
+        <small class="text-muted d-block mt-2">
+            <i class="fas fa-clock mr-1"></i>
+            {{ __('m_bookings.checkout_link_valid_until') }}: {{ $booking->checkout_token_expires_at->format('M d, Y g:i A') }}
+        </small>
+        @endif
+        @if($booking->checkout_accessed_at)
+        <small class="text-success d-block mt-1">
+            <i class="fas fa-check-circle mr-1"></i>
+            {{ __('m_bookings.checkout_link_accessed') }}: {{ $booking->checkout_accessed_at->diffForHumans() }}
+        </small>
+        @endif
+    </div>
+    @endif
+
     <div class="row">
         {{-- Booking Information --}}
         <div class="col-md-6">
@@ -663,5 +694,30 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
             });
         })();
         @endif
+
+        // Copy checkout link to clipboard
+        function copyCheckoutLink() {
+            const input = document.getElementById('checkout-link');
+            input.select();
+            input.setSelectionRange(0, 99999); // For mobile devices
+
+            try {
+                document.execCommand('copy');
+                // Show success feedback
+                const button = event.target.closest('button');
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> {{ __("m_bookings.checkout_link_copied") }}';
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-success');
+
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-primary');
+                }, 2000);
+            } catch (err) {
+                alert('{{ __("m_bookings.checkout_link_copy_failed") }}');
+            }
+        }
     </script>
     @endsection

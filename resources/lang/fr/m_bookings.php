@@ -165,6 +165,13 @@ return [
     'bookings' => [
         'singular' => 'Réservation',
         'plural' => 'Réservations',
+        'steps' => [
+            'customer' => 'Client',
+            'select_tour_date' => 'Sélectionner Tour et Date',
+            'select_schedule_language' => 'Sélectionner Horaire et Langue',
+            'select_participants' => 'Sélectionner Participants',
+            'customer_details' => 'Client et Détails',
+        ],
         'ui' => [
             'page_title'        => 'Réservations',
             'page_heading'      => 'Gestion des réservations',
@@ -181,6 +188,7 @@ return [
             'zoom_reset'        => 'Réinitialiser le zoom',
             'no_promo'          => 'Aucun code promotionnel appliqué',
             'create_booking'    => 'Créer une réservation',
+            'create_title'      => 'Créer une Nouvelle Réservation',
             'booking_info'      => 'Informations sur la réservation',
             'select_customer'   => 'Sélectionner un client',
             'select_tour'       => 'Sélectionner une excursion',
@@ -194,6 +202,19 @@ return [
             'verifying'         => 'Vérification...',
             'min'               => 'Minimum',
             'max'               => 'Maximum',
+            'confirm_booking' => 'Confirmer la réservation',
+            'subtotal' => 'Sous-total',
+            'total' => 'Total',
+            'select_meeting_point' => 'Sélectionner un point de rendez-vous',
+            'no_pickup' => 'Pas de prise en charge',
+            'hotel' => 'Hôtel',
+            'meeting_point' => 'Point de rendez-vous',
+            'surcharge' => 'Supplément',
+            'discount' => 'Remise',
+            'participants' => 'Participants',
+            'price_breakdown' => 'Détail des prix',
+            'enter_promo' => 'Entrez le code promo',
+            'select_hotel' => 'Sélectionner un hôtel',
         ],
 
         'fields' => [
@@ -232,6 +253,11 @@ return [
             'total_persons'     => 'Personnes',
             'pickup_place'      => 'Lieu de ramassage',
             'pickup_time'       => 'Heure de prise en charge',
+            'date'              => 'Date',
+            'category'          => 'Catégorie',
+            'quantity'          => 'Quantité',
+            'price'             => 'Prix',
+            'pickup'            => 'Ramassage',
         ],
 
         'placeholders' => [
@@ -242,8 +268,8 @@ return [
             'select_hotel'     => 'Sélectionner un hôtel',
             'select_point'     => 'Sélectionner un point de rendez-vous',
             'select_status'    => 'Sélectionner un statut',
-            'enter_hotel_name' => 'Saisir le nom de l’hôtel',
-            'enter_promo_code' => 'Saisir le code promotionnel',
+            'enter_hotel_name' => 'Entrez le nom de l\'hôtel',
+            'enter_promo_code' => 'Entrez le code promo',
             'other'            => 'Autre…',
         ],
 
@@ -302,6 +328,7 @@ return [
             'promo_checking'     => 'Vérification du code…',
             'promo_invalid'      => 'Code promotionnel invalide.',
             'promo_error'        => 'Impossible de valider le code.',
+            'promo_apply_required' => 'Veuillez cliquer sur Appliquer pour valider votre code promotionnel d\'abord.',
             'promo_empty'        => 'Saisissez d’abord un code.',
             'promo_needs_subtotal' => 'Ajoutez au moins 1 passager pour calculer la remise.',
         ],
@@ -359,6 +386,16 @@ return [
             'force_delete_failed' => 'Impossible de supprimer définitivement la réservation.',
             'deleted_booking_indicator' => '(SUPPRIMÉE)',
         ],
+
+        // Checkout Links (for admin-created bookings)
+        'checkout_link_label' => 'Lien de paiement client',
+        'checkout_link_description' => 'Envoyez ce lien au client pour qu\'il puisse finaliser le paiement de sa réservation.',
+        'checkout_link_copy' => 'Copier le lien',
+        'checkout_link_copied' => 'Lien copié!',
+        'checkout_link_copy_failed' => 'Impossible de copier le lien. Veuillez le copier manuellement.',
+        'checkout_link_valid_until' => 'Valide jusqu\'au',
+        'checkout_link_expired' => 'Ce lien de paiement a expiré ou n\'est plus valide.',
+        'checkout_link_accessed' => 'Le client a accédé au paiement',
     ],
 
     // =========================================================
@@ -368,6 +405,10 @@ return [
         'confirm'        => 'Confirmer',
         'cancel'         => 'Annuler la réservation',
         'confirm_cancel' => 'Êtes-vous sûr de vouloir annuler cette réservation ?',
+        'remove' => 'Supprimer',
+        'confirm_create' => 'Confirmer et créer',
+        'review_booking' => 'Vérifier la réservation',
+        'apply'          => 'Appliquer',
     ],
 
     // =========================================================

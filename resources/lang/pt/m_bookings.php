@@ -165,6 +165,13 @@ return [
     'bookings' => [
         'singular' => 'Reserva',
         'plural' => 'Reservas',
+        'steps' => [
+            'customer' => 'Cliente',
+            'select_tour_date' => 'Selecionar Tour e Data',
+            'select_schedule_language' => 'Selecionar Horário e Idioma',
+            'select_participants' => 'Selecionar Participantes',
+            'customer_details' => 'Cliente e Detalhes',
+        ],
         'ui' => [
             'page_title'        => 'Reservas',
             'page_heading'      => 'Gestão de Reservas',
@@ -181,6 +188,7 @@ return [
             'zoom_reset'        => 'Redefinir zoom',
             'no_promo'          => 'Nenhum código promocional aplicado',
             'create_booking'    => 'Criar reserva',
+            'create_title'      => 'Criar Nova Reserva',
             'booking_info'      => 'Informações da reserva',
             'select_customer'   => 'Selecionar cliente',
             'select_tour'       => 'Selecionar tour',
@@ -194,6 +202,19 @@ return [
             'verifying'         => 'Verificando...',
             'min'               => 'Mínimo',
             'max'               => 'Máximo',
+            'confirm_booking' => 'Confirmar reserva',
+            'subtotal' => 'Subtotal',
+            'total' => 'Total',
+            'select_meeting_point' => 'Selecionar ponto de encontro',
+            'no_pickup' => 'Sem coleta',
+            'hotel' => 'Hotel',
+            'meeting_point' => 'Ponto de encontro',
+            'surcharge' => 'Acréscimo',
+            'discount' => 'Desconto',
+            'participants' => 'Participantes',
+            'price_breakdown' => 'Detalhamento de preços',
+            'enter_promo' => 'Digite o código promocional',
+            'select_hotel' => 'Selecionar hotel',
         ],
 
         'fields' => [
@@ -231,6 +252,11 @@ return [
             'discount'          => 'Desconto',
             'total_persons'     => 'Pessoas',
             'pickup_place'      => 'Local de coleta',
+            'date'              => 'Data',
+            'category'          => 'Categoria',
+            'quantity'          => 'Quantidade',
+            'price'             => 'Preço',
+            'pickup'            => 'Coleta',
         ],
 
         'placeholders' => [
@@ -301,6 +327,7 @@ return [
             'promo_checking'     => 'Verificando código…',
             'promo_invalid'      => 'Código promocional inválido.',
             'promo_error'        => 'Não foi possível validar o código.',
+            'promo_apply_required' => 'Por favor, clique em Aplicar para validar seu código promocional primeiro.',
             'promo_empty'        => 'Digite um código primeiro.',
             'promo_needs_subtotal' => 'Adicione pelo menos 1 passageiro para calcular o desconto.',
         ],
@@ -349,6 +376,10 @@ return [
         'confirm'        => 'Confirmar',
         'cancel'         => 'Cancelar reserva',
         'confirm_cancel' => 'Você tem certeza de que deseja cancelar esta reserva?',
+        'remove' => 'Remover',
+        'confirm_create' => 'Confirmar e criar',
+        'review_booking' => 'Revisar reserva',
+        'apply'          => 'Aplicar',
     ],
 
     // =========================================================
@@ -657,8 +688,18 @@ return [
         // =========================================================
         'toasts' => [
             'success_title' => 'Sucesso',
-            'error_title'   => 'Erro',
+            'deleted_booking_indicator' => '(EXCLUÍDO)',
         ],
+
+        // Checkout Links (for admin-created bookings)
+        'checkout_link_label' => 'Link de pagamento do cliente',
+        'checkout_link_description' => 'Envie este link ao cliente para que ele possa concluir o pagamento de sua reserva.',
+        'checkout_link_copy' => 'Copiar link',
+        'checkout_link_copied' => 'Link copiado!',
+        'checkout_link_copy_failed' => 'Não foi possível copiar o link. Por favor, copie manualmente.',
+        'checkout_link_valid_until' => 'Válido até',
+        'checkout_link_expired' => 'Este link de pagamento expirou ou não é mais válido.',
+        'checkout_link_accessed' => 'Cliente acessou o checkout',
     ],
 
 ];
