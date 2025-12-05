@@ -166,6 +166,9 @@ return [
     'bookings' => [
         'singular' => 'Reserva',
         'plural' => 'Reservas',
+        'customer' => 'Cliente',
+        'payment_link_info' => 'Enlace de pago para el cliente',
+        'regenerate_warning' => 'Advertencia: Al regenerar el enlace, el anterior dejará de funcionar.',
         'steps' => [
             'customer' => 'Cliente',
             'select_tour_date' => 'Seleccionar Tour y Fecha',
@@ -216,6 +219,7 @@ return [
             'price_breakdown' => 'Desglose de Precios',
             'enter_promo' => 'Ingresa código promocional',
             'select_hotel' => 'Seleccionar hotel',
+            'payment_link' => 'Link de Pago',
         ],
 
         'fields' => [
@@ -332,6 +336,14 @@ return [
             'promo_apply_required' => 'Por favor haz clic en Aplicar para validar tu código promocional primero.',
             'promo_empty'          => 'Ingresa un código primero.',
             'promo_needs_subtotal' => 'Agrega al menos 1 pasajero para calcular el descuento.',
+
+            // Capacity warnings
+            'capacity_warning' => 'Advertencia de Capacidad',
+            'capacity_exceeded_confirm' => 'Capacidad excedida (Disponible: :available, Solicitado: :requested). ¿Deseas forzar esta reserva de todos modos?',
+            'max_persons_confirm' => 'Límite global excedido (Máximo: :max, Solicitado: :requested). ¿Deseas forzar esta reserva de todos modos?',
+            'limits_exceeded_confirm' => 'Límites excedidos: :errors. ¿Deseas forzar esta reserva de todos modos?',
+            'force_question' => '¿Deseas forzar esta reserva de todos modos?',
+            'error_title' => '¡Error!',
         ],
 
         'promo' => [
@@ -364,6 +376,7 @@ return [
             'detail_not_found'      => 'Detalles de la reserva no encontrados.',
             'schedule_not_found'    => 'Horario no encontrado.',
             'insufficient_capacity'  => 'No hay capacidad suficiente para ":tour" el :date a las :time. Solicitado: :requested, disponible: :available (máx: :max).',
+            'payment_link_status'    => 'El link de pago solo está disponible para reservas pendientes.',
         ],
 
         'confirm' => [
@@ -395,7 +408,11 @@ return [
         'checkout_link_copied' => '¡Link copiado!',
         'checkout_link_copy_failed' => 'No se pudo copiar el link. Por favor cópialo manualmente.',
         'checkout_link_valid_until' => 'Válido hasta',
-        'checkout_link_expired' => 'Este link de pago ha expirado o ya no es válido.',
+        'checkout_link_expired' => 'El enlace de pago ha expirado',
+        'booking_already_paid' => 'Esta reserva ya ha sido pagada',
+        'payment_link_regenerated' => 'Enlace de pago regenerado exitosamente',
+        'regenerate_payment_link' => 'Regenerar Enlace',
+        'payment_link_expired_label' => 'Enlace expirado',
         'checkout_link_accessed' => 'Cliente accedió al checkout',
     ],
 
@@ -410,6 +427,7 @@ return [
         'confirm_create' => 'Confirmar y Crear',
         'review_booking' => 'Revisar Reserva',
         'apply'          => 'Aplicar',
+        'yes_force'      => 'Sí, Forzar Reserva',
     ],
 
     // =========================================================

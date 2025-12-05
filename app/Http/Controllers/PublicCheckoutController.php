@@ -322,95 +322,65 @@ class PublicCheckoutController extends Controller
         $userId = Auth::id();
         if (!$userId) return redirect()->route('login');
 
+        // Check if this is a booking payment (from admin-created booking)
+        $bookingId = session('pending_booking_payment');
+        if ($bookingId) {
+            // Validate terms acceptance
+            $request->validate([
+                'accept_terms' => ['required', 'accepted'],
+                'scroll_ok'    => ['required', 'in:1'],
+            ], [
+                'accept_terms.required' => __('Debes aceptar los Términos y Políticas para continuar'),
+                'accept_terms.accepted' => __('Debes aceptar los Términos y Políticas para continuar'),
+            ]);
+
+            // Record terms acceptance for booking payment
+            $booking = \App\Models\Booking::find($bookingId);
+            if ($booking) {
+                $locale = app()->getLocale();
+                $policySnapshot = $svc->make($locale);
+
+                try {
+                    DB::table('terms_acceptances')->updateOrInsert(
+                        ['booking_ref' => $booking->booking_id],
+                        [
+                            'user_id'           => $userId,
+                            'cart_ref'          => null,
+                            'accepted_at'       => now(),
+                            'terms_version'     => $policySnapshot['versions']['terms'] ?? 'v1',
+                            'privacy_version'   => $policySnapshot['versions']['privacy'] ?? 'v1',
+                            'policies_snapshot' => json_encode($policySnapshot['snapshot'] ?? [], JSON_UNESCAPED_UNICODE),
+                            'policies_sha256'   => $policySnapshot['sha256'] ?? '',
+                            'ip_address'        => $request->ip(),
+                            'user_agent'        => (string) $request->userAgent(),
+                            'locale'            => $locale,
+                            'timezone'          => config('app.timezone'),
+                            'consent_source'    => 'checkout_booking_payment',
+                            'referrer'          => $request->headers->get('referer'),
+                            'updated_at'        => now(),
+                        ]
+                    );
+                } catch (\Exception $e) {
+                    Log::error('Failed to record terms acceptance for booking payment', [
+                        'error' => $e->getMessage(),
+                        'booking_id' => $bookingId,
+                    ]);
+                }
+            }
+
+            // Clear session and redirect to payment
+            session()->forget('pending_booking_payment');
+            return redirect()->route('payment.show', ['booking_id' => $bookingId]);
+        }
+
+        // Normal cart checkout flow
         $cart = $this->findActiveCartForUser($userId);
         if (!$cart || $cart->items()->count() === 0) {
             return redirect()->route('public.carts.index')
                 ->with('error', __('adminlte::adminlte.emptyCart'));
         }
 
-        $request->validate([
-            'accept_terms' => ['required', 'accepted'],
-            'scroll_ok'    => ['required', 'in:1'],
-        ], [
-            'accept_terms.required' => __('Debes aceptar los Términos y Políticas para continuar'),
-            'accept_terms.accepted' => __('Debes aceptar los Términos y Políticas para continuar'),
-        ]);
-
-        $locale   = app()->getLocale();
-        $fallback = (string) config('app.fallback_locale', 'es');
-
-        // Intentar snapshot desde BD
-        $dbPack   = $this->buildPolicyBlocksFromDB($locale, $fallback);
-        $blocks   = $dbPack['blocks'] ?? [];
-        $versions = $dbPack['versions'] ?? ['terms' => null, 'privacy' => null];
-
-        // Fallback a config si BD vacío
-        $cfgPack  = $svc->make();
-        $useDB    = !empty($blocks);
-
-        // Lo que persistimos como snapshot:
-        // - Si hay BD: guardamos los bloques renderizados (array)
-        // - Si no hay BD: guardamos el snapshot de config (strings)
-        $persistSnapshot = $useDB ? $blocks : ($cfgPack['snapshot'] ?? []);
-        // Para versiones “oficiales”
-        $termsVersion   = $useDB ? ($versions['terms']   ?? 'v1') : ($cfgPack['versions']['terms']   ?? 'v1');
-        $privacyVersion = $useDB ? ($versions['privacy'] ?? 'v1') : ($cfgPack['versions']['privacy'] ?? 'v1');
-
-        // Hash determinístico del contenido persistido
-        $normalized = is_array($persistSnapshot)
-            ? preg_replace('/\s+/', ' ', json_encode($persistSnapshot, JSON_UNESCAPED_UNICODE) ?: '')
-            : preg_replace('/\s+/', ' ', (string) implode('|', (array) $persistSnapshot));
-        $sha = hash('sha256', (string) $normalized);
-
-        $cart->forceFill([
-            'terms_accepted_at' => now(),
-            'terms_version'     => $termsVersion,
-            'privacy_version'   => $privacyVersion,
-            'terms_ip'          => $request->ip(),
-            'policies_snapshot' => $persistSnapshot,
-            'policies_sha256'   => $sha,
-        ])->save();
-
-
-        // Guardar evidencia de aceptación de términos (updateOrInsert para evitar duplicados)
-        try {
-            DB::table('terms_acceptances')->updateOrInsert(
-                // Match condition: find existing record by cart_ref
-                ['cart_ref' => $cart->cart_id ?? $cart->id ?? null],
-                // Values to update or insert
-                [
-                    'user_id'           => $userId,
-                    'booking_ref'       => null, // Will be updated after payment
-                    'accepted_at'       => now(),
-                    'terms_version'     => $termsVersion,
-                    'privacy_version'   => $privacyVersion,
-                    'policies_snapshot' => is_array($persistSnapshot)
-                        ? json_encode($persistSnapshot, JSON_UNESCAPED_UNICODE)
-                        : json_encode((array) $persistSnapshot, JSON_UNESCAPED_UNICODE),
-                    'policies_sha256'   => $sha,
-                    'ip_address'        => $request->ip(),
-                    'user_agent'        => (string) $request->userAgent(),
-                    'locale'            => $locale,
-                    'timezone'          => config('app.timezone'),
-                    'consent_source'    => 'checkout',
-                    'referrer'          => $request->headers->get('referer'),
-                    'updated_at'        => now(),
-                ]
-            );
-
-            Log::info('Terms acceptance recorded/updated', [
-                'user_id' => $userId,
-                'cart_id' => $cart->cart_id ?? $cart->id,
-                'terms_version' => $termsVersion,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to record terms acceptance', [
-                'error' => $e->getMessage(),
-                'user_id' => $userId,
-                'cart_id' => $cart->cart_id ?? $cart->id,
-            ]);
-            // No bloqueamos el flujo si falla el registro
-        }
+        // Terms are now accepted on the payment page, so we skip validation and recording here.
 
         // 🔄 NUEVO FLUJO: Guardar snapshot del carrito en sesión (NO crear bookings aún)
         return $this->processCartSnapshot($request, $cart);
@@ -580,40 +550,110 @@ class PublicCheckoutController extends Controller
     /**
      * Show checkout via token (for admin-created bookings)
      */
-    public function showByToken(string $token)
+    public function showByToken(string $token, PolicySnapshotService $svc)
     {
         $booking = \App\Models\Booking::where('checkout_token', $token)
-            ->with(['detail', 'tour', 'user', 'detail.schedule'])
+            ->with(['detail', 'tour', 'user', 'detail.schedule', 'detail.tourLanguage'])
             ->firstOrFail();
 
         if (!$booking->isCheckoutTokenValid()) {
-            return redirect()->route('home')
-                ->with('error', __('m_bookings.checkout_link_expired'));
+            abort(403, __('m_bookings.checkout_link_expired'));
+        }
+
+        // Check if booking is already paid
+        if ($booking->isPaid()) {
+            abort(403, __('m_bookings.booking_already_paid'));
         }
 
         // Mark checkout as accessed (start timer)
         if (!$booking->checkout_accessed_at) {
             $booking->checkout_accessed_at = now();
             $booking->save();
-
-            // Create/activate cart for timer
-            $cart = Cart::firstOrCreate(
-                ['user_id' => $booking->user_id],
-                [
-                    'is_active' => true,
-                    'expires_at' => now()->addMinutes((int) setting('cart.expiration_minutes', 30))
-                ]
-            );
-
-            if (!$cart->is_active) {
-                $cart->is_active = true;
-                $cart->expires_at = now()->addMinutes((int) setting('cart.expiration_minutes', 30));
-                $cart->save();
-            }
         }
 
-        // Redirect to payment page with booking
-        return redirect()->route('payment.show', ['booking_id' => $booking->booking_id])
-            ->with('info', __('Please complete payment to confirm your booking'));
+        // Login the user if not already logged in
+        if (!Auth::check() || Auth::id() !== $booking->user_id) {
+            Auth::loginUsingId($booking->user_id);
+        }
+
+        // Create or get existing cart for this user
+        $cart = Cart::firstOrCreate(
+            ['user_id' => $booking->user_id],
+            [
+                'is_active' => true,
+                'expires_at' => now()->addMinutes((int) setting('cart.expiration_minutes', 30))
+            ]
+        );
+
+        // Always ensure cart is active and has correct expiration based on current setting
+        $cart->is_active = true;
+        // We force update expiration to match current setting, ensuring user sees the configured time
+        // This fixes the issue where changing the setting didn't update existing carts
+        $cart->expires_at = now()->addMinutes((int) setting('cart.expiration_minutes', 30));
+        $cart->save();
+
+        // Store booking_id in session for later use
+        session(['pending_booking_payment' => $booking->booking_id]);
+
+        // Get policy blocks for checkout page
+        $locale   = app()->getLocale();
+        $fallback = (string) config('app.fallback_locale', 'es');
+
+        $result = $this->buildPolicyBlocksFromDB($locale, $fallback);
+        $blocks = $result['blocks'];
+        $versions = $result['versions'];
+
+        $policySnapshot = $svc->make($locale);
+        $termsVersion = $versions['terms']
+            ?? ($policySnapshot['versions']['terms'] ?? 'v1');
+        $privacyVersion = $versions['privacy']
+            ?? ($policySnapshot['versions']['privacy'] ?? 'v1');
+
+        // Calculate free cancel until
+        $tz = config('app.timezone', 'America/Costa_Rica');
+        $cancellationHours = (int) setting('booking.cancellation_hours', 24);
+
+        $tourDate = $booking->tour_date;
+        $startTime = optional($booking->detail?->schedule)->start_time;
+
+        $freeCancelUntil = null;
+        if ($tourDate && $startTime) {
+            $freeCancelUntil = Carbon::parse("{$tourDate} {$startTime}", $tz)
+                ->subHours($cancellationHours);
+        }
+
+        // Create a mock cart structure for the view
+        $mockCart = (object) [
+            'cart_id' => $cart->cart_id,
+            'user_id' => $booking->user_id,
+            'is_active' => true,
+            'expires_at' => $cart->expires_at,
+            'items' => collect([
+                (object) [
+                    'cart_item_id' => null,
+                    'tour_id' => $booking->tour_id,
+                    'tour' => $booking->tour,
+                    'tour_date' => $booking->tour_date,
+                    'schedule' => $booking->detail?->schedule,
+                    'language' => $booking->detail?->tourLanguage,
+                    'categories' => $booking->detail?->categories ?? [],
+                    'hotel' => $booking->detail?->hotel_id ? \App\Models\HotelList::find($booking->detail->hotel_id) : null,
+                    'meetingPoint' => $booking->detail?->meeting_point_id ? \App\Models\MeetingPoint::find($booking->detail->meeting_point_id) : null,
+                    'notes' => $booking->notes,
+                    'special_requests' => $booking->notes,
+                ]
+            ])
+        ];
+
+        return view('public.checkout', [
+            'cart'            => $mockCart,
+            'policyBlocks'    => $blocks,
+            'termsVersion'    => $termsVersion,
+            'privacyVersion'  => $privacyVersion,
+            'freeCancelUntil' => $freeCancelUntil,
+            'policies'        => $policySnapshot['snapshot'] ?? [],
+            'isBookingPayment' => true, // Flag to indicate this is a booking payment
+            'booking'         => $booking, // Pass booking for reference
+        ]);
     }
 }

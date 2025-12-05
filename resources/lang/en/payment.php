@@ -12,6 +12,12 @@ return [
 
     // Payment Page
     'payment' => 'Payment',
+    'stripe_description' => 'Credit/Debit Card Payment',
+    'paypal_description' => 'PayPal Payment',
+    'tilopay_description' => 'Credit/Debit Card Payment (Tilopay)',
+    'banco_nacional_description' => 'Banco Nacional Transfer',
+    'bac_description' => 'BAC Credomatic Transfer',
+    'bcr_description' => 'Banco de Costa Rica Transfer',
     'payment_information' => 'Payment Information',
     'secure_payment' => 'Secure Payment',
     'select_payment_method' => 'Select Payment Method',
@@ -21,6 +27,8 @@ return [
     'back' => 'Back',
     'processing' => 'Processing...',
     'terms_agreement' => 'By completing this payment, you agree to our terms and conditions.',
+    'terms_agreement_checkbox' => 'I have read and agree to the <a href=":url" target="_blank">Terms and Conditions</a>.',
+    'terms_required' => 'You must accept the terms and conditions to continue.',
 
     // Order Summary
     'order_summary' => 'Order Summary',
@@ -69,4 +77,85 @@ return [
     'payment_cancelled' => 'Payment was cancelled. You can try again when ready.',
     'redirect_paypal' => 'Click Pay to be redirected to PayPal and complete your payment securely.',
     'no_cart_data' => 'No cart data found',
+    'gateway_error' => 'Payment gateway connection error. Please check your internet connection and try again.',
+
+    // Admin / Management (merged from m_payments)
+    'ui' => [
+        'page_title' => 'Payments',
+        'page_heading' => 'Payment Management',
+        'payment_details' => 'Payment Details',
+        'payments_list' => 'Payments List',
+        'filters' => 'Filters',
+        'actions' => 'Actions',
+        'quick_actions' => 'Quick Actions',
+    ],
+
+    'statistics' => [
+        'total_revenue' => 'Total Revenue',
+        'completed_payments' => 'Completed Payments',
+        'pending_payments' => 'Pending Payments',
+        'failed_payments' => 'Failed Payments',
+    ],
+
+    'fields' => [
+        'payment_id' => 'Payment ID',
+        'booking_ref' => 'Booking Ref',
+        'customer' => 'Customer',
+        'tour' => 'Tour',
+        'amount' => 'Amount',
+        'gateway' => 'Gateway',
+        'status' => 'Status',
+        'date' => 'Date',
+        'payment_method' => 'Payment Method',
+        'tour_date' => 'Tour Date',
+        'booking_status' => 'Booking Status',
+    ],
+
+    'filters' => [
+        'search' => 'Search',
+        'search_placeholder' => 'Booking ref, email, name...',
+        'status' => 'Status',
+        'gateway' => 'Gateway',
+        'date_from' => 'Date From',
+        'date_to' => 'Date To',
+        'all' => 'All',
+    ],
+
+    'statuses' => [
+        'pending' => 'Pending',
+        'processing' => 'Processing',
+        'completed' => 'Completed',
+        'failed' => 'Failed',
+        'refunded' => 'Refunded',
+    ],
+
+    'buttons' => [
+        'export_csv' => 'Export CSV',
+        'view_details' => 'View Details',
+        'view_booking' => 'View Booking',
+        'process_refund' => 'Process Refund',
+        'back_to_list' => 'Back to List',
+    ],
+
+    'messages' => [
+        'no_payments_found' => 'No payments found',
+        'booking_deleted' => 'Booking was permanently deleted',
+        'booking_deleted_on' => 'Booking was permanently deleted on',
+    ],
+
+    'info' => [
+        'payment_information' => 'Payment Information',
+        'booking_information' => 'Booking Information',
+        'gateway_response' => 'Gateway Response',
+        'payment_timeline' => 'Payment Timeline',
+        'payment_created' => 'Payment Created',
+        'payment_completed' => 'Payment Completed',
+    ],
+
+    'pagination' => [
+        'showing' => 'Showing',
+        'to' => 'to',
+        'of' => 'of',
+        'results' => 'results',
+    ],
 ];

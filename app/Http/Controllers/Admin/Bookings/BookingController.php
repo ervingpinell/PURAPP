@@ -147,24 +147,30 @@ class BookingController extends Controller
             'detail.hotel',
             'detail.meetingPoint',
             'user',
-            'tour.prices.category',
-            'tour.schedules',
-            'tour.languages',
+            'tour',
             'redemption.promoCode',
         ]);
 
-        $tours         = Tour::with(['prices.category', 'schedules', 'languages'])
+        // Load tours with all relationships like create-simple
+        $tours = Tour::with([
+            'schedules' => fn($q) => $q->orderBy('start_time'),
+            'languages' => fn($q) => $q->orderBy('name'),
+            'prices' => fn($q) => $q->where('is_active', true)
+                ->with('category.translations')
+                ->orderBy('category_id'),
+            'taxes' => fn($q) => $q->where('is_active', true)
+        ])
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
+
         $users         = User::where('is_active', true)->orderBy('full_name')->get();
         $hotels        = HotelList::where('is_active', true)->orderBy('name')->get();
         $meetingPoints = MeetingPoint::where('is_active', true)->orderBy('name')->get();
 
-        // === Parseo de snapshot de categorías -> mapa id => qty
+        // Parse category quantities from booking details
         $categoryQuantitiesById = [];
-        $categoriesSnapshot     = null;
-        $rawCategories          = $booking->detail?->categories;
+        $rawCategories = $booking->detail?->categories;
 
         if (is_string($rawCategories)) {
             try {
@@ -189,78 +195,8 @@ class BookingController extends Controller
             }
         }
 
-        // Totales iniciales
-        $initSubtotal = is_array($categoriesSnapshot) && method_exists($this->pricing, 'calculateSubtotal')
-            ? (float) $this->pricing->calculateSubtotal($categoriesSnapshot)
-            : (float) ($booking->detail->total ?? 0);
-
-        $redemption   = $booking->redemption;
-        $opSnapshot   = $redemption?->operation_snapshot ?: ($redemption?->promoCode?->operation ?? null);
-        $applied      = (float) ($redemption->applied_amount ?? 0);
-        $initDiscount = 0.0;
-        $initTotal    = $initSubtotal;
-
-        if ($opSnapshot === 'subtract' && $applied > 0) {
-            $initDiscount = $applied;
-            $initTotal    = max(0, $initSubtotal - $applied);
-        } elseif ($opSnapshot === 'add' && $applied > 0) {
-            $initTotal    = $initSubtotal + $applied;
-        } else {
-            $initTotal    = (float) ($booking->total ?? $initSubtotal);
-        }
-
-        $initPersons   = array_sum(array_map('intval', $categoryQuantitiesById));
         $bookingLimits = $this->buildBookingLimits();
-
-        // Limites por tour para el front
         $limitsPerTour = app(BookingValidationService::class)->getLimitsForTour($booking->tour);
-
-        // Categorías con nombres traducidos (bootstrap UI)
-        $initialCategories = [];
-        if ($booking->tour && $booking->tour->relationLoaded('prices')) {
-            $locale = app()->getLocale();
-            $initialCategories = $booking->tour->prices
-                ->load('category')
-                ->map(function ($p) use ($locale) {
-                    $cat  = $p->category;
-                    $name = method_exists($cat, 'getTranslatedName')
-                        ? ($cat->getTranslatedName($locale) ?: ($cat->name ?? null))
-                        : ($cat->name ?? null);
-
-                    if (!$name) {
-                        $slug = $cat->slug ?? null;
-                        if ($slug) {
-                            foreach (
-                                [
-                                    "customer_categories.labels.$slug",
-                                    "m_tours.customer_categories.labels.$slug",
-                                ] as $key
-                            ) {
-                                $tr = __($key);
-                                if ($tr !== $key) {
-                                    $name = $tr;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    if (!$name) {
-                        $name = 'Category #' . (int)$p->category_id;
-                    }
-
-                    return [
-                        'id'        => (int)   $p->category_id,
-                        'slug'      => (string)($cat->slug ?? ''),
-                        'name'      => (string)$name,
-                        'price'     => (float) $p->price,
-                        'min'       => (int)   $p->min_quantity,
-                        'max'       => (int)   $p->max_quantity,
-                        'is_active' => (bool)  $p->is_active,
-                    ];
-                })
-                ->values()
-                ->all();
-        }
 
         return view('admin.bookings.edit', compact(
             'booking',
@@ -269,18 +205,18 @@ class BookingController extends Controller
             'hotels',
             'meetingPoints',
             'categoryQuantitiesById',
-            'initSubtotal',
-            'initDiscount',
-            'initTotal',
-            'initPersons',
             'bookingLimits',
-            'limitsPerTour',
-            'initialCategories'
+            'limitsPerTour'
         ));
     }
 
     public function store(Request $request)
     {
+        \Log::info('BookingController@store called', [
+            'all_input' => $request->all(),
+            'method' => $request->method(),
+            'url' => $request->fullUrl(),
+        ]);
         // Normalizar pickup / hotel / meeting point
         $in = $request->all();
         $in['is_other_hotel'] = (bool)($in['is_other_hotel'] ?? false);
@@ -297,34 +233,59 @@ class BookingController extends Controller
         }
 
         $request->replace($in);
+        $request->merge($in);
 
         // Validación
-        $validated = $request->validate([
-            'user_id'           => 'required|exists:users,user_id',
-            'tour_id'           => 'required|exists:tours,tour_id',
-            'schedule_id'       => 'required|exists:schedules,schedule_id',
-            'tour_language_id'  => 'required|exists:tour_languages,tour_language_id',
-            'tour_date'         => 'required|date|after_or_equal:today',
-            'booking_date'      => 'nullable|date',
-            'categories'        => 'required|array|min:1',
-            'categories.*'      => 'required|integer|min:0',
-            'hotel_id'          => 'nullable|integer|exists:hotels_list,hotel_id|exclude_if:is_other_hotel,1',
-            'is_other_hotel'    => 'nullable|boolean',
-            'other_hotel_name'  => 'nullable|string|max:255|required_if:is_other_hotel,1',
-            'status'            => 'required|in:pending,confirmed,cancelled',
-            'meeting_point_id'  => 'nullable|integer|exists:meeting_points,id',
-            'pickup_time'       => 'nullable|date_format:H:i',
-            'notes'             => 'nullable|string|max:1000',
-            'promo_code'        => 'nullable|string|max:100',
-        ]);
+        try {
+            $validated = $request->validate([
+                'user_id'           => 'required|exists:users,user_id',
+                'tour_id'           => 'required|exists:tours,tour_id',
+                'schedule_id'       => 'required|exists:schedules,schedule_id',
+                'tour_language_id'  => 'required|exists:tour_languages,tour_language_id',
+                'tour_date'         => 'required|date|after_or_equal:today',
+                'booking_date'      => 'nullable|date',
+                'categories'        => 'required|array|min:1',
+                'categories.*'      => 'integer|min:0',
+                'status'            => 'nullable|in:pending,confirmed,cancelled',
+                'hotel_id'          => 'nullable|exists:hotels_list,hotel_id',
+                'is_other_hotel'    => 'nullable|boolean',
+                'other_hotel_name'  => 'nullable|required_if:is_other_hotel,true|string|max:255',
+                'meeting_point_id'  => 'nullable|exists:meeting_points,id',
+                'pickup_time'       => 'nullable|date_format:H:i',
+                'notes'             => 'nullable|string|max:1000',
+                'promo_code'        => 'nullable|string|max:100',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed', [
+                'errors' => $e->errors(),
+                'input' => $request->all()
+            ]);
+            throw $e; // Re-throw to let Laravel handle the redirect
+        }
 
-        // Tope global de personas por reserva
+        \Log::info('Validation passed', ['validated' => $validated]);
+
+        // Check if force capacity is requested
+        $forceCapacity = $request->has('force_capacity') && $request->input('force_capacity') == '1';
+
+        // Tope global de personas por reserva (REMOVIDO para admins) -> AHORA CON CONFIRMACIÓN
         $totalPax = array_sum($validated['categories'] ?? []);
         $maxTotal = (int) config('booking.max_persons_per_booking', 12);
 
-        if ($totalPax > $maxTotal) {
-            return back()->withInput()->withErrors([
-                'categories' => __('m_bookings.bookings.validation.max_persons_total', ['max' => $maxTotal])
+        if ($totalPax > $maxTotal && !$forceCapacity) {
+            \Log::warning('Capacity limit exceeded', [
+                'total_pax' => $totalPax,
+                'max_total' => $maxTotal,
+                'force_capacity' => $forceCapacity
+            ]);
+
+            return back()->withInput()->with('capacity_error', [
+                'available' => $maxTotal,
+                'requested' => $totalPax,
+                'message'   => __('m_bookings.bookings.validation.max_persons_confirm', [
+                    'max' => $maxTotal,
+                    'requested' => $totalPax
+                ]) ?? "Global limit exceeded (Max: {$maxTotal}, Requested: {$totalPax}). Do you want to force this booking?"
             ]);
         }
 
@@ -348,33 +309,63 @@ class BookingController extends Controller
                 ]);
             }
 
+            // Check if force capacity is requested (moved up)
+            // $forceCapacity already defined above
+
             // Validar cantidades por categoría (min/max, etc.)
-            $validationResult = $this->validation->validateQuantities($tour, $validated['categories']);
+            // Pasamos $forceCapacity para saltar límites SOLO si el usuario ya confirmó
+            $validationResult = $this->validation->validateQuantities($tour, $validated['categories'], $forceCapacity);
+
             if (!$validationResult['valid']) {
                 $errorMsg = implode(' ', $validationResult['errors']);
+
+                // Si no estamos forzando, pedimos confirmación
+                if (!$forceCapacity) {
+                    return back()->withInput()->with('capacity_error', [
+                        'available' => 'N/A',
+                        'requested' => 'N/A',
+                        'message'   => __('m_bookings.bookings.validation.limits_exceeded_confirm', ['errors' => $errorMsg])
+                            ?? "Limits exceeded: $errorMsg. Do you want to force this booking?"
+                    ]);
+                }
+
+                // Si ya forzamos y sigue fallando (ej. 0 pax), error real
                 return back()->withInput()->withErrors(['categories' => $errorMsg]);
             }
 
             // Validar capacidad restante
-            $remaining = $this->capacity->remainingCapacity(
-                $tour,
-                $schedule,
-                $validated['tour_date'],
-                excludeBookingId: null,
-                countHolds: true
-            );
+            // Si forceCapacity es true, saltamos esta validación manual porque el BookingCreator
+            // se encargará de ignorarla o validarla según el flag validateCapacity.
+            // Sin embargo, para dar feedback inmediato antes de llamar al servicio:
+            if (!$forceCapacity) {
+                $remaining = $this->capacity->remainingCapacity(
+                    $tour,
+                    $schedule,
+                    $validated['tour_date'],
+                    excludeBookingId: null,
+                    countHolds: true
+                );
 
-            if ($totalPax > $remaining) {
-                $friendly = __('m_bookings.bookings.errors.insufficient_capacity', [
-                    'tour'      => $tour->name,
-                    'date'      => \Carbon\Carbon::parse($validated['tour_date'])->translatedFormat('M d, Y'),
-                    'time'      => \Carbon\Carbon::parse($schedule->start_time)->format('g:i A'),
-                    'requested' => $totalPax,
-                    'available' => $remaining,
-                    'max'       => $this->capacity->resolveMaxCapacity($tour, $schedule, $validated['tour_date']),
-                ]);
+                if ($totalPax > $remaining) {
+                    $friendly = __('m_bookings.bookings.errors.insufficient_capacity', [
+                        'tour'      => $tour->name,
+                        'date'      => \Carbon\Carbon::parse($validated['tour_date'])->translatedFormat('M d, Y'),
+                        'time'      => \Carbon\Carbon::parse($schedule->start_time)->format('g:i A'),
+                        'requested' => $totalPax,
+                        'available' => $remaining,
+                        'max'       => $this->capacity->resolveMaxCapacity($tour, $schedule, $validated['tour_date']),
+                    ]);
 
-                return back()->withInput()->withErrors(['capacity' => $friendly]);
+                    // Return back with special session flag to show confirmation modal
+                    return back()->withInput()->with('capacity_error', [
+                        'available' => $remaining,
+                        'requested' => $totalPax,
+                        'message'   => __('m_bookings.bookings.validation.capacity_exceeded_confirm', [
+                            'available' => $remaining,
+                            'requested' => $totalPax
+                        ]) ?? "Capacity exceeded (Available: {$remaining}, Requested: {$totalPax}). Do you want to force this booking?"
+                    ]);
+                }
             }
 
             // Payload para BookingCreator
@@ -396,8 +387,43 @@ class BookingController extends Controller
                 'notes'             => $validated['notes'] ?? null,
             ];
 
-            // Crear booking usando tu servicio
-            $booking = $this->creator->create($payload, validateCapacity: true, countHolds: true);
+            \Log::info('Calling BookingCreator with payload', ['payload' => $payload]);
+
+            try {
+                // Crear booking usando tu servicio
+                // Si forceCapacity es true, pasamos validateCapacity: false
+                $booking = $this->creator->create(
+                    $payload,
+                    validateCapacity: !$forceCapacity,
+                    countHolds: true
+                );
+            } catch (\RuntimeException $e) {
+                // Check if it's a capacity error
+                $msg = $e->getMessage();
+                $json = json_decode($msg, true);
+
+                if (json_last_error() === JSON_ERROR_NONE && isset($json['type']) && $json['type'] === 'capacity') {
+                    // Capacity error detected
+                    \Log::warning('Capacity error caught', ['json' => $json]);
+
+                    // Return back with special session flag to show confirmation modal
+                    return back()->withInput()->with('capacity_error', [
+                        'available' => $json['available'],
+                        'requested' => $json['requested'],
+                        'message'   => __('m_bookings.bookings.validation.capacity_exceeded_confirm', [
+                            'available' => $json['available'],
+                            'requested' => $json['requested']
+                        ]) ?? "Capacity exceeded (Available: {$json['available']}, Requested: {$json['requested']}). Do you want to force this booking?"
+                    ]);
+                }
+
+                throw $e; // Re-throw other runtime exceptions
+            }
+
+            \Log::info('BookingCreator returned successfully', [
+                'booking_id' => $booking->booking_id,
+                'reference' => $booking->booking_reference
+            ]);
         } catch (\Throwable $e) {
             \Log::error('Admin booking store error (create): ' . $e->getMessage(), [
                 'trace'    => $e->getTraceAsString(),
@@ -695,9 +721,14 @@ class BookingController extends Controller
                     ]);
             }
 
-            // Snapshot + subtotal
-            $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($newTour, $validated['categories']);
-            $detailSubtotal     = $this->pricing->calculateSubtotal($categoriesSnapshot);
+            // Snapshot + subtotal (with date-based pricing)
+            $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($newTour, $validated['categories'], $validated['tour_date']);
+
+            // Calculate totals (subtotal, taxes)
+            $totals = $this->pricing->calculateTotals($categoriesSnapshot);
+            $detailSubtotal = $totals['subtotal'];
+            $taxesTotal     = $totals['tax_amount'];
+            $taxesBreakdown = $totals['taxes_breakdown'];
 
             // Promo
             $promo = null;
@@ -712,7 +743,9 @@ class BookingController extends Controller
                 if ($promo && method_exists($promo, 'hasRemainingUses') && !$promo->hasRemainingUses()) $promo = null;
             }
 
-            $total = $this->pricing->applyPromo($detailSubtotal, $promo);
+            // Total final (con promo aplicada al subtotal) + impuestos
+            $discountedSubtotal = $this->pricing->applyPromo($detailSubtotal, $promo);
+            $total = $discountedSubtotal + $taxesTotal;
 
             // Cabecera
             $booking->update([
@@ -739,6 +772,8 @@ class BookingController extends Controller
                 'tour_language_id'  => (int)$validated['tour_language_id'],
                 'categories'        => $categoriesSnapshot,
                 'total'             => $detailSubtotal,
+                'taxes_breakdown'   => $taxesBreakdown,
+                'taxes_total'       => $taxesTotal,
                 'hotel_id'          => !empty($validated['is_other_hotel']) ? null : ($validated['hotel_id'] ?? null),
                 'is_other_hotel'    => (bool)($validated['is_other_hotel'] ?? false),
                 'other_hotel_name'  => $validated['other_hotel_name'] ?? null,
@@ -1202,6 +1237,11 @@ class BookingController extends Controller
         $locale = app()->getLocale();
         $tourDate = $request->input('tour_date');
 
+        \Log::info('BookingController@getCategories called', [
+            'tour_id' => $tour->tour_id,
+            'tour_date' => $tourDate
+        ]);
+
         $query = $tour->prices()
             ->where('tour_prices.is_active', true)
             ->with('category')
@@ -1222,9 +1262,23 @@ class BookingController extends Controller
                         ->whereNull('valid_until');
                 });
             });
+
+            // Prioritize seasonal prices
+            $query->orderByRaw('CASE WHEN valid_from IS NOT NULL OR valid_until IS NOT NULL THEN 0 ELSE 1 END');
         }
 
-        $categories = $query->get()
+        $allPrices = $query->get();
+
+        // Deduplicate: if we have multiple prices for the same category (e.g. seasonal + default),
+        // the query order (seasonal first) + this loop will keep the first one encountered.
+        $uniquePrices = [];
+        foreach ($allPrices as $p) {
+            if (!isset($uniquePrices[$p->category_id])) {
+                $uniquePrices[$p->category_id] = $p;
+            }
+        }
+
+        $categories = collect($uniquePrices)
             ->map(function ($price) use ($locale) {
                 $cat  = $price->category;
                 $slug = $cat->slug ?? '';
@@ -1254,13 +1308,14 @@ class BookingController extends Controller
                 }
 
                 return [
-                    'id'        => (int)$price->category_id,
-                    'slug'      => (string)$slug,
-                    'name'      => (string)$name,
-                    'price'     => (float)$price->price,
-                    'min'       => (int)$price->min_quantity,
-                    'max'       => (int)$price->max_quantity,
-                    'is_active' => (bool)$price->is_active,
+                    'id'           => (int)$price->category_id,
+                    'slug'         => (string)$slug,
+                    'name'         => (string)$name,
+                    'price'        => (float)$price->price,
+                    'min'          => (int)$price->min_quantity,
+                    'max'          => (int)$price->max_quantity,
+                    'is_active'    => (bool)$price->is_active,
+                    'season_label' => $price->season_label, // Include season label
                 ];
             })
             ->values()
@@ -1355,6 +1410,161 @@ class BookingController extends Controller
                 'trace' => $e->getTraceAsString(),
                 'to'    => $userMail,
             ]);
+        }
+    }
+    /**
+     * Generate payment link for a booking
+     */
+    public function generatePaymentLink(Booking $booking)
+    {
+        try {
+            // Load payments relationship if not already loaded
+            if (!$booking->relationLoaded('payments')) {
+                $booking->load('payments');
+            }
+
+            // Check if booking is already paid
+            $isPaid = false;
+            if ($booking->payments->isNotEmpty()) {
+                $latestPayment = $booking->payments->sortByDesc('created_at')->first();
+                $isPaid = $latestPayment && $latestPayment->status === 'completed';
+            }
+
+            if ($isPaid) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('m_bookings.bookings.errors.payment_already_completed') ?? 'This booking has already been paid.'
+                ], 400);
+            }
+
+            // Use the new token-based URL
+            $url = $booking->getPaymentUrl();
+
+            return response()->json([
+                'success' => true,
+                'url' => $url
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error generating payment link: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error generating link'
+            ], 500);
+        }
+    }
+    /**
+     * Regenerate payment link for a booking
+     */
+    public function regeneratePaymentLink(Booking $booking)
+    {
+        try {
+            // Load payments relationship if not already loaded
+            if (!$booking->relationLoaded('payments')) {
+                $booking->load('payments');
+            }
+
+            // Check if booking is already paid
+            $isPaid = false;
+            if ($booking->payments->isNotEmpty()) {
+                $latestPayment = $booking->payments->sortByDesc('created_at')->first();
+                $isPaid = $latestPayment && $latestPayment->status === 'completed';
+            }
+
+            if ($isPaid) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('m_bookings.bookings.errors.payment_already_completed') ?? 'This booking has already been paid.'
+                ], 400);
+            }
+
+            // Regenerate payment token (invalidates old link)
+            $newToken = $booking->regeneratePaymentToken();
+
+            \Log::info('Payment link regenerated', [
+                'booking_id' => $booking->booking_id,
+                'admin_user_id' => auth()->id(),
+                'token_preview' => substr($newToken, 0, 8) . '...',
+            ]);
+
+            $url = $booking->getPaymentUrl();
+
+            return response()->json([
+                'success' => true,
+                'url' => $url,
+                'message' => __('m_bookings.payment_link_regenerated') ?? 'Payment link regenerated successfully'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error regenerating payment link: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error regenerating link'
+            ], 500);
+        }
+    }
+    /**
+     * Validate capacity for a potential booking (AJAX)
+     */
+    public function validateCapacity(Request $request)
+    {
+        try {
+            // Basic validation of inputs needed for capacity check
+            $validated = $request->validate([
+                'tour_id' => 'required|integer|exists:tours,tour_id',
+                'tour_date' => 'required|date',
+                'schedule_id' => 'required|integer|exists:schedules,schedule_id',
+                'categories' => 'required|array',
+                'categories.*' => 'integer|min:0',
+            ]);
+
+            $totalPax = array_sum($validated['categories'] ?? []);
+            $maxTotal = (int) config('booking.max_persons_per_booking', 12);
+
+            // 1. Check Global Limit
+            if ($totalPax > $maxTotal) {
+                return response()->json([
+                    'success' => false,
+                    'type' => 'global_limit',
+                    'available' => $maxTotal,
+                    'requested' => $totalPax,
+                    'message' => __('m_bookings.bookings.validation.max_persons_confirm', [
+                        'max' => $maxTotal,
+                        'requested' => $totalPax
+                    ]) ?? "Global limit exceeded (Max: {$maxTotal}, Requested: {$totalPax}). Do you want to force this booking?"
+                ]);
+            }
+
+            // 2. Check Tour Capacity
+            $tour = Tour::findOrFail((int)$validated['tour_id']);
+            $schedule = Schedule::findOrFail((int)$validated['schedule_id']);
+
+            $remaining = $this->capacity->remainingCapacity(
+                $tour,
+                $schedule,
+                $validated['tour_date'],
+                excludeBookingId: null,
+                countHolds: true
+            );
+
+            if ($totalPax > $remaining) {
+                return response()->json([
+                    'success' => false,
+                    'type' => 'tour_capacity',
+                    'available' => $remaining,
+                    'requested' => $totalPax,
+                    'message' => __('m_bookings.bookings.validation.capacity_exceeded_confirm', [
+                        'available' => $remaining,
+                        'requested' => $totalPax
+                    ]) ?? "Capacity exceeded (Available: {$remaining}, Requested: {$totalPax}). Do you want to force this booking?"
+                ]);
+            }
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Log::error('Error validating capacity: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error validating capacity'
+            ], 500);
         }
     }
 }

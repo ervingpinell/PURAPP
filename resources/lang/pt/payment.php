@@ -3,6 +3,8 @@
 return [
     // Payment Page
     'payment' => 'Pagamento',
+    'stripe_description' => 'Pagamento com Cartão de Crédito/Débito',
+    'paypal_description' => 'Pagamento com PayPal',
     'payment_information' => 'Informações de Pagamento',
     'secure_payment' => 'Pagamento Seguro',
     'select_payment_method' => 'Selecione o método de pagamento',

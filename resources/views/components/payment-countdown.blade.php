@@ -23,6 +23,8 @@
             return;
         }
 
+        let countdownInterval;
+
         function updateCountdown() {
             // Use global cartCountdown if available
             if (!window.cartCountdown) {
@@ -34,7 +36,7 @@
 
             if (remainingSeconds <= 0) {
                 // Time's up - redirect to cart
-                clearInterval(countdownInterval);
+                if (countdownInterval) clearInterval(countdownInterval);
                 window.location.href = '{{ route("public.carts.index") }}';
                 return;
             }
@@ -60,7 +62,7 @@
                 updateCountdown();
 
                 // Update every second
-                const countdownInterval = setInterval(updateCountdown, 1000);
+                countdownInterval = setInterval(updateCountdown, 1000);
 
                 // Store interval ID to clear it later if needed
                 window.paymentCountdownInterval = countdownInterval;

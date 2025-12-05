@@ -165,6 +165,9 @@ return [
     'bookings' => [
         'singular' => 'Booking',
         'plural' => 'Bookings',
+        'customer' => 'Customer',
+        'payment_link_info' => 'Customer payment link',
+        'regenerate_warning' => 'Warning: Regenerating the link will invalidate the previous one.',
         'steps' => [
             'customer' => 'Customer',
             'select_tour_date' => 'Select Tour & Date',
@@ -396,6 +399,10 @@ return [
         'checkout_link_copy_failed' => 'Could not copy link. Please copy it manually.',
         'checkout_link_valid_until' => 'Valid until',
         'checkout_link_expired' => 'This payment link has expired or is no longer valid.',
+        'booking_already_paid' => 'This booking has already been paid',
+        'payment_link_regenerated' => 'Payment link regenerated successfully',
+        'regenerate_payment_link' => 'Regenerate Link',
+        'payment_link_expired_label' => 'Link expired',
         'checkout_link_accessed' => 'Customer accessed checkout',
     ],
 

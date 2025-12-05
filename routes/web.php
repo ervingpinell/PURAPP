@@ -254,6 +254,26 @@ Route::prefix('webhooks/payment')->name('webhooks.payment.')->group(function () 
 
 /*
 |--------------------------------------------------------------------------
+| Public Payment Token Route (no auth required)
+|--------------------------------------------------------------------------
+*/
+Route::get('/pay/{token}', [\App\Http\Controllers\PaymentController::class, 'showByToken'])
+    ->middleware(['throttle:10,1', SetLocale::class])
+    ->name('payment.token');
+
+// Terms & Conditions Route (Redirects to policies for now)
+Route::get('/terms', function () {
+    return redirect()->route('policies.index');
+})->name('public.terms');
+
+// Payment initiate - works for both authenticated and token-based payments
+$paymentThrottle = app()->environment('local') ? '100,1' : '20,1';
+Route::post('/payment/record-terms', [\App\Http\Controllers\PaymentController::class, 'recordTerms'])->name('payment.record-terms');
+Route::post('/payment/initiate', [\App\Http\Controllers\PaymentController::class, 'initiate'])
+    ->name('payment.initiate');
+
+/*
+|--------------------------------------------------------------------------
 | Localized group
 |--------------------------------------------------------------------------
 */
@@ -418,11 +438,6 @@ Route::middleware([SetLocale::class])->group(function () {
         // Payment
         Route::get('/payment', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payment.show');
 
-        // Dynamic throttle: 100 req/min in local, 20 req/min in production
-        $paymentThrottle = app()->environment('local') ? '100,1' : '20,1';
-        Route::post('/payment/initiate', [\App\Http\Controllers\PaymentController::class, 'initiate'])
-            ->middleware("throttle:{$paymentThrottle}")
-            ->name('payment.initiate');
         Route::get('/payment/confirm', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.confirm');
         Route::get('/payment/return', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.return'); // PayPal return URL
         Route::get('/payment/cancel', [\App\Http\Controllers\PaymentController::class, 'cancel'])->name('payment.cancel');
@@ -798,6 +813,15 @@ Route::middleware([SetLocale::class])->group(function () {
 
                         // Calendar
                         Route::get('reserved', 'reservedSeats')->name('reserved');
+
+                        // Payment Link
+                        // Validate Capacity (AJAX)
+                        Route::post('validate-capacity', 'validateCapacity')->name('validate_capacity');
+
+
+                        // Payment Link
+                        Route::post('{booking}/payment-link', 'generatePaymentLink')->name('payment_link');
+                        Route::post('{booking}/regenerate-payment-link', 'regeneratePaymentLink')->name('regenerate_payment_link');
                         Route::get('calendar-data', 'calendarData')->name('calendarData');
                         Route::get('calendar', 'calendar')->name('calendar');
 
@@ -996,13 +1020,3 @@ Route::post('/cookies/accept', [CookieConsentController::class, 'accept'])
 Route::post('/cookies/reject', [CookieConsentController::class, 'reject'])
     ->name('cookies.reject')
     ->middleware('throttle:10,1');
-
-// Temporary Test Route for PayPal
-Route::get('/test-paypal', function () {
-    try {
-        $gateway = app(\App\Services\PaymentGateway\PaymentGatewayManager::class)->driver('paypal');
-        return 'PayPal Gateway Initialized Successfully. Check logs for details.';
-    } catch (\Exception $e) {
-        return 'Error: ' . $e->getMessage() . '<br>' . $e->getTraceAsString();
-    }
-});

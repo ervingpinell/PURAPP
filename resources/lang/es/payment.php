@@ -3,6 +3,12 @@
 return [
     // Payment Page
     'payment' => 'Pago',
+    'stripe_description' => 'Pago con Tarjeta de Crédito/Débito',
+    'paypal_description' => 'Pago con PayPal',
+    'tilopay_description' => 'Pago con Tarjeta de Crédito/Débito (Tilopay)',
+    'banco_nacional_description' => 'Transferencia Banco Nacional',
+    'bac_description' => 'Transferencia BAC Credomatic',
+    'bcr_description' => 'Transferencia Banco de Costa Rica',
     'payment_information' => 'Información de Pago',
     'select_payment_method' => 'Selecciona tu método de pago',
     'secure_payment' => 'Pago Seguro',
@@ -12,6 +18,8 @@ return [
     'back' => 'Volver',
     'processing' => 'Procesando...',
     'terms_agreement' => 'Al completar este pago, aceptas nuestros términos y condiciones.',
+    'terms_agreement_checkbox' => 'He leído y acepto los <a href=":url" target="_blank">Términos y Condiciones</a>.',
+    'terms_required' => 'Debes aceptar los términos y condiciones para continuar.',
 
     // Order Summary
     'order_summary' => 'Resumen del Pedido',
@@ -60,4 +68,85 @@ return [
     'payment_cancelled' => 'El pago fue cancelado. Puedes intentar nuevamente cuando estés listo.',
     'redirect_paypal' => 'Haz clic en Pagar para ser redirigido a PayPal y completar tu pago de forma segura.',
     'no_cart_data' => 'No se encontraron datos del carrito',
+    'gateway_error' => 'Error de conexión con la pasarela de pago. Por favor verifica tu conexión a internet e intenta nuevamente.',
+
+    // Admin / Management (merged from m_payments)
+    'ui' => [
+        'page_title' => 'Pagos',
+        'page_heading' => 'Gestión de Pagos',
+        'payment_details' => 'Detalles del Pago',
+        'payments_list' => 'Lista de Pagos',
+        'filters' => 'Filtros',
+        'actions' => 'Acciones',
+        'quick_actions' => 'Acciones Rápidas',
+    ],
+
+    'statistics' => [
+        'total_revenue' => 'Ingresos Totales',
+        'completed_payments' => 'Pagos Completados',
+        'pending_payments' => 'Pagos Pendientes',
+        'failed_payments' => 'Pagos Fallidos',
+    ],
+
+    'fields' => [
+        'payment_id' => 'ID de Pago',
+        'booking_ref' => 'Ref. Reserva',
+        'customer' => 'Cliente',
+        'tour' => 'Tour',
+        'amount' => 'Monto',
+        'gateway' => 'Pasarela',
+        'status' => 'Estado',
+        'date' => 'Fecha',
+        'payment_method' => 'Método de Pago',
+        'tour_date' => 'Fecha del Tour',
+        'booking_status' => 'Estado de Reserva',
+    ],
+
+    'filters' => [
+        'search' => 'Buscar',
+        'search_placeholder' => 'Ref. reserva, email, nombre...',
+        'status' => 'Estado',
+        'gateway' => 'Pasarela',
+        'date_from' => 'Fecha Desde',
+        'date_to' => 'Fecha Hasta',
+        'all' => 'Todos',
+    ],
+
+    'statuses' => [
+        'pending' => 'Pendiente',
+        'processing' => 'Procesando',
+        'completed' => 'Completado',
+        'failed' => 'Fallido',
+        'refunded' => 'Reembolsado',
+    ],
+
+    'buttons' => [
+        'export_csv' => 'Exportar CSV',
+        'view_details' => 'Ver Detalles',
+        'view_booking' => 'Ver Reserva',
+        'process_refund' => 'Procesar Reembolso',
+        'back_to_list' => 'Volver a la Lista',
+    ],
+
+    'messages' => [
+        'no_payments_found' => 'No se encontraron pagos',
+        'booking_deleted' => 'La reserva fue eliminada permanentemente',
+        'booking_deleted_on' => 'La reserva fue eliminada permanentemente el',
+    ],
+
+    'info' => [
+        'payment_information' => 'Información del Pago',
+        'booking_information' => 'Información de la Reserva',
+        'gateway_response' => 'Respuesta de la Pasarela',
+        'payment_timeline' => 'Línea de Tiempo del Pago',
+        'payment_created' => 'Pago Creado',
+        'payment_completed' => 'Pago Completado',
+    ],
+
+    'pagination' => [
+        'showing' => 'Mostrando',
+        'to' => 'a',
+        'of' => 'de',
+        'results' => 'resultados',
+    ],
 ];

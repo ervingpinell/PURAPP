@@ -11,14 +11,14 @@ class BookingValidationService
      * Valida cantidades según categorías activas del tour
      * $quantities = ['category_id' => quantity, ...]
      */
-    public function validateQuantities(Tour $tour, array $quantities): array
+    public function validateQuantities(Tour $tour, array $quantities, bool $skipGlobalLimit = false): array
     {
         $errors   = [];
         $totalPax = array_sum(array_map('intval', $quantities));
 
         // Límite global
         $maxGlobal = (int) config('booking.max_persons_per_booking', 12);
-        if ($totalPax > $maxGlobal) {
+        if (!$skipGlobalLimit && $totalPax > $maxGlobal) {
             $errors[] = __('m_bookings.validation.max_persons_exceeded', ['max' => $maxGlobal]);
         }
         if ($totalPax < 1) {
@@ -48,7 +48,7 @@ class BookingValidationService
                     'min'      => $cat->min_quantity
                 ]);
             }
-            if ($qty > $cat->max_quantity) {
+            if (!$skipGlobalLimit && $qty > $cat->max_quantity) {
                 $errors[] = __('m_bookings.validation.max_category_exceeded', [
                     'category' => $cat->name,
                     'max'      => $cat->max_quantity

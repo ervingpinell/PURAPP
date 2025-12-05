@@ -178,9 +178,11 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
           </div>
 
           <div class="d-flex gap-3 mt-3">
+            @if(!isset($isBookingPayment) || !$isBookingPayment)
             <a href="{{ route('public.carts.index') }}" class="btn btn-back">
               <i class="fas fa-arrow-left"></i>{{ __('m_checkout.buttons.back') }}
             </a>
+            @endif
             <button
               type="submit"
               id="btn-proceed"
@@ -471,10 +473,17 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
       <div class="summary-footer">
         <div class="totals-section">
           @php
+          // Check if this is a booking payment (stdClass) or regular cart (Cart model)
+          if (isset($isBookingPayment) && $isBookingPayment && isset($booking)) {
+          // For booking payments, use the booking total
+          $calculatedTotal = (float) $booking->total;
+          $displaySubtotal = (float) ($booking->detail?->total ?? $booking->total);
+          } else {
           // Use the centralized Cart::calculateTotal() method
           // This uses prices from the stored snapshot (already calculated with correct date)
           $calculatedTotal = $cart->calculateTotal();
           $displaySubtotal = $calculatedTotal;
+          }
           @endphp
 
           <div class="total-row">
@@ -527,9 +536,11 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
           <i class="fas fa-list"></i>{{ __('m_checkout.buttons.view_details') }}
         </button>
 
+        @if(!isset($isBookingPayment) || !$isBookingPayment)
         <a href="{{ route('public.carts.index') }}" class="btn btn-edit">
           <i class="fas fa-edit"></i>{{ __('m_checkout.buttons.edit') }}
         </a>
+        @endif
       </div>
     </div>
   </div>

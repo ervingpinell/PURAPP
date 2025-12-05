@@ -20,6 +20,8 @@ class Booking extends Model
         'tour_id',
         'tour_language_id',
         'booking_reference',
+        'payment_token',
+        'payment_token_created_at',
         'booking_date',
         'status',
         'total',
@@ -32,8 +34,22 @@ class Booking extends Model
         'checkout_token_expires_at',
         'checkout_accessed_at',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($booking) {
+            if (!$booking->payment_token) {
+                $booking->payment_token = bin2hex(random_bytes(32));
+                $booking->payment_token_created_at = now();
+            }
+        });
+    }
+
     protected $casts = [
         'booking_date'              => 'datetime',
+        'payment_token_created_at'  => 'datetime',
         'is_active'                 => 'boolean',
         'total'                     => 'decimal:2',
         'checkout_token_expires_at' => 'datetime',
@@ -233,5 +249,33 @@ class Booking extends Model
             && $this->checkout_token_expires_at
             && $this->checkout_token_expires_at->isFuture()
             && $this->status === 'pending';
+    }
+
+    // ---------------- Payment Token Methods ----------------
+
+    /**
+     * Get the payment URL for this booking (token-based, no auth required)
+     */
+    public function getPaymentUrl(): string
+    {
+        // Ensure booking has a payment token
+        if (!$this->payment_token) {
+            $this->payment_token = bin2hex(random_bytes(32));
+            $this->save();
+        }
+
+        return route('payment.token', ['token' => $this->payment_token]);
+    }
+
+    /**
+     * Regenerate payment token (if compromised)
+     */
+    public function regeneratePaymentToken(): string
+    {
+        $this->payment_token = bin2hex(random_bytes(32));
+        $this->payment_token_created_at = now();
+        $this->save();
+
+        return $this->payment_token;
     }
 }

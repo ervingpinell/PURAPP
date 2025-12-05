@@ -95,6 +95,16 @@ class SettingsSeeder extends Seeder
                 'validation_rules' => json_encode(['required', 'integer', 'min:0', 'max:168']),
                 'sort_order' => 11,
             ],
+            [
+                'key' => 'booking.payment_link_expiration_hours',
+                'value' => '2',
+                'type' => 'integer',
+                'category' => 'booking',
+                'label' => 'Duración del enlace de pago (horas)',
+                'description' => 'Horas de validez del enlace de pago antes de expirar',
+                'validation_rules' => json_encode(['required', 'integer', 'min:1', 'max:168']),
+                'sort_order' => 12,
+            ],
 
             // ==================== EMAIL ====================
             [

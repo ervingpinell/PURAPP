@@ -78,7 +78,9 @@ class DashBoardController extends Controller
             'my-bookings',
             'my-cart',
             'checkout',
-            'payment'
+            'payment',
+            'dashboard',
+            'pay',
         ];
 
         $first = ltrim($pathNoLocale, '/');

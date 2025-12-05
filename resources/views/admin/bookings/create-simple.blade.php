@@ -9,8 +9,31 @@
 @section('content')
 <div class="container-fluid">
     <div class="booking-form-wrapper">
+        @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+            <h5><i class="icon fas fa-ban"></i> {{ __('m_bookings.bookings.validation.error_title') ?? 'Error!' }}</h5>
+            <ul>
+                @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
+
+        {{-- Debug: Check if capacity_error session exists --}}
+        @if(session('capacity_error'))
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+            <h5><i class="icon fas fa-exclamation-triangle"></i> DEBUG: Capacity Error Detected</h5>
+            <p>{{ session('capacity_error')['message'] ?? 'No message' }}</p>
+            <p>Available: {{ session('capacity_error')['available'] ?? 'N/A' }}, Requested: {{ session('capacity_error')['requested'] ?? 'N/A' }}</p>
+        </div>
+        @endif
+
         <form id="booking-form" method="POST" action="{{ route('admin.bookings.store') }}">
             @csrf
+            <input type="hidden" name="status" value="pending">
 
             {{-- Tour Cover Image --}}
             <div id="tour-cover-container" style="display:none;" class="mb-3">
@@ -512,12 +535,59 @@
         }
     }
 </style>
+{{-- Capacity Confirmation Modal --}}
+<div class="modal fade" id="capacityModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content bg-warning">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle"></i> {{ __('m_bookings.bookings.validation.capacity_warning') ?? 'Capacity Warning' }}</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="capacity-message"></p>
+                <p>{{ __('m_bookings.bookings.validation.force_question') ?? 'Do you want to force this booking anyway?' }}</p>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-outline-dark" data-dismiss="modal">{{ __('m_bookings.actions.cancel') ?? 'Cancel' }}</button>
+                <button type="button" id="btn-force-submit" class="btn btn-outline-dark">
+                    <i class="fas fa-check"></i> {{ __('m_bookings.actions.yes_force') ?? 'Yes, Force Booking' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if(session('capacity_error'))
+<script>
+    $(document).ready(function() {
+        const error = @json(session('capacity_error'));
+        $('#capacity-message').text(error.message);
+        $('#capacityModal').modal('show');
+
+        $('#btn-force-submit').on('click', function() {
+            // Add hidden input for force
+            $('<input>').attr({
+                type: 'hidden',
+                name: 'force_capacity',
+                value: '1'
+            }).appendTo('#booking-form');
+
+            $('#capacityModal').modal('hide');
+            $('#booking-form').submit();
+        });
+    });
+</script>
+@endif
 @stop
 
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+    console.log('Script block loaded');
     $(document).ready(function() {
+        console.log('Document ready fired');
         // Initialize Select2
         $('.select2').select2({
             theme: 'bootstrap4',
@@ -906,6 +976,8 @@
         }
         $('#btn-review').on('click', function() {
             console.log('Review button clicked');
+            const $btn = $(this);
+
             // 1. Validate all required fields
             const requiredFields = {
                 'user_id': '{{ __("m_bookings.bookings.fields.customer") }}',
@@ -973,14 +1045,65 @@
                 return;
             }
 
-            // All validations passed, proceed with building summary
+            // 6. Validate Capacity via AJAX
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> {{ __("m_bookings.bookings.ui.verifying") ?? "Verifying..." }}');
+
+            // Collect form data for validation
+            const formData = $('#booking-form').serializeArray();
+            // Convert to object for easier handling if needed, but serializeArray works for jQuery ajax data
+
+            $.ajax({
+                url: "{{ route('admin.bookings.validate_capacity') }}",
+                method: 'POST',
+                data: formData,
+                success: function(response) {
+                    $btn.prop('disabled', false).html('<i class="fas fa-check-circle mr-2"></i> {{ __("m_bookings.actions.review_booking") ?? "Review Booking" }}');
+
+                    // Reset force capacity flag
+                    $('input[name="force_capacity"]').remove();
+
+                    if (response.success) {
+                        // No capacity issues
+                        showReviewModal(null);
+                    } else {
+                        // Capacity exceeded - show warning in modal
+                        // Add hidden input to force capacity if user confirms
+                        $('<input>').attr({
+                            type: 'hidden',
+                            name: 'force_capacity',
+                            value: '1'
+                        }).appendTo('#booking-form');
+
+                        showReviewModal(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    $btn.prop('disabled', false).html('<i class="fas fa-check-circle mr-2"></i> {{ __("m_bookings.actions.review_booking") ?? "Review Booking" }}');
+                    console.error('Capacity validation error:', xhr);
+                    // If validation fails (e.g. 422), show error
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON.errors;
+                        let errorMsg = 'Validation Error:\n';
+                        for (const field in errors) {
+                            errorMsg += `- ${errors[field][0]}\n`;
+                        }
+                        alert(errorMsg);
+                    } else {
+                        alert('Error checking capacity. Please try again.');
+                    }
+                }
+            });
+        });
+
+        function showReviewModal(warningMessage) {
+            // Build summary HTML (same as before)
             const tourName = $('#tour_id option:selected').text();
             const tourDate = $('#tour_date').val();
             const schedule = $('#schedule_id option:selected').text();
             const language = $('#tour_language_id option:selected').text();
             const customer = $('#user_id option:selected').text();
-            const promoCode = $('#promo_code').val();
             const notes = $('#notes').val();
+            const pickupType = $('input[name="pickup_type"]:checked').val();
 
             let pickupInfo = "{{ __('m_bookings.bookings.ui.no_pickup') ?? 'No Pickup' }}";
             if (pickupType === 'hotel') {
@@ -991,7 +1114,6 @@
             }
 
             let categoriesHtml = '';
-            // We don't need to recalculate total here, we use the one from updateTotal
             $('.category-qty').each(function() {
                 const qty = parseInt($(this).val()) || 0;
                 if (qty > 0) {
@@ -1002,7 +1124,6 @@
                 }
             });
 
-            // Get Price Breakdown from DOM
             const subtotalDisplay = $('#subtotal-amount').text();
             const totalDisplay = $('#total-amount').text();
 
@@ -1011,6 +1132,7 @@
                 const promoLabel = promoOperation === 'add' ? "{{ __('m_bookings.bookings.ui.surcharge') ?? 'Surcharge' }}" : "{{ __('m_bookings.bookings.ui.discount') ?? 'Discount' }}";
                 const promoClass = promoOperation === 'add' ? 'text-danger' : 'text-success';
                 const promoAmountDisplay = $('#discount-amount').text();
+                const promoCode = $('#promo_code').val();
                 promoHtml = `<tr><th>${promoLabel} (${promoCode})</th><td class="${promoClass}">${promoAmountDisplay}</td></tr>`;
             }
 
@@ -1021,7 +1143,18 @@
                 taxesHtml += `<tr><th>${label}</th><td>${amount}</td></tr>`;
             });
 
+            let warningHtml = '';
+            if (warningMessage) {
+                warningHtml = `
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-exclamation-triangle"></i> {{ __('m_bookings.bookings.validation.capacity_warning') ?? 'Capacity Warning' }}</h5>
+                        <p>${warningMessage}</p>
+                    </div>
+                `;
+            }
+
             const summary = `
+            ${warningHtml}
             <table class="table table-bordered">
                 <tr><th>{{ __('m_bookings.bookings.fields.tour') }}</th><td>${tourName}</td></tr>
                 <tr><th>{{ __('m_bookings.bookings.fields.date') }}</th><td>${tourDate}</td></tr>
@@ -1048,18 +1181,31 @@
         `;
 
             $('#booking-summary').html(summary);
-            console.log('Showing confirm modal');
-            $('#confirmModal').modal('show');
-        });
 
-        // Confirm submit
-        $('#btn-confirm-submit').on('click', function() {
+            // Update confirm button text/style based on warning
+            const $confirmBtn = $('#btn-confirm-submit');
+            if (warningMessage) {
+                $confirmBtn.removeClass('btn-success').addClass('btn-warning');
+                $confirmBtn.html('<i class="fas fa-exclamation-triangle mr-2"></i> {{ __("m_bookings.actions.yes_force") ?? "Yes, Force Booking" }}');
+            } else {
+                $confirmBtn.removeClass('btn-warning').addClass('btn-success');
+                $confirmBtn.html('<i class="fas fa-save mr-2"></i> {{ __("m_bookings.actions.confirm_create") ?? "Confirm & Create" }}');
+            }
+
+            $('#confirmModal').modal('show');
+        }
+
+        // Confirm submit - use event delegation for modal
+        $(document).on('click', '#btn-confirm-submit', function() {
             console.log('Confirm submit button clicked');
+            $('#confirmModal').modal('hide');
             $('#booking-form').submit();
         });
 
-        $('#booking-form').on('submit', function() {
+        $('#booking-form').on('submit', function(e) {
             console.log('Booking form submitting...');
+            console.log('Form action:', $(this).attr('action'));
+            console.log('Form method:', $(this).attr('method'));
         });
 
         // Initialize on page load

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Models\Setting;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -20,9 +21,13 @@ class PaymentController extends Controller
     public function index(Request $request)
     {
         // Include soft-deleted bookings so payments remain visible
-        $query = Payment::with(['booking' => function ($q) {
-            $q->withTrashed();
-        }, 'booking.user', 'booking.tour'])
+        $query = Payment::with([
+            'booking' => function ($q) {
+                $q->withTrashed();
+            },
+            'booking.user',
+            'booking.tour'
+        ])
             ->orderByDesc('created_at');
 
         // Filter by status
@@ -52,15 +57,16 @@ class PaymentController extends Controller
                         ->where('booking_reference', 'like', "%{$search}%")
                         ->orWhereHas('user', function ($uq) use ($search) {
                             $uq->where('email', 'like', "%{$search}%")
-                                ->orWhere('name', 'like', "%{$search}%");
+                                ->orWhere('full_name', 'like', "%{$search}%");
                         });
                 });
             });
         }
 
-        $payments = $query->paginate(20);
+        // Paginate with fewer items per page for better performance
+        $payments = $query->paginate(15)->appends($request->query());
 
-        // Statistics
+        // Statistics (use cached values or optimize)
         $stats = [
             'total_amount' => Payment::where('status', 'completed')->sum('amount'),
             'total_count' => Payment::where('status', 'completed')->count(),
@@ -68,7 +74,30 @@ class PaymentController extends Controller
             'failed_count' => Payment::where('status', 'failed')->count(),
         ];
 
-        return view('admin.payments.index', compact('payments', 'stats'));
+        // Get enabled gateways from settings
+        $enabledGateways = [];
+        $gatewaySettings = [
+            'stripe' => 'payment.gateway.stripe',
+            'paypal' => 'payment.gateway.paypal',
+            'tilopay' => 'payment.gateway.tilopay',
+            'banco_nacional' => 'payment.gateway.banco_nacional',
+            'bac' => 'payment.gateway.bac',
+            'bcr' => 'payment.gateway.bcr',
+        ];
+
+        foreach ($gatewaySettings as $gateway => $settingKey) {
+            $setting = Setting::where('key', $settingKey)->first();
+            $isEnabled = $setting ? filter_var($setting->value, FILTER_VALIDATE_BOOL) : false;
+
+            if ($isEnabled) {
+                $enabledGateways[] = [
+                    'id' => $gateway,
+                    'name' => ucfirst(str_replace('_', ' ', $gateway)),
+                ];
+            }
+        }
+
+        return view('admin.payments.index', compact('payments', 'stats', 'enabledGateways'));
     }
 
     /**

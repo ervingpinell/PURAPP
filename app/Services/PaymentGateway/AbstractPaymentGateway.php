@@ -95,8 +95,10 @@ abstract class AbstractPaymentGateway implements PaymentGatewayInterface
             'trace' => $e->getTraceAsString(),
         ], 'error');
 
+        // Throw a generic, translated error message for the user
+        // The detailed error is already logged above
         throw new \Exception(
-            "Payment gateway error ({$this->gatewayName}): {$e->getMessage()}",
+            __('payment.gateway_error'),
             $e->getCode(),
             $e
         );

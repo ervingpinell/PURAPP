@@ -91,4 +91,15 @@ class Setting extends Model
     {
         return $this->belongsTo(User::class, 'updated_by', 'user_id');
     }
+
+    /**
+     * Get setting value by key with caching
+     */
+    public static function getValue($key, $default = null)
+    {
+        return Cache::remember("setting.{$key}", 3600, function () use ($key, $default) {
+            $setting = self::where('key', $key)->first();
+            return $setting ? $setting->value : $default;
+        });
+    }
 }

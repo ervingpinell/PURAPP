@@ -255,8 +255,8 @@ return asset('images/volcano.png');
         </a>
 
         {{-- 👇 Cambiado: ir al checkout (términos) --}}
-        <a class="btn btn-outline-success btn-sm w-100"
-          href="{{ route('public.checkout.show') }}"
+        <a class="btn btn-primary w-100"
+          href="{{ route('public.carts.index') }}"
           id="mini-cart-confirm">
           {{ __('adminlte::adminlte.confirmBooking') }}
         </a>

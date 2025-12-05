@@ -205,10 +205,67 @@ class PaymentService
                 'require_admin_confirmation' => $requireAdminConfirmation,
             ]);
 
-            // ======== Flujo nuevo: crear bookings desde cart_snapshot ========
-            $cartSnapshot    = $payment->metadata['cart_snapshot'] ?? session('cart_snapshot');
+            // Get cart snapshot from payment metadata or session
+            $cartSnapshot = $payment->metadata['cart_snapshot'] ?? session('cart_snapshot');
             $createdBookings = collect();
 
+            // ======== Check if this is a booking payment (existing booking) ========
+            $isBookingPayment = !empty($cartSnapshot['is_booking_payment']);
+            $existingBookingId = $cartSnapshot['booking_id'] ?? null;
+
+            if ($isBookingPayment && $existingBookingId) {
+                // This is a payment for an existing booking (created from admin)
+                // Update the existing booking instead of creating a new one
+                $booking = Booking::find($existingBookingId);
+
+                if ($booking) {
+                    if (!$requireAdminConfirmation) {
+                        $booking->update(['status' => 'confirmed']);
+                        Log::info('Existing booking auto-confirmed after payment', [
+                            'booking_id' => $booking->booking_id,
+                            'payment_id' => $payment->payment_id,
+                        ]);
+                    } else {
+                        Log::info('Existing booking payment completed, awaiting admin confirmation', [
+                            'booking_id' => $booking->booking_id,
+                            'payment_id' => $payment->payment_id,
+                            'status'     => 'pending',
+                        ]);
+                    }
+
+                    // Mark as processed
+                    $payment->update([
+                        'booking_id'          => $booking->booking_id,
+                        'bookings_created'    => true,
+                        'bookings_created_at' => now(),
+                    ]);
+
+                    // Email de confirmación
+                    if (config('booking.send_confirmation_email', true)) {
+                        try {
+                            $this->sendConfirmationEmail($booking, $payment);
+                        } catch (\Exception $e) {
+                            Log::error('Failed to send confirmation email', [
+                                'booking_id' => $booking->booking_id,
+                                'error'      => $e->getMessage(),
+                            ]);
+                        }
+                    }
+
+                    // Clean up session
+                    session()->forget(['cart_snapshot', 'cart_reservation_token', 'payment_start_time']);
+
+                    return true;
+                } else {
+                    Log::error('Booking payment but booking not found', [
+                        'payment_id' => $payment->payment_id,
+                        'booking_id' => $existingBookingId,
+                    ]);
+                    return false;
+                }
+            }
+
+            // ======== Flujo normal: crear bookings desde cart_snapshot ========
             if ($cartSnapshot && !empty($cartSnapshot['items'])) {
                 $createdBookings = $this->createBookingsFromSnapshot($cartSnapshot, $payment, $bookingStatus);
 
@@ -356,11 +413,12 @@ class PaymentService
                 'user_id'          => $cartSnapshot['user_id'],
                 'tour_id'          => $item['tour_id'],
                 'schedule_id'      => $item['schedule_id'],
-                'tour_language_id' => $item['tour_language_id'],
+                // Handle both 'tour_language_id' (cart) and 'language_id' (booking payment)
+                'tour_language_id' => $item['tour_language_id'] ?? $item['language_id'] ?? null,
                 'tour_date'        => $item['tour_date'],
                 'booking_date'     => now(),
                 'categories'       => $quantities,
-                'hotel_id'         => $item['hotel_id'],
+                'hotel_id'         => $item['hotel_id'] ?? null,
                 'is_other_hotel'   => (bool) ($item['is_other_hotel'] ?? false),
                 'other_hotel_name' => $item['other_hotel_name'] ?? null,
                 'status'           => $status,

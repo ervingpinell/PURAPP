@@ -165,6 +165,9 @@ return [
     'bookings' => [
         'singular' => 'Buchung',
         'plural' => 'Buchungen',
+        'customer' => 'Kunde',
+        'payment_link_info' => 'Zahlungslink für den Kunden',
+        'regenerate_warning' => 'Warnung: Durch das Regenerieren des Links wird der vorherige ungültig.',
         'steps' => [
             'customer' => 'Kunde',
             'select_tour_date' => 'Tour und Datum auswählen',

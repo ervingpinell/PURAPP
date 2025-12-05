@@ -260,6 +260,8 @@ return [$c->slug => ($label ?: $c->slug)];
           <i class="fas fa-eye"></i>
         </a>
 
+
+
         {{-- Download Receipt --}}
         <a href="{{ route('admin.bookings.receipt', $booking->booking_id) }}"
           class="btn btn-primary btn-sm"
@@ -329,70 +331,220 @@ return [$c->slug => ($label ?: $c->slug)];
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Soft Delete confirmation with SweetAlert2
-    document.querySelectorAll('.btn-delete').forEach(button => {
-      button.addEventListener('click', function(e) {
-        e.preventDefault();
-        const formId = this.getAttribute('data-form-id');
-        const bookingRef = this.getAttribute('data-booking-ref');
+  // Soft Delete confirmation with SweetAlert2
+  document.querySelectorAll('.btn-delete').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const formId = this.getAttribute('data-form-id');
+      const bookingRef = this.getAttribute('data-booking-ref');
 
-        Swal.fire({
-          title: '{{ __("Are you sure?") }}',
-          text: `{{ __("Delete booking") }} #${bookingRef}?`,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: '{{ __("Yes, delete it!") }}',
-          cancelButtonText: '{{ __("Cancel") }}',
-          reverseButtons: true
-        }).then((result) => {
-          if (result.isConfirmed) {
-            document.getElementById(formId).submit();
-          }
-        });
+      Swal.fire({
+        title: '{{ __("Are you sure?") }}',
+        text: `{{ __("Delete booking") }} #${bookingRef}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: '{{ __("Yes, delete it!") }}',
+        cancelButtonText: '{{ __("Cancel") }}',
+        reverseButtons: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          document.getElementById(formId).submit();
+        }
       });
     });
+  });
 
-    // Force Delete confirmation with STRONGER warning
-    document.querySelectorAll('.btn-force-delete').forEach(button => {
-      button.addEventListener('click', function(e) {
-        e.preventDefault();
-        const formId = this.getAttribute('data-form-id');
-        const bookingRef = this.getAttribute('data-booking-ref');
+  // Force Delete confirmation with STRONGER warning
+  document.querySelectorAll('.btn-force-delete').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const formId = this.getAttribute('data-form-id');
+      const bookingRef = this.getAttribute('data-booking-ref');
 
-        console.log('Force delete clicked for:', bookingRef, 'Form ID:', formId);
+      console.log('Force delete clicked for:', bookingRef, 'Form ID:', formId);
 
-        Swal.fire({
-          title: '{{ __("m_bookings.bookings.trash.force_delete_title") }}',
-          html: `<p><strong>{{ __("m_bookings.bookings.trash.force_delete_warning") }}</strong></p>
+      Swal.fire({
+        title: '{{ __("m_bookings.bookings.trash.force_delete_title") }}',
+        html: `<p><strong>{{ __("m_bookings.bookings.trash.force_delete_warning") }}</strong></p>
                  <p>{{ __("m_bookings.bookings.fields.reference") }} #${bookingRef} {{ __("m_bookings.bookings.trash.force_delete_message") }}</p>
                  <p class="text-danger">{{ __("m_bookings.bookings.trash.force_delete_data_loss") }}</p>`,
-          icon: 'error',
-          showCancelButton: true,
-          confirmButtonColor: '#dc3545',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: '{{ __("m_bookings.bookings.trash.force_delete_confirm") }}',
-          cancelButtonText: '{{ __("m_bookings.bookings.buttons.cancel") }}',
-          reverseButtons: true,
-          focusCancel: true
-        }).then((result) => {
-          if (result.isConfirmed) {
-            console.log('Confirmed! Submitting form:', formId);
-            const form = document.getElementById(formId);
-            if (form) {
-              console.log('Form found, submitting...');
-              form.submit();
-            } else {
-              console.error('Form not found:', formId);
-              Swal.fire('Error', 'Form not found. Please refresh and try again.', 'error');
-            }
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '{{ __("m_bookings.bookings.trash.force_delete_confirm") }}',
+        cancelButtonText: '{{ __("m_bookings.bookings.buttons.cancel") }}',
+        reverseButtons: true,
+        focusCancel: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          console.log('Confirmed! Submitting form:', formId);
+          const form = document.getElementById(formId);
+          if (form) {
+            console.log('Form found, submitting...');
+            form.submit();
           } else {
-            console.log('Cancelled');
+            console.error('Form not found:', formId);
+            Swal.fire('Error', 'Form not found. Please refresh and try again.', 'error');
           }
-        });
+        } else {
+          console.log('Cancelled');
+        }
       });
     });
+  });
+  });
+  });
+
+  // Helper function for copying payment link (global scope)
+  window.copyPaymentLink = function() {
+    const copyText = document.getElementById("payment-link-input");
+    if (copyText) {
+      copyText.select();
+      copyText.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(copyText.value).then(() => {
+        const btn = document.querySelector('.swal2-popup .btn-outline-secondary i');
+        if (btn) {
+          btn.className = 'fas fa-check text-success';
+          setTimeout(() => btn.className = 'fas fa-copy', 2000);
+        }
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy link');
+      });
+    }
+  };
+
+  // Payment Link Handler
+  document.querySelectorAll('.btn-payment-link').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const url = this.getAttribute('data-url');
+
+      Swal.fire({
+        title: '{{ __("m_bookings.bookings.ui.loading") ?? "Loading..." }}',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      fetch(url, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire({
+              title: '{{ __("m_bookings.bookings.ui.payment_link") ?? "Payment Link" }}',
+              html: `
+                  <div class="input-group mb-3">
+                    <input type="text" class="form-control" value="${data.url}" id="payment-link-input" readonly>
+                    <button class="btn btn-outline-secondary" type="button" onclick="copyPaymentLink()">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </div>
+                  <div class="d-flex justify-content-center gap-2">
+                    <a href="https://wa.me/?text=${encodeURIComponent(data.url)}" target="_blank" class="btn btn-success">
+                      <i class="fab fa-whatsapp"></i> WhatsApp
+                    </a>
+                    <a href="mailto:?body=${encodeURIComponent(data.url)}" class="btn btn-secondary">
+                      <i class="fas fa-envelope"></i> Email
+                    </a>
+                  </div>
+                `,
+              showConfirmButton: false,
+              showCloseButton: true
+            });
+          } else {
+            Swal.fire('Error', data.message || 'Could not generate link', 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire('Error', 'An error occurred', 'error');
+        });
+    });
+  });
+
+  // Regenerate Payment Link Handler (with confirmation)
+  document.querySelectorAll('.btn-regenerate-payment-link').forEach(button => {
+  button.addEventListener('click', function(e) {
+    e.preventDefault();
+    const url = this.getAttribute('data-url');
+
+    Swal.fire({
+      title: '{{ __("m_bookings.bookings.ui.regenerate_confirm_title") ?? "Regenerate Payment Link?" }}',
+      html: '{{ __("m_bookings.bookings.ui.regenerate_confirm_text") ?? "This will invalidate the old link and create a new one. The old link will no longer work." }}',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#f59e0b',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: '{{ __("m_bookings.bookings.ui.regenerate_confirm") ?? "Yes, regenerate" }}',
+      cancelButtonText: '{{ __("m_bookings.bookings.ui.cancel") ?? "Cancel" }}'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: '{{ __("m_bookings.bookings.ui.loading") ?? "Loading..." }}',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': '{{ csrf_token() }}',
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({
+                title: '{{ __("m_bookings.bookings.ui.payment_link_regenerated") ?? "Payment Link Regenerated" }}',
+                html: `
+                      <div class="alert alert-warning mb-3" style="font-size:0.875rem;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        {{ __("m_bookings.bookings.ui.old_link_invalid") ?? "The old link is now invalid" }}
+                      </div>
+                      <div class="input-group mb-3">
+                        <input type="text" class="form-control" value="${data.url}" id="payment-link-input" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyPaymentLink()">
+                          <i class="fas fa-copy"></i>
+                        </button>
+                      </div>
+                      <div class="d-flex justify-content-center gap-2">
+                        <a href="https://wa.me/?text=${encodeURIComponent(data.url)}" target="_blank" class="btn btn-success">
+                          <i class="fab fa-whatsapp"></i> WhatsApp
+                        </a>
+                        <a href="mailto:?body=${encodeURIComponent(data.url)}" class="btn btn-secondary">
+                          <i class="fas fa-envelope"></i> Email
+                        </a>
+                      </div>
+                    `,
+                showConfirmButton: false,
+                showCloseButton: true
+              });
+            } else {
+              Swal.fire('Error', data.message || 'Could not regenerate link', 'error');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error', 'An error occurred', 'error');
+          });
+      }
+    });
+  });
+  });
   });
 </script>
 @endpush

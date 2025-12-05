@@ -227,9 +227,6 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                 <i class="fas fa-ticket-alt"></i>
                 {{ __('m_bookings.bookings.ui.booking_details') }} #{{ $booking->booking_reference ?? $booking->booking_id }}
             </h1>
-            <small class="text-muted">
-                {{ __('m_bookings.bookings.fields.booking_date') }}: {{ \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') }}
-            </small>
         </div>
 
         <div class="btn-group">
@@ -242,398 +239,391 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
             <a href="{{ route('admin.bookings.edit', $booking) }}" class="btn btn-warning">
                 <i class="fas fa-edit"></i> {{ __('m_bookings.bookings.buttons.edit') }}
             </a>
+            @if($booking->status === 'pending' && !$booking->isPaid())
+            <button type="button" class="btn btn-success" id="btn-payment-link-show">
+                <i class="fas fa-link"></i> {{ __('m_bookings.bookings.ui.payment_link') ?? 'Payment Link' }}
+            </button>
+            @endif
+
         </div>
     </div>
     @stop
 
     @section('content')
-    {{-- Status Alert with Actions --}}
-    <div class="alert alert-{{ $booking->status === 'pending' ? 'warning' : ($booking->status === 'confirmed' ? 'success' : 'danger') }} d-flex justify-content-between align-items-center">
-        <div>
-            <div class="mb-2">
-                <strong>{{ __('m_bookings.bookings.fields.status') }}:</strong>
-                <span class="ms-2">{{ __('m_bookings.bookings.statuses.' . $booking->status) }}</span>
-            </div>
-            @php
-            // Determinar estado de pago
-            $paymentStatus = 'pending';
-            $paymentBadgeClass = 'warning';
-            $paymentText = __('Pending');
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            {{-- Status Alert with Actions --}}
+            <div class="alert alert-{{ $booking->status === 'pending' ? 'warning' : ($booking->status === 'confirmed' ? 'success' : 'danger') }} d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="mb-2">
+                        <strong>{{ __('m_bookings.bookings.fields.status') }}:</strong>
+                        <span class="ms-2">{{ __('m_bookings.bookings.statuses.' . $booking->status) }}</span>
+                    </div>
+                    @php
+                    // Determinar estado de pago
+                    $paymentStatus = 'pending';
+                    $paymentBadgeClass = 'warning';
+                    $paymentText = __('Pending');
 
-            if ($booking->relationLoaded('payments') && $booking->payments->isNotEmpty()) {
-            $latestPayment = $booking->payments->sortByDesc('created_at')->first();
-            if ($latestPayment && $latestPayment->status === 'completed') {
-            $paymentStatus = 'paid';
-            $paymentBadgeClass = 'success';
-            $paymentText = __('Paid');
-            }
-            }
-            @endphp
-            <div>
-                <strong>{{ __('Payment Status') }}:</strong>
-                <span class="badge badge-{{ $paymentBadgeClass }} ml-2">{{ $paymentText }}</span>
-                @if(isset($latestPayment))
-                <a href="{{ route('admin.payments.show', $latestPayment->payment_id) }}" class="btn btn-sm btn-info ml-2" title="View Payment Details">
-                    <i class="fas fa-credit-card"></i> {{ __('View Payment') }}
-                </a>
-                @if($latestPayment->card_brand && $latestPayment->card_last4)
-                <br><small class="text-muted ml-2">{{ ucfirst($latestPayment->card_brand) }} •••• {{ $latestPayment->card_last4 }}</small>
-                @endif
-                @endif
-            </div>
-        </div>
-        <div class="btn-group btn-group-sm" role="group">
-            @if($booking->status !== 'confirmed')
-            <button type="button" class="btn btn-success btn-sm" onclick="document.getElementById('confirmSection').scrollIntoView({behavior: 'smooth'})">
-                <i class="fas fa-check-circle"></i> {{ __('m_bookings.actions.confirm') }}
-            </button>
-            @endif
-            @if($booking->status !== 'cancelled')
-            <form action="{{ route('admin.bookings.update-status', $booking->booking_id) }}" method="POST" class="d-inline">
-                @csrf @method('PATCH')
-                <input type="hidden" name="status" value="cancelled">
-                <button type="submit" class="btn btn-danger btn-sm"
-                    onclick="return confirm('{{ __('m_bookings.actions.confirm_cancel') }}')">
-                    <i class="fas fa-times-circle"></i> {{ __('m_bookings.actions.cancel') }}
-                </button>
-            </form>
-            @endif
-        </div>
-    </div>
-
-    {{-- Checkout Link for Pending Bookings --}}
-    @if($booking->status === 'pending')
-    <div class="alert alert-info">
-        <h5 class="alert-heading">
-            <i class="fas fa-link mr-2"></i>{{ __('m_bookings.checkout_link_label') }}
-        </h5>
-        <p class="mb-2">{{ __('m_bookings.checkout_link_description') }}</p>
-        <div class="input-group">
-            <input type="text" class="form-control" id="checkout-link"
-                value="{{ $booking->getCheckoutUrl() }}" readonly>
-            <div class="input-group-append">
-                <button class="btn btn-primary" type="button" onclick="copyCheckoutLink()">
-                    <i class="fas fa-copy"></i> {{ __('m_bookings.checkout_link_copy') }}
-                </button>
-            </div>
-        </div>
-        @if($booking->checkout_token_expires_at)
-        <small class="text-muted d-block mt-2">
-            <i class="fas fa-clock mr-1"></i>
-            {{ __('m_bookings.checkout_link_valid_until') }}: {{ $booking->checkout_token_expires_at->format('M d, Y g:i A') }}
-        </small>
-        @endif
-        @if($booking->checkout_accessed_at)
-        <small class="text-success d-block mt-1">
-            <i class="fas fa-check-circle mr-1"></i>
-            {{ __('m_bookings.checkout_link_accessed') }}: {{ $booking->checkout_accessed_at->diffForHumans() }}
-        </small>
-        @endif
-    </div>
-    @endif
-
-    <div class="row">
-        {{-- Booking Information --}}
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="card-title"><strong>{{ __('m_bookings.details.booking_info') }}</strong></h3>
-                </div>
-                <div class="card-body">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-5">{{ __('m_bookings.bookings.fields.reference') }}:</dt>
-                        <dd class="col-sm-7"><strong>{{ $booking->booking_reference }}</strong></dd>
-
-                        <dt class="col-sm-5">{{ __('m_bookings.bookings.fields.booking_date') }}:</dt>
-                        <dd class="col-sm-7">{{ \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') }}</dd>
-                    </dl>
-                </div>
-            </div>
-        </div>
-
-        {{-- Customer Information --}}
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h3 class="card-title"><strong>{{ __('m_bookings.details.customer_info') }}</strong></h3>
-                </div>
-                <div class="card-body">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.customer') }}:</dt>
-                        <dd class="col-sm-8">{{ $booking->user->full_name ?? $booking->user->name ?? '—' }}</dd>
-
-                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.email') }}:</dt>
-                        <dd class="col-sm-8">
-                            @if(!empty($booking->user->email))
-                            <a href="mailto:{{ $booking->user->email }}">{{ $booking->user->email }}</a>
-                            @else
-                            —
-                            @endif
-                        </dd>
-
-                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.phone') }}:</dt>
-                        <dd class="col-sm-8">{{ $booking->user->phone ?? '—' }}</dd>
-                    </dl>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Tour Information --}}
-    <div class="card">
-        <div class="card-header bg-warning">
-            <h3 class="card-title"><strong>{{ __('m_bookings.details.tour_info') }}</strong></h3>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <dl class="row">
-                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.tour') }}:</dt>
-                        <dd class="col-sm-8">{{ $tourName }}</dd>
-
-                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.tour_date') }}:</dt>
-                        <dd class="col-sm-8">{{ optional($detail?->tour_date)?->format('M d, Y') ?? '—' }}</dd>
-
-                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.schedule') }}:</dt>
-                        <dd class="col-sm-8">
-                            @if($detail?->schedule)
-                            {{ \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') }}
-                            @if($detail?->schedule?->end_time)
-                            - {{ \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A') }}
-                            @endif
-                            @else
-                            —
-                            @endif
-                        </dd>
-
-                        {{-- Hora de recogida --}}
-                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.pickup_time') }}:</dt>
-                        <dd class="col-sm-8">{{ $pickupTime ?? '—' }}</dd>
-
-                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.language') }}:</dt>
-                        <dd class="col-sm-8">{{ optional($detail?->tourLanguage)->name ?? '—' }}</dd>
-                    </dl>
-                </div>
-
-                <div class="col-md-6">
-                    <dl class="row">
-                        @if($hasHotel && $hotelName)
-                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.hotel') }}:</dt>
-                        <dd class="col-sm-8">{{ $hotelName }}</dd>
+                    if ($booking->relationLoaded('payments') && $booking->payments->isNotEmpty()) {
+                    $latestPayment = $booking->payments->sortByDesc('created_at')->first();
+                    if ($latestPayment && $latestPayment->status === 'completed') {
+                    $paymentStatus = 'paid';
+                    $paymentBadgeClass = 'success';
+                    $paymentText = __('Paid');
+                    }
+                    }
+                    @endphp
+                    <div>
+                        <strong>{{ __('Payment Status') }}:</strong>
+                        <span class="badge badge-{{ $paymentBadgeClass }} ml-2">{{ $paymentText }}</span>
+                        @if(isset($latestPayment))
+                        <a href="{{ route('admin.payments.show', $latestPayment->payment_id) }}" class="btn btn-sm btn-info ml-2" title="View Payment Details">
+                            <i class="fas fa-credit-card"></i> {{ __('View Payment') }}
+                        </a>
+                        @if($latestPayment->card_brand && $latestPayment->card_last4)
+                        <br><small class="text-muted ml-2">{{ ucfirst($latestPayment->card_brand) }} •••• {{ $latestPayment->card_last4 }}</small>
                         @endif
-
-                        @if(!$hasHotel && $hasMeetingPoint && $meetingPointName)
-                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.meeting_point') }}:</dt>
-                        <dd class="col-sm-8">{{ $meetingPointName }}</dd>
                         @endif
-
-                        <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.type') }}:</dt>
-                        <dd class="col-sm-8">{{ optional($tour?->tourType)->name ?? '—' }}</dd>
-                    </dl>
+                    </div>
+                    <small class="text">
+                        {{ __('m_bookings.bookings.fields.booking_date') }}: {{ \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') }}
+                    </small>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Pricing Information --}}
-    <div class="card">
-        <div class="card-header bg-danger text-white">
-            <h3 class="card-title"><strong>{{ __('m_bookings.details.pricing_info') }}</strong></h3>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <dl class="row">
-                        @foreach($categories as $cat)
-                        <dt class="col-sm-6">{{ $cat['name'] }}:</dt>
-                        <dd class="col-sm-6">{{ $cat['quantity'] }} × {{ $currency }}{{ number_format((float)$cat['price'], 2) }}</dd>
-                        @endforeach
-
-                        <dt class="col-sm-6"><strong>{{ __('m_bookings.details.total_persons') }}:</strong></dt>
-                        <dd class="col-sm-6"><strong>{{ $totalPersons }}</strong></dd>
-                    </dl>
-                </div>
-
-                <div class="col-md-6">
-                    <dl class="row">
-                        <dt class="col-sm-6">{{ __('m_bookings.details.subtotal') }}:</dt>
-                        <dd class="col-sm-6">{{ $currency }}{{ number_format($subtotalSnap, 2) }}</dd>
-
-                        @if($promoCode && $appliedAmount > 0)
-                        <dt class="col-sm-6">
-                            {{ $adjustLabel }}:
-                            <span class="ml-1">
-                                @if(!is_null($percentSnapshot))
-                                <span class="badge badge-secondary">{{ number_format($percentSnapshot,0) }}%</span>
-                                @elseif(!is_null($amountSnapshot))
-                                <span class="badge badge-secondary">{{ $currency }}{{ number_format($amountSnapshot,2) }}</span>
-                                @endif
-                            </span>
-                        </dt>
-                        <dd class="col-sm-6 {{ $operation === 'add' ? 'text-danger' : 'text-success' }}">
-                            {{ $sign }}{{ $currency }}{{ number_format($appliedAmount, 2) }}
-                        </dd>
-
-                        <dt class="col-sm-6">{{ __('m_bookings.bookings.fields.promo_code') }}:</dt>
-                        <dd class="col-sm-6">
-                            <span class="badge badge-success">{{ $promoCode }}</span>
-                        </dd>
-                        @endif
-
-                        {{-- Impuestos --}}
-                        @if(!empty($detail->taxes_breakdown))
-                        @foreach($detail->taxes_breakdown as $tax)
-                        <dt class="col-sm-6 text-muted">
-                            {{ $tax['name'] }}
-                            <small>({{ $tax['rate'] }}{{ $tax['type'] == 'percentage' ? '%' : '' }})</small>:
-                        </dt>
-                        <dd class="col-sm-6 text-muted">
-                            +{{ $currency }}{{ number_format($tax['amount'], 2) }}
-                        </dd>
-                        @endforeach
-                        @endif
-
-                        <dt class="col-sm-6"><strong>{{ __('m_bookings.bookings.fields.total') }}:</strong></dt>
-                        <dd class="col-sm-6">
-                            <strong class="text-success" style="font-size: 1.2em;">{{ $currency }}{{ number_format($grandTotal, 2) }}</strong>
-                        </dd>
-                    </dl>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Notes --}}
-    @if($booking->notes)
-    <div class="alert alert-info">
-        <strong><i class="fas fa-sticky-note mr-2"></i>{{ __('m_bookings.bookings.fields.notes') }}:</strong>
-        <p class="mb-0 mt-2">{{ $booking->notes }}</p>
-    </div>
-    @endif
-
-    {{-- Confirm Booking Section (Inline, no modal) --}}
-    @if($booking->status !== 'confirmed')
-    <div class="card" id="confirmSection">
-        <div class="card-header bg-success text-white">
-            <h3 class="card-title">
-                <i class="fas fa-check-circle mr-2"></i>{{ __('m_bookings.actions.confirm') }} {{ __('m_bookings.bookings.singular') }}
-            </h3>
-        </div>
-        <div class="card-body">
-            <form action="{{ route('admin.bookings.update-status', $booking->booking_id) }}\" method="POST" id="confirmBookingForm">
-                @csrf @method('PATCH')
-                <input type="hidden" name="status" value="confirmed">
-
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    <strong>{{ __('m_bookings.bookings.fields.booking_reference') }}:</strong> {{ $booking->booking_reference }}
-                </div>
-
-                {{-- Tour Schedule Info --}}
-                @if($scheduleStart)
-                <div class="alert alert-warning mb-3">
-                    <i class="fas fa-clock mr-2"></i>
-                    <strong>{{ __('m_bookings.bookings.fields.schedule') }}:</strong>
-                    {{ $scheduleStart->format('g:i A') }}
-                    @if($scheduleEnd)
-                    - {{ $scheduleEnd->format('g:i A') }}
+                <div class="btn-group btn-group-sm" role="group">
+                    @if($booking->status !== 'confirmed')
+                    <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#confirmModal">
+                        <i class="fas fa-check-circle"></i> {{ __('m_bookings.actions.confirm') }}
+                    </button>
                     @endif
-                    <span class="badge badge-{{ $tourPeriod === 'AM' ? 'info' : 'warning' }} ml-2">{{ $tourPeriod }} Tour</span>
+                    @if($booking->status !== 'cancelled')
+                    <form action="{{ route('admin.bookings.update-status', $booking->booking_id) }}" method="POST" class="d-inline">
+                        @csrf @method('PATCH')
+                        <input type="hidden" name="status" value="cancelled">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                            onclick="return confirm('{{ __('m_bookings.actions.confirm_cancel') }}')">
+                            <i class="fas fa-times-circle"></i> {{ __('m_bookings.actions.cancel') }}
+                        </button>
+                    </form>
+                    @endif
                 </div>
-                @endif
+            </div>
 
-                {{-- Pickup Location --}}
-                <div class="form-group">
-                    <label><i class="fas fa-map-marker-alt mr-1"></i>{{ __('Pickup Location') }}</label>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="custom-control custom-radio">
-                                <input class="custom-control-input" type="radio" name="pickup_type" id="pickup_hotel" value="hotel"
-                                    {{ $booking->detail?->hotel_id || $booking->detail?->other_hotel_name ? 'checked' : '' }}
-                                    onchange="togglePickupFields()">
-                                <label class="custom-control-label" for="pickup_hotel">
-                                    {{ __('Hotel Pickup') }}
-                                </label>
+            {{-- Checkout Link Accordion for Pending Bookings --}}
+            @if($booking->status === 'pending' && !$booking->isPaid())
+            <div class="accordion mb-3" id="paymentLinkAccordion">
+                <div class="card">
+                    <div class="card-header p-2" id="headingPaymentLink">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapsePaymentLink" aria-expanded="false" aria-controls="collapsePaymentLink">
+                                <i class="fas fa-link mr-2"></i>{{ __('m_bookings.bookings.checkout_link_label') }}
+                                <i class="fas fa-chevron-down float-right mt-1"></i>
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapsePaymentLink" class="collapse" aria-labelledby="headingPaymentLink" data-parent="#paymentLinkAccordion">
+                        <div class="card-body">
+                            <p class="mb-2">{{ __('m_bookings.bookings.checkout_link_description') }}</p>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="checkout-link"
+                                    value="{{ $booking->getPaymentUrl() }}" readonly>
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="button" id="copy-checkout-btn">
+                                        <i class="fas fa-copy"></i> {{ __('m_bookings.bookings.checkout_link_copy') }}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <small class="text-muted d-block mt-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                {{ __('m_bookings.bookings.payment_link_info') ?? 'This payment link does not expire and can be used multiple times until the booking is paid.' }}
+                            </small>
+
+                            {{-- Regenerate button (always available for unpaid bookings) --}}
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-warning btn-sm" id="btn-regenerate-payment-link">
+                                    <i class="fas fa-sync-alt"></i> {{ __('m_bookings.regenerate_payment_link') ?? 'Regenerate Payment Link' }}
+                                </button>
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    {{ __('m_bookings.bookings.regenerate_warning') ?? 'Regenerating will invalidate the old link.' }}
+                                </small>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="custom-control custom-radio">
-                                <input class="custom-control-input" type="radio" name="pickup_type" id="pickup_meeting" value="meeting_point"
-                                    {{ $booking->detail?->meeting_point_id ? 'checked' : '' }}
-                                    onchange="togglePickupFields()">
-                                <label class="custom-control-label" for="pickup_meeting">
-                                    {{ __('Meeting Point') }}
-                                </label>
-                            </div>
-                        </div>
                     </div>
+                </div>
+            </div>
+            @endif
 
-                    {{-- Hotel Selection --}}
-                    <div id="hotel_section" class="mt-2" style="display: {{ $booking->detail?->hotel_id || $booking->detail?->other_hotel_name ? 'block' : 'none' }};">
-                        <select name="hotel_id" class="form-control">
-                            <option value="">{{ __('Select Hotel') }}</option>
-                            @php
-                            $hotels = \App\Models\HotelList::where('is_active', true)->orderBy('name')->get();
-                            @endphp
-                            @foreach($hotels as $hotel)
-                            <option value="{{ $hotel->hotel_id }}" {{ $booking->detail?->hotel_id == $hotel->hotel_id ? 'selected' : '' }}>
-                                {{ $hotel->name }}
-                            </option>
+            {{-- Compact Booking Details Table --}}
+            <div class="card mb-2">
+                <div class="card-body p-0">
+                    <table class="table table-bordered table-striped table-sm mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="bg-light" style="width: 200px;"><strong>{{ __('m_bookings.bookings.fields.tour') }}</strong></td>
+                                <td>{{ $tourName }}</td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light"><strong>{{ __('m_bookings.bookings.fields.tour_date') }}</strong></td>
+                                <td>{{ optional($detail?->tour_date)?->format('Y-m-d') ?? '—' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light"><strong>{{ __('m_bookings.bookings.fields.schedule') }}</strong></td>
+                                <td>
+                                    @if($detail?->schedule)
+                                    {{ \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') }}
+                                    @if($detail?->schedule?->end_time)
+                                    - {{ \Carbon\Carbon::parse($detail->schedule->end_time)->format('g:i A') }}
+                                    @endif
+                                    @else
+                                    —
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light"><strong>{{ __('m_bookings.bookings.fields.language') }}</strong></td>
+                                <td>{{ optional($detail?->tourLanguage)->name ?? '—' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light"><strong>{{ __('m_bookings.bookings.fields.customer') }}</strong></td>
+                                <td>{{ $booking->user->full_name ?? $booking->user->name ?? '—' }} ({{ $booking->user->email ?? '—' }})</td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light"><strong>{{ __('m_bookings.bookings.fields.pickup_location') }}</strong></td>
+                                <td>
+                                    @if($hasHotel && $hotelName)
+                                    {{ $hotelName }}
+                                    @elseif(!$hasHotel && $hasMeetingPoint && $meetingPointName)
+                                    {{ $meetingPointName }}
+                                    @else
+                                    {{ __('Sin recogida') }}
+                                    @endif
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Participants Table --}}
+            <div class="card mb-2">
+                <div class="card-header bg-secondary py-2">
+                    <h3 class="card-title mb-0"><strong>{{ __('Participantes') }}:</strong></h3>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-bordered table-sm mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>{{ __('Categoría') }}</th>
+                                <th class="text-center">{{ __('Cantidad') }}</th>
+                                <th class="text-right">{{ __('Precio') }}</th>
+                                <th class="text-right">{{ __('Subtotal') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($categories as $cat)
+                            <tr>
+                                <td>{{ $cat['name'] }}</td>
+                                <td class="text-center">{{ $cat['quantity'] }}</td>
+                                <td class="text-right">{{ $currency }}{{ number_format((float)$cat['price'], 2) }}</td>
+                                <td class="text-right">{{ $currency }}{{ number_format($cat['total'], 2) }}</td>
+                            </tr>
                             @endforeach
-                        </select>
-                        <input type="text" name="other_hotel_name" class="form-control mt-2" placeholder="{{ __('Or enter hotel name') }}"
-                            value="{{ $booking->detail?->other_hotel_name }}">
-                    </div>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-                    {{-- Meeting Point Selection --}}
-                    <div id="meeting_section" class="mt-2" style="display: {{ $booking->detail?->meeting_point_id ? 'block' : 'none' }};">
-                        <select name="meeting_point_id" class="form-control">
-                            <option value="">{{ __('Select Meeting Point') }}</option>
-                            @php
-                            $meetingPoints = \App\Models\MeetingPoint::where('is_active', true)->orderBy('name')->get();
-                            @endphp
-                            @foreach($meetingPoints as $mp)
-                            <option value="{{ $mp->meeting_point_id }}" {{ $booking->detail?->meeting_point_id == $mp->meeting_point_id ? 'selected' : '' }}>
-                                {{ $mp->name }}
-                            </option>
+            {{-- Price Breakdown --}}
+            <div class="card mb-2">
+                <div class="card-header bg-secondary py-2">
+                    <h3 class="card-title mb-0"><strong>{{ __('Desglose de Precios') }}:</strong></h3>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-bordered table-sm mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="bg-light" style="width: 200px;"><strong>{{ __('m_bookings.details.subtotal') }}</strong></td>
+                                <td class="text-right">{{ $currency }}{{ number_format((float)($detail->total ?? $subtotalSnap), 2) }}</td>
+                            </tr>
+                            @if($promoCode && $appliedAmount > 0)
+                            <tr>
+                                <td class="bg-light">
+                                    <strong>{{ $adjustLabel }}</strong>
+                                    @if(!is_null($percentSnapshot))
+                                    <span class="badge badge-secondary ml-1">{{ number_format($percentSnapshot,0) }}%</span>
+                                    @elseif(!is_null($amountSnapshot))
+                                    <span class="badge badge-secondary ml-1">{{ $currency }}{{ number_format($amountSnapshot,2) }}</span>
+                                    @endif
+                                </td>
+                                <td class="text-right {{ $operation === 'add' ? 'text-danger' : 'text-success' }}">
+                                    {{ $sign }}{{ $currency }}{{ number_format($appliedAmount, 2) }}
+                                </td>
+                            </tr>
+                            @endif
+                            {{-- Impuestos --}}
+                            @if(!empty($detail->taxes_breakdown))
+                            @foreach($detail->taxes_breakdown as $tax)
+                            <tr>
+                                <td class="bg-light">
+                                    <strong>{{ $tax['name'] }}</strong>
+                                    <small>({{ $tax['rate'] ?? 0 }}{{ ($tax['type'] ?? '') == 'percentage' ? '%' : '' }})</small>
+                                </td>
+                                <td class="text-right">+{{ $currency }}{{ number_format($tax['amount'], 2) }}</td>
+                            </tr>
                             @endforeach
-                        </select>
-                    </div>
+                            @endif
+                            <tr class="bg-light">
+                                <td><strong>{{ __('m_bookings.bookings.fields.total') }}</strong></td>
+                                <td class="text-right"><strong style="font-size: 1.2em;">{{ $currency }}{{ number_format((float)$booking->total, 2) }}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
+            </div>
 
-                {{-- Pickup Time --}}
-                <div class="form-group">
-                    <label for="pickup_time">
-                        <i class="fas fa-clock mr-1"></i>{{ __('m_bookings.bookings.fields.pickup_time') }}
-                        <span class="text-muted">({{ __('Optional') }})</span>
-                    </label>
-                    <input type="time"
-                        class="form-control"
-                        id="pickup_time"
-                        name="pickup_time"
-                        value="{{ $booking->detail?->pickup_time ? \Carbon\Carbon::parse($booking->detail->pickup_time)->format('H:i') : '' }}">
-                    <small class="form-text text-muted">
-                        {{ __('Set the pickup time for this booking.') }}
-                    </small>
-                    <div id="pickup_time_warning" class="alert alert-danger mt-2" style="display: none;">
-                        <i class="fas fa-exclamation-triangle mr-1"></i>
-                        <span id="pickup_time_warning_text"></span>
-                    </div>
-                </div>
+            {{-- Notes --}}
+            @if($booking->notes)
+            <div class="alert alert-info">
+                <strong><i class="fas fa-sticky-note mr-2"></i>{{ __('m_bookings.bookings.fields.notes') }}:</strong>
+                <p class="mb-0 mt-2">{{ $booking->notes }}</p>
+            </div>
+            @endif
+        </div>
+    </div>
 
-                <div class="alert alert-warning">
-                    <small>
-                        <i class="fas fa-exclamation-triangle mr-1"></i>
-                        {{ __('Confirming this booking will send a confirmation email to the customer.') }}
-                    </small>
-                </div>
-
-                <div class="text-right">
-                    <button type="submit" class="btn btn-success btn-lg" id="confirm_btn">
-                        <i class="fas fa-check-circle mr-1"></i>{{ __('m_bookings.actions.confirm') }} {{ __('m_bookings.bookings.singular') }}
+    {{-- Confirm Booking Modal --}}
+    @if($booking->status !== 'confirmed')
+    <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="confirmModalLabel">
+                        <i class="fas fa-check-circle mr-2"></i>{{ __('m_bookings.actions.confirm') }} {{ __('m_bookings.bookings.singular') }}
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-            </form>
+                <form action="{{ route('admin.bookings.update-status', $booking->booking_id) }}" method="POST" id="confirmBookingForm">
+                    @csrf @method('PATCH')
+                    <input type="hidden" name="status" value="confirmed">
+
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <strong>{{ __('m_bookings.bookings.fields.booking_reference') }}:</strong> {{ $booking->booking_reference }}
+                        </div>
+
+                        {{-- Tour Schedule Info --}}
+                        @if($scheduleStart)
+                        <div class="alert alert-warning mb-3">
+                            <i class="fas fa-clock mr-2"></i>
+                            <strong>{{ __('m_bookings.bookings.fields.schedule') }}:</strong>
+                            {{ $scheduleStart->format('g:i A') }}
+                            @if($scheduleEnd)
+                            - {{ $scheduleEnd->format('g:i A') }}
+                            @endif
+                            <span class="badge badge-{{ $tourPeriod === 'AM' ? 'info' : 'warning' }} ml-2">{{ $tourPeriod }} Tour</span>
+                        </div>
+                        @endif
+
+                        {{-- Pickup Location --}}
+                        <div class="form-group">
+                            <label><i class="fas fa-map-marker-alt mr-1"></i>{{ __('Pickup Location') }}</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="custom-control custom-radio">
+                                        <input class="custom-control-input pickup-radio" type="radio" name="pickup_type" id="pickup_hotel" value="hotel"
+                                            {{ $booking->detail?->hotel_id || $booking->detail?->other_hotel_name ? 'checked' : '' }}>
+                                        <label class="custom-control-label" for="pickup_hotel">
+                                            {{ __('Hotel Pickup') }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="custom-control custom-radio">
+                                        <input class="custom-control-input pickup-radio" type="radio" name="pickup_type" id="pickup_meeting" value="meeting_point"
+                                            {{ $booking->detail?->meeting_point_id ? 'checked' : '' }}>
+                                        <label class="custom-control-label" for="pickup_meeting">
+                                            {{ __('Meeting Point') }}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Hotel Selection --}}
+                            <div id="hotel_section" class="mt-3" style="display: {{ $booking->detail?->hotel_id || $booking->detail?->other_hotel_name ? 'block' : 'none' }};">
+                                <select name="hotel_id" class="form-control">
+                                    <option value="">{{ __('Select Hotel') }}</option>
+                                    @php
+                                    $hotels = \App\Models\HotelList::where('is_active', true)->orderBy('name')->get();
+                                    @endphp
+                                    @foreach($hotels as $hotel)
+                                    <option value="{{ $hotel->hotel_id }}" {{ $booking->detail?->hotel_id == $hotel->hotel_id ? 'selected' : '' }}>
+                                        {{ $hotel->name }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                                <input type="text" name="other_hotel_name" class="form-control mt-2" placeholder="{{ __('Or enter hotel name') }}"
+                                    value="{{ $booking->detail?->other_hotel_name }}">
+                            </div>
+
+                            {{-- Meeting Point Selection --}}
+                            <div id="meeting_section" class="mt-3" style="display: {{ $booking->detail?->meeting_point_id ? 'block' : 'none' }};">
+                                <select name="meeting_point_id" class="form-control">
+                                    <option value="">{{ __('Select Meeting Point') }}</option>
+                                    @php
+                                    $meetingPoints = \App\Models\MeetingPoint::where('is_active', true)->orderBy('name')->get();
+                                    @endphp
+                                    @foreach($meetingPoints as $mp)
+                                    <option value="{{ $mp->meeting_point_id }}" {{ $booking->detail?->meeting_point_id == $mp->meeting_point_id ? 'selected' : '' }}>
+                                        {{ $mp->name }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        {{-- Pickup Time --}}
+                        <div class="form-group">
+                            <label for="pickup_time">
+                                <i class="fas fa-clock mr-1"></i>{{ __('m_bookings.bookings.fields.pickup_time') }}
+                                <span class="text-muted">({{ __('Optional') }})</span>
+                            </label>
+                            <input type="time"
+                                class="form-control"
+                                id="pickup_time"
+                                name="pickup_time"
+                                value="{{ $booking->detail?->pickup_time ? \Carbon\Carbon::parse($booking->detail->pickup_time)->format('H:i') : '' }}">
+                            <small class="form-text text-muted">
+                                {{ __('Set the pickup time for this booking.') }}
+                            </small>
+                            <div id="pickup_time_warning" class="alert alert-danger mt-2" style="display: none;">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                <span id="pickup_time_warning_text"></span>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <small>
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                {{ __('Confirming this booking will send a confirmation email to the customer.') }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i>{{ __('Cancel') }}
+                        </button>
+                        <button type="submit" class="btn btn-success" id="confirm_btn">
+                            <i class="fas fa-check-circle mr-1"></i>{{ __('m_bookings.actions.confirm') }} {{ __('m_bookings.bookings.singular') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
     @endif
@@ -641,83 +631,174 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
 
     @section('js')
     <script>
-        function togglePickupFields() {
-            const hotelRadio = document.getElementById('pickup_hotel');
-            const meetingRadio = document.getElementById('pickup_meeting');
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing booking detail scripts');
+
+            // Copy Checkout Link (Input Group Button)
+            const copyCheckoutBtn = document.getElementById('copy-checkout-btn');
+            if (copyCheckoutBtn) {
+                copyCheckoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const input = document.getElementById('checkout-link');
+                    if (input) {
+                        input.select();
+                        input.setSelectionRange(0, 99999);
+
+                        navigator.clipboard.writeText(input.value).then(() => {
+                            const originalHTML = this.innerHTML;
+                            this.innerHTML = '<i class="fas fa-check"></i> {{ __("m_bookings.bookings.checkout_link_copied") }}';
+                            this.classList.remove('btn-primary');
+                            this.classList.add('btn-success');
+
+                            setTimeout(() => {
+                                this.innerHTML = originalHTML;
+                                this.classList.remove('btn-success');
+                                this.classList.add('btn-primary');
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Copy failed', err);
+                            alert('{{ __("m_bookings.bookings.checkout_link_copy_failed") }}');
+                        });
+                    }
+                });
+            }
+
+            // Payment Link Handler for Show Page Header Button
+            const headerLinkBtn = document.getElementById('btn-payment-link-show');
+            if (headerLinkBtn) {
+                headerLinkBtn.addEventListener('click', function() {
+                    const checkoutLink = document.getElementById('checkout-link');
+                    if (checkoutLink) {
+                        navigator.clipboard.writeText(checkoutLink.value).then(() => {
+                            const originalHTML = this.innerHTML;
+                            this.innerHTML = '<i class="fas fa-check"></i> {{ __("m_bookings.bookings.checkout_link_copied") ?? "Copied!" }}';
+                            this.classList.remove('btn-success');
+                            this.classList.add('btn-info');
+
+                            setTimeout(() => {
+                                this.innerHTML = originalHTML;
+                                this.classList.remove('btn-info');
+                                this.classList.add('btn-success');
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Copy failed', err);
+                            alert('{{ __("m_bookings.bookings.checkout_link_copy_failed") ?? "Failed to copy" }}');
+                        });
+                    }
+                });
+            }
+
+            // Regenerate Payment Link Handler
+            const regenerateLinkBtn = document.getElementById('btn-regenerate-payment-link');
+            if (regenerateLinkBtn) {
+                regenerateLinkBtn.addEventListener('click', function() {
+                    if (!confirm('{{ __("m_bookings.confirm_regenerate_payment_link") ?? "Are you sure you want to regenerate the payment link? The old link will no longer work." }}')) {
+                        return;
+                    }
+
+                    const btn = this;
+                    const originalHTML = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Regenerando...';
+
+                    fetch('{{ route("admin.bookings.regenerate_payment_link", $booking) }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Update the link input
+                                const checkoutLink = document.getElementById('checkout-link');
+                                if (checkoutLink) {
+                                    checkoutLink.value = data.url;
+                                }
+
+                                // Show success message
+                                alert(data.message || '{{ __("m_bookings.payment_link_regenerated") }}');
+
+                                // Reload page to update UI
+                                location.reload();
+                            } else {
+                                alert(data.message || 'Error regenerating link');
+                                btn.disabled = false;
+                                btn.innerHTML = originalHTML;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Error regenerating link');
+                            btn.disabled = false;
+                            btn.innerHTML = originalHTML;
+                        });
+                });
+            }
+
+            // Toggle Pickup Fields
+            const pickupRadios = document.querySelectorAll('.pickup-radio');
             const hotelSection = document.getElementById('hotel_section');
             const meetingSection = document.getElementById('meeting_section');
 
-            if (hotelRadio.checked) {
-                hotelSection.style.display = 'block';
-                meetingSection.style.display = 'none';
-            } else if (meetingRadio.checked) {
-                hotelSection.style.display = 'none';
-                meetingSection.style.display = 'block';
-            }
-        }
+            function togglePickupFields() {
+                const hotelRadio = document.getElementById('pickup_hotel');
+                const meetingRadio = document.getElementById('pickup_meeting');
 
-        @if($scheduleStart)
-        // Validate pickup time against tour schedule
-        (function() {
+                console.log('Toggle called - Hotel checked:', hotelRadio?.checked, 'Meeting checked:', meetingRadio?.checked);
+
+                if (hotelRadio && hotelRadio.checked) {
+                    if (hotelSection) hotelSection.style.display = 'block';
+                    if (meetingSection) meetingSection.style.display = 'none';
+                } else if (meetingRadio && meetingRadio.checked) {
+                    if (hotelSection) hotelSection.style.display = 'none';
+                    if (meetingSection) meetingSection.style.display = 'block';
+                }
+            }
+
+            pickupRadios.forEach(radio => {
+                radio.addEventListener('change', togglePickupFields);
+            });
+
+            // Initial check
+            togglePickupFields();
+
+            @if($scheduleStart)
+            // Validate pickup time against tour schedule
             const pickupInput = document.getElementById('pickup_time');
             const warningDiv = document.getElementById('pickup_time_warning');
             const warningText = document.getElementById('pickup_time_warning_text');
             const confirmBtn = document.getElementById('confirm_btn');
 
-            const tourStartHour = {
-                {
-                    $scheduleStart->hour
-                }
-            };
-            const tourPeriod = '{{ $tourPeriod }}';
+            if (pickupInput) {
+                const tourPeriod = '{{ $tourPeriod }}';
 
-            pickupInput.addEventListener('change', function() {
-                if (!this.value) {
-                    warningDiv.style.display = 'none';
-                    confirmBtn.disabled = false;
-                    return;
-                }
+                pickupInput.addEventListener('change', function() {
+                    if (!this.value) {
+                        if (warningDiv) warningDiv.style.display = 'none';
+                        if (confirmBtn) confirmBtn.disabled = false;
+                        return;
+                    }
 
-                const [hours, minutes] = this.value.split(':').map(Number);
-                const pickupPeriod = hours < 12 ? 'AM' : 'PM';
+                    const [hours, minutes] = this.value.split(':').map(Number);
+                    const pickupPeriod = hours < 12 ? 'AM' : 'PM';
 
-                if (pickupPeriod !== tourPeriod) {
-                    warningText.textContent = `Warning: Pickup time is ${pickupPeriod} but tour starts at ${tourPeriod}. Please verify this is correct.`;
-                    warningDiv.style.display = 'block';
-                    warningDiv.classList.remove('alert-danger');
-                    warningDiv.classList.add('alert-warning');
-                    confirmBtn.disabled = false;
-                } else {
-                    warningDiv.style.display = 'none';
-                    confirmBtn.disabled = false;
-                }
-            });
-        })();
-        @endif
-
-        // Copy checkout link to clipboard
-        function copyCheckoutLink() {
-            const input = document.getElementById('checkout-link');
-            input.select();
-            input.setSelectionRange(0, 99999); // For mobile devices
-
-            try {
-                document.execCommand('copy');
-                // Show success feedback
-                const button = event.target.closest('button');
-                const originalHTML = button.innerHTML;
-                button.innerHTML = '<i class="fas fa-check"></i> {{ __("m_bookings.checkout_link_copied") }}';
-                button.classList.remove('btn-primary');
-                button.classList.add('btn-success');
-
-                setTimeout(() => {
-                    button.innerHTML = originalHTML;
-                    button.classList.remove('btn-success');
-                    button.classList.add('btn-primary');
-                }, 2000);
-            } catch (err) {
-                alert('{{ __("m_bookings.checkout_link_copy_failed") }}');
+                    if (pickupPeriod !== tourPeriod) {
+                        if (warningText) warningText.textContent = `Warning: Pickup time is ${pickupPeriod} but tour starts at ${tourPeriod}. Please verify this is correct.`;
+                        if (warningDiv) {
+                            warningDiv.style.display = 'block';
+                            warningDiv.classList.remove('alert-danger');
+                            warningDiv.classList.add('alert-warning');
+                        }
+                        if (confirmBtn) confirmBtn.disabled = false;
+                    } else {
+                        if (warningDiv) warningDiv.style.display = 'none';
+                        if (confirmBtn) confirmBtn.disabled = false;
+                    }
+                });
             }
-        }
+            @endif
+        });
     </script>
     @endsection

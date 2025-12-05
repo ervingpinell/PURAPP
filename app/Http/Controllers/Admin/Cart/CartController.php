@@ -341,7 +341,7 @@ class CartController extends Controller
 
         $cart = $item->cart;
         if ($cart && $cart->is_active) {
-            $cart->isExpired() ? $this->expireCart($cart) : $cart->refreshExpiry((int) config('cart.expiration_minutes', 15));
+            $cart->isExpired() ? $this->expireCart($cart) : $cart->refreshExpiry();
         }
 
         return back()->with('success', __('carts.messages.item_updated'));
@@ -353,7 +353,7 @@ class CartController extends Controller
         $item->delete();
 
         if ($cart && $cart->is_active && !$cart->isExpired()) {
-            $cart->refreshExpiry((int) config('cart.expiration_minutes', 15));
+            $cart->refreshExpiry();
         }
 
         return back()->with('success', __('carts.messages.cart_item_deleted'));

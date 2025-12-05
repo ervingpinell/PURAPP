@@ -82,20 +82,6 @@
 
 @section('content')
 <div class="payment-container">
-    <div class="progress-steps">
-        <div class="step completed">
-            <div class="num">✓</div><span>{{ __('payment.checkout') }}</span>
-        </div>
-        <div class="step-connector"></div>
-        <div class="step active">
-            <div class="num">2</div><span>{{ __('payment.payment') }}</span>
-        </div>
-        <div class="step-connector"></div>
-        <div class="step">
-            <div class="num">3</div><span>{{ __('payment.confirmation') }}</span>
-        </div>
-    </div>
-
     {{-- Countdown Timer --}}
     @include('components.payment-countdown')
 
@@ -174,11 +160,24 @@
 
                 <div id="payment-message" class="payment-message"></div>
 
+                {{-- Terms & Conditions Modal Trigger --}}
+                <div class="acceptance-box disabled" id="accept-box">
+                    <div class="acceptance-checkbox">
+                        <input type="checkbox" id="terms_accepted" name="terms_accepted" value="1" disabled>
+                        <label for="terms_accepted" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#termsModal">
+                            {!! __('m_checkout.accept.label_html') !!}
+                        </label>
+                    </div>
+                    <div id="terms-error" class="text-danger small mt-2" style="display:none;">
+                        {{ __('m_checkout.accept.error') }}
+                    </div>
+                </div>
+
                 <div class="d-flex gap-3 mt-4">
-                    <a href="{{ route('public.checkout.show') }}" class="btn btn-back">
+                    <a href="{{ route('public.carts.index') }}" class="btn btn-back">
                         <i class="fas fa-arrow-left"></i>{{ __('payment.back') }}
                     </a>
-                    <button type="submit" id="submit-button" class="btn btn-pay">
+                    <button type="submit" id="submit-button" class="btn btn-pay" disabled>
                         <span id="button-text">
                             {{ __('payment.pay') }} ${{ number_format($total, 2) }}
                         </span>
@@ -189,9 +188,38 @@
 
             <div class="mt-4 text-center">
                 <small class="text-muted">
-                    <i class="fas fa-info-circle"></i>
-                    {{ __('payment.terms_agreement') }}
+                    <i class="fas fa-lock"></i>
+                    {{ __('payment.secure_payment') }}
                 </small>
+            </div>
+        </div>
+
+        {{-- Terms Modal --}}
+        <div class="modal fade" id="termsModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-shield-check me-2"></i>
+                            {{ __('m_checkout.panels.terms_block_title') }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="policy-content" id="policy-content" style="max-height: 60vh; overflow-y: auto; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                            @include('policies.checkout.content')
+                        </div>
+                    </div>
+                    <div class="modal-footer justify-content-between align-items-center">
+                        <div class="small text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            {{ __('m_checkout.panels.required_read_accept') }}
+                        </div>
+                        <button type="button" class="btn btn-primary" id="btn-accept-terms" disabled data-bs-dismiss="modal">
+                            {{ __('m_checkout.buttons.close') }} & {{ __('payment.pay') }}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -287,6 +315,19 @@
                 </span>
             </div>
 
+            @if(isset($booking) && $booking->user)
+            <div class="customer-details mb-3 p-3 bg-light rounded" style="border: 1px solid #e5e7eb;">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-user-circle me-2 text-primary"></i>
+                    <strong>{{ __('m_bookings.bookings.customer') }}</strong>
+                </div>
+                <div class="small">
+                    <div class="fw-bold">{{ $booking->user->name }}</div>
+                    <div class="text-muted">{{ $booking->user->email }}</div>
+                </div>
+            </div>
+            @endif
+
             <div class="items-scroll">
                 @foreach($itemsCollection as $item)
                 @php
@@ -316,7 +357,7 @@
                     <div class="tour-details">
                         <span>
                             <i class="far fa-calendar-alt"></i>
-                            {{ \Carbon\Carbon::parse($tourDate)->format('l, F d, Y') }}
+{{ ucfirst(\Carbon\Carbon::parse($tourDate)->locale(app()->getLocale())->translatedFormat('l, d F, Y')) }}
                         </span>
 
                         @if($schedule)
@@ -581,27 +622,40 @@
 <script src="https://js.stripe.com/v3/"></script>
 
 <script>
+    // Manual initialization of cartCountdown for booking payments
+    @if(isset($expiresAt))
+        (function() {
+            if (window.cartCountdown) return; // Already initialized
+
+            const expiresAtStr = @json($expiresAt);
+            if (!expiresAtStr) return;
+
+            let serverExpires = new Date(expiresAtStr).getTime();
+
+            window.cartCountdown = {
+                getRemainingSeconds: () => {
+                    const now = Date.now();
+                    return Math.max(0, Math.ceil((serverExpires - now) / 1000));
+                },
+                getTotalSeconds: () => 1800, // Default 30m
+                getExpiresAt: () => new Date(serverExpires),
+                isExpired: () => {
+                    return window.cartCountdown.getRemainingSeconds() <= 0;
+                }
+            };
+        })();
+    @endif
+</script>
+
+<script>
     document.addEventListener('DOMContentLoaded', async () => {
         const defaultGateway = '{{ $defaultGateway }}';
         const csrfToken = document.querySelector('input[name="_token"]').value;
-
-        // Tipo de integración:
-        const gatewayTypes = {
-            stripe: 'stripe',
-            paypal: 'redirect',
-            tilopay: 'redirect',
-            banco_nacional: 'redirect',
-            bac: 'redirect',
-            bcr: 'redirect',
-        };
 
         let currentGateway = defaultGateway;
         let stripeInstance = null;
         let stripeElements = null;
         let stripeClientSecret = null;
-
-        // redirectUrls[gateway] = 'https://...'
-        const redirectUrls = {};
 
         const stripeContainer = document.getElementById('stripe-container');
         const redirectGatewayBox = document.getElementById('redirect-gateway-container');
@@ -613,228 +667,238 @@
         const submitButton = document.getElementById('submit-button');
         const buttonText = document.getElementById('button-text');
         const spinner = document.getElementById('spinner');
+        const paymentMessage = document.getElementById('payment-message');
 
-        // Prevenir loop infinito de recargas
-        const RETRY_KEY = 'payment_init_retries';
-        const MAX_RETRIES = 3;
-        let retryCount = parseInt(sessionStorage.getItem(RETRY_KEY) || '0');
+        // Terms & Scroll Logic
+        const termsCheckbox = document.getElementById('terms_accepted');
+        const acceptBox = document.getElementById('accept-box');
+        const policyContent = document.getElementById('policy-content');
+        const btnAcceptTerms = document.getElementById('btn-accept-terms');
+        const termsError = document.getElementById('terms-error');
+        let termsScrolled = false;
 
-        if (retryCount >= MAX_RETRIES) {
-            showMessage('Demasiados intentos fallidos. Por favor, vuelve al checkout y intenta de nuevo.');
-            sessionStorage.removeItem(RETRY_KEY);
-            // Deshabilitar auto-inicialización
-            console.warn('Max retries reached, skipping auto-initialization');
-        } else {
-            // Delay de 500ms antes de inicializar para evitar rate limiting
-            setTimeout(async () => {
-                await initializeGateway(currentGateway);
-                updateGatewayBadge(currentGateway);
-            }, 500);
+        // Disable pay button initially
+        submitButton.disabled = true;
+
+        if (policyContent) {
+            policyContent.addEventListener('scroll', function() {
+                if (this.scrollHeight - this.scrollTop <= this.clientHeight + 50) {
+                    if (!termsScrolled) {
+                        termsScrolled = true;
+                        btnAcceptTerms.disabled = false;
+                        btnAcceptTerms.classList.remove('btn-secondary');
+                        btnAcceptTerms.classList.add('btn-success');
+                    }
+                }
+            });
         }
 
-        // Cambio de gateway por radio
-        document.querySelectorAll('input[name="payment_gateway"]').forEach(radio => {
-            radio.addEventListener('change', async (e) => {
-                currentGateway = e.target.value;
-                await initializeGateway(currentGateway);
+        if (btnAcceptTerms) {
+            btnAcceptTerms.addEventListener('click', function() {
+                if (termsScrolled) {
+                    termsCheckbox.checked = true;
+                    termsCheckbox.disabled = false;
+                    acceptBox.classList.remove('disabled');
+                    acceptBox.classList.add('accepted');
+                    submitButton.disabled = false;
+                    termsError.style.display = 'none';
+                }
+            });
+        }
+
+        // --- Payment Logic ---
+
+        // Initial Setup
+        if (currentGateway === 'stripe') {
+            // Auto-init Stripe (setup phase, no terms required yet)
+            setTimeout(() => initializeGateway('stripe', false), 500);
+        } else {
+            // Redirect gateway: Show UI, wait for user action
+            stripeContainer.style.display = 'none';
+            redirectGatewayBox.style.display = 'block';
+            updateRedirectText(currentGateway);
+        }
+
+        // Gateway Selection
+        document.querySelectorAll('input[name="payment_gateway"]').forEach(input => {
+            input.addEventListener('change', async (e) => {
+                const newGateway = e.target.value;
+                if (newGateway === currentGateway) return;
+
+                currentGateway = newGateway;
                 updateGatewayBadge(currentGateway);
+                paymentMessage.textContent = '';
+                paymentMessage.classList.remove('show');
+
+                if (currentGateway === 'stripe') {
+                    redirectGatewayBox.style.display = 'none';
+                    stripeContainer.style.display = 'block';
+                    await initializeGateway('stripe', false);
+                } else {
+                    stripeContainer.style.display = 'none';
+                    redirectGatewayBox.style.display = 'block';
+                    updateRedirectText(currentGateway);
+                }
             });
         });
 
-        async function initializeGateway(gateway) {
-            stripeContainer.style.display = 'none';
-            redirectGatewayBox.style.display = 'none';
+        // Submit Handler
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
+            // 1. Validate Terms Locally
+            if (!termsCheckbox.checked) {
+                termsError.style.display = 'block';
+                showMessage('{{ __("m_checkout.accept.error") }}');
+                return;
+            }
+
+            setLoading(true);
+
+            if (currentGateway === 'stripe') {
+                await handleStripePayment();
+            } else {
+                await handleRedirectPayment();
+            }
+        });
+
+        async function handleStripePayment() {
+            if (!stripeInstance || !stripeElements) {
+                showMessage('Stripe not initialized. Please refresh.');
+                setLoading(false);
+                return;
+            }
+
+            // 1. Record Terms Acceptance
             try {
-                const response = await fetch('{{ route("payment.initiate") }}', {
+                const termsResponse = await fetch('{{ route("payment.record-terms") }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': csrfToken
                     },
                     body: JSON.stringify({
-                        gateway
+                        terms_accepted: 1
                     })
                 });
 
-                // Check if response is JSON
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    console.error('Non-JSON response received:', response.status, response.statusText);
+                if (!termsResponse.ok) {
+                    throw new Error('Failed to record terms acceptance');
+                }
+            } catch (err) {
+                console.error('Terms record error:', err);
+                showMessage('{{ __("m_checkout.accept.error") }}');
+                setLoading(false);
+                return;
+            }
 
-                    // Incrementar contador de reintentos
-                    retryCount++;
-                    sessionStorage.setItem(RETRY_KEY, retryCount.toString());
+            // 2. Confirm Payment
+            const {
+                error
+            } = await stripeInstance.confirmPayment({
+                elements: stripeElements,
+                confirmParams: {
+                    return_url: '{{ route("payment.return") }}',
+                },
+            });
 
-                    if (response.status === 429) {
-                        if (retryCount >= MAX_RETRIES) {
-                            showMessage('Demasiados intentos. Por favor, espera un momento y vuelve al checkout.');
-                            sessionStorage.removeItem(RETRY_KEY);
-                            return;
-                        }
-                        showMessage(`Demasiadas solicitudes (${retryCount}/${MAX_RETRIES}). Recargando en 3 segundos...`);
-                        setTimeout(() => window.location.reload(), 3000);
-                        return;
-                    }
+            if (error) {
+                showMessage(error.message);
+                setLoading(false);
+            }
+        }
 
-                    showMessage('Error del servidor. Recargando la página en 3 segundos...');
-                    setTimeout(() => window.location.reload(), 3000);
-                    return;
+        async function handleRedirectPayment() {
+            // Initiate payment (action phase) - this time WITH terms
+            // This will return the redirect URL
+            await initializeGateway(currentGateway, true);
+        }
+
+        async function initializeGateway(gateway, isActionPhase = false) {
+            try {
+                const payload = {
+                    gateway
+                };
+                // Only send terms if we are in action phase (clicking Pay)
+                // or if we want to enforce it. For Stripe setup, we don't send it.
+                if (isActionPhase) {
+                    payload.terms_accepted = termsCheckbox.checked ? 1 : 0;
                 }
 
-                // Si llegamos aquí, la respuesta fue exitosa - limpiar contador
-                sessionStorage.removeItem(RETRY_KEY);
+                const response = await fetch('{{ route("payment.initiate") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    // Handle non-JSON errors (don't reload loop)
+                    if (response.status === 422) {
+                        showMessage('{{ __("m_checkout.accept.error") }}');
+                    } else {
+                        showMessage('Error initializing gateway. Please try again.');
+                    }
+                    setLoading(false);
+                    return;
+                }
 
                 const data = await response.json();
 
                 if (!data.success) {
-                    console.error('Payment init failed:', data);
-                    showMessage(data.message || 'Error al inicializar pago. Recargando...');
-                    setTimeout(() => window.location.reload(), 3000);
+                    showMessage(data.message || 'Error al inicializar pago.');
+                    setLoading(false);
                     return;
                 }
 
-                const type = gatewayTypes[gateway] || 'redirect';
-
-                if (type === 'stripe') {
-                    await initializeStripe(data.client_secret);
-                } else if (type === 'redirect') {
-                    const url = data.redirect_url || data.approval_url || null;
-                    await initializeRedirectGateway(gateway, url);
+                if (gateway === 'stripe') {
+                    if (data.client_secret) {
+                        stripeClientSecret = data.client_secret;
+                        const appearance = {
+                            theme: 'stripe'
+                        };
+                        stripeInstance = Stripe('{{ $stripeKey }}');
+                        stripeElements = stripeInstance.elements({
+                            appearance,
+                            clientSecret: stripeClientSecret
+                        });
+                        const paymentElement = stripeElements.create('payment');
+                        paymentElement.mount('#payment-element');
+                        stripeContainer.style.display = 'block';
+                    }
+                } else {
+                    // Redirect Gateway
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        showMessage('Error: No redirect URL received.');
+                        setLoading(false);
+                    }
                 }
+
             } catch (error) {
-                console.error('Payment initialization error:', error);
-                showMessage('Error al inicializar pago. Recargando la página en 3 segundos...');
-                setTimeout(() => window.location.reload(), 3000);
+                console.error('Init error:', error);
+                showMessage('Connection error. Please try again.');
+                setLoading(false);
             }
         }
 
-        async function initializeStripe(clientSecret) {
-            if (!clientSecret) {
-                showMessage('Stripe not ready. Please refresh the page.');
-                return;
-            }
-
-            stripeClientSecret = clientSecret;
-
-            if (!stripeInstance) {
-                stripeInstance = Stripe('{{ $stripeKey }}');
-            }
-
-            const appearance = {
-                theme: 'stripe',
-                variables: {
-                    colorPrimary: getComputedStyle(document.documentElement)
-                        .getPropertyValue('--primary-color').trim() || '#0066cc',
-                    colorBackground: '#f9fafb',
-                    colorText: '#1f2937',
-                    colorDanger: '#dc2626',
-                    fontFamily: 'system-ui, -apple-system, sans-serif',
-                    spacingUnit: '4px',
-                    borderRadius: '8px'
-                }
-            };
-
-            stripeElements = stripeInstance.elements({
-                clientSecret,
-                appearance
-            });
-
-            paymentElementEl.innerHTML = '';
-            const paymentElement = stripeElements.create('payment');
-            paymentElement.mount('#payment-element');
-
-            stripeContainer.style.display = 'block';
-            redirectGatewayBox.style.display = 'none';
-            submitButton.style.display = 'inline-flex';
-        }
-
-        async function initializeRedirectGateway(gateway, url) {
-            redirectUrls[gateway] = url || null;
-
-            if (!redirectUrls[gateway]) {
-                console.warn(`No redirect URL for gateway "${gateway}"`);
-                showMessage('Failed to initialize payment gateway. Please try again.');
-                return;
-            }
-
+        function updateRedirectText(gateway) {
             if (gateway === 'paypal') {
-                redirectGatewayText.textContent =
-                    '{{ __("payment.redirect_paypal") ?? "You will be redirected to PayPal to complete your payment." }}';
-            } else if (gateway === 'tilopay') {
-                redirectGatewayText.textContent =
-                    '{{ __("payment.redirect_tilopay") ?? "You will be redirected to Tilopay to complete your payment." }}';
+                redirectGatewayText.textContent = "{{ __('payment.paypal_description') }}";
             } else {
-                redirectGatewayText.textContent =
-                    '{{ __("payment.redirect_external_gateway") ?? "You will be redirected to the external payment page to complete your payment." }}';
+                redirectGatewayText.textContent = "{{ __('payment.redirect_external_gateway') }}";
             }
-
-            redirectGatewayBox.style.display = 'block';
-            stripeContainer.style.display = 'none';
-            submitButton.style.display = 'inline-flex';
         }
 
         function updateGatewayBadge(gateway) {
-            if (!gatewayBadge) return;
-
-            if (gateway === 'stripe') {
-                gatewayBadge.textContent = '{{ __("payment.powered_by_stripe") }}';
-            } else if (gateway === 'paypal') {
-                gatewayBadge.textContent = 'Powered by PayPal';
-            } else if (gateway === 'tilopay') {
-                gatewayBadge.textContent = 'Powered by Tilopay';
-            } else {
-                gatewayBadge.textContent = '';
-            }
+            if (gateway === 'stripe') gatewayBadge.textContent = "{{ __('payment.powered_by_stripe') }}";
+            else if (gateway === 'paypal') gatewayBadge.textContent = "Powered by PayPal";
+            else gatewayBadge.textContent = "Powered by " + gateway.charAt(0).toUpperCase() + gateway.slice(1);
         }
-
-        // Submit:
-        // - redirect => window.location.href
-        // - stripe   => confirmPayment
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const type = gatewayTypes[currentGateway] || 'redirect';
-
-            if (type === 'redirect') {
-                const url = redirectUrls[currentGateway];
-                if (!url) {
-                    showMessage('Payment is not ready. Please select the gateway again or refresh the page.');
-                    return;
-                }
-                setLoading(true);
-                window.location.href = url;
-                return;
-            }
-
-            // Stripe
-            if (!stripeClientSecret || !stripeInstance || !stripeElements) {
-                showMessage('Payment not initialized. Please refresh the page.');
-                return;
-            }
-
-            setLoading(true);
-
-            try {
-                const {
-                    error
-                } = await stripeInstance.confirmPayment({
-                    elements: stripeElements,
-                    confirmParams: {
-                        return_url: '{{ route("payment.return") }}',
-                    },
-                });
-
-                if (error) {
-                    showMessage(error.message);
-                    setLoading(false);
-                }
-            } catch (error) {
-                console.error('Payment error:', error);
-                showMessage('An unexpected error occurred. Please try again.');
-                setLoading(false);
-            }
-        });
 
         function setLoading(isLoading) {
             submitButton.disabled = isLoading;
@@ -848,14 +912,11 @@
         }
 
         function showMessage(message) {
-            const messageDiv = document.getElementById('payment-message');
-            if (!messageDiv) return;
-
-            messageDiv.textContent = message;
-            messageDiv.classList.add('show');
-
+            if (!paymentMessage) return;
+            paymentMessage.textContent = message;
+            paymentMessage.classList.add('show');
             setTimeout(() => {
-                messageDiv.classList.remove('show');
+                paymentMessage.classList.remove('show');
             }, 5000);
         }
     });

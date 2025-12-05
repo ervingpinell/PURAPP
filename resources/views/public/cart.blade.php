@@ -579,7 +579,8 @@ $initialNotes = old('notes', $cart->notes ?? '');
   </div>
 
   {{-- Confirmar → Checkout (con notas) --}}
-  <form action="{{ route('public.checkout.show') }}" method="GET" id="confirm-reserva-form">
+  <form action="{{ route('public.checkout.process') }}" method="POST" id="confirm-reserva-form">
+    @csrf
     {{-- Notas del cliente antes del cierre --}}
     <div class="card shadow-sm mb-4">
       <div class="card-body">
