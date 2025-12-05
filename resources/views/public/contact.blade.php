@@ -106,6 +106,20 @@
                 @enderror
               </div>
 
+              {{-- Cloudflare Turnstile (solo si hay site_key configurada) --}}
+              @if(config('services.turnstile.site_key'))
+                <div class="mb-3">
+                  <div
+                    class="cf-turnstile"
+                    data-sitekey="{{ config('services.turnstile.site_key') }}"
+                    data-theme="light"
+                  ></div>
+                  @error('cf-turnstile-response')
+                    <div class="text-danger small mt-1">{{ $message }}</div>
+                  @enderror
+                </div>
+              @endif
+
               <button type="submit" class="btn btn-success bg-green-dark w-100">
                 <i class="fas fa-paper-plane me-1"></i> {{ __('adminlte::adminlte.send_message') }}
               </button>
@@ -171,6 +185,12 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{{-- Script de Cloudflare Turnstile, solo en esta vista y solo si está configurado --}}
+@if(config('services.turnstile.site_key'))
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+@endif
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('contactForm');

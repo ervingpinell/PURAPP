@@ -225,7 +225,6 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
 {{-- SweetAlert2 --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endonce
-
 @push('scripts')
 <script>
 (function() {
@@ -243,14 +242,12 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
     // ===== FECHAS CON PRECIOS =====
     const categoriesData = @json($categoriesData ?? []);
 
-    // Construir set de fechas que tienen AL MENOS una categoría con precio
     const datesWithPrices = new Set();
     categoriesData.forEach(cat => {
         if (!cat.rules || !Array.isArray(cat.rules)) return;
 
         cat.rules.forEach(rule => {
             if (rule.is_default) {
-                // Default = todas las fechas futuras
                 const today = new Date();
                 const maxDate = new Date();
                 maxDate.setDate(maxDate.getDate() + maxFutureDays);
@@ -260,7 +257,6 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
                     datesWithPrices.add(iso);
                 }
             } else if (rule.valid_from && rule.valid_until) {
-                // Rango específico
                 const start = new Date(rule.valid_from);
                 const end = new Date(rule.valid_until);
 
@@ -269,7 +265,6 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
                     datesWithPrices.add(iso);
                 }
             } else if (rule.valid_from) {
-                // Solo from (hasta maxFutureDays)
                 const start = new Date(rule.valid_from);
                 const maxDate = new Date();
                 maxDate.setDate(maxDate.getDate() + maxFutureDays);
@@ -279,7 +274,6 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
                     datesWithPrices.add(iso);
                 }
             } else if (rule.valid_until) {
-                // Solo until (desde hoy)
                 const today = new Date();
                 const end = new Date(rule.valid_until);
 
@@ -291,7 +285,6 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
         });
     });
 
-    // Calcular fecha máxima
     const maxDateObj = new Date();
     maxDateObj.setDate(maxDateObj.getDate() + maxFutureDays);
 
@@ -339,7 +332,6 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
 
     if (!dateInput || !scheduleSelect) return;
 
-    // Forzar input readonly
     dateInput.setAttribute('readonly', 'readonly');
     dateInput.style.backgroundColor = '#fff';
     dateInput.style.cursor = 'pointer';
@@ -388,7 +380,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
         if (blockedGeneral.includes(iso)) return true;
         if (!anyScheduleAvailable(iso)) return true;
 
-        // ===== NUEVA LÓGICA: Bloquear si no hay precios =====
+        // Bloquea si no hay precios
         if (!datesWithPrices.has(iso)) return true;
 
         return false;
@@ -599,7 +591,6 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
         }
     }
 
-    // Restaurar selecciones previas
     if (OLD.language) languageChoices.setChoiceByValue(String(OLD.language));
     if (OLD.hotel) hotelChoices.setChoiceByValue(String(OLD.hotel));
     else if (OLD.isOther) hotelChoices.setChoiceByValue('other');
@@ -618,19 +609,13 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
     });
 
     /* ========= Validación con SweetAlert2 ========= */
-    async function validateForm(e) {
+    async function validateForm() {
         if (!scheduleSelect.value) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
             await warn(T.needScheduleTitle, T.needScheduleText, scheduleSelect);
             return false;
         }
 
         if (!languageSelect.value) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
             await warn(T.needLangTitle, T.needLangText, languageSelect);
             return false;
         }
@@ -643,27 +628,62 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
         const hasMeeting = !!meetingVal;
 
         if (!hasHotel && !hasMeeting) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
             await warn(T.needPickTitle, T.needPickText, hotelSelect);
             return false;
         }
         return true;
     }
 
+    // ===== NUEVO: función anti doble submit =====
+    async function validateAndSubmit(e, form) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Si ya se está enviando, ignorar clics extra
+        if (form.dataset.submitting === '1') {
+            return false;
+        }
+
+        const isValid = await validateForm();
+        if (!isValid) {
+            return false;
+        }
+
+        // Chequeo de carrera por si otro handler llegó antes
+        if (form.dataset.submitting === '1') {
+            return false;
+        }
+
+        form.dataset.submitting = '1';
+
+        // Deshabilitar botones de envío
+        const submitButtons = form.querySelectorAll(
+            '[data-role="add-to-cart"], [name="add_to_cart"], #add-to-cart-btn, button[type="submit"]'
+        );
+        submitButtons.forEach(btn => {
+            btn.disabled = true;
+            btn.classList.add('disabled');
+        });
+
+        form.submit();
+        return true;
+    }
+
+    // Interceptar clicks en botones relevantes
     document.addEventListener('click', function(e) {
-        const target = e.target.closest('[data-role="add-to-cart"], [name="add_to_cart"], #add-to-cart-btn, button[type="submit"]');
+        const target = e.target.closest('[data-role="add-to-cart"], [name="add_to_cart"], #add-to-cart-btn');
         if (!target) return;
         const form = target.closest('form');
         if (!form || !form.contains(scheduleSelect)) return;
-        validateForm(e);
+
+        validateAndSubmit(e, form);
     }, { capture: true });
 
+    // Interceptar submit del form (por si se dispara por Enter)
     const form = document.getElementById('languageSelect')?.closest('form');
     if (form) {
         form.addEventListener('submit', (e) => {
-            if (!validateForm(e)) return false;
+            validateAndSubmit(e, form);
         }, { capture: true });
     }
 })();

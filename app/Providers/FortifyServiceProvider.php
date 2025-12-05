@@ -75,7 +75,7 @@ class FortifyServiceProvider extends ServiceProvider
 
         RateLimiter::for('two-factor', function (Request $request) {
             $key = (string) $request->session()->get('login.id', $request->ip());
-            return [ Limit::perMinute(5)->by('2fa|'.$key) ];
+            return [Limit::perMinute(5)->by('2fa|' . $key)];
         });
 
         Fortify::authenticateUsing(function (Request $request) {
@@ -147,22 +147,21 @@ class FortifyServiceProvider extends ServiceProvider
 
             // User not found → penalize IP
             if (! $user) {
-                $ipFails = $this->bumpIpFails($ip);
-                $this->sleepBackoff($ipFails);
+                // ... logic exists ...
+                $this->handleUserNotFound($ip, $email, $captchaAfter);
+            }
 
-                if ($ipFails >= $captchaAfter) {
-                    session()->put('login.captcha', true);
-                }
-
-                Log::info('[Auth] Invalid credentials (user not found)', [
-                    'email'    => $email,
-                    'ip'       => $ip,
-                    'ip_fails' => $ipFails,
+            // 🛑 FIX: Validate that the email matches exactly (prevent login with pending_email)
+            // Even if the DB returned a user, we must ensure the 'email' column matches the input.
+            if (mb_strtolower(trim($user->email)) !== $email) {
+                Log::warning('[Auth] Email mismatch (possible pending_email login attempt)', [
+                    'input_email' => $email,
+                    'user_email'  => $user->email,
+                    'user_id'     => $user->getKey(),
                 ]);
 
-                throw ValidationException::withMessages([
-                    'email' => __('adminlte::validation.invalid_credentials'),
-                ]);
+                // Treat as not found
+                $this->handleUserNotFound($ip, $email, $captchaAfter);
             }
 
             // Locked user
@@ -260,8 +259,14 @@ class FortifyServiceProvider extends ServiceProvider
     }
 
     /* ===== Keys ===== */
-    private function failKeyUser(int|string $userId): string { return 'auth:fail:' . $userId; }
-    private function ipKey(string $ip): string { return 'auth:ip:' . sha1($ip); }
+    private function failKeyUser(int|string $userId): string
+    {
+        return 'auth:fail:' . $userId;
+    }
+    private function ipKey(string $ip): string
+    {
+        return 'auth:ip:' . sha1($ip);
+    }
 
     /* ===== Counters ===== */
     private function bumpUserFails(int|string $userId): int
@@ -372,5 +377,25 @@ class FortifyServiceProvider extends ServiceProvider
                 ]);
             }
         }
+    }
+
+    private function handleUserNotFound(string $ip, string $email, int $captchaAfter): void
+    {
+        $ipFails = $this->bumpIpFails($ip);
+        $this->sleepBackoff($ipFails);
+
+        if ($ipFails >= $captchaAfter) {
+            session()->put('login.captcha', true);
+        }
+
+        Log::info('[Auth] Invalid credentials (user not found)', [
+            'email'    => $email,
+            'ip'       => $ip,
+            'ip_fails' => $ipFails,
+        ]);
+
+        throw ValidationException::withMessages([
+            'email' => __('adminlte::validation.invalid_credentials'),
+        ]);
     }
 }

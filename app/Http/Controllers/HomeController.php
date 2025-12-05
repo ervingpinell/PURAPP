@@ -749,44 +749,80 @@ class HomeController extends Controller
             abort(500);
         }
     }
-    public function sendContact(Request $request)
-    {
-        try {
-            $validated = $request->validate([
-                'name'    => 'bail|required|string|min:2|max:100',
-                'email'   => 'bail|required|email',
-                'subject' => 'bail|required|string|min:3|max:150',
-                'message' => 'bail|required|string|min:5|max:1000',
-                'website' => 'nullable|string|max:50',
-            ]);
+public function sendContact(Request $request)
+{
+    try {
+        // 1) Validación inicial, incluyendo Turnstile
+        $validated = $request->validate([
+            'name'    => 'bail|required|string|min:2|max:100',
+            'email'   => 'bail|required|email',
+            'subject' => 'bail|required|string|min:3|max:150',
+            'message' => 'bail|required|string|min:5|max:1000',
+            'website' => 'nullable|string|max:50',
+            // Turnstile genera este campo automáticamente
+            'cf-turnstile-response' => 'required|string',
+        ]);
 
-            // Honeypot: simulamos éxito pero no hacemos nada
-            if (!empty($validated['website'])) {
-                return back()->with(
-                    'success',
-                    __('adminlte::adminlte.contact_spam_success')
-                );
-            }
-
-            $recipient = env('MAIL_TO_CONTACT', config('mail.from.address', 'info@greenvacationscr.com'));
-
-            Mail::to($recipient)->queue(
-                new ContactMessage($validated + ['locale' => app()->getLocale()])
-            );
-
+        // 2) Honeypot: simulamos éxito pero no hacemos nada
+        if (!empty($validated['website'])) {
             return back()->with(
                 'success',
-                __('adminlte::adminlte.contact_success')
+                __('adminlte::adminlte.contact_spam_success')
             );
-        } catch (Throwable $e) {
-            Log::error('contact.send.failed', [
-                'ip'    => $request->ip(),
-                'error' => $e->getMessage(),
-            ]);
-
-            return back()->withInput()->withErrors([
-                'email' => __('adminlte::adminlte.contact_error'),
-            ]);
         }
+
+        // 3) Verificar Turnstile con Cloudflare
+        $secret = config('services.turnstile.secret_key');
+
+        if ($secret) {
+            $verifyResponse = Http::asForm()->post(
+                'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+                [
+                    'secret'   => $secret,
+                    'response' => $validated['cf-turnstile-response'] ?? '',
+                    'remoteip' => $request->ip(),
+                ]
+            );
+
+            if (!$verifyResponse->ok() || !$verifyResponse->json('success')) {
+                // Puedes loguear detalle para debug
+                Log::warning('contact.turnstile.failed', [
+                    'ip'      => $request->ip(),
+                    'payload' => $verifyResponse->json(),
+                ]);
+
+                return back()
+                    ->withInput($request->except('website'))
+                    ->withErrors([
+                        'cf-turnstile-response' => __('adminlte::adminlte.bot_detection_failed'),
+                    ]);
+            }
+        } else {
+            // Si no hay secret configurado, opcionalmente puedes loguearlo:
+            Log::warning('contact.turnstile.not_configured');
+        }
+
+        // 4) Enviar correo normalmente
+        $recipient = env('MAIL_TO_CONTACT', config('mail.from.address', 'info@greenvacationscr.com'));
+
+        Mail::to($recipient)->queue(
+            new ContactMessage($validated + ['locale' => app()->getLocale()])
+        );
+
+        return back()->with(
+            'success',
+            __('adminlte::adminlte.contact_success')
+        );
+    } catch (Throwable $e) {
+        Log::error('contact.send.failed', [
+            'ip'    => $request->ip(),
+            'error' => $e->getMessage(),
+        ]);
+
+        return back()->withInput()->withErrors([
+            'email' => __('adminlte::adminlte.contact_error'),
+        ]);
     }
+}
+
 }
