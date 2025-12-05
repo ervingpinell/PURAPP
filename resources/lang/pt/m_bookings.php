@@ -218,6 +218,18 @@ return [
             'price_breakdown' => 'Detalhamento de preços',
             'enter_promo' => 'Digite o código promocional',
             'select_hotel' => 'Selecionar hotel',
+            'payment_link' => 'Link de pagamento',
+            'view_payment' => 'Ver Pagamento',
+            'hotel_pickup' => 'Recolha no Hotel',
+            'meeting_point_pickup' => 'Ponto de Encontro',
+            'no_pickup' => 'Sem recolha',
+            'optional' => '(Opcional)',
+            'pickup_info' => 'Defina a hora de recolha para esta reserva.',
+            'confirm_booking_alert' => 'A confirmação desta reserva enviará um e-mail de confirmação para o cliente.',
+            'regenerating' => 'A regenerar...',
+            'copied' => 'Copiado!',
+            'copy_failed' => 'Falha ao copiar',
+            'pickup_warning' => 'Aviso: A hora de recolha é :pickup mas o tour começa às :tour. Por favor verifique.',
         ],
 
         'fields' => [
@@ -369,6 +381,47 @@ return [
 
         'confirm' => [
             'delete' => 'Você tem certeza de que deseja excluir esta reserva?',
+        ],
+
+        // Checkout Links (for admin-created bookings)
+        'checkout_link_label' => 'Link de pagamento do cliente',
+        'checkout_link_description' => 'Envie este link ao cliente para que ele possa concluir o pagamento de sua reserva.',
+        'checkout_link_copy' => 'Copiar link',
+        'checkout_link_copied' => 'Link copiado!',
+        'checkout_link_copy_failed' => 'Não foi possível copiar o link. Por favor, copie manualmente.',
+        'checkout_link_valid_until' => 'Válido até',
+        'checkout_link_expired' => 'Este link de pagamento expirou ou não é mais válido.',
+        'booking_already_paid' => 'Esta reserva já foi paga',
+        'payment_link_regenerated' => 'Link de pagamento regenerado com sucesso',
+        'regenerate_payment_link' => 'Regenerar link de pagamento',
+        'confirm_regenerate_payment_link' => 'Tem certeza de que deseja regenerar o link de pagamento? O link antigo não funcionará mais.',
+        'payment_link_expired_label' => 'Link expirado',
+        'checkout_link_accessed' => 'Cliente acessou o checkout',
+
+        // Payment Status
+        'payment_status' => [
+            'label' => 'Estado de Pagamento',
+            'pending' => 'Pendente',
+            'paid' => 'Pago',
+            'failed' => 'Falhado',
+            'refunded' => 'Reembolsado',
+        ],
+        // SoftDelete & Trash
+        'trash' => [
+            'active_bookings' => 'Reservas ativas',
+            'trash' => 'Lixeira',
+            'restore_booking' => 'Restaurar reserva',
+            'permanently_delete' => 'Excluir permanentemente',
+            'force_delete_title' => 'EXCLUSÃO PERMANENTE',
+            'force_delete_warning' => 'Esta ação NÃO PODE ser desfeita!',
+            'force_delete_message' => 'será excluído permanentemente.',
+            'force_delete_data_loss' => 'Todos os dados relacionados serão perdidos para sempre.',
+            'force_delete_confirm' => 'Sim, EXCLUIR PARA SEMPRE',
+            'booking_deleted' => 'Reserva excluída.',
+            'booking_restored' => 'Reserva restaurada com sucesso.',
+            'booking_force_deleted' => 'Reserva excluída permanentemente. Registros de pagamento preservados para auditoria.',
+            'force_delete_failed' => 'Falha ao excluir permanentemente a reserva.',
+            'deleted_booking_indicator' => '(EXCLUÍDA)',
         ],
     ],
 

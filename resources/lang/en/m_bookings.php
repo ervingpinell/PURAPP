@@ -218,6 +218,18 @@ return [
             'price_breakdown' => 'Price Breakdown',
             'enter_promo' => 'Enter promo code',
             'select_hotel' => 'Select hotel',
+            'payment_link' => 'Payment Link',
+            'view_payment' => 'View Payment',
+            'hotel_pickup' => 'Hotel Pickup',
+            'meeting_point_pickup' => 'Meeting Point',
+            'no_pickup' => 'No Pickup',
+            'optional' => '(Optional)',
+            'pickup_info' => 'Set the pickup time for this booking.',
+            'confirm_booking_alert' => 'Confirming this booking will send a confirmation email to the customer.',
+            'regenerating' => 'Regenerating...',
+            'copied' => 'Copied!',
+            'copy_failed' => 'Failed to copy',
+            'pickup_warning' => 'Warning: Pickup time is :pickup but tour starts :tour. Please verify.',
         ],
 
         'fields' => [
@@ -274,7 +286,6 @@ return [
             'enter_hotel_name' => 'Enter hotel name',
             'enter_promo_code' => 'Enter promo code',
             'other'            => 'Other…',
-            'select_hotel'     => 'Select hotel',
         ],
 
         'statuses' => [
@@ -293,6 +304,7 @@ return [
             'update'          => 'Update',
             'close'           => 'Close',
             'back'            => 'Back',
+            'remove_promo' => 'Remove promo',
         ],
 
         'meeting_point' => [
@@ -401,9 +413,19 @@ return [
         'checkout_link_expired' => 'This payment link has expired or is no longer valid.',
         'booking_already_paid' => 'This booking has already been paid',
         'payment_link_regenerated' => 'Payment link regenerated successfully',
-        'regenerate_payment_link' => 'Regenerate Link',
+        'regenerate_payment_link' => 'Regenerate Payment Link',
+        'confirm_regenerate_payment_link' => 'Are you sure you want to regenerate the payment link? The old link will no longer work.',
         'payment_link_expired_label' => 'Link expired',
         'checkout_link_accessed' => 'Customer accessed checkout',
+
+        // Payment Status
+        'payment_status' => [
+            'label' => 'Payment Status',
+            'pending' => 'Pending',
+            'paid' => 'Paid',
+            'failed' => 'Failed',
+            'refunded' => 'Refunded',
+        ],
     ],
 
     // =========================================================

@@ -44,3 +44,14 @@ Schedule::command('bookings:cleanup-expired', ['--force'])
     ->timezone(config('app.timezone', 'UTC'))
     ->onOneServer()
     ->appendOutputTo(storage_path('logs/booking-cleanup.log'));
+
+/*
+|--------------------------------------------------------------------------
+| Limpieza de pagos expirados/trabados (Job)
+|--------------------------------------------------------------------------
+| Revisa pagos 'pending'/'processing' vencidos y los marca como failed.
+*/
+Schedule::job(new \App\Jobs\ExpirePendingPayments)
+    ->everyThirtyMinutes()
+    ->timezone(config('app.timezone', 'UTC'))
+    ->onOneServer();

@@ -241,7 +241,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
             </a>
             @if($booking->status === 'pending' && !$booking->isPaid())
             <button type="button" class="btn btn-success" id="btn-payment-link-show">
-                <i class="fas fa-link"></i> {{ __('m_bookings.bookings.ui.payment_link') ?? 'Payment Link' }}
+                <i class="fas fa-link"></i> {{ __('m_bookings.bookings.ui.payment_link') }}
             </button>
             @endif
 
@@ -263,23 +263,23 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                     // Determinar estado de pago
                     $paymentStatus = 'pending';
                     $paymentBadgeClass = 'warning';
-                    $paymentText = __('Pending');
+                    $paymentText = __('m_bookings.bookings.payment_status.pending');
 
                     if ($booking->relationLoaded('payments') && $booking->payments->isNotEmpty()) {
                     $latestPayment = $booking->payments->sortByDesc('created_at')->first();
                     if ($latestPayment && $latestPayment->status === 'completed') {
                     $paymentStatus = 'paid';
                     $paymentBadgeClass = 'success';
-                    $paymentText = __('Paid');
+                    $paymentText = __('m_bookings.bookings.payment_status.paid');
                     }
                     }
                     @endphp
                     <div>
-                        <strong>{{ __('Payment Status') }}:</strong>
+                        <strong>{{ __('m_bookings.bookings.payment_status.label') }}:</strong>
                         <span class="badge badge-{{ $paymentBadgeClass }} ml-2">{{ $paymentText }}</span>
                         @if(isset($latestPayment))
                         <a href="{{ route('admin.payments.show', $latestPayment->payment_id) }}" class="btn btn-sm btn-info ml-2" title="View Payment Details">
-                            <i class="fas fa-credit-card"></i> {{ __('View Payment') }}
+                            <i class="fas fa-credit-card"></i> {{ __('m_bookings.bookings.ui.view_payment') }}
                         </a>
                         @if($latestPayment->card_brand && $latestPayment->card_last4)
                         <br><small class="text-muted ml-2">{{ ucfirst($latestPayment->card_brand) }} •••• {{ $latestPayment->card_last4 }}</small>
@@ -334,15 +334,33 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                                 </div>
                             </div>
 
+                            @php
+                            $expirationHours = (int) \App\Models\Setting::getValue('booking.payment_link_expiration_hours', 2);
+                            $tokenCreatedAt = $booking->payment_token_created_at ?? $booking->created_at;
+                            $expiresAt = $tokenCreatedAt->copy()->addHours($expirationHours);
+                            $isExpired = $expiresAt->isPast();
+                            @endphp
+
                             <small class="text-muted d-block mt-2">
                                 <i class="fas fa-info-circle mr-1"></i>
+                                @if($isExpired)
+                                <span class="text-danger">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    {{ __('m_bookings.bookings.checkout_link_expired') }}
+                                    ({{ __('m_bookings.bookings.checkout_link_valid_until') }}: {{ $expiresAt->format('M d, Y g:i A') }})
+                                </span>
+                                @else
                                 {{ __('m_bookings.bookings.payment_link_info') ?? 'This payment link does not expire and can be used multiple times until the booking is paid.' }}
+                                <br>
+                                <strong>{{ __('m_bookings.bookings.checkout_link_valid_until') }}:</strong> {{ $expiresAt->format('M d, Y g:i A') }}
+                                ({{ $expiresAt->diffForHumans() }})
+                                @endif
                             </small>
 
                             {{-- Regenerate button (always available for unpaid bookings) --}}
                             <div class="mt-3">
                                 <button type="button" class="btn btn-warning btn-sm" id="btn-regenerate-payment-link">
-                                    <i class="fas fa-sync-alt"></i> {{ __('m_bookings.regenerate_payment_link') ?? 'Regenerate Payment Link' }}
+                                    <i class="fas fa-sync-alt"></i> {{ __('m_bookings.bookings.regenerate_payment_link') ?? 'Regenerate Payment Link' }}
                                 </button>
                                 <small class="text-muted d-block mt-2">
                                     <i class="fas fa-exclamation-triangle mr-1"></i>
@@ -397,7 +415,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                                     @elseif(!$hasHotel && $hasMeetingPoint && $meetingPointName)
                                     {{ $meetingPointName }}
                                     @else
-                                    {{ __('Sin recogida') }}
+                                    {{ __('m_bookings.bookings.ui.no_pickup') }}
                                     @endif
                                 </td>
                             </tr>
@@ -409,16 +427,16 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
             {{-- Participants Table --}}
             <div class="card mb-2">
                 <div class="card-header bg-secondary py-2">
-                    <h3 class="card-title mb-0"><strong>{{ __('Participantes') }}:</strong></h3>
+                    <h3 class="card-title mb-0"><strong>{{ __('m_bookings.bookings.ui.participants') }}:</strong></h3>
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-bordered table-sm mb-0">
                         <thead class="thead-light">
                             <tr>
-                                <th>{{ __('Categoría') }}</th>
-                                <th class="text-center">{{ __('Cantidad') }}</th>
-                                <th class="text-right">{{ __('Precio') }}</th>
-                                <th class="text-right">{{ __('Subtotal') }}</th>
+                                <th>{{ __('m_bookings.bookings.fields.category') }}</th>
+                                <th class="text-center">{{ __('m_bookings.bookings.fields.quantity') }}</th>
+                                <th class="text-right">{{ __('m_bookings.bookings.fields.price') }}</th>
+                                <th class="text-right">{{ __('m_bookings.bookings.fields.subtotal') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -531,14 +549,14 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
 
                         {{-- Pickup Location --}}
                         <div class="form-group">
-                            <label><i class="fas fa-map-marker-alt mr-1"></i>{{ __('Pickup Location') }}</label>
+                            <label><i class="fas fa-map-marker-alt mr-1"></i>{{ __('m_bookings.bookings.fields.pickup_location') }}</label>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="custom-control custom-radio">
                                         <input class="custom-control-input pickup-radio" type="radio" name="pickup_type" id="pickup_hotel" value="hotel"
                                             {{ $booking->detail?->hotel_id || $booking->detail?->other_hotel_name ? 'checked' : '' }}>
                                         <label class="custom-control-label" for="pickup_hotel">
-                                            {{ __('Hotel Pickup') }}
+                                            {{ __('m_bookings.bookings.ui.hotel_pickup') }}
                                         </label>
                                     </div>
                                 </div>
@@ -547,7 +565,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                                         <input class="custom-control-input pickup-radio" type="radio" name="pickup_type" id="pickup_meeting" value="meeting_point"
                                             {{ $booking->detail?->meeting_point_id ? 'checked' : '' }}>
                                         <label class="custom-control-label" for="pickup_meeting">
-                                            {{ __('Meeting Point') }}
+                                            {{ __('m_bookings.bookings.ui.meeting_point_pickup') }}
                                         </label>
                                     </div>
                                 </div>
@@ -556,7 +574,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                             {{-- Hotel Selection --}}
                             <div id="hotel_section" class="mt-3" style="display: {{ $booking->detail?->hotel_id || $booking->detail?->other_hotel_name ? 'block' : 'none' }};">
                                 <select name="hotel_id" class="form-control">
-                                    <option value="">{{ __('Select Hotel') }}</option>
+                                    <option value="">{{ __('m_bookings.bookings.placeholders.select_hotel') }}</option>
                                     @php
                                     $hotels = \App\Models\HotelList::where('is_active', true)->orderBy('name')->get();
                                     @endphp
@@ -566,14 +584,14 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                                     </option>
                                     @endforeach
                                 </select>
-                                <input type="text" name="other_hotel_name" class="form-control mt-2" placeholder="{{ __('Or enter hotel name') }}"
+                                <input type="text" name="other_hotel_name" class="form-control mt-2" placeholder="{{ __('m_bookings.bookings.placeholders.enter_hotel_name') }}"
                                     value="{{ $booking->detail?->other_hotel_name }}">
                             </div>
 
                             {{-- Meeting Point Selection --}}
                             <div id="meeting_section" class="mt-3" style="display: {{ $booking->detail?->meeting_point_id ? 'block' : 'none' }};">
                                 <select name="meeting_point_id" class="form-control">
-                                    <option value="">{{ __('Select Meeting Point') }}</option>
+                                    <option value="">{{ __('m_bookings.bookings.placeholders.select_point') }}</option>
                                     @php
                                     $meetingPoints = \App\Models\MeetingPoint::where('is_active', true)->orderBy('name')->get();
                                     @endphp
@@ -590,7 +608,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                         <div class="form-group">
                             <label for="pickup_time">
                                 <i class="fas fa-clock mr-1"></i>{{ __('m_bookings.bookings.fields.pickup_time') }}
-                                <span class="text-muted">({{ __('Optional') }})</span>
+                                <span class="text-muted">{{ __('m_bookings.bookings.ui.optional') }}</span>
                             </label>
                             <input type="time"
                                 class="form-control"
@@ -598,7 +616,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                                 name="pickup_time"
                                 value="{{ $booking->detail?->pickup_time ? \Carbon\Carbon::parse($booking->detail->pickup_time)->format('H:i') : '' }}">
                             <small class="form-text text-muted">
-                                {{ __('Set the pickup time for this booking.') }}
+                                {{ __('m_bookings.bookings.ui.pickup_info') }}
                             </small>
                             <div id="pickup_time_warning" class="alert alert-danger mt-2" style="display: none;">
                                 <i class="fas fa-exclamation-triangle mr-1"></i>
@@ -609,14 +627,14 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                         <div class="alert alert-warning">
                             <small>
                                 <i class="fas fa-exclamation-triangle mr-1"></i>
-                                {{ __('Confirming this booking will send a confirmation email to the customer.') }}
+                                {{ __('m_bookings.bookings.ui.confirm_booking_alert') }}
                             </small>
                         </div>
                     </div>
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                            <i class="fas fa-times mr-1"></i>{{ __('Cancel') }}
+                            <i class="fas fa-times mr-1"></i>{{ __('m_bookings.actions.cancel') }}
                         </button>
                         <button type="submit" class="btn btn-success" id="confirm_btn">
                             <i class="fas fa-check-circle mr-1"></i>{{ __('m_bookings.actions.confirm') }} {{ __('m_bookings.bookings.singular') }}
@@ -646,7 +664,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
 
                         navigator.clipboard.writeText(input.value).then(() => {
                             const originalHTML = this.innerHTML;
-                            this.innerHTML = '<i class="fas fa-check"></i> {{ __("m_bookings.bookings.checkout_link_copied") }}';
+                            this.innerHTML = '<i class="fas fa-check"></i> {{ __("m_bookings.bookings.ui.copied") }}';
                             this.classList.remove('btn-primary');
                             this.classList.add('btn-success');
 
@@ -657,7 +675,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                             }, 2000);
                         }).catch(err => {
                             console.error('Copy failed', err);
-                            alert('{{ __("m_bookings.bookings.checkout_link_copy_failed") }}');
+                            alert('{{ __("m_bookings.bookings.ui.copy_failed") }}');
                         });
                     }
                 });
@@ -682,7 +700,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                             }, 2000);
                         }).catch(err => {
                             console.error('Copy failed', err);
-                            alert('{{ __("m_bookings.bookings.checkout_link_copy_failed") ?? "Failed to copy" }}');
+                            alert('{{ __("m_bookings.bookings.ui.copy_failed") }}');
                         });
                     }
                 });
@@ -692,48 +710,74 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
             const regenerateLinkBtn = document.getElementById('btn-regenerate-payment-link');
             if (regenerateLinkBtn) {
                 regenerateLinkBtn.addEventListener('click', function() {
-                    if (!confirm('{{ __("m_bookings.confirm_regenerate_payment_link") ?? "Are you sure you want to regenerate the payment link? The old link will no longer work." }}')) {
-                        return;
-                    }
+                    Swal.fire({
+                        title: '{{ __("m_bookings.bookings.regenerate_payment_link") }}',
+                        text: '{{ __("m_bookings.bookings.confirm_regenerate_payment_link") }}',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#f0ad4e',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: '{{ __("m_bookings.bookings.regenerate_payment_link") }}',
+                        cancelButtonText: '{{ __("Cancel") }}'
+                    }).then((result) => {
+                        if (!result.isConfirmed) {
+                            return;
+                        }
 
-                    const btn = this;
-                    const originalHTML = btn.innerHTML;
-                    btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Regenerando...';
+                        const btn = this;
+                        const originalHTML = btn.innerHTML;
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ __("m_bookings.bookings.ui.regenerating") }}';
 
-                    fetch('{{ route("admin.bookings.regenerate_payment_link", $booking) }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // Update the link input
-                                const checkoutLink = document.getElementById('checkout-link');
-                                if (checkoutLink) {
-                                    checkoutLink.value = data.url;
+                        fetch('{{ route("admin.bookings.regenerate_payment_link", $booking) }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
                                 }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Update the link input
+                                    const checkoutLink = document.getElementById('checkout-link');
+                                    if (checkoutLink) {
+                                        checkoutLink.value = data.url;
+                                    }
 
-                                // Show success message
-                                alert(data.message || '{{ __("m_bookings.payment_link_regenerated") }}');
-
-                                // Reload page to update UI
-                                location.reload();
-                            } else {
-                                alert(data.message || 'Error regenerating link');
+                                    // Show success message
+                                    Swal.fire({
+                                        title: '{{ __("Success") }}',
+                                        text: data.message || '{{ __("m_bookings.bookings.payment_link_regenerated") }}',
+                                        icon: 'success',
+                                        confirmButtonColor: '#28a745'
+                                    }).then(() => {
+                                        // Reload page to update UI
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: '{{ __("Error") }}',
+                                        text: data.message || 'Error regenerating link',
+                                        icon: 'error',
+                                        confirmButtonColor: '#dc3545'
+                                    });
+                                    btn.disabled = false;
+                                    btn.innerHTML = originalHTML;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                Swal.fire({
+                                    title: '{{ __("Error") }}',
+                                    text: 'Error regenerating link',
+                                    icon: 'error',
+                                    confirmButtonColor: '#dc3545'
+                                });
                                 btn.disabled = false;
                                 btn.innerHTML = originalHTML;
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('Error regenerating link');
-                            btn.disabled = false;
-                            btn.innerHTML = originalHTML;
-                        });
+                            });
+                    });
                 });
             }
 
@@ -785,7 +829,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                     const pickupPeriod = hours < 12 ? 'AM' : 'PM';
 
                     if (pickupPeriod !== tourPeriod) {
-                        if (warningText) warningText.textContent = `Warning: Pickup time is ${pickupPeriod} but tour starts at ${tourPeriod}. Please verify this is correct.`;
+                        if (warningText) warningText.textContent = `{{ __('m_bookings.bookings.ui.pickup_warning', ['pickup' => '${pickupPeriod}', 'tour' => '${tourPeriod}']) }}`;
                         if (warningDiv) {
                             warningDiv.style.display = 'block';
                             warningDiv.classList.remove('alert-danger');

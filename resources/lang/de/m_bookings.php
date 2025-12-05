@@ -166,8 +166,10 @@ return [
         'singular' => 'Buchung',
         'plural' => 'Buchungen',
         'customer' => 'Kunde',
-        'payment_link_info' => 'Zahlungslink für den Kunden',
-        'regenerate_warning' => 'Warnung: Durch das Regenerieren des Links wird der vorherige ungültig.',
+        'payment_link_regenerated' => 'Zahlungslink erfolgreich neu generiert',
+        'regenerate_payment_link' => 'Zahlungslink neu generieren',
+        'confirm_regenerate_payment_link' => 'Sind Sie sicher, dass Sie den Zahlungslink neu generieren möchten? Der alte Link funktioniert dann nicht mehr.',
+        'payment_link_expired_label' => 'Link abgelaufen',
         'steps' => [
             'customer' => 'Kunde',
             'select_tour_date' => 'Tour und Datum auswählen',
@@ -218,6 +220,18 @@ return [
             'price_breakdown' => 'Preisübersicht',
             'enter_promo' => 'Promo-Code eingeben',
             'select_hotel' => 'Hotel auswählen',
+            'payment_link' => 'Zahlungslink',
+            'view_payment' => 'Zahlung anzeigen',
+            'hotel_pickup' => 'Hotelabholung',
+            'meeting_point_pickup' => 'Treffpunkt',
+            'no_pickup' => 'Keine Abholung',
+            'optional' => '(Optional)',
+            'pickup_info' => 'Legen Sie die Abholzeit für diese Buchung fest.',
+            'confirm_booking_alert' => 'Wenn Sie diese Buchung bestätigen, wird eine Bestätigungs-E-Mail an den Kunden gesendet.',
+            'regenerating' => 'Wird regeneriert...',
+            'copied' => 'Kopiert!',
+            'copy_failed' => 'Kopieren fehlgeschlagen',
+            'pickup_warning' => 'Warnung: Abholzeit ist :pickup, aber die Tour beginnt um :tour. Bitte überprüfen.',
         ],
 
         'fields' => [
@@ -399,6 +413,15 @@ return [
         'checkout_link_valid_until' => 'Gültig bis',
         'checkout_link_expired' => 'Dieser Zahlungslink ist abgelaufen oder nicht mehr gültig.',
         'checkout_link_accessed' => 'Kunde hat auf Checkout zugegriffen',
+
+        // Payment Status
+        'payment_status' => [
+            'label' => 'Zahlungsstatus',
+            'pending' => 'Ausstehend',
+            'paid' => 'Bezahlt',
+            'failed' => 'Fehlgeschlagen',
+            'refunded' => 'Erstattet',
+        ],
     ],
 
     // =========================================================

@@ -1491,7 +1491,7 @@ class BookingController extends Controller
             return response()->json([
                 'success' => true,
                 'url' => $url,
-                'message' => __('m_bookings.payment_link_regenerated') ?? 'Payment link regenerated successfully'
+                'message' => __('m_bookings.bookings.payment_link_regenerated') ?? 'Payment link regenerated successfully'
             ]);
         } catch (\Exception $e) {
             \Log::error('Error regenerating payment link: ' . $e->getMessage());

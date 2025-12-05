@@ -220,6 +220,17 @@ return [
             'enter_promo' => 'Ingresa código promocional',
             'select_hotel' => 'Seleccionar hotel',
             'payment_link' => 'Link de Pago',
+            'view_payment' => 'Ver Pago',
+            'hotel_pickup' => 'Recogida en Hotel',
+            'meeting_point_pickup' => 'Punto de Encuentro',
+            'no_pickup' => 'Sin recogida',
+            'optional' => '(Opcional)',
+            'pickup_info' => 'Establece la hora de recogida para esta reserva.',
+            'confirm_booking_alert' => 'Confirmar esta reserva enviará un correo de confirmación al cliente.',
+            'regenerating' => 'Regenerando...',
+            'copied' => '¡Copiado!',
+            'copy_failed' => 'Error al copiar',
+            'pickup_warning' => 'Advertencia: Hora recogida :pickup pero tour :tour. Verificar.',
         ],
 
         'fields' => [
@@ -294,6 +305,7 @@ return [
             'update'          => 'Actualizar',
             'close'           => 'Cerrar',
             'back'     => 'Volver',
+            'remove_promo' => 'Quitar cupón',
         ],
 
         'meeting_point' => [
@@ -411,9 +423,19 @@ return [
         'checkout_link_expired' => 'El enlace de pago ha expirado',
         'booking_already_paid' => 'Esta reserva ya ha sido pagada',
         'payment_link_regenerated' => 'Enlace de pago regenerado exitosamente',
-        'regenerate_payment_link' => 'Regenerar Enlace',
+        'regenerate_payment_link' => 'Regenerar Enlace de Pago',
+        'confirm_regenerate_payment_link' => '¿Estás seguro de que deseas regenerar el enlace de pago? El enlace anterior dejará de funcionar.',
         'payment_link_expired_label' => 'Enlace expirado',
         'checkout_link_accessed' => 'Cliente accedió al checkout',
+
+        // Payment Status
+        'payment_status' => [
+            'label' => 'Estado de Pago',
+            'pending' => 'Pendiente',
+            'paid' => 'Pagado',
+            'failed' => 'Fallido',
+            'refunded' => 'Reembolsado',
+        ],
     ],
 
     // =========================================================

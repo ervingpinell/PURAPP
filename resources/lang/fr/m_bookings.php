@@ -166,6 +166,10 @@ return [
         'singular' => 'Réservation',
         'plural' => 'Réservations',
         'customer' => 'Client',
+        'payment_link_regenerated' => 'Lien de paiement régénéré avec succès',
+        'regenerate_payment_link' => 'Régénérer le lien de paiement',
+        'confirm_regenerate_payment_link' => 'Êtes-vous sûr de vouloir régénérer le lien de paiement ? L\'ancien lien ne fonctionnera plus.',
+        'payment_link_expired_label' => 'Lien expiré',
         'payment_link_info' => 'Lien de paiement pour le client',
         'regenerate_warning' => 'Attention : La régénération du lien invalidera le précédent.',
         'steps' => [
@@ -218,6 +222,18 @@ return [
             'price_breakdown' => 'Détail des prix',
             'enter_promo' => 'Entrez le code promo',
             'select_hotel' => 'Sélectionner un hôtel',
+            'payment_link' => 'Lien de paiement',
+            'view_payment' => 'Voir le paiement',
+            'hotel_pickup' => 'Prise en charge à l\'hôtel',
+            'meeting_point_pickup' => 'Point de rencontre',
+            'no_pickup' => 'Pas de prise en charge',
+            'optional' => '(Optionnel)',
+            'pickup_info' => 'Définir l\'heure de prise en charge pour cette réservation.',
+            'confirm_booking_alert' => 'Confirmer cette réservation enverra un email de confirmation au client.',
+            'regenerating' => 'Régénération...',
+            'copied' => 'Copié !',
+            'copy_failed' => 'Échec de la copie',
+            'pickup_warning' => 'Attention : Heure de prise en charge :pickup mais le tour commence à :tour. Veuillez vérifier.',
         ],
 
         'fields' => [
@@ -399,6 +415,15 @@ return [
         'checkout_link_valid_until' => 'Valide jusqu\'au',
         'checkout_link_expired' => 'Ce lien de paiement a expiré ou n\'est plus valide.',
         'checkout_link_accessed' => 'Le client a accédé au paiement',
+
+        // Payment Status
+        'payment_status' => [
+            'label' => 'État de Paiement',
+            'pending' => 'En attente',
+            'paid' => 'Payé',
+            'failed' => 'Échoué',
+            'refunded' => 'Remboursé',
+        ],
     ],
 
     // =========================================================
