@@ -31,7 +31,10 @@ return [
         'tour_excluded_dates' => 'Dates Exclues',
         'tour_prices' => 'Prix de Tour',
         'taxes' => 'Taxes',
-        'tour_schedule_assignments' => 'Affectations d\'Horaires',
+        'tour_schedule_assignments' => 'Assignations d\'horaires',
+        'tour_images' => 'Images du Tour',
+        'tour_pricing' => 'Tarification du Tour',
+        'payments' => 'Paiements',
         'admin' => 'Administration',
     ],
     'actions' => [
@@ -54,6 +57,18 @@ return [
     'back_to_roles' => 'Retour aux Rôles',
     'select_all' => 'Tout Sélectionner',
     'deselect_all' => 'Tout Désélectionner',
-    'save_changes' => 'Enregistrer',
+    'save_changes' => 'Enregistrer les modifications',
     'no_permissions_found' => 'Aucune permission trouvée dans le système.',
+
+    // Presets
+    'presets' => [
+        'auditor' => 'Auditeur',
+        'auditor_desc' => 'Voir Seulement',
+        'reservations' => 'Réservations',
+        'reservations_desc' => 'Restreint',
+    ],
+    'messages' => [
+        'auditor_applied' => 'Préréglage "Auditeur" appliqué : Permis de lecture seule.',
+        'reservations_applied' => 'Préréglage "Réservations" appliqué : Tout sauf les suppressions et la gestion des utilisateurs/config.',
+    ],
 ];

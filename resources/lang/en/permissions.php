@@ -32,6 +32,9 @@ return [
         'tour_prices' => 'Tour Prices',
         'taxes' => 'Taxes',
         'tour_schedule_assignments' => 'Schedule Assignments',
+        'tour_images' => 'Tour Images',
+        'tour_pricing' => 'Tour Pricing',
+        'payments' => 'Payments',
         'admin' => 'Administration',
     ],
     'actions' => [
@@ -55,5 +58,17 @@ return [
     'select_all' => 'Select All',
     'deselect_all' => 'Deselect All',
     'save_changes' => 'Save Changes',
-    'no_permissions_found' => 'No permissions found in the system.',
+    'no_permissions_found' => 'No permissions found.',
+
+    // Presets
+    'presets' => [
+        'auditor' => 'Auditor',
+        'auditor_desc' => 'View Only',
+        'reservations' => 'Reservations',
+        'reservations_desc' => 'Restricted',
+    ],
+    'messages' => [
+        'auditor_applied' => '"Auditor" preset applied: Read-only permissions.',
+        'reservations_applied' => '"Reservations" preset applied: Everything except deletions and user/config management.',
+    ],
 ];

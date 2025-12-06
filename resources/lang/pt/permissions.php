@@ -31,6 +31,9 @@ return [
         'tour_prices' => 'Preços de Tour',
         'taxes' => 'Impostos',
         'tour_schedule_assignments' => 'Atribuições de Horário',
+        'tour_images' => 'Imagens do Tour',
+        'tour_pricing' => 'Preços do Tour',
+        'payments' => 'Pagamentos',
         'admin' => 'Administração',
     ],
     'actions' => [

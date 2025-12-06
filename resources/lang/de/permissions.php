@@ -32,6 +32,9 @@ return [
         'tour_prices' => 'Tourpreise',
         'taxes' => 'Steuern',
         'tour_schedule_assignments' => 'Fahrplanzuweisungen',
+        'tour_images' => 'Tour-Bilder',
+        'tour_pricing' => 'Tour-Preise',
+        'payments' => 'Zahlungen',
         'admin' => 'Verwaltung',
     ],
     'actions' => [
@@ -56,4 +59,16 @@ return [
     'deselect_all' => 'Alle abwählen',
     'save_changes' => 'Änderungen speichern',
     'no_permissions_found' => 'Keine Berechtigungen im System gefunden.',
+
+    // Presets
+    'presets' => [
+        'auditor' => 'Prüfer',
+        'auditor_desc' => 'Nur Ansehen',
+        'reservations' => 'Reservierungen',
+        'reservations_desc' => 'Eingeschränkt',
+    ],
+    'messages' => [
+        'auditor_applied' => 'Voreinstellung "Prüfer" angewendet: Nur Leserechte.',
+        'reservations_applied' => 'Voreinstellung "Reservierungen" angewendet: Alles außer Löschungen und Benutzer-/Konfigurationsverwaltung.',
+    ],
 ];

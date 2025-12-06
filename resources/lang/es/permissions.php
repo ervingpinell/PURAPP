@@ -33,6 +33,9 @@ return [
         'tour_prices' => 'Precios de Tours',
         'taxes' => 'Impuestos',
         'tour_schedule_assignments' => 'Asignaciones de Horarios',
+        'tour_images' => 'Imágenes del Tour',
+        'tour_pricing' => 'Precios del Tour',
+        'payments' => 'Pagos',
     ],
     'actions' => [
         'view' => 'Ver',
@@ -58,4 +61,16 @@ return [
     'deselect_all' => 'Deseleccionar Todos',
     'save_changes' => 'Guardar Cambios',
     'no_permissions_found' => 'No hay permisos definidos en el sistema.',
+
+    // Presets
+    'presets' => [
+        'auditor' => 'Auditor',
+        'auditor_desc' => 'Solo Ver',
+        'reservations' => 'Reservas',
+        'reservations_desc' => 'Restringido',
+    ],
+    'messages' => [
+        'auditor_applied' => 'Preset "Auditor" aplicado: Solo permisos de lectura.',
+        'reservations_applied' => 'Preset "Reservas" aplicado: Todo excepto eliminaciones y gestión de usuarios/config.',
+    ],
 ];
