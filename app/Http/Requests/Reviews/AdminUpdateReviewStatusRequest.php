@@ -8,7 +8,7 @@ class AdminUpdateReviewStatusRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('manage-reviews') ?? false;
+        return $this->user()?->can('moderate-reviews') ?? false;
     }
 
     protected function prepareForValidation(): void

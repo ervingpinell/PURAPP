@@ -27,8 +27,8 @@ class ProfileController extends Controller
         $qrSvg          = method_exists($user, 'safeTwoFactorQrCodeSvg') ? $user->safeTwoFactorQrCodeSvg()  : null;
         $recoveryCodes  = method_exists($user, 'safeRecoveryCodes')      ? $user->safeRecoveryCodes()       : [];
 
-        // Admin (roles 1,2) vs público
-        if (in_array((int) $user->role_id, [1, 2], true)) {
+        // Admin (tenga permiso 'access-admin') vs público
+        if ($user->isSuperAdmin() || $user->can('access-admin')) {
             return view('admin.profile.profile', [
                 'user'            => $user,
                 'has2FA'          => $has2FA,
@@ -42,98 +42,100 @@ class ProfileController extends Controller
         return view('profile.edit', compact('user'));
     }
 
-public function update(Request $request)
-{
-    /** @var \App\Models\User|null $user */
-    $user = Auth::user();
-    if (!$user) {
-        return redirect()->route('login');
-    }
-
-    $rules = [
-        'full_name'    => ['required', 'string', 'max:255'],
-        'email'        => [
-            'required',
-            'email',
-            'max:255',
-            // Unicidad contra el email actual (no toca pending_email)
-            'unique:users,email,' . $user->user_id . ',user_id',
-        ],
-        'country_code' => ['nullable', 'string', 'max:8', 'regex:/^\+?\d{1,4}$/', 'required_with:phone'],
-        'phone'        => ['nullable', 'string', 'max:30'],
-        'password'     => [
-            'nullable', 'string', 'min:8',
-            'regex:/[0-9]/',
-            'regex:/[.\x{00A1}!@#$%^&*()_+\-]/u', // incluye "¡"
-            'confirmed',
-        ],
-    ];
-
-    $validated = $request->validate($rules);
-
-    $oldEmail = $user->email;
-    $newEmail = mb_strtolower(trim($validated['email']));
-
-    // Datos básicos
-    $user->full_name = $validated['full_name'];
-
-    // Normalización de teléfono
-    if ($request->hasAny(['country_code', 'phone'])) {
-        $ccDigits    = preg_replace('/\D+/', '', (string) $request->country_code);
-        $phoneDigits = preg_replace('/\D+/', '', (string) $request->phone);
-
-        $startsWith = fn (string $haystack, string $needle): bool =>
-            $needle !== '' && strncmp($haystack, $needle, strlen($needle)) === 0;
-
-        $national = $phoneDigits !== ''
-            ? (($ccDigits && $startsWith($phoneDigits, $ccDigits))
-                ? substr($phoneDigits, strlen($ccDigits))
-                : $phoneDigits)
-            : null;
-
-        $user->country_code = $request->country_code;
-        $user->phone        = $national;
-    }
-
-    // Password opcional
-    if (!empty($validated['password'])) {
-        $user->password = Hash::make($validated['password']);
-    }
-
-    // Guardamos cambios "normales"
-    $user->save();
-
-    $emailMessageKey = 'adminlte::adminlte.profile_updated_successfully';
-
-    // Si el email cambió, NO lo actualizamos directo, usamos pending_email
-    if ($newEmail !== mb_strtolower(trim($oldEmail))) {
-        $token = bin2hex(random_bytes(32));
-
-        $user->forceFill([
-            'pending_email'             => $newEmail,
-            'pending_email_token'       => $token,
-            'pending_email_created_at'  => now(),
-        ])->save();
-
-        if (method_exists($user, 'sendEmailChangeVerificationNotification')) {
-            // Pasamos el locale actual de la petición (es/en)
-            $user->sendEmailChangeVerificationNotification($token, app()->getLocale());
+    public function update(Request $request)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
         }
 
-        $emailMessageKey = 'adminlte::adminlte.profile_updated_email_change_pending';
-    }
+        $rules = [
+            'full_name'    => ['required', 'string', 'max:255'],
+            'email'        => [
+                'required',
+                'email',
+                'max:255',
+                // Unicidad contra el email actual (no toca pending_email)
+                'unique:users,email,' . $user->user_id . ',user_id',
+            ],
+            'country_code' => ['nullable', 'string', 'max:8', 'regex:/^\+?\d{1,4}$/', 'required_with:phone'],
+            'phone'        => ['nullable', 'string', 'max:30'],
+            'password'     => [
+                'nullable',
+                'string',
+                'min:8',
+                'regex:/[0-9]/',
+                'regex:/[.\x{00A1}!@#$%^&*()_+\-]/u', // incluye "¡"
+                'confirmed',
+            ],
+        ];
 
-    // Redirección según contexto (admin vs público)
-    if (in_array((int) $user->role_id, [1, 2], true)) {
+        $validated = $request->validate($rules);
+
+        $oldEmail = $user->email;
+        $newEmail = mb_strtolower(trim($validated['email']));
+
+        // Datos básicos
+        $user->full_name = $validated['full_name'];
+
+        // Normalización de teléfono
+        if ($request->hasAny(['country_code', 'phone'])) {
+            $ccDigits    = preg_replace('/\D+/', '', (string) $request->country_code);
+            $phoneDigits = preg_replace('/\D+/', '', (string) $request->phone);
+
+            $startsWith = fn(string $haystack, string $needle): bool =>
+            $needle !== '' && strncmp($haystack, $needle, strlen($needle)) === 0;
+
+            $national = $phoneDigits !== ''
+                ? (($ccDigits && $startsWith($phoneDigits, $ccDigits))
+                    ? substr($phoneDigits, strlen($ccDigits))
+                    : $phoneDigits)
+                : null;
+
+            $user->country_code = $request->country_code;
+            $user->phone        = $national;
+        }
+
+        // Password opcional
+        if (!empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        // Guardamos cambios "normales"
+        $user->save();
+
+        $emailMessageKey = 'adminlte::adminlte.profile_updated_successfully';
+
+        // Si el email cambió, NO lo actualizamos directo, usamos pending_email
+        if ($newEmail !== mb_strtolower(trim($oldEmail))) {
+            $token = bin2hex(random_bytes(32));
+
+            $user->forceFill([
+                'pending_email'             => $newEmail,
+                'pending_email_token'       => $token,
+                'pending_email_created_at'  => now(),
+            ])->save();
+
+            if (method_exists($user, 'sendEmailChangeVerificationNotification')) {
+                // Pasamos el locale actual de la petición (es/en)
+                $user->sendEmailChangeVerificationNotification($token, app()->getLocale());
+            }
+
+            $emailMessageKey = 'adminlte::adminlte.profile_updated_email_change_pending';
+        }
+
+        // Redirección según contexto (admin vs público)
+        if ($user->isSuperAdmin() || $user->can('access-admin')) {
+            return redirect()
+                ->route('admin.profile.edit')
+                ->with('success', __($emailMessageKey));
+        }
+
         return redirect()
-            ->route('admin.profile.edit')
+            ->route('profile.edit')
             ->with('success', __($emailMessageKey));
     }
-
-    return redirect()
-        ->route('profile.edit')
-        ->with('success', __($emailMessageKey));
-}
 
 
 
@@ -154,7 +156,7 @@ public function update(Request $request)
         // Opcional: reforzar que sea admin
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
-        if (!in_array((int) $user->role_id, [1,2], true)) abort(403);
+        if (! ($user->isSuperAdmin() || $user->can('access-admin'))) abort(403);
 
         return $this->edit();
     }

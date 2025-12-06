@@ -44,6 +44,7 @@
             </td>
 
             <td class="text-end">
+              @can('edit-tour-availability')
               <button type="submit" class="btn btn-primary btn-sm">
                 <i class="fas fa-save me-1"></i>{{ __('m_config.cut-off.actions.save_tour') }}
               </button>
@@ -63,6 +64,7 @@
                   <i class="fas fa-trash-alt me-1"></i>{{ __('m_config.cut-off.actions.clear') }}
                 </button>
               </form>
+              @endcan
             </td>
           </tr>
           @endforeach
@@ -125,6 +127,7 @@
             </td>
 
             <td class="text-end">
+              @can('edit-tour-availability')
               <button type="submit" class="btn btn-primary btn-sm">
                 <i class="fas fa-save me-1"></i>{{ __('m_config.cut-off.actions.save_schedule') }}
               </button>
@@ -145,6 +148,7 @@
                   <i class="fas fa-trash-alt me-1"></i>{{ __('m_config.cut-off.actions.clear') }}
                 </button>
               </form>
+              @endcan
             </td>
           </tr>
           @endforeach

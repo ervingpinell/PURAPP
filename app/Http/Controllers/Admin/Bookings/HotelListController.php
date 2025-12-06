@@ -12,6 +12,14 @@ use Exception;
 
 class HotelListController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-hotels'])->only('index');
+        $this->middleware(['can:create-hotels'])->only(['create', 'store']);
+        $this->middleware(['can:edit-hotels'])->only(['edit', 'update', 'sort']);
+        $this->middleware(['can:publish-hotels'])->only(['toggle']);
+        $this->middleware(['can:delete-hotels'])->only(['destroy']);
+    }
     /**
      * Muestra todos los hoteles activos e inactivos.
      */
@@ -63,7 +71,7 @@ class HotelListController extends Controller
                 ->route('admin.hotels.index')
                 ->with('success', __('pickups.hotels.created_success'));
         } catch (Exception $e) {
-            Log::error('Hotel store error: '.$e->getMessage());
+            Log::error('Hotel store error: ' . $e->getMessage());
 
             return back()
                 ->withInput()
@@ -88,7 +96,7 @@ class HotelListController extends Controller
                     Rule::unique('hotels_list', 'name')
                         ->ignore($hotel->hotel_id, 'hotel_id'),
                 ],
-                'is_active' => ['required','boolean'],
+                'is_active' => ['required', 'boolean'],
             ],
             [
                 'name.required' => __('pickups.hotels.validation.name_required'),
@@ -107,7 +115,7 @@ class HotelListController extends Controller
                 ->route('admin.hotels.index')
                 ->with('success', __('pickups.hotels.updated_success'));
         } catch (Exception $e) {
-            Log::error('Hotel update error: '.$e->getMessage());
+            Log::error('Hotel update error: ' . $e->getMessage());
 
             return back()
                 ->withInput()
@@ -133,7 +141,7 @@ class HotelListController extends Controller
                 ->route('admin.hotels.index')
                 ->with('success', __('pickups.hotels.sorted_success'));
         } catch (Exception $e) {
-            Log::error('Hotel sort error: '.$e->getMessage());
+            Log::error('Hotel sort error: ' . $e->getMessage());
 
             return back()->with('error', __('pickups.hotels.unexpected_error'));
         }
@@ -156,7 +164,7 @@ class HotelListController extends Controller
                 ->route('admin.hotels.index')
                 ->with('success', $message);
         } catch (Exception $e) {
-            Log::error('Hotel toggle error: '.$e->getMessage());
+            Log::error('Hotel toggle error: ' . $e->getMessage());
 
             return back()->with('error', __('pickups.hotels.unexpected_error'));
         }
@@ -174,7 +182,7 @@ class HotelListController extends Controller
                 ->route('admin.hotels.index')
                 ->with('success', __('pickups.hotels.deleted_success'));
         } catch (Exception $e) {
-            Log::error('Hotel destroy error: '.$e->getMessage());
+            Log::error('Hotel destroy error: ' . $e->getMessage());
 
             return back()->with('error', __('pickups.hotels.unexpected_error'));
         }

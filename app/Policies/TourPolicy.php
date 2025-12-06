@@ -9,6 +9,7 @@ class TourPolicy
 {
     public function viewAny(User $user): bool
     {
+        \Log::info('POLICY CHECK: TourPolicy::viewAny', ['user' => $user->id]);
         return $user->canDo('tours.manage') || $user->canDo('access-admin');
     }
 

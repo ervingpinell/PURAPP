@@ -29,6 +29,11 @@ use App\Models\PolicySectionTranslation;
 
 class TranslationController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-translations'])->only(['index', 'chooseLocale', 'select', 'edit', 'changeEditingLocale']);
+        $this->middleware(['can:edit-translations'])->only(['update']);
+    }
     public function index()
     {
         return view('admin.translations.index');

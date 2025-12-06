@@ -7,7 +7,7 @@ use App\Models\Booking;
 use App\Models\BookingDetail;
 use App\Models\Itinerary;
 use App\Models\ItineraryItem;
-use App\Models\Role;
+use Spatie\Permission\Models\Role;
 use App\Models\Schedule;
 use App\Models\Tour;
 use App\Models\TourLanguage;
@@ -100,7 +100,7 @@ class DashBoardController extends Controller
     public function dashboard(BookingCapacityService $capacity): View|RedirectResponse
     {
         $user = Auth::user();
-        if (!$user || !in_array($user->role_id, [1, 2], true)) {
+        if (!$user || !$user->can('access-admin')) {
             return redirect()
                 ->route('login')
                 ->with('error', __('adminlte::adminlte.access_denied'));

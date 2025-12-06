@@ -65,6 +65,7 @@ class TourTypeCoverPickerController extends Controller
             'coverAccessor' => 'cover_url',
             // IMPORTANTE: apuntamos al edit de este mismo controlador
             'manageRoute'   => 'admin.types.images.edit',
+            'requiredPermission' => 'edit_cover-tour-images',
             'i18n' => [
                 'title'              => 'Categorias',
                 'heading'            => 'Categorías',

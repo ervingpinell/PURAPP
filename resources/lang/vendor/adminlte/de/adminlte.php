@@ -62,6 +62,7 @@ return [
     'booking_created_success' => 'Buchung erfolgreich erstellt.',
     'booking_updated_success' => 'Buchung erfolgreich aktualisiert.',
     'two_factor_authentication' => 'Zwei-Faktor-Authentifizierung (2FA)',
+    'enable_2fa_to_continue' => 'Sie müssen die Zwei-Faktor-Authentifizierung (2FA) aktivieren, um auf das Administrationspanel zugreifen zu können.',
 
     // 2. HOTELS
     'hotel_name_required' => 'Hotelname ist erforderlich.',

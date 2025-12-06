@@ -8,7 +8,7 @@ class StoreReviewReplyRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('manage-reviews') ?? false;
+        return $this->user()?->can('reply-reviews') ?? false;
     }
 
     protected function prepareForValidation(): void

@@ -31,7 +31,7 @@ return [
         'item'               => 'article',
         'items'              => 'articles',
         'free_cancellation'  => 'Annulation gratuite',
-        'free_cancellation_until' => "Jusqu’à :time le :date",
+        'free_cancellation_until' => 'Avant :time le :date',
         'subtotal'           => 'Sous-total',
         'promo_code'         => 'Code promo',
         'total'              => 'Total',

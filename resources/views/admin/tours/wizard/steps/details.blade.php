@@ -161,8 +161,8 @@
 
 @section('content')
 @php
-    $isEditing   = isset($tour) && $tour && $tour->exists;
-    $currentStep = $step ?? 1;
+$isEditing = isset($tour) && $tour && $tour->exists;
+$currentStep = $step ?? 1;
 @endphp
 
 <div class="container-fluid">
@@ -172,9 +172,9 @@
         <h1>
             <i class="fas fa-info-circle"></i>
             @if($isEditing)
-                {{ __('m_tours.tour.wizard.edit_tour') }}
+            {{ __('m_tours.tour.wizard.edit_tour') }}
             @else
-                {{ __('m_tours.tour.wizard.create_new_tour') }}
+            {{ __('m_tours.tour.wizard.create_new_tour') }}
             @endif
         </h1>
         <p>{{ __('m_tours.tour.wizard.steps.details') }}</p>
@@ -182,45 +182,45 @@
 
     {{-- Stepper superior --}}
     @include('admin.tours.wizard.partials.stepper', [
-        'currentStep' => $currentStep,
-        'steps'       => $steps ?? [],
-        'tour'        => $tour ?? null,
+    'currentStep' => $currentStep,
+    'steps' => $steps ?? [],
+    'tour' => $tour ?? null,
     ])
 
     {{-- Errores / mensajes --}}
     @if($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
-            <strong>{{ __('m_tours.common.form_errors_title') }}</strong>
-            <ul class="mb-0 mt-1">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-            <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert"
-                    aria-label="{{ __('m_tours.common.close') }}"></button>
-        </div>
+    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        <strong>{{ __('m_tours.common.form_errors_title') }}</strong>
+        <ul class="mb-0 mt-1">
+            @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+        <button type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="{{ __('m_tours.common.close') }}"></button>
+    </div>
     @endif
 
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
-            {{ session('success') }}
-            <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert"
-                    aria-label="{{ __('m_tours.common.close') }}"></button>
-        </div>
+    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+        {{ session('success') }}
+        <button type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="{{ __('m_tours.common.close') }}"></button>
+    </div>
     @endif
 
     @if(isset($limitWarning) && $limitWarning)
-        <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
-            {!! $limitWarning !!}
-            <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert"
-                    aria-label="{{ __('m_tours.common.close') }}"></button>
-        </div>
+    <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+        {!! $limitWarning !!}
+        <button type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="{{ __('m_tours.common.close') }}"></button>
+    </div>
     @endif
 
     {{-- FORM DETALLES --}}
@@ -264,7 +264,7 @@
                             <small class="char-counter" id="name-counter">0 / 255</small>
                             <div class="invalid-feedback" id="name-error"></div>
                             @error('name')
-                                <span class="invalid-feedback">{{ $message }}</span>
+                            <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -290,7 +290,7 @@
                             </small>
                             <div class="invalid-feedback" id="slug-error"></div>
                             @error('slug')
-                                <span class="invalid-feedback">{{ $message }}</span>
+                            <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -311,7 +311,26 @@
                             <small class="char-counter" id="overview-counter">0 / 1000</small>
                             <div class="invalid-feedback" id="overview-error"></div>
                             @error('overview')
-                                <span class="invalid-feedback">{{ $message }}</span>
+                            <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        {{-- Recommendations --}}
+                        <div class="form-group">
+                            <label for="recommendations">
+                                {{ __('m_tours.tour.fields.recommendations') ?? 'Recomendaciones' }}
+                            </label>
+                            <textarea
+                                name="recommendations"
+                                id="recommendations"
+                                class="form-control @error('recommendations') is-invalid @enderror"
+                                rows="3"
+                                maxlength="1000"
+                                placeholder="Ej. Traer protector solar, zapatos cómodos...">{{ old('recommendations', $tour->recommendations ?? '') }}</textarea>
+                            <small class="char-counter" id="recommendations-counter">0 / 1000</small>
+                            <div class="invalid-feedback" id="recommendations-error"></div>
+                            @error('recommendations')
+                            <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -339,7 +358,7 @@
                                     </small>
                                     <div class="invalid-feedback" id="length-error"></div>
                                     @error('length')
-                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -366,7 +385,7 @@
                                     </small>
                                     <div class="invalid-feedback" id="max_capacity-error"></div>
                                     @error('max_capacity')
-                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -393,7 +412,7 @@
                             </small>
                             <div class="invalid-feedback" id="group_size-error"></div>
                             @error('group_size')
-                                <span class="invalid-feedback">{{ $message }}</span>
+                            <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -414,9 +433,9 @@
                                         <i class="fas fa-plus"></i>
                                     </button>
                                     <a href="{{ route('admin.languages.index') }}"
-                                       target="_blank"
-                                       class="btn btn-info"
-                                       title="{{ __('m_tours.tour.ui.manage_languages') }}">
+                                        target="_blank"
+                                        class="btn btn-info"
+                                        title="{{ __('m_tours.tour.ui.manage_languages') }}">
                                         <i class="fas fa-external-link-alt"></i>
                                     </a>
                                 </div>
@@ -424,28 +443,28 @@
 
                             <div class="border rounded p-3" id="languages-container">
                                 @php
-                                    $oldLanguages = old('languages', $isEditing
-                                        ? $tour->languages->pluck('tour_language_id')->toArray()
-                                        : []);
+                                $oldLanguages = old('languages', $isEditing
+                                ? $tour->languages->pluck('tour_language_id')->toArray()
+                                : []);
                                 @endphp
 
                                 @forelse($languages ?? [] as $language)
-                                    <div class="custom-control custom-checkbox mb-2">
-                                        <input
-                                            type="checkbox"
-                                            class="custom-control-input"
-                                            id="language_{{ $language->tour_language_id }}"
-                                            name="languages[]"
-                                            value="{{ $language->tour_language_id }}"
-                                            {{ in_array($language->tour_language_id, $oldLanguages, true) ? 'checked' : '' }}>
-                                        <label class="custom-control-label" for="language_{{ $language->tour_language_id }}">
-                                            <i class="fas fa-language"></i> {{ $language->name }}
-                                        </label>
-                                    </div>
+                                <div class="custom-control custom-checkbox mb-2">
+                                    <input
+                                        type="checkbox"
+                                        class="custom-control-input"
+                                        id="language_{{ $language->tour_language_id }}"
+                                        name="languages[]"
+                                        value="{{ $language->tour_language_id }}"
+                                        {{ in_array($language->tour_language_id, $oldLanguages, true) ? 'checked' : '' }}>
+                                    <label class="custom-control-label" for="language_{{ $language->tour_language_id }}">
+                                        <i class="fas fa-language"></i> {{ $language->name }}
+                                    </label>
+                                </div>
                                 @empty
-                                    <p class="text-muted mb-0" id="languages-empty-state">
-                                        {{ __('m_tours.tour.ui.no_languages_defined') }}
-                                    </p>
+                                <p class="text-muted mb-0" id="languages-empty-state">
+                                    {{ __('m_tours.tour.ui.no_languages_defined') }}
+                                </p>
                                 @endforelse
                             </div>
 
@@ -454,10 +473,10 @@
                             </small>
                             <div class="invalid-feedback" id="languages-error" style="display: none;"></div>
                             @error('languages')
-                                <span class="invalid-feedback d-block">{{ $message }}</span>
+                            <span class="invalid-feedback d-block">{{ $message }}</span>
                             @enderror
                             @error('languages.*')
-                                <span class="invalid-feedback d-block">{{ $message }}</span>
+                            <span class="invalid-feedback d-block">{{ $message }}</span>
                             @enderror
                         </div>
                     </div>
@@ -480,7 +499,7 @@
                                 data-validate="required|color">
                             <div class="invalid-feedback" id="color-error"></div>
                             @error('color')
-                                <span class="invalid-feedback">{{ $message }}</span>
+                            <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -502,9 +521,9 @@
                                     </button>
 
                                     <a href="{{ route('admin.tourtypes.index') }}"
-                                       target="_blank"
-                                       class="btn btn-info"
-                                       title="{{ __('m_tours.tour.ui.manage_tour_types') }}">
+                                        target="_blank"
+                                        class="btn btn-info"
+                                        title="{{ __('m_tours.tour.ui.manage_tour_types') }}">
                                         <i class="fas fa-external-link-alt"></i>
                                     </a>
                                 </div>
@@ -518,15 +537,15 @@
                                 data-validate="required|select">
                                 <option value="">{{ '-- ' . __('m_tours.tour.ui.select_type') . ' --' }}</option>
                                 @foreach($tourTypes ?? [] as $type)
-                                    <option value="{{ $type->tour_type_id }}"
-                                        {{ old('tour_type_id', $tour->tour_type_id ?? '') == $type->tour_type_id ? 'selected' : '' }}>
-                                        {{ $type->name }}
-                                    </option>
+                                <option value="{{ $type->tour_type_id }}"
+                                    {{ old('tour_type_id', $tour->tour_type_id ?? '') == $type->tour_type_id ? 'selected' : '' }}>
+                                    {{ $type->name }}
+                                </option>
                                 @endforeach
                             </select>
                             <div class="invalid-feedback" id="tour_type_id-error"></div>
                             @error('tour_type_id')
-                                <span class="invalid-feedback">{{ $message }}</span>
+                            <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -566,9 +585,9 @@
 <div class="modal fade" id="modalCreateTourType" tabindex="-1" aria-labelledby="modalCreateTourTypeLabel" aria-hidden="true">
     <div class="modal-dialog">
         <form method="POST"
-              action="{{ route('admin.tours.wizard.quick.tour-type') }}"
-              class="modal-content"
-              id="formCreateTourType">
+            action="{{ route('admin.tours.wizard.quick.tour-type') }}"
+            class="modal-content"
+            id="formCreateTourType">
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title" id="modalCreateTourTypeLabel">
@@ -623,11 +642,11 @@
                 <div class="custom-control custom-switch">
                     <input type="hidden" name="is_active" value="0">
                     <input type="checkbox"
-                           class="custom-control-input"
-                           id="new_tour_type_is_active"
-                           name="is_active"
-                           value="1"
-                           checked>
+                        class="custom-control-input"
+                        id="new_tour_type_is_active"
+                        name="is_active"
+                        value="1"
+                        checked>
                     <label class="custom-control-label" for="new_tour_type_is_active">
                         {{ __('m_tours.tour_type.fields.status') ?? 'Activo' }}
                     </label>
@@ -653,9 +672,9 @@
 <div class="modal fade" id="modalCreateLanguage" tabindex="-1" aria-labelledby="modalCreateLanguageLabel" aria-hidden="true">
     <div class="modal-dialog">
         <form method="POST"
-              action="{{ route('admin.tours.wizard.quick.language') }}"
-              class="modal-content"
-              id="formCreateLanguage">
+            action="{{ route('admin.tours.wizard.quick.language') }}"
+            class="modal-content"
+            id="formCreateLanguage">
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title" id="modalCreateLanguageLabel">
@@ -694,96 +713,96 @@
 
 {{-- Modal de borradores existentes --}}
 @if(isset($existingDrafts) && $existingDrafts->count() > 0)
-    @php
-        $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
-    @endphp
+@php
+$mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
+@endphp
 
-    <div class="modal fade" id="draftsModal" tabindex="-1" aria-labelledby="draftsModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="draftsModalLabel">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        {{ __('m_tours.tour.wizard.existing_drafts_title') }}
-                    </h5>
+<div class="modal fade" id="draftsModal" tabindex="-1" aria-labelledby="draftsModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="draftsModalLabel">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    {{ __('m_tours.tour.wizard.existing_drafts_title') }}
+                </h5>
+            </div>
+
+            <div class="modal-body">
+                <p class="lead mb-3">
+                    {{ __('m_tours.tour.wizard.existing_drafts_message', ['count' => $existingDrafts->count()]) }}
+                </p>
+
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ __('m_tours.tour.fields.name') }}</th>
+                                <th>{{ __('m_tours.tour.fields.type') }}</th>
+                                <th class="text-center">{{ __('m_tours.tour.wizard.current_step') }}</th>
+                                <th>{{ __('m_tours.common.updated_at') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($existingDrafts as $draft)
+                            <tr>
+                                <td>
+                                    <strong>{{ $draft->name ?: __('m_tours.tour.wizard.unnamed_draft') }}</strong><br>
+                                    <small class="text-muted">{{ $draft->slug }}</small>
+                                </td>
+                                <td>
+                                    @if($draft->tourType)
+                                    <span class="badge bg-info">{{ $draft->tourType->name }}</span>
+                                    @else
+                                    <span class="text-muted">{{ __('m_tours.common.not_set') }}</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">
+                                        {{ __('m_tours.tour.wizard.step') }} {{ $draft->current_step ?? 1 }}/6
+                                    </span>
+                                </td>
+                                <td>
+                                    <small>{{ $draft->updated_at->diffForHumans() }}</small><br>
+                                    <small class="text-muted">{{ $draft->updated_at->format('d/m/Y H:i') }}</small>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
 
-                <div class="modal-body">
-                    <p class="lead mb-3">
-                        {{ __('m_tours.tour.wizard.existing_drafts_message', ['count' => $existingDrafts->count()]) }}
-                    </p>
-
-                    <div class="table-responsive">
-                        <table class="table table-hover table-sm mb-0">
-                            <thead>
-                                <tr>
-                                    <th>{{ __('m_tours.tour.fields.name') }}</th>
-                                    <th>{{ __('m_tours.tour.fields.type') }}</th>
-                                    <th class="text-center">{{ __('m_tours.tour.wizard.current_step') }}</th>
-                                    <th>{{ __('m_tours.common.updated_at') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($existingDrafts as $draft)
-                                    <tr>
-                                        <td>
-                                            <strong>{{ $draft->name ?: __('m_tours.tour.wizard.unnamed_draft') }}</strong><br>
-                                            <small class="text-muted">{{ $draft->slug }}</small>
-                                        </td>
-                                        <td>
-                                            @if($draft->tourType)
-                                                <span class="badge bg-info">{{ $draft->tourType->name }}</span>
-                                            @else
-                                                <span class="text-muted">{{ __('m_tours.common.not_set') }}</span>
-                                            @endif
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge bg-primary">
-                                                {{ __('m_tours.tour.wizard.step') }} {{ $draft->current_step ?? 1 }}/6
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <small>{{ $draft->updated_at->diffForHumans() }}</small><br>
-                                            <small class="text-muted">{{ $draft->updated_at->format('d/m/Y H:i') }}</small>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="alert alert-info mt-3 mb-0">
-                        <i class="fas fa-info-circle"></i>
-                        {{ __('m_tours.tour.wizard.drafts_info') }}
-                    </div>
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="fas fa-info-circle"></i>
+                    {{ __('m_tours.tour.wizard.drafts_info') }}
                 </div>
+            </div>
 
-                <div class="modal-footer d-flex justify-content-around">
-                    <a href="{{ route('admin.tours.index') }}" class="btn btn-secondary flex-fill mx-2">
-                        <i class="fas fa-arrow-left"></i>
-                        {{ __('m_tours.tour.ui.back') }}
-                    </a>
+            <div class="modal-footer d-flex justify-content-around">
+                <a href="{{ route('admin.tours.index') }}" class="btn btn-secondary flex-fill mx-2">
+                    <i class="fas fa-arrow-left"></i>
+                    {{ __('m_tours.tour.ui.back') }}
+                </a>
 
-                    @if($mainDraft)
-                        <button type="button"
-                                class="btn btn-danger flex-fill mx-2"
-                                id="deleteMainDraft"
-                                data-delete-url="{{ route('admin.tours.wizard.delete-draft', $mainDraft) }}"
-                                data-draft-name="{{ $mainDraft->name }}">
-                            <i class="fas fa-trash-alt"></i>
-                            {{ __('m_tours.tour.wizard.delete_draft') }}
-                        </button>
+                @if($mainDraft)
+                <button type="button"
+                    class="btn btn-danger flex-fill mx-2"
+                    id="deleteMainDraft"
+                    data-delete-url="{{ route('admin.tours.wizard.delete-draft', $mainDraft) }}"
+                    data-draft-name="{{ $mainDraft->name }}">
+                    <i class="fas fa-trash-alt"></i>
+                    {{ __('m_tours.tour.wizard.delete_draft') }}
+                </button>
 
-                        <a href="{{ route('admin.tours.wizard.continue', $mainDraft) }}"
-                           class="btn btn-success flex-fill mx-2">
-                            <i class="fas fa-play"></i>
-                            {{ __('m_tours.tour.wizard.continue_draft') }}
-                        </a>
-                    @endif
-                </div>
+                <a href="{{ route('admin.tours.wizard.continue', $mainDraft) }}"
+                    class="btn btn-success flex-fill mx-2">
+                    <i class="fas fa-play"></i>
+                    {{ __('m_tours.tour.wizard.continue_draft') }}
+                </a>
+                @endif
             </div>
         </div>
     </div>
+</div>
 @endif
 
 @endsection
@@ -1162,13 +1181,13 @@
                 const formData = new FormData(tourTypeForm);
 
                 fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                    body: formData
-                })
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: formData
+                    })
                     .then(async response => {
                         if (submitBtn) {
                             submitBtn.disabled = false;
@@ -1279,13 +1298,13 @@
                 const formData = new FormData(languageForm);
 
                 fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                    body: formData
-                })
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: formData
+                    })
                     .then(async response => {
                         if (submitBtn) {
                             submitBtn.disabled = false;
@@ -1395,53 +1414,53 @@
         // ============================================================
         // MODAL DE BORRADORES EXISTENTES
         // ============================================================
-        @if(isset($existingDrafts) && $existingDrafts->count() > 0)
-            const draftsModalEl = document.getElementById('draftsModal');
-            if (draftsModalEl && window.bootstrap && bootstrap.Modal) {
-                const draftsModal = new bootstrap.Modal(draftsModalEl);
-                draftsModal.show();
-            }
+        @if(isset($existingDrafts) && $existingDrafts-> count() > 0)
+        const draftsModalEl = document.getElementById('draftsModal');
+        if (draftsModalEl && window.bootstrap && bootstrap.Modal) {
+            const draftsModal = new bootstrap.Modal(draftsModalEl);
+            draftsModal.show();
+        }
 
-            const deleteMainDraftBtn = document.getElementById('deleteMainDraft');
-            if (deleteMainDraftBtn) {
-                deleteMainDraftBtn.addEventListener('click', function() {
-                    const deleteUrl = this.dataset.deleteUrl;
-                    const draftName = this.dataset.draftName || '';
+        const deleteMainDraftBtn = document.getElementById('deleteMainDraft');
+        if (deleteMainDraftBtn) {
+            deleteMainDraftBtn.addEventListener('click', function() {
+                const deleteUrl = this.dataset.deleteUrl;
+                const draftName = this.dataset.draftName || '';
 
-                    Swal.fire({
-                        title: @json(__('m_tours.tour.wizard.confirm_delete_title')),
-                        html: '<p>{{ __("m_tours.tour.wizard.confirm_delete_message") }}</p>' +
-                            (draftName ? '<p class="font-weight-bold">' + draftName + '</p>' : ''),
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#dc2626',
-                        cancelButtonColor: '#4b5563',
-                        confirmButtonText: @json(__('m_tours.common.delete')),
-                        cancelButtonText: @json(__('m_tours.common.cancel')),
-                    }).then((result) => {
-                        if (result.isConfirmed && deleteUrl) {
-                            const form = document.createElement('form');
-                            form.method = 'POST';
-                            form.action = deleteUrl;
+                Swal.fire({
+                    title: @json(__('m_tours.tour.wizard.confirm_delete_title')),
+                    html: '<p>{{ __("m_tours.tour.wizard.confirm_delete_message") }}</p>' +
+                        (draftName ? '<p class="font-weight-bold">' + draftName + '</p>' : ''),
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#4b5563',
+                    confirmButtonText: @json(__('m_tours.common.delete')),
+                    cancelButtonText: @json(__('m_tours.common.cancel')),
+                }).then((result) => {
+                    if (result.isConfirmed && deleteUrl) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = deleteUrl;
 
-                            const tokenInput = document.createElement('input');
-                            tokenInput.type = 'hidden';
-                            tokenInput.name = '_token';
-                            tokenInput.value = @json(csrf_token());
+                        const tokenInput = document.createElement('input');
+                        tokenInput.type = 'hidden';
+                        tokenInput.name = '_token';
+                        tokenInput.value = @json(csrf_token());
 
-                            const methodInput = document.createElement('input');
-                            methodInput.type = 'hidden';
-                            methodInput.name = '_method';
-                            methodInput.value = 'DELETE';
+                        const methodInput = document.createElement('input');
+                        methodInput.type = 'hidden';
+                        methodInput.name = '_method';
+                        methodInput.value = 'DELETE';
 
-                            form.appendChild(tokenInput);
-                            form.appendChild(methodInput);
-                            document.body.appendChild(form);
-                            form.submit();
-                        }
-                    });
+                        form.appendChild(tokenInput);
+                        form.appendChild(methodInput);
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
                 });
-            }
+            });
+        }
         @endif
     });
 </script>

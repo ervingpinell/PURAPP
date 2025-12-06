@@ -53,7 +53,6 @@ class Tour extends Model
         'tour_type_id',
         'itinerary_id',
         'color',
-        'viator_code',
         'cutoff_hour',
         'lead_days',
 
@@ -62,6 +61,7 @@ class Tour extends Model
         'current_step',
         'created_by',     // Usuario que creó
         'updated_by',     // 🆕 AGREGAR: Usuario que actualizó
+        'recommendations', // 🆕
     ];
 
     protected $casts = [

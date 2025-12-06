@@ -14,6 +14,15 @@ use App\Http\Requests\Tour\Amenity\UpdateAmenityRequest;
 
 class AmenityController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-amenities'])->only(['index']);
+        $this->middleware(['can:create-amenities'])->only(['store']);
+        $this->middleware(['can:edit-amenities'])->only(['update']);
+        $this->middleware(['can:publish-amenities'])->only(['toggle']);
+        $this->middleware(['can:delete-amenities'])->only(['destroy']);
+    }
+
     protected string $controller = 'AmenityController';
 
     public function index()

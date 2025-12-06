@@ -12,6 +12,15 @@ use Exception;
 
 class FaqController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-faqs'])->only(['index']);
+        $this->middleware(['can:create-faqs'])->only(['store']);
+        $this->middleware(['can:edit-faqs'])->only(['update']);
+        $this->middleware(['can:publish-faqs'])->only(['toggleStatus']);
+        $this->middleware(['can:delete-faqs'])->only(['destroy']);
+    }
+
     public function index()
     {
         $faqs = Faq::orderBy('faq_id')->get();
@@ -37,10 +46,18 @@ class FaqController extends Controller
                 ]);
 
                 // Traducciones automáticas (si falla, usa original)
-                try { $qTr = (array) $translator->translateAll($question); } catch (\Throwable $e) { $qTr = []; }
-                try { $aTr = (array) $translator->translateAll($answer);   } catch (\Throwable $e) { $aTr = []; }
+                try {
+                    $qTr = (array) $translator->translateAll($question);
+                } catch (\Throwable $e) {
+                    $qTr = [];
+                }
+                try {
+                    $aTr = (array) $translator->translateAll($answer);
+                } catch (\Throwable $e) {
+                    $aTr = [];
+                }
 
-                foreach (['es','en','fr','pt','de'] as $lang) {
+                foreach (['es', 'en', 'fr', 'pt', 'de'] as $lang) {
                     FaqTranslation::create([
                         'faq_id'   => $faq->faq_id,
                         'locale'   => $lang,

@@ -31,7 +31,7 @@ return [
         'item'               => 'Artikel',
         'items'              => 'Artikel',
         'free_cancellation'  => 'Kostenlose Stornierung',
-        'free_cancellation_until' => 'Bis :time am :date',
+        'free_cancellation_until' => 'Vor :time am :date',
         'subtotal'           => 'Zwischensumme',
         'promo_code'         => 'Gutscheincode',
         'total'              => 'Gesamt',

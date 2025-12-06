@@ -48,7 +48,7 @@ class AuthAuditSubscriber
         $ctx = $this->scrub(array_filter(array_merge($this->baseContext($req), [
             'user_id' => $event->user?->getAuthIdentifier(),
             'guard'   => $event->guard,
-            'remember'=> (bool) ($event->remember ?? false),
+            'remember' => (bool) ($event->remember ?? false),
         ])));
         Log::channel('security')->info('auth.login.success', $ctx);
     }
@@ -58,6 +58,7 @@ class AuthAuditSubscriber
         $req = request();
         // No guardamos contraseña. El email se redacta.
         $ctx = $this->scrub(array_filter(array_merge($this->baseContext($req), [
+            'user_id' => $event->user?->getAuthIdentifier(),
             'email'  => is_object($event->user) ? $event->user?->email : ($event->credentials['email'] ?? null),
             'guard'  => $event->guard,
         ])));

@@ -19,7 +19,10 @@ class CartController extends Controller
         private BookingCapacityService $capacity,
         private BookingPricingService $pricing,
         private BookingValidationService $validation
-    ) {}
+    ) {
+        $this->middleware(['can:view-carts'])->only(['index', 'show']);
+        $this->middleware(['can:publish-carts'])->only(['toggleActive']);
+    }
 
     public function index(Request $request)
     {

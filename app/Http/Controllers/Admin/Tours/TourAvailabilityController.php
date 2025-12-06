@@ -15,6 +15,25 @@ use Carbon\Carbon;
 
 class TourAvailabilityController extends Controller
 {
+    public function __construct()
+    {
+        // View permission
+        $this->middleware(['can:view-tour-availability'])->only(['index']);
+
+        // Edit permissions (capacity updates, overrides)
+        $this->middleware(['can:edit-tour-availability'])->only([
+            'updateTourCapacity',
+            'updateScheduleBaseCapacity',
+            'upsertDayScheduleOverride',
+            'store', // legacy
+            'update', // legacy
+            'destroy' // legacy
+        ]);
+
+        // Publish permission for blocking/unblocking
+        $this->middleware(['can:publish-tour-availability'])->only(['toggleBlockDaySchedule']);
+    }
+
     protected string $controller = 'TourAvailabilityController';
 
     /**
@@ -25,7 +44,7 @@ class TourAvailabilityController extends Controller
         $tab = $request->get('tab', 'global');
 
         // Capacidad global y schedules por tour
-        $tours = Tour::with(['tourType', 'schedules' => function($q) {
+        $tours = Tour::with(['tourType', 'schedules' => function ($q) {
             $q->orderBy('start_time');
         }])->orderBy('name')->get();
 
@@ -94,7 +113,7 @@ class TourAvailabilityController extends Controller
             ];
 
             if (Schema::hasColumn('schedule_tour', 'created_at')) {
-                $payload['created_at'] = DB::raw("COALESCE(created_at, '".now()."')");
+                $payload['created_at'] = DB::raw("COALESCE(created_at, '" . now() . "')");
             }
 
             DB::table('schedule_tour')->updateOrInsert(
@@ -126,9 +145,9 @@ class TourAvailabilityController extends Controller
     public function upsertDayScheduleOverride(Request $request, Tour $tour)
     {
         $data = $request->validate([
-            'schedule_id'  => ['required','exists:schedules,schedule_id'],
-            'date'         => ['required','date'],
-            'max_capacity' => ['nullable','integer','min:0','max:9999'],
+            'schedule_id'  => ['required', 'exists:schedules,schedule_id'],
+            'date'         => ['required', 'date'],
+            'max_capacity' => ['nullable', 'integer', 'min:0', 'max:9999'],
         ]);
 
         try {
@@ -162,91 +181,91 @@ class TourAvailabilityController extends Controller
         }
     }
 
-/**
- * Bloqueo puntual por DÍA+HORARIO (y bitácora en TourExcludedDate).
- * Body: { schedule_id:int|null, date:YYYY-MM-DD, block:boolean, reason?:string }
- *
- * Con la UNIQUE (tour_id, schedule_id, date):
- * - Usamos updateOrCreate($conditions, $attrs) para no duplicar filas.
- * - Al DESBLOQUEAR no enviamos 'max_capacity' para conservar el valor previo.
- */
-public function toggleBlockDaySchedule(Request $request, Tour $tour)
-{
-    $data = $request->validate([
-        'schedule_id' => ['nullable','exists:schedules,schedule_id'],
-        'date'        => ['required','date'],
-        'block'       => ['required','boolean'],
-        'reason'      => ['nullable','string','max:255'],
-    ]);
+    /**
+     * Bloqueo puntual por DÍA+HORARIO (y bitácora en TourExcludedDate).
+     * Body: { schedule_id:int|null, date:YYYY-MM-DD, block:boolean, reason?:string }
+     *
+     * Con la UNIQUE (tour_id, schedule_id, date):
+     * - Usamos updateOrCreate($conditions, $attrs) para no duplicar filas.
+     * - Al DESBLOQUEAR no enviamos 'max_capacity' para conservar el valor previo.
+     */
+    public function toggleBlockDaySchedule(Request $request, Tour $tour)
+    {
+        $data = $request->validate([
+            'schedule_id' => ['nullable', 'exists:schedules,schedule_id'],
+            'date'        => ['required', 'date'],
+            'block'       => ['required', 'boolean'],
+            'reason'      => ['nullable', 'string', 'max:255'],
+        ]);
 
-    try {
-        $conditions = [
-            'tour_id'     => $tour->tour_id,
-            // IMPORTANTE: puede ser NULL si usas override general del día
-            'schedule_id' => $data['schedule_id'] ?? null,
-            'date'        => \Carbon\Carbon::parse($data['date'])->toDateString(),
-        ];
+        try {
+            $conditions = [
+                'tour_id'     => $tour->tour_id,
+                // IMPORTANTE: puede ser NULL si usas override general del día
+                'schedule_id' => $data['schedule_id'] ?? null,
+                'date'        => \Carbon\Carbon::parse($data['date'])->toDateString(),
+            ];
 
-        // Atributos a actualizar (mínimos, para no tocar max_capacity al desbloquear)
-        $attrs = [
-            'is_active'  => true,
-            'is_blocked' => (bool) $data['block'],
-        ];
+            // Atributos a actualizar (mínimos, para no tocar max_capacity al desbloquear)
+            $attrs = [
+                'is_active'  => true,
+                'is_blocked' => (bool) $data['block'],
+            ];
 
-        if ($data['block']) {
-            // Bloqueo real: forzamos max_capacity = null
-            $attrs['max_capacity'] = null;
-        }
-        // Si desbloquea, NO incluimos 'max_capacity' => se conserva el valor previo
+            if ($data['block']) {
+                // Bloqueo real: forzamos max_capacity = null
+                $attrs['max_capacity'] = null;
+            }
+            // Si desbloquea, NO incluimos 'max_capacity' => se conserva el valor previo
 
-        $availability = \App\Models\TourAvailability::updateOrCreate($conditions, $attrs);
+            $availability = \App\Models\TourAvailability::updateOrCreate($conditions, $attrs);
 
-        // Bitácora humana (un día) en TourExcludedDate
-        if ($data['block']) {
-            \App\Models\TourExcludedDate::firstOrCreate(
+            // Bitácora humana (un día) en TourExcludedDate
+            if ($data['block']) {
+                \App\Models\TourExcludedDate::firstOrCreate(
+                    [
+                        'tour_id'     => $tour->tour_id,
+                        'schedule_id' => $conditions['schedule_id'],
+                        'start_date'  => $conditions['date'],
+                        'end_date'    => $conditions['date'],
+                    ],
+                    ['reason' => $data['reason'] ?? 'Bloqueo puntual']
+                );
+            } else {
+                TourExcludedDate::where([
+                    'tour_id'     => $tour->tour_id,
+                    'schedule_id' => $conditions['schedule_id'],
+                ])->whereDate('start_date', $conditions['date'])->delete();
+            }
+
+            LoggerHelper::mutated(
+                'TourAvailabilityController',
+                'toggleBlockDaySchedule',
+                'tour_availability',
+                $availability->getKey(),
                 [
                     'tour_id'     => $tour->tour_id,
                     'schedule_id' => $conditions['schedule_id'],
-                    'start_date'  => $conditions['date'],
-                    'end_date'    => $conditions['date'],
-                ],
-                ['reason' => $data['reason'] ?? 'Bloqueo puntual']
+                    'date'        => $conditions['date'],
+                    'is_blocked'  => (bool) $data['block'],
+                    'user_id'     => optional($request->user())->getAuthIdentifier(),
+                ]
             );
-        } else {
-            TourExcludedDate::where([
-                'tour_id'     => $tour->tour_id,
-                'schedule_id' => $conditions['schedule_id'],
-            ])->whereDate('start_date', $conditions['date'])->delete();
+
+            return back()->with('success', $data['block'] ? 'Fecha bloqueada.' : 'Fecha desbloqueada.');
+        } catch (\Throwable $e) {
+            LoggerHelper::exception(
+                'TourAvailabilityController',
+                'toggleBlockDaySchedule',
+                'tour_availability',
+                null,
+                $e,
+                ['user_id' => optional($request->user())->getAuthIdentifier()]
+            );
+
+            return back()->with('error', 'Error al alternar bloqueo.');
         }
-
-        LoggerHelper::mutated(
-            'TourAvailabilityController',
-            'toggleBlockDaySchedule',
-            'tour_availability',
-            $availability->getKey(),
-            [
-                'tour_id'     => $tour->tour_id,
-                'schedule_id' => $conditions['schedule_id'],
-                'date'        => $conditions['date'],
-                'is_blocked'  => (bool) $data['block'],
-                'user_id'     => optional($request->user())->getAuthIdentifier(),
-            ]
-        );
-
-        return back()->with('success', $data['block'] ? 'Fecha bloqueada.' : 'Fecha desbloqueada.');
-    } catch (\Throwable $e) {
-        LoggerHelper::exception(
-            'TourAvailabilityController',
-            'toggleBlockDaySchedule',
-            'tour_availability',
-            null,
-            $e,
-            ['user_id' => optional($request->user())->getAuthIdentifier()]
-        );
-
-        return back()->with('error', 'Error al alternar bloqueo.');
     }
-}
 
 
     /**
@@ -292,7 +311,6 @@ public function toggleBlockDaySchedule(Request $request, Tour $tour)
                 : 'Override de capacidad actualizado correctamente.';
 
             return back()->with('success', $message);
-
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'tour_availability', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -332,7 +350,6 @@ public function toggleBlockDaySchedule(Request $request, Tour $tour)
             ]);
 
             return back()->with('success', 'Override de capacidad actualizado.');
-
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'update', 'tour_availability', $availability->getKey(), $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -356,7 +373,6 @@ public function toggleBlockDaySchedule(Request $request, Tour $tour)
             ]);
 
             return back()->with('success', 'Override eliminado correctamente.');
-
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy', 'tour_availability', $availability->getKey(), $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),

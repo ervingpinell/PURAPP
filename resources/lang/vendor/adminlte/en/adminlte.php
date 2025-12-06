@@ -62,6 +62,7 @@ return [
     'booking_created_success' => 'Booking created successfully.',
     'booking_updated_success' => 'Booking updated successfully.',
     'two_factor_authentication' => 'Two-factor authentication (2FA)',
+    'enable_2fa_to_continue' => 'You must enable Two-Factor Authentication (2FA) to access the administration panel.',
 
     // 2. HOTELS
     'hotel_name_required' => 'Hotel name is required.',

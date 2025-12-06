@@ -16,6 +16,15 @@ class PolicySectionController extends Controller
 {
     protected string $controller = 'PolicySectionController';
 
+    public function __construct()
+    {
+        $this->middleware(['can:view-policy-sections'])->only(['index']);
+        $this->middleware(['can:create-policy-sections'])->only(['store']);
+        $this->middleware(['can:edit-policy-sections'])->only(['update', 'sort']);
+        $this->middleware(['can:publish-policy-sections'])->only(['toggle']);
+        $this->middleware(['can:delete-policy-sections'])->only(['destroy']);
+    }
+
     /** Listado de secciones de una política */
     public function index(Policy $policy)
     {
@@ -59,7 +68,7 @@ class PolicySectionController extends Controller
 
         $validated = $request->validate($rules, $messages, $attributes);
 
-        $supportedLocales = ['es','en','fr','pt','de'];
+        $supportedLocales = ['es', 'en', 'fr', 'pt', 'de'];
 
         try {
             DB::transaction(function () use ($validated, $policy, $translator, $supportedLocales) {
@@ -76,8 +85,16 @@ class PolicySectionController extends Controller
                 ]);
 
                 // 2) Traducir y crear filas en policy_section_translations
-                try { $nameTranslations    = (array) $translator->translateAll($baseName); }    catch (\Throwable $e) { $nameTranslations = []; }
-                try { $contentTranslations = (array) $translator->translateAll($baseContent); } catch (\Throwable $e) { $contentTranslations = []; }
+                try {
+                    $nameTranslations    = (array) $translator->translateAll($baseName);
+                } catch (\Throwable $e) {
+                    $nameTranslations = [];
+                }
+                try {
+                    $contentTranslations = (array) $translator->translateAll($baseContent);
+                } catch (\Throwable $e) {
+                    $contentTranslations = [];
+                }
 
                 foreach ($supportedLocales as $locale) {
                     $norm = Policy::canonicalLocale($locale);

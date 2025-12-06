@@ -8,7 +8,7 @@ class StoreReviewRequestRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('manage-reviews') ?? false;
+        return $this->user()?->can('create-review-requests') ?? false;
     }
 
     protected function prepareForValidation(): void

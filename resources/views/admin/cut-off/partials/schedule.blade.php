@@ -54,8 +54,10 @@
           <div class="form-hint mt-1">{{ __('m_config.cut-off.hints.lead_days_detail') }}</div>
         </div>
         <div class="col-md-6 d-flex gap-2 align-items-end">
+          @can('edit-tour-availability')
           <button class="btn btn-primary"><i class="fas fa-save me-1"></i> {{ __('m_config.cut-off.actions.save_schedule') }}</button>
           <button type="button" class="btn btn-outline-secondary" id="clearScheduleOverride">{{ __('m_config.cut-off.actions.clear') }}</button>
+          @endcan
         </div>
       </div>
     </form>

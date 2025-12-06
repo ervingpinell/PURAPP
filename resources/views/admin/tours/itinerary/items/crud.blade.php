@@ -1,9 +1,11 @@
 <hr>
 <div class="d-flex justify-content-between align-items-center mb-2">
   <h4>{{ __('m_tours.itinerary_item.ui.list_title') }}</h4>
+  @can('create-itinerary-items')
   <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarItem">
     <i class="fas fa-plus"></i> {{ __('m_tours.itinerary_item.ui.add_item') }}
   </a>
+  @endcan
 </div>
 
 <div class="table-responsive">
@@ -46,14 +48,18 @@
         </td>
         <td class="text-nowrap">
           {{-- Editar --}}
+          @can('edit-itinerary-items')
           <a href="#" class="btn btn-edit btn-sm"
             data-bs-toggle="modal"
             data-bs-target="#modalEditarItem{{ $item->item_id }}"
             title="{{ __('m_tours.itinerary_item.ui.edit_item') }}">
             <i class="fas fa-edit"></i>
           </a>
+          @endcan
 
           {{-- Toggle (PATCH) --}}
+          {{-- Toggle (PATCH) --}}
+          @can('publish-itinerary-items')
           <form action="{{ route('admin.tours.itinerary_items.toggle', $item->item_id) }}"
             method="POST"
             class="d-inline">
@@ -65,8 +71,11 @@
               <i class="fas {{ $icon }}"></i>
             </button>
           </form>
+          @endcan
 
           {{-- Delete (DELETE definitivo) + SweetAlert --}}
+          {{-- Delete (DELETE definitivo) + SweetAlert --}}
+          @can('delete-itinerary-items')
           <form action="{{ route('admin.tours.itinerary_items.destroy', $item->item_id) }}"
             method="POST"
             class="d-inline form-delete-item"
@@ -77,6 +86,7 @@
               <i class="fas fa-trash"></i>
             </button>
           </form>
+          @endcan
         </td>
       </tr>
 

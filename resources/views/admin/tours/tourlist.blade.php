@@ -591,6 +591,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
 
           <td class="actions-cell">
             <div class="d-flex flex-wrap">
+              @can('create-bookings')
               <button type="button"
                 class="btn btn-primary btn-sm"
                 data-toggle="modal"
@@ -599,15 +600,28 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
                 aria-label="{{ __('m_tours.tour.ui.add_to_cart') }}">
                 <i class="fas fa-cart-plus"></i>
               </button>
+              @endcan
 
+              @can('edit-tours')
               <a href="{{ route('admin.tours.edit', $tour) }}"
                 class="btn btn-warning btn-sm"
                 title="{{ __('m_tours.tour.ui.edit') }}"
                 aria-label="{{ __('m_tours.tour.ui.edit') }}">
                 <i class="fas fa-edit"></i>
               </a>
+              @endcan
+
+              @can('manage-tour-images')
+              <a href="{{ route('admin.tours.images.index', $tour) }}"
+                class="btn btn-warning btn-sm"
+                title="{{ __('m_tours.tour.ui.gallery') }}"
+                aria-label="{{ __('m_tours.tour.ui.gallery') }}">
+                <i class="fas fa-images"></i>
+              </a>
+              @endcan
 
               @unless($isArchived)
+              @can('publish-tours')
               <form action="{{ route('admin.tours.toggle', $tour) }}"
                 method="POST"
                 class="d-inline js-toggle-form"
@@ -621,23 +635,29 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
                   <i class="fas fa-toggle-{{ $tour->is_active ? 'on' : 'off' }}"></i>
                 </button>
               </form>
+              @endcan
               @endunless
 
+              @can('view-tour-prices')
               <a href="{{ route('admin.tours.prices.index', $tour) }}"
                 class="btn btn-info btn-sm"
                 title="{{ __('m_tours.tour.ui.manage_prices') }}"
                 aria-label="{{ __('m_tours.tour.ui.manage_prices') }}">
                 <i class="fas fa-dollar-sign"></i>
               </a>
+              @endcan
 
+              @can('edit-tours')
               <a href="{{ route('admin.tours.images.index', $tour) }}"
                 class="btn btn-secondary btn-sm"
                 title="{{ __('m_tours.tour.ui.manage_images') }}"
                 aria-label="{{ __('m_tours.tour.ui.manage_images') }}">
                 <i class="fas fa-images"></i>
               </a>
+              @endcan
 
               @unless($isArchived)
+              @can('delete-tours')
               <form id="delete-form-{{ $tour->tour_id }}"
                 action="{{ route('admin.tours.destroy', $tour) }}"
                 method="POST"
@@ -652,9 +672,11 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
                   <i class="fas fa-trash-alt"></i>
                 </button>
               </form>
+              @endcan
               @endunless
 
               @if($isArchived)
+              @can('delete-tours')
               <form action="{{ route('admin.tours.restore', $tour->tour_id) }}"
                 method="POST"
                 class="d-inline">
@@ -681,6 +703,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
                   <i class="fas fa-times"></i>
                 </button>
               </form>
+              @endcan
               @endif
             </div>
           </td>
@@ -895,6 +918,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
 
         {{-- Acciones --}}
         <div class="tour-mobile-actions border-top pt-2 pb-2">
+          @can('create-bookings')
           <button type="button"
             class="btn btn-primary btn-sm"
             data-toggle="modal"
@@ -902,14 +926,18 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
             <i class="fas fa-cart-plus"></i>
             {{ __('m_tours.tour.ui.add_to_cart') }}
           </button>
+          @endcan
 
+          @can('edit-tours')
           <a href="{{ route('admin.tours.edit', $tour) }}"
             class="btn btn-warning btn-sm">
             <i class="fas fa-edit"></i>
             {{ __('m_tours.tour.ui.edit') }}
           </a>
+          @endcan
 
           @unless($isArchived)
+          @can('publish-tours')
           <form action="{{ route('admin.tours.toggle', $tour) }}"
             method="POST"
             class="d-inline js-toggle-form"
@@ -922,21 +950,27 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
               {{ __('m_tours.tour.ui.deactivate') }}
             </button>
           </form>
+          @endcan
           @endunless
 
+          @can('view-tour-prices')
           <a href="{{ route('admin.tours.prices.index', $tour) }}"
             class="btn btn-info btn-sm">
             <i class="fas fa-dollar-sign"></i>
             {{ __('m_tours.tour.ui.manage_prices') }}
           </a>
+          @endcan
 
+          @can('manage-tour-images')
           <a href="{{ route('admin.tours.images.index', $tour) }}"
-            class="btn btn-secondary btn-sm">
+            class="btn btn-warning btn-sm">
             <i class="fas fa-images"></i>
-            {{ __('m_tours.tour.ui.manage_images') }}
+            {{ __('m_tours.tour.ui.gallery') }}
           </a>
+          @endcan
 
           @unless($isArchived)
+          @can('delete-tours')
           <form id="delete-form-mobile-{{ $tour->tour_id }}"
             action="{{ route('admin.tours.destroy', $tour) }}"
             method="POST"
@@ -950,9 +984,11 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
               {{ __('m_tours.tour.ui.delete') }}
             </button>
           </form>
+          @endcan
           @endunless
 
           @if($isArchived)
+          @can('delete-tours')
           <form action="{{ route('admin.tours.restore', $tour->tour_id) }}"
             method="POST"
             class="d-inline">
@@ -977,6 +1013,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
               {{ __('m_tours.tour.ui.purge') }}
             </button>
           </form>
+          @endcan
           @endif
         </div>
       </div>

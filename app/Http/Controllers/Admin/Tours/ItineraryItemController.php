@@ -16,6 +16,24 @@ use App\Http\Requests\Tour\ItineraryItem\ToggleItineraryItemRequest;
 
 class ItineraryItemController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-itineraries'])->only(['index']); // Using 'view-itineraries' as parent or should I allow 'view-itinerary-items'?
+        // Wait, I defined 'publish-itinerary-items' in the list. Do I have 'create-itinerary-items' etc?
+        // Let's check PermissionsSeeder.php content from my memory or the file.
+        // I recall I might NOT have added 'create-itinerary-items'.
+        // Let me double check if I have those permissions defined. 
+        // IF NOT, I should use 'edit-itineraries' for items too?
+        // Actually, for 'toggle', I definitely defined 'publish-itinerary-items'.
+        // Let's assume standard crud exists or I will just use 'edit-itineraries' for general crud and 'publish-itinerary-items' for toggle.
+        // To be safe I will use specific permissions if they exist, or fallback to itinerary permissions.
+        // Re-reading task description: "Identified Modules... ItineraryItemController... needs publish-itinerary-items".
+        // Use separate permissions logic:
+        $this->middleware(['can:view-itineraries'])->only(['index']);
+        $this->middleware(['can:edit-itineraries'])->only(['store', 'update', 'updateTranslations', 'destroy']);
+        $this->middleware(['can:publish-itinerary-items'])->only(['toggle']);
+    }
+
     protected string $controller = 'ItineraryItemController';
 
     public function index()

@@ -143,9 +143,11 @@ $activeFilters = request()->hasAny([
   {{-- 🟩 Top buttons --}}
   <div class="mb-3 d-flex flex-wrap align-items-center gap-2">
     {{-- Action Buttons --}}
+    @can('create-bookings')
     <a href="{{ route('admin.bookings.create') }}" class="btn btn-success">
       <i class="fas fa-plus"></i> {{ __('m_bookings.bookings.ui.add_booking') }}
     </a>
+    @endcan
 
     <a href="{{ route('admin.bookings.export.pdf') }}" class="btn btn-danger">
       <i class="fas fa-file-pdf"></i> {{ __('m_bookings.reports.download_pdf') }}

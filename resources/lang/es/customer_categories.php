@@ -39,13 +39,13 @@ return [
     ],
 
     'form' => [
-    'translations' => [
-    'title'          => 'Traducciones de nombre',
-    'auto_translate' => 'Traducir automáticamente los demás idiomas (DeepL)',
-    'regen_missing'  => 'Rellenar automáticamente los vacíos (DeepL)',
-    'at_least_first' => 'Debes completar al menos el primer idioma.',
-    'locale_hint'    => 'Traducción para el locale :loc.',
-  ],
+        'translations' => [
+            'title'          => 'Traducciones de nombre',
+            'auto_translate' => 'Traducir automáticamente los demás idiomas (DeepL)',
+            'regen_missing'  => 'Rellenar automáticamente los vacíos (DeepL)',
+            'at_least_first' => 'Debes completar al menos el primer idioma.',
+            'locale_hint'    => 'Traducción para el locale :loc.',
+        ],
         'name' => [
             'label'       => 'Nombre',
             'placeholder' => 'Ej: Adulto, Niño, Infante',
@@ -85,8 +85,10 @@ return [
     ],
 
     'states' => [
-        'active'   => 'Activo',
-        'inactive' => 'Inactivo',
+        'active'     => 'Activo',
+        'inactive'   => 'Inactivo',
+        'activate'   => 'Activar',
+        'deactivate' => 'Desactivar',
     ],
 
     'alerts' => [

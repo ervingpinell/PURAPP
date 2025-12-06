@@ -8,6 +8,15 @@ use Illuminate\Http\Request;
 
 class TaxController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-taxes'])->only(['index']);
+        $this->middleware(['can:create-taxes'])->only(['create', 'store']);
+        $this->middleware(['can:edit-taxes'])->only(['edit', 'update']);
+        $this->middleware(['can:publish-taxes'])->only(['toggle']);
+        $this->middleware(['can:delete-taxes'])->only(['destroy']);
+    }
+
     /**
      * Display a listing of the resource.
      */

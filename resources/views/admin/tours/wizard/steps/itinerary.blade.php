@@ -549,33 +549,33 @@
 
 @section('content')
 @php
-    $currentLocale = app()->getLocale();
+$currentLocale = app()->getLocale();
 
-    // Construimos el JSON solo desde translations
-    $itineraryJson = collect($itineraries ?? [])
-        ->keyBy('itinerary_id')
-        ->map(function ($it) use ($currentLocale) {
-            $tr = $it->translations->firstWhere('locale', $currentLocale)
-                ?? $it->translations->first();
+// Construimos el JSON solo desde translations
+$itineraryJson = collect($itineraries ?? [])
+->keyBy('itinerary_id')
+->map(function ($it) use ($currentLocale) {
+$tr = $it->translations->firstWhere('locale', $currentLocale)
+?? $it->translations->first();
 
-            return [
-                'id'          => $it->itinerary_id,
-                'name'        => $tr->name ?? null,
-                'description' => $tr->description ?? null,
-                'items'       => $it->items->map(function ($item) use ($currentLocale) {
-                    $itr = $item->translations->firstWhere('locale', $currentLocale)
-                        ?? $item->translations->first();
+return [
+'id' => $it->itinerary_id,
+'name' => $tr->name ?? null,
+'description' => $tr->description ?? null,
+'items' => $it->items->map(function ($item) use ($currentLocale) {
+$itr = $item->translations->firstWhere('locale', $currentLocale)
+?? $item->translations->first();
 
-                    return [
-                        'id'          => $item->item_id,
-                        'title'       => $itr->title ?? null,
-                        'description' => $itr->description ?? null,
-                    ];
-                })->values()->toArray(),
-            ];
-        })->toArray();
+return [
+'id' => $item->item_id,
+'title' => $itr->title ?? null,
+'description' => $itr->description ?? null,
+];
+})->values()->toArray(),
+];
+})->toArray();
 
-    $oldItems = old('items', []);
+$oldItems = old('items', []);
 @endphp
 
 <div class="container-fluid">
@@ -599,14 +599,16 @@
 
         {{-- Botones de acción --}}
         <div class="action-buttons">
+            @can('view-itineraries')
             <a href="{{ route('admin.tours.itinerary.index') }}"
-               class="btn btn-primary btn-sm"
-               title="{{ __('m_tours.common.crud_go_to_index', ['element' => __('m_tours.itinerary.plural')]) }}">
+                class="btn btn-primary btn-sm"
+                title="{{ __('m_tours.common.crud_go_to_index', ['element' => __('m_tours.itinerary.plural')]) }}">
                 <i class="fas fa-list"></i>
                 <span class="d-none d-md-inline">
                     {{ __('m_tours.common.crud_go_to_index', ['element' => __('m_tours.itinerary.plural')]) }}
                 </span>
             </a>
+            @endcan
         </div>
 
         <div class="card itinerary-card">
@@ -632,26 +634,28 @@
                                 <div class="form-group">
                                     <label for="select-itinerary">{{ __('m_tours.tour.fields.itinerary') }}</label>
                                     <select name="itinerary_id"
-                                            id="select-itinerary"
-                                            class="form-control @error('itinerary_id') is-invalid @enderror">
+                                        id="select-itinerary"
+                                        class="form-control @error('itinerary_id') is-invalid @enderror">
+                                        @can('create-itineraries')
                                         <option value="">
                                             {{ __('m_tours.itinerary.ui.new_itinerary') }}
                                         </option>
+                                        @endcan
                                         @foreach($itineraries ?? [] as $itinerary)
-                                            @php
-                                                $itTr   = $itinerary->translations->firstWhere('locale', $currentLocale)
-                                                            ?? $itinerary->translations->first();
-                                                $itName = $itTr->name
-                                                    ?? __('m_tours.itinerary.fields.name') . ' #' . $itinerary->itinerary_id;
-                                            @endphp
-                                            <option value="{{ $itinerary->itinerary_id }}"
-                                                {{ old('itinerary_id', $tour->itinerary_id ?? '') == $itinerary->itinerary_id ? 'selected' : '' }}>
-                                                {{ $itName }}
-                                            </option>
+                                        @php
+                                        $itTr = $itinerary->translations->firstWhere('locale', $currentLocale)
+                                        ?? $itinerary->translations->first();
+                                        $itName = $itTr->name
+                                        ?? __('m_tours.itinerary.fields.name') . ' #' . $itinerary->itinerary_id;
+                                        @endphp
+                                        <option value="{{ $itinerary->itinerary_id }}"
+                                            {{ old('itinerary_id', $tour->itinerary_id ?? '') == $itinerary->itinerary_id ? 'selected' : '' }}>
+                                            {{ $itName }}
+                                        </option>
                                         @endforeach
                                     </select>
                                     @error('itinerary_id')
-                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                     <small class="form-text text-muted">
                                         {{ __('m_tours.itinerary.ui.select_or_create_hint') }}
@@ -682,13 +686,13 @@
                                                     {{ __('m_tours.itinerary.fields.name') }} *
                                                 </label>
                                                 <input type="text"
-                                                       name="new_itinerary_name"
-                                                       id="new_itinerary_name"
-                                                       class="form-control @error('new_itinerary_name') is-invalid @enderror"
-                                                       value="{{ old('new_itinerary_name') }}"
-                                                       placeholder="{{ __('m_tours.itinerary.ui.create_title') }}">
+                                                    name="new_itinerary_name"
+                                                    id="new_itinerary_name"
+                                                    class="form-control @error('new_itinerary_name') is-invalid @enderror"
+                                                    value="{{ old('new_itinerary_name') }}"
+                                                    placeholder="{{ __('m_tours.itinerary.ui.create_title') }}">
                                                 @error('new_itinerary_name')
-                                                    <span class="invalid-feedback">{{ $message }}</span>
+                                                <span class="invalid-feedback">{{ $message }}</span>
                                                 @enderror
                                                 <small class="form-text text-muted">
                                                     {{ __('m_tours.itinerary.fields.name') }}
@@ -700,12 +704,12 @@
                                                     {{ __('m_tours.itinerary.fields.description') }}
                                                 </label>
                                                 <textarea name="new_itinerary_description"
-                                                          id="new_itinerary_description"
-                                                          class="form-control @error('new_itinerary_description') is-invalid @enderror"
-                                                          rows="3"
-                                                          placeholder="{{ __('m_tours.itinerary.fields.description_optional') }}">{{ old('new_itinerary_description') }}</textarea>
+                                                    id="new_itinerary_description"
+                                                    class="form-control @error('new_itinerary_description') is-invalid @enderror"
+                                                    rows="3"
+                                                    placeholder="{{ __('m_tours.itinerary.fields.description_optional') }}">{{ old('new_itinerary_description') }}</textarea>
                                                 @error('new_itinerary_description')
-                                                    <span class="invalid-feedback">{{ $message }}</span>
+                                                <span class="invalid-feedback">{{ $message }}</span>
                                                 @enderror
                                             </div>
 
@@ -724,44 +728,44 @@
 
                                                         <div class="pool-container">
                                                             @php
-                                                                $availableItems = \App\Models\ItineraryItem::where('is_active', true)
-                                                                    ->with('translations')
-                                                                    ->get()
-                                                                    ->sortBy(function ($item) use ($currentLocale) {
-                                                                        $tr = $item->translations->firstWhere('locale', $currentLocale)
-                                                                            ?? $item->translations->first();
-                                                                        return $tr->title ?? '';
-                                                                    });
+                                                            $availableItems = \App\Models\ItineraryItem::where('is_active', true)
+                                                            ->with('translations')
+                                                            ->get()
+                                                            ->sortBy(function ($item) use ($currentLocale) {
+                                                            $tr = $item->translations->firstWhere('locale', $currentLocale)
+                                                            ?? $item->translations->first();
+                                                            return $tr->title ?? '';
+                                                            });
                                                             @endphp
 
                                                             @forelse($availableItems as $item)
-                                                                @php
-                                                                    $tr   = $item->translations->firstWhere('locale', $currentLocale)
-                                                                                ?? $item->translations->first();
-                                                                    $title = $tr->title ?? '';
-                                                                    $desc  = $tr->description ?? '';
-                                                                @endphp
-                                                                <div class="form-check">
-                                                                    <input type="checkbox"
-                                                                           class="form-check-input existing-item-checkbox"
-                                                                           id="existing_item_{{ $item->item_id }}"
-                                                                           value="{{ $item->item_id }}"
-                                                                           data-title="{{ $title }}"
-                                                                           data-description="{{ $desc }}">
-                                                                    <label class="form-check-label" for="existing_item_{{ $item->item_id }}">
-                                                                        <strong>{{ $title }}</strong>
-                                                                        @if($desc)
-                                                                            <br>
-                                                                            <small class="text-muted">
-                                                                                {{ \Illuminate\Support\Str::limit($desc, 80) }}
-                                                                            </small>
-                                                                        @endif
-                                                                    </label>
-                                                                </div>
+                                                            @php
+                                                            $tr = $item->translations->firstWhere('locale', $currentLocale)
+                                                            ?? $item->translations->first();
+                                                            $title = $tr->title ?? '';
+                                                            $desc = $tr->description ?? '';
+                                                            @endphp
+                                                            <div class="form-check">
+                                                                <input type="checkbox"
+                                                                    class="form-check-input existing-item-checkbox"
+                                                                    id="existing_item_{{ $item->item_id }}"
+                                                                    value="{{ $item->item_id }}"
+                                                                    data-title="{{ $title }}"
+                                                                    data-description="{{ $desc }}">
+                                                                <label class="form-check-label" for="existing_item_{{ $item->item_id }}">
+                                                                    <strong>{{ $title }}</strong>
+                                                                    @if($desc)
+                                                                    <br>
+                                                                    <small class="text-muted">
+                                                                        {{ \Illuminate\Support\Str::limit($desc, 80) }}
+                                                                    </small>
+                                                                    @endif
+                                                                </label>
+                                                            </div>
                                                             @empty
-                                                                <p class="text-muted mb-0">
-                                                                    {{ __('m_tours.tour.ui.none.itinerary_items') }}
-                                                                </p>
+                                                            <p class="text-muted mb-0">
+                                                                {{ __('m_tours.tour.ui.none.itinerary_items') }}
+                                                            </p>
                                                             @endforelse
                                                         </div>
                                                     </div>
@@ -781,8 +785,8 @@
                                                             </div>
 
                                                             <button type="button"
-                                                                    class="btn btn-success btn-sm"
-                                                                    id="btn-add-new-itinerary-item">
+                                                                class="btn btn-success btn-sm"
+                                                                id="btn-add-new-itinerary-item">
                                                                 <i class="fas fa-plus"></i>
                                                                 <span class="d-none d-md-inline">{{ __('m_tours.itinerary.ui.add_item') ?? 'Agregar' }}</span>
                                                             </button>
@@ -790,60 +794,60 @@
 
                                                         <div id="itinerary-items-container">
                                                             @foreach($oldItems as $index => $item)
-                                                                @php
-                                                                    $title = $item['title'] ?? '';
-                                                                    $desc  = $item['description'] ?? '';
-                                                                @endphp
-                                                                <div class="card itinerary-item">
-                                                                    <div class="card-body">
-                                                                        <div class="d-flex align-items-start mb-2">
-                                                                            <span class="text-muted mr-2 drag-handle">
-                                                                                <i class="fas fa-grip-vertical"></i>
-                                                                            </span>
-                                                                            <strong>
-                                                                                {{ __('m_tours.itinerary.item') }}
-                                                                                #<span class="item-number">{{ $loop->iteration }}</span>
-                                                                            </strong>
+                                                            @php
+                                                            $title = $item['title'] ?? '';
+                                                            $desc = $item['description'] ?? '';
+                                                            @endphp
+                                                            <div class="card itinerary-item">
+                                                                <div class="card-body">
+                                                                    <div class="d-flex align-items-start mb-2">
+                                                                        <span class="text-muted mr-2 drag-handle">
+                                                                            <i class="fas fa-grip-vertical"></i>
+                                                                        </span>
+                                                                        <strong>
+                                                                            {{ __('m_tours.itinerary.item') }}
+                                                                            #<span class="item-number">{{ $loop->iteration }}</span>
+                                                                        </strong>
 
-                                                                            <button type="button"
-                                                                                    class="btn btn-sm btn-outline-secondary ml-2 edit-item"
-                                                                                    aria-label="edit item">
-                                                                                <i class="fas fa-edit"></i>
-                                                                            </button>
+                                                                        <button type="button"
+                                                                            class="btn btn-sm btn-outline-secondary ml-2 edit-item"
+                                                                            aria-label="edit item">
+                                                                            <i class="fas fa-edit"></i>
+                                                                        </button>
 
-                                                                            <button type="button"
-                                                                                    class="btn btn-sm btn-outline-danger ml-auto remove-item"
-                                                                                    aria-label="remove item">
-                                                                                <i class="fas fa-times"></i>
-                                                                            </button>
-                                                                        </div>
-
-                                                                        <h6 class="item-title-display">{{ $title }}</h6>
-                                                                        @if($desc)
-                                                                            <p class="mb-0 item-description-display">{{ $desc }}</p>
-                                                                        @else
-                                                                            <p class="mb-0 item-description-display d-none"></p>
-                                                                        @endif
-
-                                                                        <input type="hidden"
-                                                                               name="items[{{ $index }}][title]"
-                                                                               class="item-title-input"
-                                                                               value="{{ $title }}">
-                                                                        <input type="hidden"
-                                                                               name="items[{{ $index }}][description]"
-                                                                               class="item-description-input"
-                                                                               value="{{ $desc }}">
+                                                                        <button type="button"
+                                                                            class="btn btn-sm btn-outline-danger ml-auto remove-item"
+                                                                            aria-label="remove item">
+                                                                            <i class="fas fa-times"></i>
+                                                                        </button>
                                                                     </div>
+
+                                                                    <h6 class="item-title-display">{{ $title }}</h6>
+                                                                    @if($desc)
+                                                                    <p class="mb-0 item-description-display">{{ $desc }}</p>
+                                                                    @else
+                                                                    <p class="mb-0 item-description-display d-none"></p>
+                                                                    @endif
+
+                                                                    <input type="hidden"
+                                                                        name="items[{{ $index }}][title]"
+                                                                        class="item-title-input"
+                                                                        value="{{ $title }}">
+                                                                    <input type="hidden"
+                                                                        name="items[{{ $index }}][description]"
+                                                                        class="item-description-input"
+                                                                        value="{{ $desc }}">
                                                                 </div>
+                                                            </div>
                                                             @endforeach
                                                         </div>
                                                     </div>
 
                                                     @error('items')
-                                                        <div class="alert alert-danger mt-2">{{ $message }}</div>
+                                                    <div class="alert alert-danger mt-2">{{ $message }}</div>
                                                     @enderror
                                                     @error('items.*.title')
-                                                        <div class="alert alert-danger mt-2">{{ $message }}</div>
+                                                    <div class="alert alert-danger mt-2">{{ $message }}</div>
                                                     @enderror
                                                 </div>
                                             </div>
@@ -894,46 +898,46 @@
                         </div>
 
                         @if($tour ?? false)
-                            <div class="card card-secondary">
-                                <div class="card-header">
-                                    <h3 class="card-title">{{ __('m_tours.tour.fields.itinerary') }}</h3>
-                                </div>
-                                <div class="card-body">
-                                    @if($tour->itinerary)
-                                        @php
-                                            $it   = $tour->itinerary;
-                                            $itTr = $it->translations->firstWhere('locale', $currentLocale)
-                                                        ?? $it->translations->first();
-                                            $itName = $itTr->name ?? __('m_tours.itinerary.fields.name');
-                                            $itDesc = $itTr->description ?? null;
-                                        @endphp
-
-                                        <h6>{{ $itName }}</h6>
-
-                                        @if($itDesc)
-                                            <p class="text-muted small">{{ $itDesc }}</p>
-                                        @endif
-
-                                        @if($it->items->isNotEmpty())
-                                            <hr>
-                                            <ol class="mb-0">
-                                                @foreach($it->items as $item)
-                                                    @php
-                                                        $itr   = $item->translations->firstWhere('locale', $currentLocale)
-                                                                    ?? $item->translations->first();
-                                                        $title = $itr->title ?? '';
-                                                    @endphp
-                                                    <li>{{ $title }}</li>
-                                                @endforeach
-                                            </ol>
-                                        @endif
-                                    @else
-                                        <p class="text-muted mb-0">
-                                            {{ __('m_tours.tour.ui.none.itinerary') }}
-                                        </p>
-                                    @endif
-                                </div>
+                        <div class="card card-secondary">
+                            <div class="card-header">
+                                <h3 class="card-title">{{ __('m_tours.tour.fields.itinerary') }}</h3>
                             </div>
+                            <div class="card-body">
+                                @if($tour->itinerary)
+                                @php
+                                $it = $tour->itinerary;
+                                $itTr = $it->translations->firstWhere('locale', $currentLocale)
+                                ?? $it->translations->first();
+                                $itName = $itTr->name ?? __('m_tours.itinerary.fields.name');
+                                $itDesc = $itTr->description ?? null;
+                                @endphp
+
+                                <h6>{{ $itName }}</h6>
+
+                                @if($itDesc)
+                                <p class="text-muted small">{{ $itDesc }}</p>
+                                @endif
+
+                                @if($it->items->isNotEmpty())
+                                <hr>
+                                <ol class="mb-0">
+                                    @foreach($it->items as $item)
+                                    @php
+                                    $itr = $item->translations->firstWhere('locale', $currentLocale)
+                                    ?? $item->translations->first();
+                                    $title = $itr->title ?? '';
+                                    @endphp
+                                    <li>{{ $title }}</li>
+                                    @endforeach
+                                </ol>
+                                @endif
+                                @else
+                                <p class="text-muted mb-0">
+                                    {{ __('m_tours.tour.ui.none.itinerary') }}
+                                </p>
+                                @endif
+                            </div>
+                        </div>
                         @endif
                     </div> {{-- col-md-4 --}}
                 </div>
@@ -943,19 +947,19 @@
             <div class="card-footer navigation-footer">
                 <div class="d-flex justify-content-between align-items-center">
                     <a href="{{ route('admin.tours.wizard.step', ['tour' => $tour, 'step' => 1]) }}"
-                       class="btn btn-secondary">
+                        class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i>
                         {{ __('m_tours.common.previous') }}
                     </a>
 
                     <div class="d-flex">
                         @if($tour->is_draft)
-                            <button type="button"
-                                    class="btn btn-danger"
-                                    onclick="if (confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')) { document.getElementById('delete-draft-form').submit(); }">
-                                <i class="fas fa-trash"></i>
-                                <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
-                            </button>
+                        <button type="button"
+                            class="btn btn-danger"
+                            onclick="if (confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')) { document.getElementById('delete-draft-form').submit(); }">
+                            <i class="fas fa-trash"></i>
+                            <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
+                        </button>
                         @endif
 
                         <button type="submit" class="btn btn-primary ml-2">
@@ -971,13 +975,13 @@
 
     {{-- FORM OCULTO PARA ELIMINAR DRAFT --}}
     @if($tour->is_draft)
-        <form id="delete-draft-form"
-              action="{{ route('admin.tours.wizard.delete-draft', $tour) }}"
-              method="POST"
-              style="display:none;">
-            @csrf
-            @method('DELETE')
-        </form>
+    <form id="delete-draft-form"
+        action="{{ route('admin.tours.wizard.delete-draft', $tour) }}"
+        method="POST"
+        style="display:none;">
+        @csrf
+        @method('DELETE')
+    </form>
     @endif
 </div>
 
@@ -985,9 +989,9 @@
 <div class="modal fade" id="modalCreateItineraryItem" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <form class="modal-content"
-              id="formCreateItineraryItem"
-              method="POST"
-              action="{{ route('admin.tours.wizard.quick.itinerary-item') }}">
+            id="formCreateItineraryItem"
+            method="POST"
+            action="{{ route('admin.tours.wizard.quick.itinerary-item') }}">
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title">
@@ -995,9 +999,9 @@
                     {{ __('m_tours.itinerary.ui.quick_create_item') ?? 'Nuevo item de itinerario' }}
                 </h5>
                 <button type="button"
-                        class="close"
-                        data-dismiss="modal"
-                        aria-label="{{ __('m_tours.common.close') }}">
+                    class="close"
+                    data-dismiss="modal"
+                    aria-label="{{ __('m_tours.common.close') }}">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -1025,8 +1029,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button"
-                        class="btn btn-secondary"
-                        data-dismiss="modal">
+                    class="btn btn-secondary"
+                    data-dismiss="modal">
                     {{ __('m_tours.common.cancel') }}
                 </button>
                 <button type="submit" class="btn btn-primary">
@@ -1048,9 +1052,9 @@
                     {{ __('m_tours.itinerary_item.ui.edit_item') ?? 'Editar item de itinerario' }}
                 </h5>
                 <button type="button"
-                        class="close"
-                        data-dismiss="modal"
-                        aria-label="{{ __('m_tours.common.close') }}">
+                    class="close"
+                    data-dismiss="modal"
+                    aria-label="{{ __('m_tours.common.close') }}">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -1074,13 +1078,13 @@
             </div>
             <div class="modal-footer">
                 <button type="button"
-                        class="btn btn-secondary"
-                        data-dismiss="modal">
+                    class="btn btn-secondary"
+                    data-dismiss="modal">
                     {{ __('m_tours.common.cancel') }}
                 </button>
                 <button type="button"
-                        class="btn btn-primary"
-                        id="btn-save-edit-item">
+                    class="btn btn-primary"
+                    id="btn-save-edit-item">
                     <i class="fas fa-save"></i>
                     {{ __('m_tours.common.save') }}
                 </button>
@@ -1094,133 +1098,134 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const ITINERARY_DATA = @json($itineraryJson ?? []);
+    document.addEventListener('DOMContentLoaded', function() {
+        const ITINERARY_DATA = @json($itineraryJson ?? []);
 
-    const translations = {
-        cannotDelete:        @json(__('m_tours.itinerary.ui.cannot_delete_item') ?? 'No se puede eliminar'),
-        minOneItem:         @json(__('m_tours.itinerary.ui.min_one_item') ?? 'Debe existir al menos un item.'),
-        confirmDeleteTitle: @json(__('m_tours.common.confirm_delete_title') ?? '¿Eliminar este item?'),
-        confirmDeleteText:  @json(__('m_tours.common.confirm_delete_text') ?? 'Esta acción no se puede deshacer'),
-        confirmDeleteButton:@json(__('m_tours.common.delete') ?? 'Sí, eliminar'),
-        cancelButton:       @json(__('m_tours.common.cancel') ?? 'Cancelar'),
-        titleRequired:      @json(__('validation.required', ['attribute' => __('m_tours.itinerary.fields.item_title')]) ?? 'El título es obligatorio'),
-        saving:             @json(__('m_tours.common.saving') ?? 'Guardando...'),
-        itemAdded:          @json(__('m_tours.itinerary.ui.item_added') ?? 'Item agregado'),
-        itemAddedSuccess:   @json(__('m_tours.itinerary.ui.item_added_success') ?? 'El item se agregó correctamente al itinerario'),
-        itineraryNameRequired: @json(__('m_tours.itinerary.validation.name_required') ?? 'El nombre del itinerario es obligatorio'),
-        mustAddItems:          @json(__('m_tours.itinerary.validation.must_add_items') ?? 'Debes agregar al menos un item al nuevo itinerario'),
-        validationTitle:       @json(__('m_tours.itinerary.validation.title') ?? 'Validación de Itinerario'),
-        errorCreatingItem:     @json(__('m_tours.itinerary.ui.error_creating_item') ?? 'Error de validación al crear el item.'),
-        networkError:          @json(__('m_tours.common.network_error') ?? 'Error de red'),
-    };
+        const translations = {
+            cannotDelete: @json(__('m_tours.itinerary.ui.cannot_delete_item') ?? 'No se puede eliminar'),
+            minOneItem: @json(__('m_tours.itinerary.ui.min_one_item') ?? 'Debe existir al menos un item.'),
+            confirmDeleteTitle: @json(__('m_tours.common.confirm_delete_title') ?? '¿Eliminar este item?'),
+            confirmDeleteText: @json(__('m_tours.common.confirm_delete_text') ?? 'Esta acción no se puede deshacer'),
+            confirmDeleteButton: @json(__('m_tours.common.delete') ?? 'Sí, eliminar'),
+            cancelButton: @json(__('m_tours.common.cancel') ?? 'Cancelar'),
+            titleRequired: @json(__('validation.required', ['attribute' => __('m_tours.itinerary.fields.item_title')]) ?? 'El título es obligatorio'),
+            saving: @json(__('m_tours.common.saving') ?? 'Guardando...'),
+            itemAdded: @json(__('m_tours.itinerary.ui.item_added') ?? 'Item agregado'),
+            itemAddedSuccess: @json(__('m_tours.itinerary.ui.item_added_success') ?? 'El item se agregó correctamente al itinerario'),
+            itineraryNameRequired: @json(__('m_tours.itinerary.validation.name_required') ?? 'El nombre del itinerario es obligatorio'),
+            mustAddItems: @json(__('m_tours.itinerary.validation.must_add_items') ?? 'Debes agregar al menos un item al nuevo itinerario'),
+            validationTitle: @json(__('m_tours.itinerary.validation.title') ?? 'Validación de Itinerario'),
+            errorCreatingItem: @json(__('m_tours.itinerary.ui.error_creating_item') ?? 'Error de validación al crear el item.'),
+            networkError: @json(__('m_tours.common.network_error') ?? 'Error de red'),
+        };
 
-    function openModal(modalId) {
-        const modalEl = document.getElementById(modalId);
-        if (!modalEl) return;
-        if (window.bootstrap && bootstrap.Modal) {
-            bootstrap.Modal.getOrCreateInstance(modalEl).show();
-        } else if (window.jQuery && typeof jQuery(modalEl).modal === 'function') {
-            jQuery(modalEl).modal('show');
-        } else {
-            modalEl.classList.add('show');
-            modalEl.style.display = 'block';
-        }
-    }
-
-    function closeModalAndCleanup(modalId) {
-        const modalEl = document.getElementById(modalId);
-        if (modalEl) {
+        function openModal(modalId) {
+            const modalEl = document.getElementById(modalId);
+            if (!modalEl) return;
             if (window.bootstrap && bootstrap.Modal) {
-                (bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl)).hide();
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
             } else if (window.jQuery && typeof jQuery(modalEl).modal === 'function') {
-                jQuery(modalEl).modal('hide');
+                jQuery(modalEl).modal('show');
             } else {
-                modalEl.classList.remove('show');
-                modalEl.style.display = 'none';
+                modalEl.classList.add('show');
+                modalEl.style.display = 'block';
             }
         }
-        document.body.classList.remove('modal-open');
-        document.querySelectorAll('.modal-backdrop').forEach(bd => bd.parentNode && bd.parentNode.removeChild(bd));
-    }
 
-    const itinerarySelect = document.getElementById('select-itinerary');
-    const newSection      = document.getElementById('new-itinerary-section');
-    const viewSection     = document.getElementById('view-itinerary-items-create');
-
-    function renderItineraryPreview(itineraryId) {
-        if (!viewSection) return;
-        const descEl = document.getElementById('selected-itinerary-description');
-        const listEl = viewSection.querySelector('ul');
-        const data   = ITINERARY_DATA[itineraryId] || null;
-
-        if (!data || (!data.description && (!data.items || !data.items.length))) {
-            viewSection.style.display = 'none';
-            if (descEl) descEl.textContent = '';
-            if (listEl) listEl.innerHTML = '';
-            return;
+        function closeModalAndCleanup(modalId) {
+            const modalEl = document.getElementById(modalId);
+            if (modalEl) {
+                if (window.bootstrap && bootstrap.Modal) {
+                    (bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl)).hide();
+                } else if (window.jQuery && typeof jQuery(modalEl).modal === 'function') {
+                    jQuery(modalEl).modal('hide');
+                } else {
+                    modalEl.classList.remove('show');
+                    modalEl.style.display = 'none';
+                }
+            }
+            document.body.classList.remove('modal-open');
+            document.querySelectorAll('.modal-backdrop').forEach(bd => bd.parentNode && bd.parentNode.removeChild(bd));
         }
 
-        viewSection.style.display = 'block';
-        if (descEl) {
-            descEl.textContent = data.description || @json(__('m_tours.itinerary.fields.description_optional'));
-        }
-        if (listEl) {
-            if (Array.isArray(data.items) && data.items.length) {
-                listEl.innerHTML = data.items.map((item, idx) => `
+        const itinerarySelect = document.getElementById('select-itinerary');
+        const newSection = document.getElementById('new-itinerary-section');
+        const viewSection = document.getElementById('view-itinerary-items-create');
+
+        function renderItineraryPreview(itineraryId) {
+            if (!viewSection) return;
+            const descEl = document.getElementById('selected-itinerary-description');
+            const listEl = viewSection.querySelector('ul');
+            const data = ITINERARY_DATA[itineraryId] || null;
+
+            if (!data || (!data.description && (!data.items || !data.items.length))) {
+                viewSection.style.display = 'none';
+                if (descEl) descEl.textContent = '';
+                if (listEl) listEl.innerHTML = '';
+                return;
+            }
+
+            viewSection.style.display = 'block';
+            if (descEl) {
+                descEl.textContent = data.description || @json(__('m_tours.itinerary.fields.description_optional'));
+            }
+            if (listEl) {
+                if (Array.isArray(data.items) && data.items.length) {
+                    listEl.innerHTML = data.items.map((item, idx) => `
                     <li class="list-group-item">
                         <strong>#${idx + 1} - ${item.title || @json(__('m_tours.itinerary_item.fields.title'))}</strong>
                         ${item.description ? `<br><small class="text-muted">${item.description}</small>` : ''}
                     </li>
                 `).join('');
-            } else {
-                listEl.innerHTML = '<li class="list-group-item text-muted">{{ __('m_tours.tour.ui.none.itinerary_items') }}</li>';
+                } else {
+                    listEl.innerHTML = '<li class="list-group-item text-muted">{{ __('
+                    m_tours.tour.ui.none.itinerary_items ') }}</li>';
+                }
             }
         }
-    }
 
-    if (itinerarySelect) {
-        itinerarySelect.addEventListener('change', function () {
-            const value = this.value;
-            if (!value) {
-                if (newSection) newSection.style.display = 'block';
-                renderItineraryPreview(null);
-            } else {
-                if (newSection) newSection.style.display = 'none';
-                renderItineraryPreview(value);
-            }
-        });
+        if (itinerarySelect) {
+            itinerarySelect.addEventListener('change', function() {
+                const value = this.value;
+                if (!value) {
+                    if (newSection) newSection.style.display = 'block';
+                    renderItineraryPreview(null);
+                } else {
+                    if (newSection) newSection.style.display = 'none';
+                    renderItineraryPreview(value);
+                }
+            });
 
-        // Disparar al cargar para respetar old('itinerary_id')
-        itinerarySelect.dispatchEvent(new Event('change'));
-    }
+            // Disparar al cargar para respetar old('itinerary_id')
+            itinerarySelect.dispatchEvent(new Event('change'));
+        }
 
-    const container = document.getElementById('itinerary-items-container');
-    const addNewBtn = document.getElementById('btn-add-new-itinerary-item');
+        const container = document.getElementById('itinerary-items-container');
+        const addNewBtn = document.getElementById('btn-add-new-itinerary-item');
 
-    function updateItemNumbersAndNames() {
-        if (!container) return;
-        const items = container.querySelectorAll('.itinerary-item');
-        items.forEach((item, index) => {
-            const numSpan = item.querySelector('.item-number');
-            if (numSpan) numSpan.textContent = index + 1;
-            const titleInput = item.querySelector('.item-title-input');
-            const descInput  = item.querySelector('.item-description-input');
-            if (titleInput) titleInput.name = `items[${index}][title]`;
-            if (descInput)  descInput.name  = `items[${index}][description]`;
-        });
-    }
+        function updateItemNumbersAndNames() {
+            if (!container) return;
+            const items = container.querySelectorAll('.itinerary-item');
+            items.forEach((item, index) => {
+                const numSpan = item.querySelector('.item-number');
+                if (numSpan) numSpan.textContent = index + 1;
+                const titleInput = item.querySelector('.item-title-input');
+                const descInput = item.querySelector('.item-description-input');
+                if (titleInput) titleInput.name = `items[${index}][title]`;
+                if (descInput) descInput.name = `items[${index}][description]`;
+            });
+        }
 
-    function createItemCard(title = '', description = '', sourceKey = null) {
-        if (!container) return;
-        const total   = container.querySelectorAll('.itinerary-item').length;
-        const wrapper = document.createElement('div');
-        wrapper.className = 'card itinerary-item';
-        if (sourceKey) wrapper.dataset.sourceKey = sourceKey;
-        const safeTitle       = title ? String(title) : '';
-        const safeDescription = description ? String(description) : '';
+        function createItemCard(title = '', description = '', sourceKey = null) {
+            if (!container) return;
+            const total = container.querySelectorAll('.itinerary-item').length;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'card itinerary-item';
+            if (sourceKey) wrapper.dataset.sourceKey = sourceKey;
+            const safeTitle = title ? String(title) : '';
+            const safeDescription = description ? String(description) : '';
 
-        wrapper.innerHTML = `
+            wrapper.innerHTML = `
             <div class="card-body">
                 <div class="d-flex align-items-start mb-2">
                     <span class="text-muted mr-2 drag-handle">
@@ -1240,331 +1245,331 @@ document.addEventListener('DOMContentLoaded', function() {
                 <input type="hidden" name="items[${total}][description]" class="item-description-input" value="${safeDescription}">
             </div>
         `;
-        container.appendChild(wrapper);
-        updateItemNumbersAndNames();
-    }
+            container.appendChild(wrapper);
+            updateItemNumbersAndNames();
+        }
 
-    if (window.Sortable && container) {
-        Sortable.create(container, {
-            handle: '.drag-handle',
-            animation: 150,
-            onSort: updateItemNumbersAndNames
-        });
-    }
+        if (window.Sortable && container) {
+            Sortable.create(container, {
+                handle: '.drag-handle',
+                animation: 150,
+                onSort: updateItemNumbersAndNames
+            });
+        }
 
-    if (addNewBtn) {
-        addNewBtn.addEventListener('click', function () {
-            const quickTitle       = document.getElementById('quick_item_title');
-            const quickDescription = document.getElementById('quick_item_description');
-            const createErrors     = document.getElementById('createItemModalErrors');
+        if (addNewBtn) {
+            addNewBtn.addEventListener('click', function() {
+                const quickTitle = document.getElementById('quick_item_title');
+                const quickDescription = document.getElementById('quick_item_description');
+                const createErrors = document.getElementById('createItemModalErrors');
 
-            if (createErrors) {
-                createErrors.classList.add('d-none');
-                createErrors.innerHTML = '';
-            }
-            if (quickTitle) quickTitle.value = '';
-            if (quickDescription) quickDescription.value = '';
+                if (createErrors) {
+                    createErrors.classList.add('d-none');
+                    createErrors.innerHTML = '';
+                }
+                if (quickTitle) quickTitle.value = '';
+                if (quickDescription) quickDescription.value = '';
 
-            openModal('modalCreateItineraryItem');
-        });
-    }
+                openModal('modalCreateItineraryItem');
+            });
+        }
 
-    if (container) {
-        container.addEventListener('click', function (e) {
-            const removeBtn = e.target.closest('.remove-item');
-            const editBtn   = e.target.closest('.edit-item');
+        if (container) {
+            container.addEventListener('click', function(e) {
+                const removeBtn = e.target.closest('.remove-item');
+                const editBtn = e.target.closest('.edit-item');
 
-            if (removeBtn) {
-                const items = container.querySelectorAll('.itinerary-item');
-                if (items.length <= 1) {
+                if (removeBtn) {
+                    const items = container.querySelectorAll('.itinerary-item');
+                    if (items.length <= 1) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: translations.cannotDelete,
+                            text: translations.minOneItem,
+                            confirmButtonColor: '#38b2ac',
+                        });
+                        return;
+                    }
+                    const card = removeBtn.closest('.itinerary-item');
+                    if (!card) return;
+
                     Swal.fire({
+                        title: translations.confirmDeleteTitle,
+                        text: translations.confirmDeleteText,
                         icon: 'warning',
-                        title: translations.cannotDelete,
-                        text: translations.minOneItem,
-                        confirmButtonColor: '#38b2ac',
+                        showCancelButton: true,
+                        confirmButtonColor: '#f56565',
+                        cancelButtonColor: '#4a5568',
+                        confirmButtonText: translations.confirmDeleteButton,
+                        cancelButtonText: translations.cancelButton
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            card.remove();
+                            updateItemNumbersAndNames();
+                        }
                     });
                     return;
                 }
-                const card = removeBtn.closest('.itinerary-item');
-                if (!card) return;
 
-                Swal.fire({
-                    title: translations.confirmDeleteTitle,
-                    text: translations.confirmDeleteText,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#f56565',
-                    cancelButtonColor: '#4a5568',
-                    confirmButtonText: translations.confirmDeleteButton,
-                    cancelButtonText: translations.cancelButton
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        card.remove();
+                if (editBtn) {
+                    const card = editBtn.closest('.itinerary-item');
+                    if (!card) return;
+                    startEditItem(card);
+                }
+            });
+        }
+
+        updateItemNumbersAndNames();
+
+        document.querySelectorAll('.existing-item-checkbox').forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (!container) return;
+                const itemId = this.value;
+                const title = this.dataset.title || '';
+                const desc = this.dataset.description || '';
+                const sourceKey = 'existing_item_' + itemId;
+                const existingCard = container.querySelector(`.itinerary-item[data-source-key="${sourceKey}"]`);
+
+                if (this.checked) {
+                    if (!existingCard) createItemCard(title, desc, sourceKey);
+                } else {
+                    if (existingCard) {
+                        existingCard.remove();
                         updateItemNumbersAndNames();
                     }
-                });
-                return;
-            }
-
-            if (editBtn) {
-                const card = editBtn.closest('.itinerary-item');
-                if (!card) return;
-                startEditItem(card);
-            }
-        });
-    }
-
-    updateItemNumbersAndNames();
-
-    document.querySelectorAll('.existing-item-checkbox').forEach(cb => {
-        cb.addEventListener('change', function () {
-            if (!container) return;
-            const itemId    = this.value;
-            const title     = this.dataset.title || '';
-            const desc      = this.dataset.description || '';
-            const sourceKey = 'existing_item_' + itemId;
-            const existingCard = container.querySelector(`.itinerary-item[data-source-key="${sourceKey}"]`);
-
-            if (this.checked) {
-                if (!existingCard) createItemCard(title, desc, sourceKey);
-            } else {
-                if (existingCard) {
-                    existingCard.remove();
-                    updateItemNumbersAndNames();
-                }
-            }
-        });
-    });
-
-    const formCreateItineraryItem = document.getElementById('formCreateItineraryItem');
-    const quickTitle              = document.getElementById('quick_item_title');
-    const quickDescription        = document.getElementById('quick_item_description');
-    const createItemModalErrors   = document.getElementById('createItemModalErrors');
-
-    if (formCreateItineraryItem && quickTitle && quickDescription) {
-        formCreateItineraryItem.addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            if (!quickTitle.value.trim()) {
-                if (createItemModalErrors) {
-                    createItemModalErrors.classList.remove('d-none');
-                    createItemModalErrors.innerHTML = '<div>' + translations.titleRequired + '</div>';
-                }
-                quickTitle.focus();
-                return;
-            }
-
-            const url      = formCreateItineraryItem.action;
-            const formData = new FormData(formCreateItineraryItem);
-
-            if (createItemModalErrors) {
-                createItemModalErrors.classList.add('d-none');
-                createItemModalErrors.innerHTML = '';
-            }
-
-            const submitBtn    = formCreateItineraryItem.querySelector('button[type="submit"]');
-            const originalHtml = submitBtn ? submitBtn.innerHTML : '';
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + translations.saving;
-            }
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: formData
-            })
-            .then(async (response) => {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalHtml;
-                }
-
-                if (response.ok) return response.json();
-                if (response.status === 422) {
-                    const data = await response.json();
-                    if (createItemModalErrors) {
-                        createItemModalErrors.classList.remove('d-none');
-                        if (data.errors) {
-                            const msgs = Object.values(data.errors).flat();
-                            createItemModalErrors.innerHTML = msgs.map(msg => '<div>' + msg + '</div>').join('');
-                        } else {
-                            createItemModalErrors.innerHTML = '<div>' + translations.errorCreatingItem + '</div>';
-                        }
-                    }
-                    return null;
-                }
-                const text = await response.text();
-                if (createItemModalErrors) {
-                    createItemModalErrors.classList.remove('d-none');
-                    createItemModalErrors.innerHTML = '<div>' + text + '</div>';
-                }
-                return null;
-            })
-            .then((data) => {
-                if (!data || !data.id || !data.title) return;
-                createItemCard(data.title, data.description || '', null);
-                quickTitle.value       = '';
-                quickDescription.value = '';
-                closeModalAndCleanup('modalCreateItineraryItem');
-
-                Swal.fire({
-                    icon: 'success',
-                    title: translations.itemAdded,
-                    text: translations.itemAddedSuccess,
-                    timer: 2000,
-                    showConfirmButton: false,
-                });
-            })
-            .catch((err) => {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalHtml;
-                }
-
-                if (createItemModalErrors) {
-                    createItemModalErrors.classList.remove('d-none');
-                    createItemModalErrors.innerHTML =
-                        '<div>' + (err.message || translations.networkError) + '</div>';
                 }
             });
         });
-    }
 
-    let currentEditingCard         = null;
-    const editTitleInput           = document.getElementById('edit_item_title');
-    const editDescInput            = document.getElementById('edit_item_description');
-    const editErrors               = document.getElementById('editItemModalErrors');
-    const btnSaveEdit              = document.getElementById('btn-save-edit-item');
+        const formCreateItineraryItem = document.getElementById('formCreateItineraryItem');
+        const quickTitle = document.getElementById('quick_item_title');
+        const quickDescription = document.getElementById('quick_item_description');
+        const createItemModalErrors = document.getElementById('createItemModalErrors');
 
-    function startEditItem(card) {
-        currentEditingCard = card;
-        const titleInput   = card.querySelector('.item-title-input');
-        const descInput    = card.querySelector('.item-description-input');
+        if (formCreateItineraryItem && quickTitle && quickDescription) {
+            formCreateItineraryItem.addEventListener('submit', function(e) {
+                e.preventDefault();
 
-        if (editErrors) {
-            editErrors.classList.add('d-none');
-            editErrors.innerHTML = '';
+                if (!quickTitle.value.trim()) {
+                    if (createItemModalErrors) {
+                        createItemModalErrors.classList.remove('d-none');
+                        createItemModalErrors.innerHTML = '<div>' + translations.titleRequired + '</div>';
+                    }
+                    quickTitle.focus();
+                    return;
+                }
+
+                const url = formCreateItineraryItem.action;
+                const formData = new FormData(formCreateItineraryItem);
+
+                if (createItemModalErrors) {
+                    createItemModalErrors.classList.add('d-none');
+                    createItemModalErrors.innerHTML = '';
+                }
+
+                const submitBtn = formCreateItineraryItem.querySelector('button[type="submit"]');
+                const originalHtml = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + translations.saving;
+                }
+
+                fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    })
+                    .then(async (response) => {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalHtml;
+                        }
+
+                        if (response.ok) return response.json();
+                        if (response.status === 422) {
+                            const data = await response.json();
+                            if (createItemModalErrors) {
+                                createItemModalErrors.classList.remove('d-none');
+                                if (data.errors) {
+                                    const msgs = Object.values(data.errors).flat();
+                                    createItemModalErrors.innerHTML = msgs.map(msg => '<div>' + msg + '</div>').join('');
+                                } else {
+                                    createItemModalErrors.innerHTML = '<div>' + translations.errorCreatingItem + '</div>';
+                                }
+                            }
+                            return null;
+                        }
+                        const text = await response.text();
+                        if (createItemModalErrors) {
+                            createItemModalErrors.classList.remove('d-none');
+                            createItemModalErrors.innerHTML = '<div>' + text + '</div>';
+                        }
+                        return null;
+                    })
+                    .then((data) => {
+                        if (!data || !data.id || !data.title) return;
+                        createItemCard(data.title, data.description || '', null);
+                        quickTitle.value = '';
+                        quickDescription.value = '';
+                        closeModalAndCleanup('modalCreateItineraryItem');
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: translations.itemAdded,
+                            text: translations.itemAddedSuccess,
+                            timer: 2000,
+                            showConfirmButton: false,
+                        });
+                    })
+                    .catch((err) => {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalHtml;
+                        }
+
+                        if (createItemModalErrors) {
+                            createItemModalErrors.classList.remove('d-none');
+                            createItemModalErrors.innerHTML =
+                                '<div>' + (err.message || translations.networkError) + '</div>';
+                        }
+                    });
+            });
         }
-        if (editTitleInput) editTitleInput.value = titleInput ? titleInput.value : '';
-        if (editDescInput)  editDescInput.value  = descInput ? descInput.value : '';
 
-        openModal('modalEditItineraryItem');
-    }
+        let currentEditingCard = null;
+        const editTitleInput = document.getElementById('edit_item_title');
+        const editDescInput = document.getElementById('edit_item_description');
+        const editErrors = document.getElementById('editItemModalErrors');
+        const btnSaveEdit = document.getElementById('btn-save-edit-item');
 
-    if (btnSaveEdit && editTitleInput && editDescInput) {
-        btnSaveEdit.addEventListener('click', function () {
-            if (!currentEditingCard) return;
-            const newTitle = editTitleInput.value.trim();
-            const newDesc  = editDescInput.value.trim();
+        function startEditItem(card) {
+            currentEditingCard = card;
+            const titleInput = card.querySelector('.item-title-input');
+            const descInput = card.querySelector('.item-description-input');
 
-            if (!newTitle) {
-                if (editErrors) {
-                    editErrors.classList.remove('d-none');
-                    editErrors.innerHTML = '<div>' + translations.titleRequired + '</div>';
-                }
-                editTitleInput.focus();
-                return;
+            if (editErrors) {
+                editErrors.classList.add('d-none');
+                editErrors.innerHTML = '';
             }
+            if (editTitleInput) editTitleInput.value = titleInput ? titleInput.value : '';
+            if (editDescInput) editDescInput.value = descInput ? descInput.value : '';
 
-            const titleDisplay = currentEditingCard.querySelector('.item-title-display');
-            const descDisplay  = currentEditingCard.querySelector('.item-description-display');
-            const titleInput   = currentEditingCard.querySelector('.item-title-input');
-            const descInput    = currentEditingCard.querySelector('.item-description-input');
+            openModal('modalEditItineraryItem');
+        }
 
-            if (titleDisplay) titleDisplay.textContent = newTitle;
-            if (titleInput)   titleInput.value         = newTitle;
+        if (btnSaveEdit && editTitleInput && editDescInput) {
+            btnSaveEdit.addEventListener('click', function() {
+                if (!currentEditingCard) return;
+                const newTitle = editTitleInput.value.trim();
+                const newDesc = editDescInput.value.trim();
 
-            if (descDisplay) {
-                if (newDesc) {
-                    descDisplay.textContent = newDesc;
-                    descDisplay.classList.remove('d-none');
-                } else {
-                    descDisplay.textContent = '';
-                    descDisplay.classList.add('d-none');
-                }
-            }
-            if (descInput) descInput.value = newDesc;
-
-            closeModalAndCleanup('modalEditItineraryItem');
-            currentEditingCard = null;
-        });
-    }
-
-    // VALIDACIÓN DEL FORMULARIO PRINCIPAL
-    const mainForm              = document.getElementById('tour-itinerary-form');
-    const newItineraryNameInput = document.getElementById('new_itinerary_name');
-
-    if (mainForm) {
-        mainForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            const selectedItineraryId = itinerarySelect ? itinerarySelect.value : '';
-            const isCreatingNew       = !selectedItineraryId;
-
-            let errors = [];
-
-            if (isCreatingNew) {
-                const newItineraryName = newItineraryNameInput
-                    ? newItineraryNameInput.value.trim()
-                    : '';
-
-                if (!newItineraryName) {
-                    errors.push(translations.itineraryNameRequired);
-                    if (newItineraryNameInput) {
-                        newItineraryNameInput.classList.add('is-invalid');
-                        newItineraryNameInput.focus();
+                if (!newTitle) {
+                    if (editErrors) {
+                        editErrors.classList.remove('d-none');
+                        editErrors.innerHTML = '<div>' + translations.titleRequired + '</div>';
                     }
-                } else if (newItineraryNameInput) {
-                    newItineraryNameInput.classList.remove('is-invalid');
+                    editTitleInput.focus();
+                    return;
                 }
 
-                const itemsCount = container
-                    ? container.querySelectorAll('.itinerary-item').length
-                    : 0;
+                const titleDisplay = currentEditingCard.querySelector('.item-title-display');
+                const descDisplay = currentEditingCard.querySelector('.item-description-display');
+                const titleInput = currentEditingCard.querySelector('.item-title-input');
+                const descInput = currentEditingCard.querySelector('.item-description-input');
 
-                if (itemsCount === 0) {
-                    errors.push(translations.mustAddItems);
-                    if (container) {
-                        container.style.border = '2px solid #f56565';
-                        setTimeout(() => {
-                            container.style.border = '2px dashed #4a5568';
-                        }, 3000);
+                if (titleDisplay) titleDisplay.textContent = newTitle;
+                if (titleInput) titleInput.value = newTitle;
+
+                if (descDisplay) {
+                    if (newDesc) {
+                        descDisplay.textContent = newDesc;
+                        descDisplay.classList.remove('d-none');
+                    } else {
+                        descDisplay.textContent = '';
+                        descDisplay.classList.add('d-none');
                     }
                 }
-            }
+                if (descInput) descInput.value = newDesc;
 
-            if (errors.length > 0) {
-                Swal.fire({
-                    icon: 'error',
-                    title: translations.validationTitle,
-                    html: '<ul style="text-align: left;">' +
-                        errors.map(err => '<li>' + err + '</li>').join('') +
-                        '</ul>',
-                    confirmButtonColor: '#38b2ac',
-                });
-                return false;
-            }
+                closeModalAndCleanup('modalEditItineraryItem');
+                currentEditingCard = null;
+            });
+        }
 
-            const submitBtn = mainForm.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled  = true;
-                submitBtn.innerHTML =
-                    '<i class="fas fa-spinner fa-spin"></i> ' + translations.saving;
-            }
+        // VALIDACIÓN DEL FORMULARIO PRINCIPAL
+        const mainForm = document.getElementById('tour-itinerary-form');
+        const newItineraryNameInput = document.getElementById('new_itinerary_name');
 
-            mainForm.submit();
-        });
-    }
+        if (mainForm) {
+            mainForm.addEventListener('submit', function(e) {
+                e.preventDefault();
 
-    if (newItineraryNameInput) {
-        newItineraryNameInput.addEventListener('input', function () {
-            this.classList.remove('is-invalid');
-        });
-    }
-});
+                const selectedItineraryId = itinerarySelect ? itinerarySelect.value : '';
+                const isCreatingNew = !selectedItineraryId;
+
+                let errors = [];
+
+                if (isCreatingNew) {
+                    const newItineraryName = newItineraryNameInput ?
+                        newItineraryNameInput.value.trim() :
+                        '';
+
+                    if (!newItineraryName) {
+                        errors.push(translations.itineraryNameRequired);
+                        if (newItineraryNameInput) {
+                            newItineraryNameInput.classList.add('is-invalid');
+                            newItineraryNameInput.focus();
+                        }
+                    } else if (newItineraryNameInput) {
+                        newItineraryNameInput.classList.remove('is-invalid');
+                    }
+
+                    const itemsCount = container ?
+                        container.querySelectorAll('.itinerary-item').length :
+                        0;
+
+                    if (itemsCount === 0) {
+                        errors.push(translations.mustAddItems);
+                        if (container) {
+                            container.style.border = '2px solid #f56565';
+                            setTimeout(() => {
+                                container.style.border = '2px dashed #4a5568';
+                            }, 3000);
+                        }
+                    }
+                }
+
+                if (errors.length > 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: translations.validationTitle,
+                        html: '<ul style="text-align: left;">' +
+                            errors.map(err => '<li>' + err + '</li>').join('') +
+                            '</ul>',
+                        confirmButtonColor: '#38b2ac',
+                    });
+                    return false;
+                }
+
+                const submitBtn = mainForm.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML =
+                        '<i class="fas fa-spinner fa-spin"></i> ' + translations.saving;
+                }
+
+                mainForm.submit();
+            });
+        }
+
+        if (newItineraryNameInput) {
+            newItineraryNameInput.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+            });
+        }
+    });
 </script>
 @endpush

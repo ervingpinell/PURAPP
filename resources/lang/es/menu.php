@@ -76,4 +76,12 @@ return [
         'app_settings' => 'Configuración de la app',
         'app' => 'App',
         'taxes' => 'Impuestos',
+        'operations' => 'Operaciones',
+        'management' => 'Administración',
+        'users_management' => 'Gestión de Usuarios',
+        'customer_categories' => 'Categorías de Clientes',
+        'additional_services' => 'Servicios Adicionales',
+        'review_template' => 'Plantillas de Reseña',
+        'cart' => 'Carrito',
+        'configuration' => 'Configuración',
 ];

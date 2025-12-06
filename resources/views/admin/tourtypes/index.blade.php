@@ -9,14 +9,18 @@
 @section('content')
 <div class="p-3 table-responsive">
     <div class="d-flex flex-wrap gap-2 mb-3">
+        @can('create-tour-types')
         <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
             <i class="fas fa-plus"></i> {{ __('m_config.tourtypes.new') }}
         </a>
+        @endcan
 
-        {{-- Botón global para ordenar tours (abre la vista de orden sin categoría preseleccionada) --}}
+        {{-- Botón global para ordenar tours --}}
+        @can('edit-tours')
         <a href="{{ route('admin.tours.order.index') }}" class="btn btn-primary">
             <i class="fas fa-sort-amount-down"></i> Ordenar tours
         </a>
+        @endcan
     </div>
 
     <table class="table table-bordered table-striped table-hover">
@@ -30,11 +34,6 @@
                 <th>{{ __('m_config.tourtypes.actions') }}</th>
             </tr>
         </thead>
-        {{--
-            NOTA: Los campos name, description, duration se obtienen automáticamente
-            de las traducciones mediante accessors mágicos en el modelo TourType.
-            El locale actual se usa automáticamente, con fallback a español.
-        --}}
         <tbody>
             @foreach ($tourTypes as $tourtype)
             <tr>
@@ -69,6 +68,7 @@
 
                 <td class="text-nowrap">
                     {{-- Editar --}}
+                    @can('edit-tour-types')
                     <a href="#"
                         class="btn btn-edit btn-sm me-1"
                         data-bs-toggle="modal"
@@ -82,13 +82,6 @@
                         class="btn btn-sm btn-info me-1"
                         title="Gestionar traducciones">
                         <i class="fas fa-language"></i>
-                    </a>
-
-                    {{-- Ordenar tours de esta categoría (preselecciona tour_type_id en la vista de orden) --}}
-                    <a href="{{ route('admin.tours.order.index', ['tour_type_id' => $tourtype->tour_type_id]) }}"
-                        class="btn btn-sm btn-primary me-1"
-                        title="Ordenar tours de «{{ $tourtype->name }}»">
-                        <i class="fas fa-sort-amount-down"></i>
                     </a>
 
                     {{-- Activar/Desactivar (SweetAlert) --}}
@@ -105,8 +98,19 @@
                             <i class="fas fa-toggle-{{ $tourtype->is_active ? 'on' : 'off' }}"></i>
                         </button>
                     </form>
+                    @endcan
+
+                    {{-- Ordenar tours de esta categoría --}}
+                    @can('edit-tours')
+                    <a href="{{ route('admin.tours.order.index', ['tour_type_id' => $tourtype->tour_type_id]) }}"
+                        class="btn btn-sm btn-primary me-1"
+                        title="Ordenar tours de «{{ $tourtype->name }}»">
+                        <i class="fas fa-sort-amount-down"></i>
+                    </a>
+                    @endcan
 
                     {{-- Eliminar --}}
+                    @can('delete-tour-types')
                     <form action="{{ route('admin.tourtypes.destroy', $tourtype->tour_type_id) }}"
                         method="POST"
                         class="d-inline js-confirm-delete"
@@ -117,6 +121,7 @@
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
+                    @endcan
                 </td>
             </tr>
 
@@ -142,6 +147,14 @@
                                         value="{{ session('edit_modal') == $tourtype->tour_type_id ? old('name', $tourtype->name) : $tourtype->name }}"
                                         required>
                                 </div>
+                                @can('publish-tour-types')
+                                <button type="button"
+                                    class="btn btn-sm btn-{{ $tourtype->is_active ? 'success' : 'secondary' }}"
+                                    onclick="toggleType({{ $tourtype->tour_type_id }})"
+                                    title="{{ $tourtype->is_active ? 'Desactivar' : 'Activar' }}">
+                                    <i class="fas fa-power-off"></i>
+                                </button>
+                                @endcan
                                 <div class="mb-3">
                                     <label>{{ __('m_config.tourtypes.description') }}</label>
                                     <textarea
@@ -333,8 +346,8 @@
         });
 
         // Errores de validación => abrir modal correcto
-        @if($errors->any())
-        const firstError = @json($errors->first());
+        @if($errors-> any())
+        const firstError = @json($errors-> first());
         Swal.fire({
             icon: 'warning',
             title: @json(__('m_config.tourtypes.validation_errors')),

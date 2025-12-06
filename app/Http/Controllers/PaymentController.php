@@ -129,6 +129,26 @@ class PaymentController extends Controller
             foreach ($cartSnapshot['items'] as $item) {
                 if (!empty($item['tour_date'])) {
                     $d = \Carbon\Carbon::parse($item['tour_date']);
+
+                    // Try to get start time from schedule
+                    $startTime = null;
+                    if (!empty($item['schedule']) && $item['schedule'] instanceof \App\Models\Schedule) {
+                        $startTime = $item['schedule']->start_time;
+                    } elseif (!empty($item['schedule_id'])) {
+                        // If model isn't hydrated yet (though we just added hydration, logic order matters), fetch it
+                        $sched = \App\Models\Schedule::find($item['schedule_id']);
+                        if ($sched) {
+                            $startTime = $sched->start_time;
+                        }
+                    }
+
+                    if ($startTime) {
+                        $timeParts = explode(':', $startTime);
+                        if (count($timeParts) >= 2) {
+                            $d->setTime((int)$timeParts[0], (int)$timeParts[1], 0);
+                        }
+                    }
+
                     if (!$earliestDate || $d->lt($earliestDate)) {
                         $earliestDate = $d;
                     }
@@ -161,7 +181,38 @@ class PaymentController extends Controller
             'defaultGateway'  => $defaultGateway,
             'enabledGateways' => $enabledGateways,
             'stripeKey'       => config('payment.gateways.stripe.publishable_key'),
-            'items'           => $cartSnapshot['items'], // Pass items directly
+            'items'           => collect($cartSnapshot['items'])->map(function ($item) {
+                // Determine tour_id (support both keys for robust handling)
+                $tourId = $item['tour_id'] ?? $item['tour'] ?? null;
+                // If it's an object, use it; if ID, fetch it.
+                if (is_object($tourId)) {
+                    $item['tour'] = $tourId;
+                } elseif ($tourId) {
+                    $item['tour'] = \App\Models\Tour::with('translations')->find($tourId);
+                }
+
+                // Schedule
+                if (empty($item['schedule']) && !empty($item['schedule_id'])) {
+                    $item['schedule'] = \App\Models\Schedule::find($item['schedule_id']);
+                }
+
+                // Language
+                if (empty($item['language']) && !empty($item['language_id'])) {
+                    $item['language'] = \App\Models\TourLanguage::find($item['language_id']);
+                }
+
+                // Hotel
+                if (empty($item['hotel']) && !empty($item['hotel_id'])) {
+                    $item['hotel'] = \App\Models\HotelList::find($item['hotel_id']);
+                }
+
+                // Meeting Point
+                if (empty($item['meetingPoint']) && !empty($item['meeting_point_id'])) {
+                    $item['meetingPoint'] = \App\Models\MeetingPoint::find($item['meeting_point_id']);
+                }
+
+                return $item;
+            }),
             'expiresAt'       => $expiresAt, // Pass expiration time for countdown
             'cart'            => $cart,
             'freeCancelUntil' => $freeCancelUntil,

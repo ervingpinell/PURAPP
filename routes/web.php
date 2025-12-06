@@ -447,10 +447,14 @@ Route::middleware([SetLocale::class])->group(function () {
     // ------------------------------
     // Admin
     // ------------------------------
+    // Route::middleware(['auth', 'verified', 'can:access-admin'])
+    // Route::middleware(['auth', 'verified', 'can:access-admin'])
     Route::middleware(['auth', 'verified', 'can:access-admin'])
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
+
+
 
             // ============================
             // ADMIN PROFILE
@@ -471,27 +475,38 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 // USERS & ROLES
                 // ============================
-                Route::resource('users', UserRegisterController::class)->except(['show']);
-                Route::patch('users/{user}/lock', [UserRegisterController::class, 'lock'])->name('users.lock');
-                Route::patch('users/{user}/unlock', [UserRegisterController::class, 'unlock'])->name('users.unlock');
-                Route::patch('users/{user}/mark-verified', [UserRegisterController::class, 'markVerified'])->name('users.markVerified');
+                Route::middleware(['can:view-users'])->group(function () {
+                    Route::resource('users', UserRegisterController::class)->except(['show']);
+                    Route::patch('users/{user}/lock', [UserRegisterController::class, 'lock'])->name('users.lock');
+                    Route::patch('users/{user}/unlock', [UserRegisterController::class, 'unlock'])->name('users.unlock');
+                    Route::patch('users/{user}/mark-verified', [UserRegisterController::class, 'markVerified'])->name('users.markVerified');
+                    Route::patch('users/{user}/disable-2fa', [UserRegisterController::class, 'disable2FA'])->name('users.disable2FA');
+                });
 
-                Route::resource('roles', RoleController::class)->except(['show', 'create']);
-                Route::patch('roles/{role}/toggle', [RoleController::class, 'toggle'])->name('roles.toggle');
+                Route::middleware(['can:view-roles'])->group(function () {
+                    Route::get('roles/{role}/permissions', [RoleController::class, 'permissions'])->name('roles.permissions');
+                    Route::put('roles/{role}/permissions', [RoleController::class, 'updatePermissions'])->name('roles.permissions.update');
+                    Route::resource('roles', RoleController::class)->except(['show', 'create']);
+                    Route::patch('roles/{role}/toggle', [RoleController::class, 'toggle'])->name('roles.toggle');
+                });
 
                 // ============================
                 // CUSTOMER CATEGORIES
                 // ============================
-                Route::resource('customer_categories', CustomerCategoryController::class)
-                    ->parameters(['customer_categories' => 'category']);
-                Route::post('customer_categories/{category}/toggle', [CustomerCategoryController::class, 'toggle'])
-                    ->name('customer_categories.toggle');
+                Route::middleware(['can:view-customer-categories'])->group(function () {
+                    Route::resource('customer_categories', CustomerCategoryController::class)
+                        ->parameters(['customer_categories' => 'category']);
+                    Route::post('customer_categories/{category}/toggle', [CustomerCategoryController::class, 'toggle'])
+                        ->name('customer_categories.toggle');
+                });
 
                 // ============================
                 // TAXES
                 // ============================
-                Route::resource('taxes', TaxController::class);
-                Route::post('taxes/{tax}/toggle', [TaxController::class, 'toggle'])->name('taxes.toggle');
+                Route::middleware(['can:view-taxes'])->group(function () {
+                    Route::resource('taxes', TaxController::class);
+                    Route::post('taxes/{tax}/toggle', [TaxController::class, 'toggle'])->name('taxes.toggle');
+                });
 
                 // ============================
                 // API AJAX (tours data) — UNIFICADO
@@ -504,7 +519,8 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 // TOURS
                 // ============================
-                Route::prefix('tours')->name('tours.')->group(function () {
+                // Route::middleware(['can:view-tours'])->prefix('tours')->name('tours.')->group(function () {
+                Route::middleware(['can:view-tours'])->prefix('tours')->name('tours.')->group(function () {
 
                     // -------------------- CUTOFF --------------------
                     // Moved here to avoid collision with /{tour} wildcard
@@ -525,6 +541,10 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::delete('/{tour}', [TourController::class, 'destroy'])->name('destroy');
                     Route::post('/{tour}/restore', [TourController::class, 'restore'])->name('restore');
                     Route::delete('/{tour}/purge', [TourController::class, 'purge'])->name('purge');
+
+                    // Extras moved from bottom group
+                    Route::post('/{tour}/duplicate', [TourController::class, 'duplicate'])->name('duplicate')->middleware('can:create-tours');
+                    Route::get('/export/excel', [TourController::class, 'exportExcel'])->name('export.excel');
 
                     /**
                      * ============================================================
@@ -649,8 +669,8 @@ Route::middleware([SetLocale::class])->group(function () {
                     });
 
                     // -------------------- TOUR ORDER --------------------
-                    Route::get('/order', [TourOrderController::class, 'index'])->name('order.index');
-                    Route::post('/order/{tourType}/save', [TourOrderController::class, 'save'])->name('order.save');
+                    Route::get('/order', [TourOrderController::class, 'index'])->name('order.index')->middleware('can:reorder-tours');
+                    Route::post('/order/{tourType}/save', [TourOrderController::class, 'save'])->name('order.save')->middleware('can:reorder-tours');
 
                     // -------------------- PRICES (por categoría) --------------------
                     Route::prefix('{tour}/prices')->name('prices.')->group(function () {
@@ -663,18 +683,7 @@ Route::middleware([SetLocale::class])->group(function () {
                         Route::post('/update-taxes', [TourPriceController::class, 'updateTaxes'])->name('update-taxes');
                     });
 
-                    // -------------------- IMAGES --------------------
-                    Route::get('/images', [TourImageController::class, 'pick'])->name('images.pick');
-                    Route::prefix('{tour}/images')->name('images.')->group(function () {
-                        Route::get('/', [TourImageController::class, 'index'])->name('index');
-                        Route::post('/', [TourImageController::class, 'store'])->name('store');
-                        Route::delete('/', [TourImageController::class, 'bulkDestroy'])->name('bulk-destroy');
-                        Route::delete('/all', [TourImageController::class, 'destroyAll'])->name('destroyAll');
-                        Route::patch('/{image}', [TourImageController::class, 'update'])->name('update');
-                        Route::delete('/{image}', [TourImageController::class, 'destroy'])->name('destroy');
-                        Route::post('/{image}/cover', [TourImageController::class, 'setCover'])->name('cover');
-                        Route::post('/reorder', [TourImageController::class, 'reorder'])->name('reorder');
-                    });
+
 
                     // -------------------- SCHEDULES (Horarios) --------------------
                     Route::prefix('schedule')->name('schedule.')->group(function () {
@@ -695,50 +704,36 @@ Route::middleware([SetLocale::class])->group(function () {
                     });
 
                     // -------------------- CAPACITY MANAGEMENT --------------------
-                    Route::prefix('capacity')->name('capacity.')->group(function () {
-                        // Vista principal con tabs
-                        Route::get('/', [TourAvailabilityController::class, 'index'])->name('index');
+                    Route::group(['middleware' => ['can:view-tour-availability']], function () {
+                        Route::prefix('capacity')->name('capacity.')->group(function () {
+                            // Vista principal con tabs
+                            Route::get('/', [TourAvailabilityController::class, 'index'])->name('index');
 
-                        // Capacidad GLOBAL del tour
-                        Route::patch('/tour/{tour}', [TourAvailabilityController::class, 'updateTourCapacity'])->name('update-tour');
+                            // Capacidad GLOBAL del tour
+                            Route::patch('/tour/{tour}', [TourAvailabilityController::class, 'updateTourCapacity'])->name('update-tour');
 
-                        // Capacidad BASE por horario (pivot)
-                        Route::patch('/tour/{tour}/schedule/base-capacity', [TourAvailabilityController::class, 'updateScheduleBaseCapacity'])->name('update-schedule-base');
+                            // Capacidad BASE por horario (pivot)
+                            Route::patch('/tour/{tour}/schedule/base-capacity', [TourAvailabilityController::class, 'updateScheduleBaseCapacity'])->name('update-schedule-base');
 
-                        // Override puntual por día+horario
-                        Route::post('/tour/{tour}/overrides/day-schedule', [TourAvailabilityController::class, 'upsertDayScheduleOverride'])->name('override-day-schedule');
+                            // Override puntual por día+horario
+                            Route::post('/tour/{tour}/overrides/day-schedule', [TourAvailabilityController::class, 'upsertDayScheduleOverride'])->name('override-day-schedule');
 
-                        // Bloqueo puntual por día+horario
-                        Route::post('/tour/{tour}/overrides/day-schedule/toggle-block', [TourAvailabilityController::class, 'toggleBlockDaySchedule'])->name('toggle-block-day-schedule');
+                            // Bloqueo puntual por día+horario
+                            Route::post('/tour/{tour}/overrides/day-schedule/toggle-block', [TourAvailabilityController::class, 'toggleBlockDaySchedule'])->name('toggle-block-day-schedule');
 
-                        // ===== WIDGET DE ALERTAS (CapacityController) =====
-                        Route::prefix('schedules/{schedule}')->group(function () {
-                            Route::patch('/increase', [CapacityController::class, 'increase'])->name('increase');
-                            Route::get('/details', [CapacityController::class, 'show'])->name('details');
-                            Route::patch('/block', [CapacityController::class, 'block'])->name('block');
+                            // ===== WIDGET DE ALERTAS (CapacityController) =====
+                            Route::prefix('schedules/{schedule}')->group(function () {
+                                Route::patch('/increase', [CapacityController::class, 'increase'])->name('increase');
+                                Route::get('/details', [CapacityController::class, 'show'])->name('details');
+                                Route::patch('/block', [CapacityController::class, 'block'])->name('block');
+                            });
+
+                            // Legacy CRUD directo
+                            Route::post('/', [TourAvailabilityController::class, 'store'])->name('store');
+                            Route::patch('/{availability}', [TourAvailabilityController::class, 'update'])->name('update');
+                            Route::delete('/{availability}', [TourAvailabilityController::class, 'destroy'])->name('destroy');
                         });
-
-                        // Legacy CRUD directo
-                        Route::post('/', [TourAvailabilityController::class, 'store'])->name('store');
-                        Route::patch('/{availability}', [TourAvailabilityController::class, 'update'])->name('update');
-                        Route::delete('/{availability}', [TourAvailabilityController::class, 'destroy'])->name('destroy');
                     });
-
-                    // -------------------- EXCLUDED DATES --------------------
-                    Route::prefix('excluded_dates')->name('excluded_dates.')->group(function () {
-                        Route::get('/', [TourExcludedDateController::class, 'index'])->name('index');
-                        Route::get('/blocked', [TourExcludedDateController::class, 'blocked'])->name('blocked');
-                        Route::post('/', [TourExcludedDateController::class, 'store'])->name('store');
-                        Route::put('/{excludedDate}', [TourExcludedDateController::class, 'update'])->name('update');
-                        Route::delete('/{excludedDate}', [TourExcludedDateController::class, 'destroy'])->name('destroy');
-                        Route::post('/toggle', [TourExcludedDateController::class, 'toggle'])->name('toggle');
-                        Route::post('/bulk-toggle', [TourExcludedDateController::class, 'bulkToggle'])->name('bulkToggle');
-                        Route::post('/block-all', [TourExcludedDateController::class, 'blockAll'])->name('blockAll');
-                        Route::post('/store-multiple', [TourExcludedDateController::class, 'storeMultiple'])->name('storeMultiple');
-                        Route::delete('/all', [TourExcludedDateController::class, 'destroyAll'])->name('destroyAll');
-                        Route::post('/destroy-selected', [TourExcludedDateController::class, 'destroySelected'])->name('destroySelected');
-                    });
-
 
 
                     // -------------------- ITINERARY --------------------
@@ -751,162 +746,271 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::resource('itinerary_items', ItineraryItemController::class)->except(['show', 'create', 'edit']);
                     Route::patch('itinerary_items/{itinerary_item}/toggle', [ItineraryItemController::class, 'toggle'])->name('itinerary_items.toggle');
                     Route::put('itinerary_items/{itinerary_item}/translations', [ItineraryItemController::class, 'updateTranslations'])->name('itinerary_items.updateTranslations');
-
-                    // -------------------- PRICES --------------------
-                    Route::post('prices/check-overlap', [TourPriceController::class, 'checkOverlap'])
-                        ->name('prices.check-overlap');
-
-                    // -------------------- AMENITIES --------------------
-                    Route::resource('amenities', AmenityController::class)->except(['show']);
-                    Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])->name('amenities.toggle');
                 });
 
+
+                // ============================
+                // TOURS (ADMIN)
+                // ============================
+                // Wrap in view-tours for access control
+                Route::group(['middleware' => ['can:manage-tour-images']], function () {
+                    // Resource Routes REMOVED (Duplicate)
+                    // Additional Actions REMOVED (Moved to main group)
+                    // Tour Order REMOVED (Duplicate/Broken)
+
+                    // Tour Images
+                    Route::prefix('tours')->name('tours.')->group(function () {
+                        Route::get('images', [TourImageController::class, 'pick'])->name('images.pick');
+                        Route::get('{tour}/images', [TourImageController::class, 'index'])->name('images.index');
+                        Route::post('{tour}/images', [TourImageController::class, 'store'])->name('images.store');
+                        Route::put('{tour}/images/reorder', [TourImageController::class, 'reorder'])->name('images.reorder');
+                        Route::put('{tour}/images/{image}', [TourImageController::class, 'update'])->name('images.update');
+                        Route::delete('{tour}/images/{image}', [TourImageController::class, 'destroy'])->name('images.destroy');
+                        Route::post('{tour}/images/{image}/cover', [TourImageController::class, 'setCover'])->name('images.setCover');
+                        Route::post('{tour}/images/bulk-destroy', [TourImageController::class, 'bulkDestroy'])->name('images.bulk-destroy');
+                        Route::delete('{tour}/images/destroy-all', [TourImageController::class, 'destroyAll'])->name('images.destroy-all');
+                    });
+                });
+
+
+
+                // ============================
+                // AMENITIES
+                // ============================
+                Route::group(['middleware' => ['can:view-amenities']], function () {
+                    Route::prefix('tours')->name('tours.')->group(function () {
+                        // -------------------- AMENITIES --------------------
+                        Route::resource('amenities', AmenityController::class)->except(['show']);
+                        Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])->name('amenities.toggle');
+                    });
+                });
+
+                // ============================
+                // TOUR AVAILABILITY (Excluded Dates)
+                // ============================
+                Route::group(['middleware' => ['can:view-tour-availability']], function () {
+                    Route::prefix('tours')->name('tours.')->group(function () {
+                        // -------------------- EXCLUDED DATES --------------------
+                        Route::prefix('excluded_dates')->name('excluded_dates.')->group(function () {
+                            Route::get('/', [TourExcludedDateController::class, 'index'])->name('index');
+                            Route::get('/blocked', [TourExcludedDateController::class, 'blocked'])->name('blocked');
+                            Route::post('/', [TourExcludedDateController::class, 'store'])->name('store');
+                            Route::put('/{excludedDate}', [TourExcludedDateController::class, 'update'])->name('update');
+                            Route::delete('/{excludedDate}', [TourExcludedDateController::class, 'destroy'])->name('destroy');
+                            Route::post('/toggle', [TourExcludedDateController::class, 'toggle'])->name('toggle');
+                            Route::post('/bulk-toggle', [TourExcludedDateController::class, 'bulkToggle'])->name('bulkToggle');
+                            Route::post('/block-all', [TourExcludedDateController::class, 'blockAll'])->name('blockAll');
+                            Route::post('/store-multiple', [TourExcludedDateController::class, 'storeMultiple'])->name('storeMultiple');
+                            Route::delete('/all', [TourExcludedDateController::class, 'destroyAll'])->name('destroyAll');
+                            Route::post('/destroy-selected', [TourExcludedDateController::class, 'destroySelected'])->name('destroySelected');
+                        });
+                    });
+                });
+
+                // ============================
+                // TOUR PRICING
+                // ============================
+                Route::group(['middleware' => ['can:view-tour-prices']], function () {
+                    Route::prefix('tours')->name('tours.')->group(function () {
+                        // -------------------- PRICES --------------------
+                        Route::post('prices/check-overlap', [TourPriceController::class, 'checkOverlap'])
+                            ->name('prices.check-overlap');
+                    });
+                });
+
+                // ============================
+                // TOUR IMAGES (Unified Permission)
+                // ============================
+                Route::group(['middleware' => ['can:view-tour-images']], function () {
+
+                    // Tour Images
+                    Route::prefix('tours')->name('tours.')->group(function () {
+                        Route::get('images', [TourImageController::class, 'pick'])->name('images.pick');
+                        // Ensure the route parameter matches the controller signature (Tour $tour)
+                        Route::get('{tour}/images', [TourImageController::class, 'index'])->name('images.index');
+                        Route::post('{tour}/images', [TourImageController::class, 'store'])->name('images.store');
+                        Route::put('{tour}/images/reorder', [TourImageController::class, 'reorder'])->name('images.reorder');
+                        Route::put('{tour}/images/{image}', [TourImageController::class, 'update'])->name('images.update');
+                        Route::delete('{tour}/images/{image}', [TourImageController::class, 'destroy'])->name('images.destroy');
+                        Route::post('{tour}/images/{image}/cover', [TourImageController::class, 'setCover'])->name('images.setCover');
+                        Route::post('{tour}/images/bulk-destroy', [TourImageController::class, 'bulkDestroy'])->name('images.bulk-destroy');
+                        Route::delete('{tour}/images/destroy-all', [TourImageController::class, 'destroyAll'])->name('images.destroyAll');
+                    });
+
+                    // Tour Type Images
+                    Route::prefix('types')->name('types.')->group(function () {
+                        Route::get('images', [TourTypeCoverPickerController::class, 'pick'])->name('images.pick');
+                        Route::get('images/{tourType}/edit', [TourTypeCoverPickerController::class, 'edit'])->name('images.edit');
+                        Route::put('images/{tourType}', [TourTypeCoverPickerController::class, 'updateCover'])->name('images.update');
+                    });
+                });
 
                 // ============================
                 // TOUR TYPES
                 // ============================
-                // Rutas de gestión de traducciones (antes del resource)
-                Route::get('tourtypes/{tourType}/translations', [TourTypeController::class, 'editTranslations'])
-                    ->name('tourtypes.translations.edit');
-                Route::put('tourtypes/{tourType}/translations/{locale}', [TourTypeController::class, 'updateTranslation'])
-                    ->name('tourtypes.translations.update');
+                Route::group(['middleware' => ['can:view-tour-types']], function () {
+                    // Rutas de gestión de traducciones (antes del resource)
+                    Route::get('tourtypes/{tourType}/translations', [TourTypeController::class, 'editTranslations'])
+                        ->name('tourtypes.translations.edit');
+                    Route::put('tourtypes/{tourType}/translations/{locale}', [TourTypeController::class, 'updateTranslation'])
+                        ->name('tourtypes.translations.update');
 
-                Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);
-                Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
-
-                // Tour Type Images
-                Route::prefix('types')->name('types.')->group(function () {
-                    Route::get('images', [TourTypeCoverPickerController::class, 'pick'])->name('images.pick');
-                    Route::get('images/{tourType}/edit', [TourTypeCoverPickerController::class, 'edit'])->name('images.edit');
-                    Route::put('images/{tourType}', [TourTypeCoverPickerController::class, 'updateCover'])->name('images.update');
+                    Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);
+                    Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
                 });
 
+
                 // ============================
-                // LANGUAGES
+                // LANGUAGES (Part of Settings mostly)
                 // ============================
-                Route::resource('languages', TourLanguageController::class, ['parameters' => ['languages' => 'language']])->except(['show']);
-                Route::patch('languages/{language}/toggle', [TourLanguageController::class, 'toggle'])->name('languages.toggle');
+                Route::group(['middleware' => ['can:view-settings']], function () {
+                    Route::resource('languages', TourLanguageController::class, ['parameters' => ['languages' => 'language']])->except(['show']);
+                    Route::patch('languages/{language}/toggle', [TourLanguageController::class, 'toggle'])->name('languages.toggle');
+                });
+
 
                 // ============================
                 // HOTELS
                 // ============================
-                Route::resource('hotels', HotelListController::class)->except(['show', 'create', 'edit']);
-                Route::post('hotels/sort', [HotelListController::class, 'sort'])->name('hotels.sort');
-                Route::patch('hotels/{hotel}/toggle', [HotelListController::class, 'toggle'])->name('hotels.toggle');
+                Route::group(['middleware' => ['can:view-hotels']], function () {
+                    Route::resource('hotels', HotelListController::class)->except(['show', 'create', 'edit']);
+                    Route::post('hotels/sort', [HotelListController::class, 'sort'])->name('hotels.sort');
+                    Route::patch('hotels/{hotel}/toggle', [HotelListController::class, 'toggle'])->name('hotels.toggle');
+                });
+
 
                 // ============================
                 // MEETING POINTS
                 // ============================
-                Route::resource('meetingpoints', MeetingPointSimpleController::class)->except(['show', 'create', 'edit']);
-                Route::patch('meetingpoints/{meetingpoint}/toggle', [MeetingPointSimpleController::class, 'toggle'])->name('meetingpoints.toggle');
+                Route::group(['middleware' => ['can:view-meeting-points']], function () {
+                    Route::resource('meetingpoints', MeetingPointSimpleController::class)->except(['show', 'create', 'edit']);
+                    Route::patch('meetingpoints/{meetingpoint}/toggle', [MeetingPointSimpleController::class, 'toggle'])->name('meetingpoints.toggle');
+                });
+
 
                 // ============================
                 // BOOKINGS (ADMIN)
                 // ============================
-                Route::prefix('bookings')
-                    ->name('bookings.')
-                    ->controller(AdminBookingController::class)
-                    ->group(function () {
-                        // Export
-                        Route::get('export/excel', 'exportExcel')->name('export.excel');
-                        Route::get('export/pdf', 'exportPdf')->name('export.pdf');
+                // ============================
+                // BOOKINGS (ADMIN)
+                // ============================
+                // Strict "View = Access" logic
+                Route::group(['middleware' => ['can:view-bookings']], function () {
+                    Route::prefix('bookings')
+                        ->name('bookings.')
+                        ->controller(AdminBookingController::class)
+                        ->group(function () {
+                            // Export
+                            Route::get('export/excel', 'exportExcel')->name('export.excel');
+                            Route::get('export/pdf', 'exportPdf')->name('export.pdf');
 
-                        // Calendar
-                        Route::get('reserved', 'reservedSeats')->name('reserved');
+                            // Calendar
+                            Route::get('reserved', 'reservedSeats')->name('reserved');
 
-                        // Payment Link
-                        // Validate Capacity (AJAX)
-                        Route::post('validate-capacity', 'validateCapacity')->name('validate_capacity');
+                            // Payment Link
+                            // Validate Capacity (AJAX)
+                            Route::post('validate-capacity', 'validateCapacity')->name('validate_capacity');
 
 
-                        // Payment Link
-                        Route::post('{booking}/payment-link', 'generatePaymentLink')->name('payment_link');
-                        Route::post('{booking}/regenerate-payment-link', 'regeneratePaymentLink')->name('regenerate_payment_link');
-                        Route::get('calendar-data', 'calendarData')->name('calendarData');
-                        Route::get('calendar', 'calendar')->name('calendar');
+                            // Payment Link
+                            Route::post('{booking}/payment-link', 'generatePaymentLink')->name('payment_link');
+                            Route::post('{booking}/regenerate-payment-link', 'regeneratePaymentLink')->name('regenerate_payment_link');
+                            Route::get('calendar-data', 'calendarData')->name('calendarData');
+                            Route::get('calendar', 'calendar')->name('calendar');
 
-                        // API promo verification
-                        Route::get('verify-promo-code', 'verifyPromoCode')->name('verifyPromoCode');
+                            // API promo verification
+                            Route::get('verify-promo-code', 'verifyPromoCode')->name('verifyPromoCode');
 
-                        // CRUD principal
-                        Route::get('', 'index')->name('index');
-                        Route::get('create', 'create')->name('create');
-                        Route::post('', 'store')->name('store');
-                        Route::post('from-cart', 'storeFromCart')->name('storeFromCart');
-                        Route::get('{booking}/edit', 'edit')->name('edit');
-                        Route::match(['put', 'patch'], '{booking}', 'update')->name('update');
-                        Route::delete('{booking}', 'destroy')->name('destroy');
+                            // CRUD principal
+                            Route::get('', 'index')->name('index');
+                            Route::get('create', 'create')->name('create');
+                            Route::post('', 'store')->name('store');
+                            Route::post('from-cart', 'storeFromCart')->name('storeFromCart');
+                            Route::get('{booking}/edit', 'edit')->name('edit');
+                            Route::match(['put', 'patch'], '{booking}', 'update')->name('update');
+                            Route::delete('{booking}', 'destroy')->name('destroy');
 
-                        // NUEVO: detalle (show)
-                        Route::get('{booking}', 'show')->name('show');
+                            // NUEVO: detalle (show)
+                            Route::get('{booking}', 'show')->name('show');
 
-                        // SoftDelete actions
-                        Route::post('{id}/restore', 'restore')->name('restore');
-                        Route::delete('{id}/force', 'forceDelete')->name('forceDelete');
+                            // SoftDelete actions
+                            Route::post('{id}/restore', 'restore')->name('restore');
+                            Route::delete('{id}/force', 'forceDelete')->name('forceDelete');
 
-                        // Estado y recibo
-                        Route::patch('{booking}/status', 'updateStatus')->name('update-status');
-                        Route::get('{booking}/receipt', 'generateReceipt')->name('receipt');
-                    });
+                            // Estado y recibo
+                            Route::patch('{booking}/status', 'updateStatus')->name('update-status');
+                            Route::get('{booking}/receipt', 'generateReceipt')->name('receipt');
+                        });
+                });
+
 
                 // ============================
                 // PAYMENTS (ADMIN)
                 // ============================
-                Route::prefix('payments')
-                    ->name('payments.')
-                    ->controller(\App\Http\Controllers\Admin\PaymentController::class)
-                    ->group(function () {
-                        // Export
-                        Route::get('export', 'export')->name('export');
+                Route::group(['middleware' => ['can:view-payments']], function () {
+                    Route::prefix('payments')
+                        ->name('payments.')
+                        ->controller(\App\Http\Controllers\Admin\PaymentController::class)
+                        ->group(function () {
+                            // Export
+                            Route::get('export', 'export')->name('export');
 
-                        // List and details
-                        Route::get('', 'index')->name('index');
-                        Route::get('{payment}', 'show')->name('show');
+                            // List and details
+                            Route::get('', 'index')->name('index');
+                            Route::get('{payment}', 'show')->name('show');
 
-                        // Refund
-                        Route::post('{payment}/refund', 'refund')->name('refund');
-                    });
+                            // Refund
+                            Route::post('{payment}/refund', 'refund')->name('refund');
+                        });
+                });
 
                 // ============================
                 // CART (ADMIN)
                 // ============================
-                Route::prefix('carts')->name('carts.')->group(function () {
-                    Route::get('/', [AdminCartController::class, 'index'])->name('index');
-                    Route::post('/', [AdminCartController::class, 'store'])->name('store');
-                    Route::patch('/{item}', [AdminCartController::class, 'update'])->name('update');
-                    Route::delete('/item/{item}', [AdminCartController::class, 'destroy'])->name('item.destroy');
+                Route::group(['middleware' => ['can:view-carts']], function () {
+                    Route::prefix('carts')->name('carts.')->group(function () {
+                        Route::get('/', [AdminCartController::class, 'index'])->name('index');
+                        Route::post('/', [AdminCartController::class, 'store'])->name('store');
+                        Route::patch('/{item}', [AdminCartController::class, 'update'])->name('update');
+                        Route::delete('/item/{item}', [AdminCartController::class, 'destroy'])->name('item.destroy');
 
-                    Route::get('/all', [AdminCartController::class, 'allCarts'])->name('all');
-                    Route::delete('/{cart}', [AdminCartController::class, 'destroyCart'])->name('destroy');
-                    Route::patch('/{cart}/toggle', [AdminCartController::class, 'toggleActive'])->name('toggle');
+                        Route::get('/all', [AdminCartController::class, 'allCarts'])->name('all');
+                        Route::delete('/{cart}', [AdminCartController::class, 'destroyCart'])->name('destroy');
+                        Route::patch('/{cart}/toggle', [AdminCartController::class, 'toggleActive'])->name('toggle');
 
-                    Route::post('/apply-promo', [AdminCartController::class, 'applyPromoAdmin'])->name('applyPromo');
-                    Route::delete('/remove-promo', [AdminCartController::class, 'removePromoAdmin'])->name('removePromo');
+                        Route::post('/apply-promo', [AdminCartController::class, 'applyPromoAdmin'])->name('applyPromo');
+                        Route::delete('/remove-promo', [AdminCartController::class, 'removePromoAdmin'])->name('removePromo');
+                    });
                 });
 
                 // ============================
                 // PROMO CODES
                 // ============================
-                Route::prefix('promo-codes')->name('promoCodes.')->group(function () {
-                    Route::get('/', [PromoCodeController::class, 'index'])->name('index');
-                    Route::post('/', [PromoCodeController::class, 'store'])->name('store');
-                    Route::delete('/{promo}', [PromoCodeController::class, 'destroy'])->name('destroy');
-                    Route::patch('/{promo}/operation', [PromoCodeController::class, 'updateOperation'])->name('updateOperation');
+                Route::group(['middleware' => ['can:view-promo-codes']], function () {
+                    Route::prefix('promo-codes')->name('promoCodes.')->group(function () {
+                        Route::get('/', [PromoCodeController::class, 'index'])->name('index');
+                        Route::post('/', [PromoCodeController::class, 'store'])->name('store');
+                        Route::delete('/{promo}', [PromoCodeController::class, 'destroy'])->name('destroy');
+                        Route::patch('/{promo}/operation', [PromoCodeController::class, 'updateOperation'])->name('updateOperation');
+                    });
                 });
+
 
                 // ============================
                 // SETTINGS
                 // ============================
-                Route::prefix('settings')->name('settings.')->group(function () {
-                    Route::get('/', [SettingsController::class, 'index'])->name('index');
-                    Route::post('/', [SettingsController::class, 'update'])->name('update');
+                Route::middleware(['can:view-settings'])->group(function () {
+                    Route::prefix('settings')->name('settings.')->group(function () {
+                        Route::get('/', [SettingsController::class, 'index'])->name('index');
+                        Route::post('/', [SettingsController::class, 'update'])->name('update');
+                    });
                 });
 
                 // ============================
                 // REVIEWS MANAGEMENT
                 // ============================
-                Route::middleware(['can:manage-reviews'])->group(function () {
-                    // Providers
+                // Providers
+                Route::group(['middleware' => ['can:view-review-providers']], function () {
                     Route::resource('review-providers', ReviewProviderController::class)
                         ->except(['show'])
                         ->parameters(['review-providers' => 'provider'])
@@ -914,8 +1018,10 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::post('review-providers/{provider}/toggle', [ReviewProviderController::class, 'toggle'])->name('review-providers.toggle');
                     Route::post('review-providers/{provider}/test', [ReviewProviderController::class, 'test'])->name('review-providers.test');
                     Route::post('review-providers/{provider}/cache/flush', [ReviewProviderController::class, 'flushCache'])->name('review-providers.flush');
+                });
 
-                    // Reviews
+                // Reviews
+                Route::group(['middleware' => ['can:view-reviews']], function () {
                     Route::prefix('reviews')->name('reviews.')->group(function () {
                         Route::get('/', [ReviewAdminController::class, 'index'])->name('index');
                         Route::get('/create', [ReviewAdminController::class, 'create'])->name('create');
@@ -936,8 +1042,10 @@ Route::middleware([SetLocale::class])->group(function () {
                         Route::post('/{review}/replies/{reply}/toggle', [ReviewReplyController::class, 'toggle'])->name('replies.toggle');
                         Route::get('/{review}/thread', [ReviewReplyController::class, 'thread'])->name('replies.thread');
                     });
+                });
 
-                    // Review Requests
+                // Review Requests
+                Route::group(['middleware' => ['can:view-review-requests']], function () {
                     Route::prefix('review-requests')->name('review-requests.')->group(function () {
                         Route::get('/', [ReviewRequestAdminController::class, 'index'])->name('index');
                         Route::post('/{booking}/send', [ReviewRequestAdminController::class, 'send'])->name('send');
@@ -946,65 +1054,80 @@ Route::middleware([SetLocale::class])->group(function () {
                     });
                 });
 
+
                 // ============================
                 // FAQs
                 // ============================
-                Route::resource('faqs', AdminFaqController::class)->except(['show']);
-                Route::patch('faqs/{faq}/toggle-status', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
+                Route::group(['middleware' => ['can:view-faqs']], function () {
+                    Route::resource('faqs', AdminFaqController::class)->except(['show']);
+                    Route::patch('faqs/{faq}/toggle-status', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
+                });
+
 
                 // ============================
                 // POLICIES
                 // ============================
-                Route::prefix('policies')->name('policies.')->group(function () {
-                    Route::get('/', [PolicyController::class, 'index'])->name('index');
-                    Route::post('/', [PolicyController::class, 'store'])->name('store');
-                    Route::put('/{policy:policy_id}', [PolicyController::class, 'update'])->name('update');
-                    Route::post('/{policy:policy_id}/toggle', [PolicyController::class, 'toggle'])->name('toggle');
-                    Route::delete('/{policy:policy_id}', [PolicyController::class, 'destroy'])->name('destroy');
-                    // Restaurar desde papelera
-                    Route::post('/{policy:policy_id}/restore', [PolicyController::class, 'restore'])->name('restore');
+                Route::group(['middleware' => ['can:view-policies']], function () {
+                    Route::prefix('policies')->name('policies.')->group(function () {
+                        Route::get('/', [PolicyController::class, 'index'])->name('index');
+                        Route::post('/', [PolicyController::class, 'store'])->name('store');
+                        Route::put('/{policy:policy_id}', [PolicyController::class, 'update'])->name('update');
+                        Route::post('/{policy:policy_id}/toggle', [PolicyController::class, 'toggle'])->name('toggle');
+                        Route::delete('/{policy:policy_id}', [PolicyController::class, 'destroy'])->name('destroy');
+                        // Restaurar desde papelera
+                        Route::post('/{policy:policy_id}/restore', [PolicyController::class, 'restore'])->name('restore');
 
-                    // Borrado definitivo SOLO para admins (can:policies.forceDelete)
-                    Route::delete('/{policy:policy_id}/force', [PolicyController::class, 'forceDestroy'])
-                        ->middleware('can:policies.forceDelete')
-                        ->name('forceDestroy');
+                        // Borrado definitivo SOLO para admins (can:policies.forceDelete)
+                        Route::delete('/{policy:policy_id}/force', [PolicyController::class, 'forceDestroy'])
+                            ->middleware('can:policies.forceDelete')
+                            ->name('forceDestroy');
 
-                    // Policy Sections
-                    Route::get('/{policy:policy_id}/sections', [PolicySectionController::class, 'index'])->name('sections.index');
-                    Route::post('/{policy:policy_id}/sections', [PolicySectionController::class, 'store'])->name('sections.store');
-                    Route::put('/{policy:policy_id}/sections/{section}', [PolicySectionController::class, 'update'])->name('sections.update');
-                    Route::post('/{policy:policy_id}/sections/{section}/toggle', [PolicySectionController::class, 'toggle'])->name('sections.toggle');
-                    Route::delete('/{policy:policy_id}/sections/{section}', [PolicySectionController::class, 'destroy'])->name('sections.destroy');
+
+                        // Policy Sections
+                        Route::group(['middleware' => ['can:view-policy-sections']], function () {
+                            Route::get('/{policy:policy_id}/sections', [PolicySectionController::class, 'index'])->name('sections.index');
+                            Route::post('/{policy:policy_id}/sections', [PolicySectionController::class, 'store'])->name('sections.store');
+                            Route::put('/{policy:policy_id}/sections/{section}', [PolicySectionController::class, 'update'])->name('sections.update');
+                            Route::post('/{policy:policy_id}/sections/{section}/toggle', [PolicySectionController::class, 'toggle'])->name('sections.toggle');
+                            Route::delete('/{policy:policy_id}/sections/{section}', [PolicySectionController::class, 'destroy'])->name('sections.destroy');
+                        });
+                    });
                 });
+
 
                 // ============================
                 // TRANSLATIONS
                 // ============================
-                Route::prefix('translations')->name('translations.')->group(function () {
-                    Route::get('/', [TranslationController::class, 'index'])->name('index');
-                    Route::get('/{type}/choose-locale', [TranslationController::class, 'chooseLocale'])->name('choose-locale');
-                    Route::get('/{type}/select', [TranslationController::class, 'select'])->name('select');
-                    Route::get('/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('edit');
-                    Route::post('/{type}/{id}/update', [TranslationController::class, 'update'])->name('update');
-                    Route::post('/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('change-editing-locale');
+                Route::group(['middleware' => ['can:view-translations']], function () {
+                    Route::prefix('translations')->name('translations.')->group(function () {
+                        Route::get('/', [TranslationController::class, 'index'])->name('index');
+                        Route::get('/{type}/choose-locale', [TranslationController::class, 'chooseLocale'])->name('choose-locale');
+                        Route::get('/{type}/select', [TranslationController::class, 'select'])->name('select');
+                        Route::get('/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('edit');
+                        Route::post('/{type}/{id}/update', [TranslationController::class, 'update'])->name('update');
+                        Route::post('/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('change-editing-locale');
+                    });
                 });
+
 
                 // ============================
                 // REPORTS
                 // ============================
-                Route::prefix('reports')->name('reports.')->group(function () {
-                    Route::get('/', [ReportsController::class, 'index'])->name('index');
-                    Route::get('/chart/monthly-sales', [ReportsController::class, 'chartMonthlySales'])->name('chart.monthly');
-                    Route::get('/chart/by-language', [ReportsController::class, 'chartByLanguage'])->name('chart.language');
+                Route::group(['middleware' => ['can:view-reports']], function () {
+                    Route::prefix('reports')->name('reports.')->group(function () {
+                        Route::get('/', [ReportsController::class, 'index'])->name('index');
+                        Route::get('/chart/monthly-sales', [ReportsController::class, 'chartMonthlySales'])->name('chart.monthly');
+                        Route::get('/chart/by-language', [ReportsController::class, 'chartByLanguage'])->name('chart.language');
 
-                    // 🆕 Category Reports
-                    Route::get('/by-category', [ReportsController::class, 'byCategory'])->name('by-category');
-                    Route::get('/chart/category-trends', [ReportsController::class, 'chartCategoryTrends'])->name('chart.category-trends');
-                    Route::get('/chart/category-breakdown', [ReportsController::class, 'chartCategoryBreakdown'])->name('chart.category-breakdown');
+                        // 🆕 Category Reports
+                        Route::get('/by-category', [ReportsController::class, 'byCategory'])->name('by-category');
+                        Route::get('/chart/category-trends', [ReportsController::class, 'chartCategoryTrends'])->name('chart.category-trends');
+                        Route::get('/chart/category-breakdown', [ReportsController::class, 'chartCategoryBreakdown'])->name('chart.category-breakdown');
 
-                    // 🆕 Exports
-                    Route::get('/export/categories-excel', [ReportsController::class, 'exportCategoriesExcel'])->name('export.categories.excel');
-                    Route::get('/export/categories-csv', [ReportsController::class, 'exportCategoriesCsv'])->name('export.categories.csv');
+                        // 🆕 Exports
+                        Route::get('/export/categories-excel', [ReportsController::class, 'exportCategoriesExcel'])->name('export.categories.excel');
+                        Route::get('/export/categories-csv', [ReportsController::class, 'exportCategoriesCsv'])->name('export.categories.csv');
+                    });
                 });
             });
         });

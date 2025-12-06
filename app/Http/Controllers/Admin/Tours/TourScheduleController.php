@@ -17,6 +17,16 @@ use App\Http\Requests\Tour\Schedule\ToggleScheduleAssignmentRequest;
 
 class TourScheduleController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-tour-schedules'])->only(['index']);
+        $this->middleware(['can:create-tour-schedules'])->only(['store']);
+        $this->middleware(['can:edit-tour-schedules'])->only(['edit', 'update', 'attach', 'updatePivotCapacity', 'detach']);
+        $this->middleware(['can:publish-tour-schedules'])->only(['toggle']);
+        $this->middleware(['can:publish-tour-schedule-assignments'])->only(['toggleAssignment']);
+        $this->middleware(['can:delete-tour-schedules'])->only(['destroy']);
+    }
+
     protected string $controller = 'TourScheduleController';
 
     public function index()

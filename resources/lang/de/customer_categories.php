@@ -85,8 +85,10 @@ return [
     ],
 
     'states' => [
-        'active'   => 'Aktiv',
-        'inactive' => 'Inaktiv',
+        'active'     => 'Aktiv',
+        'inactive'   => 'Inaktiv',
+        'activate'   => 'Aktivieren',
+        'deactivate' => 'Deaktivieren',
     ],
 
     'alerts' => [

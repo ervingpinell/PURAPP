@@ -50,12 +50,14 @@
         </div>
         <div class="col-md-6 d-flex flex-column gap-2 align-items-start align-items-md-end">
           <div>
+            @can('edit-tour-availability')
             <button class="btn btn-primary">
               <i class="fas fa-save me-1"></i> {{ __('m_config.cut-off.actions.save_tour') }}
             </button>
             <button type="button" class="btn btn-outline-secondary" id="clearTourOverride">
               {{ __('m_config.cut-off.actions.clear') }}
             </button>
+            @endcan
           </div>
           <div class="form-hint">{{ __('m_config.cut-off.hints.clear_button_hint') }}</div>
         </div>

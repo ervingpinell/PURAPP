@@ -75,4 +75,12 @@ return [
         'taxes' => 'Taxes',
         'app_settings' => 'App Settings',
         'app' => 'App',
+        'operations' => 'Operations',
+        'management' => 'Management',
+        'users_management' => 'User Management',
+        'customer_categories' => 'Customer Categories',
+        'additional_services' => 'Additional Services',
+        'review_template' => 'Review Templates',
+        'cart' => 'Cart',
+        'configuration' => 'Configuration',
 ];

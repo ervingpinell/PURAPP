@@ -15,6 +15,14 @@ use Illuminate\Support\Str;
 
 class ReviewRequestAdminController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-review-requests'])->only(['index', 'indexEligible', 'indexRequested']);
+        $this->middleware(['can:create-review-requests'])->only(['send']);
+        $this->middleware(['can:edit-review-requests'])->only(['resend', 'remind', 'expire']);
+        $this->middleware(['can:delete-review-requests'])->only(['destroy']);
+    }
+
     public function index(Request $request)
     {
         $tab = $request->get('tab', 'eligible');
@@ -53,53 +61,53 @@ class ReviewRequestAdminController extends Controller
             $q->select(["$bkTable.*", "$bkTable.booking_reference"]);
         }
 
-        $q->whereIn('status', ['confirmed','completed','CONFIRMED','COMPLETED'])
-          ->whereDate($dateCol, '>=', $from)
-          ->whereDate($dateCol, '<=', $to)
+        $q->whereIn('status', ['confirmed', 'completed', 'CONFIRMED', 'COMPLETED'])
+            ->whereDate($dateCol, '>=', $from)
+            ->whereDate($dateCol, '<=', $to)
 
-          // Sin review local previa (mismo user + tour)
-          ->whereNotExists(function ($sub) use ($revTable, $bkTable) {
-              $sub->select(DB::raw('1'))
-                  ->from($revTable)
-                  ->where("$revTable.provider", 'local')
-                  ->whereColumn("$revTable.tour_id", "$bkTable.tour_id")
-                  ->whereColumn("$revTable.user_id", "$bkTable.user_id");
-          })
+            // Sin review local previa (mismo user + tour)
+            ->whereNotExists(function ($sub) use ($revTable, $bkTable) {
+                $sub->select(DB::raw('1'))
+                    ->from($revTable)
+                    ->where("$revTable.provider", 'local')
+                    ->whereColumn("$revTable.tour_id", "$bkTable.tour_id")
+                    ->whereColumn("$revTable.user_id", "$bkTable.user_id");
+            })
 
-          // Sin solicitud vigente
-          ->whereNotExists(function ($sub) use ($rrTable, $bkTable, $hasUsed, $hasCancelled, $hasExpires, $hasStatus) {
-              $sub->select(DB::raw('1'))
-                  ->from($rrTable)
-                  ->whereColumn("$rrTable.booking_id", "$bkTable.booking_id");
+            // Sin solicitud vigente
+            ->whereNotExists(function ($sub) use ($rrTable, $bkTable, $hasUsed, $hasCancelled, $hasExpires, $hasStatus) {
+                $sub->select(DB::raw('1'))
+                    ->from($rrTable)
+                    ->whereColumn("$rrTable.booking_id", "$bkTable.booking_id");
 
-              if ($hasUsed)      $sub->whereNull("$rrTable.used_at");
-              if ($hasCancelled) $sub->whereNull("$rrTable.cancelled_at");
+                if ($hasUsed)      $sub->whereNull("$rrTable.used_at");
+                if ($hasCancelled) $sub->whereNull("$rrTable.cancelled_at");
 
-              if ($hasExpires) {
-                  $sub->where(function ($x) use ($rrTable) {
-                      $x->whereNull("$rrTable.expires_at")->orWhere("$rrTable.expires_at", '>', now());
-                  });
-              } elseif ($hasStatus) {
-                  $sub->whereIn("$rrTable.status", ['sent','reminded']);
-              }
-          })
+                if ($hasExpires) {
+                    $sub->where(function ($x) use ($rrTable) {
+                        $x->whereNull("$rrTable.expires_at")->orWhere("$rrTable.expires_at", '>', now());
+                    });
+                } elseif ($hasStatus) {
+                    $sub->whereIn("$rrTable.status", ['sent', 'reminded']);
+                }
+            })
 
-          // Búsqueda libre (incluye booking_reference si existe)
-          ->when($request->filled('q'), function ($w) use ($request, $bkTable, $hasBkRef) {
-              $qstr = trim((string) $request->get('q'));
-              $w->where(function ($qq) use ($qstr, $bkTable, $hasBkRef) {
-                  $qq->where("$bkTable.booking_id", (int) $qstr)
-                     ->orWhere("$bkTable.customer_name", 'ilike', "%{$qstr}%")
-                     ->orWhere("$bkTable.customer_email", 'ilike', "%{$qstr}%");
+            // Búsqueda libre (incluye booking_reference si existe)
+            ->when($request->filled('q'), function ($w) use ($request, $bkTable, $hasBkRef) {
+                $qstr = trim((string) $request->get('q'));
+                $w->where(function ($qq) use ($qstr, $bkTable, $hasBkRef) {
+                    $qq->where("$bkTable.booking_id", (int) $qstr)
+                        ->orWhere("$bkTable.customer_name", 'ilike', "%{$qstr}%")
+                        ->orWhere("$bkTable.customer_email", 'ilike', "%{$qstr}%");
 
-                  if ($hasBkRef) {
-                      $qq->orWhere("$bkTable.booking_reference", 'ilike', "%{$qstr}%");
-                  }
-              });
-          })
+                    if ($hasBkRef) {
+                        $qq->orWhere("$bkTable.booking_reference", 'ilike', "%{$qstr}%");
+                    }
+                });
+            })
 
-          ->when($request->filled('tour_id'), fn ($w) => $w->where('tour_id', (int) $request->tour_id))
-          ->orderByDesc($dateCol);
+            ->when($request->filled('tour_id'), fn($w) => $w->where('tour_id', (int) $request->tour_id))
+            ->orderByDesc($dateCol);
 
         $bookings = $q->paginate(25)->withQueryString();
 
@@ -144,7 +152,7 @@ class ReviewRequestAdminController extends Controller
                     if ($hasExpires)   $w->where(function ($x) use ($rrTable) {
                         $x->whereNull("$rrTable.expires_at")->orWhere("$rrTable.expires_at", '>', now());
                     });
-                } elseif (in_array($status, ['sent','reminded'], true)) {
+                } elseif (in_array($status, ['sent', 'reminded'], true)) {
                     if ($hasStatus) $w->where("$rrTable.status", $status);
                 } elseif ($status === 'used' && $hasUsed) {
                     $w->whereNotNull("$rrTable.used_at");
@@ -169,7 +177,7 @@ class ReviewRequestAdminController extends Controller
             $qstr = trim((string) $request->get('q'));
             $w->where(function ($qq) use ($qstr, $rrTable, $hasBkRef) {
                 $qq->where("$rrTable.booking_id", (int) $qstr)
-                   ->orWhere("$rrTable.email", 'ilike', "%{$qstr}%");
+                    ->orWhere("$rrTable.email", 'ilike', "%{$qstr}%");
 
                 if ($hasBkRef) {
                     $qq->orWhereHas('booking', function ($bq) use ($qstr) {
@@ -180,7 +188,7 @@ class ReviewRequestAdminController extends Controller
         });
 
         // Filtrar por tour
-        $q->when($request->filled('tour_id'), fn ($w) => $w->where('tour_id', (int) request('tour_id')));
+        $q->when($request->filled('tour_id'), fn($w) => $w->where('tour_id', (int) request('tour_id')));
 
         $requests = $q->orderByDesc($dateCol)->paginate(25)->withQueryString();
 
@@ -201,7 +209,7 @@ class ReviewRequestAdminController extends Controller
         $token   = Str::random(40);
 
         $email = optional($booking->user)->email
-              ?: ($booking->customer_email ?? $booking->email ?? null);
+            ?: ($booking->customer_email ?? $booking->email ?? null);
 
         $rr = ReviewRequest::create([
             'booking_id' => $booking->getKey(),
@@ -289,10 +297,20 @@ class ReviewRequestAdminController extends Controller
     private function bookingDateColumn(): ?string
     {
         $bkTable = (new Booking())->getTable();
-        foreach ([
-            'start_date','tour_date','service_date','activity_date','travel_date',
-            'date','experience_date','scheduled_for','start_at','created_at',
-        ] as $c) {
+        foreach (
+            [
+                'start_date',
+                'tour_date',
+                'service_date',
+                'activity_date',
+                'travel_date',
+                'date',
+                'experience_date',
+                'scheduled_for',
+                'start_at',
+                'created_at',
+            ] as $c
+        ) {
             if (Schema::hasColumn($bkTable, $c)) return $c;
         }
         return null;

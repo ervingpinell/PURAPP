@@ -15,6 +15,15 @@ use App\Http\Requests\Tour\TourType\ToggleTourTypeRequest;
 
 class TourTypeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-tour-types'])->only(['index']);
+        $this->middleware(['can:create-tour-types'])->only(['store']);
+        $this->middleware(['can:edit-tour-types'])->only(['update', 'editTranslations', 'updateTranslation']);
+        $this->middleware(['can:publish-tour-types'])->only(['toggle']);
+        $this->middleware(['can:delete-tour-types'])->only(['destroy']);
+    }
+
     protected string $controller = 'TourTypeController';
 
     public function index()

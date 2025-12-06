@@ -5,24 +5,24 @@
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-@if(session('success'))
-Swal.fire({
-  icon:'success',
-  title:@json(__('m_config.promocode.success_title')),
-  text:@json(__(session('success'))),
-  confirmButtonColor:'#3085d6',
-  timer:3000,
-  timerProgressBar:true
-});
-@endif
-@if(session('error'))
-Swal.fire({
-  icon:'error',
-  title:@json(__('m_config.promocode.error_title')),
-  text:@json(__(session('error'))),
-  confirmButtonColor:'#d33'
-});
-@endif
+  @if(session('success'))
+  Swal.fire({
+    icon: 'success',
+    title: @json(__('m_config.promocode.success_title')),
+    text: @json(__(session('success'))),
+    confirmButtonColor: '#3085d6',
+    timer: 3000,
+    timerProgressBar: true
+  });
+  @endif
+  @if(session('error'))
+  Swal.fire({
+    icon: 'error',
+    title: @json(__('m_config.promocode.error_title')),
+    text: @json(__(session('error'))),
+    confirmButtonColor: '#d33'
+  });
+  @endif
 </script>
 @endpush
 
@@ -34,7 +34,7 @@ Swal.fire({
 
   <form method="POST" action="{{ route('admin.promoCodes.store') }}">
     @csrf
-
+    @can('create-promo-codes')
     <div class="row g-3 mb-2">
       <div class="col-md-4">
         <label for="code" class="form-label">{{ __('m_config.promocode.fields.code') }}</label>
@@ -51,8 +51,8 @@ Swal.fire({
       <div class="col-md-2">
         <label for="type" class="form-label">{{ __('m_config.promocode.fields.type') }}</label>
         <select name="type" id="type" class="form-control" required>
-          <option value="percent" @selected(old('type')==='percent')>{{ __('m_config.promocode.types.percent') }}</option>
-          <option value="amount"  @selected(old('type')==='amount')>{{ __('m_config.promocode.types.amount') }}</option>
+          <option value="percent" @selected(old('type')==='percent' )>{{ __('m_config.promocode.types.percent') }}</option>
+          <option value="amount" @selected(old('type')==='amount' )>{{ __('m_config.promocode.types.amount') }}</option>
         </select>
         @error('type') <small class="text-danger">{{ $message }}</small> @enderror
       </div>
@@ -61,8 +61,8 @@ Swal.fire({
       <div class="col-md-3">
         <label for="operation" class="form-label">{{ __('m_config.promocode.fields.operation') }}</label>
         <select name="operation" id="operation" class="form-control" required>
-          <option value="subtract" @selected(old('operation','subtract')==='subtract')>{{ __('m_config.promocode.operations.subtract') }}</option>
-          <option value="add"      @selected(old('operation')==='add')>{{ __('m_config.promocode.operations.add') }}</option>
+          <option value="subtract" @selected(old('operation','subtract')==='subtract' )>{{ __('m_config.promocode.operations.subtract') }}</option>
+          <option value="add" @selected(old('operation')==='add' )>{{ __('m_config.promocode.operations.add') }}</option>
         </select>
         @error('operation') <small class="text-danger">{{ $message }}</small> @enderror
       </div>
@@ -101,6 +101,7 @@ Swal.fire({
         </button>
       </div>
     </div>
+    @endcan
   </form>
 
   {{-- 📋 LISTADO DE CÓDIGOS --}}
@@ -122,121 +123,128 @@ Swal.fire({
     </thead>
     <tbody>
       @forelse ($promoCodes as $promo)
-        @php
-          $tz    = config('app.timezone', 'America/Costa_Rica');
-          $today = \Carbon\Carbon::today($tz);
+      @php
+      $tz = config('app.timezone', 'America/Costa_Rica');
+      $today = \Carbon\Carbon::today($tz);
 
-          $vf = $promo->valid_from ? \Carbon\Carbon::parse($promo->valid_from, $tz) : null;
-          $vu = $promo->valid_until ? \Carbon\Carbon::parse($promo->valid_until, $tz) : null;
+      $vf = $promo->valid_from ? \Carbon\Carbon::parse($promo->valid_from, $tz) : null;
+      $vu = $promo->valid_until ? \Carbon\Carbon::parse($promo->valid_until, $tz) : null;
 
-          // Estado por fechas
-          $dateStatus = __('m_config.promocode.date_status.active');
-          $dateClass  = 'bg-success';
-          if ($vf && $today->lt($vf)) { $dateStatus = __('m_config.promocode.date_status.scheduled'); $dateClass = 'bg-info'; }
-          if ($vu && $today->gt($vu)) { $dateStatus = __('m_config.promocode.date_status.expired');   $dateClass = 'bg-secondary'; }
+      // Estado por fechas
+      $dateStatus = __('m_config.promocode.date_status.active');
+      $dateClass = 'bg-success';
+      if ($vf && $today->lt($vf)) { $dateStatus = __('m_config.promocode.date_status.scheduled'); $dateClass = 'bg-info'; }
+      if ($vu && $today->gt($vu)) { $dateStatus = __('m_config.promocode.date_status.expired'); $dateClass = 'bg-secondary'; }
 
-          // Estado por uso
-          $isExhausted = false;
-          if (!is_null($promo->usage_limit)) {
-              $isExhausted = (int)$promo->usage_count >= (int)$promo->usage_limit;
-          } elseif ($promo->is_used) { // compat legado
-              $isExhausted = true;
-          }
+      // Estado por uso
+      $isExhausted = false;
+      if (!is_null($promo->usage_limit)) {
+      $isExhausted = (int)$promo->usage_count >= (int)$promo->usage_limit;
+      } elseif ($promo->is_used) { // compat legado
+      $isExhausted = true;
+      }
 
-          $usageLabel = is_null($promo->usage_limit)
-                        ? ($promo->usage_count . ' / ∞')
-                        : ($promo->usage_count . ' / ' . $promo->usage_limit);
+      $usageLabel = is_null($promo->usage_limit)
+      ? ($promo->usage_count . ' / ∞')
+      : ($promo->usage_count . ' / ' . $promo->usage_limit);
 
-          $usageClass  = $isExhausted ? 'bg-danger' : 'bg-success';
-          $usageStatus = $isExhausted ? __('m_config.promocode.status.used') : __('m_config.promocode.status.available');
+      $usageClass = $isExhausted ? 'bg-danger' : 'bg-success';
+      $usageStatus = $isExhausted ? __('m_config.promocode.status.used') : __('m_config.promocode.status.available');
 
-          // Operación actual
-          $op = ($promo->operation ?? 'subtract') === 'add' ? 'add' : 'subtract';
-          $opClass = $op === 'add' ? 'bg-warning text-gray-dark' : 'bg-primary';
-        @endphp
+      // Operación actual
+      $op = ($promo->operation ?? 'subtract') === 'add' ? 'add' : 'subtract';
+      $opClass = $op === 'add' ? 'bg-warning text-gray-dark' : 'bg-primary';
+      @endphp
 
-        <tr>
-          <td class="fw-bold">{{ $promo->code }}</td>
+      <tr>
+        <td class="fw-bold">{{ $promo->code }}</td>
 
-          <td>
-            @if (!is_null($promo->discount_percent))
-              {{ number_format($promo->discount_percent, 2) }}{{ __('m_config.promocode.symbols.percent') }}
-            @elseif (!is_null($promo->discount_amount))
-              {{ __('m_config.promocode.symbols.currency') }}{{ number_format($promo->discount_amount, 2) }}
-            @else
-              —
-            @endif
-          </td>
+        <td>
+          @if (!is_null($promo->discount_percent))
+          {{ number_format($promo->discount_percent, 2) }}{{ __('m_config.promocode.symbols.percent') }}
+          @elseif (!is_null($promo->discount_amount))
+          {{ __('m_config.promocode.symbols.currency') }}{{ number_format($promo->discount_amount, 2) }}
+          @else
+          —
+          @endif
+        </td>
 
-          {{-- NUEVO: Badge de Operación --}}
-          <td>
-            <span class="badge {{ $opClass }}">
-              {{ $op === 'add' ? __('m_config.promocode.operations.add') : __('m_config.promocode.operations.subtract') }}
+        {{-- NUEVO: Badge de Operación --}}
+        <td>
+          <span class="badge {{ $opClass }}">
+            {{ $op === 'add' ? __('m_config.promocode.operations.add') : __('m_config.promocode.operations.subtract') }}
+          </span>
+        </td>
+
+        <td>
+          @if($promo->valid_from || $promo->valid_until)
+          {{ $promo->valid_from ? \Carbon\Carbon::parse($promo->valid_from)->format('d-M-Y') : '—' }}
+          —
+          {{ $promo->valid_until ? \Carbon\Carbon::parse($promo->valid_until)->format('d-M-Y') : '—' }}
+          @else
+          — {{ __('m_config.promocode.labels.no_limit') }}
+          @endif
+        </td>
+
+        <td>
+          <span class="badge {{ $dateClass }}">{{ $dateStatus }}</span>
+        </td>
+
+        <td>
+          <div class="d-flex align-items-center gap-2">
+            <span>{{ $usageLabel }}</span>
+            @if(property_exists($promo, 'remaining_uses'))
+            <span class="badge bg-dark">
+              {{ __('m_config.promocode.labels.remaining') }}:
+              {{ is_null($promo->remaining_uses) ? '∞' : $promo->remaining_uses }}
             </span>
-          </td>
-
-          <td>
-            @if($promo->valid_from || $promo->valid_until)
-              {{ $promo->valid_from ? \Carbon\Carbon::parse($promo->valid_from)->format('d-M-Y') : '—' }}
-              —
-              {{ $promo->valid_until ? \Carbon\Carbon::parse($promo->valid_until)->format('d-M-Y') : '—' }}
-            @else
-              — {{ __('m_config.promocode.labels.no_limit') }}
             @endif
-          </td>
+          </div>
+        </td>
 
-          <td>
-            <span class="badge {{ $dateClass }}">{{ $dateStatus }}</span>
-          </td>
+        <td>
+          <span class="badge {{ $usageClass }}">{{ $usageStatus }}</span>
+        </td>
 
-          <td>
-            <div class="d-flex align-items-center gap-2">
-              <span>{{ $usageLabel }}</span>
-              @if(property_exists($promo, 'remaining_uses'))
-                <span class="badge bg-dark">
-                  {{ __('m_config.promocode.labels.remaining') }}:
-                  {{ is_null($promo->remaining_uses) ? '∞' : $promo->remaining_uses }}
-                </span>
-              @endif
-            </div>
-          </td>
-
-          <td>
-            <span class="badge {{ $usageClass }}">{{ $usageStatus }}</span>
-          </td>
-
-          <td class="text-nowrap">
+        <td class="text-nowrap">
+          {{-- NUEVO: Botón Toggle Sumar/Restar --}}
+          <div class="d-flex gap-1 justify-content-end">
             {{-- NUEVO: Botón Toggle Sumar/Restar --}}
+            @can('edit-promo-codes')
             <form action="{{ route('admin.promoCodes.updateOperation', $promo) }}"
-                  method="POST"
-                  class="d-inline">
+              method="POST"
+              class="d-inline">
               @csrf
               @method('PATCH')
               <input type="hidden" name="toggle" value="1">
               <button class="btn btn-outline-warning btn-sm" title="{{ __('m_config.promocode.actions.toggle_operation') }}">
                 @if($op === 'add')
-                  {{ __('m_config.promocode.operations.make_subtract') }}
+                {{ __('m_config.promocode.operations.make_subtract') }}
                 @else
-                  {{ __('m_config.promocode.operations.make_add') }}
+                {{ __('m_config.promocode.operations.make_add') }}
                 @endif
               </button>
             </form>
+            @endcan
 
-            {{-- Botón Eliminar (igual que ya lo tenías) --}}
+            {{-- Botón Eliminar --}}
+            @can('delete-promo-codes')
             <form action="{{ route('admin.promoCodes.destroy', $promo) }}"
-                  method="POST"
-                  class="d-inline"
-                  onsubmit="return confirm(@json(__('m_config.promocode.confirm_delete')))">
+              method="POST"
+              class="d-inline"
+              onsubmit="return confirm(@json(__('m_config.promocode.confirm_delete')))">
               @csrf
               @method('DELETE')
               <button class="btn btn-outline-danger btn-sm">{{ __('m_config.promocode.actions.delete') }}</button>
             </form>
-          </td>
-        </tr>
+            @endcan
+          </div>
+        </td>
+      </tr>
       @empty
-        <tr>
-          <td colspan="8" class="text-center">{{ __('m_config.promocode.empty') }}</td>
-        </tr>
+      <tr>
+        <td colspan="8" class="text-center">{{ __('m_config.promocode.empty') }}</td>
+      </tr>
       @endforelse
     </tbody>
   </table>

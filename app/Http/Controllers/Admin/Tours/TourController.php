@@ -35,6 +35,15 @@ use App\Http\Requests\Tour\Tour\ToggleTourRequest;
 
 class TourController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-tours'])->only(['index']);
+        $this->middleware(['can:create-tours'])->only(['create', 'store']);
+        $this->middleware(['can:edit-tours'])->only(['edit', 'update', 'restore']);
+        $this->middleware(['can:publish-tours'])->only(['toggle']);
+        $this->middleware(['can:delete-tours'])->only(['destroy', 'purge']);
+    }
+
     protected string $controller = 'TourController';
 
     /** =========================================================
@@ -42,6 +51,8 @@ class TourController extends Controller
      *  ========================================================= */
     public function index()
     {
+
+
         $status = request('status', 'active');
 
         $base = Tour::query()

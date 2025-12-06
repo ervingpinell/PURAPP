@@ -9,26 +9,26 @@ class ReviewProviderPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->canDo('manage-review-providers') || $user->canDo('manage-reviews');
+        return $user->canDo('view-review-providers');
     }
 
     public function view(User $user, ReviewProvider $provider): bool
     {
-        return $user->canDo('manage-review-providers') || $user->canDo('manage-reviews');
+        return $user->canDo('view-review-providers');
     }
 
     public function create(User $user): bool
     {
-        return $user->canDo('manage-review-providers');
+        return $user->canDo('create-review-providers');
     }
 
     public function update(User $user, ReviewProvider $provider): bool
     {
-        return $user->canDo('manage-review-providers');
+        return $user->canDo('edit-review-providers');
     }
 
     public function delete(User $user, ReviewProvider $provider): bool
     {
-        return $user->canDo('manage-review-providers');
+        return $user->canDo('delete-review-providers');
     }
 }

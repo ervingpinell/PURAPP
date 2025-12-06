@@ -18,7 +18,7 @@ final class LoggerHelper
             'action'     => $actionName,
             'entity'     => $extraContext['entity']    ?? null,
             'entity_id'  => $extraContext['entity_id'] ?? null,
-            'user_id'    => $extraContext['user_id']   ?? null,
+            'user_id'    => $extraContext['user_id']   ?? auth()->id(),
         ];
 
         // Evitamos duplicar datos ya normalizados

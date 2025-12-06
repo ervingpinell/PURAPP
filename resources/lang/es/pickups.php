@@ -39,7 +39,7 @@ return [
         'updated_success'    => 'Hotel actualizado correctamente.',
         'deleted_success'    => 'Hotel eliminado correctamente.',
         'activated_success'  => 'Hotel activado correctamente.',
-        'deactivated_success'=> 'Hotel desactivado correctamente.',
+        'deactivated_success' => 'Hotel desactivado correctamente.',
         'sorted_success'     => 'Hoteles ordenados alfabéticamente.',
         'unexpected_error'   => 'Ocurrió un error inesperado. Inténtalo de nuevo.',
 
@@ -183,6 +183,7 @@ return [
         'toasts' => [
             'success_title' => 'Éxito',
             'error_title'   => 'Error',
+            'no_create_permission' => 'No tienes permiso para crear.',
         ],
     ],
 

@@ -105,7 +105,7 @@ class TourImageController extends Controller
 
                 $basename = pathinfo($uploaded->getClientOriginalName(), PATHINFO_FILENAME);
                 $basename = Str::slug($basename) ?: 'image';
-                $stamp    = now()->format('YmdHis').'-'.Str::random(6);
+                $stamp    = now()->format('YmdHis') . '-' . Str::random(6);
 
                 $finalPath = null;
 
@@ -134,7 +134,6 @@ class TourImageController extends Controller
                         'original_file' => $uploaded->getClientOriginalName(),
                         'webp_path' => $webpPath,
                     ]);
-
                 } catch (\Throwable $e) {
                     // Fallback: guardar el archivo tal cual (sin conversión)
                     Log::error('WebP encode failed, falling back to original', [
@@ -170,7 +169,7 @@ class TourImageController extends Controller
                 : __('m_tours.image.upload_none');
 
             if ($truncatedForLimit) {
-                $feedback .= ' '.__('m_tours.image.upload_truncated');
+                $feedback .= ' ' . __('m_tours.image.upload_truncated');
             }
 
             return back()->with('swal', [
@@ -178,7 +177,6 @@ class TourImageController extends Controller
                 'title' => $createdCount > 0 ? __('m_tours.image.done') : __('m_tours.image.notice'),
                 'text'  => $feedback,
             ]);
-
         } catch (ValidationException $e) {
             Log::warning('Image upload validation failed', [
                 'tour_id' => $tour->tour_id ?? null,
@@ -191,7 +189,6 @@ class TourImageController extends Controller
                 'title' => __('m_tours.image.ui.warning_title'),
                 'text'  => $firstMsg,
             ])->withInput();
-
         } catch (\Throwable $e) {
             Log::error('Image upload failed', [
                 'tour_id' => $tour->tour_id ?? null,
@@ -380,12 +377,11 @@ class TourImageController extends Controller
         try {
             $q = trim((string) $request->query('q', ''));
 
-            $tours = Tour::select('tour_id', 'name', 'viator_code')
+            $tours = Tour::select('tour_id', 'name')
                 ->with(['coverImage:id,tour_id,path,is_cover'])
                 ->when($q !== '', function ($query) use ($q) {
                     $query->where(function ($sub) use ($q) {
-                        $sub->where('name', 'ILIKE', "%{$q}%")
-                            ->orWhere('viator_code', 'ILIKE', "%{$q}%");
+                        $sub->where('name', 'ILIKE', "%{$q}%");
                         if (is_numeric($q)) {
                             $sub->orWhere('tour_id', (int) $q);
                         }
@@ -408,6 +404,7 @@ class TourImageController extends Controller
                 'nameField'     => 'name',
                 'coverAccessor' => 'cover_url',
                 'manageRoute'   => 'admin.tours.images.index',
+                'requiredPermission' => 'view-tour-images',
                 'i18n'          => [
                     'title'   => __('m_tours.image.ui.page_title_pick'),
                     'heading' => __('m_tours.image.ui.page_heading'),
@@ -440,11 +437,11 @@ class TourImageController extends Controller
             $allowed = ['jpg', 'jpeg', 'png', 'webp', 'JPG', 'JPEG', 'PNG', 'WEBP'];
 
             $first = collect(Storage::disk('public')->files($folder))
-                ->filter(fn ($path) => in_array(pathinfo($path, PATHINFO_EXTENSION), $allowed, true))
-                ->sort(fn ($a, $b) => strnatcasecmp($a, $b))
+                ->filter(fn($path) => in_array(pathinfo($path, PATHINFO_EXTENSION), $allowed, true))
+                ->sort(fn($a, $b) => strnatcasecmp($a, $b))
                 ->first();
 
-            return $first ? asset('storage/'.$first) : asset('images/volcano.png');
+            return $first ? asset('storage/' . $first) : asset('images/volcano.png');
         } catch (Throwable $e) {
             Log::warning('coverFromStorage failed; returning default', [
                 'tour_id' => $tourId,

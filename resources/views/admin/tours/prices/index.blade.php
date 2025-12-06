@@ -149,8 +149,8 @@
     }
 
     .price-changed {
-        background: #ffc107 !important;
-        border-color: #ffc107 !important;
+        background: #00bc8c !important;
+        border-color: #00bc8c !important;
     }
 
     .save-indicator {
@@ -202,12 +202,19 @@
     </div>
     @endif
 
-    {{-- Add Period Button + Taxes --}}
-    <div class="mb-3 d-flex justify-content-between align-items-center">
-        <button type="button" class="btn btn-add-period bg-success" id="add-period-btn">
-            <i class="fas fa-plus-circle mr-2"></i>
-            {{ __('m_tours.tour.pricing.add_period') ?? 'Agregar Periodo de Precios' }}
-        </button>
+    {{-- Add Period Button + Bulk Save + Taxes --}}
+    <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-add-period bg-success" id="add-period-btn">
+                <i class="fas fa-plus-circle mr-2"></i>
+                {{ __('m_tours.tour.pricing.add_period') ?? 'Agregar Periodo de Precios' }}
+            </button>
+            <button type="button" class="btn btn-primary" id="bulk-save-all-btn" style="display: none;">
+                <i class="fas fa-save mr-2"></i>
+                {{ __('m_tours.prices.alerts.save_all_changes') ?? 'Guardar Todos los Cambios' }}
+                <span class="badge badge-light ml-2" id="changes-count">0</span>
+            </button>
+        </div>
         <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#manageTaxesModal">
             <i class="fas fa-percentage mr-2"></i>
             {{ __('taxes.title') }}
@@ -339,7 +346,7 @@
                                     <i class="fas fa-trash"></i>
                                 </button>
                                 <span class="save-indicator ml-2">
-                                    <i class="fas fa-check-circle"></i> {{ __('m_general.saved') ?? 'Guardado' }}
+                                    <i class="fas fa-check-circle"></i> {{ __('m_tours.prices.alerts.saved') ?? 'Guardado' }}
                                 </span>
                             </td>
                         </tr>
@@ -448,8 +455,12 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(function() {
-        const tourId = @json($tour->tour_id);
-        const csrfToken = @json(csrf_token());
+        const tourId = {
+            {
+                $tour-> tour_id
+            }
+        };
+        const csrfToken = '{{ csrf_token() }}';
 
         // Toast genérico
         const Toast = Swal.mixin({
@@ -461,13 +472,32 @@
         });
 
         // ==========
-        // TRACK CAMBIOS EN INPUTS
+        // TRACK CAMBIOS EN INPUTS + BULK SAVE
         // ==========
+        let changedRows = new Set();
+
+        function updateBulkSaveButton() {
+            const count = changedRows.size;
+            const $bulkBtn = $('#bulk-save-all-btn');
+            const $countBadge = $('#changes-count');
+
+            if (count > 0) {
+                $bulkBtn.show();
+                $countBadge.text(count);
+            } else {
+                $bulkBtn.hide();
+            }
+        }
+
         $(document).on('input change', '.price-input, .quantity-input', function() {
             const $row = $(this).closest('tr');
+            const priceId = $row.data('price-id');
             const $saveBtn = $row.find('.save-price-btn');
+
             $(this).addClass('price-changed');
             $saveBtn.show();
+            changedRows.add(priceId);
+            updateBulkSaveButton();
         });
 
         // ==========
@@ -497,6 +527,8 @@
                     $row.find('.price-input, .quantity-input').removeClass('price-changed');
                     $btn.hide();
                     $row.find('.save-indicator').addClass('show');
+                    changedRows.delete(priceId);
+                    updateBulkSaveButton();
                     Toast.fire({
                         icon: 'success',
                         title: @json(__('m_tours.prices.alerts.price_updated'))
@@ -513,6 +545,69 @@
                 complete: function() {
                     $btn.prop('disabled', false).html('<i class="fas fa-save"></i>');
                 }
+            });
+        });
+
+        // ==========
+        // BULK SAVE ALL CHANGES
+        // ==========
+        $('#bulk-save-all-btn').on('click', function() {
+            const $btn = $(this);
+            const priceIds = Array.from(changedRows);
+
+            if (priceIds.length === 0) return;
+
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...');
+
+            let completed = 0;
+            let errors = 0;
+
+            priceIds.forEach(priceId => {
+                const $row = $(`tr[data-price-id="${priceId}"]`);
+                const data = {
+                    price: $row.find('[data-field="price"]').val(),
+                    min_quantity: $row.find('[data-field="min_quantity"]').val(),
+                    max_quantity: $row.find('[data-field="max_quantity"]').val(),
+                    is_active: $row.find('[data-field="is_active"]').is(':checked') ? 1 : 0,
+                    _token: csrfToken,
+                    _method: 'PUT'
+                };
+
+                $.ajax({
+                    url: `/admin/tours/${tourId}/prices/${priceId}`,
+                    method: 'POST',
+                    data: data,
+                    success: function() {
+                        $row.find('.price-input, .quantity-input').removeClass('price-changed');
+                        $row.find('.save-price-btn').hide();
+                        changedRows.delete(priceId);
+                    },
+                    error: function() {
+                        errors++;
+                    },
+                    complete: function() {
+                        completed++;
+                        if (completed === priceIds.length) {
+                            updateBulkSaveButton();
+                            $btn.prop('disabled', false).html('<i class="fas fa-save mr-2"></i>{{ __('
+                                m_tours.prices.alerts.save_all_changes ') ?? '
+                                Guardar Todos los Cambios ' }}');
+
+                            if (errors === 0) {
+                                Toast.fire({
+                                    icon: 'success',
+                                    title: `${priceIds.length} precios actualizados`
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Guardado parcial',
+                                    text: `${priceIds.length - errors} de ${priceIds.length} precios guardados correctamente`
+                                });
+                            }
+                        }
+                    }
+                });
             });
         });
 
@@ -579,6 +674,8 @@
                     success: function() {
                         $row.fadeOut(300, function() {
                             $(this).remove();
+                            changedRows.delete(priceId);
+                            updateBulkSaveButton();
                         });
                         Toast.fire({
                             icon: 'success',
@@ -770,18 +867,112 @@
         });
 
         // ==========
-        // (OPCIONAL) BOTÓN "AGREGAR PERIODO" PARA CREAR UN PERIODO NUEVO VACÍO
-        // Aquí podrías redirigir a wizard o abrir modal; de momento solo aviso.
+        // AGREGAR NUEVO PERIODO
         // ==========
         $('#add-period-btn').on('click', function() {
-            // Aquí decides si:
-            // - Redirigir a wizard de precios
-            // - O abrir un modal para crear periodo nuevo
-            // Por ahora, solo aviso para que no parezca roto:
             Swal.fire({
-                icon: 'info',
-                title: @json(__('m_tours.prices.alerts.attention')),
-                text: 'La creación de nuevos periodos está manejada desde el wizard del tour.'
+                title: 'Crear Nuevo Periodo',
+                html: `
+                    <div class="form-group text-left">
+                        <label>Válido desde</label>
+                        <input type="date" id="new-period-from" class="form-control">
+                    </div>
+                    <div class="form-group text-left">
+                        <label>Válido hasta</label>
+                        <input type="date" id="new-period-until" class="form-control">
+                    </div>
+                    <div class="form-group text-left">
+                        <label>Nombre del periodo (opcional)</label>
+                        <input type="text" id="new-period-label" class="form-control" placeholder="Ej. Temporada Alta">
+                    </div>
+                    <div class="form-group text-left">
+                        <label>Selecciona una categoría inicial</label>
+                        <select id="new-period-category" class="form-control">
+                            <option value="">-- Selecciona --</option>
+                            @foreach($availableCategories as $category)
+                            <option value="{{ $category->category_id }}">
+                                {{ $category->getTranslatedName() ?? $category->name }}
+                                ({{ $category->age_range ?? ($category->age_from . '-' . $category->age_to) }})
+                            </option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Puedes agregar más categorías después</small>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Crear Periodo',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    const from = document.getElementById('new-period-from').value;
+                    const until = document.getElementById('new-period-until').value;
+                    const label = document.getElementById('new-period-label').value;
+                    const categoryId = document.getElementById('new-period-category').value;
+
+                    if (!from || !until) {
+                        Swal.showValidationMessage('Debes especificar ambas fechas');
+                        return false;
+                    }
+
+                    if (from > until) {
+                        Swal.showValidationMessage('La fecha de inicio debe ser anterior a la fecha de fin');
+                        return false;
+                    }
+
+                    if (!categoryId) {
+                        Swal.showValidationMessage('Debes seleccionar al menos una categoría');
+                        return false;
+                    }
+
+                    return {
+                        from,
+                        until,
+                        label,
+                        categoryId
+                    };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const {
+                        from,
+                        until,
+                        label,
+                        categoryId
+                    } = result.value;
+
+                    // Crear el primer precio del periodo
+                    $.ajax({
+                        url: `/admin/tours/${tourId}/prices`,
+                        method: 'POST',
+                        data: {
+                            category_id: categoryId,
+                            price: 0,
+                            min_quantity: 0,
+                            max_quantity: 12,
+                            is_active: 0,
+                            valid_from: from,
+                            valid_until: until,
+                            label: label || null,
+                            _token: csrfToken
+                        },
+                        success: function() {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Periodo creado',
+                                text: 'El periodo ha sido creado. Ahora puedes configurar los precios.',
+                                timer: 2000
+                            }).then(() => {
+                                location.reload();
+                            });
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: xhr.responseJSON?.message || 'No se pudo crear el periodo'
+                            });
+                        }
+                    });
+                }
             });
         });
     });

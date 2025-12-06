@@ -433,6 +433,7 @@ class TourWizardController extends Controller
             'is_active'    => 'boolean',
             'languages'    => 'required|array|min:1', // Ahora requerido con mínimo 1
             'languages.*'  => 'exists:tour_languages,tour_language_id',
+            'recommendations' => 'nullable|string', // 🆕 Nuevo campo
         ]);
 
         $tour = null;
@@ -451,6 +452,7 @@ class TourWizardController extends Controller
                 'length'       => $data['length'] ?? null,
                 'max_capacity' => $data['max_capacity'],
                 'group_size'   => $data['group_size'] ?? null,
+                'recommendations' => $data['recommendations'] ?? null, // 🆕 Nuevo campo
                 'color'        => $data['color'] ?? '#3490dc',
                 'tour_type_id' => $data['tour_type_id'] ?? null,
                 'is_active'    => $data['is_active'] ?? false,
@@ -533,6 +535,7 @@ class TourWizardController extends Controller
             'color'        => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'languages'    => ['required', 'array', 'min:1'],
             'languages.*'  => ['integer', 'exists:tour_languages,tour_language_id'],
+            'recommendations' => ['nullable', 'string'], // 🆕 Nuevo campo
         ]);
 
         $data['overview'] = trim($data['overview'] ?? '');
@@ -549,6 +552,7 @@ class TourWizardController extends Controller
                 'max_capacity' => $data['max_capacity'],
                 'group_size'   => $data['group_size'],
                 'tour_type_id' => $data['tour_type_id'],
+                'recommendations' => $data['recommendations'] ?? null, // 🆕 Nuevo campo
                 'color'        => $data['color'] ?? '#3490dc',
             ]);
 

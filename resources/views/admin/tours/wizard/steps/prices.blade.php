@@ -255,7 +255,6 @@
             <div class="card pricing-period-card" data-period-index="{{ $periodIndex }}">
                 <div class="period-header {{ ($period['is_default'] ?? false) ? 'default' : '' }}">
                     <div class="period-dates">
-                        @if(!($period['is_default'] ?? false))
                         <div>
                             <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
                                 {{ __('m_tours.tour.pricing.valid_from') }}
@@ -275,7 +274,7 @@
                                 value="{{ $period['valid_until'] ?? '' }}"
                                 class="form-control form-control-sm period-date-input"
                                 data-period-index="{{ $periodIndex }}">
-                            <small class="text-muted" style="font-size: 0.7rem;">
+                            <small class="text" style="font-size: 0.7rem;">
                                 {{ __('m_tours.tour.pricing.leave_empty_no_limit') }}
                             </small>
                         </div>
@@ -285,18 +284,10 @@
                             </label>
                             <input type="text"
                                 name="periods[{{ $periodIndex }}][label]"
-                                value="{{ $period['label'] !== \App\Models\TourPrice::getPeriodLabel($period['valid_from'], $period['valid_until']) ? $period['label'] : '' }}"
+                                value="{{ $period['label'] ?? '' }}"
                                 class="form-control form-control-sm"
                                 placeholder="{{ __('m_tours.tour.pricing.period_name_placeholder') ?? 'Ej. Temporada Alta' }}">
                         </div>
-                        @else
-                        <h5 class="mb-0">
-                            <i class="fas fa-infinity mr-2"></i>
-                            {{ $period['label'] ?? 'Precio Base' }}
-                        </h5>
-                        <input type="hidden" name="periods[{{ $periodIndex }}][valid_from]" value="">
-                        <input type="hidden" name="periods[{{ $periodIndex }}][valid_until]" value="">
-                        @endif
                     </div>
                     <button type="button" class="btn btn-sm btn-danger remove-period-btn">
                         <i class="fas fa-trash"></i>
@@ -419,8 +410,8 @@
                             <input type="checkbox"
                                 class="custom-control-input"
                                 id="tax-{{ $tax->tax_id }}"
-                                name="taxes[]
-                                       " value="{{ $tax->tax_id }}"
+                                name="taxes[]"
+                                value="{{ $tax->tax_id }}"
                                 {{ $tour->taxes->contains($tax->tax_id) ? 'checked' : '' }}>
                             <label class="custom-control-label" for="tax-{{ $tax->tax_id }}">
                                 {{ $tax->name }} ({{ $tax->rate }}%)
@@ -488,11 +479,7 @@
         console.log('Pricing periods script loaded');
 
         // contador inicial de periodos existentes
-        let periodCounter = {
-            {
-                count($pricingPeriods ?? [])
-            }
-        };
+        let periodCounter = {{ count($pricingPeriods ?? []) }};
         console.log('Initial period counter:', periodCounter);
 
         // Translations
@@ -537,11 +524,11 @@
 
         // Categories data
         const categoriesData = [
-            @foreach($categories ?? [] as $category) {
+            @foreach($categories ?? [] as $category)
+            {
                 id: '{{ $category->category_id }}',
-                name: @json($category-> getTranslatedName() ?? $category-> name),
-                ageRange: @json($category-> age_range ?? ($category-> age_from.
-                    '-'.$category-> age_to)),
+                name: @json($category->getTranslatedName() ?? $category->name),
+                ageRange: @json($category->age_range ?? ($category->age_from . '-' . $category->age_to)),
             },
             @endforeach
         ];
@@ -601,48 +588,36 @@
 
         // Template for new period
         function getPeriodTemplate(index, isDefault = false) {
-            const headerClass = isDefault ? 'default' : '';
-            let headerContent = '';
+            const headerClass = '';
 
-            if (isDefault) {
-                headerContent = `
-                    <h5 class="mb-0">
-                        <i class="fas fa-infinity mr-2"></i>
-                        ${translations.defaultPrice} (${translations.allYear})
-                    </h5>
-                    <input type="hidden" name="periods[${index}][valid_from]" value="">
-                    <input type="hidden" name="periods[${index}][valid_until]" value="">
-                `;
-            } else {
-                headerContent = `
-                    <div>
-                        <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">${translations.validFrom}</label>
-                        <input type="date"
-                               name="periods[${index}][valid_from]"
-                               class="form-control form-control-sm period-date-input"
-                               data-period-index="${index}">
-                    </div>
-                    <div>
-                        <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">${translations.validUntil}</label>
-                        <input type="date"
-                               name="periods[${index}][valid_until]"
-                               class="form-control form-control-sm period-date-input"
-                               data-period-index="${index}">
-                        <small class="text-muted" style="font-size: 0.7rem;">
-                            {{ __('m_tours.tour.pricing.leave_empty_no_limit') }}
-                        </small>
-                    </div>
-                    <div style="min-width: 200px;">
-                        <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
-                            {{ __('m_tours.tour.pricing.period_name') ?? 'Nombre (Opcional)' }}
-                        </label>
-                        <input type="text"
-                               name="periods[${index}][label]"
-                               class="form-control form-control-sm"
-                               placeholder="{{ __('m_tours.tour.pricing.period_name_placeholder') ?? 'Ej. Temporada Alta' }}">
-                    </div>
-                `;
-            }
+            let headerContent = `
+                <div>
+                    <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">${translations.validFrom}</label>
+                    <input type="date"
+                           name="periods[${index}][valid_from]"
+                           class="form-control form-control-sm period-date-input"
+                           data-period-index="${index}">
+                </div>
+                <div>
+                    <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">${translations.validUntil}</label>
+                    <input type="date"
+                           name="periods[${index}][valid_until]"
+                           class="form-control form-control-sm period-date-input"
+                           data-period-index="${index}">
+                    <small class="text-muted" style="font-size: 0.7rem;">
+                        {{ __('m_tours.tour.pricing.leave_empty_no_limit') }}
+                    </small>
+                </div>
+                <div style="min-width: 200px;">
+                    <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
+                        {{ __('m_tours.tour.pricing.period_name') ?? 'Nombre (Opcional)' }}
+                    </label>
+                    <input type="text"
+                           name="periods[${index}][label]"
+                           class="form-control form-control-sm"
+                           placeholder="{{ __('m_tours.tour.pricing.period_name_placeholder') ?? 'Ej. Temporada Alta' }}">
+                </div>
+            `;
 
             let categoriesOptions = `<option value="">${translations.chooseCategoryPlaceholder}</option>`;
             categoriesData.forEach(cat => {

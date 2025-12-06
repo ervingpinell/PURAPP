@@ -34,6 +34,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'normalize.email' => \App\Http\Middleware\NormalizeEmail::class,
             '2fa.admin'       => \App\Http\Middleware\RequireTwoFactorForAdmins::class,
             'public.readonly' => \App\Http\Middleware\PublicReadOnly::class,
+            // Spatie Permission middleware
+            'role'            => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission'      => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
 
         $middleware->append([
@@ -142,10 +146,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 'dryRun'       => false,   // true para simular
             ])->onQueue('maintenance');
         })
-        ->dailyAt('02:40')
-        ->name('overrides:purge-old')
-        ->onOneServer()
-        ->withoutOverlapping();
+            ->dailyAt('02:40')
+            ->name('overrides:purge-old')
+            ->onOneServer()
+            ->withoutOverlapping();
 
         // 6) Limpiar logs de auditoría de tours (> 365 días)
         //    Comando: php artisan tours:audit:cleanup --days=365

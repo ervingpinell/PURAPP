@@ -183,6 +183,8 @@ return [
             'label_optional' => 'Etiqueta (opcional)',
             'max_capacity'   => 'Capacidad máx.',
             'active'         => 'Activo',
+            'excluded_amenities' => 'Amenidades excluidas', // 🆕
+
 
         ],
 
@@ -747,6 +749,7 @@ return [
             'details'       => 'Detalles',
             'price'         => 'Precios',
             'overview'      => 'Resumen',
+            'recommendations' => 'Recomendaciones', // 🆕
             'amenities'     => 'Amenidades',
             'exclusions'    => 'Exclusiones',
             'itinerary'     => 'Itinerario',

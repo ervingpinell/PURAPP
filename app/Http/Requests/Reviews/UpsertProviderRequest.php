@@ -10,8 +10,9 @@ class UpsertProviderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Ajusta si usas policies/abilities distintas
-        return $this->user()?->can('manage-reviews') ?? false;
+        return $this->route('provider')
+            ? ($this->user()?->can('edit-review-providers') ?? false)
+            : ($this->user()?->can('create-review-providers') ?? false);
     }
 
     /**
@@ -75,7 +76,7 @@ class UpsertProviderRequest extends FormRequest
             'settings'      => ['nullable', 'array'],
 
             // Para local (usado por el controller); si viene, validarlo.
-            'min_stars'     => ['nullable','integer','min:0','max:5'],
+            'min_stars'     => ['nullable', 'integer', 'min:0', 'max:5'],
         ];
     }
 

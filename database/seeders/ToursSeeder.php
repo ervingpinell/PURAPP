@@ -6,12 +6,32 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use App\Models\Tour;
+use App\Models\TourPrice;
+use App\Models\TourTranslation;
+use App\Models\CustomerCategory;
+use App\Models\Itinerary;
+use App\Models\ItineraryItem;
 
 class ToursSeeder extends Seeder
 {
+    private $translator = null;
+
     public function run(): void
     {
         $now = Carbon::now();
+
+        // Verificar si DeepL está configurado
+        $deeplKey = config('services.deepl.key');
+        if ($deeplKey) {
+            try {
+                $this->translator = new \DeepL\Translator($deeplKey);
+                $this->command->info('✅ DeepL translator initialized');
+            } catch (\Exception $e) {
+                $this->command->warn('⚠️  DeepL not available: ' . $e->getMessage());
+            }
+        } else {
+            $this->command->warn('⚠️  DeepL API key not configured. Skipping translations.');
+        }
 
         // Helper para obtener/crear horario y devolver ID
         $scheduleId = function (string $start, string $end, ?string $label = null) use ($now): int {
@@ -26,6 +46,42 @@ class ToursSeeder extends Seeder
                 ->value('schedule_id');
         };
 
+        // Helper para crear itinerario
+        $createItinerary = function (string $name, array $items) use ($now): int {
+            $itinerary = Itinerary::create(['is_active' => true]);
+
+            // Traducción del itinerario
+            DB::table('itinerary_translations')->insert([
+                'itinerary_id' => $itinerary->itinerary_id,
+                'locale' => 'es',
+                'name' => $name,
+                'description' => "Itinerario para {$name}",
+            ]);
+
+            foreach ($items as $index => $itemData) {
+                $item = ItineraryItem::create(['is_active' => true]);
+
+                // Traducción del ítem
+                DB::table('itinerary_item_translations')->insert([
+                    'item_id' => $item->item_id,
+                    'locale' => 'es',
+                    'title' => $itemData['title'],
+                    'description' => $itemData['description'] ?? null,
+                ]);
+
+                DB::table('itinerary_item_itinerary')->insert([
+                    'itinerary_id' => $itinerary->itinerary_id,
+                    'itinerary_item_id' => $item->item_id,
+                    'item_order' => $index + 1,
+                    'is_active' => true,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+
+            return $itinerary->itinerary_id;
+        };
+
         // === HORARIOS COMPARTIDOS ===
         $sharedAmId  = $scheduleId('07:30', '11:30', 'AM');
         $sharedPmId  = $scheduleId('13:00', '16:30', 'PM');
@@ -33,28 +89,37 @@ class ToursSeeder extends Seeder
         $nlc         = $scheduleId('07:30', '16:30', 'AM');
 
         // ========== Caminata al Volcán Arenal ==========
-        $volcanoOverview = 'Descubre el Parque Nacional Volcán Arenal en un tour de día completo que combina caminata y aguas termales desde La Fortuna, y explora el impresionante paisaje de una cordillera volcánica activa.
-Sigue a tu guía por un sendero de 3,2 km (2 millas) que atraviesa bosques primarios y secundarios, y cruza las afiladas rocas de un campo de lava seca.
-Observa las plantas y formaciones distintivas que cubren las laderas del volcán más icónico de Costa Rica.
-• Explora una cordillera volcánica activa en un tour de caminata.
-• Descubre las diversas especies que habitan en los bosques y campos de lava.
-• Grupo pequeño para garantizar una experiencia personalizada.';
+        $volcanoItineraryId = $createItinerary('Caminata Volcán', [
+            ['title' => 'Salida', 'description' => 'Recogida en el hotel'],
+            ['title' => 'Llegada al Parque', 'description' => 'Entrada al sendero'],
+            ['title' => 'Caminata', 'description' => 'Recorrido por el bosque y coladas de lava'],
+            ['title' => 'Mirador', 'description' => 'Vistas del volcán y el lago'],
+            ['title' => 'Regreso', 'description' => 'Vuelta al hotel']
+        ]);
 
         $volcano = Tour::create([
             'name'         => 'Caminata al Volcán Arenal',
-            'overview'     => $volcanoOverview,
-            'adult_price'  => 75,
-            'kid_price'    => 55,
+            'overview'     => 'Descubre el Parque Nacional Volcán Arenal...',
             'length'       => 4,
+            'max_capacity' => 12,
+            'group_size'   => 12,
             'tour_type_id' => 2,
             'color'        => '#ABABAB',
             'is_active'    => true,
+            'is_draft'     => false,
+            'current_step' => 6, // 🆕 Completado
+            'itinerary_id' => $volcanoItineraryId, // 🆕 Asignado
+            'cutoff_hour'  => '18:00',
+            'lead_days'    => 1,
         ]);
-        // El slug se genera automáticamente en el modelo
+
+        $this->translateTour($volcano, ['en', 'fr', 'de', 'pt']);
+        // 🆕 Usando slugs correctos: kid, infante
+        $this->createPricesForTour($volcano, ['adult' => 75, 'kid' => 55, 'infante' => 0]);
 
         DB::table('schedule_tour')->insert([
-            ['tour_id' => $volcano->tour_id, 'schedule_id' => $sharedAmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
-            ['tour_id' => $volcano->tour_id, 'schedule_id' => $sharedPmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $volcano->tour_id, 'schedule_id' => $sharedAmId, 'is_active' => true, 'base_capacity' => 12, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $volcano->tour_id, 'schedule_id' => $sharedPmId, 'is_active' => true, 'base_capacity' => 12, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         DB::table('tour_language_tour')->insert([
@@ -64,39 +129,46 @@ Observa las plantas y formaciones distintivas que cubren las laderas del volcán
 
         foreach ([1, 2, 3, 4] as $a) {
             DB::table('amenity_tour')->insert([
-                'tour_id' => $volcano->tour_id, 'amenity_id' => $a, 'is_active' => true,
-                'created_at' => $now, 'updated_at' => $now,
-            ]);
-        }
-        foreach ([5, 6, 7, 8, 9] as $a) {
-            DB::table('excluded_amenity_tour')->insert([
-                'tour_id' => $volcano->tour_id, 'amenity_id' => $a, 'is_active' => true,
-                'created_at' => $now, 'updated_at' => $now,
+                'tour_id' => $volcano->tour_id,
+                'amenity_id' => $a,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
             ]);
         }
 
+
         // ========== Safari Flotante ==========
-        $safariOverview = 'Navega por el río Peñas Blancas en un bote de remo durante este recorrido de 3,5 horas desde La Fortuna.
-Escucha los comentarios de tu guía naturalista mientras mantienes la vista atenta para observar monos, iguanas y una gran variedad de aves.
-Finaliza con una parada en una finca local para degustar sus bocadillos caseros y café.
-Incluye transporte de ida y vuelta desde hoteles seleccionados. Ideal para toda la familia.
-Grupo pequeño para garantizar un servicio personalizado.
-Recogida y regreso al hotel gratuitos. Guía informativo, amable y profesional.';
+        $safariItineraryId = $createItinerary('Safari Flotante', [
+            ['title' => 'Salida', 'description' => 'Recogida en el hotel'],
+            ['title' => 'Río Peñas Blancas', 'description' => 'Inicio del recorrido en balsa'],
+            ['title' => 'Avistamiento', 'description' => 'Monos, aves, perezosos'],
+            ['title' => 'Refrigerio', 'description' => 'Parada en finca local'],
+            ['title' => 'Regreso', 'description' => 'Vuelta al hotel']
+        ]);
 
         $safari = Tour::create([
             'name'         => 'Safari Flotante',
-            'overview'     => $safariOverview,
-            'adult_price'  => 60,
-            'kid_price'    => 45,
+            'overview'     => 'Navega por el río Peñas Blancas...',
             'length'       => 4,
+            'max_capacity' => 12,
+            'group_size'   => 12,
             'tour_type_id' => 2,
             'color'        => '#4F8BD8',
             'is_active'    => true,
+            'is_draft'     => false,
+            'current_step' => 6,
+            'itinerary_id' => $safariItineraryId,
+            'cutoff_hour'  => '18:00',
+            'lead_days'    => 1,
         ]);
 
+        $this->translateTour($safari, ['en', 'fr', 'de', 'pt']);
+        $this->createPricesForTour($safari, ['adult' => 60, 'kid' => 45, 'infante' => 0]);
+
         DB::table('schedule_tour')->insert([
-            ['tour_id' => $safari->tour_id, 'schedule_id' => $sharedAmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
-            ['tour_id' => $safari->tour_id, 'schedule_id' => $sharedPmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $safari->tour_id, 'schedule_id' => $sharedAmId, 'is_active' => true, 'base_capacity' => 12, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $safari->tour_id, 'schedule_id' => $sharedPmId, 'is_active' => true, 'base_capacity' => 12, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         DB::table('tour_language_tour')->insert([
@@ -106,38 +178,44 @@ Recogida y regreso al hotel gratuitos. Guía informativo, amable y profesional.'
 
         foreach ([1, 2, 3, 4, 6] as $a) {
             DB::table('amenity_tour')->insert([
-                'tour_id' => $safari->tour_id, 'amenity_id' => $a, 'is_active' => true,
-                'created_at' => $now, 'updated_at' => $now,
-            ]);
-        }
-        foreach ([5, 7, 8, 9] as $a) {
-            DB::table('excluded_amenity_tour')->insert([
-                'tour_id' => $safari->tour_id, 'amenity_id' => $a, 'is_active' => true,
-                'created_at' => $now, 'updated_at' => $now,
+                'tour_id' => $safari->tour_id,
+                'amenity_id' => $a,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
             ]);
         }
 
         // ========== Puentes Colgantes ==========
-        $hangingOverview = 'Disfruta de un emocionante encuentro cercano con la vida silvestre de Costa Rica en este tour de 4 horas al Parque Mistico de Puentes Colgantes desde La Fortuna, a la sombra del Volcán Arenal.
-Adéntrate en el corazón de la selva tropical en un circuito de 3,2 km (2 millas) que incluye 15 puentes colgantes, y ten la oportunidad de avistar hasta 350 especies de aves, incluyendo colibríes, campaneros, tucanes y el majestuoso Tucancito Esmeralda.
-• Disfruta de una caminata guiada por un circuito de 15 puentes especialmente diseñados.
-• Observa colibríes y tucanes en su hábitat natural.
-• ¡Una excelente opción para familias!';
+        $hangingItineraryId = $createItinerary('Puentes Colgantes', [
+            ['title' => 'Salida', 'description' => 'Recogida en el hotel'],
+            ['title' => 'Parque Mistico', 'description' => 'Llegada a la reserva'],
+            ['title' => 'Sendero', 'description' => 'Caminata por puentes colgantes'],
+            ['title' => 'Regreso', 'description' => 'Vuelta al hotel']
+        ]);
 
         $hanging = Tour::create([
             'name'         => 'Puentes Colgantes',
-            'overview'     => $hangingOverview,
-            'adult_price'  => 82,
-            'kid_price'    => 61,
+            'overview'     => 'Disfruta de un emocionante encuentro cercano con la vida silvestre...',
             'length'       => 4,
+            'max_capacity' => 12,
+            'group_size'   => 12,
             'tour_type_id' => 2,
             'color'        => '#56D454',
             'is_active'    => true,
+            'is_draft'     => false,
+            'current_step' => 6,
+            'itinerary_id' => $hangingItineraryId,
+            'cutoff_hour'  => '18:00',
+            'lead_days'    => 1,
         ]);
 
+        $this->translateTour($hanging, ['en', 'fr', 'de', 'pt']);
+        $this->createPricesForTour($hanging, ['adult' => 82, 'kid' => 61, 'infante' => 0]);
+
         DB::table('schedule_tour')->insert([
-            ['tour_id' => $hanging->tour_id, 'schedule_id' => $sharedAmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
-            ['tour_id' => $hanging->tour_id, 'schedule_id' => $sharedPmId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $hanging->tour_id, 'schedule_id' => $sharedAmId, 'is_active' => true, 'base_capacity' => 12, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $hanging->tour_id, 'schedule_id' => $sharedPmId, 'is_active' => true, 'base_capacity' => 12, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         DB::table('tour_language_tour')->insert([
@@ -147,39 +225,45 @@ Adéntrate en el corazón de la selva tropical en un circuito de 3,2 km (2 milla
 
         foreach ([1, 2, 3, 4] as $a) {
             DB::table('amenity_tour')->insert([
-                'tour_id' => $hanging->tour_id, 'amenity_id' => $a, 'is_active' => true,
-                'created_at' => $now, 'updated_at' => $now,
-            ]);
-        }
-        foreach ([5, 6, 7, 8, 9] as $a) {
-            DB::table('excluded_amenity_tour')->insert([
-                'tour_id' => $hanging->tour_id, 'amenity_id' => $a, 'is_active' => true,
-                'created_at' => $now, 'updated_at' => $now,
+                'tour_id' => $hanging->tour_id,
+                'amenity_id' => $a,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
             ]);
         }
 
         // ========== Nature Lover Combo 1 ==========
-        $natureOverview = 'Combina tres actividades llenas de aventura en un solo tour: una caminata al Volcán Arenal, visita a los Puentes Colgantes y exploración de la Catarata La Fortuna.
-Este tour de día completo desde La Fortuna, perfecto para los amantes de la naturaleza, incluye caminatas y la oportunidad de nadar en medio del hermoso paisaje natural de Costa Rica.
-Incluye recogida y regreso al hotel.
-• Tour de aventura de día completo en Costa Rica.
-• Caminata alrededor del Volcán Arenal y baño bajo la Catarata La Fortuna.
-• Cruza 16 puentes colgantes en la selva tropical.
-• Experiencia personalizada: tour en grupo pequeño limitado a 12 personas.';
+        $natureItineraryId = $createItinerary('Nature Lover Combo', [
+            ['title' => 'Salida', 'description' => 'Recogida temprano'],
+            ['title' => 'Volcán', 'description' => 'Caminata matutina'],
+            ['title' => 'Catarata', 'description' => 'Visita y baño'],
+            ['title' => 'Almuerzo', 'description' => 'Comida típica'],
+            ['title' => 'Puentes', 'description' => 'Caminata vespertina'],
+            ['title' => 'Regreso', 'description' => 'Vuelta al hotel']
+        ]);
 
         $nature = Tour::create([
             'name'         => 'Nature Lover Combo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo + Caminata al Volcán Arenal)',
-            'overview'     => $natureOverview,
-            'adult_price'  => 154,
-            'kid_price'    => 115,
+            'overview'     => 'Combina tres actividades llenas de aventura...',
             'length'       => 9,
+            'max_capacity' => 12,
+            'group_size'   => 12,
             'tour_type_id' => 1,
             'color'        => '#DC626D',
             'is_active'    => true,
+            'is_draft'     => false,
+            'current_step' => 6,
+            'itinerary_id' => $natureItineraryId,
+            'cutoff_hour'  => '18:00',
+            'lead_days'    => 1,
         ]);
 
+        $this->translateTour($nature, ['en', 'fr', 'de', 'pt']);
+        $this->createPricesForTour($nature, ['adult' => 154, 'kid' => 115, 'infante' => 0]);
+
         DB::table('schedule_tour')->insert([
-            ['tour_id' => $nature->tour_id, 'schedule_id' => $nlc, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $nature->tour_id, 'schedule_id' => $nlc, 'is_active' => true, 'base_capacity' => 12, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         DB::table('tour_language_tour')->insert([
@@ -189,38 +273,45 @@ Incluye recogida y regreso al hotel.
 
         foreach ([1, 2, 3, 4, 5] as $a) {
             DB::table('amenity_tour')->insert([
-                'tour_id' => $nature->tour_id, 'amenity_id' => $a, 'is_active' => true,
-                'created_at' => $now, 'updated_at' => $now,
-            ]);
-        }
-        foreach ([6, 7, 8, 9] as $a) {
-            DB::table('excluded_amenity_tour')->insert([
-                'tour_id' => $nature->tour_id, 'amenity_id' => $a, 'is_active' => true,
-                'created_at' => $now, 'updated_at' => $now,
+                'tour_id' => $nature->tour_id,
+                'amenity_id' => $a,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
             ]);
         }
 
+
         // ========== Minicombo 1 ==========
-        $minicombo1Overview = 'Descubre las atracciones naturales de La Fortuna en este tour guiado de día completo.
-Perfecto para toda la familia y para quienes cuentan con poco tiempo, el recorrido incluye una parada en la Catarata La Fortuna, así como un almuerzo tradicional costarricense.
-• Cruza puentes colgantes sobre la selva tropical para disfrutar de vistas únicas.
-• Conoce las principales atracciones de La Fortuna en un solo día. Observa aves, monos y otra fauna local.
-• Disfruta la oportunidad de nadar en las aguas cristalinas de la catarata.
-• El tour finaliza con un almuerzo típico de la cocina costarricense.';
+        $mini1ItineraryId = $createItinerary('Minicombo 1', [
+            ['title' => 'Salida', 'description' => 'Recogida'],
+            ['title' => 'Puentes', 'description' => 'Caminata'],
+            ['title' => 'Catarata', 'description' => 'Visita'],
+            ['title' => 'Almuerzo', 'description' => 'Comida típica'],
+            ['title' => 'Regreso', 'description' => 'Vuelta']
+        ]);
 
         $minicombo1 = Tour::create([
             'name'         => 'Minicombo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo)',
-            'overview'     => $minicombo1Overview,
-            'adult_price'  => 136,
-            'kid_price'    => 102,
+            'overview'     => 'Descubre las atracciones naturales...',
             'length'       => 6,
+            'max_capacity' => 12,
+            'group_size'   => 12,
             'tour_type_id' => 1,
             'color'        => '#DC626D',
             'is_active'    => true,
+            'is_draft'     => false,
+            'current_step' => 6,
+            'itinerary_id' => $mini1ItineraryId,
+            'cutoff_hour'  => '18:00',
+            'lead_days'    => 1,
         ]);
 
+        $this->translateTour($minicombo1, ['en', 'fr', 'de', 'pt']);
+        $this->createPricesForTour($minicombo1, ['adult' => 136, 'kid' => 102, 'infante' => 0]);
+
         DB::table('schedule_tour')->insert([
-            ['tour_id' => $minicombo1->tour_id, 'schedule_id' => $sharedMidId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $minicombo1->tour_id, 'schedule_id' => $sharedMidId, 'is_active' => true, 'base_capacity' => 12, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         DB::table('tour_language_tour')->insert([
@@ -230,39 +321,44 @@ Perfecto para toda la familia y para quienes cuentan con poco tiempo, el recorri
 
         foreach ([1, 2, 3, 4, 5] as $a) {
             DB::table('amenity_tour')->insert([
-                'tour_id' => $minicombo1->tour_id, 'amenity_id' => $a, 'is_active' => true,
-                'created_at' => $now, 'updated_at' => $now,
-            ]);
-        }
-        foreach ([6, 7, 8, 9] as $a) {
-            DB::table('excluded_amenity_tour')->insert([
-                'tour_id' => $minicombo1->tour_id, 'amenity_id' => $a, 'is_active' => true,
-                'created_at' => $now, 'updated_at' => $now,
+                'tour_id' => $minicombo1->tour_id,
+                'amenity_id' => $a,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
             ]);
         }
 
         // ========== Minicombo 2 ==========
-        $minicombo2Overview = 'Si has venido a Costa Rica por sus increíbles volcanes y su biodiversidad, esta excursión de un día es ideal para ti.
-Te llevaremos a uno de los mejores miradores con vista al Volcán Arenal, donde, sin importar el clima, podrás apreciar su belleza simétrica.
-Luego, visitarás la Catarata La Fortuna, donde podrás refrescarte en su reluciente poza natural.
-• Almuerzo con café local incluido.
-• Una forma sencilla de visitar dos de las principales atracciones de Costa Rica.
-• Evita los buses calurosos y viaja con la comodidad del aire acondicionado. Usa zapatos cómodos y prepárate para caminar hasta el mirador y la catarata.
-• Incluye recogida en la zona del centro de La Fortuna.';
+        $mini2ItineraryId = $createItinerary('Minicombo 2', [
+            ['title' => 'Salida', 'description' => 'Recogida'],
+            ['title' => 'Volcán', 'description' => 'Caminata'],
+            ['title' => 'Catarata', 'description' => 'Visita'],
+            ['title' => 'Almuerzo', 'description' => 'Comida'],
+            ['title' => 'Regreso', 'description' => 'Vuelta']
+        ]);
 
         $minicombo2 = Tour::create([
             'name'         => 'Minicombo 2 (Caminata al Volcán Arenal + Catarata de La Fortuna + Almuerzo)',
-            'overview'     => $minicombo2Overview,
-            'adult_price'  => 136,
-            'kid_price'    => 102,
+            'overview'     => 'Si has venido a Costa Rica por sus increíbles volcanes...',
             'length'       => 6,
+            'max_capacity' => 12,
+            'group_size'   => 12,
             'tour_type_id' => 1,
             'color'        => '#DC626D',
             'is_active'    => true,
+            'is_draft'     => false,
+            'current_step' => 6,
+            'itinerary_id' => $mini2ItineraryId,
+            'cutoff_hour'  => '18:00',
+            'lead_days'    => 1,
         ]);
 
+        $this->translateTour($minicombo2, ['en', 'fr', 'de', 'pt']);
+        $this->createPricesForTour($minicombo2, ['adult' => 136, 'kid' => 102, 'infante' => 0]);
+
         DB::table('schedule_tour')->insert([
-            ['tour_id' => $minicombo2->tour_id, 'schedule_id' => $sharedMidId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $minicombo2->tour_id, 'schedule_id' => $sharedMidId, 'is_active' => true, 'base_capacity' => 12, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         DB::table('tour_language_tour')->insert([
@@ -272,39 +368,44 @@ Luego, visitarás la Catarata La Fortuna, donde podrás refrescarte en su reluci
 
         foreach ([1, 2, 3, 4, 5] as $a) {
             DB::table('amenity_tour')->insert([
-                'tour_id' => $minicombo2->tour_id, 'amenity_id' => $a, 'is_active' => true,
-                'created_at' => $now, 'updated_at' => $now,
-            ]);
-        }
-        foreach ([6, 7, 8, 9] as $a) {
-            DB::table('excluded_amenity_tour')->insert([
-                'tour_id' => $minicombo2->tour_id, 'amenity_id' => $a, 'is_active' => true,
-                'created_at' => $now, 'updated_at' => $now,
+                'tour_id' => $minicombo2->tour_id,
+                'amenity_id' => $a,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
             ]);
         }
 
         // ========== Minicombo 3 ==========
-        $minicombo3Overview = 'La Catarata La Fortuna, con sus 70 metros (230 pies) de altura y rodeada de un exuberante bosque lluvioso, es una de las atracciones más fotografiadas de la región.
-En este tour de medio día, disfruta de la ruta escénica mientras navegas por el río en una balsa y luego refréscate nadando bajo la cascada.
-En el camino, mantente atento para avistar aves exóticas, monos aulladores y perezosos; visita el hogar de una familia tradicional costarricense y saborea un delicioso almuerzo en un restaurante local.
-• Vistas magníficas y oportunidad de nadar en la Catarata La Fortuna.
-• Tour exprés: combina vida silvestre y cultura en este itinerario de medio día.
-• Recogida y regreso sin complicaciones en tu hotel en La Fortuna.
-• Tour íntimo en grupo pequeño, con un máximo de 12 personas (6 por balsa).';
+        $mini3ItineraryId = $createItinerary('Minicombo 3', [
+            ['title' => 'Salida', 'description' => 'Recogida'],
+            ['title' => 'Safari', 'description' => 'Bote en río'],
+            ['title' => 'Catarata', 'description' => 'Visita'],
+            ['title' => 'Almuerzo', 'description' => 'Comida'],
+            ['title' => 'Regreso', 'description' => 'Vuelta']
+        ]);
 
         $minicombo3 = Tour::create([
             'name'         => 'Minicombo 3 (Safari Flotante + Catarata de La Fortuna + Almuerzo)',
-            'overview'     => $minicombo3Overview,
-            'adult_price'  => 136,
-            'kid_price'    => 102,
+            'overview'     => 'La Catarata La Fortuna, con sus 70 metros...',
             'length'       => 6,
+            'max_capacity' => 12,
+            'group_size'   => 12,
             'tour_type_id' => 1,
             'color'        => '#DC626D',
             'is_active'    => true,
+            'is_draft'     => false,
+            'current_step' => 6,
+            'itinerary_id' => $mini3ItineraryId,
+            'cutoff_hour'  => '18:00',
+            'lead_days'    => 1,
         ]);
 
+        $this->translateTour($minicombo3, ['en', 'fr', 'de', 'pt']);
+        $this->createPricesForTour($minicombo3, ['adult' => 136, 'kid' => 102, 'infante' => 0]);
+
         DB::table('schedule_tour')->insert([
-            ['tour_id' => $minicombo3->tour_id, 'schedule_id' => $sharedMidId, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
+            ['tour_id' => $minicombo3->tour_id, 'schedule_id' => $sharedMidId, 'is_active' => true, 'base_capacity' => 12, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         DB::table('tour_language_tour')->insert([
@@ -314,17 +415,86 @@ En el camino, mantente atento para avistar aves exóticas, monos aulladores y pe
 
         foreach ([1, 2, 3, 4, 5, 6] as $a) {
             DB::table('amenity_tour')->insert([
-                'tour_id' => $minicombo3->tour_id, 'amenity_id' => $a, 'is_active' => true,
-                'created_at' => $now, 'updated_at' => $now,
+                'tour_id' => $minicombo3->tour_id,
+                'amenity_id' => $a,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
             ]);
         }
         foreach ([7, 8, 9] as $a) {
             DB::table('excluded_amenity_tour')->insert([
-                'tour_id' => $minicombo3->tour_id, 'amenity_id' => $a, 'is_active' => true,
-                'created_at' => $now, 'updated_at' => $now,
+                'tour_id' => $minicombo3->tour_id,
+                'amenity_id' => $a,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
             ]);
         }
 
-        $this->command->info('✅ Tours seeded successfully with auto-generated slugs');
+        $this->command->info('✅ Tours seeded successfully with itineraries, schedules and correct pricing');
+    }
+
+    /**
+     * Translate tour name and overview to target locales using DeepL
+     */
+    private function translateTour(Tour $tour, array $targetLocales): void
+    {
+        if (!$this->translator) {
+            $this->command->warn("⚠️  Skipping translations for tour: {$tour->name}");
+            return;
+        }
+
+        foreach ($targetLocales as $locale) {
+            try {
+                $translatedName = $this->translator->translateText(
+                    $tour->name,
+                    'es',
+                    $locale
+                )->text;
+
+                $translatedOverview = $this->translator->translateText(
+                    $tour->overview,
+                    'es',
+                    $locale
+                )->text;
+
+                TourTranslation::create([
+                    'tour_id' => $tour->tour_id,
+                    'locale' => $locale,
+                    'name' => $translatedName,
+                    'overview' => $translatedOverview,
+                ]);
+
+                $this->command->info("  ✓ Translated to {$locale}: {$translatedName}");
+            } catch (\Exception $e) {
+                $this->command->error("  ✗ Failed to translate to {$locale}: " . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Create prices for tour using customer categories
+     */
+    private function createPricesForTour(Tour $tour, array $prices): void
+    {
+        $categories = CustomerCategory::whereIn('slug', array_keys($prices))->get();
+
+        foreach ($categories as $category) {
+            if (isset($prices[$category->slug]) && $prices[$category->slug] >= 0) { // Changed > 0 to >= 0 to allow free categories like infant
+                TourPrice::create([
+                    'tour_id' => $tour->tour_id,
+                    'category_id' => $category->category_id,
+                    'price' => $prices[$category->slug],
+                    'is_active' => true,
+                    'min_quantity' => 0,
+                    'max_quantity' => 12,
+                    'valid_from' => null,
+                    'valid_until' => null,
+                ]);
+
+                $this->command->info("  ✓ Price created for {$category->slug}: \${$prices[$category->slug]}");
+            }
+        }
     }
 }

@@ -3,12 +3,14 @@
 @section('title', 'Gestión de Usuarios')
 
 @section('content_header')
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <h1 class="mb-0">Gestión de Usuarios</h1>
-    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-      <i class="fas fa-plus me-1"></i> Añadir Usuario
-    </button>
-  </div>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+  <h1 class="mb-0">Gestión de Usuarios</h1>
+  @can('create-users')
+  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
+    <i class="fas fa-plus me-1"></i> Añadir Usuario
+  </button>
+  @endcan
+</div>
 @stop
 
 @section('content')
@@ -27,9 +29,9 @@
               <select name="rol" id="rol" class="form-select form-select-sm">
                 <option value="">-- Todos --</option>
                 @foreach ($roles as $rol)
-                  <option value="{{ $rol->role_id }}" {{ request('rol') == $rol->role_id ? 'selected' : '' }}>
-                    {{ $rol->role_name }}
-                  </option>
+                <option value="{{ $rol->role_id }}" {{ request('rol') == $rol->role_id ? 'selected' : '' }}>
+                  {{ $rol->role_name }}
+                </option>
                 @endforeach
               </select>
             </div>
@@ -48,11 +50,11 @@
           <div class="w-100" style="max-width: 760px;">
             <div class="fw-semibold mb-1">Filtrar por correo:</div>
             <input type="email"
-                   name="email"
-                   id="email"
-                   class="form-control"
-                   placeholder="ejemplo@correo.com"
-                   value="{{ request('email') }}">
+              name="email"
+              id="email"
+              class="form-control"
+              placeholder="ejemplo@correo.com"
+              value="{{ request('email') }}">
           </div>
 
           {{-- Fila: botones (mismo ancho y centrados) --}}
@@ -83,7 +85,6 @@
       <table class="table table-striped table-bordered table-hover align-middle">
         <thead class="table-dark">
           <tr>
-            <th>ID</th>
             <th>Nombre</th>
             <th>Email</th>
             <th>Rol</th>
@@ -95,12 +96,11 @@
           </tr>
         </thead>
         <tbody>
-        @foreach ($users as $user)
+          @foreach ($users as $user)
           <tr>
-            <td>{{ $user->user_id }}</td>
             <td><strong>{{ $user->full_name }}</strong></td>
             <td>{{ $user->email }}</td>
-            <td>{{ $user->role->role_name ?? 'Sin rol' }}</td>
+            <td>{{ $user->getRoleNames()->first() ?? 'Sin rol' }}</td>
             <td>{{ trim(($user->country_code ?? '').' '.($user->phone ?? '')) }}</td>
             <td>
               <span class="badge {{ $user->status ? 'bg-success' : 'bg-secondary' }}">
@@ -109,49 +109,63 @@
             </td>
             <td class="text-center">
               @if ($user->email_verified_at)
-                <span class="badge bg-info"><i class="fas fa-check-circle"></i></span>
+              <span class="badge bg-info"><i class="fas fa-check-circle"></i></span>
               @else
-                <span class="badge bg-danger"><i class="fas fa-times-circle"></i></span>
+              <span class="badge bg-danger"><i class="fas fa-times-circle"></i></span>
               @endif
             </td>
             <td class="text-center">
               @if (!empty($user->is_locked) && $user->is_locked)
-                <span class="badge bg-warning"><i class="fas fa-lock"></i></span>
+              <span class="badge bg-warning"><i class="fas fa-lock"></i></span>
               @else
-                <span class="badge bg-secondary"><i class="fas fa-unlock"></i></span>
+              <span class="badge bg-secondary"><i class="fas fa-unlock"></i></span>
               @endif
             </td>
             <td>
               <div class="btn-group btn-group-sm">
+                @can('edit-users')
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalEditarDesktop{{ $user->user_id }}" title="Editar">
                   <i class="fas fa-edit"></i>
                 </button>
+                @endcan
+                @can('delete-users')
                 <button type="button" class="btn {{ $user->status ? 'btn-danger' : 'btn-success' }} toggle-status-btn"
-                        data-url="{{ route('admin.users.destroy', $user->user_id) }}"
-                        data-status="{{ $user->status }}"
-                        data-name="{{ $user->full_name }}"
-                        title="{{ $user->status ? 'Desactivar' : 'Activar' }}">
+                  data-url="{{ route('admin.users.destroy', $user->user_id) }}"
+                  data-status="{{ $user->status }}"
+                  data-name="{{ $user->full_name }}"
+                  title="{{ $user->status ? 'Desactivar' : 'Activar' }}">
                   <i class="fas {{ $user->status ? 'fa-user-slash' : 'fa-user-check' }}"></i>
                 </button>
+                @endcan
+                @can('edit-users')
                 <button type="button" class="btn {{ $user->is_locked ? 'btn-secondary' : 'btn-warning' }} toggle-lock-btn"
-                        data-url="{{ $user->is_locked ? route('admin.users.unlock', $user->user_id) : route('admin.users.lock', $user->user_id) }}"
-                        data-locked="{{ $user->is_locked ? 1 : 0 }}"
-                        data-name="{{ $user->full_name }}"
-                        title="{{ $user->is_locked ? 'Desbloquear' : 'Bloquear' }}">
+                  data-url="{{ $user->is_locked ? route('admin.users.unlock', $user->user_id) : route('admin.users.lock', $user->user_id) }}"
+                  data-locked="{{ $user->is_locked ? 1 : 0 }}"
+                  data-name="{{ $user->full_name }}"
+                  title="{{ $user->is_locked ? 'Desbloquear' : 'Bloquear' }}">
                   <i class="fas {{ $user->is_locked ? 'fa-unlock' : 'fa-lock' }}"></i>
                 </button>
+                @endcan
                 @if (empty($user->email_verified_at))
-                  <button type="button" class="btn btn-info verify-email-btn"
-                          data-url="{{ route('admin.users.markVerified', $user->user_id) }}"
-                          data-name="{{ $user->full_name }}"
-                          title="Marcar como verificado">
-                    <i class="fas fa-check-circle"></i>
-                  </button>
+                <button type="button" class="btn btn-info verify-email-btn"
+                  data-url="{{ route('admin.users.markVerified', $user->user_id) }}"
+                  data-name="{{ $user->full_name }}"
+                  title="Marcar como verificado">
+                  <i class="fas fa-check-circle"></i>
+                </button>
+                @endif
+                @if ($user->two_factor_secret)
+                <button type="button" class="btn btn-danger disable-2fa-btn"
+                  data-url="{{ route('admin.users.disable2FA', $user->user_id) }}"
+                  data-name="{{ $user->full_name }}"
+                  title="Desactivar 2FA">
+                  <i class="fas fa-shield-alt"></i>
+                </button>
                 @endif
               </div>
             </td>
           </tr>
-        @endforeach
+          @endforeach
         </tbody>
       </table>
     </div>
@@ -160,65 +174,72 @@
   {{-- Vista Mobile: Cards --}}
   <div class="d-lg-none">
     @foreach ($users as $user)
-      <div class="card mb-3 shadow-sm">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <div>
-              <h5 class="mb-1">{{ $user->full_name }}</h5>
-              <p class="text-muted small mb-1">
-                <i class="fas fa-envelope me-1"></i>{{ $user->email }}
-              </p>
-              <p class="text-muted small mb-0">
-                <i class="fas fa-phone me-1"></i>{{ trim(($user->country_code ?? '').' '.($user->phone ?? '')) }}
-              </p>
-            </div>
-            <div class="d-flex flex-column gap-1 align-items-end">
-              <span class="badge {{ $user->status ? 'bg-success' : 'bg-secondary' }}">
-                {{ $user->status ? 'Activo' : 'Inactivo' }}
-              </span>
-              <span class="badge bg-primary">{{ $user->role->role_name ?? 'Sin rol' }}</span>
-            </div>
+    <div class="card mb-3 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <h5 class="mb-1">{{ $user->full_name }}</h5>
+            <p class="text-muted small mb-1">
+              <i class="fas fa-envelope me-1"></i>{{ $user->email }}
+            </p>
+            <p class="text-muted small mb-0">
+              <i class="fas fa-phone me-1"></i>{{ trim(($user->country_code ?? '').' '.($user->phone ?? '')) }}
+            </p>
           </div>
-
-          <div class="d-flex gap-2 mb-2">
-            @if ($user->email_verified_at)
-              <span class="badge bg-info"><i class="fas fa-check-circle me-1"></i>Verificado</span>
-            @else
-              <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>No verificado</span>
-            @endif
-            @if ($user->is_locked)
-              <span class="badge bg-warning"><i class="fas fa-lock me-1"></i>Bloqueado</span>
-            @endif
-          </div>
-
-          <div class="d-flex gap-2 flex-wrap">
-            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalEditarMobile{{ $user->user_id }}">
-              <i class="fas fa-edit me-1"></i>Editar
-            </button>
-            <button type="button" class="btn btn-sm {{ $user->status ? 'btn-danger' : 'btn-success' }} toggle-status-btn"
-                    data-url="{{ route('admin.users.destroy', $user->user_id) }}"
-                    data-status="{{ $user->status }}"
-                    data-name="{{ $user->full_name }}">
-              <i class="fas {{ $user->status ? 'fa-user-slash' : 'fa-user-check' }} me-1"></i>
-              {{ $user->status ? 'Desactivar' : 'Activar' }}
-            </button>
-            <button type="button" class="btn btn-sm {{ $user->is_locked ? 'btn-secondary' : 'btn-warning' }} toggle-lock-btn"
-                    data-url="{{ $user->is_locked ? route('admin.users.unlock', $user->user_id) : route('admin.users.lock', $user->user_id) }}"
-                    data-locked="{{ $user->is_locked ? 1 : 0 }}"
-                    data-name="{{ $user->full_name }}">
-              <i class="fas {{ $user->is_locked ? 'fa-unlock' : 'fa-lock' }} me-1"></i>
-              {{ $user->is_locked ? 'Desbloquear' : 'Bloquear' }}
-            </button>
-            @if (empty($user->email_verified_at))
-              <button type="button" class="btn btn-sm btn-info verify-email-btn"
-                      data-url="{{ route('admin.users.markVerified', $user->user_id) }}"
-                      data-name="{{ $user->full_name }}">
-                <i class="fas fa-check-circle me-1"></i>Verificar
-              </button>
-            @endif
+          <div class="d-flex flex-column gap-1 align-items-end">
+            <span class="badge {{ $user->status ? 'bg-success' : 'bg-secondary' }}">
+              {{ $user->status ? 'Activo' : 'Inactivo' }}
+            </span>
+            <span class="badge bg-primary">{{ $user->getRoleNames()->first() ?? 'Sin rol' }}</span>
           </div>
         </div>
+
+        <div class="d-flex gap-2 mb-2">
+          @if ($user->email_verified_at)
+          <span class="badge bg-info"><i class="fas fa-check-circle me-1"></i>Verificado</span>
+          @else
+          <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>No verificado</span>
+          @endif
+          @if ($user->is_locked)
+          <span class="badge bg-warning"><i class="fas fa-lock me-1"></i>Bloqueado</span>
+          @endif
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalEditarMobile{{ $user->user_id }}">
+            <i class="fas fa-edit me-1"></i>Editar
+          </button>
+          <button type="button" class="btn btn-sm {{ $user->status ? 'btn-danger' : 'btn-success' }} toggle-status-btn"
+            data-url="{{ route('admin.users.destroy', $user->user_id) }}"
+            data-status="{{ $user->status }}"
+            data-name="{{ $user->full_name }}">
+            <i class="fas {{ $user->status ? 'fa-user-slash' : 'fa-user-check' }} me-1"></i>
+            {{ $user->status ? 'Desactivar' : 'Activar' }}
+          </button>
+          <button type="button" class="btn btn-sm {{ $user->is_locked ? 'btn-secondary' : 'btn-warning' }} toggle-lock-btn"
+            data-url="{{ $user->is_locked ? route('admin.users.unlock', $user->user_id) : route('admin.users.lock', $user->user_id) }}"
+            data-locked="{{ $user->is_locked ? 1 : 0 }}"
+            data-name="{{ $user->full_name }}">
+            <i class="fas {{ $user->is_locked ? 'fa-unlock' : 'fa-lock' }} me-1"></i>
+            {{ $user->is_locked ? 'Desbloquear' : 'Bloquear' }}
+          </button>
+          @if (empty($user->email_verified_at))
+          <button type="button" class="btn btn-sm btn-info verify-email-btn"
+            data-url="{{ route('admin.users.markVerified', $user->user_id) }}"
+            data-name="{{ $user->full_name }}">
+            <i class="fas fa-check-circle me-1"></i>Verificar
+          </button>
+          @endif
+          @if ($user->two_factor_secret)
+          <button type="button" class="btn btn-sm btn-danger disable-2fa-btn"
+            data-url="{{ route('admin.users.disable2FA', $user->user_id) }}"
+            data-name="{{ $user->full_name }}">
+            <i class="fas fa-shield-alt me-1"></i>Desactivar 2FA
+          </button>
+          @endif
+        </div>
       </div>
+    </div>
     @endforeach
   </div>
 
@@ -247,7 +268,7 @@
             <label class="form-label">Rol <span class="text-danger">*</span></label>
             <select name="role_id" class="form-select" required>
               @foreach ($roles as $role)
-                <option value="{{ $role->role_id }}">{{ $role->role_name }}</option>
+              <option value="{{ $role->id }}">{{ $role->name }}</option>
               @endforeach
             </select>
           </div>
@@ -317,9 +338,9 @@
             <label class="form-label">Rol</label>
             <select name="role_id" class="form-select" required>
               @foreach ($roles as $role)
-                <option value="{{ $role->role_id }}" {{ $user->role_id == $role->role_id ? 'selected' : '' }}>
-                  {{ $role->role_name }}
-                </option>
+              <option value="{{ $role->id }}" {{ $user->getRoleNames()->contains($role->name) ? 'selected' : '' }}>
+                {{ $role->name }}
+              </option>
               @endforeach
             </select>
           </div>
@@ -390,9 +411,9 @@
             <label class="form-label">Rol</label>
             <select name="role_id" class="form-select" required>
               @foreach ($roles as $role)
-                <option value="{{ $role->role_id }}" {{ $user->role_id == $role->role_id ? 'selected' : '' }}>
-                  {{ $role->role_name }}
-                </option>
+              <option value="{{ $role->id }}" {{ $user->getRoleNames()->contains($role->name) ? 'selected' : '' }}>
+                {{ $role->name }}
+              </option>
               @endforeach
             </select>
           </div>
@@ -435,103 +456,154 @@
 <form id="statusForm" method="POST" style="display:none;">@csrf @method('DELETE')</form>
 <form id="lockForm" method="POST" style="display:none;">@csrf @method('PATCH')</form>
 <form id="verifyForm" method="POST" style="display:none;">@csrf @method('PATCH')</form>
+<form id="disable2FAForm" method="POST" style="display:none;">@csrf @method('PATCH')</form>
 
 @stop
 
 @section('css')
 <style>
-/* ayuda a que los select no se achiquen */
-.minw-200{min-width:200px}
-.password-wrapper{position:relative}
-.toggle-password-abs{
-  position:absolute;top:50%;right:.75rem;transform:translateY(-50%);
-  opacity:.7;cursor:pointer
-}
-.toggle-password-abs:hover{opacity:1}
-.password-reqs li{margin:.25rem 0}
-.card{transition:box-shadow .2s}
-.card:hover{box-shadow:0 4px 8px rgba(0,0,0,.1)}
+  /* ayuda a que los select no se achiquen */
+  .minw-200 {
+    min-width: 200px
+  }
+
+  .password-wrapper {
+    position: relative
+  }
+
+  .toggle-password-abs {
+    position: absolute;
+    top: 50%;
+    right: .75rem;
+    transform: translateY(-50%);
+    opacity: .7;
+    cursor: pointer
+  }
+
+  .toggle-password-abs:hover {
+    opacity: 1
+  }
+
+  .password-reqs li {
+    margin: .25rem 0
+  }
+
+  .card {
+    transition: box-shadow .2s
+  }
+
+  .card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, .1)
+  }
 </style>
 @stop
 
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-const confirm = (title, text) => Swal.fire({
-  title, text, icon: 'warning', showCancelButton: true,
-  confirmButtonText: 'Sí, continuar', cancelButtonText: 'Cancelar', confirmButtonColor: '#dc3545'
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-  // Mostrar/Ocultar contraseña
-  document.body.addEventListener('click', e => {
-    const icon = e.target.closest('.toggle-password-abs');
-    if (!icon) return;
-    const input = icon.previousElementSibling;
-    if (!input) return;
-    input.type = input.type === 'password' ? 'text' : 'password';
-    icon.classList.toggle('fa-eye');
-    icon.classList.toggle('fa-eye-slash');
+  const confirm = (title, text) => Swal.fire({
+    title,
+    text,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, continuar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#dc3545'
   });
 
-  // Des/activar
-  document.querySelectorAll('.toggle-status-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const url = this.dataset.url;
-      const status = this.dataset.status === '1';
-      const name = this.dataset.name;
-      confirm(
-        status ? '¿Desactivar usuario?' : '¿Activar usuario?',
-        `${name} será ${status ? 'desactivado' : 'activado'}`
-      ).then(r => {
-        if (r.isConfirmed) {
-          document.getElementById('statusForm').action = url;
-          document.getElementById('statusForm').submit();
-        }
-      });
+  document.addEventListener('DOMContentLoaded', () => {
+    // Mostrar/Ocultar contraseña
+    document.body.addEventListener('click', e => {
+      const icon = e.target.closest('.toggle-password-abs');
+      if (!icon) return;
+      const input = icon.previousElementSibling;
+      if (!input) return;
+      input.type = input.type === 'password' ? 'text' : 'password';
+      icon.classList.toggle('fa-eye');
+      icon.classList.toggle('fa-eye-slash');
     });
-  });
 
-  // Bloquear/Desbloquear
-  document.querySelectorAll('.toggle-lock-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const url = this.dataset.url;
-      const locked = this.dataset.locked === '1';
-      const name = this.dataset.name;
-      confirm(
-        locked ? '¿Desbloquear usuario?' : '¿Bloquear usuario?',
-        `${name} será ${locked ? 'desbloqueado' : 'bloqueado'}`
-      ).then(r => {
-        if (r.isConfirmed) {
-          document.getElementById('lockForm').action = url;
-          document.getElementById('lockForm').submit();
-        }
-      });
-    });
-  });
-
-  // Verificar email
-  document.querySelectorAll('.verify-email-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const url = this.dataset.url;
-      const name = this.dataset.name;
-      confirm('¿Marcar como verificado?', `${name} será marcado con email verificado`)
-        .then(r => {
+    // Des/activar
+    document.querySelectorAll('.toggle-status-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const url = this.dataset.url;
+        const status = this.dataset.status === '1';
+        const name = this.dataset.name;
+        confirm(
+          status ? '¿Desactivar usuario?' : '¿Activar usuario?',
+          `${name} será ${status ? 'desactivado' : 'activado'}`
+        ).then(r => {
           if (r.isConfirmed) {
-            document.getElementById('verifyForm').action = url;
-            document.getElementById('verifyForm').submit();
+            document.getElementById('statusForm').action = url;
+            document.getElementById('statusForm').submit();
           }
         });
+      });
     });
-  });
 
-  // Flash
-  @if(session('success'))
-    Swal.fire({ icon:'success', title:'Éxito', text:@json(session('success')) });
-  @endif
-  @if(session('error'))
-    Swal.fire({ icon:'error', title:'Error', text:@json(session('error')) });
-  @endif
-});
+    // Bloquear/Desbloquear
+    document.querySelectorAll('.toggle-lock-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const url = this.dataset.url;
+        const locked = this.dataset.locked === '1';
+        const name = this.dataset.name;
+        confirm(
+          locked ? '¿Desbloquear usuario?' : '¿Bloquear usuario?',
+          `${name} será ${locked ? 'desbloqueado' : 'bloqueado'}`
+        ).then(r => {
+          if (r.isConfirmed) {
+            document.getElementById('lockForm').action = url;
+            document.getElementById('lockForm').submit();
+          }
+        });
+      });
+    });
+
+    // Verificar email
+    document.querySelectorAll('.verify-email-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const url = this.dataset.url;
+        const name = this.dataset.name;
+        confirm('¿Marcar como verificado?', `${name} será marcado con email verificado`)
+          .then(r => {
+            if (r.isConfirmed) {
+              document.getElementById('verifyForm').action = url;
+              document.getElementById('verifyForm').submit();
+            }
+          });
+      });
+    });
+
+    // Desactivar 2FA
+    document.querySelectorAll('.disable-2fa-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const url = this.dataset.url;
+        const name = this.dataset.name;
+        confirm('¿Desactivar 2FA?', `Se desactivará la autenticación de dos factores para ${name}`)
+          .then(r => {
+            if (r.isConfirmed) {
+              document.getElementById('disable2FAForm').action = url;
+              document.getElementById('disable2FAForm').submit();
+            }
+          });
+      });
+    });
+
+    // Flash
+    @if(session('success'))
+    Swal.fire({
+      icon: 'success',
+      title: 'Éxito',
+      text: @json(session('success'))
+    });
+    @endif
+    @if(session('error'))
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: @json(session('error'))
+    });
+    @endif
+  });
 </script>
 @stop

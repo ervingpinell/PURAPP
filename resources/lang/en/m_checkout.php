@@ -31,7 +31,7 @@ return [
         'item'               => 'item',
         'items'              => 'items',
         'free_cancellation'  => 'Free cancellation',
-        'free_cancellation_until' => 'Until :time on :date',
+        'free_cancellation_until' => 'Before :time on :date',
         'subtotal'           => 'Subtotal',
         'promo_code'         => 'Promo code',
         'total'              => 'Total',

@@ -9,9 +9,11 @@
 @section('content')
 <div class="p-3 table-responsive">
 
+    @can('create-amenities')
     <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
         <i class="fas fa-plus"></i> {{ __('m_tours.amenity.ui.add') }}
     </a>
+    @endcan
 
     <table class="table table-bordered table-striped table-hover align-middle">
         <thead class="bg-primary text-white">
@@ -41,6 +43,7 @@
                 </td>
                 <td class="text-nowrap">
                     {{-- Editar --}}
+                    @can('edit-amenities')
                     <a href="#" class="btn btn-edit btn-sm"
                         data-bs-toggle="modal"
                         data-bs-target="#modalEditar{{ $amenity->amenity_id }}"
@@ -48,7 +51,10 @@
                         <i class="fas fa-edit"></i>
                     </a>
 
+                    @endcan
+
                     {{-- Toggle (PATCH) --}}
+                    @can('publish-amenities')
                     <form action="{{ route('admin.tours.amenities.toggle', $amenity->amenity_id) }}"
                         method="POST"
                         class="d-inline form-toggle-amenity"
@@ -62,8 +68,10 @@
                             <i class="fas {{ $icon }}"></i>
                         </button>
                     </form>
+                    @endcan
 
                     {{-- Eliminar definitivo --}}
+                    @can('delete-amenities')
                     <form action="{{ route('admin.tours.amenities.destroy', $amenity->amenity_id) }}"
                         method="POST"
                         class="d-inline form-delete-amenity"
@@ -76,6 +84,7 @@
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
+                    @endcan
                 </td>
             </tr>
 
@@ -248,11 +257,11 @@
         confirmButtonColor: '#d33'
     });
     @endif
-    @if($errors->has('name'))
+    @if($errors-> has('name'))
     Swal.fire({
         icon: 'error',
         title: @json(__('m_tours.amenity.validation.name.title')),
-        text: @json($errors->first('name')),
+        text: @json($errors-> first('name')),
         confirmButtonColor: '#d33'
     });
     document.addEventListener('DOMContentLoaded', function() {

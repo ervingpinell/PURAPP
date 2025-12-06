@@ -48,9 +48,10 @@ class CreateNewUser implements CreatesNewUsers
             'phone'        => $input['phone'],        // mutator deja solo dígitos
             'password'     => Hash::make($input['password']),
             'status'       => true,
-            'role_id'      => 3,   // cliente
             'is_locked'    => false,
         ]);
+
+        $user->assignRole('customer');
 
         return $user;
     }

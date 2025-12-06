@@ -49,9 +49,11 @@
       </div>
 
       <div class="mt-3">
+        @can('edit-tour-availability')
         <button type="submit" class="btn btn-success">
           <i class="fas fa-save me-1"></i> {{ __('m_config.cut-off.actions.save_global') }}
         </button>
+        @endcan
       </div>
     </form>
   </div>

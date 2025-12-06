@@ -268,7 +268,7 @@ return [
     'password_email_url'  => 'forgot-password',
     'profile_url'         => false,
     'disable_darkmode_routes' => false,
-    'home_url'            => 'home',
+    'home_url'            => 'admin.home',
 
     /*
     |--------------------------------------------------------------------------
@@ -327,17 +327,20 @@ return [
                 [
                     'header' => 'menu.general',
                     'trans' => true,
+                    'can'   => 'view-bookings',
                 ],
                 [
                     'text'  => 'menu.bookings_list',
                     'route' => 'admin.bookings.index',
                     'icon'  => 'fas fa-calendar-check',
+                    'can'   => 'view-bookings', // Added permission
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.promo_codes',
                     'route' => 'admin.promoCodes.index',
                     'icon'  => 'fas fa-tags',
+                    'can'   => 'view-promo-codes', // Added permission
                     'trans' => true,
                 ],
                 // [
@@ -350,24 +353,28 @@ return [
                 [
                     'header' => 'menu.availability',
                     'trans' => true,
+                    'can'   => 'view-tour-availability',
                 ],
 
                 [
                     'text'  => 'menu.blocked_dates',
                     'route' => 'admin.tours.excluded_dates.index',
                     'icon'  => 'fas fa-ban',
+                    'can'   => 'view-tour-availability',
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.capacity',
                     'route' => 'admin.tours.capacity.index',
                     'icon'  => 'fas fa-calendar-alt',
+                    'can'   => 'view-tour-availability',
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.cutoff',
                     'route' => 'admin.tours.cutoff.edit',
                     'icon'  => 'fas fa-clock',
+                    'can'   => 'view-tour-availability',
                     'trans' => true,
                 ],
             ],
@@ -382,34 +389,40 @@ return [
                 [
                     'header' => 'menu.general',
                     'trans' => true,
+                    'can'   => 'view-tours',
                 ],
                 [
                     'text'  => 'menu.all_tours',
                     'route' => 'admin.tours.index',
                     'icon'  => 'fas fa-map-marked-alt',
+                    'can'   => 'view-tours', // Visibility via view
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.order_tours',
-                    'route' => 'admin.tours.order.index',
+                    'route' => 'admin.tours.order.index', // Already validated
                     'icon'  => 'fas fa-sort-amount-down',
+                    'can'   => 'view-tours', // Visibility via view, access protected by route
                     'trans' => true,
                 ],
                 [
                     'header' => 'menu.images',
                     'trans' => true,
+                    'can'   => 'view-tour-images',
                 ],
 
                 [
                     'text'  => 'menu.tour_images',
-                    'route' => 'admin.tours.images.pick',
+                    'route' => 'admin.tours.images.pick', // FIXED ROUTE
                     'icon'  => 'fas fa-images',
+                    'can'   => 'view-tour-images', // Updated permission
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.category_covers',
-                    'route' => 'admin.types.images.pick',
+                    'route' => 'admin.types.images.pick', // Already validated
                     'icon'  => 'fas fa-image',
+                    'can'   => 'view-tour-images', // Changed from view-tour-types to unified permission
                     'trans' => true,
                 ],
 
@@ -421,53 +434,62 @@ return [
                     'text'  => 'menu.customer_types',
                     'route' => 'admin.customer_categories.index',
                     'icon'  => 'fas fa-tags',
+                    'can'   => 'view-customer-categories', // Changed from manage-customer-categories
                     'trans' => true,
                 ],
 
                 [
                     'text'  => 'menu.tour_types',
-                    'route' => 'admin.tourtypes.index',
+                    'route' => 'admin.tourtypes.index', // Fixed lowercase
                     'icon'  => 'fas fa-tags',
+                    'can'   => 'view-tour-types', // Added permission
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.amenities',
                     'route' => 'admin.tours.amenities.index',
                     'icon'  => 'fas fa-concierge-bell',
+                    'can'   => 'view-amenities', // Added permission
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.schedules',
                     'route' => 'admin.tours.schedule.index',
                     'icon'  => 'fas fa-calendar-alt',
+                    'can'   => 'view-tour-availability',
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.languages',
                     'route' => 'admin.languages.index',
                     'icon'  => 'fas fa-globe',
+                    'can'   => 'view-settings', // Changed from manage-settings
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.itineraries',
                     'route' => 'admin.tours.itinerary.index',
                     'icon'  => 'fas fa-route',
+                    'can'   => 'view-tours', // Visibility via view, access protected by route
                     'trans' => true,
                 ],
                 [
                     'header' => 'menu.pickups',
                     'trans' => true,
+                    'can'   => 'view-meeting-points',
                 ],
                 [
                     'text'  => 'menu.hotels_list',
                     'route' => 'admin.hotels.index',
                     'icon'  => 'fas fa-list',
+                    'can'   => 'view-hotels', // Updated permission
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.meeting_points',
                     'route' => 'admin.meetingpoints.index',
                     'icon'  => 'fas fa-map-marker-alt',
+                    'can'   => 'view-meeting-points', // Updated permission
                     'trans' => true,
                 ],
             ],
@@ -477,7 +499,7 @@ return [
         [
             'text'    => 'menu.reviews',
             'icon'    => 'fas fa-star',
-            'can'     => 'manage-reviews',
+            'can'     => 'view-reviews',
             'trans'   => true,
             'submenu' => [
                 [
@@ -485,25 +507,36 @@ return [
                     'trans' => true,
                 ],
                 [
+                    'text'  => 'menu.languages', // "Idiomas"
+                    'route' => 'admin.translations.index',
+                    'icon'  => 'fas fa-language',
+                    'can'   => 'view-translations',
+                    'trans' => true,
+                ],
+                [
                     'text'  => 'menu.all_reviews',
                     'route' => 'admin.reviews.index',
                     'icon'  => 'fas fa-star',
+                    'can'   => 'view-reviews',
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.request_reviews',
-                    'route' => 'admin.review-requests.index',
+                    'route' => 'admin.review-requests.index', // Fixed route
                     'icon'  => 'fas fa-envelope-open-text',
+                    'can'   => 'view-review-requests',
                     'trans' => true,
                 ],
                 [
                     'header' => 'menu.review_settings',
                     'trans' => true,
+                    'can'   => 'view-review-providers',
                 ],
                 [
                     'text'  => 'menu.review_providers',
-                    'route' => 'admin.review-providers.index',
+                    'route' => 'admin.review-providers.index', // Fixed route
                     'icon'  => 'fas fa-plug',
+                    'can'   => 'view-review-providers',
                     'trans' => true,
                 ],
             ],
@@ -519,35 +552,41 @@ return [
                 [
                     'header' => 'menu.settings_general', // ej: "Configuración general"
                     'trans'  => true,
+                    'can'    => 'view-settings',
                 ],
                 [
                     'text'  => 'menu.faq',
                     'route' => 'admin.faqs.index',
                     'icon'  => 'fas fa-question-circle',
+                    'can'   => 'view-faqs', // Added permission
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.policies',
                     'route' => 'admin.policies.index',
                     'icon'  => 'fas fa-info-circle',
+                    'can'   => 'view-policies', // Added permission
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.translations',
                     'route' => 'admin.translations.index',
                     'icon'  => 'fas fa-language',
+                    'can'   => 'view-translations', // Added permission
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.app',
                     'route' => 'admin.settings.index',
                     'icon'  => 'fas fa-cogs',
+                    'can'   => 'view-settings', // Added permission
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.taxes',
                     'route' => 'admin.taxes.index',
                     'icon'  => 'fas fa-info-circle',
+                    'can'   => 'view-tours', // Visibility via view
                     'trans' => true,
                 ],
             ],
@@ -563,12 +602,14 @@ return [
                     'text'  => 'menu.my_cart',
                     'route' => 'admin.carts.index',
                     'icon'  => 'fas fa-shopping-cart',
+                    'can'   => 'view-carts',
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.active_carts',
                     'route' => 'admin.carts.all',
                     'icon'  => 'fas fa-list',
+                    'can'   => 'view-carts',
                     'trans' => true,
                 ],
             ],
@@ -583,14 +624,14 @@ return [
                     'text'  => 'menu.users_list',
                     'route' => 'admin.users.index',
                     'icon'  => 'fas fa-user-cog',
-                    'can'   => 'is-admin',
+                    'can'   => 'view-users', // Changed from is-admin
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.roles',
                     'route' => 'admin.roles.index',
                     'icon'  => 'fas fa-user-shield',
-                    'can'   => 'is-admin',
+                    'can'   => 'view-roles', // Changed from is-admin
                     'trans' => true,
                 ],
             ],
@@ -608,6 +649,7 @@ return [
             'text'  => 'menu.reports',
             'url'   => 'admin/reports',
             'icon'  => 'fas fa-chart-line',
+            'can'   => 'view-reports',
             'trans' => true,
         ],
 
@@ -616,6 +658,7 @@ return [
             'text'  => 'menu.payments',
             'url'   => 'admin/payments',
             'icon'  => 'fas fa-money-bill-wave',
+            'can'   => 'view-payments',
             'trans' => true,
         ],
         // 🌐 Selector de idioma (texto literal; sin 'trans')

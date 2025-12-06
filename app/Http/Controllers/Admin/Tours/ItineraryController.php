@@ -17,6 +17,15 @@ use App\Http\Requests\Tour\Itinerary\AssignItineraryItemsRequest;
 
 class ItineraryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-itineraries'])->only(['index']);
+        $this->middleware(['can:create-itineraries'])->only(['store']);
+        $this->middleware(['can:edit-itineraries'])->only(['update', 'assignItems', 'updateTranslations']);
+        $this->middleware(['can:publish-itineraries'])->only(['toggle']);
+        $this->middleware(['can:delete-itineraries'])->only(['destroy']);
+    }
+
     protected string $controller = 'ItineraryController';
 
     public function index(ItineraryService $service)

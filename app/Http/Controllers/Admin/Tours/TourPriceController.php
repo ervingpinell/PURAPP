@@ -14,6 +14,15 @@ use App\Services\LoggerHelper;
 
 class TourPriceController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-tour-prices'])->only(['index']);
+        $this->middleware(['can:create-tour-prices'])->only(['store']);
+        $this->middleware(['can:edit-tour-prices'])->only(['update', 'bulkUpdate', 'updateTaxes']);
+        $this->middleware(['can:publish-tour-prices'])->only(['toggle']);
+        $this->middleware(['can:delete-tour-prices'])->only(['destroy']);
+    }
+
     protected string $controller = 'TourPriceController';
 
     /**

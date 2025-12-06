@@ -13,6 +13,15 @@ use Illuminate\Support\Facades\DB;
 
 class CustomerCategoryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-customer-categories'])->only(['index']);
+        $this->middleware(['can:create-customer-categories'])->only(['create', 'store']);
+        $this->middleware(['can:edit-customer-categories'])->only(['edit', 'update']);
+        $this->middleware(['can:publish-customer-categories'])->only(['toggle']);
+        $this->middleware(['can:delete-customer-categories'])->only(['destroy']);
+    }
+
     public function index()
     {
         $categories = CustomerCategory::with('translations')->ordered()->paginate(20);
@@ -33,7 +42,11 @@ class CustomerCategoryController extends Controller
         DB::transaction(function () use ($request, $translator, $locales, $names, $auto) {
             // 1) Crear categoría base
             $category = CustomerCategory::create($request->safe()->only([
-                'slug','age_from','age_to','order','is_active'
+                'slug',
+                'age_from',
+                'age_to',
+                'order',
+                'is_active'
             ]));
 
             // 2) Preparar nombres: completar los vacíos si se pidió auto-translate
@@ -42,7 +55,11 @@ class CustomerCategoryController extends Controller
             if ($seedText === '') {
                 // fallback: primera clave no vacía
                 foreach ($locales as $l) {
-                    if (!empty($names[$l])) { $seedText = trim($names[$l]); $firstLocale = $l; break; }
+                    if (!empty($names[$l])) {
+                        $seedText = trim($names[$l]);
+                        $firstLocale = $l;
+                        break;
+                    }
                 }
             }
 
@@ -51,7 +68,7 @@ class CustomerCategoryController extends Controller
                 foreach ($locales as $l) {
                     if (empty($names[$l])) {
                         // Si el target es igual al detectado, no traducir (usar seed)
-                        $names[$l] = ($l === substr($detected,0,2))
+                        $names[$l] = ($l === substr($detected, 0, 2))
                             ? $seedText
                             : $translator->translate($seedText, $l);
                     }
@@ -90,7 +107,11 @@ class CustomerCategoryController extends Controller
         DB::transaction(function () use ($request, $category, $translator, $locales, $names, $regen) {
             // 1) Actualizar base
             $category->update($request->safe()->only([
-                'slug','age_from','age_to','order','is_active'
+                'slug',
+                'age_from',
+                'age_to',
+                'order',
+                'is_active'
             ]));
 
             // 2) Guardar/actualizar traducciones provistas
@@ -111,8 +132,11 @@ class CustomerCategoryController extends Controller
                 foreach ($locales as $l) {
                     $seedText = $seedText
                         ?? trim((string)($names[$l] ?? ''))
-                        ?: optional($category->translations->firstWhere('locale',$l))->name;
-                    if ($seedText) { $seedLocale = $l; break; }
+                        ?: optional($category->translations->firstWhere('locale', $l))->name;
+                    if ($seedText) {
+                        $seedLocale = $l;
+                        break;
+                    }
                 }
 
                 if (!empty($seedText)) {
@@ -122,7 +146,7 @@ class CustomerCategoryController extends Controller
                         if ($exists && !empty($exists->name)) continue; // no pisar
                         if (!empty($names[$l])) continue; // ya vino en request
 
-                        $val = ($l === substr($detected,0,2))
+                        $val = ($l === substr($detected, 0, 2))
                             ? $seedText
                             : $translator->translate($seedText, $l);
 

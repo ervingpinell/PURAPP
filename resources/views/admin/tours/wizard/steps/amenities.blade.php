@@ -428,7 +428,7 @@
     }
     @endphp
 
-    <form method="POST" action="{{ route('admin.tours.wizard.store.amenities', $tour) }}">
+    <form id="amenities-form" method="POST" action="{{ route('admin.tours.wizard.store.amenities', $tour) }}">
         @csrf
 
         {{-- Botones de acción --}}
@@ -590,13 +590,10 @@
                 </form>
                 @endif
 
-                <form method="POST" action="{{ route('admin.tours.wizard.store.amenities', $tour) }}" class="d-inline ml-2">
-                    @csrf
-                    <button type="submit" class="btn btn-primary">
-                        {{ __('m_tours.tour.wizard.save_and_continue') }}
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
-                </form>
+                <button type="submit" form="amenities-form" class="btn btn-primary ml-2">
+                    {{ __('m_tours.tour.wizard.save_and_continue') }}
+                    <i class="fas fa-arrow-right"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -693,6 +690,35 @@
             }
         }
 
+        function closeModal() {
+            const modalEl = document.getElementById('modalQuickAmenity');
+
+            // Método 1: jQuery/Bootstrap (preferido si está disponible)
+            if (window.$ && typeof window.$.fn.modal === 'function') {
+                $('#modalQuickAmenity').modal('hide');
+            } else if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+                jQuery('#modalQuickAmenity').modal('hide');
+            } else {
+                // Método 2: Manual (fallback)
+                if (modalEl) {
+                    modalEl.classList.remove('show');
+                    modalEl.style.display = 'none';
+                    modalEl.setAttribute('aria-hidden', 'true');
+                    modalEl.removeAttribute('aria-modal');
+                }
+
+                // Limpiar body
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('padding-right');
+                document.body.style.removeProperty('overflow');
+
+                // Eliminar todos los backdrops
+                document.querySelectorAll('.modal-backdrop').forEach(function(backdrop) {
+                    backdrop.remove();
+                });
+            }
+        }
+
         function syncAmenity(id) {
             const included = document.querySelector('.amenity-included[data-amenity-id="' + id + '"]');
             const excludedRow = document.querySelector('.amenity-row-excluded[data-amenity-id="' + id + '"]');
@@ -766,6 +792,8 @@
                         } else {
                             showError();
                         }
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalHtml;
                         return;
                     }
 
@@ -826,25 +854,14 @@
                         });
                     }
 
+                    // Resetear form y cerrar modal
                     quickForm.reset();
+                    closeModal();
 
-                    if (window.$ && typeof window.$.fn.modal === 'function') {
-                        window.$('#modalQuickAmenity').modal('hide');
-                    } else if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-                        window.jQuery('#modalQuickAmenity').modal('hide');
-                    } else {
-                        const modalEl = document.getElementById('modalQuickAmenity');
-                        if (modalEl) {
-                            modalEl.classList.remove('show');
-                            modalEl.style.display = 'none';
-                        }
-                        document.body.classList.remove('modal-open');
-                        document.querySelectorAll('.modal-backdrop').forEach(function(bd) {
-                            bd.remove();
-                        });
-                    }
-
-                    showSuccess(msg);
+                    // Mostrar success después de cerrar el modal
+                    setTimeout(() => {
+                        showSuccess(msg);
+                    }, 300);
 
                 } catch (error) {
                     console.error(error);

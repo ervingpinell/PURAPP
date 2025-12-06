@@ -357,7 +357,7 @@
                     <div class="tour-details">
                         <span>
                             <i class="far fa-calendar-alt"></i>
-{{ ucfirst(\Carbon\Carbon::parse($tourDate)->locale(app()->getLocale())->translatedFormat('l, d F, Y')) }}
+                            {{ ucfirst(\Carbon\Carbon::parse($tourDate)->locale(app()->getLocale())->translatedFormat('l, d F, Y')) }}
                         </span>
 
                         @if($schedule)
@@ -593,8 +593,12 @@
                     $cutDate = $locCut->isoFormat('LL'); // e.g. 9 de noviembre de 2025
 
                     $key = 'policies.checkout.free_cancellation_until';
+                    $key2 = 'm_checkout.summary.free_cancellation_until';
+
                     if (\Illuminate\Support\Facades\Lang::has($key)) {
                     $freeCancelText = __($key, ['time' => $cutTime, 'date' => $cutDate]);
+                    } elseif (\Illuminate\Support\Facades\Lang::has($key2)) {
+                    $freeCancelText = __($key2, ['time' => $cutTime, 'date' => $cutDate]);
                     } else {
                     $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTime . ' · ' . $cutDate;
                     }

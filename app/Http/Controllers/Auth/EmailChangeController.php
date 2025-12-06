@@ -52,7 +52,7 @@ class EmailChangeController extends Controller
         // 5) Redirigir al perfil con mensaje de éxito
         $successMessage = __('auth.email_change_confirmed');
 
-        if (in_array((int) $user->role_id, [1, 2], true)) {
+        if ($user->isSuperAdmin() || $user->hasRole(['admin', 'super-admin'])) {
             // Perfil admin
             return redirect()
                 ->route('admin.profile.edit')

@@ -5,9 +5,11 @@
 @section('content_header')
 <div class="d-flex justify-content-between align-items-center">
     <h1>{{ __('taxes.title') }}</h1>
+    @can('create-taxes')
     <a href="{{ route('admin.taxes.create') }}" class="btn btn-primary">
         <i class="fas fa-plus"></i> {{ __('taxes.create') }}
     </a>
+    @endcan
 </div>
 @stop
 
@@ -66,17 +68,22 @@
                         @endif
                     </td>
                     <td>
-                        <form action="{{ route('admin.taxes.toggle', $tax) }}" method="POST" class="d-inline">
-                            @csrf
-                            <button type="submit" class="btn btn-sm {{ $tax->is_active ? 'btn-success' : 'btn-secondary' }}">
-                                {{ $tax->is_active ? __('m_general.active') : __('m_general.inactive') }}
-                            </button>
-                        </form>
+                        @can('publish-taxes')
+                        <button type="button"
+                            class="btn btn-sm btn-{{ $tax->is_active ? 'success' : 'secondary' }}"
+                            onclick="toggleTax({{ $tax->id }})"
+                            title="{{ $tax->is_active ? 'Desactivar' : 'Activar' }}">
+                            <i class="fas fa-power-off"></i>
+                        </button>
+                        @endcan
                     </td>
                     <td>
+                        @can('edit-taxes')
                         <a href="{{ route('admin.taxes.edit', $tax) }}" class="btn btn-sm btn-warning">
                             <i class="fas fa-edit"></i>
                         </a>
+                        @endcan
+                        @can('delete-taxes')
                         <form action="{{ route('admin.taxes.destroy', $tax) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('m_general.confirm_delete') }}')">
                             @csrf
                             @method('DELETE')
@@ -84,6 +91,7 @@
                                 <i class="fas fa-trash"></i>
                             </button>
                         </form>
+                        @endcan
                     </td>
                 </tr>
                 @empty

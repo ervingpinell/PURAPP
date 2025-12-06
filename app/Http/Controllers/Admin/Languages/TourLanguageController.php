@@ -9,6 +9,12 @@ use Illuminate\Validation\Rule;
 
 class TourLanguageController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-tour-languages'])->only(['index']);
+        $this->middleware(['can:edit-tour-languages'])->only(['update']);
+        $this->middleware(['can:publish-tour-languages'])->only(['toggle']);
+    }
     public function index()
     {
         $languages = TourLanguage::orderBy('name')->get();
@@ -19,7 +25,9 @@ class TourLanguageController extends Controller
     {
         $request->validate([
             'name' => [
-                'required', 'string', 'max:255',
+                'required',
+                'string',
+                'max:255',
                 'unique:tour_languages,name',
             ],
         ], [
@@ -41,7 +49,9 @@ class TourLanguageController extends Controller
     {
         $request->validate([
             'name' => [
-                'required', 'string', 'max:255',
+                'required',
+                'string',
+                'max:255',
                 Rule::unique('tour_languages', 'name')
                     ->ignore($language->getKey(), 'tour_language_id'),
             ],

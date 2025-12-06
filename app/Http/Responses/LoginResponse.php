@@ -14,8 +14,7 @@ class LoginResponse implements LoginResponseContract
     public function toResponse($request)
     {
         /** @var \App\Models\User|null $user */
-        $user   = $request->user();
-        $roleId = (int) ($user->role_id ?? 0);
+        $user = $request->user();
 
         // Limpia contadores/limiter por usuario
         if ($user) {
@@ -31,7 +30,8 @@ class LoginResponse implements LoginResponseContract
             session()->forget('url.intended');
         }
 
-        $isAdmin = in_array($roleId, [1, 2], true);
+        // Verificar si es admin usando Spatie
+        $isAdmin = $user && ($user->isSuperAdmin() || $user->hasRole(['admin', 'super-admin']));
 
         // Construye el redirect primero
         if ($isAdmin) {

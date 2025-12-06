@@ -10,6 +10,14 @@ use App\Services\Contracts\TranslatorInterface;
 
 class PolicyController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-policies'])->only('index');
+        $this->middleware(['can:create-policies'])->only(['create', 'store']);
+        $this->middleware(['can:edit-policies'])->only(['edit', 'update']);
+        $this->middleware(['can:publish-policies'])->only(['toggle']);
+        $this->middleware(['can:delete-policies'])->only(['destroy', 'restore', 'forceDestroy']);
+    }
     /**
      * Listado de categorías de políticas con filtros de estado:
      * - active (por defecto)
@@ -81,13 +89,19 @@ class PolicyController extends Controller
 
         // 3) Propagación opcional a EN/FR/DE/PT (pt_BR en DB)
         if (!empty($data['propagate'])) {
-            try { $nameAll = (array)($translator->translateAll($data['name']) ?? []); }
-            catch (\Throwable $e) { $nameAll = []; }
+            try {
+                $nameAll = (array)($translator->translateAll($data['name']) ?? []);
+            } catch (\Throwable $e) {
+                $nameAll = [];
+            }
 
-            try { $contAll = (array)($translator->translateAll($data['content']) ?? []); }
-            catch (\Throwable $e) { $contAll = []; }
+            try {
+                $contAll = (array)($translator->translateAll($data['content']) ?? []);
+            } catch (\Throwable $e) {
+                $contAll = [];
+            }
 
-            foreach (['en','fr','de','pt'] as $lang) {
+            foreach (['en', 'fr', 'de', 'pt'] as $lang) {
                 $norm = Policy::canonicalLocale($lang);
                 PolicyTranslation::updateOrCreate(
                     ['policy_id' => $policy->policy_id, 'locale' => $norm],
@@ -133,7 +147,7 @@ class PolicyController extends Controller
 
         // 1) Actualizar base (policies) — sin tocar traducciones
         $baseUpdates = [];
-        foreach (['slug','is_active','effective_from','effective_to'] as $k) {
+        foreach (['slug', 'is_active', 'effective_from', 'effective_to'] as $k) {
             if (array_key_exists($k, $validated)) {
                 $baseUpdates[$k] = $validated[$k];
             }
@@ -170,13 +184,19 @@ class PolicyController extends Controller
             $sourceName    = $source?->name    ?? '';
             $sourceContent = $source?->content ?? '';
 
-            try { $nameAll    = (array) ($translator->translateAll($sourceName)    ?? []); }
-            catch (\Throwable $e) { $nameAll = []; }
+            try {
+                $nameAll    = (array) ($translator->translateAll($sourceName)    ?? []);
+            } catch (\Throwable $e) {
+                $nameAll = [];
+            }
 
-            try { $contentAll = (array) ($translator->translateAll($sourceContent) ?? []); }
-            catch (\Throwable $e) { $contentAll = []; }
+            try {
+                $contentAll = (array) ($translator->translateAll($sourceContent) ?? []);
+            } catch (\Throwable $e) {
+                $contentAll = [];
+            }
 
-            $targets = ['es','en','fr','pt','de'];
+            $targets = ['es', 'en', 'fr', 'pt', 'de'];
             $targets = array_values(array_diff($targets, [$locale]));
 
             foreach ($targets as $lang) {
@@ -249,11 +269,13 @@ class PolicyController extends Controller
         // Limpiar relaciones dependientes antes del delete definitivo
         try {
             $policy->sections()->delete();
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         try {
             PolicyTranslation::where('policy_id', $policyId)->delete();
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         $policy->forceDelete();
 

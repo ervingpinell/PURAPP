@@ -20,12 +20,36 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
+        // Super admins bypass all gates
         Gate::before(function (User $user, string $ability) {
-            return $user->hasRole('admin') ? true : null;
+            if ($user->isSuperAdmin()) {
+                return true;
+            }
+            // Admins bypass most gates (except super-admin specific ones)
+            if ($user->hasRole('admin')) {
+                return true;
+            }
+            return null;
         });
-        Gate::define('access-admin', fn (User $u) => $u->canDo('access-admin'));
-        Gate::define('manage-reviews', fn (User $u) => $u->canDo('manage-reviews'));
-        Gate::define('manage-users', fn (User $u) => $u->canDo('manage-users'));
 
+        // Gates para permisos específicos
+        // Gates para permisos específicos
+        // Verificamos directamente con hasPermissionTo para evitar recursión
+        Gate::define('access-admin', function (User $user) {
+            $isSuperOrAdmin = $user->hasRole(['super-admin', 'admin']);
+            if ($isSuperOrAdmin) {
+                return true;
+            }
+            return $user->hasPermissionTo('access-admin');
+        });
+
+        // Define view-tours gate explicitly
+        Gate::define('view-tours', function (User $user) {
+            $isSuperOrAdmin = $user->hasRole(['super-admin', 'admin']);
+            if ($isSuperOrAdmin) {
+                return true;
+            }
+            return $user->hasPermissionTo('view-tours');
+        });
     }
 }

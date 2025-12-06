@@ -12,6 +12,14 @@ use App\Models\MeetingPointTranslation;
 
 class MeetingPointSimpleController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:view-meeting-points'])->only('index');
+        $this->middleware(['can:create-meeting-points'])->only(['store']);
+        $this->middleware(['can:edit-meeting-points'])->only(['update']);
+        $this->middleware(['can:publish-meeting-points'])->only(['toggle']);
+        $this->middleware(['can:delete-meeting-points'])->only(['destroy']);
+    }
     public function index()
     {
         // Eager-load de translations para evitar N+1
@@ -21,7 +29,7 @@ class MeetingPointSimpleController extends Controller
             ->get();
 
         // Locales disponibles para la UI de edición de traducción
-        $locales = ['es','en','fr','pt','de'];
+        $locales = ['es', 'en', 'fr', 'pt', 'de'];
 
         return view('admin.meetingpoints.index', compact('points', 'locales'));
     }
@@ -66,7 +74,7 @@ class MeetingPointSimpleController extends Controller
 
             'locale'       => 'required|in:es,en,fr,pt,de',
             't_name'       => 'required|string|max:1000',
-            't_description'=> 'nullable|string|max:1000',
+            't_description' => 'nullable|string|max:1000',
         ]);
 
         // 🔸 Actualiza SI LLEGAN campos no lingüísticos / base (no obliga a enviarlos)
@@ -107,7 +115,7 @@ class MeetingPointSimpleController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Cambios guardados. Traducción actualizada para: '.$data['locale'].' (sin DeepL).');
+        return back()->with('success', 'Cambios guardados. Traducción actualizada para: ' . $data['locale'] . ' (sin DeepL).');
     }
 
     public function toggle(MeetingPoint $meetingpoint)
@@ -137,7 +145,7 @@ class MeetingPointSimpleController extends Controller
             $packs[$f] = $translator->translateAll((string) $mp->{$f}); // devuelve ['es','en','fr','pt','de']
         }
 
-        foreach (['es','en','fr','pt','de'] as $loc) {
+        foreach (['es', 'en', 'fr', 'pt', 'de'] as $loc) {
             MeetingPointTranslation::updateOrCreate(
                 ['meeting_point_id' => $mp->id, 'locale' => $loc],
                 [

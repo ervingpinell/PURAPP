@@ -101,7 +101,7 @@
         </ul>
       </div>
 
-      @if(in_array(Auth::user()->role_id, [1, 2]))
+      @can('access-admin')
       <a href="{{ route('admin.home') }}" class="btn btn-outline-light btn-sm d-flex align-items-center">
         <i class="fas fa-toolbox me-1"></i> <span class="d-none d-xl-inline">Admin</span>
       </a>
@@ -128,7 +128,7 @@
     </div> --}}
 
     @auth
-    @if(in_array(Auth::user()->role_id, [1, 2]))
+    @can('access-admin')
     <div class="admin-link-wrapper">
       <a href="{{ route('admin.home') }}" class="btn btn-outline-light btn-sm d-flex align-items-center justify-content-center">
         <i class="fas fa-toolbox me-2"></i> Admin

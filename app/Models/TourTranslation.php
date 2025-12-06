@@ -14,6 +14,7 @@ class TourTranslation extends Model
         'locale',
         'name',
         'overview',
+        'recommendations',
     ];
 
     public function tour()

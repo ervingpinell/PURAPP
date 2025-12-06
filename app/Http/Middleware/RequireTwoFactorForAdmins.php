@@ -11,7 +11,8 @@ class RequireTwoFactorForAdmins
     {
         $u = $request->user();
 
-        if ($u && in_array((int)$u->role_id, [1,2], true)) {
+        // Verificar si el usuario tiene permiso de acceso al admin (incluye supervisor)
+        if ($u && $u->can('access-admin')) {
             // Deja pasar perfil admin para poder activar 2FA
             if (empty($u->two_factor_secret) && !$request->routeIs('admin.profile.*')) {
                 return redirect()->route('admin.profile.edit')

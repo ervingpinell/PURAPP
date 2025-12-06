@@ -20,6 +20,8 @@ use App\Notifications\EmailChangeVerificationNotification;
 use Laravel\Sanctum\HasApiTokens;
 // 2FA (Fortify)
 use Laravel\Fortify\TwoFactorAuthenticatable;
+// Spatie Permission
+use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property int         $user_id
@@ -43,6 +45,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasRoles;
     use Prunable;
 
     /**
@@ -55,8 +58,14 @@ class User extends Authenticatable implements MustVerifyEmail
      * Asignación masiva
      */
     protected $fillable = [
-        'full_name', 'email', 'password', 'status', 'role_id',
-        'phone', 'country_code', 'is_locked',
+        'full_name',
+        'email',
+        'password',
+        'status',
+        'phone',
+        'country_code',
+        'is_locked',
+        'is_super_admin',
     ];
 
     /**
@@ -67,11 +76,12 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'status'                    => 'boolean',
         'is_locked'                 => 'boolean',
+        'is_super_admin'            => 'boolean',
         'email_verified_at'         => 'datetime',
         'two_factor_secret'         => 'encrypted',
         'two_factor_recovery_codes' => 'encrypted',
         'two_factor_confirmed_at'   => 'datetime',
-            'pending_email_created_at' => 'datetime',
+        'pending_email_created_at'  => 'datetime',
     ];
 
     /**
@@ -87,10 +97,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /* ============================================================
      | Relaciones
      * ============================================================*/
-    public function role()
-    {
-        return $this->belongsTo(Role::class, 'role_id', 'role_id');
-    }
+
 
     public function cart()
     {
@@ -105,10 +112,18 @@ class User extends Authenticatable implements MustVerifyEmail
         return (bool) $this->is_locked;
     }
 
+    public function isSuperAdmin(): bool
+    {
+        return (bool) $this->is_super_admin;
+    }
+
     // AdminLTE helpers
     public function adminlte_desc()
     {
-        return $this->role ? $this->role->role_name : 'Sin rol';
+        if ($this->isSuperAdmin()) {
+            return 'Super Admin';
+        }
+        return $this->getRoleNames()->first() ?? 'Sin rol';
     }
 
     public function adminlte_profile_url()
@@ -130,13 +145,13 @@ class User extends Authenticatable implements MustVerifyEmail
     // Fortify/Notifications suelen leer ->name; mapeamos a full_name
     public function name(): Attribute
     {
-        return Attribute::get(fn () => $this->full_name);
+        return Attribute::get(fn() => $this->full_name);
     }
 
     protected function email(): Attribute
     {
         return Attribute::make(
-            set: fn ($value) => $value ? mb_strtolower(trim($value)) : $value
+            set: fn($value) => $value ? mb_strtolower(trim($value)) : $value
         );
     }
 
@@ -281,91 +296,78 @@ class User extends Authenticatable implements MustVerifyEmail
      * ============================================================*/
     public function isAdmin(): bool
     {
+        // Super admins siempre tienen acceso de admin
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+        // Usar Spatie para verificar rol de admin
         return $this->hasRole('admin');
     }
 
     public function isStaff(): bool
     {
-        // Roles que consideras “staff” para UI antiguas
-        return $this->hasAnyRole(['admin', 'supervisor', 'editor']);
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+        return $this->hasAnyRole(['admin', 'supervisor']);
     }
 
     /* ============================================================
-     | RBAC helpers (sin depender de IDs)
+     | RBAC helpers - Ahora usando Spatie
      * ============================================================*/
 
     /**
-     * Slug de rol estable:
-     * 1) usa $this->role->key si existe,
-     * 2) usa config('acl.roles_by_id')[role_id],
-     * 3) slug del role_name como último recurso,
-     * 4) 'guest' si no hay nada.
+     * Slug de rol estable - Ahora usa Spatie como fuente principal
      */
     public function roleSlug(): string
     {
-        // 1) si la relación ya viene cargada y tiene 'key'
-        if ($this->relationLoaded('role') && $this->role && isset($this->role->key)) {
-            return (string) $this->role->key;
-        }
-        // 1b) intenta cargar perezosamente
-        if ($this->role && isset($this->role->key)) {
-            return (string) $this->role->key;
+        if ($this->isSuperAdmin()) {
+            return 'super-admin';
         }
 
-        // 2) mapa de config
-        $map = (array) config('acl.roles_by_id', []);
-        if ($this->role_id !== null && array_key_exists((int) $this->role_id, $map)) {
-            return (string) $map[(int) $this->role_id];
-        }
-
-        // 3) slug del nombre del rol
-        if ($this->relationLoaded('role') && $this->role && isset($this->role->role_name)) {
-            return Str::slug((string) $this->role->role_name);
+        // Usar Spatie como fuente principal
+        $spatieRole = $this->roles()->first();
+        if ($spatieRole) {
+            return $spatieRole->name;
         }
 
         return 'guest';
     }
 
-    public function hasRole(string|array $roles): bool
-    {
-        $roles = array_map('strval', (array) $roles);
-        return in_array($this->roleSlug(), $roles, true);
-    }
-
-    public function hasAnyRole(array $roles): bool
-    {
-        return $this->hasRole($roles);
-    }
-
     /**
-     * ¿Puede ejercer una “ability” declarada en config/acl.php?
+     * ¿Puede ejercer una "ability" (permiso)?
+     * Ahora usa Spatie permissions
      */
     public function canDo(string $ability): bool
     {
-        $matrix  = (array) config('acl.abilities', []);
-        $allowed = (array) ($matrix[$ability] ?? []);
-        return $this->hasAnyRole($allowed);
+        // Super admin puede hacer todo
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        // Usar Spatie para verificar permisos
+        return $this->can($ability);
     }
 
-public function sendEmailChangeVerificationNotification(string $token, ?string $locale = null): void
-{
-    $this->notify(new EmailChangeVerificationNotification(
-        $token,
-        $locale ?? app()->getLocale()
-    ));
-}
-
-
-/**
- * Si existe pending_email, las notificaciones de cambio de correo
- * se envían a ese correo en lugar del actual.
- */
-public function routeNotificationForMail($notification): ?string
-{
-    if ($notification instanceof EmailChangeVerificationNotification && $this->pending_email) {
-        return $this->pending_email;
+    public function sendEmailChangeVerificationNotification(string $token, ?string $locale = null): void
+    {
+        $this->notify(new EmailChangeVerificationNotification(
+            $token,
+            $locale ?? app()->getLocale()
+        ));
     }
 
-    return $this->email;
-}
+
+    /**
+     * Si existe pending_email, las notificaciones de cambio de correo
+     * se envían a ese correo en lugar del actual.
+     */
+    public function routeNotificationForMail($notification): ?string
+    {
+        if ($notification instanceof EmailChangeVerificationNotification && $this->pending_email) {
+            return $this->pending_email;
+        }
+
+        return $this->email;
+    }
 }
