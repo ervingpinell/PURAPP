@@ -248,8 +248,8 @@ $brand = $brand ?? $company ?? config('mail.from.name', config('app.name', 'Gree
 $supportEmail = env('MAIL_TO_CONTACT', 'info@greenvacationscr.com');
 $phone = env('COMPANY_PHONE', '+506 2479 1471');
 
-// Logo: simple y directo desde la URL pública
-$logoUrl = env('COMPANY_LOGO_URL', $appUrl . '/images/logo.png');
+// Logo: servido desde CDN
+$logoUrl = cdn('logos/brand-logo-white.png');
 @endphp
 
 <body style="margin:0; padding:0; background-color:#ffffff;">

@@ -220,4 +220,23 @@ if (!function_exists('settings_by_category')) {
 
         return $query->get()->groupBy('category');
     }
+
+    if (! function_exists('cdn')) {
+    /**
+     * Genera una URL al CDN para archivos dentro de /public/cdn
+     *
+     * Ej: cdn('logos/gv-logo-email.png')
+     * => https://cdn.greenvacationscr.com/cdn/logos/gv-logo-email.png
+     */
+    function cdn(string $path): string
+    {
+        $base = rtrim(config('app.cdn_url'), '/');
+
+        // Nos aseguramos de que no haya doble slash
+        $path = ltrim($path, '/');
+
+        return $base . '/' . $path;
+    }
+}
+
 }

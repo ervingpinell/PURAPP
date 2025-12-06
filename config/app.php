@@ -54,6 +54,7 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
@@ -82,6 +83,7 @@ return [
 'fallback_locale' => 'en',
 'supported_locales' => ['es','en','fr','de','pt'],
 'faker_locale' => 'es_CR',
+'cdn_url' => env('APP_CDN_URL', env('APP_URL') . '/cdn'),
 
 
     /*
