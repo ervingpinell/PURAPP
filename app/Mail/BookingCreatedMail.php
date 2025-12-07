@@ -25,7 +25,7 @@ class BookingCreatedMail extends Mailable implements ShouldQueue
      */
     protected function adminNotify(): array
     {
-        $raw   = config('mail.booking_notify') ?? env('BOOKING_NOTIFY', '');
+        $raw   = config('mail.notifications.address');
         $items = preg_split('/[,\s;]+/', (string) $raw, -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
         return collect($items)
@@ -67,12 +67,7 @@ class BookingCreatedMail extends Mailable implements ShouldQueue
             'reference' => $this->reference,
         ], $this->mailLocale);
 
-        $replyTo = collect([
-            env('MSFT_REPLY_TO'),
-            env('MAIL_TO_CONTACT'),
-            data_get(config('mail.reply_to'), 'address'),
-            config('mail.from.address'),
-        ])->first(fn($v) => filled($v));
+        $replyTo = config('mail.reply_to.address');
 
         $fromAddress = config('mail.from.address');
         $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));

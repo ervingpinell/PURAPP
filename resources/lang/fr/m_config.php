@@ -1,4 +1,5 @@
 <?php
+
 /*************************************************************
  *  MODULE DE CONFIGURATION – TRADUCTIONS (FR)
  *  Fichier : resources/lang/fr/m_config.php
@@ -69,7 +70,7 @@ return [
         'restore' => 'Restaurer',
         'force_delete_confirm' => 'Supprimer définitivement cette catégorie et toutes ses sections ? Cette action est irréversible.',
         'created' => 'Catégorie de politique créée avec succès.',
-        
+
         // Liste de catégories : actions
         'new_category'            => 'Nouvelle catégorie',
         'view_sections'           => 'Voir les sections',
@@ -265,10 +266,10 @@ return [
         'confirm_edit'     => 'Enregistrer les modifications de cette question fréquente ?',
         'confirm_delete'   => 'Es-tu sûr(e) de vouloir supprimer cette question fréquente ?<br>Cette action ne peut pas être annulée.',
         'confirm_activate' => 'Es-tu sûr(e) de vouloir activer cette question fréquente ?',
-        'confirm_deactivate'=> 'Es-tu sûr(e) de vouloir désactiver cette question fréquente ?',
+        'confirm_deactivate' => 'Es-tu sûr(e) de vouloir désactiver cette question fréquente ?',
 
         // Validation / erreurs
-        'validation_errors'=> 'Il y a des erreurs de validation',
+        'validation_errors' => 'Il y a des erreurs de validation',
         'error_title'      => 'Erreur',
 
         // Messages (flash)
@@ -398,218 +399,218 @@ return [
         ],
     ],
 
-// =========================================================
-// ==== PROMOCODE ==========================================
-// =========================================================
-'promocode' => [
-    'title'        => 'Codes promotionnels',
-    'create_title' => 'Générer un nouveau code promotionnel',
-    'list_title'   => 'Codes promotionnels existants',
+    // =========================================================
+    // ==== PROMOCODE ==========================================
+    // =========================================================
+    'promocode' => [
+        'title'        => 'Codes promotionnels',
+        'create_title' => 'Générer un nouveau code promotionnel',
+        'list_title'   => 'Codes promotionnels existants',
 
-    'success_title' => 'Succès',
-    'error_title'   => 'Erreur',
-
-    'fields' => [
-        'code'        => 'Code',
-        'discount'    => 'Réduction',
-
-        'type'        => 'Type',
-        'operation'   => 'Opération',
-        'valid_from'  => 'Valable à partir du',
-        'valid_until' => 'Valable jusqu\'au',
-        'usage_limit' => 'Limite d\'utilisation',
-        'promocode_hint'        => 'Après application, le coupon sera enregistré à l\'envoi du formulaire et les instantanés de l\'historique seront mis à jour.',
-    ],
-
-    'types' => [
-        'percent' => '%',
-        'amount'  => '$',
-    ],
-
-    'symbols' => [
-        'percent'  => '%',
-        'currency' => '$',
-    ],
-
-    'table' => [
-        'code'         => 'Code',
-        'discount'     => 'Réduction',
-        'operation'    => 'Opération',
-        'validity'     => 'Validité',
-        'date_status'  => 'Statut (date)',
-        'usage'        => 'Utilisations',
-        'usage_status' => 'Statut (utilisation)',
-        'actions'      => 'Actions',
-    ],
-
-    'status' => [
-        'used'      => 'Utilisé',
-        'available' => 'Disponible',
-    ],
-
-    'date_status' => [
-        'scheduled' => 'Programmé',
-        'active'    => 'Actif',
-        'expired'   => 'Expiré',
-    ],
-
-    'actions' => [
-        'generate' => 'Générer',
-        'delete'   => 'Supprimer',
-        'toggle_operation' => 'Basculer entre Ajouter/Soustraire',
-    ],
-
-    'labels' => [
-        'unlimited_placeholder' => 'Vide = illimité',
-        'unlimited_hint'        => 'Laisser vide pour une utilisation illimitée. Mets 1 pour une seule utilisation.',
-        'no_limit'              => '(sans limite)',
-        'remaining'             => 'restant(s)',
-    ],
-
-    'confirm_delete' => 'Es-tu sûr(e) de vouloir supprimer ce code ?',
-    'empty'          => 'Aucun code promotionnel disponible.',
-
-    'messages' => [
-        'created_success'         => 'Code promotionnel créé avec succès.',
-        'deleted_success'         => 'Code promotionnel supprimé avec succès.',
-        'percent_over_100'        => 'Le pourcentage ne peut pas être supérieur à 100.',
-        'code_exists_normalized'  => 'Ce code (en ignorant les espaces et la casse) existe déjà.',
-        'invalid_or_used'         => 'Code invalide ou déjà utilisé.',
-        'valid'                   => 'Code valide.',
-        'server_error'            => 'Erreur serveur, merci de réessayer.',
-        'operation_updated'       => 'Opération mise à jour avec succès.',
-    ],
-
-    'operations' => [
-        'add'            => 'Ajouter',
-        'subtract'       => 'Soustraire',
-        'make_add'       => 'Passer à « Ajouter »',
-        'make_subtract'  => 'Passer à « Soustraire »',
-        'surcharge'      => 'Supplément',
-        'discount'       => 'Réduction',
-    ],
-],
-
-// =========================================================
-// ==== CUTOFF =============================================
-// =========================================================
-'cut-off' => [
-    // Titres / en-têtes
-    'title'       => 'Cut-off',
-    'header'      => 'Configuration du Cut-off',
-    'server_time' => 'Heure du serveur (:tz)',
-
-    // Onglets
-    'tabs' => [
-        'global'   => 'Global (par défaut)',
-        'tour'     => 'Blocage par tour',
-        'schedule' => 'Blocage par horaire',
-        'summary'  => 'Résumé',
-        'help'     => 'Aide',
-    ],
-
-    // Champs
-    'fields' => [
-        'cutoff_hour'       => 'Heure de cut-off (24h)',
-        'cutoff_hour_short' => 'Cut-off (24h)',
-        'lead_days'         => 'Jours d\'anticipation',
-        'timezone'          => 'Fuseau horaire',
-        'tour'              => 'Tour',
-        'schedule'          => 'Horaire',
-        'actions'           => 'Actions'
-    ],
-
-    // Sélecteurs / placeholders
-    'selects' => [
-        'tour' => '— Sélectionner un tour —',
-        'time' => '— Sélectionner un horaire —',
-    ],
-
-    // Libellés
-    'labels' => [
-        'status' => 'Statut',
-    ],
-
-    // Badges / chips
-    'badges' => [
-        'inherits'            => 'Hérite du global',
-        'override'            => 'Blocage',
-        'inherit_tour_global' => 'Hérite du tour/global',
-        'schedule'            => 'Horaire',
-        'tour'                => 'Tour',
-        'global'              => 'Global',
-    ],
-
-    // Actions
-    'actions' => [
-        'save_global'   => 'Enregistrer global',
-        'save_tour'     => 'Enregistrer le blocage du tour',
-        'save_schedule' => 'Enregistrer le blocage de l\'horaire',
-        'clear'         => 'Effacer le blocage',
-        'confirm'       => 'Confirmer',
-        'cancel'        => 'Annuler',
-    ],
-
-    // Confirmations (modales)
-    'confirm' => [
-        'tour' => [
-            'title' => 'Enregistrer le blocage du tour ?',
-            'text'  => 'Un blocage spécifique sera appliqué pour ce tour. Laisse vide pour hériter.',
-        ],
-        'schedule' => [
-            'title' => 'Enregistrer le blocage de l\'horaire ?',
-            'text'  => 'Un blocage spécifique sera appliqué pour cet horaire. Laisse vide pour hériter.',
-        ],
-    ],
-
-    // Résumé
-    'summary' => [
-        'tour_title'            => 'Blocages par tour',
-        'no_tour_overrides'     => 'Aucun blocage au niveau du tour.',
-        'schedule_title'        => 'Blocages par horaire',
-        'no_schedule_overrides' => 'Aucun blocage au niveau de l\'horaire.',
-        'search_placeholder'    => 'Rechercher un tour ou un horaire…',
-    ],
-
-    // Flash / toasts
-    'flash' => [
         'success_title' => 'Succès',
         'error_title'   => 'Erreur',
+
+        'fields' => [
+            'code'        => 'Code',
+            'discount'    => 'Montant',
+
+            'type'        => 'Type',
+            'operation'   => 'Opération',
+            'valid_from'  => 'Valable à partir du',
+            'valid_until' => 'Valable jusqu\'au',
+            'usage_limit' => 'Limite d\'utilisation',
+            'promocode_hint'        => 'Après application, le coupon sera enregistré à l\'envoi du formulaire et les instantanés de l\'historique seront mis à jour.',
+        ],
+
+        'types' => [
+            'percent' => '%',
+            'amount'  => '$',
+        ],
+
+        'symbols' => [
+            'percent'  => '%',
+            'currency' => '$',
+        ],
+
+        'table' => [
+            'code'         => 'Code',
+            'discount'     => 'Montant',
+            'operation'    => 'Opération',
+            'validity'     => 'Validité',
+            'date_status'  => 'Statut (date)',
+            'usage'        => 'Utilisations',
+            'usage_status' => 'Statut (utilisation)',
+            'actions'      => 'Actions',
+        ],
+
+        'status' => [
+            'used'      => 'Utilisé',
+            'available' => 'Disponible',
+        ],
+
+        'date_status' => [
+            'scheduled' => 'Programmé',
+            'active'    => 'Actif',
+            'expired'   => 'Expiré',
+        ],
+
+        'actions' => [
+            'generate' => 'Générer',
+            'delete'   => 'Supprimer',
+            'toggle_operation' => 'Basculer entre Ajouter/Soustraire',
+        ],
+
+        'labels' => [
+            'unlimited_placeholder' => 'Vide = illimité',
+            'unlimited_hint'        => 'Laisser vide pour une utilisation illimitée. Mets 1 pour une seule utilisation.',
+            'no_limit'              => '(sans limite)',
+            'remaining'             => 'restant(s)',
+        ],
+
+        'confirm_delete' => 'Es-tu sûr(e) de vouloir supprimer ce code ?',
+        'empty'          => 'Aucun code promotionnel disponible.',
+
+        'messages' => [
+            'created_success'         => 'Code promotionnel créé avec succès.',
+            'deleted_success'         => 'Code promotionnel supprimé avec succès.',
+            'percent_over_100'        => 'Le pourcentage ne peut pas être supérieur à 100.',
+            'code_exists_normalized'  => 'Ce code (en ignorant les espaces et la casse) existe déjà.',
+            'invalid_or_used'         => 'Code invalide ou déjà utilisé.',
+            'valid'                   => 'Code valide.',
+            'server_error'            => 'Erreur serveur, merci de réessayer.',
+            'operation_updated'       => 'Opération mise à jour avec succès.',
+        ],
+
+        'operations' => [
+            'add'            => 'Ajouter',
+            'subtract'       => 'Soustraire',
+            'make_add'       => 'Passer à « Ajouter »',
+            'make_subtract'  => 'Passer à « Soustraire »',
+            'surcharge'      => 'Supplément',
+            'discount'       => 'Réduction',
+        ],
     ],
 
-    // Aide
-    'help' => [
-        'title'      => 'Comment ça fonctionne ?',
-        'global'     => 'Valeur par défaut pour tout le site.',
-        'tour'       => 'Si un tour a un cut-off/jours configurés, il a priorité sur le global.',
-        'schedule'   => 'Si un horaire du tour a un blocage, il a priorité sur le tour.',
-        'precedence' => 'Priorité',
+    // =========================================================
+    // ==== CUTOFF =============================================
+    // =========================================================
+    'cut-off' => [
+        // Titres / en-têtes
+        'title'       => 'Cut-off',
+        'header'      => 'Configuration du Cut-off',
+        'server_time' => 'Heure du serveur (:tz)',
+
+        // Onglets
+        'tabs' => [
+            'global'   => 'Global (par défaut)',
+            'tour'     => 'Blocage par tour',
+            'schedule' => 'Blocage par horaire',
+            'summary'  => 'Résumé',
+            'help'     => 'Aide',
+        ],
+
+        // Champs
+        'fields' => [
+            'cutoff_hour'       => 'Heure de cut-off (24h)',
+            'cutoff_hour_short' => 'Cut-off (24h)',
+            'lead_days'         => 'Jours d\'anticipation',
+            'timezone'          => 'Fuseau horaire',
+            'tour'              => 'Tour',
+            'schedule'          => 'Horaire',
+            'actions'           => 'Actions'
+        ],
+
+        // Sélecteurs / placeholders
+        'selects' => [
+            'tour' => '— Sélectionner un tour —',
+            'time' => '— Sélectionner un horaire —',
+        ],
+
+        // Libellés
+        'labels' => [
+            'status' => 'Statut',
+        ],
+
+        // Badges / chips
+        'badges' => [
+            'inherits'            => 'Hérite du global',
+            'override'            => 'Blocage',
+            'inherit_tour_global' => 'Hérite du tour/global',
+            'schedule'            => 'Horaire',
+            'tour'                => 'Tour',
+            'global'              => 'Global',
+        ],
+
+        // Actions
+        'actions' => [
+            'save_global'   => 'Enregistrer global',
+            'save_tour'     => 'Enregistrer le blocage du tour',
+            'save_schedule' => 'Enregistrer le blocage de l\'horaire',
+            'clear'         => 'Effacer le blocage',
+            'confirm'       => 'Confirmer',
+            'cancel'        => 'Annuler',
+        ],
+
+        // Confirmations (modales)
+        'confirm' => [
+            'tour' => [
+                'title' => 'Enregistrer le blocage du tour ?',
+                'text'  => 'Un blocage spécifique sera appliqué pour ce tour. Laisse vide pour hériter.',
+            ],
+            'schedule' => [
+                'title' => 'Enregistrer le blocage de l\'horaire ?',
+                'text'  => 'Un blocage spécifique sera appliqué pour cet horaire. Laisse vide pour hériter.',
+            ],
+        ],
+
+        // Résumé
+        'summary' => [
+            'tour_title'            => 'Blocages par tour',
+            'no_tour_overrides'     => 'Aucun blocage au niveau du tour.',
+            'schedule_title'        => 'Blocages par horaire',
+            'no_schedule_overrides' => 'Aucun blocage au niveau de l\'horaire.',
+            'search_placeholder'    => 'Rechercher un tour ou un horaire…',
+        ],
+
+        // Flash / toasts
+        'flash' => [
+            'success_title' => 'Succès',
+            'error_title'   => 'Erreur',
+        ],
+
+        // Aide
+        'help' => [
+            'title'      => 'Comment ça fonctionne ?',
+            'global'     => 'Valeur par défaut pour tout le site.',
+            'tour'       => 'Si un tour a un cut-off/jours configurés, il a priorité sur le global.',
+            'schedule'   => 'Si un horaire du tour a un blocage, il a priorité sur le tour.',
+            'precedence' => 'Priorité',
+        ],
+
+        // Indications / hints
+        'hints' => [
+            // Utilisés dans Global
+            'cutoff_example'    => 'Ex. : :ex. Après cette heure, « aujourd\'hui » n\'est plus disponible.',
+            'pattern_24h'       => 'Format 24h HH:MM (ex. 09:30, 18:00).',
+            'cutoff_behavior'   => 'Si l\'heure de cut-off est déjà passée, la date disponible la plus proche passe au lendemain.',
+            'lead_days'         => 'Nombre minimum de jours d\'anticipation (0 permet de réserver pour aujourd\'hui si l\'heure de cut-off n\'est pas passée).',
+            'lead_days_detail'  => 'Plage autorisée : 0–30. 0 permet de réserver le jour même si l\'heure de cut-off n\'est pas atteinte.',
+            'timezone_source'   => 'Utilise config(\'app.timezone\').',
+
+            // Utilisés dans Tour
+            'pick_tour'             => 'Sélectionne d\'abord un tour, puis définis son blocage (optionnel).',
+            'tour_override_explain' => 'Si tu définis seulement une valeur (cut-off ou jours), l\'autre hérite de la valeur globale.',
+            'clear_button_hint'     => 'Utilise « Effacer le blocage » pour revenir à l\'héritage.',
+            'leave_empty_inherit'   => 'Laisse vide pour hériter.',
+
+            // Utilisés dans Horaire (schedule)
+            'pick_schedule'             => 'Sélectionne ensuite l\'horaire du tour.',
+            'schedule_override_explain' => 'Les valeurs définies ici ont priorité sur celles du tour. Laisse vide pour hériter.',
+            'schedule_precedence_hint'  => 'Priorité : Horaire → Tour → Global.',
+
+            // Utilisés dans Résumé
+            'dash_means_inherit' => 'Le symbole « — » indique que la valeur est héritée.',
+        ],
     ],
-
-    // Indications / hints
-    'hints' => [
-        // Utilisés dans Global
-        'cutoff_example'    => 'Ex. : :ex. Après cette heure, « aujourd\'hui » n\'est plus disponible.',
-        'pattern_24h'       => 'Format 24h HH:MM (ex. 09:30, 18:00).',
-        'cutoff_behavior'   => 'Si l\'heure de cut-off est déjà passée, la date disponible la plus proche passe au lendemain.',
-        'lead_days'         => 'Nombre minimum de jours d\'anticipation (0 permet de réserver pour aujourd\'hui si l\'heure de cut-off n\'est pas passée).',
-        'lead_days_detail'  => 'Plage autorisée : 0–30. 0 permet de réserver le jour même si l\'heure de cut-off n\'est pas atteinte.',
-        'timezone_source'   => 'Utilise config(\'app.timezone\').',
-
-        // Utilisés dans Tour
-        'pick_tour'             => 'Sélectionne d\'abord un tour, puis définis son blocage (optionnel).',
-        'tour_override_explain' => 'Si tu définis seulement une valeur (cut-off ou jours), l\'autre hérite de la valeur globale.',
-        'clear_button_hint'     => 'Utilise « Effacer le blocage » pour revenir à l\'héritage.',
-        'leave_empty_inherit'   => 'Laisse vide pour hériter.',
-
-        // Utilisés dans Horaire (schedule)
-        'pick_schedule'             => 'Sélectionne ensuite l\'horaire du tour.',
-        'schedule_override_explain' => 'Les valeurs définies ici ont priorité sur celles du tour. Laisse vide pour hériter.',
-        'schedule_precedence_hint'  => 'Priorité : Horaire → Tour → Global.',
-
-        // Utilisés dans Résumé
-        'dash_means_inherit' => 'Le symbole « — » indique que la valeur est héritée.',
-    ],
-],
 
 ];

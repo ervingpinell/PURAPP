@@ -1,4 +1,5 @@
 <?php
+
 /*************************************************************
  *  KONFIGURATIONS-MODUL – ÜBERSETZUNGEN (DE)
  *  Datei: resources/lang/de/m_config.php
@@ -69,7 +70,7 @@ return [
         'restore' => 'Wiederherstellen',
         'force_delete_confirm' => 'Diese Kategorie und alle ihre Abschnitte dauerhaft löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
         'created' => 'Richtlinienkategorie erfolgreich erstellt.',
-        
+
         // Kategorien-Liste: Aktionen
         'new_category'            => 'Neue Kategorie',
         'view_sections'           => 'Abschnitte anzeigen',
@@ -265,10 +266,10 @@ return [
         'confirm_edit'     => 'Änderungen an dieser häufig gestellten Frage speichern?',
         'confirm_delete'   => 'Möchtest du diese häufig gestellte Frage wirklich löschen?<br>Diese Aktion kann nicht rückgängig gemacht werden.',
         'confirm_activate' => 'Möchtest du diese häufig gestellte Frage wirklich aktivieren?',
-        'confirm_deactivate'=> 'Möchtest du diese häufig gestellte Frage wirklich deaktivieren?',
+        'confirm_deactivate' => 'Möchtest du diese häufig gestellte Frage wirklich deaktivieren?',
 
         // Validierung / Fehler
-        'validation_errors'=> 'Es liegen Validierungsfehler vor',
+        'validation_errors' => 'Es liegen Validierungsfehler vor',
         'error_title'      => 'Fehler',
 
         // Meldungen (Flash)
@@ -398,218 +399,218 @@ return [
         ],
     ],
 
-// =========================================================
-// ==== PROMOCODE ==========================================
-// =========================================================
-'promocode' => [
-    'title'        => 'Promo-Codes',
-    'create_title' => 'Neuen Promo-Code generieren',
-    'list_title'   => 'Vorhandene Promo-Codes',
+    // =========================================================
+    // ==== PROMOCODE ==========================================
+    // =========================================================
+    'promocode' => [
+        'title'        => 'Promo-Codes',
+        'create_title' => 'Neuen Promo-Code generieren',
+        'list_title'   => 'Vorhandene Promo-Codes',
 
-    'success_title' => 'Erfolg',
-    'error_title'   => 'Fehler',
-
-    'fields' => [
-        'code'        => 'Code',
-        'discount'    => 'Rabatt',
-
-        'type'        => 'Typ',
-        'operation'   => 'Operation',
-        'valid_from'  => 'Gültig von',
-        'valid_until' => 'Gültig bis',
-        'usage_limit' => 'Nutzungsbegrenzung',
-        'promocode_hint'        => 'Nach dem Anwenden wird der Gutschein beim Absenden des Formulars gespeichert und die Verlaufssnapshots aktualisiert.',
-    ],
-
-    'types' => [
-        'percent' => '%',
-        'amount'  => '$',
-    ],
-
-    'symbols' => [
-        'percent'  => '%',
-        'currency' => '$',
-    ],
-
-    'table' => [
-        'code'         => 'Code',
-        'discount'     => 'Rabatt',
-        'operation'    => 'Operation',
-        'validity'     => 'Gültigkeit',
-        'date_status'  => 'Status (Datum)',
-        'usage'        => 'Verwendung',
-        'usage_status' => 'Status (Nutzung)',
-        'actions'      => 'Aktionen',
-    ],
-
-    'status' => [
-        'used'      => 'Verwendet',
-        'available' => 'Verfügbar',
-    ],
-
-    'date_status' => [
-        'scheduled' => 'Geplant',
-        'active'    => 'Aktiv',
-        'expired'   => 'Abgelaufen',
-    ],
-
-    'actions' => [
-        'generate' => 'Generieren',
-        'delete'   => 'Löschen',
-        'toggle_operation' => 'Zwischen Addieren/Subtrahieren wechseln',
-    ],
-
-    'labels' => [
-        'unlimited_placeholder' => 'Leer = unbegrenzt',
-        'unlimited_hint'        => 'Leer lassen für unbegrenzte Nutzung. 1 bedeutet einmalige Nutzung.',
-        'no_limit'              => '(ohne Begrenzung)',
-        'remaining'             => 'verbleibend',
-    ],
-
-    'confirm_delete' => 'Möchtest du diesen Code wirklich löschen?',
-    'empty'          => 'Es sind keine Promo-Codes verfügbar.',
-
-    'messages' => [
-        'created_success'         => 'Promo-Code erfolgreich erstellt.',
-        'deleted_success'         => 'Promo-Code erfolgreich gelöscht.',
-        'percent_over_100'        => 'Der Prozentsatz darf nicht größer als 100 sein.',
-        'code_exists_normalized'  => 'Dieser Code (ohne Leerzeichen und Groß-/Kleinschreibung) existiert bereits.',
-        'invalid_or_used'         => 'Ungültiger oder bereits verwendeter Code.',
-        'valid'                   => 'Gültiger Code.',
-        'server_error'            => 'Serverfehler, bitte versuche es erneut.',
-        'operation_updated'       => 'Operation erfolgreich aktualisiert.',
-    ],
-
-    'operations' => [
-        'add'            => 'Addieren',
-        'subtract'       => 'Subtrahieren',
-        'make_add'       => 'Zu „Addieren“ wechseln',
-        'make_subtract'  => 'Zu „Subtrahieren“ wechseln',
-        'surcharge'      => 'Aufschlag',
-        'discount'       => 'Rabatt',
-    ],
-],
-
-// =========================================================
-// ==== CUTOFF =============================================
-// =========================================================
-'cut-off' => [
-    // Titel / Überschriften
-    'title'       => 'Cut-off',
-    'header'      => 'Cut-off-Konfiguration',
-    'server_time' => 'Serverzeit (:tz)',
-
-    // Tabs
-    'tabs' => [
-        'global'   => 'Global (Standard)',
-        'tour'     => 'Sperre nach Tour',
-        'schedule' => 'Sperre nach Uhrzeit',
-        'summary'  => 'Übersicht',
-        'help'     => 'Hilfe',
-    ],
-
-    // Felder
-    'fields' => [
-        'cutoff_hour'       => 'Cut-off-Zeit (24h)',
-        'cutoff_hour_short' => 'Cut-off (24h)',
-        'lead_days'         => 'Vorlauftage',
-        'timezone'          => 'Zeitzone',
-        'tour'              => 'Tour',
-        'schedule'          => 'Uhrzeit',
-        'actions'           => 'Aktionen'
-    ],
-
-    // Selects / Platzhalter
-    'selects' => [
-        'tour' => '— Tour auswählen —',
-        'time' => '— Uhrzeit auswählen —',
-    ],
-
-    // Labels
-    'labels' => [
-        'status' => 'Status',
-    ],
-
-    // Badges / Chips
-    'badges' => [
-        'inherits'            => 'Erbt global',
-        'override'            => 'Sperre',
-        'inherit_tour_global' => 'Erbt von Tour/Global',
-        'schedule'            => 'Uhrzeit',
-        'tour'                => 'Tour',
-        'global'              => 'Global',
-    ],
-
-    // Aktionen
-    'actions' => [
-        'save_global'   => 'Global speichern',
-        'save_tour'     => 'Tour-Sperre speichern',
-        'save_schedule' => 'Uhrzeit-Sperre speichern',
-        'clear'         => 'Sperre entfernen',
-        'confirm'       => 'Bestätigen',
-        'cancel'        => 'Abbrechen',
-    ],
-
-    // Bestätigungen (Modale)
-    'confirm' => [
-        'tour' => [
-            'title' => 'Tour-Sperre speichern?',
-            'text'  => 'Es wird eine spezifische Sperre für diese Tour angewendet. Leer lassen, um zu erben.',
-        ],
-        'schedule' => [
-            'title' => 'Uhrzeit-Sperre speichern?',
-            'text'  => 'Es wird eine spezifische Sperre für diese Uhrzeit angewendet. Leer lassen, um zu erben.',
-        ],
-    ],
-
-    // Übersicht
-    'summary' => [
-        'tour_title'            => 'Sperren nach Tour',
-        'no_tour_overrides'     => 'Es gibt keine Sperren auf Tour-Ebene.',
-        'schedule_title'        => 'Sperren nach Uhrzeit',
-        'no_schedule_overrides' => 'Es gibt keine Sperren auf Uhrzeit-Ebene.',
-        'search_placeholder'    => 'Tour oder Uhrzeit suchen…',
-    ],
-
-    // Flash / Toasts
-    'flash' => [
         'success_title' => 'Erfolg',
         'error_title'   => 'Fehler',
+
+        'fields' => [
+            'code'        => 'Code',
+            'discount'    => 'Betrag',
+
+            'type'        => 'Typ',
+            'operation'   => 'Operation',
+            'valid_from'  => 'Gültig von',
+            'valid_until' => 'Gültig bis',
+            'usage_limit' => 'Nutzungsbegrenzung',
+            'promocode_hint'        => 'Nach dem Anwenden wird der Gutschein beim Absenden des Formulars gespeichert und die Verlaufssnapshots aktualisiert.',
+        ],
+
+        'types' => [
+            'percent' => '%',
+            'amount'  => '$',
+        ],
+
+        'symbols' => [
+            'percent'  => '%',
+            'currency' => '$',
+        ],
+
+        'table' => [
+            'code'         => 'Code',
+            'discount'     => 'Betrag',
+            'operation'    => 'Operation',
+            'validity'     => 'Gültigkeit',
+            'date_status'  => 'Status (Datum)',
+            'usage'        => 'Verwendung',
+            'usage_status' => 'Status (Nutzung)',
+            'actions'      => 'Aktionen',
+        ],
+
+        'status' => [
+            'used'      => 'Verwendet',
+            'available' => 'Verfügbar',
+        ],
+
+        'date_status' => [
+            'scheduled' => 'Geplant',
+            'active'    => 'Aktiv',
+            'expired'   => 'Abgelaufen',
+        ],
+
+        'actions' => [
+            'generate' => 'Generieren',
+            'delete'   => 'Löschen',
+            'toggle_operation' => 'Zwischen Addieren/Subtrahieren wechseln',
+        ],
+
+        'labels' => [
+            'unlimited_placeholder' => 'Leer = unbegrenzt',
+            'unlimited_hint'        => 'Leer lassen für unbegrenzte Nutzung. 1 bedeutet einmalige Nutzung.',
+            'no_limit'              => '(ohne Begrenzung)',
+            'remaining'             => 'verbleibend',
+        ],
+
+        'confirm_delete' => 'Möchtest du diesen Code wirklich löschen?',
+        'empty'          => 'Es sind keine Promo-Codes verfügbar.',
+
+        'messages' => [
+            'created_success'         => 'Promo-Code erfolgreich erstellt.',
+            'deleted_success'         => 'Promo-Code erfolgreich gelöscht.',
+            'percent_over_100'        => 'Der Prozentsatz darf nicht größer als 100 sein.',
+            'code_exists_normalized'  => 'Dieser Code (ohne Leerzeichen und Groß-/Kleinschreibung) existiert bereits.',
+            'invalid_or_used'         => 'Ungültiger oder bereits verwendeter Code.',
+            'valid'                   => 'Gültiger Code.',
+            'server_error'            => 'Serverfehler, bitte versuche es erneut.',
+            'operation_updated'       => 'Operation erfolgreich aktualisiert.',
+        ],
+
+        'operations' => [
+            'add'            => 'Addieren',
+            'subtract'       => 'Subtrahieren',
+            'make_add'       => 'Zu „Addieren“ wechseln',
+            'make_subtract'  => 'Zu „Subtrahieren“ wechseln',
+            'surcharge'      => 'Aufschlag',
+            'discount'       => 'Rabatt',
+        ],
     ],
 
-    // Hilfe
-    'help' => [
-        'title'      => 'Wie funktioniert das?',
-        'global'     => 'Standardwert für die gesamte Website.',
-        'tour'       => 'Wenn eine Tour einen konfigurierten Cut-off/Vorlauftage hat, hat sie Vorrang vor Global.',
-        'schedule'   => 'Wenn eine Uhrzeit der Tour eine Sperre hat, hat sie Vorrang vor der Tour.',
-        'precedence' => 'Priorität',
-    ],
+    // =========================================================
+    // ==== CUTOFF =============================================
+    // =========================================================
+    'cut-off' => [
+        // Titel / Überschriften
+        'title'       => 'Cut-off',
+        'header'      => 'Cut-off-Konfiguration',
+        'server_time' => 'Serverzeit (:tz)',
 
-    // Hinweise / Hints
-    'hints' => [
-        // Global
-        'cutoff_example'    => 'Z. B.: :ex. Nach dieser Zeit ist „heute“ nicht mehr verfügbar.',
-        'pattern_24h'       => '24-Stunden-Format HH:MM (z. B. 09:30, 18:00).',
-        'cutoff_behavior'   => 'Wenn die Cut-off-Zeit bereits überschritten ist, verschiebt sich das früheste verfügbare Datum auf den nächsten Tag.',
-        'lead_days'         => 'Mindestanzahl an Vorlauftagen (0 erlaubt Buchungen für heute, sofern die Cut-off-Zeit nicht überschritten ist).',
-        'lead_days_detail'  => 'Erlaubter Bereich: 0–30. 0 erlaubt Buchungen am selben Tag, wenn die Cut-off-Zeit noch nicht erreicht ist.',
-        'timezone_source'   => 'Wird aus config(\'app.timezone\') übernommen.',
+        // Tabs
+        'tabs' => [
+            'global'   => 'Global (Standard)',
+            'tour'     => 'Sperre nach Tour',
+            'schedule' => 'Sperre nach Uhrzeit',
+            'summary'  => 'Übersicht',
+            'help'     => 'Hilfe',
+        ],
 
-        // Tour
-        'pick_tour'             => 'Wähle zuerst eine Tour und definiere anschließend deren Sperre (optional).',
-        'tour_override_explain' => 'Wenn du nur einen Wert (Cut-off oder Tage) festlegst, erbt der andere den globalen Wert.',
-        'clear_button_hint'     => 'Verwende „Sperre entfernen“, um wieder zu erben.',
-        'leave_empty_inherit'   => 'Leer lassen, um zu erben.',
+        // Felder
+        'fields' => [
+            'cutoff_hour'       => 'Cut-off-Zeit (24h)',
+            'cutoff_hour_short' => 'Cut-off (24h)',
+            'lead_days'         => 'Vorlauftage',
+            'timezone'          => 'Zeitzone',
+            'tour'              => 'Tour',
+            'schedule'          => 'Uhrzeit',
+            'actions'           => 'Aktionen'
+        ],
 
-        // Uhrzeit (Schedule)
-        'pick_schedule'             => 'Wähle anschließend die Uhrzeit der Tour.',
-        'schedule_override_explain' => 'Die hier gesetzten Werte haben Vorrang vor denen der Tour. Leer lassen, um zu erben.',
-        'schedule_precedence_hint'  => 'Priorität: Uhrzeit → Tour → Global.',
+        // Selects / Platzhalter
+        'selects' => [
+            'tour' => '— Tour auswählen —',
+            'time' => '— Uhrzeit auswählen —',
+        ],
+
+        // Labels
+        'labels' => [
+            'status' => 'Status',
+        ],
+
+        // Badges / Chips
+        'badges' => [
+            'inherits'            => 'Erbt global',
+            'override'            => 'Sperre',
+            'inherit_tour_global' => 'Erbt von Tour/Global',
+            'schedule'            => 'Uhrzeit',
+            'tour'                => 'Tour',
+            'global'              => 'Global',
+        ],
+
+        // Aktionen
+        'actions' => [
+            'save_global'   => 'Global speichern',
+            'save_tour'     => 'Tour-Sperre speichern',
+            'save_schedule' => 'Uhrzeit-Sperre speichern',
+            'clear'         => 'Sperre entfernen',
+            'confirm'       => 'Bestätigen',
+            'cancel'        => 'Abbrechen',
+        ],
+
+        // Bestätigungen (Modale)
+        'confirm' => [
+            'tour' => [
+                'title' => 'Tour-Sperre speichern?',
+                'text'  => 'Es wird eine spezifische Sperre für diese Tour angewendet. Leer lassen, um zu erben.',
+            ],
+            'schedule' => [
+                'title' => 'Uhrzeit-Sperre speichern?',
+                'text'  => 'Es wird eine spezifische Sperre für diese Uhrzeit angewendet. Leer lassen, um zu erben.',
+            ],
+        ],
 
         // Übersicht
-        'dash_means_inherit' => 'Das Symbol „—“ bedeutet, dass der Wert geerbt wird.',
+        'summary' => [
+            'tour_title'            => 'Sperren nach Tour',
+            'no_tour_overrides'     => 'Es gibt keine Sperren auf Tour-Ebene.',
+            'schedule_title'        => 'Sperren nach Uhrzeit',
+            'no_schedule_overrides' => 'Es gibt keine Sperren auf Uhrzeit-Ebene.',
+            'search_placeholder'    => 'Tour oder Uhrzeit suchen…',
+        ],
+
+        // Flash / Toasts
+        'flash' => [
+            'success_title' => 'Erfolg',
+            'error_title'   => 'Fehler',
+        ],
+
+        // Hilfe
+        'help' => [
+            'title'      => 'Wie funktioniert das?',
+            'global'     => 'Standardwert für die gesamte Website.',
+            'tour'       => 'Wenn eine Tour einen konfigurierten Cut-off/Vorlauftage hat, hat sie Vorrang vor Global.',
+            'schedule'   => 'Wenn eine Uhrzeit der Tour eine Sperre hat, hat sie Vorrang vor der Tour.',
+            'precedence' => 'Priorität',
+        ],
+
+        // Hinweise / Hints
+        'hints' => [
+            // Global
+            'cutoff_example'    => 'Z. B.: :ex. Nach dieser Zeit ist „heute“ nicht mehr verfügbar.',
+            'pattern_24h'       => '24-Stunden-Format HH:MM (z. B. 09:30, 18:00).',
+            'cutoff_behavior'   => 'Wenn die Cut-off-Zeit bereits überschritten ist, verschiebt sich das früheste verfügbare Datum auf den nächsten Tag.',
+            'lead_days'         => 'Mindestanzahl an Vorlauftagen (0 erlaubt Buchungen für heute, sofern die Cut-off-Zeit nicht überschritten ist).',
+            'lead_days_detail'  => 'Erlaubter Bereich: 0–30. 0 erlaubt Buchungen am selben Tag, wenn die Cut-off-Zeit noch nicht erreicht ist.',
+            'timezone_source'   => 'Wird aus config(\'app.timezone\') übernommen.',
+
+            // Tour
+            'pick_tour'             => 'Wähle zuerst eine Tour und definiere anschließend deren Sperre (optional).',
+            'tour_override_explain' => 'Wenn du nur einen Wert (Cut-off oder Tage) festlegst, erbt der andere den globalen Wert.',
+            'clear_button_hint'     => 'Verwende „Sperre entfernen“, um wieder zu erben.',
+            'leave_empty_inherit'   => 'Leer lassen, um zu erben.',
+
+            // Uhrzeit (Schedule)
+            'pick_schedule'             => 'Wähle anschließend die Uhrzeit der Tour.',
+            'schedule_override_explain' => 'Die hier gesetzten Werte haben Vorrang vor denen der Tour. Leer lassen, um zu erben.',
+            'schedule_precedence_hint'  => 'Priorität: Uhrzeit → Tour → Global.',
+
+            // Übersicht
+            'dash_means_inherit' => 'Das Symbol „—“ bedeutet, dass der Wert geerbt wird.',
+        ],
     ],
-],
 
 ];

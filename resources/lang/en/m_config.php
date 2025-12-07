@@ -1,4 +1,5 @@
 <?php
+
 /*************************************************************
  *  CONFIG MODULE – TRANSLATIONS (EN)
  *  File: resources/lang/en/m_config.php
@@ -262,10 +263,10 @@ return [
         'confirm_edit'     => 'Save changes to this frequently asked question?',
         'confirm_delete'   => 'Are you sure you want to delete this frequently asked question?<br>This action cannot be undone.',
         'confirm_activate' => 'Are you sure you want to activate this frequently asked question?',
-        'confirm_deactivate'=> 'Are you sure you want to deactivate this frequently asked question?',
+        'confirm_deactivate' => 'Are you sure you want to deactivate this frequently asked question?',
 
         // Validation / errors
-        'validation_errors'=> 'There are validation errors',
+        'validation_errors' => 'There are validation errors',
         'error_title'      => 'Error',
 
         // Messages (flash)
@@ -395,218 +396,218 @@ return [
         ],
     ],
 
-// =========================================================
-// ==== PROMOCODE ==========================================
-// =========================================================
-'promocode' => [
-    'title'        => 'Promotional Codes',
-    'create_title' => 'Generate new promotional code',
-    'list_title'   => 'Existing promotional codes',
+    // =========================================================
+    // ==== PROMOCODE ==========================================
+    // =========================================================
+    'promocode' => [
+        'title'        => 'Promotional Codes',
+        'create_title' => 'Generate new promotional code',
+        'list_title'   => 'Existing promotional codes',
 
-    'success_title' => 'Success',
-    'error_title'   => 'Error',
-
-    'fields' => [
-        'code'        => 'Code',
-        'discount'    => 'Discount',
-
-        'type'        => 'Type',
-        'operation'   => 'Operation',
-        'valid_from'  => 'Valid from',
-        'valid_until' => 'Valid until',
-        'usage_limit' => 'Usage limit',
-        'promocode_hint'        => 'After applying, the coupon will be saved when submitting the form and the history snapshots will be updated.',
-    ],
-
-    'types' => [
-        'percent' => '%',
-        'amount'  => '$',
-    ],
-
-    'symbols' => [
-        'percent'  => '%',
-        'currency' => '$',
-    ],
-
-    'table' => [
-        'code'         => 'Code',
-        'discount'     => 'Discount',
-        'operation'    => 'Operation',
-        'validity'     => 'Validity',
-        'date_status'  => 'Date status',
-        'usage'        => 'Usage',
-        'usage_status' => 'Usage status',
-        'actions'      => 'Actions',
-    ],
-
-    'status' => [
-        'used'      => 'Used',
-        'available' => 'Available',
-    ],
-
-    'date_status' => [
-        'scheduled' => 'Scheduled',
-        'active'    => 'Active',
-        'expired'   => 'Expired',
-    ],
-
-    'actions' => [
-        'generate' => 'Generate',
-        'delete'   => 'Delete',
-        'toggle_operation' => 'Toggle between Add/Subtract',
-    ],
-
-    'labels' => [
-        'unlimited_placeholder' => 'Empty = unlimited',
-        'unlimited_hint'        => 'Leave empty for unlimited uses. Set 1 for a single use.',
-        'no_limit'              => '(no limit)',
-        'remaining'             => 'remaining',
-    ],
-
-    'confirm_delete' => 'Are you sure you want to delete this code?',
-    'empty'          => 'There are no promotional codes available.',
-
-    'messages' => [
-        'created_success'         => 'Promotional code created successfully.',
-        'deleted_success'         => 'Promotional code deleted successfully.',
-        'percent_over_100'        => 'The percentage cannot be greater than 100.',
-        'code_exists_normalized'  => 'This code (ignoring spaces and case) already exists.',
-        'invalid_or_used'         => 'Invalid or already used code.',
-        'valid'                   => 'Valid code.',
-        'server_error'            => 'Server error, please try again.',
-        'operation_updated'       => 'Operation updated successfully.',
-    ],
-
-    'operations' => [
-        'add'            => 'Add',
-        'subtract'       => 'Subtract',
-        'make_add'       => 'Switch to "Add"',
-        'make_subtract'  => 'Switch to "Subtract"',
-        'surcharge'      => 'Surcharge',
-        'discount'       => 'Discount',
-    ],
-],
-
-// =========================================================
-// ==== CUTOFF =============================================
-// =========================================================
-'cut-off' => [
-    // Titles / headers
-    'title'       => 'Cut-off',
-    'header'      => 'Cut-off Configuration',
-    'server_time' => 'Server time (:tz)',
-
-    // Tabs
-    'tabs' => [
-        'global'   => 'Global (default)',
-        'tour'     => 'Block by Tour',
-        'schedule' => 'Block by Schedule',
-        'summary'  => 'Summary',
-        'help'     => 'Help',
-    ],
-
-    // Fields
-    'fields' => [
-        'cutoff_hour'       => 'Cut-off time (24h)',
-        'cutoff_hour_short' => 'Cut-off (24h)',
-        'lead_days'         => 'Lead days',
-        'timezone'          => 'Time zone',
-        'tour'              => 'Tour',
-        'schedule'          => 'Schedule',
-        'actions'           => 'Actions'
-    ],
-
-    // Selects / placeholders
-    'selects' => [
-        'tour' => '— Select a tour —',
-        'time' => '— Select a schedule —',
-    ],
-
-    // Labels
-    'labels' => [
-        'status' => 'Status',
-    ],
-
-    // Badges / chips
-    'badges' => [
-        'inherits'            => 'Inherits Global',
-        'override'            => 'Block',
-        'inherit_tour_global' => 'Inherits from Tour/Global',
-        'schedule'            => 'Schedule',
-        'tour'                => 'Tour',
-        'global'              => 'Global',
-    ],
-
-    // Actions
-    'actions' => [
-        'save_global'   => 'Save global',
-        'save_tour'     => 'Save tour block',
-        'save_schedule' => 'Save schedule block',
-        'clear'         => 'Clear block',
-        'confirm'       => 'Confirm',
-        'cancel'        => 'Cancel',
-    ],
-
-    // Confirmations (modals)
-    'confirm' => [
-        'tour' => [
-            'title' => 'Save tour block?',
-            'text'  => 'A specific block will be applied for this tour. Leave empty to inherit.',
-        ],
-        'schedule' => [
-            'title' => 'Save schedule block?',
-            'text'  => 'A specific block will be applied for this schedule. Leave empty to inherit.',
-        ],
-    ],
-
-    // Summary
-    'summary' => [
-        'tour_title'            => 'Blocks by Tour',
-        'no_tour_overrides'     => 'There are no blocks at tour level.',
-        'schedule_title'        => 'Blocks by Schedule',
-        'no_schedule_overrides' => 'There are no blocks at schedule level.',
-        'search_placeholder'    => 'Search tour or schedule…',
-    ],
-
-    // Flash / toasts
-    'flash' => [
         'success_title' => 'Success',
         'error_title'   => 'Error',
+
+        'fields' => [
+            'code'        => 'Code',
+            'discount'    => 'Amount',
+
+            'type'        => 'Type',
+            'operation'   => 'Operation',
+            'valid_from'  => 'Valid from',
+            'valid_until' => 'Valid until',
+            'usage_limit' => 'Usage limit',
+            'promocode_hint'        => 'After applying, the coupon will be saved when submitting the form and the history snapshots will be updated.',
+        ],
+
+        'types' => [
+            'percent' => '%',
+            'amount'  => '$',
+        ],
+
+        'symbols' => [
+            'percent'  => '%',
+            'currency' => '$',
+        ],
+
+        'table' => [
+            'code'         => 'Code',
+            'discount'     => 'Amount',
+            'operation'    => 'Operation',
+            'validity'     => 'Validity',
+            'date_status'  => 'Date status',
+            'usage'        => 'Usage',
+            'usage_status' => 'Usage status',
+            'actions'      => 'Actions',
+        ],
+
+        'status' => [
+            'used'      => 'Used',
+            'available' => 'Available',
+        ],
+
+        'date_status' => [
+            'scheduled' => 'Scheduled',
+            'active'    => 'Active',
+            'expired'   => 'Expired',
+        ],
+
+        'actions' => [
+            'generate' => 'Generate',
+            'delete'   => 'Delete',
+            'toggle_operation' => 'Toggle between Add/Subtract',
+        ],
+
+        'labels' => [
+            'unlimited_placeholder' => 'Empty = unlimited',
+            'unlimited_hint'        => 'Leave empty for unlimited uses. Set 1 for a single use.',
+            'no_limit'              => '(no limit)',
+            'remaining'             => 'remaining',
+        ],
+
+        'confirm_delete' => 'Are you sure you want to delete this code?',
+        'empty'          => 'There are no promotional codes available.',
+
+        'messages' => [
+            'created_success'         => 'Promotional code created successfully.',
+            'deleted_success'         => 'Promotional code deleted successfully.',
+            'percent_over_100'        => 'The percentage cannot be greater than 100.',
+            'code_exists_normalized'  => 'This code (ignoring spaces and case) already exists.',
+            'invalid_or_used'         => 'Invalid or already used code.',
+            'valid'                   => 'Valid code.',
+            'server_error'            => 'Server error, please try again.',
+            'operation_updated'       => 'Operation updated successfully.',
+        ],
+
+        'operations' => [
+            'add'            => 'Add',
+            'subtract'       => 'Subtract',
+            'make_add'       => 'Switch to "Add"',
+            'make_subtract'  => 'Switch to "Subtract"',
+            'surcharge'      => 'Surcharge',
+            'discount'       => 'Discount',
+        ],
     ],
 
-    // Help
-    'help' => [
-        'title'      => 'How does it work?',
-        'global'     => 'Default value for the entire site.',
-        'tour'       => 'If a tour has cutoff/lead days configured, it takes priority over Global.',
-        'schedule'   => 'If a tour schedule has a block, it takes priority over the tour.',
-        'precedence' => 'Precedence',
+    // =========================================================
+    // ==== CUTOFF =============================================
+    // =========================================================
+    'cut-off' => [
+        // Titles / headers
+        'title'       => 'Cut-off',
+        'header'      => 'Cut-off Configuration',
+        'server_time' => 'Server time (:tz)',
+
+        // Tabs
+        'tabs' => [
+            'global'   => 'Global (default)',
+            'tour'     => 'Block by Tour',
+            'schedule' => 'Block by Schedule',
+            'summary'  => 'Summary',
+            'help'     => 'Help',
+        ],
+
+        // Fields
+        'fields' => [
+            'cutoff_hour'       => 'Cut-off time (24h)',
+            'cutoff_hour_short' => 'Cut-off (24h)',
+            'lead_days'         => 'Lead days',
+            'timezone'          => 'Time zone',
+            'tour'              => 'Tour',
+            'schedule'          => 'Schedule',
+            'actions'           => 'Actions'
+        ],
+
+        // Selects / placeholders
+        'selects' => [
+            'tour' => '— Select a tour —',
+            'time' => '— Select a schedule —',
+        ],
+
+        // Labels
+        'labels' => [
+            'status' => 'Status',
+        ],
+
+        // Badges / chips
+        'badges' => [
+            'inherits'            => 'Inherits Global',
+            'override'            => 'Block',
+            'inherit_tour_global' => 'Inherits from Tour/Global',
+            'schedule'            => 'Schedule',
+            'tour'                => 'Tour',
+            'global'              => 'Global',
+        ],
+
+        // Actions
+        'actions' => [
+            'save_global'   => 'Save global',
+            'save_tour'     => 'Save tour block',
+            'save_schedule' => 'Save schedule block',
+            'clear'         => 'Clear block',
+            'confirm'       => 'Confirm',
+            'cancel'        => 'Cancel',
+        ],
+
+        // Confirmations (modals)
+        'confirm' => [
+            'tour' => [
+                'title' => 'Save tour block?',
+                'text'  => 'A specific block will be applied for this tour. Leave empty to inherit.',
+            ],
+            'schedule' => [
+                'title' => 'Save schedule block?',
+                'text'  => 'A specific block will be applied for this schedule. Leave empty to inherit.',
+            ],
+        ],
+
+        // Summary
+        'summary' => [
+            'tour_title'            => 'Blocks by Tour',
+            'no_tour_overrides'     => 'There are no blocks at tour level.',
+            'schedule_title'        => 'Blocks by Schedule',
+            'no_schedule_overrides' => 'There are no blocks at schedule level.',
+            'search_placeholder'    => 'Search tour or schedule…',
+        ],
+
+        // Flash / toasts
+        'flash' => [
+            'success_title' => 'Success',
+            'error_title'   => 'Error',
+        ],
+
+        // Help
+        'help' => [
+            'title'      => 'How does it work?',
+            'global'     => 'Default value for the entire site.',
+            'tour'       => 'If a tour has cutoff/lead days configured, it takes priority over Global.',
+            'schedule'   => 'If a tour schedule has a block, it takes priority over the tour.',
+            'precedence' => 'Precedence',
+        ],
+
+        // Hints
+        'hints' => [
+            // Used in Global
+            'cutoff_example'    => 'E.g.: :ex. After this time, "today" will no longer be available.',
+            'pattern_24h'       => '24h format HH:MM (e.g. 09:30, 18:00).',
+            'cutoff_behavior'   => 'If the cut-off time has already passed, the earliest available date moves to the next day.',
+            'lead_days'         => 'Minimum number of days in advance (0 allows booking today if the cut-off time has not passed).',
+            'lead_days_detail'  => 'Allowed range: 0–30. 0 allows same-day booking if the cut-off time has not been reached.',
+            'timezone_source'   => 'Taken from config(\'app.timezone\').',
+
+            // Used in Tour
+            'pick_tour'             => 'First select a tour, then define its block (optional).',
+            'tour_override_explain' => 'If you define only one value (cutoff or days), the other inherits from Global.',
+            'clear_button_hint'     => 'Use "Clear block" to go back to inheriting.',
+            'leave_empty_inherit'   => 'Leave empty to inherit.',
+
+            // Used in Schedule
+            'pick_schedule'             => 'Then select the tour schedule.',
+            'schedule_override_explain' => 'Values set here take priority over the tour values. Leave empty to inherit.',
+            'schedule_precedence_hint'  => 'Precedence: Schedule → Tour → Global.',
+
+            // Used in Summary
+            'dash_means_inherit' => 'The symbol "—" means the value is inherited.',
+        ],
     ],
-
-    // Hints
-    'hints' => [
-        // Used in Global
-        'cutoff_example'    => 'E.g.: :ex. After this time, "today" will no longer be available.',
-        'pattern_24h'       => '24h format HH:MM (e.g. 09:30, 18:00).',
-        'cutoff_behavior'   => 'If the cut-off time has already passed, the earliest available date moves to the next day.',
-        'lead_days'         => 'Minimum number of days in advance (0 allows booking today if the cut-off time has not passed).',
-        'lead_days_detail'  => 'Allowed range: 0–30. 0 allows same-day booking if the cut-off time has not been reached.',
-        'timezone_source'   => 'Taken from config(\'app.timezone\').',
-
-        // Used in Tour
-        'pick_tour'             => 'First select a tour, then define its block (optional).',
-        'tour_override_explain' => 'If you define only one value (cutoff or days), the other inherits from Global.',
-        'clear_button_hint'     => 'Use "Clear block" to go back to inheriting.',
-        'leave_empty_inherit'   => 'Leave empty to inherit.',
-
-        // Used in Schedule
-        'pick_schedule'             => 'Then select the tour schedule.',
-        'schedule_override_explain' => 'Values set here take priority over the tour values. Leave empty to inherit.',
-        'schedule_precedence_hint'  => 'Precedence: Schedule → Tour → Global.',
-
-        // Used in Summary
-        'dash_means_inherit' => 'The symbol "—" means the value is inherited.',
-    ],
-],
 
 ];

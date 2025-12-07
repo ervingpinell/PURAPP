@@ -77,62 +77,14 @@ use App\Mail\{
     BookingUpdatedMail
 };
 
-if (app()->isLocal()) {
-    Route::prefix('preview/mails/bookings')->group(function () {
-        // Helper: toma ultimo booking si no se pasa id
-        $resolveBooking = function (?int $id = null): Booking {
-            return $id
-                ? Booking::with(['detail', 'user', 'tour'])->findOrFail($id)
-                : Booking::with(['detail', 'user', 'tour'])->latest('booking_id')->firstOrFail();
-        };
-
-        // Booking Created
-        Route::get('/{id?}/created', function (?int $id = null) use ($resolveBooking) {
-            $booking = $resolveBooking($id);
-            $mailable = new BookingCreatedMail($booking);
-            if ($lang = request('lang')) {
-                $mailable->locale($lang);
-            }
-            return $mailable->render(); // HTML
-        })->name('preview.mail.booking.created');
-
-        // Booking Confirmed
-        Route::get('/{id?}/confirmed', function (?int $id = null) use ($resolveBooking) {
-            $booking = $resolveBooking($id);
-            $mailable = new BookingConfirmedMail($booking);
-            if ($lang = request('lang')) {
-                $mailable->locale($lang);
-            }
-            return $mailable->render();
-        })->name('preview.mail.booking.confirmed');
-
-        // Booking Cancelled
-        Route::get('/{id?}/cancelled', function (?int $id = null) use ($resolveBooking) {
-            $booking = $resolveBooking($id);
-            $mailable = new BookingCancelledMail($booking);
-            if ($lang = request('lang')) {
-                $mailable->locale($lang);
-            }
-            return $mailable->render();
-        })->name('preview.mail.booking.cancelled');
-
-        // Booking Updated
-        Route::get('/{id?}/updated', function (?int $id = null) use ($resolveBooking) {
-            $booking = $resolveBooking($id);
-            $mailable = new BookingUpdatedMail($booking);
-            if ($lang = request('lang')) {
-                $mailable->locale($lang);
-            }
-            return $mailable->render();
-        })->name('preview.mail.booking.updated');
-    });
-}
+// Preview routes moved to Admin Debug section (see below)
 
 /*
 |--------------------------------------------------------------------------
 | Dynamic robots.txt
 |--------------------------------------------------------------------------
 */
+
 Route::get('/robots.txt', function (): Response {
     $lines = [
         'User-agent: *',
@@ -462,6 +414,138 @@ Route::middleware([SetLocale::class])->group(function () {
             Route::get('/profile', [ProfileController::class, 'adminShow'])->name('profile.show');
             Route::get('/profile/edit', [ProfileController::class, 'adminEdit'])->name('profile.edit');
             Route::post('/profile/edit', [ProfileController::class, 'adminUpdate'])->name('profile.update');
+
+            // ============================
+            // DEBUG: EMAIL TEMPLATES
+            // ============================
+            Route::prefix('debug/mail')->name('debug.mail.')->group(function () {
+                $resolveBooking = function (?int $id = null): Booking {
+                    // Eager load ALL relationships needed by mail templates to avoid errors
+                    $relations = [
+                        'user',
+                        'tour',
+                        'tourLanguage',
+                        'hotel',
+                        'details.tour',
+                        'details.hotel',
+                        'details.schedule',
+                        'details.tourLanguage',
+                        'details.meetingPoint',
+                        'details.meetingPoint.translations',
+                        'redemption.promoCode',
+                    ];
+
+                    return $id
+                        ? Booking::with($relations)->findOrFail($id)
+                        : Booking::with($relations)->latest('booking_id')->firstOrFail();
+                };
+
+                // Confirmed
+                Route::get('/confirmed/{id?}', function (?int $id = null) use ($resolveBooking) {
+                    $booking = $resolveBooking($id);
+                    $mailable = new BookingConfirmedMail($booking);
+                    if ($lang = request('lang')) $mailable->locale($lang);
+                    return $mailable->render();
+                })->name('confirmed');
+
+                // Cancelled
+                Route::get('/cancelled/{id?}', function (?int $id = null) use ($resolveBooking) {
+                    $booking = $resolveBooking($id);
+                    $mailable = new BookingCancelledMail($booking);
+                    if ($lang = request('lang')) $mailable->locale($lang);
+                    return $mailable->render();
+                })->name('cancelled');
+
+                // Created (Admin Notification)
+                Route::get('/created/{id?}', function (?int $id = null) use ($resolveBooking) {
+                    $booking = $resolveBooking($id);
+                    $mailable = new BookingCreatedMail($booking);
+                    if ($lang = request('lang')) $mailable->locale($lang);
+                    return $mailable->render();
+                })->name('created');
+
+                // Updated
+                Route::get('/updated/{id?}', function (?int $id = null) use ($resolveBooking) {
+                    $booking = $resolveBooking($id);
+                    $mailable = new BookingUpdatedMail($booking);
+                    if ($lang = request('lang')) $mailable->locale($lang);
+                    return $mailable->render();
+                })->name('updated');
+
+                // ── Fortify / Auth Notifications ──
+
+                $resolveUser = function (?int $id = null): \App\Models\User {
+                    return $id
+                        ? \App\Models\User::findOrFail($id)
+                        : \App\Models\User::firstOrFail(); // Toma el primero si no hay ID expecífico
+                };
+
+                // Helper to set locale for preview
+                $setPreviewLocale = function () {
+                    if (request()->has('lang')) {
+                        app()->setLocale(request('lang'));
+                    }
+                };
+
+                // 1. Verify Email
+                Route::get('/verify-email/{id?}', function (?int $id = null) use ($resolveUser, $setPreviewLocale) {
+                    $setPreviewLocale();
+                    $user = $resolveUser($id);
+                    $notification = new \Illuminate\Auth\Notifications\VerifyEmail;
+                    return $notification->toMail($user);
+                })->name('verify-email');
+
+                // 2. Reset Password
+                Route::get('/reset-password/{id?}', function (?int $id = null) use ($resolveUser, $setPreviewLocale) {
+                    $setPreviewLocale();
+                    $user = $resolveUser($id);
+                    $token = 'dummy-token-123';
+                    $notification = new \App\Notifications\ResetPasswordNotification($token);
+                    return $notification->toMail($user);
+                })->name('reset-password');
+
+                // 3. Password Updated (Success)
+                Route::get('/password-updated/{id?}', function (?int $id = null) use ($resolveUser, $setPreviewLocale) {
+                    $setPreviewLocale();
+                    $user = $resolveUser($id);
+                    $notification = new \App\Notifications\PasswordUpdatedNotification;
+                    return $notification->toMail($user);
+                })->name('password-updated');
+
+                // 4. Email Change Request (Notification with token)
+                Route::get('/email-change/{id?}', function (?int $id = null) use ($resolveUser, $setPreviewLocale) {
+                    $setPreviewLocale();
+                    $user = $resolveUser($id);
+                    $token = 'dummy-token-123';
+                    $notification = new \App\Notifications\EmailChangeVerificationNotification($token, app()->getLocale());
+                    return $notification->toMail($user);
+                })->name('email-change');
+
+                // 5. Email Change Completed (Success)
+                Route::get('/email-change-success/{id?}', function (?int $id = null) use ($resolveUser, $setPreviewLocale) {
+                    $setPreviewLocale();
+                    $user = $resolveUser($id);
+                    $notification = new \App\Notifications\EmailChangeCompletedNotification;
+                    return $notification->toMail($user);
+                })->name('email-change-success');
+
+                // 3. Account Locked
+                Route::get('/account-locked/{id?}', function (?int $id = null) use ($resolveUser) {
+                    $user = $resolveUser($id);
+                    $unlockUrl = route('unlock.process', ['user' => $user->user_id, 'hash' => sha1($user->email)]);
+                    $notification = new \App\Notifications\AccountLockedNotification($unlockUrl);
+                    return $notification->toMail($user);
+                })->name('account-locked');
+
+                // 4. Email Change Verification
+                Route::get('/email-change/{id?}', function (?int $id = null) use ($resolveUser) {
+                    $user = $resolveUser($id);
+                    $token = 'debug-email-change-token';
+                    $locale = request('lang'); // Opcional override
+                    $notification = new \App\Notifications\EmailChangeVerificationNotification($token, $locale);
+                    return $notification->toMail($user);
+                })->name('email-change');
+            });
 
             // ============================
             // 2FA PROTECTED ROUTES

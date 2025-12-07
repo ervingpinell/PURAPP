@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Translation\HasLocalePreference;
+
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,26 +25,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 // Spatie Permission
 use Spatie\Permission\Traits\HasRoles;
 
-/**
- * @property int         $user_id
- * @property string      $full_name
- * @property string      $email
- * @property string|null $password
- * @property bool        $status
- * @property int|null    $role_id
- * @property string|null $phone
- * @property string|null $country_code
- * @property bool        $is_locked
- * @property \Illuminate\Support\Carbon|null $email_verified_at
- * @property string|null $two_factor_secret
- * @property string|null $two_factor_recovery_codes
- * @property \Illuminate\Support\Carbon|null $two_factor_confirmed_at
- *
- * Métodos del trait de Fortify (disponibles en runtime):
- * @method array  recoveryCodes()
- * @method string twoFactorQrCodeSvg()
- */
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail, HasLocalePreference
 {
     use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable;
     use HasRoles;
@@ -66,6 +49,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'country_code',
         'is_locked',
         'is_super_admin',
+        'locale', // New field
     ];
 
     /**
@@ -94,53 +78,17 @@ class User extends Authenticatable implements MustVerifyEmail
         'two_factor_recovery_codes',
     ];
 
-    /* ============================================================
-     | Relaciones
-     * ============================================================*/
+    // ...
 
-
-    public function cart()
+    /**
+     * Get the user's preferred locale.
+     */
+    public function preferredLocale(): string
     {
-        return $this->hasOne(Cart::class, 'user_id')->where('is_active', true);
+        return $this->locale ?? app()->getLocale();
     }
 
-    /* ============================================================
-     | Flags / Helpers
-     * ============================================================*/
-    public function isLocked(): bool
-    {
-        return (bool) $this->is_locked;
-    }
-
-    public function isSuperAdmin(): bool
-    {
-        return (bool) $this->is_super_admin;
-    }
-
-    // AdminLTE helpers
-    public function adminlte_desc()
-    {
-        if ($this->isSuperAdmin()) {
-            return 'Super Admin';
-        }
-        return $this->getRoleNames()->first() ?? 'Sin rol';
-    }
-
-    public function adminlte_profile_url()
-    {
-        return $this->canDo('access-admin')
-            ? route('admin.profile.edit')
-            : route('profile.edit');
-    }
-
-    public function adminlte_image()
-    {
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->full_name);
-    }
-
-    /* ============================================================
-     | Accessors / Mutators
-     * ============================================================*/
+    // ...
 
     // Fortify/Notifications suelen leer ->name; mapeamos a full_name
     public function name(): Attribute
@@ -246,7 +194,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         try {
             // ResetPassword no implementa ShouldQueue -> se envía en sync
-            $this->notify(new ResetPassword($token));
+            $this->notify(new \App\Notifications\ResetPasswordNotification($token));
         } catch (\Throwable $e) {
             Log::warning('Error al enviar reset password (sync)', [
                 'user_id' => $this->getKey(),

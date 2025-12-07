@@ -139,8 +139,8 @@ return [
     'usermenu_header' => true,
     'usermenu_header_class' => 'bg-success',
     'usermenu_image' => false,
-    'usermenu_desc' => true,
-    'usermenu_profile_url' => true,
+    'usermenu_desc' => false,
+    'usermenu_profile_url' => false,
 
     /*
     |--------------------------------------------------------------------------

@@ -731,6 +731,7 @@ return [
             'details'       => 'Detalhes',
             'price'         => 'Preços',
             'overview'      => 'Resumo',
+            'recommendations' => 'Recomendações',
             'amenities'     => 'Comodidades',
             'exclusions'    => 'Exclusões',
             'itinerary'     => 'Itinerário',

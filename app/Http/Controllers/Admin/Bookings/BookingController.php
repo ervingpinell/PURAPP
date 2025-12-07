@@ -128,7 +128,8 @@ class BookingController extends Controller
             ->orderBy('name')
             ->get();
 
-        $customers = User::whereHas('role', fn($q) => $q->where('role_name', 'Customer'))
+        // Case-insensitive check for 'customer' role using relationship
+        $customers = User::whereHas('roles', fn($q) => $q->whereRaw('LOWER(name) = ?', ['customer']))
             ->orderBy('full_name')
             ->get();
 
@@ -743,9 +744,9 @@ class BookingController extends Controller
                 if ($promo && method_exists($promo, 'hasRemainingUses') && !$promo->hasRemainingUses()) $promo = null;
             }
 
-            // Total final (con promo aplicada al subtotal) + impuestos
-            $discountedSubtotal = $this->pricing->applyPromo($detailSubtotal, $promo);
-            $total = $discountedSubtotal + $taxesTotal;
+            // Total final: PRIMERO sumar impuestos, LUEGO aplicar promo
+            $totalWithTaxes = $detailSubtotal + $taxesTotal;
+            $total = $this->pricing->applyPromo($totalWithTaxes, $promo);
 
             // Cabecera
             $booking->update([

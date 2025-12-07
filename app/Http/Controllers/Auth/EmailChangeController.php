@@ -46,13 +46,20 @@ class EmailChangeController extends Controller
             'email_verified_at'         => now(),
         ])->save();
 
+        // Notificar cambio completado
+        try {
+            $user->notify(new \App\Notifications\EmailChangeCompletedNotification());
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send email change completed notification: ' . $e->getMessage());
+        }
+
         // 4) Autologin del usuario (por si no estaba logeado en este navegador)
         Auth::login($user);
 
         // 5) Redirigir al perfil con mensaje de éxito
         $successMessage = __('auth.email_change_confirmed');
 
-        if ($user->isSuperAdmin() || $user->hasRole(['admin', 'super-admin'])) {
+        if ($user->hasRole('super-admin') || $user->hasRole(['admin', 'super-admin'])) {
             // Perfil admin
             return redirect()
                 ->route('admin.profile.edit')

@@ -134,7 +134,7 @@ class UserRegisterController extends Controller
         $currentUser = $request->user();
 
         // Protección: No puedes editar tu propio rol (solo super-admin puede)
-        if (!$currentUser->isSuperAdmin() && $currentUser->user_id == $user->user_id) {
+        if (!$currentUser->hasRole('super-admin') && $currentUser->user_id == $user->user_id) {
             $currentRoleId = $user->getRoleNames()->first();
             $newRole = \Spatie\Permission\Models\Role::find($request->role_id);
             if ($newRole && $currentRoleId != $newRole->name) {

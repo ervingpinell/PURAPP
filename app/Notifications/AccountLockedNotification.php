@@ -26,15 +26,19 @@ class AccountLockedNotification extends Notification
             'url'  => $this->unlockUrl,
         ]);
 
-        $replyTo = config('mail.to.contact', 'info@greenvacationscr.com');
+        $replyTo = config('mail.reply_to.address');
 
         return (new MailMessage)
-            ->from('noreply@greenvacationscr.com', config('mail.from.name', 'Green Vacations CR'))
+            ->from(config('mail.from.address'), config('mail.from.name'))
             ->replyTo($replyTo)
             ->subject(__('adminlte::auth.account.locked_title') ?: 'Tu cuenta ha sido bloqueada')
             ->greeting(__('adminlte::auth.hello') ?: 'Hola')
             ->line(__('adminlte::auth.account.locked_message') ?: 'Has superado el número de intentos permitidos. Por seguridad, tu cuenta fue bloqueada temporalmente.')
             ->action(__('adminlte::auth.account.unlock_mail_action') ?: 'Desbloquear mi cuenta', $this->unlockUrl)
-            ->line(__('adminlte::auth.account.unlock_mail_outro') ?: 'Si no fuiste tú, ignora este correo.');
+            ->line(new \Illuminate\Support\HtmlString(
+                '<span style="font-size: 12px; color: #666;">' .
+                    (__('adminlte::auth.account.unlock_mail_outro') ?: 'Si no fuiste tú, ignora este correo.') .
+                    '</span>'
+            ));
     }
 }

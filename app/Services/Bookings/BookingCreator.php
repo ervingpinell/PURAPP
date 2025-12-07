@@ -89,9 +89,9 @@ class BookingCreator
                 }
             }
 
-            // Total final (con promo aplicada al subtotal)
-            $discountedSubtotal = $this->pricing->applyPromo($detailSubtotal, $promo);
-            $totalBooking = $discountedSubtotal + $taxesTotal;
+            // Total final: PRIMERO sumar impuestos, LUEGO aplicar promo
+            $totalWithTaxes = $detailSubtotal + $taxesTotal;
+            $totalBooking = $this->pricing->applyPromo($totalWithTaxes, $promo);
 
             // BOOKING
             $booking = Booking::create([

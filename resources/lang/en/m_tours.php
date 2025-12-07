@@ -752,6 +752,7 @@ return [
             'details'       => 'Details',
             'price'         => 'Prices',
             'overview'      => 'Overview',
+            'recommendations' => 'Recommendations',
             'amenities'     => 'Amenities',
             'exclusions'    => 'Exclusions',
             'itinerary'     => 'Itinerary',

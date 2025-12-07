@@ -26,7 +26,7 @@ class BookingUpdatedMail extends Mailable implements ShouldQueue
      */
     protected function adminNotify(): array
     {
-        $raw   = config('mail.booking_notify') ?? env('BOOKING_NOTIFY', '');
+        $raw   = config('mail.notifications.address');
         $items = preg_split('/[,\s;]+/', (string) $raw, -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
         return collect($items)
@@ -46,9 +46,16 @@ class BookingUpdatedMail extends Mailable implements ShouldQueue
     {
         // Cargar relaciones necesarias
         $this->booking->loadMissing([
-            'user', 'tour', 'tourLanguage', 'hotel',
-            'details.tour', 'details.hotel', 'details.schedule', 'details.tourLanguage',
-            'details.meetingPoint', 'details.meetingPoint.translations',
+            'user',
+            'tour',
+            'tourLanguage',
+            'hotel',
+            'details.tour',
+            'details.hotel',
+            'details.schedule',
+            'details.tourLanguage',
+            'details.meetingPoint',
+            'details.meetingPoint.translations',
             'redemption.promoCode',
         ]);
 
@@ -77,12 +84,7 @@ class BookingUpdatedMail extends Mailable implements ShouldQueue
         ], $this->mailLocale);
 
         // Reply-To: priorizamos MSFT, luego contacto, luego fallback
-        $replyTo = collect([
-            env('MSFT_REPLY_TO'),
-            env('MAIL_TO_CONTACT'),
-            data_get(config('mail.reply_to'), 'address'),
-            config('mail.from.address'),
-        ])->first(fn($v) => filled($v));
+        $replyTo = config('mail.reply_to.address');
 
         // From info
         $fromAddress = config('mail.from.address');

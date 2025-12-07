@@ -79,6 +79,15 @@ h6{ font-size: var(--fs-xs); line-height: var(--lh-tight); font-weight:700; marg
 .modal .modal-footer .btn{ font-size: var(--fs-sm); }
 
 /* Botones */
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary:active:focus {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+}
+
 .btn, .btn-sm, .btn-lg{ line-height: 1.1; }
 .btn{ font-size: var(--fs-sm); }
 @media (min-width: 992px){

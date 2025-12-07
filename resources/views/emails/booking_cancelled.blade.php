@@ -140,7 +140,7 @@ $notes = trim((string) ($booking->notes ?? ''));
 
 {{-- 1. BOOKING STATUS --}}
 <div class="section-card" style="margin-bottom:18px;">
-  <div class="section-title" style="margin-bottom:4px; color:#e74c3c">{{ $tTitle }}</div>
+  <div class="section-title" style="margin-bottom:4px; color:#e74c3c; font-size:24px;">{{ $tTitle }}</div>
   <div style="font-size:13px;color:#6b7280; font-style: bold;">{{ $tRef }}: {{ $reference }}</div>
 </div>
 
@@ -175,7 +175,7 @@ $notes = trim((string) ($booking->notes ?? ''));
     <div>
       <strong>{{ $mailLocale==='es'?'Punto de encuentro':'Meeting point' }}:</strong>
       @if($meetingUrl)
-      <a href="{{ $meetingUrl }}" target="_blank" rel="noopener" style="color:#0ea5e9;text-decoration:none;">
+      <a href="{{ $meetingUrl }}" target="_blank" rel="noopener" style="color:#3869d4;text-decoration:none;">
         {{ $meetingName }}
       </a>
       @else

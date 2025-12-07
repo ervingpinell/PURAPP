@@ -45,14 +45,14 @@ return [
     ],
 
     'throttle_page' => [
-    'title'         => 'Demasiados intentos',
-    'message'       => 'Has realizado demasiados intentos de inicio de sesión.',
-    'retry_in'      => 'Podrás volver a intentarlo en',
-    'minutes_abbr'  => 'min',
-    'seconds_abbr'  => 's',
-    'total_seconds'  => 'segundos totales',
-    'redirecting'   => 'Redirigiendo…',
-],
+        'title'         => 'Demasiados intentos',
+        'message'       => 'Has realizado demasiados intentos de inicio de sesión.',
+        'retry_in'      => 'Podrás volver a intentarlo en',
+        'minutes_abbr'  => 'min',
+        'seconds_abbr'  => 's',
+        'total_seconds'  => 'segundos totales',
+        'redirecting'   => 'Redirigiendo…',
+    ],
     'remember_me' => 'Recuérdame',
     'forgot_password' => '¿Olvidaste tu contraseña?',
     'send_link' => 'Enviar enlace',
@@ -62,7 +62,7 @@ return [
         'remaining_attempts' => '{0} Credenciales inválidas.|{1} Credenciales inválidas. Te queda 1 intento antes del bloqueo.|[2,*] Credenciales inválidas. Te quedan :count intentos antes del bloqueo.',
     ],
 
-     'account' => [
+    'account' => [
         'locked'   => 'Tu cuenta está bloqueada. Revisa tu correo para desbloquearla.',
         'unlocked' => 'Tu cuenta ha sido desbloqueada. Ya puedes iniciar sesión.',
     ],
@@ -81,4 +81,31 @@ return [
     'email_change_footer'         => 'Si tú no solicitaste este cambio, puedes ignorar este mensaje y tu correo actual seguirá siendo el mismo.',
     'email_change_link_expired'   => 'El enlace para cambiar tu correo ha expirado. Por favor, vuelve a solicitar el cambio desde tu perfil.',
     'email_change_confirmed'      => 'Tu correo electrónico ha sido actualizado y verificado correctamente.',
+
+    'reset_password' => [
+        'subject'    => 'Notificación de restablecimiento de contraseña',
+        'greeting'   => '¡Hola!',
+        'line1'      => 'Estás recibiendo este correo porque recibimos una solicitud de restablecimiento de contraseña para tu cuenta.',
+        'action'     => 'Restablecer contraseña',
+        'line2'      => 'Este enlace de restablecimiento de contraseña expirará en :count minutos.',
+        'line3'      => 'Si no solicitaste un restablecimiento de contraseña, no se requiere ninguna otra acción.',
+        'salutation' => 'Saludos,',
+    ],
+
+    'email_updated_notification' => [
+        'subject'         => 'Tu correo electrónico ha sido actualizado',
+        'greeting'        => '¡Hola!',
+        'message'         => 'La dirección de correo electrónico de tu cuenta ha sido actualizada correctamente a: :email',
+        'contact_support' => 'Si no fuiste tú, contacta a soporte.',
+        'salutation'      => 'Saludos,',
+    ],
+
+    'password_updated_notification' => [
+        'subject'         => 'Tu contraseña ha sido actualizada',
+        'greeting'        => '¡Hola!',
+        'line1'           => 'Te informamos que la contraseña de tu cuenta ha sido cambiada exitosamente.',
+        'line2'           => 'Si no realizaste este cambio, por favor contacta a soporte inmediatamente.',
+        'action'          => 'Iniciar Sesión',
+        'salutation'      => 'Saludos,',
+    ],
 ];

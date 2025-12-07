@@ -30,11 +30,12 @@ return [
         'client_secret' => env('MSFT_CLIENT_SECRET'),
 
         // Buzón desde el cual enviar (User Principal Name)
+        // Buzón desde el cual enviar (User Principal Name)
         // Debe tener permisos en la AAC (Application Access Policy)
-        'sender_upn'    => env('MSFT_SENDER_UPN', 'noreply@greenvacationscr.com'),
+        'sender_upn'    => env('MSFT_SENDER_UPN', env('MAIL_FROM_ADDRESS', 'noreply@greenvacationscr.com')),
 
         // Reply-To por defecto (opcional)
-        'reply_to'      => env('MSFT_REPLY_TO', 'info@greenvacationscr.com'),
+        'reply_to'      => env('MSFT_REPLY_TO', env('MAIL_REPLY_TO_ADDRESS', 'info@greenvacationscr.com')),
     ],
     // === Reviews / Partners ===
 

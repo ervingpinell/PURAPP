@@ -11,9 +11,12 @@ class EventServiceProvider extends ServiceProvider
         NotificationFailed::class => [
             \App\Listeners\LogNotificationFailure::class,
         ],
+        \Illuminate\Auth\Events\PasswordReset::class => [
+            \App\Listeners\SendPasswordUpdatedNotification::class,
+        ],
     ];
 
-        protected $subscribe = [
+    protected $subscribe = [
         \App\Listeners\AuthAuditSubscriber::class,
     ];
 }

@@ -393,16 +393,6 @@
           onclick="toggleMarkBlock(this,'{{ $day }}','am')">
           {{ __('m_bookings.excluded_dates.buttons.mark_all') }}
         </button>
-        @endcan
-        @can('publish-tour-excluded-dates')
-        <button type="button"
-          class="btn btn-sm btn-{{ $date->is_active ? 'success' : 'secondary' }}"
-          onclick="toggleDate({{ $date->id }})"
-          title="{{ $date->is_active ? 'Desactivar' : 'Activar' }}">
-          <i class="fas fa-power-off"></i>
-        </button>
-        @endcan
-        @can('edit-tour-excluded-dates')
         <button type="button" class="btn btn-danger btn-sm" onclick="blockAllInBlock('{{ $day }}','am')">
           {{ __('m_bookings.excluded_dates.buttons.block_all') }}
         </button>
@@ -471,10 +461,10 @@
           onclick="toggleMarkBlock(this,'{{ $day }}','pm')">
           {{ __('m_bookings.excluded_dates.buttons.mark_all') }}
         </button>
-        @endcan
         <button type="button" class="btn btn-danger btn-sm" onclick="blockAllInBlock('{{ $day }}','pm')">
           {{ __('m_bookings.excluded_dates.buttons.block_all') }}
         </button>
+        @endcan
       </div>
     </div>
 
@@ -636,9 +626,7 @@ $I18N = [
 ];
 @endphp
 <script>
-  const I18N = {
-    !!json_encode($I18N, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!
-  };
+  const I18N = {!! json_encode($I18N, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
   // Helpers para etiquetas (usa lang o fallback)
   function tBlockAll() {
@@ -845,9 +833,7 @@ $I18N = [
 
       const state = row.querySelector('.state');
       const available = !!data.is_available;
-      state.textContent = available ? '{{ __('
-      m_bookings.excluded_dates.states.available ') }}': '{{ __('
-      m_bookings.excluded_dates.states.blocked ') }}';
+      state.textContent = available ? '{{ __('m_bookings.excluded_dates.states.available') }}' : '{{ __('m_bookings.excluded_dates.states.blocked') }}';
       state.classList.toggle('text-success', available);
       state.classList.toggle('text-danger', !available);
 
@@ -892,8 +878,7 @@ $I18N = [
         .replace(':label', label).replace(':day', day),
       showCancelButton: true,
       confirmButtonText: isBlock ? I18N.confirm_block_btn : I18N.confirm_unblock_btn,
-      cancelButtonText: '{{ __('
-      m_bookings.excluded_dates.buttons.cancel ') }}'
+      cancelButtonText: '{{ __('m_bookings.excluded_dates.buttons.cancel') }}'
     });
 
     if (res.isConfirmed) {
@@ -952,8 +937,7 @@ $I18N = [
           badge.innerHTML = '<i class="fas fa-ban me-1"></i> 0/0';
 
           const state = row.querySelector('.state');
-          state.textContent = '{{ __('
-          m_bookings.excluded_dates.states.blocked ') }}';
+          state.textContent = '{{ __('m_bookings.excluded_dates.states.blocked') }}';
           state.classList.remove('text-success');
           state.classList.add('text-danger');
 
@@ -970,7 +954,11 @@ $I18N = [
       // Refresca etiquetas/colores de botones de scope
       refreshScopeButtonsFor(day);
 
-      capacityModalInstance.hide();
+      // FIX: Espera un tick antes de cerrar para evitar warning de accesibilidad
+      setTimeout(() => {
+        capacityModalInstance.hide();
+      }, 10);
+
       toast.fire({
         icon: 'success',
         title: I18N.capacity_updated
@@ -984,8 +972,7 @@ $I18N = [
 
   function setCapacityForDay(day) {
     Swal.fire({
-      title: '{{ __('
-      m_bookings.excluded_dates.modals.capacity_day_title ') }}',
+      title: '{{ __('m_bookings.excluded_dates.modals.capacity_day_title') }}',
       html: `<strong>${day}</strong><br>{{ __('m_bookings.excluded_dates.modals.capacity_day_subtitle') }}`,
       input: 'number',
       inputAttributes: {
@@ -995,10 +982,8 @@ $I18N = [
       },
       inputValue: 15,
       showCancelButton: true,
-      confirmButtonText: '{{ __('
-      m_bookings.excluded_dates.buttons.apply ') }}',
-      cancelButtonText: '{{ __('
-      m_bookings.excluded_dates.buttons.cancel ') }}'
+      confirmButtonText: '{{ __('m_bookings.excluded_dates.buttons.apply') }}',
+      cancelButtonText: '{{ __('m_bookings.excluded_dates.buttons.cancel') }}'
     }).then(async (result) => {
       if (result.isConfirmed) {
         const capacity = parseInt(result.value);
@@ -1068,16 +1053,11 @@ $I18N = [
 
     const res = await Swal.fire({
       icon: 'warning',
-      title: '{{ __('
-      m_bookings.excluded_dates.confirm.bulk_title ') }}',
-      html: '{{ __('
-      m_bookings.excluded_dates.confirm.bulk_items_html ', ['
-      count ' => ': count ']) }}'.replace(':count', items.length),
+      title: '{{ __('m_bookings.excluded_dates.confirm.bulk_title') }}',
+      html: '{{ __('m_bookings.excluded_dates.confirm.bulk_items_html', ['count' => ':count']) }}'.replace(':count', items.length),
       showCancelButton: true,
-      confirmButtonText: '{{ __('
-      m_bookings.excluded_dates.buttons.block ') }}',
-      cancelButtonText: '{{ __('
-      m_bookings.excluded_dates.buttons.cancel ') }}'
+      confirmButtonText: '{{ __('m_bookings.excluded_dates.buttons.block') }}',
+      cancelButtonText: '{{ __('m_bookings.excluded_dates.buttons.cancel') }}'
     });
 
     if (res.isConfirmed) await bulkToggle(items, 'block');
@@ -1092,16 +1072,11 @@ $I18N = [
 
     const res = await Swal.fire({
       icon: 'warning',
-      title: '{{ __('
-      m_bookings.excluded_dates.confirm.bulk_title ') }}',
-      html: '{{ __('
-      m_bookings.excluded_dates.confirm.bulk_items_html ', ['
-      count ' => ': count ']) }}'.replace(':count', items.length),
+      title: '{{ __('m_bookings.excluded_dates.confirm.bulk_title') }}',
+      html: '{{ __('m_bookings.excluded_dates.confirm.bulk_items_html', ['count' => ':count']) }}'.replace(':count', items.length),
       showCancelButton: true,
-      confirmButtonText: '{{ __('
-      m_bookings.excluded_dates.buttons.unblock ') }}',
-      cancelButtonText: '{{ __('
-      m_bookings.excluded_dates.buttons.cancel ') }}'
+      confirmButtonText: '{{ __('m_bookings.excluded_dates.buttons.unblock') }}',
+      cancelButtonText: '{{ __('m_bookings.excluded_dates.buttons.cancel') }}'
     });
 
     if (res.isConfirmed) await bulkToggle(items, 'unblock');
@@ -1146,7 +1121,11 @@ $I18N = [
       }
     }
 
-    bootstrap.Modal.getInstance(document.getElementById('bulkCapacityModal')).hide();
+    // FIX: Espera un tick antes de cerrar para evitar warning de accesibilidad
+    setTimeout(() => {
+      bootstrap.Modal.getInstance(document.getElementById('bulkCapacityModal')).hide();
+    }, 10);
+
     document.querySelectorAll('.select-item:checked').forEach(cb => cb.checked = false);
 
     toast.fire({
@@ -1234,9 +1213,7 @@ $I18N = [
       return;
     }
 
-    const countHtml = '{{ __('
-    m_bookings.excluded_dates.confirm.bulk_items_html ', ['
-    count ' => ': count ']) }}'
+    const countHtml = '{{ __('m_bookings.excluded_dates.confirm.bulk_items_html', ['count' => ':count']) }}'
       .replace(':count', items.length);
     const ctxLine = contextLabel ? `<div class="mb-1"><strong>${contextLabel}</strong></div>` : '';
 
@@ -1246,11 +1223,8 @@ $I18N = [
       html: ctxLine + countHtml,
       showCancelButton: true,
       confirmButtonText: want === 'block' ?
-        '{{ __('
-      m_bookings.excluded_dates.buttons.block ') }}': '{{ __('
-      m_bookings.excluded_dates.buttons.unblock ') }}',
-      cancelButtonText: '{{ __('
-      m_bookings.excluded_dates.buttons.cancel ') }}'
+        '{{ __('m_bookings.excluded_dates.buttons.block') }}' : '{{ __('m_bookings.excluded_dates.buttons.unblock') }}',
+      cancelButtonText: '{{ __('m_bookings.excluded_dates.buttons.cancel') }}'
     });
 
     if (res.isConfirmed) {
@@ -1274,9 +1248,7 @@ $I18N = [
 
   function setBtnLabel(btn, allChecked) {
     btn.textContent = allChecked ?
-      '{{ __('
-    m_bookings.excluded_dates.buttons.unmark_all ') }}': '{{ __('
-    m_bookings.excluded_dates.buttons.mark_all ') }}';
+      '{{ __('m_bookings.excluded_dates.buttons.unmark_all') }}' : '{{ __('m_bookings.excluded_dates.buttons.mark_all') }}';
   }
 
   function refreshMarkLabelsFor(day) {

@@ -259,8 +259,11 @@ class FortifyServiceProvider extends ServiceProvider
     }
 
     /* ===== Keys ===== */
-    private function failKeyUser(int|string $userId): string
+    private function failKeyUser(int|string|null $userId): string
     {
+        if (empty($userId)) {
+            return 'auth:fail:unknown';
+        }
         return 'auth:fail:' . $userId;
     }
     private function ipKey(string $ip): string

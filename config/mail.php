@@ -35,9 +35,9 @@ return [
             'transport' => 'graph',
         ],
 
-        'ses' => [ 'transport' => 'ses' ],
-        'postmark' => [ 'transport' => 'postmark' ],
-        'resend' => [ 'transport' => 'resend' ],
+        'ses' => ['transport' => 'ses'],
+        'postmark' => ['transport' => 'postmark'],
+        'resend' => ['transport' => 'resend'],
 
         'sendmail' => [
             'transport' => 'sendmail',
@@ -49,7 +49,7 @@ return [
             'channel' => env('MAIL_LOG_CHANNEL'),
         ],
 
-        'array' => [ 'transport' => 'array' ],
+        'array' => ['transport' => 'array'],
 
         'failover' => [
             'transport' => 'failover',
@@ -62,8 +62,30 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Global Email Addresses
+    |--------------------------------------------------------------------------
+    |
+    | Here we define the standard email addresses for the application.
+    | 
+    | - from:     The 'noreply' address used to send transactional emails.
+    | - reply_to: The 'info' address where customers should reply.
+    | - notify:   The internal address that receives system alerts (bookings, etc).
+    |
+    */
+    
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'info@greenvacationscr.com'),
-        'name' => env('MAIL_FROM_NAME', 'Green Vacations CR'),
+        'address' => env('MAIL_FROM_ADDRESS', 'noreply@greenvacationscr.com'),
+        'name'    => env('MAIL_FROM_NAME', 'Green Vacations CR'),
+    ],
+
+    'reply_to' => [
+        'address' => env('MAIL_REPLY_TO_ADDRESS', 'info@greenvacationscr.com'),
+        'name'    => env('MAIL_FROM_NAME', 'Green Vacations CR'),
+    ],
+
+    'notifications' => [
+        'address' => env('MAIL_NOTIFY_ADDRESS', 'info@greenvacationscr.com'),
     ],
 ];

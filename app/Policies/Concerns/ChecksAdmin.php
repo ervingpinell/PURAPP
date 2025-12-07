@@ -10,7 +10,7 @@ trait ChecksAdmin
         if (isset($user->is_super_admin) && $user->is_super_admin) {
             return true;
         }
-        if (method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin()) {
+        if (method_exists($user, 'hasRole') && $user->hasRole('super-admin')) {
             return true;
         }
         // Verificar roles de admin usando Spatie

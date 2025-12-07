@@ -28,7 +28,7 @@ class RoleController extends Controller
         $rolesQ = Role::query(); // Uses App\Models\Role which extends Spatie
 
         // Ocultar rol super-admin si el usuario no es super admin
-        if (!auth()->user()->isSuperAdmin()) {
+        if (!auth()->user()->hasRole('super-admin')) {
             $rolesQ->where('name', '!=', 'super-admin');
         }
 
@@ -163,7 +163,7 @@ class RoleController extends Controller
         $user = $request->user();
 
         // Solo super-admin puede modificar cualquier rol
-        if (!$user->isSuperAdmin()) {
+        if (!$user->hasRole('super-admin')) {
             // Verificar si el usuario tiene este rol
             if ($user->hasRole($role->name)) {
                 return redirect()->back()->with('error', 'No puedes modificar los permisos de tu propio rol.');

@@ -34,10 +34,10 @@ class ResetPasswordQueued extends Notification implements ShouldQueue
 
         Log::info('Enviando reset password', ['to' => $notifiable->email, 'url' => $url]);
 
-        $replyTo = config('mail.to.contact', 'info@greenvacationscr.com');
+        $replyTo = config('mail.reply_to.address');
 
         return (new MailMessage)
-            ->from('noreply@greenvacationscr.com', config('mail.from.name', 'Green Vacations CR'))
+            ->from(config('mail.from.address'), config('mail.from.name'))
             ->replyTo($replyTo)
             ->subject(__('adminlte::auth.reset_password'))
             ->line(__('adminlte::auth.password_reset_message'))

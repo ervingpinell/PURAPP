@@ -127,7 +127,7 @@ $notes = trim((string)($booking->notes ?? ''));
 
 {{-- 1. BOOKING STATUS --}}
 <div class="section-card" style="margin-bottom:14px; background-color:#f9fafb; border:1px solid #e5e7eb; padding:15px;">
-  <div class="section-title" style="margin:0 0 10px 0; font-weight:700; color:#111827;">{{ $tTitle }}</div>
+  <div class="section-title" style="margin:0 0 10px 0; font-weight:700; color:#111827; font-size:24px;">{{ $tTitle }}</div>
   <div style="font-size:13px;color:#6b7280;">{{ $tRef }}: <strong>{{ $reference }}</strong></div>
 
   @php
@@ -160,8 +160,8 @@ $notes = trim((string)($booking->notes ?? ''));
 
   {{-- Payment validation message --}}
   @if($paymentStatus === 'paid')
-  <div style="margin-top:12px; padding:12px; background-color:#f0f9ff; border-left:4px solid #0ea5e9; border-radius:4px;">
-    <p style="margin:0; font-size:13px; color:#0c4a6e; line-height:1.5;">
+  <div style="margin-top:12px; padding:12px; background-color:#f0fdf4; border-left:4px solid #60a862; border-radius:4px;">
+    <p style="margin:0; font-size:13px; color:#14532d; line-height:1.5;">
       @if($mailLocale === 'es')
       <strong>✓ Pago recibido.</strong> Nuestro equipo validará el pago y se contactará con usted lo antes posible para confirmar los detalles de su reserva.
       @else
@@ -174,7 +174,7 @@ $notes = trim((string)($booking->notes ?? ''));
   {{-- Payment Link Button --}}
   @if($paymentStatus === 'pending' && !empty($paymentUrl))
   <div style="margin-top:16px; text-align:center;">
-    <a href="{{ $paymentUrl }}" target="_blank" style="display:inline-block; background-color:#0ea5e9; color:#ffffff; padding:12px 24px; border-radius:6px; text-decoration:none; font-weight:600; font-size:14px;">
+    <a href="{{ $paymentUrl }}" target="_blank" style="display:inline-block; background-color:#60a862; color:#ffffff; padding:12px 24px; border-radius:6px; text-decoration:none; font-weight:600; font-size:14px;">
       {{ $mailLocale === 'es' ? 'Pagar Ahora' : 'Pay Now' }}
     </a>
     <div style="margin-top:8px; font-size:12px; color:#6b7280;">
@@ -196,7 +196,7 @@ $notes = trim((string)($booking->notes ?? ''));
     @if($meetingName)
     <div><strong>{{ $mailLocale==='es'?'Punto de encuentro':'Meeting point' }}:</strong>
       @if($meetingUrl)
-      <a href="{{ $meetingUrl }}" target="_blank" rel="noopener" style="color:#0ea5e9;text-decoration:none;">{{ $meetingName }}</a>
+      <a href="{{ $meetingUrl }}" target="_blank" rel="noopener" style="color:#3869d4;text-decoration:none;">{{ $meetingName }}</a>
       @else
       {{ $meetingName }}
       @endif

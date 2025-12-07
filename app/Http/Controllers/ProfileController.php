@@ -28,7 +28,7 @@ class ProfileController extends Controller
         $recoveryCodes  = method_exists($user, 'safeRecoveryCodes')      ? $user->safeRecoveryCodes()       : [];
 
         // Admin (tenga permiso 'access-admin') vs público
-        if ($user->isSuperAdmin() || $user->can('access-admin')) {
+        if ($user->hasRole('super-admin') || $user->can('access-admin')) {
             return view('admin.profile.profile', [
                 'user'            => $user,
                 'has2FA'          => $has2FA,
@@ -126,7 +126,7 @@ class ProfileController extends Controller
         }
 
         // Redirección según contexto (admin vs público)
-        if ($user->isSuperAdmin() || $user->can('access-admin')) {
+        if ($user->hasRole('super-admin') || $user->can('access-admin')) {
             return redirect()
                 ->route('admin.profile.edit')
                 ->with('success', __($emailMessageKey));
@@ -156,7 +156,7 @@ class ProfileController extends Controller
         // Opcional: reforzar que sea admin
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
-        if (! ($user->isSuperAdmin() || $user->can('access-admin'))) abort(403);
+        if (! ($user->hasRole('super-admin') || $user->can('access-admin'))) abort(403);
 
         return $this->edit();
     }

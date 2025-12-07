@@ -31,7 +31,7 @@ class LoginResponse implements LoginResponseContract
         }
 
         // Verificar si es admin usando Spatie
-        $isAdmin = $user && ($user->isSuperAdmin() || $user->hasRole(['admin', 'super-admin']));
+        $isAdmin = $user && ($user->hasRole('super-admin') || $user->hasRole(['admin', 'super-admin']));
 
         // Construye el redirect primero
         if ($isAdmin) {

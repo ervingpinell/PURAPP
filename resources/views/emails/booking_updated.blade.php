@@ -137,15 +137,12 @@ $notes = trim((string) ($booking->notes ?? ''));
 @endphp
 
 {{-- si quieres mantener un color diferente para "updated", puedes dejar esto o quitarlo --}}
-<style>
-  .email-header {
-    background: linear-gradient(135deg, #3498DB, #1c9cf2) !important;
-  }
-</style>
+{{-- si quieres mantener un color diferente para "updated", puedes dejar esto o quitarlo --}}
+{{-- Header override removed to standardize --}}
 
 {{-- 1. BOOKING STATUS --}}
 <div class="section-card" style="margin-bottom:14px;">
-  <div class="section-title" style="margin-bottom:4px;color:#207ebd">{{ $tTitle }}</div>
+  <div class="section-title" style="margin-bottom:4px;color:#256d1b;font-size:24px;">{{ $tTitle }}</div>
   <div style="font-size:13px;color:#6b7280;">{{ $tRef }}: {{ $reference }}</div>
 </div>
 
@@ -173,7 +170,7 @@ $notes = trim((string) ($booking->notes ?? ''));
     <div>
       <strong>{{ $mailLocale==='es'?'Punto de encuentro':'Meeting point' }}:</strong>
       @if($meetingUrl)
-      <a href="{{ $meetingUrl }}" target="_blank" rel="noopener" style="color:#0ea5e9;text-decoration:none;">
+      <a href="{{ $meetingUrl }}" target="_blank" rel="noopener" style="color:#3869d4;text-decoration:none;">
         {{ $meetingName }}
       </a>
       @else
