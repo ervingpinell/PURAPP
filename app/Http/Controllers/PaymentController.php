@@ -473,14 +473,15 @@ class PaymentController extends Controller
             // 4) Try to find and reuse existing payment intent
             $payment = $this->findOrCreatePaymentIntent($cartSnapshot, $gateway, $total, $currency, $bookingId);
 
-            // If we reused an existing payment, return it immediately
-            if ($payment->wasRecentlyCreated === false && $payment->gateway_payment_intent_id) {
+            // If payment already has a gateway intent ID, return it immediately (don't call gateway again)
+            if ($payment->gateway_payment_intent_id) {
                 $existingResponse = $payment->gateway_response ?? [];
 
                 Log::info('Reusing existing payment intent', [
                     'payment_id' => $payment->payment_id,
                     'gateway' => $gateway,
                     'booking_id' => $bookingId,
+                    'was_recently_created' => $payment->wasRecentlyCreated ?? false,
                 ]);
 
                 // Store payment ID in session for guest status polling
@@ -495,6 +496,13 @@ class PaymentController extends Controller
                     'reused'         => true,
                 ]);
             }
+
+            // Log whether we're creating a new payment or updating an existing one
+            Log::info('Processing payment intent', [
+                'payment_id' => $payment->payment_id,
+                'is_new' => $payment->wasRecentlyCreated ?? false,
+                'gateway' => $gateway,
+            ]);
 
             // 5) Create new intent/order in the selected gateway
             $gatewayManager = app(\App\Services\PaymentGateway\PaymentGatewayManager::class);
@@ -721,26 +729,41 @@ class PaymentController extends Controller
 
         // Get user ID from auth or snapshot
         $userId = Auth::id() ?? $cartSnapshot['user_id'] ?? null;
+        $sessionId = session()->getId();
 
         // Try to find an existing active payment intent
-        $existingPayment = Payment::where('user_id', $userId)
-            ->where('gateway', $gateway)
+        // We specifically check metadata->session_id for guests to prevent collisions
+        $query = Payment::where('gateway', $gateway)
             ->whereIn('status', ['pending', 'processing'])
             ->where('expires_at', '>', now())
-            ->where('amount', $total)
-            ->where('currency', $currency)
-            ->when($bookingId, function ($query) use ($bookingId) {
-                return $query->where('booking_id', $bookingId);
+            ->where(function ($q) use ($total) {
+                // Fuzzy match for float amount or exact match for string
+                $q->where('amount', $total)
+                    ->orWhereRaw('ABS(amount - ?) < 0.01', [$total]);
             })
-            ->orderByDesc('created_at')
-            ->first();
+            ->where('currency', $currency);
+
+        if ($bookingId) {
+            $query->where('booking_id', $bookingId);
+        } else {
+            // If no booking ID, strict check on user/session
+            if ($userId) {
+                $query->where('user_id', $userId);
+            } else {
+                // Guest: Must match session_id in metadata to avoid hijacking
+                $query->where('user_id', null)
+                    ->where('metadata->session_id', $sessionId);
+            }
+        }
+
+        $existingPayment = $query->orderByDesc('created_at')->first();
 
         if ($existingPayment) {
             Log::info('Found existing valid payment intent', [
                 'payment_id' => $existingPayment->payment_id,
                 'gateway' => $gateway,
                 'booking_id' => $bookingId,
-                'expires_at' => $existingPayment->expires_at,
+                'has_intent_id' => !empty($existingPayment->gateway_payment_intent_id),
             ]);
 
             return $existingPayment;
@@ -760,6 +783,7 @@ class PaymentController extends Controller
             'metadata'   => [
                 'cart_snapshot' => $cartSnapshot,
                 'created_from'  => 'checkout',
+                'session_id'    => $sessionId, // Important for guest retries
             ],
         ]);
 
@@ -767,7 +791,8 @@ class PaymentController extends Controller
             'payment_id' => $payment->payment_id,
             'gateway' => $gateway,
             'booking_id' => $bookingId,
-            'expires_at' => $expiresAt,
+            'session_id' => $sessionId,
+            'amount' => $total
         ]);
 
         return $payment;

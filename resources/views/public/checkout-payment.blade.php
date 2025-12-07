@@ -661,6 +661,9 @@
         let stripeElements = null;
         let stripeClientSecret = null;
 
+        // Cache payment intents to avoid duplicate backend calls
+        const paymentIntents = {};
+
         const stripeContainer = document.getElementById('stripe-container');
         const redirectGatewayBox = document.getElementById('redirect-gateway-container');
         const paymentElementEl = document.getElementById('payment-element');
@@ -819,6 +822,42 @@
         }
 
         async function initializeGateway(gateway, isActionPhase = false) {
+            // 1. Check Cache: If we already have a successful init for this gateway, reuse it.
+            // Exception: If we are in 'actionPhase' (clicking Pay), we might want to re-submit 
+            // but usually for Stripe confirm we use the existing instance.
+            // For Redirect gateways, we just redirect.
+
+            if (paymentIntents[gateway] && !isActionPhase) {
+                console.log(`Using cached intent for ${gateway}`, paymentIntents[gateway]);
+                const data = paymentIntents[gateway];
+
+                if (gateway === 'stripe') {
+                    // Re-mount existing or ensure it's visible
+                    stripeContainer.style.display = 'block';
+                    // If we need to re-init Stripe object?
+                    // Usually stripeInstance stays alive. 
+                    if (!stripeInstance) {
+                        // Re-init with cached secret
+                        stripeClientSecret = data.client_secret;
+                        const appearance = {
+                            theme: 'stripe'
+                        };
+                        stripeInstance = Stripe('{{ $stripeKey }}');
+                        stripeElements = stripeInstance.elements({
+                            appearance,
+                            clientSecret: stripeClientSecret
+                        });
+                        const paymentElement = stripeElements.create('payment');
+                        paymentElement.mount('#payment-element');
+                    }
+                    return;
+                } else if (data.redirect_url) {
+                    // Redirect gateway (already have URL)
+                    // Just show UI
+                    return;
+                }
+            }
+
             try {
                 const payload = {
                     gateway
@@ -857,6 +896,9 @@
                     setLoading(false);
                     return;
                 }
+
+                // Cache success response
+                paymentIntents[gateway] = data;
 
                 if (gateway === 'stripe') {
                     if (data.client_secret) {

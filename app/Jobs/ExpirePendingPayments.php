@@ -62,6 +62,7 @@ class ExpirePendingPayments implements ShouldQueue
             })
             ->update([
                 'status' => 'failed',
+                'failed_at' => now(),
                 'metadata' => DB::raw("jsonb_set(COALESCE(metadata, '{}'::jsonb), '{expired_by_job}', 'true'::jsonb)")
             ]);
 
