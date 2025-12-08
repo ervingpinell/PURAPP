@@ -26,6 +26,7 @@ class PoliciesSeeder extends Seeder
             $terms = Policy::updateOrCreate(
                 ['slug' => 'terms-and-conditions'],
                 [
+                    'type'           => 'terms',
                     'is_active'      => true,
                     'effective_from' => $today,
                     'effective_to'   => null,
@@ -223,6 +224,7 @@ TXT;
             $cancel = Policy::updateOrCreate(
                 ['slug' => 'cancellation-policies'],
                 [
+                    'type'           => 'cancellation',
                     'is_active'      => true,
                     'effective_from' => $today,
                     'effective_to'   => null,
@@ -243,6 +245,7 @@ TXT;
             $refund = Policy::updateOrCreate(
                 ['slug' => 'refund-policies'],
                 [
+                    'type'           => 'refund',
                     'is_active'      => true,
                     'effective_from' => $today,
                     'effective_to'   => null,
@@ -263,6 +266,7 @@ TXT;
             $privacy = Policy::updateOrCreate(
                 ['slug' => 'privacy-policy'],
                 [
+                    'type'           => 'privacy',
                     'is_active'      => true,
                     'effective_from' => $today,
                     'effective_to'   => null,
@@ -283,6 +287,7 @@ TXT;
             $warranty = Policy::updateOrCreate(
                 ['slug' => 'warranty-policies'],
                 [
+                    'type'           => 'warranty',
                     'is_active'      => true,
                     'effective_from' => $today,
                     'effective_to'   => null,
