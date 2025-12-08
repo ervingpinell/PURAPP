@@ -23,7 +23,7 @@
       <i class="fas fa-plus me-2"></i>{{ __('pickups.meeting_point.create.title') }}
     </span>
     <form action="{{ route('admin.meetingpoints.index') }}" method="GET">
-      <button type="submit" class="btn btn-sm btn-outline-secondary" title="{{ __('pickups.meeting_point.buttons.reload') }}">
+      <button type="submit" class="btn btn-sm btn-secondary" title="{{ __('pickups.meeting_point.buttons.reload') }}">
         <i class="fas fa-undo"></i>
       </button>
     </form>
@@ -99,7 +99,7 @@
           <button class="btn btn-success">
             <i class="fas fa-save me-1"></i> {{ __('pickups.meeting_point.buttons.save') }}
           </button>
-          <button type="reset" class="btn btn-outline-secondary">
+          <button type="reset" class="btn btn-secondary">
             <i class="fas fa-eraser me-1"></i> {{ __('pickups.meeting_point.buttons.clear') }}
           </button>
         </div>
@@ -119,7 +119,7 @@
     <span class="fw-semibold"><i class="fas fa-list me-2"></i>{{ __('pickups.meeting_point.list.title') }}</span>
     <div class="d-flex gap-2 align-items-center">
       <form action="{{ route('admin.meetingpoints.index') }}" method="GET">
-        <button type="submit" class="btn btn-sm btn-outline-secondary">
+        <button type="submit" class="btn btn-sm btn-secondary">
           <i class="fas fa-sync-alt me-1"></i> {{ __('pickups.meeting_point.buttons.reload') }}
         </button>
       </form>
@@ -160,7 +160,7 @@
             <td>{{ $p->description ?: '—' }}</td>
             <td class="text-center">
               @if ($p->map_url)
-              <a href="{{ $p->map_url }}" target="_blank" class="btn btn-sm btn-outline-info" title="{{ __('pickups.meeting_point.actions.view_map') }}">
+              <a href="{{ $p->map_url }}" target="_blank" class="btn btn-sm btn-info" title="{{ __('pickups.meeting_point.actions.view_map') }}">
                 <i class="fas fa-map-marked-alt"></i>
               </a>
               @else
@@ -176,7 +176,7 @@
             <td class="text-center">
               <div class="btn-group btn-group-sm">
                 @can('edit-meeting-points')
-                <button class="btn btn-outline-primary edit-btn"
+                <button class="btn btn-primary edit-btn"
                   data-id="{{ $p->id }}"
                   data-name="{{ $p->name }}"
                   data-pickup-time="{{ $p->pickup_time }}"
@@ -190,7 +190,7 @@
                 </button>
                 @endcan
                 @can('publish-meeting-points')
-                <button type="button" class="btn btn-outline-{{ $p->is_active ? 'warning' : 'success' }} toggle-btn"
+                <button type="button" class="btn btn-{{ $p->is_active ? 'warning' : 'success' }} toggle-btn"
                   data-id="{{ $p->id }}"
                   data-name="{{ $p->name }}"
                   data-active="{{ $p->is_active ? 1 : 0 }}"
@@ -199,7 +199,7 @@
                 </button>
                 @endcan
                 @can('delete-meeting-points')
-                <button type="button" class="btn btn-outline-danger delete-btn"
+                <button type="button" class="btn btn-danger delete-btn"
                   data-id="{{ $p->id }}"
                   data-name="{{ $p->name }}"
                   title="{{ __('pickups.meeting_point.actions.delete') }}">
@@ -230,7 +230,7 @@
       <div class="d-flex justify-content-between align-items-center mb-2">
         <span class="fw-semibold"><i class="fas fa-list me-2"></i>{{ __('pickups.meeting_point.list.title') }}</span>
         <form action="{{ route('admin.meetingpoints.index') }}" method="GET">
-          <button type="submit" class="btn btn-sm btn-outline-secondary" title="{{ __('pickups.meeting_point.buttons.reload') }}">
+          <button type="submit" class="btn btn-sm btn-secondary" title="{{ __('pickups.meeting_point.buttons.reload') }}">
             <i class="fas fa-sync-alt"></i>
           </button>
         </form>
@@ -282,7 +282,7 @@
           </div>
           @if($p->map_url)
           <div class="col-12">
-            <a href="{{ $p->map_url }}" target="_blank" class="btn btn-sm btn-outline-info w-100">
+            <a href="{{ $p->map_url }}" target="_blank" class="btn btn-sm btn-info w-100">
               <i class="fas fa-map-marked-alt me-1"></i> {{ __('pickups.meeting_point.actions.view_on_map') }}
             </a>
           </div>

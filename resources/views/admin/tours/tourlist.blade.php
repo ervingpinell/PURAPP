@@ -604,19 +604,10 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
 
               @can('edit-tours')
               <a href="{{ route('admin.tours.edit', $tour) }}"
-                class="btn btn-warning btn-sm"
+                class="btn btn-edit btn-sm"
                 title="{{ __('m_tours.tour.ui.edit') }}"
                 aria-label="{{ __('m_tours.tour.ui.edit') }}">
                 <i class="fas fa-edit"></i>
-              </a>
-              @endcan
-
-              @can('manage-tour-images')
-              <a href="{{ route('admin.tours.images.index', $tour) }}"
-                class="btn btn-warning btn-sm"
-                title="{{ __('m_tours.tour.ui.gallery') }}"
-                aria-label="{{ __('m_tours.tour.ui.gallery') }}">
-                <i class="fas fa-images"></i>
               </a>
               @endcan
 
@@ -629,7 +620,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
                 @csrf
                 @method('PATCH')
                 <button type="submit"
-                  class="btn btn-sm btn-{{ $tour->is_active ? 'success' : 'secondary' }}"
+                  class="btn btn-sm btn-{{ $tour->is_active ? 'toggle' : 'secondary' }}"
                   title="{{ $tour->is_active ? __('m_tours.tour.ui.deactivate') : __('m_tours.tour.ui.activate') }}"
                   aria-label="{{ $tour->is_active ? __('m_tours.tour.ui.deactivate') : __('m_tours.tour.ui.activate') }}">
                   <i class="fas fa-toggle-{{ $tour->is_active ? 'on' : 'off' }}"></i>

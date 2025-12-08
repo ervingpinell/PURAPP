@@ -75,7 +75,7 @@
                         <div class="btn-group">
                             @can('edit-customer-categories')
                             <a href="{{ route('admin.customer_categories.edit', $category) }}"
-                                class="btn btn-sm btn-info"
+                                class="btn btn-sm btn-edit"
                                 title="{{ __('customer_categories.buttons.edit') }}">
                                 <i class="fas fa-edit"></i>
                             </a>
