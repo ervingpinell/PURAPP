@@ -18,8 +18,8 @@
   $supportEmail = config('mail.reply_to.address');
   $phone = env('COMPANY_PHONE');
 
-  // Logo: servido desde CDN
-  $logoUrl = cdn('logos/brand-logo-white.png');
+  // Logo: servido desde CDN (versión optimizada para email)
+  $logoUrl = cdn('logos/brand-logo-white-email.png');
   @endphp
 
   <title>{{ $viewTitle ?? $brand }}</title>
@@ -84,8 +84,11 @@
     .email-header img {
       display: block;
       margin: 0 auto;
+      width: 180px;
       max-width: 180px;
       height: auto;
+      max-height: 60px;
+      object-fit: contain;
     }
 
     /* ===== Body ===== */
@@ -239,7 +242,8 @@
               <img src="{{ $logoUrl }}"
                 alt="{{ $brand }}"
                 width="180"
-                style="max-width:180px; height:auto; display:block; margin:0 auto;">
+                height="60"
+                style="max-width:180px; max-height:60px; width:180px; height:auto; display:block; margin:0 auto; object-fit:contain;">
             </td>
           </tr>
 
