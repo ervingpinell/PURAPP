@@ -84,10 +84,10 @@
     .email-header img {
       display: block;
       margin: 0 auto;
-      width: 180px;
-      max-width: 180px;
+      width: 240px;
+      max-width: 240px;
       height: auto;
-      max-height: 60px;
+      max-height: 140px;
       object-fit: contain;
     }
 
@@ -241,9 +241,9 @@
             <td class="email-header" style="background-color:#0f2419; padding:20px; text-align:center;">
               <img src="{{ $logoUrl }}"
                 alt="{{ $brand }}"
-                width="180"
-                height="60"
-                style="max-width:180px; max-height:60px; width:180px; height:auto; display:block; margin:0 auto; object-fit:contain;">
+                width="240"
+                height="140"
+                style="max-width:240px; max-height:140px; width:240px; height:auto; display:block; margin:0 auto; object-fit:contain;">
             </td>
           </tr>
 
