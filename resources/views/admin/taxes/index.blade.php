@@ -68,18 +68,28 @@
                         @endif
                     </td>
                     <td>
-                        @can('publish-taxes')
-                        <button type="button"
-                            class="btn btn-sm btn-{{ $tax->is_active ? 'success' : 'secondary' }}"
-                            onclick="toggleTax({{ $tax->id }})"
-                            title="{{ $tax->is_active ? 'Desactivar' : 'Activar' }}">
-                            <i class="fas fa-power-off"></i>
-                        </button>
-                        @endcan
+                        <span class="badge badge-{{ $tax->is_active ? 'success' : 'secondary' }}">
+                            @if($tax->is_active)
+                            <i class="fas fa-check-circle"></i> {{ __('m_general.active') }}
+                            @else
+                            <i class="fas fa-times-circle"></i> {{ __('m_general.inactive') }}
+                            @endif
+                        </span>
                     </td>
                     <td>
+                        @can('publish-taxes')
+                        <form class="d-inline me-1" method="POST" action="{{ route('admin.taxes.toggle', $tax) }}">
+                            @csrf
+                            <button class="btn {{ $tax->is_active ? 'btn-warning' : 'btn-secondary' }} btn-sm"
+                                title="{{ $tax->is_active ? __('m_general.deactivate') : __('m_general.activate') }}"
+                                data-bs-toggle="tooltip">
+                                <i class="fas {{ $tax->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
+                            </button>
+                        </form>
+                        @endcan
+
                         @can('edit-taxes')
-                        <a href="{{ route('admin.taxes.edit', $tax) }}" class="btn btn-sm btn-warning">
+                        <a href="{{ route('admin.taxes.edit', $tax) }}" class="btn btn-sm btn-success">
                             <i class="fas fa-edit"></i>
                         </a>
                         @endcan
