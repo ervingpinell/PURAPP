@@ -2,30 +2,13 @@
   @php
   use App\Models\Policy;
 
-  // IDs "matriculados"
-  $POLICY_IDS = [
-  'terms' => 1, // Términos y condiciones
-  'privacy' => 4, // Políticas de privacidad
-  ];
-
-  // Fallbacks por slug (solo para terms/privacy)
-  $LEGACY_SLUGS = [
-  'terms' => ['terms-and-conditions', 'terminos-y-condiciones'],
-  'privacy' => ['privacy-policy', 'politicas-de-privacidad'],
-  ];
-
-  // Helper: devuelve Policy o null, prioriza ID
-  $getPolicy = function(string $key) use ($POLICY_IDS, $LEGACY_SLUGS){
-  $p = Policy::find($POLICY_IDS[$key] ?? null);
-  if (!$p && !empty($LEGACY_SLUGS[$key])) {
-  $p = Policy::whereIn('slug', $LEGACY_SLUGS[$key])->first();
-  }
-  if ($p) $p->loadMissing('translations');
-  return $p;
+  // Helper: devuelve Policy por type (independiente de ID o slug)
+  $getPolicy = function(string $type) {
+  return Policy::byType($type);
   };
 
-  $terms = $getPolicy('terms');
-  $privacy = $getPolicy('privacy');
+  $terms = $getPolicy(Policy::TYPE_TERMS);
+  $privacy = $getPolicy(Policy::TYPE_PRIVACY);
 
   // URL estable por ID (redirige al slug actual)
   $policy_url = fn(App\Models\Policy $p) => localized_route('policies.show.id', ['policy' => $p->getKey()]);

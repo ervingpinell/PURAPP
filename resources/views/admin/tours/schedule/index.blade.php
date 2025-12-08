@@ -400,7 +400,7 @@
                 method="POST" class="modal-content">
                 @csrf @method('PATCH')
                 <div class="modal-header">
-                  <h5 class="modal-title">Capacidad Override</h5>
+                  <h5 class="modal-title">{{ __('m_tours.schedule.ui.capacity_override') }}</h5>
                   <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -412,27 +412,19 @@
 
                   <div class="alert alert-info small mb-3">
                     <i class="fas fa-info-circle me-1"></i>
-                    Dejar vacío para usar capacidad base del tour: <strong>{{ $tour->max_capacity ?? 'No definida' }}</strong>
+                    {!! __('m_tours.schedule.ui.leave_empty_for_base', ['capacity' => '<strong>'.($tour->max_capacity ?? 'No definida').'</strong>']) !!}
                   </div>
 
                   <div class="mb-3">
-                    <label class="form-label">Capacidad Override</label>
-                    @can('publish-tour-schedules')
-                    <button type="button"
-                      class="btn btn-sm btn-{{ $bloque->is_active ? 'success' : 'secondary' }}"
-                      onclick="toggleSchedule({{ $bloque->schedule_id }})"
-                      title="{{ $bloque->is_active ? 'Desactivar' : 'Activar' }}">
-                      <i class="fas fa-power-off"></i>
-                    </button>
-                    @endcan
+                    <label class="form-label">{{ __('m_tours.schedule.ui.capacity_override') }}</label>
                     <input type="number"
                       name="base_capacity"
                       class="form-control"
                       min="1"
                       max="999"
                       value="{{ $baseCapacity }}"
-                      placeholder="Usar capacidad del tour">
-                    <small class="text-muted">Solo para este horario en este tour</small>
+                      placeholder="{{ __('m_tours.schedule.ui.use_tour_capacity') }}">
+                    <small class="text-muted">{{ __('m_tours.schedule.ui.only_this_schedule') }}</small>
                   </div>
                 </div>
                 <div class="modal-footer">
@@ -488,7 +480,7 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Capacidad Override (opcional)</label>
+              <label class="form-label">{{ __('m_tours.schedule.ui.capacity_override') }} ({{ __('m_tours.common.optional') }})</label>
               <input type="number"
                 name="base_capacity"
                 class="form-control"
@@ -539,7 +531,7 @@
             </div>
 
             <div class="mt-2">
-              <label class="form-label">Capacidad Override (opcional)</label>
+              <label class="form-label">{{ __('m_tours.schedule.ui.capacity_override') }} ({{ __('m_tours.common.optional') }})</label>
               <input type="number"
                 name="base_capacity"
                 class="form-control"
@@ -835,7 +827,7 @@
     showConfirmButton: false
   });
   @endif
-  @if($errors-> any())
+  @if($errors->any())
   Swal.fire({
     icon: 'error',
     title: @json(__('m_tours.schedule.ui.could_not_save')),

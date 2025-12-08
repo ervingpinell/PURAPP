@@ -62,6 +62,7 @@ class PolicyController extends Controller
 
             // Campos base (tabla policies)
             'slug'           => ['nullable', 'string', 'max:255', 'unique:policies,slug'],
+            'type'           => ['nullable', 'string', 'max:50', 'unique:policies,type'],
             'is_active'      => ['sometimes', 'boolean'],
             'effective_from' => ['nullable', 'date'],
             'effective_to'   => ['nullable', 'date', 'after_or_equal:effective_from'],
@@ -73,6 +74,7 @@ class PolicyController extends Controller
         // Normalizar base
         $base = [
             'slug'           => $data['slug'] ?? null,
+            'type'           => !empty($data['type']) ? $data['type'] : null,
             'is_active'      => (bool)($data['is_active'] ?? false),
             'effective_from' => $data['effective_from'] ?? null,
             'effective_to'   => $data['effective_to'] ?? null,
@@ -133,6 +135,7 @@ class PolicyController extends Controller
 
             // Base (policies)
             'slug'           => ['nullable', 'string', 'max:255', 'unique:policies,slug,' . $policy->policy_id . ',policy_id'],
+            'type'           => ['nullable', 'string', 'max:50', 'unique:policies,type,' . $policy->policy_id . ',policy_id'],
             'is_active'      => ['sometimes', 'boolean'],
             'effective_from' => ['nullable', 'date'],
             'effective_to'   => ['nullable', 'date', 'after_or_equal:effective_from'],
@@ -147,7 +150,7 @@ class PolicyController extends Controller
 
         // 1) Actualizar base (policies) — sin tocar traducciones
         $baseUpdates = [];
-        foreach (['slug', 'is_active', 'effective_from', 'effective_to'] as $k) {
+        foreach (['slug', 'type', 'is_active', 'effective_from', 'effective_to'] as $k) {
             if (array_key_exists($k, $validated)) {
                 $baseUpdates[$k] = $validated[$k];
             }

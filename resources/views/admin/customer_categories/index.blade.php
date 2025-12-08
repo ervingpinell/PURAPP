@@ -67,20 +67,9 @@
                         <span class="badge badge-secondary">{{ $category->order }}</span>
                     </td>
                     <td>
-                        @can('edit-customer-categories')
-                        <form action="{{ route('admin.customer_categories.toggle', $category) }}"
-                            method="POST"
-                            style="display: inline">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit"
-                                class="btn btn-sm {{ $category->is_active ? 'btn-success' : 'btn-secondary' }}"
-                                title="{{ $category->is_active ? __('customer_categories.states.active') : __('customer_categories.states.inactive') }}">
-                                <i class="fas fa-{{ $category->is_active ? 'check' : 'times' }}"></i>
-                                {{ $category->is_active ? __('customer_categories.states.active') : __('customer_categories.states.inactive') }}
-                            </button>
-                        </form>
-                        @endcan
+                        <span class="badge {{ $category->is_active ? 'badge-success' : 'badge-secondary' }}">
+                            {{ $category->is_active ? __('customer_categories.states.active') : __('customer_categories.states.inactive') }}
+                        </span>
                     </td>
                     <td class="text-center">
                         <div class="btn-group">
@@ -94,12 +83,14 @@
 
                             @can('delete-customer-categories')
                             @can('publish-customer-categories')
-                            <button type="button"
-                                class="btn btn-sm btn-{{ $category->is_active ? 'success' : 'secondary' }}"
-                                onclick="toggleStatus({{ $category->id }})"
-                                title="{{ $category->is_active ? 'Desactivar' : 'Activar' }}">
-                                <i class="fas fa-power-off"></i>
-                            </button>
+                            <form action="{{ route('admin.customer_categories.toggle', $category) }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit"
+                                    class="btn btn-sm {{ $category->is_active ? 'btn-warning' : 'btn-secondary' }}"
+                                    title="{{ $category->is_active ? 'Desactivar' : 'Activar' }}">
+                                    <i class="fas fa-toggle-{{ $category->is_active ? 'on' : 'off' }}"></i>
+                                </button>
+                            </form>
                             @endcan
                             <button type="button"
                                 class="btn btn-sm btn-danger"
@@ -192,9 +183,8 @@
 
                     <form action="{{ route('admin.customer_categories.toggle', $category) }}" method="POST">
                         @csrf
-                        @method('PATCH')
-                        <button type="submit" class="btn btn-sm {{ $category->is_active ? 'btn-success' : 'btn-secondary' }} w-100">
-                            <i class="fas fa-{{ $category->is_active ? 'times' : 'check' }} me-1"></i>
+                        <button type="submit" class="btn btn-sm {{ $category->is_active ? 'btn-warning' : 'btn-secondary' }} w-100">
+                            <i class="fas fa-toggle-{{ $category->is_active ? 'on' : 'off' }} me-1"></i>
                             {{ $category->is_active ? __('customer_categories.states.deactivate') : __('customer_categories.states.activate') }}
                         </button>
                     </form>

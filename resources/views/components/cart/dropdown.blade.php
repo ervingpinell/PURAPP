@@ -268,7 +268,9 @@ return asset('images/volcano.png');
     </div>
     @endif
   </div>
-  @else
+  @endauth
+
+  @guest
   @php
   $guestLinkCls = $isDesktop
   ? 'nav-link cart-icon-wrapper position-relative'
@@ -282,7 +284,7 @@ return asset('images/volcano.png');
       style="font-size:.7rem;display:none;">0</span>
     @if($isDesktop) {{ __('adminlte::adminlte.cart') }} @endif
   </a>
-  @endauth
+  @endguest
 </div>
 
 @once

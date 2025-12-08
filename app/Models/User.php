@@ -32,6 +32,14 @@ class User extends Authenticatable implements MustVerifyEmail, HasLocalePreferen
     use Prunable;
 
     /**
+     * Relación con Carts
+     */
+    public function cart()
+    {
+        return $this->hasMany(Cart::class, 'user_id', 'user_id');
+    }
+
+    /**
      * Tabla y clave primaria personalizadas
      */
     protected $table = 'users';

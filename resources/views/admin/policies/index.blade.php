@@ -118,78 +118,71 @@
                   href="{{ route('admin.policies.sections.index', $p) }}"
                   title="{{ __('m_config.policies.view_sections') }}" data-bs-toggle="tooltip">
                   <i class="fas fa-eye"></i>
-                  @can('publish-policies')
-                  <button type="button"
-                    class="btn btn-sm btn-{{ $p->is_active ? 'success' : 'secondary' }}"
-                    onclick="togglePolicy({{ $p->policy_id }})"
-                    title="{{ $p->is_active ? 'Desactivar' : 'Activar' }}">
-                    <i class="fas fa-power-off"></i>
+                </a>
+
+                {{-- Editar --}}
+                @can('edit-policies')
+                <button class="btn btn-edit btn-sm me-1"
+                  data-bs-toggle="modal"
+                  data-bs-target="#editPolicyModal-{{ $p->policy_id }}"
+                  title="{{ __('m_config.policies.edit') }}">
+                  <i class="fas fa-edit"></i>
+                </button>
+                @endcan
+
+                {{-- Toggle activo/inactivo --}}
+                @can('edit-policies')
+                <form class="d-inline me-1 js-confirm-toggle" method="POST"
+                  action="{{ route('admin.policies.toggle', $p) }}"
+                  data-active="{{ $p->is_active ? 1 : 0 }}">
+                  @csrf
+                  <button class="btn {{ $p->is_active ? 'btn-toggle' : 'btn-secondary' }} btn-sm"
+                    title="{{ $p->is_active ? __('m_config.policies.deactivate_category') : __('m_config.policies.activate_category') }}"
+                    data-bs-toggle="tooltip">
+                    <i class="fas {{ $p->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                   </button>
-                  @endcan
+                </form>
+                @endcan
 
-                  {{-- Editar --}}
-                  @can('edit-policies')
-                  <button class="btn btn-edit btn-sm me-1"
-                    data-bs-toggle="modal"
-                    data-bs-target="#editPolicyModal-{{ $p->policy_id }}"
-                    title="{{ __('m_config.policies.edit') }}">
-                    <i class="fas fa-edit"></i>
+                {{-- Eliminar -> papelera (soft delete) --}}
+                @can('delete-policies')
+                <form class="d-inline js-confirm-delete" method="POST"
+                  action="{{ route('admin.policies.destroy', $p) }}"
+                  data-message="{{ __('m_config.policies.delete_category_confirm') }}">
+                  @csrf @method('DELETE')
+                  <button class="btn btn-delete btn-sm"
+                    title="{{ __('m_config.policies.move_to_trash') }}" data-bs-toggle="tooltip">
+                    <i class="fas fa-trash"></i>
                   </button>
-                  @endcan
+                </form>
+                @endcan
+                @else
+                {{-- Restaurar desde papelera --}}
+                @can('delete-policies')
+                <form class="d-inline js-confirm-restore" method="POST"
+                  action="{{ route('admin.policies.restore', $p->policy_id) }}"
+                  data-message="{{ __('m_config.policies.restore_category_confirm') }}">
+                  @csrf
+                  <button class="btn btn-restore btn-sm me-1"
+                    title="{{ __('m_config.policies.restore') }}" data-bs-toggle="tooltip">
+                    <i class="fas fa-undo"></i>
+                  </button>
+                </form>
+                @endcan
 
-                  {{-- Toggle activo/inactivo --}}
-                  @can('edit-policies')
-                  <form class="d-inline me-1 js-confirm-toggle" method="POST"
-                    action="{{ route('admin.policies.toggle', $p) }}"
-                    data-active="{{ $p->is_active ? 1 : 0 }}">
-                    @csrf
-                    <button class="btn {{ $p->is_active ? 'btn-toggle' : 'btn-secondary' }} btn-sm"
-                      title="{{ $p->is_active ? __('m_config.policies.deactivate_category') : __('m_config.policies.activate_category') }}"
-                      data-bs-toggle="tooltip">
-                      <i class="fas {{ $p->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
-                    </button>
-                  </form>
-                  @endcan
-
-                  {{-- Eliminar -> papelera (soft delete) --}}
-                  @can('delete-policies')
-                  <form class="d-inline js-confirm-delete" method="POST"
-                    action="{{ route('admin.policies.destroy', $p) }}"
-                    data-message="{{ __('m_config.policies.delete_category_confirm') }}">
-                    @csrf @method('DELETE')
-                    <button class="btn btn-delete btn-sm"
-                      title="{{ __('m_config.policies.move_to_trash') }}" data-bs-toggle="tooltip">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </form>
-                  @endcan
-                  @else
-                  {{-- Restaurar desde papelera --}}
-                  @can('delete-policies')
-                  <form class="d-inline js-confirm-restore" method="POST"
-                    action="{{ route('admin.policies.restore', $p->policy_id) }}"
-                    data-message="{{ __('m_config.policies.restore_category_confirm') }}">
-                    @csrf
-                    <button class="btn btn-restore btn-sm me-1"
-                      title="{{ __('m_config.policies.restore') }}" data-bs-toggle="tooltip">
-                      <i class="fas fa-undo"></i>
-                    </button>
-                  </form>
-                  @endcan
-
-                  {{-- Eliminar definitivamente (solo admins) --}}
-                  @can('delete-policies')
-                  <form class="d-inline js-confirm-force-delete" method="POST"
-                    action="{{ route('admin.policies.forceDestroy', $p->policy_id) }}"
-                    data-message="{{ __('m_config.policies.force_delete_confirm') }}">
-                    @csrf @method('DELETE')
-                    <button class="btn btn-force-delete btn-sm"
-                      title="{{ __('m_config.policies.delete_permanently') }}" data-bs-toggle="tooltip">
-                      <i class="fas fa-times-circle"></i>
-                    </button>
-                  </form>
-                  @endcan
-                  @endif
+                {{-- Eliminar definitivamente (solo admins) --}}
+                @can('delete-policies')
+                <form class="d-inline js-confirm-force-delete" method="POST"
+                  action="{{ route('admin.policies.forceDestroy', $p->policy_id) }}"
+                  data-message="{{ __('m_config.policies.force_delete_confirm') }}">
+                  @csrf @method('DELETE')
+                  <button class="btn btn-force-delete btn-sm"
+                    title="{{ __('m_config.policies.delete_permanently') }}" data-bs-toggle="tooltip">
+                    <i class="fas fa-times-circle"></i>
+                  </button>
+                </form>
+                @endcan
+                @endif
               </div>
             </td>
           </tr>
@@ -248,6 +241,22 @@
           </label>
           <input type="text" name="slug" class="form-control" placeholder="se-genera-automaticamente">
           <small class="text-muted">{{ __('m_config.policies.slug_auto_hint') }}</small>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">
+            {{ __('m_config.policies.type') }}
+            <span class="badge bg-secondary ms-1">{{ __('m_config.policies.type_optional') }}</span>
+          </label>
+          <select name="type" class="form-select">
+            <option value="">{{ __('m_config.policies.type_none') }}</option>
+            @foreach(\App\Models\Policy::TYPES as $typeKey => $typeLabel)
+            <option value="{{ $typeKey }}">{{ $typeLabel }}</option>
+            @endforeach
+          </select>
+          <small class="text-muted d-block mt-1">
+            <i class="fas fa-info-circle"></i> {{ __('m_config.policies.type_description') }}
+          </small>
         </div>
 
         <div class="mb-3">
@@ -330,6 +339,25 @@ $t = $p->translation();
           <input type="text" name="slug" class="form-control" value="{{ old('slug', $p->slug) }}">
           <small class="text-muted">
             <i class="fas fa-info-circle"></i> {{ __('m_config.policies.slug_edit_hint') }}
+          </small>
+        </div>
+
+        {{-- TYPE (base) --}}
+        <div class="mb-3">
+          <label class="form-label">
+            {{ __('m_config.policies.type') }}
+            <span class="badge bg-secondary ms-1">{{ __('m_config.policies.type_optional') }}</span>
+          </label>
+          <select name="type" class="form-select">
+            <option value="">{{ __('m_config.policies.type_none') }}</option>
+            @foreach(\App\Models\Policy::TYPES as $typeKey => $typeLabel)
+            <option value="{{ $typeKey }}" {{ old('type', $p->type) === $typeKey ? 'selected' : '' }}>
+              {{ $typeLabel }}
+            </option>
+            @endforeach
+          </select>
+          <small class="text-muted d-block mt-1">
+            <i class="fas fa-info-circle"></i> {{ __('m_config.policies.type_description') }}
           </small>
         </div>
 

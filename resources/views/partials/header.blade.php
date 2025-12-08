@@ -48,11 +48,13 @@
           </form>
         </div>
       </div>
-      @else
+      @endauth
+
+      @guest
       <a href="{{ route('login') }}" class="text-white" aria-label="{{ __('adminlte::adminlte.login') }}">
         <i class="fas fa-user"></i>
       </a>
-      @endauth
+      @endguest
     </div>
 
     {{-- Links de navegación (ESCRITORIO) --}}
@@ -105,12 +107,14 @@
       <a href="{{ route('admin.home') }}" class="btn btn-outline-light btn-sm d-flex align-items-center">
         <i class="fas fa-toolbox me-1"></i> <span class="d-none d-xl-inline">Admin</span>
       </a>
-      @endif
-      @else
+      @endcan
+      @endauth
+
+      @guest
       <a href="{{ route('login') }}" class="text-white" aria-label="{{ __('adminlte::adminlte.login') }}">
         <i class="fas fa-user"></i>
       </a>
-      @endauth
+      @endguest
     </div>
   </div>
 
@@ -134,7 +138,7 @@
         <i class="fas fa-toolbox me-2"></i> Admin
       </a>
     </div>
-    @endif
+    @endcan
     @endauth
   </div>
 </nav>

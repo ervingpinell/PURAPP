@@ -56,11 +56,10 @@
             data-active="{{ $language->is_active ? 1 : 0 }}">
             @csrf
             @method('PATCH')
-            <button type="button"
-              class="btn btn-sm btn-{{ $language->is_active ? 'success' : 'secondary' }}"
-              onclick="toggleLanguage({{ $language->tour_language_id }})"
+            <button type="submit"
+              class="btn btn-sm btn-{{ $language->is_active ? 'warning' : 'secondary' }}"
               title="{{ $language->is_active ? 'Desactivar' : 'Activar' }}">
-              <i class="fas fa-power-off"></i>
+              <i class="fas fa-toggle-{{ $language->is_active ? 'on' : 'off' }}"></i>
             </button>
           </form>
           @endcan
@@ -260,7 +259,7 @@
   });
   @endif
 
-  @if($errors-> any())
+  @if($errors->any())
   Swal.fire({
     icon: 'error',
     title: @json(__('m_tours.language.error.save')),

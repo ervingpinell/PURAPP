@@ -53,6 +53,12 @@ return [
         'slug_auto_hint' => 'If left empty, it will be generated automatically from the title.',
         'slug_edit_hint' => 'Changing this URL may affect existing public links.',
 
+        // Type field
+        'type'                    => 'Type',
+        'type_optional'           => 'Optional',
+        'type_none'               => '-- None (Generic Policy) --',
+        'type_description'        => 'Select a type only for special policies that appear in the footer (Terms, Privacy, etc.)',
+
         'valid_from' => 'Valid from',
         'valid_to'   => 'Valid to',
 

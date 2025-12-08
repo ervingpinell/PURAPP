@@ -20,9 +20,25 @@ class Policy extends Model
     protected $keyType = 'int';
     public $timestamps = true;
 
+    // Policy types (canonical identifiers)
+    public const TYPE_TERMS = 'terms';
+    public const TYPE_PRIVACY = 'privacy';
+    public const TYPE_CANCELLATION = 'cancellation';
+    public const TYPE_REFUND = 'refund';
+    public const TYPE_WARRANTY = 'warranty';
+
+    public const TYPES = [
+        self::TYPE_TERMS => 'Terms and Conditions',
+        self::TYPE_PRIVACY => 'Privacy Policy',
+        self::TYPE_CANCELLATION => 'Cancellation Policy',
+        self::TYPE_REFUND => 'Refund Policy',
+        self::TYPE_WARRANTY => 'Warranty Policy',
+    ];
+
     protected $fillable = [
         // OJO: sin name/content (ya no existen en policies)
         'slug',
+        'type',
         'is_default',
         'is_active',
         'effective_from',
@@ -74,7 +90,8 @@ class Policy extends Model
 
         while (static::where('slug', $slug)
             ->where('policy_id', '!=', $this->policy_id ?? 0)
-            ->exists()) {
+            ->exists()
+        ) {
             $slug = $originalSlug . '-' . $counter;
             $counter++;
         }
@@ -119,10 +136,10 @@ class Policy extends Model
             ? $this->getRelation('translations')
             : $this->translations()->get();
 
-        $norm = fn ($v) => str_replace('-', '_', strtolower((string) $v));
+        $norm = fn($v) => str_replace('-', '_', strtolower((string) $v));
 
         // Exacta
-        if ($exact = $bag->first(fn ($t) => $norm($t->locale) === $norm($requested))) {
+        if ($exact = $bag->first(fn($t) => $norm($t->locale) === $norm($requested))) {
             return $exact;
         }
 
@@ -131,18 +148,19 @@ class Policy extends Model
             $requested,
             str_replace('_', '-', $requested),
             substr($requested, 0, 2), // ej. 'pt'
-            'pt_BR', 'pt-br',         // compat si quedó legacy
+            'pt_BR',
+            'pt-br',         // compat si quedó legacy
         ]);
 
         foreach ($variants as $v) {
-            if ($found = $bag->first(fn ($t) => $norm($t->locale) === $norm($v))) {
+            if ($found = $bag->first(fn($t) => $norm($t->locale) === $norm($v))) {
                 return $found;
             }
         }
 
         // Fallback
-        return $bag->first(fn ($t) => $norm($t->locale) === $norm($fallback))
-            ?: $bag->first(fn ($t) => $norm($t->locale) === $norm(substr($fallback, 0, 2)))
+        return $bag->first(fn($t) => $norm($t->locale) === $norm($fallback))
+            ?: $bag->first(fn($t) => $norm($t->locale) === $norm(substr($fallback, 0, 2)))
             ?: $bag->first();
     }
 
@@ -210,10 +228,10 @@ class Policy extends Model
         $d = ($date ?: now())->toDateString();
 
         return $q->where(function ($qq) use ($d) {
-                $qq->whereNull('effective_from')->orWhereDate('effective_from', '<=', $d);
-            })->where(function ($qq) use ($d) {
-                $qq->whereNull('effective_to')->orWhereDate('effective_to', '>=', $d);
-            });
+            $qq->whereNull('effective_from')->orWhereDate('effective_from', '<=', $d);
+        })->where(function ($qq) use ($d) {
+            $qq->whereNull('effective_to')->orWhereDate('effective_to', '>=', $d);
+        });
     }
 
     public function scopeType($q, string $type)
@@ -237,15 +255,14 @@ class Policy extends Model
         // Si tienes columna 'type' en policies:
         if (Schema::hasColumn((new static)->getTable(), 'type')) {
             return $query->where('type', $type)
-                ->orderByDesc('is_default')
                 ->orderByDesc('effective_from')
                 ->first();
         }
 
         // Búsqueda por traducciones (por nombre)
         return $query->whereHas('translations', function ($qq) use ($type) {
-                $qq->where('name', 'ilike', '%'.$type.'%'); // ILIKE si estás en Postgres
-            })
+            $qq->where('name', 'ilike', '%' . $type . '%'); // ILIKE si estás en Postgres
+        })
             ->orderByDesc('effective_from')
             ->first();
     }

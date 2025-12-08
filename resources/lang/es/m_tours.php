@@ -276,6 +276,10 @@ return [
             'modal_cancel'                     => 'Cancelar',
             'capacity_modal_info_with_value'   => 'La capacidad base del tour es :capacity. Si dejás vacío el campo de capacidad, se usará este valor.',
             'capacity_modal_info_generic'      => 'Si dejás vacío el campo de capacidad, se usará la capacidad general del tour cuando esté definida.',
+            'capacity_override'                => 'Capacidad Override',
+            'use_tour_capacity'                => 'Usar capacidad del tour',
+            'only_this_schedule'               => 'Solo para este horario en este tour',
+            'leave_empty_for_base'             => 'Dejar vacío para usar capacidad base del tour: :capacity',
 
         ],
 
@@ -346,6 +350,14 @@ return [
             'translations_updated' => 'Traducción actualizada',
             'toggle_on'  => 'Activar ítem',
             'toggle_off' => 'Desactivar ítem',
+
+            'toggle_confirm_on_title'  => '¿Activar ítem?',
+            'toggle_confirm_off_title' => '¿Desactivar ítem?',
+            'toggle_confirm_on_html'   => 'El ítem <b>:label</b> quedará <b>activo</b>.',
+            'toggle_confirm_off_html'  => 'El ítem <b>:label</b> quedará <b>inactivo</b>.',
+            'yes_continue'             => 'Sí, continuar',
+            'deactivating'             => 'Desactivando...',
+            'activating'               => 'Activando...',
 
             'delete_forever'       => 'Eliminar definitivamente',
             'delete_confirm_title' => '¿Eliminar definitivamente?',

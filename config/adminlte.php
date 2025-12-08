@@ -507,13 +507,6 @@ return [
                     'trans' => true,
                 ],
                 [
-                    'text'  => 'menu.languages', // "Idiomas"
-                    'route' => 'admin.translations.index',
-                    'icon'  => 'fas fa-language',
-                    'can'   => 'view-translations',
-                    'trans' => true,
-                ],
-                [
                     'text'  => 'menu.all_reviews',
                     'route' => 'admin.reviews.index',
                     'icon'  => 'fas fa-star',

@@ -1,154 +1,165 @@
 {{-- Widget flotante de countdown del carrito --}}
 @auth
 @php
-  $cart = auth()->user()->cart;
-  $hasItems = $cart && $cart->items()->count() > 0;
+// User->cart() es hasMany. Obtenemos el último activo:
+$cart = auth()->user()->cart()->where('is_active', true)->latest('cart_id')->first();
+$hasItems = $cart && $cart->items()->count() > 0;
 
-  // Ocultar en páginas donde ya hay timer visible
-  $hideOnRoutes = [
-    'public.carts.index',
-    // checkout + payment público (cubre show, payment, confirmation, etc.)
-    'public.checkout.*',
-    // nombres legacy por si acaso
-    'checkout.show',
-    'checkout.payment',
-    'payment.process',
-  ];
+// Ocultar en páginas donde ya hay timer visible
+$hideOnRoutes = [
+'public.carts.index',
+// checkout + payment público (cubre show, payment, confirmation, etc.)
+'public.checkout.*',
+// nombres legacy por si acaso
+'checkout.show',
+'checkout.payment',
+'payment.process',
+];
 
-  $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
+$shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 @endphp
 
 @if ($shouldShow)
-  <div id="cart-timer-widget" class="cart-timer-widget">
-    <div class="timer-text">
-      <small>{{ __('carts.timer.will_expire') }}</small>
-      <strong id="widget-timer-full">--:--</strong>
-    </div>
+<div id="cart-timer-widget" class="cart-timer-widget">
+  <div class="timer-text">
+    <small>{{ __('carts.timer.will_expire') }}</small>
+    <strong id="widget-timer-full">--:--</strong>
   </div>
+</div>
 
-  @push('styles')
-    <style>
+@push('styles')
+<style>
+  .timer-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: center;
+  }
 
-      .timer-text {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        text-align: center;
-      }
+  .timer-text small {
+    font-size: 11px;
+    opacity: 0.9;
+    line-height: 1.2;
+  }
 
-      .timer-text small {
-        font-size: 11px;
-        opacity: 0.9;
-        line-height: 1.2;
-      }
+  .timer-text strong {
+    font-size: 16px;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+  }
 
-      .timer-text strong {
-        font-size: 16px;
-        letter-spacing: 0.5px;
-        line-height: 1.2;
-      }
+  /* Animaciones existentes */
+  @keyframes pulse-warning {
 
-      /* Animaciones existentes */
-      @keyframes pulse-warning {
-        0%, 100% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.05);
-        }
-      }
+    0%,
+    100% {
+      transform: scale(1);
+    }
 
-      @keyframes blink {
-        0%, 100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.4;
-        }
-      }
+    50% {
+      transform: scale(1.05);
+    }
+  }
 
-      @keyframes shake {
-        0%, 100% {
-          transform: translateX(0);
-        }
-        25% {
-          transform: translateX(-3px);
-        }
-        75% {
-          transform: translateX(3px);
-        }
-      }
+  @keyframes blink {
 
-      /* Versión responsive (móviles) */
-      @media (max-width: 575.98px) {
-        .cart-timer-widget {
-          left: 50%;
-          right: auto;
-          transform: translateX(-50%);
-          bottom: 70px;
-          width: calc(100% - 2.5rem);
-          padding: 0.65rem 0.9rem;
-          font-size: 0.8rem;
-          border-radius: 999px;
-        }
+    0%,
+    100% {
+      opacity: 1;
+    }
 
-        .timer-text strong {
-          font-size: 14px;
-        }
-      }
-    </style>
-  @endpush
+    50% {
+      opacity: 0.4;
+    }
+  }
 
-  @push('scripts')
-    <script>
-      (function () {
-        const widget = document.getElementById('cart-timer-widget');
-        const timerFull = document.getElementById('widget-timer-full');
+  @keyframes shake {
 
-        if (!widget || !timerFull) return;
+    0%,
+    100% {
+      transform: translateX(0);
+    }
 
-        // Click para ir al carrito
-        widget.addEventListener('click', () => {
-          window.location.href = '{{ route('public.carts.index') }}';
-        });
+    25% {
+      transform: translateX(-3px);
+    }
 
-        // Conectar con el sistema de countdown existente
-        if (window.cartCountdown) {
-          const updateWidget = () => {
-            const remaining = window.cartCountdown.getRemainingSeconds();
+    75% {
+      transform: translateX(3px);
+    }
+  }
 
-            if (remaining <= 0) {
-              widget.style.display = 'none';
-              return;
-            }
+  /* Versión responsive (móviles) */
+  @media (max-width: 575.98px) {
+    .cart-timer-widget {
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
+      bottom: 70px;
+      width: calc(100% - 2.5rem);
+      padding: 0.65rem 0.9rem;
+      font-size: 0.8rem;
+      border-radius: 999px;
+    }
 
-            const minutes = Math.floor(remaining / 60);
-            const seconds = remaining % 60;
-            const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    .timer-text strong {
+      font-size: 14px;
+    }
+  }
+</style>
+@endpush
 
-            // Solo mostramos el tiempo grande
-            timerFull.textContent = timeStr;
+@push('scripts')
+<script>
+  (function() {
+    const widget = document.getElementById('cart-timer-widget');
+    const timerFull = document.getElementById('widget-timer-full');
 
-            // Cambiar estilo según tiempo restante
-            widget.classList.remove('warning', 'critical');
+    if (!widget || !timerFull) return;
 
-            if (remaining <= 300) { // <= 5 minutos
-              widget.classList.add('critical');
-            } else if (remaining <= 600) { // <= 10 minutos
-              widget.classList.add('warning');
-            }
-          };
+    // Click para ir al carrito
+    widget.addEventListener('click', () => {
+      window.location.href = '{{ route('
+      public.carts.index ') }}';
+    });
 
-          // Actualizar cada segundo
-          setInterval(updateWidget, 1000);
-          updateWidget();
-        } else {
-          // Fallback si no existe el countdown
-          console.warn('Cart countdown system not found');
+    // Conectar con el sistema de countdown existente
+    if (window.cartCountdown) {
+      const updateWidget = () => {
+        const remaining = window.cartCountdown.getRemainingSeconds();
+
+        if (remaining <= 0) {
           widget.style.display = 'none';
+          return;
         }
-      })();
-    </script>
-  @endpush
+
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
+        const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+        // Solo mostramos el tiempo grande
+        timerFull.textContent = timeStr;
+
+        // Cambiar estilo según tiempo restante
+        widget.classList.remove('warning', 'critical');
+
+        if (remaining <= 300) { // <= 5 minutos
+          widget.classList.add('critical');
+        } else if (remaining <= 600) { // <= 10 minutos
+          widget.classList.add('warning');
+        }
+      };
+
+      // Actualizar cada segundo
+      setInterval(updateWidget, 1000);
+      updateWidget();
+    } else {
+      // Fallback si no existe el countdown
+      console.warn('Cart countdown system not found');
+      widget.style.display = 'none';
+    }
+  })();
+</script>
+@endpush
 @endif
 @endauth

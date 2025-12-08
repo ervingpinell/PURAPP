@@ -62,7 +62,9 @@
           @can('publish-itinerary-items')
           <form action="{{ route('admin.tours.itinerary_items.toggle', $item->item_id) }}"
             method="POST"
-            class="d-inline">
+            class="d-inline form-toggle-item"
+            data-label="{{ $item->title }}"
+            data-active="{{ $active ? 1 : 0 }}">
             @csrf
             @method('PATCH')
             <button type="submit"
@@ -273,6 +275,41 @@
       btn.textContent = el.classList.contains('desc-expanded') ?
         @json(__('m_tours.itinerary_item.ui.see_less')) :
         @json(__('m_tours.itinerary_item.ui.see_more'));
+    });
+  });
+
+  // SweetAlert para Toggle
+  document.querySelectorAll('.form-toggle-item').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const label = form.getAttribute('data-label') || @json(__('m_tours.itinerary_item.ui.item_this'));
+      const isActive = form.getAttribute('data-active') === '1';
+
+      Swal.fire({
+        title: isActive ?
+          @json(__('m_tours.itinerary_item.ui.toggle_confirm_off_title')) : @json(__('m_tours.itinerary_item.ui.toggle_confirm_on_title')),
+        html: (isActive ?
+          @json(__('m_tours.itinerary_item.ui.toggle_confirm_off_html', ['label' => ':label'])) :
+          @json(__('m_tours.itinerary_item.ui.toggle_confirm_on_html', ['label' => ':label']))
+        ).replace(':label', label),
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: isActive ? '#ffc107' : '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: @json(__('m_tours.itinerary_item.ui.yes_continue')),
+        cancelButtonText: @json(__('m_tours.itinerary_item.ui.cancel'))
+      }).then(r => {
+        if (r.isConfirmed) {
+          const btn = form.querySelector('button[type="submit"]');
+          if (btn) {
+            btn.disabled = true;
+            btn.innerHTML =
+              '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
+              (isActive ? @json(__('m_tours.itinerary_item.ui.deactivating')) : @json(__('m_tours.itinerary_item.ui.activating')));
+          }
+          form.submit();
+        }
+      });
     });
   });
 

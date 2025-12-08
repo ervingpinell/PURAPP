@@ -97,7 +97,8 @@ class AppServiceProvider extends ServiceProvider
 
             if (Auth::check()) {
                 $user = Auth::user();
-                $cart = $user->cart;
+                // User->cart() es hasMany, obtenemos el último activo
+                $cart = $user->cart()->where('is_active', true)->latest('cart_id')->first();
                 $cartItemCount = $cart
                     ? $cart->items()->where('is_active', true)->count()
                     : 0;

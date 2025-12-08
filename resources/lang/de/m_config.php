@@ -51,7 +51,13 @@ return [
 
         'slug_hint'      => 'kleingeschrieben, keine Leerzeichen, mit Bindestrichen getrennt',
         'slug_auto_hint' => 'Wenn leer, wird es automatisch aus dem Titel erzeugt.',
-        'slug_edit_hint' => 'Das Ändern dieser URL kann vorhandene öffentliche Links beeinflussen.',
+        'slug_edit_hint' => 'Das Ändern dieser URL kann bestehende öffentliche Links beeinträchtigen.',
+
+        // Type field
+        'type'                    => 'Typ',
+        'type_optional'           => 'Optional',
+        'type_none'               => '-- Keine (Allgemeine Richtlinie) --',
+        'type_description'        => 'Wählen Sie einen Typ nur für spezielle Richtlinien aus, die in der Fußzeile erscheinen (Bedingungen, Datenschutz, usw.)',
 
         'valid_from' => 'Gültig ab',
         'valid_to'   => 'Gültig bis',

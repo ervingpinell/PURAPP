@@ -51,7 +51,13 @@ return [
 
         'slug_hint'      => 'minuscules, sans espaces, séparées par des tirets',
         'slug_auto_hint' => 'S’il est laissé vide, il sera généré automatiquement à partir du titre.',
-        'slug_edit_hint' => 'Modifier cette URL peut affecter les liens publics existants.',
+        'slug_edit_hint' => 'Changer cette URL peut affecter les liens publics existants.',
+
+        // Type field
+        'type'                    => 'Type',
+        'type_optional'           => 'Optionnel',
+        'type_none'               => '-- Aucun (Politique Générique) --',
+        'type_description'        => 'Sélectionnez un type uniquement pour les politiques spéciales qui apparaissent dans le pied de page (Conditions, Confidentialité, etc.)',
 
         'valid_from' => 'Valable à partir du',
         'valid_to'   => 'Valable jusqu’au',
