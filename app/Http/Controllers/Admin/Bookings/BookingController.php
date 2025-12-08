@@ -172,6 +172,7 @@ class BookingController extends Controller
         // Parse category quantities from booking details
         $categoryQuantitiesById = [];
         $rawCategories = $booking->detail?->categories;
+        $categoriesSnapshot = null; // Initialize to prevent undefined variable
 
         if (is_string($rawCategories)) {
             try {

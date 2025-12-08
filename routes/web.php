@@ -209,8 +209,11 @@ Route::prefix('webhooks/payment')->name('webhooks.payment.')->group(function () 
 | Public Payment Token Route (no auth required)
 |--------------------------------------------------------------------------
 */
+// Payment throttle - more generous in local for testing
+$paymentThrottle = app()->environment('local') ? '100,1' : '20,1';
+
 Route::get('/pay/{token}', [\App\Http\Controllers\PaymentController::class, 'showByToken'])
-    ->middleware(['throttle:10,1', SetLocale::class])
+    ->middleware(["throttle:{$paymentThrottle}", SetLocale::class])
     ->name('payment.token');
 
 // Terms & Conditions Route (Redirects to policies for now)
@@ -219,9 +222,9 @@ Route::get('/terms', function () {
 })->name('public.terms');
 
 // Payment initiate - works for both authenticated and token-based payments
-$paymentThrottle = app()->environment('local') ? '100,1' : '20,1';
 Route::post('/payment/record-terms', [\App\Http\Controllers\PaymentController::class, 'recordTerms'])->name('payment.record-terms');
 Route::post('/payment/initiate', [\App\Http\Controllers\PaymentController::class, 'initiate'])
+    ->middleware("throttle:{$paymentThrottle}")
     ->name('payment.initiate');
 
 /*
