@@ -1129,7 +1129,7 @@ class BookingController extends Controller
 
         $pdf = Pdf::loadView('admin.bookings.receipt', compact('booking', 'categoryNamesById'));
 
-        return $pdf->download("receipt-{$booking->booking_reference}.pdf");
+        return $pdf->stream("receipt-{$booking->booking_reference}.pdf");
     }
 
     /** Export PDF resumen */

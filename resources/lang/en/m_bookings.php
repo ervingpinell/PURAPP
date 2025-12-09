@@ -510,6 +510,7 @@ return [
         'qr_scan'       => 'Scan to view the booking',
         'thanks'        => 'Thank you for choosing :company!',
         'payment_status' => 'Payment Status:',
+        'persons'       => '{1} person|[2,*] people',
     ],
 
     // =========================================================

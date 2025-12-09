@@ -506,6 +506,7 @@ return [
         'qr_scan'       => 'Scanne, um die Buchung zu sehen',
         'thanks'        => 'Danke, dass du dich für :company entschieden hast!',
         'payment_status' => 'Zahlungsstatus:',
+        'persons'       => '{1} Person|[2,*] Personen',
     ],
 
     // =========================================================

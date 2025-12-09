@@ -508,6 +508,7 @@ return [
         'qr_scan'       => 'Scannez pour voir la réservation',
         'thanks'        => 'Merci d’avoir choisi :company !',
         'payment_status' => 'État de paiement:',
+        'persons'       => '{1} personne|[2,*] personnes',
     ],
 
     // =========================================================
