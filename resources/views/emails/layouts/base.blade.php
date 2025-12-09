@@ -16,7 +16,7 @@
   $displayUrl = preg_replace('(^https?://)', '', $appUrl);
   $brand = $brand ?? $company ?? config('mail.from.name', config('app.name'));
   $supportEmail = config('mail.reply_to.address');
-  $phone = env('COMPANY_PHONE');
+  $phone = config('app.company_phone');
 
   // Logo: servido desde CDN (versión optimizada para email)
   $logoUrl = cdn('logos/brand-logo-white-email.png');
