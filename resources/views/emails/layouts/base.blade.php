@@ -218,6 +218,60 @@
       font-family: 'Segoe UI', sans-serif;
     }
 
+    /* ===== Totales de reservas ===== */
+    .totals-inline {
+      margin: 20px 0;
+      padding: 16px;
+      background-color: #f9fafb;
+      border-radius: 4px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .totals-inline .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      font-size: 15px;
+      color: #374151;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .totals-inline .row:last-child {
+      border-bottom: none;
+    }
+
+    .totals-inline .row.total {
+      margin-top: 8px;
+      padding-top: 12px;
+      border-top: 2px solid #111827;
+      font-weight: 700;
+      font-size: 16px;
+      color: #111827;
+    }
+
+    .totals-inline .label {
+      font-weight: 500;
+      color: #374151;
+    }
+
+    .totals-inline .amount {
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .totals-inline .row.total .amount {
+      font-weight: 700;
+      font-size: 17px;
+    }
+
+    .totals-inline .muted {
+      font-size: 13px;
+      color: #6b7280;
+      font-style: italic;
+      margin-left: 8px;
+    }
+
     /* ===== Footer ===== */
     .email-footer {
       background-color: #f9fafb;
