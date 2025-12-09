@@ -140,92 +140,143 @@ $activeFilters = request()->hasAny([
 
 <div class="container-fluid">
 
-  {{-- 🟩 Top buttons --}}
-  <div class="mb-3 d-flex flex-wrap align-items-center gap-2">
-    {{-- Action Buttons --}}
-    @can('create-bookings')
-    <a href="{{ route('admin.bookings.create') }}" class="btn btn-success">
-      <i class="fas fa-plus"></i> {{ __('m_bookings.bookings.ui.add_booking') }}
-    </a>
-    @endcan
+  {{-- 🟩 Top buttons - Reorganized: Filters LEFT, Actions RIGHT --}}
+  <div class="mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
 
-    <a href="{{ route('admin.bookings.export.pdf') }}" class="btn btn-danger">
-      <i class="fas fa-file-pdf"></i> {{ __('m_bookings.reports.download_pdf') }}
-    </a>
+    {{-- LEFT GROUP: Filters & Controls --}}
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      {{-- 🔍 Quick reference filter --}}
+      <form method="GET" action="{{ route('admin.bookings.index') }}" class="d-flex">
+        {{-- Preserve parameters --}}
+        <input type="hidden" name="view" value="{{ request('view', 'active') }}">
+        <input type="hidden" name="status" value="{{ request('status', 'general') }}">
 
-    <a href="{{ route('admin.bookings.export.excel', request()->query()) }}" class="btn btn-success">
-      <i class="fas fa-file-excel"></i> {{ __('m_bookings.reports.export_excel') }}
-    </a>
+        <div class="input-group" style="width: 280px;">
+          <input
+            type="text"
+            name="reference"
+            class="form-control"
+            placeholder="{{ __('m_bookings.filters.search_reference') }}"
+            value="{{ request('reference') }}"
+            aria-label="{{ __('m_bookings.filters.search_reference') }}">
+          <button class="btn btn-outline-secondary" type="submit" title="{{ __('m_bookings.ui.search') }}">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </form>
 
-    {{-- Spacer --}}
-    <div class="flex-grow-1"></div>
+      {{-- Advanced Filters Button --}}
+      <button class="btn btn-secondary" type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#advancedFilters"
+        aria-expanded="false"
+        aria-controls="advancedFilters">
+        <i class="fas fa-filter"></i> {{ __('m_bookings.filters.advanced_filters') }}
+      </button>
 
-    {{-- 🔍 Quick reference filter --}}
-    <form method="GET" action="{{ route('admin.bookings.index') }}" class="d-flex">
-      {{-- Preserve view parameter --}}
-      <input type="hidden" name="view" value="{{ request('view', 'active') }}">
-
-      <div class="input-group" style="width: 280px;">
-        <input
-          type="text"
-          name="reference"
-          class="form-control"
-          placeholder="{{ __('m_bookings.filters.search_reference') }}"
-          value="{{ request('reference') }}"
-          aria-label="{{ __('m_bookings.filters.search_reference') }}">
-        <button class="btn btn-outline-secondary" type="submit" title="{{ __('m_bookings.ui.search') }}">
+      {{-- Zoom Controls --}}
+      <div class="btn-group" role="group" aria-label="Zoom">
+        <button type="button" class="btn btn-outline-secondary" id="zoomOut" title="{{ __('m_bookings.ui.zoom_out') }}">
+          <i class="fas fa-search-minus"></i>
+        </button>
+        <button type="button" class="btn btn-outline-secondary" id="zoomReset" title="{{ __('m_bookings.ui.zoom_reset') }}">
           <i class="fas fa-search"></i>
         </button>
+        <button type="button" class="btn btn-outline-secondary" id="zoomIn" title="{{ __('m_bookings.ui.zoom_in') }}">
+          <i class="fas fa-search-plus"></i>
+        </button>
       </div>
-    </form>
+    </div>
 
-    {{-- Advanced Filters Button --}}
-    <button class="btn btn-secondary" type="button"
-      data-bs-toggle="collapse"
-      data-bs-target="#advancedFilters"
-      aria-expanded="{{ $activeFilters ? 'true' : 'false' }}"
-      aria-controls="advancedFilters">
-      <i class="fas fa-filter"></i> {{ __('m_bookings.filters.advanced_filters') }}
-    </button>
+    {{-- RIGHT GROUP: Action Buttons --}}
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      @can('create-bookings')
+      <a href="{{ route('admin.bookings.create') }}" class="btn btn-success">
+        <i class="fas fa-plus"></i> {{ __('m_bookings.bookings.ui.add_booking') }}
+      </a>
+      @endcan
 
-    {{-- Zoom Controls --}}
-    <div class="btn-group" role="group" aria-label="Zoom">
-      <button type="button" class="btn btn-outline-secondary" id="zoomOut" title="{{ __('m_bookings.ui.zoom_out') }}">
-        <i class="fas fa-search-minus"></i>
-      </button>
-      <button type="button" class="btn btn-outline-secondary" id="zoomReset" title="{{ __('m_bookings.ui.zoom_reset') }}">
-        <i class="fas fa-search"></i>
-      </button>
-      <button type="button" class="btn btn-outline-secondary" id="zoomIn" title="{{ __('m_bookings.ui.zoom_in') }}">
-        <i class="fas fa-search-plus"></i>
-      </button>
+      <a href="{{ route('admin.bookings.export.pdf') }}" class="btn btn-danger">
+        <i class="fas fa-file-pdf"></i> {{ __('m_bookings.reports.download_pdf') }}
+      </a>
+
+      <a href="{{ route('admin.bookings.export.excel', request()->query()) }}" class="btn btn-success">
+        <i class="fas fa-file-excel"></i> {{ __('m_bookings.reports.export_excel') }}
+      </a>
     </div>
   </div>
 
-  {{-- 📑 TABS: Active / Trash --}}
+  {{-- 🧪 Advanced filters --}}
+  @include('admin.bookings.partials.advanced-filters')
+
+  {{-- 📑 TABS: Status Tabs + Trash --}}
   <ul class="nav nav-tabs mb-3" role="tablist">
+    @php
+    $currentView = request('view', 'active');
+    $currentStatus = request('status', 'general');
+    $isTrash = $currentView === 'trash';
+    @endphp
+
+    {{-- STATUS TABS (only shown when not in trash) --}}
+    @if(!$isTrash)
     <li class="nav-item" role="presentation">
-      <a class="nav-link {{ request('view', 'active') === 'active' ? 'active' : '' }}"
-        href="{{ route('admin.bookings.index', array_merge(request()->except('view'), ['view' => 'active'])) }}">
-        <i class="fas fa-list"></i> {{ __('m_bookings.bookings.trash.active_bookings') }}
-        @if(request('view', 'active') === 'active')
+      <a class="nav-link {{ $currentStatus === 'general' ? 'active' : '' }}"
+        href="{{ route('admin.bookings.index', array_merge(request()->except(['view', 'status']), ['view' => 'active', 'status' => 'general'])) }}">
+        <i class="fas fa-list"></i> {{ __('m_bookings.tabs.general') }}
+        @if($currentStatus === 'general')
         <span class="badge bg-primary ms-1">{{ $bookings->total() }}</span>
         @endif
       </a>
     </li>
     <li class="nav-item" role="presentation">
-      <a class="nav-link {{ request('view') === 'trash' ? 'active' : '' }}"
-        href="{{ route('admin.bookings.index', array_merge(request()->except('view'), ['view' => 'trash'])) }}">
-        <i class="fas fa-trash"></i> {{ __('m_bookings.bookings.trash.trash') }}
-        @if(request('view') === 'trash')
+      <a class="nav-link {{ $currentStatus === 'active' ? 'active' : '' }}"
+        href="{{ route('admin.bookings.index', array_merge(request()->except(['view', 'status']), ['view' => 'active', 'status' => 'active'])) }}">
+        <i class="fas fa-check-circle"></i> {{ __('m_bookings.tabs.active') }}
+        @if($currentStatus === 'active')
+        <span class="badge bg-success ms-1">{{ $bookings->total() }}</span>
+        @endif
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link {{ $currentStatus === 'cancelled' ? 'active' : '' }}"
+        href="{{ route('admin.bookings.index', array_merge(request()->except(['view', 'status']), ['view' => 'active', 'status' => 'cancelled'])) }}">
+        <i class="fas fa-times-circle"></i> {{ __('m_bookings.tabs.cancelled') }}
+        @if($currentStatus === 'cancelled')
         <span class="badge bg-danger ms-1">{{ $bookings->total() }}</span>
         @endif
       </a>
     </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link {{ $currentStatus === 'pending' ? 'active' : '' }}"
+        href="{{ route('admin.bookings.index', array_merge(request()->except(['view', 'status']), ['view' => 'active', 'status' => 'pending'])) }}">
+        <i class="fas fa-clock"></i> {{ __('m_bookings.tabs.pending') }}
+        @if($currentStatus === 'pending')
+        <span class="badge bg-warning ms-1">{{ $bookings->total() }}</span>
+        @endif
+      </a>
+    </li>
+    <li class="nav-item ms-auto" role="presentation">
+      <a class="nav-link"
+        href="{{ route('admin.bookings.index', array_merge(request()->except(['view', 'status']), ['view' => 'trash'])) }}">
+        <i class="fas fa-trash"></i> {{ __('m_bookings.tabs.trash') }}
+      </a>
+    </li>
+    @else
+    {{-- TRASH TAB (show only when in trash) --}}
+    <li class="nav-item" role="presentation">
+      <a class="nav-link"
+        href="{{ route('admin.bookings.index', array_merge(request()->except(['view', 'status']), ['view' => 'active', 'status' => 'general'])) }}">
+        <i class="fas fa-arrow-left"></i> {{ __('m_bookings.bookings.trash.back_to_bookings') }}
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link active">
+        <i class="fas fa-trash"></i> {{ __('m_bookings.tabs.trash') }}
+        <span class="badge bg-danger ms-1">{{ $bookings->total() }}</span>
+      </a>
+    </li>
+    @endif
   </ul>
-
-  {{-- 🧪 Advanced filters --}}
-  @include('admin.bookings.partials.advanced-filters')
 
   {{-- 📋 Compact Table --}}
   <div class="table-responsive mt-4" id="bookingsTableContainer">

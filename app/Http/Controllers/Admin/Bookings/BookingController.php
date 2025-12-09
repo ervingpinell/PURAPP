@@ -62,8 +62,27 @@ class BookingController extends Controller
         }
         // else: default behavior shows only active (non-trashed) bookings
 
+        // Status tab filtering (only when not in trash)
+        if ($view !== 'trash') {
+            $statusTab = $request->get('status', 'general');
+
+            if ($statusTab !== 'general') {
+                // Map tab names to status values
+                $statusMap = [
+                    'active' => 'confirmed',
+                    'cancelled' => 'cancelled',
+                    'pending' => 'pending',
+                ];
+
+                if (isset($statusMap[$statusTab])) {
+                    $query->where('status', $statusMap[$statusTab]);
+                }
+            }
+            // 'general' shows all statuses (no filter applied)
+        }
+
         if ($request->filled('reference'))         $query->where('booking_reference', 'ilike', '%' . $request->reference . '%');
-        if ($request->filled('status'))            $query->where('status', $request->status);
+        // NOTE: status filter from advanced filters is handled by tabs, so we don't apply it here
         if ($request->filled('booking_date_from')) $query->whereDate('booking_date', '>=', $request->booking_date_from);
         if ($request->filled('booking_date_to'))   $query->whereDate('booking_date', '<=', $request->booking_date_to);
 

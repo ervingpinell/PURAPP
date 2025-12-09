@@ -162,6 +162,14 @@ return [
     // =========================================================
     // [02] BUCHUNGEN
     // =========================================================
+    'tabs' => [
+        'general' => 'Allgemein',
+        'active' => 'Aktiv',
+        'cancelled' => 'Storniert',
+        'pending' => 'Ausstehend',
+        'trash' => 'Papierkorb',
+    ],
+
     'bookings' => [
         'singular' => 'Buchung',
         'plural' => 'Buchungen',
@@ -390,6 +398,7 @@ return [
         'trash' => [
             'active_bookings' => 'Aktive Buchungen',
             'trash' => 'Papierkorb',
+            'back_to_bookings' => 'Zurück zu Buchungen',
             'restore_booking' => 'Buchung wiederherstellen',
             'permanently_delete' => 'Endgültig löschen',
             'force_delete_title' => 'ENDGÜLTIGES LÖSCHEN',
@@ -442,6 +451,10 @@ return [
     // =========================================================
     'filters' => [
         'advanced_filters' => 'Erweiterte Filter',
+        'booking_dates' => 'Buchungsdaten',
+        'tour_dates' => 'Tour-Daten',
+        'tour_schedule' => 'Tour und Zeitplan',
+        'status_reference' => 'Status und Referenz',
         'dates'            => 'Daten',
         'booked_from'      => 'Gebucht ab',
         'booked_until'     => 'Gebucht bis',

@@ -162,6 +162,14 @@ return [
     // =========================================================
     // [02] RESERVAS
     // =========================================================
+    'tabs' => [
+        'general' => 'Geral',
+        'active' => 'Ativas',
+        'cancelled' => 'Canceladas',
+        'pending' => 'Pendentes',
+        'trash' => 'Lixeira',
+    ],
+
     'bookings' => [
         'singular' => 'Reserva',
         'plural' => 'Reservas',
@@ -408,8 +416,9 @@ return [
         ],
         // SoftDelete & Trash
         'trash' => [
-            'active_bookings' => 'Reservas ativas',
+            'active_bookings' => 'Reservas Ativas',
             'trash' => 'Lixeira',
+            'back_to_bookings' => 'Voltar para Reservas',
             'restore_booking' => 'Restaurar reserva',
             'permanently_delete' => 'Excluir permanentemente',
             'force_delete_title' => 'EXCLUSÃO PERMANENTE',
@@ -442,7 +451,11 @@ return [
     // [04] FILTROS
     // =========================================================
     'filters' => [
-        'advanced_filters' => 'Filtros avançados',
+        'advanced_filters' => 'Filtros Avançados',
+        'booking_dates' => 'Datas de Reserva',
+        'tour_dates' => 'Datas do Tour',
+        'tour_schedule' => 'Tour e Horário',
+        'status_reference' => 'Status e Referência',
         'dates'            => 'Datas',
         'booked_from'      => 'Reservado a partir de',
         'booked_until'     => 'Reservado até',

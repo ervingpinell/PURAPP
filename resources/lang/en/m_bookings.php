@@ -162,6 +162,14 @@ return [
     // =========================================================
     // [02] BOOKINGS
     // =========================================================
+    'tabs' => [
+        'general' => 'General',
+        'active' => 'Active',
+        'cancelled' => 'Cancelled',
+        'pending' => 'Pending',
+        'trash' => 'Trash',
+    ],
+
     'bookings' => [
         'singular' => 'Booking',
         'plural' => 'Bookings',
@@ -389,6 +397,7 @@ return [
         'trash' => [
             'active_bookings' => 'Active Bookings',
             'trash' => 'Trash',
+            'back_to_bookings' => 'Back to Bookings',
             'restore_booking' => 'Restore booking',
             'permanently_delete' => 'Permanently delete',
             'force_delete_title' => 'PERMANENT DELETE',
@@ -446,6 +455,10 @@ return [
     // =========================================================
     'filters' => [
         'advanced_filters' => 'Advanced Filters',
+        'booking_dates'    => 'Booking Dates',
+        'tour_dates'       => 'Tour Dates',
+        'tour_schedule'    => 'Tour & Schedule',
+        'status_reference' => 'Status & Reference',
         'dates'            => 'Dates',
         'booked_from'      => 'Booked from',
         'booked_until'     => 'Booked until',
