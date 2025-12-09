@@ -220,23 +220,27 @@ if (!function_exists('settings_by_category')) {
 
         return $query->get()->groupBy('category');
     }
+}
 
-    if (! function_exists('cdn')) {
+if (! function_exists('cdn')) {
     /**
-     * Genera una URL al CDN para archivos dentro de /public/cdn
-     *
-     * Ej: cdn('logos/gv-logo-email.png')
-     * => https://cdn.greenvacationscr.com/cdn/logos/gv-logo-email.png
+     * Generate CDN URL for static platform assets
+     * 
+     * @param string $path Path relative to CDN root (e.g., 'logos/brand-logo.png')
+     * @return string Full HTTPS URL to the asset
      */
     function cdn(string $path): string
     {
-        $base = rtrim(config('app.cdn_url'), '/');
+        $base = config('app.cdn_url') ?: config('app.url') . '/cdn';
 
-        // Nos aseguramos de que no haya doble slash
+        // Forzar https:// si no tiene protocolo
+        if (!preg_match('~^https?://~i', $base)) {
+            $base = 'https://' . ltrim($base, '/');
+        }
+
+        $base = rtrim($base, '/');
         $path = ltrim($path, '/');
 
         return $base . '/' . $path;
     }
-}
-
 }

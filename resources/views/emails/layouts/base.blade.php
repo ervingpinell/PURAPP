@@ -94,25 +94,45 @@
     /* ===== Body ===== */
     .email-body {
       padding: 30px 20px;
-      font-size: 16px;
-      line-height: 1.6;
-      color: #333333;
-      /* --text-dark */
+      font-size: 15px;
+      /* Tamaño estándar legible */
+      line-height: 1.7;
+      /* Mayor espaciado entre líneas */
+      color: #374151;
+      /* Color más oscuro para mejor legibilidad */
+      text-align: left;
+      /* Alineación izquierda para párrafos largos */
     }
 
     .email-body h1 {
-      font-size: 24px;
+      font-size: 22px;
+      /* Título principal legible pero no muy grande */
       font-weight: 700;
-      margin: 0 0 15px 0;
+      margin: 0 0 20px 0;
       color: #111827;
+      text-align: left;
+      /* Títulos alineados a la izquierda */
+      line-height: 1.3;
+    }
+
+    .email-body h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 20px 0 12px 0;
+      color: #1f2937;
+      text-align: left;
     }
 
     .email-body p {
-      margin: 0 0 15px 0;
+      margin: 0 0 16px 0;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #374151;
     }
 
     .email-body strong {
       font-weight: 600;
+      color: #1f2937;
     }
 
     /* ===== Tables ===== */
@@ -205,8 +225,10 @@
       text-align: center;
       border-top: 2px solid #e5e7eb;
       color: #6b7280;
-      font-size: 16px;
-      line-height: 1.5;
+      font-size: 13px !important;
+      /* Tamaño base del footer */
+      line-height: 1.6;
+      /* Mejor espaciado */
       font-family: 'Segoe UI', sans-serif;
     }
 
@@ -220,10 +242,21 @@
       text-decoration: underline;
     }
 
+    /* Links específicos del footer - controlar tamaño aquí */
+    .email-footer-link {
+      color: #3869d4 !important;
+      text-decoration: none !important;
+      font-size: 13px !important;
+      /* Aumentado de 12px a 13px para mejor legibilidad */
+      font-weight: 500;
+      /* Peso medio para destacar */
+    }
+
     .email-copyright {
       margin-top: 12px;
       font-size: 12px;
       color: #9ca3af;
+      line-height: 1.5;
     }
   </style>
 </head>
@@ -243,7 +276,8 @@
                 alt="{{ $brand }}"
                 width="240"
                 height="140"
-                style="max-width:240px; max-height:140px; width:240px; height:auto; display:block; margin:0 auto; object-fit:contain;">
+                border="0"
+                style="display:block; margin:0 auto; width:240px; height:140px; max-width:100%; border:0; outline:none; text-decoration:none;">
             </td>
           </tr>
 
@@ -257,12 +291,12 @@
           <!-- FOOTER -->
           <tr>
             <td class="email-footer">
-              <p style="margin:0 0 10px 0;">
-                📧 <a href="mailto:{{ $supportEmail }}" style="color:#3869d4; text-decoration:none;">{{ $supportEmail }}</a>
+              <p style="margin:0 0 10px 0; font-size:13px; text-align:center;">
+                📧 <a href="mailto:{{ $supportEmail }}" class="email-footer-link" style="color:#3869d4; text-decoration:none; font-size:13px; font-weight:500;">{{ $supportEmail }}</a>
                 &nbsp; | &nbsp;
-                📞 <a href="tel:{{ $phone }}" style="color:#3869d4; text-decoration:none;">{{ $phone }}</a>
+                📞 <a href="tel:{{ $phone }}" class="email-footer-link" style="color:#3869d4; text-decoration:none; font-size:13px; font-weight:500;">{{ $phone }}</a>
                 &nbsp; | &nbsp;
-                🌐 <a href="{{ $appUrl }}" style="color:#3869d4; text-decoration:none;">{{ $displayUrl }}</a>
+                🌐 <a href="{{ $appUrl }}" class="email-footer-link" style="color:#3869d4; text-decoration:none; font-size:13px; font-weight:500;">{{ $displayUrl }}</a>
               </p>
 
               <div class="email-copyright" style="margin-top:15px; font-size:12px; color:#9ca3af;">

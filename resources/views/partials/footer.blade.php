@@ -18,7 +18,7 @@
 
   <div class="footer-main-content">
     <div class="footer-brand d-none d-md-block">
-      <img src="{{ cdn('logos/brand-logo-white.png') }}"
+      <img src="{{ asset('images/logoCompanyWhite.png') }}"
         alt="Green Vacations"
         decoding="async"
         fetchpriority="low" />
