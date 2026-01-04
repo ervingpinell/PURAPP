@@ -9,6 +9,7 @@ return [
     'failed'   => 'El correo o la contraseña no son correctos.',
     'password' => 'La contraseña proporcionada es incorrecta.',
     'throttle' => 'Demasiados intentos de inicio de sesión. Inténtalo de nuevo en :seconds segundos.',
+    'captcha_failed' => 'La verificación CAPTCHA falló. Por favor, inténtalo de nuevo.',
 
     // Mensajes específicos de tu negocio
     'inactive'   => 'Tu cuenta está inactiva. Contacta al soporte para reactivarla.',

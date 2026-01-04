@@ -4,9 +4,10 @@ return [
     // Mensagens padrão do Laravel
     'failed'   => 'O e-mail ou a senha estão incorretos.',
     'password' => 'A senha fornecida está incorreta.',
-    'throttle' => 'Muitas tentativas de login. Tente novamente em :seconds segundos.',
+    'throttle' => 'Muitas tentativas de login. Por favor, tente novamente em :seconds segundos.',
+    'captcha_failed' => 'A verificação CAPTCHA falhou. Por favor, tente novamente.',
 
-    // Mensagens específicas do negócio
+    // Mensagens específicas do seu negócio
     'inactive'   => 'Sua conta está inativa. Entre em contato com o suporte para reativá-la.',
     'locked'     => 'Sua conta está bloqueada. Entre em contato com o suporte para desbloqueá-la.',
     'unverified' => 'Você deve verificar seu e-mail antes de fazer login. Verifique sua caixa de entrada.',

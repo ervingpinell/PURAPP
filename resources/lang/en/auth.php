@@ -6,11 +6,12 @@ return [
     'failed'   => 'The email or password is incorrect.',
     'password' => 'The provided password is incorrect.',
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
+    'captcha_failed' => 'CAPTCHA verification failed. Please try again.',
 
     // Business-specific messages
-    'inactive'   => 'Your account is inactive. Contact support to reactivate it.',
-    'locked'     => 'Your account is locked. Contact support to unlock it.',
-    'unverified' => 'You must verify your email address before logging in. Check your inbox.',
+    'inactive'   => 'Your account is inactive. Please contact support to reactivate it.',
+    'locked'     => 'Your account is locked. Please contact support to unlock it.',
+    'unverified' => 'You must verify your email address before logging in. Please check your inbox.',
 
     // Fortify 2FA (status & UI text)
     'two_factor' => [

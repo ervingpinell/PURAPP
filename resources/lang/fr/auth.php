@@ -4,12 +4,13 @@ return [
     // Standard Laravel messages
     'failed'   => 'L’e-mail ou le mot de passe est incorrect.',
     'password' => 'Le mot de passe fourni est incorrect.',
-    'throttle' => 'Trop de tentatives de connexion. Réessayez dans :seconds secondes.',
+    'throttle' => 'Trop de tentatives de connexion. Veuillez réessayer dans :seconds secondes.',
+    'captcha_failed' => 'La vérification CAPTCHA a échoué. Veuillez réessayer.',
 
-    // Business-specific messages
-    'inactive'   => 'Votre compte est inactif. Contactez le support pour le réactiver.',
-    'locked'     => 'Votre compte est verrouillé. Contactez le support pour le déverrouiller.',
-    'unverified' => 'Vous devez vérifier votre adresse e-mail avant de vous connecter. Vérifiez votre boîte de réception.',
+    // Messages spécifiques à votre entreprise
+    'inactive'   => 'Votre compte est inactif. Veuillez contacter le support pour le réactiver.',
+    'locked'     => 'Votre compte est verrouillé. Veuillez contacter le support pour le déverrouiller.',
+    'unverified' => 'Vous devez vérifier votre adresse e-mail avant de vous connecter. Veuillez consulter votre boîte de réception.',
 
     // Fortify 2FA (status & UI text)
     'two_factor' => [
@@ -18,7 +19,7 @@ return [
         'enabled'                 => 'Authentification à deux facteurs activée.',
         'confirmed'               => 'Authentification à deux facteurs confirmée.',
         'disabled'                => 'Authentification à deux facteurs désactivée.',
-        'recovery_codes_generated'=> 'De nouveaux codes de récupération ont été générés.',
+        'recovery_codes_generated' => 'De nouveaux codes de récupération ont été générés.',
         'remember_device'         => 'Se souvenir de cet appareil pendant 30 jours',
         'enter_code'              => 'Entrez le code à 6 chiffres',
         'use_recovery'            => 'Utiliser un code de récupération',
@@ -71,12 +72,12 @@ return [
         'verified' => 'Votre adresse e-mail a été vérifiée.',
     ],
     'email_change_subject'        => 'Confirmez le changement de votre adresse e-mail',
-'email_change_title'          => 'Confirmez votre nouvelle adresse e-mail',
-'email_change_hello'          => 'Bonjour :name,',
-'email_change_intro'          => 'Vous avez demandé à changer l’adresse e-mail associée à votre compte. Pour finaliser la modification, cliquez sur le bouton ci-dessous :',
-'email_change_button'         => 'Confirmer la nouvelle adresse',
-'email_change_footer'         => 'Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignorer ce message et votre adresse actuelle restera inchangée.',
-'email_change_link_expired'   => 'Le lien pour changer votre adresse e-mail a expiré. Veuillez demander à nouveau la modification depuis votre profil.',
-'email_change_confirmed'      => 'Votre adresse e-mail a été mise à jour et vérifiée avec succès.',
+    'email_change_title'          => 'Confirmez votre nouvelle adresse e-mail',
+    'email_change_hello'          => 'Bonjour :name,',
+    'email_change_intro'          => 'Vous avez demandé à changer l’adresse e-mail associée à votre compte. Pour finaliser la modification, cliquez sur le bouton ci-dessous :',
+    'email_change_button'         => 'Confirmer la nouvelle adresse',
+    'email_change_footer'         => 'Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignorer ce message et votre adresse actuelle restera inchangée.',
+    'email_change_link_expired'   => 'Le lien pour changer votre adresse e-mail a expiré. Veuillez demander à nouveau la modification depuis votre profil.',
+    'email_change_confirmed'      => 'Votre adresse e-mail a été mise à jour et vérifiée avec succès.',
 
 ];

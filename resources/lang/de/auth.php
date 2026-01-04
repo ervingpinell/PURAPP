@@ -4,12 +4,13 @@ return [
     // Standard Laravel messages
     'failed'   => 'Die E-Mail-Adresse oder das Passwort ist falsch.',
     'password' => 'Das angegebene Passwort ist falsch.',
-    'throttle' => 'Zu viele Login-Versuche. Bitte versuche es in :seconds Sekunden erneut.',
+    'throttle' => 'Zu viele Anmeldeversuche. Bitte versuchen Sie es in :seconds Sekunden erneut.',
+    'captcha_failed' => 'CAPTCHA-Überprüfung fehlgeschlagen. Bitte versuchen Sie es erneut.',
 
-    // Business-specific messages
-    'inactive'   => 'Dein Konto ist inaktiv. Kontaktiere den Support, um es zu reaktivieren.',
-    'locked'     => 'Dein Konto ist gesperrt. Kontaktiere den Support, um es zu entsperren.',
-    'unverified' => 'Du musst deine E-Mail-Adresse verifizieren, bevor du dich anmeldest. Überprüfe deinen Posteingang.',
+    // Geschäftsspezifische Nachrichten
+    'inactive'   => 'Ihr Konto ist inaktiv. Bitte kontaktieren Sie den Support, um es zu reaktivieren.',
+    'locked'     => 'Ihr Konto ist gesperrt. Bitte kontaktieren Sie den Support, um es zu entsperren.',
+    'unverified' => 'Sie müssen Ihre E-Mail-Adresse verifizieren, bevor Sie sich anmelden. Bitte überprüfen Sie Ihren Posteingang.',
 
     // Fortify 2FA (status & UI text)
     'two_factor' => [
