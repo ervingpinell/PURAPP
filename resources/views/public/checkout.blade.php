@@ -243,7 +243,7 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
               </label>
               <div class="row g-2">
                 <div class="col-5 col-sm-4">
-                  <select class="form-select" id="guest_country_code" name="guest_country_code">
+                  <select class="form-select" id="guest_country_code">
                     @include('partials.country-codes', ['selected' => $oldCode, 'showNames' => true])
                   </select>
                 </div>
@@ -252,7 +252,6 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
                     type="tel"
                     class="form-control"
                     id="guest_phone"
-                    name="guest_phone"
                     value="{{ $phoneNumber }}"
                     placeholder="1234-5678">
                 </div>
