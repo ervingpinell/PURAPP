@@ -553,5 +553,10 @@ return [
     'tours_index_title'     => 'Tours',
     'tours_index_subtitle'  => 'Descubra nossas experiências e atividades disponíveis.',
 
+
     'tours_count' => '1 tour disponível|:count tours disponíveis',
+
+    // Quantities
+    'quantities' => 'Quantidades',
+    'quantitiesHelp' => 'Ajuste as quantidades conforme necessário. Você pode deixar em 0 as categorias que não usar.',
 ];

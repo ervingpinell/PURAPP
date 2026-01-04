@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 // Notificaciones nativas (sin colas)
-use Illuminate\Auth\Notifications\VerifyEmail;
+use App\Notifications\VerifyEmail;
 use Illuminate\Auth\Notifications\ResetPassword;
 use App\Notifications\EmailChangeVerificationNotification;
 
@@ -37,6 +37,14 @@ class User extends Authenticatable implements MustVerifyEmail, HasLocalePreferen
     public function cart()
     {
         return $this->hasMany(Cart::class, 'user_id', 'user_id');
+    }
+
+    /**
+     * Relación con Password Setup Tokens
+     */
+    public function passwordSetupTokens()
+    {
+        return $this->hasMany(PasswordSetupToken::class, 'user_id', 'user_id');
     }
 
     /**
@@ -215,8 +223,14 @@ class User extends Authenticatable implements MustVerifyEmail, HasLocalePreferen
     public function sendEmailVerificationNotification(): void
     {
         try {
+            $notification = new VerifyEmail;
+
+            // Strict Locale Logic: Only ES gets Spanish, everyone else gets English
+            $locale = $this->preferredLocale();
+            $notification->locale(($locale === 'es') ? 'es' : 'en');
+
             // VerifyEmail no implementa ShouldQueue -> se envía en sync
-            $this->notify(new VerifyEmail);
+            $this->notify($notification);
         } catch (\Throwable $e) {
             Log::warning('Error al enviar verificación de email (sync)', [
                 'user_id' => $this->getKey(),

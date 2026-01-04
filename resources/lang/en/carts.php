@@ -7,6 +7,8 @@ return [
         'extend'      => 'Extend :count min|Extend :count min',
         'already_extended' => 'The waiting time has already been extended. It cannot be extended further.',
         'cart_deleted' => 'Your cart has been automatically deleted because it has no items.',
+        'expired_title' => 'Time\'s Up',
+        'expired_text' => 'Your cart has expired. You will be redirected to the home page.',
     ],
 
     'title_all' => 'All customer carts',
@@ -17,7 +19,7 @@ return [
     'filters.status'  => 'Status',
     'filters.all'     => '-- All --',
     'filters.active'  => 'Active',
-    'filters.inactive'=> 'Inactive',
+    'filters.inactive' => 'Inactive',
     'filters.search'  => 'Search',
     'filters.clear'   => 'Clear',
 
@@ -77,6 +79,7 @@ return [
     'promo.enter_code'   => 'Enter a code',
     'promo.apply_error'  => 'The code could not be applied.',
     'promo.remove_error' => 'The code could not be removed.',
+    'promo.too_many_attempts' => 'Too many attempts. Please try again later.',
 
     'totals.subtotal'        => 'Subtotal',
     'totals.discount'        => 'Discount',
@@ -117,7 +120,7 @@ return [
     'fields.language'  => 'Language',
     'fields.schedule'  => 'Schedule',
     'fields.hotel'     => 'Hotel',
-    'fields.hotel_name'=> 'Hotel name',
+    'fields.hotel_name' => 'Hotel name',
     'fields.adults'    => 'Number of adults',
     'fields.kids'      => 'Number of children',
 
@@ -145,10 +148,10 @@ return [
     'messages.code_removed'        => 'Code removed successfully.',
     'messages.slot_full'           => 'This time slot is full.',
     'messages.date_blocked'        => 'The selected date is blocked for this tour.',
-    'messages.schedule_unavailable'=> 'The selected time is not available for this tour.',
+    'messages.schedule_unavailable' => 'The selected time is not available for this tour.',
     'messages.validation_failed'   => 'Data validation failed.',
     'messages.cart_expires_in'     => 'The cart will expire in :minutes minutes.',
-    'messages.cart_being_processed'=> 'Your cart is being processed. Please try again in a few seconds.',
+    'messages.cart_being_processed' => 'Your cart is being processed. Please try again in a few seconds.',
 
     'messages' => [
         'limited_seats_available' => 'Only :available spots left for ":tour" on :date.',
@@ -171,6 +174,8 @@ return [
         'extend_limit_reached'    => 'You can only extend the time once.',
 
         'cart_deleted'            => 'Your cart has been automatically deleted because it has no items.',
+        'expired_title' => 'Time\'s Up',
+        'expired_text' => 'Your cart has expired. You will be redirected to the home page.',
         'cart_refreshed'          => 'Your cart time has been extended.',
         'extend_success'          => 'Cart extended successfully.',
         'max_extensions_reached'  => 'You have already reached the maximum allowed extensions.',

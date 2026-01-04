@@ -122,6 +122,151 @@
                                 </div>
                             </div>
 
+                            {{-- Reserve Now & Pay Later - Accordion Style --}}
+                            @php
+                            $payLaterEnabled = $categorySettings->firstWhere('key', 'booking.pay_later.enabled')?->value ?? false;
+                            @endphp
+
+                            <div class="card card-outline {{ $payLaterEnabled ? 'card-info' : 'card-secondary' }}">
+                                <div class="card-header" data-toggle="collapse" data-target="#payLaterSettings" style="cursor: pointer;">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-clock"></i> Reserva Ahora y Paga Después
+                                        <small class="float-right">
+                                            @if($payLaterEnabled)
+                                            <span class="badge badge-success"><i class="fas fa-check"></i> Activo</span>
+                                            @else
+                                            <span class="badge badge-secondary"><i class="fas fa-times"></i> Inactivo</span>
+                                            @endif
+                                            <i class="fas fa-chevron-down ml-2"></i>
+                                        </small>
+                                    </h5>
+                                </div>
+
+                                <div id="payLaterSettings" class="collapse {{ $payLaterEnabled ? 'show' : '' }}">
+                                    <div class="card-body {{ !$payLaterEnabled ? 'bg-light' : '' }}">
+                                        {{-- Toggle Principal --}}
+                                        @php $mainToggle = $categorySettings->firstWhere('key', 'booking.pay_later.enabled'); @endphp
+                                        @if($mainToggle)
+                                        <div class="row mb-3">
+                                            <div class="col-12">
+                                                <div class="alert alert-info">
+                                                    <strong><i class="fas fa-info-circle"></i> Configuración Principal</strong>
+                                                    <p class="mb-2">{{ $mainToggle->description }}</p>
+                                                    <div class="custom-control custom-switch custom-switch-lg">
+                                                        <input type="hidden" name="settings[{{ $mainToggle->key }}]" value="0">
+                                                        <input type="checkbox"
+                                                            class="custom-control-input"
+                                                            id="setting_{{ $mainToggle->key }}"
+                                                            name="settings[{{ $mainToggle->key }}]"
+                                                            value="1"
+                                                            {{ $mainToggle->value ? 'checked' : '' }}
+                                                            onchange="togglePayLaterSettings(this.checked)">
+                                                        <label class="custom-control-label font-weight-bold" for="setting_{{ $mainToggle->key }}">
+                                                            <span class="enabled-text">Habilitar Sistema Pay-Later</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
+
+                                        {{-- Settings Dependientes --}}
+                                        <fieldset id="payLaterFields" {{ !$payLaterEnabled ? 'disabled' : '' }}>
+                                            <div class="row">
+                                                @foreach($categorySettings as $setting)
+                                                @if(str_contains($setting->key, 'pay_later') && $setting->key !== 'booking.pay_later.enabled')
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="setting_{{ $setting->key }}" class="{{ !$payLaterEnabled ? 'text-muted' : '' }}">
+                                                            {{ $setting->label }}
+                                                            @if($setting->description)
+                                                            <small class="text-muted d-block">{{ $setting->description }}</small>
+                                                            @endif
+                                                        </label>
+
+                                                        @if($setting->type === 'integer')
+                                                        <input type="number"
+                                                            class="form-control {{ !$payLaterEnabled ? 'bg-light' : '' }}"
+                                                            id="setting_{{ $setting->key }}"
+                                                            name="settings[{{ $setting->key }}]"
+                                                            value="{{ $setting->value }}"
+                                                            min="{{ $setting->key === 'booking.pay_later.link_expires_hours' ? 24 : 1 }}"
+                                                            max="{{ $setting->key === 'booking.pay_later.cancel_hours_before_tour' ? 72 : ($setting->key === 'booking.pay_later.link_expires_hours' ? 168 : 30) }}">
+                                                        @elseif($setting->type === 'time')
+                                                        <input type="time"
+                                                            class="form-control {{ !$payLaterEnabled ? 'bg-light' : '' }}"
+                                                            id="setting_{{ $setting->key }}"
+                                                            name="settings[{{ $setting->key }}]"
+                                                            value="{{ $setting->value }}">
+                                                        @else
+                                                        <input type="text"
+                                                            class="form-control {{ !$payLaterEnabled ? 'bg-light' : '' }}"
+                                                            id="setting_{{ $setting->key }}"
+                                                            name="settings[{{ $setting->key }}]"
+                                                            value="{{ $setting->value }}">
+                                                        @endif
+
+                                                        @error("settings.{$setting->key}")
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                @endif
+                                                @endforeach
+
+                                                {{-- Operations Email & Time --}}
+                                                @foreach($categorySettings as $setting)
+                                                @if($setting->key === 'booking.operations_email' || $setting->key === 'booking.operations_report_time')
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="setting_{{ $setting->key }}" class="{{ !$payLaterEnabled ? 'text-muted' : '' }}">
+                                                            {{ $setting->label }}
+                                                            @if($setting->description)
+                                                            <small class="text-muted d-block">{{ $setting->description }}</small>
+                                                            @endif
+                                                        </label>
+
+                                                        @if($setting->type === 'email')
+                                                        <input type="email"
+                                                            class="form-control {{ !$payLaterEnabled ? 'bg-light' : '' }}"
+                                                            id="setting_{{ $setting->key }}"
+                                                            name="settings[{{ $setting->key }}]"
+                                                            value="{{ $setting->value }}">
+                                                        @elseif($setting->type === 'time')
+                                                        <input type="time"
+                                                            class="form-control {{ !$payLaterEnabled ? 'bg-light' : '' }}"
+                                                            id="setting_{{ $setting->key }}"
+                                                            name="settings[{{ $setting->key }}]"
+                                                            value="{{ $setting->value }}">
+                                                        @else
+                                                        <input type="text"
+                                                            class="form-control {{ !$payLaterEnabled ? 'bg-light' : '' }}"
+                                                            id="setting_{{ $setting->key }}"
+                                                            name="settings[{{ $setting->key }}]"
+                                                            value="{{ $setting->value }}">
+                                                        @endif
+
+                                                        @error("settings.{$setting->key}")
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                @endif
+                                                @endforeach
+                                            </div>
+                                        </fieldset>
+
+                                        @if(!$payLaterEnabled)
+                                        <div class="alert alert-warning mt-3">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            <strong>Sistema Desactivado</strong><br>
+                                            Activa el sistema "Reserva Ahora y Paga Después" para configurar estas opciones.
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
                             {{-- Exchange Rates --}}
                             <div class="card card-outline card-warning">
                                 <div class="card-header">
@@ -332,6 +477,75 @@
 @section('js')
 <script>
     $(document).ready(function() {
+        // ==========================================
+        // CHANGE DETECTION - Only submit modified settings
+        // ==========================================
+        const originalValues = {};
+
+        // Capture all initial values
+        $('input[name^="settings["], select[name^="settings["]').each(function() {
+            const $input = $(this);
+            const name = $input.attr('name');
+
+            // Skip hidden inputs that are paired with checkboxes
+            if ($input.attr('type') === 'hidden' && $input.next('input[type="checkbox"]').length) {
+                return;
+            }
+
+            if ($input.attr('type') === 'checkbox') {
+                originalValues[name] = $input.is(':checked') ? $input.val() : '0';
+            } else {
+                originalValues[name] = $input.val();
+            }
+        });
+
+        // On form submit, remove unchanged inputs
+        $('form').on('submit', function(e) {
+            let changedCount = 0;
+            const toRemove = [];
+
+            $('input[name^="settings["], select[name^="settings["]').each(function() {
+                const $input = $(this);
+                const name = $input.attr('name');
+                let currentValue;
+
+                // Skip hidden inputs paired with checkboxes
+                if ($input.attr('type') === 'hidden' && $input.next('input[type="checkbox"]').length) {
+                    return;
+                }
+
+                if ($input.attr('type') === 'checkbox') {
+                    currentValue = $input.is(':checked') ? $input.val() : '0';
+                    const $hidden = $input.prev('input[type="hidden"]');
+
+                    if (currentValue !== originalValues[name]) {
+                        changedCount++;
+                    } else {
+                        // Mark for removal
+                        toRemove.push($hidden[0]);
+                        toRemove.push($input[0]);
+                    }
+                } else {
+                    currentValue = $input.val();
+
+                    if (currentValue !== originalValues[name]) {
+                        changedCount++;
+                    } else {
+                        // Mark for removal
+                        toRemove.push($input[0]);
+                    }
+                }
+            });
+
+            // Remove unchanged inputs
+            $(toRemove).remove();
+
+            console.log(`✅ Submitting ${changedCount} changed settings (removed ${toRemove.length} unchanged inputs)`);
+        });
+
+        // ==========================================
+        // CURRENCY & EXCHANGE RATES
+        // ==========================================
         // Toggle exchange rate fields based on currency selection
         $('.currency-toggle').on('change', function() {
             updateExchangeRateVisibility();
@@ -357,8 +571,48 @@
             }
         }
 
+        // Pay-Later Settings Toggle
+        function togglePayLaterSettings(enabled) {
+            const fieldset = document.getElementById('payLaterFields');
+            const card = document.querySelector('[data-target="#payLaterSettings"]').closest('.card');
+            const cardBody = document.getElementById('payLaterSettings').querySelector('.card-body');
+
+            if (enabled) {
+                fieldset.removeAttribute('disabled');
+                card.classList.remove('card-secondary');
+                card.classList.add('card-info');
+                cardBody.classList.remove('bg-light');
+
+                // Enable all inputs
+                fieldset.querySelectorAll('input, select').forEach(input => {
+                    input.classList.remove('bg-light');
+                });
+
+                // Update labels
+                fieldset.querySelectorAll('label').forEach(label => {
+                    label.classList.remove('text-muted');
+                });
+            } else {
+                fieldset.setAttribute('disabled', 'disabled');
+                card.classList.remove('card-info');
+                card.classList.add('card-secondary');
+                cardBody.classList.add('bg-light');
+
+                // Disable styling
+                fieldset.querySelectorAll('input, select').forEach(input => {
+                    input.classList.add('bg-light');
+                });
+
+                // Mute labels
+                fieldset.querySelectorAll('label').forEach(label => {
+                    label.classList.add('text-muted');
+                });
+            }
+        }
+
         // Initialize on page load
         updateExchangeRateVisibility();
     });
 </script>
 @stop
+```

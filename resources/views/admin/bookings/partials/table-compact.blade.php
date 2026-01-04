@@ -36,6 +36,7 @@ return [$c->slug => ($label ?: $c->slug)];
       <th>{{ __('m_bookings.bookings.fields.reference') }}</th>
       <th>{{ __('m_bookings.bookings.fields.status') }}</th>
       <th>{{ __('m_bookings.bookings.fields.customer') }}</th>
+      <th>{{ __('m_bookings.bookings.fields.email') }}</th>
       <th>{{ __('m_bookings.bookings.fields.tour') }}</th>
       <th>{{ __('m_bookings.bookings.fields.tour_date') }}</th>
       <th>{{ __('m_bookings.bookings.fields.schedule') }}</th>
@@ -211,7 +212,16 @@ return [$c->slug => ($label ?: $c->slug)];
         </small>
       </td>
 
-      <td>{{ $booking->user->full_name ?? $booking->user->name ?? '—' }}</td>
+      <td>
+        {{ $booking->getUserDisplayName() }}
+        @if(!$booking->userExists())
+        <span class="badge bg-secondary ms-1" style="font-size: 0.65rem;">{{ __('m_bookings.bookings.messages.deleted_user') }}</span>
+        @endif
+      </td>
+
+      <td>
+        {{ $booking->getUserEmail() ?? '—' }}
+      </td>
 
       <td title="{{ $tourCellText }}">{{ $tourDisplay }}</td>
 

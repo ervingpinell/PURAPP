@@ -16,12 +16,16 @@ return new class extends Migration
         // 1️⃣ Crear nueva columna description
         Schema::table('meeting_points', function (Blueprint $table) {
             $table->string('description', 1000)
-                  ->nullable()
-                  ->after('pickup_time');
+                ->nullable()
+                ->after('pickup_time');
         });
 
-        // 2️⃣ Copiar datos existentes de address → description
-        DB::statement('UPDATE meeting_points SET description = address');
+        // 2️⃣ Copiar datos existentes de address → description usando Eloquent
+        \App\Models\MeetingPoint::chunk(100, function ($points) {
+            foreach ($points as $point) {
+                $point->update(['description' => $point->address]);
+            }
+        });
 
         // 3️⃣ Eliminar la columna antigua
         Schema::table('meeting_points', function (Blueprint $table) {
@@ -40,12 +44,16 @@ return new class extends Migration
         // 1️⃣ Crear nuevamente la columna address
         Schema::table('meeting_points', function (Blueprint $table) {
             $table->string('address', 255)
-                  ->nullable()
-                  ->after('pickup_time');
+                ->nullable()
+                ->after('pickup_time');
         });
 
-        // 2️⃣ Copiar datos de description → address
-        DB::statement('UPDATE meeting_points SET address = description');
+        // 2️⃣ Copiar datos de description → address usando Eloquent
+        \App\Models\MeetingPoint::chunk(100, function ($points) {
+            foreach ($points as $point) {
+                $point->update(['address' => $point->description]);
+            }
+        });
 
         // 3️⃣ Eliminar la columna description
         Schema::table('meeting_points', function (Blueprint $table) {

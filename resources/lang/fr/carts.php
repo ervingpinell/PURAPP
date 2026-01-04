@@ -7,6 +7,8 @@ return [
         'extend'      => 'Prolonger de :count min|Prolonger de :count min',
         'already_extended' => 'Le délai d’attente a déjà été prolongé. Il ne peut pas être prolongé davantage.',
         'cart_deleted' => 'Votre panier a été automatiquement supprimé car il ne contient aucun article.',
+        'expired_title' => 'Temps écoulé',
+        'expired_text' => 'Votre panier a expiré. Vous serez redirigé vers la page d\'accueil.',
     ],
 
     'title_all' => 'Tous les paniers clients',
@@ -171,6 +173,8 @@ return [
         'extend_limit_reached'    => 'Vous ne pouvez prolonger le délai qu’une seule fois.',
 
         'cart_deleted'            => 'Votre panier a été automatiquement supprimé car il ne contient aucun article.',
+        'expired_title' => 'Temps écoulé',
+        'expired_text' => 'Votre panier a expiré. Vous serez redirigé vers la page d\'accueil.',
         'cart_refreshed'          => 'Le délai de votre panier a été prolongé.',
         'extend_success'          => 'Panier prolongé avec succès.',
         'max_extensions_reached'  => 'Vous avez déjà atteint le nombre maximal de prolongations autorisées.',

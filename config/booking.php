@@ -46,4 +46,35 @@ return [
     // Cutoff (usado como fallback si no existe en settings)
     'cutoff_hour' => env('BOOKING_CUTOFF_HOUR', '18:00'),
     'lead_days'   => env('BOOKING_LEAD_DAYS', 1),
+
+    // Reserve-Now-Pay-Later (fallback values, real values from settings table)
+    'pay_later' => [
+        'enabled' => env('PAY_LATER_ENABLED', false),
+        'days_before_auto_charge' => env('PAY_LATER_DAYS_BEFORE', 2),
+        'reminder_days_before' => env('PAY_LATER_REMINDER_DAYS', 3),
+        'payment_failure_grace_hours' => 24,
+        'checkout_link_expires_hours' => 72, // Payment link valid for 72h
+    ],
+
+    // Hold & Expiration Times (minutes)
+    'hold_times' => [
+        'unpaid_booking' => 720,         // 12 hours for unpaid bookings
+        'extension_duration' => 720,     // 12 hours per extension
+        'max_extensions' => 3,           // Maximum extensions allowed
+    ],
+
+    // Admin Notifications
+    'admin_notifications' => [
+        'unpaid_expiry_warning_hours' => 2,  // Warn admin 2h before expiry
+        // Uses 'email.notification_email' setting from database
+    ],
+
+    // Operations Email Configuration
+    'operations_email' => env('BOOKING_OPERATIONS_EMAIL', 'info@greenvacationscr.com'),
+
+    // Email sender configuration
+    'email_config' => [
+        'from' => 'noreply@greenvacationscr.com',
+        'reply_to' => 'info@greenvacationscr.com',
+    ],
 ];

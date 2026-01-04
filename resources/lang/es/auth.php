@@ -108,4 +108,19 @@ return [
         'action'          => 'Iniciar Sesión',
         'salutation'      => 'Saludos,',
     ],
+
+    // Password setup (guest to registered)
+    'no_password_set' => 'Aún no has creado tu contraseña.',
+    'send_setup_link' => 'Enviar enlace de configuración',
+    'setup_link_sent' => 'Enlace de configuración enviado a tu correo.',
+    'create_account' => 'Crear Cuenta',
+    'verify_email' => [
+        'subject' => 'Verificar correo electrónico',
+        'title' => 'Verifique su dirección de correo',
+        'line_1' => 'Haga clic en el botón de abajo para verificar su dirección de correo electrónico.',
+        'action' => 'Verificar Correo',
+        'line_2' => 'Si no creó una cuenta, no se requiere ninguna otra acción.',
+        'button_trouble' => 'Si tiene problemas para hacer clic en el botón ":actionText", copie y pegue la URL a continuación en su navegador web:',
+    ],
+    'account_created_verify_email' => 'Cuenta creada con éxito. Por favor verifique su correo electrónico para activar su cuenta.',
 ];

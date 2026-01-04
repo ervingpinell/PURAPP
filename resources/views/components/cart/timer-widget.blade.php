@@ -1,9 +1,19 @@
 {{-- Widget flotante de countdown del carrito --}}
-@auth
 @php
+// Check both authenticated and guest users
+$hasItems = false;
+$isGuest = !Auth::check();
+
+if ($isGuest) {
+// Guest user - check session cart
+$sessionCartItems = session('guest_cart_items', []);
+$createdAt = session('guest_cart_created_at');
+$hasItems = !empty($sessionCartItems) && $createdAt;
+} else {
 // User->cart() es hasMany. Obtenemos el último activo:
 $cart = auth()->user()->cart()->where('is_active', true)->latest('cart_id')->first();
 $hasItems = $cart && $cart->items()->count() > 0;
+}
 
 // Ocultar en páginas donde ya hay timer visible
 $hideOnRoutes = [
@@ -14,6 +24,7 @@ $hideOnRoutes = [
 'checkout.show',
 'checkout.payment',
 'payment.process',
+'payment.show', // Fix: Hide on payment page to prevent double alert
 ];
 
 $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
@@ -119,8 +130,7 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 
     // Click para ir al carrito
     widget.addEventListener('click', () => {
-      window.location.href = '{{ route('
-      public.carts.index ') }}';
+      window.location.href = '{{ route("public.carts.index") }}';
     });
 
     // Conectar con el sistema de countdown existente
@@ -162,4 +172,3 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 </script>
 @endpush
 @endif
-@endauth

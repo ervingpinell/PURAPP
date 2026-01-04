@@ -75,7 +75,7 @@ $showMeetingPointColumn = ($cart && $cart->items)
 : false;
 
 // Timer config
-$expiryMinutes = (int) config('cart.expiration_minutes', 30);
+$expiryMinutes = (int) \App\Models\Setting::getValue('cart.expiration_minutes', 30);
 
 // Promo en sesión
 $promoSession = session('public_cart_promo');
@@ -217,13 +217,13 @@ $initialNotes = old('notes', $cart->notes ?? '');
 @endphp
 
 {{-- ========== TIMER ========== --}}
-@if($cart && $cart->is_active && $cart->items->count() && !empty($expiresAtIso) && !$cart->isExpired())
+@if($cart && $cart->items->count() && !empty($expiresAtIso) && (($cart->is_guest_cart ?? false) || ($cart->is_active && !$cart->isExpired())))
 <div id="cart-timer"
   class="gv-timer shadow-sm"
   role="alert"
   data-expires-at="{{ $expiresAtIso }}"
   data-total-minutes="{{ $expiryMinutes }}"
-  data-expire-endpoint="{{ route('public.carts.expire') }}">
+  data-expire-endpoint="{{ ($cart->is_guest_cart ?? false) ? route('public.guest-carts.expire') : route('public.carts.expire') }}">
   <div class="gv-timer-head">
     <div class="gv-timer-icon">
       <i class="fas fa-hourglass-half"></i>
@@ -320,7 +320,7 @@ $initialNotes = old('notes', $cart->notes ?? '');
         <tr class="text-center cart-item-row"
           data-item-id="{{ $item->item_id }}"
           data-subtotal="{{ $fmt2($itemSubtotal) }}">
-          <td class="text-start">{{ $item->tour->getTranslatedName() ?? $item->tour->name }}</td>
+          <td class="text-start">{{ $item->tour->getTranslatedName(app()->getLocale()) ?? $item->tour->name }}</td>
           <td>{{ \Carbon\Carbon::parse($item->tour_date)->format('d/M/Y') }}</td>
           <td>
             @if($item->schedule)
@@ -390,6 +390,15 @@ $initialNotes = old('notes', $cart->notes ?? '');
               <i class="fas fa-edit"></i> {{ __('adminlte::adminlte.edit') }}
             </button>
 
+            @if(isset($cart->is_guest_cart) && $cart->is_guest_cart)
+            <form action="{{ route('public.carts.removeGuestItem') }}" method="POST" class="d-inline delete-item-form">
+              @csrf
+              <input type="hidden" name="item_index" value="{{ $item->item_id }}">
+              <button type="submit" class="btn btn-danger btn-sm">
+                <i class="fas fa-trash"></i> {{ __('adminlte::adminlte.delete') }}
+              </button>
+            </form>
+            @else
             <form action="{{ route('public.carts.destroy', $item->item_id) }}"
               method="POST"
               class="d-inline delete-item-form">
@@ -398,6 +407,7 @@ $initialNotes = old('notes', $cart->notes ?? '');
                 <i class="fas fa-trash"></i> {{ __('adminlte::adminlte.delete') }}
               </button>
             </form>
+            @endif
           </td>
         </tr>
         @endforeach
@@ -418,7 +428,7 @@ $initialNotes = old('notes', $cart->notes ?? '');
       data-item-id="{{ $item->item_id }}"
       data-subtotal="{{ $fmt2($itemSubtotal) }}">
       <div class="card-header fw-semibold">
-        {{ $item->tour->getTranslatedName() ?? $item->tour->name }}
+        {{ $item->tour->getTranslatedName(app()->getLocale()) ?? $item->tour->name }}
       </div>
       <div class="card-body">
         <div class="mb-2">
@@ -494,6 +504,15 @@ $initialNotes = old('notes', $cart->notes ?? '');
             <i class="fas fa-edit"></i> {{ __('adminlte::adminlte.edit') }}
           </button>
 
+          @if(isset($cart->is_guest_cart) && $cart->is_guest_cart)
+          <form action="{{ route('public.carts.removeGuestItem') }}" method="POST" class="delete-item-form">
+            @csrf
+            <input type="hidden" name="item_index" value="{{ $item->item_id }}">
+            <button type="submit" class="btn btn-danger">
+              <i class="fas fa-trash"></i> {{ __('adminlte::adminlte.delete') }}
+            </button>
+          </form>
+          @else
           <form action="{{ route('public.carts.destroy', $item->item_id) }}"
             method="POST"
             class="delete-item-form">
@@ -502,6 +521,7 @@ $initialNotes = old('notes', $cart->notes ?? '');
               <i class="fas fa-trash"></i> {{ __('adminlte::adminlte.delete') }}
             </button>
           </form>
+          @endif
         </div>
       </div>
     </div>
@@ -512,9 +532,17 @@ $initialNotes = old('notes', $cart->notes ?? '');
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       @php
-      // Use the centralized Cart::calculateTotal() method
-      // This uses prices from the stored snapshot (already calculated with correct date)
+      // Use the centralized Cart::calculateTotal() method for authenticated users
+      // For guests, calculate manually from items
+      if (isset($cart->is_guest_cart) && $cart->is_guest_cart) {
+      $calculatedTotal = $cart->items->sum(function($item) {
+      return collect($item->categories ?? [])->sum(function($cat) {
+      return ((float)($cat['price'] ?? 0)) * ((int)($cat['quantity'] ?? 0));
+      });
+      });
+      } else {
       $calculatedTotal = $cart->calculateTotal();
+      }
       $displaySubtotal = $calculatedTotal;
       @endphp
 
@@ -526,7 +554,7 @@ $initialNotes = old('notes', $cart->notes ?? '');
 
       {{-- Promo Code Adjustment --}}
       @if($promoSession)
-      <div class="d-flex justify-content-between text-{{ $promoSession['operation'] === 'add' ? 'danger' : 'success' }} mb-2">
+      <div id="promo-discount-line" class="d-flex justify-content-between text-{{ $promoSession['operation'] === 'add' ? 'danger' : 'success' }} mb-2">
         <span>
           <i class="fas fa-tag"></i> {{ $promoSession['code'] ?? 'PROMO' }}
         </span>
@@ -538,9 +566,19 @@ $initialNotes = old('notes', $cart->notes ?? '');
 
       @php
       // Apply promo to calculated total
+      // CRITICAL: operation 'add' means ADD to the cart total (like a service fee)
+      // operation 'subtract' means DISCOUNT from the cart total
       if ($promoSession) {
-      $op = (($promoSession['operation'] ?? 'subtract') === 'add') ? 1 : -1;
-      $calculatedTotal = max(0, round($calculatedTotal + $op * (float)($promoSession['adjustment'] ?? 0), 2));
+      $adjustment = (float)($promoSession['adjustment'] ?? 0);
+      $operation = $promoSession['operation'] ?? 'subtract';
+
+      if ($operation === 'add') {
+      // Add to total (like a fee)
+      $calculatedTotal = round($calculatedTotal + $adjustment, 2);
+      } else {
+      // Subtract from total (discount)
+      $calculatedTotal = max(0, round($calculatedTotal - $adjustment, 2));
+      }
       }
       @endphp
 
@@ -579,8 +617,7 @@ $initialNotes = old('notes', $cart->notes ?? '');
   </div>
 
   {{-- Confirmar → Checkout (con notas) --}}
-  <form action="{{ route('public.checkout.process') }}" method="POST" id="confirm-reserva-form">
-    @csrf
+  <form action="{{ route('public.checkout.show') }}" method="GET" id="confirm-reserva-form">
     {{-- Notas del cliente antes del cierre --}}
     <div class="card shadow-sm mb-4">
       <div class="card-body">
@@ -640,7 +677,7 @@ $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom'
         <div class="modal-header">
           <h5 class="modal-title" id="editItemLabel-{{ $item->item_id }}">
             <i class="fas fa-pencil-alt me-2"></i>
-            {{ __('adminlte::adminlte.editItem') }} — {{ $item->tour->getTranslatedName() ?? $item->tour->name }}
+            {{ __('adminlte::adminlte.editItem') }} — {{ $item->tour->getTranslatedName(app()->getLocale()) ?? $item->tour->name }}
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('adminlte::adminlte.close') }}"></button>
         </div>
@@ -653,8 +690,8 @@ $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom'
               <input type="date"
                 name="tour_date"
                 class="form-control"
-                value="{{ \Carbon\Carbon::parse($item->tour_date)->format('d-M-Y') }}"
-                min="{{ now()->format('d-M-Y') }}"
+                value="{{ \Carbon\Carbon::parse($item->tour_date)->format('Y-m-d') }}"
+                min="{{ now()->format('Y-m-d') }}"
                 required>
             </div>
 
@@ -690,6 +727,56 @@ $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom'
                 @endforelse
               </select>
             </div>
+
+            {{-- Category Quantities - Show ALL available categories from tour pricing --}}
+            @php
+            // Get all available categories from tour pricing
+            $tourPrices = $item->tour->prices ?? collect();
+
+            // Get current quantities from item
+            $itemCategories = is_string($item->categories) ? json_decode($item->categories, true) : ($item->categories ?? []);
+            $currentQuantities = [];
+            foreach ($itemCategories as $cat) {
+            $catId = $cat['category_id'] ?? null;
+            if ($catId) {
+            $currentQuantities[$catId] = $cat['quantity'] ?? 0;
+            }
+            }
+            @endphp
+
+            @if($tourPrices->isNotEmpty())
+            <div class="col-12">
+              <label class="form-label fw-semibold">
+                <i class="fas fa-users me-1"></i> {{ __('adminlte::adminlte.quantities') }}
+              </label>
+              <div class="row g-2">
+                @foreach($tourPrices as $price)
+                @php
+                $category = $price->category;
+                $categoryId = $category->category_id;
+                $currentQty = $currentQuantities[$categoryId] ?? 0;
+
+                // Get translated category name
+                $categoryName = $category->getTranslatedName(app()->getLocale()) ?? $category->name ?? 'Category';
+                @endphp
+                <div class="col-6 col-md-4">
+                  <label class="form-label small">{{ $categoryName }}</label>
+                  <input type="number"
+                    name="categories[{{ $categoryId }}]"
+                    class="form-control"
+                    value="{{ $currentQty }}"
+                    min="0"
+                    max="20"
+                    placeholder="0">
+                </div>
+                @endforeach
+              </div>
+              <div class="form-text">
+                <i class="fas fa-info-circle me-1"></i>
+                {{ __('adminlte::adminlte.quantitiesHelp') ?? 'Ajusta las cantidades según necesites. Puedes dejar en 0 las categorías que no uses.' }}
+              </div>
+            </div>
+            @endif
 
             {{-- ====== PICKUP (segmentado) ====== --}}
             <div class="col-12">

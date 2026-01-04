@@ -106,4 +106,19 @@ return [
         'action'          => 'Login',
         'salutation'      => 'Regards,',
     ],
+
+    // Password setup (guest to registered)
+    'no_password_set' => 'You haven\'t set a password yet.',
+    'send_setup_link' => 'Send setup link',
+    'setup_link_sent' => 'Setup link sent to your email.',
+    'create_account' => 'Create Account',
+    'verify_email' => [
+        'subject' => 'Verify Email Address',
+        'title' => 'Verify Your Email Address',
+        'line_1' => 'Please click the button below to verify your email address.',
+        'action' => 'Verify Email Address',
+        'line_2' => 'If you did not create an account, no further action is required.',
+        'button_trouble' => 'If you\'re having trouble clicking the ":actionText" button, copy and paste the URL below into your web browser:',
+    ],
+    'account_created_verify_email' => 'Account created successfully. Please check your email to verify your account.',
 ];

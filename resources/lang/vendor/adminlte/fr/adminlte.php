@@ -551,4 +551,8 @@ return [
     'filters_btn' => 'Filtrer',
     'more_categories' => 'Plus de catégories',
 
+
+    // Quantities
+    'quantities' => 'Quantités',
+    'quantitiesHelp' => 'Ajustez les quantités selon vos besoins. Vous pouvez laisser à 0 les catégories que vous n\'utilisez pas.',
 ];

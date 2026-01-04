@@ -24,8 +24,13 @@ class BookingCreator
     public function create(array $payload, bool $validateCapacity = true, bool $countHolds = true): Booking
     {
         return DB::transaction(function () use ($payload, $validateCapacity, $countHolds) {
-            $tour     = Tour::with('prices.category')->findOrFail($payload['tour_id']);
-            $schedule = Schedule::findOrFail($payload['schedule_id']);
+            // 🔒 PESSIMISTIC LOCK: Prevent concurrent bookings for same tour/schedule/date
+            // Lock tour and schedule records to prevent race conditions on capacity
+            $tour     = Tour::with('prices.category')
+                ->lockForUpdate()
+                ->findOrFail($payload['tour_id']);
+            $schedule = Schedule::lockForUpdate()
+                ->findOrFail($payload['schedule_id']);
 
             // Cantidades por categoría
             $quantities = $payload['categories'] ?? [];
@@ -51,7 +56,7 @@ class BookingCreator
             $promo = null;
             if (!empty($payload['promo_code'])) {
                 $clean = PromoCode::normalize($payload['promo_code']);
-                $promo = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$clean])
+                $promo = PromoCode::whereRaw("TRIM(REPLACE(code,' ','')) = ?", [$clean])
                     ->lockForUpdate()
                     ->first();
 
@@ -93,16 +98,77 @@ class BookingCreator
             $totalWithTaxes = $detailSubtotal + $taxesTotal;
             $totalBooking = $this->pricing->applyPromo($totalWithTaxes, $promo);
 
+            // ============================================
+            // PAY-LATER LOGIC
+            // ============================================
+            $isPayLater = (bool) ($payload['is_pay_later'] ?? false);
+            $isPaid = !$isPayLater; // If not pay-later, assume paid immediately
+
+            $paymentToken = \Illuminate\Support\Str::random(64);
+            $paymentLinkExpiresAt = null;
+            $autoChargeAt = null;
+            $pendingExpiresAt = null;
+
+            if ($isPayLater) {
+                // Pay-later booking
+                $tourDate = \Carbon\Carbon::parse($payload['tour_date']);
+
+                // Get settings
+                $daysBeforeCharge = (int) setting('booking.pay_later.days_before_charge', 2);
+                $linkExpiresHours = (int) setting('booking.pay_later.link_expires_hours', 72);
+
+                // Calculate auto-charge date
+                $autoChargeAt = $tourDate->copy()->subDays($daysBeforeCharge)->startOfDay();
+
+                // Payment link expires in X hours
+                $paymentLinkExpiresAt = now()->addHours($linkExpiresHours);
+
+                // Unpaid booking expires: earlier of (auto-charge date OR link expiration)
+                $pendingExpiresAt = $autoChargeAt->copy()->min($paymentLinkExpiresAt);
+
+                $isPaid = false;
+            } elseif (($payload['status'] ?? 'pending') === 'pending') {
+                // Standard pending booking (not pay-later but not confirmed)
+                // Hold for configured time (default 12h)
+                $holdMinutes = config('booking.hold_times.unpaid_booking', 720);
+                $pendingExpiresAt = now()->addMinutes($holdMinutes);
+                $isPaid = false; // Will be set to true when payment succeeds
+            }
+
+            // Get user for snapshot
+            $user = \App\Models\User::find($payload['user_id']);
+
             // BOOKING
             $booking = Booking::create([
                 'booking_reference' => 'BK' . strtoupper(uniqid()),
                 'user_id'           => (int) $payload['user_id'],
+
+                // User snapshot for audit trail
+                'user_email'        => $user?->email,
+                'user_full_name'    => $user?->full_name,
+                'user_phone'        => $user?->phone,
+                'user_was_guest'    => (bool) ($user?->is_guest ?? false),
+
                 'tour_id'           => (int) $payload['tour_id'],
                 'tour_language_id'  => (int) $payload['tour_language_id'],
                 'booking_date'      => $payload['booking_date'] ?? now(),
                 'status'            => $payload['status'] ?? 'pending',
                 'total'             => $totalBooking,
                 'notes'             => $payload['notes'] ?? null,
+
+                // Payment tracking
+                'is_paid'           => $isPaid,
+                'paid_amount'       => $isPaid ? $totalBooking : null,
+                'paid_at'           => $isPaid ? now() : null,
+
+                // Pay-later
+                'is_pay_later'      => $isPayLater,
+                'auto_charge_at'    => $autoChargeAt,
+                'payment_link_expires_at' => $paymentLinkExpiresAt,
+                'pending_expires_at' => $pendingExpiresAt,
+
+                // Payment token already exists from previous migration, just update if needed
+                // Token will be set by generateCheckoutToken() below
             ]);
 
             // BOOKING DETAIL (solo JSON categories + pickups)

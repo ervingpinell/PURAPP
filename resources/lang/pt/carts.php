@@ -7,6 +7,8 @@ return [
         'extend'      => 'Estender :count min|Estender :count min',
         'already_extended' => 'O tempo de espera já foi estendido. Não é possível estender mais.',
         'cart_deleted' => 'Seu carrinho foi automaticamente excluído porque não tem itens.',
+        'expired_title' => 'Tempo esgotado',
+        'expired_text' => 'Seu carrinho expirou. Você será redirecionado para a página inicial.',
     ],
 
     'title_all' => 'Todos os carrinhos de clientes',
@@ -171,6 +173,8 @@ return [
         'extend_limit_reached'    => 'Você só pode estender o tempo uma vez.',
 
         'cart_deleted'            => 'Seu carrinho foi automaticamente excluído porque não tem itens.',
+        'expired_title' => 'Tempo esgotado',
+        'expired_text' => 'Seu carrinho expirou. Você será redirecionado para a página inicial.',
         'cart_refreshed'          => 'O tempo do seu carrinho foi estendido.',
         'extend_success'          => 'Carrinho estendido com sucesso.',
         'max_extensions_reached'  => 'Você já atingiu o máximo de extensões permitidas.',

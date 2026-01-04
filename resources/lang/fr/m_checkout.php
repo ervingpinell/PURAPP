@@ -12,6 +12,20 @@ return [
         'no_policies_configured' => 'Aucune politique configurée. Veuillez contacter l\'administrateur.',
     ],
 
+    'customer_info' => [
+        'title'              => 'Informations Client',
+        'subtitle'              => 'Veuillez fournir vos coordonnées pour continuer',
+        'full_name'              => 'Nom Complet',
+        'email'              => 'E-mail',
+        'phone'              => 'Téléphone',
+        'optional'              => 'optionnel',
+        'placeholder_name'              => 'Jean Dupont',
+        'placeholder_email'              => 'email@exemple.fr',
+        'why_need_title'              => 'Pourquoi nous en avons besoin',
+        'why_need_text'              => 'Votre e-mail sera utilisé pour envoyer des confirmations de réservation, des mises à jour et des liens de paiement. Vous pouvez optionnellement créer un compte après la réservation pour gérer vos réservations.',
+        'logged_in_as'              => 'Connecté en tant que',
+    ],
+
     'steps' => [
         'review'             => 'Révision',
         'payment'            => 'Paiement',

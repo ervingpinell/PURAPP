@@ -556,4 +556,7 @@ return [
     'tours_index_subtitle'  => 'Discover our available experiences and activities.',
 
     'tours_count' => '1 tour available|:count tours available',
+    // Quantities
+    'quantities' => 'Quantities',
+    'quantitiesHelp' => 'Adjust quantities as needed. You can leave categories you don\'t use at 0.',
 ];

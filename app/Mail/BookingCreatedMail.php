@@ -72,6 +72,17 @@ class BookingCreatedMail extends Mailable implements ShouldQueue
         $fromAddress = config('mail.from.address');
         $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));
 
+        // Check if user needs password setup
+        $passwordSetupUrl = null;
+        $user = $this->booking->user;
+
+        if ($user && (empty($user->password) || $user->password === null)) {
+            // Generate password setup token
+            $passwordSetupService = app(\App\Services\Auth\PasswordSetupService::class);
+            $tokenData = $passwordSetupService->generateSetupToken($user);
+            $passwordSetupUrl = route('password.setup.show', ['token' => $tokenData['plain_token']]);
+        }
+
         $mailable = $this
             ->locale($this->mailLocale)
             ->from($fromAddress, $fromName)
@@ -90,13 +101,12 @@ class BookingCreatedMail extends Mailable implements ShouldQueue
                 'companyPhone'  => env('COMPANY_PHONE'),
                 'formatEmailDate' => $this->getDateFormatter($this->mailLocale),
                 'paymentUrl'      => $this->booking->getCheckoutUrl(),
+                'passwordSetupUrl' => $passwordSetupUrl, // Add password setup URL
+                'isAdminEmail'     => false, // This is customer email
                 // El layout tomará el logo desde env('COMPANY_LOGO_URL')
             ]);
 
-        $bcc = $this->adminNotify();
-        if (!empty($bcc)) {
-            $mailable->bcc($bcc);
-        }
+        // Admin notification removed - sent separately via BookingCreatedAdminMail
 
         return $mailable;
     }

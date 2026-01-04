@@ -163,7 +163,7 @@ return [
         App\Providers\FortifyServiceProvider::class,
         App\Providers\VoltServiceProvider::class,
         App\Providers\GraphMailServiceProvider::class,
-
+        App\Providers\RateLimitServiceProvider::class,
     ],
 
 

@@ -51,16 +51,31 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SyncCookieConsent::class,
             \App\Http\Middleware\PublicReadOnly::class,
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\PreventCartCaching::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 
         $exceptions->render(function (ThrottleRequestsException $e, $request) {
             $headers = $e->getHeaders();
-            $seconds = (int) ($headers['Retry-After'] ?? 600);
+            $seconds = (int) ($headers['Retry-After'] ?? 60);
+            $minutes = ceil($seconds / 60);
 
+            // Si es una petición AJAX/JSON
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => "Demasiadas solicitudes. Por favor espera {$minutes} minuto(s) antes de intentar nuevamente.",
+                    'retry_after' => $seconds,
+                    'retry_after_minutes' => $minutes
+                ], 429, $headers);
+            }
+
+            // Si es una petición web normal
             return response()
-                ->view('errors.429', ['seconds' => $seconds], 429)
+                ->view('errors.429', [
+                    'seconds' => $seconds,
+                    'minutes' => $minutes
+                ], 429)
                 ->withHeaders($headers);
         });
 
@@ -135,15 +150,14 @@ return Application::configure(basePath: dirname(__DIR__))
         }
 
         // 5) Purga de overrides de capacidad (anteriores a HOY)
-        //    Usamos call() + dispatch()->onQueue('maintenance') para evitar onQueue() en el Event.
         $schedule->call(function () {
             PurgeOldAvailabilityOverrides::dispatch([
-                'daysAgo'      => 0,       // solo fechas estrictamente pasadas
-                'onlyInactive' => false,   // true para tocar solo overrides inactivos
-                'keepBlocked'  => true,    // conserva bloqueados históricos
-                'limit'        => 20000,   // techo de seguridad
+                'daysAgo'      => 0,
+                'onlyInactive' => false,
+                'keepBlocked'  => true,
+                'limit'        => 20000,
                 'chunk'        => 1000,
-                'dryRun'       => false,   // true para simular
+                'dryRun'       => false,
             ])->onQueue('maintenance');
         })
             ->dailyAt('02:40')
@@ -152,7 +166,6 @@ return Application::configure(basePath: dirname(__DIR__))
             ->withoutOverlapping();
 
         // 6) Limpiar logs de auditoría de tours (> 365 días)
-        //    Comando: php artisan tours:audit:cleanup --days=365
         $schedule->command('tours:audit:cleanup --days=365')
             ->monthlyOn(1, '03:30')
             ->name('tours:audit:cleanup')

@@ -109,7 +109,7 @@ class BookingCapacityService
             ->where('start_date', '<=', $tourDate)
             ->where(function ($q) use ($tourDate) {
                 $q->where('end_date', '>=', $tourDate)
-                  ->orWhereNull('end_date');
+                    ->orWhereNull('end_date');
             })
             ->exists();
 
@@ -143,7 +143,8 @@ class BookingCapacityService
     }
 
     /**
-     * Pax confirmados (suma de todas las categorías en JSON).
+     * Pax confirmados + pending PAGADOS (suma de todas las categorías en JSON).
+     * Solo cuenta bookings que están confirmados o pending pero PAID.
      */
     public function confirmedPaxFor(
         string $tourDate,
@@ -152,11 +153,61 @@ class BookingCapacityService
         ?int $excludeBookingId = null
     ): int {
         $details = BookingDetail::whereHas('booking', function ($q) use ($excludeBookingId) {
-                $q->whereIn('status', $this->bookingCountStatuses);
-                if ($excludeBookingId) {
-                    $q->where('booking_id', '!=', $excludeBookingId);
+            // Confirmed OR (pending + paid)
+            $q->where(function ($query) {
+                $query->where('status', 'confirmed')
+                    ->orWhere(function ($q) {
+                        $q->where('status', 'pending')
+                            ->where('is_paid', true);
+                    });
+            });
+
+            if ($excludeBookingId) {
+                $q->where('booking_id', '!=', $excludeBookingId);
+            }
+        })
+            ->whereNotNull('booking_id')
+            ->where('tour_id', $tourId)
+            ->whereDate('tour_date', $tourDate)
+            ->where('schedule_id', $scheduleId)
+            ->get(['categories']);
+
+        $total = 0;
+
+        foreach ($details as $detail) {
+            $cats = $detail->categories;
+
+            if (is_string($cats)) {
+                $cats = json_decode($cats, true);
+            }
+
+            if (is_array($cats)) {
+                foreach ($cats as $cat) {
+                    $total += (int)($cat['quantity'] ?? 0);
                 }
-            })
+            }
+        }
+
+        return $total;
+    }
+
+    /**
+     * Pax en pending SIN PAGAR (lower priority bookings).
+     */
+    public function unpaidPendingPaxFor(
+        string $tourDate,
+        int $scheduleId,
+        int $tourId,
+        ?int $excludeBookingId = null
+    ): int {
+        $details = BookingDetail::whereHas('booking', function ($q) use ($excludeBookingId) {
+            $q->where('status', 'pending')
+                ->where('is_paid', false);
+
+            if ($excludeBookingId) {
+                $q->where('booking_id', '!=', $excludeBookingId);
+            }
+        })
             ->whereNotNull('booking_id')
             ->where('tour_id', $tourId)
             ->whereDate('tour_date', $tourDate)
@@ -224,7 +275,8 @@ class BookingCapacityService
     }
 
     /**
-     * Snapshot completo (bloqueado, max, confirmados, retenidos y disponibles).
+     * Snapshot completo con desglose detallado de capacidad.
+     * Incluye breakdown de paid/unpaid para mejor control.
      */
     public function capacitySnapshot(
         Tour $tour,
@@ -236,19 +288,35 @@ class BookingCapacityService
     ): array {
         $blocked   = $this->isDateBlocked($tour, $schedule, $tourDate);
         $max       = $this->resolveMaxCapacity($tour, $schedule, $tourDate);
-        $confirmed = $this->confirmedPaxFor($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id, $excludeBookingId);
-        $held      = $countHolds
+
+        // Paid bookings (confirmed + pending paid) - PRIORITY
+        $confirmedAndPaid = $this->confirmedPaxFor($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id, $excludeBookingId);
+
+        // Unpaid pending bookings - LOWER PRIORITY
+        $unpaidPending = $this->unpaidPendingPaxFor($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id, $excludeBookingId);
+
+        // Cart holds - LOWEST PRIORITY
+        $held = $countHolds
             ? $this->heldPaxInActiveCarts($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id, $excludeCartId)
             : 0;
 
+        // Total used (for legacy 'confirmed' field)
+        $confirmed = $confirmedAndPaid + $unpaidPending;
+
+        // Available = max - (paid + unpaid + holds)
         $available = $blocked ? 0 : max(0, (int)$max - (int)$confirmed - (int)$held);
 
         return [
             'blocked'   => (bool) $blocked,
             'max'       => (int) $max,
-            'confirmed' => (int) $confirmed,
+            'confirmed' => (int) $confirmed, // Total confirmed + all pending (legacy)
             'held'      => (int) $held,
             'available' => (int) $available,
+
+            // Detailed breakdown (NEW)
+            'confirmed_and_paid' => (int) $confirmedAndPaid,  // Priority bookings
+            'unpaid_pending'     => (int) $unpaidPending,     // Lower priority
+            'cart_holds'         => (int) $held,              // Lowest priority
         ];
     }
 

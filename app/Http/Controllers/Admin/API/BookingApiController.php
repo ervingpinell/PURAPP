@@ -18,7 +18,7 @@ class BookingApiController extends Controller
             return response()->json(['valid' => false, 'message' => 'Datos inválidos'], 422);
         }
 
-        $promo = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$code])->first();
+        $promo = PromoCode::whereRaw("TRIM(REPLACE(code,' ','')) = ?", [$code])->first();
         if (!$promo) return response()->json(['valid' => false, 'message' => 'Código no encontrado'], 404);
         if (method_exists($promo, 'isValidToday') && !$promo->isValidToday())
             return response()->json(['valid' => false, 'message' => 'Este código ha expirado o aún no es válido'], 422);

@@ -102,6 +102,30 @@ class AppServiceProvider extends ServiceProvider
                 $cartItemCount = $cart
                     ? $cart->items()->where('is_active', true)->count()
                     : 0;
+            } else {
+                // Guest user - check expiration on EVERY page load
+                $guestCartCreated = session('guest_cart_created_at');
+                $sessionCartItems = session('guest_cart_items', []);
+
+                if (!empty($sessionCartItems) && $guestCartCreated) {
+                    $expiryMinutes = (int) \App\Models\Setting::getValue('cart.expiration_minutes', 30);
+                    $expiresAt = \Carbon\Carbon::parse($guestCartCreated)->addMinutes($expiryMinutes);
+
+                    // CRITICAL: If expired, clear ALL cart-related session data
+                    if (now()->isAfter($expiresAt)) {
+                        session()->forget([
+                            'guest_cart_items',
+                            'guest_cart_created_at',
+                            'public_cart_promo',
+                            'cart_snapshot',           // Prevent stale payment page access
+                            'payment_start_time',      // Reset payment timer
+                            'cart_reservation_token',  // Clear any reservation tokens
+                        ]);
+                        $sessionCartItems = [];
+                    } else {
+                        $cartItemCount = count($sessionCartItems);
+                    }
+                }
             }
 
             $view->with('cartItemCount', $cartItemCount);

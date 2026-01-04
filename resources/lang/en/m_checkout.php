@@ -12,6 +12,20 @@ return [
         'no_policies_configured' => 'No policies configured. Please contact the administrator.',
     ],
 
+    'customer_info' => [
+        'title'              => 'Customer Information',
+        'subtitle'              => 'Please provide your contact information to continue',
+        'full_name'              => 'Full Name',
+        'email'              => 'Email',
+        'phone'              => 'Phone',
+        'optional'              => 'optional',
+        'placeholder_name'              => 'John Doe',
+        'placeholder_email'              => 'email@example.com',
+        'why_need_title'              => 'Why we need this',
+        'why_need_text'              => 'Your email will be used to send booking confirmation, updates, and payment links. You can optionally create an account after booking to manage your reservations.',
+        'logged_in_as'              => 'Logged in as',
+    ],
+
     'steps' => [
         'review'             => 'Review',
         'payment'            => 'Payment',

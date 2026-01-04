@@ -7,6 +7,8 @@ return [
         'extend'      => 'Um :count Min. verlängern|Um :count Min. verlängern',
         'already_extended' => 'Die Wartezeit wurde bereits verlängert. Sie kann nicht weiter verlängert werden.',
         'cart_deleted' => 'Dein Warenkorb wurde automatisch gelöscht, weil er keine Artikel enthält.',
+        'expired_title' => 'Zeit abgelaufen',
+        'expired_text' => 'Ihr Warenkorb ist abgelaufen. Sie werden zur Startseite weitergeleitet.',
     ],
 
     'title_all' => 'Alle Kunden-Warenkörbe',
@@ -171,6 +173,8 @@ return [
         'extend_limit_reached'    => 'Du kannst die Zeit nur einmal verlängern.',
 
         'cart_deleted'            => 'Dein Warenkorb wurde automatisch gelöscht, weil er keine Artikel enthält.',
+        'expired_title' => 'Zeit abgelaufen',
+        'expired_text' => 'Ihr Warenkorb ist abgelaufen. Sie werden zur Startseite weitergeleitet.',
         'cart_refreshed'          => 'Die Zeit deines Warenkorbs wurde verlängert.',
         'extend_success'          => 'Warenkorb erfolgreich verlängert.',
         'max_extensions_reached'  => 'Du hast bereits die maximal erlaubten Verlängerungen erreicht.',

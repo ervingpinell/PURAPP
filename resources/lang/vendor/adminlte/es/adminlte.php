@@ -559,4 +559,8 @@ return [
 
     // Para trans_choice
     'tours_count' => '1 tour disponible|:count tours disponibles',
+
+    // Quantities
+    'quantities' => 'Cantidades',
+    'quantitiesHelp' => 'Ajusta las cantidades según necesites. Puedes dejar en 0 las categorías que no uses.',
 ];

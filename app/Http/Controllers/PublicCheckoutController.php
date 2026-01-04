@@ -7,7 +7,7 @@ use App\Models\Policy;
 use App\Models\PolicySection;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Auth, DB, Log};
+use Illuminate\Support\Facades\{Auth, DB, Log, Mail};
 use Illuminate\Support\Str;
 use App\Services\Policies\PolicySnapshotService;
 
@@ -268,16 +268,61 @@ class PublicCheckoutController extends Controller
     public function show(Request $request, PolicySnapshotService $svc)
     {
         $userId = Auth::id();
-        if (!$userId) {
-            return redirect()->route('login');
+        Log::info('Checkout Show - Start', ['userId' => $userId, 'session_id' => session()->getId()]);
+
+        // Support both authenticated users and guests
+        if ($userId) {
+            // Authenticated user - use DB cart
+            $cart = $this->findActiveCartForUser($userId);
+            $itemsCount = $cart ? $cart->items()->count() : 0;
+
+            if (!$cart || $itemsCount === 0) {
+                // FALLBACK: Check if there are guest items in session (e.g. added before login or during weird state)
+                $sessionCartItems = session('guest_cart_items', []);
+                if (!empty($sessionCartItems)) {
+                    Log::info('Checkout Show - Auth User with Empty DB Cart but Session Items found. Using Mock Cart.');
+                    // Fall through to guest logic (treat as guest for checkout view)
+                    $userId = null; // Force null to trigger guest logic below
+                } else {
+                    Log::info('Checkout Show - Redirecting Auth User (Empty Cart)');
+                    return redirect()->route(app()->getLocale() . '.home')
+                        ->with('cart_expired', true);
+                }
+            }
         }
 
-        $cart = $this->findActiveCartForUser($userId);
-        $itemsCount = $cart ? $cart->items()->count() : 0;
+        // Re-check userId because we might have forced it to null above
+        if ($userId) {
+            // Logic for REAL DB CART (already loaded above)
+            // We need to keep this block separate if we want to avoid code duplication or nested elses
+            // But simpler: if $userId is still set, we use $cart from DB.
+        } else {
+            // Guest user (OR Fallback Auth) - check session cart
+            $sessionCartItems = session('guest_cart_items', []);
+            Log::info('Checkout Show - Guest Cart Items', ['count' => count($sessionCartItems), 'items' => $sessionCartItems]);
 
-        if (!$cart || $itemsCount === 0) {
-            return redirect()->route('public.carts.index')
-                ->with('error', __('adminlte::adminlte.emptyCart'));
+
+            if (empty($sessionCartItems)) {
+                Log::info('Checkout Show - Redirecting Guest (Empty Session Cart)');
+                return redirect()->route(app()->getLocale() . '.home')
+                    ->with('cart_expired', true);
+            }
+
+            // Create a mock cart object for guest to display in checkout
+            $cart = (object) [
+                'items' => collect($sessionCartItems)->map(function ($item) {
+                    return (object) array_merge($item, [
+                        'tour' => \App\Models\Tour::find($item['tour_id']),
+                        'schedule' => \App\Models\Schedule::find($item['schedule_id']),
+                        'language' => \App\Models\TourLanguage::find($item['tour_language_id']),
+                        'hotel' => isset($item['hotel_id']) ? \App\Models\HotelList::find($item['hotel_id']) : null,
+                        'meetingPoint' => isset($item['meeting_point_id']) ? \App\Models\MeetingPoint::find($item['meeting_point_id']) : null,
+                    ]);
+                }),
+                'is_guest_cart' => true,
+            ];
+
+            $itemsCount = $cart->items->count();
         }
 
         $locale   = app()->getLocale();
@@ -292,7 +337,11 @@ class PublicCheckoutController extends Controller
         $cfgPack = $svc->make();
 
         // Calcular cutoff de cancelación gratuita (24h antes del primer tour)
-        $freeCancelUntil = $this->computeFreeCancelUntil($cart);
+        if (isset($cart->items) && method_exists($cart, 'items')) {
+            $freeCancelUntil = $this->computeFreeCancelUntil($cart);
+        } else {
+            $freeCancelUntil = null; // Guest cart doesn't have expiry method
+        }
 
         // Versiones visibles (si BD no trae nada, cae a config o v1)
         $termsVersion = $versions['terms']
@@ -320,7 +369,17 @@ class PublicCheckoutController extends Controller
     public function process(Request $request, PolicySnapshotService $svc)
     {
         $userId = Auth::id();
-        if (!$userId) return redirect()->route('login');
+
+        // Guest checkout support
+        if (!$userId) {
+            // Check if guest data is provided
+            if ($request->has('guest_name') && $request->has('guest_email')) {
+                return $this->processGuestCheckout($request, $svc);
+            }
+
+            // No auth and no guest data - redirect to login
+            return redirect()->route('login');
+        }
 
         // Check if this is a booking payment (from admin-created booking)
         $bookingId = session('pending_booking_payment');
@@ -376,8 +435,42 @@ class PublicCheckoutController extends Controller
         // Normal cart checkout flow
         $cart = $this->findActiveCartForUser($userId);
         if (!$cart || $cart->items()->count() === 0) {
-            return redirect()->route('public.carts.index')
-                ->with('error', __('adminlte::adminlte.emptyCart'));
+            // Check for session cart fallback (Hybrid state)
+            $sessionCartItems = session('guest_cart_items', []);
+
+            if (!empty($sessionCartItems) && $userId) {
+                Log::info('Checkout Process - Fallback: Migrating session items to Auth DB Cart');
+
+                if (!$cart) {
+                    try {
+                        $cart = \App\Models\Cart::create([
+                            'user_id' => $userId,
+                            'is_active' => true,
+                            'expires_at' => now()->addMinutes((int) setting('cart.expiration_minutes', 30))
+                        ]);
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        // Check for Foreign Key violation (User ID not found)
+                        if ($e->getCode() == '23000' || $e->getCode() == '23503') {
+                            Log::error('Checkout Process - Ghost User Detected (Auth ID valid but DB User missing). Forcing Logout.', ['id' => $userId]);
+                            Auth::logout();
+                            return redirect()->route('login')
+                                ->with('error', __('Tu sesión no es válida. Por favor inicia sesión nuevamente.'));
+                        }
+                        throw $e;
+                    }
+                }
+
+                // Persist items using our helper
+                $this->persistSessionItemsToCart($cart, $sessionCartItems);
+
+                // Reload items relationships for next steps
+                $cart->load(['items.tour.prices.category', 'items.schedule', 'items.language', 'items.hotel', 'items.meetingPoint']);
+
+                // Do NOT return redirect. Allow flow to continue with $cart.
+            } else {
+                return redirect()->route(app()->getLocale() . '.home')
+                    ->with('cart_expired', true);
+            }
         }
 
         // Terms are now accepted on the payment page, so we skip validation and recording here.
@@ -387,25 +480,111 @@ class PublicCheckoutController extends Controller
     }
 
     /**
+     * Process guest checkout
+     */
+    private function processGuestCheckout(Request $request, PolicySnapshotService $svc)
+    {
+        // Validate guest data
+        $request->validate([
+            'guest_name' => ['required', 'string', 'max:255'],
+            'guest_email' => ['required', 'email', 'max:255'],
+            'guest_phone' => ['nullable', 'string', 'max:50'],
+        ]);
+
+
+        // NO user creation here - will be done after payment success
+        try {
+
+            // Store guest info in session ONLY (user created after payment)
+            session([
+                'guest_user_email' => $request->input('guest_email'),
+                'guest_user_name' => $request->input('guest_name'),
+                'guest_user_phone' => $request->input('guest_phone'),
+                'is_guest_session' => true,
+            ]);
+
+            // Get guest cart from session
+            $sessionCartItems = session('guest_cart_items', []);
+
+            if (empty($sessionCartItems)) {
+                return redirect()->route(app()->getLocale() . '.home')
+                    ->with('cart_expired', true);
+            }
+
+            // Create an ANONYMOUS Cart (User will be created/linked after payment success)
+            // This prevents creating "junk" users if payment fails or is abandoned.
+            $cart = \App\Models\Cart::create([
+                'user_id' => null, // Nullable now
+                'guest_email' => $request->guest_email,
+                'guest_name' => $request->guest_name,
+                'is_active' => true,
+                'expires_at' => now()->addMinutes((int) setting('cart.expiration_minutes', 30))
+            ]);
+
+            // Persist session items to DB helper
+            $this->persistSessionItemsToCart($cart, $sessionCartItems);
+
+            // Do NOT clear session cart yet. If validation fails in processCartSnapshot,
+            // the user is redirected back to cart. If session is empty, they lose their items.
+            // We should only clear this after successful payment/booking.
+            // session()->forget('guest_cart_items');
+
+            return $this->processCartSnapshot($request, $cart);
+        } catch (\Exception $e) {
+            Log::error('[GuestCheckout] Failed to process guest checkout', [
+                'error' => $e->getMessage(),
+                'email' => $request->input('guest_email'),
+            ]);
+
+            return back()->withErrors([
+                'guest_email' => __('Unable to process guest checkout. Please try again.')
+            ])->withInput();
+        }
+    }
+    /**
      * Process cart snapshot and redirect to payment
      * Bookings will be created AFTER successful payment
      */
-    private function processCartSnapshot(Request $request, Cart $cart)
+    private function processCartSnapshot(Request $request, $cart)
     {
+        // Get user from Auth or guest session
         $user = Auth::user();
-        $notes = trim((string) ($request->input('notes') ?? session('checkout_notes', '')));
+        $userId = $user ? $user->user_id : null; // Guest carts don't have a user_id yet
 
-        // Reload cart with all relationships
-        $cart->load(['items.tour.prices.category', 'items.schedule', 'items.language', 'items.hotel', 'items.meetingPoint']);
+        // If it's a guest session, retrieve guest data from session
+        $guestEmail = session('guest_user_email');
+        $guestName = session('guest_user_name');
 
-        if ($cart->items->isEmpty()) {
-            return redirect()->route('public.carts.index')
-                ->with('error', __('carts.messages.cart_empty'));
+        if (!$userId && !$guestEmail) {
+            return redirect()->route('login')
+                ->with('error', __('Please login or provide guest details to continue'));
         }
 
-        if ($cart->isExpired()) {
-            return redirect()->route('public.carts.index')
-                ->with('error', __('carts.messages.cart_expired'));
+        $notes = trim((string) ($request->input('notes') ?? session('checkout_notes', '')));
+
+        // Handle different cart types
+        // For guest carts, is_guest_cart is no longer set on the cart model itself,
+        // but rather inferred by user_id being null and guest_email/name present.
+        $isGuestCart = ($cart->user_id === null && $cart->guest_email !== null);
+
+        if (!$isGuestCart) {
+            // DB cart - reload with relationships
+            $cart->load(['items.tour.prices.category', 'items.schedule', 'items.language', 'items.hotel', 'items.meetingPoint']);
+        } else {
+            // For anonymous guest carts, we need to load relationships manually
+            $cart->load(['items.tour.prices.category', 'items.schedule', 'items.language', 'items.hotel', 'items.meetingPoint']);
+        }
+
+
+        if ($cart->items->isEmpty()) {
+            return redirect()->route(app()->getLocale() . '.home')
+                ->with('cart_expired', true);
+        }
+
+        // Skip expiry check for guest carts (handled by session)
+        if (!$isGuestCart && method_exists($cart, 'isExpired') && $cart->isExpired()) {
+            return redirect()->route(app()->getLocale() . '.home')
+                ->with('cart_expired', true);
         }
 
         // Validate capacity for all items
@@ -425,8 +604,8 @@ class PublicCheckoutController extends Controller
                 ->first();
 
             if (!$schedule) {
-                return redirect()->route('public.carts.index')
-                    ->with('error', __("carts.messages.schedule_unavailable"));
+                return redirect()->route(app()->getLocale() . '.home')
+                    ->with('cart_expired', true);
             }
 
             // Calculate total pax
@@ -444,12 +623,8 @@ class PublicCheckoutController extends Controller
             );
 
             if ($totalPax > $remaining) {
-                return redirect()->route('public.carts.index')
-                    ->with('error', __("m_bookings.messages.limited_seats_available", [
-                        'available' => $remaining,
-                        'tour' => $tour->getTranslatedName(),
-                        'date' => \Carbon\Carbon::parse($tourDate)->translatedFormat('M d, Y')
-                    ]));
+                return redirect()->route(app()->getLocale() . '.home')
+                    ->with('cart_expired', true);
             }
         }
 
@@ -462,7 +637,7 @@ class PublicCheckoutController extends Controller
 
         if ($promoCodeValue) {
             $clean = \App\Models\PromoCode::normalize($promoCodeValue);
-            $promoCode = \App\Models\PromoCode::whereRaw("UPPER(TRIM(REPLACE(code, ' ', ''))) = ?", [$clean])
+            $promoCode = \App\Models\PromoCode::whereRaw("TRIM(REPLACE(code, ' ', '')) = ?", [$clean])
                 ->first();
 
             Log::info('Checkout Process - Promo Code Found:', ['found' => (bool)$promoCode, 'id' => $promoCode?->id]);
@@ -492,8 +667,10 @@ class PublicCheckoutController extends Controller
 
         // Create cart snapshot for session
         $cartSnapshot = [
-            'user_id' => $user->user_id,
+            'user_id' => $userId, // Will be null for guest carts
             'cart_id' => $cart->cart_id,
+            'guest_email' => $guestEmail, // Store guest email in snapshot
+            'guest_name' => $guestName,   // Store guest name in snapshot
             'notes' => $notes !== '' ? $notes : null,
             'promo_code' => $promoCode?->code,
             'promo_code_id' => $promoCode?->promo_code_id,
@@ -655,5 +832,245 @@ class PublicCheckoutController extends Controller
             'isBookingPayment' => true, // Flag to indicate this is a booking payment
             'booking'         => $booking, // Pass booking for reference
         ]);
+    }
+
+    /**
+     * Show payment page for pay-later booking using booking reference
+     */
+    public function showPayment(string $bookingReference)
+    {
+        $booking = \App\Models\Booking::where('booking_reference', $bookingReference)
+            ->with(['detail', 'tour', 'user', 'detail.schedule', 'detail.tourLanguage'])
+            ->firstOrFail();
+
+        // Check if booking is already paid
+        if ($booking->is_paid) {
+            return redirect()->route('user.bookings')
+                ->with('info', __('This booking has already been paid'));
+        }
+
+        // Check if payment link has expired
+        if ($booking->payment_link_expires_at && $booking->payment_link_expires_at < now()) {
+            return view('public.payment-expired', ['booking' => $booking])
+                ->with('error', __('Payment link has expired. Please contact us for assistance.'));
+        }
+
+        // Check if booking itself has expired
+        if ($booking->pending_expires_at && $booking->pending_expires_at < now()) {
+            return view('public.booking-expired', ['booking' => $booking])
+                ->with('error', __('This booking has expired'));
+        }
+
+        // Login the user if not already logged in
+        if (!Auth::check() || Auth::id() !== $booking->user_id) {
+            Auth::loginUsingId($booking->user_id);
+        }
+
+        // Store booking reference in session for payment processing
+        session(['pending_payment_booking_ref' => $bookingReference]);
+
+        // Redirect to payment gateway
+        return redirect()->route('payment.show', ['booking_id' => $booking->booking_id])
+            ->with('info', __('Please complete payment to confirm your booking'));
+    }
+
+    /**
+     * Handle successful payment for pay-later booking
+     */
+    public function handlePaymentSuccess(Request $request)
+    {
+        $bookingId = $request->input('booking_id');
+        $booking = \App\Models\Booking::find($bookingId);
+
+        if (!$booking) {
+            return redirect()->route(app()->getLocale() . '.home')
+                ->with('error', __('Booking not found'));
+        }
+
+        DB::beginTransaction();
+        try {
+            // Mark booking as paid
+            $booking->is_paid = true;
+            $booking->paid_amount = $booking->total;
+            $booking->paid_at = now();
+            $booking->pending_expires_at = null; // Clear expiration
+            $booking->status = 'confirmed'; // Update status to confirmed
+            $booking->save();
+
+            // Send confirmation emails
+            try {
+                // Customer confirmation
+                \Mail::to($booking->user->email)
+                    ->send(new \App\Mail\PaymentSuccessMail($booking));
+
+                // Admin notification
+                $adminEmail = setting('email.notification_email', config('booking.email_config.from', 'admin@example.com'));
+                \Mail::to($adminEmail)
+                    ->send(new \App\Mail\NewPaidBookingAdmin($booking));
+            } catch (\Exception $e) {
+                Log::error('Failed to send payment success emails', [
+                    'booking_id' => $bookingId,
+                    'error' => $e->getMessage()
+                ]);
+            }
+
+            DB::commit();
+
+            Log::info('[PaymentSuccess] Booking marked as paid', [
+                'booking_id' => $bookingId,
+                'reference' => $booking->booking_reference,
+                'amount' => $booking->paid_amount
+            ]);
+
+            // Clear promo code from session (crucial for guests)
+            session()->forget('public_cart_promo');
+
+            // Smart redirect based on user state
+            $redirectUrl = $this->getPostPaymentRedirect($booking);
+
+            return redirect($redirectUrl)
+                ->with('success', __('Payment successful! Your booking is confirmed.'));
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('[PaymentSuccess] Failed to process payment', [
+                'booking_id' => $bookingId,
+                'error' => $e->getMessage()
+            ]);
+
+            // Smart redirect on error too
+            $redirectUrl = $this->getPostPaymentRedirect($booking);
+
+            return redirect($redirectUrl)
+                ->with('error', __('Failed to process payment. Please contact support.'));
+        }
+    }
+
+    /**
+     * Get smart redirect route after payment success
+     * Based on user authentication state and password status
+     */
+    protected function getPostPaymentRedirect($booking): string
+    {
+        $user = $booking->user;
+
+        // Case 1: User doesn't exist (safety check)
+        if (!$user) {
+            return route('home');
+        }
+
+        // Case 2: User has no password (guest checkout) → Password setup
+        if (!$user->password) {
+            try {
+                // Generate password setup token
+                $passwordSetupService = app(\App\Services\Auth\PasswordSetupService::class);
+                $tokenData = $passwordSetupService->generateSetupToken($user);
+
+                return route('password.setup.show', ['token' => $tokenData['plain_token']])
+                    . '?from=payment';
+            } catch (\Exception $e) {
+                \Log::error('Failed to generate password setup token', [
+                    'user_id' => $user->user_id,
+                    'error' => $e->getMessage()
+                ]);
+                // Fallback to login
+                return route('login') . '?redirect=my-bookings';
+            }
+        }
+
+        // Case 3: User not authenticated → Login
+        if (!\Auth::check()) {
+            return route('login') . '?redirect=my-bookings';
+        }
+
+        // Case 4: User authenticated → My bookings
+        return route('my-bookings');
+    }
+
+    /**
+     * Helper to migrate/persist session cart items into a newly created (or existing) DB Cart.
+     */
+    private function persistSessionItemsToCart($cart, array $sessionCartItems)
+    {
+        foreach ($sessionCartItems as $itemData) {
+            // Expand categories with price data
+            $expandedCats = [];
+            $rawCats = $itemData['categories'] ?? [];
+
+            // Load Tour to get prices
+            $tourId = $itemData['tour_id'] ?? null;
+            $tourDate = $itemData['tour_date'] ?? null;
+
+            if ($tourId && is_array($rawCats)) {
+                // Check if categories are already in snapshot format (from buildCategoriesSnapshot)
+                // Format: [['category_id' => 1, 'quantity' => 12, 'price' => 75.00, ...], ...]
+                $firstItem = reset($rawCats);
+                $isSnapshot = is_array($firstItem) && isset($firstItem['category_id'], $firstItem['quantity'], $firstItem['price']);
+
+                if ($isSnapshot) {
+                    // Categories are already in the correct format with prices!
+                    // Just use them directly
+                    foreach ($rawCats as $catData) {
+                        if (!is_array($catData) || ($catData['quantity'] ?? 0) <= 0) continue;
+
+                        $expandedCats[] = [
+                            'category_id' => $catData['category_id'],
+                            'quantity' => $catData['quantity'],
+                            'price' => $catData['price'],
+                            'name' => $catData['category_name'] ?? 'Category',
+                        ];
+                    }
+                } else {
+                    // Legacy format: ['category_id' => quantity, ...]
+                    // This shouldn't happen with current CartController, but handle it for safety
+                    $tour = \App\Models\Tour::with('prices.category')->find($tourId);
+
+                    if ($tour) {
+                        foreach ($rawCats as $catId => $qty) {
+                            $qty = (int)$qty;
+                            if ($qty <= 0) continue;
+
+                            $priceVal = 0;
+
+                            // Find valid price for date
+                            $priceModel = $tour->prices->filter(function ($p) use ($catId, $tourDate) {
+                                return $p->category_id == $catId && $p->isValidForDate($tourDate);
+                            })->first();
+
+                            if (!$priceModel) {
+                                $priceModel = $tour->prices->where('category_id', $catId)
+                                    ->whereNull('valid_from')->whereNull('valid_until')
+                                    ->first();
+                            }
+                            if (!$priceModel) {
+                                $priceModel = $tour->prices->where('category_id', $catId)->first();
+                            }
+
+                            $priceVal = $priceModel ? (float)$priceModel->price : 0.0;
+
+                            $expandedCats[] = [
+                                'category_id' => $catId,
+                                'quantity' => $qty,
+                                'price' => $priceVal,
+                                'name' => $priceModel ? ($priceModel->category->getTranslatedName() ?? 'Category') : 'Category',
+                            ];
+                        }
+                    }
+                }
+            }
+
+            // Create CartItem
+            $cart->items()->create([
+                'tour_id' => $itemData['tour_id'] ?? null,
+                'schedule_id' => $itemData['schedule_id'] ?? null,
+                'tour_language_id' => $itemData['tour_language_id'] ?? null,
+                'tour_date' => $itemData['tour_date'] ?? null,
+                'hotel_id' => $itemData['hotel_id'] ?? null,
+                'meeting_point_id' => $itemData['meeting_point_id'] ?? $itemData['selected_meeting_point'] ?? null, // handle both keys if inconsistent
+                'is_other_hotel' => $itemData['is_other_hotel'] ?? false,
+                'other_hotel_name' => $itemData['other_hotel_name'] ?? null,
+                'categories' => $expandedCats,
+                'is_active' => true,
+            ]);
+        }
     }
 }

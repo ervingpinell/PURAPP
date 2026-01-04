@@ -52,9 +52,16 @@ class BookingPricingService
                 // Calculate tax breakdown for this line item
                 $breakdown = $price->calculateTaxBreakdown($quantity);
 
+                // Get translated category name
+                $locale = app()->getLocale();
+                $fallback = config('app.fallback_locale', 'es');
+                $categoryName = optional($price->category->translations->where('locale', $locale)->first())->name
+                    ?? optional($price->category->translations->where('locale', $fallback)->first())->name
+                    ?? $price->category->name;
+
                 $snapshot[] = [
                     'category_id'   => (int)$categoryId,
-                    'category_name' => $price->category->name,
+                    'category_name' => $categoryName,
                     'category_slug' => $price->category->slug ?? strtolower($price->category->name),
                     'quantity'      => $quantity,
                     'price'         => (float)$price->price,

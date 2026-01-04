@@ -139,4 +139,20 @@ return [
 
     'unverified_prune_days' => env('UNVERIFIED_PRUNE_DAYS', 7),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Password Setup (Guest to Registered User)
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for password setup tokens used when converting guest
+    | users to registered users. Tokens expire after 7 days by default.
+    | Throttle limits how many setup emails can be sent per hour.
+    |
+    */
+
+    'password_setup' => [
+        'expire' => env('PASSWORD_SETUP_EXPIRE', 10080), // 7 days in minutes
+        'throttle' => env('PASSWORD_SETUP_THROTTLE', 3), // Max 3 emails per hour
+    ],
+
 ];

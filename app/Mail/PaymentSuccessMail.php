@@ -1,0 +1,47 @@
+<?php
+
+namespace App\Mail;
+
+use App\Models\Booking;
+use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Queue\SerializesModels;
+
+class PaymentSuccessMail extends Mailable
+{
+    use Queueable, SerializesModels;
+
+    public function __construct(public Booking $booking) {}
+
+    public function envelope(): Envelope
+    {
+        return new Envelope(
+            subject: "Payment Confirmed! #{$this->booking->booking_reference}",
+            replyTo: [config('booking.email_config.reply_to', 'info@greenvacationscr.com')],
+        );
+    }
+
+    public function content(): Content
+    {
+        $passwordSetupUrl = null;
+        try {
+            if ($this->booking->user && !$this->booking->user->password) {
+                $svc = app(\App\Services\Auth\PasswordSetupService::class);
+                $tokenData = $svc->generateSetupToken($this->booking->user); // Returns array
+                $passwordSetupUrl = route('password.setup.show', ['token' => $tokenData['plain_token']]);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to generate password token for email', ['u' => $this->booking->user_id, 'err' => $e->getMessage()]);
+        }
+
+        return new Content(
+            markdown: 'emails.customer.payment-success',
+            with: [
+                'booking' => $this->booking,
+                'passwordSetupUrl' => $passwordSetupUrl,
+            ],
+        );
+    }
+}

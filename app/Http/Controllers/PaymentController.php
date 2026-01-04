@@ -27,7 +27,7 @@ class PaymentController extends Controller
      */
     public function show(Request $request)
     {
-        // 🔄 Usar cart snapshot como fuente de verdad para importe
+        // Obtener snapshot del carrito desde sesión o desde bookingverdad para importe
         $cartSnapshot = session('cart_snapshot');
         $bookingId = $request->input('booking_id');
         $booking = null;
@@ -65,27 +65,11 @@ class PaymentController extends Controller
 
                 // Guardar en sesión para que el initiate() lo encuentre
                 session(['cart_snapshot' => $cartSnapshot]);
-
-                Log::info('Payment Show - Snapshot reconstructed from booking', [
-                    'booking_id' => $booking->booking_id,
-                    'total' => $booking->total,
-                    'subtotal' => $booking->detail?->total,
-                    'currency' => $booking->currency
-                ]);
             }
         }
 
-        Log::info('Payment Show - Snapshot Received:', [
-            'exists'      => (bool) $cartSnapshot,
-            'is_array'    => is_array($cartSnapshot),
-            'item_count'  => isset($cartSnapshot['items']) ? count($cartSnapshot['items']) : 0,
-            'keys'        => $cartSnapshot ? array_keys($cartSnapshot) : [],
-            'booking_id'  => $bookingId
-        ]);
-
         if (!$cartSnapshot || empty($cartSnapshot['items'])) {
-            return redirect()->route('public.carts.index')
-                ->with('error', __('payment.no_cart_data'));
+            return redirect()->route(app()->getLocale() . '.home');
         }
 
         // Tiempo para completar el pago
@@ -104,13 +88,11 @@ class PaymentController extends Controller
         // Si ya se venció la sesión de pago
         if (now()->greaterThan($expiresAt)) {
             session()->forget(['cart_snapshot', 'payment_start_time', 'cart_reservation_token']);
-
-            return redirect()->route('public.carts.index')
-                ->with('error', __('payment.session_expired'));
+            return redirect()->route(app()->getLocale() . '.home', ['cart_expired' => 1])
+                ->with('cart_expired', true);
         }
 
-        // ========================
-        // Total SIEMPRE desde el snapshot
+        // Calcular total con promo si existe       // Total SIEMPRE desde el snapshot
         // ========================
         $total        = $this->calculateTotalFromSnapshot($cartSnapshot);
         $currency     = config('payment.default_currency', 'USD');
@@ -857,10 +839,37 @@ class PaymentController extends Controller
                 $this->paymentService->handleSuccessfulPayment($payment, $status);
 
                 $booking = Booking::find($payment->booking_id);
-
+                $booking->load('user'); // Ensure user is loaded for guest check check
                 session()->forget(['pending_booking_ids', 'guest_payment_id']);
 
-                return view('public.payment-confirmation', compact('booking'));
+                // Generate password setup URL for guests
+                $passwordSetupUrl = null;
+
+                if ($booking->user) {
+                    $svc = app(\App\Services\Auth\PasswordSetupService::class);
+
+                    \Illuminate\Support\Facades\Log::info('PaymentController Debug', [
+                        'user_id' => $booking->user_id,
+                        'needs_setup' => $svc->needsPasswordSetup($booking->user),
+                        'password_len' => strlen($booking->user->password ?? ''),
+                    ]);
+
+                    if ($svc->needsPasswordSetup($booking->user)) {
+                        try {
+                            $tokenData = $svc->generateSetupToken($booking->user);
+                            $passwordSetupUrl = route('password.setup.show', ['token' => $tokenData['plain_token']]);
+                            \Illuminate\Support\Facades\Log::info('Generated Setup URL: ' . $passwordSetupUrl);
+                        } catch (\Exception $e) {
+                            Log::error('Failed to generate password setup token for confirmation view', [
+                                'booking_id' => $booking->booking_id,
+                                'error' => $e->getMessage(),
+                                'trace' => $e->getTraceAsString()
+                            ]);
+                        }
+                    }
+                }
+
+                return view('public.payment-confirmation', compact('booking', 'passwordSetupUrl'));
             }
 
             return back()->with('error', 'Payment not successful');
@@ -994,7 +1003,7 @@ class PaymentController extends Controller
             $policyContent = (string) ($pTr->content ?? '');
 
             if (trim(strip_tags($policyContent)) !== '') {
-                $htmlParts[] = $policyContent;
+                $htmlParts[] = nl2br(e($policyContent));
             }
 
             // 2) Contenido por secciones activas
@@ -1011,7 +1020,7 @@ class PaymentController extends Controller
                     $htmlParts[] = '<h4>' . e($sTitle) . '</h4>';
                 }
                 if ($sBody !== '') {
-                    $htmlParts[] = $sBody;
+                    $htmlParts[] = nl2br(e($sBody));
                 }
             }
 

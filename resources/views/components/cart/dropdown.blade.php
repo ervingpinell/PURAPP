@@ -47,7 +47,7 @@ $headerTotal = max(0, $headerTotal);
 }
 
 $expiresIso = optional($headerCart?->expires_at)->toIso8601String();
-$totalMinutesCfg = (int) config('cart.expiration_minutes', 30);
+$totalMinutesCfg = (int) \App\Models\Setting::getValue('cart.expiration_minutes', 30);
 
 $coverFromTour = function ($tour) {
 if (!$tour) return asset('images/volcano.png');
@@ -80,7 +80,7 @@ return asset('images/volcano.png');
     aria-expanded="false"
     aria-controls="{{ $menuId }}">
     <i class="{{ $iconCls }}" title="{{ __('adminlte::adminlte.cart') }}"></i>
-    <span class="cart-count-badge badge rounded-pill position-absolute top-0 start-100 translate-middle"
+    <span class="cart-count-badge badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle"
       style="{{ $headerCount ? '' : 'display:none;' }}">
       {{ $headerCount }}
     </span>
@@ -273,18 +273,179 @@ return asset('images/volcano.png');
   @guest
   @php
   $guestLinkCls = $isDesktop
-  ? 'nav-link cart-icon-wrapper position-relative'
-  : 'cart-icon-wrapper position-relative';
+  ? 'nav-link cart-icon-wrapper position-relative dropdown-toggle'
+  : 'cart-icon-wrapper position-relative dropdown-toggle';
+
+  // Get guest cart items from session
+  $guestCartItems = session('guest_cart_items', []);
+  $guestCount = count($guestCartItems);
+
+  // Calculate total for guest cart
+  $guestTotal = 0;
+  foreach ($guestCartItems as $guestItem) {
+  $categories = $guestItem['categories'] ?? [];
+  foreach ($categories as $cat) {
+  $guestTotal += ((float)($cat['price'] ?? 0)) * ((int)($cat['quantity'] ?? 0));
+  }
+  }
+
+  $guestTriggerId = $isDesktop ? 'guestCartDropdownDesktop' : 'guestCartDropdownMobile';
+  $guestMenuId = $guestTriggerId.'Menu';
   @endphp
-  <a href="{{ route('login') }}"
+
+  <a href="#"
+    id="{{ $guestTriggerId }}"
     class="{{ $guestLinkCls }}"
-    onclick="return askLoginWithSwal(event, this.href);">
+    data-bs-toggle="dropdown"
+    data-bs-auto-close="outside"
+    data-bs-reference="parent"
+    data-bs-offset="0,8"
+    aria-expanded="false"
+    aria-controls="{{ $guestMenuId }}">
     <i class="{{ $iconCls }}" title="{{ __('adminlte::adminlte.cart') }}"></i>
-    <span class="cart-count-badge badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
-      style="font-size:.7rem;display:none;">0</span>
+    <span class="cart-count-badge badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle"
+      data-guest-count="{{ $guestCount }}"
+      style="z-index: 1050; display: {{ $guestCount > 0 ? 'inline-block' : 'none' }} !important;">{{ $guestCount }}</span>
     @if($isDesktop) {{ __('adminlte::adminlte.cart') }} @endif
   </a>
+
+  <div id="{{ $guestMenuId }}"
+    class="dropdown-menu dropdown-menu-end p-0 mini-cart-menu mini-cart-menu-{{ $variant }}"
+    aria-labelledby="{{ $guestTriggerId }}"
+    data-variant="{{ $variant }}">
+
+    @if($guestCount > 0)
+    <div class="mini-cart-list">
+      @foreach($guestCartItems as $index => $guestItem)
+      @php
+      $tour = \App\Models\Tour::find($guestItem['tour_id']);
+      $img = $tour ? $coverFromTour($tour) : asset('images/volcano.png');
+      $itemCats = collect($guestItem['categories'] ?? []);
+
+      $sum = 0;
+      foreach ($itemCats as $c) {
+      $sum += ((float)($c['price'] ?? 0)) * ((int)($c['quantity'] ?? 0));
+      }
+
+      $pax = (int) $itemCats->sum('quantity');
+      @endphp
+
+      <div class="mini-cart-item-wrapper">
+        {{-- Remove button for guests --}}
+        <form class="mini-cart-remove-form"
+          action="{{ route('public.carts.removeGuestItem') }}"
+          method="POST"
+          onsubmit="return confirmMiniRemoveGuest(event, this);">
+          @csrf
+          <input type="hidden" name="item_index" value="{{ $index }}">
+          <button type="submit" class="mini-cart-remove"
+            aria-label="{{ __('adminlte::adminlte.remove_from_cart') }}">
+            <i class="fas fa-times"></i>
+          </button>
+        </form>
+
+        <div class="mini-cart-item">
+          <img src="{{ $img }}" class="mini-cart-img" alt="">
+
+          <div class="mini-cart-info">
+            <div class="mini-cart-title">
+              {{ $tour?->getTranslatedName() ?? '-' }}
+            </div>
+
+            <div class="mini-cart-meta">
+              <i class="far fa-calendar-alt"></i>
+              <span>{{ \Carbon\Carbon::parse($guestItem['tour_date'])->format('d/M/Y') }}</span>
+            </div>
+
+            @if($itemCats->isNotEmpty())
+            <div class="mini-cart-categories">
+              @foreach($itemCats as $c)
+              @php
+              $cName = $c['i18n_name'] ?? $c['name'] ?? $c['category_slug'] ?? '—';
+              $cQty = (int) ($c['quantity'] ?? 0);
+              @endphp
+              <span class="category-badge">{{ $cName }} x{{ $cQty }}</span>
+              @endforeach
+            </div>
+            @endif
+          </div>
+
+          <div class="mini-cart-price">
+            ${{ number_format($sum, 2) }}
+          </div>
+        </div>
+      </div>
+      @endforeach
+    </div>
+
+    <div class="mini-cart-footer">
+      <div class="mini-cart-total mini-cart-final-total">
+        <span class="mini-cart-total-label">{{ __('adminlte::adminlte.total') }}</span>
+        <span class="mini-cart-total-amount">${{ number_format($guestTotal, 2) }}</span>
+      </div>
+
+      <div class="mini-cart-actions">
+        <a class="btn btn-success btn-sm w-100 mb-2" href="{{ route('public.carts.index') }}">
+          {{ __('adminlte::adminlte.view_cart') }}
+        </a>
+
+        <a class="btn btn-primary w-100"
+          href="{{ route('public.checkout.show') }}"
+          id="mini-cart-confirm">
+          {{ __('adminlte::adminlte.confirmBooking') }}
+        </a>
+      </div>
+    </div>
+    @else
+    <div class="mini-cart-empty">
+      {{ __('adminlte::adminlte.emptyCart') }}
+    </div>
+    @endif
+  </div>
   @endguest
+
+
+  <script>
+    // Guest cart badge management - hybrid approach with visibility insurance
+    (function() {
+      let lastKnownCount = 0;
+
+      function updateGuestBadge() {
+        const guestBadges = document.querySelectorAll('[data-guest-count]');
+        guestBadges.forEach(badge => {
+          // Read both optimistic (textContent) and server (data-guest-count) values
+          const textCount = parseInt(badge.textContent) || 0;
+          const dataCount = parseInt(badge.getAttribute('data-guest-count')) || 0;
+
+          // Use the maximum (allows optimistic updates to work)
+          const count = Math.max(textCount, dataCount, lastKnownCount);
+
+          if (count > 0) {
+            lastKnownCount = count;
+            badge.textContent = count;
+            // Keep data attribute in sync
+            badge.setAttribute('data-guest-count', count);
+            badge.style.setProperty('display', 'inline-block', 'important');
+          } else {
+            badge.style.display = 'none';
+          }
+        });
+      }
+
+      // Run on page load
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', updateGuestBadge);
+      } else {
+        updateGuestBadge();
+      }
+
+      // Also run when cart changes (optimistic updates)
+      window.addEventListener('cart:changed', updateGuestBadge);
+
+      // Periodic check to ensure visibility (less aggressive - every 2 seconds)
+      setInterval(updateGuestBadge, 2000);
+    })();
+  </script>
 </div>
 
 @once
@@ -548,9 +709,70 @@ return asset('images/volcano.png');
     return false;
   }
 
+  // Guest cart remove confirmation
+  function confirmMiniRemoveGuest(e, formEl) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
+    openDropdowns.forEach(dd => {
+      const trigger = document.querySelector(`[aria-controls="${dd.id}"]`);
+      if (trigger && window.bootstrap) {
+        const bsDropdown = bootstrap.Dropdown.getInstance(trigger);
+        if (bsDropdown) bsDropdown.hide();
+      }
+    });
+
+    if (window.Swal) {
+      setTimeout(() => {
+        Swal.fire({
+          title: @json(__('adminlte::adminlte.remove_item_title')),
+          text: @json(__('adminlte::adminlte.remove_item_text')),
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: @json(__('adminlte::adminlte.delete')),
+          cancelButtonText: @json(__('adminlte::adminlte.cancel')),
+          confirmButtonColor: '#dc3545'
+        }).then(res => {
+          if (res.isConfirmed) {
+            const btn = formEl.querySelector('button[type="submit"]');
+            if (btn) {
+              btn.disabled = true;
+              btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            }
+            formEl.submit();
+            // Reload page to update guest cart
+            setTimeout(() => window.location.reload(), 300);
+          }
+        });
+      }, 150);
+    } else {
+      if (confirm(@json(__('adminlte::adminlte.remove_item_text')))) {
+        formEl.submit();
+        setTimeout(() => window.location.reload(), 300);
+      }
+    }
+    return false;
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     initCartTimer('cartDropdownDesktopMenu', 'cartDropdownDesktop');
     initCartTimer('cartDropdownMobileMenu', 'cartDropdownMobile');
+
+    // Update guest cart badge when cart changes
+    window.addEventListener('cart:changed', function(e) {
+      // If no count provided in event, do nothing (prevent hiding badge on empty events)
+      if (e.detail === undefined || e.detail.count === undefined) return;
+
+      // Update all cart count badges
+      const badges = document.querySelectorAll('.cart-count-badge');
+      const count = e.detail.count;
+
+      badges.forEach(badge => {
+        badge.textContent = count;
+        badge.style.display = count > 0 ? '' : 'none';
+      });
+    });
   });
 
   function initCartTimer(menuId, triggerId) {

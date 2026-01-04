@@ -52,6 +52,7 @@ return [
     'bookings_not_found' => 'Reservas não encontradas',
     'payment_not_successful' => 'O pagamento não foi bem-sucedido. Por favor, tente novamente.',
     'payment_confirmation_error' => 'Ocorreu um erro ao confirmar seu pagamento.',
+    'error_title' => 'Erro',
 
     // Progress Steps
     'checkout' => 'Checkout',

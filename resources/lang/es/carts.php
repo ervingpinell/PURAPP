@@ -7,6 +7,8 @@ return [
         'extend'      => 'Extender :count min|Extender :count min',
         'already_extended' => 'Ya se ha extendido el tiempo de espera. No se puede extender más.',
         'cart_deleted' => 'Tu carrito se ha eliminado automáticamente porque no tiene productos.',
+        'expired_title' => 'Tiempo agotado',
+        'expired_text' => 'Tu carrito ha expirado. Serás redirigido al inicio.',
     ],
 
     'title_all' => 'Todos los carritos de clientes',
@@ -17,7 +19,7 @@ return [
     'filters.status'  => 'Estado',
     'filters.all'     => '-- Todos --',
     'filters.active'  => 'Activo',
-    'filters.inactive'=> 'Inactivo',
+    'filters.inactive' => 'Inactivo',
     'filters.search'  => 'Buscar',
     'filters.clear'   => 'Limpiar',
 
@@ -77,6 +79,7 @@ return [
     'promo.enter_code'   => 'Ingresa un código',
     'promo.apply_error'  => 'No se pudo aplicar el código.',
     'promo.remove_error' => 'No se pudo eliminar el código.',
+    'promo.too_many_attempts' => 'Demasiados intentos. Por favor, inténtelo de nuevo más tarde.',
 
     'totals.subtotal'        => 'Subtotal',
     'totals.discount'        => 'Descuento',
@@ -117,7 +120,7 @@ return [
     'fields.language'  => 'Idioma',
     'fields.schedule'  => 'Horario',
     'fields.hotel'     => 'Hotel',
-    'fields.hotel_name'=> 'Nombre del hotel',
+    'fields.hotel_name' => 'Nombre del hotel',
     'fields.adults'    => 'Número de adultos',
     'fields.kids'      => 'Número de niños',
 
@@ -125,7 +128,7 @@ return [
     'placeholders.select_schedule' => 'Seleccionar un horario',
     'placeholders.select_hotel'    => 'Seleccionar un hotel',
     'placeholders.other_hotel_option' => 'Otro (ingresar nombre)',
-    'placeholders.enter_hotel_name'=> 'Ingresar nombre del hotel',
+    'placeholders.enter_hotel_name' => 'Ingresar nombre del hotel',
 
     'buttons.add_to_cart' => 'Agregar al carrito',
 
@@ -145,7 +148,7 @@ return [
     'messages.code_removed'        => 'Código eliminado correctamente.',
     'messages.slot_full'           => 'Este horario está lleno.',
     'messages.date_blocked'        => 'La fecha seleccionada está bloqueada para este tour.',
-    'messages.schedule_unavailable'=> 'El horario seleccionado no está disponible para este tour.',
+    'messages.schedule_unavailable' => 'El horario seleccionado no está disponible para este tour.',
     'messages.validation_failed'   => 'La validación de datos falló.',
     'messages.cart_expires_in' => 'El carrito expirará en :minutes minutos.',
     'messages.cart_being_processed' => 'Tu carrito está siendo procesado. Por favor intenta de nuevo en unos segundos.',

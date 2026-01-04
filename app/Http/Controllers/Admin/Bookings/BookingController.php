@@ -458,6 +458,7 @@ class BookingController extends Controller
         // =======================
         // ENVÍO DE CORREO (NO BLOQUEANTE)
         // =======================
+        // Send customer email
         try {
             $this->dispatchMail(
                 new \App\Mail\BookingCreatedMail($booking),
@@ -465,10 +466,27 @@ class BookingController extends Controller
                 $booking
             );
         } catch (\Throwable $e) {
-            \Log::error('Admin booking store mail error (Graph): ' . $e->getMessage(), [
+            \Log::error('Customer booking email failed', [
                 'booking_id' => $booking->booking_id,
+                'error' => $e->getMessage()
             ]);
-            // Importante: NO hacemos return con error aquí.
+        }
+
+        // Send admin notification email (separate, without password setup)
+        $adminEmails = $this->notifyEmails();
+        if (!empty($adminEmails)) {
+            try {
+                $this->dispatchMail(
+                    new \App\Mail\BookingCreatedAdminMail($booking),
+                    $adminEmails,
+                    $booking
+                );
+            } catch (\Throwable $e) {
+                \Log::error('Admin booking email failed', [
+                    'booking_id' => $booking->booking_id,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
 
         return redirect()->route('admin.bookings.show', $booking->booking_id)
@@ -546,7 +564,7 @@ class BookingController extends Controller
 
         if ($promoCodeValue) {
             $clean = \App\Models\PromoCode::normalize($promoCodeValue);
-            $promoCodeToApply = \App\Models\PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$clean])
+            $promoCodeToApply = \App\Models\PromoCode::whereRaw("TRIM(REPLACE(code, ' ', '')) = ?", [$clean])
                 ->lockForUpdate()
                 ->first();
 
@@ -612,25 +630,32 @@ class BookingController extends Controller
             try {
                 $userMail = optional($booking->user)->email;
 
+                // Send customer email
                 if ($userMail) {
-                    $mailable = (new \App\Mail\BookingCreatedMail($booking))
+                    $customerMail = (new \App\Mail\BookingCreatedMail($booking))
                         ->onQueue('mail')
                         ->afterCommit();
 
-                    $pending = \Mail::to($userMail);
-                    if (!empty($notify)) $pending->bcc($notify);
+                    $shouldSendDirect
+                        ? \Mail::to($userMail)->send($customerMail)
+                        : \Mail::to($userMail)->queue($customerMail);
+                }
 
-                    $shouldSendDirect ? $pending->send($mailable) : $pending->queue($mailable);
-                } else {
-                    // Sin correo de usuario: enviar solo a admins como fallback
-                    if (!empty($notify)) {
-                        $mailer = \Mail::to($notify[0])->bcc(array_slice($notify, 1));
-                        $shouldSendDirect ? $mailer->send(new \App\Mail\BookingCreatedMail($booking))
-                            : $mailer->queue(new \App\Mail\BookingCreatedMail($booking));
-                    }
+                // Send admin email (separate, without password setup)
+                if (!empty($notify)) {
+                    $adminMail = (new \App\Mail\BookingCreatedAdminMail($booking))
+                        ->onQueue('mail')
+                        ->afterCommit();
+
+                    $shouldSendDirect
+                        ? \Mail::to($notify)->send($adminMail)
+                        : \Mail::to($notify)->queue($adminMail);
                 }
             } catch (\Throwable $e) {
-                \Log::warning('BookingCreatedMail (admin cart) failed: ' . $e->getMessage(), ['booking_id' => $booking->booking_id]);
+                \Log::warning('Booking email failed (admin cart)', [
+                    'booking_id' => $booking->booking_id,
+                    'error' => $e->getMessage()
+                ]);
             }
         }
 
@@ -756,7 +781,7 @@ class BookingController extends Controller
             $promoInput = trim((string)($validated['promo_code'] ?? ''));
             if ($promoInput !== '') {
                 $clean = PromoCode::normalize($promoInput);
-                $promo = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$clean])
+                $promo = PromoCode::whereRaw("TRIM(REPLACE(code,' ','')) = ?", [$clean])
                     ->lockForUpdate()
                     ->first();
 
@@ -1200,7 +1225,7 @@ class BookingController extends Controller
             return response()->json(['valid' => false, 'message' => __('m_bookings.promo.invalid_data')]);
         }
 
-        $promo = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$code])->first();
+        $promo = PromoCode::whereRaw("TRIM(REPLACE(code,' ','')) = ?", [$code])->first();
         if (!$promo) {
             return response()->json(['valid' => false, 'message' => __('m_bookings.promo.not_found')]);
         }
@@ -1587,5 +1612,127 @@ class BookingController extends Controller
                 'message' => 'Error validating capacity'
             ], 500);
         }
+    }
+
+    /**
+     * Display unpaid bookings dashboard
+     */
+    public function unpaidIndex(Request $request)
+    {
+        $query = Booking::with(['user', 'tour', 'details'])
+            ->where('is_paid', false)
+            ->where('status', 'pending')
+            ->whereNotNull('pending_expires_at');
+
+        // Filter by expiration status
+        if ($request->filled('expiry_filter')) {
+            $now = now();
+            switch ($request->expiry_filter) {
+                case 'expired':
+                    $query->where('pending_expires_at', '<', $now);
+                    break;
+                case 'expiring_soon': // Less than 2 hours
+                    $query->where('pending_expires_at', '>', $now)
+                        ->where('pending_expires_at', '<=', $now->copy()->addHours(2));
+                    break;
+                case 'active':
+                    $query->where('pending_expires_at', '>', $now->copy()->addHours(2));
+                    break;
+            }
+        }
+
+        // Filter by pay-later
+        if ($request->filled('is_pay_later')) {
+            $query->where('is_pay_later', $request->is_pay_later === '1');
+        }
+
+        // Sort by expiration (soonest first)
+        $bookings = $query->orderBy('pending_expires_at', 'asc')->paginate(20);
+
+        return view('admin.bookings.unpaid', compact('bookings'));
+    }
+
+    /**
+     * Extend booking expiration time
+     */
+    public function extendBooking(Request $request, Booking $booking)
+    {
+        $request->validate([
+            'extend_hours' => ['required', 'integer', 'min:1', 'max:72']
+        ]);
+
+        if ($booking->is_paid) {
+            return back()->with('error', __('Booking is already paid'));
+        }
+
+        $hours = (int) $request->extend_hours;
+        $oldExpiry = $booking->pending_expires_at;
+        $newExpiry = ($oldExpiry && $oldExpiry > now())
+            ? $oldExpiry->copy()->addHours($hours)
+            : now()->addHours($hours);
+
+        $booking->pending_expires_at = $newExpiry;
+        $booking->extension_count = ($booking->extension_count ?? 0) + 1;
+        $booking->save();
+
+        Log::info('[ExtendBooking] Booking extended', [
+            'booking_id' => $booking->booking_id,
+            'reference' => $booking->booking_reference,
+            'hours' => $hours,
+            'old_expiry' => $oldExpiry,
+            'new_expiry' => $newExpiry,
+            'extension_count' => $booking->extension_count
+        ]);
+
+        // Send notification email to customer
+        try {
+            // TODO: Create ExtendedBookingMail
+            // Mail::to($booking->user->email)->send(new ExtendedBookingMail($booking, $hours));
+        } catch (\Exception $e) {
+            Log::error('[ExtendBooking] Failed to send email', [
+                'error' => $e->getMessage(),
+                'booking_id' => $booking->booking_id
+            ]);
+        }
+
+        return back()->with('success', __('Booking extended by :hours hours', ['hours' => $hours]));
+    }
+
+    /**
+     * Cancel unpaid booking
+     */
+    public function cancelUnpaid(Booking $booking)
+    {
+        if ($booking->is_paid) {
+            return back()->with('error', __('Cannot cancel paid booking'));
+        }
+
+        if ($booking->status !== 'pending') {
+            return back()->with('error', __('Only pending bookings can be cancelled'));
+        }
+
+        $booking->status = 'cancelled';
+        $note = "\n\n[ADMIN-CANCELLED] Unpaid booking cancelled manually by admin on " . now()->format('Y-m-d H:i:s');
+        $booking->notes = ($booking->notes ?? '') . $note;
+        $booking->save();
+
+        Log::info('[CancelUnpaid] Booking cancelled by admin', [
+            'booking_id' => $booking->booking_id,
+            'reference' => $booking->booking_reference,
+            'admin_id' => auth()->id()
+        ]);
+
+        // Send cancellation email
+        try {
+            Mail::to($booking->user->email)
+                ->send(new \App\Mail\BookingCancelledExpiry($booking));
+        } catch (\Exception $e) {
+            Log::error('[CancelUnpaid] Failed to send cancellation email', [
+                'error' => $e->getMessage(),
+                'booking_id' => $booking->booking_id
+            ]);
+        }
+
+        return back()->with('success', __('Booking cancelled successfully'));
     }
 }

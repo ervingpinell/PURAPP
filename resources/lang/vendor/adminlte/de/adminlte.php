@@ -534,6 +534,7 @@ return [
         'reference' => 'Referenz',
         'date'      => 'Datum',
     ],
+
     'pickup'      => 'Abholort',
     'filters_title'            => 'Ergebnisse filtern',
     'filters_subtitle'         => 'Kombiniere Textsuche und Kategorien, um die passende Tour zu finden.',
@@ -553,4 +554,8 @@ return [
     'tours_index_subtitle'  => 'Entdecke unsere verfügbaren Erlebnisse und Aktivitäten.',
 
     'tours_count' => '1 Tour verfügbar|:count Touren verfügbar',
+
+    // Quantities
+    'quantities' => 'Mengen',
+    'quantitiesHelp' => 'Passen Sie die Mengen nach Bedarf an. Sie können nicht verwendete Kategorien auf 0 belassen.',
 ];

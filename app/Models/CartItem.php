@@ -28,12 +28,17 @@ class CartItem extends Model
         'meeting_point_pickup_time',
         'meeting_point_description',
         'meeting_point_map_url',
+        'is_reserved',          // 🆕 Reservation flag
+        'reserved_at',          // 🆕 Reservation timestamp
+        'reservation_token',    // 🆕 Unique reservation token
     ];
 
     protected $casts = [
         'categories'     => 'array',
         'is_active'      => 'boolean',
         'is_other_hotel' => 'boolean',
+        'is_reserved'    => 'boolean',    // 🆕
+        'reserved_at'    => 'datetime',   // 🆕
     ];
 
     /* =======================

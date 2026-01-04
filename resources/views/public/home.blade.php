@@ -3,17 +3,17 @@
 @section('title', __('adminlte::adminlte.home'))
 
 @push('meta')
-  <meta name="robots" content="index, follow">
+<meta name="robots" content="index, follow">
 @endpush
 
 @push('styles')
-  @vite([
-    'resources/css/reviews.css',
-    'resources/css/homereviews.css',
-    'resources/css/home.css',
-    'resources/css/tour.css',
-    'resources/css/app.css'
-  ])
+@vite([
+'resources/css/reviews.css',
+'resources/css/homereviews.css',
+'resources/css/home.css',
+'resources/css/tour.css',
+'resources/css/app.css'
+])
 @endpush
 
 @section('content')
@@ -31,8 +31,8 @@
   </h2>
 
   @include('partials.reviews.hero-carousel', [
-    'items'      => $homeReviews ?? collect(),
-    'carouselId' => 'homeReviewsHero'
+  'items' => $homeReviews ?? collect(),
+  'carouselId' => 'homeReviewsHero'
   ])
 </section>
 
@@ -42,5 +42,5 @@
 @endsection
 
 @push('scripts')
-  @vite(['resources/js/reviews-carousel.js'])
+@vite(['resources/js/reviews-carousel.js'])
 @endpush

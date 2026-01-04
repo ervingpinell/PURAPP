@@ -67,6 +67,7 @@ return [
     'bookings_not_found' => 'Bookings not found',
     'payment_not_successful' => 'Payment was not successful. Please try again.',
     'payment_confirmation_error' => 'An error occurred while confirming your payment.',
+    'error_title' => 'Error',
 
     // Progress Steps
     'checkout' => 'Checkout',

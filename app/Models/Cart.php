@@ -17,6 +17,8 @@ class Cart extends Model
         'user_id',
         'is_active',
         'expires_at',
+        'guest_email',
+        'guest_name',
     ];
 
     protected $casts = [
@@ -40,7 +42,7 @@ class Cart extends Model
     {
         // Try to get from database settings first, then fall back to config
         $setting = \App\Models\Setting::where('key', 'cart.expiration_minutes')->value('value');
-        return (int) ($setting ?? config('cart.expiration_minutes', 30));
+        return (int) ($setting ?? 30); // Direct fallback (config/cart.php was removed)
     }
 
     /* ---------------- Expiration helpers ---------------- */

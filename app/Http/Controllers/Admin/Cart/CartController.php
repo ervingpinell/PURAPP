@@ -121,9 +121,9 @@ class CartController extends Controller
         if (!$cart || $cart->isExpired()) {
             if ($cart) $this->expireCart($cart);
             $cart = Cart::create(['user_id' => $user->user_id, 'is_active' => true])
-                ->ensureExpiry((int) config('cart.expiration_minutes', 15));
+                ->ensureExpiry((int) \App\Models\Setting::getValue('cart.expiration_minutes', 30));
         } else {
-            $cart->ensureExpiry((int) config('cart.expiration_minutes', 15));
+            $cart->ensureExpiry((int) \App\Models\Setting::getValue('cart.expiration_minutes', 30));
         }
 
         $tour = Tour::with(['schedules', 'prices.category'])->findOrFail($request->tour_id);
@@ -193,7 +193,7 @@ class CartController extends Controller
             'is_active'        => true,
         ]);
 
-        $cart->refreshExpiry((int) config('cart.expiration_minutes', 15));
+        $cart->refreshExpiry((int) \App\Models\Setting::getValue('cart.expiration_minutes', 30));
 
         return $request->ajax()
             ? response()->json(['message' => __('carts.messages.item_added')])
@@ -449,7 +449,7 @@ class CartController extends Controller
 
         // Buscar el promo por código normalizado
         $clean = PromoCode::normalize($codeInput);
-        $promo = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$clean])->first();
+        $promo = PromoCode::whereRaw("TRIM(REPLACE(code,' ','')) = ?", [$clean])->first();
 
         if (!$promo)                     return back()->with('error', __('carts.messages.invalid_code'));
         if (method_exists($promo, 'isValidToday') && !$promo->isValidToday())     return back()->with('error', __('carts.messages.code_expired_or_not_yet'));
@@ -491,7 +491,7 @@ class CartController extends Controller
 
         // Refrescar expiración mientras el carrito siga activo
         if ($cart && $cart->is_active && !$cart->isExpired()) {
-            $cart->refreshExpiry((int) config('cart.expiration_minutes', 15));
+            $cart->refreshExpiry((int) \App\Models\Setting::getValue('cart.expiration_minutes', 30));
         }
 
         return back()->with('success', __('carts.messages.code_applied'));

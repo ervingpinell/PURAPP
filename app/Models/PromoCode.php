@@ -57,7 +57,7 @@ class PromoCode extends Model
     // Utils
     public static function normalize(string $code): string
     {
-        return strtoupper(trim(preg_replace('/\s+/', '', $code)));
+        return trim(preg_replace('/\s+/', '', $code));
     }
 
     public function isValidToday(?string $tz = null): bool

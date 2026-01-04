@@ -913,8 +913,8 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
       .cart-timer-widget {
         position: fixed;
         right: 20px;
-        bottom: 20px;
-        z-index: 1030;
+        bottom: 90px; /* Higher up to avoid overlapping WhatsApp */
+        z-index: 49; /* Below WhatsApp (z-50) */
         display: flex;
         align-items: center;
         justify-content: center;

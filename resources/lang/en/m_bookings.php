@@ -332,6 +332,7 @@ return [
             'no_schedules'          => 'No schedules available',
             'deleted_tour'          => 'Deleted tour',
             'deleted_tour_snapshot' => 'Deleted Tour (:name)',
+            'deleted_user'          => 'Deleted',
             'tour_archived'         => '(archived)',
             'meeting_point_hint'    => 'Only the point name is shown in the list.',
             'customer_locked'       => 'The customer is locked and cannot be edited.',

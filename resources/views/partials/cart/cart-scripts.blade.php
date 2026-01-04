@@ -385,8 +385,22 @@
                 promoBtn.className = 'btn btn-outline-primary';
                 promoBtn.dataset.state = 'idle';
                 promoBtn.textContent = @json(__('adminlte::adminlte.apply'));
-                if (promoMsg) promoMsg.textContent = '';
+
+                // Clear message and remove green color
+                if (promoMsg) {
+                  promoMsg.className = 'mt-2 small';
+                  promoMsg.textContent = '';
+                }
+
+                // Clear input value
+                if (promoIn) promoIn.value = '';
+
+                // Update total
                 totalEl.textContent = parseFloat(data.new_total).toFixed(2);
+
+                // Remove promo discount line
+                const existingPromo = document.getElementById('promo-discount-line');
+                if (existingPromo) existingPromo.remove();
               } else {
                 Swal.fire('Oops!', data?.message || baseError, 'error');
               }
@@ -414,18 +428,57 @@
                 code
               })
             });
+
+            // Handle 429 Rate Limit
+            if (res.status === 429) {
+              Swal.fire('Attention', @json(__('carts.promo.too_many_attempts')), 'warning');
+              return;
+            }
+
             const data = await res.json();
 
             if (res.ok && data.ok) {
               promoBtn.className = 'btn btn-outline-danger';
               promoBtn.dataset.state = 'applied';
               promoBtn.textContent = @json(__('adminlte::adminlte.remove'));
-              if (promoMsg) promoMsg.innerHTML = '<i class="fas fa-check-circle me-1"></i>' + @json(__('carts.messages.code_applied'));
+
+              // Update message with green color
+              if (promoMsg) {
+                promoMsg.className = 'mt-2 small text-success';
+                promoMsg.innerHTML = '<i class="fas fa-check-circle me-1"></i>' + @json(__('carts.messages.code_applied'));
+              }
+
+              // Update total
               totalEl.textContent = parseFloat(data.new_total).toFixed(2);
+
+              // Show promo discount line (like after page refresh)
+              const subtotalRow = document.querySelector('.d-flex.justify-content-between.mb-2');
+              if (subtotalRow && data.promo) {
+                // Remove existing promo line if any
+                const existingPromo = document.getElementById('promo-discount-line');
+                if (existingPromo) existingPromo.remove();
+
+                // Create new promo line
+                const promoLine = document.createElement('div');
+                promoLine.id = 'promo-discount-line';
+                promoLine.className = 'd-flex justify-content-between mb-2 text-' + (data.promo.operation === 'add' ? 'danger' : 'success');
+                promoLine.innerHTML = `
+                  <span>
+                    <i class="fas fa-tag"></i> ${data.promo.code || 'PROMO'}
+                  </span>
+                  <span>
+                    ${data.promo.operation === 'add' ? '+' : '-'}$${parseFloat(data.promo.adjustment || 0).toFixed(2)}
+                  </span>
+                `;
+
+                // Insert after subtotal row
+                subtotalRow.parentNode.insertBefore(promoLine, subtotalRow.nextSibling);
+              }
             } else {
               Swal.fire('Oops!', data?.message || baseError, 'error');
             }
-          } catch (_) {
+          } catch (err) {
+            console.error(err);
             Swal.fire('Oops!', baseError, 'error');
           }
         });
@@ -500,6 +553,10 @@
           getRemainingSeconds: () => {
             const now = Date.now();
             return Math.max(0, Math.ceil((serverExpires - now) / 1000));
+          },
+          isExpired: () => {
+            const now = Date.now();
+            return (serverExpires - now) <= 0;
           }
         };
 

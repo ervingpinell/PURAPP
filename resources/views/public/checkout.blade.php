@@ -124,76 +124,209 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
     </div>
   </div>
 
+  @php
+  // Timer configuration
+  $expiryMinutes = (int) \App\Models\Setting::getValue('cart.expiration_minutes', 30);
+  $expiresAtIso = null;
+
+  if ($cart) {
+  if ($cart->is_guest_cart ?? false) {
+  // Guest cart expiration
+  $guestCartCreated = session('guest_cart_created_at');
+  if ($guestCartCreated) {
+  $expiresAt = \Carbon\Carbon::parse($guestCartCreated)->addMinutes($expiryMinutes);
+  $expiresAtIso = $expiresAt->toIso8601String();
+  }
+  } else {
+  // Authenticated user cart
+  $expiresAt = $cart->expires_at ? \Carbon\Carbon::parse($cart->expires_at) : null;
+  $expiresAtIso = $expiresAt ? $expiresAt->toIso8601String() : null;
+  }
+  }
+  @endphp
+
+  {{-- Cart Expiration Timer Banner --}}
+  @if($cart && $cart->items->count() && !empty($expiresAtIso) && (($cart->is_guest_cart ?? false) || ($cart->is_active && !$cart->isExpired())))
+  <div id="cart-timer"
+    class="gv-timer shadow-sm"
+    role="alert"
+    data-expires-at="{{ $expiresAtIso }}"
+    data-total-minutes="{{ $expiryMinutes }}"
+    data-expire-endpoint="{{ ($cart->is_guest_cart ?? false) ? route('public.guest-carts.expire') : route('public.carts.expire') }}">
+    <div class="gv-timer-head">
+      <div class="gv-timer-icon">
+        <i class="fas fa-hourglass-half"></i>
+      </div>
+      <div class="gv-timer-text">
+        <div class="gv-timer-title">{{ __('carts.timer.will_expire') }}</div>
+        <div class="gv-timer-sub">
+          {{ __('carts.timer.time_left') }}
+          <span id="cart-timer-remaining" class="gv-timer-remaining">--:--</span>
+        </div>
+      </div>
+    </div>
+    <div class="gv-timer-bar">
+      <div class="gv-timer-bar-fill" id="cart-timer-bar" style="width:100%"></div>
+    </div>
+  </div>
+  @endif
+
   <div class="checkout-grid">
-    {{-- Left: Terms --}}
+    {{-- Left: Customer Information --}}
     <div class="form-panel">
       <div class="panel-title">
-        <i class="fas fa-shield-check"></i>
-        {{ __('m_checkout.panels.terms_title') }}
+        <i class="fas fa-user-circle"></i>
+        {{ __('m_checkout.customer_info.title') }}
       </div>
       <div class="panel-subtitle">
-        <i class="fas fa-lock"></i>
-        {{ __('m_checkout.panels.secure_subtitle') }}
+        <i class="fas fa-info-circle"></i>
+        {{ __('m_checkout.customer_info.subtitle') }}
       </div>
 
-      <div class="required-notice">
-        <strong>* {{ __('m_checkout.panels.required_title') }}</strong><br>
-        {{ __('m_checkout.panels.required_read_accept') }}
-      </div>
-
-      <div class="policy-section">
-        <div class="policy-header">
-          <h3>{{ __('m_checkout.panels.terms_block_title') }}</h3>
-          <span class="policy-version">{{ $termsVersion ?? 'v1' }}</span>
-        </div>
-
-        <div class="policy-content" tabindex="0" data-scroll-guard>
-          @include('policies.checkout.content')
-        </div>
-
-        <form method="POST" action="{{ route('public.checkout.process') }}" id="checkout-form">
-          @csrf
-          <input type="hidden" name="scroll_ok" id="scroll_ok" value="0">
-
-          {{-- 🔐 Notas que vienen del carrito: se preservan en el POST al process --}}
-          <input
-            type="hidden"
-            name="notes"
-            value="{{ old('notes', request('notes', $cart->notes ?? '')) }}">
-
-          <div class="acceptance-box disabled" id="accept-box">
-            <div class="acceptance-checkbox">
+      {{-- Guest Information Form (for non-authenticated users) --}}
+      @guest
+      <div class="mt-4">
+        <form id="guest-info-form">
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="guest_name" class="form-label">
+                {{ __('m_checkout.customer_info.full_name') }} <span class="text-danger">*</span>
+              </label>
               <input
-                type="checkbox"
-                id="accept_terms"
-                name="accept_terms"
-                value="1"
-                {{ old('accept_terms') ? 'checked' : '' }}
-                disabled>
-              <label for="accept_terms">{!! __('m_checkout.accept.label_html') !!}</label>
+                type="text"
+                class="form-control"
+                id="guest_name"
+                name="guest_name"
+                value="{{ old('guest_name') }}"
+                required
+                placeholder="{{ __('m_checkout.customer_info.placeholder_name') }}">
+              @error('guest_name')
+              <div class="text-danger small mt-1">{{ $message }}</div>
+              @enderror
             </div>
-            @error('accept_terms')
-            <div class="text-danger small mt-2">{{ $message }}</div>
-            @enderror
+
+            <div class="col-12">
+              <label for="guest_email" class="form-label">
+                {{ __('m_checkout.customer_info.email') }} <span class="text-danger">*</span>
+              </label>
+              <input
+                type="email"
+                class="form-control"
+                id="guest_email"
+                name="guest_email"
+                value="{{ old('guest_email') }}"
+                required
+                placeholder="{{ __('m_checkout.customer_info.placeholder_email') }}">
+              @error('guest_email')
+              <div class="text-danger small mt-1">{{ $message }}</div>
+              @enderror
+            </div>
+
+            <div class="col-12">
+              @php
+              // Parse old phone value to extract country code and number
+              $oldPhone = old('guest_phone', '');
+              $oldCode = old('guest_country_code', '+506');
+              $phoneNumber = $oldPhone;
+
+              // If old phone contains a country code pattern (+XXX), extract it
+              if (preg_match('/^(\+\d+(?:-\d+)?)\s+(.+)$/', $oldPhone, $matches)) {
+              $oldCode = $matches[1]; // e.g., "+506"
+              $phoneNumber = $matches[2]; // e.g., "1234-5678"
+              } elseif (preg_match('/^(\+\d+(?:-\d+)?)(.+)$/', $oldPhone, $matches)) {
+              $oldCode = $matches[1];
+              $phoneNumber = ltrim($matches[2]);
+              }
+              @endphp
+              <label for="guest_phone" class="form-label">
+                {{ __('m_checkout.customer_info.phone') }} <span class="text-muted">({{ __('m_checkout.customer_info.optional') }})</span>
+              </label>
+              <div class="row g-2">
+                <div class="col-5 col-sm-4">
+                  <select class="form-select" id="guest_country_code" name="guest_country_code">
+                    @include('partials.country-codes', ['selected' => $oldCode, 'showNames' => true])
+                  </select>
+                </div>
+                <div class="col-7 col-sm-8">
+                  <input
+                    type="tel"
+                    class="form-control"
+                    id="guest_phone"
+                    name="guest_phone"
+                    value="{{ $phoneNumber }}"
+                    placeholder="1234-5678">
+                </div>
+              </div>
+              @error('guest_phone')
+              <div class="text-danger small mt-1">{{ $message }}</div>
+              @enderror
+              @error('guest_country_code')
+              <div class="text-danger small mt-1">{{ $message }}</div>
+              @enderror
+            </div>
           </div>
 
-          <div class="d-flex gap-3 mt-3">
-            @if(!isset($isBookingPayment) || !$isBookingPayment)
-            <a href="{{ route('public.carts.index') }}" class="btn btn-back">
-              <i class="fas fa-arrow-left"></i>{{ __('m_checkout.buttons.back') }}
-            </a>
-            @endif
-            <button
-              type="submit"
-              id="btn-proceed"
-              class="btn btn-payment"
-              {{ old('accept_terms') ? '' : 'disabled' }}>
-              {{ __('m_checkout.buttons.go_to_payment') }}
-              <i class="fas fa-arrow-right"></i>
-            </button>
+          <div class="alert alert-info mt-3 d-flex align-items-start gap-2">
+            <i class="fas fa-info-circle mt-1"></i>
+            <div>
+              <strong>{{ __('m_checkout.customer_info.why_need_title') }}</strong>
+              <p class="mb-0 small">
+                {{ __('m_checkout.customer_info.why_need_text') }}
+              </p>
+            </div>
           </div>
         </form>
       </div>
+      @endguest
+
+      {{-- Authenticated user info --}}
+      @auth
+      <div class="mt-4">
+        <div class="alert alert-success d-flex align-items-start gap-2">
+          <i class="fas fa-check-circle mt-1"></i>
+          <div>
+            <strong>{{ __('m_checkout.customer_info.logged_in_as') }}</strong>
+            <p class="mb-0 small">{{ Auth::user()->name }} ({{ Auth::user()->email }})</p>
+          </div>
+        </div>
+      </div>
+      @endauth
+
+      {{-- Form with submission buttons --}}
+      <form method="POST" action="{{ route('public.checkout.process') }}" id="checkout-form" class="mt-4">
+        @csrf
+        <input type="hidden" name="scroll_ok" id="scroll_ok" value="0">
+
+        {{-- Include guest data in submission if present --}}
+        @guest
+        <input type="hidden" name="guest_name" id="hidden_guest_name">
+        <input type="hidden" name="guest_email" id="hidden_guest_email">
+        <input type="hidden" name="guest_phone" id="hidden_guest_phone">
+        @endguest
+
+        {{-- 🔐 Notas que vienen del carrito: se preservan en el POST al process --}}
+        <input
+          type="hidden"
+          name="notes"
+          value="{{ old('notes', request('notes', $cart->notes ?? '')) }}">
+
+        {{-- Terms acceptance moved to payment page --}}
+
+        <div class="d-flex gap-3">
+          @if(!isset($isBookingPayment) || !$isBookingPayment)
+          <a href="{{ route('public.carts.index') }}" class="btn btn-back">
+            <i class="fas fa-arrow-left"></i>{{ __('m_checkout.buttons.back') }}
+          </a>
+          @endif
+          <button
+            type="submit"
+            id="btn-proceed"
+            class="btn btn-payment">
+            {{ __('m_checkout.buttons.go_to_payment') }}
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </form>
     </div>
 
     {{-- Right: Summary with internal scroll --}}
@@ -478,6 +611,16 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
           // For booking payments, use the booking total
           $calculatedTotal = (float) $booking->total;
           $displaySubtotal = (float) ($booking->detail?->total ?? $booking->total);
+          } elseif (isset($cart->is_guest_cart) && $cart->is_guest_cart) {
+          // Guest cart - manually calculate from categories
+          $calculatedTotal = 0;
+          foreach ($cart->items as $item) {
+          $categories = $item->categories ?? [];
+          foreach ($categories as $cat) {
+          $calculatedTotal += ((float)($cat['price'] ?? 0)) * ((int)($cat['quantity'] ?? 0));
+          }
+          }
+          $displaySubtotal = $calculatedTotal;
           } else {
           // Use the centralized Cart::calculateTotal() method
           // This uses prices from the stored snapshot (already calculated with correct date)
@@ -885,6 +1028,119 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
         btn.disabled = !chk.checked;
       });
     }
+
+    /* 3) Guest form handling - copy values to hidden inputs on submit */
+    const checkoutForm = document.getElementById('checkout-form');
+    const guestForm = document.getElementById('guest-info-form');
+
+    if (checkoutForm && guestForm) {
+      checkoutForm.addEventListener('submit', function(e) {
+        // Copy guest form values to hidden inputs
+        const guestName = document.getElementById('guest_name');
+        const guestEmail = document.getElementById('guest_email');
+        const guestPhone = document.getElementById('guest_phone');
+
+        const hiddenName = document.getElementById('hidden_guest_name');
+        const hiddenEmail = document.getElementById('hidden_guest_email');
+        const guestCountryCode = document.getElementById('guest_country_code');
+        const hiddenPhone = document.getElementById('hidden_guest_phone');
+
+        if (guestName && hiddenName) {
+          hiddenName.value = guestName.value;
+        }
+        if (guestEmail && hiddenEmail) {
+          hiddenEmail.value = guestEmail.value;
+        }
+        if (guestPhone && guestCountryCode && hiddenPhone) {
+          // Combine country code + phone number for backward compatibility
+          const countryCode = guestCountryCode.value || '+506';
+          const phoneNumber = guestPhone.value || '';
+          hiddenPhone.value = phoneNumber ? countryCode + ' ' + phoneNumber : '';
+        }
+
+        // Validate guest form
+        if (guestName && guestEmail) {
+          if (!guestName.value.trim() || !guestEmail.value.trim()) {
+            e.preventDefault();
+            alert('{{ __("Please fill in your name and email to continue") }}');
+            return false;
+          }
+
+          // Basic email validation
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(guestEmail.value)) {
+            e.preventDefault();
+            alert('{{ __("Please enter a valid email address") }}');
+            return false;
+          }
+        }
+      });
+    }
+
+    /* 4) Cart Timer Countdown */
+    (function() {
+      const box = document.getElementById('cart-timer');
+      if (!box) return;
+
+      const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      const remainingEl = document.getElementById('cart-timer-remaining');
+      const barEl = document.getElementById('cart-timer-bar');
+      const expireEndpoint = box.getAttribute('data-expire-endpoint');
+
+      const totalSecondsCfg = Number(box.getAttribute('data-total-minutes') || '15') * 60;
+      let serverExpires = new Date(box.getAttribute('data-expires-at')).getTime();
+
+      let rafId = null;
+      const fmt = (sec) => {
+        const s = Math.max(0, sec | 0);
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return String(m).padStart(2, '0') + ':' + String(r).padStart(2, '0');
+      };
+      const setBar = (remainingSec) => {
+        const frac = Math.max(0, Math.min(1, remainingSec / totalSecondsCfg));
+        if (barEl) barEl.style.width = (frac * 100).toFixed(2) + '%';
+      };
+
+      const tick = () => {
+        const now = Date.now();
+        const remainingSec = Math.ceil((serverExpires - now) / 1000);
+        if (remainingEl) remainingEl.textContent = fmt(remainingSec);
+        setBar(remainingSec);
+        if (remainingSec <= 0) {
+          cancelAnimationFrame(rafId);
+          return handleExpire();
+        }
+        rafId = requestAnimationFrame(tick);
+      };
+
+      const handleExpire = async () => {
+        try {
+          await fetch(expireEndpoint, {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': csrf,
+              'Accept': 'application/json'
+            }
+          });
+        } catch {}
+        // Show SweetAlert before redirecting
+        await Swal.fire({
+          icon: 'warning',
+          title: '{{ __("carts.timer.expired_title") }}',
+          text: '{{ __("carts.timer.expired_text") }}',
+          confirmButtonText: 'OK',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          timer: 7000,
+          timerProgressBar: true
+        });
+        // Redirect to home instead of cart page
+        window.location.replace('{{ route(app()->getLocale() . ".home") }}');
+      };
+
+      tick();
+    })();
   });
 </script>
 @endpush

@@ -12,6 +12,20 @@ return [
         'no_policies_configured' => 'Keine Richtlinien konfiguriert. Bitte kontaktieren Sie den Administrator.',
     ],
 
+    'customer_info' => [
+        'title'              => 'Kundeninformation',
+        'subtitle'              => 'Bitte geben Sie Ihre Kontaktdaten ein, um fortzufahren',
+        'full_name'              => 'Vollständiger Name',
+        'email'              => 'E-Mail',
+        'phone'              => 'Telefon',
+        'optional'              => 'optional',
+        'placeholder_name'              => 'Max Mustermann',
+        'placeholder_email'              => 'email@beispiel.de',
+        'why_need_title'              => 'Warum wir dies benötigen',
+        'why_need_text'              => 'Ihre E-Mail-Adresse wird verwendet, um Buchungsbestätigungen, Updates und Zahlungslinks zu senden. Sie können optional nach der Buchung ein Konto erstellen, um Ihre Reservierungen zu verwalten.',
+        'logged_in_as'              => 'Angemeldet als',
+    ],
+
     'steps' => [
         'review'             => 'Überprüfung',
         'payment'            => 'Zahlung',

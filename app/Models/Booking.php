@@ -17,6 +17,10 @@ class Booking extends Model
 
     protected $fillable = [
         'user_id',
+        'user_email',
+        'user_full_name',
+        'user_phone',
+        'user_was_guest',
         'tour_id',
         'tour_language_id',
         'booking_reference',
@@ -51,6 +55,7 @@ class Booking extends Model
         'booking_date'              => 'datetime',
         'payment_token_created_at'  => 'datetime',
         'is_active'                 => 'boolean',
+        'user_was_guest'            => 'boolean',
         'total'                     => 'decimal:2',
         'checkout_token_expires_at' => 'datetime',
         'checkout_accessed_at'      => 'datetime',
@@ -277,5 +282,64 @@ class Booking extends Model
         $this->save();
 
         return $this->payment_token;
+    }
+
+    // ---------------- User Snapshot Methods ----------------
+
+    /**
+     * Get user display name (from snapshot or relationship)
+     * Returns snapshot data if user is deleted, otherwise uses relationship
+     */
+    public function getUserDisplayName(): string
+    {
+        if ($this->user) {
+            return $this->user->full_name;
+        }
+
+        return $this->user_full_name ?? 'Deleted User';
+    }
+
+    /**
+     * Get user email (from snapshot or relationship)
+     */
+    public function getUserEmail(): ?string
+    {
+        if ($this->user) {
+            return $this->user->email;
+        }
+
+        return $this->user_email;
+    }
+
+    /**
+     * Get user phone (from snapshot or relationship)
+     */
+    public function getUserPhone(): ?string
+    {
+        if ($this->user) {
+            return $this->user->phone;
+        }
+
+        return $this->user_phone;
+    }
+
+    /**
+     * Check if user was a guest at booking time
+     */
+    public function wasGuestBooking(): bool
+    {
+        if ($this->user) {
+            return (bool) ($this->user->is_guest ?? false);
+        }
+
+        return (bool) $this->user_was_guest;
+    }
+
+    /**
+     * Check if the user account still exists
+     */
+    public function userExists(): bool
+    {
+        return $this->user_id !== null && $this->user !== null;
     }
 }

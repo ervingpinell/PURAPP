@@ -1,27 +1,12 @@
 @php
-  // Helper para traducciones
-  $tr = function(string $key, string $fallback) {
-      $t = __($key);
-      return ($t === $key) ? $fallback : $t;
-  };
+// Helper para traducciones
+$tr = function(string $key, string $fallback) {
+$t = __($key);
+return ($t === $key) ? $fallback : $t;
+};
 @endphp
 
 <div class="form-header">
-  @guest
-    <div class="alert alert-warning d-flex align-items-center gap-2 mb-3">
-      <i class="fas fa-lock me-2"></i>
-      <div class="flex-grow-1">
-        <strong>{{ $tr('adminlte::adminlte.auth_required_title', 'Debes iniciar sesión para reservar') }}</strong>
-        <div class="small">
-          {{ $tr('adminlte::adminlte.auth_required_body', 'Inicia sesión o regístrate para completar tu compra.') }}
-        </div>
-      </div>
-      <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="btn btn-success ms-auto">
-        {{ $tr('adminlte::adminlte.login_now', 'Iniciar sesión') }}
-      </a>
-    </div>
-  @endguest
-
   <h4 class="mb-2">{{ $tr('adminlte::adminlte.price', 'Precio') }}</h4>
 
   {{-- Contenedor dinámico de precios --}}
@@ -35,18 +20,33 @@
 </div>
 
 <style>
-  .price-breakdown { line-height: 1.6; min-height: 30px; }
-  .price-item { white-space: nowrap; }
-  .price-item strong { font-size: 0.95rem; }
+  .price-breakdown {
+    line-height: 1.6;
+    min-height: 30px;
+  }
+
+  .price-item {
+    white-space: nowrap;
+  }
+
+  .price-item strong {
+    font-size: 0.95rem;
+  }
+
   @media (max-width: 576px) {
-    .price-breakdown { font-size: 0.9rem; }
-    .price-breakdown .price-item { flex-basis: 100%; }
+    .price-breakdown {
+      font-size: 0.9rem;
+    }
+
+    .price-breakdown .price-item {
+      flex-basis: 100%;
+    }
   }
 </style>
 
 @push('scripts')
 <script>
-(function() {
+  (function() {
     if (window.__gvPriceHeaderInit) return;
     window.__gvPriceHeaderInit = true;
 
@@ -62,89 +62,89 @@
 
     let allCategories = [];
     try {
-        allCategories = JSON.parse(travelersContainer.getAttribute('data-categories') || '[]');
+      allCategories = JSON.parse(travelersContainer.getAttribute('data-categories') || '[]');
     } catch (_) {
-        console.error('Failed to parse categories data');
-        return;
+      console.error('Failed to parse categories data');
+      return;
     }
 
     // Función para obtener precio para una fecha
     function getPriceForDate(rules, dateStr) {
-        if (!dateStr || !rules || !rules.length) return null;
+      if (!dateStr || !rules || !rules.length) return null;
 
-        // Buscar regla específica
-        const specificRule = rules.find(r => {
-            if (r.is_default) return false;
-            const from = r.valid_from;
-            const until = r.valid_until;
-            if (from && until) return dateStr >= from && dateStr <= until;
-            if (from) return dateStr >= from;
-            if (until) return dateStr <= until;
-            return false;
-        });
-        if (specificRule) return specificRule;
+      // Buscar regla específica
+      const specificRule = rules.find(r => {
+        if (r.is_default) return false;
+        const from = r.valid_from;
+        const until = r.valid_until;
+        if (from && until) return dateStr >= from && dateStr <= until;
+        if (from) return dateStr >= from;
+        if (until) return dateStr <= until;
+        return false;
+      });
+      if (specificRule) return specificRule;
 
-        // Fallback a default
-        return rules.find(r => r.is_default) || null;
+      // Fallback a default
+      return rules.find(r => r.is_default) || null;
     }
 
     // Función para actualizar el header de precios
     function updatePriceHeader(dateStr) {
-        if (!dateStr) {
-            // Sin fecha, usar hoy como referencia
-            const today = new Date().toISOString().split('T')[0];
-            dateStr = today;
+      if (!dateStr) {
+        // Sin fecha, usar hoy como referencia
+        const today = new Date().toISOString().split('T')[0];
+        dateStr = today;
+      }
+
+      const categoriesWithPrices = [];
+
+      allCategories.forEach(cat => {
+        const priceRule = getPriceForDate(cat.rules, dateStr);
+        if (priceRule) {
+          categoriesWithPrices.push({
+            name: cat.name,
+            price: priceRule.price,
+            slug: cat.slug
+          });
+        }
+      });
+
+      // Limpiar container
+      priceContainer.innerHTML = '';
+
+      if (categoriesWithPrices.length === 0) {
+        noPricesWarning.classList.remove('d-none');
+        return;
+      }
+
+      noPricesWarning.classList.add('d-none');
+
+      // Renderizar precios
+      categoriesWithPrices.forEach((cat, index) => {
+        const span = document.createElement('span');
+        span.className = 'price-item d-inline-flex align-items-baseline gap-1';
+
+        const strong = document.createElement('strong');
+        strong.className = 'text-dark';
+        strong.textContent = cat.name + ':';
+
+        const priceSpan = document.createElement('span');
+        // AQUÍ forzamos la clase roja para todos
+        priceSpan.className = 'price-amount fw-bold text-danger';
+        priceSpan.textContent = '$' + parseFloat(cat.price).toFixed(2);
+
+        span.appendChild(strong);
+        span.appendChild(priceSpan);
+
+        if (index < categoriesWithPrices.length - 1) {
+          const separator = document.createElement('span');
+          separator.className = 'text-muted mx-1';
+          separator.textContent = '|';
+          span.appendChild(separator);
         }
 
-        const categoriesWithPrices = [];
-
-        allCategories.forEach(cat => {
-            const priceRule = getPriceForDate(cat.rules, dateStr);
-            if (priceRule) {
-                categoriesWithPrices.push({
-                    name: cat.name,
-                    price: priceRule.price,
-                    slug: cat.slug
-                });
-            }
-        });
-
-        // Limpiar container
-        priceContainer.innerHTML = '';
-
-        if (categoriesWithPrices.length === 0) {
-            noPricesWarning.classList.remove('d-none');
-            return;
-        }
-
-        noPricesWarning.classList.add('d-none');
-
-       // Renderizar precios
-categoriesWithPrices.forEach((cat, index) => {
-    const span = document.createElement('span');
-    span.className = 'price-item d-inline-flex align-items-baseline gap-1';
-
-    const strong = document.createElement('strong');
-    strong.className = 'text-dark';
-    strong.textContent = cat.name + ':';
-
-    const priceSpan = document.createElement('span');
-    // AQUÍ forzamos la clase roja para todos
-    priceSpan.className = 'price-amount fw-bold text-danger';
-    priceSpan.textContent = '$' + parseFloat(cat.price).toFixed(2);
-
-    span.appendChild(strong);
-    span.appendChild(priceSpan);
-
-    if (index < categoriesWithPrices.length - 1) {
-        const separator = document.createElement('span');
-        separator.className = 'text-muted mx-1';
-        separator.textContent = '|';
-        span.appendChild(separator);
-    }
-
-    priceContainer.appendChild(span);
-});
+        priceContainer.appendChild(span);
+      });
     }
 
     // Inicializar con fecha de hoy
@@ -152,15 +152,15 @@ categoriesWithPrices.forEach((cat, index) => {
 
     // Escuchar cambios de fecha
     dateInput.addEventListener('change', (e) => {
-        updatePriceHeader(e.target.value);
+      updatePriceHeader(e.target.value);
     });
 
     // También escuchar cuando Flatpickr cambia la fecha
     if (dateInput._flatpickr) {
-        dateInput._flatpickr.config.onChange.push((selectedDates, dateStr) => {
-            updatePriceHeader(dateStr);
-        });
+      dateInput._flatpickr.config.onChange.push((selectedDates, dateStr) => {
+        updatePriceHeader(dateStr);
+      });
     }
-})();
+  })();
 </script>
 @endpush

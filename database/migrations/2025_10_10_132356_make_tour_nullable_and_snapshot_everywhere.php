@@ -70,22 +70,34 @@ return new class extends Migration
             FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE SET NULL
         ");
 
-        // 4) (Opcional) backfill de snapshots existentes
-        DB::statement("
-            UPDATE bookings b
-            SET tour_name_snapshot = t.name
-            FROM tours t
-            WHERE b.tour_id = t.tour_id
-              AND (b.tour_name_snapshot IS NULL OR b.tour_name_snapshot = '')
-        ");
+        // 4) (Opcional) backfill de snapshots existentes usando Eloquent
+        \App\Models\Booking::with('tour')
+            ->whereNotNull('tour_id')
+            ->where(function ($q) {
+                $q->whereNull('tour_name_snapshot')
+                    ->orWhere('tour_name_snapshot', '');
+            })
+            ->chunk(100, function ($bookings) {
+                foreach ($bookings as $booking) {
+                    if ($booking->tour) {
+                        $booking->update(['tour_name_snapshot' => $booking->tour->name]);
+                    }
+                }
+            });
 
-        DB::statement("
-            UPDATE booking_details bd
-            SET tour_name_snapshot = t.name
-            FROM tours t
-            WHERE bd.tour_id = t.tour_id
-              AND (bd.tour_name_snapshot IS NULL OR bd.tour_name_snapshot = '')
-        ");
+        \App\Models\BookingDetail::with('tour')
+            ->whereNotNull('tour_id')
+            ->where(function ($q) {
+                $q->whereNull('tour_name_snapshot')
+                    ->orWhere('tour_name_snapshot', '');
+            })
+            ->chunk(100, function ($details) {
+                foreach ($details as $detail) {
+                    if ($detail->tour) {
+                        $detail->update(['tour_name_snapshot' => $detail->tour->name]);
+                    }
+                }
+            });
 
         // 5) Recrear la vista (si existía)
         if ($this->viewSql) {
@@ -104,7 +116,8 @@ return new class extends Migration
         }
         try {
             DB::statement('DROP VIEW IF EXISTS v_booking_facts');
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         // Revertir cambios (columna NOT NULL y FK a ON DELETE RESTRICT)
         // booking_details

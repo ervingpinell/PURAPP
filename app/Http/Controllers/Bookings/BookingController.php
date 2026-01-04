@@ -35,8 +35,8 @@ class BookingController extends Controller
         // Rate limit para evitar doble submit
         $key = 'booking:cart:' . $user->user_id;
         if (RateLimiter::tooManyAttempts($key, 1)) {
-            return redirect()->route('public.carts.index')
-                ->with('error', __('carts.messages.cart_being_processed'));
+            return redirect()->route(app()->getLocale() . '.home')
+                ->with('cart_expired', true);
         }
         RateLimiter::hit($key, 10);
 
@@ -112,7 +112,7 @@ class BookingController extends Controller
 
             if ($promoCodeValue) {
                 $clean = \App\Models\PromoCode::normalize($promoCodeValue);
-                $promoCodeToApply = \App\Models\PromoCode::whereRaw("UPPER(TRIM(REPLACE(code, ' ', ''))) = ?", [$clean])
+                $promoCodeToApply = \App\Models\PromoCode::whereRaw("TRIM(REPLACE(code, ' ', '')) = ?", [$clean])
                     ->where(function ($q) {
                         $q->where('is_used', false)->orWhereNull('is_used');
                     })
@@ -423,7 +423,7 @@ class BookingController extends Controller
         $promoInput = trim((string)($in['promo_code'] ?? ''));
         if ($promoInput !== '') {
             $clean = PromoCode::normalize($promoInput);
-            $promo = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$clean])->first();
+            $promo = PromoCode::whereRaw("TRIM(REPLACE(code,' ','')) = ?", [$clean])->first();
             if ($promo && method_exists($promo, 'isValidToday') && !$promo->isValidToday())   $promo = null;
             if ($promo && method_exists($promo, 'hasRemainingUses') && !$promo->hasRemainingUses()) $promo = null;
         }

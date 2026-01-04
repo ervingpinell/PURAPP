@@ -207,6 +207,55 @@ class PaymentService
 
             // Get cart snapshot from payment metadata or session
             $cartSnapshot = $payment->metadata['cart_snapshot'] ?? session('cart_snapshot');
+
+            // =================================================================
+            // 🔄 DEFERRED USER CREATION (GUEST CHECKOUT)
+            // =================================================================
+            // If we have a guest email but no user_id, create the user NOW.
+            if (empty($cartSnapshot['user_id']) && !empty($cartSnapshot['guest_email'])) {
+                Log::info('Payment Success - Creating/Linking User for Guest Checkout', [
+                    'email' => $cartSnapshot['guest_email'],
+                    'payment_id' => $payment->payment_id
+                ]);
+
+                try {
+                    $guestService = app(\App\Services\GuestUserService::class);
+                    // Find or create user (and send password setup email if new)
+                    $user = $guestService->findOrCreateGuest([
+                        'email' => $cartSnapshot['guest_email'],
+                        'name' => $cartSnapshot['guest_name'] ?? 'Guest',
+                        'phone' => $cartSnapshot['guest_phone'] ?? null,
+                    ]);
+
+                    // RELOAD payment to ensure we have latest state before updating
+                    $payment->refresh();
+
+                    // Update ID references in our local variables for Booking creation
+                    $userId = $user->user_id;
+                    $cartSnapshot['user_id'] = $userId;
+
+                    // Update Payment record
+                    $payment->update(['user_id' => $userId]);
+
+                    // Link the Anonymous Cart to the User (so it shows in history/dashboard later)
+                    if (!empty($cartSnapshot['cart_id'])) {
+                        \App\Models\Cart::where('cart_id', $cartSnapshot['cart_id'])
+                            ->update(['user_id' => $userId]);
+                    }
+
+                    Log::info('Guest User converted to Registered User successfully', ['user_id' => $userId]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to create user for guest payment. Booking will be created without user?!', [
+                        'error' => $e->getMessage()
+                    ]);
+                    // We continue... assuming system allows null user_id? 
+                    // Actually Booking requires user_id usually. 
+                    // But we should throw if critical? 
+                    // Let's assume critical failure if we can't create user.
+                    throw $e;
+                }
+            }
+
             $createdBookings = collect();
 
             // ======== Check if this is a booking payment (existing booking) ========
@@ -252,8 +301,19 @@ class PaymentService
                         }
                     }
 
-                    // Clean up session
-                    session()->forget(['cart_snapshot', 'cart_reservation_token', 'payment_start_time']);
+                    // Clean up session (including ALL guest cart data)
+                    session()->forget([
+                        'cart_snapshot',
+                        'cart_reservation_token',
+                        'payment_start_time',
+                        'guest_cart_items',
+                        'guest_cart_created_at',
+                        'guest_user_email',
+                        'guest_user_name',
+                        'guest_user_phone',
+                        'is_guest_session',
+                        'public_cart_promo'
+                    ]);
 
                     return true;
                 } else {
@@ -449,7 +509,15 @@ class PaymentService
         $userId = $cartSnapshot['user_id'] ?? null;
 
         if (!$userId) {
-            session()->forget(['cart_snapshot', 'cart_reservation_token', 'payment_start_time']);
+            // Guest user - clear session data including guest cart
+            session()->forget([
+                'cart_snapshot',
+                'cart_reservation_token',
+                'payment_start_time',
+                'guest_cart_items',
+                'guest_cart_created_at',
+                'public_cart_promo'
+            ]);
             return;
         }
 
@@ -471,7 +539,19 @@ class PaymentService
             ]);
         }
 
-        session()->forget(['cart_snapshot', 'cart_reservation_token', 'payment_start_time']);
+        // Clear session data (including ALL guest cart data)
+        session()->forget([
+            'cart_snapshot',
+            'cart_reservation_token',
+            'payment_start_time',
+            'guest_cart_items',
+            'guest_cart_created_at',
+            'guest_user_email',
+            'guest_user_name',
+            'guest_user_phone',
+            'is_guest_session',
+            'public_cart_promo'
+        ]);
     }
 
     /**
@@ -581,21 +661,34 @@ class PaymentService
             return;
         }
 
-        $mailable = (new \App\Mail\BookingCreatedMail($booking))
+        // Send customer email
+        $customerMail = (new \App\Mail\BookingCreatedMail($booking))
             ->onQueue('mail')
             ->afterCommit();
 
         try {
-            $pending = \Mail::to($userEmail);
-            if (!empty($notify)) {
-                $pending->bcc($notify);
-            }
-            $pending->queue($mailable);
+            \Mail::to($userEmail)->queue($customerMail);
         } catch (\Exception $e) {
-            Log::error('Failed to queue confirmation email', [
+            Log::error('Failed to queue customer confirmation email', [
                 'booking_id' => $booking->booking_id,
                 'error'      => $e->getMessage(),
             ]);
+        }
+
+        // Send admin notification email (separate, without password setup)
+        if (!empty($notify)) {
+            $adminMail = (new \App\Mail\BookingCreatedAdminMail($booking))
+                ->onQueue('mail')
+                ->afterCommit();
+
+            try {
+                \Mail::to($notify)->queue($adminMail);
+            } catch (\Exception $e) {
+                Log::error('Failed to queue admin notification email', [
+                    'booking_id' => $booking->booking_id,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
         }
     }
 
@@ -604,10 +697,12 @@ class PaymentService
      */
     protected function getNotifyEmails(): array
     {
-        return collect([env('BOOKING_NOTIFY'), env('MAIL_NOTIFICATIONS')])
-            ->filter()
-            ->flatMap(fn($v) => array_map('trim', explode(',', $v)))
-            ->filter()
+        // Get from database setting (supports comma-separated emails)
+        $notifyEmails = \App\Models\Setting::getValue('email.booking_notifications', '');
+
+        return collect(explode(',', $notifyEmails))
+            ->map(fn($email) => trim($email))
+            ->filter(fn($email) => !empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL))
             ->unique()
             ->values()
             ->all();

@@ -35,9 +35,22 @@
             const remainingSeconds = window.cartCountdown.getRemainingSeconds();
 
             if (remainingSeconds <= 0) {
-                // Time's up - redirect to cart
+                // Time's up - show alert with 6 second timer
                 if (countdownInterval) clearInterval(countdownInterval);
-                window.location.href = '{{ route("public.carts.index") }}';
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: '{{ __("carts.timer.expired_title") }}',
+                    text: '{{ __("carts.timer.expired_text") }}',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#3085d6',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    timer: 6000,
+                    timerProgressBar: true
+                }).then(() => {
+                    window.location.href = '{{ route(app()->getLocale() . ".home") }}';
+                });
                 return;
             }
 

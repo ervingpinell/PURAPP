@@ -130,6 +130,13 @@ $notes = trim((string)($booking->notes ?? ''));
   <div class="section-title" style="margin:0 0 10px 0; font-weight:700; color:#111827; font-size:24px;">{{ $tTitle }}</div>
   <div style="font-size:13px;color:#6b7280;">{{ $tRef }}: <strong>{{ $reference }}</strong></div>
 
+  {{-- Customer Details --}}
+  <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #e5e7eb; font-size:14px; color:#374151;">
+    <div style="margin-bottom:2px;"><strong>{{ $mailLocale === 'es' ? 'Cliente' : 'Customer' }}:</strong> {{ $booking->user->name ?? '—' }}</div>
+    <div style="margin-bottom:2px;"><strong>Email:</strong> {{ $booking->user->email ?? '—' }}</div>
+    <div><strong>{{ $mailLocale === 'es' ? 'Teléfono' : 'Phone' }}:</strong> {{ $booking->user->phone ?? '—' }}</div>
+  </div>
+
   @php
   // Determinar estado de pago
   $paymentStatus = 'pending'; // default
@@ -183,6 +190,87 @@ $notes = trim((string)($booking->notes ?? ''));
   </div>
   @endif
 </div>
+
+{{-- PASSWORD SETUP CTA (for guest users without password) --}}
+{{-- ONLY show for CUSTOMER emails, NEVER for admin --}}
+@if(!isset($isAdminEmail) || !$isAdminEmail)
+@if(!empty($passwordSetupUrl))
+<div class="section-card" style="margin-bottom:14px; background-color:#f0fdf4; border:1px solid #60a862; padding:20px; border-radius:4px;">
+  {{-- Centered header using table --}}
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td align="center" style="padding-bottom:16px;">
+        <div style="font-size:20px; margin-bottom:8px;">🔑</div>
+        <div style="font-weight:700; color:#111827; font-size:18px; margin-bottom:8px;">
+          {{ $mailLocale === 'es' ? '¡Crea tu cuenta!' : 'Create Your Account!' }}
+        </div>
+        <div style="font-size:14px; color:#374151; line-height:1.5;">
+          {{ $mailLocale === 'es' 
+              ? 'Configura una contraseña para acceder a todos los beneficios' 
+              : 'Set up a password to access all benefits' }}
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  {{-- Benefits List --}}
+  <div style="background-color:#ffffff; border-radius:4px; padding:14px; margin-bottom:16px; border:1px solid #e5e7eb;">
+    <div style="margin-bottom:8px;">
+      <span style="color:#10b981; font-weight:700; margin-right:8px;">✓</span>
+      <span style="color:#374151; font-size:14px;">
+        {{ $mailLocale === 'es' ? 'Ver todas tus reservas' : 'View all your bookings' }}
+      </span>
+    </div>
+    <div style="margin-bottom:8px;">
+      <span style="color:#10b981; font-weight:700; margin-right:8px;">✓</span>
+      <span style="color:#374151; font-size:14px;">
+        {{ $mailLocale === 'es' ? 'Gestionar tu perfil' : 'Manage your profile' }}
+      </span>
+    </div>
+    <div>
+      <span style="color:#10b981; font-weight:700; margin-right:8px;">✓</span>
+      <span style="color:#374151; font-size:14px;">
+        {{ $mailLocale === 'es' ? 'Recibir ofertas exclusivas' : 'Receive exclusive offers' }}
+      </span>
+    </div>
+  </div>
+
+  {{-- Setup Button - Centered using table --}}
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td align="center" style="padding-bottom:12px;">
+        <a href="{{ $passwordSetupUrl }}" target="_blank" style="display:inline-block; background-color:#60a862; color:#ffffff; padding:12px 28px; border-radius:6px; text-decoration:none; font-weight:600; font-size:15px;">
+          {{ $mailLocale === 'es' ? 'Crear Mi Cuenta' : 'Create My Account' }}
+        </a>
+      </td>
+    </tr>
+  </table>
+
+  {{-- Expiration Notice - Centered using table --}}
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td align="center" style="font-size:12px; color:#6b7280; padding-bottom:8px;">
+        {{ $mailLocale === 'es' 
+            ? '⏰ Este enlace expira en 7 días' 
+            : '⏰ This link expires in 7 days' }}
+      </td>
+    </tr>
+  </table>
+
+  {{-- Skip Option - Centered using table --}}
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td align="center" style="font-size:12px; color:#9ca3af;">
+        {{ $mailLocale === 'es' 
+      ? 'Puedes crear tu cuenta más tarde si lo prefieres' 
+      : 'You can create your account later if you prefer' }}
+      </td>
+    </tr>
+  </table>
+</div>
+@endif
+@endif
+
 
 {{-- 2. BOOKING SUMMARY --}}
 <div class="section-card" style="margin-bottom:12px;">

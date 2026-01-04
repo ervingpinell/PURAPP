@@ -47,6 +47,19 @@ Schedule::command('bookings:cleanup-expired', ['--force'])
 
 /*
 |--------------------------------------------------------------------------
+| Limpieza de carritos expirados
+|--------------------------------------------------------------------------
+| Limpia carritos y reservas expiradas para liberar capacidad.
+| Se ejecuta cada hora para mantener la base de datos limpia.
+*/
+Schedule::command('cart:cleanup-reservations')
+    ->hourly()
+    ->timezone(config('app.timezone', 'UTC'))
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/cart-cleanup.log'));
+
+/*
+|--------------------------------------------------------------------------
 | Limpieza de pagos expirados/trabados (Job)
 |--------------------------------------------------------------------------
 | Revisa pagos 'pending'/'processing' vencidos y los marca como failed.
@@ -55,3 +68,69 @@ Schedule::job(new \App\Jobs\ExpirePendingPayments)
     ->everyThirtyMinutes()
     ->timezone(config('app.timezone', 'UTC'))
     ->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Cancel Expired Unpaid Bookings (Pay-Later System)
+|--------------------------------------------------------------------------
+| Cancela bookings pendientes sin pagar que hayan expirado.
+| Se ejecuta cada 5 minutos para liberar capacidad rápidamente.
+*/
+Schedule::command('bookings:cancel-expired-unpaid')
+    ->everyFiveMinutes()
+    ->timezone(config('app.timezone', 'UTC'))
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/cancel-expired-unpaid.log'));
+
+/*
+|--------------------------------------------------------------------------
+| Send Expiry Warnings (Pay-Later System)
+|--------------------------------------------------------------------------
+| Envía alertas al admin 2h antes de que expire un booking sin pagar.
+| Se ejecuta cada 30 minutos para notificaciones oportunas.
+*/
+Schedule::command('bookings:send-expiry-warnings')
+    ->everyThirtyMinutes()
+    ->timezone(config('app.timezone', 'UTC'))
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/expiry-warnings.log'));
+
+/*
+|--------------------------------------------------------------------------
+| Process Auto-Charges (Pay-Later System)
+|--------------------------------------------------------------------------
+| Procesa cobros automáticos y envía recordatorios de pago.
+| Se ejecuta diariamente a las 3:00 AM.
+*/
+Schedule::command('bookings:process-auto-charges')
+    ->dailyAt('03:00')
+    ->timezone(config('app.timezone', 'UTC'))
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/auto-charges.log'));
+
+/*
+|--------------------------------------------------------------------------
+| Cancel Unpaid Bookings Before Tour
+|--------------------------------------------------------------------------
+| Cancela reservas sin pagar X horas antes del tour (configurable).
+| Se ejecuta cada 30 minutos para verificar (tours pueden iniciar a :30).
+*/
+Schedule::command('bookings:cancel-unpaid-before-tour')
+    ->everyThirtyMinutes()
+    ->timezone(config('app.timezone', 'UTC'))
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/cancel-before-tour.log'));
+
+/*
+|--------------------------------------------------------------------------
+| Daily Operations Report
+|--------------------------------------------------------------------------
+| Envía reporte diario en Excel con todas las reservas del día.
+| Hora configurable en settings (default: 06:00).
+*/
+$reportTime = setting('booking.operations_report_time', '06:00');
+Schedule::command('bookings:send-daily-operations-report')
+    ->dailyAt($reportTime)
+    ->timezone(config('app.timezone', 'UTC'))
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/operations-report.log'));

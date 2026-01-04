@@ -12,6 +12,20 @@ return [
         'no_policies_configured' => 'No hay políticas configuradas. Contacta al administrador.',
     ],
 
+    'customer_info' => [
+        'title'              => 'Información del Cliente',
+        'subtitle'           => 'Por favor proporciona tu información de contacto para continuar',
+        'full_name'          => 'Nombre Completo',
+        'email'              => 'Correo Electrónico',
+        'phone'              => 'Teléfono',
+        'optional'           => 'opcional',
+        'placeholder_name'   => 'Juan Pérez',
+        'placeholder_email'  => 'correo@ejemplo.com',
+        'why_need_title'     => '¿Por qué necesitamos esto?',
+        'why_need_text'      => 'Tu correo electrónico será usado para enviar confirmaciones de reserva, actualizaciones y enlaces de pago. Opcionalmente puedes crear una cuenta después de reservar para gestionar tus reservas.',
+        'logged_in_as'       => 'Sesión iniciada como',
+    ],
+
     'steps' => [
         'review'             => 'Revisión',
         'payment'            => 'Pago',

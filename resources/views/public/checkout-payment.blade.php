@@ -298,9 +298,7 @@
 
             if (!$name) {
             $slug = (string) (data_get($cat,'category_slug') ?? data_get($cat,'slug') ?? '');
-            if ($slug) {
-            $name = Str::of($slug)->replace(['_','-'],' ')->title();
-            }
+            if ($slug) $name = Str::of($slug)->replace(['_','-'],' ')->title();
             }
 
             return $name ?: __('adminlte::adminlte.category');
@@ -351,7 +349,18 @@
 
                 <div class="tour-item">
                     <div class="tour-name">
-                        {{ $tour->getTranslatedName() ?? $tour->name }}
+                        @php
+                        $tourName = $tour->name ?? '';
+                        // Try to get translated name from tour data
+                        if (is_object($tour) && method_exists($tour, 'translations')) {
+                        $tourName = optional($tour->translations->where('locale', app()->getLocale())->first())->name ?? $tour->name;
+                        } elseif (is_array($item) && isset($item['tour_name_' . app()->getLocale()])) {
+                        $tourName = $item['tour_name_' . app()->getLocale()];
+                        } elseif (is_array($item) && isset($item['i18n_tour_name'])) {
+                        $tourName = $item['i18n_tour_name'];
+                        }
+                        @endphp
+                        {{ $tourName }}
                     </div>
 
                     <div class="tour-details">
@@ -647,6 +656,36 @@
                     return window.cartCountdown.getRemainingSeconds() <= 0;
                 }
             };
+
+            // Expiration handler with SweetAlert
+            let hasExpired = false;
+            const homeUrl = '{{ route(app()->getLocale() . ".home") }}';
+            const expiredTitle = '{{ __("carts.timer.expired_title") }}';
+            const expiredMessage = '{{ __("carts.timer.expired_text") }}';
+
+            const checkExpiration = async () => {
+                if (window.cartCountdown.isExpired() && !hasExpired) {
+                    hasExpired = true;
+
+                    // Show SweetAlert before redirecting
+                    await Swal.fire({
+                        icon: 'warning',
+                        title: expiredTitle,
+                        text: expiredMessage,
+                        confirmButtonText: 'OK',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        timer: 7000,
+                        timerProgressBar: true
+                    });
+
+                    // Redirect to home
+                    window.location.replace(homeUrl);
+                }
+            };
+
+            // Check every second for immediate response
+            setInterval(checkExpiration, 1000);
         })();
     @endif
 </script>

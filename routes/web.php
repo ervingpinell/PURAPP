@@ -189,7 +189,7 @@ Route::get('/contact', function () {
 */
 Route::get('/cart/count', [PublicCartController::class, 'count'])
     ->name('cart.count')
-    ->middleware('throttle:30,1');
+    ->middleware('throttle:public');
 
 /*
 |--------------------------------------------------------------------------
@@ -209,11 +209,8 @@ Route::prefix('webhooks/payment')->name('webhooks.payment.')->group(function () 
 | Public Payment Token Route (no auth required)
 |--------------------------------------------------------------------------
 */
-// Payment throttle - more generous in local for testing
-$paymentThrottle = app()->environment('local') ? '100,1' : '20,1';
-
 Route::get('/pay/{token}', [\App\Http\Controllers\PaymentController::class, 'showByToken'])
-    ->middleware(["throttle:{$paymentThrottle}", SetLocale::class])
+    ->middleware(['throttle:payment', SetLocale::class])
     ->name('payment.token');
 
 // Terms & Conditions Route (Redirects to policies for now)
@@ -222,9 +219,12 @@ Route::get('/terms', function () {
 })->name('public.terms');
 
 // Payment initiate - works for both authenticated and token-based payments
-Route::post('/payment/record-terms', [\App\Http\Controllers\PaymentController::class, 'recordTerms'])->name('payment.record-terms');
+Route::post('/payment/record-terms', [\App\Http\Controllers\PaymentController::class, 'recordTerms'])
+    ->middleware('throttle:payment')
+    ->name('payment.record-terms');
+
 Route::post('/payment/initiate', [\App\Http\Controllers\PaymentController::class, 'initiate'])
-    ->middleware("throttle:{$paymentThrottle}")
+    ->middleware('throttle:payment')
     ->name('payment.initiate');
 
 /*
@@ -260,7 +260,7 @@ Route::middleware([SetLocale::class])->group(function () {
         // ============================
         Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
         Route::post('/contact', [HomeController::class, 'sendContact'])
-            ->middleware('throttle:6,1')
+            ->middleware('throttle:sensitive')
             ->name('contact.send');
 
         // ============================
@@ -286,7 +286,9 @@ Route::middleware([SetLocale::class])->group(function () {
     // ============================
     // REVIEWS (no prefix)
     // ============================
-    Route::post('/reviews', [ReviewsController::class, 'store'])->name('reviews.store');
+    Route::post('/reviews', [ReviewsController::class, 'store'])
+        ->middleware('throttle:sensitive')
+        ->name('reviews.store');
 
     // Embed with NOINDEX
     Route::get('/reviews/embed/{provider}', function (Request $request, ReviewAggregator $agg, string $provider) {
@@ -295,7 +297,9 @@ Route::middleware([SetLocale::class])->group(function () {
     })->where('provider', '[A-Za-z0-9_-]+')->name('reviews.embed');
 
     Route::get('/r/{token}', [PublicReviewController::class, 'show'])->name('reviews.request.show');
-    Route::post('/r/{token}', [PublicReviewController::class, 'submit'])->name('reviews.request.submit');
+    Route::post('/r/{token}', [PublicReviewController::class, 'submit'])
+        ->middleware('throttle:sensitive')
+        ->name('reviews.request.submit');
     Route::view('/reviews/thanks', 'reviews.thanks')->name('reviews.thanks');
 
     // ============================
@@ -309,7 +313,7 @@ Route::middleware([SetLocale::class])->group(function () {
     // Unlock account
     Route::get('/unlock-account', [UnlockAccountController::class, 'form'])->name('unlock.form');
     Route::post('/unlock-account', [UnlockAccountController::class, 'send'])
-        ->middleware('throttle:3,1')
+        ->middleware('throttle:email')
         ->name('unlock.send');
     Route::get('/unlock-account/{user}/{hash}', [UnlockAccountController::class, 'process'])
         ->middleware('signed')
@@ -317,7 +321,7 @@ Route::middleware([SetLocale::class])->group(function () {
 
     // Email verification - Public verification URL (from email)
     Route::get('/email/verify/public/{id}/{hash}', PublicEmailVerificationController::class)
-        ->middleware(['signed', 'throttle:6,1'])
+        ->middleware(['signed', 'throttle:auth'])
         ->name('verification.public');
 
     // 🆕 Email verification - Notice screen (after registration)
@@ -326,7 +330,7 @@ Route::middleware([SetLocale::class])->group(function () {
     })->middleware('guest')->name('verification.notice');
 
     Route::get('/email/change/confirm/{user}/{token}', [EmailChangeController::class, 'confirm'])
-        ->middleware('signed') // si quieres firma
+        ->middleware('signed')
         ->name('email.change.confirm');
 
     // Email verification - Resend link
@@ -348,7 +352,17 @@ Route::middleware([SetLocale::class])->group(function () {
         }
 
         return back()->with('status', __('auth.verify.resent'));
-    })->middleware('throttle:3,1')->name('verification.public.resend');
+    })->middleware('throttle:email')->name('verification.public.resend');
+
+    // ------------------------------
+    // Promo codes (public - works for guests AND auth users)
+    // ------------------------------
+    Route::post('/apply-promo', [PublicCartController::class, 'applyPromo'])
+        ->middleware('throttle:promo')
+        ->name('public.carts.applyPromo');
+    Route::delete('/remove-promo', [PublicCartController::class, 'removePromo'])
+        ->middleware('throttle:promo')
+        ->name('public.carts.removePromo');
 
     // ------------------------------
     // Profile & cart (private) — READONLY-BLOCKABLE
@@ -357,66 +371,111 @@ Route::middleware([SetLocale::class])->group(function () {
         // Profile
         Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
         Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-        Route::post('/profile/edit', [ProfileController::class, 'update'])->name('profile.update');
+        Route::post('/profile/edit', [ProfileController::class, 'update'])
+            ->middleware('throttle:sensitive')
+            ->name('profile.update');
 
         // My bookings (public controller)
         Route::get('/my-bookings', [PublicBookingController::class, 'myBookings'])->name('my-bookings');
         Route::get('/my-bookings/{booking}/receipt', [PublicBookingController::class, 'downloadReceiptPdf'])
             ->name('bookings.receipt.download');
 
-        // Cart (public controller) — SOLO autenticados
-        Route::get('/my-cart', [PublicCartController::class, 'index'])->name('public.carts.index');
-        Route::post('/carts/add', [PublicCartController::class, 'store'])->name('public.carts.add');
-        Route::delete('/carts/{item}', [PublicCartController::class, 'destroy'])->name('public.carts.destroy');
-        Route::put('/carts/{item}', [PublicCartController::class, 'update'])->name('public.carts.update');
+        // Cart (public controller) — SOLO autenticados (excepto index, add, y update)
+        Route::delete('/carts/{item}', [PublicCartController::class, 'destroy'])
+            ->middleware('throttle:cart')
+            ->name('public.carts.destroy');
 
         // Timer / expiry (no duplicar en /public/*)
-        Route::post('/carts/expire', [PublicCartController::class, 'expire'])->name('public.carts.expire');
-        Route::post('/carts/refresh-expiry', [PublicCartController::class, 'refreshExpiry'])->name('public.carts.refreshExpiry');
+        Route::post('/carts/expire', [PublicCartController::class, 'expire'])
+            ->middleware('throttle:cart')
+            ->name('public.carts.expire');
+        Route::post('/carts/refresh-expiry', [PublicCartController::class, 'refreshExpiry'])
+            ->middleware('throttle:cart')
+            ->name('public.carts.refreshExpiry');
 
-        // Promo público (en sesión)
-        Route::post('/apply-promo', [PublicCartController::class, 'applyPromo'])->name('public.carts.applyPromo');
-        Route::delete('/remove-promo', [PublicCartController::class, 'removePromo'])->name('public.carts.removePromo');
+        // Guest cart expiration
+        Route::post('/guest-cart/expire', [PublicCartController::class, 'expireGuest'])
+            ->middleware('throttle:cart')
+            ->name('public.guest-carts.expire');
 
         // Checkout desde carrito (público)
-        Route::post('/bookings/from-cart', [PublicBookingController::class, 'storeFromCart'])->name('public.bookings.storeFromCart');
+        Route::post('/bookings/from-cart', [PublicBookingController::class, 'storeFromCart'])
+            ->middleware('throttle:payment')
+            ->name('public.bookings.storeFromCart');
 
         // Checkout por token (para reservas creadas por admin)
         Route::get('/checkout/{token}', [PublicCheckoutController::class, 'showByToken'])->name('public.checkout.token');
 
-        // Checkout
-        Route::get('/checkout', [PublicCheckoutController::class, 'show'])->name('public.checkout.show');
-        Route::post('/checkout/process', [PublicCheckoutController::class, 'process'])
-            ->name('public.checkout.process');
-        Route::post('/checkout/accept-terms', [PublicCheckoutController::class, 'acceptTerms'])->name('public.checkout.accept-terms');
-
-        // Payment
-        Route::get('/payment', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payment.show');
-
-        Route::get('/payment/confirm', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.confirm');
-        Route::get('/payment/return', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.return'); // PayPal return URL
-        Route::get('/payment/cancel', [\App\Http\Controllers\PaymentController::class, 'cancel'])->name('payment.cancel');
-        Route::get('/payment/{payment}/status', [\App\Http\Controllers\PaymentController::class, 'status'])->name('payment.status');
+        // Payment Links (Pay-Later System)
+        Route::get('/booking/payment/{bookingReference}', [PublicCheckoutController::class, 'showPayment'])
+            ->name('booking.payment');
+        Route::post('/booking/payment-success', [PublicCheckoutController::class, 'handlePaymentSuccess'])
+            ->middleware('throttle:payment')
+            ->name('booking.payment.success');
     });
+
+    // ------------------------------
+    // Cart ADD route - Available for GUESTS (outside auth)
+    // ------------------------------
+    Route::post('/carts/add', [PublicCartController::class, 'store'])
+        ->middleware('throttle:cart')
+        ->name('public.carts.add');
+
+    // ------------------------------
+    // Cart Remove Guest Item - Available for GUESTS (outside auth)
+    // ------------------------------
+    Route::post('/carts/remove-guest-item', [PublicCartController::class, 'removeGuestItem'])
+        ->middleware('throttle:cart')
+        ->name('public.carts.removeGuestItem');
+
+    // ------------------------------
+    // Cart Update Item - Available for GUESTS (outside auth)
+    // ------------------------------
+    Route::put('/carts/{item}', [PublicCartController::class, 'update'])
+        ->middleware('throttle:cart')
+        ->name('public.carts.update');
+
+    // ------------------------------
+    // Checkout Routes - Available for GUESTS (outside auth)
+    // ------------------------------
+    Route::get('/checkout', [PublicCheckoutController::class, 'show'])->name('public.checkout.show');
+    Route::post('/checkout/process', [PublicCheckoutController::class, 'process'])
+        ->middleware('throttle:payment')
+        ->name('public.checkout.process');
+    Route::post('/checkout/accept-terms', [PublicCheckoutController::class, 'acceptTerms'])
+        ->middleware('throttle:payment')
+        ->name('public.checkout.accept-terms');
+
+    // ------------------------------
+    // Cart View - Available for GUESTS (outside auth)
+    // ------------------------------
+    Route::get('/my-cart', [PublicCartController::class, 'index'])->name('public.carts.index');
+
+    // ------------------------------
+    // Payment Routes - Available for GUESTS (outside auth)
+    // ------------------------------
+    Route::get('/payment', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payment.show');
+    Route::get('/payment/confirm', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.confirm');
+    Route::get('/payment/return', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.return'); // PayPal return URL
+    Route::get('/payment/cancel', [\App\Http\Controllers\PaymentController::class, 'cancel'])->name('payment.cancel');
+    Route::get('/payment/{payment}/status', [\App\Http\Controllers\PaymentController::class, 'status'])->name('payment.status');
 
     // ------------------------------
     // Admin
     // ------------------------------
-    // Route::middleware(['auth', 'verified', 'can:access-admin'])
-    // Route::middleware(['auth', 'verified', 'can:access-admin'])
     Route::middleware(['auth', 'verified', 'can:access-admin'])
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
-
-
 
             // ============================
             // ADMIN PROFILE
             // ============================
             Route::get('/profile', [ProfileController::class, 'adminShow'])->name('profile.show');
             Route::get('/profile/edit', [ProfileController::class, 'adminEdit'])->name('profile.edit');
-            Route::post('/profile/edit', [ProfileController::class, 'adminUpdate'])->name('profile.update');
+            Route::post('/profile/edit', [ProfileController::class, 'adminUpdate'])
+                ->middleware('throttle:sensitive')
+                ->name('profile.update');
 
             // ============================
             // DEBUG: EMAIL TEMPLATES
@@ -606,7 +665,6 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 // TOURS
                 // ============================
-                // Route::middleware(['can:view-tours'])->prefix('tours')->name('tours.')->group(function () {
                 Route::middleware(['can:view-tours'])->prefix('tours')->name('tours.')->group(function () {
 
                     // -------------------- CUTOFF --------------------
@@ -621,16 +679,22 @@ Route::middleware([SetLocale::class])->group(function () {
                     // -------------------- TOUR MAIN CRUD --------------------
                     Route::get('/', [TourController::class, 'index'])->name('index');
                     Route::get('/create', [TourWizardController::class, 'create'])->name('create');
-                    Route::post('/', [TourController::class, 'store'])->name('store');
+                    Route::post('/', [TourController::class, 'store'])
+                        ->middleware('throttle:sensitive')
+                        ->name('store');
                     Route::get('/{tour}/edit', [TourWizardController::class, 'edit'])->name('edit');
-                    Route::put('/{tour}', [TourController::class, 'update'])->name('update');
+                    Route::put('/{tour}', [TourController::class, 'update'])
+                        ->middleware('throttle:sensitive')
+                        ->name('update');
                     Route::patch('/{tour}/toggle', [TourController::class, 'toggle'])->name('toggle');
                     Route::delete('/{tour}', [TourController::class, 'destroy'])->name('destroy');
                     Route::post('/{tour}/restore', [TourController::class, 'restore'])->name('restore');
                     Route::delete('/{tour}/purge', [TourController::class, 'purge'])->name('purge');
 
                     // Extras moved from bottom group
-                    Route::post('/{tour}/duplicate', [TourController::class, 'duplicate'])->name('duplicate')->middleware('can:create-tours');
+                    Route::post('/{tour}/duplicate', [TourController::class, 'duplicate'])
+                        ->middleware(['can:create-tours', 'throttle:sensitive'])
+                        ->name('duplicate');
                     Route::get('/export/excel', [TourController::class, 'exportExcel'])->name('export.excel');
 
                     /**
@@ -639,11 +703,8 @@ Route::middleware([SetLocale::class])->group(function () {
                      * ============================================================
                      */
                     Route::prefix('wizard')->name('wizard.')->group(function () {
-                        // 🔄 CAMBIO: 'tours.wizard.' → 'wizard.'
-
                         // Paso inicial - Detecta drafts existentes
                         Route::get('/create', [TourWizardController::class, 'create'])->name('create');
-
 
                         // 🆕 Gestión de drafts
                         Route::get('/continue/{tour}', [TourWizardController::class, 'continueDraft'])
@@ -653,13 +714,13 @@ Route::middleware([SetLocale::class])->group(function () {
                         Route::delete('/delete-all-drafts', [TourWizardController::class, 'deleteAllDrafts'])
                             ->name('delete-all-drafts');
 
-
                         // Paso 1: Detalles básicos
                         Route::post('/store-details', [TourWizardController::class, 'storeDetails'])
-                            ->middleware('throttle:10,1')
+                            ->middleware('throttle:sensitive')
                             ->name('store.details');
 
                         Route::post('/{tour}/update-details', [TourWizardController::class, 'updateDetails'])
+                            ->middleware('throttle:sensitive')
                             ->name('update.details');
 
                         // Navegación entre pasos
@@ -668,36 +729,47 @@ Route::middleware([SetLocale::class])->group(function () {
 
                         // Paso 2: Itinerario
                         Route::post('/{tour}/store-itinerary', [TourWizardController::class, 'storeItinerary'])
+                            ->middleware('throttle:sensitive')
                             ->name('store.itinerary');
 
                         // Paso 3: Horarios
                         Route::post('/{tour}/store-schedules', [TourWizardController::class, 'storeSchedules'])
+                            ->middleware('throttle:sensitive')
                             ->name('store.schedules');
                         Route::post('/{tour}/quick-schedule', [TourWizardController::class, 'quickStoreSchedule'])
+                            ->middleware('throttle:sensitive')
                             ->name('quick.schedule');
 
                         // Paso 4: Amenidades
                         Route::post('/{tour}/store-amenities', [TourWizardController::class, 'storeAmenities'])
+                            ->middleware('throttle:sensitive')
                             ->name('store.amenities');
                         Route::post('/quick-amenity', [TourWizardController::class, 'quickStoreAmenity'])
+                            ->middleware('throttle:sensitive')
                             ->name('quick.amenity');
 
                         // Paso 5: Precios
                         Route::post('/{tour}/store-prices', [TourWizardController::class, 'storePrices'])
+                            ->middleware('throttle:sensitive')
                             ->name('store.prices');
                         Route::post('/quick-category', [TourWizardController::class, 'quickStoreCategory'])
+                            ->middleware('throttle:sensitive')
                             ->name('quick.category');
 
                         // Paso 6: Publicar
                         Route::post('/{tour}/publish', [TourWizardController::class, 'publish'])
+                            ->middleware('throttle:sensitive')
                             ->name('publish');
 
                         // Quick creates (AJAX)
                         Route::post('/quick-tour-type', [TourWizardController::class, 'quickStoreTourType'])
+                            ->middleware('throttle:sensitive')
                             ->name('quick.tour-type');
                         Route::post('/quick-language', [TourWizardController::class, 'quickStoreLanguage'])
+                            ->middleware('throttle:sensitive')
                             ->name('quick.language');
                         Route::post('/quick-itinerary-item', [TourWizardController::class, 'quickCreateItineraryItem'])
+                            ->middleware('throttle:sensitive')
                             ->name('quick.itinerary-item');
                     });
 
@@ -707,8 +779,6 @@ Route::middleware([SetLocale::class])->group(function () {
                      * ============================================================
                      */
                     Route::prefix('audit')->name('audit.')->middleware('can:view-audit')->group(function () {
-                        // 🔄 CAMBIO: Quitamos el prefijo 'tours.' duplicado
-
                         // Dashboard principal de auditoría
                         Route::get('/dashboard', [AuditController::class, 'dashboard'])
                             ->name('dashboard');
@@ -745,8 +815,6 @@ Route::middleware([SetLocale::class])->group(function () {
                      * ============================================================
                      */
                     Route::prefix('stats')->name('stats.')->group(function () {
-                        // 🔄 CAMBIO: 'tours/stats' → 'stats' (ya estamos en el grupo 'tours')
-
                         Route::get('/drafts', [TourController::class, 'draftsStats'])
                             ->name('drafts');
                         Route::get('/users', [TourController::class, 'usersStats'])
@@ -762,31 +830,44 @@ Route::middleware([SetLocale::class])->group(function () {
                     // -------------------- PRICES (por categoría) --------------------
                     Route::prefix('{tour}/prices')->name('prices.')->group(function () {
                         Route::get('/', [TourPriceController::class, 'index'])->name('index');
-                        Route::post('/', [TourPriceController::class, 'store'])->name('store');
-                        Route::post('/bulk-update', [TourPriceController::class, 'bulkUpdate'])->name('bulk-update');
-                        Route::put('/{price}', [TourPriceController::class, 'update'])->name('update');
+                        Route::post('/', [TourPriceController::class, 'store'])
+                            ->middleware('throttle:sensitive')
+                            ->name('store');
+                        Route::post('/bulk-update', [TourPriceController::class, 'bulkUpdate'])
+                            ->middleware('throttle:sensitive')
+                            ->name('bulk-update');
+                        Route::put('/{price}', [TourPriceController::class, 'update'])
+                            ->middleware('throttle:sensitive')
+                            ->name('update');
                         Route::post('/{price}/toggle', [TourPriceController::class, 'toggle'])->name('toggle');
                         Route::delete('/{price}', [TourPriceController::class, 'destroy'])->name('destroy');
-                        Route::post('/update-taxes', [TourPriceController::class, 'updateTaxes'])->name('update-taxes');
+                        Route::post('/update-taxes', [TourPriceController::class, 'updateTaxes'])
+                            ->middleware('throttle:sensitive')
+                            ->name('update-taxes');
                     });
-
-
 
                     // -------------------- SCHEDULES (Horarios) --------------------
                     Route::prefix('schedule')->name('schedule.')->group(function () {
                         Route::get('/', [TourScheduleController::class, 'index'])->name('index');
-                        Route::post('/', [TourScheduleController::class, 'store'])->name('store');
-                        Route::put('/{schedule}', [TourScheduleController::class, 'update'])->name('update');
+                        Route::post('/', [TourScheduleController::class, 'store'])
+                            ->middleware('throttle:sensitive')
+                            ->name('store');
+                        Route::put('/{schedule}', [TourScheduleController::class, 'update'])
+                            ->middleware('throttle:sensitive')
+                            ->name('update');
                         Route::delete('/{schedule}', [TourScheduleController::class, 'destroy'])->name('destroy');
                         Route::put('/{schedule}/toggle', [TourScheduleController::class, 'toggle'])->name('toggle');
 
                         // Asignación a tours
-                        Route::post('/{tour}/attach', [TourScheduleController::class, 'attach'])->name('attach');
+                        Route::post('/{tour}/attach', [TourScheduleController::class, 'attach'])
+                            ->middleware('throttle:sensitive')
+                            ->name('attach');
                         Route::delete('/{tour}/{schedule}/detach', [TourScheduleController::class, 'detach'])->name('detach');
                         Route::patch('/{tour}/{schedule}/assignment-toggle', [TourScheduleController::class, 'toggleAssignment'])->name('assignment.toggle');
 
                         // 🆕 ACTUALIZAR CAPACIDAD DEL PIVOTE (tour+schedule)
                         Route::patch('/{tour}/{schedule}/pivot', [TourScheduleController::class, 'updatePivotCapacity'])
+                            ->middleware('throttle:sensitive')
                             ->name('update-pivot-capacity');
                     });
 
@@ -797,76 +878,93 @@ Route::middleware([SetLocale::class])->group(function () {
                             Route::get('/', [TourAvailabilityController::class, 'index'])->name('index');
 
                             // Capacidad GLOBAL del tour
-                            Route::patch('/tour/{tour}', [TourAvailabilityController::class, 'updateTourCapacity'])->name('update-tour');
+                            Route::patch('/tour/{tour}', [TourAvailabilityController::class, 'updateTourCapacity'])
+                                ->middleware('throttle:sensitive')
+                                ->name('update-tour');
 
                             // Capacidad BASE por horario (pivot)
-                            Route::patch('/tour/{tour}/schedule/base-capacity', [TourAvailabilityController::class, 'updateScheduleBaseCapacity'])->name('update-schedule-base');
+                            Route::patch('/tour/{tour}/schedule/base-capacity', [TourAvailabilityController::class, 'updateScheduleBaseCapacity'])
+                                ->middleware('throttle:sensitive')
+                                ->name('update-schedule-base');
 
                             // Override puntual por día+horario
-                            Route::post('/tour/{tour}/overrides/day-schedule', [TourAvailabilityController::class, 'upsertDayScheduleOverride'])->name('override-day-schedule');
+                            Route::post('/tour/{tour}/overrides/day-schedule', [TourAvailabilityController::class, 'upsertDayScheduleOverride'])
+                                ->middleware('throttle:sensitive')
+                                ->name('override-day-schedule');
 
                             // Bloqueo puntual por día+horario
-                            Route::post('/tour/{tour}/overrides/day-schedule/toggle-block', [TourAvailabilityController::class, 'toggleBlockDaySchedule'])->name('toggle-block-day-schedule');
+                            Route::post('/tour/{tour}/overrides/day-schedule/toggle-block', [TourAvailabilityController::class, 'toggleBlockDaySchedule'])
+                                ->middleware('throttle:sensitive')
+                                ->name('toggle-block-day-schedule');
 
                             // ===== WIDGET DE ALERTAS (CapacityController) =====
                             Route::prefix('schedules/{schedule}')->group(function () {
-                                Route::patch('/increase', [CapacityController::class, 'increase'])->name('increase');
+                                Route::patch('/increase', [CapacityController::class, 'increase'])
+                                    ->middleware('throttle:sensitive')
+                                    ->name('increase');
                                 Route::get('/details', [CapacityController::class, 'show'])->name('details');
-                                Route::patch('/block', [CapacityController::class, 'block'])->name('block');
+                                Route::patch('/block', [CapacityController::class, 'block'])
+                                    ->middleware('throttle:sensitive')
+                                    ->name('block');
                             });
 
                             // Legacy CRUD directo
-                            Route::post('/', [TourAvailabilityController::class, 'store'])->name('store');
-                            Route::patch('/{availability}', [TourAvailabilityController::class, 'update'])->name('update');
+                            Route::post('/', [TourAvailabilityController::class, 'store'])
+                                ->middleware('throttle:sensitive')
+                                ->name('store');
+                            Route::patch('/{availability}', [TourAvailabilityController::class, 'update'])
+                                ->middleware('throttle:sensitive')
+                                ->name('update');
                             Route::delete('/{availability}', [TourAvailabilityController::class, 'destroy'])->name('destroy');
                         });
                     });
 
-
                     // -------------------- ITINERARY --------------------
                     Route::resource('itinerary', ItineraryController::class)->except(['show']);
                     Route::patch('itineraries/{itinerary}/toggle', [ItineraryController::class, 'toggle'])->name('itinerary.toggle');
-                    Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])->name('itinerary.assignItems');
-                    Route::put('itinerary/{itinerary}/translations', [ItineraryController::class, 'updateTranslations'])->name('itinerary.updateTranslations');
+                    Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])
+                        ->middleware('throttle:sensitive')
+                        ->name('itinerary.assignItems');
+                    Route::put('itinerary/{itinerary}/translations', [ItineraryController::class, 'updateTranslations'])
+                        ->middleware('throttle:sensitive')
+                        ->name('itinerary.updateTranslations');
 
                     // -------------------- ITINERARY ITEMS --------------------
                     Route::resource('itinerary_items', ItineraryItemController::class)->except(['show', 'create', 'edit']);
                     Route::patch('itinerary_items/{itinerary_item}/toggle', [ItineraryItemController::class, 'toggle'])->name('itinerary_items.toggle');
-                    Route::put('itinerary_items/{itinerary_item}/translations', [ItineraryItemController::class, 'updateTranslations'])->name('itinerary_items.updateTranslations');
+                    Route::put('itinerary_items/{itinerary_item}/translations', [ItineraryItemController::class, 'updateTranslations'])
+                        ->middleware('throttle:sensitive')
+                        ->name('itinerary_items.updateTranslations');
                 });
 
-
                 // ============================
-                // TOURS (ADMIN)
+                // TOURS (ADMIN) - IMAGES
                 // ============================
-                // Wrap in view-tours for access control
                 Route::group(['middleware' => ['can:manage-tour-images']], function () {
-                    // Resource Routes REMOVED (Duplicate)
-                    // Additional Actions REMOVED (Moved to main group)
-                    // Tour Order REMOVED (Duplicate/Broken)
-
-                    // Tour Images
                     Route::prefix('tours')->name('tours.')->group(function () {
                         Route::get('images', [TourImageController::class, 'pick'])->name('images.pick');
                         Route::get('{tour}/images', [TourImageController::class, 'index'])->name('images.index');
-                        Route::post('{tour}/images', [TourImageController::class, 'store'])->name('images.store');
-                        Route::put('{tour}/images/reorder', [TourImageController::class, 'reorder'])->name('images.reorder');
-                        Route::put('{tour}/images/{image}', [TourImageController::class, 'update'])->name('images.update');
+                        Route::post('{tour}/images', [TourImageController::class, 'store'])
+                            ->middleware('throttle:sensitive')
+                            ->name('images.store');
+                        Route::put('{tour}/images/reorder', [TourImageController::class, 'reorder'])
+                            ->middleware('throttle:sensitive')
+                            ->name('images.reorder');
+                        Route::put('{tour}/images/{image}', [TourImageController::class, 'update'])
+                            ->middleware('throttle:sensitive')
+                            ->name('images.update');
                         Route::delete('{tour}/images/{image}', [TourImageController::class, 'destroy'])->name('images.destroy');
                         Route::post('{tour}/images/{image}/cover', [TourImageController::class, 'setCover'])->name('images.setCover');
                         Route::post('{tour}/images/bulk-destroy', [TourImageController::class, 'bulkDestroy'])->name('images.bulk-destroy');
-                        Route::delete('{tour}/images/destroy-all', [TourImageController::class, 'destroyAll'])->name('images.destroy-all');
+                        Route::delete('{tour}/images/destroy-all', [TourImageController::class, 'destroyAll'])->name('images.destroyAll');
                     });
                 });
-
-
 
                 // ============================
                 // AMENITIES
                 // ============================
                 Route::group(['middleware' => ['can:view-amenities']], function () {
                     Route::prefix('tours')->name('tours.')->group(function () {
-                        // -------------------- AMENITIES --------------------
                         Route::resource('amenities', AmenityController::class)->except(['show']);
                         Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])->name('amenities.toggle');
                     });
@@ -877,17 +975,26 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 Route::group(['middleware' => ['can:view-tour-availability']], function () {
                     Route::prefix('tours')->name('tours.')->group(function () {
-                        // -------------------- EXCLUDED DATES --------------------
                         Route::prefix('excluded_dates')->name('excluded_dates.')->group(function () {
                             Route::get('/', [TourExcludedDateController::class, 'index'])->name('index');
                             Route::get('/blocked', [TourExcludedDateController::class, 'blocked'])->name('blocked');
-                            Route::post('/', [TourExcludedDateController::class, 'store'])->name('store');
-                            Route::put('/{excludedDate}', [TourExcludedDateController::class, 'update'])->name('update');
+                            Route::post('/', [TourExcludedDateController::class, 'store'])
+                                ->middleware('throttle:sensitive')
+                                ->name('store');
+                            Route::put('/{excludedDate}', [TourExcludedDateController::class, 'update'])
+                                ->middleware('throttle:sensitive')
+                                ->name('update');
                             Route::delete('/{excludedDate}', [TourExcludedDateController::class, 'destroy'])->name('destroy');
                             Route::post('/toggle', [TourExcludedDateController::class, 'toggle'])->name('toggle');
-                            Route::post('/bulk-toggle', [TourExcludedDateController::class, 'bulkToggle'])->name('bulkToggle');
-                            Route::post('/block-all', [TourExcludedDateController::class, 'blockAll'])->name('blockAll');
-                            Route::post('/store-multiple', [TourExcludedDateController::class, 'storeMultiple'])->name('storeMultiple');
+                            Route::post('/bulk-toggle', [TourExcludedDateController::class, 'bulkToggle'])
+                                ->middleware('throttle:sensitive')
+                                ->name('bulkToggle');
+                            Route::post('/block-all', [TourExcludedDateController::class, 'blockAll'])
+                                ->middleware('throttle:sensitive')
+                                ->name('blockAll');
+                            Route::post('/store-multiple', [TourExcludedDateController::class, 'storeMultiple'])
+                                ->middleware('throttle:sensitive')
+                                ->name('storeMultiple');
                             Route::delete('/all', [TourExcludedDateController::class, 'destroyAll'])->name('destroyAll');
                             Route::post('/destroy-selected', [TourExcludedDateController::class, 'destroySelected'])->name('destroySelected');
                         });
@@ -899,7 +1006,6 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 Route::group(['middleware' => ['can:view-tour-prices']], function () {
                     Route::prefix('tours')->name('tours.')->group(function () {
-                        // -------------------- PRICES --------------------
                         Route::post('prices/check-overlap', [TourPriceController::class, 'checkOverlap'])
                             ->name('prices.check-overlap');
                     });
@@ -909,15 +1015,19 @@ Route::middleware([SetLocale::class])->group(function () {
                 // TOUR IMAGES (Unified Permission)
                 // ============================
                 Route::group(['middleware' => ['can:view-tour-images']], function () {
-
                     // Tour Images
                     Route::prefix('tours')->name('tours.')->group(function () {
                         Route::get('images', [TourImageController::class, 'pick'])->name('images.pick');
-                        // Ensure the route parameter matches the controller signature (Tour $tour)
                         Route::get('{tour}/images', [TourImageController::class, 'index'])->name('images.index');
-                        Route::post('{tour}/images', [TourImageController::class, 'store'])->name('images.store');
-                        Route::put('{tour}/images/reorder', [TourImageController::class, 'reorder'])->name('images.reorder');
-                        Route::put('{tour}/images/{image}', [TourImageController::class, 'update'])->name('images.update');
+                        Route::post('{tour}/images', [TourImageController::class, 'store'])
+                            ->middleware('throttle:sensitive')
+                            ->name('images.store');
+                        Route::put('{tour}/images/reorder', [TourImageController::class, 'reorder'])
+                            ->middleware('throttle:sensitive')
+                            ->name('images.reorder');
+                        Route::put('{tour}/images/{image}', [TourImageController::class, 'update'])
+                            ->middleware('throttle:sensitive')
+                            ->name('images.update');
                         Route::delete('{tour}/images/{image}', [TourImageController::class, 'destroy'])->name('images.destroy');
                         Route::post('{tour}/images/{image}/cover', [TourImageController::class, 'setCover'])->name('images.setCover');
                         Route::post('{tour}/images/bulk-destroy', [TourImageController::class, 'bulkDestroy'])->name('images.bulk-destroy');
@@ -928,7 +1038,9 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::prefix('types')->name('types.')->group(function () {
                         Route::get('images', [TourTypeCoverPickerController::class, 'pick'])->name('images.pick');
                         Route::get('images/{tourType}/edit', [TourTypeCoverPickerController::class, 'edit'])->name('images.edit');
-                        Route::put('images/{tourType}', [TourTypeCoverPickerController::class, 'updateCover'])->name('images.update');
+                        Route::put('images/{tourType}', [TourTypeCoverPickerController::class, 'updateCover'])
+                            ->middleware('throttle:sensitive')
+                            ->name('images.update');
                     });
                 });
 
@@ -940,12 +1052,12 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::get('tourtypes/{tourType}/translations', [TourTypeController::class, 'editTranslations'])
                         ->name('tourtypes.translations.edit');
                     Route::put('tourtypes/{tourType}/translations/{locale}', [TourTypeController::class, 'updateTranslation'])
+                        ->middleware('throttle:sensitive')
                         ->name('tourtypes.translations.update');
 
                     Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);
                     Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
                 });
-
 
                 // ============================
                 // LANGUAGES (Part of Settings mostly)
@@ -955,16 +1067,16 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::patch('languages/{language}/toggle', [TourLanguageController::class, 'toggle'])->name('languages.toggle');
                 });
 
-
                 // ============================
                 // HOTELS
                 // ============================
                 Route::group(['middleware' => ['can:view-hotels']], function () {
                     Route::resource('hotels', HotelListController::class)->except(['show', 'create', 'edit']);
-                    Route::post('hotels/sort', [HotelListController::class, 'sort'])->name('hotels.sort');
+                    Route::post('hotels/sort', [HotelListController::class, 'sort'])
+                        ->middleware('throttle:sensitive')
+                        ->name('hotels.sort');
                     Route::patch('hotels/{hotel}/toggle', [HotelListController::class, 'toggle'])->name('hotels.toggle');
                 });
-
 
                 // ============================
                 // MEETING POINTS
@@ -974,14 +1086,9 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::patch('meetingpoints/{meetingpoint}/toggle', [MeetingPointSimpleController::class, 'toggle'])->name('meetingpoints.toggle');
                 });
 
-
                 // ============================
                 // BOOKINGS (ADMIN)
                 // ============================
-                // ============================
-                // BOOKINGS (ADMIN)
-                // ============================
-                // Strict "View = Access" logic
                 Route::group(['middleware' => ['can:view-bookings']], function () {
                     Route::prefix('bookings')
                         ->name('bookings.')
@@ -994,14 +1101,25 @@ Route::middleware([SetLocale::class])->group(function () {
                             // Calendar
                             Route::get('reserved', 'reservedSeats')->name('reserved');
 
-                            // Payment Link
                             // Validate Capacity (AJAX)
                             Route::post('validate-capacity', 'validateCapacity')->name('validate_capacity');
 
-
                             // Payment Link
-                            Route::post('{booking}/payment-link', 'generatePaymentLink')->name('payment_link');
-                            Route::post('{booking}/regenerate-payment-link', 'regeneratePaymentLink')->name('regenerate_payment_link');
+                            Route::post('{booking}/payment-link', 'generatePaymentLink')
+                                ->middleware('throttle:sensitive')
+                                ->name('payment_link');
+                            Route::post('{booking}/regenerate-payment-link', 'regeneratePaymentLink')
+                                ->middleware('throttle:sensitive')
+                                ->name('regenerate_payment_link');
+
+                            // Unpaid Bookings Management (Pay-Later System)
+                            Route::get('unpaid', 'unpaidIndex')->name('unpaid');
+                            Route::post('{booking}/extend', 'extendBooking')
+                                ->middleware('throttle:sensitive')
+                                ->name('extend');
+                            Route::post('{booking}/cancel-unpaid', 'cancelUnpaid')
+                                ->middleware('throttle:sensitive')
+                                ->name('cancel_unpaid');
                             Route::get('calendar-data', 'calendarData')->name('calendarData');
                             Route::get('calendar', 'calendar')->name('calendar');
 
@@ -1011,10 +1129,16 @@ Route::middleware([SetLocale::class])->group(function () {
                             // CRUD principal
                             Route::get('', 'index')->name('index');
                             Route::get('create', 'create')->name('create');
-                            Route::post('', 'store')->name('store');
-                            Route::post('from-cart', 'storeFromCart')->name('storeFromCart');
+                            Route::post('', 'store')
+                                ->middleware('throttle:sensitive')
+                                ->name('store');
+                            Route::post('from-cart', 'storeFromCart')
+                                ->middleware('throttle:sensitive')
+                                ->name('storeFromCart');
                             Route::get('{booking}/edit', 'edit')->name('edit');
-                            Route::match(['put', 'patch'], '{booking}', 'update')->name('update');
+                            Route::match(['put', 'patch'], '{booking}', 'update')
+                                ->middleware('throttle:sensitive')
+                                ->name('update');
                             Route::delete('{booking}', 'destroy')->name('destroy');
 
                             // NUEVO: detalle (show)
@@ -1025,11 +1149,12 @@ Route::middleware([SetLocale::class])->group(function () {
                             Route::delete('{id}/force', 'forceDelete')->name('forceDelete');
 
                             // Estado y recibo
-                            Route::patch('{booking}/status', 'updateStatus')->name('update-status');
+                            Route::patch('{booking}/status', 'updateStatus')
+                                ->middleware('throttle:sensitive')
+                                ->name('update-status');
                             Route::get('{booking}/receipt', 'generateReceipt')->name('receipt');
                         });
                 });
-
 
                 // ============================
                 // PAYMENTS (ADMIN)
@@ -1047,7 +1172,9 @@ Route::middleware([SetLocale::class])->group(function () {
                             Route::get('{payment}', 'show')->name('show');
 
                             // Refund
-                            Route::post('{payment}/refund', 'refund')->name('refund');
+                            Route::post('{payment}/refund', 'refund')
+                                ->middleware('throttle:sensitive')
+                                ->name('refund');
                         });
                 });
 
@@ -1057,16 +1184,24 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::group(['middleware' => ['can:view-carts']], function () {
                     Route::prefix('carts')->name('carts.')->group(function () {
                         Route::get('/', [AdminCartController::class, 'index'])->name('index');
-                        Route::post('/', [AdminCartController::class, 'store'])->name('store');
-                        Route::patch('/{item}', [AdminCartController::class, 'update'])->name('update');
+                        Route::post('/', [AdminCartController::class, 'store'])
+                            ->middleware('throttle:cart')
+                            ->name('store');
+                        Route::patch('/{item}', [AdminCartController::class, 'update'])
+                            ->middleware('throttle:cart')
+                            ->name('update');
                         Route::delete('/item/{item}', [AdminCartController::class, 'destroy'])->name('item.destroy');
 
                         Route::get('/all', [AdminCartController::class, 'allCarts'])->name('all');
                         Route::delete('/{cart}', [AdminCartController::class, 'destroyCart'])->name('destroy');
                         Route::patch('/{cart}/toggle', [AdminCartController::class, 'toggleActive'])->name('toggle');
 
-                        Route::post('/apply-promo', [AdminCartController::class, 'applyPromoAdmin'])->name('applyPromo');
-                        Route::delete('/remove-promo', [AdminCartController::class, 'removePromoAdmin'])->name('removePromo');
+                        Route::post('/apply-promo', [AdminCartController::class, 'applyPromoAdmin'])
+                            ->middleware('throttle:promo')
+                            ->name('applyPromo');
+                        Route::delete('/remove-promo', [AdminCartController::class, 'removePromoAdmin'])
+                            ->middleware('throttle:promo')
+                            ->name('removePromo');
                     });
                 });
 
@@ -1076,12 +1211,15 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::group(['middleware' => ['can:view-promo-codes']], function () {
                     Route::prefix('promo-codes')->name('promoCodes.')->group(function () {
                         Route::get('/', [PromoCodeController::class, 'index'])->name('index');
-                        Route::post('/', [PromoCodeController::class, 'store'])->name('store');
+                        Route::post('/', [PromoCodeController::class, 'store'])
+                            ->middleware('throttle:sensitive')
+                            ->name('store');
                         Route::delete('/{promo}', [PromoCodeController::class, 'destroy'])->name('destroy');
-                        Route::patch('/{promo}/operation', [PromoCodeController::class, 'updateOperation'])->name('updateOperation');
+                        Route::patch('/{promo}/operation', [PromoCodeController::class, 'updateOperation'])
+                            ->middleware('throttle:sensitive')
+                            ->name('updateOperation');
                     });
                 });
-
 
                 // ============================
                 // SETTINGS
@@ -1089,7 +1227,9 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::middleware(['can:view-settings'])->group(function () {
                     Route::prefix('settings')->name('settings.')->group(function () {
                         Route::get('/', [SettingsController::class, 'index'])->name('index');
-                        Route::post('/', [SettingsController::class, 'update'])->name('update');
+                        Route::post('/', [SettingsController::class, 'update'])
+                            ->middleware('throttle:sensitive')
+                            ->name('update');
                     });
                 });
 
@@ -1112,19 +1252,27 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::prefix('reviews')->name('reviews.')->group(function () {
                         Route::get('/', [ReviewAdminController::class, 'index'])->name('index');
                         Route::get('/create', [ReviewAdminController::class, 'create'])->name('create');
-                        Route::post('/', [ReviewAdminController::class, 'store'])->name('store');
+                        Route::post('/', [ReviewAdminController::class, 'store'])
+                            ->middleware('throttle:sensitive')
+                            ->name('store');
                         Route::get('/{review}/edit', [ReviewAdminController::class, 'edit'])->name('edit');
-                        Route::put('/{review}', [ReviewAdminController::class, 'update'])->name('update');
+                        Route::put('/{review}', [ReviewAdminController::class, 'update'])
+                            ->middleware('throttle:sensitive')
+                            ->name('update');
                         Route::delete('/{review}', [ReviewAdminController::class, 'destroy'])->name('destroy');
 
                         Route::post('/{review}/publish', [ReviewAdminController::class, 'publish'])->name('publish');
                         Route::post('/{review}/hide', [ReviewAdminController::class, 'hide'])->name('hide');
                         Route::post('/{review}/flag', [ReviewAdminController::class, 'flag'])->name('flag');
-                        Route::post('/bulk', [ReviewAdminController::class, 'bulk'])->name('bulk');
+                        Route::post('/bulk', [ReviewAdminController::class, 'bulk'])
+                            ->middleware('throttle:sensitive')
+                            ->name('bulk');
 
                         // Replies & Threads
                         Route::get('/{review}/replies/create', [ReviewReplyController::class, 'create'])->name('replies.create');
-                        Route::post('/{review}/replies', [ReviewReplyController::class, 'store'])->name('replies.store');
+                        Route::post('/{review}/replies', [ReviewReplyController::class, 'store'])
+                            ->middleware('throttle:sensitive')
+                            ->name('replies.store');
                         Route::delete('/{review}/replies/{reply}', [ReviewReplyController::class, 'destroy'])->name('replies.destroy');
                         Route::post('/{review}/replies/{reply}/toggle', [ReviewReplyController::class, 'toggle'])->name('replies.toggle');
                         Route::get('/{review}/thread', [ReviewReplyController::class, 'thread'])->name('replies.thread');
@@ -1135,12 +1283,15 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::group(['middleware' => ['can:view-review-requests']], function () {
                     Route::prefix('review-requests')->name('review-requests.')->group(function () {
                         Route::get('/', [ReviewRequestAdminController::class, 'index'])->name('index');
-                        Route::post('/{booking}/send', [ReviewRequestAdminController::class, 'send'])->name('send');
-                        Route::post('/{rr}/resend', [ReviewRequestAdminController::class, 'resend'])->name('resend');
+                        Route::post('/{booking}/send', [ReviewRequestAdminController::class, 'send'])
+                            ->middleware('throttle:email')
+                            ->name('send');
+                        Route::post('/{rr}/resend', [ReviewRequestAdminController::class, 'resend'])
+                            ->middleware('throttle:email')
+                            ->name('resend');
                         Route::delete('/{rr}', [ReviewRequestAdminController::class, 'destroy'])->name('destroy');
                     });
                 });
-
 
                 // ============================
                 // FAQs
@@ -1150,37 +1301,39 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::patch('faqs/{faq}/toggle-status', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
                 });
 
-
                 // ============================
                 // POLICIES
                 // ============================
                 Route::group(['middleware' => ['can:view-policies']], function () {
                     Route::prefix('policies')->name('policies.')->group(function () {
                         Route::get('/', [PolicyController::class, 'index'])->name('index');
-                        Route::post('/', [PolicyController::class, 'store'])->name('store');
-                        Route::put('/{policy:policy_id}', [PolicyController::class, 'update'])->name('update');
+                        Route::post('/', [PolicyController::class, 'store'])
+                            ->middleware('throttle:sensitive')
+                            ->name('store');
+                        Route::put('/{policy:policy_id}', [PolicyController::class, 'update'])
+                            ->middleware('throttle:sensitive')
+                            ->name('update');
                         Route::post('/{policy:policy_id}/toggle', [PolicyController::class, 'toggle'])->name('toggle');
                         Route::delete('/{policy:policy_id}', [PolicyController::class, 'destroy'])->name('destroy');
-                        // Restaurar desde papelera
                         Route::post('/{policy:policy_id}/restore', [PolicyController::class, 'restore'])->name('restore');
-
-                        // Borrado definitivo SOLO para admins (can:policies.forceDelete)
                         Route::delete('/{policy:policy_id}/force', [PolicyController::class, 'forceDestroy'])
                             ->middleware('can:policies.forceDelete')
                             ->name('forceDestroy');
 
-
                         // Policy Sections
                         Route::group(['middleware' => ['can:view-policy-sections']], function () {
                             Route::get('/{policy:policy_id}/sections', [PolicySectionController::class, 'index'])->name('sections.index');
-                            Route::post('/{policy:policy_id}/sections', [PolicySectionController::class, 'store'])->name('sections.store');
-                            Route::put('/{policy:policy_id}/sections/{section}', [PolicySectionController::class, 'update'])->name('sections.update');
+                            Route::post('/{policy:policy_id}/sections', [PolicySectionController::class, 'store'])
+                                ->middleware('throttle:sensitive')
+                                ->name('sections.store');
+                            Route::put('/{policy:policy_id}/sections/{section}', [PolicySectionController::class, 'update'])
+                                ->middleware('throttle:sensitive')
+                                ->name('sections.update');
                             Route::post('/{policy:policy_id}/sections/{section}/toggle', [PolicySectionController::class, 'toggle'])->name('sections.toggle');
                             Route::delete('/{policy:policy_id}/sections/{section}', [PolicySectionController::class, 'destroy'])->name('sections.destroy');
                         });
                     });
                 });
-
 
                 // ============================
                 // TRANSLATIONS
@@ -1191,11 +1344,12 @@ Route::middleware([SetLocale::class])->group(function () {
                         Route::get('/{type}/choose-locale', [TranslationController::class, 'chooseLocale'])->name('choose-locale');
                         Route::get('/{type}/select', [TranslationController::class, 'select'])->name('select');
                         Route::get('/{type}/{id}/edit', [TranslationController::class, 'edit'])->name('edit');
-                        Route::post('/{type}/{id}/update', [TranslationController::class, 'update'])->name('update');
+                        Route::post('/{type}/{id}/update', [TranslationController::class, 'update'])
+                            ->middleware('throttle:sensitive')
+                            ->name('update');
                         Route::post('/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('change-editing-locale');
                     });
                 });
-
 
                 // ============================
                 // REPORTS
@@ -1225,8 +1379,53 @@ Route::middleware([SetLocale::class])->group(function () {
 // ============================
 Route::post('/cookies/accept', [CookieConsentController::class, 'accept'])
     ->name('cookies.accept')
-    ->middleware('throttle:10,1');
+    ->middleware('throttle:preferences');
 
 Route::post('/cookies/reject', [CookieConsentController::class, 'reject'])
     ->name('cookies.reject')
-    ->middleware('throttle:10,1');
+    ->middleware('throttle:preferences');
+
+// ============================
+// PASSWORD SETUP (Guest to Registered User)
+// ============================
+use App\Http\Controllers\Auth\PasswordSetupController;
+
+Route::middleware('guest')->group(function () {
+    Route::get('/account/setup', [PasswordSetupController::class, 'showSetupForm'])
+        ->name('password.setup.show');
+
+    Route::post('/account/setup', [PasswordSetupController::class, 'setupPassword'])
+        ->middleware('throttle:auth')
+        ->name('password.setup.process');
+});
+
+Route::post('/account/setup/resend', [PasswordSetupController::class, 'resendSetupEmail'])
+    ->name('password.setup.resend')
+    ->middleware('throttle:email');
+
+// ============================
+// DEBUG EMAIL PREVIEW ROUTES
+// ============================
+// IMPORTANT: Only available in debug mode - Remove before production deployment
+if (config('app.debug')) {
+    Route::get('/debug/email/booking-created/{bookingId}', function ($bookingId) {
+        $booking = \App\Models\Booking::with([
+            'user',
+            'detail.tour',
+            'detail.schedule',
+            'detail.tourLanguage',
+            'detail.meetingPoint',
+            'redemption.promoCode'
+        ])->findOrFail($bookingId);
+
+        return new \App\Mail\BookingCreatedMail($booking);
+    })->name('debug.email.booking-created');
+
+    Route::get('/debug/email/password-setup/{userId}', function ($userId) {
+        $user = \App\Models\User::findOrFail($userId);
+        $passwordSetupService = app(\App\Services\Auth\PasswordSetupService::class);
+        $token = $passwordSetupService->generateToken($user);
+
+        return new \App\Mail\PasswordSetupMail($user, $token);
+    })->name('debug.email.password-setup');
+}

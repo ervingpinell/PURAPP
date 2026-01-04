@@ -265,6 +265,23 @@ class DashBoardController extends Controller
 
         $criticalCount = $alerts->whereIn('type', ['near_capacity', 'sold_out'])->count();
 
+        // ===== Phase 9: Unpaid Bookings Notifications =====
+        $unpaidBookings = Booking::with(['user', 'tour'])
+            ->where('is_paid', false)
+            ->where('status', 'pending')
+            ->whereNotNull('pending_expires_at')
+            ->where('pending_expires_at', '>', now())
+            ->where('pending_expires_at', '<=', now()->addHours(2))
+            ->orderBy('pending_expires_at')
+            ->limit(5)
+            ->get();
+
+        $unpaidCount = Booking::where('is_paid', false)
+            ->where('status', 'pending')
+            ->whereNotNull('pending_expires_at')
+            ->where('pending_expires_at', '>', now())
+            ->count();
+
         return view('admin.dashboard', compact(
             'totalUsers',
             'totalTours',
@@ -278,6 +295,8 @@ class DashBoardController extends Controller
             'itineraries',
             'upcomingBookings',
             'tomorrowC',
+            'unpaidBookings',
+            'unpaidCount'
         ))->with('capAlerts', $alerts)
             ->with('capCritical', $criticalCount);
     }

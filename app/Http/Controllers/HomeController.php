@@ -533,101 +533,101 @@ class HomeController extends Controller
             $priceIndicators = [];
         }
 
-     // 4. Preparar datos de categorías para JS (travelers.blade.php logic)
-    $groupedCategories = $allPrices->groupBy('category_id');
-    $maxPersonsGlobal = (int) config('booking.max_persons_per_booking', 12);
-    $minAdultsGlobal  = (int) config('booking.min_adults_per_booking', 0);
-    $maxKidsGlobal    = PHP_INT_MAX;
+        // 4. Preparar datos de categorías para JS (travelers.blade.php logic)
+        $groupedCategories = $allPrices->groupBy('category_id');
+        $maxPersonsGlobal = (int) config('booking.max_persons_per_booking', 12);
+        $minAdultsGlobal  = (int) config('booking.min_adults_per_booking', 0);
+        $maxKidsGlobal    = PHP_INT_MAX;
 
-    $categoriesData = [];
-    $loc = app()->getLocale();
-    $fb  = config('app.fallback_locale', 'es');
+        $categoriesData = [];
+        $loc = app()->getLocale();
+        $fb  = config('app.fallback_locale', 'es');
 
-    foreach ($groupedCategories as $catId => $prices) {
-        $firstPrice = $prices->first();
-        $category   = $firstPrice->category;
-        $slug       = $category->slug ?? strtolower($category->name ?? '');
+        foreach ($groupedCategories as $catId => $prices) {
+            $firstPrice = $prices->first();
+            $category   = $firstPrice->category;
+            $slug       = $category->slug ?? strtolower($category->name ?? '');
 
-        // Traducción del nombre de la categoría
-        $catTr   = $this->pickTranslation($category->translations, $loc, $fb);
-        $catName = $catTr->name ?? $category->name;
+            // Traducción del nombre de la categoría
+            $catTr   = $this->pickTranslation($category->translations, $loc, $fb);
+            $catName = $catTr->name ?? $category->name;
 
-        // Reglas de precios crudas desde DB
-        $priceRules = $prices->map(function ($price) {
-            return [
-                'price'       => (float) $price->price,
-                'min'         => (int) $price->min_quantity,
-                'max'         => (int) $price->max_quantity,
-                'valid_from'  => $price->valid_from ? $price->valid_from->format('Y-m-d') : null,
-                'valid_until' => $price->valid_until ? $price->valid_until->format('Y-m-d') : null,
-                'is_default'  => is_null($price->valid_from) && is_null($price->valid_until),
-            ];
-        })->values();
+            // Reglas de precios crudas desde DB
+            $priceRules = $prices->map(function ($price) {
+                return [
+                    'price'       => (float) $price->price,
+                    'min'         => (int) $price->min_quantity,
+                    'max'         => (int) $price->max_quantity,
+                    'valid_from'  => $price->valid_from ? $price->valid_from->format('Y-m-d') : null,
+                    'valid_until' => $price->valid_until ? $price->valid_until->format('Y-m-d') : null,
+                    'is_default'  => is_null($price->valid_from) && is_null($price->valid_until),
+                ];
+            })->values();
 
-        // Aplicar restricciones globales a CADA regla
-        $priceRules = $priceRules->map(function (array $rule) use (
-            $slug,
-            $minAdultsGlobal,
-            $maxKidsGlobal,
-            $maxPersonsGlobal
-        ) {
+            // Aplicar restricciones globales a CADA regla
+            $priceRules = $priceRules->map(function (array $rule) use (
+                $slug,
+                $minAdultsGlobal,
+                $maxKidsGlobal,
+                $maxPersonsGlobal
+            ) {
+                if (in_array($slug, ['adult', 'adulto', 'adults'], true)) {
+                    $rule['min'] = max($rule['min'], $minAdultsGlobal);
+                } elseif (in_array($slug, ['kid', 'nino', 'child', 'kids', 'children'], true)) {
+                    $rule['max'] = min($rule['max'], $maxKidsGlobal);
+                }
+
+                // Nunca más que el máximo global por reserva
+                $rule['max'] = min($rule['max'], $maxPersonsGlobal);
+
+                // Evitar casos raros min > max
+                if ($rule['max'] < $rule['min']) {
+                    $rule['max'] = $rule['min'];
+                }
+
+                return $rule;
+            });
+
+            // Elegir regla default DESPUÉS de ajustar los límites
+            $defaultRule = $priceRules->firstWhere('is_default', true) ?? $priceRules->first();
+
+            $min = $defaultRule['min'];
+            $max = $defaultRule['max'];
+
+            // Inicial por categoría (ej: 2 adultos)
             if (in_array($slug, ['adult', 'adulto', 'adults'], true)) {
-                $rule['min'] = max($rule['min'], $minAdultsGlobal);
+                $min = max($min, $minAdultsGlobal);
             } elseif (in_array($slug, ['kid', 'nino', 'child', 'kids', 'children'], true)) {
-                $rule['max'] = min($rule['max'], $maxKidsGlobal);
+                $max = min($max, $maxKidsGlobal);
             }
 
-            // Nunca más que el máximo global por reserva
-            $rule['max'] = min($rule['max'], $maxPersonsGlobal);
+            $max     = min($max, $maxPersonsGlobal);
+            $initial = in_array($slug, ['adult', 'adulto', 'adults'], true) ? max($min, 2) : 0;
 
-            // Evitar casos raros min > max
-            if ($rule['max'] < $rule['min']) {
-                $rule['max'] = $rule['min'];
+            // Texto de rango de edad
+            $ageMin       = $category->age_min;
+            $ageMax       = $category->age_max;
+            $ageRangeText = null;
+            if ($ageMin && $ageMax) {
+                $ageRangeText = __('m_bookings.travelers.age_between', ['min' => $ageMin, 'max' => $ageMax]);
+            } elseif ($ageMin) {
+                $ageRangeText = __('m_bookings.travelers.age_from', ['min' => $ageMin]);
+            } elseif ($ageMax) {
+                $ageRangeText = __('m_bookings.travelers.age_to', ['max' => $ageMax]);
             }
 
-            return $rule;
-        });
-
-        // Elegir regla default DESPUÉS de ajustar los límites
-        $defaultRule = $priceRules->firstWhere('is_default', true) ?? $priceRules->first();
-
-        $min = $defaultRule['min'];
-        $max = $defaultRule['max'];
-
-        // Inicial por categoría (ej: 2 adultos)
-        if (in_array($slug, ['adult', 'adulto', 'adults'], true)) {
-            $min = max($min, $minAdultsGlobal);
-        } elseif (in_array($slug, ['kid', 'nino', 'child', 'kids', 'children'], true)) {
-            $max = min($max, $maxKidsGlobal);
+            $categoriesData[] = [
+                'id'        => (int) $catId,
+                'name'      => $catName,
+                'slug'      => $slug,
+                'price'     => (float) $defaultRule['price'],
+                'min'       => $min,
+                'max'       => $max,
+                'initial'   => $initial,
+                'age_text'  => $ageRangeText,
+                'rules'     => $priceRules,
+            ];
         }
-
-        $max     = min($max, $maxPersonsGlobal);
-        $initial = in_array($slug, ['adult', 'adulto', 'adults'], true) ? max($min, 2) : 0;
-
-        // Texto de rango de edad
-        $ageMin       = $category->age_min;
-        $ageMax       = $category->age_max;
-        $ageRangeText = null;
-        if ($ageMin && $ageMax) {
-            $ageRangeText = __('m_bookings.travelers.age_between', ['min' => $ageMin, 'max' => $ageMax]);
-        } elseif ($ageMin) {
-            $ageRangeText = __('m_bookings.travelers.age_from', ['min' => $ageMin]);
-        } elseif ($ageMax) {
-            $ageRangeText = __('m_bookings.travelers.age_to', ['max' => $ageMax]);
-        }
-
-        $categoriesData[] = [
-            'id'        => (int) $catId,
-            'name'      => $catName,
-            'slug'      => $slug,
-            'price'     => (float) $defaultRule['price'],
-            'min'       => $min,
-            'max'       => $max,
-            'initial'   => $initial,
-            'age_text'  => $ageRangeText,
-            'rules'     => $priceRules,
-        ];
-    }
 
 
         // 5. Calcular reglas de fechas (Cutoff & Lead Days)
@@ -749,80 +749,79 @@ class HomeController extends Controller
             abort(500);
         }
     }
-public function sendContact(Request $request)
-{
-    try {
-        // 1) Validación inicial, incluyendo Turnstile
-        $validated = $request->validate([
-            'name'    => 'bail|required|string|min:2|max:100',
-            'email'   => 'bail|required|email',
-            'subject' => 'bail|required|string|min:3|max:150',
-            'message' => 'bail|required|string|min:5|max:1000',
-            'website' => 'nullable|string|max:50',
-            // Turnstile genera este campo automáticamente
-            'cf-turnstile-response' => 'required|string',
-        ]);
+    public function sendContact(Request $request)
+    {
+        try {
+            // 1) Validación inicial, incluyendo Turnstile
+            $validated = $request->validate([
+                'name'    => 'bail|required|string|min:2|max:100',
+                'email'   => 'bail|required|email',
+                'subject' => 'bail|required|string|min:3|max:150',
+                'message' => 'bail|required|string|min:5|max:1000',
+                'website' => 'nullable|string|max:50',
+                // Turnstile genera este campo automáticamente
+                'cf-turnstile-response' => 'required|string',
+            ]);
 
-        // 2) Honeypot: simulamos éxito pero no hacemos nada
-        if (!empty($validated['website'])) {
+            // 2) Honeypot: simulamos éxito pero no hacemos nada
+            if (!empty($validated['website'])) {
+                return back()->with(
+                    'success',
+                    __('adminlte::adminlte.contact_spam_success')
+                );
+            }
+
+            // 3) Verificar Turnstile con Cloudflare
+            $secret = config('services.turnstile.secret_key');
+
+            if ($secret) {
+                $verifyResponse = Http::asForm()->post(
+                    'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+                    [
+                        'secret'   => $secret,
+                        'response' => $validated['cf-turnstile-response'] ?? '',
+                        'remoteip' => $request->ip(),
+                    ]
+                );
+
+                if (!$verifyResponse->ok() || !$verifyResponse->json('success')) {
+                    // Puedes loguear detalle para debug
+                    Log::warning('contact.turnstile.failed', [
+                        'ip'      => $request->ip(),
+                        'payload' => $verifyResponse->json(),
+                    ]);
+
+                    return back()
+                        ->withInput($request->except('website'))
+                        ->withErrors([
+                            'cf-turnstile-response' => __('adminlte::adminlte.bot_detection_failed'),
+                        ]);
+                }
+            } else {
+                // Si no hay secret configurado, opcionalmente puedes loguearlo:
+                Log::warning('contact.turnstile.not_configured');
+            }
+
+            // 4) Enviar correo normalmente
+            $recipient = env('MAIL_TO_CONTACT', config('mail.from.address', 'info@greenvacationscr.com'));
+
+            Mail::to($recipient)->queue(
+                new ContactMessage($validated + ['locale' => app()->getLocale()])
+            );
+
             return back()->with(
                 'success',
-                __('adminlte::adminlte.contact_spam_success')
+                __('adminlte::adminlte.contact_success')
             );
+        } catch (Throwable $e) {
+            Log::error('contact.send.failed', [
+                'ip'    => $request->ip(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->withInput()->withErrors([
+                'email' => __('adminlte::adminlte.contact_error'),
+            ]);
         }
-
-        // 3) Verificar Turnstile con Cloudflare
-        $secret = config('services.turnstile.secret_key');
-
-        if ($secret) {
-            $verifyResponse = Http::asForm()->post(
-                'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-                [
-                    'secret'   => $secret,
-                    'response' => $validated['cf-turnstile-response'] ?? '',
-                    'remoteip' => $request->ip(),
-                ]
-            );
-
-            if (!$verifyResponse->ok() || !$verifyResponse->json('success')) {
-                // Puedes loguear detalle para debug
-                Log::warning('contact.turnstile.failed', [
-                    'ip'      => $request->ip(),
-                    'payload' => $verifyResponse->json(),
-                ]);
-
-                return back()
-                    ->withInput($request->except('website'))
-                    ->withErrors([
-                        'cf-turnstile-response' => __('adminlte::adminlte.bot_detection_failed'),
-                    ]);
-            }
-        } else {
-            // Si no hay secret configurado, opcionalmente puedes loguearlo:
-            Log::warning('contact.turnstile.not_configured');
-        }
-
-        // 4) Enviar correo normalmente
-        $recipient = env('MAIL_TO_CONTACT', config('mail.from.address', 'info@greenvacationscr.com'));
-
-        Mail::to($recipient)->queue(
-            new ContactMessage($validated + ['locale' => app()->getLocale()])
-        );
-
-        return back()->with(
-            'success',
-            __('adminlte::adminlte.contact_success')
-        );
-    } catch (Throwable $e) {
-        Log::error('contact.send.failed', [
-            'ip'    => $request->ip(),
-            'error' => $e->getMessage(),
-        ]);
-
-        return back()->withInput()->withErrors([
-            'email' => __('adminlte::adminlte.contact_error'),
-        ]);
     }
-}
-
 }

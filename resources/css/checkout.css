@@ -65,7 +65,11 @@ body.payment-page .whatsapp-panel {
 }
 
 .step.active {
-    background: linear-gradient(135deg, var(--payment-primary), var(--payment-primary-dark));
+    background: linear-gradient(
+        135deg,
+        var(--payment-primary),
+        var(--payment-primary-dark)
+    );
     color: #fff;
     box-shadow: 0 4px 6px -1px rgba(96, 168, 98, 0.3);
 }
@@ -183,7 +187,7 @@ body.payment-page .whatsapp-panel {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: .75rem;
+    gap: 0.75rem;
 }
 
 .summary-header h3 {
@@ -192,8 +196,8 @@ body.payment-page .whatsapp-panel {
 }
 
 .summary-header .count {
-    font-size: .85rem;
-    opacity: .9;
+    font-size: 0.85rem;
+    opacity: 0.9;
 }
 
 /* Payment “booking” card (STEP 2) */
@@ -250,7 +254,11 @@ body.payment-page .whatsapp-panel {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background: linear-gradient(135deg, var(--payment-primary), var(--payment-primary-dark));
+    background: linear-gradient(
+        135deg,
+        var(--payment-primary),
+        var(--payment-primary-dark)
+    );
     color: #fff;
     box-shadow: 0 4px 6px -1px rgba(96, 168, 98, 0.3);
     padding: 0.9rem 1.25rem;
@@ -301,8 +309,13 @@ body.payment-page .whatsapp-panel {
 }
 
 @keyframes pulse-countdown {
-    0%, 100 { transform: scale(1); }
-    50% { transform: scale(1.02); }
+    0%,
+    100 {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
 }
 
 .countdown-icon {
@@ -334,7 +347,7 @@ body.payment-page .whatsapp-panel {
     font-size: 1.75rem;
     font-weight: 700;
     color: #92400e;
-    font-family: 'Courier New', monospace;
+    font-family: "Courier New", monospace;
     letter-spacing: 0.1em;
 }
 
@@ -393,7 +406,7 @@ body.payment-page .whatsapp-panel {
 
     .summary-header {
         margin: -1.5rem -1.5rem 1.25rem;
-        padding: .9rem 1.1rem;
+        padding: 0.9rem 1.1rem;
     }
 
     .panel-title {
@@ -501,7 +514,7 @@ body.payment-page .whatsapp-panel {
 
     .summary-header {
         margin: -1.25rem -1rem 1.25rem;
-        padding: .8rem .9rem;
+        padding: 0.8rem 0.9rem;
     }
 
     .panel-title {
@@ -762,516 +775,521 @@ body.payment-page .whatsapp-panel {
 
 /* Contenedor principal */
 .checkout-container {
-  max-width: 1200px;
-  margin: 1.5rem auto 2.5rem;
-  padding: 0 1rem;
+    max-width: 1200px;
+    margin: 1.5rem auto 2.5rem;
+    padding: 0 1rem;
 }
 
 /* Grid: términos (izq) + resumen (der) */
 .checkout-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.1fr);
-  gap: 1.75rem;
-  align-items: flex-start;
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.1fr);
+    gap: 1.75rem;
+    align-items: flex-start;
 }
 
 /* Panel de términos y panel de resumen reutilizan .form-panel / .summary-panel */
 .form-panel,
 .summary-panel {
-  background: #fff;
-  border-radius: 1rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
 }
 
 /* Panel de términos */
 .form-panel {
-  padding: 1.75rem 1.75rem 1.5rem;
+    padding: 1.75rem 1.75rem 1.5rem;
+    border: 2px solid #e5e7eb;
 }
 
 .form-panel .panel-title {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.35rem;
 }
 
 .form-panel .panel-title i {
-  font-size: 1.1rem;
+    font-size: 1.1rem;
 }
 
 .form-panel .panel-subtitle {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.9rem;
-  color: #6b7280;
-  margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-bottom: 1.25rem;
 }
 
 .required-notice {
-  background: #fff7ed;
-  border-radius: 0.75rem;
-  padding: 0.9rem 1rem;
-  border: 1px solid #fed7aa;
-  font-size: 0.86rem;
-  margin-bottom: 1rem;
-  color: #7c2d12;
+    background: #fff7ed;
+    border-radius: 0.75rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid #fed7aa;
+    font-size: 0.86rem;
+    margin-bottom: 1rem;
+    color: #7c2d12;
 }
 
 /* Bloque de políticas */
 .policy-section {
-  border-radius: 0.85rem;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
-  overflow: hidden;
-  margin-bottom: 1.1rem;
+    border-radius: 0.85rem;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    overflow: hidden;
+    margin-bottom: 1.1rem;
 }
 
 .policy-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.9rem 1rem;
-  background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    background: #f3f4f6;
 }
 
 .policy-header h3 {
-  font-size: 1rem;
-  margin: 0;
-  font-weight: 600;
-  color: #111827;
+    font-size: 1rem;
+    margin: 0;
+    font-weight: 600;
+    color: #111827;
 }
 
 .policy-version {
-  font-size: 0.78rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  background: #e5e7eb;
-  color: #4b5563;
+    font-size: 0.78rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: #e5e7eb;
+    color: #4b5563;
 }
 
 /* Contenido scrolleable de términos */
 .policy-content {
-  max-height: 260px;
-  overflow-y: auto;
-  padding: 0.9rem 1rem;
-  background: #fff;
-  font-size: 0.86rem;
-  line-height: 1.5;
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 0.9rem 1rem;
+    background: #fff;
+    font-size: 0.86rem;
+    line-height: 1.5;
 }
 
 .policy-warning {
-  margin-top: 0.75rem;
-  font-size: 0.8rem;
-  color: #b91c1c;
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    color: #b91c1c;
 }
 
 /* Bloque de aceptación */
 .acceptance-box {
-  border-radius: 0.85rem;
-  padding: 0.9rem 1rem;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+    border-radius: 0.85rem;
+    padding: 0.9rem 1rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .acceptance-box.disabled {
-  opacity: 0.6;
+    opacity: 0.6;
 }
 
 .acceptance-checkbox {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-  font-size: 0.9rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.9rem;
 }
 
 .acceptance-checkbox input[type="checkbox"] {
-  margin-top: 0.2rem;
+    margin-top: 0.2rem;
 }
 
 /* Botones de acción en el checkout */
 .btn-back,
 .btn-payment {
-  border-radius: 0.65rem;
-  padding: 0.8rem 1.25rem;
-  font-weight: 600;
-  font-size: 0.9rem;
+    border-radius: 0.65rem;
+    padding: 0.8rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.9rem;
 }
 
 .btn-back {
-  background: #fff;
-  color: #374151;
-  border: 2px solid #e5e7eb;
+    background: #fff;
+    color: #374151;
+    border: 2px solid #e5e7eb;
 }
 
 .btn-back:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
+    background: #f9fafb;
+    border-color: #d1d5db;
 }
 
 .btn-payment {
-  background: linear-gradient(135deg, var(--primary-color, #60a862), var(--primary-dark, #256d1b));
-  border: 0;
-  color: #fff;
-  box-shadow: 0 4px 8px rgba(37, 109, 27, 0.35);
+    background: linear-gradient(
+        135deg,
+        var(--primary-color, #60a862),
+        var(--primary-dark, #256d1b)
+    );
+    border: 0;
+    color: #fff;
+    box-shadow: 0 4px 8px rgba(37, 109, 27, 0.35);
 }
 
 .btn-payment:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  box-shadow: none;
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
 }
 
 /* Panel de resumen del checkout */
 .checkout-container .summary-panel {
-  padding: 1.5rem 1.5rem 1.25rem;
+    padding: 1.5rem 1.5rem 1.25rem;
 }
 
 /* Scroll interno de ítems */
 .summary-panel .items-scroll {
-  max-height: 320px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  margin-bottom: 1rem;
+    max-height: 320px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
 }
 
 /* ======= TARJETAS DEL RESUMEN (STEP 1) ======= */
 .tour-item {
-  border-radius: .75rem;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
-  padding: .75rem .9rem .8rem;
-  margin-bottom: .75rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    padding: 0.75rem 0.9rem 0.8rem;
+    margin-bottom: 0.75rem;
 }
 
 .tour-name {
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: .35rem;
-  font-size: .95rem;
-  word-break: break-word;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.35rem;
+    font-size: 0.95rem;
+    word-break: break-word;
 }
 
 .tour-details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .3rem .75rem;
-  font-size: .8rem;
-  color: #6b7280;
-  margin-bottom: .25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.75rem;
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
 }
 
 .tour-details span {
-  display: inline-flex;
-  align-items: center;
-  gap: .25rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
 }
 
 .tour-details i {
-  font-size: .75rem;
+    font-size: 0.75rem;
 }
 
 /* Bloques secundarios (pickup, addons, etc.) */
 .secondary-block {
-  margin-top: .45rem;
-  padding: .5rem .6rem;
-  border-radius: .6rem;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
+    margin-top: 0.45rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 0.6rem;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
 }
 
 .block-title {
-  display: flex;
-  align-items: center;
-  gap: .35rem;
-  font-size: .8rem;
-  font-weight: 600;
-  margin-bottom: .25rem;
-  color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #111827;
 }
 
 /* Categorías / pax */
 .categories-section {
-  margin-top: .45rem;
+    margin-top: 0.45rem;
 }
 
 .category-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: .5rem;
-  font-size: .8rem;
-  padding: .3rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    padding: 0.3rem 0;
 }
 
 .category-left {
-  display: flex;
-  align-items: center;
-  gap: .35rem;
-  flex-wrap: wrap;
-  max-width: 70%;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    max-width: 70%;
 }
 
 .category-left i {
-  font-size: .8rem;
+    font-size: 0.8rem;
 }
 
 .qty-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 .4rem;
-  border-radius: 999px;
-  background: #e5e7eb;
-  font-size: .75rem;
-  color: #374151;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: #e5e7eb;
+    font-size: 0.75rem;
+    color: #374151;
 }
 
 .price-detail {
-  font-size: .75rem;
-  color: #6b7280;
+    font-size: 0.75rem;
+    color: #6b7280;
 }
 
 .category-total {
-  font-weight: 600;
-  white-space: nowrap;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
 /* Total por tour */
 .tour-price {
-  margin-top: .45rem;
-  text-align: right;
-  font-weight: 700;
-  color: #111827;
-  font-size: .95rem;
+    margin-top: 0.45rem;
+    text-align: right;
+    font-weight: 700;
+    color: #111827;
+    font-size: 0.95rem;
 }
 
 /* Footer del resumen */
 .summary-footer {
-  border-top: 1px solid #e5e7eb;
-  padding-top: .75rem;
-  margin-top: .75rem;
-  display: flex;
-  flex-direction: column;
-  gap: .5rem;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .total-note {
-  font-size: .78rem;
-  color: #6b7280;
-  margin-top: .2rem;
+    font-size: 0.78rem;
+    color: #6b7280;
+    margin-top: 0.2rem;
 }
 
 /* Badge de cancelación gratuita */
 .cancellation-badge {
-  display: flex;
-  align-items: flex-start;
-  gap: .5rem;
-  padding: .5rem .6rem;
-  border-radius: .75rem;
-  background: #ecfdf3;
-  border: 1px solid #bbf7d0;
-  font-size: .8rem;
-  margin-top: .4rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 0.75rem;
+    background: #ecfdf3;
+    border: 1px solid #bbf7d0;
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
 }
 
 .cancellation-badge i {
-  color: #16a34a;
-  margin-top: .05rem;
+    color: #16a34a;
+    margin-top: 0.05rem;
 }
 
 .cancellation-badge small {
-  display: block;
-  font-size: .75rem;
-  color: #4b5563;
+    display: block;
+    font-size: 0.75rem;
+    color: #4b5563;
 }
 
 /* Botones inferiores del resumen */
 .btn.btn-details,
 .btn.btn-edit {
-  width: 100%;
-  padding: .7rem 1rem;
-  border-radius: .65rem;
-  font-size: .9rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: .35rem;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border-radius: 0.65rem;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
 }
 
 .btn.btn-details {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  color: #374151;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    color: #374151;
 }
 
 .btn.btn-edit {
-  background: transparent;
-  border: 1px dashed #d1d5db;
-  color: #374151;
+    background: transparent;
+    border: 1px dashed #d1d5db;
+    color: #374151;
 }
 
 /* Badge ghost reutilizado */
 .badge-ghost {
-  display: inline-flex;
-  align-items: center;
-  gap: .25rem;
-  padding: .1rem .55rem;
-  border-radius: 999px;
-  background: #eef2ff;
-  color: #3730a3;
-  font-size: .75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.1rem 0.55rem;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #3730a3;
+    font-size: 0.75rem;
 }
 
 /* Modal de detalles (orderModal) */
 .item-detail {
-  padding-bottom: .85rem;
-  border-bottom: 1px solid #e5e7eb;
-  margin-bottom: .85rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 0.85rem;
 }
 
 .item-detail:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
+    border-bottom: none;
+    margin-bottom: 0;
 }
 
 .item-header .price {
-  font-weight: 600;
+    font-weight: 600;
 }
 
 .item-meta {
-  font-size: .82rem;
-  color: #6b7280;
+    font-size: 0.82rem;
+    color: #6b7280;
 }
 
 .item-meta i {
-  margin-right: .25rem;
+    margin-right: 0.25rem;
 }
 
 /* =========================
    BREAKPOINTS CHECKOUT
    ========================= */
 
-@media (max-width: 1023px) {
-  .checkout-container {
-    margin: 1.25rem auto 2rem;
-  }
-  .checkout-grid {
-    grid-template-columns: 1fr;
-  }
-  .checkout-container .summary-panel {
-    position: relative;
-    top: 0;
-  }
+@media (max-width: 767px) {
+    .checkout-container {
+        margin: 1.25rem auto 2rem;
+    }
+    .checkout-grid {
+        grid-template-columns: 1fr;
+    }
+    .checkout-container .summary-panel {
+        position: relative;
+        top: 0;
+    }
 }
 
 @media (max-width: 767.98px) {
-  .checkout-container {
-    margin: 1rem auto 1.5rem;
-    padding: 0 0.75rem;
-  }
+    .checkout-container {
+        margin: 1rem auto 1.5rem;
+        padding: 0 0.75rem;
+    }
 
-  .form-panel,
-  .checkout-container .summary-panel {
-    padding: 1.25rem 1.1rem;
-    border-radius: 0.75rem;
-  }
+    .form-panel,
+    .checkout-container .summary-panel {
+        padding: 1.25rem 1.1rem;
+        border-radius: 0.75rem;
+    }
 
-  .form-panel .panel-title {
-    font-size: 1.1rem;
-  }
+    .form-panel .panel-title {
+        font-size: 1.1rem;
+    }
 
-  .form-panel .panel-subtitle {
-    font-size: 0.8rem;
-    margin-bottom: 1rem;
-  }
+    .form-panel .panel-subtitle {
+        font-size: 0.8rem;
+        margin-bottom: 1rem;
+    }
 
-  .policy-content {
-    max-height: 220px;
-    font-size: 0.8rem;
-  }
+    .policy-content {
+        max-height: 220px;
+        font-size: 0.8rem;
+    }
 
-  .acceptance-checkbox {
-    font-size: 0.82rem;
-  }
+    .acceptance-checkbox {
+        font-size: 0.82rem;
+    }
 
-  .btn-back,
-  .btn-payment {
-    width: 100%;
-    justify-content: center;
-    display: inline-flex;
-  }
+    .btn-back,
+    .btn-payment {
+        width: 100%;
+        justify-content: center;
+        display: inline-flex;
+    }
 
-  .checkout-container .d-flex.gap-3 {
-    flex-direction: column;
-    gap: 0.6rem !important;
-  }
+    .checkout-container .d-flex.gap-3 {
+        flex-direction: column;
+        gap: 0.6rem !important;
+    }
 
-  .summary-panel .items-scroll {
-    max-height: 260px;
-  }
+    .summary-panel .items-scroll {
+        max-height: 260px;
+    }
 }
 
 @media (max-width: 575.98px) {
-  .checkout-container {
-    margin: 0.75rem auto 1.25rem;
-    padding: 0 0.5rem;
-  }
+    .checkout-container {
+        margin: 0.75rem auto 1.25rem;
+        padding: 0 0.5rem;
+    }
 
-  .form-panel,
-  .checkout-container .summary-panel {
-    padding: 1.1rem 0.9rem;
-    border-radius: 0.6rem;
-  }
+    .form-panel,
+    .checkout-container .summary-panel {
+        padding: 1.1rem 0.9rem;
+        border-radius: 0.6rem;
+    }
 
-  .required-notice {
-    font-size: 0.78rem;
-  }
+    .required-notice {
+        font-size: 0.78rem;
+    }
 
-  .policy-header h3 {
-    font-size: 0.9rem;
-  }
+    .policy-header h3 {
+        font-size: 0.9rem;
+    }
 
-  .policy-content {
-    max-height: 200px;
-  }
+    .policy-content {
+        max-height: 200px;
+    }
 
-  .tour-item {
-    padding: .7rem .75rem;
-  }
+    .tour-item {
+        padding: 0.7rem 0.75rem;
+    }
 
-  .category-left {
-    max-width: 100%;
-  }
+    .category-left {
+        max-width: 100%;
+    }
 }
 
 /* Muy pequeños: ZFlip cerrado / iPhone SE-like */
 @media (max-width: 374px) {
-  .checkout-container {
-    padding: 0 0.375rem;
-  }
+    .checkout-container {
+        padding: 0 0.375rem;
+    }
 
-  .form-panel,
-  .checkout-container .summary-panel {
-    padding: 1rem 0.75rem;
-  }
+    .form-panel,
+    .checkout-container .summary-panel {
+        padding: 1rem 0.75rem;
+    }
 
-  .form-panel .panel-title {
-    font-size: 1.02rem;
-  }
+    .form-panel .panel-title {
+        font-size: 1.02rem;
+    }
 
-  .policy-content {
-    max-height: 180px;
-  }
+    .policy-content {
+        max-height: 180px;
+    }
 
-  .tour-details {
-    font-size: .78rem;
-  }
+    .tour-details {
+        font-size: 0.78rem;
+    }
 }
 
 /* =========================
@@ -1279,249 +1297,249 @@ body.payment-page .whatsapp-panel {
    ========================= */
 
 .confirmation-container {
-  max-width: 800px;
-  margin: 1.75rem auto 2.5rem;
-  padding: 0 1rem;
+    max-width: 800px;
+    margin: 1.75rem auto 2.5rem;
+    padding: 0 1rem;
 }
 
 .confirmation-card {
-  background: #ffffff;
-  border-radius: 1.25rem;
-  padding: 2rem 2.25rem;
-  box-shadow: 0 16px 40px rgba(15, 36, 25, 0.16);
-  text-align: center;
+    background: #ffffff;
+    border-radius: 1.25rem;
+    padding: 2rem 2.25rem;
+    box-shadow: 0 16px 40px rgba(15, 36, 25, 0.16);
+    text-align: center;
 }
 
 /* Ícono de éxito */
 .success-icon {
-  width: 72px;
-  height: 72px;
-  border-radius: 999px;
-  margin: 0 auto 1rem;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, #16a34a, #22c55e);
-  color: #fff;
-  font-size: 2rem;
+    width: 72px;
+    height: 72px;
+    border-radius: 999px;
+    margin: 0 auto 1rem;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    color: #fff;
+    font-size: 2rem;
 }
 
 /* Titular y subtítulos */
 .confirmation-title {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 0.4rem;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.4rem;
 }
 
 .confirmation-subtitle {
-  font-size: 0.96rem;
-  color: #4b5563;
-  margin-bottom: 1.25rem;
+    font-size: 0.96rem;
+    color: #4b5563;
+    margin-bottom: 1.25rem;
 }
 
 /* Bloque de booking */
 .booking-info,
 .booking-reference {
-  background: #f9fafb;
-  border-radius: 0.9rem;
-  padding: 1rem 1.25rem;
-  border: 1px solid #e5e7eb;
-  margin-bottom: 1.25rem;
-  text-align: left;
+    background: #f9fafb;
+    border-radius: 0.9rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1.25rem;
+    text-align: left;
 }
 
 .booking-info h2,
 .booking-reference h2 {
-  font-size: 1.05rem;
-  margin-bottom: 0.75rem;
-  color: #111827;
+    font-size: 1.05rem;
+    margin-bottom: 0.75rem;
+    color: #111827;
 }
 
 /* Referencia de reserva */
 .booking-reference-label {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6b7280;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
 }
 
 .booking-reference-code {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--primary-color, #60a862);
-  font-family: "SF Mono", "Menlo", "Roboto Mono", monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--primary-color, #60a862);
+    font-family: "SF Mono", "Menlo", "Roboto Mono", monospace;
 }
 
 /* Totales compactos */
 .booking-totals {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 0.75rem;
-  margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
 }
 
 .booking-totals-item {
-  background: #ffffff;
-  border-radius: 0.75rem;
-  padding: 0.75rem 0.9rem;
-  border: 1px solid #e5e7eb;
-  text-align: left;
+    background: #ffffff;
+    border-radius: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid #e5e7eb;
+    text-align: left;
 }
 
 .booking-totals-item span {
-  display: block;
+    display: block;
 }
 
 .booking-totals-item .label {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6b7280;
-  margin-bottom: 0.15rem;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+    margin-bottom: 0.15rem;
 }
 
 .booking-totals-item .value {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #111827;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #111827;
 }
 
 /* Lista de siguientes pasos */
 .next-steps {
-  text-align: left;
-  background: #f3f4f6;
-  border-radius: 0.9rem;
-  padding: 1rem 1.1rem;
-  margin-top: 1.25rem;
+    text-align: left;
+    background: #f3f4f6;
+    border-radius: 0.9rem;
+    padding: 1rem 1.1rem;
+    margin-top: 1.25rem;
 }
 
 .next-steps h3 {
-  font-size: 1.05rem;
-  margin-bottom: 0.75rem;
-  color: #111827;
+    font-size: 1.05rem;
+    margin-bottom: 0.75rem;
+    color: #111827;
 }
 
 .next-steps ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 
 .next-steps li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .next-steps li:last-child {
-  border-bottom: none;
+    border-bottom: none;
 }
 
 .next-steps li i {
-  color: #16a34a;
-  margin-top: 0.2rem;
+    color: #16a34a;
+    margin-top: 0.2rem;
 }
 
 .next-steps li span {
-  font-size: 0.9rem;
-  color: #374151;
+    font-size: 0.9rem;
+    color: #374151;
 }
 
 /* Botones inferiores de acción */
 .confirmation-card .btn-primary,
 .confirmation-card .btn-secondary {
-  padding: 0.85rem 1.5rem;
-  border-radius: 0.7rem;
-  font-weight: 600;
-  font-size: 0.9rem;
-  margin: 0.25rem 0.35rem 0;
+    padding: 0.85rem 1.5rem;
+    border-radius: 0.7rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin: 0.25rem 0.35rem 0;
 }
 
 .confirmation-card .btn-primary i,
 .confirmation-card .btn-secondary i {
-  margin-right: 0.35rem;
+    margin-right: 0.35rem;
 }
 
 /* Ajustes responsive */
 @media (max-width: 767.98px) {
-  .confirmation-container {
-    margin: 1.25rem auto 1.75rem;
-    padding: 0 0.75rem;
-  }
+    .confirmation-container {
+        margin: 1.25rem auto 1.75rem;
+        padding: 0 0.75rem;
+    }
 
-  .confirmation-card {
-    padding: 1.5rem 1.25rem;
-    border-radius: 1rem;
-  }
+    .confirmation-card {
+        padding: 1.5rem 1.25rem;
+        border-radius: 1rem;
+    }
 
-  .success-icon {
-    width: 64px;
-    height: 64px;
-    font-size: 1.8rem;
-  }
+    .success-icon {
+        width: 64px;
+        height: 64px;
+        font-size: 1.8rem;
+    }
 
-  .confirmation-title {
-    font-size: 1.4rem;
-  }
+    .confirmation-title {
+        font-size: 1.4rem;
+    }
 
-  .confirmation-subtitle {
-    font-size: 0.9rem;
-  }
+    .confirmation-subtitle {
+        font-size: 0.9rem;
+    }
 
-  .booking-info,
-  .booking-reference {
-    padding: 0.85rem 0.9rem;
-  }
+    .booking-info,
+    .booking-reference {
+        padding: 0.85rem 0.9rem;
+    }
 
-  .booking-reference-code {
-    font-size: 1.25rem;
-  }
+    .booking-reference-code {
+        font-size: 1.25rem;
+    }
 
-  .next-steps h3 {
-    font-size: 1rem;
-  }
+    .next-steps h3 {
+        font-size: 1rem;
+    }
 
-  .next-steps li span {
-    font-size: 0.86rem;
-  }
+    .next-steps li span {
+        font-size: 0.86rem;
+    }
 
-  .confirmation-card .btn-primary,
-  .confirmation-card .btn-secondary {
-    width: 100%;
-    justify-content: center;
-    display: inline-flex;
-  }
+    .confirmation-card .btn-primary,
+    .confirmation-card .btn-secondary {
+        width: 100%;
+        justify-content: center;
+        display: inline-flex;
+    }
 }
 
 @media (max-width: 575.98px) {
-  .confirmation-container {
-    margin: 1rem auto 1.5rem;
-    padding: 0 0.5rem;
-  }
+    .confirmation-container {
+        margin: 1rem auto 1.5rem;
+        padding: 0 0.5rem;
+    }
 
-  .confirmation-card {
-    padding: 1.25rem 1rem;
-  }
+    .confirmation-card {
+        padding: 1.25rem 1rem;
+    }
 
-  .next-steps {
-    padding: 0.9rem 0.85rem;
-  }
+    .next-steps {
+        padding: 0.9rem 0.85rem;
+    }
 }
 
 @media (max-width: 374px) {
-  .confirmation-card {
-    padding: 1.1rem 0.85rem;
-  }
+    .confirmation-card {
+        padding: 1.1rem 0.85rem;
+    }
 
-  .confirmation-title {
-    font-size: 1.25rem;
-  }
+    .confirmation-title {
+        font-size: 1.25rem;
+    }
 
-  .booking-reference-code {
-    font-size: 1.15rem;
-  }
+    .booking-reference-code {
+        font-size: 1.15rem;
+    }
 }
 
 /* =========================
@@ -1533,7 +1551,7 @@ body.payment-page .whatsapp-panel {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    flex-wrap: wrap;              /* badge puede bajar a 2ª línea */
+    flex-wrap: wrap; /* badge puede bajar a 2ª línea */
     gap: 0.5rem;
 }
 
@@ -1619,13 +1637,13 @@ body.payment-page .whatsapp-panel {
 .checkout-page .tour-name,
 .checkout-page .badge-ghost,
 .checkout-page .cancellation-badge small {
-  word-break: break-word;
-  hyphens: auto;
+    word-break: break-word;
+    hyphens: auto;
 }
 
 .checkout-page .policy-content p,
 .checkout-page .policy-content li {
-  word-break: break-word;
+    word-break: break-word;
 }
 /* =======================================
    FIX ESPECÍFICO PARA ALEMÁN EN VIEWPORTS XS
@@ -1637,8 +1655,7 @@ html[lang^="de"] .checkout-grid,
 html[lang^="de"] .checkout-container .summary-panel,
 html[lang^="de"] .checkout-container .form-panel,
 html[lang^="de"] .checkout-page .progress-steps {
-  max-width: 100%;
-  overflow-x: hidden;
+    overflow-x: hidden;
 }
 
 /* Permitir que textos largos se partan y no estiren el flex */
@@ -1655,36 +1672,34 @@ html[lang^="de"] .checkout-page .btn-payment,
 html[lang^="de"] .checkout-page .btn-back,
 html[lang^="de"] .checkout-page .btn-details,
 html[lang^="de"] .checkout-page .btn-edit {
-  word-break: break-word;
-  overflow-wrap: anywhere;
-  hyphens: auto;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    hyphens: auto;
 }
 
 /* En las filas de total, que la etiqueta sea flexible y deje espacio al monto */
 html[lang^="de"] .checkout-page .total-row span:first-child {
-  flex: 1 1 auto;
-  min-width: 0;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 /* El header del resumen puede envolver el contador a segunda línea */
 html[lang^="de"] .checkout-page .summary-header {
-  flex-wrap: wrap;
-  align-items: flex-start;
+    flex-wrap: wrap;
+    align-items: flex-start;
 }
 
 /* En XS bajamos un pelín el tamaño de botones para textos kilométricos */
 @media (max-width: 430px) {
-  html[lang^="de"] .checkout-page .btn-payment,
-  html[lang^="de"] .checkout-page .btn-back,
-  html[lang^="de"] .checkout-page .btn-details,
-  html[lang^="de"] .checkout-page .btn-edit {
-    font-size: 0.8rem;
-    padding-inline: 0.75rem;
-  }
+    html[lang^="de"] .checkout-page .btn-payment,
+    html[lang^="de"] .checkout-page .btn-back,
+    html[lang^="de"] .checkout-page .btn-details,
+    html[lang^="de"] .checkout-page .btn-edit {
+        font-size: 0.8rem;
+        padding-inline: 0.75rem;
+    }
 
-  html[lang^="de"] .checkout-page .progress-steps .step {
-    padding-inline: 0.7rem;
-  }
-
-
+    html[lang^="de"] .checkout-page .progress-steps .step {
+        padding-inline: 0.7rem;
+    }
 }

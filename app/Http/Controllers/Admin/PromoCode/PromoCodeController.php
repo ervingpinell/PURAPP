@@ -66,7 +66,7 @@ class PromoCodeController extends Controller
             : strtoupper(trim(preg_replace('/\s+/', '', (string) $request->code)));
 
         // Unicidad ignorando espacios y mayúsculas
-        $exists = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$normalizedCode])->exists();
+        $exists = PromoCode::whereRaw("TRIM(REPLACE(code,' ','')) = ?", [$normalizedCode])->exists();
         if ($exists) {
             return back()
                 ->withErrors(['code' => __('m_config.promocode.messages.code_exists_normalized')])
@@ -137,7 +137,7 @@ class PromoCodeController extends Controller
 
             $preview = $request->boolean('preview', true);
 
-            $promo = PromoCode::whereRaw("UPPER(TRIM(REPLACE(code,' ',''))) = ?", [$code])->first();
+            $promo = PromoCode::whereRaw("TRIM(REPLACE(code,' ','')) = ?", [$code])->first();
 
             // helpers (vigencia/uso)
             $isValidToday = function () use ($promo) {
@@ -262,7 +262,6 @@ class PromoCodeController extends Controller
             }
 
             return response()->json($resp, 200);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
