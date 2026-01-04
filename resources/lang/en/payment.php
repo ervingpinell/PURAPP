@@ -77,6 +77,8 @@ return [
     'complete_payment_message' => 'Please complete payment to confirm your booking',
     'payment_cancelled' => 'Payment was cancelled. You can try again when ready.',
     'redirect_paypal' => 'Click Pay to be redirected to PayPal and complete your payment securely.',
+    'redirect_external_gateway' => 'You will be redirected to the external payment gateway to complete your transaction.',
+    'alignet_description' => 'Secure payment with Credit/Debit Card (Banco Nacional)',
     'no_cart_data' => 'No cart data found',
     'gateway_error' => 'Payment gateway connection error. Please check your internet connection and try again.',
 

@@ -66,6 +66,8 @@ return [
     'complete_payment_message' => 'Bitte schließen Sie die Zahlung ab, um Ihre Buchung zu bestätigen',
     'payment_cancelled' => 'Die Zahlung wurde storniert. Sie können es erneut versuchen, wenn Sie bereit sind.',
     'redirect_paypal' => 'Klicken Sie auf Bezahlen, um zu PayPal weitergeleitet zu werden und Ihre Zahlung sicher abzuschließen.',
+    'redirect_external_gateway' => 'Sie werden zum externen Zahlungs-Gateway weitergeleitet, um Ihre Transaktion abzuschließen.',
+    'alignet_description' => 'Sichere Zahlung mit Kredit-/Debitkarte (Banco Nacional)',
     'no_cart_data' => 'Keine Warenkorbdaten gefunden',
 
     // Admin / Management (merged from m_payments)

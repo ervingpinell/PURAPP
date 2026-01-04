@@ -109,11 +109,15 @@
                             id="gateway_{{ $gateway['id'] }}"
                             value="{{ $gateway['id'] }}"
                             {{ $gateway['id'] === $defaultGateway ? 'checked' : '' }}>
-                        <label for="gateway_{{ $gateway['id'] }}">
-                            <i class="{{ $gateway['icon'] }}"></i>
+                        <label for="gateway_{{ $gateway['id'] }}" class="d-flex flex-column align-items-center justify-content-center text-center p-3 h-100">
+                            @if(!empty($gateway['logo']))
+                            <img src="{{ $gateway['logo'] }}" alt="{{ $gateway['name'] }}" style="height: 48px; width: auto; object-fit: contain; margin-bottom: 0.5rem;">
+                            @else
+                            <i class="{{ $gateway['icon'] }} mb-2" style="font-size: 1.75rem;"></i>
+                            @endif
                             <div>
                                 <strong>{{ $gateway['name'] }}</strong>
-                                <small>{{ $gateway['description'] }}</small>
+                                {{-- <small>{{ $gateway['description'] }}</small> --}}
                             </div>
                         </label>
                     </div>
@@ -271,19 +275,25 @@
             });
             }
 
-            // Mismo closure que en checkout.blade
             $resolveCatLabel = function (array $cat) use ($categoryNamesById) {
+            $cid = (int) (data_get($cat,'category_id') ?? data_get($cat,'id') ?? 0);
+
+            // 1. Try dynamic translation from DB (fresh)
+            $name = null;
+            if ($cid && $categoryNamesById->has($cid)) {
+            $name = $categoryNamesById->get($cid);
+            }
+
+            // 2. Fallback to stored names in snapshot
+            if (!$name) {
             $name = data_get($cat,'i18n_name')
             ?? data_get($cat,'name')
             ?? data_get($cat,'label')
             ?? data_get($cat,'category_name')
             ?? data_get($cat,'category.name');
-
-            $cid = (int) (data_get($cat,'category_id') ?? data_get($cat,'id') ?? 0);
-            if (!$name && $cid && $categoryNamesById->has($cid)) {
-            $name = $categoryNamesById->get($cid);
             }
 
+            // 3. Last resort: Code translation or Slug
             if (!$name) {
             $code = Str::lower((string) data_get($cat,'code',''));
             if (in_array($code,['adult','adults'])) {

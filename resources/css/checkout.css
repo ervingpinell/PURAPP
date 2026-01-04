@@ -1703,3 +1703,78 @@ html[lang^="de"] .checkout-page .summary-header {
         padding-inline: 0.7rem;
     }
 }
+
+/* Gateway Selector - Uniform Grid */
+.gateway-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-top: 0.75rem;
+}
+
+.gateway-option {
+    position: relative;
+    height: 100%;
+}
+
+.gateway-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.gateway-option label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1rem;
+    background: #fff;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    height: 100%; /* Fill the grid cell */
+    min-height: 120px;
+    width: 100%;
+}
+
+.gateway-option input[type="radio"]:checked + label {
+    border-color: var(--payment-primary);
+    background: #f0fdf4;
+    box-shadow: 0 4px 6px -1px rgba(96, 168, 98, 0.2);
+}
+
+.gateway-option label i {
+    font-size: 1.75rem;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+    transition: color 0.2s;
+}
+
+.gateway-option input[type="radio"]:checked + label i {
+    color: var(--payment-primary);
+}
+
+.gateway-option label strong {
+    display: block;
+    color: #374151;
+    font-size: 0.95rem;
+    line-height: 1.2;
+}
+
+.gateway-option input[type="radio"]:checked + label strong {
+    color: var(--payment-primary-dark);
+}
+
+/* Specific fix for images inside label if any (like the new logo) */
+.gateway-option label img {
+    max-height: 48px; /* Limit height */
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 0.5rem;
+}

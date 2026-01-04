@@ -51,44 +51,6 @@ return [
             'capture_method' => 'automatic', // automatic or manual
         ],
 
-        'tilopay' => [
-            'enabled' => env('TILOPAY_ENABLED', false),
-            'merchant_id' => env('TILOPAY_MERCHANT_ID'),
-            'api_key' => env('TILOPAY_API_KEY'),
-            'api_secret' => env('TILOPAY_API_SECRET'),
-            'base_url' => env('TILOPAY_BASE_URL', 'https://api.tilopay.com'),
-            'webhook_secret' => env('TILOPAY_WEBHOOK_SECRET'),
-        ],
-
-        'banco_nacional' => [
-            'enabled' => env('BN_ENABLED', false),
-            'merchant_id' => env('BN_MERCHANT_ID'),
-            'terminal_id' => env('BN_TERMINAL_ID'),
-            'api_key' => env('BN_API_KEY'),
-            'api_secret' => env('BN_API_SECRET'),
-            'base_url' => env('BN_BASE_URL', 'https://api.bncr.fi.cr/payments/v1'),
-            'webhook_secret' => env('BN_WEBHOOK_SECRET'),
-        ],
-
-        'bac' => [
-            'enabled' => env('BAC_ENABLED', false),
-            'merchant_id' => env('BAC_MERCHANT_ID'),
-            'api_key' => env('BAC_API_KEY'),
-            'api_secret' => env('BAC_API_SECRET'),
-            'base_url' => env('BAC_BASE_URL', 'https://api.baccredomatic.com/v1'),
-            'webhook_secret' => env('BAC_WEBHOOK_SECRET'),
-        ],
-
-        'bcr' => [
-            'enabled' => env('BCR_ENABLED', false),
-            'merchant_id' => env('BCR_MERCHANT_ID'),
-            'commerce_id' => env('BCR_COMMERCE_ID'),
-            'api_key' => env('BCR_API_KEY'),
-            'api_secret' => env('BCR_API_SECRET'),
-            'base_url' => env('BCR_BASE_URL', 'https://api.bancobcr.com/payments/v1'),
-            'webhook_secret' => env('BCR_WEBHOOK_SECRET'),
-        ],
-
         'paypal' => [
             'enabled' => env('PAYPAL_ENABLED', false),
             'mode' => env('PAYPAL_MODE', 'sandbox'), // sandbox or live
@@ -97,6 +59,34 @@ return [
             'webhook_id' => env('PAYPAL_WEBHOOK_ID'),
             'brand_name' => env('APP_NAME', 'Tour Booking'),
             'landing_page' => 'LOGIN', // LOGIN, BILLING, or NO_PREFERENCE
+        ],
+
+        'alignet' => [
+            'enabled' => env('ALIGNET_ENABLED', false),
+            'acquirer_id' => env('ALIGNET_ACQUIRER_ID', '99'),
+            'commerce_id' => env('ALIGNET_COMMERCE_ID', '8056'),
+            'secret_key' => env('ALIGNET_SECRET_KEY'),
+            'wallet_entity_id' => env('ALIGNET_WALLET_ENTITY_ID', '580'),
+            'wallet_secret_key' => env('ALIGNET_WALLET_SECRET_KEY'),
+            'environment' => env('ALIGNET_ENVIRONMENT', 'testing'), // 'testing' or 'production'
+            'urls' => [
+                'testing' => [
+                    // Base URL para openModal() - según ejemplo oficial línea 52
+                    'base' => 'https://integracion.alignetsac.com/',
+                    // URL del script JS que se carga en el <head>
+                    'vpos2_script' => 'https://integracion.alignetsac.com/VPOS2/js/modalcomercio.js',
+                    // URL del servicio SOAP de Wallet
+                    'wallet_wsdl' => 'https://integracion.alignetsac.com/WALLETWS/services/WalletCommerce?wsdl',
+                    // URL de la API REST para consultar transacciones
+                    'query_api' => 'https://integracion.alignetsac.com/VPOS2/rest/operationAcquirer/consulte',
+                ],
+                'production' => [
+                    'base' => 'https://vpayment.verifika.com/',
+                    'vpos2_script' => 'https://vpayment.verifika.com/VPOS2/js/modalcomercio.js',
+                    'wallet_wsdl' => 'https://www.pay-me.pe/WALLETWS/services/WalletCommerce?wsdl',
+                    'query_api' => 'https://vpayment.verifika.com/VPOS2/rest/operationAcquirer/consulte',
+                ]
+            ]
         ],
     ],
 
@@ -108,11 +98,8 @@ return [
 
     'webhook_routes' => [
         'stripe' => '/webhooks/stripe',
-        'tilopay' => '/webhooks/tilopay',
-        'banco_nacional' => '/webhooks/banco-nacional',
-        'bac' => '/webhooks/bac',
-        'bcr' => '/webhooks/bcr',
         'paypal' => '/webhooks/paypal',
+        'alignet' => '/webhooks/alignet',
     ],
 
     /*

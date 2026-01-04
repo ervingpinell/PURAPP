@@ -86,4 +86,22 @@ return [
         'participant'        => 'participant',
         'participants'       => 'participants',
     ],
+
+    'payment' => [
+        'title'              => 'Payment',
+        'total'              => 'Total',
+        'secure_payment'     => 'Secure Payment',
+        'powered_by'         => 'Powered by',
+        'proceed_to_payment' => 'Proceed to Payment',
+        'secure_transaction' => 'Secure Transaction',
+    ],
+    'booking' => [
+        'summary'   => 'Booking Summary',
+        'reference' => 'Reference',
+        'date'      => 'Date',
+        'passengers' => 'Passengers',
+    ],
+    'tour' => [
+        'name' => 'Tour',
+    ],
 ];

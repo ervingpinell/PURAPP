@@ -198,10 +198,7 @@ Route::get('/cart/count', [PublicCartController::class, 'count'])
 */
 Route::prefix('webhooks/payment')->name('webhooks.payment.')->group(function () {
     Route::post('/stripe', [\App\Http\Controllers\Webhooks\PaymentWebhookController::class, 'stripe'])->name('stripe');
-    Route::post('/tilopay', [\App\Http\Controllers\Webhooks\PaymentWebhookController::class, 'tilopay'])->name('tilopay');
-    Route::post('/banco-nacional', [\App\Http\Controllers\Webhooks\PaymentWebhookController::class, 'bancoNacional'])->name('banco_nacional');
-    Route::post('/bac', [\App\Http\Controllers\Webhooks\PaymentWebhookController::class, 'bac'])->name('bac');
-    Route::post('/bcr', [\App\Http\Controllers\Webhooks\PaymentWebhookController::class, 'bcr'])->name('bcr');
+    Route::post('/alignet', [\App\Http\Controllers\PaymentController::class, 'handleAlignetResponse'])->name('alignet');
 });
 
 /*
@@ -459,6 +456,13 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::get('/payment/return', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.return'); // PayPal return URL
     Route::get('/payment/cancel', [\App\Http\Controllers\PaymentController::class, 'cancel'])->name('payment.cancel');
     Route::get('/payment/{payment}/status', [\App\Http\Controllers\PaymentController::class, 'status'])->name('payment.status');
+
+    // Alignet payment routes
+    Route::get('/payment/alignet/{payment}', [\App\Http\Controllers\PaymentController::class, 'showAlignetPaymentForm'])->name('payment.alignet');
+    Route::get('/payment/alignet/query/{operationNumber}', [\App\Http\Controllers\PaymentController::class, 'queryAlignetTransaction'])
+        ->middleware('auth')
+        ->name('payment.alignet.query');
+
 
     // ------------------------------
     // Admin
@@ -1428,4 +1432,71 @@ if (config('app.debug')) {
 
         return new \App\Mail\PasswordSetupMail($user, $token);
     })->name('debug.email.password-setup');
+
+
+Route::get('/test-alignet-data', function() {
+    try {
+        // Test 1: Config carga bien?
+        $config = config('payment.gateways.alignet');
+
+        if (!$config) {
+            return response()->json(['error' => 'Config no encontrado'], 500);
+        }
+
+        // 🆕 Check if enabled from DB (like PaymentGatewayManager does)
+        $settingKey = "payment.gateway.alignet";
+        $settingEnabled = \App\Models\Setting::where('key', $settingKey)->value('value');
+
+        $isEnabled = false;
+        if ($settingEnabled !== null) {
+            $isEnabled = filter_var($settingEnabled, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? (bool)$settingEnabled;
+        } else {
+            $isEnabled = $config['enabled'] ?? false;
+        }
+
+        // Test 2: Service se puede instanciar?
+        $alignetService = app(\App\Services\AlignetPaymentService::class);
+
+        // Test 3: Preparar datos
+        $testData = $alignetService->preparePaymentData(
+            '123456789',
+            100.00,
+            [
+                'first_name' => 'Juan',
+                'last_name' => 'Perez',
+                'email' => 'modalprueba1@test.com',
+                'address' => 'Test Address',
+                'city' => 'San Jose',
+                'zip' => '10101',
+                'state' => 'SJ',
+                'country' => 'CR',
+                'description' => 'Test Tour',
+                'booking_id' => 1
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'config' => [
+                'enabled_from_db' => $isEnabled,  // 🆕 Ahora muestra el valor correcto
+                'enabled_from_config' => $config['enabled'] ?? null,
+                'db_setting_value' => $settingEnabled,
+                'acquirer_id' => $config['acquirer_id'] ?? null,
+                'commerce_id' => $config['commerce_id'] ?? null,
+                'environment' => $config['environment'] ?? null,
+                'vpos2_url' => $config['urls'][$config['environment']]['vpos2'] ?? null,
+            ],
+            'payment_data' => $testData,
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Error general',
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ], 500);
+    }
+})->middleware('auth');
+
 }

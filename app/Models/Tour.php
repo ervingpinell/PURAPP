@@ -8,10 +8,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-// 🆕 AGREGAR: Trait de auditoría
 use App\Traits\Auditable;
 
-// Relacionados
 use App\Models\{
     TourType,
     TourLanguage,
@@ -25,14 +23,14 @@ use App\Models\{
     TourImage,
     TourPrice,
     CustomerCategory,
-    User,              // 🆕 AGREGAR
-    TourAuditLog       // 🆕 AGREGAR
+    User,
+    TourAuditLog
 };
 
 class Tour extends Model
 {
     use HasFactory, SoftDeletes;
-    use Auditable;  // 🆕 AGREGAR: Trait de auditoría automática
+    use Auditable;
 
     protected $table = 'tours';
     protected $primaryKey = 'tour_id';
@@ -56,12 +54,11 @@ class Tour extends Model
         'cutoff_hour',
         'lead_days',
 
-        // 👇 CAMPOS DEL WIZARD
         'is_draft',
         'current_step',
-        'created_by',     // Usuario que creó
-        'updated_by',     // 🆕 AGREGAR: Usuario que actualizó
-        'recommendations', // 🆕
+        'created_by',
+        'updated_by',
+        'recommendations',
     ];
 
     protected $casts = [
@@ -69,7 +66,7 @@ class Tour extends Model
         'max_capacity' => 'int',
         'is_active'    => 'bool',
 
-        // 👇 CASTS DEL WIZARD
+
         'is_draft'     => 'bool',
         'current_step' => 'int',
     ];
@@ -78,7 +75,6 @@ class Tour extends Model
      * ============================================================
      * 🆕 CONFIGURACIÓN DE AUDITORÍA
      * ============================================================
-     * Define qué campos se deben auditar
      */
     protected $auditableFields = [
         'name',
@@ -538,7 +534,7 @@ class Tour extends Model
     /**
      * 🆕 Obtiene precios activos para una fecha específica
      * Retorna SOLO UN PRECIO por categoría (el válido para la fecha)
-     * 
+     *
      * @param string|Carbon|null $date Fecha para filtrar (default: hoy)
      * @return \Illuminate\Support\Collection
      */

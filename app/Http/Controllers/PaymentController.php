@@ -37,6 +37,18 @@ class PaymentController extends Controller
             $booking = Booking::with(['detail', 'tour', 'user', 'detail.schedule'])->find($bookingId);
 
             if ($booking && ($booking->status === 'pending' || $booking->status === 'confirmed')) {
+                // 🔒 STRICT EXPIRATION CHECK: Prevent "Ghost Carts"
+                // If booking is pending and older than allowed time, do not allow payment.
+                $timeoutMinutes = config('booking.payment_completion_timeout_minutes', 20);
+
+                // We add a small grace period (e.g. 5 min) for the user to finish the process if they are already there,
+                // but if they are coming back fresh to an old booking, it should be blocked.
+                // However, user requested strict "expire and do not allow continue".
+                if ($booking->status === 'pending' && $booking->created_at->addMinutes($timeoutMinutes)->isPast()) {
+                    return redirect()->route(app()->getLocale() . '.home', ['cart_expired' => 1])
+                        ->with('cart_expired', true);
+                }
+
                 // Reconstruir snapshot desde el booking
                 $cartSnapshot = [
                     'cart_id' => null, // No hay carrito real asociado en este flujo directo
@@ -75,8 +87,22 @@ class PaymentController extends Controller
         // Tiempo para completar el pago
         $timeoutMinutes = config('booking.payment_completion_timeout_minutes', 20);
 
-        // Momento de inicio del pago (lo guardamos la primera vez que entra a /payment)
+        // Momento de inicio del pago
         $paymentStartTime = session('payment_start_time');
+
+        // 🔒 STRICT CHECK: If we are paying for an existing booking, use its created_at time
+        // This prevents "Ghost Carts" where the session timer resets but the inventory hold should have expired.
+        if (!empty($cartSnapshot['booking_id'])) {
+            $existingBooking = \App\Models\Booking::find($cartSnapshot['booking_id']);
+            if ($existingBooking) {
+                // Use the REAL booking creation time, not the session start time
+                $paymentStartTime = $existingBooking->created_at;
+
+                // Update session to match reality (so visual timer is correct)
+                session(['payment_start_time' => $paymentStartTime]);
+            }
+        }
+
         if (!$paymentStartTime) {
             $paymentStartTime = now();
             session(['payment_start_time' => $paymentStartTime]);
@@ -429,7 +455,7 @@ class PaymentController extends Controller
 
         // Validate request input
         $validated = $request->validate([
-            'gateway' => 'required|string|in:stripe,paypal,tilopay,banco_nacional,bac,bcr',
+            'gateway' => 'required|string|in:stripe,paypal,alignet',
         ]);
 
         try {
@@ -469,11 +495,16 @@ class PaymentController extends Controller
                 // Store payment ID in session for guest status polling
                 session(['guest_payment_id' => $payment->payment_id]);
 
+                $redirectUrl = $existingResponse['redirect_url'] ?? $existingResponse['approval_url'] ?? null;
+                if ($gateway === 'alignet') {
+                    $redirectUrl = route('payment.alignet', ['payment' => $payment->payment_id]);
+                }
+
                 return response()->json([
                     'success'        => true,
                     'client_secret'  => $existingResponse['client_secret'] ?? null,
-                    'redirect_url'   => $existingResponse['redirect_url'] ?? $existingResponse['approval_url'] ?? null,
-                    'approval_url'   => $existingResponse['redirect_url'] ?? $existingResponse['approval_url'] ?? null,
+                    'redirect_url'   => $redirectUrl,
+                    'approval_url'   => $redirectUrl,
                     'payment_id'     => $payment->payment_id,
                     'reused'         => true,
                 ]);
@@ -570,17 +601,41 @@ class PaymentController extends Controller
             $userId = Auth::id() ?? $cartSnapshot['user_id'] ?? null;
             $userEmail = Auth::user()?->email ?? null;
 
+            // Name handling
+            $firstName = '';
+            $lastName = '';
+
             // If no user email from auth, try to get from booking
-            if (!$userEmail && $bookingId) {
-                $booking = \App\Models\Booking::with('user')->find($bookingId);
-                $userEmail = $booking?->user?->email;
+            if ($bookingId) {
+                // Determine booking (ensure loaded)
+                $booking = \App\Models\Booking::with('user')->find($bookingId); // Use locally scoped var
+                if ($booking) {
+                    $userEmail = $userEmail ?? $booking->user?->email ?? $booking->customer_email;
+                    $firstName = $booking->customer_name ?? '';
+                    $lastName  = $booking->customer_lastname ?? '';
+                }
             }
+
+            // Fallback to Auth User name splitting if names are still empty
+            if (empty($firstName) && Auth::check()) {
+                $fullName = trim(Auth::user()->name);
+                // Split by first space
+                $parts = explode(' ', $fullName, 2);
+                $firstName = $parts[0];
+                $lastName  = $parts[1] ?? '';
+            }
+
+            // Final fallback defaults to satisfy gateways requiring non-empty strings
+            if (empty($firstName)) $firstName = 'Guest';
+            if (empty($lastName))  $lastName  = '-'; // Placeholder for single-name users
 
             $intentData = [
                 'amount'        => $total,
                 'currency'      => $currency,
                 'user_id'       => $userId,
                 'user_email'    => $userEmail,
+                'customer_first_name' => $firstName,
+                'customer_last_name'  => $lastName,
                 'description'   => 'Cart checkout',
                 'receipt_email' => $userEmail,
                 'options'       => [
@@ -606,11 +661,16 @@ class PaymentController extends Controller
             // Store payment ID in session for guest status polling
             session(['guest_payment_id' => $payment->payment_id]);
 
+            $redirectUrl = $result->redirectUrl;
+            if ($gateway === 'alignet') {
+                $redirectUrl = route('payment.alignet', ['payment' => $payment->payment_id]);
+            }
+
             return response()->json([
                 'success'       => true,
                 'client_secret' => $result->clientSecret,
-                'redirect_url'  => $result->redirectUrl,
-                'approval_url'  => $result->redirectUrl, // Alias for backward compatibility
+                'redirect_url'  => $redirectUrl,
+                'approval_url'  => $redirectUrl, // Alias for backward compatibility
                 'payment_id'    => $payment->payment_id,
                 'reused'        => false,
             ]);
@@ -1118,7 +1178,7 @@ class PaymentController extends Controller
                 'name' => 'Stripe',
                 'icon' => 'fab fa-cc-stripe',
                 'description' => __('payment.stripe_description'),
-                'logo' => asset('images/stripe-logo.svg'),
+                // 'logo' removed to use icon
             ];
         }
 
@@ -1129,54 +1189,200 @@ class PaymentController extends Controller
                 'name' => 'PayPal',
                 'icon' => 'fab fa-paypal',
                 'description' => __('payment.paypal_description'),
-                'logo' => asset('images/paypal-logo.svg'),
+                // 'logo' removed to use icon
             ];
         }
 
-        // Tilopay
-        if ($isEnabled('payment.gateway.tilopay', false)) {
+        // Alignet
+        if ($isEnabled('payment.gateway.alignet', false)) {
             $enabledGateways[] = [
-                'id' => 'tilopay',
-                'name' => 'Tilopay',
-                'icon' => 'fas fa-credit-card',
-                'description' => __('payment.tilopay_description'),
-                'logo' => asset('images/tilopay-logo.svg'), // Assuming logo exists or use generic
-            ];
-        }
-
-        // Banco Nacional
-        if ($isEnabled('payment.gateway.banco_nacional', false)) {
-            $enabledGateways[] = [
-                'id' => 'banco_nacional',
+                'id' => 'alignet',
                 'name' => 'Banco Nacional',
-                'icon' => 'fas fa-university',
-                'description' => __('payment.banco_nacional_description'),
-                'logo' => asset('images/bn-logo.svg'),
+                'icon' => 'fas fa-credit-card',
+                'description' => __('payment.alignet_description'),
+                'logo' => asset('images/bn-logo.png'),
             ];
         }
 
-        // BAC
-        if ($isEnabled('payment.gateway.bac', false)) {
-            $enabledGateways[] = [
-                'id' => 'bac',
-                'name' => 'BAC Credomatic',
-                'icon' => 'fas fa-university',
-                'description' => __('payment.bac_description'),
-                'logo' => asset('images/bac-logo.svg'),
-            ];
-        }
+        // Sort gateways to put default first
+        $defaultGateway = config('payment.default_gateway');
 
-        // BCR
-        if ($isEnabled('payment.gateway.bcr', false)) {
-            $enabledGateways[] = [
-                'id' => 'bcr',
-                'name' => 'Banco de Costa Rica',
-                'icon' => 'fas fa-university',
-                'description' => __('payment.bcr_description'),
-                'logo' => asset('images/bcr-logo.svg'),
-            ];
-        }
+        usort($enabledGateways, function ($a, $b) use ($defaultGateway) {
+            if ($a['id'] === $defaultGateway) return -1;
+            if ($b['id'] === $defaultGateway) return 1;
+            return 0;
+        });
 
         return $enabledGateways;
+    }
+
+    /**
+     * Show Alignet payment form
+     */
+    /**
+     * Show Alignet payment form
+     */
+    public function showAlignetPaymentForm(Payment $payment)
+    {
+        // Check if Alignet is enabled
+        $gatewayManager = app(\App\Services\PaymentGateway\PaymentGatewayManager::class);
+        if (
+            !$gatewayManager->isGatewayEnabled('alignet') &&
+            !(\App\Models\Setting::where('key', 'payment.gateway.alignet')->value('value') ?? false)
+        ) {
+            abort(404);
+        }
+
+        // Load booking if not already loaded
+        // Load booking if not already loaded
+        if (!$payment->relationLoaded('booking')) {
+            $payment->load('booking.detail', 'booking.tour', 'booking.user');
+        }
+
+        $booking = $payment->booking;
+
+        // Check permissions
+        if ($booking) {
+            if (Auth::check() && Auth::id() !== $booking->user_id && !Auth::user()->hasRole('admin')) {
+                abort(403, 'Unauthorized to pay for this booking');
+            }
+        } else {
+            // Cart payment (no booking yet)
+            // If payment has user_id, check ownership
+            if ($payment->user_id && Auth::check() && Auth::id() !== $payment->user_id && !Auth::user()->hasRole('admin')) {
+                abort(403, 'Unauthorized to pay for this payment');
+            }
+        }
+
+        // Check if already paid
+        if ($payment->status === 'completed') {
+            return redirect()->route(app()->getLocale() . '.home')
+                ->with('info', 'This payment has already been completed');
+        }
+
+        // Retrieve stored payment data (generated and signed during initiate)
+        $gatewayResponse = $payment->gateway_response ?? [];
+        $paymentData = $gatewayResponse['raw'] ?? $gatewayResponse['metadata']['payment_data'] ?? null;
+
+        if (!$paymentData) {
+            // Fallback: Try to regenerate IF we have a booking (Old logic fallback)
+            // But if we don't have a booking, we fail.
+            if (!$booking) {
+                Log::error('Alignet payment data missing in gateway_response and no booking to regenerate', ['payment_id' => $payment->payment_id]);
+                abort(500, 'Payment data missing');
+            }
+
+            // ... regenerate logic could go here, but let's assume valid flow has it ...
+            // For now, abort to force correct flow usage
+            abort(500, 'Payment data missing/invalid');
+        }
+
+        return view('payments.alignet-form', [
+            'booking' => $booking,
+            'paymentData' => $paymentData
+        ]);
+    }
+
+    /**
+     * Handle Alignet response from VPOS2
+     */
+    public function handleAlignetResponse(Request $request)
+    {
+        Log::info('Alignet Response Received', $request->all());
+
+        // Get Alignet service
+        $alignetService = app(\App\Services\AlignetPaymentService::class);
+
+        // Validate response hash
+        if (!$alignetService->validateResponse($request->all())) {
+            Log::error('Alignet: Invalid response signature', $request->all());
+            return redirect()->route('payment.error')
+                ->with('error', __('m_checkout.payment.invalid_response'));
+        }
+
+        $authResult = $request->input('authorizationResult');
+        $operationNumber = $request->input('purchaseOperationNumber');
+        $amount = $request->input('purchaseAmount') / 100;
+        $bookingId = $request->input('reserved1');
+
+        // Find or create payment record (consistente con lógica anterior)
+        $payment = Payment::firstOrCreate(
+            [
+                'gateway' => 'alignet',
+                'gateway_payment_intent_id' => $operationNumber,
+            ],
+            [
+                'booking_id' => $bookingId,
+                'user_id' => Auth::id(),
+                'amount' => $amount,
+                'currency' => 'USD',
+                'status' => 'pending',
+            ]
+        );
+
+        // Actualizar datos específicos de tarjeta de Alignet antes de procesar
+        $payment->update([
+            'card_bin' => $request->input('bin'),
+            'card_brand' => $request->input('brand'),
+            'payment_method_type' => 'card',
+            'card_last4' => substr($request->input('bin') ?? '', -4),
+            'gateway_response' => $request->all(),
+            'error_code' => $request->input('errorCode'),
+            'error_message' => $request->input('errorMessage'),
+        ]);
+
+        if ($authResult === '00') {
+            try {
+                // Delegar al servicio centralizado para manejar creación de bookings, 
+                // limpieza de sesión (incluyendo promo codes) y correos.
+                $success = $this->paymentService->handleSuccessfulPayment($payment, $request->all());
+
+                if ($success) {
+                    session()->forget('guest_payment_id');
+
+                    // Redirección inteligente
+                    $payment->refresh();
+                    if ($payment->booking_id) {
+                        // Usar la referencia si existe, o el ID
+                        $booking = $payment->booking;
+                        $param = $booking->booking_reference ?? $booking->booking_id;
+
+                        return redirect()->route('booking.confirmation', $param)
+                            ->with('success', __('m_checkout.payment.success'));
+                    }
+
+                    return redirect()->route(app()->getLocale() . '.home')
+                        ->with('success', __('m_checkout.payment.success'));
+                }
+            } catch (\Exception $e) {
+                Log::error('Alignet handling failed', ['error' => $e->getMessage()]);
+                // Fallthrough to error page
+            }
+        }
+
+        // Payment failed
+        $this->paymentService->handleFailedPayment($payment, $request->input('errorCode'), $request->input('errorMessage'));
+
+        return redirect()->route('payment.error')
+            ->with('error', $request->input('errorMessage') ?? __('m_checkout.payment.failed'));
+    }
+
+    /**
+     * Query Alignet transaction (admin only)
+     */
+    public function queryAlignetTransaction($operationNumber)
+    {
+        // Only allow admins to query transactions
+        if (!Auth::check() || !Auth::user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $alignetService = app(\App\Services\AlignetPaymentService::class);
+        $result = $alignetService->queryTransaction($operationNumber);
+
+        return response()->json([
+            'success' => $result !== null,
+            'data' => $result
+        ]);
     }
 }

@@ -147,24 +147,23 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
         <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
         <script>
             window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
+            function gtag() { dataLayer.push(arguments); }
             gtag('js', new Date());
-            gtag('config', '{{ $gaId }}', {
-                'anonymize_ip': true
-            });
+            gtag('config', '{{ $gaId }}', { 'anonymize_ip': true });
         </script>
         @endif
 
         @if (!empty($pixelId))
         <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
         <script>
-            !function(f,b,e,v,n,t,s)
-            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-            n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            !function(f,b,e,v,n,t,s) {
+                if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+                n.queue=[];t=b.createElement(e);t.async=!0;
+                t.src=v;s=b.getElementsByTagName(e)[0];
+                s.parentNode.insertBefore(t,s)
+            }(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '{{ $pixelId }}');
             fbq('track', 'PageView');
@@ -227,8 +226,8 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
+    {{-- Badge del carrito --}}
     <script>
-        // Badge del carrito
         (function() {
             const setBadge = (n) => {
                 document.querySelectorAll('.cart-count-badge').forEach(el => {
@@ -242,9 +241,7 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
                 const url = document.querySelector('meta[name="cart-count-url"]')?.getAttribute('content');
                 if (!url) return;
                 try {
-                    const res = await fetch(url, {
-                        headers: {'Accept': 'application/json'}
-                    });
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
                     if (res.status === 401) {
                         setBadge(0);
                         return;
@@ -261,101 +258,82 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
 
     {{-- Global Cart Countdown System --}}
     @auth
-    @php
-        // User->cart() es hasMany - obtenemos el último activo
-        $userCart = auth()->user()->cart()->where('is_active', true)->latest('cart_id')->first();
-        $hasActiveCart = $userCart && $userCart->items()->count() > 0;
-    @endphp
+        @php
+            $userCart = auth()->user()->cart()->where('is_active', true)->latest('cart_id')->first();
+            $hasActiveCart = $userCart && $userCart->items()->count() > 0;
+        @endphp
 
-    @if ($hasActiveCart)
-    <script>
-        (function() {
-            const expiresAtStr = @json($userCart->expires_at);
-            const totalMinutes = @json($userCart->expiryMinutes());
+        @if ($hasActiveCart)
+        <script>
+            (function() {
+                const expiresAtStr = @json($userCart->expires_at);
+                const totalMinutes = @json($userCart->expiryMinutes());
 
-            if (!expiresAtStr) return;
+                if (!expiresAtStr) return;
 
-            let serverExpires = new Date(expiresAtStr).getTime();
-            const totalSeconds = totalMinutes * 60;
+                let serverExpires = new Date(expiresAtStr).getTime();
+                const totalSeconds = totalMinutes * 60;
 
-            window.cartCountdown = {
-                getRemainingSeconds: () => {
-                    const now = Date.now();
-                    return Math.max(0, Math.ceil((serverExpires - now) / 1000));
-                },
-                getTotalSeconds: () => totalSeconds,
-                getExpiresAt: () => new Date(serverExpires),
-                isExpired: () => {
-                    return window.cartCountdown.getRemainingSeconds() <= 0;
-                }
-            };
-        })();
-    </script>
-    @endif
+                window.cartCountdown = {
+                    getRemainingSeconds: () => Math.max(0, Math.ceil((serverExpires - Date.now()) / 1000)),
+                    getTotalSeconds: () => totalSeconds,
+                    getExpiresAt: () => new Date(serverExpires),
+                    isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
+                };
+            })();
+        </script>
+        @endif
     @endauth
 
     {{-- cartCountdown para invitados --}}
     @guest
-    @php
-        $guestCartCreated = session('guest_cart_created_at');
-        $hasGuestCart = !empty(session('guest_cart_items')) && $guestCartCreated;
-    @endphp
-    @if($hasGuestCart)
-    <script>
-        (function() {
-            const createdAt = @json($guestCartCreated);
-            const expiryMinutes = {{ \App\Models\Setting::getValue('cart.expiration_minutes', 30) }};
-            if (!createdAt) return;
-            const created = new Date(createdAt).getTime();
-            const expires = created + (expiryMinutes * 60 * 1000);
-            const totalSeconds = expiryMinutes * 60;
-            window.cartCountdown = {
-                getRemainingSeconds: () => {
-                    const now = Date.now();
-                    return Math.max(0, Math.ceil((expires - now) / 1000));
-                },
-                getTotalSeconds: () => totalSeconds,
-                getExpiresAt: () => new Date(expires),
-                isExpired: () => {
-                    return window.cartCountdown.getRemainingSeconds() <= 0;
-                }
-            };
-            let hasReloaded = false;
-            const expireUrl = '{{ route("public.guest-carts.expire") }}';
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-            const homeUrl = '{{ route(app()->getLocale() . ".home") }}';
-            const expiredTitle = '{{ __("payment.session_expired") }}';
-            const expiredMessage = '{{ __("payment.session_expired_message") }}';
+        @php
+            $guestCartCreated = session('guest_cart_created_at');
+            $hasGuestCart = !empty(session('guest_cart_items')) && $guestCartCreated;
+        @endphp
 
-            const checkExpiration = () => {
-                if (window.cartCountdown.isExpired() && !hasReloaded) {
-                    hasReloaded = true;
-                    fetch(expireUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken
-                        }
-                    }).then(() => {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: expiredTitle,
-                            text: expiredMessage,
-                            confirmButtonColor: '#3085d6',
-                            confirmButtonText: 'OK',
-                            allowOutsideClick: false,
-                            timer: 7000,
-                            timerProgressBar: true
-                        }).then(() => {
+        @if($hasGuestCart)
+        <script>
+            (function() {
+                const createdAt = @json($guestCartCreated);
+                const expiryMinutes = {{ \App\Models\Setting::getValue('cart.expiration_minutes', 30) }};
+                if (!createdAt) return;
+
+                const created = new Date(createdAt).getTime();
+                const expires = created + (expiryMinutes * 60 * 1000);
+                const totalSeconds = expiryMinutes * 60;
+
+                window.cartCountdown = {
+                    getRemainingSeconds: () => Math.max(0, Math.ceil((expires - Date.now()) / 1000)),
+                    getTotalSeconds: () => totalSeconds,
+                    getExpiresAt: () => new Date(expires),
+                    isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
+                };
+
+                let hasReloaded = false;
+                const expireUrl = '{{ route("public.guest-carts.expire") }}';
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+                const homeUrl = '{{ route(app()->getLocale() . ".home") }}';
+
+                const checkExpiration = () => {
+                    if (window.cartCountdown.isExpired() && !hasReloaded) {
+                        hasReloaded = true;
+                        fetch(expireUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken
+                            }
+                        }).finally(() => {
                             window.location.href = homeUrl;
                         });
-                    });
-                }
-            };
-            setInterval(checkExpiration, 5000);
-        })();
-    </script>
-    @endif
+                    }
+                };
+
+                setInterval(checkExpiration, 5000);
+            })();
+        </script>
+        @endif
     @endguest
 
     {{-- Theme-color dinámico según footer --}}
@@ -364,8 +342,8 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
             const meta = document.querySelector('#themeColorMeta');
             if (!meta) return;
 
-            const TOP_COLOR = @json($themeColor);
-            const FOOTER_COLOR = @json($themeColor);
+            const TOP_COLOR = '{{ $themeColor }}';
+            const FOOTER_COLOR = '{{ $themeColor }}';
 
             const footer = document.querySelector('.footer-nature');
             if (!footer) return;
@@ -376,15 +354,12 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
                 meta.setAttribute('content', nearFooter ? FOOTER_COLOR : TOP_COLOR);
             };
 
-            document.addEventListener('scroll', onScroll, {passive: true});
+            document.addEventListener('scroll', onScroll, { passive: true });
             onScroll();
         })();
     </script>
 
     @stack('scripts')
-
-    {{-- Cart Expired SweetAlert - Disabled, shown on payment page instead --}}
-    {{-- Error handling disabled to avoid repetitive popups --}}
 
     {{-- Banner de cookies solo si aún no hay decisión --}}
     @if (! $hasConsent)

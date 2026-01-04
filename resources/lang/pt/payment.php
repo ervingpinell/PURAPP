@@ -62,5 +62,7 @@ return [
     'complete_payment_message' => 'Por favor, complete o pagamento para confirmar sua reserva',
     'payment_cancelled' => 'O pagamento foi cancelado. Você pode tentar novamente quando estiver pronto.',
     'redirect_paypal' => 'Clique em Pagar para ser redirecionado ao PayPal e concluir seu pagamento com segurança.',
+    'redirect_external_gateway' => 'Você será redirecionado para o gateway de pagamento externo para concluir sua transação.',
+    'alignet_description' => 'Pagamento seguro com Cartão de Crédito/Débito (Banco Nacional)',
     'no_cart_data' => 'Dados do carrinho não encontrados',
 ];

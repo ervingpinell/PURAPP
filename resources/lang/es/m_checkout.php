@@ -86,4 +86,22 @@ return [
         'participant'        => 'participante',
         'participants'       => 'participantes',
     ],
+
+    'payment' => [
+        'title'              => 'Pago',
+        'total'              => 'Total',
+        'secure_payment'     => 'Pago Seguro',
+        'powered_by'         => 'Procesado por',
+        'proceed_to_payment' => 'Proceder al Pago',
+        'secure_transaction' => 'Transacción Segura',
+    ],
+    'booking' => [
+        'summary'   => 'Resumen de la reserva',
+        'reference' => 'Referencia',
+        'date'      => 'Fecha',
+        'passengers' => 'Pasajeros',
+    ],
+    'tour' => [
+        'name' => 'Tour',
+    ],
 ];

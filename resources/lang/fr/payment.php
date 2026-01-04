@@ -66,6 +66,8 @@ return [
     'complete_payment_message' => 'Veuillez compléter le paiement pour confirmer votre réservation',
     'payment_cancelled' => 'Le paiement a été annulé. Vous pouvez réessayer quand vous êtes prêt.',
     'redirect_paypal' => 'Cliquez sur Payer pour être redirigé vers PayPal et finaliser votre paiement en toute sécurité.',
+    'redirect_external_gateway' => 'Vous serez redirigé vers la passerelle de paiement externe pour effectuer votre transaction.',
+    'alignet_description' => 'Paiement sécurisé par carte de crédit/débit (Banco Nacional)',
     'no_cart_data' => 'Aucune donnée de panier trouvée',
 
     // Admin / Management (merged from m_payments)

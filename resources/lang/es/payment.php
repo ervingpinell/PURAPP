@@ -9,6 +9,7 @@ return [
     'banco_nacional_description' => 'Transferencia Banco Nacional',
     'bac_description' => 'Transferencia BAC Credomatic',
     'bcr_description' => 'Transferencia Banco de Costa Rica',
+    'alignet_description' => 'Pago seguro con Tarjeta de Crédito/Débito (Banco Nacional)',
     'payment_information' => 'Información de Pago',
     'select_payment_method' => 'Selecciona tu método de pago',
     'secure_payment' => 'Pago Seguro',
@@ -68,6 +69,7 @@ return [
     'complete_payment_message' => 'Por favor completa el pago para confirmar tu reserva',
     'payment_cancelled' => 'El pago fue cancelado. Puedes intentar nuevamente cuando estés listo.',
     'redirect_paypal' => 'Haz clic en Pagar para ser redirigido a PayPal y completar tu pago de forma segura.',
+    'redirect_external_gateway' => 'Serás redirigido a la pasarela de pago segura para completar tu transacción.',
     'no_cart_data' => 'No se encontraron datos del carrito',
     'gateway_error' => 'Error de conexión con la pasarela de pago. Por favor verifica tu conexión a internet e intenta nuevamente.',
 
