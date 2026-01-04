@@ -418,7 +418,7 @@ Route::middleware([SetLocale::class])->group(function () {
     // Cart ADD route - Available for GUESTS (outside auth)
     // ------------------------------
     Route::post('/carts/add', [PublicCartController::class, 'store'])
-        ->middleware('throttle:cart')
+        ->middleware('throttle.cart')  // 🆕 Custom anti-bot middleware
         ->name('public.carts.add');
 
     // ------------------------------

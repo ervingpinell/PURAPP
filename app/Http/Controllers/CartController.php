@@ -173,6 +173,34 @@ class CartController extends Controller
                 return $this->backOrJsonError($request, __('m_bookings.validation.no_active_categories'));
             }
 
+            // 🆕 Get expiration time from settings
+            $expirationMinutes = (int) setting('cart.expiration_minutes', 30);
+
+            // 🆕 Get schedule and verify capacity WITH active reservations
+            $schedule = Schedule::findOrFail((int) $request->schedule_id);
+            $totalPax = collect($request->categories)->sum();
+
+            $snap = $this->capacity->capacitySnapshot(
+                $tour,
+                $schedule,
+                $tourDate,
+                excludeBookingId: null,
+                countHolds: true,
+                excludeCartId: null,
+                countActiveReservations: true  // 🆕 Count reserved items
+            );
+
+            if ($snap['blocked'] || $totalPax > $snap['available']) {
+                $msg = $snap['available'] <= 0
+                    ? __('carts.messages.capacity_full')
+                    : __('carts.messages.limited_seats_available', [
+                        'available' => $snap['available'],
+                        'tour'      => $tour->getTranslatedName(),
+                        'date'      => $tourDate,
+                    ]);
+                return $this->backOrJsonError($request, $msg);
+            }
+
             // Store cart data in session for guest checkout
             $sessionCart = session('guest_cart_items', []);
 
@@ -180,6 +208,9 @@ class CartController extends Controller
             if (empty($sessionCart) && !session()->has('guest_cart_created_at')) {
                 session(['guest_cart_created_at' => now()->toDateTimeString()]);
             }
+
+            // 🆕 Add reservation metadata
+            $reservationToken = \Illuminate\Support\Str::random(32);
 
             $sessionCart[] = [
                 'tour_id' => (int) $request->tour_id,
@@ -191,9 +222,16 @@ class CartController extends Controller
                 'is_other_hotel' => $request->is_other_hotel,
                 'other_hotel_name' => $request->other_hotel_name,
                 'meeting_point_id' => $request->meeting_point_id,
+                // 🆕 RESERVATION METADATA
+                'is_reserved' => true,
+                'reserved_at' => now()->toDateTimeString(),
+                'reservation_token' => $reservationToken,
             ];
 
-            session(['guest_cart_items' => $sessionCart]);
+            session([
+                'guest_cart_items' => $sessionCart,
+                'guest_cart_expires_at' => now()->addMinutes($expirationMinutes)->toDateTimeString(),  // 🆕
+            ]);
 
             $successMessage = __('carts.messages.item_added');
             $count = count($sessionCart);
@@ -202,105 +240,140 @@ class CartController extends Controller
                 ? response()->json([
                     'ok' => true,
                     'message' => $successMessage,
-                    'count' => $count
+                    'count' => $count,
+                    'expires_at' => session('guest_cart_expires_at'),  // 🆕
+                    'minutes_remaining' => $expirationMinutes,  // 🆕
                 ])
                 : back()->with('success', $successMessage);
         }
 
 
-        // For authenticated users, proceed with normal cart logic
+        // For authenticated users, proceed with normal cart logic WITH LOCKS
         $user = Auth::user();
 
-        $tour = Tour::with(['schedules', 'prices.category'])->findOrFail((int) $request->tour_id);
+        // 🔒 WRAP IN TRANSACTION WITH PESSIMISTIC LOCKS
+        return DB::transaction(function () use ($request, $user) {
+            // 🔒 LOCK tour and schedule to prevent race conditions
+            $tour = Tour::with(['schedules', 'prices.category'])
+                ->lockForUpdate()
+                ->findOrFail((int) $request->tour_id);
 
-        // Validación por categorías
-        $validationResult = $this->validation->validateQuantities($tour, $request->categories);
-        if (!$validationResult['valid']) {
-            $errorMsg = implode(' ', $validationResult['errors']);
-            return $this->backOrJsonError($request, $errorMsg);
-        }
-
-        $schedule = $this->findValidScheduleOrFail($tour, (int) $request->schedule_id);
-        $tourDate = $request->tour_date;
-
-        // Capacidad
-        $totalPax = $this->totalFromCategories($request->categories);
-
-        if ($this->capacity->isDateBlocked($tour, $schedule, $tourDate)) {
-            return $this->backOrJsonError($request, __('carts.messages.capacity_full'));
-        }
-
-        $remaining = $this->capacity->remainingCapacity($tour, $schedule, $tourDate);
-        if ($totalPax > $remaining) {
-            $msg = $remaining <= 0
-                ? __('carts.messages.capacity_full')
-                : __('carts.messages.limited_seats_available', [
-                    'available' => $remaining,
-                    'tour'      => $tour->getTranslatedName(),
-                    'date'      => $this->fmtDateEn($tourDate),
-                ]);
-            return $this->backOrJsonError($request, $msg);
-        }
-
-        // Snapshot de categorías con precios
-        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $request->categories, $tourDate);
-
-        if (empty($categoriesSnapshot)) {
-            return $this->backOrJsonError($request, __('m_bookings.validation.no_active_categories'));
-        }
-
-        // Obtener o crear carrito (solo para usuarios autenticados)
-        $cart = Cart::where('user_id', $user->user_id)
-            ->where('is_active', true)
-            ->latest('cart_id')
-            ->first();
-
-        if (!$cart || $cart->isExpired()) {
-            if ($cart && $cart->isExpired()) {
-                $cart->forceExpire();
+            // Validación por categorías
+            $validationResult = $this->validation->validateQuantities($tour, $request->categories);
+            if (!$validationResult['valid']) {
+                $errorMsg = implode(' ', $validationResult['errors']);
+                return $this->backOrJsonError($request, $errorMsg);
             }
-            $cart = Cart::create([
-                'user_id'   => $user->user_id,
-                'is_active' => true,
-            ])->ensureExpiry();
-        }
 
-        // Pickup - CORREGIDO: usar meeting_point_id directamente
-        [$hotelId, $isOther, $other, $mpId] = $this->resolvePickupForStore($request);
+            // 🔒 LOCK schedule
+            $schedule = Schedule::lockForUpdate()
+                ->findOrFail((int) $request->schedule_id);
+            $schedule = $this->findValidScheduleOrFail($tour, (int) $request->schedule_id);
+            $tourDate = $request->tour_date;
 
-        Log::info('Cart Store - Resolved pickup:', [
-            'hotelId' => $hotelId,
-            'isOther' => $isOther,
-            'other' => $other,
-            'mpId' => $mpId,
-        ]);
+            // 🆕 Capacidad WITH active reservations
+            $totalPax = $this->totalFromCategories($request->categories);
 
-        // Crear item
-        $cartItem = CartItem::create([
-            'cart_id'          => $cart->cart_id,
-            'tour_id'          => (int) $tour->tour_id,
-            'tour_date'        => $tourDate,
-            'schedule_id'      => (int) $request->schedule_id,
-            'tour_language_id' => (int) $request->tour_language_id,
-            'categories'       => $categoriesSnapshot,
-            'hotel_id'         => $hotelId,
-            'is_other_hotel'   => $isOther,
-            'other_hotel_name' => $other,
-            'meeting_point_id' => $mpId,
-            'is_active'        => true,
-        ]);
+            $snap = $this->capacity->capacitySnapshot(
+                $tour,
+                $schedule,
+                $tourDate,
+                excludeBookingId: null,
+                countHolds: true,
+                excludeCartId: null,
+                countActiveReservations: true  // 🆕
+            );
 
-        Log::info('Cart Item created:', [
-            'item_id' => $cartItem->item_id,
-            'meeting_point_id' => $cartItem->meeting_point_id,
-            'hotel_id' => $cartItem->hotel_id,
-        ]);
+            if ($snap['blocked'] || $totalPax > $snap['available']) {
+                $msg = $snap['available'] <= 0
+                    ? __('carts.messages.capacity_full')
+                    : __('carts.messages.limited_seats_available', [
+                        'available' => $snap['available'],
+                        'tour'      => $tour->getTranslatedName(),
+                        'date'      => $this->fmtDateEn($tourDate),
+                    ]);
+                return $this->backOrJsonError($request, $msg);
+            }
 
-        $successMessage = __('carts.messages.item_added');
+            // Snapshot de categorías con precios
+            $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $request->categories, $tourDate);
 
-        return $request->ajax()
-            ? response()->json(['ok' => true, 'message' => $successMessage, 'count' => $this->countRaw($request)])
-            : back()->with('success', $successMessage);
+            if (empty($categoriesSnapshot)) {
+                return $this->backOrJsonError($request, __('m_bookings.validation.no_active_categories'));
+            }
+
+            // 🆕 Get expiration from settings
+            $expirationMinutes = (int) setting('cart.expiration_minutes', 30);
+
+            // Obtener o crear carrito (solo para usuarios autenticados)
+            $cart = Cart::where('user_id', $user->user_id)
+                ->where('is_active', true)
+                ->latest('cart_id')
+                ->first();
+
+            if (!$cart || $cart->isExpired()) {
+                if ($cart && $cart->isExpired()) {
+                    $cart->forceExpire();
+                }
+                $cart = Cart::create([
+                    'user_id'   => $user->user_id,
+                    'is_active' => true,
+                    'expires_at' => now()->addMinutes($expirationMinutes),  // 🆕
+                ]);
+            } else {
+                // 🆕 Update expiration
+                $cart->update(['expires_at' => now()->addMinutes($expirationMinutes)]);
+            }
+
+            // Pickup - CORREGIDO: usar meeting_point_id directamente
+            [$hotelId, $isOther, $other, $mpId] = $this->resolvePickupForStore($request);
+
+            Log::info('Cart Store - Resolved pickup:', [
+                'hotelId' => $hotelId,
+                'isOther' => $isOther,
+                'other' => $other,
+                'mpId' => $mpId,
+            ]);
+
+            // 🆕 Crear item WITH RESERVATION
+            $reservationToken = \Illuminate\Support\Str::random(32);
+
+            $cartItem = CartItem::create([
+                'cart_id'          => $cart->cart_id,
+                'tour_id'          => (int) $tour->tour_id,
+                'tour_date'        => $tourDate,
+                'schedule_id'      => (int) $request->schedule_id,
+                'tour_language_id' => (int) $request->tour_language_id,
+                'categories'       => $categoriesSnapshot,
+                'hotel_id'         => $hotelId,
+                'is_other_hotel'   => $isOther,
+                'other_hotel_name' => $other,
+                'meeting_point_id' => $mpId,
+                'is_active'        => true,
+                // 🆕 RESERVATION FIELDS
+                'is_reserved'      => true,
+                'reserved_at'      => now(),
+                'reservation_token' => $reservationToken,
+            ]);
+
+            Log::info('Cart Item created with reservation:', [
+                'item_id' => $cartItem->item_id,
+                'reservation_token' => $reservationToken,
+                'expires_at' => $cart->expires_at,
+            ]);
+
+            $successMessage = __('carts.messages.item_added');
+
+            return $request->ajax()
+                ? response()->json([
+                    'ok' => true,
+                    'message' => $successMessage,
+                    'count' => $this->countRaw($request),
+                    'expires_at' => $cart->expires_at,  // 🆕
+                    'minutes_remaining' => $expirationMinutes,  // 🆕
+                ])
+                : back()->with('success', $successMessage);
+        }); // 🔒 End transaction
     }
 
     /* ====================== Update ====================== */

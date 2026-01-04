@@ -62,6 +62,15 @@ $isSelected = fn($v,$o) => (string)$v===(string)$o ? 'selected' : '';
 $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_days_advance', 730));
 @endphp
 
+{{-- 🤖 HONEYPOT FIELD - Bots will fill this, humans won't see it --}}
+<input type="text"
+    name="website"
+    value=""
+    style="position:absolute;left:-9999px;width:1px;height:1px;"
+    tabindex="-1"
+    autocomplete="off"
+    aria-hidden="true">
+
 <div class="row g-2">
     {{-- Fecha --}}
     <div class="col-12 col-sm-6">

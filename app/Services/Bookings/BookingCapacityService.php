@@ -284,7 +284,8 @@ class BookingCapacityService
         string $tourDate,
         ?int $excludeBookingId = null,
         bool $countHolds = true,
-        ?int $excludeCartId = null
+        ?int $excludeCartId = null,
+        bool $countActiveReservations = true  // 🆕 Count active cart reservations
     ): array {
         $blocked   = $this->isDateBlocked($tour, $schedule, $tourDate);
         $max       = $this->resolveMaxCapacity($tour, $schedule, $tourDate);
@@ -300,23 +301,41 @@ class BookingCapacityService
             ? $this->heldPaxInActiveCarts($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id, $excludeCartId)
             : 0;
 
+        // 🆕 ACTIVE CART RESERVATIONS (items marked as reserved)
+        $reserved = 0;
+        if ($countActiveReservations) {
+            $expirationMinutes = (int) setting('cart.expiration_minutes', 30);
+            $cutoffTime = now()->subMinutes($expirationMinutes);
+
+            $reserved = \App\Models\CartItem::where('tour_id', $tour->tour_id)
+                ->where('schedule_id', $schedule->schedule_id)
+                ->where('tour_date', $tourDate)
+                ->where('is_reserved', true)
+                ->where('reserved_at', '>', $cutoffTime)
+                ->when($excludeCartId, fn($q) => $q->whereNot('cart_id', $excludeCartId))
+                ->get()
+                ->sum('total_pax');
+        }
+
         // Total used (for legacy 'confirmed' field)
         $confirmed = $confirmedAndPaid + $unpaidPending;
 
-        // Available = max - (paid + unpaid + holds)
-        $available = $blocked ? 0 : max(0, (int)$max - (int)$confirmed - (int)$held);
+        // Available = max - (paid + unpaid + holds + reserved)
+        $available = $blocked ? 0 : max(0, (int)$max - (int)$confirmed - (int)$held - (int)$reserved);
 
         return [
             'blocked'   => (bool) $blocked,
             'max'       => (int) $max,
             'confirmed' => (int) $confirmed, // Total confirmed + all pending (legacy)
             'held'      => (int) $held,
+            'reserved'  => (int) $reserved,  // 🆕 Active cart reservations
             'available' => (int) $available,
 
             // Detailed breakdown (NEW)
             'confirmed_and_paid' => (int) $confirmedAndPaid,  // Priority bookings
             'unpaid_pending'     => (int) $unpaidPending,     // Lower priority
             'cart_holds'         => (int) $held,              // Lowest priority
+            'cart_reserved'      => (int) $reserved,          // 🆕 Reserved items
         ];
     }
 

@@ -34,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'normalize.email' => \App\Http\Middleware\NormalizeEmail::class,
             '2fa.admin'       => \App\Http\Middleware\RequireTwoFactorForAdmins::class,
             'public.readonly' => \App\Http\Middleware\PublicReadOnly::class,
+            'throttle.cart'   => \App\Http\Middleware\ThrottleCartActions::class,  // 🆕 Anti-bot
             // Spatie Permission middleware
             'role'            => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission'      => \Spatie\Permission\Middleware\PermissionMiddleware::class,
