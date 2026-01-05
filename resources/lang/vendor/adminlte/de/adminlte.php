@@ -563,4 +563,5 @@ return [
     // Quantities
     'quantities' => 'Mengen',
     'quantitiesHelp' => 'Passen Sie die Mengen nach Bedarf an. Sie können nicht verwendete Kategorien auf 0 belassen.',
+    'no_tours_found' => 'Keine Touren gefunden.',
 ];

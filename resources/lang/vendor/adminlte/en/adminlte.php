@@ -565,4 +565,5 @@ return [
     // Quantities
     'quantities' => 'Quantities',
     'quantitiesHelp' => 'Adjust quantities as needed. You can leave categories you don\'t use at 0.',
+    'no_tours_found' => 'No tours found.',
 ];

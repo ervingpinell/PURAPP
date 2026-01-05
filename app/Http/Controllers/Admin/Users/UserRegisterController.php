@@ -17,9 +17,21 @@ class UserRegisterController extends Controller
      */
     public function index(Request $request)
     {
-        // Usar roles de Spatie en lugar de la tabla legacy
-        // Excluir 'super-admin' del listado de roles disponibles para filtro y creación
-        $roles = \Spatie\Permission\Models\Role::where('name', '!=', 'super-admin')->get();
+        // Usar roles de Spatie con filtro de jerarquía
+        $currentUser = auth()->user();
+        $rolesQ = \Spatie\Permission\Models\Role::query();
+
+        if ($currentUser->hasRole('super-admin')) {
+            // Super admin ve todo menos super-admin
+            $rolesQ->where('name', '!=', 'super-admin');
+        } elseif ($currentUser->hasRole('admin')) {
+            // Admin no ve super-admin ni admin
+            $rolesQ->whereNotIn('name', ['super-admin', 'admin']);
+        } else {
+            // Fallback
+            $rolesQ->whereNotIn('name', ['super-admin', 'admin']);
+        }
+        $roles = $rolesQ->get();
 
         $query = User::query();
 
@@ -69,6 +81,21 @@ class UserRegisterController extends Controller
                 'country_code' => ['nullable', 'string', 'max:8', 'regex:/^\+?\d{1,4}$/', 'required_with:phone'],
                 'phone'        => ['nullable', 'string', 'max:30'],
             ]);
+
+            // Validación de jerarquía de roles
+            $roleToCheck = \Spatie\Permission\Models\Role::find($request->role_id);
+            $currentUser = $request->user();
+
+            if ($roleToCheck) {
+                // Nadie puede asignar super-admin desde la UI
+                if ($roleToCheck->name === 'super-admin') {
+                    return back()->with('error', 'No se puede asignar el rol de Super Admin.')->withInput();
+                }
+                // Si intenta asignar Admin y no es Super Admin
+                if ($roleToCheck->name === 'admin' && !$currentUser->hasRole('super-admin')) {
+                    return back()->with('error', 'No tienes permiso para asignar el rol de Admin.')->withInput();
+                }
+            }
 
             // Normalización de teléfono: si viene +NN... pegado al número, quítalo
             $ccDigits    = preg_replace('/\D+/', '', (string) $request->country_code);
@@ -157,6 +184,19 @@ class UserRegisterController extends Controller
             'country_code' => ['nullable', 'string', 'max:8', 'regex:/^\+?\d{1,4}$/', 'required_with:phone'],
             'phone'        => ['nullable', 'string', 'max:30'],
         ]);
+
+        // Validación de jerarquía de roles
+        $roleToCheck = \Spatie\Permission\Models\Role::find($request->role_id);
+        if ($roleToCheck) {
+            // Nadie puede asignar super-admin
+            if ($roleToCheck->name === 'super-admin') {
+                return back()->with('error', 'No se puede asignar el rol de Super Admin.');
+            }
+            // Si intenta asignar Admin y no es Super Admin
+            if ($roleToCheck->name === 'admin' && !$currentUser->hasRole('super-admin')) {
+                return back()->with('error', 'No tienes permiso para asignar el rol de Admin.');
+            }
+        }
 
         $user->full_name = trim($request->full_name);
         $user->email     = mb_strtolower(trim($request->email));

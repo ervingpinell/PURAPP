@@ -27,9 +27,18 @@ class RoleController extends Controller
 
         $rolesQ = Role::query(); // Uses App\Models\Role which extends Spatie
 
-        // Ocultar rol super-admin si el usuario no es super admin
-        if (!auth()->user()->hasRole('super-admin')) {
+        // Ocultar roles según jerarquía
+        $user = auth()->user();
+
+        if ($user->hasRole('super-admin')) {
+            // Super Admin no ve a otros Super Admins (ni a sí mismo)
             $rolesQ->where('name', '!=', 'super-admin');
+        } elseif ($user->hasRole('admin')) {
+            // Admin no ve a Super Admin ni a otros Admins
+            $rolesQ->whereNotIn('name', ['super-admin', 'admin']);
+        } else {
+            // Otros roles (si tuvieran acceso) no ven roles admin
+            $rolesQ->whereNotIn('name', ['super-admin', 'admin']);
         }
 
         if ($q !== '') {
@@ -58,6 +67,12 @@ class RoleController extends Controller
     public function edit($id)
     {
         $role = Role::findOrFail($id);
+
+        // Security Check
+        $user = auth()->user();
+        if ($role->name === 'super-admin' || ($role->name === 'admin' && !$user->hasRole('super-admin'))) {
+            return redirect()->route('admin.roles.index')->with('error', 'No tienes permiso para editar este rol.');
+        }
         return view('admin.roles.edit', compact('role'));
     }
 
@@ -83,6 +98,12 @@ class RoleController extends Controller
     {
         $role = Role::findOrFail($id);
 
+        // Security Check
+        $user = auth()->user();
+        if ($role->name === 'super-admin' || ($role->name === 'admin' && !$user->hasRole('super-admin'))) {
+            return redirect()->route('admin.roles.index')->with('error', 'No tienes permiso para actualizar este rol.');
+        }
+
         $validated = $request->validate([
             'role_name'   => 'required|string|max:50|unique:roles,name,' . $role->id,
             'description' => 'nullable|string',
@@ -99,6 +120,12 @@ class RoleController extends Controller
     public function toggle($id)
     {
         $role = Role::findOrFail($id);
+
+        // Security Check
+        $user = auth()->user();
+        if ($role->name === 'super-admin' || ($role->name === 'admin' && !$user->hasRole('super-admin'))) {
+            return redirect()->back()->with('error', 'No tienes permiso para modificar este rol.');
+        }
         $role->is_active = ! $role->is_active;
         $role->save();
 
@@ -109,6 +136,12 @@ class RoleController extends Controller
     public function destroy($id)
     {
         $role = Role::findOrFail($id);
+
+        // Security Check
+        $user = auth()->user();
+        if ($role->name === 'super-admin' || ($role->name === 'admin' && !$user->hasRole('super-admin'))) {
+            return redirect()->route('admin.roles.index')->with('error', 'No tienes permiso para eliminar este rol.');
+        }
 
         try {
             $role->delete();
@@ -130,6 +163,12 @@ class RoleController extends Controller
     public function permissions($id)
     {
         $role = Role::findOrFail($id);
+
+        // Security Check
+        $user = auth()->user();
+        if ($role->name === 'super-admin' || ($role->name === 'admin' && !$user->hasRole('super-admin'))) {
+            return redirect()->route('admin.roles.index')->with('error', 'No tienes permiso para ver los permisos de este rol.');
+        }
 
         $permissions = \Spatie\Permission\Models\Permission::all();
 
@@ -161,6 +200,11 @@ class RoleController extends Controller
     {
         $role = Role::findOrFail($id);
         $user = $request->user();
+
+        // Security Check
+        if ($role->name === 'super-admin' || ($role->name === 'admin' && !$user->hasRole('super-admin'))) {
+            return redirect()->route('admin.roles.index')->with('error', 'No tienes permiso para modificar este rol.');
+        }
 
         // Solo super-admin puede modificar cualquier rol
         if (!$user->hasRole('super-admin')) {
