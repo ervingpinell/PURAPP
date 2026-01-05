@@ -404,7 +404,7 @@ $homeUrl = \Illuminate\Support\Facades\Route::has('home')
     cc.addEventListener('blur', collapseLabels);
     collapseLabels(); // Start collapsed
 
-    const wantedCc = @json(old('country_code', $user - > country_code));
+    const wantedCc = @json(old('country_code', $user -> country_code));
     if (wantedCc) {
       const found = Array.from(cc.options).find(o => o.value === wantedCc);
       if (found) cc.value = wantedCc;

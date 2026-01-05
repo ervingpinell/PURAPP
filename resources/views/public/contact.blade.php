@@ -206,7 +206,7 @@
     @endif
 
     // Mostrar SweetAlert si hay errores de validación del servidor
-    @if($errors - > any())
+    @if($errors -> any())
     Swal.fire({
       icon: 'error',
       title: '{{ __('

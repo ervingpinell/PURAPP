@@ -312,7 +312,7 @@
       cc.addEventListener('blur', collapseLabels);
       collapseLabels(); // Start collapsed
 
-      const currentCode = @json(old('country_code', $user - > country_code ?? null));
+      const currentCode = @json(old('country_code', $user -> country_code ?? null));
       if (currentCode) cc.value = currentCode;
     }
 
@@ -321,7 +321,7 @@
     const emailHint = document.getElementById('email-change-hint');
 
     if (emailInput && emailHint) {
-      const originalEmail = @json($user - > pending_email ?? $user - > email);
+      const originalEmail = @json($user -> pending_email ?? $user -> email);
 
       const toggleEmailHint = () => {
         const current = (emailInput.value || '').trim().toLowerCase();
