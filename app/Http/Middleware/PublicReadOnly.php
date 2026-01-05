@@ -21,10 +21,17 @@ class PublicReadOnly
             $blocked = [
                 'apply-promo',
                 'api/apply-promo',
-                'carrito/*',
-                'mi-carrito',
+                'carrito/*',    // Legacy
+                'mi-carrito',   // Legacy
                 'my-bookings*',
                 'register',
+                // New Guest Checkout & Cart
+                'checkout*',
+                'carts/*',
+                'payment/*',
+                // Contact form
+                'contact',
+                'contact/*',
             ];
 
             foreach ($blocked as $pat) {
