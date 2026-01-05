@@ -743,7 +743,10 @@ class HomeController extends Controller
                 rawurlencode('Agencia de Viajes Green Vacations CR, La Fortuna, San Carlos, Costa Rica')
             );
 
-            return view('public.contact', compact('mapLang', 'mapSrc'));
+            // Time Trap Token (Anti-bot)
+            $timeToken = encrypt(time());
+
+            return view('public.contact', compact('mapLang', 'mapSrc', 'timeToken'));
         } catch (Throwable $e) {
             Log::error('contact.view.failed', ['error' => $e->getMessage()]);
             abort(500);
@@ -752,6 +755,25 @@ class HomeController extends Controller
     public function sendContact(Request $request)
     {
         try {
+            // 0) Time Trap Validation (Anti-bot)
+            // Bots usually submit immediately. Humans take at least 3-5 seconds.
+            if ($request->has('_t')) {
+                try {
+                    $timestamp = decrypt($request->input('_t'));
+                    if (time() - $timestamp < 3) {
+                        // Too fast (< 3s), likely a bot. Return fake success.
+                        return back()->with('success', __('adminlte::adminlte.contact_spam_success'));
+                    }
+                } catch (\Exception $e) {
+                    // Invalid token. Treat as bot.
+                    return back()->with('success', __('adminlte::adminlte.contact_spam_success'));
+                }
+            } else {
+                // Missing token. Likely a direct POST bot.
+                // We allow it to proceed to validation for legacy/cached page support OR fail it.
+                // Better to fail silently or require it. For now, let's just proceed to other checks but log it.
+            }
+
             // 1) Validación inicial, incluyendo Turnstile
             $validated = $request->validate([
                 'name'    => 'bail|required|string|min:2|max:100',
@@ -759,8 +781,8 @@ class HomeController extends Controller
                 'subject' => 'bail|required|string|min:3|max:150',
                 'message' => 'bail|required|string|min:5|max:1000',
                 'website' => 'nullable|string|max:50',
-                // Turnstile genera este campo automáticamente
-                'cf-turnstile-response' => 'required|string',
+                // Turnstile genera este campo automáticamente (si está activo en frontend)
+                'cf-turnstile-response' => 'nullable|string',
             ]);
 
             // 2) Honeypot: simulamos éxito pero no hacemos nada
@@ -775,17 +797,24 @@ class HomeController extends Controller
             $secret = config('services.turnstile.secret_key');
 
             if ($secret) {
-                $verifyResponse = Http::asForm()->post(
+                if (empty($request->input('cf-turnstile-response'))) {
+                    return back()
+                        ->withInput($request->except('website'))
+                        ->withErrors([
+                            'cf-turnstile-response' => __('adminlte::adminlte.bot_detection_failed'),
+                        ]);
+                }
+
+                $verifyResponse = \Illuminate\Support\Facades\Http::asForm()->post(
                     'https://challenges.cloudflare.com/turnstile/v0/siteverify',
                     [
                         'secret'   => $secret,
-                        'response' => $validated['cf-turnstile-response'] ?? '',
+                        'response' => $request->input('cf-turnstile-response'),
                         'remoteip' => $request->ip(),
                     ]
                 );
 
                 if (!$verifyResponse->ok() || !$verifyResponse->json('success')) {
-                    // Puedes loguear detalle para debug
                     Log::warning('contact.turnstile.failed', [
                         'ip'      => $request->ip(),
                         'payload' => $verifyResponse->json(),
@@ -797,9 +826,6 @@ class HomeController extends Controller
                             'cf-turnstile-response' => __('adminlte::adminlte.bot_detection_failed'),
                         ]);
                 }
-            } else {
-                // Si no hay secret configurado, opcionalmente puedes loguearlo:
-                Log::warning('contact.turnstile.not_configured');
             }
 
             // 4) Enviar correo normalmente

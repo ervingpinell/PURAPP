@@ -3,12 +3,14 @@
 @section('title', __('adminlte::adminlte.contact_us'))
 
 @push('styles')
-  @vite(['resources/css/contact.css'])
-  <style>
-    /* Oculta el widget flotante (botón + panel) solo en esta página */
-    .whatsapp-widget,
-    .whatsapp-float-btn { display:none !important; }
-  </style>
+@vite(['resources/css/contact.css'])
+<style>
+  /* Oculta el widget flotante (botón + panel) solo en esta página */
+  .whatsapp-widget,
+  .whatsapp-float-btn {
+    display: none !important;
+  }
+</style>
 @endpush
 
 @section('content')
@@ -24,6 +26,7 @@
           <div class="card-body">
             <form action="{{ localized_route('contact.send') }}" method="POST" id="contactForm">
               @csrf
+              <input type="hidden" name="_t" value="{{ $timeToken }}">
 
               {{-- Honeypot --}}
               <div style="position:absolute; left:-9999px; top:-9999px;">
@@ -41,12 +44,11 @@
                   required
                   value="{{ old('name') }}"
                   autocomplete="name"
-                  placeholder="{{ __('adminlte::adminlte.contact_name_placeholder') }}"
-                >
+                  placeholder="{{ __('adminlte::adminlte.contact_name_placeholder') }}">
                 @error('name')
-                  <div class="invalid-feedback">{{ $message }}</div>
+                <div class="invalid-feedback">{{ $message }}</div>
                 @else
-                  <div class="invalid-feedback">{{ __('adminlte::adminlte.field_required') }}</div>
+                <div class="invalid-feedback">{{ __('adminlte::adminlte.field_required') }}</div>
                 @enderror
               </div>
 
@@ -61,12 +63,11 @@
                   value="{{ old('email') }}"
                   autocomplete="email"
                   inputmode="email"
-                  placeholder="{{ __('adminlte::adminlte.contact_email_placeholder') }}"
-                >
+                  placeholder="{{ __('adminlte::adminlte.contact_email_placeholder') }}">
                 @error('email')
-                  <div class="invalid-feedback">{{ $message }}</div>
+                <div class="invalid-feedback">{{ $message }}</div>
                 @else
-                  <div class="invalid-feedback">{{ __('adminlte::adminlte.email_invalid') }}</div>
+                <div class="invalid-feedback">{{ __('adminlte::adminlte.email_invalid') }}</div>
                 @enderror
               </div>
 
@@ -79,12 +80,11 @@
                   id="subject"
                   required
                   value="{{ old('subject') }}"
-                  placeholder="{{ __('adminlte::adminlte.contact_subject_placeholder') }}"
-                >
+                  placeholder="{{ __('adminlte::adminlte.contact_subject_placeholder') }}">
                 @error('subject')
-                  <div class="invalid-feedback">{{ $message }}</div>
+                <div class="invalid-feedback">{{ $message }}</div>
                 @else
-                  <div class="invalid-feedback">{{ __('adminlte::adminlte.field_required') }}</div>
+                <div class="invalid-feedback">{{ __('adminlte::adminlte.field_required') }}</div>
                 @enderror
               </div>
 
@@ -97,27 +97,25 @@
                   rows="6"
                   required
                   minlength="5"
-                  placeholder="{{ __('adminlte::adminlte.contact_message_placeholder') }}"
-                >{{ old('message') }}</textarea>
+                  placeholder="{{ __('adminlte::adminlte.contact_message_placeholder') }}">{{ old('message') }}</textarea>
                 @error('message')
-                  <div class="invalid-feedback">{{ $message }}</div>
+                <div class="invalid-feedback">{{ $message }}</div>
                 @else
-                  <div class="invalid-feedback">{{ __('adminlte::adminlte.field_required') }}</div>
+                <div class="invalid-feedback">{{ __('adminlte::adminlte.field_required') }}</div>
                 @enderror
               </div>
 
               {{-- Cloudflare Turnstile (solo si hay site_key configurada) --}}
               @if(config('services.turnstile.site_key'))
-                <div class="mb-3">
-                  <div
-                    class="cf-turnstile"
-                    data-sitekey="{{ config('services.turnstile.site_key') }}"
-                    data-theme="light"
-                  ></div>
-                  @error('cf-turnstile-response')
-                    <div class="text-danger small mt-1">{{ $message }}</div>
-                  @enderror
-                </div>
+              <div class="mb-3">
+                <div
+                  class="cf-turnstile"
+                  data-sitekey="{{ config('services.turnstile.site_key') }}"
+                  data-theme="light"></div>
+                @error('cf-turnstile-response')
+                <div class="text-danger small mt-1">{{ $message }}</div>
+                @enderror
+              </div>
               @endif
 
               <button type="submit" class="btn btn-success bg-green-dark w-100">
@@ -157,9 +155,9 @@
 
             <div class="mt-3">
               @include('partials.ws-widget', [
-                  'variant'        => 'inline',
-                  'buttonClass'    => 'btn btn-outline-success',
-                  'phone'          => '50624791471',
+              'variant' => 'inline',
+              'buttonClass' => 'btn btn-outline-success',
+              'phone' => '50624791471',
               ])
             </div>
           </div>
@@ -188,28 +186,31 @@
 
 {{-- Script de Cloudflare Turnstile, solo en esta vista y solo si está configurado --}}
 @if(config('services.turnstile.site_key'))
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 @endif
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const form = document.getElementById('contactForm');
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('contactForm');
 
-  // Mostrar SweetAlert si hay éxito
-  @if(session('success'))
+    // Mostrar SweetAlert si hay éxito
+    @if(session('success'))
     Swal.fire({
       icon: 'success',
-      title: '{{ __('adminlte::adminlte.message_sent') }}',
+      title: '{{ __('
+      adminlte::adminlte.message_sent ') }}',
       html: `{!! session('success') !!}`,
-      confirmButtonText: '{{ __('adminlte::adminlte.swal_ok') }}'
+      confirmButtonText: '{{ __('
+      adminlte::adminlte.swal_ok ') }}'
     });
-  @endif
+    @endif
 
-  // Mostrar SweetAlert si hay errores de validación del servidor
-  @if ($errors->any())
+    // Mostrar SweetAlert si hay errores de validación del servidor
+    @if($errors - > any())
     Swal.fire({
       icon: 'error',
-      title: '{{ __('adminlte::adminlte.validation_error') }}',
+      title: '{{ __('
+      adminlte::adminlte.validation_error ') }}',
       html: `
         <ul class="text-start">
           @foreach ($errors->all() as $error)
@@ -217,18 +218,19 @@ document.addEventListener('DOMContentLoaded', function() {
           @endforeach
         </ul>
       `,
-      confirmButtonText: '{{ __('adminlte::adminlte.swal_ok') }}'
+      confirmButtonText: '{{ __('
+      adminlte::adminlte.swal_ok ') }}'
     });
-  @endif
+    @endif
 
-  // Validación HTML5 con Bootstrap styling
-  form.addEventListener('submit', function(event) {
-    if (!form.checkValidity()) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    form.classList.add('was-validated');
+    // Validación HTML5 con Bootstrap styling
+    form.addEventListener('submit', function(event) {
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    });
   });
-});
 </script>
 @endpush
