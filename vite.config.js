@@ -34,6 +34,7 @@ export default defineConfig({
                 'resources/js/reviews-embed.js',
                 'resources/js/reviews-carousel.js',
                 'resources/js/reviews-index.js',
+                'resources/js/tours-index.js',
                 'resources/css/admin-sidebar.css',
                 'resources/css/checkout.css',
             ],
