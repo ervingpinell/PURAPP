@@ -1351,6 +1351,14 @@ class PaymentController extends Controller
             abort(500, 'Payment data missing/invalid');
         }
 
+        // 🔧 FIX: Ensure urlResponse and timeoutResponse exist (for legacy payments)
+        if (!isset($paymentData['urlResponse'])) {
+            $paymentData['urlResponse'] = route('webhooks.payment.alignet');
+        }
+        if (!isset($paymentData['timeoutResponse'])) {
+            $paymentData['timeoutResponse'] = '300';
+        }
+
         return view('payments.alignet-form', [
             'booking' => $booking,
             'paymentData' => $paymentData
