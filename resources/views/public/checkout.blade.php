@@ -55,15 +55,21 @@ return [$c->category_id => $name];
 
 // Resolutor label de categoría
 $resolveCatLabel = function(array $cat) use ($categoryNamesById) {
+$cid = (int) (data_get($cat,'category_id') ?? data_get($cat,'id') ?? 0);
+$name = null;
+
+// 1. Prioridad: Traducción fresca desde BD (si existe)
+if ($cid && $categoryNamesById->has($cid)) {
+$name = $categoryNamesById->get($cid);
+}
+
+// 2. Fallback: Datos del snapshot del carrito
+if (!$name) {
 $name = data_get($cat,'i18n_name')
 ?? data_get($cat,'name')
 ?? data_get($cat,'label')
 ?? data_get($cat,'category_name')
 ?? data_get($cat,'category.name');
-
-$cid = (int) (data_get($cat,'category_id') ?? data_get($cat,'id') ?? 0);
-if (!$name && $cid && $categoryNamesById->has($cid)) {
-$name = $categoryNamesById->get($cid);
 }
 
 if (!$name) {
@@ -188,19 +194,36 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
       <div class="mt-4">
         <form id="guest-info-form">
           <div class="row g-3">
-            <div class="col-12">
-              <label for="guest_name" class="form-label">
-                {{ __('m_checkout.customer_info.full_name') }} <span class="text-danger">*</span>
+            <div class="col-md-6">
+              <label for="guest_first_name" class="form-label">
+                {{ __('m_checkout.customer_info.first_name') }} <span class="text-danger">*</span>
               </label>
               <input
                 type="text"
                 class="form-control"
-                id="guest_name"
-                name="guest_name"
-                value="{{ old('guest_name') }}"
+                id="guest_first_name"
+                name="guest_first_name"
+                value="{{ old('guest_first_name') }}"
                 required
-                placeholder="{{ __('m_checkout.customer_info.placeholder_name') }}">
-              @error('guest_name')
+                placeholder="Juan">
+              @error('guest_first_name')
+              <div class="text-danger small mt-1">{{ $message }}</div>
+              @enderror
+            </div>
+
+            <div class="col-md-6">
+              <label for="guest_last_name" class="form-label">
+                {{ __('m_checkout.customer_info.last_name') }} <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="guest_last_name"
+                name="guest_last_name"
+                value="{{ old('guest_last_name') }}"
+                required
+                placeholder="Pérez">
+              @error('guest_last_name')
               <div class="text-danger small mt-1">{{ $message }}</div>
               @enderror
             </div>
@@ -222,46 +245,76 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
               @enderror
             </div>
 
-            <div class="col-12">
-              @php
-              // Parse old phone value to extract country code and number
-              $oldPhone = old('guest_phone', '');
-              $oldCode = old('guest_country_code', '+506');
-              $phoneNumber = $oldPhone;
 
-              // If old phone contains a country code pattern (+XXX), extract it
-              if (preg_match('/^(\+\d+(?:-\d+)?)\s+(.+)$/', $oldPhone, $matches)) {
-              $oldCode = $matches[1]; // e.g., "+506"
-              $phoneNumber = $matches[2]; // e.g., "1234-5678"
-              } elseif (preg_match('/^(\+\d+(?:-\d+)?)(.+)$/', $oldPhone, $matches)) {
-              $oldCode = $matches[1];
-              $phoneNumber = ltrim($matches[2]);
-              }
-              @endphp
-              <label for="guest_phone" class="form-label">
-                {{ __('m_checkout.customer_info.phone') }} <span class="text-muted">({{ __('m_checkout.customer_info.optional') }})</span>
+            {{-- Address Fields --}}
+            <div class="col-12">
+              <label for="guest_address" class="form-label">
+                {{ __('m_checkout.customer_info.address') }} <span class="text-danger">*</span>
               </label>
-              <div class="row g-2">
-                <div class="col-5 col-sm-4">
-                  <select class="form-select" id="guest_country_code">
-                    @include('partials.country-codes', ['selected' => $oldCode, 'showNames' => true])
-                  </select>
-                </div>
-                <div class="col-7 col-sm-8">
-                  <input
-                    type="tel"
-                    class="form-control"
-                    id="guest_phone"
-                    value="{{ $phoneNumber }}"
-                    placeholder="1234-5678">
-                </div>
+              <input type="text" class="form-control" id="guest_address" name="guest_address" value="{{ old('guest_address') }}" required placeholder="123 Main St">
+              @error('guest_address') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="col-md-6">
+              <label for="guest_city" class="form-label">
+                {{ __('m_checkout.customer_info.city') }} <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" id="guest_city" name="guest_city" value="{{ old('guest_city') }}" required>
+              @error('guest_city') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="col-md-6">
+              <label for="guest_state" class="form-label">
+                {{ __('m_checkout.customer_info.state') }} <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" id="guest_state" name="guest_state" value="{{ old('guest_state') }}" required>
+              @error('guest_state') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="col-md-6">
+              <label for="guest_zip" class="form-label">
+                {{ __('m_checkout.customer_info.zip') }} <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" id="guest_zip" name="guest_zip" value="{{ old('guest_zip') }}" required>
+              @error('guest_zip') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="col-md-6">
+              <label for="guest_country" class="form-label">
+                {{ __('m_checkout.customer_info.country') }} <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="guest_country" name="guest_country" required>
+                @include('partials.country-codes', ['selected' => old('guest_country', 'CR'), 'showNames' => true, 'valueIsIso' => true])
+              </select>
+              @error('guest_country') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="col-12">
+              <label for="guest_phone" class="form-label">
+                {{ __('m_checkout.customer_info.phone') }} <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <select id="guest_phone_cc" name="guest_country_code"
+                  class="form-select @error('guest_country_code') is-invalid @enderror"
+                  style="max-width: 140px;">
+                  @include('partials.country-codes', [
+                  'selected' => old('guest_country_code', '+506'),
+                  'showNames' => true,
+                  'valueIsIso' => false
+                  ])
+                </select>
+                <input
+                  type="tel"
+                  id="guest_phone"
+                  name="guest_phone"
+                  class="form-control @error('guest_phone') is-invalid @enderror"
+                  value="{{ old('guest_phone') }}"
+                  placeholder="{{ __('adminlte::validation.attributes.phone') }}"
+                  inputmode="tel" autocomplete="tel" required>
+                <div class="input-group-text"><span class="fas fa-phone"></span></div>
               </div>
-              @error('guest_phone')
-              <div class="text-danger small mt-1">{{ $message }}</div>
-              @enderror
-              @error('guest_country_code')
-              <div class="text-danger small mt-1">{{ $message }}</div>
-              @enderror
+              @error('guest_country_code') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+              @error('guest_phone') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
             </div>
           </div>
 
@@ -299,8 +352,15 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
         {{-- Include guest data in submission if present --}}
         @guest
         <input type="hidden" name="guest_name" id="hidden_guest_name">
+        <input type="hidden" name="guest_first_name" id="hidden_guest_first_name">
+        <input type="hidden" name="guest_last_name" id="hidden_guest_last_name">
         <input type="hidden" name="guest_email" id="hidden_guest_email">
         <input type="hidden" name="guest_phone" id="hidden_guest_phone">
+        <input type="hidden" name="guest_address" id="hidden_guest_address">
+        <input type="hidden" name="guest_city" id="hidden_guest_city">
+        <input type="hidden" name="guest_state" id="hidden_guest_state">
+        <input type="hidden" name="guest_zip" id="hidden_guest_zip">
+        <input type="hidden" name="guest_country" id="hidden_guest_country">
         @endguest
 
         {{-- 🔐 Notas que vienen del carrito: se preservan en el POST al process --}}
@@ -1035,36 +1095,101 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
     if (checkoutForm && guestForm) {
       checkoutForm.addEventListener('submit', function(e) {
         // Copy guest form values to hidden inputs
+        // Guest Form Data
+        // const guestName = document.getElementById('guest_name'); // REMOVED DUPLICATE
+        // const guestEmail = document.getElementById('guest_email'); // REMOVED DUPLICATE
+        // const guestPhone = document.getElementById('guest_phone'); // REMOVED DUPLICATE
+
+        const guestFirstName = document.getElementById('guest_first_name');
+        const guestLastName = document.getElementById('guest_last_name');
+
+        // Legacy/Fallback check
         const guestName = document.getElementById('guest_name');
         const guestEmail = document.getElementById('guest_email');
         const guestPhone = document.getElementById('guest_phone');
 
+        const hiddenFirstName = document.getElementById('hidden_guest_first_name');
+        const hiddenLastName = document.getElementById('hidden_guest_last_name');
         const hiddenName = document.getElementById('hidden_guest_name');
+
         const hiddenEmail = document.getElementById('hidden_guest_email');
         const guestCountryCode = document.getElementById('guest_country_code');
         const hiddenPhone = document.getElementById('hidden_guest_phone');
 
-        if (guestName && hiddenName) {
-          hiddenName.value = guestName.value;
+        // Sync First Name
+        if (guestFirstName && hiddenFirstName) {
+          hiddenFirstName.value = guestFirstName.value;
+        }
+        // Sync Last Name
+        if (guestLastName && hiddenLastName) {
+          hiddenLastName.value = guestLastName.value;
+        }
+        // Sync Full Name (Concatenated) for legacy support
+        if (hiddenName) {
+          if (guestFirstName && guestLastName) {
+            hiddenName.value = (guestFirstName.value || '') + ' ' + (guestLastName.value || '');
+          } else if (guestName) {
+            hiddenName.value = guestName.value;
+          }
         }
         if (guestEmail && hiddenEmail) {
           hiddenEmail.value = guestEmail.value;
         }
-        if (guestPhone && guestCountryCode && hiddenPhone) {
+
+        // Copy Address Fields
+        const guestAddress = document.getElementById('guest_address');
+        const guestCity = document.getElementById('guest_city');
+        const guestState = document.getElementById('guest_state');
+        const guestZip = document.getElementById('guest_zip');
+        const guestCountry = document.getElementById('guest_country');
+
+        const hiddenAddress = document.getElementById('hidden_guest_address');
+        const hiddenCity = document.getElementById('hidden_guest_city');
+        const hiddenState = document.getElementById('hidden_guest_state');
+        const hiddenZip = document.getElementById('hidden_guest_zip');
+        const hiddenCountry = document.getElementById('hidden_guest_country');
+
+        if (guestAddress && hiddenAddress) hiddenAddress.value = guestAddress.value;
+        if (guestCity && hiddenCity) hiddenCity.value = guestCity.value;
+        if (guestState && hiddenState) hiddenState.value = guestState.value;
+        if (guestZip && hiddenZip) hiddenZip.value = guestZip.value;
+        if (guestCountry && hiddenCountry) hiddenCountry.value = guestCountry.value;
+        if (guestPhone && hiddenPhone) {
           // Combine country code + phone number for backward compatibility
-          const countryCode = guestCountryCode.value || '+506';
+          let countryCode = '+506';
+
+          if (guestCountry && guestCountry.options && guestCountry.selectedIndex >= 0) {
+            const opt = guestCountry.options[guestCountry.selectedIndex];
+            if (opt && opt.getAttribute('data-code')) {
+              countryCode = opt.getAttribute('data-code');
+            }
+          }
+
           const phoneNumber = guestPhone.value || '';
-          hiddenPhone.value = phoneNumber ? countryCode + ' ' + phoneNumber : '';
+          // Ensure we don't double prefix if user typed it
+          if (phoneNumber.startsWith('+')) {
+            hiddenPhone.value = phoneNumber;
+          } else {
+            hiddenPhone.value = phoneNumber ? countryCode + ' ' + phoneNumber : '';
+          }
         }
 
         // Validate guest form
-        if (guestName && guestEmail) {
+        if (guestFirstName && guestLastName && guestEmail) {
+          if (!guestFirstName.value.trim() || !guestLastName.value.trim() || !guestEmail.value.trim()) {
+            e.preventDefault();
+            alert('{{ __("Please fill in your name and email to continue") }}');
+            return false;
+          }
+        } else if (guestName && guestEmail) { // Fallback legacy
           if (!guestName.value.trim() || !guestEmail.value.trim()) {
             e.preventDefault();
             alert('{{ __("Please fill in your name and email to continue") }}');
             return false;
           }
+        }
 
+        if (guestEmail) {
           // Basic email validation
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(guestEmail.value)) {
@@ -1140,6 +1265,32 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
 
       tick();
     })();
+
+    /* 5) Customer Info Phone Code Selector Logic */
+    const phoneCc = document.getElementById('guest_phone_cc');
+    if (phoneCc) {
+      // Expand to "Name (Code)" on focus
+      function expandPhoneLabels() {
+        Array.from(phoneCc.options).forEach(opt => {
+          const name = opt.dataset.name || '';
+          const code = opt.dataset.code || opt.value;
+          opt.textContent = `${name} (${code})`;
+        });
+      }
+      // Collapse to "(Code)" on blur
+      function collapsePhoneLabels() {
+        Array.from(phoneCc.options).forEach(opt => {
+          const code = opt.dataset.code || opt.value;
+          opt.textContent = `(${code})`;
+        });
+      }
+
+      phoneCc.addEventListener('focus', expandPhoneLabels);
+      phoneCc.addEventListener('blur', collapsePhoneLabels);
+
+      // Initialize collapsed
+      collapsePhoneLabels();
+    }
   });
 </script>
 @endpush

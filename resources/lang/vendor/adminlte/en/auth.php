@@ -45,6 +45,7 @@ return [
         'user'      => "We can't find a user with that email address.",
         'match'     => 'Passwords match.',
         'link_sent' => 'A password reset link has been sent to your email address.',
+        'resent' => 'A new verification link has been sent to your email address.',
     ],
 
     // 4. Password Requirements
@@ -83,6 +84,7 @@ return [
         'message'   => 'Before proceeding, please verify your email. We have sent you a verification link.',
         'resend'    => 'Resend verification email',
         'link_sent' => 'We have sent you a new verification link.',
+        'resent' => 'A new verification link has been sent to your email address.',
         'sent_to'      => 'We have sent a verification link to :email.',
 'email_label'  => 'Email address',
         'subject'   => 'Verify your email address',

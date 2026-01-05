@@ -16,6 +16,8 @@ return [
         'title'              => 'Kundeninformation',
         'subtitle'              => 'Bitte geben Sie Ihre Kontaktdaten ein, um fortzufahren',
         'full_name'              => 'Vollständiger Name',
+        'first_name'             => 'Vorname',
+        'last_name'              => 'Nachname',
         'email'              => 'E-Mail',
         'phone'              => 'Telefon',
         'optional'              => 'optional',
@@ -24,6 +26,11 @@ return [
         'why_need_title'              => 'Warum wir dies benötigen',
         'why_need_text'              => 'Ihre E-Mail-Adresse wird verwendet, um Buchungsbestätigungen, Updates und Zahlungslinks zu senden. Sie können optional nach der Buchung ein Konto erstellen, um Ihre Reservierungen zu verwalten.',
         'logged_in_as'              => 'Angemeldet als',
+        'address'            => 'Adresse',
+        'city'               => 'Stadt',
+        'state'              => 'Bundesland / Kanton',
+        'zip'                => 'Postleitzahl',
+        'country'            => 'Land',
     ],
 
     'steps' => [

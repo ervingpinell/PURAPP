@@ -82,6 +82,7 @@ return [
         'message'   => 'Antes de continuar, por favor verifica tu correo. Te hemos enviado un enlace de verificación.',
         'resend'    => 'Reenviar correo de verificación',
         'link_sent' => 'Te hemos enviado un nuevo enlace de verificación.',
+        'resent' => 'Se ha reenviado un nuevo enlace de verificación a tu correo electrónico.',
         'sent_to' => 'Te hemos enviado un enlace de verificación a :email.',
         'email_label' => 'Correo electrónico',
         'subject'   => 'Verifica tu correo electrónico',

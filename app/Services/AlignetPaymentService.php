@@ -110,16 +110,16 @@ class AlignetPaymentService
             'purchaseAmount' => $amountCents,
             'purchaseCurrencyCode' => '840', // USD
             'language' => 'SP',
-            'shippingFirstName' => trim($customerData['first_name'] ?? '') !== '' ? trim($customerData['first_name']) : 'Guest',
-            'shippingLastName' => trim($customerData['last_name'] ?? '') !== '' ? trim($customerData['last_name']) : 'User',
-            'shippingEmail' => trim($customerData['email'] ?? '') !== '' ? trim($customerData['email']) : 'test@example.com',
-            'shippingAddress' => trim($customerData['address'] ?? '') !== '' ? trim($customerData['address']) : 'La Fortuna',
-            'shippingZIP' => trim($customerData['zip'] ?? '') !== '' ? trim($customerData['zip']) : '21007',
-            'shippingCity' => trim($customerData['city'] ?? '') !== '' ? trim($customerData['city']) : 'Alajuela',
-            'shippingState' => trim($customerData['state'] ?? '') !== '' ? trim($customerData['state']) : 'Alajuela',
-            'shippingCountry' => trim($customerData['country'] ?? '') !== '' ? trim($customerData['country']) : '188', // 188 = CR numeric
-            'userCommerce' => trim($customerData['email'] ?? '') !== '' ? trim($customerData['email']) : 'test@example.com',
-            'descriptionProducts' => $customerData['description'] ?? 'Tour booking',
+            'shippingFirstName' => substr(trim($customerData['first_name'] ?? '') !== '' ? trim($customerData['first_name']) : 'Guest', 0, 30),
+            'shippingLastName' => substr(trim($customerData['last_name'] ?? '') !== '' ? trim($customerData['last_name']) : '-', 0, 30), // Doc says 50, but safer to match others if unsure, actually doc says 50. Let's keep 50? Doc Image 1 says billingLastName 50. shippingLastName 50. Okay 50.
+            'shippingEmail' => substr(trim($customerData['email'] ?? '') !== '' ? trim($customerData['email']) : 'test@example.com', 0, 30), // Doc says 30
+            'shippingAddress' => substr(trim($customerData['address'] ?? '') !== '' ? trim($customerData['address']) : 'Not Provided', 0, 50),
+            'shippingZIP' => substr(trim($customerData['zip'] ?? '') !== '' ? trim($customerData['zip']) : '00000', 0, 10),
+            'shippingCity' => substr(trim($customerData['city'] ?? '') !== '' ? trim($customerData['city']) : 'Not Provided', 0, 50),
+            'shippingState' => substr(trim($customerData['state'] ?? '') !== '' ? trim($customerData['state']) : 'SJ', 0, 15), // Doc says 15.
+            'shippingCountry' => substr($customerData['country'] ?? 'CR', 0, 2), // ISO Alpha-2
+            'userCommerce' => substr(hash('sha256', trim($customerData['email'] ?? 'guest')), 0, 10), // Unique ID, Max 10 chars
+            'descriptionProducts' => substr($customerData['description'] ?? 'Tour booking', 0, 30),
             'programmingLanguage' => 'PHP',
             'purchaseVerification' => $this->generatePurchaseVerification(
                 $operationNumber,
@@ -130,13 +130,16 @@ class AlignetPaymentService
             'vpos2_script' => $this->config['urls'][$this->environment]['vpos2_script'] ?? 'https://integracion.alignetsac.com/VPOS2/js/modalcomercio.js',
         ];
 
-        // Add optional fields only if set
-        if (!empty($userCodePayme)) {
-            $paymentData['userCodePayme'] = $userCodePayme;
-        }
-
         if (!empty($customerData['booking_id'])) {
             $paymentData['reserved1'] = (string)$customerData['booking_id'];
+        }
+
+        // Add phone if available (reserved2) or shippingPhone if supported (but screenshot implies shippingPhone not mandatory, but good to have)
+        if (!empty($customerData['phone'])) {
+            // Screenshot shows shippingPhone is No Mandatory, max 15.
+            $phone = substr(trim($customerData['phone']), 0, 15);
+            $paymentData['shippingPhone'] = $phone;
+            $paymentData['reserved2'] = $phone;
         }
 
         // LOG DETALLADO PARA DEBUG
@@ -291,6 +294,33 @@ class AlignetPaymentService
     public function getUrls(): array
     {
         return $this->config['urls'][$this->environment];
+    }
+
+    /**
+     * Map ISO Country Code (2 chars) to Numeric Code (3 digits)
+     * e.g. CR -> 188, US -> 840
+     */
+    protected function mapCountryToNumeric(string $isoCode): string
+    {
+        $isoCode = strtoupper($isoCode);
+        $map = [
+            'CR' => '188', // Costa Rica
+            'US' => '840', // USA
+            'CA' => '124', // Canada
+            'MX' => '484', // Mexico
+            'ES' => '724', // Spain
+            'FR' => '250', // France
+            'DE' => '276', // Germany
+            'IT' => '380', // Italy
+            'GB' => '826', // United Kingdom
+            'BR' => '076', // Brazil
+            'AR' => '032', // Argentina
+            'CO' => '170', // Colombia
+            'PA' => '591', // Panama
+            // Add more as needed, fallback to CR or US if critical
+        ];
+
+        return $map[$isoCode] ?? '188'; // Default to CR if unknown
     }
 
     /**

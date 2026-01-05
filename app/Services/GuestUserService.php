@@ -31,6 +31,11 @@ class GuestUserService
             $existingGuest->update([
                 'full_name' => $data['name'],
                 'phone' => $data['phone'] ?? $existingGuest->phone,
+                'address' => $data['address'] ?? $existingGuest->address,
+                'city' => $data['city'] ?? $existingGuest->city,
+                'state' => $data['state'] ?? $existingGuest->state,
+                'zip' => $data['zip'] ?? $existingGuest->zip,
+                'country' => $data['country'] ?? $existingGuest->country,
             ]);
 
             return $existingGuest;
@@ -52,6 +57,11 @@ class GuestUserService
             'full_name' => $data['name'],
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
+            'address' => $data['address'] ?? null,
+            'city' => $data['city'] ?? null,
+            'state' => $data['state'] ?? null,
+            'zip' => $data['zip'] ?? null,
+            'country' => $data['country'] ?? null,
             'is_guest' => true,
             'password' => null,
             'email_verified_at' => now(), // Auto-verify guests

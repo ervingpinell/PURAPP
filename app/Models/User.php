@@ -66,6 +66,11 @@ class User extends Authenticatable implements MustVerifyEmail, HasLocalePreferen
         'is_locked',
         'is_super_admin',
         'locale', // New field
+        'address',
+        'city',
+        'state',
+        'zip',
+        'country',
     ];
 
     /**

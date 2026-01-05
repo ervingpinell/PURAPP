@@ -629,6 +629,74 @@ class PaymentController extends Controller
             if (empty($firstName)) $firstName = 'Guest';
             if (empty($lastName))  $lastName  = '-'; // Placeholder for single-name users
 
+            // Prepare Address Fields
+            $address = '';
+            $city = '';
+            $state = '';
+            $zip = '';
+            $country = 'CR';
+            $phone = '';
+
+            if ($bookingId) {
+                // Booking Logic: Use booking user or booking fields
+                $booking = \App\Models\Booking::with('user')->find($bookingId);
+                if ($booking) {
+                    $u = $booking->user;
+                    if ($u) {
+                        $address = $u->address ?? '';
+                        $city    = $u->city ?? '';
+                        $state   = $u->state ?? '';
+                        $zip     = $u->zip ?? '';
+                        $country = $u->country ?? 'CR';
+                        $phone   = $u->phone ?? '';
+                    }
+                    // Fallback to booking fields if user fields empty? (Only if we stored them in booking, but generally we rely on user link)
+                }
+            } elseif (Auth::check()) {
+                // Auth User Logic
+                $u = Auth::user();
+                $address = $u->address ?? '';
+                $city    = $u->city ?? '';
+                $state   = $u->state ?? '';
+                $zip     = $u->zip ?? '';
+                $country = $u->country ?? 'CR';
+                $phone   = $u->phone ?? '';
+            } else {
+                // GUEST LOGIC: Retrieve from Session
+                $firstName = session('guest_user_first_name', '');
+                $lastName  = session('guest_user_last_name', '');
+
+                // Fallback to snapshot if session empty
+                if (empty($firstName)) $firstName = $cartSnapshot['guest_first_name'] ?? '';
+                if (empty($lastName))  $lastName  = $cartSnapshot['guest_last_name'] ?? '';
+
+                $address = session('guest_user_address', '');
+                $city    = session('guest_user_city', '');
+                $state   = session('guest_user_state', '');
+                $zip     = session('guest_user_zip', '');
+                $country = session('guest_user_country', 'CR');
+                $phone   = session('guest_user_phone', '');
+            }
+
+            // FALLBACK LOGIC (Split Name if separate fields missing)
+            if (empty($firstName) && empty($lastName)) {
+                $gName = $cartSnapshot['guest_name'] ?? session('guest_user_name');
+                if ($gName) {
+                    $parts = explode(' ', trim($gName), 2);
+                    $firstName = $parts[0];
+                    $lastName  = $parts[1] ?? '-';
+                }
+            }
+            if (empty($userEmail)) {
+                $userEmail = $cartSnapshot['guest_email'] ?? session('guest_user_email');
+            }
+
+            // Fallback defaults if still empty (Alignet requires non-empty)
+            if (empty($address)) $address = 'Not Provided';
+            if (empty($city))    $city    = 'Not Provided';
+            if (empty($state))   $state   = 'Not Provided';
+            if (empty($zip))     $zip     = '00000';
+
             $intentData = [
                 'amount'        => $total,
                 'currency'      => $currency,
@@ -636,6 +704,12 @@ class PaymentController extends Controller
                 'user_email'    => $userEmail,
                 'customer_first_name' => $firstName,
                 'customer_last_name'  => $lastName,
+                'customer_address'    => $address,
+                'customer_city'       => $city,
+                'customer_state'      => $state,
+                'customer_zip'        => $zip,
+                'customer_country'    => $country,
+                'customer_phone'      => $phone,
                 'description'   => 'Cart checkout',
                 'receipt_email' => $userEmail,
                 'options'       => [

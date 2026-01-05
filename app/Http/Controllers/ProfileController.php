@@ -27,10 +27,17 @@ class ProfileController extends Controller
         $qrSvg          = method_exists($user, 'safeTwoFactorQrCodeSvg') ? $user->safeTwoFactorQrCodeSvg()  : null;
         $recoveryCodes  = method_exists($user, 'safeRecoveryCodes')      ? $user->safeRecoveryCodes()       : [];
 
+        // Extraer first_name y last_name del full_name para edición
+        $nameParts = explode(' ', $user->full_name, 2);
+        $firstName = $nameParts[0] ?? '';
+        $lastName  = $nameParts[1] ?? '';
+
         // Admin (tenga permiso 'access-admin') vs público
         if ($user->hasRole('super-admin') || $user->can('access-admin')) {
             return view('admin.profile.profile', [
                 'user'            => $user,
+                'firstName'       => $firstName,
+                'lastName'        => $lastName,
                 'has2FA'          => $has2FA,
                 'is2FAConfirmed'  => $is2FAConfirmed,
                 'qrSvg'           => $qrSvg,
@@ -39,7 +46,11 @@ class ProfileController extends Controller
         }
 
         // Vista pública (sin UI de 2FA)
-        return view('profile.edit', compact('user'));
+        return view('profile.edit', [
+            'user'      => $user,
+            'firstName' => $firstName,
+            'lastName'  => $lastName,
+        ]);
     }
 
     public function update(Request $request)
@@ -51,7 +62,8 @@ class ProfileController extends Controller
         }
 
         $rules = [
-            'full_name'    => ['required', 'string', 'max:255'],
+            'first_name'   => ['required', 'string', 'max:100'],
+            'last_name'    => ['required', 'string', 'max:100'],
             'email'        => [
                 'required',
                 'email',
@@ -59,6 +71,11 @@ class ProfileController extends Controller
                 // Unicidad contra el email actual (no toca pending_email)
                 'unique:users,email,' . $user->user_id . ',user_id',
             ],
+            'address'      => ['required', 'string', 'max:255'],
+            'city'         => ['required', 'string', 'max:100'],
+            'state'        => ['required', 'string', 'max:100'],
+            'zip'          => ['required', 'string', 'max:20'],
+            'country'      => ['required', 'string', 'size:2'], // ISO code
             'country_code' => ['nullable', 'string', 'max:8', 'regex:/^\+?\d{1,4}$/', 'required_with:phone'],
             'phone'        => ['nullable', 'string', 'max:30'],
             'password'     => [
@@ -76,8 +93,13 @@ class ProfileController extends Controller
         $oldEmail = $user->email;
         $newEmail = mb_strtolower(trim($validated['email']));
 
-        // Datos básicos
-        $user->full_name = $validated['full_name'];
+        // Datos básicos - construir full_name desde first_name + last_name
+        $user->full_name = trim($validated['first_name']) . ' ' . trim($validated['last_name']);
+        $user->address   = trim($validated['address']);
+        $user->city      = trim($validated['city']);
+        $user->state     = trim($validated['state']);
+        $user->zip       = trim($validated['zip']);
+        $user->country   = trim($validated['country']);
 
         // Normalización de teléfono
         if ($request->hasAny(['country_code', 'phone'])) {

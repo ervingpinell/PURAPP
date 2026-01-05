@@ -781,11 +781,13 @@ body.payment-page .whatsapp-panel {
 }
 
 /* Grid: términos (izq) + resumen (der) */
+/* Grid: términos (izq) + resumen (der) */
 .checkout-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.1fr);
-    gap: 1.75rem;
+    grid-template-columns: 1.8fr 1.1fr; /* Simplificado para evitar colapsos */
+    gap: 2rem;
     align-items: flex-start;
+    width: 100%;
 }
 
 /* Panel de términos y panel de resumen reutilizan .form-panel / .summary-panel */
@@ -1175,17 +1177,24 @@ body.payment-page .whatsapp-panel {
    BREAKPOINTS CHECKOUT
    ========================= */
 
+@media (max-width: 991px) {
+    .checkout-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .checkout-container .summary-panel {
+        position: relative;
+        top: 0;
+        margin-top: 1rem;
+    }
+}
+
 @media (max-width: 767px) {
     .checkout-container {
         margin: 1.25rem auto 2rem;
     }
-    .checkout-grid {
-        grid-template-columns: 1fr;
-    }
-    .checkout-container .summary-panel {
-        position: relative;
-        top: 0;
-    }
+    /* .checkout-grid handled by 991px rule above */
 }
 
 @media (max-width: 767.98px) {

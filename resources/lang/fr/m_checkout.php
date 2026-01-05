@@ -16,6 +16,8 @@ return [
         'title'              => 'Informations Client',
         'subtitle'              => 'Veuillez fournir vos coordonnées pour continuer',
         'full_name'              => 'Nom Complet',
+        'first_name'             => 'Prénom',
+        'last_name'              => 'Nom de famille',
         'email'              => 'E-mail',
         'phone'              => 'Téléphone',
         'optional'              => 'optionnel',
@@ -24,6 +26,11 @@ return [
         'why_need_title'              => 'Pourquoi nous en avons besoin',
         'why_need_text'              => 'Votre e-mail sera utilisé pour envoyer des confirmations de réservation, des mises à jour et des liens de paiement. Vous pouvez optionnellement créer un compte après la réservation pour gérer vos réservations.',
         'logged_in_as'              => 'Connecté en tant que',
+        'address'            => 'Adresse',
+        'city'               => 'Ville',
+        'state'              => 'État / Province',
+        'zip'                => 'Code Postal',
+        'country'            => 'Pays',
     ],
 
     'steps' => [

@@ -45,6 +45,7 @@ return [
         'user'      => "Não conseguimos encontrar um usuário com esse endereço de e-mail.",
         'match'     => 'As senhas coincidem.',
         'link_sent' => 'Um link de redefinição de senha foi enviado para seu e-mail.',
+        'resent' => 'Um novo link de verificação foi enviado para o seu endereço de e-mail.',
     ],
 
     // 4. Password Requirements
@@ -83,6 +84,7 @@ return [
         'message'   => 'Por favor, confirme seu e-mail antes de continuar. Enviamos um link de confirmação para você.',
         'resend'    => 'Reenviar e-mail de confirmação',
         'link_sent' => 'Enviamos um novo link de confirmação para você.',
+        'resent' => 'Um novo link de verificação foi enviado para o seu endereço de e-mail.',
         'sent_to'      => 'Enviamos um link de verificação para :email.',
 'email_label'  => 'E-mail',
         'subject'   => 'Confirme seu endereço de e-mail',

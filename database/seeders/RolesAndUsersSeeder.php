@@ -13,90 +13,66 @@ class RolesAndUsersSeeder extends Seeder
 {
     public function run(): void
     {
-        // Limpiar usuarios (las tablas de Spatie se limpian automáticamente por cascada)
-        DB::table('users')->truncate();
+        // NO truncar la tabla para no perder usuarios existentes
+        // DB::table('users')->truncate(); 
 
         $now = Carbon::now();
 
-        // Obtener roles de Spatie (deben existir del PermissionsSeeder)
+        // Obtener roles de Spatie
         $superAdminRole = Role::where('name', 'super-admin')->first();
         $adminRole = Role::where('name', 'admin')->first();
-        $customerRole = Role::where('name', 'customer')->first();
 
-        // Crear usuarios super admin
-        $superAdmins = [
-            [
-                'full_name' => 'Erving Pinell',
-                'email'     => 'ervingpinell@gmail.com',
-                'password'  => Hash::make('-erving1234'),
-                'phone'     => '+50624791471',
-                'status'    => true,
-                'is_super_admin' => true,
-                'email_verified_at' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'full_name' => 'Erving Pinell Alt',
-                'email'     => 'ervingpinell01@gmail.com',
-                'password'  => Hash::make('-erving1234'),
-                'phone'     => '+50624791471',
-                'status'    => true,
-                'is_super_admin' => true,
-                'email_verified_at' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
+        // Eliminar usuarios específicos solicitados (Axel y Demo)
+        User::whereIn('email', ['axelpaniaguab54@gmail.com', 'cliente@example.com'])->delete();
+
+        // Datos comunes de dirección
+        $commonAddress = [
+            'address' => 'La Fortuna',
+            'city'    => 'La Fortuna',
+            'state'   => 'Alajuela',
+            'zip'     => '21007',
+            'country' => 'CR',
+            'status'  => true,
+            'email_verified_at' => $now,
+            // No sobreescribimos created_at para mantener historial si existen
         ];
 
-        foreach ($superAdmins as $userData) {
-            $user = User::create($userData);
-            $user->assignRole($superAdminRole);
-        }
+        // 1. Erving Pinell (Super Admin)
+        $erving = User::updateOrCreate(
+            ['email' => 'ervingpinell@gmail.com'],
+            array_merge([
+                'full_name' => 'Erving Pinell',
+                'password'  => Hash::make('-erving1234'), // Se actualizará la contraseña si se corre el seeder
+                'phone'     => '+50624791471',
+                'is_super_admin' => true,
+            ], $commonAddress)
+        );
+        $erving->assignRole($superAdminRole);
 
-        // Crear usuarios admin regulares
-        $admins = [
-            [
-                'full_name' => 'Axel Paniagua',
-                'email'     => 'axelpaniaguab54@gmail.com',
-                'password'  => Hash::make('-12345678.'),
-                'phone'     => '+50672612748',
-                'status'    => true,
-                'is_super_admin' => false,
-                'email_verified_at' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'full_name' => 'Admin',
-                'email'     => 'info@greenvacationscr.com',
+        // 2. Erving Pinell Alt (Super Admin)
+        $ervingAlt = User::updateOrCreate(
+            ['email' => 'ervingpinell01@gmail.com'],
+            array_merge([
+                'full_name' => 'Erving Pinell Alt',
+                'password'  => Hash::make('-erving1234'),
+                'phone'     => '+50624791471',
+                'is_super_admin' => true,
+            ], $commonAddress)
+        );
+        $ervingAlt->assignRole($superAdminRole);
+
+        // 3. Green Vacations (Admin)
+        $green = User::updateOrCreate(
+            ['email' => 'info@greenvacationscr.com'],
+            array_merge([
+                'full_name' => 'Green Vacations',
                 'password'  => Hash::make('Green1974*'),
                 'phone'     => '+50624791471',
-                'status'    => true,
                 'is_super_admin' => false,
-                'email_verified_at' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-        ];
+            ], $commonAddress)
+        );
+        $green->assignRole($adminRole);
 
-        foreach ($admins as $userData) {
-            $user = User::create($userData);
-            $user->assignRole($adminRole);
-        }
-
-        // Crear un usuario customer de ejemplo
-        $customer = User::create([
-            'full_name' => 'Cliente Demo',
-            'email'     => 'cliente@example.com',
-            'password'  => Hash::make('password123'),
-            'phone'     => '+50612345678',
-            'status'    => true,
-            'is_super_admin' => false,
-            'email_verified_at' => $now,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-        $customer->assignRole($customerRole);
+        // Si anteriormente este usuario se llamaba 'Admin', el updateOrCreate por email actualizó su nombre a 'Green Vacations' exitosamente.
     }
 }

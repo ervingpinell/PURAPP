@@ -136,18 +136,20 @@ $p = (float) data_get($c, 'price', 0);
 $cid = (int) (data_get($c, 'category_id') ?? data_get($c, 'id') ?? 0);
 $slug = (string) (data_get($c, 'category_slug') ?? data_get($c, 'slug') ?? '');
 
-// Prioridades de nombre:
-// 1) i18n_name / name / label / category_name / category.name
-$name =
-data_get($c, 'i18n_name') ??
+$name = null;
+
+// 1. Prioridad: Traducción fresca desde BD (si existe)
+if ($cid && $categoryNamesById->has($cid)) {
+$name = $categoryNamesById->get($cid);
+}
+
+// 2. Fallback: Datos del snapshot del carrito
+if (!$name) {
+$name = data_get($c, 'i18n_name') ??
 data_get($c, 'name') ??
 data_get($c, 'label') ??
 data_get($c, 'category_name') ??
 data_get($c, 'category.name');
-
-// 2) Si no hay nombre, intentar por mapa id → traducido
-if (!$name && $cid && $categoryNamesById->has($cid)) {
-$name = $categoryNamesById->get($cid);
 }
 
 // 3) Si no, resolver por 'code' con mapa/traducción

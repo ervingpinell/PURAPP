@@ -26,60 +26,61 @@ class AlignetGateway extends AbstractPaymentGateway
     /**
      * Create a payment intent (prepare payment data for VPOS2)
      */
-public function createPaymentIntent(array $data): PaymentIntentResponse
-{
-    try {
-        $this->validateAmount($data['amount']);
-        $this->validateCurrency($data['currency']);
+    public function createPaymentIntent(array $data): PaymentIntentResponse
+    {
+        try {
+            $this->validateAmount($data['amount']);
+            $this->validateCurrency($data['currency']);
 
-        // Generate unique operation number
-        $operationNumber = $this->generateOperationNumber($data['booking_id'] ?? null);
+            // Generate unique operation number
+            $operationNumber = $this->generateOperationNumber($data['booking_id'] ?? null);
 
-        // Prepare customer data
-        $customerData = [
-            'first_name' => $data['customer_first_name'] ?? '',
-            'last_name' => $data['customer_last_name'] ?? '',
-            'email' => $data['user_email'] ?? '',
-            'address' => $data['customer_address'] ?? '',
-            'city' => $data['customer_city'] ?? '',
-            'zip' => $data['customer_zip'] ?? '',
-            'state' => $data['customer_state'] ?? '',
-            'country' => $data['customer_country'] ?? 'CR',
-            'description' => $data['description'] ?? 'Tour booking',
-            'booking_id' => $data['booking_id'] ?? '',
-        ];
+            // Prepare customer data
+            $customerData = [
+                'first_name' => $data['customer_first_name'] ?? '',
+                'last_name' => $data['customer_last_name'] ?? '',
+                'email' => $data['user_email'] ?? '',
+                'address' => $data['customer_address'] ?? '',
+                'city' => $data['customer_city'] ?? '',
+                'zip' => $data['customer_zip'] ?? '',
+                'state' => $data['customer_state'] ?? '',
+                'country' => $data['customer_country'] ?? 'CR',
+                'phone' => $data['customer_phone'] ?? '', // ✅ Add Phone
+                'description' => $data['description'] ?? 'Tour booking',
+                'booking_id' => $data['booking_id'] ?? '',
+            ];
 
-        // Prepare payment data
-        $paymentData = $this->alignetService->preparePaymentData(
-            $operationNumber,
-            $data['amount'],
-            $customerData,
-            $data['user_code_payme'] ?? null
-        );
+            // Prepare payment data
+            $paymentData = $this->alignetService->preparePaymentData(
+                $operationNumber,
+                $data['amount'],
+                $customerData,
+                $data['user_code_payme'] ?? null
+            );
 
-        $this->logActivity('payment_intent_created', [
-            'operation_number' => $operationNumber,
-            'amount' => $data['amount'],
-           'currency' => $data['currency'],
-        ]);
-
-        return new PaymentIntentResponse(
-            paymentIntentId: $operationNumber,
-            status: 'pending',
-            clientSecret: null,
-            redirectUrl: null,
-            metadata: [
+            $this->logActivity('payment_intent_created', [
                 'operation_number' => $operationNumber,
                 'amount' => $data['amount'],
                 'currency' => $data['currency'],
-                'payment_data' => $paymentData, // ✅ IMPORTANTE: Guardar payment_data aquí
-            ],
-            raw: $paymentData // ✅ También aquí
-        );
-    } catch (Exception $e) {
-        $this->handleException($e, 'create_payment_intent');
+            ]);
+
+            return new PaymentIntentResponse(
+                paymentIntentId: $operationNumber,
+                status: 'pending',
+                clientSecret: null,
+                redirectUrl: null,
+                metadata: [
+                    'operation_number' => $operationNumber,
+                    'amount' => $data['amount'],
+                    'currency' => $data['currency'],
+                    'payment_data' => $paymentData, // ✅ IMPORTANTE: Guardar payment_data aquí
+                ],
+                raw: $paymentData // ✅ También aquí
+            );
+        } catch (Exception $e) {
+            $this->handleException($e, 'create_payment_intent');
+        }
     }
-}
     /**
      * Capture payment (not applicable for Alignet - payment is captured immediately)
      */
@@ -216,16 +217,16 @@ public function createPaymentIntent(array $data): PaymentIntentResponse
     /**
      * Generate unique operation number
      */
-protected function generateOperationNumber(?int $bookingId = null): string
-{
-    if ($bookingId) {
-        // Use booking ID padded to 9 digits
-        return str_pad((string)$bookingId, 9, '0', STR_PAD_LEFT);
-    }
+    protected function generateOperationNumber(?int $bookingId = null): string
+    {
+        if ($bookingId) {
+            // Use booking ID padded to 9 digits
+            return str_pad((string)$bookingId, 9, '0', STR_PAD_LEFT);
+        }
 
-    // Generate timestamp-based unique number (9 digits)
-    return substr((string)time(), -9);
-}
+        // Generate timestamp-based unique number (9 digits)
+        return substr((string)time(), -9);
+    }
     /**
      * Map Alignet status to standard status
      */

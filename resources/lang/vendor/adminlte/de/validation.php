@@ -16,12 +16,14 @@ return [
 
     'attributes' => [
         'full_name' => 'vollständiger Name',
+        'first_name' => 'Vorname',
+        'last_name' => 'Nachname',
         'email' => 'E-Mail',
         'phone' => 'Telefonnummer',
         'password' => 'Passwort',
         'password_confirmation' => 'Passwortbestätigung',
     ],
-                // --- Benutzerdefinierte Validierung ---
+    // --- Benutzerdefinierte Validierung ---
     'validation_error_title' => 'Bitte korrigieren Sie die folgenden Fehler:',
     'required_full_name' => 'Der vollständige Name ist erforderlich.',
     'required_email' => 'Die E-Mail-Adresse ist erforderlich.',

@@ -16,6 +16,8 @@ return [
         'title'              => 'Informações do Cliente',
         'subtitle'              => 'Por favor, forneça suas informações de contato para continuar',
         'full_name'              => 'Nome Completo',
+        'first_name'             => 'Nome',
+        'last_name'              => 'Sobrenome',
         'email'              => 'E-mail',
         'phone'              => 'Telefone',
         'optional'              => 'opcional',
@@ -24,6 +26,11 @@ return [
         'why_need_title'              => 'Por que precisamos disso',
         'why_need_text'              => 'Seu e-mail será usado para enviar confirmação de reserva, atualizações e links de pagamento. Você pode opcionalmente criar uma conta após a reserva para gerenciar suas reservas.',
         'logged_in_as'              => 'Conectado como',
+        'address'            => 'Endereço',
+        'city'               => 'Cidade',
+        'state'              => 'Estado / Província',
+        'zip'                => 'Código Postal',
+        'country'            => 'País',
     ],
 
     'steps' => [

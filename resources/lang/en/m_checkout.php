@@ -15,7 +15,9 @@ return [
     'customer_info' => [
         'title'              => 'Customer Information',
         'subtitle'              => 'Please provide your contact information to continue',
-        'full_name'              => 'Full Name',
+        'full_name'          => 'Full Name',
+        'first_name'         => 'First Name',
+        'last_name'          => 'Last Name',
         'email'              => 'Email',
         'phone'              => 'Phone',
         'optional'              => 'optional',
@@ -24,6 +26,11 @@ return [
         'why_need_title'              => 'Why we need this',
         'why_need_text'              => 'Your email will be used to send booking confirmation, updates, and payment links. You can optionally create an account after booking to manage your reservations.',
         'logged_in_as'              => 'Logged in as',
+        'address'            => 'Address',
+        'city'               => 'City',
+        'state'              => 'State / Province',
+        'zip'                => 'Zip Code',
+        'country'            => 'Country',
     ],
 
     'steps' => [

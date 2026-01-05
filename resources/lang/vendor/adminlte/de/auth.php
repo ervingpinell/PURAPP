@@ -45,6 +45,7 @@ return [
         'user'      => "Wir können keinen Benutzer mit dieser E-Mail-Adresse finden.",
         'match'     => 'Passwörter stimmen überein.',
         'link_sent' => 'Ein Link zum Zurücksetzen des Passworts wurde an Ihre E-Mail-Adresse gesendet.',
+        'resent' => 'Ein neuer Bestätigungslink wurde an Ihre E-Mail-Adresse gesendet.',
     ],
 
     // 4. Password Requirements
@@ -83,6 +84,7 @@ return [
         'message'   => 'Bitte bestätigen Sie Ihre E-Mail, bevor Sie fortfahren. Wir haben Ihnen einen Bestätigungslink gesendet.',
         'resend'    => 'Bestätigungs-E-Mail erneut senden',
         'link_sent' => 'Wir haben Ihnen einen neuen Bestätigungslink gesendet.',
+        'resent' => 'Ein neuer Bestätigungslink wurde an Ihre E-Mail-Adresse gesendet.',
         'sent_to'      => 'Wir haben einen Bestätigungslink an :email gesendet.',
         'email_label'  => 'E-Mail-Adresse',
         'subject'   => 'Bestätigen Sie Ihre E-Mail-Adresse',

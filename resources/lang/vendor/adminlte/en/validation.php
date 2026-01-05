@@ -16,17 +16,19 @@ return [
 
     'attributes' => [
         'full_name' => 'Full name',
+        'first_name' => 'First name',
+        'last_name' => 'Last name',
         'email' => 'Email',
         'phone' => 'Phone number',
         'password' => 'Password',
         'password_confirmation' => 'Password confirmation',
     ],
-        'password_requirements' => [
+    'password_requirements' => [
         'length' => '- 8 characters long',
         'special' => '- 1 special character ( .¡!@#$%^&*()_+- )',
         'number' => '- 1 number',
     ],
-                // --- Custom validation ---
+    // --- Custom validation ---
     'validation_error_title' => 'Please correct the following errors:',
     'required_full_name' => 'Full name is required.',
     'required_email' => 'Email is required.',
@@ -35,6 +37,6 @@ return [
     'invalid_email' => 'The email address is invalid.',
     'email_already_taken' => 'This email is already registered.',
     'password_confirmation' => 'Password confirmation is required.',
-   'invalid_credentials'=> 'Invalid credentials. Please try again.',
+    'invalid_credentials' => 'Invalid credentials. Please try again.',
 
 ];

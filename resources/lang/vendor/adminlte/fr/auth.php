@@ -45,6 +45,7 @@ return [
         'user'      => "Nous ne trouvons aucun utilisateur avec cette adresse e-mail.",
         'match'     => 'Les mots de passe correspondent.',
         'link_sent' => 'Un lien de réinitialisation du mot de passe a été envoyé à votre adresse e-mail.',
+        'resent' => 'Un nouveau lien de vérification a été envoyé à votre adresse e-mail.',
     ],
 
     // 4. Password Requirements
@@ -83,6 +84,7 @@ return [
         'message'   => 'Veuillez vérifier votre e-mail avant de continuer. Nous vous avons envoyé un lien de vérification.',
         'resend'    => 'Renvoyer l\'e-mail de vérification',
         'link_sent' => 'Nous vous avons envoyé un nouveau lien de vérification.',
+        'resent' => 'Un nouveau lien de vérification a été envoyé à votre adresse e-mail.',
         'sent_to'      => 'Nous avons envoyé un lien de vérification à :email.',
 'email_label'  => 'Adresse e-mail',
         'subject'   => 'Vérifiez votre adresse e-mail',

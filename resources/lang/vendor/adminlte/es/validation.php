@@ -16,6 +16,8 @@ return [
 
     'attributes' => [
         'full_name' => 'Nombre completo',
+        'first_name' => 'Nombre',
+        'last_name' => 'Apellido',
         'email' => 'Correo electrónico',
         'phone' => 'Teléfono',
         'password' => 'Contraseña',

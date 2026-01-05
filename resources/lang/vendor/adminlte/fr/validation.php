@@ -16,19 +16,21 @@ return [
 
     'attributes' => [
         'full_name' => 'Nom complet',
+        'first_name' => 'Prénom',
+        'last_name' => 'Nom de famille',
         'email' => 'E-mail',
-       'phone' => 'Numéro de téléphone',
+        'phone' => 'Numéro de téléphone',
         'password' => 'Mot de passe',
         'password_confirmation' => 'Confirmation du mot de passe',
     ],
 
-                // --- Validation personnalisée ---
+    // --- Validation personnalisée ---
     'validation_error_title' => 'Veuillez corriger les erreurs suivantes :',
     'required_full_name' => 'Le nom complet est requis.',
     'required_email' => 'L\'adresse e-mail est requise.',
     'required_password' => 'Le mot de passe est requis.',
     'required_password_confirmation' => 'La confirmation du mot de passe est requise.',
-        'invalid_email' => 'L\'adresse e-mail est invalide.',
+    'invalid_email' => 'L\'adresse e-mail est invalide.',
     'email_already_taken' => 'Cette adresse e-mail est déjà enregistrée.',
     'password_confirmation' => 'La confirmation du mot de passe est requise.',
 
@@ -38,5 +40,5 @@ return [
         'special' => '- 1 caractère spécial ( .¡!@#$%^&*()_+- )',
         'number' => '- 1 chiffre',
     ],
-     'invalid_credentials'=> 'Identifiants invalides. Veuillez réessayer.',
+    'invalid_credentials' => 'Identifiants invalides. Veuillez réessayer.',
 ];

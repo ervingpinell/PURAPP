@@ -8,59 +8,74 @@
   .profile-page .card {
     border-radius: .75rem;
   }
+
   .input-group .input-group-text {
     min-width: 42px;
     justify-content: center;
   }
+
   .form-group .invalid-feedback,
   .invalid-feedback.d-block {
     display: block;
   }
-  #phone_cc { max-width: 140px; }
+
+  #phone_cc {
+    max-width: 140px;
+  }
+
+  /* Mejorar simetría de campos en fila */
+  .row-field-group {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .row-field-group>div {
+    flex: 1;
+  }
 </style>
 @endpush
 
 @section('content')
 <div class="container py-5 profile-page">
   <div class="row justify-content-center">
-    <div class="col-md-7 col-lg-6">
+    <div class="col-md-8 col-lg-7">
 
-{{-- Flashes --}}
-@if(session('success') && session('success') !== __('adminlte::adminlte.profile_updated_email_change_pending'))
-  <div class="alert alert-success text-center">{{ session('success') }}</div>
-@endif
-@if(session('error'))
-  <div class="alert alert-danger text-center">{{ session('error') }}</div>
-@endif
+      {{-- Flashes --}}
+      @if(session('success') && session('success') !== __('adminlte::adminlte.profile_updated_email_change_pending'))
+      <div class="alert alert-success text-center">{{ session('success') }}</div>
+      @endif
+      @if(session('error'))
+      <div class="alert alert-danger text-center">{{ session('error') }}</div>
+      @endif
       {{-- Aviso si hay un cambio de correo pendiente --}}
       @if(!empty($user->pending_email))
-        <div class="alert alert-warning">
-          <h5 class="mb-1">
-            <i class="fas fa-info-circle me-1"></i>
-            {{ __('adminlte::adminlte.pending_email_title') }}
-          </h5>
-          <p class="mb-0">
-            {!! __('adminlte::adminlte.pending_email_notice', [
-                'current' => e($user->email),
-                'pending' => e($user->pending_email),
-            ]) !!}
-          </p>
-        </div>
+      <div class="alert alert-warning">
+        <h5 class="mb-1">
+          <i class="fas fa-info-circle me-1"></i>
+          {{ __('adminlte::adminlte.pending_email_title') }}
+        </h5>
+        <p class="mb-0">
+          {!! __('adminlte::adminlte.pending_email_notice', [
+          'current' => e($user->email),
+          'pending' => e($user->pending_email),
+          ]) !!}
+        </p>
+      </div>
       @endif
 
       {{-- Errores agrupados --}}
       @if ($errors->any())
-        <div class="alert alert-danger">
-          <h5 class="mb-2">
-            <i class="icon fas fa-exclamation-triangle"></i>
-            {{ __('adminlte::validation.validation_error_title') }}
-          </h5>
-          <ul class="mb-0 ps-3">
-            @foreach ($errors->all() as $error)
-              <li>{{ $error }}</li>
-            @endforeach
-          </ul>
-        </div>
+      <div class="alert alert-danger">
+        <h5 class="mb-2">
+          <i class="icon fas fa-exclamation-triangle"></i>
+          {{ __('adminlte::validation.validation_error_title') }}
+        </h5>
+        <ul class="mb-0 ps-3">
+          @foreach ($errors->all() as $error)
+          <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+      </div>
       @endif
 
       <div class="card shadow">
@@ -75,25 +90,45 @@
           @csrf
           <div class="card-body">
 
-            {{-- Full name --}}
-            <div class="input-group mb-3">
-              <input type="text" name="full_name" id="full_name"
-                     class="form-control @error('full_name') is-invalid @enderror"
-                     value="{{ old('full_name', $user->full_name) }}"
-                     placeholder="{{ __('adminlte::validation.attributes.full_name') }}" required autofocus>
-              <div class="input-group-append">
-                <div class="input-group-text"><span class="fas fa-user"></span></div>
+            {{-- Name Fields Row --}}
+            <div class="row row-field-group mb-3">
+              <div class="col-6">
+                <div class="form-group mb-0">
+                  <div class="input-group">
+                    <input type="text" name="first_name"
+                      class="form-control @error('first_name') is-invalid @enderror"
+                      value="{{ old('first_name', $firstName) }}"
+                      placeholder="{{ __('adminlte::validation.attributes.first_name') }}" required autofocus>
+                    <div class="input-group-append">
+                      <div class="input-group-text"><span class="fas fa-user"></span></div>
+                    </div>
+                  </div>
+                  @error('first_name') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                </div>
               </div>
-              @error('full_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+              <div class="col-6">
+                <div class="form-group mb-0">
+                  <div class="input-group">
+                    <input type="text" name="last_name"
+                      class="form-control @error('last_name') is-invalid @enderror"
+                      value="{{ old('last_name', $lastName) }}"
+                      placeholder="{{ __('adminlte::validation.attributes.last_name') }}" required>
+                    <div class="input-group-append">
+                      <div class="input-group-text"><span class="fas fa-user"></span></div>
+                    </div>
+                  </div>
+                  @error('last_name') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                </div>
+              </div>
             </div>
 
             {{-- Email --}}
             <div class="input-group mb-1">
               <input type="email" name="email" id="email"
-                     class="form-control @error('email') is-invalid @enderror"
-                     value="{{ old('email', $user->pending_email ?? $user->email) }}"
-                     placeholder="{{ __('adminlte::validation.attributes.email') }}"
-                     required autocomplete="email">
+                class="form-control @error('email') is-invalid @enderror"
+                value="{{ old('email', $user->pending_email ?? $user->email) }}"
+                placeholder="{{ __('adminlte::validation.attributes.email') }}"
+                required autocomplete="email">
               <div class="input-group-append">
                 <div class="input-group-text"><span class="fas fa-envelope"></span></div>
               </div>
@@ -102,8 +137,8 @@
 
             {{-- Aviso: si cambias el correo, se enviará un enlace de confirmación --}}
             <div id="email-change-hint"
-                 class="alert alert-warning py-2 px-3 mt-2 d-none"
-                 style="font-size: 0.9rem;">
+              class="alert alert-warning py-2 px-3 mt-2 d-none"
+              style="font-size: 0.9rem;">
               <i class="fas fa-info-circle me-1"></i>
               {{ __('adminlte::adminlte.email_change_warning') }}
             </div>
@@ -112,28 +147,88 @@
             <div class="mb-3 mt-3">
               <div class="input-group">
                 <select id="phone_cc" name="country_code"
-                        class="form-select @error('country_code') is-invalid @enderror">
+                  class="form-select @error('country_code') is-invalid @enderror">
                   @include('partials.country-codes')
                 </select>
                 <input type="tel" name="phone" id="phone"
-                       class="form-control @error('phone') is-invalid @enderror"
-                       value="{{ old('phone', $user->phone) }}"
-                       placeholder="{{ __('adminlte::validation.attributes.phone') }}"
-                       inputmode="tel" autocomplete="tel">
+                  class="form-control @error('phone') is-invalid @enderror"
+                  value="{{ old('phone', $user->phone) }}"
+                  placeholder="{{ __('adminlte::validation.attributes.phone') }}"
+                  inputmode="tel" autocomplete="tel">
                 <div class="input-group-append">
                   <div class="input-group-text"><span class="fas fa-phone"></span></div>
                 </div>
               </div>
               @error('country_code') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-              @error('phone')        <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+              @error('phone') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+            </div>
+
+            {{-- Address --}}
+            <div class="input-group mb-3">
+              <input type="text" name="address"
+                class="form-control @error('address') is-invalid @enderror"
+                value="{{ old('address', $user->address) }}"
+                placeholder="{{ __('adminlte::adminlte.address') }}" required>
+              <div class="input-group-append">
+                <div class="input-group-text"><span class="fas fa-map-marker-alt"></span></div>
+              </div>
+              @error('address') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+
+            {{-- City and State Row --}}
+            <div class="row row-field-group mb-3">
+              <div class="col-6">
+                <div class="form-group mb-0">
+                  <input type="text" name="city"
+                    class="form-control @error('city') is-invalid @enderror"
+                    value="{{ old('city', $user->city) }}"
+                    placeholder="{{ __('adminlte::adminlte.city') }}" required>
+                  @error('city') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-group mb-0">
+                  <input type="text" name="state"
+                    class="form-control @error('state') is-invalid @enderror"
+                    value="{{ old('state', $user->state) }}"
+                    placeholder="{{ __('adminlte::adminlte.state') }}" required>
+                  @error('state') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                </div>
+              </div>
+            </div>
+
+            {{-- ZIP and Country Row --}}
+            <div class="row row-field-group mb-3">
+              <div class="col-6">
+                <div class="form-group mb-0">
+                  <input type="text" name="zip"
+                    class="form-control @error('zip') is-invalid @enderror"
+                    value="{{ old('zip', $user->zip) }}"
+                    placeholder="{{ __('adminlte::adminlte.zip') }}" required>
+                  @error('zip') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-group mb-0">
+                  <select name="country" id="country"
+                    class="form-control @error('country') is-invalid @enderror" required>
+                    @include('partials.country-codes', [
+                    'selected' => old('country', $user->country),
+                    'valueIsIso' => true,
+                    'showNames' => true
+                    ])
+                  </select>
+                  @error('country') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                </div>
+              </div>
             </div>
 
             {{-- Password opcional --}}
             <div class="input-group mb-3">
               <input type="password" name="password" id="password"
-                     class="form-control @error('password') is-invalid @enderror"
-                     placeholder="{{ __('adminlte::validation.attributes.password') }} ({{ __('adminlte::adminlte.optional') ?? 'Opcional' }})"
-                     autocomplete="new-password">
+                class="form-control @error('password') is-invalid @enderror"
+                placeholder="{{ __('adminlte::validation.attributes.password') }} ({{ __('adminlte::adminlte.optional') ?? 'Opcional' }})"
+                autocomplete="new-password">
               <div class="input-group-append">
                 <div class="input-group-text">
                   <a href="#" class="text-reset toggle-password" data-target="password">
@@ -147,9 +242,9 @@
             {{-- Confirm password --}}
             <div class="input-group mb-3">
               <input type="password" name="password_confirmation" id="password_confirmation"
-                     class="form-control @error('password_confirmation') is-invalid @enderror"
-                     placeholder="{{ __('adminlte::validation.attributes.password_confirmation') }}"
-                     autocomplete="new-password">
+                class="form-control @error('password_confirmation') is-invalid @enderror"
+                placeholder="{{ __('adminlte::validation.attributes.password_confirmation') }}"
+                autocomplete="new-password">
               <div class="input-group-append">
                 <div class="input-group-text">
                   <a href="#" class="text-reset toggle-password" data-target="password_confirmation">
@@ -176,70 +271,73 @@
 
 @push('js')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  // toggle password
-  document.querySelectorAll('.toggle-password').forEach(btn => {
-    btn.addEventListener('click', function(e){
-      e.preventDefault();
-      const input = document.getElementById(this.dataset.target);
-      const icon  = this.querySelector('i');
-      if (!input) return;
-      if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.replace('fa-eye','fa-eye-slash');
-      } else {
-        input.type = 'password';
-        icon.classList.replace('fa-eye-slash','fa-eye');
-      }
+  document.addEventListener('DOMContentLoaded', function() {
+    // toggle password
+    document.querySelectorAll('.toggle-password').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const input = document.getElementById(this.dataset.target);
+        const icon = this.querySelector('i');
+        if (!input) return;
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+          input.type = 'password';
+          icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+      });
     });
-  });
 
-  // phone country code labels
-  const cc = document.getElementById('phone_cc');
-  if (cc) {
-    function expandLabels(){
-      Array.from(cc.options).forEach(opt => {
-        const name = opt.dataset.name || '';
-        const code = opt.dataset.code || opt.value;
-        opt.textContent = `${name} (${code})`;
-      });
-    }
-    function collapseLabels(){
-      Array.from(cc.options).forEach(opt => {
-        const code = opt.dataset.code || opt.value;
-        opt.textContent = `(${code})`;
-      });
-    }
-    cc.addEventListener('focus', expandLabels);
-    cc.addEventListener('blur',  collapseLabels);
-    collapseLabels();
-
-    const currentCode = @json(old('country_code', $user->country_code ?? null));
-    if (currentCode) cc.value = currentCode;
-  }
-
-  // aviso cuando el email es diferente al actual/pending
-  const emailInput = document.getElementById('email');
-  const emailHint  = document.getElementById('email-change-hint');
-
-  if (emailInput && emailHint) {
-    const originalEmail = @json($user->pending_email ?? $user->email);
-
-    const toggleEmailHint = () => {
-      const current  = (emailInput.value || '').trim().toLowerCase();
-      const original = (originalEmail || '').trim().toLowerCase();
-
-      if (current && current !== original) {
-        emailHint.classList.remove('d-none');
-      } else {
-        emailHint.classList.add('d-none');
+    // phone country code labels
+    const cc = document.getElementById('phone_cc');
+    if (cc) {
+      // Phone country code labels - expand on focus, collapse on blur
+      function expandLabels() {
+        Array.from(cc.options).forEach(opt => {
+          const name = opt.dataset.name || '';
+          const code = opt.dataset.code || opt.value;
+          opt.textContent = `${name} (${code})`;
+        });
       }
-    };
 
-    emailInput.addEventListener('input', toggleEmailHint);
-    emailInput.addEventListener('blur', toggleEmailHint);
-    toggleEmailHint();
-  }
-});
+      function collapseLabels() {
+        Array.from(cc.options).forEach(opt => {
+          const code = opt.dataset.code || opt.value;
+          opt.textContent = `(${code})`;
+        });
+      }
+
+      cc.addEventListener('focus', expandLabels);
+      cc.addEventListener('blur', collapseLabels);
+      collapseLabels(); // Start collapsed
+
+      const currentCode = @json(old('country_code', $user - > country_code ?? null));
+      if (currentCode) cc.value = currentCode;
+    }
+
+    // aviso cuando el email es diferente al actual/pending
+    const emailInput = document.getElementById('email');
+    const emailHint = document.getElementById('email-change-hint');
+
+    if (emailInput && emailHint) {
+      const originalEmail = @json($user - > pending_email ?? $user - > email);
+
+      const toggleEmailHint = () => {
+        const current = (emailInput.value || '').trim().toLowerCase();
+        const original = (originalEmail || '').trim().toLowerCase();
+
+        if (current && current !== original) {
+          emailHint.classList.remove('d-none');
+        } else {
+          emailHint.classList.add('d-none');
+        }
+      };
+
+      emailInput.addEventListener('input', toggleEmailHint);
+      emailInput.addEventListener('blur', toggleEmailHint);
+      toggleEmailHint();
+    }
+  });
 </script>
 @endpush
