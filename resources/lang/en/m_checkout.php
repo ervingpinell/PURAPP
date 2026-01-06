@@ -101,6 +101,8 @@ return [
         'powered_by'         => 'Powered by',
         'proceed_to_payment' => 'Proceed to Payment',
         'secure_transaction' => 'Secure Transaction',
+        'error_occurred'     => 'An error occurred while processing the payment. Please try again.',
+        'invalid_response'   => 'The payment processor response is invalid.',
     ],
     'booking' => [
         'summary'   => 'Booking Summary',

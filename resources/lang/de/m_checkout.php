@@ -101,6 +101,8 @@ return [
         'powered_by'         => 'Bereitgestellt von',
         'proceed_to_payment' => 'Zur Zahlung vorgehen',
         'secure_transaction' => 'Sichere Transaktion',
+        'error_occurred'     => 'Beim Verarbeiten der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
+        'invalid_response'   => 'Die Antwort des Zahlungsanbieters ist ungültig.',
     ],
     'booking' => [
         'summary'   => 'Buchungsübersicht',

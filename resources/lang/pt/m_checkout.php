@@ -101,6 +101,8 @@ return [
         'powered_by'         => 'Processado por',
         'proceed_to_payment' => 'Proceder para o Pagamento',
         'secure_transaction' => 'Transação Segura',
+        'error_occurred'     => 'Ocorreu um erro ao processar o pagamento. Por favor, tente novamente.',
+        'invalid_response'   => 'A resposta do processador de pagamento é inválida.',
     ],
     'booking' => [
         'summary'   => 'Resumo da Reserva',
