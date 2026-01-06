@@ -32,11 +32,11 @@ $homePt = function_exists('localized_route') ? localized_route('home', 'pt_BR') 
 
 // Ruta del contador de carrito con fallback seguro
 if (RouteFacade::has('cart.count')) {
-    $cartCountUrl = route('cart.count');
+$cartCountUrl = route('cart.count');
 } elseif (RouteFacade::has('cart.count.public')) {
-    $cartCountUrl = route('cart.count.public');
+$cartCountUrl = route('cart.count.public');
 } else {
-    $cartCountUrl = url('/cart/count');
+$cartCountUrl = url('/cart/count');
 }
 
 // Determinar body classes dinámicamente
@@ -44,20 +44,20 @@ $bodyClasses = [];
 
 // Agregar clase según ruta
 if (request()->routeIs('public.checkout.show')) {
-    $bodyClasses[] = 'checkout-page';
+$bodyClasses[] = 'checkout-page';
 } elseif (request()->routeIs('payment.process')) {
-    $bodyClasses[] = 'payment-page';
+$bodyClasses[] = 'payment-page';
 }
 
 // Agregar clase home si es necesario
 if ($isHome) {
-    $bodyClasses[] = 'is-home';
+$bodyClasses[] = 'is-home';
 }
 
 // Agregar clases adicionales desde la sección
 $additionalBodyClass = trim($__env->yieldContent('body_class') ?? '');
 if ($additionalBodyClass) {
-    $bodyClasses[] = $additionalBodyClass;
+$bodyClasses[] = $additionalBodyClass;
 }
 
 $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
@@ -113,7 +113,13 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
     @if ($isHome)
     <style>
         html {
-            background-color: {{ $themeColor }};
+            background-color: {
+                    {
+                    $themeColor
+                }
+            }
+
+            ;
         }
 
         @supports (padding: max(0px)) {
@@ -131,70 +137,87 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
     @stack('meta')
 
     @vite([
-        'resources/js/app.js',
-        'resources/css/gv.css',
-        'resources/css/app.css',
-        'resources/css/checkout.css',
+    'resources/js/app.js',
+    'resources/css/gv.css',
+    'resources/css/app.css',
+    'resources/css/checkout.css',
     ])
 
     @stack('styles')
 
     {{-- GA / Pixel solo si hay consentimiento --}}
     @if ($isProd && $cookiesOk)
-        @if (!empty($gaId))
-        <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
-        <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-        <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag() { dataLayer.push(arguments); }
-            gtag('js', new Date());
-            gtag('config', '{{ $gaId }}', { 'anonymize_ip': true });
-        </script>
-        @endif
+    @if (!empty($gaId))
+    <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
 
-        @if (!empty($pixelId))
-        <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
-        <script>
-            !function(f,b,e,v,n,t,s) {
-                if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-                n.queue=[];t=b.createElement(e);t.async=!0;
-                t.src=v;s=b.getElementsByTagName(e)[0];
-                s.parentNode.insertBefore(t,s)
-            }(window, document,'script',
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+        gtag('config', '{{ $gaId }}', {
+            'anonymize_ip': true
+        });
+    </script>
+    @endif
+
+    @if (!empty($pixelId))
+    <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
+    <script>
+        ! function(f, b, e, v, n, t, s) {
+            if (f.fbq) return;
+            n = f.fbq = function() {
+                n.callMethod ?
+                    n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            };
+            if (!f._fbq) f._fbq = n;
+            n.push = n;
+            n.loaded = !0;
+            n.version = '2.0';
+            n.queue = [];
+            t = b.createElement(e);
+            t.async = !0;
+            t.src = v;
+            s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s)
+        }(window, document, 'script',
             'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '{{ $pixelId }}');
-            fbq('track', 'PageView');
-        </script>
-        <noscript>
-            <img height="1" width="1" style="display:none"
-                src="https://www.facebook.com/tr?id={{ $pixelId }}&ev=PageView&noscript=1" />
-        </noscript>
-        @endif
+        fbq('init', '{{ $pixelId }}');
+        fbq('track', 'PageView');
+    </script>
+    <noscript>
+        <img height="1" width="1" style="display:none"
+            src="https://www.facebook.com/tr?id={{ $pixelId }}&ev=PageView&noscript=1" />
+    </noscript>
+    @endif
     @endif
 
     {{-- JSON-LD --}}
     <script type="application/ld+json">
-    {!! json_encode([
-        '@context' => 'https://schema.org',
-        '@type' => 'TravelAgency',
-        'name' => 'Green Vacations Costa Rica',
-        'url' => url('/'),
-        'logo' => $ASSET_ROOT.'/images/logo.png',
-        'sameAs' => [
-            'https://www.facebook.com/greenvacationscr',
-            'https://www.instagram.com/greenvacationscr',
-        ],
-        'address' => [
-            '@type' => 'PostalAddress',
-            'addressLocality' => 'La Fortuna',
-            'addressRegion' => 'Alajuela',
-            'addressCountry' => 'CR',
-        ],
-        'description' => $metaDesc,
-    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+        {
+            !!json_encode([
+                '@context' => 'https://schema.org',
+                '@type' => 'TravelAgency',
+                'name' => 'Green Vacations Costa Rica',
+                'url' => url('/'),
+                'logo' => $ASSET_ROOT.
+                '/images/logo.png',
+                'sameAs' => [
+                    'https://www.facebook.com/greenvacationscr',
+                    'https://www.instagram.com/greenvacationscr',
+                ],
+                'address' => [
+                    '@type' => 'PostalAddress',
+                    'addressLocality' => 'La Fortuna',
+                    'addressRegion' => 'Alajuela',
+                    'addressCountry' => 'CR',
+                ],
+                'description' => $metaDesc,
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!
+        }
     </script>
 
 </head>
@@ -218,7 +241,7 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
     @include('partials.footer')
 
     @if (! request()->routeIs('contact'))
-        @include('partials.ws-widget', ['variant' => 'floating'])
+    @include('partials.ws-widget', ['variant' => 'floating'])
     @endif
 
     {{-- Librerías JS globales --}}
@@ -241,7 +264,11 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
                 const url = document.querySelector('meta[name="cart-count-url"]')?.getAttribute('content');
                 if (!url) return;
                 try {
-                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    const res = await fetch(url, {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
                     if (res.status === 401) {
                         setBadge(0);
                         return;
@@ -258,82 +285,87 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
 
     {{-- Global Cart Countdown System --}}
     @auth
-        @php
-            $userCart = auth()->user()->cart()->where('is_active', true)->latest('cart_id')->first();
-            $hasActiveCart = $userCart && $userCart->items()->count() > 0;
-        @endphp
+    @php
+    $userCart = auth()->user()->cart()->where('is_active', true)->latest('cart_id')->first();
+    $hasActiveCart = $userCart && $userCart->items()->count() > 0;
+    @endphp
 
-        @if ($hasActiveCart)
-        <script>
-            (function() {
-                const expiresAtStr = @json($userCart->expires_at);
-                const totalMinutes = @json($userCart->expiryMinutes());
+    @if ($hasActiveCart)
+    <script>
+        (function() {
+            const expiresAtStr = @json($userCart - > expires_at);
+            const totalMinutes = @json($userCart - > expiryMinutes());
 
-                if (!expiresAtStr) return;
+            if (!expiresAtStr) return;
 
-                let serverExpires = new Date(expiresAtStr).getTime();
-                const totalSeconds = totalMinutes * 60;
+            let serverExpires = new Date(expiresAtStr).getTime();
+            const totalSeconds = totalMinutes * 60;
 
-                window.cartCountdown = {
-                    getRemainingSeconds: () => Math.max(0, Math.ceil((serverExpires - Date.now()) / 1000)),
-                    getTotalSeconds: () => totalSeconds,
-                    getExpiresAt: () => new Date(serverExpires),
-                    isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
-                };
-            })();
-        </script>
-        @endif
+            window.cartCountdown = {
+                getRemainingSeconds: () => Math.max(0, Math.ceil((serverExpires - Date.now()) / 1000)),
+                getTotalSeconds: () => totalSeconds,
+                getExpiresAt: () => new Date(serverExpires),
+                isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
+            };
+        })();
+    </script>
+    @endif
     @endauth
 
     {{-- cartCountdown para invitados --}}
     @guest
-        @php
-            $guestCartCreated = session('guest_cart_created_at');
-            $hasGuestCart = !empty(session('guest_cart_items')) && $guestCartCreated;
-        @endphp
+    @php
+    $guestCartCreated = session('guest_cart_created_at');
+    $hasGuestCart = !empty(session('guest_cart_items')) && $guestCartCreated;
+    @endphp
 
-        @if($hasGuestCart)
-        <script>
-            (function() {
-                const createdAt = @json($guestCartCreated);
-                const expiryMinutes = {{ \App\Models\Setting::getValue('cart.expiration_minutes', 30) }};
-                if (!createdAt) return;
+    @if($hasGuestCart)
+    <script>
+        (function() {
+            const createdAt = @json($guestCartCreated);
+            const expiryMinutes = {
+                {
+                    \
+                    App\ Models\ Setting::getValue('cart.expiration_minutes', 30)
+                }
+            };
+            if (!createdAt) return;
 
-                const created = new Date(createdAt).getTime();
-                const expires = created + (expiryMinutes * 60 * 1000);
-                const totalSeconds = expiryMinutes * 60;
+            const created = new Date(createdAt).getTime();
+            const expires = created + (expiryMinutes * 60 * 1000);
+            const totalSeconds = expiryMinutes * 60;
 
-                window.cartCountdown = {
-                    getRemainingSeconds: () => Math.max(0, Math.ceil((expires - Date.now()) / 1000)),
-                    getTotalSeconds: () => totalSeconds,
-                    getExpiresAt: () => new Date(expires),
-                    isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
-                };
+            window.cartCountdown = {
+                getRemainingSeconds: () => Math.max(0, Math.ceil((expires - Date.now()) / 1000)),
+                getTotalSeconds: () => totalSeconds,
+                getExpiresAt: () => new Date(expires),
+                isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
+            };
 
-                let hasReloaded = false;
-                const expireUrl = '{{ route("public.guest-carts.expire") }}';
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-                const homeUrl = '{{ route(app()->getLocale() . ".home") }}';
+            let hasReloaded = false;
+            const expireUrl = '{{ route("public.guest-carts.expire") }}';
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            const homeUrl = '{{ route(app()->getLocale() . ".home") }}';
 
-                const checkExpiration = () => {
-                    if (window.cartCountdown.isExpired() && !hasReloaded) {
-                        hasReloaded = true;
-                        fetch(expireUrl, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': csrfToken
-                            }
-                        }).finally(() => {
-                            window.location.href = homeUrl;
-                        });
-                    }
-                };
+            const checkExpiration = () => {
+                if (window.cartCountdown.isExpired() && !hasReloaded) {
+                    hasReloaded = true;
+                    fetch(expireUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        }
+                    }).finally(() => {
+                        window.location.href = homeUrl;
+                    });
+                }
+            };
 
-                setInterval(checkExpiration, 5000);
-            })();
-        </script>
-        @endif
+            setInterval(checkExpiration, 5000);
+        })();
+    </script>
+    @endif
     @endguest
 
     {{-- Theme-color dinámico según footer --}}
@@ -354,16 +386,31 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
                 meta.setAttribute('content', nearFooter ? FOOTER_COLOR : TOP_COLOR);
             };
 
-            document.addEventListener('scroll', onScroll, { passive: true });
+            document.addEventListener('scroll', onScroll, {
+                passive: true
+            });
             onScroll();
         })();
     </script>
 
     @stack('scripts')
 
+    {{-- Signal Alignet modal to close (if payment was completed/cancelled) --}}
+    @if(session('close_alignet_modal'))
+    <script>
+        // Set flag to signal Alignet modal closure across tabs/windows
+        try {
+            localStorage.setItem('alignet_payment_complete', 'true');
+            console.log('🔔 Señal de cierre de modal Alignet establecida');
+        } catch (e) {
+            console.warn('No se pudo establecer señal de localStorage:', e);
+        }
+    </script>
+    @endif
+
     {{-- Banner de cookies solo si aún no hay decisión --}}
     @if (! $hasConsent)
-        @include('partials.cookie-consent')
+    @include('partials.cookie-consent')
     @endif
 </body>
 

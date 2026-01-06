@@ -1462,8 +1462,29 @@ class PaymentController extends Controller
         // Payment failed
         $this->paymentService->handleFailedPayment($payment, $request->input('errorCode'), $request->input('errorMessage'));
 
-        return redirect()->route('payment.error')
-            ->with('error', $request->input('errorMessage') ?? __('m_checkout.payment.failed'));
+        // Preserve cart on payment failure - refresh expiration
+        $cartId = $payment->metadata['cart_snapshot']['cart_id'] ?? session('cart_id');
+        if ($cartId) {
+            try {
+                $cart = \App\Models\Cart::find($cartId);
+                if ($cart && $cart->is_active) {
+                    // Refresh cart expiration to give user more time
+                    $cart->refreshExpiry();
+                    Log::info('Cart expiration refreshed after payment failure', ['cart_id' => $cartId]);
+                }
+            } catch (\Exception $e) {
+                Log::warning('Failed to refresh cart expiration', ['error' => $e->getMessage()]);
+            }
+        }
+
+        // Redirect directly to cart with error message (avoid extra redirect through payment.error)
+        $errorMessage = $request->input('errorMessage') ?? __('m_checkout.payment.failed');
+
+        // Signal to close the Alignet modal (in case it's still open on another tab/window)
+        session()->flash('close_alignet_modal', true);
+
+        return redirect()->route('public.carts.index')
+            ->with('error', $errorMessage);
     }
 
     /**

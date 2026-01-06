@@ -159,9 +159,9 @@
             class="alignet-form-vpos2">
 
             @foreach($paymentData as $key => $value)
-                @if(!in_array($key, ['base_url', 'vpos2_script']))
-                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                @endif
+            @if(!in_array($key, ['base_url', 'vpos2_script']))
+            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+            @endif
             @endforeach
 
             <button type="button"
@@ -194,9 +194,9 @@
 
             <h4 style="margin-top: 20px;">📋 Todos los parámetros:</h4>
             @foreach($paymentData as $key => $value)
-                @if(!in_array($key, ['base_url', 'vpos2_script']))
-                    <div class="debug-item"><strong>{{ $key }}:</strong> {{ $value }}</div>
-                @endif
+            @if(!in_array($key, ['base_url', 'vpos2_script']))
+            <div class="debug-item"><strong>{{ $key }}:</strong> {{ $value }}</div>
+            @endif
             @endforeach
         </div>
         @endif
@@ -308,6 +308,61 @@
 
                 btnPay.disabled = false;
                 loadingMsg.classList.remove('active');
+            }
+        }
+
+        // Auto-close modal if returning from Alignet (after webhook redirect)
+        // This uses localStorage to communicate between the payment page and the redirected page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Listen for storage events (when another tab/window signals payment completion)
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'alignet_payment_complete' && e.newValue === 'true') {
+                    console.log('🔄 Recibida señal de pago completado, cerrando modal...');
+                    closeAlignetModal();
+                    // Clear the flag
+                    localStorage.removeItem('alignet_payment_complete');
+                }
+            });
+
+            // Also check on page load (in case we're on the same tab)
+            if (localStorage.getItem('alignet_payment_complete') === 'true') {
+                console.log('🔄 Detectado pago completado al cargar, cerrando modal...');
+                closeAlignetModal();
+                localStorage.removeItem('alignet_payment_complete');
+            }
+        });
+
+        function closeAlignetModal() {
+            try {
+                // Remove Alignet overlays and iframes
+                const alignetIframes = document.querySelectorAll('iframe[src*="alignet"], iframe[src*="VPOS2"]');
+                alignetIframes.forEach(iframe => {
+                    console.log('Removiendo iframe:', iframe.src);
+                    iframe.remove();
+                });
+
+                const alignetOverlays = document.querySelectorAll('[id*="alignet"], [class*="alignet"], [id*="vpos2"], [class*="vpos2"], [id*="VPOS"], [class*="modal"]');
+                alignetOverlays.forEach(overlay => {
+                    if (overlay && overlay.style && overlay.style.display !== 'none') {
+                        console.log('Ocultando overlay:', overlay.id || overlay.className);
+                        overlay.style.display = 'none';
+                        // Don't remove the form itself
+                        if (!overlay.matches('form, body, html')) {
+                            overlay.remove();
+                        }
+                    }
+                });
+
+                // Remove any backdrop/overlay elements
+                document.querySelectorAll('.modal-backdrop, .overlay, [style*="position: fixed"]').forEach(el => {
+                    if (el && !el.matches('form, body, html')) {
+                        el.remove();
+                    }
+                });
+
+                console.log('✅ Modal de Alignet cerrado');
+            } catch (error) {
+                console.warn('⚠️ Error al cerrar modal:', error);
             }
         }
     </script>
