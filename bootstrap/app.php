@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/reviews',
             'api/reviews/batch',
             'api/apply-promo',
+            'webhooks/payment/alignet', // Alignet payment gateway callback
         ]);
 
         $middleware->alias([
