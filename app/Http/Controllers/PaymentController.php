@@ -1378,20 +1378,31 @@ class PaymentController extends Controller
     {
         Log::info('Alignet Response Received', $request->all());
 
-        // Get Alignet service
-        $alignetService = app(\App\Services\AlignetPaymentService::class);
-
-        // Validate response hash
-        if (!$alignetService->validateResponse($request->all())) {
-            Log::error('Alignet: Invalid response signature', $request->all());
-            return redirect()->route('payment.error')
-                ->with('error', __('m_checkout.payment.invalid_response'));
-        }
-
+        // Get authorization result first
         $authResult = $request->input('authorizationResult');
         $operationNumber = $request->input('purchaseOperationNumber');
         $amount = $request->input('purchaseAmount') / 100;
         $bookingId = $request->input('reserved1');
+
+        // Only validate hash for successful transactions
+        // Alignet doesn't send purchaseVerification for cancelled/rejected transactions
+        if ($authResult === '00') {
+            $alignetService = app(\App\Services\AlignetPaymentService::class);
+
+            if (!$alignetService->validateResponse($request->all())) {
+                Log::error('Alignet: Invalid response signature', $request->all());
+                return redirect()->route('payment.error')
+                    ->with('error', __('m_checkout.payment.invalid_response'));
+            }
+        } else {
+            // Log non-successful transactions without hash validation
+            Log::warning('Alignet: Transaction not successful', [
+                'authResult' => $authResult,
+                'errorCode' => $request->input('errorCode'),
+                'errorMessage' => $request->input('errorMessage'),
+                'operationNumber' => $operationNumber,
+            ]);
+        }
 
         // Find or create payment record (consistente con lógica anterior)
         $payment = Payment::firstOrCreate(
