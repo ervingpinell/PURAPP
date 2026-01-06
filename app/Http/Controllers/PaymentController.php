@@ -1024,7 +1024,7 @@ class PaymentController extends Controller
     public function error(Request $request)
     {
         $errorMessage = $request->session()->get('error', __('m_checkout.payment.error_occurred'));
-        return redirect()->route('cart.index')->with('error', $errorMessage);
+        return redirect()->route('public.carts.index')->with('error', $errorMessage);
     }
 
     public function status(Request $request, Payment $payment)
