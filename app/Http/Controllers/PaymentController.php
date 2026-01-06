@@ -1021,6 +1021,12 @@ class PaymentController extends Controller
         return redirect()->route('payment.show')->with('warning', 'Payment was cancelled.');
     }
 
+    public function error(Request $request)
+    {
+        $errorMessage = $request->session()->get('error', __('m_checkout.payment.error_occurred'));
+        return redirect()->route('cart.index')->with('error', $errorMessage);
+    }
+
     public function status(Request $request, Payment $payment)
     {
         // Allow if user is owner OR if it matches the guest payment in session
