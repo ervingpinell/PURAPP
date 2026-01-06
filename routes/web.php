@@ -463,6 +463,30 @@ Route::middleware([SetLocale::class])->group(function () {
         ->middleware('auth')
         ->name('payment.alignet.query');
 
+    // Alignet test/debug route (development only)
+    Route::get('/test-alignet', function () {
+        $service = new \App\Services\AlignetPaymentService();
+
+        $testData = $service->preparePaymentData(
+            '999999999', // operation number
+            100.00, // $100
+            [
+                'first_name' => 'Test',
+                'last_name' => 'User',
+                'email' => 'test@example.com',
+                'address' => 'San Carlos',
+                'city' => 'La Fortuna',
+                'state' => 'Alajuela',
+                'zip' => '21007',
+                'country' => 'CR',
+                'phone' => '+50624791471',
+                'description' => 'Test transaction',
+            ]
+        );
+
+        return view('test-alignet', ['paymentData' => $testData]);
+    })->middleware('auth');
+
 
     // ------------------------------
     // Admin
@@ -1434,69 +1458,67 @@ if (config('app.debug')) {
     })->name('debug.email.password-setup');
 
 
-Route::get('/test-alignet-data', function() {
-    try {
-        // Test 1: Config carga bien?
-        $config = config('payment.gateways.alignet');
+    Route::get('/test-alignet-data', function () {
+        try {
+            // Test 1: Config carga bien?
+            $config = config('payment.gateways.alignet');
 
-        if (!$config) {
-            return response()->json(['error' => 'Config no encontrado'], 500);
+            if (!$config) {
+                return response()->json(['error' => 'Config no encontrado'], 500);
+            }
+
+            // 🆕 Check if enabled from DB (like PaymentGatewayManager does)
+            $settingKey = "payment.gateway.alignet";
+            $settingEnabled = \App\Models\Setting::where('key', $settingKey)->value('value');
+
+            $isEnabled = false;
+            if ($settingEnabled !== null) {
+                $isEnabled = filter_var($settingEnabled, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? (bool)$settingEnabled;
+            } else {
+                $isEnabled = $config['enabled'] ?? false;
+            }
+
+            // Test 2: Service se puede instanciar?
+            $alignetService = app(\App\Services\AlignetPaymentService::class);
+
+            // Test 3: Preparar datos
+            $testData = $alignetService->preparePaymentData(
+                '123456789',
+                100.00,
+                [
+                    'first_name' => 'Juan',
+                    'last_name' => 'Perez',
+                    'email' => 'modalprueba1@test.com',
+                    'address' => 'Test Address',
+                    'city' => 'San Jose',
+                    'zip' => '10101',
+                    'state' => 'SJ',
+                    'country' => 'CR',
+                    'description' => 'Test Tour',
+                    'booking_id' => 1
+                ]
+            );
+
+            return response()->json([
+                'success' => true,
+                'config' => [
+                    'enabled_from_db' => $isEnabled,  // 🆕 Ahora muestra el valor correcto
+                    'enabled_from_config' => $config['enabled'] ?? null,
+                    'db_setting_value' => $settingEnabled,
+                    'acquirer_id' => $config['acquirer_id'] ?? null,
+                    'commerce_id' => $config['commerce_id'] ?? null,
+                    'environment' => $config['environment'] ?? null,
+                    'vpos2_url' => $config['urls'][$config['environment']]['vpos2'] ?? null,
+                ],
+                'payment_data' => $testData,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error general',
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
         }
-
-        // 🆕 Check if enabled from DB (like PaymentGatewayManager does)
-        $settingKey = "payment.gateway.alignet";
-        $settingEnabled = \App\Models\Setting::where('key', $settingKey)->value('value');
-
-        $isEnabled = false;
-        if ($settingEnabled !== null) {
-            $isEnabled = filter_var($settingEnabled, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? (bool)$settingEnabled;
-        } else {
-            $isEnabled = $config['enabled'] ?? false;
-        }
-
-        // Test 2: Service se puede instanciar?
-        $alignetService = app(\App\Services\AlignetPaymentService::class);
-
-        // Test 3: Preparar datos
-        $testData = $alignetService->preparePaymentData(
-            '123456789',
-            100.00,
-            [
-                'first_name' => 'Juan',
-                'last_name' => 'Perez',
-                'email' => 'modalprueba1@test.com',
-                'address' => 'Test Address',
-                'city' => 'San Jose',
-                'zip' => '10101',
-                'state' => 'SJ',
-                'country' => 'CR',
-                'description' => 'Test Tour',
-                'booking_id' => 1
-            ]
-        );
-
-        return response()->json([
-            'success' => true,
-            'config' => [
-                'enabled_from_db' => $isEnabled,  // 🆕 Ahora muestra el valor correcto
-                'enabled_from_config' => $config['enabled'] ?? null,
-                'db_setting_value' => $settingEnabled,
-                'acquirer_id' => $config['acquirer_id'] ?? null,
-                'commerce_id' => $config['commerce_id'] ?? null,
-                'environment' => $config['environment'] ?? null,
-                'vpos2_url' => $config['urls'][$config['environment']]['vpos2'] ?? null,
-            ],
-            'payment_data' => $testData,
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => 'Error general',
-            'message' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-        ], 500);
-    }
-})->middleware('auth');
-
+    })->middleware('auth');
 }

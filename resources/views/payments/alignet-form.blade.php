@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Pago Seguro - {{ config('app.name') }}</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -151,10 +153,10 @@
 
         <!-- Hidden form with all payment data -->
         <form name="alignet_payment_form"
-              id="alignet_payment_form"
-              action="#"
-              method="post"
-              class="alignet-form-vpos2">
+            id="alignet_payment_form"
+            action="#"
+            method="post"
+            class="alignet-form-vpos2">
 
             @foreach($paymentData as $key => $value)
                 @if(!in_array($key, ['base_url', 'vpos2_script']))
@@ -163,9 +165,9 @@
             @endforeach
 
             <button type="button"
-                    id="btn-pay"
-                    onclick="abrirModalAlignet()"
-                    class="btn-pay">
+                id="btn-pay"
+                onclick="abrirModalAlignet()"
+                class="btn-pay">
                 <i class="fas fa-lock"></i> Proceder al Pago
             </button>
 
@@ -207,17 +209,18 @@
     <script type="text/javascript" src="{{ $paymentData['vpos2_script'] ?? $paymentData['base_url'] . 'VPOS2/js/modalcomercio.js' }}"></script>
 
     <script>
-        // Verificar que el script se cargó correctamente
+        // 🔍 INTERCEPTOR DE DEBUG - Debe ejecutarse AL CARGAR LA PÁGINA
         window.addEventListener('load', function() {
             console.log('🔍 Verificando Alignet VPOS2...');
             console.log('AlignetVPOS2 disponible:', typeof AlignetVPOS2);
 
             const btnPay = document.getElementById('btn-pay');
             const loadingMsg = document.getElementById('loading-message');
+            const form = document.getElementById('alignet_payment_form');
 
             if (typeof AlignetVPOS2 === 'undefined') {
                 console.error('❌ ERROR: El script de Alignet no se cargó correctamente');
-                console.error('URL intentada: {{ $paymentData['vpos2_script'] ?? 'N/A' }}');
+                console.error('URL intentada: {{ $paymentData["vpos2_script"] ?? "N/A" }}');
 
                 btnPay.disabled = true;
                 btnPay.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error al cargar módulo de pago';
@@ -225,10 +228,47 @@
                 alert('Error: No se pudo cargar el módulo de pago de Alignet. Por favor recargue la página.');
             } else {
                 console.log('✅ Alignet VPOS2 cargado correctamente');
-                console.log('AlignetVPOS2:', AlignetVPOS2);
+                console.log('📦 Propiedades de AlignetVPOS2:', Object.keys(AlignetVPOS2));
 
                 loadingMsg.classList.remove('active');
                 btnPay.disabled = false;
+
+                // Guardar la función original
+                const originalOpenModal = AlignetVPOS2.openModal;
+
+                // Sobrescribir para capturar los datos
+                AlignetVPOS2.openModal = function(baseUrl) {
+                    console.log('🔍 DEBUGGING - Datos enviados a Alignet:');
+                    console.log('Base URL:', baseUrl);
+
+                    const formData = new FormData(form);
+                    const payload = {};
+
+                    console.log('Parámetros que se enviarán:');
+                    formData.forEach((value, key) => {
+                        payload[key] = value;
+                        console.log(`  ${key}: ${value}`);
+                    });
+
+                    // Enviar a backend para logging persistente
+                    fetch('/api/debug/alignet-request', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            payload: payload,
+                            baseUrl: baseUrl,
+                            timestamp: new Date().toISOString()
+                        })
+                    }).catch(err => console.error('Debug log error:', err));
+
+                    // Llamar a la función original
+                    return originalOpenModal.call(this, baseUrl);
+                };
+
+                console.log('✅ Interceptor de Alignet activado');
             }
         });
 
@@ -249,16 +289,7 @@
                 btnPay.disabled = true;
                 loadingMsg.classList.add('active');
 
-                console.log('📝 Datos del formulario:');
-                const form = document.getElementById('alignet_payment_form');
-                const formData = new FormData(form);
-
-                console.log('Parámetros que se enviarán:');
-                formData.forEach((value, key) => {
-                    console.log(`  ${key}: ${value}`);
-                });
-
-                const baseUrl = '{{ $paymentData['base_url'] ?? '' }}';
+                const baseUrl = '{{ $paymentData["base_url"] ?? "" }}';
                 console.log('🔓 Abriendo modal con URL base:', baseUrl);
 
                 AlignetVPOS2.openModal(baseUrl);
@@ -279,11 +310,7 @@
                 loadingMsg.classList.remove('active');
             }
         }
-
-        // Debug: Mostrar información del objeto AlignetVPOS2
-        if (typeof AlignetVPOS2 !== 'undefined') {
-            console.log('📦 Propiedades de AlignetVPOS2:', Object.keys(AlignetVPOS2));
-        }
     </script>
 </body>
+
 </html>

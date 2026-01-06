@@ -22,11 +22,24 @@ Route::post('/apply-promo', [PromoCodeController::class, 'apply'])
 Route::get('/get-reserved', [CartController::class, 'getReserved'])
     ->name('api.cart.reserved');
 
+// Debug endpoint for Alignet (development only)
+Route::post('/debug/alignet-request', function (\Illuminate\Http\Request $request) {
+    \Illuminate\Support\Facades\Log::info('🔍 ALIGNET DEBUG - Frontend Request Data', [
+        'payload' => $request->input('payload'),
+        'baseUrl' => $request->input('baseUrl'),
+        'timestamp' => $request->input('timestamp'),
+        'ip' => $request->ip(),
+        'user_agent' => $request->userAgent(),
+    ]);
+
+    return response()->json(['status' => 'logged']);
+})->middleware('web');
+
 // ============================
 // API PRIVADA (auth)
 // ============================
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', fn ($request) => $request->user())->name('api.me');
+    Route::get('/user', fn($request) => $request->user())->name('api.me');
 });
 
 
@@ -54,4 +67,3 @@ Route::prefix('v1')
         //         ->name('details'); // api.v1.capacity.details
         // });
     });
-

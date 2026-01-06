@@ -122,7 +122,7 @@ class AlignetPaymentService
             'descriptionProducts' => substr($customerData['description'] ?? 'Tour booking', 0, 30),
             'programmingLanguage' => 'PHP',
             'urlResponse' => $this->config['callback_url']
-            ?? rtrim(config('app.url'), '/') . '/webhooks/payment/alignet',
+                ?? rtrim(config('app.url'), '/') . '/webhooks/payment/alignet',
             'timeoutResponse' => '300', // 5 minutos de espera para redirection
             'purchaseVerification' => $this->generatePurchaseVerification(
                 $operationNumber,
@@ -145,21 +145,53 @@ class AlignetPaymentService
             $paymentData['reserved2'] = $phone;
         }
 
-        // LOG DETALLADO PARA DEBUG
-        Log::info('Alignet Payment Data Prepared', [
+        // 🔍 LOG MUY DETALLADO PARA DEBUG
+        $hashString = $this->config['acquirer_id'] . $this->config['commerce_id'] . $operationNumber . $amountCents . '840' . $this->config['secret_key'];
+
+        Log::channel('single')->info('🔍 ALIGNET DETAILED DEBUG - Payment Data Prepared', [
+            '=== BASIC INFO ===' => '',
             'operation_number' => $operationNumber,
             'amount_original' => $amount,
             'amount_cents' => $amountCents,
+            'currency_code' => '840',
+            'environment' => $this->environment,
+
+            '=== CREDENTIALS ===' => '',
             'acquirer_id' => $this->config['acquirer_id'],
             'commerce_id' => $this->config['commerce_id'],
-            'currency' => '840',
-            'environment' => $this->environment,
+            'secret_key_length' => strlen($this->config['secret_key'] ?? ''),
+            'secret_key_preview' => substr($this->config['secret_key'] ?? '', 0, 10) . '...',
+
+            '=== HASH GENERATION ===' => '',
+            'hash_string_components' => [
+                'acquirer_id' => $this->config['acquirer_id'],
+                'commerce_id' => $this->config['commerce_id'],
+                'operation_number' => $operationNumber,
+                'amount_cents' => $amountCents,
+                'currency' => '840',
+                'secret_key_appended' => 'YES',
+            ],
+            'concatenated_string_length' => strlen($hashString),
+            'concatenated_string_preview' => substr($hashString, 0, 50) . '...',
+            'generated_hash' => $paymentData['purchaseVerification'],
+            'hash_length' => strlen($paymentData['purchaseVerification']),
+
+            '=== URLS ===' => '',
             'base_url' => $paymentData['base_url'],
             'vpos2_script' => $paymentData['vpos2_script'],
-            'url_response_sent' => $paymentData['urlResponse'],
+            'url_response' => $paymentData['urlResponse'],
+            'timeout_response' => $paymentData['timeoutResponse'],
+
+            '=== CUSTOMER DATA ===' => '',
             'customer_email' => $paymentData['shippingEmail'],
-            'verification_string' => $this->config['acquirer_id'] . $this->config['commerce_id'] . $operationNumber . $amountCents . '840',
-            'verification_hash' => $paymentData['purchaseVerification'],
+            'customer_name' => $paymentData['shippingFirstName'] . ' ' . $paymentData['shippingLastName'],
+            'customer_country' => $paymentData['shippingCountry'],
+            'customer_phone' => $paymentData['shippingPhone'] ?? 'N/A',
+
+            '=== FULL PAYLOAD ===' => '',
+            'complete_payment_data' => array_filter($paymentData, function ($key) {
+                return !in_array($key, ['base_url', 'vpos2_script']);
+            }, ARRAY_FILTER_USE_KEY),
         ]);
 
         return $paymentData;
