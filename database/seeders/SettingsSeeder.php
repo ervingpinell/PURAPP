@@ -170,7 +170,7 @@ class SettingsSeeder extends Seeder
                 'sort_order' => 2,
             ],
             [
-                'key' => 'payment.gateway.banco_nacional',
+                'key' => 'payment.gateway.alignet',
                 'value' => '0',
                 'type' => 'boolean',
                 'category' => 'payment',
