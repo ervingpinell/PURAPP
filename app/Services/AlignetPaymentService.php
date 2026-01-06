@@ -121,7 +121,8 @@ class AlignetPaymentService
             'userCommerce' => substr(hash('sha256', trim($customerData['email'] ?? 'guest')), 0, 10), // Unique ID, Max 10 chars
             'descriptionProducts' => substr($customerData['description'] ?? 'Tour booking', 0, 30),
             'programmingLanguage' => 'PHP',
-            'urlResponse' => route('webhooks.payment.alignet'),
+            'urlResponse' => $this->config['callback_url']
+            ?? rtrim(config('app.url'), '/') . '/webhooks/payment/alignet',
             'timeoutResponse' => '300', // 5 minutos de espera para redirection
             'purchaseVerification' => $this->generatePurchaseVerification(
                 $operationNumber,

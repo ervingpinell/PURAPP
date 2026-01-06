@@ -69,6 +69,8 @@ return [
             'wallet_entity_id' => env('ALIGNET_WALLET_ENTITY_ID', '580'),
             'wallet_secret_key' => env('ALIGNET_WALLET_SECRET_KEY'),
             'environment' => env('ALIGNET_ENVIRONMENT', 'testing'), // 'testing' or 'production'
+            'callback_url' => env('ALIGNET_CALLBACK_URL'),
+
             'urls' => [
                 'testing' => [
                     // Base URL para openModal() - según ejemplo oficial línea 52
