@@ -155,6 +155,7 @@ class AlignetPaymentService
             'environment' => $this->environment,
             'base_url' => $paymentData['base_url'],
             'vpos2_script' => $paymentData['vpos2_script'],
+            'url_response_sent' => $paymentData['urlResponse'],
             'customer_email' => $paymentData['shippingEmail'],
             'verification_string' => $this->config['acquirer_id'] . $this->config['commerce_id'] . $operationNumber . $amountCents . '840',
             'verification_hash' => $paymentData['purchaseVerification'],
