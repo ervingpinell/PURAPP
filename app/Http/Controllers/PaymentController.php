@@ -1484,17 +1484,44 @@ class PaymentController extends Controller
 
                     // Redirección inteligente
                     $payment->refresh();
+                    $successMessage = __('m_checkout.payment.success');
+
+                    // Determine redirect URL
                     if ($payment->booking_id) {
-                        // Usar la referencia si existe, o el ID
                         $booking = $payment->booking;
                         $param = $booking->booking_reference ?? $booking->booking_id;
-
-                        return redirect()->route('booking.confirmation', $param)
-                            ->with('success', __('m_checkout.payment.success'));
+                        $redirectUrl = route('booking.confirmation', $param);
+                    } else {
+                        $redirectUrl = route(app()->getLocale() . '.home');
                     }
 
-                    return redirect()->route(app()->getLocale() . '.home')
-                        ->with('success', __('m_checkout.payment.success'));
+                    // 🔥 CRITICAL: Generate token to restore session after successful payment
+                    $user = $payment->user;
+
+                    if ($user) {
+                        $token = \Illuminate\Support\Str::random(64);
+
+                        \Illuminate\Support\Facades\Cache::put(
+                            "payment_return_token:{$token}",
+                            [
+                                'user_id' => $user->user_id,
+                                'payment_id' => $payment->payment_id,
+                                'redirect_url' => $redirectUrl,
+                                'success_message' => $successMessage,
+                            ],
+                            now()->addMinutes(5)
+                        );
+
+                        Log::info('Generated payment return token for successful payment', [
+                            'user_id' => $user->user_id,
+                            'payment_id' => $payment->payment_id,
+                        ]);
+
+                        return redirect()->route('payment.return.restore', ['token' => $token]);
+                    }
+
+                    // Guest user - direct redirect
+                    return redirect($redirectUrl)->with('success', $successMessage);
                 }
             } catch (\Exception $e) {
                 Log::error('Alignet handling failed', ['error' => $e->getMessage()]);
@@ -1523,14 +1550,36 @@ class PaymentController extends Controller
         // Redirect directly to cart with error message (avoid extra redirect through payment.error)
         $errorMessage = $request->input('errorMessage') ?? __('m_checkout.payment.failed');
 
-        // 🔥 CRITICAL: Pass cart_id and session info via URL to help restore session
-        // We can't use session()->flash() because the session is lost on cross-site POST
-        $redirectParams = [
-            'alignet_error' => '1',
-            'cart_id' => $cartId ?? null,
-        ];
+        // 🔥 CRITICAL: Generate temporary token to restore session after cross-site redirect
+        $user = $payment->user;
 
-        return redirect()->route('public.carts.index', array_filter($redirectParams))
+        if ($user) {
+            // Create a one-time token valid for 5 minutes
+            $token = \Illuminate\Support\Str::random(64);
+
+            \Illuminate\Support\Facades\Cache::put(
+                "payment_return_token:{$token}",
+                [
+                    'user_id' => $user->user_id,
+                    'payment_id' => $payment->payment_id,
+                    'cart_id' => $cartId,
+                    'error_message' => $errorMessage,
+                ],
+                now()->addMinutes(5)
+            );
+
+            Log::info('Generated payment return token for session restoration', [
+                'user_id' => $user->user_id,
+                'payment_id' => $payment->payment_id,
+                'token_preview' => substr($token, 0, 10) . '...',
+            ]);
+
+            // Redirect to session restoration endpoint with token
+            return redirect()->route('payment.return.restore', ['token' => $token]);
+        }
+
+        // If no user (guest), simply redirect to cart
+        return redirect()->route('public.carts.index')
             ->with('error', $errorMessage);
     }
 
@@ -1551,5 +1600,57 @@ class PaymentController extends Controller
             'success' => $result !== null,
             'data' => $result
         ]);
+    }
+
+    /**
+     * Restore user session after payment gateway redirect
+     * This solves the session loss issue when returning from Alignet cross-site POST
+     */
+    public function restoreSession(string $token)
+    {
+        $data = \Illuminate\Support\Facades\Cache::get("payment_return_token:{$token}");
+
+        if (!$data) {
+            Log::warning('Invalid or expired payment return token', [
+                'token_preview' => substr($token, 0, 10) . '...'
+            ]);
+
+            return redirect()->route('public.carts.index')
+                ->with('error', __('m_checkout.payment.session_expired'));
+        }
+
+        // Delete token (one-time use)
+        \Illuminate\Support\Facades\Cache::forget("payment_return_token:{$token}");
+
+        // Re-authenticate user
+        $user = \App\Models\User::find($data['user_id']);
+
+        if ($user) {
+            // Login without triggering events (to avoid notifications)
+            \Illuminate\Support\Facades\Auth::login($user, true);
+
+            Log::info('User session restored after payment redirect', [
+                'user_id' => $user->user_id,
+                'payment_id' => $data['payment_id'] ?? null,
+            ]);
+
+            // Determine redirect destination
+            if (isset($data['redirect_url'])) {
+                // Successful payment - redirect to booking confirmation
+                return redirect($data['redirect_url'])
+                    ->with('success', $data['success_message'] ?? __('m_checkout.payment.success'));
+            } else {
+                // Failed payment - redirect to cart with error
+                return redirect()->route('public.carts.index')
+                    ->with('error', $data['error_message'] ?? __('m_checkout.payment.failed'));
+            }
+        }
+
+        // If user not found, redirect to cart
+        Log::warning('User not found for payment return token', [
+            'user_id' => $data['user_id'] ?? null,
+        ]);
+
+        return redirect()->route('public.carts.index');
     }
 }
