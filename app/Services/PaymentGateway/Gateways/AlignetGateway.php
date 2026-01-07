@@ -48,6 +48,7 @@ class AlignetGateway extends AbstractPaymentGateway
                 'phone' => $data['customer_phone'] ?? '', // ✅ Add Phone
                 'description' => $data['description'] ?? 'Tour booking',
                 'booking_id' => $data['booking_id'] ?? '',
+                'payment_id' => $data['payment_id'] ?? '', // 🔥 CRITICAL: Pass payment_id for reserved2
             ];
 
             // Prepare payment data
