@@ -1523,10 +1523,14 @@ class PaymentController extends Controller
         // Redirect directly to cart with error message (avoid extra redirect through payment.error)
         $errorMessage = $request->input('errorMessage') ?? __('m_checkout.payment.failed');
 
-        // Signal to close the Alignet modal (in case it's still open on another tab/window)
-        session()->flash('close_alignet_modal', true);
+        // 🔥 CRITICAL: Pass cart_id and session info via URL to help restore session
+        // We can't use session()->flash() because the session is lost on cross-site POST
+        $redirectParams = [
+            'alignet_error' => '1',
+            'cart_id' => $cartId ?? null,
+        ];
 
-        return redirect()->route('public.carts.index')
+        return redirect()->route('public.carts.index', array_filter($redirectParams))
             ->with('error', $errorMessage);
     }
 
