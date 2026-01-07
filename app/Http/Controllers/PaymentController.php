@@ -1484,17 +1484,23 @@ class PaymentController extends Controller
 
                     // Redirección inteligente
                     $payment->refresh();
+                    $successMessage = __('m_checkout.payment.success');
+
                     if ($payment->booking_id) {
                         // Usar la referencia si existe, o el ID
                         $booking = $payment->booking;
                         $param = $booking->booking_reference ?? $booking->booking_id;
-
-                        return redirect()->route('booking.confirmation', $param)
-                            ->with('success', __('m_checkout.payment.success'));
+                        $redirectUrl = route('booking.confirmation', $param);
+                    } else {
+                        $redirectUrl = route(app()->getLocale() . '.home');
                     }
 
-                    return redirect()->route(app()->getLocale() . '.home')
-                        ->with('success', __('m_checkout.payment.success'));
+                    // 🔥 CRITICAL FIX: Use iframe-aware redirect for successful payments too
+                    return response()->view('payments.alignet-redirect', [
+                        'redirectUrl' => $redirectUrl,
+                        'errorMessage' => $successMessage,
+                        'isSuccess' => true,
+                    ]);
                 }
             } catch (\Exception $e) {
                 Log::error('Alignet handling failed', ['error' => $e->getMessage()]);
@@ -1530,8 +1536,15 @@ class PaymentController extends Controller
             'cart_id' => $cartId ?? null,
         ];
 
-        return redirect()->route('public.carts.index', array_filter($redirectParams))
-            ->with('error', $errorMessage);
+        $redirectUrl = route('public.carts.index', array_filter($redirectParams));
+
+        // 🔥 CRITICAL FIX: If we're in an iframe (Alignet modal), force redirect in top window
+        // This is necessary because cookies don't work properly in cross-origin iframes
+        return response()->view('payments.alignet-redirect', [
+            'redirectUrl' => $redirectUrl,
+            'errorMessage' => $errorMessage,
+            'isSuccess' => false,
+        ]);
     }
 
     /**
