@@ -133,16 +133,21 @@ class AlignetPaymentService
             'vpos2_script' => $this->config['urls'][$this->environment]['vpos2_script'] ?? 'https://integracion.alignetsac.com/VPOS2/js/modalcomercio.js',
         ];
 
+        // 🔥 CRITICAL: Store booking_id and payment_id for session-independent recovery
         if (!empty($customerData['booking_id'])) {
             $paymentData['reserved1'] = (string)$customerData['booking_id'];
         }
 
-        // Add phone if available (reserved2) or shippingPhone if supported (but screenshot implies shippingPhone not mandatory, but good to have)
+        // 🔥 CRITICAL: Store payment_id in reserved2 to recover payment without session
+        if (!empty($customerData['payment_id'])) {
+            $paymentData['reserved2'] = (string)$customerData['payment_id'];
+        }
+
+        // Add phone if available (shippingPhone is optional per Alignet docs)
         if (!empty($customerData['phone'])) {
             // Screenshot shows shippingPhone is No Mandatory, max 15.
             $phone = substr(trim($customerData['phone']), 0, 15);
             $paymentData['shippingPhone'] = $phone;
-            $paymentData['reserved2'] = $phone;
         }
 
         // 🔍 LOG MUY DETALLADO PARA DEBUG
@@ -187,6 +192,10 @@ class AlignetPaymentService
             'customer_name' => $paymentData['shippingFirstName'] . ' ' . $paymentData['shippingLastName'],
             'customer_country' => $paymentData['shippingCountry'],
             'customer_phone' => $paymentData['shippingPhone'] ?? 'N/A',
+
+            '=== RESERVED FIELDS ===' => '',
+            'reserved1_booking_id' => $paymentData['reserved1'] ?? 'N/A',
+            'reserved2_payment_id' => $paymentData['reserved2'] ?? 'N/A',
 
             '=== FULL PAYLOAD ===' => '',
             'complete_payment_data' => array_filter($paymentData, function ($key) {

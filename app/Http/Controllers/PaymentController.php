@@ -716,6 +716,9 @@ class PaymentController extends Controller
                     'return_url' => route('payment.return'),
                     'cancel_url' => route('payment.cancel'),
                 ],
+                // 🔥 CRITICAL: Pass payment_id and booking_id for Alignet to store in reserved fields
+                'payment_id'    => $payment->payment_id,
+                'booking_id'    => $bookingId,
             ];
             $result = $gatewayDriver->createPaymentIntent($intentData);
 
@@ -1382,7 +1385,8 @@ class PaymentController extends Controller
         $authResult = $request->input('authorizationResult');
         $operationNumber = $request->input('purchaseOperationNumber');
         $amount = $request->input('purchaseAmount') / 100;
-        $bookingId = $request->input('reserved1');
+        $bookingId = $request->input('reserved1'); // Booking ID
+        $paymentId = $request->input('reserved2'); // 🔥 Payment ID (critical for session-independent recovery)
 
         // Only validate hash for successful transactions
         // Alignet doesn't send purchaseVerification for cancelled/rejected transactions
@@ -1404,20 +1408,59 @@ class PaymentController extends Controller
             ]);
         }
 
-        // Find or create payment record (consistente con lógica anterior)
-        $payment = Payment::firstOrCreate(
-            [
+        // 🔥 CRITICAL: Find payment by ID (no Auth dependency)
+        $payment = null;
+
+        // Priority 1: Search by payment_id from reserved2 (most reliable)
+        if ($paymentId) {
+            $payment = Payment::find($paymentId);
+            if ($payment) {
+                Log::info('Alignet: Found payment by ID', [
+                    'payment_id' => $paymentId,
+                    'booking_id' => $payment->booking_id,
+                ]);
+            }
+        }
+
+        // Priority 2: Search by operation number (fallback)
+        if (!$payment) {
+            $payment = Payment::where('gateway', 'alignet')
+                ->where('gateway_payment_intent_id', $operationNumber)
+                ->first();
+
+            if ($payment) {
+                Log::info('Alignet: Found payment by operation number', [
+                    'operation_number' => $operationNumber,
+                    'payment_id' => $payment->payment_id,
+                ]);
+            }
+        }
+
+        // Priority 3: Create new payment (last resort)
+        if (!$payment) {
+            Log::warning('Alignet: Creating new payment record', [
+                'operation_number' => $operationNumber,
+                'booking_id' => $bookingId,
+                'payment_id_from_reserved2' => $paymentId,
+            ]);
+
+            // Get user_id from booking if it exists
+            $userId = null;
+            if ($bookingId) {
+                $booking = \App\Models\Booking::find($bookingId);
+                $userId = $booking?->user_id;
+            }
+
+            $payment = Payment::create([
                 'gateway' => 'alignet',
                 'gateway_payment_intent_id' => $operationNumber,
-            ],
-            [
                 'booking_id' => $bookingId,
-                'user_id' => Auth::id(),
+                'user_id' => $userId, // 🔥 From booking, not Auth::id()
                 'amount' => $amount,
                 'currency' => 'USD',
                 'status' => 'pending',
-            ]
-        );
+            ]);
+        }
 
         // Actualizar datos específicos de tarjeta de Alignet antes de procesar
         $payment->update([
