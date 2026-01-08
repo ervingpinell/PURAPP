@@ -110,6 +110,14 @@
         .loading-message.active {
             display: block;
         }
+
+        /* 🔧 FIX: Force visibility of Alignet Iframe if truncated */
+        iframe,
+        #ADS-IFRAME-CONTAINER-IFRAME {
+            background: white !important;
+            width: 100% !important;
+            min-height: 600px !important;
+        }
     </style>
 </head>
 
