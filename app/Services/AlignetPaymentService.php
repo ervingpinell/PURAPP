@@ -117,7 +117,7 @@ class AlignetPaymentService
             'shippingZIP' => substr(trim($customerData['zip'] ?? '') !== '' ? trim($customerData['zip']) : '00000', 0, 10),
             'shippingCity' => substr(trim($customerData['city'] ?? '') !== '' ? trim($customerData['city']) : 'Not Provided', 0, 50),
             'shippingState' => substr(trim($customerData['state'] ?? '') !== '' ? trim($customerData['state']) : 'SJ', 0, 15), // Doc says 15.
-            'shippingCountry' => substr($customerData['country'] ?? 'CR', 0, 2), // ISO Alpha-2
+            'shippingCountry' => $this->mapCountryToNumeric($customerData['country'] ?? 'CR'), // Fix: Use Numeric Code
             'userCommerce' => substr(hash('sha256', trim($customerData['email'] ?? 'guest')), 0, 10), // Unique ID, Max 10 chars
             'descriptionProducts' => substr($customerData['description'] ?? 'Tour booking', 0, 30),
             'programmingLanguage' => 'PHP',
