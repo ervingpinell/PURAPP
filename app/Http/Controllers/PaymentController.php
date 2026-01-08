@@ -1547,8 +1547,25 @@ class PaymentController extends Controller
             }
         }
 
-        // Redirect directly to cart with error message (avoid extra redirect through payment.error)
-        $errorMessage = $request->input('errorMessage') ?? __('m_checkout.payment.failed');
+        // Translate technical error codes to user-friendly messages
+        $errorCode = $request->input('errorCode');
+        $errorMessage = $request->input('errorMessage');
+
+        // Map Alignet error codes to friendly messages
+        $friendlyMessage = match ($errorCode) {
+            '2300' => __('m_checkout.payment.cancelled_by_user'),  // User cancelled
+            '2301' => __('m_checkout.payment.timeout'),            // Timeout
+            '2302' => __('m_checkout.payment.insufficient_funds'), // Insufficient funds
+            '2303' => __('m_checkout.payment.card_declined'),      // Card declined
+            '2304' => __('m_checkout.payment.invalid_card'),       // Invalid card
+            default => $errorMessage ?? __('m_checkout.payment.failed')
+        };
+
+        Log::info('Alignet payment failed - User-friendly message', [
+            'error_code' => $errorCode,
+            'technical_message' => $errorMessage,
+            'friendly_message' => $friendlyMessage,
+        ]);
 
         // 🔥 CRITICAL: Generate temporary token to restore session after cross-site redirect
         $user = $payment->user;
@@ -1563,7 +1580,7 @@ class PaymentController extends Controller
                     'user_id' => $user->user_id,
                     'payment_id' => $payment->payment_id,
                     'cart_id' => $cartId,
-                    'error_message' => $errorMessage,
+                    'error_message' => $friendlyMessage,
                 ],
                 now()->addMinutes(5)
             );
@@ -1580,7 +1597,7 @@ class PaymentController extends Controller
 
         // If no user (guest), simply redirect to cart
         return redirect()->route('public.carts.index')
-            ->with('error', $errorMessage);
+            ->with('error', $friendlyMessage);
     }
 
     /**

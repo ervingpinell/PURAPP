@@ -103,6 +103,16 @@ return [
         'secure_transaction' => 'Transacción Segura',
         'error_occurred'     => 'Ocurrió un error al procesar el pago. Por favor intenta nuevamente.',
         'invalid_response'   => 'La respuesta del procesador de pagos no es válida.',
+
+        // Friendly error messages for Alignet
+        'cancelled_by_user'  => 'Cancelaste el pago. Tu carrito sigue disponible.',
+        'timeout'            => 'El tiempo de pago expiró. Por favor intenta nuevamente.',
+        'insufficient_funds' => 'Fondos insuficientes. Por favor verifica tu saldo o usa otra tarjeta.',
+        'card_declined'      => 'Tu tarjeta fue rechazada. Por favor contacta a tu banco o usa otra tarjeta.',
+        'invalid_card'       => 'Los datos de la tarjeta son inválidos. Por favor verifica e intenta nuevamente.',
+        'failed'             => 'El pago no pudo ser procesado. Por favor intenta nuevamente.',
+        'success'            => '¡Pago exitoso! Recibirás un correo de confirmación pronto.',
+        'session_expired'    => 'Tu sesión expiró. Por favor inicia sesión nuevamente.',
     ],
     'booking' => [
         'summary'   => 'Resumen de la reserva',
