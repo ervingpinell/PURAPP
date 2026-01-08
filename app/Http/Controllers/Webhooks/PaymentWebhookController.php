@@ -43,7 +43,7 @@ class PaymentWebhookController extends Controller
                     ", ErrorMsg: " . ($request->input('errorMessage') ?? 'N/A');
 
                 // Si falla firma, igual redirigimos a error pero con detalles para debug
-                $securityMsg = __('m_checkout.payment.invalid_response');
+                $securityMsg = __('m_checkout.payment.operation_rejected');
                 return $this->renderModalResponse($request, 'error', $securityMsg . "\n\nDEBUG: " . $debug, route('public.carts.index', ['error' => $securityMsg . "\n\nDEBUG: " . $debug]));
             }
 
