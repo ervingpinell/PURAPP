@@ -506,6 +506,25 @@ Route::middleware([SetLocale::class])->group(function () {
         return view('test-alignet', ['paymentData' => $testData]);
     })->middleware('auth');
 
+    // Alignet configuration test endpoint
+    Route::get('/test/alignet-config', function () {
+        $config = config('payment.gateways.alignet');
+        $environment = $config['environment'] ?? 'testing';
+
+        return response()->json([
+            'commerce_id' => $config['commerce_id'] ?? null,
+            'acquirer_id' => $config['acquirer_id'] ?? null,
+            'base_url' => $config['urls'][$environment]['base'] ?? null,
+            'vpos2_script' => $config['urls'][$environment]['vpos2_script'] ?? null,
+            'secret_key_length' => strlen($config['secret_key'] ?? ''),
+            'secret_key_preview' => substr($config['secret_key'] ?? '', 0, 10) . '...',
+            'webhook_url' => route('webhooks.payment.alignet'),
+            'environment' => $environment,
+            'app_environment' => app()->environment(),
+            'enabled' => $config['enabled'] ?? false,
+        ]);
+    })->middleware('auth')->name('test.alignet.config');
+
 
     // ------------------------------
     // Admin

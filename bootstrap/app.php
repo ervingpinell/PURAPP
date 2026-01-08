@@ -55,6 +55,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\PublicReadOnly::class,
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\PreventCartCaching::class,
+            \App\Http\Middleware\ContentSecurityPolicy::class, // CSP for Alignet
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

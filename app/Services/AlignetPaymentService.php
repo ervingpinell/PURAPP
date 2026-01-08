@@ -117,7 +117,7 @@ class AlignetPaymentService
             'shippingZIP' => substr(trim($customerData['zip'] ?? '') !== '' ? trim($customerData['zip']) : '00000', 0, 10),
             'shippingCity' => substr(trim($customerData['city'] ?? '') !== '' ? trim($customerData['city']) : 'Not Provided', 0, 50),
             'shippingState' => substr(trim($customerData['state'] ?? '') !== '' ? trim($customerData['state']) : 'SJ', 0, 15), // Doc says 15.
-            'shippingCountry' => $this->mapCountryToNumeric($customerData['country'] ?? 'CR'), // Fix: Use Numeric Code
+            'shippingCountry' => strtoupper($customerData['country'] ?? 'CR'), // ISO Country Code (e.g., 'CR', 'PA')
             'userCommerce' => substr(hash('sha256', trim($customerData['email'] ?? 'guest')), 0, 10), // Unique ID, Max 10 chars
             'userCodePayme' => $userCodePayme ?? '', // Mandatory: Si (even if empty)
             'descriptionProducts' => substr($customerData['description'] ?? 'Tour booking', 0, 30),
@@ -140,6 +140,19 @@ class AlignetPaymentService
             // Screenshot shows shippingPhone is No Mandatory, max 15.
             $phone = substr(trim($customerData['phone']), 0, 15);
             $paymentData['shippingPhone'] = $phone;
+        }
+
+        // Add complete billing data (using same data as shipping per requirements)
+        $paymentData['billingFirstName'] = $paymentData['shippingFirstName'];
+        $paymentData['billingLastName'] = $paymentData['shippingLastName'];
+        $paymentData['billingEmail'] = $paymentData['shippingEmail'];
+        $paymentData['billingAddress'] = $paymentData['shippingAddress'];
+        $paymentData['billingZIP'] = $paymentData['shippingZIP'];
+        $paymentData['billingCity'] = $paymentData['shippingCity'];
+        $paymentData['billingState'] = $paymentData['shippingState'];
+        $paymentData['billingCountry'] = $paymentData['shippingCountry']; // Same ISO format
+        if (!empty($paymentData['shippingPhone'])) {
+            $paymentData['billingPhone'] = $paymentData['shippingPhone'];
         }
 
         // 🔍 LOG MUY DETALLADO PARA DEBUG
