@@ -96,7 +96,7 @@ class PaymentWebhookController extends Controller
             }
         } catch (\Exception $e) {
             Log::error('Alignet Webhook Exception', ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Server error'], 500);
+            return $this->renderModalResponse($request, 'error', 'Error del Sistema', route('public.carts.index', ['error' => 'Server Error']));
         }
     }
 
