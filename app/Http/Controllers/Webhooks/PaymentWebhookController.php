@@ -36,8 +36,14 @@ class PaymentWebhookController extends Controller
             $service = app(\App\Services\AlignetPaymentService::class);
             if (!$service->validateResponse($request->all())) {
                 Log::error('Alignet Webhook: Invalid signature', $request->all());
-                // Si falla firma, igual redirigimos a error por seguridad
-                return $this->renderModalResponse($request, 'error', 'Error de Seguridad: Firma Inválida', route('public.carts.index', ['error' => 'Security Error']));
+
+                // Build debug string for user visibility (as requested)
+                $debug = "AuthResult: " . ($request->input('authorizationResult') ?? 'N/A') .
+                    ", ErrorCode: " . ($request->input('errorCode') ?? 'N/A') .
+                    ", ErrorMsg: " . ($request->input('errorMessage') ?? 'N/A');
+
+                // Si falla firma, igual redirigimos a error pero con detalles para debug
+                return $this->renderModalResponse($request, 'error', 'Error de Seguridad. ' . $debug, route('public.carts.index', ['error' => 'Security Error: Invalid Signature. ' . $debug]));
             }
 
             // Buscar pago
@@ -91,8 +97,11 @@ class PaymentWebhookController extends Controller
                     $errorMessage ?? 'Payment rejected by bank'
                 );
 
-                $details = "Code: " . ($errorCode ?? $authorizationResult) . " - " . ($errorMessage ?? 'Unknown');
-                return $this->renderModalResponse($request, 'error', $errorMessage ?? 'Pago Rechazado', route('public.carts.index', ['error' => 'Pago rechazado', 'details' => $details]));
+                $debug = "AuthResult: " . ($authorizationResult ?? 'N/A') .
+                    ", ErrorCode: " . ($errorCode ?? 'N/A') .
+                    ", ErrorMsg: " . ($errorMessage ?? 'N/A');
+
+                return $this->renderModalResponse($request, 'error', $errorMessage ?? 'Pago Rechazado', route('public.carts.index', ['error' => "Pago Rechazado. " . $debug]));
             }
         } catch (\Exception $e) {
             Log::error('Alignet Webhook Exception', ['error' => $e->getMessage()]);
