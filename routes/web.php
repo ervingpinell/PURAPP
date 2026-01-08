@@ -469,6 +469,7 @@ Route::middleware([SetLocale::class])->group(function () {
 
     // Alignet Webhook Callback (Server-to-Server or Browser Post/Redirect)
     Route::any('/webhooks/payment/alignet', [\App\Http\Controllers\Webhooks\PaymentWebhookController::class, 'alignet'])
+        ->middleware(['alignet.cors']) // 🔓 Allow CORS from Alignet
         ->name('webhooks.payment.alignet');
 
     // Alignet test/debug route (development only)

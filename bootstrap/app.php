@@ -36,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '2fa.admin'       => \App\Http\Middleware\RequireTwoFactorForAdmins::class,
             'public.readonly' => \App\Http\Middleware\PublicReadOnly::class,
             'throttle.cart'   => \App\Http\Middleware\ThrottleCartActions::class,  // 🆕 Anti-bot
+            'alignet.cors'    => \App\Http\Middleware\AlignetCorsMiddleware::class, // 💳 Alignet CORS
             // Spatie Permission middleware
             'role'            => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission'      => \Spatie\Permission\Middleware\PermissionMiddleware::class,
